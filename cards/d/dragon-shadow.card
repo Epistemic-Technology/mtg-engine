@@ -1,0 +1,8 @@
+card "Dragon Shadow" {
+  oracle_id c9708a12-96b5-43c1-ac2d-d6dc6b03beb7
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+0, has fear
+  triggered from graveyard when creature with mana value 6 or greater enters: you may return this to battlefield attached to that creature
+}

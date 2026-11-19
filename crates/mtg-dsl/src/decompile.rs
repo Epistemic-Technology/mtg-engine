@@ -402,8 +402,11 @@ impl Decompiler<'_> {
             StaticCondition::GraveyardCards { filter, at_least } => StaticCond::GraveyardCards {
                 filter: unowned(filter),
                 at_least: *at_least,
-                have: false,
+                wording: crate::ast::GraveyardWording::ThereAre,
             },
+            StaticCondition::Or(a, b) => {
+                StaticCond::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
+            }
             StaticCondition::OpponentGraveyard(n) => StaticCond::OpponentGraveyard(*n),
             StaticCondition::ManaValuesInGraveyard(n) => StaticCond::ManaValuesInGraveyard(*n),
             StaticCondition::OpponentControls { filter, at_least } => {
@@ -618,11 +621,13 @@ impl Decompiler<'_> {
                 counters,
                 tapped,
                 under_you,
+                attached,
             } => Effect::ReturnToBattlefield {
                 what: r(*what),
                 counters: *counters,
                 tapped: *tapped,
                 under_you: *under_you,
+                attached: attached.map(r),
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {
@@ -789,6 +794,11 @@ impl Decompiler<'_> {
             CoreEffect::Discard { count, who } => Effect::Discard {
                 count: *count,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
+            },
+            CoreEffect::HandToLibrary { count, who, bottom } => Effect::HandToLibrary {
+                count: *count,
+                who: (*who != CoreRecipient::You).then(|| r(*who)),
+                bottom: *bottom,
             },
             CoreEffect::Fight { a, b } => Effect::Fight { a: r(*a), b: r(*b) },
             CoreEffect::DamageFrom { source, amount, to } => Effect::DealDamage {
@@ -1167,6 +1177,7 @@ impl Decompiler<'_> {
             TriggerSpec::DrawsNth { whose, n } => Trigger::DrawsNth {
                 whose: *whose,
                 n: *n,
+                in_a_turn: false,
             },
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
             TriggerSpec::BecomesAttachedTo(f) => Trigger::BecomesAttachedTo(self.filter(f)),
@@ -1346,6 +1357,7 @@ impl Decompiler<'_> {
                 condition: None,
                 targets: Vec::new(),
                 effects: self.sentences(effects),
+                from_graveyard: false,
             },
             AbilityDef::Protection(f) => Ability::Protection(self.filter(f)),
             AbilityDef::AttackUnless {
@@ -1495,6 +1507,7 @@ impl Decompiler<'_> {
                 }),
                 targets: t.targets.iter().map(|x| self.target(*x)).collect(),
                 effects: self.sentences(&t.effects),
+                from_graveyard: t.from_graveyard,
             },
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterTappedUnless(i),

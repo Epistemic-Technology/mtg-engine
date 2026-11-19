@@ -64,6 +64,9 @@ impl GameState {
         if zone == Zone::Graveyard && self.pool.get(def).graveyard_active() {
             self.player_mut(owner).flashback_in_graveyard += 1;
         }
+        if zone == Zone::Graveyard && self.pool.get(def).flags().has_graveyard_trigger() {
+            self.graveyard_trigger_cards += 1;
+        }
         if self.pool.get(def).flags().has_enters_choice() {
             self.enters_choice_cards += 1;
         }
@@ -406,6 +409,14 @@ impl GameState {
             }
             if to == Zone::Graveyard {
                 self.player_mut(old.owner).flashback_in_graveyard += 1;
+            }
+        }
+        if old.kind == ObjKind::Card && self.pool.get(old.card).flags().has_graveyard_trigger() {
+            if old.zone == Zone::Graveyard {
+                self.graveyard_trigger_cards = self.graveyard_trigger_cards.saturating_sub(1);
+            }
+            if to == Zone::Graveyard {
+                self.graveyard_trigger_cards += 1;
             }
         }
         if old.zone == Zone::Exile && (old.cast.adventure() || matches!(old.alt, AltCast::Foretold))

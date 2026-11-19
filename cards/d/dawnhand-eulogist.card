@@ -4,5 +4,5 @@ card "Dawnhand Eulogist" {
   type Creature — Elf Warlock
   pt 3/3
   keywords menace
-  triggered whenever this enters: mill 3 cards; then if 1 Elf cards in your graveyard, each opponent loses 2 life and you gain 2 life
+  triggered whenever this enters: mill 3 cards; then if there is Elf card in your graveyard, each opponent loses 2 life and you gain 2 life
 }

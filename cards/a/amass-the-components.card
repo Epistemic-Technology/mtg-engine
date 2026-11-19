@@ -1,0 +1,6 @@
+card "Amass the Components" {
+  oracle_id 0f623e23-81ae-4c35-b68b-e0a2f431cbad
+  cost {3}{U}
+  type Sorcery
+  spell: draw 3 cards then put 1 card from hand on bottom of library
+}

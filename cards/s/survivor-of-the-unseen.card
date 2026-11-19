@@ -1,0 +1,8 @@
+card "Survivor of the Unseen" {
+  oracle_id ea96c8c6-b77b-4fc0-8b11-6b31e1ed9554
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  cumulative upkeep {2}
+  activated {T}: draw 2 cards then put 1 card from hand on top of library
+}

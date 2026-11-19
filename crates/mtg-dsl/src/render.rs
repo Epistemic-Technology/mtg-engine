@@ -2417,6 +2417,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         Effect::DrawCards { count, .. }
         | Effect::Mill { count, .. }
         | Effect::Discard { count, .. }
+        | Effect::HandToLibrary { count, .. }
         | Effect::AddCounters { count, .. }
         | Effect::DistributeCounters { count, .. }
         | Effect::AddManaTimes { count, .. }
@@ -3460,8 +3461,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             // Activated from the graveyard: "Return this card from your
             // graveyard to your hand."
-            let from_graveyard = what.as_slice() == [Recipient::Source]
-                && matches!(ctx.current, Some(Ability::Activated { cost, .. }) if cost.from_graveyard);
+            let from_graveyard =
+                what.as_slice() == [Recipient::Source] && works_from_graveyard(ctx.current);
             if from_graveyard {
                 return Clause::imperative(
                     "return this card from your graveyard to your hand".to_string(),
@@ -3479,6 +3480,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             counters: c,
             tapped,
             under_you,
+            attached,
         } => {
             let o = match what {
                 Recipient::SameObject | Recipient::CreatedObject => "that card".to_string(),
@@ -3494,8 +3496,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let tapped = if *tapped { " tapped" } else { "" };
             // Activated from the graveyard: "Return this card from your
             // graveyard to the battlefield tapped."
-            let from_graveyard = *what == Recipient::Source
-                && matches!(ctx.current, Some(Ability::Activated { cost, .. }) if cost.from_graveyard);
+            let from_graveyard = *what == Recipient::Source && works_from_graveyard(ctx.current);
             let mut text = if from_graveyard {
                 format!("return this card from your graveyard to the battlefield{tapped}")
             } else if *under_you {
@@ -3511,6 +3512,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             if let Some((kind, n)) = c {
                 let _ = write!(text, " with {} on it", counters(Num::N(*n), *kind));
+            }
+            if let Some(a) = attached {
+                let _ = write!(text, " attached to {}", ctx.obj(*a));
             }
             Clause::imperative(text)
         }
@@ -3797,11 +3801,24 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             wording,
         } => {
             use crate::ast::{LibraryPlace as P, LibraryWording as W};
-            // A card from your own graveyard goes to "your library".
-            let yours = matches!(*what, Recipient::Target(i)
-                if matches!(ctx.targets.get(i).map(Target::base),
-                    Some(Target::GraveyardCard { who: Who::You, .. }
-                        | Target::Spec(TargetSpec::CreatureCardInYourGraveyard))));
+            // A card from your own graveyard goes to "your library"; one
+            // from an opponent's, to "their library".
+            let graveyard_of = match *what {
+                Recipient::Target(i) | Recipient::Targets(i, _) => {
+                    match ctx.targets.get(i).map(Target::base) {
+                        Some(
+                            Target::GraveyardCard { who: Who::You, .. }
+                            | Target::Spec(TargetSpec::CreatureCardInYourGraveyard),
+                        ) => Some("your"),
+                        Some(Target::GraveyardCard {
+                            who: Who::Opponents,
+                            ..
+                        }) => Some("their"),
+                        _ => None,
+                    }
+                }
+                _ => None,
+            };
             let ordinal = |n: u8| match n {
                 2 => "second".to_string(),
                 3 => "third".to_string(),
@@ -3809,7 +3826,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             if *wording == W::Put {
                 let o = ctx.obj(*what);
-                let whose = if yours { "your" } else { "its owner's" };
+                let whose = graveyard_of.unwrap_or("its owner's");
                 return Clause::imperative(match place {
                     P::Top => format!("put {o} on top of {whose} library"),
                     P::FromTop(n) => {
@@ -4344,6 +4361,35 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         s,
                         format!("{} {what}", ctx.verb(*w, "discards", "discard")),
                     )
+                }
+            }
+        }
+        Effect::HandToLibrary { count, who, bottom } => {
+            let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
+            let you = who.is_none_or(|w| w == Recipient::You);
+            let (hand, library) = if you {
+                ("your hand", "your library")
+            } else {
+                ("their hand", "their library")
+            };
+            let place = if *bottom {
+                format!("on the bottom of {library}")
+            } else {
+                format!("on top of {library}")
+            };
+            // CR 401.4: two or more put on top go in the order their
+            // owner chooses.
+            let order = if !*bottom && *count != Num::N(1) {
+                " in any order"
+            } else {
+                ""
+            };
+            let rest = format!("{what} from {hand} {place}{order}");
+            match who {
+                None => Clause::imperative(format!("put {rest}")),
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    Clause::with_subject(*w, s, format!("{} {rest}", ctx.verb(*w, "puts", "put")))
                 }
             }
         }
@@ -5690,7 +5736,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!("whenever {} is turned face up", trigger_subject(o, ctx))
         }
         Trigger::Exploits => format!("when {} exploits a creature", this(ctx)),
-        Trigger::DrawsNth { whose, n } => crate::format::draws_nth(*whose, *n),
+        Trigger::DrawsNth {
+            whose,
+            n,
+            in_a_turn,
+        } => crate::format::draws_nth(*whose, *n, *in_a_turn),
         Trigger::TargetedByYouFirstTime => format!(
             "whenever {} becomes the target of a spell or ability you control for the first time each turn",
             this(ctx)
@@ -6748,6 +6798,17 @@ fn quoted(a: &Ability, card: &Card, noun: CardType, lookup: &dyn Lookup) -> Stri
 
 /// "seven or more cards are in your graveyard", "you control an Island".
 #[allow(clippy::too_many_lines)] // one arm per condition
+/// An ability that works from its card's graveyard (activated there, or a
+/// graveyard trigger): its card is "this card from your graveyard".
+fn works_from_graveyard(a: Option<&Ability>) -> bool {
+    match a {
+        Some(Ability::Activated { cost, .. }) => cost.from_graveyard,
+        Some(Ability::Triggered { from_graveyard, .. }) => *from_graveyard,
+        _ => false,
+    }
+}
+
+#[allow(clippy::too_many_lines)] // one arm per condition
 fn static_cond_text(c: &StaticCond, card: &Card) -> String {
     let or_more = |n: u32| format!("{} or more", count_words(Num::N(n), "one"));
     match c {
@@ -6985,26 +7046,33 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::GraveyardCards {
             filter,
             at_least,
-            have,
+            wording,
         } => {
+            use crate::ast::GraveyardWording as W;
+            let one = with_article(&format!("{} card", card_filter_phrase(filter, card)));
+            let have = match wording {
+                W::ThereIs => return format!("there is {one} in your graveyard"),
+                W::Theres => return format!("there's {one} in your graveyard"),
+                W::IsIn => return format!("{one} is in your graveyard"),
+                W::YouHave => true,
+                W::ThereAre => false,
+            };
             let mut p = card_filter_phrase(filter, card);
             // Spell mastery: "instant and/or sorcery cards".
             if filter.or.is_some() || !filter.any_types.is_empty() {
                 p = p.replace(" or ", " and/or ");
             }
-            // "there is an Elf card in your graveyard".
-            if *at_least == 1 && !*have {
-                return format!(
-                    "there is {} in your graveyard",
-                    with_article(&format!("{p} card"))
-                );
-            }
             format!(
                 "{} {} {p} cards in your graveyard",
-                if *have { "you have" } else { "there are" },
+                if have { "you have" } else { "there are" },
                 or_more(*at_least)
             )
         }
+        StaticCond::Or(a, b) => format!(
+            "{} or {}",
+            static_cond_text(a, card),
+            static_cond_text(b, card)
+        ),
         StaticCond::OpponentGraveyard(n) => {
             format!("an opponent has {} cards in their graveyard", or_more(*n))
         }
@@ -7501,6 +7569,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             condition,
             targets,
             effects,
+            ..
         } => {
             let mut ctx = Ctx::new(card, lookup, targets);
             ctx.current = Some(a);

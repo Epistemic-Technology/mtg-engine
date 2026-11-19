@@ -1,0 +1,8 @@
+card "Biblioplex Assistant" {
+  oracle_id 3dadb654-6191-4ad3-8315-46f5613fbc01
+  cost {4}
+  type Artifact Creature — Gargoyle
+  pt 2/1
+  keywords flying
+  triggered when this enters: put up to 1 target instant or sorcery card from your graveyard on top of library
+}

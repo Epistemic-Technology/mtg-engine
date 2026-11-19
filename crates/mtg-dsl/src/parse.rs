@@ -1565,6 +1565,8 @@ impl P {
             "triggered" => {
                 self.pos += 1;
                 self.in_trigger = true;
+                // CR 113.6k: works only from the graveyard.
+                let from_graveyard = self.eat_words(&["from", "graveyard"]);
                 let when = self.at_word("when");
                 let mut trigger = self.trigger()?;
                 self.it_source = matches!(&trigger, Trigger::CastsFiltered { filter, .. }
@@ -1595,6 +1597,7 @@ impl P {
                     condition,
                     targets: std::mem::take(&mut self.targets),
                     effects,
+                    from_graveyard,
                 })
             }
             "replace" => {
@@ -1979,6 +1982,24 @@ impl P {
         if self.eat_words(&["your", "turn"]) {
             return Ok(StaticCond::YourTurn);
         }
+        // "there is a land card in your graveyard", "there's a Lesson card
+        // in your graveyard".
+        let there = if self.eat_words(&["there", "is"]) {
+            Some(crate::ast::GraveyardWording::ThereIs)
+        } else if self.eat_word("there's") {
+            Some(crate::ast::GraveyardWording::Theres)
+        } else {
+            None
+        };
+        if let Some(wording) = there {
+            let filter = self.filter()?;
+            self.graveyard_cards_tail()?;
+            return Ok(StaticCond::GraveyardCards {
+                filter,
+                at_least: 1,
+                wording,
+            });
+        }
         if let Some(t) = self.turn_time() {
             return Ok(t);
         }
@@ -2138,7 +2159,7 @@ impl P {
             return Ok(StaticCond::GraveyardCards {
                 filter,
                 at_least,
-                have: true,
+                wording: crate::ast::GraveyardWording::YouHave,
             });
         }
         if self.eat_words(&["total", "power"]) {
@@ -2326,6 +2347,16 @@ impl P {
                 }
                 return Ok(StaticCond::YouControlEach(all));
             }
+            // "you control a Desert or there is a Desert card in your
+            // graveyard".
+            if self.at_words(&["or", "there"]) {
+                self.pos += 1;
+                let other = self.static_cond()?;
+                return Ok(StaticCond::Or(
+                    Box::new(StaticCond::YouControl { filter, at_least }),
+                    Box::new(other),
+                ));
+            }
             return Ok(StaticCond::YouControl { filter, at_least });
         }
         let n = self.number()?;
@@ -2350,11 +2381,17 @@ impl P {
             || matches!(self.peek(), Some(Tok::Word(w)) if w.chars().next().is_some_and(char::is_uppercase))
         {
             let filter = self.filter()?;
-            self.graveyard_cards_tail()?;
+            // "an artifact card is in your graveyard".
+            let wording = if n == 1 && self.eat_words(&["card", "is", "in", "your", "graveyard"]) {
+                crate::ast::GraveyardWording::IsIn
+            } else {
+                self.graveyard_cards_tail()?;
+                crate::ast::GraveyardWording::ThereAre
+            };
             return Ok(StaticCond::GraveyardCards {
                 filter,
                 at_least: n,
-                have: false,
+                wording,
             });
         }
         self.unexpected("a condition (threshold, 7 cards in your graveyard, you control 3 artifact, your turn, ...)")
@@ -3459,6 +3496,17 @@ impl P {
                     who: (explicit || subject != Recipient::You).then_some(subject),
                 })
             }
+            "put" | "puts"
+                if matches!(self.peek(), Some(Tok::Num(_))) && self.hand_to_library_ahead() =>
+            {
+                let count = self.num()?;
+                let bottom = self.hand_to_library_tail()?;
+                Ok(Effect::HandToLibrary {
+                    count,
+                    who: (explicit || subject != Recipient::You).then_some(subject),
+                    bottom,
+                })
+            }
             "discard" | "discards" => {
                 if let Some(e) = self.discard_all(Some(subject))? {
                     return Ok(e);
@@ -4111,6 +4159,27 @@ impl P {
         })
     }
 
+    /// After the count: `cards from hand on ...`.
+    fn hand_to_library_ahead(&self) -> bool {
+        matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+            && self.word_at(2).as_deref() == Some("from")
+            && self.word_at(3).as_deref() == Some("hand")
+            && self.word_at(4).as_deref() == Some("on")
+    }
+
+    /// `cards from hand on top of library` / `on bottom of library`
+    /// after the count: whether it's the bottom.
+    fn hand_to_library_tail(&mut self) -> R<bool> {
+        self.cards_word()?;
+        self.expect_words(&["from", "hand", "on"])?;
+        let bottom = self.eat_word("bottom");
+        if !bottom {
+            self.expect_word("top")?;
+        }
+        self.expect_words(&["of", "library"])?;
+        Ok(bottom)
+    }
+
     fn cards_word(&mut self) -> R<()> {
         if self.eat_word("card") || self.eat_word("cards") {
             Ok(())
@@ -4227,6 +4296,16 @@ impl P {
                 let to = self.recipients()?;
                 let no_regen = self.eat_words(&["without", "regeneration"]);
                 Ok(Effect::Destroy { to, no_regen })
+            }
+            // `put 2 cards from hand on top of library`.
+            "put" if matches!(self.peek(), Some(Tok::Num(_))) && self.hand_to_library_ahead() => {
+                let count = self.num()?;
+                let bottom = self.hand_to_library_tail()?;
+                Ok(Effect::HandToLibrary {
+                    count,
+                    who: None,
+                    bottom,
+                })
             }
             "put"
                 if (0..8).any(|k| {
@@ -4380,11 +4459,17 @@ impl P {
                 } else {
                     None
                 };
+                let attached = if self.eat_words(&["attached", "to"]) {
+                    Some(self.recipient()?)
+                } else {
+                    None
+                };
                 Ok(Effect::ReturnToBattlefield {
                     what,
                     counters,
                     tapped,
                     under_you,
+                    attached,
                 })
             }
             "regenerate" => {
@@ -7096,8 +7181,16 @@ impl P {
                 "third" => 3,
                 _ => return self.fail(format!("expected an ordinal, found `{w}`")),
             };
-            self.expect_words(&["card", "each", "turn"])?;
-            return Ok(Trigger::DrawsNth { whose, n });
+            self.expect_word("card")?;
+            let in_a_turn = self.eat_words(&["in", "a", "turn"]);
+            if !in_a_turn {
+                self.expect_words(&["each", "turn"])?;
+            }
+            return Ok(Trigger::DrawsNth {
+                whose,
+                n,
+                in_a_turn,
+            });
         }
         // CR 603.2c: "one or more artifacts you control enter".
         if self.eat_words(&["one", "or", "more"]) {

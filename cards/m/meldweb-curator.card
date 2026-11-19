@@ -1,0 +1,7 @@
+card "Meldweb Curator" {
+  oracle_id 26d6a089-b867-4b89-be8e-2ad11bff0d64
+  cost {3}{U}
+  type Creature — Phyrexian Wizard
+  pt 3/4
+  triggered when this enters: put up to 1 target instant or sorcery card from your graveyard on top of library
+}

@@ -1,0 +1,8 @@
+card "Advanced Stitchwing" {
+  oracle_id 7e5d2801-873f-4318-9c23-9a73e00e31a4
+  cost {3}{U}{U}
+  type Creature — Zombie Horror
+  pt 3/4
+  keywords flying
+  activated {2}{U}, discard 2 cards, from graveyard: return this to battlefield tapped
+}

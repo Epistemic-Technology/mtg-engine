@@ -1889,6 +1889,9 @@ pub enum StaticCondition {
         filter: ObjFilter,
         at_least: u32,
     },
+    /// Either holds ("you control a Desert or there is a Desert card in
+    /// your graveyard").
+    Or(Box<StaticCondition>, Box<StaticCondition>),
     /// "an opponent has eight or more cards in their graveyard".
     OpponentGraveyard(u32),
     /// "there are five or more mana values among cards in your graveyard".
@@ -2790,6 +2793,17 @@ pub enum Effect {
         count: Num,
         who: Recipient,
     },
+    /// "Put a card from your hand on the bottom of your library", "target
+    /// opponent puts a card from their hand on top of their library",
+    /// "put two cards from your hand on top of your library in any
+    /// order": each recipient player chooses `count` cards from their hand
+    /// one at a time, each put on top of (or under) the ones before, so
+    /// the order is theirs (CR 401.4).
+    HandToLibrary {
+        count: Num,
+        who: Recipient,
+        bottom: bool,
+    },
     /// `a` fights `b` (CR 701.12): each deals damage equal to its power to
     /// the other.
     Fight {
@@ -3038,12 +3052,17 @@ pub enum Effect {
     /// Return a card from exile or a graveyard to the battlefield under its
     /// owner's control (or, `under_you`, the ability's controller's:
     /// "return that card to the battlefield under your control"),
-    /// optionally tapped or with counters on it.
+    /// optionally tapped or with counters on it. An Aura with `attached`
+    /// enters attached to that permanent ("return this card from your
+    /// graveyard to the battlefield attached to that creature", CR
+    /// 303.4f), or stays put if it can't enchant it (CR 303.4g).
     ReturnToBattlefield {
         what: Recipient,
         counters: Option<(CounterKind, u32)>,
         tapped: bool,
         under_you: bool,
+        #[serde(default)]
+        attached: Option<Recipient>,
     },
     /// The ability's source becomes a copy of the recipient (CR 707),
     /// keeping its own definition's `copy_except` if `except`.
@@ -3281,6 +3300,7 @@ impl Effect {
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
                 | Effect::Discard { .. }
+                | Effect::HandToLibrary { .. }
                 | Effect::CounterUnlessPays { .. }
                 | Effect::Search { .. }
                 | Effect::AddMana(_)
@@ -3945,6 +3965,11 @@ pub struct TriggeredAbility {
     /// Targets chosen when the ability is put on the stack (CR 603.3d).
     pub targets: Vec<TargetSpec>,
     pub effects: Vec<Effect>,
+    /// Works only while its card is in its owner's graveyard, not on the
+    /// battlefield (CR 113.6k: "Whenever you cast a multicolored spell, you
+    /// may return this card from your graveyard to your hand").
+    #[serde(default)]
+    pub from_graveyard: bool,
 }
 
 /// What a cost does to the permanent chosen for it.
@@ -4762,6 +4787,10 @@ impl DefFlags {
     /// A state trigger (`TriggerSpec::State`, CR 603.8): priority then
     /// checks its condition.
     const STATE_TRIGGER: u32 = 1_048_576;
+    /// A triggered ability that works from the graveyard
+    /// (`TriggeredAbility::from_graveyard`): cards with one are counted
+    /// while there (`GameState::graveyard_trigger_cards`).
+    const GRAVEYARD_TRIGGER: u32 = 2_097_152;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -4856,6 +4885,10 @@ impl DefFlags {
         self.has(DefFlags::STATE_TRIGGER)
     }
 
+    pub const fn has_graveyard_trigger(self) -> bool {
+        self.has(DefFlags::GRAVEYARD_TRIGGER)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     #[allow(clippy::too_many_lines)] // one flag per hot-path fact
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
@@ -4865,7 +4898,13 @@ impl DefFlags {
             keywords.intersects(KeywordSet::TRIGGERED)
                 || abilities
                     .iter()
-                    .any(|a| matches!(a, AbilityDef::Triggered(_))),
+                    .any(|a| matches!(a, AbilityDef::Triggered(t) if !t.from_graveyard)),
+        );
+        flags.set(
+            DefFlags::GRAVEYARD_TRIGGER,
+            abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::Triggered(t) if t.from_graveyard)),
         );
         flags.set(
             DefFlags::REPLACEMENTS,
@@ -5261,6 +5300,7 @@ impl CardPool {
         debug_assert_eq!(pool.subtype("Role"), Subtype::ROLE);
         debug_assert_eq!(pool.subtype("Aura"), Subtype::AURA);
         pool.prowess = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            from_graveyard: false,
             trigger: TriggerSpec::CastsSpell {
                 whose: Who::You,
                 noncreature: true,
@@ -5276,6 +5316,7 @@ impl CardPool {
             }],
         }));
         pool.exalted = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            from_graveyard: false,
             trigger: TriggerSpec::AttacksAlone(TriggerObj::Filter(
                 ObjFilter::creatures().who(Who::You),
             )),
@@ -5290,6 +5331,7 @@ impl CardPool {
         // CR 702.25a: "Whenever a creature without flanking blocks this
         // creature, the blocking creature gets -1/-1 until end of turn."
         pool.flanking = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            from_graveyard: false,
             trigger: TriggerSpec::BlockedBy(ObjFilter {
                 not_keywords: KeywordSet::NONE.with(Keyword::Flanking),
                 ..ObjFilter::creatures()
@@ -5305,6 +5347,7 @@ impl CardPool {
         // CR 702.74a: "When this permanent enters, if its evoke cost was
         // paid, its controller sacrifices it."
         pool.evoke = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            from_graveyard: false,
             trigger: TriggerSpec::Enters(TriggerObj::This),
             condition: Some(Condition::Evoked),
             targets: Vec::new(),
@@ -5313,6 +5356,7 @@ impl CardPool {
             }],
         }));
         pool.exploit = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            from_graveyard: false,
             trigger: TriggerSpec::Enters(TriggerObj::This),
             condition: None,
             targets: Vec::new(),
@@ -5337,6 +5381,7 @@ impl CardPool {
                 TriggerSpec::Enters(TriggerObj::This)
             };
             pool.builtins[i] = pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
                 trigger,
                 condition: None,
                 targets: Vec::new(),
@@ -5345,6 +5390,7 @@ impl CardPool {
         }
         pool.builtins[Builtin::DashReturn as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
                 trigger: TriggerSpec::BeginningOfStep {
                     step: crate::turn::Step::End,
                     whose: Who::Any,
@@ -5363,6 +5409,7 @@ impl CardPool {
                 .build(),
         );
         let ward = AbilityDef::Triggered(TriggeredAbility {
+            from_graveyard: false,
             trigger: TriggerSpec::TargetedByOpponent,
             condition: None,
             targets: Vec::new(),
@@ -5385,6 +5432,7 @@ impl CardPool {
             (CounterKind::PlusOnePlusOne, 1),
         ] {
             let id = pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
                 trigger: TriggerSpec::Dies(TriggerObj::This),
                 condition: Some(Condition::HadNoCounters(kind)),
                 targets: Vec::new(),
@@ -5393,6 +5441,7 @@ impl CardPool {
                     counters: Some((kind, 1)),
                     tapped: false,
                     under_you: false,
+                    attached: None,
                 }],
             }));
             if slot == 0 {

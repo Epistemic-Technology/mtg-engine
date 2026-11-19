@@ -1,0 +1,8 @@
+card "Murasa Behemoth" {
+  oracle_id 0dfdeaa0-fa12-49cf-b361-efa49d3ffcb2
+  cost {4}{G}{G}
+  type Creature — Beast
+  pt 5/5
+  keywords trample
+  static this: +3/+3 as long as there is land card in your graveyard
+}

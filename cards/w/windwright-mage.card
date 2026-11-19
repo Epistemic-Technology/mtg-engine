@@ -1,0 +1,8 @@
+card "Windwright Mage" {
+  oracle_id 2f051ee4-9f2e-414d-b763-5fd78f2d4e1b
+  cost {W}{U}{B}
+  type Artifact Creature — Human Wizard
+  pt 2/2
+  keywords lifelink
+  static this: has flying as long as 1 artifact card is in your graveyard
+}

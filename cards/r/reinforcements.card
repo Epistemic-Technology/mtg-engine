@@ -1,0 +1,6 @@
+card "Reinforcements" {
+  oracle_id ff27ff96-afd2-45df-b799-3046179e27c6
+  cost {W}
+  type Instant
+  spell: put up to 3 target creature card from your graveyard on top of library
+}

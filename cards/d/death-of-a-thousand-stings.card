@@ -1,0 +1,7 @@
+card "Death of a Thousand Stings" {
+  oracle_id 25895c28-23c1-439e-858b-5cb31fdc31de
+  cost {4}{B}
+  type Instant — Arcane
+  spell: target player loses 1 life and you gain 1 life
+  triggered from graveyard at beginning of your upkeep if more cards in hand than each opponent: you may return this to hand
+}

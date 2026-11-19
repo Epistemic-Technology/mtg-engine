@@ -1,0 +1,7 @@
+card "Chittering Rats" {
+  oracle_id 08dfe42e-35c0-4be0-abba-57269792ff3d
+  cost {1}{B}{B}
+  type Creature — Rat
+  pt 2/2
+  triggered when this enters: target opponent puts 1 card from hand on top of library
+}

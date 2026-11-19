@@ -1,0 +1,8 @@
+card "Dragon Scales" {
+  oracle_id 04628d92-bd5e-4aff-830d-7b302bd6459e
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+2, has vigilance
+  triggered from graveyard when creature with mana value 6 or greater enters: you may return this to battlefield attached to that creature
+}

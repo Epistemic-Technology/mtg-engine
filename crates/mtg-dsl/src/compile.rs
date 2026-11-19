@@ -735,6 +735,9 @@ impl Compiler<'_> {
                 filter: self.filter(filter),
                 at_least: *at_least,
             },
+            StaticCond::Or(a, b) => {
+                StaticCondition::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
+            }
             StaticCond::OpponentGraveyard(n) => StaticCondition::OpponentGraveyard(*n),
             StaticCond::ManaValuesInGraveyard(n) => StaticCondition::ManaValuesInGraveyard(*n),
             StaticCond::OpponentControls { filter, at_least } => {
@@ -1187,12 +1190,14 @@ impl Compiler<'_> {
                 counters,
                 tapped,
                 under_you,
+                attached,
             } => {
                 out.push(CoreEffect::ReturnToBattlefield {
                     what: r(*what),
                     counters: *counters,
                     tapped: *tapped,
                     under_you: *under_you,
+                    attached: attached.map(r),
                 });
             }
             Effect::Regenerate { to } => out.push(CoreEffect::Regenerate { to: r(*to) }),
@@ -1425,6 +1430,13 @@ impl Compiler<'_> {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
             }),
+            Effect::HandToLibrary { count, who, bottom } => {
+                out.push(CoreEffect::HandToLibrary {
+                    count: *count,
+                    who: who.map_or(CoreRecipient::You, r),
+                    bottom: *bottom,
+                });
+            }
             Effect::Fight { a, b } => out.push(CoreEffect::Fight { a: r(*a), b: r(*b) }),
             Effect::Bite { source, to, twice } => out.push(CoreEffect::Bite {
                 source: r(*source),
@@ -1528,6 +1540,7 @@ impl Compiler<'_> {
                 let id = self
                     .pool
                     .register_ability(AbilityDef::Triggered(TriggeredAbility {
+                        from_graveyard: false,
                         trigger: TriggerSpec::Reflexive,
                         condition: None,
                         targets,
@@ -1582,6 +1595,7 @@ impl Compiler<'_> {
                 let id = self
                     .pool
                     .register_ability(AbilityDef::Triggered(TriggeredAbility {
+                        from_graveyard: false,
                         trigger,
                         condition: None,
                         targets: Vec::new(),
@@ -1819,7 +1833,7 @@ impl Compiler<'_> {
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
             Trigger::TurnedFaceUp(o) => TriggerSpec::TurnedFaceUp(self.trigger_obj(o)),
             Trigger::Exploits => TriggerSpec::Exploits,
-            Trigger::DrawsNth { whose, n } => TriggerSpec::DrawsNth {
+            Trigger::DrawsNth { whose, n, .. } => TriggerSpec::DrawsNth {
                 whose: *whose,
                 n: *n,
             },
@@ -2068,6 +2082,7 @@ impl Compiler<'_> {
             });
         }
         Ok(AbilityDef::Triggered(TriggeredAbility {
+            from_graveyard: false,
             trigger: TriggerSpec::Enters(CoreTriggerObj::This),
             condition: None,
             targets: vec![TargetSpec::Creature],
@@ -2193,6 +2208,7 @@ impl Compiler<'_> {
                 condition,
                 targets,
                 effects,
+                ..
             } => {
                 let TriggerObj::Filter(f) = o else {
                     return self.err("`is tapped for mana` needs a filter (`enchanted land`)");
@@ -2215,6 +2231,7 @@ impl Compiler<'_> {
                 condition,
                 targets,
                 effects,
+                from_graveyard,
             } => AbilityDef::Triggered(TriggeredAbility {
                 trigger: self.trigger(trigger),
                 condition: match condition {
@@ -2235,6 +2252,7 @@ impl Compiler<'_> {
                 },
                 targets: self.targets(targets),
                 effects: self.sentences(effects)?,
+                from_graveyard: *from_graveyard,
             }),
             Ability::Replacement(r) => AbilityDef::Replacement(self.replacement(r)?),
             // CR 701.43: modeled as an attack trigger: exerting is "it
@@ -2245,6 +2263,7 @@ impl Compiler<'_> {
                 }])];
                 inner.extend(effects.iter().cloned());
                 return self.ability(&Ability::Triggered {
+                    from_graveyard: false,
                     trigger: Trigger::Attacks(TriggerObj::This),
                     condition: None,
                     targets: Vec::new(),
@@ -2402,6 +2421,7 @@ impl Compiler<'_> {
                     };
                     let cond = self.pool.intern_condition(StaticCondition::OffspringPaid);
                     AbilityDef::Triggered(TriggeredAbility {
+                        from_graveyard: false,
                         trigger: TriggerSpec::Enters(CoreTriggerObj::This),
                         condition: Some(mtg_core::card::Condition::Static(cond)),
                         targets: Vec::new(),
@@ -2522,6 +2542,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
     let one = |e: E| vec![Sentence::new(vec![e])];
     match m {
         Mechanic::Bushido(n) => Ability::Triggered {
+            from_graveyard: false,
             trigger: Trigger::BlocksOrBlocked(TriggerObj::This),
             condition: None,
             targets: Vec::new(),
@@ -2532,6 +2553,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             }),
         },
         Mechanic::Afflict(n) => Ability::Triggered {
+            from_graveyard: false,
             trigger: Trigger::BecomesBlocked(TriggerObj::This),
             condition: None,
             targets: Vec::new(),
@@ -2544,6 +2566,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // target artifact creature." (The counters it enters with are the
         // card's `modular`.)
         Mechanic::Modular(_) => Ability::Triggered {
+            from_graveyard: false,
             trigger: Trigger::Dies(TriggerObj::This),
             condition: None,
             targets: vec![Target::Filter(Filter {
@@ -2559,6 +2582,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         },
         // CR 702.24a.
         Mechanic::CumulativeUpkeep(cost) => Ability::Triggered {
+            from_graveyard: false,
             trigger: Trigger::BeginningOfStep {
                 step: mtg_core::turn::Step::Upkeep,
                 whose: Who::You,
@@ -2568,6 +2592,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             effects: one(E::CumulativeUpkeep(cost.clone())),
         },
         Mechanic::Soulshift(n) => Ability::Triggered {
+            from_graveyard: false,
             trigger: Trigger::Dies(TriggerObj::This),
             condition: None,
             targets: vec![Target::GraveyardCard {
@@ -2587,6 +2612,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             }))),
         },
         Mechanic::Ward(cost) => Ability::Triggered {
+            from_graveyard: false,
             trigger: Trigger::TargetedByOpponent,
             condition: None,
             targets: Vec::new(),
@@ -2601,6 +2627,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         Mechanic::WardCost(cost) => Ability::Triggered {
             trigger: Trigger::TargetedByOpponent,
             condition: None,
+            from_graveyard: false,
             targets: Vec::new(),
             effects: one(E::UnlessPays {
                 payer: Recipient::TriggeringController { that: false },
@@ -2613,6 +2640,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             }),
         },
         Mechanic::Echo(cost) => Ability::Triggered {
+            from_graveyard: false,
             trigger: Trigger::BeginningOfStep {
                 step: mtg_core::turn::Step::Upkeep,
                 whose: Who::You,
@@ -2655,6 +2683,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         counters: None,
                         tapped: false,
                         under_you: false,
+                        attached: None,
                     },
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],

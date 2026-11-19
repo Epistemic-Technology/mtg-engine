@@ -1,0 +1,8 @@
+card "Monastery Messenger" {
+  oracle_id 325b88e1-ec7f-4d22-887c-a7f18a868bb0
+  cost {2/U}{2/R}{2/W}
+  type Creature — Bird Scout
+  pt 2/3
+  keywords flying, vigilance
+  triggered when this enters: put up to 1 target noncreature nonland card from your graveyard on top of library
+}

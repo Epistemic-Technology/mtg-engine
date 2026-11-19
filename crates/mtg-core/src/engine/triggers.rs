@@ -20,12 +20,16 @@ use crate::state::{
 
 use super::casting::EffectCtx;
 
-/// A permanent whose triggered abilities may see an event.
+/// A permanent whose triggered abilities may see an event, or a card in a
+/// graveyard whose graveyard abilities may (CR 113.6k).
 struct Watcher {
     source: ObjId,
     controller: PlayerId,
     tapped: bool,
     chars: Characteristics,
+    /// A card in a graveyard: only its abilities that work there trigger,
+    /// and only those (CR 113.6).
+    in_graveyard: bool,
 }
 
 impl GameState {
@@ -55,6 +59,9 @@ impl GameState {
                 let AbilityDef::Triggered(t) = self.pool.ability(ability) else {
                     continue;
                 };
+                if t.from_graveyard != w.in_graveyard {
+                    continue;
+                }
                 let Some((trigger_obj, trigger_player)) = self.fires(&t.trigger, event, w) else {
                     continue;
                 };
@@ -289,6 +296,7 @@ impl GameState {
         if self.trigger_sources > 0
             || !self.delayed_triggers.is_empty()
             || self.suspended_count > 0
+            || self.graveyard_trigger_cards > 0
             || self.grants_exist()
         {
             return true;
@@ -319,7 +327,7 @@ impl GameState {
             }
         );
         if leaves && let Some(lb) = &self.lookback {
-            return lb
+            let mut out: Vec<Watcher> = lb
                 .iter()
                 .filter(|l| {
                     self.may_watch(l.characteristics.def, l.except, event) || self.grants_exist()
@@ -329,8 +337,13 @@ impl GameState {
                     controller: l.controller,
                     tapped: l.tapped,
                     chars: l.characteristics,
+                    in_graveyard: false,
                 })
                 .collect();
+            if self.graveyard_trigger_cards > 0 {
+                self.graveyard_watchers(event, &mut out);
+            }
+            return out;
         }
         let mut out: Vec<Watcher> = self
             .battlefield
@@ -348,9 +361,13 @@ impl GameState {
                     controller: o.controller,
                     tapped: o.tapped,
                     chars: self.characteristics(*id)?,
+                    in_graveyard: false,
                 })
             })
             .collect();
+        if self.graveyard_trigger_cards > 0 {
+            self.graveyard_watchers(event, &mut out);
+        }
         if leaves
             && let Event::ZoneChange { old, .. } = event
             && let Some(l) = self.lki.get(old)
@@ -361,9 +378,43 @@ impl GameState {
                 controller: l.object.controller,
                 tapped: l.object.tapped,
                 chars: l.characteristics,
+                in_graveyard: false,
             });
         }
         out
+    }
+
+    /// Cards in graveyards with abilities that work there and could see
+    /// `event` (CR 113.6k), controlled by their owners. Only called with
+    /// `graveyard_trigger_cards` nonzero. A card that the event itself
+    /// put into the graveyard is a new object (CR 400.7) and doesn't see
+    /// it.
+    #[cold]
+    #[inline(never)]
+    fn graveyard_watchers(&self, event: &Event, out: &mut Vec<Watcher>) {
+        let arrived = match event {
+            Event::ZoneChange { new, .. } => Some(*new),
+            _ => None,
+        };
+        for p in self.players_in_game() {
+            for id in &self.player(p).graveyard {
+                let o = &self.objects[*id];
+                let def = self.pool.get(o.def);
+                if !def.flags().has_graveyard_trigger()
+                    || !def.may_watch(event)
+                    || Some(*id) == arrived
+                {
+                    continue;
+                }
+                out.push(Watcher {
+                    source: *id,
+                    controller: o.owner,
+                    tapped: false,
+                    chars: self.base_characteristics(o),
+                    in_graveyard: true,
+                });
+            }
+        }
     }
 
     /// Whether `spec` on `w` triggers on `event`; if so, the triggering

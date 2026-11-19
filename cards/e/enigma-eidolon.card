@@ -1,0 +1,8 @@
+card "Enigma Eidolon" {
+  oracle_id 4489a526-0e07-4d37-9e83-628f7eb256c6
+  cost {3}{U}
+  type Creature — Spirit
+  pt 2/2
+  activated {U}, sacrifice this: target player mills 3 cards
+  triggered from graveyard whenever you cast multicolored spell: you may return this to hand
+}

@@ -365,6 +365,9 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::OpponentPoisonAtLeast(n) => state
             .players_in_game()
             .any(|p| p != you && state.player(p).poison >= *n),
+        StaticCondition::Or(a, b) => {
+            static_condition_holds(work, a, source) || static_condition_holds(work, b, source)
+        }
         StaticCondition::YouControlEach(filters) => filters.iter().all(|filter| {
             work.ids.iter().any(|id| {
                 work.on_battlefield(*id)

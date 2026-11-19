@@ -1,0 +1,6 @@
+card "Manhole Missile" {
+  oracle_id c596b847-4e05-4279-8675-b4e39cb3dc91
+  cost {1}{R}
+  type Instant
+  spell: this deals 3 damage to target creature; you may put 1 card from hand on bottom of library; if you do, draw 1 card
+}

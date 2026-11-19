@@ -1,0 +1,8 @@
+card "Wall of Forgotten Pharaohs" {
+  oracle_id 7ab15fcd-8371-4b3c-b534-e9ef44249213
+  cost {2}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender
+  activated {T}, if you control Desert or there is Desert card in your graveyard: this deals 1 damage to target player or planeswalker
+}

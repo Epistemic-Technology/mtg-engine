@@ -1137,6 +1137,9 @@ pub struct GameState {
     pub exile_casts: Option<Box<ExileCasts>>,
     /// Suspended cards in exile, so upkeeps skip the scan without any.
     pub suspended_count: u32,
+    /// Cards in graveyards with a triggered ability that works there
+    /// (CR 113.6k), so trigger detection skips the graveyards without any.
+    pub graveyard_trigger_cards: u32,
     /// Cards in the game with an "As this enters, choose ..." ability:
     /// with any, every way onto the battlefield may ask a question.
     pub enters_choice_cards: u32,
@@ -1368,6 +1371,7 @@ impl GameState {
         // can have a triggered ability on most boards.
         let may_trigger = event.watch_bit() != 0
             && (self.trigger_sources > 0
+                || self.graveyard_trigger_cards > 0
                 || self.lookback.is_some()
                 || self.grant_sources > 0
                 || self.eot_grants > 0)
@@ -1994,6 +1998,7 @@ impl GameState {
                 .players_in_game()
                 .filter(|p| *p != you)
                 .any(|p| count(filter, p) == 0),
+            C::Or(a, b) => self.condition_now(a, you, source) || self.condition_now(b, you, source),
             C::DefenderControls { filter, at_least } => self
                 .players_in_game()
                 .filter(|p| *p != you)

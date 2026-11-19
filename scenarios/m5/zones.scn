@@ -1,0 +1,272 @@
+# Moving cards between graveyard, hand and library: abilities that work
+# from the graveyard and return the card itself (CR 113.6k), graveyard
+# cards put into a library, cards from hand put on top or bottom of a
+# library (CR 401.4), and "there is a ... card in your graveyard".
+
+# ----- abilities of cards in graveyards -----
+
+scenario "Enigma Eidolon returns from the graveyard when you cast a multicolored spell" {
+  battlefield A: "Plains", "Island"
+  hand A: "Search Warrant"
+  graveyard A: "Enigma Eidolon"
+  turn 1 A: cast "Search Warrant" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A contains "Enigma Eidolon"
+  assert graveyard A lacks "Enigma Eidolon"
+}
+
+scenario "Enigma Eidolon's trigger is optional" {
+  battlefield A: "Plains", "Island"
+  hand A: "Search Warrant"
+  graveyard A: "Enigma Eidolon"
+  turn 1 A: cast "Search Warrant" targeting player B
+  turn 1 A: decline "Enigma Eidolon"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Enigma Eidolon"
+}
+
+scenario "Enigma Eidolon ignores monocolored spells" {
+  battlefield A: "Plains"
+  hand A: "Healing Salve"
+  graveyard A: "Enigma Eidolon"
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Enigma Eidolon"
+}
+
+scenario "Enigma Eidolon on the battlefield doesn't return from the graveyard" {
+  battlefield A: "Plains", "Island", "Enigma Eidolon"
+  hand A: "Search Warrant"
+  turn 1 A: cast "Search Warrant" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Enigma Eidolon"
+  assert stack count 0
+}
+
+scenario "Enigma Eidolon in an opponent's graveyard watches its owner's spells" {
+  battlefield A: "Plains", "Island"
+  hand A: "Search Warrant"
+  graveyard B: "Enigma Eidolon"
+  turn 1 A: cast "Search Warrant" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Enigma Eidolon"
+}
+
+scenario "Death of a Thousand Stings returns at upkeep with more cards in hand" {
+  hand A: "Grizzly Bears", "Hill Giant"
+  graveyard A: "Death of a Thousand Stings"
+  start turn 3 A
+  run_to turn 3 draw
+  assert hand A contains "Death of a Thousand Stings"
+}
+
+scenario "Death of a Thousand Stings stays without more cards in hand" {
+  hand A: "Grizzly Bears"
+  hand B: "Hill Giant"
+  graveyard A: "Death of a Thousand Stings"
+  start turn 3 A
+  run_to turn 3 draw
+  assert graveyard A contains "Death of a Thousand Stings"
+}
+
+scenario "Sneaky Snacker returns tapped when you draw your third card in a turn" {
+  battlefield A: 3 "Island"
+  hand A: "Brainstorm"
+  graveyard A: "Sneaky Snacker"
+  turn 1 A: cast "Brainstorm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sneaky Snacker"
+  assert tapped "Sneaky Snacker"
+}
+
+scenario "Dragon Fangs returns attached to a creature with mana value 6 or greater" {
+  battlefield A: 6 "Mountain"
+  hand A: "Shivan Dragon"
+  graveyard A: "Dragon Fangs"
+  turn 1 A: cast "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert attached "Dragon Fangs" to "Shivan Dragon"
+  assert power "Shivan Dragon" 6
+  assert has "Shivan Dragon" trample
+}
+
+scenario "Dragon Fangs ignores smaller creatures" {
+  battlefield A: 4 "Mountain"
+  hand A: "Hill Giant"
+  graveyard A: "Dragon Fangs"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Dragon Fangs"
+}
+
+scenario "Persistent Specimen returns tapped from the graveyard" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Persistent Specimen"
+  turn 1 A: activate "Persistent Specimen"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Persistent Specimen"
+  assert tapped "Persistent Specimen"
+}
+
+scenario "Persistent Specimen can't be activated on the battlefield" {
+  battlefield A: 3 "Swamp", "Persistent Specimen"
+  illegal turn 1 A: activate "Persistent Specimen"
+  run_to turn 1 postcombat_main
+}
+
+# ----- graveyard cards into a library -----
+
+scenario "Reinforcements puts creature cards on top of your library" {
+  battlefield A: "Plains"
+  hand A: "Reinforcements"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  library A: "Island"
+  turn 1 A: cast "Reinforcements" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert library A contains "Grizzly Bears"
+  assert library A contains "Hill Giant"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
+scenario "Landscaper Colos puts an opponent's graveyard card on the bottom of their library" {
+  battlefield A: 6 "Plains"
+  hand A: "Landscaper Colos"
+  graveyard B: "Hill Giant"
+  turn 1 A: cast "Landscaper Colos"
+  turn 1 A: trigger "Landscaper Colos" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert library B contains "Hill Giant"
+  assert graveyard B count 0
+}
+
+scenario "Epitaph Golem can't put an opponent's card into a library" {
+  battlefield A: 2 "Plains", "Epitaph Golem"
+  graveyard B: "Hill Giant"
+  illegal turn 1 A: activate "Epitaph Golem" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+# ----- cards from hand on top or bottom of a library -----
+
+scenario "Brainstorm draws three and puts two back on top" {
+  battlefield A: "Island"
+  hand A: "Brainstorm", "Hill Giant"
+  library A: "Grizzly Bears", "Forest", "Mountain", "Plains"
+  turn 1 A: cast "Brainstorm"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Mountain"
+  assert library A count 3
+  assert library A contains "Hill Giant"
+}
+
+scenario "Brainstorm's cards go back in the order chosen" {
+  battlefield A: "Island"
+  hand A: "Brainstorm", "Hill Giant"
+  library A: "Grizzly Bears", "Forest", "Mountain", "Plains"
+  turn 1 A: cast "Brainstorm"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: choose "Forest"
+  run_to turn 3 precombat_main
+  # The last card put back is on top: Forest is drawn first.
+  assert hand A contains "Forest"
+  assert library A contains "Hill Giant"
+}
+
+scenario "Chittering Rats makes the opponent put a card from hand on top" {
+  battlefield A: 3 "Swamp"
+  hand A: "Chittering Rats"
+  hand B: "Hill Giant"
+  turn 1 A: cast "Chittering Rats"
+  turn 1 A: trigger "Chittering Rats" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert library B contains "Hill Giant"
+}
+
+scenario "Fire Prophecy may put a card on the bottom and draw" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Fire Prophecy", "Plains"
+  library A: "Grizzly Bears"
+  turn 1 A: cast "Fire Prophecy" targeting "Hill Giant"
+  turn 1 A: choose "Plains"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+  assert library A contains "Plains"
+}
+
+scenario "Fire Prophecy draws nothing when declined" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Fire Prophecy", "Plains"
+  library A: "Grizzly Bears"
+  turn 1 A: cast "Fire Prophecy" targeting "Hill Giant"
+  turn 1 A: decline "Fire Prophecy"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Fire Prophecy with an empty hand draws nothing" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Fire Prophecy"
+  library A: "Grizzly Bears"
+  turn 1 A: cast "Fire Prophecy" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A contains "Grizzly Bears"
+}
+
+# ----- "there is a ... card in your graveyard" -----
+
+scenario "Murasa Behemoth grows with a land card in your graveyard" {
+  battlefield A: "Murasa Behemoth"
+  graveyard A: "Forest"
+  run_to turn 1 precombat_main
+  assert power "Murasa Behemoth" 8
+}
+
+scenario "Murasa Behemoth stays small without one" {
+  battlefield A: "Murasa Behemoth"
+  graveyard A: "Grizzly Bears"
+  graveyard B: "Forest"
+  run_to turn 1 precombat_main
+  assert power "Murasa Behemoth" 5
+}
+
+scenario "First-Time Flyer counts a Lesson card in your graveyard" {
+  battlefield A: "First-Time Flyer"
+  graveyard A: "Environmental Sciences"
+  run_to turn 1 precombat_main
+  assert power "First-Time Flyer" 2
+}
+
+scenario "Windwright Mage flies with an artifact card in your graveyard" {
+  battlefield A: "Windwright Mage"
+  graveyard A: "Ornithopter"
+  run_to turn 1 precombat_main
+  assert has "Windwright Mage" flying
+}
+
+scenario "Solitary Camel has lifelink with a Desert in play or in the graveyard" {
+  battlefield A: "Solitary Camel", "Desert"
+  battlefield B: "Sidewinder Naga"
+  graveyard B: "Desert"
+  run_to turn 1 precombat_main
+  assert has "Solitary Camel" lifelink
+  assert power "Sidewinder Naga" 4
+  assert has "Sidewinder Naga" trample
+}
+
+scenario "Solitary Camel lacks lifelink without a Desert" {
+  battlefield A: "Solitary Camel"
+  graveyard B: "Desert"
+  run_to turn 1 precombat_main
+  assert has not "Solitary Camel" lifelink
+}
