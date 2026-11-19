@@ -1,0 +1,7 @@
+card "Grounded for Life" {
+  oracle_id 9a334434-072a-4486-810a-63efb29dea6d
+  cost {4}{W}
+  type Instant
+  this spell costs {3} less if it targets tapped creature
+  spell: destroy target creature
+}

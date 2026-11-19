@@ -1,0 +1,7 @@
+card "Luminous Rebuke" {
+  oracle_id d96141af-313f-4ea9-a249-d9eb22cd2431
+  cost {4}{W}
+  type Instant
+  this spell costs {3} less if it targets tapped creature
+  spell: destroy target creature
+}

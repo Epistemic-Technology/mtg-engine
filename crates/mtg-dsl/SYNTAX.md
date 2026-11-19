@@ -179,6 +179,10 @@ instead of untapping), `charge`, `oil`, `spore`, `depletion`, `quest`,
 `this becomes 4/4 green Bear artifact creature` (colors before
 subtypes), `target creature becomes blue`, `this becomes colorless`,
 `target land becomes Island` (all until end of turn).
+`this spell costs {3} less if it targets tapped creature` (or `more`):
+"This spell costs {3} less to cast if it targets a tapped creature." Its
+targets are then held to ones the caster can pay for. Triggers `when
+this leaves the battlefield`, `whenever this attacks or blocks`.
 `count each 2 creature you control` ("2 life for each creature you
 control"); filter `defending player controls` (two players: the
 attacker's opponent).

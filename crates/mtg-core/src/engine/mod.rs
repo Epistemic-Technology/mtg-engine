@@ -721,6 +721,15 @@ impl GameState {
                         })
                         .map(Choice::Target)
                         .collect();
+                    // A cost that depends on the first target: only targets
+                    // the caster can pay for (CR 601.2f comes after 601.2c,
+                    // but an unpayable choice would be illegal to finish).
+                    if next_target == 0 && !is_ability && self.pool.get(def).target_cost.is_some() {
+                        options.retain(|c| {
+                            let Choice::Target(t) = c else { return true };
+                            self.target_payable(spell, *t)
+                        });
+                    }
                     if optional {
                         if options.is_empty() {
                             self.flow = Flow::Casting {

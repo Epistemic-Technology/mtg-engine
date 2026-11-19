@@ -1,0 +1,7 @@
+card "Banish from Edoras" {
+  oracle_id e4508afd-7cc3-4176-8291-cfc2c155ac11
+  cost {4}{W}
+  type Sorcery
+  this spell costs {2} less if it targets tapped creature
+  spell: exile target creature
+}

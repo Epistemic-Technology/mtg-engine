@@ -1,0 +1,7 @@
+card "Quicksand Whirlpool" {
+  oracle_id 43fb0f35-8eea-4344-9415-6ecb8aa46491
+  cost {5}{W}
+  type Instant
+  this spell costs {3} less if it targets tapped creature
+  spell: exile target creature
+}

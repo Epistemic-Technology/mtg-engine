@@ -2249,6 +2249,10 @@ pub enum TriggerSpec {
     BecomesBlocked(TriggerObj),
     /// "Whenever this creature blocks or becomes blocked".
     BlocksOrBlocked(TriggerObj),
+    /// "Whenever this creature attacks or blocks".
+    AttacksOrBlocks(TriggerObj),
+    /// "When this creature leaves the battlefield" (to any zone).
+    Leaves(TriggerObj),
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
     /// "Whenever you gain life".
@@ -2317,7 +2321,10 @@ impl TriggerSpec {
     /// `&` instead of a walk over abilities.
     pub fn watch_mask(&self) -> u16 {
         match self {
-            TriggerSpec::Enters(_) | TriggerSpec::Dies(_) => WATCH_ZONE_CHANGE,
+            TriggerSpec::Enters(_) | TriggerSpec::Dies(_) | TriggerSpec::Leaves(_) => {
+                WATCH_ZONE_CHANGE
+            }
+            TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
             TriggerSpec::BeginningOfStep { .. } => WATCH_STEP_BEGIN,
             TriggerSpec::Attacks(_) | TriggerSpec::AttacksAlone(_) => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
@@ -2774,6 +2781,10 @@ pub struct CardDef {
     pub kicker: Option<Box<ManaCost>>,
     /// What this spell's own text takes off its cost (affinity).
     pub self_cost: Option<SelfCost>,
+    /// "This spell costs {3} less to cast if it targets a tapped
+    /// creature" (negative) or "{2} more ... a Dragon": generic mana, and
+    /// what the first target must match.
+    pub target_cost: Option<Box<(i32, ObjFilter)>>,
     /// Buyback (CR 702.27): an optional additional cost; if paid, the
     /// spell goes to its owner's hand as it resolves.
     pub buyback: Option<Box<ManaCost>>,
@@ -3689,6 +3700,7 @@ impl Builder {
             buyback: None,
             morph: None,
             evoke: None,
+            target_cost: None,
             madness: None,
             foretell: None,
             suspend: None,
@@ -3806,6 +3818,13 @@ impl Builder {
     #[must_use]
     pub fn evoke(mut self, cost: ManaCost) -> Self {
         self.0.evoke = Some(Box::new(cost));
+        self
+    }
+
+    /// A cost change by the first target (see `CardDef::target_cost`).
+    #[must_use]
+    pub fn target_cost(mut self, delta: i32, filter: ObjFilter) -> Self {
+        self.0.target_cost = Some(Box::new((delta, filter)));
         self
     }
 

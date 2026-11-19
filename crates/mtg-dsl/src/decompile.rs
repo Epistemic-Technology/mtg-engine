@@ -589,6 +589,8 @@ impl Decompiler<'_> {
             TriggerSpec::AttacksAlone(o) => Trigger::AttacksAlone(self.trigger_obj(o)),
             TriggerSpec::BecomesBlocked(o) => Trigger::BecomesBlocked(self.trigger_obj(o)),
             TriggerSpec::BlocksOrBlocked(o) => Trigger::BlocksOrBlocked(self.trigger_obj(o)),
+            TriggerSpec::AttacksOrBlocks(o) => Trigger::AttacksOrBlocks(self.trigger_obj(o)),
+            TriggerSpec::Leaves(o) => Trigger::Leaves(self.trigger_obj(o)),
             TriggerSpec::Blocks(o) => Trigger::Blocks(self.trigger_obj(o)),
             TriggerSpec::DealsCombatDamageToPlayer(o) => {
                 Trigger::DealsCombatDamageToPlayer(self.trigger_obj(o))

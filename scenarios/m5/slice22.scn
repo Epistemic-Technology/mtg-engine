@@ -1,0 +1,27 @@
+# A cost that depends on the target: cheaper at a tapped creature, and
+# then held to targets the caster can pay for.
+
+scenario "cheap at a tapped creature" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant" tapped, "Gray Ogre"
+  hand A: "Seized from Slumber"
+  turn 1 A: cast "Seized from Slumber" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+scenario "with two mana, not at an untapped creature" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant" tapped, "Gray Ogre"
+  hand A: "Seized from Slumber"
+  illegal turn 1 A: cast "Seized from Slumber" targeting "Gray Ogre"
+  run_to turn 1 end
+  assert battlefield B contains "Gray Ogre"
+}
+scenario "full price at an untapped creature" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Gray Ogre"
+  hand A: "Seized from Slumber"
+  turn 1 A: cast "Seized from Slumber" targeting "Gray Ogre"
+  run_to turn 1 end
+  assert graveyard B contains "Gray Ogre"
+}

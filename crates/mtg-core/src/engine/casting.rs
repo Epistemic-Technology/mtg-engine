@@ -307,6 +307,18 @@ impl GameState {
         if def.self_cost.is_some() || !changers.is_empty() {
             adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
         }
+        // Cheaper with a fitting target: castable if one exists (targets
+        // are then held to what's payable).
+        if let Some(tc) = &def.target_cost
+            && tc.0 < 0
+            && def.cast_targets().first().is_some_and(|spec| {
+                self.legal_targets(p, *spec, Some(id))
+                    .iter()
+                    .any(|t| self.target_fits(&tc.1, *t, p, id))
+            })
+        {
+            adjust_generic(&mut req, tc.0);
+        }
         let helped = Keyword::helps_pay(def.keywords);
         let payable = if helped {
             let mut all = sources.clone();
@@ -702,6 +714,12 @@ impl GameState {
                 &mut req,
                 self.cost_delta(o.controller, def, spell, &self.cost_changers()),
             );
+        }
+        if let Some(tc) = &def.target_cost
+            && let Some(t) = o.targets.first()
+            && self.target_fits(&tc.1, *t, o.controller, spell)
+        {
+            adjust_generic(&mut req, tc.0);
         }
         req
     }
@@ -1224,6 +1242,42 @@ impl GameState {
             self.resolve_top();
         }
         self.give_priority(controller);
+    }
+
+    /// Whether `spell` could be paid for with `t` as its first target.
+    pub(super) fn target_payable(&self, spell: ObjId, t: Target) -> bool {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let Some(tc) = &def.target_cost else {
+            return true;
+        };
+        let mut req = self.spell_requirements(spell, self.x_of(spell));
+        if self.target_fits(&tc.1, t, o.controller, spell) {
+            adjust_generic(&mut req, tc.0);
+        }
+        let sources = self.spell_sources(spell);
+        let ps = self.player(o.controller);
+        payment_plan_from(&sources, &ps.mana_pool, &req, ps.life).is_some()
+    }
+
+    /// Whether `t` matches a target-cost filter (a permanent's current
+    /// characteristics and state).
+    pub(super) fn target_fits(
+        &self,
+        f: &crate::card::ObjFilter,
+        t: Target,
+        p: PlayerId,
+        source: ObjId,
+    ) -> bool {
+        let Target::Object(id) = t else {
+            return false;
+        };
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        self.characteristics(id)
+            .is_some_and(|c| f.matches(id, o.controller, &c, Some(source), Some(p)))
+            && self.status_ok(f, id)
     }
 
     /// Legal targets for `spec` chosen by `caster`, for a spell or an

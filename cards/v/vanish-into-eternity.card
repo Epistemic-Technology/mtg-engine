@@ -1,0 +1,7 @@
+card "Vanish into Eternity" {
+  oracle_id c14e422b-6412-45ce-8e82-d47ba61557a0
+  cost {2}{W}
+  type Instant
+  this spell costs {3} more if it targets creature
+  spell: exile target nonland permanent
+}

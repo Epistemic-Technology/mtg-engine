@@ -186,6 +186,10 @@ impl Compiler<'_> {
                         times: *times,
                     });
                 }
+                Ability::TargetCost { delta, filter } => {
+                    let f = self.filter(filter);
+                    b = b.target_cost(*delta, f);
+                }
                 Ability::Mechanic(Mechanic::Buyback(cost)) => {
                     b = b.buyback(cost.clone());
                 }
@@ -284,6 +288,7 @@ impl Compiler<'_> {
                 unlabeled(a),
                 Ability::Keyword(_)
                     | Ability::SelfCost { .. }
+                    | Ability::TargetCost { .. }
                     | Ability::Affinity(_)
                     | Ability::Mechanic(
                         Mechanic::Buyback(_)
@@ -929,6 +934,8 @@ impl Compiler<'_> {
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
             Trigger::BecomesBlocked(o) => TriggerSpec::BecomesBlocked(self.trigger_obj(o)),
             Trigger::BlocksOrBlocked(o) => TriggerSpec::BlocksOrBlocked(self.trigger_obj(o)),
+            Trigger::AttacksOrBlocks(o) => TriggerSpec::AttacksOrBlocks(self.trigger_obj(o)),
+            Trigger::Leaves(o) => TriggerSpec::Leaves(self.trigger_obj(o)),
             Trigger::Blocks(o) => TriggerSpec::Blocks(self.trigger_obj(o)),
             Trigger::DealsCombatDamageToPlayer(o) => {
                 TriggerSpec::DealsCombatDamageToPlayer(self.trigger_obj(o))
@@ -1270,7 +1277,7 @@ impl Compiler<'_> {
                 whose: *whose,
                 delta: *delta,
             },
-            Ability::SelfCost { .. } | Ability::Affinity(_) => {
+            Ability::SelfCost { .. } | Ability::TargetCost { .. } | Ability::Affinity(_) => {
                 return self.err("a cost reduction of the spell itself is not an ability");
             }
         })

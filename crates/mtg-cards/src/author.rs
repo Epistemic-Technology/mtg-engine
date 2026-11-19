@@ -2173,6 +2173,19 @@ impl Builder<'_> {
                 .push(format!("affinity for {}", singular(cap(&c, 1))));
             return Ok(());
         }
+        if let Some(c) =
+            Regex::new(r"^This spell costs \{(\d+)\} (less|more) to cast if it targets an? (.+)\.$")
+                .unwrap()
+                .captures(line)
+        {
+            self.statements.push(format!(
+                "this spell costs {{{}}} {} if it targets {}",
+                cap(&c, 1),
+                cap(&c, 2),
+                cap(&c, 3)
+            ));
+            return Ok(());
+        }
         if let Some(c) = Regex::new(r"^This spell costs \{(\d+)\} less to cast for each (.+)\.$")
             .unwrap()
             .captures(line)

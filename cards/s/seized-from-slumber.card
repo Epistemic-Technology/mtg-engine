@@ -1,0 +1,7 @@
+card "Seized from Slumber" {
+  oracle_id 7ac608bc-dc2a-43c9-9b3b-1b985c121d60
+  cost {4}{W}
+  type Instant
+  this spell costs {3} less if it targets tapped creature
+  spell: destroy target creature
+}

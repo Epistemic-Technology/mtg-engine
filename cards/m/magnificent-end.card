@@ -1,0 +1,7 @@
+card "Magnificent End" {
+  oracle_id 82bdf9cb-61fe-4eaf-8762-c32002403d96
+  cost {4}{W}
+  type Instant
+  this spell costs {3} less if it targets tapped creature
+  spell: deal 5 damage to target creature
+}

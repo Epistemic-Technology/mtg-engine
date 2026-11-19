@@ -1,0 +1,7 @@
+card "Dragon's Prey" {
+  oracle_id 86cb340f-ef06-4be9-b457-703784387dbe
+  cost {2}{B}
+  type Instant
+  this spell costs {2} more if it targets Dragon
+  spell: destroy target creature
+}

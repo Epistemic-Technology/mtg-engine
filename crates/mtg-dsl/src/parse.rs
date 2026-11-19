@@ -824,6 +824,19 @@ impl P {
             "this" if self.at_words(&["this", "spell", "costs"]) => {
                 self.pos += 3;
                 let per = self.mana_cost()?.mana_value();
+                if self.at_words(&["less", "if", "it", "targets"])
+                    || self.at_words(&["more", "if", "it", "targets"])
+                {
+                    let less = self.at_word("less");
+                    self.pos += 4;
+                    let filter = self.filter()?;
+                    self.end_stmt()?;
+                    let n = i32::try_from(per).unwrap_or(0);
+                    return Ok(Ability::TargetCost {
+                        delta: if less { -n } else { n },
+                        filter,
+                    });
+                }
                 self.expect_word("less")?;
                 let times = self.num()?;
                 self.end_stmt()?;
@@ -3526,6 +3539,14 @@ impl P {
                     "battlefield",
                 ])?;
                 Ok(Trigger::Dies(obj))
+            }
+            "leaves" if self.at_words(&["the", "battlefield"]) => {
+                self.pos += 2;
+                Ok(Trigger::Leaves(obj))
+            }
+            "attacks" if self.at_words(&["or", "blocks"]) => {
+                self.pos += 2;
+                Ok(Trigger::AttacksOrBlocks(obj))
             }
             "attacks" => {
                 if self.eat_word("alone") {

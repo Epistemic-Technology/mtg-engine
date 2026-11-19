@@ -1161,6 +1161,7 @@ pub fn natural_when(t: &Trigger) -> bool {
         t,
         Trigger::Enters(TriggerObj::This)
             | Trigger::Dies(TriggerObj::This)
+            | Trigger::Leaves(TriggerObj::This)
             | Trigger::TurnedFaceUp
             | Trigger::Exploits
             | Trigger::BecomesTarget(TriggerObj::This)
@@ -1213,6 +1214,8 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             format!("whenever {} blocks or becomes blocked", trigger_obj(o))
         }
         Trigger::Blocks(o) => format!("whenever {} blocks", trigger_obj(o)),
+        Trigger::AttacksOrBlocks(o) => format!("whenever {} attacks or blocks", trigger_obj(o)),
+        Trigger::Leaves(o) => format!("whenever {} leaves the battlefield", trigger_obj(o)),
         Trigger::DealsCombatDamageToPlayer(o) => {
             format!(
                 "whenever {} deals combat damage to a player",
@@ -1765,6 +1768,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 out,
                 "{indent}spells{subject}{whose} cost {{{}}} {more}",
                 generic.unsigned_abs()
+            );
+        }
+        Ability::TargetCost { delta, filter: f } => {
+            let _ = writeln!(
+                out,
+                "{indent}this spell costs {{{}}} {} if it targets {}",
+                delta.unsigned_abs(),
+                if *delta < 0 { "less" } else { "more" },
+                filter(f)
             );
         }
         Ability::SelfCost { per, times } => {

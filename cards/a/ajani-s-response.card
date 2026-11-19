@@ -1,0 +1,7 @@
+card "Ajani's Response" {
+  oracle_id bf7ec320-64bb-46ca-aac0-ca3d4224b69e
+  cost {4}{W}
+  type Instant
+  this spell costs {3} less if it targets tapped creature
+  spell: destroy target creature
+}

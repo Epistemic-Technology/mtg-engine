@@ -2600,6 +2600,15 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::BecomesBlocked(TriggerObj::Filter(f)) => {
             format!("whenever {} becomes blocked", filter_a(f, ctx.card))
         }
+        Trigger::AttacksOrBlocks(o) => {
+            format!("whenever {} attacks or blocks", trigger_subject(o, ctx))
+        }
+        Trigger::Leaves(TriggerObj::This) => {
+            format!("when {} leaves the battlefield", this(ctx))
+        }
+        Trigger::Leaves(TriggerObj::Filter(f)) => {
+            format!("whenever {} leaves the battlefield", filter_a(f, ctx.card))
+        }
         Trigger::BlocksOrBlocked(TriggerObj::This) => {
             format!("whenever {} blocks or becomes blocked", this(ctx))
         }
@@ -3446,6 +3455,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             )
             .replace("  ", " ")
         }
+        Ability::TargetCost { delta, filter } => format!(
+            "This spell costs {{{}}} {} to cast if it targets {}.",
+            delta.unsigned_abs(),
+            if *delta < 0 { "less" } else { "more" },
+            filter_a(filter, card)
+        ),
         Ability::SelfCost { per, times } => {
             let tail = match times {
                 Num::Count(i) => card

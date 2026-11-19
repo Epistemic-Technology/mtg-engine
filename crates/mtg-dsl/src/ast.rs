@@ -386,6 +386,12 @@ pub enum Ability {
         per: u32,
         times: Num,
     },
+    /// `this spell costs {3} less if it targets tapped creature`, `... {2}
+    /// more if it targets Dragon`.
+    TargetCost {
+        delta: i32,
+        filter: Filter,
+    },
     /// `affinity for artifact`: "Affinity for artifacts" (CR 702.41), this
     /// spell costs {1} less for each such permanent you control.
     Affinity(Filter),
@@ -674,6 +680,10 @@ pub enum Trigger {
     BecomesBlocked(TriggerObj),
     /// `whenever this blocks or becomes blocked`.
     BlocksOrBlocked(TriggerObj),
+    /// `whenever this attacks or blocks`.
+    AttacksOrBlocks(TriggerObj),
+    /// `when this leaves the battlefield`.
+    Leaves(TriggerObj),
     Blocks(TriggerObj),
     DealsCombatDamageToPlayer(TriggerObj),
     GainsLife {

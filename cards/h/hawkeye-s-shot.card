@@ -1,0 +1,7 @@
+card "Hawkeye's Shot" {
+  oracle_id 6bbd1316-02d3-46ab-ba1a-0ecab51ec4c4
+  cost {4}{W}
+  type Sorcery
+  this spell costs {2} less if it targets tapped creature
+  spell: exile target creature
+}

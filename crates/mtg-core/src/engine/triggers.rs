@@ -320,6 +320,34 @@ impl GameState {
                 (s == step && whose_ok(*whose, self.active_player))
                     .then_some((None, Some(self.active_player)))
             }
+            (
+                TriggerSpec::AttacksOrBlocks(what),
+                Event::Attack { attacker: obj, .. } | Event::Block { blocker: obj, .. },
+            ) => {
+                let p = on_battlefield(what, *obj)?;
+                Some((Some(*obj), Some(p)))
+            }
+            (
+                TriggerSpec::Leaves(what),
+                Event::ZoneChange {
+                    old,
+                    from: Zone::Battlefield,
+                    ..
+                },
+            ) => {
+                let l = self.lki.get(old)?;
+                let ok = match what {
+                    TriggerObj::This => *old == w.source,
+                    TriggerObj::Filter(f) => f.matches(
+                        *old,
+                        l.object.controller,
+                        &l.characteristics,
+                        Some(w.source),
+                        Some(w.controller),
+                    ),
+                };
+                ok.then_some((Some(*old), Some(l.object.controller)))
+            }
             (TriggerSpec::Attacks(what), Event::Attack { attacker, .. })
             | (
                 TriggerSpec::BecomesBlocked(what) | TriggerSpec::BlocksOrBlocked(what),
