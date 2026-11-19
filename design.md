@@ -2536,3 +2536,14 @@ alternatives in filters; model-author batch 8 (56 of 500; batches end at
 about $93 of the $100). Corpus 8,025 cards: 6,005 Pauper (55.2%), 6,092
 Modern (26.8%); 2,362 scenarios pass, 1 skipped; fuzz 0 panics, 0
 unfinished; throughput 0.5% below slice 20, 2.4% below the perf pass.
+
+Status 2026-11-18, card-authoring agents: with the API budget spent,
+Claude Code subagents author cards. Each takes 40 skipped Pauper cards,
+drafts in a private directory against a frozen release binary
+(`MTG_CARDS_DIR=drafts:cards` reads card files at run time and skips
+unparsable ones), keeps a card only if it gates `Match` and its
+scenarios pass, and reports what was missing for the rest. Those
+reports drive engine fixes, after which the unsupported cards are
+retried: new batches accept about 10%, retries about 45%. Four waves:
+the corpus is 8,229 cards, 57.0% of Pauper; scenarios written by agents
+are in scenarios/agents/.
