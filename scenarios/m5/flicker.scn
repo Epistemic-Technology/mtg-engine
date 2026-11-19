@@ -1,0 +1,12 @@
+# "Exile target creature, then return it": the effect finds the card it
+# exiled (CR 400.7).
+
+scenario "Flicker of Fate returns the exiled creature, without its counters" {
+  battlefield A: "Plains", "Plains", "Grizzly Bears" with 1 +1/+1
+  hand A: "Flicker of Fate"
+  turn 1 A: cast "Flicker of Fate" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+  assert exile A count 0
+}

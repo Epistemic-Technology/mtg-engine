@@ -2229,7 +2229,18 @@ impl GameState {
                 if ctx.legal.get(i).copied().unwrap_or(false)
                     && let Some(t) = ctx.targets.get(i)
                 {
-                    out.push(*t);
+                    // "Exile target creature, then return it": the effect
+                    // that moved it finds the new object (CR 400.7).
+                    match *t {
+                        Target::Object(id)
+                            if !self.objects.contains_key(id)
+                                && ctx.created.is_some()
+                                && self.current_object(id) == ctx.created =>
+                        {
+                            out.push(Target::Object(ctx.created.unwrap_or(id)));
+                        }
+                        _ => out.push(*t),
+                    }
                 }
             }
             Recipient::Targets(first, count) => {

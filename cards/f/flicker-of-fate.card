@@ -1,0 +1,6 @@
+card "Flicker of Fate" {
+  oracle_id d5b9d250-92f5-40d8-b962-4ae4adb466c8
+  cost {1}{W}
+  type Instant
+  spell: exile target creature or enchantment then return target 1 to battlefield
+}
