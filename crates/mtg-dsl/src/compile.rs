@@ -968,6 +968,10 @@ impl Compiler<'_> {
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
             Trigger::TurnedFaceUp => TriggerSpec::TurnedFaceUp,
             Trigger::Exploits => TriggerSpec::Exploits,
+            Trigger::DrawsNth { whose, n } => TriggerSpec::DrawsNth {
+                whose: *whose,
+                n: *n,
+            },
             Trigger::BecomesTapped(o) => TriggerSpec::BecomesTapped(self.trigger_obj(o)),
             Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
             Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),

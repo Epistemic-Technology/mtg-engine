@@ -186,6 +186,8 @@ turn." (printed first, before keywords).
 "This spell costs {3} less to cast if it targets a tapped creature." Its
 targets are then held to ones the caster can pay for. Triggers `when
 this leaves the battlefield`, `whenever this attacks or blocks`.
+Trigger `whenever you draw your second card each turn` (or `an opponent
+draws their second card each turn`).
 Steps: `at beginning of your combat` ("At the beginning of combat on your
 turn"), `your first main`, `your second main` ("... your second main
 phase"). Recipient `controller of that target 1` ("that artifact's

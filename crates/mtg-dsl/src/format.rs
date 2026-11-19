@@ -1169,6 +1169,19 @@ fn step_name(s: Step) -> &'static str {
     }
 }
 
+/// "whenever you draw your second card each turn".
+pub fn draws_nth(whose: Who, n: u8) -> String {
+    let nth = match n {
+        1 => "first",
+        2 => "second",
+        _ => "third",
+    };
+    match whose {
+        Who::Opponents => format!("whenever an opponent draws their {nth} card each turn"),
+        _ => format!("whenever you draw your {nth} card each turn"),
+    }
+}
+
 /// Triggers Oracle words "When" (the rest "Whenever", or "At").
 pub fn natural_when(t: &Trigger) -> bool {
     matches!(
@@ -1262,6 +1275,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
         Trigger::TurnedFaceUp => "when this is turned face up".to_string(),
         Trigger::Exploits => "when this exploits a creature".to_string(),
+        Trigger::DrawsNth { whose, n } => draws_nth(*whose, *n),
         Trigger::BecomesTargetWhenever(o) => {
             format!("whenever {} becomes targeted", trigger_obj(o))
         }

@@ -774,6 +774,8 @@ pub struct GameState {
     /// Spells each player has cast this turn, and the most any one player
     /// cast last turn ("if no spells were cast last turn", werewolves).
     pub spells_this_turn: [u8; 4],
+    /// Cards each player drew this turn ("your second card each turn").
+    pub drawn_this_turn: [u8; 4],
     /// Players who declared an attacker this turn (raid), one bit each.
     pub attacked_this_turn: u8,
     /// Creatures put into a graveyard from the battlefield this turn

@@ -3527,6 +3527,26 @@ impl P {
             self.pos += 4;
             return Ok(Trigger::GainsLife { whose: Who::Any });
         }
+        // "you draw your second card each turn".
+        if self.at_words(&["you", "draw", "your"])
+            || self.at_words(&["an", "opponent", "draws", "their"])
+        {
+            let whose = if self.eat_words(&["you", "draw", "your"]) {
+                Who::You
+            } else {
+                self.pos += 4;
+                Who::Opponents
+            };
+            let w = self.word()?;
+            let n = match w.as_str() {
+                "first" => 1,
+                "second" => 2,
+                "third" => 3,
+                _ => return self.fail(format!("expected an ordinal, found `{w}`")),
+            };
+            self.expect_words(&["card", "each", "turn"])?;
+            return Ok(Trigger::DrawsNth { whose, n });
+        }
         if self.at_words(&["you", "cast"])
             || self.at_words(&["an", "opponent", "casts"])
             || self.at_words(&["a", "player", "casts"])

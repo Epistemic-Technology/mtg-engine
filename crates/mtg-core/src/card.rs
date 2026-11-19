@@ -2236,6 +2236,7 @@ pub const WATCH_CAST: u16 = 64;
 pub const WATCH_TARGETED: u16 = 128;
 pub const WATCH_TAP: u16 = 256;
 pub const WATCH_FACE_UP: u16 = 512;
+pub const WATCH_DRAW: u16 = 1024;
 
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
@@ -2306,6 +2307,9 @@ pub enum TriggerSpec {
     CastsFiltered { whose: Who, filter: ObjFilter },
     /// "When this creature is turned face up" (CR 708.8).
     TurnedFaceUp,
+    /// "Whenever you draw your second card each turn": the `n`th card a
+    /// player draws in a turn.
+    DrawsNth { whose: Who, n: u8 },
     /// "When this creature exploits a creature" (CR 702.110): queued by
     /// the exploit trigger itself, never by an event.
     Exploits,
@@ -2348,6 +2352,7 @@ impl TriggerSpec {
             | TriggerSpec::DealsDamage { .. } => WATCH_DAMAGE,
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::TurnedFaceUp => WATCH_FACE_UP,
+            TriggerSpec::DrawsNth { .. } => WATCH_DRAW,
             TriggerSpec::Exploits => 0,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::CastsSpell { .. } | TriggerSpec::CastsFiltered { .. } => WATCH_CAST,

@@ -268,8 +268,8 @@ impl Event {
     #[inline]
     pub fn watch_bit(&self) -> u16 {
         use crate::card::{
-            WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_DAMAGE, WATCH_FACE_UP, WATCH_LIFE_CHANGE,
-            WATCH_STEP_BEGIN, WATCH_TAP, WATCH_TARGETED, WATCH_ZONE_CHANGE,
+            WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_DAMAGE, WATCH_DRAW, WATCH_FACE_UP,
+            WATCH_LIFE_CHANGE, WATCH_STEP_BEGIN, WATCH_TAP, WATCH_TARGETED, WATCH_ZONE_CHANGE,
         };
         match self {
             Event::ZoneChange { .. } => WATCH_ZONE_CHANGE,
@@ -282,6 +282,7 @@ impl Event {
             Event::Targeted { .. } => WATCH_TARGETED,
             Event::Tapped { .. } | Event::Untapped { .. } => WATCH_TAP,
             Event::TurnedFaceUp { .. } => WATCH_FACE_UP,
+            Event::Draw { .. } => WATCH_DRAW,
             _ => 0,
         }
     }

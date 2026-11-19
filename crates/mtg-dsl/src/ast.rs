@@ -727,6 +727,11 @@ pub enum Trigger {
     },
     /// `when this exploits a creature` (CR 702.110).
     Exploits,
+    /// `whenever you draw your second card each turn`.
+    DrawsNth {
+        whose: Who,
+        n: u8,
+    },
     /// A trigger that would print "Whenever" printed "When" ("When this
     /// creature blocks, return it to its owner's hand"): written `when`.
     When(Box<Trigger>),

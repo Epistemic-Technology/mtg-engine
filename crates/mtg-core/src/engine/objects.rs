@@ -493,6 +493,8 @@ impl GameState {
     fn draw_now(&mut self, p: PlayerId) {
         if let Some(top) = self.player(p).library.last().copied() {
             let new = self.move_object(top, Zone::Hand, false);
+            let n = &mut self.drawn_this_turn[p.index().min(3)];
+            *n = n.saturating_add(1);
             self.emit(Event::Draw {
                 player: p,
                 card: new,

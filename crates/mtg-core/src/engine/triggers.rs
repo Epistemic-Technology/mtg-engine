@@ -461,6 +461,10 @@ impl GameState {
                     && self.status_ok(filter, *spell))
                 .then_some((Some(*spell), Some(*player)))
             }
+            (TriggerSpec::DrawsNth { whose, n }, Event::Draw { player, .. }) => {
+                (whose_ok(*whose, *player) && self.drawn_this_turn[player.index().min(3)] == *n)
+                    .then_some((None, Some(*player)))
+            }
             (TriggerSpec::TurnedFaceUp, Event::TurnedFaceUp { obj }) => {
                 (*obj == w.source).then_some((Some(*obj), Some(w.controller)))
             }

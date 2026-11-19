@@ -2766,6 +2766,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         Trigger::TurnedFaceUp => format!("when {} is turned face up", this(ctx)),
         Trigger::Exploits => format!("when {} exploits a creature", this(ctx)),
+        Trigger::DrawsNth { whose, n } => crate::format::draws_nth(*whose, *n),
         Trigger::TargetedByOpponent => format!(
             "whenever {} becomes the target of a spell or ability an opponent controls",
             this(ctx)

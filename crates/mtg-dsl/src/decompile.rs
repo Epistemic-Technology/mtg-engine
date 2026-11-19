@@ -613,6 +613,10 @@ impl Decompiler<'_> {
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
             TriggerSpec::TurnedFaceUp => Trigger::TurnedFaceUp,
             TriggerSpec::Exploits => Trigger::Exploits,
+            TriggerSpec::DrawsNth { whose, n } => Trigger::DrawsNth {
+                whose: *whose,
+                n: *n,
+            },
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
             TriggerSpec::BecomesUntapped(o) => Trigger::BecomesUntapped(self.trigger_obj(o)),
             TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),
