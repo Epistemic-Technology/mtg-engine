@@ -1,0 +1,7 @@
+card "Akroan Crusader" {
+  oracle_id d981d85c-e97b-4fe7-b415-6e73a3e7e35c
+  cost {R}
+  type Creature — Human Soldier
+  pt 1/1
+  label "Heroic" triggered whenever you cast a spell that targets this: create 1 "1/1 red Soldier creature with haste"
+}

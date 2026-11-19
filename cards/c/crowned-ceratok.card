@@ -1,0 +1,8 @@
+card "Crowned Ceratok" {
+  oracle_id 5cdeb1fe-9ce3-4088-a35c-dcfb762f76d8
+  cost {3}{G}
+  type Creature — Rhino
+  pt 4/3
+  keywords trample
+  static each creature you control with +1/+1 counter: has trample
+}

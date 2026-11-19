@@ -1757,6 +1757,17 @@ fn trigger_text(head: &str) -> Option<String> {
             "whenever you cast an instant or sorcery spell"
         }
         "Whenever you cast a spell" => "whenever you cast a spell",
+        "Whenever a player casts a spell" => "whenever a player casts a spell",
+        // Heroic (the ability word is a label the caller keeps).
+        "Whenever you cast a spell that targets this creature" => {
+            "whenever you cast a spell that targets this"
+        }
+        "Whenever this creature becomes the target of a spell or ability an opponent controls" => {
+            "whenever this becomes targeted by opponent"
+        }
+        "Whenever this creature becomes the target of a spell or ability you control for the first time each turn" => {
+            "whenever this becomes targeted by you first time each turn"
+        }
         "When this creature becomes the target of a spell or ability" => {
             "when this becomes targeted"
         }

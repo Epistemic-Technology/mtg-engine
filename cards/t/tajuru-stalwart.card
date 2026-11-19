@@ -1,0 +1,7 @@
+card "Tajuru Stalwart" {
+  oracle_id ac87cc33-4a71-471b-917d-6a92721ea0b9
+  cost {2}{G}
+  type Creature — Elf Scout Ally
+  pt 0/1
+  label "Converge" enters with count each colors spent +1/+1 counters
+}

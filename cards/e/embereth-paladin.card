@@ -1,0 +1,8 @@
+card "Embereth Paladin" {
+  oracle_id eec31fe0-a633-4424-84d2-90fe88016310
+  cost {3}{R}
+  type Creature — Human Knight
+  pt 4/1
+  keywords haste
+  label "Adamant" if spent 3 red, enters with 1 +1/+1 counter
+}

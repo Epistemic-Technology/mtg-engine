@@ -2104,6 +2104,16 @@ impl GameState {
             .collect();
         for target in targets {
             self.emit(Event::Targeted { target, by: obj });
+            // Valiant: the first time each turn its controller targets it
+            // (the trigger above saw it unrecorded).
+            if self.valiant_watchers > 0
+                && !self.targeted_by_controller.contains(&target)
+                && self.objects.get(target).is_some_and(|t| {
+                    t.zone == Zone::Battlefield && t.controller == self.objects[obj].controller
+                })
+            {
+                self.targeted_by_controller.push(target);
+            }
         }
     }
 

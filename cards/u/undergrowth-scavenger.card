@@ -1,0 +1,7 @@
+card "Undergrowth Scavenger" {
+  oracle_id 42b17f78-d290-40ed-afac-f9362e526999
+  cost {3}{G}
+  type Creature — Fungus Horror
+  pt 0/0
+  enters with count equal all graveyards creature +1/+1 counters
+}

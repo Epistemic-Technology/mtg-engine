@@ -432,6 +432,10 @@ pub struct Filter {
     /// Written `all ...`; a static ability's subject then prints "All
     /// Sliver creatures" rather than "Sliver creatures".
     pub all: bool,
+    /// Written `each ...` as a static ability's subject: it prints one at
+    /// a time, "Each creature you control with a +1/+1 counter on it has
+    /// trample".
+    pub each: bool,
     /// "artifact or enchantment": at least one of these types (written
     /// with `or`).
     pub any_types: Vec<CardType>,
@@ -760,13 +764,17 @@ pub enum Ability {
     /// `enters tapped unless you control planeswalker`: "This land enters
     /// tapped unless you control a planeswalker." (CR 614.1d)
     EntersTappedUnless(StaticCond),
-    /// `enters with 2 +1/+1 counters if creature died this turn`: "This
-    /// creature enters with two +1/+1 counters on it if a creature died
-    /// this turn." (CR 614.1c), the condition judged as it enters.
-    EntersWithCountersIf {
-        kind: mtg_core::card::CounterKind,
+    /// `enters with 1 +1/+1 counter if attacked this turn`: "This
+    /// creature enters with a +1/+1 counter on it if you attacked this
+    /// turn." (raid; CR 614.1c); `if spent 3 white, enters with 1 +1/+1
+    /// counter` (`first`): "If at least three white mana was spent to cast
+    /// this spell, this creature enters with a +1/+1 counter on it."
+    /// (adamant). The condition is judged as it enters.
+    EntersWithIf {
         n: u32,
+        kind: CounterKind,
         cond: StaticCond,
+        first: bool,
     },
     /// `can't attack unless defending player controls Island`, `can't
     /// block unless ...`, `can't attack or block unless ...`.
@@ -987,6 +995,11 @@ pub enum StaticCond {
     /// `opponent damaged this turn`: "an opponent was dealt damage this
     /// turn".
     OpponentDamagedThisTurn,
+    /// `opponent lost life this turn`: "an opponent lost life this turn".
+    OpponentLostLifeThisTurn,
+    /// `permanent left this turn` (revolt): "a permanent left the
+    /// battlefield under your control this turn".
+    PermanentLeftThisTurn,
     /// Cast with escape (internal: "escapes with").
     Escaped,
     /// Cast with kicker (internal: `kicked with`).
@@ -1330,6 +1343,10 @@ pub enum Trigger {
     /// Ward's trigger: "becomes the target of a spell or ability an
     /// opponent controls".
     TargetedByOpponent,
+    /// Valiant's trigger, `whenever this becomes targeted by you first time
+    /// each turn`: "becomes the target of a spell or ability you control
+    /// for the first time each turn".
+    TargetedByYouFirstTime,
     /// `when this is turned face up`, `whenever permanent is turned face
     /// up`, `whenever this or Detective you control is turned face up`
     /// (CR 708.8).

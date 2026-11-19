@@ -1002,26 +1002,28 @@ impl GameState {
                 },
             ) => {
                 // X of the entering spell (Endless One, CR 107.3); a count
-                // ("equal to the number of creature cards in your
-                // graveyard") as it enters, judged from its controller.
-                let n = if let crate::card::Num::Count(_) = n {
-                    let ctx = EffectCtx {
-                        source: obj,
-                        controller,
-                        targets: Vec::new(),
-                        division: Vec::new(),
-                        legal: Vec::new(),
-                        trigger_obj: None,
-                        trigger_player: None,
-                        trigger_amount: 0,
-                        created: None,
-                        x: self.x_of(obj),
-                        did: true,
-                        chosen: Chosen::None,
-                    };
-                    self.eval_num(n, &ctx)
-                } else {
-                    n.eval(self.x_of(obj))
+                // ("for each other creature you control", converge's "for
+                // each color of mana spent to cast it") judged for the
+                // entering object as it enters.
+                let n = match n {
+                    crate::card::Num::Count(_) => {
+                        let ctx = EffectCtx {
+                            source: obj,
+                            controller,
+                            targets: Vec::new(),
+                            division: Vec::new(),
+                            legal: Vec::new(),
+                            trigger_obj: None,
+                            trigger_player: None,
+                            trigger_amount: 0,
+                            created: None,
+                            x: self.x_of(obj),
+                            did: true,
+                            chosen: Chosen::None,
+                        };
+                        self.eval_num(n, &ctx)
+                    }
+                    n => n.eval(self.x_of(obj)),
                 };
                 let counters = match enter.counters {
                     Some((k, m)) if k == kind => Some((k, m + n)),

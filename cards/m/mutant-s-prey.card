@@ -1,0 +1,6 @@
+card "Mutant's Prey" {
+  oracle_id 3836cf33-bd1d-485d-94a2-85ea210ddf7a
+  cost {G}
+  type Instant
+  spell: target creature you control with +1/+1 counter fights target creature an opponent controls
+}

@@ -1,0 +1,8 @@
+card "Bushmaster, Coiled Henchman" {
+  oracle_id 21067a25-f749-4b79-bc6d-820a91af2834
+  cost {1}{G}
+  type Legendary Creature — Snake Human Villain
+  pt 2/1
+  keywords deathtouch
+  static each other creature you control with +1/+1 counter: has deathtouch
+}

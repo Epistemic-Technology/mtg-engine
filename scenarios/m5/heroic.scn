@@ -1,0 +1,387 @@
+# Targeting triggers: heroic ("Whenever you cast a spell that targets this
+# creature", CR 207.2c ability word; the spell's targets as it is cast,
+# CR 601.2c), valiant ("... becomes the target of a spell or ability you
+# control for the first time each turn"), and "an opponent controls";
+# counter qualifiers in filters ("with a +1/+1 counter on it", CR 122.1;
+# "modified", CR 700.9); counters as a permanent enters gated by a
+# condition (raid, adamant, ferocious, revolt, "if an opponent lost life
+# this turn") or scaled by a count ("for each other creature you
+# control", converge), CR 614.1c.
+
+# ----- heroic -----
+
+scenario "Heroic: a spell that targets it puts a counter on it" {
+  battlefield A: "Satyr Hoplite", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Satyr Hoplite"
+  run_to turn 1 end
+  assert counters "Satyr Hoplite" +1/+1 1
+  assert power "Satyr Hoplite" 5
+}
+
+scenario "Heroic: a spell that targets another creature doesn't trigger it" {
+  battlefield A: "Satyr Hoplite", "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Satyr Hoplite" +1/+1 0
+}
+
+scenario "Heroic: an opponent's spell that targets it doesn't trigger it" {
+  battlefield A: "Setessan Battle Priest"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 A: wait
+  turn 1 B: cast "Shock" targeting "Setessan Battle Priest"
+  run_to turn 1 end
+  assert life A 20
+  assert damage "Setessan Battle Priest" 2
+}
+
+scenario "Heroic: an ability that targets it doesn't trigger it" {
+  battlefield A: "Setessan Battle Priest", "Prodigal Sorcerer"
+  turn 1 A: activate "Prodigal Sorcerer" targeting "Setessan Battle Priest"
+  run_to turn 1 end
+  assert life A 20
+  assert damage "Setessan Battle Priest" 1
+}
+
+scenario "Heroic: the trigger resolves before the spell (life gained)" {
+  battlefield A: "Setessan Battle Priest", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Setessan Battle Priest"
+  run_to turn 1 end
+  assert life A 22
+}
+
+scenario "Heroic: 'put a +1/+1 counter on it' is this creature" {
+  battlefield A: "Lagonna-Band Trailblazer", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Lagonna-Band Trailblazer"
+  run_to turn 1 end
+  assert counters "Lagonna-Band Trailblazer" +1/+1 1
+}
+
+scenario "Hero of the Pride: creatures you control get +1/+0" {
+  battlefield A: "Hero of the Pride", "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Hero of the Pride"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Hero of the Pride" 6
+}
+
+scenario "Akroan Crusader makes a hasty Soldier" {
+  battlefield A: "Akroan Crusader", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Akroan Crusader"
+  run_to turn 1 end
+  assert battlefield A contains "Soldier"
+  assert has "Soldier" haste
+}
+
+# ----- valiant -----
+
+scenario "Valiant: your spell triggers it" {
+  battlefield A: "Nettle Guard", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Nettle Guard"
+  run_to turn 1 postcombat_main
+  assert toughness "Nettle Guard" 6
+}
+
+scenario "Valiant: only the first time each turn" {
+  battlefield A: "Nettle Guard", 2 "Forest"
+  hand A: 2 "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Nettle Guard"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Nettle Guard"
+  run_to turn 1 postcombat_main
+  assert toughness "Nettle Guard" 9
+}
+
+scenario "Valiant: again on a later turn" {
+  battlefield A: "Nettle Guard", "Forest"
+  hand A: 2 "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Nettle Guard"
+  turn 3 A: cast "Giant Growth" targeting "Nettle Guard"
+  run_to turn 3 postcombat_main
+  assert toughness "Nettle Guard" 6
+}
+
+scenario "Valiant: your ability triggers it" {
+  battlefield A: "Nettle Guard", "Prodigal Sorcerer"
+  turn 1 A: activate "Prodigal Sorcerer" targeting "Nettle Guard"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Nettle Guard"
+  assert toughness "Nettle Guard" 3
+}
+
+scenario "Valiant: an opponent's spell doesn't trigger it" {
+  battlefield A: "Nettle Guard"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 A: wait
+  turn 1 B: cast "Shock" targeting "Nettle Guard"
+  run_to turn 1 end
+  assert graveyard A contains "Nettle Guard"
+}
+
+# ----- "an opponent controls" -----
+
+scenario "Mossdog: an opponent's spell puts a counter on it" {
+  battlefield A: "Mossdog"
+  battlefield B: "Forest"
+  hand B: "Giant Growth"
+  turn 1 A: wait
+  turn 1 B: cast "Giant Growth" targeting "Mossdog"
+  run_to turn 1 end
+  assert counters "Mossdog" +1/+1 1
+}
+
+scenario "Mossdog: its controller's spell doesn't" {
+  battlefield A: "Mossdog", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Mossdog"
+  run_to turn 1 end
+  assert counters "Mossdog" +1/+1 0
+}
+
+scenario "Blind Creeper shrinks whenever any player casts a spell" {
+  battlefield A: "Blind Creeper"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 A: wait
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert power "Blind Creeper" 2
+}
+
+# ----- counter qualifiers -----
+
+scenario "Crowned Ceratok: a creature with a +1/+1 counter has trample" {
+  battlefield A: "Crowned Ceratok", "Grizzly Bears" with 1 +1/+1, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" trample
+  assert has not "Hill Giant" trample
+}
+
+scenario "Duskshell Crawler: the counter it puts grants trample" {
+  battlefield A: 2 "Forest"
+  hand A: "Duskshell Crawler"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Duskshell Crawler"
+  turn 1 A: trigger "Duskshell Crawler" targeting "Duskshell Crawler"
+  run_to turn 1 postcombat_main
+  assert counters "Duskshell Crawler" +1/+1 1
+  assert has "Duskshell Crawler" trample
+}
+
+scenario "Bushmaster: other creatures with a counter, not itself" {
+  battlefield A: "Bushmaster, Coiled Henchman" with 1 +1/+1, "Hill Giant" with 1 +1/+1, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Hill Giant" deathtouch
+  assert has not "Grizzly Bears" deathtouch
+}
+
+scenario "Mutant's Prey: the creature you control must have a +1/+1 counter" {
+  battlefield A: "Forest", "Grizzly Bears", "Hill Giant" with 1 +1/+1
+  battlefield B: "Coral Merfolk"
+  hand A: "Mutant's Prey"
+  illegal turn 1 A: cast "Mutant's Prey" targeting "Grizzly Bears", "Coral Merfolk"
+  run_to turn 1 end
+}
+
+scenario "Mutant's Prey: a creature with a counter fights" {
+  battlefield A: "Forest", "Hill Giant" with 1 +1/+1
+  battlefield B: "Coral Merfolk"
+  hand A: "Mutant's Prey"
+  turn 1 A: cast "Mutant's Prey" targeting "Hill Giant", "Coral Merfolk"
+  run_to turn 1 end
+  assert graveyard B contains "Coral Merfolk"
+}
+
+scenario "Lifecrafter's Gift: the new counter counts" {
+  battlefield A: 4 "Forest", "Grizzly Bears", "Hill Giant" with 1 +1/+1, "Coral Merfolk"
+  hand A: "Lifecrafter's Gift"
+  turn 1 A: cast "Lifecrafter's Gift" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Hill Giant" +1/+1 2
+  assert counters "Coral Merfolk" +1/+1 0
+}
+
+scenario "Starport Security costs {2} less with a +1/+1 counter around" {
+  battlefield A: "Starport Security", 2 "Plains", "Grizzly Bears" with 1 +1/+1
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Starport Security" targeting "Hill Giant"
+  run_to turn 1 end
+  assert tapped "Hill Giant"
+}
+
+scenario "Starport Security pays full price without one" {
+  battlefield A: "Starport Security", 2 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  illegal turn 1 A: activate "Starport Security" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Planar Incision returns the creature with a counter" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Planar Incision"
+  turn 1 A: cast "Planar Incision" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Feign Death: it returns tapped with a counter" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Feign Death"
+  hand B: "Shock"
+  turn 1 A: cast "Feign Death" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+# ----- entering with counters -----
+
+scenario "Raid: Swaggering Corsair after an attack" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Swaggering Corsair"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Swaggering Corsair"
+  run_to turn 1 end
+  assert counters "Swaggering Corsair" +1/+1 1
+}
+
+scenario "Raid: Swaggering Corsair without an attack" {
+  battlefield A: 3 "Mountain"
+  hand A: "Swaggering Corsair"
+  turn 1 A: cast "Swaggering Corsair"
+  run_to turn 1 end
+  assert counters "Swaggering Corsair" +1/+1 0
+}
+
+scenario "Adamant: three white mana spent" {
+  battlefield A: 4 "Plains"
+  hand A: "Ardenvale Paladin"
+  turn 1 A: cast "Ardenvale Paladin"
+  run_to turn 1 end
+  assert counters "Ardenvale Paladin" +1/+1 1
+}
+
+scenario "Adamant: two white mana isn't enough" {
+  battlefield A: 2 "Plains", 2 "Island"
+  hand A: "Ardenvale Paladin"
+  turn 1 A: cast "Ardenvale Paladin"
+  run_to turn 1 end
+  assert counters "Ardenvale Paladin" +1/+1 0
+}
+
+scenario "Cindering Cutthroat: an opponent lost life this turn" {
+  battlefield A: 4 "Mountain"
+  hand A: "Shock", "Cindering Cutthroat"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Cindering Cutthroat"
+  run_to turn 1 end
+  assert counters "Cindering Cutthroat" +1/+1 1
+}
+
+scenario "Cindering Cutthroat: no opponent lost life" {
+  battlefield A: 4 "Mountain"
+  hand A: "Shock", "Cindering Cutthroat"
+  turn 1 A: cast "Shock" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Cindering Cutthroat"
+  run_to turn 1 end
+  assert counters "Cindering Cutthroat" +1/+1 0
+}
+
+scenario "Ferocious: Frontier Mastodon with a creature with power 4" {
+  battlefield A: 3 "Forest", "Craw Wurm"
+  hand A: "Frontier Mastodon"
+  turn 1 A: cast "Frontier Mastodon"
+  run_to turn 1 end
+  assert counters "Frontier Mastodon" +1/+1 1
+}
+
+scenario "Ferocious: Frontier Mastodon without one" {
+  battlefield A: 3 "Forest", "Hill Giant"
+  hand A: "Frontier Mastodon"
+  turn 1 A: cast "Frontier Mastodon"
+  run_to turn 1 end
+  assert counters "Frontier Mastodon" +1/+1 0
+}
+
+scenario "Revolt: Night Market Aeronaut after a permanent of yours left" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Night Market Aeronaut"
+  hand B: "Shock"
+  turn 1 A: wait
+  turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Night Market Aeronaut"
+  run_to turn 1 end
+  assert counters "Night Market Aeronaut" +1/+1 1
+}
+
+scenario "Revolt: an opponent's permanent leaving doesn't count" {
+  battlefield A: 4 "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Night Market Aeronaut", "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Night Market Aeronaut"
+  run_to turn 1 end
+  assert counters "Night Market Aeronaut" +1/+1 0
+}
+
+scenario "Heir of the Ancient Fang: you control a modified creature" {
+  battlefield A: 3 "Forest", "Grizzly Bears" with 1 +1/+1
+  hand A: "Heir of the Ancient Fang"
+  turn 1 A: cast "Heir of the Ancient Fang"
+  run_to turn 1 end
+  assert counters "Heir of the Ancient Fang" +1/+1 1
+}
+
+scenario "Heir of the Ancient Fang: no modified creature" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Heir of the Ancient Fang"
+  turn 1 A: cast "Heir of the Ancient Fang"
+  run_to turn 1 end
+  assert counters "Heir of the Ancient Fang" +1/+1 0
+}
+
+scenario "Squad Captain: a counter for each other creature you control" {
+  battlefield A: 5 "Plains", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Coral Merfolk"
+  hand A: "Squad Captain"
+  turn 1 A: cast "Squad Captain"
+  run_to turn 1 end
+  assert counters "Squad Captain" +1/+1 2
+}
+
+scenario "Converge: Tajuru Stalwart counts the colors spent" {
+  battlefield A: "Forest", "Island", "Mountain"
+  hand A: "Tajuru Stalwart"
+  turn 1 A: cast "Tajuru Stalwart"
+  run_to turn 1 end
+  assert counters "Tajuru Stalwart" +1/+1 3
+}
+
+scenario "Undergrowth Scavenger: creature cards in all graveyards" {
+  battlefield A: 4 "Forest"
+  graveyard A: "Grizzly Bears", "Giant Growth"
+  graveyard B: "Hill Giant"
+  hand A: "Undergrowth Scavenger"
+  turn 1 A: cast "Undergrowth Scavenger"
+  run_to turn 1 end
+  assert counters "Undergrowth Scavenger" +1/+1 2
+  assert battlefield A contains "Undergrowth Scavenger"
+}

@@ -1,0 +1,8 @@
+card "Duskshell Crawler" {
+  oracle_id e54ad5a1-e79d-42db-a3e9-5caecae62c9f
+  cost {1}{G}
+  type Creature — Insect
+  pt 0/3
+  triggered when this enters: put 1 +1/+1 counter on target creature
+  static each creature you control with +1/+1 counter: has trample
+}

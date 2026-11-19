@@ -1,0 +1,7 @@
+card "Lagonna-Band Trailblazer" {
+  oracle_id 09cc0faa-71d7-428b-9fc4-5ba09e244e89
+  cost {W}
+  type Creature — Centaur Scout
+  pt 0/4
+  label "Heroic" triggered whenever you cast a spell that targets this: put 1 +1/+1 counter on it
+}

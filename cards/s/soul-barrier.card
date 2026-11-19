@@ -1,0 +1,6 @@
+card "Soul Barrier" {
+  oracle_id 3aab67bb-f287-4aa6-a3c5-e850b22dfff6
+  cost {2}{U}
+  type Enchantment
+  triggered whenever an opponent casts creature spell: this deals 2 damage to that player unless they pay {2}
+}

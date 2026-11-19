@@ -1,0 +1,8 @@
+card "Hog-Monkey" {
+  oracle_id e11591ee-7074-488e-8d2f-f8c89e385a55
+  cost {2}{B}
+  type Creature — Boar Monkey
+  pt 3/2
+  triggered at beginning of your combat: target creature you control with +1/+1 counter gains menace until end of turn
+  exhaust {5}: put 2 +1/+1 counters on this
+}

@@ -1,0 +1,8 @@
+card "Frilled Sparkshooter" {
+  oracle_id 69038520-7156-48d9-aae8-ba3cc76a5993
+  cost {3}{R}
+  type Creature — Lizard Archer
+  pt 3/3
+  keywords reach, menace
+  enters with 1 +1/+1 counter if opponent lost life this turn
+}

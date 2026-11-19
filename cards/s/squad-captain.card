@@ -1,0 +1,8 @@
+card "Squad Captain" {
+  oracle_id 865812c2-1838-4015-bf0d-990af76f7000
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords vigilance
+  enters with count each other creature you control +1/+1 counters
+}

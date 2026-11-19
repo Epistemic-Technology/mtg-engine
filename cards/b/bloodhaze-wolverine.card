@@ -1,0 +1,7 @@
+card "Bloodhaze Wolverine" {
+  oracle_id 601fd61b-4939-459a-84d1-d947d29c9564
+  cost {1}{R}
+  type Creature — Wolverine
+  pt 2/1
+  triggered whenever you draw your second card each turn: this gets +1/+1 and this gains first strike until end of turn
+}

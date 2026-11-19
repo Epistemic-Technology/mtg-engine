@@ -1,0 +1,9 @@
+card "Roxxon Brutes" {
+  oracle_id b92c2da9-eaa4-404b-8114-5527eec6390e
+  cost {4}{B}
+  type Creature — Human Berserker Villain
+  pt 4/4
+  keywords menace
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counter on target creature
+  basic landcycling {2}
+}

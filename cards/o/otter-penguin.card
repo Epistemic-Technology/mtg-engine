@@ -1,0 +1,7 @@
+card "Otter-Penguin" {
+  oracle_id e2171c48-a816-41b2-aa55-e0ba2503fd6a
+  cost {1}{U}
+  type Creature — Otter Bird
+  pt 2/1
+  triggered whenever you draw your second card each turn: this gets +1/+2 until end of turn and this can't be blocked this turn
+}

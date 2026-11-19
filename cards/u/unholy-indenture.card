@@ -1,0 +1,7 @@
+card "Unholy Indenture" {
+  oracle_id df8fe368-00eb-42fa-89d6-794fc61f8f8c
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature dies: return triggering card to battlefield under your control with 1 +1/+1 counter
+}

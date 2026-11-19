@@ -1,0 +1,7 @@
+card "Staunch-Hearted Warrior" {
+  oracle_id aa6244fb-e1f1-4b53-b530-a8c9d0712a5b
+  cost {3}{G}
+  type Creature — Human Warrior
+  pt 2/2
+  label "Heroic" triggered whenever you cast a spell that targets this: put 2 +1/+1 counters on this
+}

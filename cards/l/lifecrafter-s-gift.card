@@ -1,0 +1,6 @@
+card "Lifecrafter's Gift" {
+  oracle_id 6052d2d5-6310-42fb-bdec-7b114d74697d
+  cost {3}{G}
+  type Instant
+  spell: put 1 +1/+1 counter on target creature then put 1 +1/+1 counter on each creature you control with +1/+1 counter
+}

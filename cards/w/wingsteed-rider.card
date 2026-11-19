@@ -1,0 +1,8 @@
+card "Wingsteed Rider" {
+  oracle_id 9c46adaa-ab39-4c0a-99bd-935b6c4f732f
+  cost {1}{W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flying
+  label "Heroic" triggered whenever you cast a spell that targets this: put 1 +1/+1 counter on this
+}

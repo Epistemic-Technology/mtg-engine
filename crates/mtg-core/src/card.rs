@@ -1004,6 +1004,21 @@ pub struct StatusQuals {
     /// chosen), filled in by the engine where X is known; elsewhere the
     /// mana value doesn't restrict.
     pub mana_value_x: bool,
+    /// "with a +1/+1 counter on it", "with a counter on it" (CR 122.1):
+    /// at least one counter of the kind, or of any kind.
+    pub counter: Option<CounterQual>,
+    /// "modified creature" (CR 700.9): it has a counter, is equipped, or
+    /// is enchanted by an Aura its controller controls.
+    pub modified: bool,
+}
+
+/// The counters `StatusQuals::counter` asks for.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum CounterQual {
+    /// "with a counter on it": any kind.
+    Any,
+    /// "with a +1/+1 counter on it".
+    Kind(CounterKind),
 }
 
 impl StatusQuals {
@@ -1016,6 +1031,8 @@ impl StatusQuals {
             || self.blocked_this_turn
             || self.damaged_by_source
             || self.mana_value_x
+            || self.counter.is_some()
+            || self.modified
     }
 }
 
@@ -1738,6 +1755,12 @@ pub enum StaticCondition {
     Escaped,
     /// Bloodthirst: "an opponent was dealt damage this turn".
     OpponentDamagedThisTurn,
+    /// "an opponent lost life this turn" (CR 119.3: damage to a player
+    /// is life loss too).
+    OpponentLostLifeThisTurn,
+    /// Revolt: "a permanent left the battlefield under your control this
+    /// turn".
+    PermanentLeftThisTurn,
     /// Morbid: "a creature died this turn".
     CreatureDiedThisTurn,
     /// Hellbent-style: "you have N or fewer cards in hand" (`at_most`) /
@@ -3383,6 +3406,10 @@ pub enum TriggerSpec {
     /// spell or ability an opponent controls"; the spell or ability is the
     /// triggering object.
     TargetedByOpponent,
+    /// Valiant (CR 207.2c): "Whenever this creature becomes the target
+    /// of a spell or ability you control for the first time each turn":
+    /// the spell or ability is the triggering object.
+    TargetedByYouFirstTime,
     /// "Whenever this creature becomes tapped".
     BecomesTapped(TriggerObj),
     /// "Whenever this creature becomes untapped" (inspired).
@@ -3474,6 +3501,15 @@ pub enum DamageTo {
 }
 
 impl TriggerSpec {
+    /// Valiant's trigger, alone or as one of two events.
+    pub fn is_valiant(&self) -> bool {
+        match self {
+            TriggerSpec::TargetedByYouFirstTime => true,
+            TriggerSpec::Either(pair) => pair.0.is_valiant() || pair.1.is_valiant(),
+            _ => false,
+        }
+    }
+
     /// "When you cycle this card", alone or as one of two events.
     pub fn cycles_this(&self) -> bool {
         match self {
@@ -3524,7 +3560,9 @@ impl TriggerSpec {
             TriggerSpec::CastsSpell { .. }
             | TriggerSpec::CastsFiltered { .. }
             | TriggerSpec::CastsNth { .. } => WATCH_CAST,
-            TriggerSpec::BecomesTarget(_) | TriggerSpec::TargetedByOpponent => WATCH_TARGETED,
+            TriggerSpec::BecomesTarget(_)
+            | TriggerSpec::TargetedByOpponent
+            | TriggerSpec::TargetedByYouFirstTime => WATCH_TARGETED,
             TriggerSpec::Cycles {
                 or_discard: true, ..
             } => WATCH_DISCARD,
@@ -4279,6 +4317,9 @@ impl DefFlags {
     /// ability (`StaticCondition::ManaSpent` with `that`): casts then
     /// record what was spent.
     const SPENT_WATCH: u32 = 131_072;
+    /// Valiant (`TriggerSpec::TargetedByYouFirstTime`): targeting then
+    /// records which permanents their controllers targeted this turn.
+    const VALIANT: u32 = 262_144;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -4359,6 +4400,10 @@ impl DefFlags {
 
     pub const fn watches_spent(self) -> bool {
         self.has(DefFlags::SPENT_WATCH)
+    }
+
+    pub const fn has_valiant(self) -> bool {
+        self.has(DefFlags::VALIANT)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -4470,6 +4515,12 @@ impl DefFlags {
             abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::AsEntersChoose(_))),
+        );
+        flags.set(
+            DefFlags::VALIANT,
+            abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::Triggered(t) if t.trigger.is_valiant())),
         );
         flags
     }
@@ -5036,6 +5087,15 @@ impl CardPool {
                 && let Some(Condition::Static(i)) = t.condition
             {
                 want(self.condition(i));
+            }
+            // Adamant: "If at least three white mana was spent to cast this
+            // spell, this creature enters with a +1/+1 counter on it."
+            if let AbilityDef::Replacement(ReplacementAbility {
+                replacement: Replacement::EnterWithCountersIf { cond, .. },
+                ..
+            }) = a
+            {
+                want(self.condition(*cond));
             }
             for e in a.all_effects() {
                 match e {

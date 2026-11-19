@@ -1,0 +1,8 @@
+card "Hagra Constrictor" {
+  oracle_id 3282c7fb-b43d-4dd6-b5a3-cc7d93e01f19
+  cost {2}{B}
+  type Creature — Snake
+  pt 0/0
+  enters with 2 +1/+1 counters
+  static each creature you control with +1/+1 counter: has menace
+}

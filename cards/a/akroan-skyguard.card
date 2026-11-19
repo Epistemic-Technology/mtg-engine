@@ -1,0 +1,8 @@
+card "Akroan Skyguard" {
+  oracle_id f4e8be6f-2a1f-47b2-a4d8-7e576e25ab60
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  keywords flying
+  label "Heroic" triggered whenever you cast a spell that targets this: put 1 +1/+1 counter on this
+}

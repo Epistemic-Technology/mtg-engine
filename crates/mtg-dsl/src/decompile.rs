@@ -142,6 +142,7 @@ impl Decompiler<'_> {
             blocking: f.blocking,
             damaged: f.damaged,
             damaged_short: false,
+            each: false,
             status: f.status,
             chosen: f.chosen.then_some(crate::ast::OfChosen::ChosenType),
             same: f.same.map(|r| {
@@ -328,6 +329,8 @@ impl Decompiler<'_> {
             StaticCondition::AttackedThisTurn => StaticCond::AttackedThisTurn,
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
+            StaticCondition::OpponentLostLifeThisTurn => StaticCond::OpponentLostLifeThisTurn,
+            StaticCondition::PermanentLeftThisTurn => StaticCond::PermanentLeftThisTurn,
             StaticCondition::Escaped => StaticCond::Escaped,
             StaticCondition::Kicked => StaticCond::Kicked,
             StaticCondition::Bargained => StaticCond::Bargained,
@@ -991,6 +994,7 @@ impl Decompiler<'_> {
             },
             TriggerSpec::BecomesTarget(o) => Trigger::BecomesTarget(self.trigger_obj(o)),
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
+            TriggerSpec::TargetedByYouFirstTime => Trigger::TargetedByYouFirstTime,
             TriggerSpec::TurnedFaceUp(o) => Trigger::TurnedFaceUp(self.trigger_obj(o)),
             TriggerSpec::Exploits => Trigger::Exploits,
             TriggerSpec::Reflexive => {
@@ -1308,13 +1312,16 @@ impl Decompiler<'_> {
                 StaticCondition::Kicked => {
                     Ability::Mechanic(crate::ast::Mechanic::KickedWith(*n, Vec::new()))
                 }
-                StaticCondition::OpponentDamagedThisTurn => {
+                StaticCondition::OpponentDamagedThisTurn
+                    if *kind == mtg_core::card::CounterKind::PlusOnePlusOne =>
+                {
                     Ability::Mechanic(crate::ast::Mechanic::Bloodthirst(*n))
                 }
-                c => Ability::EntersWithCountersIf {
-                    kind: *kind,
+                c => Ability::EntersWithIf {
                     n: *n,
+                    kind: *kind,
                     cond: self.static_cond(c),
+                    first: false,
                 },
             },
             AbilityDef::Replacement(r) => Ability::Replacement(self.replacement(r)),

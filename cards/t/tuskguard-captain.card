@@ -1,0 +1,8 @@
+card "Tuskguard Captain" {
+  oracle_id aa149597-087a-4e1f-953c-2cd04e90a93b
+  cost {2}{G}
+  type Creature — Human Warrior
+  pt 2/3
+  outlast {G}
+  static each creature you control with +1/+1 counter: has trample
+}

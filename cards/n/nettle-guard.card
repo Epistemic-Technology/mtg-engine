@@ -1,0 +1,8 @@
+card "Nettle Guard" {
+  oracle_id 9ac2dcb6-dacc-4fcb-b820-9fc6744ec503
+  cost {1}{W}
+  type Creature — Mouse Soldier
+  pt 3/1
+  label "Valiant" triggered whenever this becomes targeted by you first time each turn: this gets +0/+2 until end of turn
+  activated {1}, sacrifice this: destroy target artifact or enchantment
+}

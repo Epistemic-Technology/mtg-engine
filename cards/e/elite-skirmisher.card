@@ -1,0 +1,7 @@
+card "Elite Skirmisher" {
+  oracle_id 66578806-9148-479d-80e1-6c3e3b67e452
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/1
+  label "Heroic" triggered whenever you cast a spell that targets this: you may tap target creature
+}

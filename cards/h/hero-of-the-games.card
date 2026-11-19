@@ -1,0 +1,7 @@
+card "Hero of the Games" {
+  oracle_id fc594e38-4297-44d4-b11b-3ab804cfcbdd
+  cost {2}{R}
+  type Creature — Human Soldier
+  pt 3/2
+  triggered whenever you cast a spell that targets this: each creature you control gets +1/+0 until end of turn
+}

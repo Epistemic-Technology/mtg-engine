@@ -619,6 +619,8 @@ impl Compiler<'_> {
             StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
             StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
             StaticCond::OpponentDamagedThisTurn => StaticCondition::OpponentDamagedThisTurn,
+            StaticCond::OpponentLostLifeThisTurn => StaticCondition::OpponentLostLifeThisTurn,
+            StaticCond::PermanentLeftThisTurn => StaticCondition::PermanentLeftThisTurn,
             StaticCond::Escaped => StaticCondition::Escaped,
             StaticCond::Kicked => StaticCondition::Kicked,
             StaticCond::Bargained => StaticCondition::Bargained,
@@ -1565,6 +1567,7 @@ impl Compiler<'_> {
                 TriggerSpec::BecomesTarget(self.trigger_obj(o))
             }
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
+            Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
             Trigger::TurnedFaceUp(o) => TriggerSpec::TurnedFaceUp(self.trigger_obj(o)),
             Trigger::Exploits => TriggerSpec::Exploits,
             Trigger::DrawsNth { whose, n } => TriggerSpec::DrawsNth {
@@ -1997,7 +2000,7 @@ impl Compiler<'_> {
                 },
                 condition: condition.as_ref().map(|c| self.static_cond(c)),
             }),
-            Ability::EntersWithCountersIf { kind, n, cond } => {
+            Ability::EntersWithIf { n, kind, cond, .. } => {
                 let c = self.static_cond(cond);
                 let cond = self.pool.intern_condition(c);
                 AbilityDef::Replacement(ReplacementAbility {
