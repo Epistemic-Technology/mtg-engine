@@ -1,0 +1,7 @@
+card "Shipwreck Patrol" {
+  oracle_id 9851f207-9f75-4ceb-8024-8f9bf21f90ad
+  cost {3}{U}
+  type Creature — Merfolk Warrior
+  pt 3/3
+  triggered when this enters: tap target creature an opponent controls and put 1 stun counters on target 1
+}

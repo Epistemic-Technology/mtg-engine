@@ -1498,16 +1498,18 @@ fn keywords_list(ks: &[Keyword]) -> String {
     )
 }
 
-fn token_description(name: &str, count: Num, ctx: &Ctx) -> String {
+fn token_description(name: &str, count: Num, tapped: bool, ctx: &Ctx) -> String {
+    let tap = if tapped { "tapped " } else { "" };
     let Some(token) = ctx.lookup.get(name) else {
         return format!(
-            "{} {name} {}",
+            "{} {tap}{name} {}",
             count_words(count, "a"),
             plural(count, "token")
         );
     };
     // Predefined tokens (CR 111.10: Treasure, Food, Clue, ...) are named,
-    // not described: "create a Treasure token".
+    // not described: "create a Treasure token", "create a tapped
+    // Powerstone token".
     if token.pt.is_none()
         && !token.types.contains(&CardType::Creature)
         && token.subtypes.len() == 1
@@ -1516,12 +1518,15 @@ fn token_description(name: &str, count: Num, ctx: &Ctx) -> String {
     {
         let sub = &token.subtypes[0];
         return format!(
-            "{} {sub} {}",
-            count_words(count, article(sub)),
+            "{} {tap}{sub} {}",
+            count_words(count, if tapped { "a" } else { article(sub) }),
             plural(count, "token")
         );
     }
     let mut words: Vec<String> = Vec::new();
+    if tapped {
+        words.push("tapped".to_string());
+    }
     let has_cda_pt = token.abilities.iter().any(|a| {
         matches!(a, Ability::Static { mods, .. } if mods.iter().any(|m| matches!(m, Mod::CdaPt { .. })))
     });
@@ -1553,17 +1558,53 @@ fn token_description(name: &str, count: Num, ctx: &Ctx) -> String {
         words.join(" "),
         plural(count, "token")
     );
-    if !token.keywords.is_empty() {
-        let _ = write!(s, " with {}", keywords_list(&token.keywords));
+    // A creature token whose name is not its subtypes is named (CR
+    // 111.4): "a 2/2 colorless Wizard Soldier creature token named Cadet".
+    let shown = token.display_name.as_deref().unwrap_or(&token.name);
+    if token.types.contains(&CardType::Creature) && shown != token.subtypes.join(" ") {
+        let _ = write!(s, " named {shown}");
     }
-    let abilities: Vec<String> = token
-        .abilities
+    // Keywords and keyword abilities print bare ("with flying", "with
+    // toxic 1"); restrictions and other abilities print quoted ("with
+    // \"This token can't block.\"").
+    let mut bare: Vec<String> = token
+        .keywords
         .iter()
-        .map(|a| ability_text(token, a, ctx.lookup))
+        .filter(|k| !is_restriction(**k))
+        .map(|k| keyword_name(*k).to_string())
         .collect();
-    if !abilities.is_empty() {
-        // Ability text is quoted after the sentence.
-        let _ = write!(s, ". It has \"{}\"", abilities.join("\n"));
+    let mut quoted: Vec<String> = token
+        .keywords
+        .iter()
+        .filter(|k| is_restriction(**k))
+        .map(|k| keyword_line(token, *k))
+        .collect();
+    for a in &token.abilities {
+        match a {
+            Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => bare.push(format!("toxic {n}")),
+            Ability::Keyword(k) if !is_restriction(*k) => {
+                bare.push(keyword_name(*k).to_string());
+            }
+            _ => quoted.push(ability_text(token, a, ctx.lookup)),
+        }
+    }
+    if has_cda_pt {
+        // "create a white Avatar creature token. It has \"This token's
+        // power and toughness are each equal to your life total.\""
+        if !bare.is_empty() {
+            let _ = write!(s, " with {}", list(&bare));
+        }
+        if !quoted.is_empty() {
+            let _ = write!(s, ". It has \"{}\"", quoted.join("\n"));
+        }
+        return s;
+    }
+    let parts: Vec<String> = bare
+        .into_iter()
+        .chain(quoted.into_iter().map(|q| format!("\"{q}\"")))
+        .collect();
+    if !parts.is_empty() {
+        let _ = write!(s, " with {}", list(&parts));
     }
     s
 }
@@ -1616,6 +1657,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::DistributeCounters { count, .. }
         | Effect::AddManaTimes { count, .. }
         | Effect::CreateToken { count, .. } => vec![*count],
+        Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         _ => Vec::new(),
     }
 }
@@ -2033,6 +2075,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("put {c} on {o}"))
         }
+        Effect::AddCounterList { counters: cs, to } => {
+            let c: Vec<String> = cs.iter().map(|(k, n)| counters(*n, *k)).collect();
+            let o = ctx.obj(*to);
+            Clause::imperative(format!("put {} on {o}", list(&c)))
+        }
         Effect::RemoveCounters { kind, count, to } => {
             let c = counters(*count, *kind);
             let o = ctx.obj(*to);
@@ -2210,9 +2257,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("attach {me} to {o}"))
         }
-        Effect::CreateToken { token, count } => {
-            Clause::imperative(format!("create {}", token_description(token, *count, ctx)))
-        }
+        Effect::CreateToken {
+            token,
+            count,
+            tapped,
+        } => Clause::imperative(format!(
+            "create {}",
+            token_description(token, *count, *tapped, ctx)
+        )),
         Effect::CreateTokenCopy { of, except } => {
             let o = ctx.obj(*of);
             let mut text = format!("create a token that's a copy of {o}");
@@ -3801,6 +3853,26 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         }
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
         StaticCond::AnyPlayerLifeAtMost(n) => format!("a player has {n} or less life"),
+        StaticCond::SourceCounters { kind, n, at_least } => {
+            if *at_least {
+                format!(
+                    "this {} has {} or more {} counters on it",
+                    self_noun(card),
+                    count_words(Num::N(*n), "one"),
+                    kind.name()
+                )
+            } else {
+                format!(
+                    "there are no {} counters on this {}",
+                    kind.name(),
+                    self_noun(card)
+                )
+            }
+        }
+        StaticCond::OpponentPoisonAtLeast(n) => format!(
+            "an opponent has {} or more poison counters",
+            count_words(Num::N(*n), "one")
+        ),
         StaticCond::DefenderControls { filter, at_least } => {
             let mut f = filter.clone();
             f.who = None;
@@ -3865,6 +3937,10 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
         let this = format!("This {} ", self_noun(card));
         let rest = if body.starts_with(&card.name) {
             body.to_string()
+        } else if matches!(c, StaticCond::SourceCounters { .. }) && body.starts_with(&this) {
+            // "As long as this creature has four or more oil counters on
+            // it, it gets +2/+0."
+            format!("it {}", &body[this.len()..])
         } else if matches!(
             c,
             StaticCond::Attacking | StaticCond::Enchanted | StaticCond::Equipped
@@ -4021,8 +4097,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     out.push_str(&static_cond_text(c, card));
                     // Oracle names the source again after a condition about
                     // something else ("..., if you control three or more
-                    // artifacts, this creature gets +3/+3").
-                    ctx.source_mentioned = false;
+                    // artifacts, this creature gets +3/+3"), and "it" after
+                    // one about the source ("if there are no arrowhead
+                    // counters on this artifact, sacrifice it").
+                    ctx.source_mentioned = matches!(c, StaticCond::SourceCounters { .. });
                 }
                 None => {}
             }

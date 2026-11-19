@@ -1,0 +1,9 @@
+card "Cornered by Black Mages" {
+  oracle_id 68a58e0b-1506-492e-8ca3-016e520c10ba
+  cost {1}{B}{B}
+  type Sorcery
+  spell {
+    target opponent sacrifices 1 creature
+    create 1 "0/1 black Wizard creature that pings"
+  }
+}

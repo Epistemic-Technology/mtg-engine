@@ -1,0 +1,7 @@
+card "Gysahl Greens" {
+  oracle_id eddfe7d7-6868-4b81-b46c-d0765e5210e7
+  cost {1}{G}
+  type Sorcery
+  spell: create 1 "2/2 green Bird creature with landfall pump"
+  flashback {6}{G}
+}

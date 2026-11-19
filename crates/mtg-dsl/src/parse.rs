@@ -1509,6 +1509,27 @@ impl P {
         Ok(modes)
     }
 
+    /// After `this has`: `4 or more oil counters`, `no arrowhead counters`.
+    fn source_counters_cond(&mut self) -> R<StaticCond> {
+        if self.eat_word("no") {
+            let kind = self.counter_kind()?;
+            return Ok(StaticCond::SourceCounters {
+                kind,
+                n: 0,
+                at_least: false,
+            });
+        }
+        let n = self.number()?;
+        self.expect_words(&["or", "more"])?;
+        let kind = self.counter_kind()?;
+        Ok(StaticCond::SourceCounters {
+            kind,
+            n,
+            at_least: true,
+        })
+    }
+
+    #[allow(clippy::too_many_lines)] // one branch per condition
     fn static_cond(&mut self) -> R<StaticCond> {
         if self.eat_word("threshold") {
             return Ok(StaticCond::CardsInGraveyard(7));
@@ -1539,6 +1560,14 @@ impl P {
         }
         if self.eat_words(&["opponent", "damaged", "this", "turn"]) {
             return Ok(StaticCond::OpponentDamagedThisTurn);
+        }
+        if self.eat_words(&["this", "has"]) {
+            return self.source_counters_cond();
+        }
+        if self.eat_words(&["opponent", "poison"]) {
+            let n = self.number()?;
+            self.expect_words(&["or", "more"])?;
+            return Ok(StaticCond::OpponentPoisonAtLeast(n));
         }
         if self.eat_words(&["player", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
@@ -2482,9 +2511,19 @@ impl P {
             "put" => {
                 let count = self.num()?;
                 let kind = self.counter_kind()?;
+                let mut more = Vec::new();
+                while self.at_word("and") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+                    self.pos += 1;
+                    let n = self.num()?;
+                    more.push((self.counter_kind()?, n));
+                }
                 self.expect_word("on")?;
                 let to = self.recipient()?;
-                Ok(Effect::AddCounters { kind, count, to })
+                if more.is_empty() {
+                    return Ok(Effect::AddCounters { kind, count, to });
+                }
+                more.insert(0, (kind, count));
+                Ok(Effect::AddCounterList { counters: more, to })
             }
             "distribute" => {
                 let count = self.num()?;
@@ -2803,10 +2842,15 @@ impl P {
                     return Ok(Effect::CreateTokenCopy { of, except });
                 }
                 let count = self.num()?;
+                let tapped = self.eat_word("tapped");
                 let token = self.string()?;
                 self.eat_word("token");
                 self.eat_word("tokens");
-                Ok(Effect::CreateToken { token, count })
+                Ok(Effect::CreateToken {
+                    token,
+                    count,
+                    tapped,
+                })
             }
             "attach" => {
                 self.eat_word("this");
@@ -3060,16 +3104,15 @@ impl P {
 
     fn counter_kind(&mut self) -> R<CounterKind> {
         let kind = match self.next() {
+            // "+1/+1", "-0/-1": power/toughness counters (CR 122.1a).
             Some(Tok::Pt {
-                power: 1,
-                toughness: 1,
+                power,
+                toughness,
                 signed: true,
-            }) => CounterKind::PlusOnePlusOne,
-            Some(Tok::Pt {
-                power: -1,
-                toughness: -1,
-                signed: true,
-            }) => CounterKind::MinusOneMinusOne,
+            }) => match CounterKind::from_pt(power, toughness) {
+                Some(k) => k,
+                None => return self.fail(format!("unknown counter kind {power:+}/{toughness:+}")),
+            },
             Some(Tok::Word(w)) if w == "loyalty" => CounterKind::Loyalty,
             Some(Tok::Word(w)) => {
                 // "stun", "first strike": the named kinds.

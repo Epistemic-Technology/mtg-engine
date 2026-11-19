@@ -1,0 +1,7 @@
+card "Argothian Opportunist" {
+  oracle_id cc9d3868-9814-4506-80b3-660bc462ff98
+  cost {2}{G}
+  type Creature — Human Scout
+  pt 3/2
+  triggered when this enters: create 1 tapped "Powerstone"
+}

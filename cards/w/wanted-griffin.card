@@ -1,0 +1,8 @@
+card "Wanted Griffin" {
+  oracle_id c1348afe-4dc7-41bb-9d3f-1e8751abd7db
+  cost {3}{W}
+  type Creature — Griffin
+  pt 3/2
+  keywords flying
+  triggered when this dies: create 1 "Mercenary"
+}

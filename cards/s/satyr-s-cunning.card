@@ -1,0 +1,7 @@
+card "Satyr's Cunning" {
+  oracle_id 46fd9b9e-ef8f-41d6-9f1d-040bb7fe74c1
+  cost {R}
+  type Sorcery
+  spell: create 1 "1/1 red Satyr creature that can't block"
+  escape {2}{R} exile 2
+}

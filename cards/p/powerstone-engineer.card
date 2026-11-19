@@ -1,0 +1,7 @@
+card "Powerstone Engineer" {
+  oracle_id f2ffc999-609f-4424-8d40-ebc042357a40
+  cost {1}{W}
+  type Creature — Human Artificer
+  pt 2/1
+  triggered when this dies: create 1 tapped "Powerstone"
+}

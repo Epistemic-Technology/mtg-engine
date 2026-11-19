@@ -1,0 +1,4 @@
+token "Map" {
+  type Artifact — Map
+  activated {1}, {T}, sacrifice this, sorcery: target creature you control explores
+}

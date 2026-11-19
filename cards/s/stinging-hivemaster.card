@@ -1,0 +1,8 @@
+card "Stinging Hivemaster" {
+  oracle_id 6b1f750c-0f01-4b1c-ad8f-260e26fbbfea
+  cost {2}{B}
+  type Creature — Phyrexian Warlock
+  pt 3/2
+  toxic 1
+  triggered when this dies: create 1 "Phyrexian Mite"
+}

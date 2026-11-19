@@ -1,0 +1,7 @@
+card "Collector's Case" {
+  oracle_id a347123d-191a-4758-aab1-9cc7769eac66
+  cost {1}{U}
+  type Artifact
+  triggered when this enters: tap up to one target creature and put 2 stun counters on target 1
+  activated {3}{U}, {T}: tap target creature
+}

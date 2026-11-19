@@ -1,0 +1,7 @@
+card "Expendable Lackey" {
+  oracle_id 6f6cbcd4-7a4b-4a38-bf29-995e82e658ce
+  cost {U}
+  type Creature — Human Citizen
+  pt 1/1
+  activated {1}{U}, exile this from graveyard, sorcery: create 1 "1/1 blue Fish creature that can't be blocked"
+}

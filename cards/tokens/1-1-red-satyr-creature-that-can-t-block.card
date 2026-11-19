@@ -1,0 +1,7 @@
+token "1/1 red Satyr creature that can't block" {
+  name "Satyr"
+  type Creature — Satyr
+  pt 1/1
+  color red
+  keywords can't block
+}

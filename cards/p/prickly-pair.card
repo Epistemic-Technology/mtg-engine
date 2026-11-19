@@ -1,0 +1,7 @@
+card "Prickly Pair" {
+  oracle_id 4ce8e0d0-6a3e-4c47-a7b7-c1b1ea1b9426
+  cost {2}{R}
+  type Creature — Plant Mercenary
+  pt 2/2
+  triggered when this enters: create 1 "Mercenary"
+}

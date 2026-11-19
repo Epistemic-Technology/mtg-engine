@@ -1,0 +1,5 @@
+token "Cadet" {
+  type Creature — Wizard Soldier
+  pt 2/2
+  color
+}

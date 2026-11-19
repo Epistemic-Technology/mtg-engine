@@ -1,0 +1,7 @@
+card "Crustacean Commando" {
+  oracle_id b24a87af-407f-4c58-80b4-caab9c65a233
+  cost {1}{U}
+  type Creature — Crab Mutant Soldier
+  pt 0/3
+  triggered when this enters: create 1 "Mutagen"
+}

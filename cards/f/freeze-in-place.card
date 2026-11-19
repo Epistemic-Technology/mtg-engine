@@ -1,0 +1,6 @@
+card "Freeze in Place" {
+  oracle_id 8bf90bb0-f9c1-49c8-905e-32747e921e92
+  cost {1}{U}
+  type Sorcery
+  spell: tap target creature an opponent controls and put 3 stun counters on target 1; scry 2
+}

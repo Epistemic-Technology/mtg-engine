@@ -1,0 +1,8 @@
+card "Belligerent Guest" {
+  oracle_id 417e798d-9ca6-4cd0-adb4-f61d3becb201
+  cost {2}{R}
+  type Creature — Vampire
+  pt 3/2
+  keywords trample
+  triggered whenever this deals combat damage to a player: create 1 "Blood"
+}

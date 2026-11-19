@@ -398,9 +398,27 @@ impl GameState {
     /// made in the command zone and put onto the battlefield through the
     /// pipeline, so "enters" effects and triggers see it.
     pub(super) fn create_token(&mut self, def: CardRef, controller: PlayerId) -> ObjId {
+        self.create_token_with(def, controller, false)
+    }
+
+    /// `create_token`, the token entering tapped if `tapped` ("create a
+    /// tapped Powerstone token").
+    pub(super) fn create_token_with(
+        &mut self,
+        def: CardRef,
+        controller: PlayerId,
+        tapped: bool,
+    ) -> ObjId {
         let id = self.new_object(def, controller, Zone::Command);
         self.objects[id].kind = ObjKind::Token;
-        let new = self.put_onto_battlefield(id, controller);
+        let new = self.put_onto_battlefield_with(
+            id,
+            controller,
+            Enter {
+                tapped,
+                counters: None,
+            },
+        );
         self.emit(Event::TokenCreated {
             obj: new,
             def,
@@ -572,6 +590,19 @@ impl GameState {
         self.propose(Proposed::GainLife { player: p, amount });
     }
 
+    /// Give a player poison counters (CR 122.1f). Characteristics may
+    /// read them ("as long as an opponent has three or more poison
+    /// counters"), and poison changes are rare, so every cached
+    /// characteristic is invalidated.
+    pub(super) fn add_poison(&mut self, p: PlayerId, n: u32) {
+        if n == 0 {
+            return;
+        }
+        self.player_mut(p).poison += n;
+        self.cbump();
+        self.sba_touch();
+    }
+
     /// Change a life total directly (life loss, or a gain that has passed
     /// through the pipeline).
     pub(super) fn change_life(&mut self, p: PlayerId, delta: i32) {
@@ -636,9 +667,7 @@ impl GameState {
                 });
                 if infect {
                     // CR 702.90b: damage to a player as poison counters.
-                    self.player_mut(p).poison += amount;
-                    self.bump();
-                    self.sba_touch();
+                    self.add_poison(p, amount);
                 } else {
                     let delta = -i32::try_from(amount).unwrap_or(i32::MAX);
                     self.change_life(p, delta);
@@ -654,9 +683,7 @@ impl GameState {
                         })
                         .sum();
                     if toxic > 0 {
-                        self.player_mut(p).poison += toxic;
-                        self.bump();
-                        self.sba_touch();
+                        self.add_poison(p, toxic);
                     }
                 }
             }

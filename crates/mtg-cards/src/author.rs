@@ -846,8 +846,17 @@ impl Templates {
                 Some(format!("draw {} cards", number(cap(c, 1))?))
             }),
             (
-                r(r"^[Cc]reate (\S+) (Treasure|Food|Clue) tokens?$"),
-                |c, _| Some(format!("create {} \"{}\"", number(cap(c, 1))?, cap(c, 2))),
+                r(
+                    r"^[Cc]reate (\S+) (tapped )?(Treasure|Food|Clue|Blood|Map|Powerstone|Mutagen) tokens?$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "create {}{} \"{}\"",
+                        number(cap(c, 1))?,
+                        if cap(c, 2).is_empty() { "" } else { " tapped" },
+                        cap(c, 3)
+                    ))
+                },
             ),
             (r(TOKEN_PHRASE), |c, _| {
                 let key = format!("{}{}", cap(c, 2), cap(c, 3));

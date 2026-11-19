@@ -1,0 +1,8 @@
+card "Cryotheory Adept" {
+  oracle_id a9b3ee21-1af1-4e7e-8e48-d7c90d056f5c
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  keywords prowess
+  activated {3}{U}, exile this from graveyard, sorcery: tap target creature and put 1 stun counters on target 1
+}

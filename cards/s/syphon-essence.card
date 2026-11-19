@@ -1,0 +1,6 @@
+card "Syphon Essence" {
+  oracle_id e6e7b5ba-ea10-4f53-8afc-045aa1906c6b
+  cost {2}{U}
+  type Instant
+  spell: counter target creature or planeswalker spell; create 1 "Blood"
+}

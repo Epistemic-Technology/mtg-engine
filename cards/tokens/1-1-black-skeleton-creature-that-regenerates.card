@@ -1,0 +1,7 @@
+token "1/1 black Skeleton creature that regenerates" {
+  name "Skeleton"
+  type Creature — Skeleton
+  pt 1/1
+  color black
+  activated {B}: regenerate this
+}

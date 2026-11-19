@@ -11,8 +11,8 @@
 use smallvec::SmallVec;
 
 use crate::card::{
-    AbilityDef, AbilityId, CdaCount, CounterKind, Layer, Modification, ObjFilter, PtValue,
-    StaticCondition, Subtype,
+    AbilityDef, AbilityId, CdaCount, Layer, Modification, ObjFilter, PtValue, StaticCondition,
+    Subtype,
 };
 use crate::ids::{IdMap, ObjId, PlayerId, Timestamp};
 use crate::state::{Affected, Characteristics, Derived, GameState, Zone, pt16};
@@ -335,6 +335,13 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::AnyPlayerLifeAtMost(n) => {
             state.players_in_game().any(|p| state.player(p).life <= *n)
         }
+        StaticCondition::SourceCounters { kind, n, at_least } => {
+            let have = state.objects.get(source).map_or(0, |o| o.counters(*kind));
+            if *at_least { have >= *n } else { have <= *n }
+        }
+        StaticCondition::OpponentPoisonAtLeast(n) => state
+            .players_in_game()
+            .any(|p| p != you && state.player(p).poison >= *n),
         StaticCondition::YouControlNone(filter) => !work.ids.iter().any(|id| {
             work.on_battlefield(*id)
                 && filter
@@ -771,10 +778,21 @@ fn apply_counters(work: &mut Work<'_>, layer: Layer) {
         if o.zone != Zone::Battlefield {
             continue;
         }
-        let plus = i32::try_from(o.counters(CounterKind::PlusOnePlusOne)).unwrap_or(0);
-        let minus = i32::try_from(o.counters(CounterKind::MinusOneMinusOne)).unwrap_or(0);
+        // CR 613.4c: every power/toughness counter, +1/+1 and -1/-1 and
+        // the rarer kinds alike.
+        let (mut dp, mut dt) = (0i32, 0i32);
+        for (k, n) in &o.counters {
+            if let Some((p, t)) = k.pt() {
+                let n = i32::try_from(*n).unwrap_or(i32::MAX / 4);
+                dp = dp.saturating_add(p.saturating_mul(n));
+                dt = dt.saturating_add(t.saturating_mul(n));
+            }
+        }
+        if dp == 0 && dt == 0 {
+            continue;
+        }
         let c = &mut work.chars[i];
-        c.power = pt16(c.power() + plus - minus);
-        c.toughness = pt16(c.toughness() + plus - minus);
+        c.power = pt16(c.power() + dp);
+        c.toughness = pt16(c.toughness() + dt);
     }
 }

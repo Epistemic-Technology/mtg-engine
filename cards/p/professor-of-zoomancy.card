@@ -1,0 +1,7 @@
+card "Professor of Zoomancy" {
+  oracle_id a22b8220-b41d-4b58-aa68-2c65ce37c517
+  cost {3}{G}
+  type Creature — Bear Druid
+  pt 4/3
+  triggered when this enters: create 1 "1/1 black and green Pest creature that gains life"
+}

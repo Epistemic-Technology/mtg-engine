@@ -1,0 +1,8 @@
+card "Coral Reef" {
+  oracle_id 37a40a53-2668-4521-a786-c5747eedeeb2
+  cost {U}{U}
+  type Enchantment
+  enters with 4 polyp counters
+  activated sacrifice Island: put 2 polyp counters on this
+  activated {U}, tap untapped blue creature you control, remove 1 polyp counter from this: put 1 +0/+1 counter on target creature
+}

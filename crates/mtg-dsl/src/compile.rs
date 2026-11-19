@@ -444,6 +444,12 @@ impl Compiler<'_> {
                 at_least: *at_least,
             },
             StaticCond::AnyPlayerLifeAtMost(n) => StaticCondition::AnyPlayerLifeAtMost(*n),
+            StaticCond::OpponentPoisonAtLeast(n) => StaticCondition::OpponentPoisonAtLeast(*n),
+            StaticCond::SourceCounters { kind, n, at_least } => StaticCondition::SourceCounters {
+                kind: *kind,
+                n: *n,
+                at_least: *at_least,
+            },
             StaticCond::DefenderControls { filter, at_least } => {
                 StaticCondition::DefenderControls {
                     filter: self.filter(filter).who(Who::You),
@@ -682,6 +688,17 @@ impl Compiler<'_> {
                 count: *count,
                 to: r(*to),
             }),
+            // One instruction per kind, in printed order (CR 122.6: each is
+            // its own event).
+            Effect::AddCounterList { counters, to } => {
+                for (kind, count) in counters {
+                    out.push(CoreEffect::AddCounters {
+                        kind: *kind,
+                        count: *count,
+                        to: r(*to),
+                    });
+                }
+            }
             Effect::DealDamageDivided { amount, to } => {
                 out.push(CoreEffect::DealDamageDivided {
                     amount: *amount,
@@ -739,7 +756,11 @@ impl Compiler<'_> {
             }),
             Effect::GainControl { of } => out.push(CoreEffect::GainControl { of: r(*of) }),
             Effect::Attach { to } => out.push(CoreEffect::Attach { to: r(*to) }),
-            Effect::CreateToken { token, count } => {
+            Effect::CreateToken {
+                token,
+                count,
+                tapped,
+            } => {
                 let Some(token_ref) = self.pool.lookup(token) else {
                     return self.err(format!("unknown token \"{token}\""));
                 };
@@ -747,6 +768,7 @@ impl Compiler<'_> {
                     token: token_ref,
                     count: *count,
                     who: CoreRecipient::You,
+                    tapped: *tapped,
                 });
             }
             Effect::CreateTokenCopy { of, except } => out.push(CoreEffect::CreateTokenCopy {
@@ -835,6 +857,7 @@ impl Compiler<'_> {
                     token,
                     count: Num::N(1),
                     who: CoreRecipient::You,
+                    tapped: false,
                 });
             }
             Effect::Surveil(n) => out.push(CoreEffect::Surveil { count: *n }),

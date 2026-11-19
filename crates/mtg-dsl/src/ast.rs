@@ -641,6 +641,17 @@ pub enum StaticCond {
     },
     /// `player life 13 or less`: "a player has 13 or less life".
     AnyPlayerLifeAtMost(i32),
+    /// `opponent poison 3 or more`: "an opponent has three or more poison
+    /// counters" (corrupted).
+    OpponentPoisonAtLeast(u32),
+    /// `this has 4 or more oil counters`: "this creature has four or more
+    /// oil counters on it"; `this has no arrowhead counters`: "there are
+    /// no arrowhead counters on this artifact".
+    SourceCounters {
+        kind: CounterKind,
+        n: u32,
+        at_least: bool,
+    },
     /// `defending player controls Island`: "defending player controls an
     /// Island".
     DefenderControls {
@@ -1026,6 +1037,13 @@ pub enum Effect {
         count: Num,
         to: Recipient,
     },
+    /// `put 1 +1/+1 counter and 1 reach counter on target creature`:
+    /// several kinds at once ("Put a +1/+1 counter, a reach counter, and a
+    /// deathtouch counter on target creature"), at least two.
+    AddCounterList {
+        counters: Vec<(CounterKind, Num)>,
+        to: Recipient,
+    },
     /// `deal 3 damage divided among 1 to 3 targets`: "deals 3 damage
     /// divided as you choose among one, two, or three targets" (CR
     /// 601.2d); `to` is a variable target group.
@@ -1084,9 +1102,11 @@ pub enum Effect {
     Attach {
         to: Recipient,
     },
+    /// `create 2 "Soldier"`; `create 1 tapped "Powerstone"`.
     CreateToken {
         token: String,
         count: Num,
+        tapped: bool,
     },
     CreateTokenCopy {
         of: Recipient,

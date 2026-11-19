@@ -1,0 +1,8 @@
+card "Bonepicker Skirge" {
+  oracle_id c42833e6-3e42-4bd6-acbc-d8e284e9833e
+  cost {2}{B}
+  type Creature — Phyrexian Imp
+  pt 2/2
+  keywords flying
+  label "Corrupted" static as long as opponent poison 3 or more, this: has deathtouch, lifelink
+}

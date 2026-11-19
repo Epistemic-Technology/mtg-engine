@@ -1,0 +1,8 @@
+card "Harried Spearguard" {
+  oracle_id e3542d0f-fcee-4df7-aa95-b55138caa2ab
+  cost {R}
+  type Creature — Human Soldier
+  pt 1/1
+  keywords haste
+  triggered when this dies: create 1 "1/1 black Rat creature that can't block"
+}

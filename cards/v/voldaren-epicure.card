@@ -1,0 +1,7 @@
+card "Voldaren Epicure" {
+  oracle_id cef82674-1f61-407b-801b-a76a3803e598
+  cost {R}
+  type Creature — Vampire
+  pt 1/1
+  triggered when this enters: deal 1 damage to each opponent; create 1 "Blood"
+}

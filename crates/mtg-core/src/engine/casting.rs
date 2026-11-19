@@ -3124,12 +3124,17 @@ impl GameState {
                     }
                 }
             }
-            Effect::CreateToken { token, count, who } => {
+            Effect::CreateToken {
+                token,
+                count,
+                who,
+                tapped,
+            } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
                         for _ in 0..self.eval_num(*count, ctx) {
                             // "then attach this Equipment to it".
-                            ctx.created = Some(self.create_token(*token, p));
+                            ctx.created = Some(self.create_token_with(*token, p, *tapped));
                         }
                     }
                 }
@@ -3568,9 +3573,7 @@ impl GameState {
                     if let Target::Player(p) = t
                         && n > 0
                     {
-                        self.player_mut(p).poison += n;
-                        self.bump();
-                        self.sba_touch();
+                        self.add_poison(p, n);
                     }
                 }
             }
@@ -3824,7 +3827,8 @@ impl GameState {
 
     /// Proliferate (CR 701.27) with the choices a player would make: one
     /// more of each kind of counter on their own permanents (+1/+1,
-    /// loyalty), on opponents' permanents with -1/-1 counters, and on
+    /// loyalty), on opponents' permanents with stun counters or counters
+    /// that lower power and toughness (-1/-1, -0/-1), and on
     /// opponents with poison counters.
     fn proliferate(&mut self, p: PlayerId) {
         let ids: Vec<ObjId> = self.battlefield.clone();
@@ -3836,9 +3840,10 @@ impl GameState {
                 .iter()
                 .filter(|(k, n)| {
                     *n > 0
-                        && match k {
-                            CounterKind::MinusOneMinusOne | CounterKind::Stun => !mine,
-                            _ => mine,
+                        && if *k == CounterKind::Stun || k.pt().is_some_and(|(p, t)| p + t < 0) {
+                            !mine
+                        } else {
+                            mine
                         }
                 })
                 .map(|(k, _)| *k)
@@ -3851,9 +3856,7 @@ impl GameState {
             self.players_in_game().filter(|q| *q != p).collect();
         for q in opponents {
             if self.player(q).poison > 0 {
-                self.player_mut(q).poison += 1;
-                self.bump();
-                self.sba_touch();
+                self.add_poison(q, 1);
             }
         }
     }

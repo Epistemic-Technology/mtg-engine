@@ -1,0 +1,8 @@
+card "Edgewall Pack" {
+  oracle_id ef702a1a-4ace-43e0-8e86-dcceb0b1e4d5
+  cost {3}{R}
+  type Creature — Dog
+  pt 3/3
+  keywords menace
+  triggered when this enters: create 1 "1/1 black Rat creature that can't block"
+}

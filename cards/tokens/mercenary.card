@@ -1,0 +1,6 @@
+token "Mercenary" {
+  type Creature — Mercenary
+  pt 1/1
+  color red
+  activated {T}, sorcery: target creature you control gets +1/+0
+}

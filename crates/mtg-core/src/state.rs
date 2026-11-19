@@ -1475,6 +1475,13 @@ impl GameState {
                 if *at_least { l >= *n } else { l <= *n }
             }
             C::AnyPlayerLifeAtMost(n) => self.players_in_game().any(|p| self.player(p).life <= *n),
+            C::SourceCounters { kind, n, at_least } => {
+                let have = self.objects.get(source).map_or(0, |o| o.counters(*kind));
+                if *at_least { have >= *n } else { have <= *n }
+            }
+            C::OpponentPoisonAtLeast(n) => self
+                .players_in_game()
+                .any(|p| p != you && self.player(p).poison >= *n),
             C::AttackedThisTurn => self.attacked_this_turn & (1 << you.index().min(7)) != 0,
             C::CreatureDiedThisTurn => self.creatures_died_this_turn > 0,
             C::Escaped => self

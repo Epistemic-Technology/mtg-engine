@@ -1,0 +1,272 @@
+# Power/toughness counters other than +1/+1 and -1/-1 (CR 122.1a, 613.4c),
+# named counters, conditions on counters and poison, several kinds put at
+# once, and predefined and described tokens (CR 111.10).
+
+scenario "A +1/+2 counter changes power and toughness and stays beside a -1/-1 counter" {
+  battlefield A: "Armor Thrull", "Grizzly Bears" with 1 -1/-1
+  turn 1 A: activate "Armor Thrull" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+2 1
+  # CR 704.5q annihilates only +1/+1 and -1/-1 counters.
+  assert counters "Grizzly Bears" -1/-1 1
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "A -0/-1 counter shrinks toughness only" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Shield Sphere"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Shield Sphere"
+  run_to turn 1 postcombat_main
+  assert counters "Shield Sphere" -0/-1 1
+  assert power "Shield Sphere" 0
+  assert toughness "Shield Sphere" 5
+  assert damage "Shield Sphere" 2
+}
+
+scenario "Spirit Shackle: a -0/-2 counter as the creature taps" {
+  battlefield A: "Hill Giant", "Spirit Shackle" on "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" -0/-2 1
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Spirit Shackle: a 2/2 dies at 0 toughness" {
+  battlefield A: "Grizzly Bears", "Spirit Shackle" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Gift of the Viper puts three kinds of counters at once" {
+  battlefield A: "Forest", "Grizzly Bears" tapped
+  hand A: "Gift of the Viper"
+  turn 1 A: cast "Gift of the Viper" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Grizzly Bears" reach 1
+  assert counters "Grizzly Bears" deathtouch 1
+  assert has "Grizzly Bears" reach
+  assert has "Grizzly Bears" deathtouch
+  assert power "Grizzly Bears" 3
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Serrated Arrows spends arrowhead counters" {
+  battlefield A: "Serrated Arrows" with 1 arrowhead
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Serrated Arrows" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Serrated Arrows" arrowhead 0
+  assert power "Hill Giant" 2
+  illegal turn 3 A: activate "Serrated Arrows" targeting "Hill Giant"
+  run_to turn 3 end
+}
+
+scenario "Serrated Arrows with no arrowhead counters is sacrificed at upkeep" {
+  battlefield A: "Serrated Arrows"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Serrated Arrows"
+}
+
+scenario "Serrated Arrows with arrowhead counters stays" {
+  battlefield A: "Serrated Arrows" with 2 arrowhead
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Serrated Arrows"
+}
+
+scenario "Ichor Synthesizer grows at four oil counters" {
+  battlefield A: "Ichor Synthesizer" with 3 oil, "Island"
+  hand A: "Opt"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert counters "Ichor Synthesizer" oil 4
+  assert power "Ichor Synthesizer" 3
+  assert has "Ichor Synthesizer" unblockable
+}
+
+scenario "Corrupted: Bonepicker Skirge has deathtouch with an opponent at three poison" {
+  battlefield A: "Bonepicker Skirge"
+  poison B: 3
+  run_to turn 1 precombat_main
+  assert has "Bonepicker Skirge" deathtouch
+  assert has "Bonepicker Skirge" lifelink
+}
+
+scenario "Corrupted: not with two poison counters" {
+  battlefield A: "Bonepicker Skirge"
+  poison B: 2
+  run_to turn 1 precombat_main
+  assert has not "Bonepicker Skirge" deathtouch
+}
+
+scenario "Corrupted turns on when toxic damage lands" {
+  battlefield A: "Bonepicker Skirge", "Crawling Chorus"
+  poison B: 2
+  start turn 1 A precombat_main
+  turn 1 A: attack "Crawling Chorus"
+  run_to turn 1 postcombat_main
+  assert poison B 3
+  assert has "Bonepicker Skirge" deathtouch
+}
+
+scenario "Incisor Glider pumps the team only when corrupted" {
+  battlefield A: "Incisor Glider", "Grizzly Bears"
+  poison B: 3
+  start turn 1 A precombat_main
+  turn 1 A: attack "Incisor Glider"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Incisor Glider does nothing without three poison" {
+  battlefield A: "Incisor Glider", "Grizzly Bears"
+  poison B: 2
+  start turn 1 A precombat_main
+  turn 1 A: attack "Incisor Glider"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Koilos Roc creates a tapped Powerstone" {
+  battlefield A: 5 "Island"
+  hand A: "Koilos Roc"
+  turn 1 A: cast "Koilos Roc"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Powerstone"
+  assert tapped "Powerstone"
+}
+
+scenario "Powerstone mana pays for an artifact spell" {
+  battlefield A: 2 "Powerstone"
+  hand A: "Mind Stone"
+  turn 1 A: cast "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mind Stone"
+}
+
+scenario "Powerstone mana can't pay for a nonartifact spell" {
+  battlefield A: "Powerstone", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Vampire's Kiss makes two Blood tokens; Blood loots" {
+  battlefield A: 3 "Swamp"
+  hand A: "Vampire's Kiss", "Hill Giant"
+  library A: "Opt", "Island"
+  turn 1 A: cast "Vampire's Kiss" targeting player B
+  turn 1 A: wait
+  turn 1 A: activate "Blood" discarding "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+  assert battlefield A contains 1 "Blood"
+  assert graveyard A contains "Hill Giant"
+  assert hand A contains "Opt"
+}
+
+scenario "A Mutagen token puts a +1/+1 counter as a sorcery" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield A: "Mutagen"
+  turn 1 A: activate "Mutagen" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert battlefield A lacks "Mutagen"
+}
+
+scenario "Waterwind Scout's Map makes a creature explore" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  hand A: "Waterwind Scout"
+  library A: "Opt", "Island"
+  turn 1 A: cast "Waterwind Scout"
+  turn 1 A: wait
+  turn 1 A: activate "Map" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Map"
+  # The top card is a nonland: a +1/+1 counter (CR 701.44a).
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Unfathomable Truths: the Eldrazi Spawn sacrifices for {C}" {
+  battlefield A: 5 "Island"
+  hand A: "Unfathomable Truths"
+  turn 1 A: cast "Unfathomable Truths"
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Eldrazi Spawn"
+  assert power "Eldrazi Spawn" 0
+  assert toughness "Eldrazi Spawn" 1
+  assert is "Eldrazi Spawn" creature
+}
+
+scenario "The Eldrazi Spawn's mana pays for a spell" {
+  battlefield A: "Island", "Eldrazi Spawn"
+  hand A: "Mind Stone"
+  # A mana ability (CR 605.1a) activated by hand before casting.
+  turn 1 A: activate "Eldrazi Spawn"
+  turn 1 A: cast "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mind Stone"
+  assert battlefield A lacks "Eldrazi Spawn"
+}
+
+scenario "Stinging Hivemaster leaves a Phyrexian Mite that can't block" {
+  battlefield A: "Stinging Hivemaster"
+  battlefield B: "Grizzly Bears"
+  hand B: "Shock"
+  battlefield B: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Stinging Hivemaster"
+  turn 1 B: block "Stinging Hivemaster" with "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Phyrexian Mite"
+  assert is "Phyrexian Mite" artifact
+  assert has "Phyrexian Mite" cantblock
+}
+
+scenario "A Phyrexian Mite can't block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Phyrexian Mite"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Phyrexian Mite"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "A Phyrexian Mite's toxic gives a poison counter" {
+  battlefield A: "Phyrexian Mite"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Phyrexian Mite"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert poison B 1
+}
+
+scenario "Heartstring Puller's token is named Cadet" {
+  battlefield A: 4 "Mountain"
+  hand A: "Heartstring Puller"
+  turn 1 A: cast "Heartstring Puller"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Cadet"
+  assert is "Cadet" Wizard
+  assert power "Cadet" 2
+}
+
+scenario "A Mercenary token pumps a creature as a sorcery" {
+  battlefield A: "Mercenary", "Grizzly Bears"
+  turn 1 A: activate "Mercenary" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert tapped "Mercenary"
+}
