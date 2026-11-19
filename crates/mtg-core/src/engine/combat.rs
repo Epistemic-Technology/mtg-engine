@@ -523,6 +523,11 @@ impl GameState {
                 a.blocked = true;
             }
         }
+        for b in &blockers {
+            if blocks.iter().any(|(x, _)| x == b) && !self.blockers_this_turn.contains(b) {
+                self.blockers_this_turn.push(*b);
+            }
+        }
         for (blocker, attacker) in blocks {
             self.emit(Event::Block { blocker, attacker });
         }

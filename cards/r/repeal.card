@@ -1,0 +1,9 @@
+card "Repeal" {
+  oracle_id b1f2b26c-91b2-4f3c-9f48-6429ec3fde48
+  cost {X}{U}
+  type Instant
+  spell {
+    return target nonland permanent with mana value X to hand
+    draw 1 card
+  }
+}

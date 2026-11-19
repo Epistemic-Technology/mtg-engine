@@ -1,0 +1,6 @@
+card "Cradle to Grave" {
+  oracle_id a86f9b53-ff44-4b08-a8e9-beef73595de1
+  cost {1}{B}
+  type Instant
+  spell: destroy target nonblack creature that entered this turn
+}

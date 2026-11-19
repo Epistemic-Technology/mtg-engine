@@ -1,0 +1,9 @@
+card "Keldon Strike Team" {
+  oracle_id 6465f93d-e6bf-4a7b-86f3-5a2376f8b127
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 3/1
+  kicker {1}{W}
+  triggered when this enters if kicked: create 2 "1/1 white Soldier creature"
+  static as long as this is that entered this turn, creature you control: has haste
+}

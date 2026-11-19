@@ -4878,10 +4878,26 @@ impl P {
                 // so are "each creature you control of chosen type" and
                 // "each creature your opponents control".
                 let continues = (ws[0] == "each" || ws[0] == "all")
-                    && matches!(
+                    && (matches!(
                         self.word_at(ws.len()).as_deref(),
-                        Some("with" | "without" | "of" | "named" | "your" | "you" | "defending")
-                    );
+                        Some(
+                            "with"
+                                | "without"
+                                | "of"
+                                | "named"
+                                | "your"
+                                | "you"
+                                | "defending"
+                                | "dealt"
+                                | "blocked"
+                        )
+                    ) || (self.word_at(ws.len()).as_deref() == Some("blocking")
+                        && matches!(self.word_at(ws.len() + 1).as_deref(), Some("this" | "or")))
+                        || (self.word_at(ws.len()).as_deref() == Some("that")
+                            && matches!(
+                                self.word_at(ws.len() + 1).as_deref(),
+                                Some("entered" | "dealt" | "blocked" | "was")
+                            )));
                 if !continues {
                     self.pos += ws.len();
                     return Ok(*r);
@@ -4983,7 +4999,10 @@ impl P {
                     (Some("you"), Some("don't" | "control"))
                         | (Some("an"), Some("opponent"))
                         | (Some("defending" | "your"), Some("player" | "opponents"))
-                        | (Some("that"), Some("was"))
+                        | (Some("that"), Some("was" | "entered" | "dealt" | "blocked"))
+                        | (Some("with" | "without"), Some("aura"))
+                        | (Some("blocked"), Some("by"))
+                        | (Some("blocking"), Some("this" | "or"))
                 ) || comma_type
                     || (next.as_deref() == Some("or")
                         && !matches!(
@@ -4997,7 +5016,7 @@ impl P {
                     || (matches!(next.as_deref(), Some("spell" | "spells"))
                         && !ws.ends_with(&["spell"]))
                     || (matches!(next.as_deref(), Some("card" | "cards"))
-                        && after.as_deref() == Some("from"))
+                        && matches!(after.as_deref(), Some("from" | "with")))
                     // "target permanent not named ~".
                     || (matches!(next.as_deref(), Some("named" | "not"))
                         && matches!(after.as_deref(), Some("named" | "this")));
@@ -5044,8 +5063,25 @@ impl P {
             self.pos += 2;
             f.same = Some(SameRef::NamedThis);
         }
-        if named || self.at_words(&["card", "from"]) || self.at_words(&["cards", "from"]) {
-            self.pos += 2;
+        // "creature card with mana value X or less from your graveyard":
+        // the mana value after the noun.
+        let mv_after =
+            !named && f.mana_value.is_none() && self.at_words(&["card", "with", "mana", "value"]);
+        if mv_after {
+            self.pos += 1;
+            let g = self.filter()?;
+            f.mana_value = g.mana_value;
+            f.status.mana_value_x = g.status.mana_value_x;
+            if !self.at_word("from") {
+                return self.unexpected("`from` after the card's mana value");
+            }
+        }
+        if named
+            || mv_after
+            || self.at_words(&["card", "from"])
+            || self.at_words(&["cards", "from"])
+        {
+            self.pos += if mv_after { 1 } else { 2 };
             let who = if self.eat_word("your") {
                 Who::You
             } else if self.eat_words(&["an", "opponent's"]) {
@@ -5201,6 +5237,51 @@ impl P {
                     f.no_abilities = true;
                     self.pos += 3;
                 }
+                // "with mana value X": X of the spell.
+                "with"
+                    if self.at_words(&["with", "mana", "value", "x"]) && f.mana_value.is_none() =>
+                {
+                    self.pos += 4;
+                    let cmp = if self.eat_words(&["or", "less"]) {
+                        Cmp::AtMost
+                    } else if self.eat_words(&["or", "greater"]) {
+                        Cmp::AtLeast
+                    } else {
+                        Cmp::Exactly
+                    };
+                    f.mana_value = Some((cmp, 0));
+                    f.status.mana_value_x = true;
+                }
+                "with" | "without"
+                    if self.word_at(1).as_deref() == Some("aura")
+                        && f.status.enchanted.is_none() =>
+                {
+                    f.status.enchanted = Some(w == "with");
+                    self.pos += 2;
+                }
+                "blocked" | "unblocked"
+                    if self.word_at(1).as_deref() != Some("by") && f.status.blocked.is_none() =>
+                {
+                    f.status.blocked = Some(w == "blocked");
+                    self.pos += 1;
+                }
+                "dealt" if self.at_words(&["dealt", "damage", "this", "turn"]) => {
+                    f.damaged = true;
+                    f.damaged_short = true;
+                    self.pos += 4;
+                }
+                "that" if self.at_words(&["that", "entered", "this", "turn"]) => {
+                    f.status.entered_this_turn = true;
+                    self.pos += 4;
+                }
+                "that" if self.at_words(&["that", "dealt", "damage", "this", "turn"]) => {
+                    f.status.dealt_damage = true;
+                    self.pos += 5;
+                }
+                "that" if self.at_words(&["that", "blocked", "this", "turn"]) => {
+                    f.status.blocked_this_turn = true;
+                    self.pos += 4;
+                }
                 "with"
                     if matches!(self.word_at(1).as_deref(), Some("power" | "toughness"))
                         || self.at_words(&["with", "mana", "value"]) =>
@@ -5229,6 +5310,27 @@ impl P {
                 "tapped" | "untapped" => {
                     f.tapped = Some(w == "tapped");
                     self.pos += 1;
+                }
+                // "blocking this creature", "this creature is blocking",
+                // "it's blocking", "blocking or blocked by this creature".
+                "blocking" | "blocked"
+                    if f.combat_with.is_none()
+                        && (self.at_words(&["blocking", "this"])
+                            || self.at_words(&["blocked", "by", "this"])
+                            || self.at_words(&["blocked", "by", "it"])
+                            || self.at_words(&["blocking", "or", "blocked", "by", "this"])) =>
+                {
+                    let (r, n) = if self.at_words(&["blocking", "this"]) {
+                        (crate::ast::CombatRef::BlockingThis, 2)
+                    } else if self.at_words(&["blocked", "by", "this"]) {
+                        (crate::ast::CombatRef::BlockedByThis, 3)
+                    } else if self.at_words(&["blocked", "by", "it"]) {
+                        (crate::ast::CombatRef::BlockedByIt, 3)
+                    } else {
+                        (crate::ast::CombatRef::BlockingOrBlockedByThis, 5)
+                    };
+                    f.combat_with = Some(r);
+                    self.pos += n;
                 }
                 "attacking" if self.at_words(&["attacking", "or", "blocking"]) => {
                     f.attacking = true;
@@ -5336,7 +5438,10 @@ impl P {
                 {
                     self.pos += 1;
                 }
+                // "enchanted creature or enchantment creature": a type
+                // followed by another starts a filter of its own.
                 "or" if self.word_at(1).as_deref().and_then(card_type).is_some()
+                    && self.word_at(2).as_deref().and_then(card_type).is_none()
                     && (!f.types.is_empty() || !f.any_types.is_empty()) =>
                 {
                     // "artifact or enchantment": the types so far and the

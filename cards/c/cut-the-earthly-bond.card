@@ -1,0 +1,6 @@
+card "Cut the Earthly Bond" {
+  oracle_id 127ce189-2758-4789-9e02-4aa71d013431
+  cost {U}
+  type Instant — Arcane
+  spell: return target permanent with aura to hand
+}

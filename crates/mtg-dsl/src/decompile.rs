@@ -141,6 +141,8 @@ impl Decompiler<'_> {
             attacking: f.attacking,
             blocking: f.blocking,
             damaged: f.damaged,
+            damaged_short: false,
+            status: f.status,
             chosen: f.chosen.then_some(crate::ast::OfChosen::ChosenType),
             same: f.same.map(|r| {
                 use crate::ast::SameRef;
@@ -162,6 +164,15 @@ impl Decompiler<'_> {
                     AttachedTo::Source => AttachedRef::Source,
                     AttachedTo::SourceHost => AttachedRef::Host,
                     AttachedTo::Target(n) => AttachedRef::Target(usize::from(n)),
+                }
+            }),
+            combat_with: f.combat_with.map(|w| {
+                use crate::ast::CombatRef;
+                use mtg_core::card::CombatWith;
+                match w {
+                    CombatWith::Blocking => CombatRef::BlockingThis,
+                    CombatWith::BlockedBy => CombatRef::BlockedByThis,
+                    CombatWith::BlockingOrBlockedBy => CombatRef::BlockingOrBlockedByThis,
                 }
             }),
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),

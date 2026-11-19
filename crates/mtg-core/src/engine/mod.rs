@@ -436,6 +436,8 @@ impl GameState {
             activated_once: Vec::new(),
             activated_ever: Vec::new(),
             attackers_this_turn: Vec::new(),
+            blockers_this_turn: Vec::new(),
+            dealt_damage_this_turn: Vec::new(),
             saddled: Vec::new(),
             turn_started_at: 0,
             x_values: Vec::new(),
@@ -687,7 +689,11 @@ impl GameState {
                     let player = obj.controller;
                     let options = self.x_options(spell);
                     if options.is_empty() {
-                        unreachable!("cast offered without an affordable X");
+                        // No affordable X has a target its mana value fits
+                        // ("with mana value X"): the cast is undone (CR
+                        // 726).
+                        self.undo_cast(spell, false);
+                        continue;
                     }
                     return StepResult::Decision(Decision {
                         player,
@@ -1935,6 +1941,8 @@ impl GameState {
             self.loyalty_activated.clear();
             self.activated_once.clear();
             self.attackers_this_turn.clear();
+            self.blockers_this_turn.clear();
+            self.dealt_damage_this_turn.clear();
             self.saddled.clear();
             self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;

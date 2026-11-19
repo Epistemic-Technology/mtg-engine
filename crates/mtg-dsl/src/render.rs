@@ -1040,15 +1040,24 @@ impl<'a> Ctx<'a> {
                 }
             }
             Recipient::Group(i) => {
-                if self.groups_mentioned.insert(r) {
-                    self.group_phrase(i, true)
-                } else {
+                if !self.groups_mentioned.insert(r) {
                     "they".to_string()
+                } else if self.each_group(r) {
+                    format!("each {}", self.group_phrase(i, false))
+                } else {
+                    self.group_phrase(i, true)
                 }
             }
             Recipient::Source => self.source(),
             other => self.obj(other),
         }
+    }
+
+    /// A group in a combat relation to the source is a subject one at a
+    /// time: "Each creature blocking this creature gets -1/-1".
+    fn each_group(&self, r: Recipient) -> bool {
+        matches!(r, Recipient::Group(i)
+            if self.card.groups.get(usize::from(i)).is_some_and(|f| f.combat_with.is_some()))
     }
 
     /// Objects of destruction and exile ("all creatures").
@@ -1172,7 +1181,7 @@ impl<'a> Ctx<'a> {
     }
 
     fn verb(&self, r: Recipient, singular: &'static str, plural: &'static str) -> &'static str {
-        if r == Recipient::You || Self::is_plural(r) || self.is_many(r) {
+        if r == Recipient::You || (Self::is_plural(r) && !self.each_group(r)) || self.is_many(r) {
             plural
         } else {
             singular
@@ -1407,8 +1416,14 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.relation == Relation::Other {
         words.push("other".to_string());
     }
+    if f.status.enchanted == Some(true) {
+        words.push("enchanted".to_string());
+    }
     if let Some(t) = f.tapped {
         words.push(if t { "tapped" } else { "untapped" }.to_string());
+    }
+    if let Some(b) = f.status.blocked {
+        words.push(if b { "blocked" } else { "unblocked" }.to_string());
     }
     if f.attacking {
         words.push("attacking".to_string());
@@ -1488,7 +1503,11 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         }
     }
     if let Some((cmp, n)) = f.mana_value {
-        let _ = write!(s, " with mana value {n}{}", cmp_words(cmp));
+        if f.status.mana_value_x {
+            let _ = write!(s, " with mana value X{}", cmp_words(cmp));
+        } else {
+            let _ = write!(s, " with mana value {n}{}", cmp_words(cmp));
+        }
     }
     if !f.keywords.is_empty() {
         let _ = write!(s, " with {}", keywords_list(&f.keywords));
@@ -1510,8 +1529,37 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.no_abilities {
         s.push_str(" with no abilities");
     }
-    if f.damaged {
+    if f.damaged_short {
+        s.push_str(" dealt damage this turn");
+    } else if f.damaged {
         s.push_str(" that was dealt damage this turn");
+    }
+    // "that entered this turn", "that isn't enchanted".
+    let that = |s: &mut String, one: &str, many: &str| {
+        s.push_str(if plural_form { many } else { one });
+    };
+    if f.status.enchanted == Some(false) {
+        that(&mut s, " that isn't enchanted", " that aren't enchanted");
+    }
+    if let Some(r) = f.combat_with {
+        let this = this_ref(card);
+        let _ = match r {
+            crate::ast::CombatRef::BlockingThis => write!(s, " blocking {this}"),
+            crate::ast::CombatRef::BlockedByThis => write!(s, " {this} is blocking"),
+            crate::ast::CombatRef::BlockedByIt => write!(s, " it's blocking"),
+            crate::ast::CombatRef::BlockingOrBlockedByThis => {
+                write!(s, " blocking or blocked by {this}")
+            }
+        };
+    }
+    if f.status.entered_this_turn {
+        s.push_str(" that entered this turn");
+    }
+    if f.status.dealt_damage {
+        s.push_str(" that dealt damage this turn");
+    }
+    if f.status.blocked_this_turn {
+        s.push_str(" that blocked this turn");
     }
     if let Some(c) = f.chosen {
         s.push_str(match c {
@@ -1550,13 +1598,27 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
 fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     let mut g = f.clone();
     g.same = None;
+    // "creature card with mana value 3 or less": the mana value after the
+    // noun.
+    let mut mv = String::new();
+    if g.or.is_none()
+        && let Some((cmp, n)) = g.mana_value.take()
+    {
+        let n = if g.status.mana_value_x {
+            "X".to_string()
+        } else {
+            n.to_string()
+        };
+        g.status.mana_value_x = false;
+        mv = format!(" with mana value {n}{}", cmp_words(cmp));
+    }
     let p = if g == Filter::default() {
         String::new()
     } else {
         format!("{} ", card_filter_phrase(&g, card))
     };
     let noun = if plural_form { "cards" } else { "card" };
-    format!("{p}{noun}{}", same_phrase(f, card, plural_form))
+    format!("{p}{noun}{mv}{}", same_phrase(f, card, plural_form))
 }
 
 /// What "Choose ..." chooses: "a creature type other than Wall", "a
@@ -3518,7 +3580,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             // "If that creature has infect".
             let has = pred.strip_prefix("a permanent with ").map(str::to_string);
+            // "If it was dealt damage this turn".
+            let damaged_only = (Filter {
+                damaged: false,
+                ..f.clone()
+            }) == Filter::default()
+                && f.damaged;
             let cond = match (check.tense, has) {
+                _ if damaged_only => "it was dealt damage this turn".to_string(),
                 (TargetTense::Was, _) => format!("that {noun} was {pred}"),
                 (TargetTense::Is, Some(k)) => format!("it has {k}"),
                 (TargetTense::ThatIs, Some(k)) => format!("that {noun} has {k}"),
@@ -5359,6 +5428,20 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             let (cmp, n) = f.power.expect("checked");
             format!("its power is {n}{}", cmp_words(cmp))
         }
+        // "As long as this creature entered this turn".
+        StaticCond::Is(f)
+            if (Filter {
+                status: mtg_core::card::StatusQuals::default(),
+                ..f.clone()
+            }) == Filter::default()
+                && f.status
+                    == (mtg_core::card::StatusQuals {
+                        entered_this_turn: true,
+                        ..Default::default()
+                    }) =>
+        {
+            "it entered this turn".to_string()
+        }
         StaticCond::Is(f) => format!("it's {}", is_predicate(f, card)),
         StaticCond::Modified => "it's modified".to_string(),
         StaticCond::AttackingAlone => "it's attacking alone".to_string(),
@@ -5557,6 +5640,7 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
     // creature is enchanted" when the subject is something else.
     if about_source(c) && !body.starts_with(&capitalize(&this_ref(card))) {
         cond = cond.replace("it's", &format!("{} is", this_ref(card)));
+        cond = cond.replace("it entered", &format!("{} entered", this_ref(card)));
     }
     if first {
         let this = format!("{} ", capitalize(&this_ref(card)));
@@ -5569,6 +5653,7 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
         } else if about_source(c) && body.starts_with(&this) {
             // "As long as this creature is equipped, it gets +1/+1."
             cond = cond.replace("it's", &format!("{} is", this_ref(card)));
+            cond = cond.replace("it entered", &format!("{} entered", this_ref(card)));
             // "As long as this creature's power is 5 or greater, ..."
             cond = cond.replace("its power", &format!("{}'s power", this_ref(card)));
             format!("it {}", &body[this.len()..])
