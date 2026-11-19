@@ -1,0 +1,7 @@
+card "Lim-Dûl's Cohort" {
+  oracle_id 1e3b97d2-8fda-4510-9697-f36ca9ca2ab0
+  cost {1}{B}{B}
+  type Creature — Zombie
+  pt 2/3
+  triggered whenever this blocks or becomes blocked by a creature: that creature can't be regenerated this turn
+}

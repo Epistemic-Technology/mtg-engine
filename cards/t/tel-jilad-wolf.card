@@ -1,0 +1,7 @@
+card "Tel-Jilad Wolf" {
+  oracle_id e1fcab73-8a23-43ae-9d8b-9601ffa8663e
+  cost {2}{G}
+  type Creature — Wolf
+  pt 2/2
+  triggered whenever this becomes blocked by an artifact creature: this gets +3/+3
+}

@@ -1,0 +1,293 @@
+# Combat triggers and restrictions: block-pair and damage triggers against
+# a kind of creature, "the other creature", "attacks while" trigger
+# conditions (CR 603.2, not an intervening "if"), "can't attack if" and
+# "can only attack alone" (CR 508.1c), one-turn "can't block this
+# creature" and power-relative blocking restrictions (CR 509.1b), "if it
+# attacked during your last turn", and "can't be regenerated this turn".
+
+# ----- block-pair and damage triggers -----
+
+scenario "Ogre Leadfoot destroys an artifact creature blocking it" {
+  battlefield A: "Ogre Leadfoot"
+  battlefield B: "Ornithopter"
+  turn 1 A: attack "Ogre Leadfoot"
+  turn 1 B: block "Ogre Leadfoot" with "Ornithopter"
+  run_to turn 1 combat_damage
+  assert graveyard B contains "Ornithopter"
+}
+
+scenario "Ogre Leadfoot ignores a nonartifact blocker" {
+  battlefield A: "Ogre Leadfoot"
+  battlefield B: "Craw Wurm"
+  turn 1 A: attack "Ogre Leadfoot"
+  turn 1 B: block "Ogre Leadfoot" with "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Craw Wurm"
+}
+
+scenario "Vampire Slayer destroys a Vampire it deals damage to" {
+  battlefield A: "Vampire Slayer"
+  battlefield B: "Barony Vampire"
+  turn 1 A: attack "Vampire Slayer"
+  turn 1 B: block "Vampire Slayer" with "Barony Vampire"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Barony Vampire"
+}
+
+scenario "Vampire Slayer's damage to a non-Vampire doesn't destroy it" {
+  battlefield A: "Vampire Slayer"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Vampire Slayer"
+  turn 1 B: block "Vampire Slayer" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Venomous Fangs destroys the other creature" {
+  battlefield A: "Grizzly Bears", "Venomous Fangs" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Venom destroys a non-Wall blocker at end of combat" {
+  battlefield A: "Memnite", "Venom" on "Memnite"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Memnite"
+  turn 1 B: block "Memnite" with "Hill Giant"
+  run_to turn 1 combat_damage
+  assert battlefield B contains "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Venom spares a Wall" {
+  battlefield A: "Memnite", "Venom" on "Memnite"
+  battlefield B: "Wall of Wood"
+  turn 1 A: attack "Memnite"
+  turn 1 B: block "Memnite" with "Wall of Wood"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Wall of Wood"
+}
+
+scenario "Gloom Sower drains the blocking creature's controller" {
+  battlefield A: "Gloom Sower"
+  battlefield B: "Wall of Wood"
+  turn 1 A: attack "Gloom Sower"
+  turn 1 B: block "Gloom Sower" with "Wall of Wood"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Aisling Leprechaun's blocker stays green" {
+  battlefield A: "Aisling Leprechaun"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Aisling Leprechaun"
+  turn 1 B: block "Aisling Leprechaun" with "Hill Giant"
+  run_to turn 3 precombat_main
+  assert is "Hill Giant" green
+  assert is not "Hill Giant" red
+}
+
+scenario "Treefolk Mystic destroys the Auras on its blocker" {
+  battlefield A: "Treefolk Mystic"
+  battlefield B: "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  turn 1 A: attack "Treefolk Mystic"
+  turn 1 B: block "Treefolk Mystic" with "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert graveyard B contains "Holy Strength"
+}
+
+scenario "Lim-Dul's Cohort: the blocker can't be regenerated" {
+  battlefield A: "Lim-Dûl's Cohort"
+  battlefield B: "River Boa", "Forest"
+  turn 1 A: attack "Lim-Dûl's Cohort"
+  turn 1 B: block "Lim-Dûl's Cohort" with "River Boa"
+  turn 1 declare_blockers B: activate "River Boa"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "River Boa"
+}
+
+scenario "River Boa regenerates without Lim-Dul's Cohort" {
+  battlefield A: "Hill Giant"
+  battlefield B: "River Boa", "Forest"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "River Boa"
+  turn 1 declare_blockers B: activate "River Boa"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "River Boa"
+}
+
+# ----- attacks while -----
+
+scenario "Brazen Blademaster attacks while you control two artifacts" {
+  battlefield A: "Brazen Blademaster", "Memnite", "Ornithopter"
+  turn 1 A: attack "Brazen Blademaster"
+  run_to turn 1 declare_blockers
+  assert power "Brazen Blademaster" 4
+  assert toughness "Brazen Blademaster" 4
+}
+
+scenario "Brazen Blademaster with one artifact doesn't trigger" {
+  battlefield A: "Brazen Blademaster", "Memnite"
+  turn 1 A: attack "Brazen Blademaster"
+  run_to turn 1 declare_blockers
+  assert power "Brazen Blademaster" 2
+}
+
+scenario "attacks while: the condition isn't checked again on resolution" {
+  battlefield A: "Brazen Blademaster", "Memnite", "Ornithopter"
+  battlefield B: 2 "Mountain"
+  hand B: "Shatter"
+  turn 1 A: attack "Brazen Blademaster"
+  turn 1 declare_attackers B: cast "Shatter" targeting "Memnite" in response to "Brazen Blademaster"
+  run_to turn 1 declare_blockers
+  assert graveyard A contains "Memnite"
+  assert power "Brazen Blademaster" 4
+}
+
+scenario "Burning Sun Cavalry blocks while you control a Dinosaur" {
+  battlefield A: "Burning Sun Cavalry", "Ancient Brontodon"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Burning Sun Cavalry"
+  run_to turn 2 combat_damage
+  assert power "Burning Sun Cavalry" 3
+}
+
+# ----- attack restrictions -----
+
+scenario "Branded Brawlers can't attack if defending player controls an untapped land" {
+  battlefield A: "Branded Brawlers"
+  battlefield B: "Forest"
+  illegal turn 1 A: attack "Branded Brawlers"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Branded Brawlers attacks when defending player's lands are tapped" {
+  battlefield A: "Branded Brawlers"
+  battlefield B: "Forest" tapped
+  turn 1 A: attack "Branded Brawlers"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "War Falcon attacks while you control a Knight" {
+  battlefield A: "War Falcon", "Shadow Rider"
+  turn 1 A: attack "War Falcon"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "War Falcon can't attack without a Knight or a Soldier" {
+  battlefield A: "War Falcon", "Grizzly Bears"
+  illegal turn 1 A: attack "War Falcon"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Godhunter Octopus attacks a player with an enchanted permanent" {
+  battlefield A: "Godhunter Octopus"
+  battlefield B: "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  turn 1 A: attack "Godhunter Octopus"
+  run_to turn 1 declare_blockers
+  assert tapped "Godhunter Octopus"
+}
+
+scenario "Godhunter Octopus can't attack otherwise" {
+  battlefield A: "Godhunter Octopus"
+  battlefield B: "Grizzly Bears"
+  illegal turn 1 A: attack "Godhunter Octopus"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Errantry: the enchanted creature attacks alone" {
+  battlefield A: "Grizzly Bears", "Errantry" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Giant Turtle can't attack if it attacked during your last turn" {
+  battlefield A: "Giant Turtle"
+  turn 1 A: attack "Giant Turtle"
+  illegal turn 3 A: attack "Giant Turtle"
+  turn 5 A: attack "Giant Turtle"
+  run_to turn 5 postcombat_main
+  assert life B 16
+}
+
+scenario "Goblin Rock Sled doesn't untap after attacking" {
+  battlefield A: "Goblin Rock Sled"
+  battlefield B: "Mountain" tapped
+  turn 1 A: attack "Goblin Rock Sled"
+  run_to turn 3 precombat_main
+  assert tapped "Goblin Rock Sled"
+  run_to turn 5 precombat_main
+  assert untapped "Goblin Rock Sled"
+}
+
+# ----- blocking restrictions -----
+
+scenario "Duct Crawler: the target can't block it this turn" {
+  battlefield A: "Duct Crawler", 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Duct Crawler" targeting "Grizzly Bears"
+  turn 1 A: attack "Duct Crawler"
+  illegal turn 1 B: block "Duct Crawler" with "Grizzly Bears"
+  turn 1 B: block "Duct Crawler" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Duct Crawler"
+}
+
+scenario "Duct Crawler's restriction ends with the turn" {
+  battlefield A: "Duct Crawler", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Duct Crawler" targeting "Grizzly Bears"
+  turn 3 A: attack "Duct Crawler"
+  turn 3 B: block "Duct Crawler" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Duct Crawler"
+}
+
+scenario "Wandering Wolf can't be blocked by creatures with less power" {
+  battlefield A: "Wandering Wolf"
+  battlefield B: "Memnite", "Grizzly Bears"
+  turn 1 A: attack "Wandering Wolf"
+  illegal turn 1 B: block "Wandering Wolf" with "Memnite"
+  turn 1 B: block "Wandering Wolf" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Hobble: the enchanted creature can't block if it's black" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Scathe Zombies", "Hobble" on "Scathe Zombies"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Scathe Zombies"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Hobble: a nonblack creature can still block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Hill Giant", "Hobble" on "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Into the Fae Court's Faerie blocks only fliers" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Into the Fae Court"
+  turn 1 A: cast "Into the Fae Court"
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Faerie"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}

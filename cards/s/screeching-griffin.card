@@ -1,0 +1,8 @@
+card "Screeching Griffin" {
+  oracle_id beae83d2-20b8-47ef-83d9-25a7f90d1da2
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying
+  activated {R}: target creature can't block this
+}

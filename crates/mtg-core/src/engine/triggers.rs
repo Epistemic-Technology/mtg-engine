@@ -625,6 +625,27 @@ impl GameState {
                 }
             }
             (
+                TriggerSpec::DealsDamageTo { what, filter },
+                Event::Damage {
+                    source,
+                    target: Target::Object(o),
+                    ..
+                },
+            ) => {
+                let ok = match what {
+                    TriggerObj::This => *source == w.source,
+                    TriggerObj::Filter(_) => on_battlefield(what, *source).is_some(),
+                };
+                if !ok {
+                    return None;
+                }
+                let obj = self.objects.get(*o)?;
+                let c = self.characteristics(*o)?;
+                (filter.matches(*o, obj.controller, &c, Some(w.source), Some(w.controller))
+                    && self.status_ok(filter, *o))
+                .then_some((Some(*o), Some(obj.controller)))
+            }
+            (
                 TriggerSpec::CastsFiltered { whose, filter },
                 Event::Cast {
                     player, spell, def, ..
@@ -1024,6 +1045,8 @@ impl GameState {
                 .map(|o| o.cast.evoked())
                 .or_else(|| self.lki.get(&source).map(|l| l.object.cast.evoked()))
                 .unwrap_or(false),
+            // Judged only as the ability triggered.
+            Condition::While(_) => true,
             Condition::Static(i) => {
                 let you = self
                     .objects
@@ -1055,7 +1078,7 @@ impl GameState {
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due),
             Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),
-            Condition::Static(i) => {
+            Condition::Static(i) | Condition::While(i) => {
                 self.condition_for(self.pool.condition(i), w.controller, w.source, trigger_obj)
             }
         }

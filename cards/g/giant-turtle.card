@@ -1,0 +1,7 @@
+card "Giant Turtle" {
+  oracle_id 9297c0a6-1a8e-4e6e-99d6-f0877b2ec46c
+  cost {1}{G}{G}
+  type Creature — Turtle
+  pt 2/4
+  can't attack if attacked last turn
+}

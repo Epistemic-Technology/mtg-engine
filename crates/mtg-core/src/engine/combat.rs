@@ -34,18 +34,26 @@ impl GameState {
         c: &crate::state::Characteristics,
         block: bool,
     ) -> bool {
-        let o = &self.objects[id];
-        if !self.flags_of(o).has_attack_rule() {
+        // Printed or granted (`attack_rule_sources` counts both kinds of
+        // source).
+        if self.attack_rule_sources == 0 {
             return true;
         }
+        let o = &self.objects[id];
         c.abilities.iter().all(|a| match self.pool.ability(*a) {
             AbilityDef::AttackUnless {
                 condition,
                 attack: at,
                 block: bl,
+                negated,
             } => {
                 let applies = if block { *bl } else { *at };
-                !applies || self.condition_now(self.pool.condition(*condition), o.controller, id)
+                let cond = self.pool.condition(*condition);
+                // Judged on the whole declaration (`set_rules_allow`).
+                if *negated && matches!(cond, crate::card::StaticCondition::OthersInCombat { .. }) {
+                    return true;
+                }
+                !applies || self.condition_now(cond, o.controller, id) != *negated
             }
             _ => true,
         })
@@ -58,7 +66,7 @@ impl GameState {
         let Some(o) = self.objects.get(id) else {
             return true;
         };
-        if !self.flags_of(o).has_attack_rule() {
+        if self.attack_rule_sources == 0 {
             return true;
         }
         let Some(c) = self.characteristics(id) else {
@@ -69,6 +77,7 @@ impl GameState {
                 condition,
                 attack: at,
                 block: bl,
+                negated,
             } if (if block { *bl } else { *at }) => match self.pool.condition(*condition) {
                 crate::card::StaticCondition::OthersInCombat {
                     filter, at_least, ..
@@ -91,7 +100,8 @@ impl GameState {
                             }) && self.status_ok(filter, **x)
                         })
                         .count();
-                    n >= *at_least as usize
+                    // "can only attack alone": no other creature may.
+                    (n >= *at_least as usize) != *negated
                 }
                 _ => true,
             },
@@ -137,6 +147,10 @@ impl GameState {
             return false;
         };
         if a.has(Keyword::Unblockable) {
+            return false;
+        }
+        // "Target creature can't block this creature this turn".
+        if !self.block_bans.is_empty() && self.block_bans.contains(&(blocker, attacker)) {
             return false;
         }
         // CR 702.16e: can't be blocked by creatures with the quality.
@@ -206,6 +220,7 @@ impl GameState {
                         f.matches(blocker, bc, b, Some(attacker), Some(ac))
                             && self.status_ok(f, blocker)
                     }
+                    BlockRule::NotByLesserPower => b.power >= a.power,
                     _ => true,
                 };
                 if !ok {

@@ -1,0 +1,7 @@
+card "Wandering Wolf" {
+  oracle_id 1750cf0a-0709-4f02-90ea-572ff88a37a5
+  cost {1}{G}
+  type Creature — Wolf
+  pt 2/1
+  can't be blocked by creature with lesser power
+}

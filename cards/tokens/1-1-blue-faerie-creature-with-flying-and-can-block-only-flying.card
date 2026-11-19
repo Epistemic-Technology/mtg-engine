@@ -1,0 +1,8 @@
+token "1/1 blue Faerie creature with flying and can block only flying" {
+  name "Faerie"
+  type Creature — Faerie
+  pt 1/1
+  color blue
+  keywords flying
+  can block only creature with flying
+}

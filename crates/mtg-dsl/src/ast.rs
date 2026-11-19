@@ -536,6 +536,10 @@ pub struct Filter {
     pub status: mtg_core::card::StatusQuals,
     /// `creature or Vehicle`: an alternative filter.
     pub or: Option<Box<Filter>>,
+    /// `Knight or a Soldier`: the alternative written with its own article,
+    /// printed so in a condition ("you control a Knight or a Soldier").
+    /// Wording only.
+    pub alt_article: bool,
     /// `that targets you or a permanent you control` (spells).
     pub targeting: Option<Box<Targeting>>,
     /// `of chosen type`, `of that type`, `of color of choice`: "of the
@@ -615,6 +619,8 @@ pub enum AttachedRef {
     Target(usize),
     /// `attached to that target 1`: "attached to that creature".
     ThatTarget(usize),
+    /// `attached to that creature`: the triggering object.
+    TriggeringObject,
 }
 
 /// A filter's relation to the source or a target.
@@ -879,6 +885,9 @@ pub enum Ability {
         cond: StaticCond,
         attack: bool,
         block: bool,
+        /// `can't attack if ...`: "This creature can't attack if defending
+        /// player controls an untapped land."
+        negated: bool,
     },
     /// `hand size none`, `hand size +1`, `hand size opponents -1`: "You
     /// have no maximum hand size.", "Your maximum hand size is increased
@@ -911,6 +920,10 @@ pub enum Ability {
 pub enum TrigCond {
     Core(Condition),
     Static(StaticCond),
+    /// `while <condition>` after an attack or block trigger: judged only as
+    /// the event happens ("Whenever this creature attacks while you control
+    /// two or more artifacts, ...").
+    While(StaticCond),
 }
 
 /// Keyword abilities with a parameter (CR 702).
@@ -1022,6 +1035,9 @@ pub enum BlockRule {
     AtMostOne,
     BlocksOnly(Filter),
     CantBlock(Filter),
+    /// `can't be blocked by creature with lesser power`: "Creatures with
+    /// power less than this creature's power can't block it."
+    NotByLesserPower,
 }
 
 /// What a conditional static ability checks.
@@ -1070,7 +1086,8 @@ pub enum StaticCond {
         at_least: bool,
     },
     /// `defending player controls Island`: "defending player controls an
-    /// Island".
+    /// Island"; `at_least` 0, `defending player controls no Glimmer
+    /// creature`: "... controls no Glimmer creatures".
     DefenderControls {
         filter: Filter,
         at_least: u32,
@@ -1113,6 +1130,8 @@ pub enum StaticCond {
     YouControlEach(Vec<Filter>),
     /// `attacked this turn` (raid): "you attacked this turn".
     AttackedThisTurn,
+    /// `attacked last turn`: "it attacked during your last turn".
+    AttackedLastTurn,
     /// `creature died this turn` (morbid).
     CreatureDiedThisTurn,
     /// `opponent damaged this turn`: "an opponent was dealt damage this
@@ -1572,6 +1591,12 @@ pub enum Trigger {
         obj: TriggerObj,
         to: mtg_core::card::DamageTo,
         combat: bool,
+    },
+    /// `whenever this deals damage to Vampire`, `... to Goblin or Orc`:
+    /// the damaged permanent, matching the filter, is "that creature".
+    DealsDamageTo {
+        obj: TriggerObj,
+        filter: Box<Filter>,
     },
     /// `whenever you cast artifact spell`, `whenever a player casts
     /// multicolored spell`.
@@ -2171,6 +2196,8 @@ pub enum Effect {
     BecomeColor {
         to: Recipient,
         colors: Vec<Color>,
+        /// `indefinitely`: no duration.
+        indefinite: bool,
     },
     /// `target land becomes Island` (until end of turn); `target land
     /// becomes Forest indefinitely`, with no duration.
@@ -2359,9 +2386,20 @@ pub enum Effect {
     SkipNextUntap {
         to: Recipient,
     },
+    /// `that creature can't be regenerated`: "That creature can't be
+    /// regenerated this turn."
+    CantBeRegenerated {
+        to: Recipient,
+    },
     /// `target creature blocks this if able`: "Target creature blocks this
     /// creature this turn if able."
     BlocksIfAble {
+        blocker: Recipient,
+        attacker: Recipient,
+    },
+    /// `target creature can't block this`: "Target creature can't block
+    /// this creature this turn."
+    CantBlockThis {
         blocker: Recipient,
         attacker: Recipient,
     },

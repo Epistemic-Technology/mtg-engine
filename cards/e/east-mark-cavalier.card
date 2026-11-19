@@ -1,0 +1,8 @@
+card "East-Mark Cavalier" {
+  oracle_id 884d08bf-7e97-40cc-864e-445ae0bd1646
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords vigilance
+  triggered whenever this deals damage to Goblin or Orc: destroy that creature
+}

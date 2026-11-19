@@ -565,6 +565,7 @@ impl Compiler<'_> {
                 match a {
                     AttachedRef::Source => AttachedTo::Source,
                     AttachedRef::Host => AttachedTo::SourceHost,
+                    AttachedRef::TriggeringObject => AttachedTo::TriggeringObject,
                     AttachedRef::Target(n) | AttachedRef::ThatTarget(n) => {
                         AttachedTo::Target(u8::try_from(n).unwrap_or(u8::MAX))
                     }
@@ -712,6 +713,7 @@ impl Compiler<'_> {
                     .collect(),
             ),
             StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
+            StaticCond::AttackedLastTurn => StaticCondition::AttackedLastTurn,
             StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
             StaticCond::OpponentDamagedThisTurn => StaticCondition::OpponentDamagedThisTurn,
             StaticCond::OpponentLostLifeThisTurn => StaticCondition::OpponentLostLifeThisTurn,
@@ -1460,9 +1462,14 @@ impl Compiler<'_> {
                     in_addition: *in_addition,
                 });
             }
-            Effect::BecomeColor { to, colors } => out.push(CoreEffect::BecomeColor {
+            Effect::BecomeColor {
+                to,
+                colors,
+                indefinite,
+            } => out.push(CoreEffect::BecomeColor {
                 to: r(*to),
                 colors: ColorSet::of(colors.iter().copied()),
+                indefinite: *indefinite,
             }),
             Effect::BecomeLandType {
                 to,
@@ -1646,7 +1653,14 @@ impl Compiler<'_> {
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
             Effect::SkipNextUntap { to } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
+            Effect::CantBeRegenerated { to } => {
+                out.push(CoreEffect::CantBeRegenerated { to: r(*to) });
+            }
             Effect::BlocksIfAble { blocker, attacker } => out.push(CoreEffect::BlocksIfAble {
+                blocker: r(*blocker),
+                attacker: r(*attacker),
+            }),
+            Effect::CantBlockThis { blocker, attacker } => out.push(CoreEffect::CantBlockThis {
                 blocker: r(*blocker),
                 attacker: r(*attacker),
             }),
@@ -1820,6 +1834,10 @@ impl Compiler<'_> {
                 what: self.trigger_obj(obj),
                 to: *to,
                 combat: *combat,
+            },
+            Trigger::DealsDamageTo { obj, filter } => TriggerSpec::DealsDamageTo {
+                what: self.trigger_obj(obj),
+                filter: self.filter(filter),
             },
             Trigger::CastsFiltered { whose, filter } => TriggerSpec::CastsFiltered {
                 whose: *whose,
@@ -2208,6 +2226,12 @@ impl Compiler<'_> {
                             self.pool.intern_condition(c),
                         ))
                     }
+                    Some(crate::ast::TrigCond::While(c)) => {
+                        let c = self.static_cond(c);
+                        Some(mtg_core::card::Condition::While(
+                            self.pool.intern_condition(c),
+                        ))
+                    }
                 },
                 targets: self.targets(targets),
                 effects: self.sentences(effects)?,
@@ -2292,12 +2316,14 @@ impl Compiler<'_> {
                 cond,
                 attack,
                 block,
+                negated,
             } => {
                 let c = self.static_cond(cond);
                 AbilityDef::AttackUnless {
                     condition: self.pool.intern_condition(c),
                     attack: *attack,
                     block: *block,
+                    negated: *negated,
                 }
             }
             Ability::Labeled { ability, .. } => return self.ability(ability),
@@ -2307,6 +2333,9 @@ impl Compiler<'_> {
                     mtg_core::card::BlockRule::OnlyBy(self.filter(f))
                 }
                 crate::ast::BlockRule::AtMostOne => mtg_core::card::BlockRule::AtMostOne,
+                crate::ast::BlockRule::NotByLesserPower => {
+                    mtg_core::card::BlockRule::NotByLesserPower
+                }
                 crate::ast::BlockRule::BlocksOnly(f) => {
                     mtg_core::card::BlockRule::BlocksOnly(self.filter(f))
                 }

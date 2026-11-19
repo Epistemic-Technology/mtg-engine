@@ -1,0 +1,7 @@
+card "Fear of the Dark" {
+  oracle_id 9285cdf1-ad25-4aee-a865-1bf0cc905183
+  cost {4}{B}
+  type Enchantment Creature — Nightmare
+  pt 5/5
+  triggered whenever this attacks if defending player controls no Glimmer creature: it gains menace and deathtouch
+}

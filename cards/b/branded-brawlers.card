@@ -1,0 +1,8 @@
+card "Branded Brawlers" {
+  oracle_id e975a8b3-f817-42f3-84da-b03ebf95cf25
+  cost {R}
+  type Creature — Human Soldier
+  pt 2/2
+  can't attack if defending player controls untapped land
+  can't block if you control untapped land
+}

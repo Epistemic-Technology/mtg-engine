@@ -1,0 +1,6 @@
+card "Into the Fae Court" {
+  oracle_id 8db0a379-4cf2-43a7-932b-c5646a604578
+  cost {3}{U}{U}
+  type Sorcery
+  spell: draw 3 cards; create 1 "1/1 blue Faerie creature with flying and can block only flying"
+}

@@ -1,0 +1,7 @@
+card "Wargling" {
+  oracle_id ce107656-f222-4d9a-9ba2-b33b4d47bdb5
+  cost {1}{G}
+  type Creature — Wolf
+  pt 2/2
+  label "Ferocious" triggered whenever this attacks while you control creature with power 4 or greater: until end of turn, this creature gets +1/+0 and each creature you control gains trample
+}

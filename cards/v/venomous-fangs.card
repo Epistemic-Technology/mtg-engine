@@ -1,0 +1,7 @@
+card "Venomous Fangs" {
+  oracle_id a1ee715e-bab5-4edc-89ba-610cf71bb048
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature deals damage to creature: destroy that creature
+}

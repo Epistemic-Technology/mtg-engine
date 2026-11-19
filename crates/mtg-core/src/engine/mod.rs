@@ -439,6 +439,7 @@ impl GameState {
             activated_once: Vec::new(),
             activated_ever: Vec::new(),
             attackers_this_turn: Vec::new(),
+            attacked_last_turn: Vec::new(),
             blockers_this_turn: Vec::new(),
             dealt_damage_this_turn: Vec::new(),
             damaged_by_this_turn: Vec::new(),
@@ -454,6 +455,8 @@ impl GameState {
             life_lost_this_turn: [0; 4],
             attacked_this_turn: 0,
             block_demands: Vec::new(),
+            block_bans: Vec::new(),
+            no_regen: Vec::new(),
             lands_entered_this_turn: 0,
             artifacts_entered_this_turn: 0,
             creatures_died_this_turn: 0,
@@ -2065,6 +2068,15 @@ impl GameState {
         }
     }
 
+    /// "If it attacked during your last turn": the turn ending is now the
+    /// active player's last turn.
+    fn record_attacked_last_turn(&mut self) {
+        let ending = self.active_player;
+        self.attacked_last_turn.retain(|(p, _)| *p != ending);
+        self.attacked_last_turn
+            .extend(self.attackers_this_turn.drain(..).map(|id| (ending, id)));
+    }
+
     /// The current step ends (CR 500.2): mana empties, combat clears, and the
     /// next step or turn begins.
     fn end_step(&mut self) {
@@ -2113,7 +2125,7 @@ impl GameState {
             }
             self.loyalty_activated.clear();
             self.activated_once.clear();
-            self.attackers_this_turn.clear();
+            self.record_attacked_last_turn();
             self.blockers_this_turn.clear();
             self.targeted_by_controller.clear();
             self.dealt_damage_this_turn.clear();
@@ -2127,6 +2139,8 @@ impl GameState {
             self.attacked_this_turn = 0;
             self.lands_entered_this_turn = 0;
             self.block_demands.clear();
+            self.block_bans.clear();
+            self.no_regen.clear();
             self.artifacts_entered_this_turn = 0;
             self.creatures_died_this_turn = 0;
             self.died_this_turn.clear();

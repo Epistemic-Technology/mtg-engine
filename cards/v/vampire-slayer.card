@@ -1,0 +1,7 @@
+card "Vampire Slayer" {
+  oracle_id bae41d41-9dbe-4d6b-bf5d-8a7d7041462c
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered whenever this deals damage to Vampire: destroy that creature
+}

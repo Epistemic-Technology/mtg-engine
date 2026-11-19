@@ -1156,6 +1156,8 @@ impl GameState {
         if !self.objects.contains_key(id) {
             return;
         }
+        // "That creature can't be regenerated this turn".
+        let regenerate = regenerate && (self.no_regen.is_empty() || !self.no_regen.contains(&id));
         self.propose(Proposed::Destroy {
             obj: id,
             regenerate,

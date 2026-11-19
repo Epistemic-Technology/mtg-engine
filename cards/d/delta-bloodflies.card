@@ -1,0 +1,8 @@
+card "Delta Bloodflies" {
+  oracle_id 8a64cf8e-ae7f-4697-93fc-9c946eb1088b
+  cost {1}{B}
+  type Creature — Insect
+  pt 1/2
+  keywords flying
+  triggered whenever this attacks if you control creature with counter: each opponent loses 1 life
+}

@@ -1,0 +1,7 @@
+card "Gloom Sower" {
+  oracle_id e5cc1492-c9cc-48f0-8c11-02ead883675c
+  cost {5}{B}{B}
+  type Creature — Horror
+  pt 8/6
+  triggered whenever this becomes blocked by a creature: controller of that creature loses 2 life and you gain 2 life
+}

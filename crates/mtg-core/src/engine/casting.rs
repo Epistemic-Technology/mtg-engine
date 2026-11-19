@@ -4609,6 +4609,11 @@ impl GameState {
                     _ => None,
                 }
             }
+            AttachedTo::TriggeringObject => ctx.trigger_obj.filter(|id| {
+                self.objects
+                    .get(*id)
+                    .is_some_and(|o| o.zone == Zone::Battlefield)
+            }),
         }
     }
 
@@ -5381,6 +5386,27 @@ impl GameState {
                     }
                 }
             }
+            Effect::CantBeRegenerated { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.no_regen.push(id);
+                    }
+                }
+            }
+            Effect::CantBlockThis { blocker, attacker } => {
+                let attackers: SmallVec<[ObjId; 2]> = self
+                    .recipients(ctx, *attacker)
+                    .into_iter()
+                    .filter_map(|t| on_battlefield(self, t))
+                    .collect();
+                for t in self.recipients(ctx, *blocker) {
+                    if let Some(b) = on_battlefield(self, t) {
+                        for a in &attackers {
+                            self.block_bans.push((b, *a));
+                        }
+                    }
+                }
+            }
             Effect::SkipNextUntap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -5779,13 +5805,23 @@ impl GameState {
                     self.effect_on(ctx, id, parts.clone(), duration);
                 }
             }
-            Effect::BecomeColor { to, colors } => {
+            Effect::BecomeColor {
+                to,
+                colors,
+                indefinite,
+            } => {
+                let duration = if *indefinite {
+                    Duration::Permanent
+                } else {
+                    Duration::UntilEndOfTurn
+                };
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.effect_until_end_of_turn(
+                        self.effect_on(
                             ctx,
                             id,
                             smallvec::smallvec![Modification::SetColors(*colors)],
+                            duration,
                         );
                     }
                 }

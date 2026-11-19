@@ -1,0 +1,7 @@
+card "Phyrexian Reaper" {
+  oracle_id 245c3681-fc47-47fe-b6e5-34c96315c135
+  cost {4}{B}
+  type Creature — Phyrexian Zombie
+  pt 3/3
+  triggered whenever this becomes blocked by a green creature: destroy that creature without regeneration
+}

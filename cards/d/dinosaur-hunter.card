@@ -1,0 +1,7 @@
+card "Dinosaur Hunter" {
+  oracle_id 5c58f2eb-2617-4d10-a393-6e4a9eddd1dd
+  cost {1}{B}
+  type Creature — Human Pirate
+  pt 2/2
+  triggered whenever this deals damage to Dinosaur: destroy that creature
+}

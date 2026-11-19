@@ -204,6 +204,7 @@ impl Decompiler<'_> {
                 match a {
                     AttachedTo::Source => AttachedRef::Source,
                     AttachedTo::SourceHost => AttachedRef::Host,
+                    AttachedTo::TriggeringObject => AttachedRef::TriggeringObject,
                     AttachedTo::Target(n) => AttachedRef::Target(usize::from(n)),
                 }
             }),
@@ -220,6 +221,7 @@ impl Decompiler<'_> {
             that_opponent: false,
             not_attached: f.not_attached,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
+            alt_article: false,
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(crate::ast::Targeting {
                     you: t.you,
@@ -384,6 +386,7 @@ impl Decompiler<'_> {
                 }
             }
             StaticCondition::AttackedThisTurn => StaticCond::AttackedThisTurn,
+            StaticCondition::AttackedLastTurn => StaticCond::AttackedLastTurn,
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
             StaticCondition::OpponentLostLifeThisTurn => StaticCond::OpponentLostLifeThisTurn,
@@ -826,9 +829,14 @@ impl Decompiler<'_> {
                 loses_abilities: *loses_abilities,
                 in_addition: *in_addition,
             },
-            CoreEffect::BecomeColor { to, colors: c } => Effect::BecomeColor {
+            CoreEffect::BecomeColor {
+                to,
+                colors: c,
+                indefinite,
+            } => Effect::BecomeColor {
                 to: r(*to),
                 colors: colors(*c),
+                indefinite: *indefinite,
             },
             CoreEffect::BecomeLandType {
                 to,
@@ -1001,10 +1009,17 @@ impl Decompiler<'_> {
                     filter: f,
                 }
             }
+            CoreEffect::CantBeRegenerated { to } => Effect::CantBeRegenerated {
+                to: Self::recipient(*to),
+            },
             CoreEffect::SkipNextUntap { to } => Effect::SkipNextUntap {
                 to: Self::recipient(*to),
             },
             CoreEffect::BlocksIfAble { blocker, attacker } => Effect::BlocksIfAble {
+                blocker: Self::recipient(*blocker),
+                attacker: Self::recipient(*attacker),
+            },
+            CoreEffect::CantBlockThis { blocker, attacker } => Effect::CantBlockThis {
                 blocker: Self::recipient(*blocker),
                 attacker: Self::recipient(*attacker),
             },
@@ -1162,6 +1177,10 @@ impl Decompiler<'_> {
                 obj: self.trigger_obj(what),
                 to: *to,
                 combat: *combat,
+            },
+            TriggerSpec::DealsDamageTo { what, filter } => Trigger::DealsDamageTo {
+                obj: self.trigger_obj(what),
+                filter: Box::new(self.filter(filter)),
             },
             TriggerSpec::CastsFiltered { whose, filter } => Trigger::CastsFiltered {
                 whose: *whose,
@@ -1333,10 +1352,12 @@ impl Decompiler<'_> {
                 condition,
                 attack,
                 block,
+                negated,
             } => Ability::AttackUnless {
                 cond: self.static_cond(self.pool.condition(*condition)),
                 attack: *attack,
                 block: *block,
+                negated: *negated,
             },
             AbilityDef::Toxic(n) => Ability::Mechanic(crate::ast::Mechanic::Toxic(*n)),
             AbilityDef::HandSize { whose, delta } => Ability::HandSize {
@@ -1369,6 +1390,9 @@ impl Decompiler<'_> {
                     crate::ast::BlockRule::OnlyBy(self.filter(f))
                 }
                 mtg_core::card::BlockRule::AtMostOne => crate::ast::BlockRule::AtMostOne,
+                mtg_core::card::BlockRule::NotByLesserPower => {
+                    crate::ast::BlockRule::NotByLesserPower
+                }
                 mtg_core::card::BlockRule::BlocksOnly(f) => {
                     crate::ast::BlockRule::BlocksOnly(self.filter(f))
                 }
@@ -1463,6 +1487,9 @@ impl Decompiler<'_> {
                 condition: t.condition.map(|c| match c {
                     mtg_core::card::Condition::Static(i) => {
                         crate::ast::TrigCond::Static(self.static_cond(self.pool.condition(i)))
+                    }
+                    mtg_core::card::Condition::While(i) => {
+                        crate::ast::TrigCond::While(self.static_cond(self.pool.condition(i)))
                     }
                     other => crate::ast::TrigCond::Core(other),
                 }),

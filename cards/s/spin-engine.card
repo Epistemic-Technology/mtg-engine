@@ -1,0 +1,7 @@
+card "Spin Engine" {
+  oracle_id 88e98269-fe0e-42f8-830d-776aa06a58dc
+  cost {3}
+  type Artifact Creature — Construct
+  pt 3/1
+  activated {R}: target creature can't block this
+}

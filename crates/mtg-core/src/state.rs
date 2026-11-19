@@ -1051,6 +1051,9 @@ pub struct GameState {
     /// Creatures declared as attackers this turn (boast, CR 702.142a);
     /// one put onto the battlefield attacking was never declared.
     pub attackers_this_turn: Vec<ObjId>,
+    /// The creatures each player attacked with during their last turn
+    /// ("if it attacked during your last turn").
+    pub attacked_last_turn: Vec<(PlayerId, ObjId)>,
     /// Creatures declared as blockers this turn ("that blocked this
     /// turn").
     pub blockers_this_turn: Vec<ObjId>,
@@ -1096,6 +1099,11 @@ pub struct GameState {
     /// "Target creature blocks this creature this turn if able": (blocker,
     /// attacker) requirements for this turn (CR 509.1c).
     pub block_demands: Vec<(ObjId, ObjId)>,
+    /// "Target creature can't block this creature this turn": (blocker,
+    /// attacker) restrictions for this turn (CR 509.1b).
+    pub block_bans: Vec<(ObjId, ObjId)>,
+    /// Permanents that can't be regenerated this turn (CR 701.15).
+    pub no_regen: Vec<ObjId>,
     /// Players who had a land enter under their control this turn
     /// (landfall), one bit each.
     pub lands_entered_this_turn: u8,
@@ -1719,6 +1727,18 @@ impl GameState {
                 return false;
             }
         }
+        // CR 301.5: an Equipment attached to it.
+        if q.equipped
+            && !(o.zone == Zone::Battlefield
+                && self.battlefield.iter().any(|a| {
+                    self.objects[*a].attached_to == Some(id)
+                        && self
+                            .characteristics(*a)
+                            .is_some_and(|c| c.has_subtype(crate::card::Subtype::EQUIPMENT))
+                }))
+        {
+            return false;
+        }
         if q.entered_this_turn
             && (o.zone != Zone::Battlefield || o.timestamp < self.turn_started_at)
         {
@@ -1967,6 +1987,13 @@ impl GameState {
             }
             C::YouControlNone(filter) => count(filter, you) == 0,
             C::YouControlEach(filters) => filters.iter().all(|f| count(f, you) > 0),
+            C::DefenderControls {
+                filter,
+                at_least: 0,
+            } => self
+                .players_in_game()
+                .filter(|p| *p != you)
+                .any(|p| count(filter, p) == 0),
             C::DefenderControls { filter, at_least } => self
                 .players_in_game()
                 .filter(|p| *p != you)
@@ -2023,6 +2050,7 @@ impl GameState {
                 .players_in_game()
                 .any(|p| p != you && self.player(p).poison >= *n),
             C::AttackedThisTurn => self.attacked_this_turn & (1 << you.index().min(7)) != 0,
+            C::AttackedLastTurn => self.attacked_last_turn.contains(&(you, source)),
             C::CreatureDiedThisTurn => self.creatures_died_this_turn > 0,
             C::LandEnteredThisTurn => self.lands_entered_this_turn & (1 << you.index().min(7)) != 0,
             C::ArtifactEnteredThisTurn => {

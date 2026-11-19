@@ -1,0 +1,7 @@
+card "Godhunter Octopus" {
+  oracle_id 930b48b8-dbd1-4109-9eaa-7d7e9a04fa5b
+  cost {5}{U}
+  type Creature — Octopus
+  pt 5/5
+  can't attack unless defending player controls enchantment or a permanent with aura
+}
