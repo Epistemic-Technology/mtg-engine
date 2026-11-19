@@ -2,6 +2,7 @@
 //! `Engine::new` runs until the first decision; `Engine::step` applies a
 //! choice and runs until the next one or the end of the game.
 
+mod ability_mana;
 mod casting;
 mod combat;
 mod control;

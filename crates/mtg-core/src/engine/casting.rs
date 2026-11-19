@@ -377,9 +377,9 @@ impl GameState {
             if helped {
                 all.extend(self.helper_sources(p, def));
             }
-            payment_plan_from(&all, pool, &req, self.player(p).life).is_some()
+            self.payable(p, &all, pool, &req, self.player(p).life, None)
         } else {
-            payment_plan_from(sources, pool, &req, self.player(p).life).is_some()
+            self.payable(p, sources, pool, &req, self.player(p).life, None)
         };
         if !payable {
             return false;
@@ -406,7 +406,7 @@ impl GameState {
         options: &mut Vec<Choice>,
     ) {
         let ps = self.player(p);
-        if payment_plan_from(sources, &ps.mana_pool, &three(), ps.life).is_some() {
+        if self.payable(p, sources, &ps.mana_pool, &three(), ps.life, None) {
             options.push(Choice::CastFaceDown(id));
         }
     }
@@ -417,8 +417,14 @@ impl GameState {
         let ps = self.player(p);
         for id in self.permanents_of(p) {
             if let Some(cost) = self.face_up_cost(id)
-                && payment_plan_from(sources, &ps.mana_pool, &cost.requirements(0), ps.life)
-                    .is_some()
+                && self.payable(
+                    p,
+                    sources,
+                    &ps.mana_pool,
+                    &cost.requirements(0),
+                    ps.life,
+                    None,
+                )
             {
                 options.push(Choice::TurnFaceUp(id));
             }
@@ -441,21 +447,29 @@ impl GameState {
         let def = self.pool.get(self.objects[id].def);
         if let Some((_, cost)) = def.suspend.as_deref()
             && (sorcery_timing || def.is_instant() || def.keywords.contains(Keyword::Flash))
-            && payment_plan_from(sources, &ps.mana_pool, &cost.requirements(0), ps.life).is_some()
+            && self.payable(
+                p,
+                sources,
+                &ps.mana_pool,
+                &cost.requirements(0),
+                ps.life,
+                None,
+            )
         {
             options.push(Choice::Suspend(id));
         }
         if def.foretell.is_some()
             && p == self.active_player
-            && payment_plan_from(
+            && self.payable(
+                p,
                 sources,
                 &ps.mana_pool,
                 &crate::mana::ManaCost::parse("{2}")
                     .expect("a mana cost")
                     .requirements(0),
                 ps.life,
+                None,
             )
-            .is_some()
         {
             options.push(Choice::Foretell(id));
         }
@@ -1051,9 +1065,9 @@ impl GameState {
                 // A source tapped as a cost cannot also tap for mana.
                 let payable = if ab.cost.tap {
                     let rest: Sources = sources.iter().filter(|(s, _)| *s != id).copied().collect();
-                    payment_plan_from(&rest, &pool, &req, life).is_some()
+                    self.payable(p, &rest, &pool, &req, life, Some(id))
                 } else {
-                    payment_plan_from(sources, &pool, &req, life).is_some()
+                    self.payable(p, sources, &pool, &req, life, Some(id))
                 };
                 if !payable {
                     continue;
@@ -1278,13 +1292,14 @@ impl GameState {
         };
         (0..=max_x.min(MAX_X))
             .take_while(|x| {
-                payment_plan_from(
+                self.payable(
+                    caster,
                     &sources,
                     &pool,
                     &self.spell_requirements(spell, *x),
                     self.player(caster).life,
+                    None,
                 )
-                .is_some()
             })
             .map(Choice::X)
             .collect()
@@ -1469,7 +1484,7 @@ impl GameState {
         }
         let sources = self.ability_sources(controller);
         let req = self.activation_mana(sa.source, ab);
-        self.pay_from(controller, &req, &sources);
+        self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew) {
                 self.tap(c);
@@ -1521,7 +1536,7 @@ impl GameState {
         }
         let sources = self.spell_sources(spell);
         let ps = self.player(o.controller);
-        payment_plan_from(&sources, &ps.mana_pool, &req, ps.life).is_some()
+        self.payable(o.controller, &sources, &ps.mana_pool, &req, ps.life, None)
     }
 
     /// Whether `t` matches a target-cost filter (a permanent's current
@@ -1688,6 +1703,7 @@ impl GameState {
     /// Whether `id` makes mana by sacrificing itself (and has no plain
     /// `{T}` mana ability the plan could have used instead). Read from the
     /// printed definition: no effect grants a sacrifice mana ability.
+    #[inline]
     fn sacrifices_for_mana(&self, id: ObjId) -> bool {
         let def = self.pool.get(self.objects[id].def);
         let mut sac = false;
@@ -1701,10 +1717,32 @@ impl GameState {
         sac
     }
 
-    /// A canonical payment plan for `p`; see `payment_plan_from`.
-    pub(super) fn payment_plan(&self, p: PlayerId, req: &ManaRequirement) -> Option<Sources> {
+    /// Whether `p` could pay `req` with their mana sources (see `payable`).
+    pub(super) fn can_pay(&self, p: PlayerId, req: &ManaRequirement) -> bool {
         let ps = self.player(p);
-        payment_plan_from(&self.mana_sources(p), &ps.mana_pool, req, ps.life)
+        self.payable(p, &self.mana_sources(p), &ps.mana_pool, req, ps.life, None)
+    }
+
+    /// Whether `p` could pay `req` from `sources` and `pool`: the
+    /// canonical plan (`payment_plan_from`), else one that activates
+    /// `p`'s mana abilities (all but `exclude`'s, the source of an ability
+    /// being paid for; see `ability_mana`). `pay_from` pays the same way.
+    #[allow(clippy::inline_always)] // measured: out of line costs 0.7% instructions/game
+    #[inline(always)]
+    pub(super) fn payable(
+        &self,
+        p: PlayerId,
+        sources: &[(ObjId, Mana)],
+        pool: &crate::mana::ManaPool,
+        req: &ManaRequirement,
+        life: i32,
+        exclude: Option<ObjId>,
+    ) -> bool {
+        payment_plan_from(sources, pool, req, life).is_some()
+            || (self.ability_mana_possible()
+                && self
+                    .ability_plan(p, sources, pool, req, life, exclude)
+                    .is_some())
     }
 
     /// Untapped sources of restricted mana `p` controls (CR 106.6) whose
@@ -1782,8 +1820,8 @@ impl GameState {
     ) -> bool {
         let ps = self.player(p);
         match self.with_restricted(p, sources, spend) {
-            Some(all) => payment_plan_from(&all, &ps.mana_pool, req, ps.life).is_some(),
-            None => payment_plan_from(sources, &ps.mana_pool, req, ps.life).is_some(),
+            Some(all) => self.payable(p, &all, &ps.mana_pool, req, ps.life, None),
+            None => self.payable(p, sources, &ps.mana_pool, req, ps.life, None),
         }
     }
 
@@ -1791,7 +1829,7 @@ impl GameState {
     /// characteristics), restricted mana included.
     fn spell_payable(&self, p: PlayerId, card: ObjId, req: &ManaRequirement) -> bool {
         if self.restricted_mana_sources == 0 {
-            return self.payment_plan(p, req).is_some();
+            return self.can_pay(p, req);
         }
         let Some(c) = self.characteristics(card) else {
             return false;
@@ -1874,7 +1912,7 @@ impl GameState {
 
     pub(super) fn pay(&mut self, p: PlayerId, req: &ManaRequirement) {
         let sources = self.mana_sources(p);
-        self.pay_from(p, req, &sources);
+        self.pay_from(p, req, &sources, None);
     }
 
     /// `pay` from these sources (a spell's, with convoke or improvise).
@@ -1882,11 +1920,32 @@ impl GameState {
     /// spent, and the plan taps a source only once the pool can't cover
     /// that part of the cost, so all the mana it makes is spent here and
     /// none is left in the pool to be spent on something else.
-    fn pay_from(&mut self, p: PlayerId, req: &ManaRequirement, sources: &Sources) {
+    /// `exclude` is the source of an ability being paid for, whose own
+    /// mana abilities are not activated (see `payable`).
+    fn pay_from(
+        &mut self,
+        p: PlayerId,
+        req: &ManaRequirement,
+        sources: &Sources,
+        exclude: Option<ObjId>,
+    ) {
         let ps = self.player(p);
-        let (plan, req, life) = resolve_payment(sources, &ps.mana_pool, req, ps.life)
-            .expect("cast was offered only when payable");
-        for (id, mana) in plan {
+        let Some((plan, req, life)) = resolve_payment(sources, &ps.mana_pool, req, ps.life) else {
+            let plan = self
+                .ability_plan(p, sources, &ps.mana_pool, req, ps.life, exclude)
+                .expect("cast was offered only when payable");
+            self.pay_with_abilities(p, plan);
+            return;
+        };
+        self.tap_for_plan(p, &plan);
+        self.finish_payment(p, &req, life);
+    }
+
+    /// Tap (or, for delve, exile) the sources of a plan, adding their mana.
+    #[allow(clippy::inline_always)] // measured: out of line costs 0.7% instructions/game
+    #[inline(always)]
+    fn tap_for_plan(&mut self, p: PlayerId, plan: &Sources) {
+        for &(id, mana) in plan {
             // Delve's cards are exiled; everything else is tapped.
             if self
                 .objects
@@ -1903,6 +1962,50 @@ impl GameState {
                 self.sacrifice(id);
             }
         }
+    }
+
+    /// CR 601.2g–h with mana abilities activated along the way: tap the
+    /// plain sources, activate each ability (its mana cost from the pool,
+    /// then {T}, life, the mana it adds, and last its sacrifice), then pay.
+    /// The plan named every color, so nothing is asked (CR 106.1b, 605.3b).
+    #[cold]
+    #[inline(never)]
+    fn pay_with_abilities(&mut self, p: PlayerId, plan: crate::engine::ability_mana::AbilityPlan) {
+        self.tap_for_plan(p, &plan.taps);
+        for act in plan.acts {
+            let pool = &mut self.player_mut(p).mana_pool;
+            for (have, spent) in pool.colored.iter_mut().zip(act.spend.colored) {
+                *have = have.saturating_sub(spent);
+            }
+            pool.colorless = pool.colorless.saturating_sub(act.spend.colorless);
+            if act.tap {
+                self.tap(act.id);
+            }
+            if act.life > 0 {
+                self.change_life(p, -i32::try_from(act.life).unwrap_or(i32::MAX));
+            }
+            for m in act.mana {
+                self.player_mut(p).mana_pool.add(m);
+            }
+            if act.per_turn {
+                self.activated_once.push((act.id, act.ability));
+            }
+            if act.once_ever {
+                self.activated_ever.push((act.id, act.ability));
+            }
+            if act.sac {
+                self.sacrifice(act.id);
+            }
+        }
+        self.finish_payment(p, &plan.req, plan.life);
+    }
+
+    /// Pay a plain `req` from the pool, which covers it, and `life` for
+    /// Phyrexian symbols.
+    #[allow(clippy::inline_always)] // measured: out of line costs 0.7% instructions/game
+    #[inline(always)]
+    fn finish_payment(&mut self, p: PlayerId, req: &ManaRequirement, life: u32) {
+        let req = *req;
         let pool = self.player(p).mana_pool;
         let left = pool
             .payment_plan(&req)
@@ -1931,7 +2034,7 @@ impl GameState {
         let def = pool.get(def_ref);
         let req = self.spell_requirements(spell, x);
         let sources = self.spell_sources(spell);
-        self.pay_from(caster, &req, &sources);
+        self.pay_from(caster, &req, &sources, None);
         if let (Some(fb), true) = (&def.flashback, flashback) {
             self.pay_other_costs(caster, fb, spell, None, None);
         }
@@ -2204,7 +2307,7 @@ impl GameState {
 
     /// The color `source` chose as it entered (CR 607.2a), if it is still
     /// that object.
-    fn chosen_color_of(&self, source: ObjId) -> Option<Color> {
+    pub(super) fn chosen_color_of(&self, source: ObjId) -> Option<Color> {
         self.objects.get(source).and_then(|o| o.chosen.color())
     }
 
@@ -2758,7 +2861,7 @@ impl GameState {
                     }
                     let (ctl, def) = (o.controller, o.def);
                     let req = mana.requirements(0);
-                    let can_pay = self.payment_plan(ctl, &req).is_some();
+                    let can_pay = self.can_pay(ctl, &req);
                     let pays = can_pay
                         && self.choose_mid(
                             ctl,
@@ -3572,7 +3675,7 @@ impl GameState {
                 let req = mana.requirements(0);
                 let life_ok =
                     *life == 0 || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX);
-                if life_ok && self.payment_plan(p, &req).is_some() {
+                if life_ok && self.can_pay(p, &req) {
                     self.pay(p, &req);
                     if *life > 0 {
                         self.change_life(p, -i32::try_from(*life).unwrap_or(i32::MAX));
@@ -3612,7 +3715,7 @@ impl GameState {
                     let life_ok = *life == 0
                         || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX);
                     life_ok
-                        && self.payment_plan(p, &req).is_some()
+                        && self.can_pay(p, &req)
                         && self.choose_mid(
                             p,
                             DecisionKind::PayOrCounter { def },
@@ -3858,7 +3961,7 @@ impl GameState {
                     req.add(&cost.requirements(0));
                 }
                 let p = ctx.controller;
-                let paid = self.payment_plan(p, &req).is_some()
+                let paid = self.can_pay(p, &req)
                     && self.choose_mid(
                         p,
                         DecisionKind::YouMay {
