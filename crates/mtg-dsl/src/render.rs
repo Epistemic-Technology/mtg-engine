@@ -2346,7 +2346,37 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = sentences(inner, ctx);
             let body = lowercase_first(&body);
             // "you may gain 3 life", not "you may you gain".
-            let body = body.strip_prefix("you ").unwrap_or(&body);
+            if let Some(rest) = body.strip_prefix("you ") {
+                return Clause::imperative(format!("you may {}", rest.trim_end_matches('.')));
+            }
+            // "you may have target creature get +2/+0": another subject
+            // takes "have" and the verb's base form.
+            let subject_led = ["target ", "that ", "it ", "another target ", "up to "]
+                .iter()
+                .any(|p| body.starts_with(p));
+            if subject_led {
+                let verbs = [
+                    ("gets", "get"),
+                    ("gains", "gain"),
+                    ("deals", "deal"),
+                    ("loses", "lose"),
+                    ("mills", "mill"),
+                    ("sacrifices", "sacrifice"),
+                    ("discards", "discard"),
+                    ("becomes", "become"),
+                    ("draws", "draw"),
+                    ("has", "have"),
+                ];
+                let mut text = body.trim_end_matches('.').to_string();
+                if let Some((at, (from, to))) = verbs
+                    .iter()
+                    .filter_map(|v| text.find(&format!(" {} ", v.0)).map(|i| (i, *v)))
+                    .min_by_key(|(i, _)| *i)
+                {
+                    text.replace_range(at + 1..at + 1 + from.len(), to);
+                }
+                return Clause::imperative(format!("you may have {text}"));
+            }
             Clause::imperative(format!("you may {}", body.trim_end_matches('.')))
         }
         Effect::Delayed {
