@@ -1,0 +1,9 @@
+card "Cackling Flames" {
+  oracle_id ab48147c-0bd7-4875-8e11-0e26185453dd
+  cost {3}{R}
+  type Instant
+  spell {
+    deal 3 damage to any target
+    label "Hellbent" deal 5 damage instead if hand 0 or less
+  }
+}

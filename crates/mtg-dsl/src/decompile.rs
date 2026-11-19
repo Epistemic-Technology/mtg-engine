@@ -248,6 +248,9 @@ impl Decompiler<'_> {
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
             StaticCondition::Escaped => StaticCond::Escaped,
+            StaticCondition::Kicked => StaticCond::Kicked,
+            StaticCondition::LandEnteredThisTurn => StaticCond::LandEnteredThisTurn,
+            StaticCondition::CardsDrawnThisTurn(n) => StaticCond::CardsDrawnThisTurn(*n),
             StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -282,10 +285,34 @@ impl Decompiler<'_> {
     }
 
     fn sentences(&self, effects: &[CoreEffect]) -> Vec<Sentence> {
-        effects
-            .iter()
-            .map(|e| Sentence::new(vec![self.effect(e)]))
-            .collect()
+        let mut out = Vec::new();
+        for e in effects {
+            if let CoreEffect::Instead { cond, base, alt } = e {
+                out.extend(self.sentences(base));
+                let cond = match cond {
+                    mtg_core::card::EffectCond::Kicked => crate::ast::InsteadCond::Kicked,
+                    mtg_core::card::EffectCond::Static(i) => {
+                        crate::ast::InsteadCond::Static(self.static_cond(self.pool.condition(*i)))
+                    }
+                    mtg_core::card::EffectCond::Target { n, filter } => {
+                        crate::ast::InsteadCond::Target {
+                            n: usize::from(*n),
+                            that: true,
+                            filter: self.filter(filter),
+                        }
+                    }
+                };
+                out.push(Sentence::new(vec![Effect::Instead {
+                    cond,
+                    wording: crate::ast::InsteadWording::Trail,
+                    label: None,
+                    effects: self.sentences(alt),
+                }]));
+                continue;
+            }
+            out.push(Sentence::new(vec![self.effect(e)]));
+        }
+        out
     }
 
     #[allow(clippy::too_many_lines)]
@@ -504,6 +531,7 @@ impl Decompiler<'_> {
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
+            CoreEffect::Instead { .. } => unreachable!("a sentence pair, in `sentences`"),
             CoreEffect::IfTarget { n, filter, then } => {
                 Effect::IfTarget(usize::from(*n), self.filter(filter), self.sentences(then))
             }
@@ -923,10 +951,11 @@ impl Decompiler<'_> {
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterWithCountersIf { n, cond, .. },
                 ..
-            }) => Ability::Mechanic(if *self.pool.condition(*cond) == StaticCondition::Escaped {
-                crate::ast::Mechanic::EscapesWith(*n)
-            } else {
-                crate::ast::Mechanic::Bloodthirst(*n)
+            }) => Ability::Mechanic(match self.pool.condition(*cond) {
+                StaticCondition::Escaped => crate::ast::Mechanic::EscapesWith(*n),
+                // The keywords come back as a separate conditional static.
+                StaticCondition::Kicked => crate::ast::Mechanic::KickedWith(*n, Vec::new()),
+                _ => crate::ast::Mechanic::Bloodthirst(*n),
             }),
             AbilityDef::Replacement(r) => Ability::Replacement(self.replacement(r)),
             AbilityDef::Static(s) => Ability::Static {

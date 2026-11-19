@@ -12,8 +12,9 @@ use thiserror::Error;
 
 use crate::ast::{
     Ability, Affects, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect,
-    Except, Filter, Join, Kind, Mechanic, Mod, Mode, OfChosen, Recipient, Replacement, Replaces,
-    SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Except, Filter, InsteadCond, InsteadWording, Join, Kind, Mechanic, Mod, Mode, OfChosen,
+    Recipient, Replacement, Replaces, SacCost, SameRef, Sentence, StaticCond, Target, Trigger,
+    TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -1046,6 +1047,20 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::EscapesWith(n)))
             }
+            "kicked" if self.word_at(1).as_deref() == Some("with") => {
+                self.pos += 2;
+                let n = self.number()?;
+                if self.counter_kind()? != CounterKind::PlusOnePlusOne {
+                    return self.fail("kicked with +1/+1 counters only");
+                }
+                let keywords = if self.eat_word("and") {
+                    self.keyword_list()?
+                } else {
+                    Vec::new()
+                };
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::KickedWith(n, keywords)))
+            }
             "modular" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                 self.pos += 1;
                 let n = self.number()?;
@@ -1514,6 +1529,7 @@ impl P {
         Ok(modes)
     }
 
+    #[allow(clippy::too_many_lines)] // one branch per condition
     fn static_cond(&mut self) -> R<StaticCond> {
         if self.eat_word("threshold") {
             return Ok(StaticCond::CardsInGraveyard(7));
@@ -1544,6 +1560,14 @@ impl P {
         }
         if self.eat_words(&["opponent", "damaged", "this", "turn"]) {
             return Ok(StaticCond::OpponentDamagedThisTurn);
+        }
+        if self.eat_words(&["land", "entered", "this", "turn"]) {
+            return Ok(StaticCond::LandEnteredThisTurn);
+        }
+        if self.eat_word("drew") {
+            let n = self.number()?;
+            self.expect_words(&["cards", "this", "turn"])?;
+            return Ok(StaticCond::CardsDrawnThisTurn(n));
         }
         if self.eat_words(&["player", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
@@ -1678,6 +1702,20 @@ impl P {
 
     /// Clauses joined by `and`.
     fn sentence(&mut self) -> R<Sentence> {
+        // `label "Hellbent" ...`: an ability word (CR 207.2c) before an
+        // "instead" sentence.
+        if self.at_word("label") {
+            self.pos += 1;
+            let l = self.string()?;
+            let mut s = self.sentence()?;
+            return match s.effects.as_mut_slice() {
+                [Effect::Instead { label, .. }] if label.is_none() => {
+                    *label = Some(l);
+                    Ok(s)
+                }
+                _ => self.fail("`label` in effects goes before an `instead` sentence"),
+            };
+        }
         self.subject = None;
         // "until end of turn, <clauses>": the duration printed first.
         let eot_first = self.eat_words(&["until", "end", "of", "turn"]);
@@ -1709,12 +1747,24 @@ impl P {
             let c = self.clause()?;
             clauses.push(self.unless_suffix(c)?);
         }
-        Ok(Sentence {
+        let s = Sentence {
             effects: clauses,
             para: false,
             eot_first,
             joins,
-        })
+        };
+        // `<sentence> instead if <cond>` (CR 608.2c).
+        if self.at_words(&["instead", "if"]) {
+            self.pos += 2;
+            let cond = self.instead_cond()?;
+            return Ok(Sentence::new(vec![Effect::Instead {
+                cond,
+                wording: InsteadWording::After,
+                label: None,
+                effects: vec![s],
+            }]));
+        }
+        Ok(s)
     }
 
     /// `<clause> unless you pay {2}` / `unless they pay 2 life` / `unless
@@ -1841,10 +1891,29 @@ impl P {
     /// `if target 1 was Human, ...`: "If that creature was a Human, ...",
     /// judged on the target's last state.
     fn if_target(&mut self) -> R<Effect> {
-        self.pos += 2;
+        self.pos += 1;
+        let that = self.eat_word("that");
+        self.pos += 1;
         let n = self.number()? as usize;
         if n == 0 || n > self.targets.len() {
             return self.fail(format!("target {n} has not been declared"));
+        }
+        if self.eat_word("is") {
+            // `if target 1 is Human, ... instead`: only as an "instead".
+            let filter = self.filter()?;
+            self.expect(&Tok::Comma)?;
+            let cond = InsteadCond::Target {
+                n: n - 1,
+                that,
+                filter,
+            };
+            return match self.instead_body(cond)? {
+                Ok(e) => Ok(e),
+                Err(_) => self.fail("`if target 1 is ...` needs `instead`"),
+            };
+        }
+        if that {
+            return self.fail("`if that target 1` needs `is`");
         }
         self.expect_words(&["was"])?;
         let f = self.filter()?;
@@ -1853,6 +1922,52 @@ impl P {
         let s = self.sentence()?;
         self.subject = saved;
         Ok(Effect::IfTarget(n - 1, f, vec![s]))
+    }
+
+    /// After `if <condition>,`: `instead <sentence>` or `<sentence>
+    /// instead` (CR 608.2c), or else the plain sentence (`Err`).
+    fn instead_body(&mut self, cond: InsteadCond) -> R<Result<Effect, Sentence>> {
+        let lead = self.eat_word("instead");
+        let saved = self.subject.take();
+        let s = self.sentence()?;
+        self.subject = saved;
+        let wording = if lead {
+            InsteadWording::Lead
+        } else if self.eat_word("instead") {
+            InsteadWording::Trail
+        } else {
+            return Ok(Err(s));
+        };
+        Ok(Ok(Effect::Instead {
+            cond,
+            wording,
+            label: None,
+            effects: vec![s],
+        }))
+    }
+
+    /// The condition of `... instead if <cond>`: `kicked`, `target 1 is
+    /// Human`, `that target 1 is Human`, or a static condition.
+    fn instead_cond(&mut self) -> R<InsteadCond> {
+        if self.eat_word("kicked") {
+            return Ok(InsteadCond::Kicked);
+        }
+        if self.at_word("target") || self.at_words(&["that", "target"]) {
+            let that = self.eat_word("that");
+            self.pos += 1;
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            self.expect_word("is")?;
+            let filter = self.filter()?;
+            return Ok(InsteadCond::Target {
+                n: n - 1,
+                that,
+                filter,
+            });
+        }
+        Ok(InsteadCond::Static(self.static_cond()?))
     }
 
     /// "if you control a Treefolk, ...": a static condition. `None` (and
@@ -1867,10 +1982,10 @@ impl P {
             let inner = if self.peek() == Some(&Tok::LBrace) {
                 self.effects_body()?
             } else {
-                let saved = self.subject.take();
-                let s = self.sentence()?;
-                self.subject = saved;
-                vec![s]
+                match self.instead_body(InsteadCond::Static(cond.clone()))? {
+                    Ok(e) => return Ok(Some(e)),
+                    Err(s) => vec![s],
+                }
             };
             return Ok(Some(Effect::IfCondition(cond, inner)));
         }
@@ -1908,7 +2023,7 @@ impl P {
             self.subject = saved;
             return Ok(Effect::IfYouDo(vec![s]));
         }
-        if self.at_words(&["if", "target"]) {
+        if self.at_words(&["if", "target"]) || self.at_words(&["if", "that", "target"]) {
             return self.if_target();
         }
         if self.at_word("if")
@@ -1926,10 +2041,10 @@ impl P {
             let inner = if self.peek() == Some(&Tok::LBrace) {
                 self.effects_body()?
             } else {
-                let saved = self.subject.take();
-                let s = self.sentence()?;
-                self.subject = saved;
-                vec![s]
+                match self.instead_body(InsteadCond::Kicked)? {
+                    Ok(e) => return Ok(e),
+                    Err(s) => vec![s],
+                }
             };
             return Ok(Effect::IfKicked(inner));
         }
@@ -2439,6 +2554,14 @@ impl P {
                 if self.eat_words(&["divided", "among"]) {
                     let to = self.divided_group()?;
                     return Ok(Effect::DealDamageDivided { amount, to });
+                }
+                // `deal 4 damage instead`: to what the sentence before
+                // dealt damage to.
+                if !self.at_word("to") {
+                    return Ok(Effect::DealDamage {
+                        amount,
+                        to: Vec::new(),
+                    });
                 }
                 self.expect_word("to")?;
                 let to = self.recipients()?;

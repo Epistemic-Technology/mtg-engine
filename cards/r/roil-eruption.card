@@ -1,0 +1,7 @@
+card "Roil Eruption" {
+  oracle_id 6798163a-864f-4844-96b1-77585a7e7ab4
+  cost {1}{R}
+  type Sorcery
+  kicker {5}
+  spell: deal 3 damage to any target; if kicked, deal 5 damage instead
+}

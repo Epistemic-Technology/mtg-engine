@@ -1,0 +1,6 @@
+card "For the Family" {
+  oracle_id f6abd7e5-8c52-4b36-98c5-a4df8b5b6863
+  cost {G}
+  type Instant
+  spell: target creature gets +2/+2; if you control 4 creature, that target 1 gets +4/+4 instead
+}

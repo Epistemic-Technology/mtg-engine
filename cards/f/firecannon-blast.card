@@ -1,0 +1,9 @@
+card "Firecannon Blast" {
+  oracle_id 97bff952-3bc8-41d0-b03f-5c76f3c7e0a3
+  cost {1}{R}{R}
+  type Sorcery
+  spell {
+    deal 3 damage to target creature
+    label "Raid" deal 6 damage instead if attacked this turn
+  }
+}

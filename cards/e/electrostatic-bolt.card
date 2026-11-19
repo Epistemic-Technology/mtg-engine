@@ -1,0 +1,6 @@
+card "Electrostatic Bolt" {
+  oracle_id 6fc26faa-94a8-433f-8863-126c2d2e73b0
+  cost {R}
+  type Instant
+  spell: deal 2 damage to target creature; if target 1 is artifact creature, deal 4 damage to target 1 instead
+}

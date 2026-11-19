@@ -3,9 +3,9 @@
 use smallvec::SmallVec;
 
 use crate::card::{
-    AbilityDef, AbilityId, Affects, ChoiceKind, Cost, CounterKind, Effect, Keyword, KeywordSet,
-    Layout, Modification, PtValue, Recipient, Replacement, Replaces, SacCost, SearchTo, Subtype,
-    TargetSpec,
+    AbilityDef, AbilityId, Affects, ChoiceKind, Cost, CounterKind, Effect, EffectCond, Keyword,
+    KeywordSet, Layout, Modification, PtValue, Recipient, Replacement, Replaces, SacCost, SearchTo,
+    Subtype, TargetSpec,
 };
 use crate::decision::{Choice, DecisionKind};
 use crate::event::Event;
@@ -3395,20 +3395,25 @@ impl GameState {
                 }
             }
             Effect::IfTarget { n, filter, then } => {
-                let Some(Target::Object(id)) = ctx.targets.get(usize::from(*n)).copied() else {
-                    return;
-                };
-                let controller = match self.lki.get(&id) {
-                    Some(l) if self.characteristics(id).is_none() => l.object.controller,
-                    _ => self.objects[id].controller,
-                };
-                let fits = self.characteristics_or_lki(id).is_some_and(|c| {
-                    filter.matches(id, controller, &c, Some(ctx.source), Some(ctx.controller))
-                });
-                if fits {
+                if self.nth_target_matches(ctx, *n, filter) {
                     for e in then {
                         self.apply_effect(ctx, e);
                     }
+                }
+            }
+            Effect::Instead { cond, base, alt } => {
+                // CR 608.2c: the later "instead" text modifies the earlier
+                // instruction; exactly one of them happens.
+                let holds = match cond {
+                    EffectCond::Kicked => self.was_kicked(ctx.source),
+                    EffectCond::Static(i) => {
+                        let c = self.pool.condition(*i).clone();
+                        self.condition_now(&c, ctx.controller, ctx.source)
+                    }
+                    EffectCond::Target { n, filter } => self.nth_target_matches(ctx, *n, filter),
+                };
+                for e in if holds { alt } else { base } {
+                    self.apply_effect(ctx, e);
                 }
             }
             Effect::IfKicked(inner) => {
@@ -3966,6 +3971,22 @@ impl GameState {
             self.move_object(top, Zone::Graveyard, false);
         }
         let _ = ctx;
+    }
+
+    /// "If that creature was a Human" / "If it's a Human": whether the
+    /// `n`th target matches, judged as it last existed if it has left
+    /// (CR 608.2h).
+    fn nth_target_matches(&self, ctx: &EffectCtx, n: u8, filter: &crate::card::ObjFilter) -> bool {
+        let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
+            return false;
+        };
+        let controller = match self.lki.get(&id) {
+            Some(l) if self.characteristics(id).is_none() => l.object.controller,
+            _ => self.objects[id].controller,
+        };
+        self.characteristics_or_lki(id).is_some_and(|c| {
+            filter.matches(id, controller, &c, Some(ctx.source), Some(ctx.controller))
+        })
     }
 
     /// Apply a resolving object's effects in order. For a "both" mode

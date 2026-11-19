@@ -1,0 +1,9 @@
+card "Gather the Townsfolk" {
+  oracle_id ff45677d-977e-4ef5-859c-52393ed71a6c
+  cost {1}{W}
+  type Sorcery
+  spell {
+    create 2 "1/1 white Human creature"
+    label "Fateful hour" if your life 5 or less, create 5 "1/1 white Human creature" instead
+  }
+}

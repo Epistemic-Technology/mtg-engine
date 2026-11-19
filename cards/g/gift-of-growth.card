@@ -1,0 +1,7 @@
+card "Gift of Growth" {
+  oracle_id edbe4fdf-9e55-44fa-b3ec-5b1ac615f3a7
+  cost {1}{G}
+  type Instant
+  kicker {2}
+  spell: untap target creature; target 1 gets +2/+2; if kicked, that target 1 gets +4/+4 instead
+}

@@ -1,0 +1,9 @@
+card "Ardent Soldier" {
+  oracle_id a56d301b-8f4c-4f12-8ee0-34c6b66faee0
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  keywords vigilance
+  kicker {2}
+  kicked with 1 +1/+1 counters
+}

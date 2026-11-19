@@ -1,0 +1,7 @@
+card "Orim's Touch" {
+  oracle_id cc22c210-efd0-494c-8560-448b038b3c5f
+  cost {W}
+  type Instant
+  kicker {1}
+  spell: prevent next 2 damage to any target this turn; if kicked, prevent next 4 damage to that target 1 this turn instead
+}

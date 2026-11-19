@@ -1,0 +1,7 @@
+card "Slimy Piper" {
+  oracle_id be0c9947-3e7c-4b53-b87c-ff16ffd668ea
+  cost {1}{G}
+  type Creature — Fungus Bard
+  pt 2/1
+  triggered whenever this attacks: this gets +1/+1; if you control 4 creature, this gets +2/+2 and gains indestructible instead
+}

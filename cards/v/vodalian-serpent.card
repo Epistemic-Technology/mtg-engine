@@ -1,0 +1,9 @@
+card "Vodalian Serpent" {
+  oracle_id c39c1604-3bae-454d-9985-85101e51ec6e
+  cost {3}{U}
+  type Creature — Serpent
+  pt 2/2
+  kicker {2}
+  can't attack unless defending player controls Island
+  kicked with 4 +1/+1 counters
+}

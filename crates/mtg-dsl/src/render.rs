@@ -608,6 +608,11 @@ struct Ctx<'a> {
     current: Option<&'a Ability>,
     /// The trigger of the ability, for wording that depends on it.
     trigger: Option<&'a Trigger>,
+    /// The last token created, and, inside an "instead" sentence, the
+    /// token the sentence before created ("create four of those tokens
+    /// instead").
+    last_token: Option<String>,
+    those_tokens: Option<String>,
 }
 
 impl<'a> Ctx<'a> {
@@ -624,6 +629,8 @@ impl<'a> Ctx<'a> {
             delayed_that: false,
             current: None,
             trigger: None,
+            last_token: None,
+            those_tokens: None,
         }
     }
 
@@ -1839,6 +1846,15 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
 #[allow(clippy::too_many_lines)] // one arm per effect kind
 fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
     match e {
+        // "it deals 4 damage instead": to what the sentence before named.
+        Effect::DealDamage { amount, to } if to.is_empty() => {
+            let s = ctx.source();
+            Clause::with_subject(
+                Recipient::Source,
+                s,
+                format!("deals {} damage", digits(*amount)),
+            )
+        }
         Effect::DealDamage { amount, to } => {
             let s = ctx.source();
             let objs = ctx.obj_list(to, false);
@@ -2320,6 +2336,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("attach {me} to {o}"))
         }
         Effect::CreateToken { token, count } => {
+            if ctx.those_tokens.as_deref() == Some(token.as_str()) {
+                return Clause::imperative(format!(
+                    "create {} of those tokens",
+                    count_words(*count, "one")
+                ));
+            }
+            ctx.last_token = Some(token.clone());
             Clause::imperative(format!("create {}", token_description(token, *count, ctx)))
         }
         Effect::CreateTokenCopy { of, except } => {
@@ -2784,6 +2807,69 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 target_predicate(f, ctx.card),
                 body.trim_end_matches('.')
             ))
+        }
+        Effect::Instead {
+            cond,
+            wording,
+            label,
+            effects,
+        } => {
+            use crate::ast::{InsteadCond, InsteadWording};
+            let kicked = matches!(cond, InsteadCond::Kicked);
+            let cond = match cond {
+                InsteadCond::Kicked => format!("this {} was kicked", spell_noun(ctx.card)),
+                InsteadCond::Static(c) => static_cond_text(c, ctx.card),
+                InsteadCond::Target { n, that, filter } => {
+                    ctx.target_mentioned[*n] = true;
+                    // "If that creature is another Hero".
+                    let what = if filter.relation == Relation::Other {
+                        let mut g = filter.clone();
+                        g.relation = Relation::Any;
+                        let p = target_predicate(&g, ctx.card);
+                        let bare = p
+                            .strip_prefix("a ")
+                            .or_else(|| p.strip_prefix("an "))
+                            .unwrap_or(&p);
+                        format!("another {bare}")
+                    } else {
+                        target_predicate(filter, ctx.card)
+                    };
+                    if *that {
+                        format!("that {} is {what}", ctx.target_noun[*n])
+                    } else {
+                        format!("it's {what}")
+                    }
+                }
+            };
+            // A spell names itself again unless the upgrade is for kicker
+            // ("If this spell was kicked, it deals 4 damage instead";
+            // "Metalcraft — Galvanic Blast deals 4 damage instead ...").
+            if is_spell(ctx.card) && !kicked {
+                ctx.source_mentioned = false;
+            }
+            // "If ..., instead creatures you control get +2/+2": the group
+            // is named again.
+            if *wording == InsteadWording::Lead {
+                ctx.groups_mentioned.clear();
+            }
+            ctx.those_tokens = ctx.last_token.clone();
+            let body = sentences(effects, ctx);
+            ctx.those_tokens = None;
+            let body = if body.starts_with(&ctx.card.name) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            let body = body.trim_end_matches('.');
+            let text = match wording {
+                InsteadWording::Lead => format!("if {cond}, instead {body}"),
+                InsteadWording::Trail => format!("if {cond}, {body} instead"),
+                InsteadWording::After => format!("{body} instead if {cond}"),
+            };
+            Clause::imperative(match label {
+                Some(l) => format!("{l} \u{2014} {}", capitalize(&text)),
+                None => text,
+            })
         }
         Effect::IfKicked(inner) => {
             let body = sentences(inner, ctx);
@@ -3958,6 +4044,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::CreatureDiedThisTurn => "a creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "an opponent was dealt damage this turn".to_string(),
         StaticCond::Escaped => "it escaped".to_string(),
+        StaticCond::Kicked => "it was kicked".to_string(),
+        StaticCond::LandEnteredThisTurn => {
+            "you had a land enter the battlefield under your control this turn".to_string()
+        }
+        StaticCond::CardsDrawnThisTurn(n) => format!(
+            "you've drawn {} or more cards this turn",
+            count_words(Num::N(*n), "one")
+        ),
         StaticCond::CardsInHand { n, at_most } => match (n, at_most) {
             (0, true) => "you have no cards in hand".to_string(),
             (n, true) => format!(
@@ -4267,6 +4361,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 counters(Num::N(*n), CounterKind::PlusOnePlusOne)
             ),
             crate::ast::Mechanic::Bloodthirst(n) => format!("Bloodthirst {n}"),
+            crate::ast::Mechanic::KickedWith(n, ks) => {
+                let mut s = format!(
+                    "If this {} was kicked, it enters with {} on it",
+                    self_noun(card),
+                    counters(Num::N(*n), CounterKind::PlusOnePlusOne)
+                );
+                if !ks.is_empty() {
+                    let names: Vec<String> =
+                        ks.iter().map(|k| keyword_name(*k).to_string()).collect();
+                    let _ = write!(s, " and with {}", list(&names));
+                }
+                s.push('.');
+                s
+            }
             crate::ast::Mechanic::Megamorph(c) => format!("Megamorph {c}"),
             crate::ast::Mechanic::Disguise(c) => format!("Disguise {c}"),
         },
@@ -4482,4 +4590,13 @@ pub fn normalize(text: &str) -> String {
         }
     }
     out.join("\n")
+}
+
+/// "this spell" / "this creature" in "If this spell was kicked".
+fn spell_noun(card: &Card) -> String {
+    if is_spell(card) {
+        "spell".to_string()
+    } else {
+        self_noun(card)
+    }
 }

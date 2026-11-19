@@ -1,0 +1,7 @@
+card "Colossal Growth" {
+  oracle_id 0611beb7-a38d-4fbf-af9b-ee2a5b9a2896
+  cost {1}{G}
+  type Instant
+  kicker {R}
+  spell: target creature gets +3/+3; if kicked, instead that target 1 gets +4/+4 and gains trample and haste
+}

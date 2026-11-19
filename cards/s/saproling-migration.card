@@ -1,0 +1,7 @@
+card "Saproling Migration" {
+  oracle_id bbbb80bd-76fa-4155-929b-4a3565d1cb35
+  cost {1}{G}
+  type Sorcery
+  kicker {4}
+  spell: create 2 "1/1 green Saproling creature"; if kicked, create 4 "1/1 green Saproling creature" instead
+}

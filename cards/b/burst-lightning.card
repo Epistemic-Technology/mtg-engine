@@ -1,0 +1,7 @@
+card "Burst Lightning" {
+  oracle_id ac2086fe-98ee-4280-9c7c-c5c2d6548a8b
+  cost {R}
+  type Instant
+  kicker {4}
+  spell: deal 2 damage to any target; if kicked, deal 4 damage instead
+}

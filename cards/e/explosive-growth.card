@@ -1,0 +1,7 @@
+card "Explosive Growth" {
+  oracle_id 96c65faf-859c-4436-a551-5538409a9792
+  cost {G}
+  type Instant
+  kicker {5}
+  spell: target creature gets +2/+2; if kicked, that target 1 gets +5/+5 instead
+}

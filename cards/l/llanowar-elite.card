@@ -1,0 +1,9 @@
+card "Llanowar Elite" {
+  oracle_id 9e112393-962b-461e-a605-9f8d6a1ebaa4
+  cost {G}
+  type Creature — Elf
+  pt 1/1
+  keywords trample
+  kicker {8}
+  kicked with 5 +1/+1 counters
+}

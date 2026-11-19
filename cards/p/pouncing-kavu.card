@@ -1,0 +1,9 @@
+card "Pouncing Kavu" {
+  oracle_id 5f9a968d-cc23-46d3-b28f-3779dd89c531
+  cost {1}{R}
+  type Creature — Kavu
+  pt 1/1
+  keywords first strike
+  kicker {2}{R}
+  kicked with 2 +1/+1 counters and haste
+}

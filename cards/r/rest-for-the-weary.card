@@ -1,0 +1,9 @@
+card "Rest for the Weary" {
+  oracle_id c7f08962-6c54-4fd5-a55e-7513e758af32
+  cost {1}{W}
+  type Instant
+  spell {
+    target player gains 4 life
+    label "Landfall" if land entered this turn, that target 1 gains 8 life instead
+  }
+}

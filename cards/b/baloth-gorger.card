@@ -1,0 +1,8 @@
+card "Baloth Gorger" {
+  oracle_id 7f9bc0c9-0333-4c02-bc14-e6affe848b5d
+  cost {2}{G}{G}
+  type Creature — Beast
+  pt 4/4
+  kicker {4}
+  kicked with 3 +1/+1 counters
+}

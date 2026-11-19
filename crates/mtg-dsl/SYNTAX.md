@@ -91,6 +91,7 @@ double-faced permanent to its other face (CR 701.27).
 | `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything` | Protection from a quality other than a color (CR 702.16); colors are keywords. |
 | `modular 2`, `cumulative upkeep {1}`, `exert: this gets +2/+2` | Modular (CR 702.43): enters with N +1/+1 counters; as it dies, they may move to target artifact creature. Cumulative upkeep (CR 702.24): each upkeep an age counter, then pay the cost per counter or sacrifice it. Exert (CR 701.43): as it attacks, its controller may exert it (it doesn't untap during their next untap step) for the effects. The keyword `delve` (CR 702.66) lets graveyard cards pay {1} each. |
 | `entwine {2}`, `escape {3}{B} exile 3`, `escapes with 2 +1/+1 counters` | Entwine (CR 702.42): a `choose one` spell may choose every mode for this cost on top. Escape (CR 702.138): cast from the graveyard for this cost, exiling N other cards from it (the oldest); a permanent cast this way keeps that, for `escapes with`. The keyword `exploit` (CR 702.110) sacrifices a creature as it enters, if its controller wants, and `triggered when this exploits a creature:` abilities follow. `discover 4` (CR 701.57) is an effect. |
+| `kicked with 2 +1/+1 counters`, `kicked with 2 +1/+1 counters and first strike` | "If this creature was kicked, it enters with two +1/+1 counters on it [and with first strike]." (CR 702.33c): the counters as it enters, and the keywords for as long as it stays, only if it was cast with its kicker paid. |
 | `madness {1}{R}`, `foretell {1}{U}`, `suspend 4 {1}{U}` | Madness (CR 702.35): discarded into exile, then may be cast for this cost (else to the graveyard). Foretell (CR 702.143): on its owner's turn, exiled from hand for {2}; cast on a later turn for this cost. Suspend N (CR 702.62): exiled from hand for this cost with N time counters; one comes off each upkeep, and as the last does it may be cast free (a creature has haste). The keywords `cascade` and `rebound` need no cost. |
 | `evoke {1}{U}{U}`, `bloodthirst 2` | Evoke (CR 702.74): cast for this cost instead, and the permanent is sacrificed as it enters (`if evoked` is the trigger condition). Bloodthirst (CR 702.54): enters with N +1/+1 counters if an opponent was dealt damage this turn (`opponent damaged this turn` is also a static condition). |
 | `crew 3` | Crew (CR 702.122): "Tap any number of other untapped creatures you control with total power 3 or more: this Vehicle becomes an artifact creature until end of turn." The engine taps the weakest creature strong enough alone, else the strongest until the power suffices. |
@@ -170,7 +171,10 @@ player controls Island`, `you control no untapped land`, `you control
 other Goblin` ("you control another Goblin"), `attacked this turn` (raid),
 `creature died this turn` (morbid), `hand 0 or less` ("you have no cards
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"), and
-the shorthands `threshold`, `delirium`, `metalcraft`.
+the shorthands `threshold`, `delirium`, `metalcraft`; also `land entered
+this turn` (landfall: "you had a land enter the battlefield under your
+control this turn") and `drew 2 cards this turn` ("you've drawn two or
+more cards this turn").
 
 ### Replacement events and outcomes
 
@@ -565,3 +569,31 @@ and why (unsupported keyword, unrecognized sentence), which is the backlog
 for new templates and engine primitives. `--write` never overwrites a
 file that exists, so hand-written cards win. `mtg-cards coverage --format
 pauper` counts how much of a format the corpus holds.
+
+### "Instead"
+
+A sentence may replace the sentence just before it when a condition
+holds (CR 608.2c: later text modifies earlier text; this is not a
+replacement effect). Exactly one of the two happens, chosen as the effect
+resolves; only the sentence just before is replaced. Three wordings:
+
+- `if kicked, deal 4 damage instead`: "If this spell was kicked, it deals
+  4 damage instead."
+- `if kicked, instead each creature you control gets +2/+2 and gains
+  first strike`: "If this spell was kicked, instead creatures you control
+  get +2/+2 and gain first strike until end of turn."
+- `that target 1 gets +4/+4 instead if metalcraft`: "That creature gets
+  +4/+4 until end of turn instead if you control three or more
+  artifacts."
+
+The condition is `kicked`, any static condition (`if you control 3
+creature, ...`, `... instead if hand 0 or less`), or the target as it
+resolves: `if target 1 is Human, ...` ("If it's a Human, ..."), `if that
+target 1 is other Hero, ...` ("If that creature is another Hero, ...").
+`label "Hellbent"` before the sentence prints an ability word (CR 207.2c,
+no rules meaning): "Hellbent — Cackling Flames deals 5 damage instead if
+you have no cards in hand." In a `spell { ... }` block it starts its own
+line. `deal 4 damage` without `to` deals it to what the sentence before
+dealt damage to ("it deals 4 damage instead"). A spell names itself again
+in the upgrade unless it is for kicker; creating the token the sentence
+before created prints "create four of those tokens".

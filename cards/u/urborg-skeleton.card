@@ -1,0 +1,9 @@
+card "Urborg Skeleton" {
+  oracle_id 712d7eb4-4044-4852-a5da-57635d3086b0
+  cost {B}
+  type Creature — Skeleton
+  pt 0/1
+  kicker {3}
+  activated {B}: regenerate this
+  kicked with 1 +1/+1 counters
+}

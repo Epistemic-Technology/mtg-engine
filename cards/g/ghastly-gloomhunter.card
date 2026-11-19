@@ -1,0 +1,9 @@
+card "Ghastly Gloomhunter" {
+  oracle_id 70ab65ff-724f-4126-b472-97fa03ca3a34
+  cost {1}{B}
+  type Creature — Zombie Bat
+  pt 1/1
+  keywords flying, lifelink
+  kicker {3}{B}
+  kicked with 2 +1/+1 counters
+}

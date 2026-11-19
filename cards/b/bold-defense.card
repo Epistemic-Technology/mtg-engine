@@ -1,0 +1,7 @@
+card "Bold Defense" {
+  oracle_id d21994f2-75e1-456c-a25a-729c3269df1a
+  cost {2}{W}
+  type Instant
+  kicker {3}{W}
+  spell: each creature you control gets +1/+1; if kicked, instead each creature you control gets +2/+2 and gains first strike
+}

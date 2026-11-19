@@ -809,6 +809,9 @@ pub struct GameState {
     pub drawn_this_turn: [u8; 4],
     /// Players who declared an attacker this turn (raid), one bit each.
     pub attacked_this_turn: u8,
+    /// Players who had a land enter under their control this turn
+    /// (landfall), one bit each.
+    pub lands_entered_this_turn: u8,
     /// Creatures put into a graveyard from the battlefield this turn
     /// (morbid).
     pub creatures_died_this_turn: u16,
@@ -1478,6 +1481,9 @@ impl GameState {
             C::AnyPlayerLifeAtMost(n) => self.players_in_game().any(|p| self.player(p).life <= *n),
             C::AttackedThisTurn => self.attacked_this_turn & (1 << you.index().min(7)) != 0,
             C::CreatureDiedThisTurn => self.creatures_died_this_turn > 0,
+            C::LandEnteredThisTurn => self.lands_entered_this_turn & (1 << you.index().min(7)) != 0,
+            C::Kicked => self.objects.get(source).is_some_and(|o| o.cast.kicked()),
+            C::CardsDrawnThisTurn(n) => u32::from(self.drawn_this_turn[you.index().min(3)]) >= *n,
             C::Escaped => self
                 .objects
                 .get(source)

@@ -1,0 +1,6 @@
+card "Galvanize" {
+  oracle_id 9b44c005-6799-47fd-8b0d-7179b5281d78
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to target creature; if drew 2 cards this turn, deal 5 damage to that target 1 instead
+}

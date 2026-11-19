@@ -1,0 +1,6 @@
+card "You're Not Alone" {
+  oracle_id 9dbc2fc8-ed42-4534-9676-bf0695cd518c
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2; if you control 3 creature, target 1 gets +4/+4 instead
+}

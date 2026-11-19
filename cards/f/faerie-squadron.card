@@ -1,0 +1,8 @@
+card "Faerie Squadron" {
+  oracle_id 109f7a7d-dc08-4c8f-8065-93c620a9194e
+  cost {U}
+  type Creature — Faerie
+  pt 1/1
+  kicker {3}{U}
+  kicked with 2 +1/+1 counters and flying
+}

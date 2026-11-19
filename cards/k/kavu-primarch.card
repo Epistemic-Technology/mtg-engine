@@ -1,0 +1,9 @@
+card "Kavu Primarch" {
+  oracle_id 09537e9f-6c8e-4849-9d35-d4f3950a64d7
+  cost {3}{G}
+  type Creature — Kavu
+  pt 3/3
+  keywords convoke
+  kicker {4}
+  kicked with 4 +1/+1 counters
+}

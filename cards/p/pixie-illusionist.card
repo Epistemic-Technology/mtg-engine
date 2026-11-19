@@ -1,0 +1,10 @@
+card "Pixie Illusionist" {
+  oracle_id 3bd066d3-5b07-4986-9e6c-39d1ae6212ff
+  cost {U}
+  type Creature — Faerie Wizard
+  pt 1/1
+  keywords flying
+  kicker {3}{G}
+  kicked with 2 +1/+1 counters
+  activated {T}: target land you control becomes land type of choice
+}

@@ -1,0 +1,9 @@
+card "Mysteries of the Deep" {
+  oracle_id 3708eaae-9306-46b2-ae41-7ce6c50be3c7
+  cost {4}{U}
+  type Instant
+  spell {
+    draw 2 cards
+    label "Landfall" if land entered this turn, draw 3 cards instead
+  }
+}

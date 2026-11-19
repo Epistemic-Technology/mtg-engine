@@ -1,0 +1,7 @@
+card "Grow from the Ashes" {
+  oracle_id 645ab3c7-ee1d-4dd0-811f-2dc7f7c7e792
+  cost {2}{G}
+  type Sorcery
+  kicker {2}
+  spell: search basic land card to battlefield; if kicked, instead search 2 basic land card to battlefield
+}

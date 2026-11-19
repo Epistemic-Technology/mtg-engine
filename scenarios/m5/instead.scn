@@ -1,0 +1,282 @@
+# "Instead" upgrades (CR 608.2c): a later sentence that replaces the one
+# before it when a condition holds (kicker, a static condition, the
+# target), and kicked creatures entering with +1/+1 counters (CR 702.33c).
+
+scenario "kicker instead: unkicked, the first damage" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Burst Lightning"
+  turn 1 A: cast "Burst Lightning" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "kicker instead: kicked, only the bigger damage" {
+  battlefield A: 5 "Mountain"
+  life B 20
+  hand A: "Burst Lightning"
+  turn 1 A: cast "Burst Lightning" kicked targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "kicker instead: kicker it can't pay is not paid" {
+  battlefield A: 4 "Mountain"
+  hand A: "Burst Lightning"
+  turn 1 A: cast "Burst Lightning" kicked targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "kicker instead: a pump replaced, not added" {
+  battlefield A: 6 "Forest", "Grizzly Bears"
+  hand A: "Explosive Growth"
+  turn 1 A: cast "Explosive Growth" kicked targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 7
+  assert toughness "Grizzly Bears" 7
+}
+
+scenario "kicker instead: draw three, not five" {
+  battlefield A: 6 "Island"
+  hand A: "Field Research"
+  turn 1 A: cast "Field Research" kicked
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}
+
+scenario "kicker instead: the replaced sentence only; the earlier one still happens" {
+  battlefield A: 4 "Forest", "Grizzly Bears" tapped
+  hand A: "Gift of Growth"
+  turn 1 A: cast "Gift of Growth" kicked targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 6
+}
+
+scenario "kicker instead: four of those tokens" {
+  battlefield A: 6 "Forest"
+  hand A: "Saproling Migration"
+  turn 1 A: cast "Saproling Migration" kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Saproling"
+}
+
+scenario "kicker instead: unkicked, two tokens" {
+  battlefield A: 2 "Forest"
+  hand A: "Saproling Migration"
+  turn 1 A: cast "Saproling Migration"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Saproling"
+}
+
+scenario "kicked: enters with +1/+1 counters" {
+  battlefield A: 7 "Island"
+  hand A: "Academy Drake"
+  turn 1 A: cast "Academy Drake" kicked
+  run_to turn 1 postcombat_main
+  assert counters "Academy Drake" +1/+1 2
+  assert power "Academy Drake" 4
+}
+
+scenario "kicked: not kicked, no counters" {
+  battlefield A: 3 "Island"
+  hand A: "Academy Drake"
+  turn 1 A: cast "Academy Drake"
+  run_to turn 1 postcombat_main
+  assert counters "Academy Drake" +1/+1 0
+  assert power "Academy Drake" 2
+}
+
+scenario "kicked: counters and haste" {
+  battlefield A: 5 "Mountain"
+  hand A: "Pouncing Kavu"
+  turn 1 A: cast "Pouncing Kavu" kicked
+  turn 1 A: attack "Pouncing Kavu"
+  run_to turn 1 postcombat_main
+  assert has "Pouncing Kavu" haste
+  assert life B 17
+}
+
+scenario "kicked: unkicked, no haste" {
+  battlefield A: 2 "Mountain"
+  hand A: "Pouncing Kavu"
+  turn 1 A: cast "Pouncing Kavu"
+  illegal turn 1 A: attack "Pouncing Kavu"
+  run_to turn 1 postcombat_main
+  assert has not "Pouncing Kavu" haste
+  assert life B 20
+}
+
+scenario "kicked: put onto the battlefield without casting, not kicked" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Duskwalker"
+  hand A: "Rise Again"
+  turn 1 A: cast "Rise Again" targeting "Duskwalker"
+  run_to turn 1 postcombat_main
+  assert counters "Duskwalker" +1/+1 0
+  assert has not "Duskwalker" fear
+}
+
+scenario "ability word: hellbent upgrade with an empty hand" {
+  battlefield A: 4 "Mountain"
+  hand A: "Cackling Flames"
+  turn 1 A: cast "Cackling Flames" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "ability word: hellbent, cards in hand, the base damage" {
+  battlefield A: 4 "Mountain"
+  hand A: "Cackling Flames", "Mountain"
+  turn 1 A: cast "Cackling Flames" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "metalcraft upgrade" {
+  battlefield A: "Mountain", 3 "Ornithopter"
+  hand A: "Galvanic Blast"
+  turn 1 A: cast "Galvanic Blast" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "metalcraft upgrade: two artifacts are not enough" {
+  battlefield A: "Mountain", 2 "Ornithopter"
+  hand A: "Galvanic Blast"
+  turn 1 A: cast "Galvanic Blast" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "raid: judged as the spell resolves, after attacking" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Firecannon Blast"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Firecannon Blast" targeting "Serra Angel"
+  run_to turn 1 end
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "raid: without attacking, the base damage" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Firecannon Blast"
+  turn 1 A: cast "Firecannon Blast" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert damage "Serra Angel" 3
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "landfall: a land played this turn upgrades the spell" {
+  battlefield A: 4 "Island"
+  hand A: "Mysteries of the Deep", "Island"
+  turn 1 A: play "Island"
+  turn 1 A: cast "Mysteries of the Deep"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}
+
+scenario "landfall: no land this turn, the base effect" {
+  battlefield A: 5 "Island"
+  hand A: "Mysteries of the Deep"
+  turn 1 A: cast "Mysteries of the Deep"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "landfall: last turn's land does not count" {
+  battlefield A: 5 "Island"
+  hand A: "Mysteries of the Deep", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  turn 2 A: cast "Mysteries of the Deep"
+  run_to turn 3 upkeep
+  assert hand A count 2
+}
+
+scenario "target condition: an artifact creature takes the bigger damage" {
+  battlefield A: "Mountain"
+  battlefield B: "Yotian Soldier"
+  hand A: "Electrostatic Bolt"
+  turn 1 A: cast "Electrostatic Bolt" targeting "Yotian Soldier"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Yotian Soldier"
+}
+
+scenario "target condition: another creature takes the base damage" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Electrostatic Bolt"
+  turn 1 A: cast "Electrostatic Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+}
+
+scenario "target condition: a non-Human gets one counter" {
+  battlefield A: "Elder Cathar", "Savannah Lions" , "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Elder Cathar"
+  turn 1 A: trigger "Elder Cathar" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert counters "Savannah Lions" +1/+1 1
+}
+
+scenario "count condition: three creatures upgrade the pump" {
+  battlefield A: "Plains", "Grizzly Bears", "Savannah Lions", "Hill Giant"
+  hand A: "You're Not Alone"
+  turn 1 A: cast "You're Not Alone" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 6
+}
+
+scenario "count condition: two creatures, the base pump" {
+  battlefield A: "Plains", "Grizzly Bears", "Savannah Lions"
+  hand A: "You're Not Alone"
+  turn 1 A: cast "You're Not Alone" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 4
+}
+
+scenario "target condition: a Human gets two counters instead of one" {
+  battlefield A: "Elder Cathar", "Elite Vanguard", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Elder Cathar"
+  turn 1 A: trigger "Elder Cathar" targeting "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert counters "Elite Vanguard" +1/+1 2
+}
+
+scenario "another Hero: the source itself is not another" {
+  battlefield A: 5 "Forest"
+  hand A: "Wakandan Royal Guard"
+  turn 1 A: cast "Wakandan Royal Guard"
+  turn 1 A: trigger "Wakandan Royal Guard" targeting "Wakandan Royal Guard"
+  run_to turn 1 postcombat_main
+  assert counters "Wakandan Royal Guard" +1/+1 1
+}
+
+scenario "drawn two cards this turn" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Galvanize", "Divination"
+  battlefield A: 3 "Island"
+  turn 1 A: cast "Divination"
+  turn 1 A: wait
+  turn 1 A: cast "Galvanize" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "drawn one card this turn: the base damage" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Galvanize"
+  start turn 2 A upkeep
+  turn 2 A: cast "Galvanize" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert damage "Serra Angel" 3
+}
