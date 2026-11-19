@@ -1350,6 +1350,21 @@ impl GameState {
     /// on the card. Both are read from current characteristics, so a land
     /// turned into a Mountain taps for red.
     pub(super) fn mana_sources(&self, p: PlayerId) -> Sources {
+        let key = (self.cversion, self.tap_epoch, self.turn_number);
+        let i = p.index().min(1);
+        {
+            let cache = self.mana_cache.borrow();
+            let (v, t, n, s) = &cache[i];
+            if (*v, *t, *n) == key && *v != 0 {
+                return s.clone();
+            }
+        }
+        let s = self.mana_sources_uncached(p);
+        self.mana_cache.borrow_mut()[i] = (key.0, key.1, key.2, s.clone());
+        s
+    }
+
+    fn mana_sources_uncached(&self, p: PlayerId) -> Sources {
         let mut out = Sources::new();
         // Sources with other uses (creatures, permanents with activated
         // abilities such as Mishra's Factory) are listed last so that the

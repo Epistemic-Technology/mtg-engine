@@ -71,6 +71,9 @@ pub struct StackAbility {
     pub trigger_amount: u32,
 }
 
+/// A player's untapped mana sources, as `mana_sources` lists them.
+pub type ManaSources = smallvec::SmallVec<[(ObjId, crate::mana::Mana); 12]>;
+
 /// A triggered ability that has triggered but is not yet on the stack
 /// (CR 603.3).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -889,6 +892,12 @@ pub struct GameState {
     pub log: Vec<Event>,
     pub logging: bool,
     pub cache: DerivedCache,
+    /// Each player's untapped mana sources, keyed by (`cversion`,
+    /// `tap_epoch`, turn): priority listings ask for them again and again
+    /// with nothing changed.
+    pub mana_cache: std::cell::RefCell<[(u64, u32, u32, ManaSources); 2]>,
+    /// Bumped on every tap and untap (which leave `cversion` alone).
+    pub tap_epoch: u32,
 }
 
 impl GameState {

@@ -527,6 +527,7 @@ impl GameState {
         {
             o.tapped = true;
             self.bump();
+            self.tap_epoch = self.tap_epoch.wrapping_add(1);
             if self.tap_static_sources > 0 {
                 self.cbump();
             }
@@ -549,6 +550,7 @@ impl GameState {
         {
             o.tapped = false;
             self.bump();
+            self.tap_epoch = self.tap_epoch.wrapping_add(1);
             if self.tap_static_sources > 0 {
                 self.cbump();
             }
