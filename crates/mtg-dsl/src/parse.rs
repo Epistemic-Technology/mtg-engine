@@ -43,6 +43,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         groups: Vec::new(),
         counts: Vec::new(),
         in_delayed: false,
+        in_trigger: false,
         subject: None,
     };
     let mut cards = Vec::new();
@@ -332,6 +333,9 @@ struct P {
     /// Inside a delayed trigger's effects, where "it" is the object the
     /// trigger is about.
     in_delayed: bool,
+    /// Inside a triggered ability: "that creature" is the triggering
+    /// object there, the last target elsewhere.
+    in_trigger: bool,
     /// The subject of the previous clause of the sentence being parsed.
     subject: Option<Recipient>,
 }
@@ -791,6 +795,7 @@ impl P {
     fn ability(&mut self) -> R<Ability> {
         self.targets.clear();
         self.subject = None;
+        self.in_trigger = false;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
             "spells" => {
@@ -1148,6 +1153,7 @@ impl P {
             }
             "triggered" => {
                 self.pos += 1;
+                self.in_trigger = true;
                 let when = self.at_word("when");
                 let mut trigger = self.trigger()?;
                 if when && !crate::format::natural_when(&trigger) {
@@ -2735,6 +2741,7 @@ impl P {
             groups: self.groups.clone(),
             counts: self.counts.clone(),
             in_delayed: self.in_delayed,
+            in_trigger: self.in_trigger,
             subject: None,
         };
         if !probe.at_recipient() {
@@ -2949,6 +2956,15 @@ impl P {
         if another {
             return self.unexpected("`target`");
         }
+        // In a spell or an activated ability there is no triggering object:
+        // "that creature" is the target named before.
+        if !self.in_trigger
+            && !self.targets.is_empty()
+            && (self.at_words(&["that", "creature"]) || self.at_words(&["that", "permanent"]))
+        {
+            self.pos += 2;
+            return Ok(Recipient::ThatTarget(self.targets.len() - 1));
+        }
         for (ws, r) in RECIPIENTS {
             if self.at_words(ws) {
                 // "each creature with flying" is a group, not "each creature".
@@ -3027,6 +3043,7 @@ impl P {
                         groups: Vec::new(),
                         counts: Vec::new(),
                         in_delayed: false,
+                        in_trigger: false,
                         subject: None,
                     };
                     probe.keyword().is_some()

@@ -1,0 +1,22 @@
+# "That creature" in a spell is the target named before (no triggering
+# object there): it used to point at nothing.
+
+scenario "Arbor Armament: the target gets the counter and reach" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Arbor Armament"
+  turn 1 A: cast "Arbor Armament" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" reach
+}
+
+scenario "Mugging: that creature can't block" {
+  battlefield A: "Mountain", "Hill Giant"
+  battlefield B: "Gray Ogre"
+  hand A: "Mugging"
+  turn 1 A: cast "Mugging" targeting "Gray Ogre"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Gray Ogre"
+  run_to turn 1 end
+  assert life B 17
+}
