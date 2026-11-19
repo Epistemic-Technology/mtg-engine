@@ -176,6 +176,9 @@ instead of untapping), `charge`, `oil`, `spore`, `depletion`, `quest`,
 `indestructible` (CR 122.1b: the permanent has the keyword). A cost may
 `remove 1 charge counter from this`.
 
+`this becomes 4/4 green Bear artifact creature` (colors before
+subtypes), `target creature becomes blue`, `this becomes colorless`,
+`target land becomes Island` (all until end of turn).
 `tap or untap target creature` (the controller chooses on resolution).
 `spells red or white you cast cost {1} less` prints "Red spells and white
 spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue

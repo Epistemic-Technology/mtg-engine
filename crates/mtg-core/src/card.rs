@@ -1856,6 +1856,18 @@ pub enum Effect {
         subtypes: SubtypeSet,
         power: i32,
         toughness: i32,
+        /// "becomes a 4/4 green Bear artifact creature": its colors.
+        colors: Option<ColorSet>,
+    },
+    /// "becomes blue until end of turn", "becomes colorless" (layer 5).
+    BecomeColor {
+        to: Recipient,
+        colors: ColorSet,
+    },
+    /// "Target land becomes an Island until end of turn" (layer 4).
+    BecomeLandType {
+        to: Recipient,
+        land: Color,
     },
     /// "You may [do these]": the controller decides on resolution.
     YouMay(Vec<Effect>),

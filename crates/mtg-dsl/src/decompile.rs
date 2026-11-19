@@ -417,6 +417,7 @@ impl Decompiler<'_> {
                 subtypes,
                 power,
                 toughness,
+                colors: c,
             } => Effect::Animate {
                 to: r(*to),
                 types: types(*t),
@@ -426,6 +427,15 @@ impl Decompiler<'_> {
                     .collect(),
                 power: *power,
                 toughness: *toughness,
+                colors: c.map(colors).unwrap_or_default(),
+            },
+            CoreEffect::BecomeColor { to, colors: c } => Effect::BecomeColor {
+                to: r(*to),
+                colors: colors(*c),
+            },
+            CoreEffect::BecomeLandType { to, land } => Effect::BecomeLandType {
+                to: r(*to),
+                land: *land,
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),

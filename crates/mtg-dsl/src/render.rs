@@ -2161,9 +2161,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             subtypes,
             power,
             toughness,
+            colors,
         } => {
             let s = ctx.subj(*to);
             let mut words = vec![format!("{power}/{toughness}")];
+            words.extend(colors.iter().map(|c| format!("{c:?}").to_lowercase()));
             words.extend(subtypes.iter().cloned());
             words.extend(types.iter().map(|t| type_noun(*t).to_string()));
             let mut text = format!(
@@ -2176,6 +2178,36 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 text.push_str(". It's still a land");
             }
             Clause::with_subject(*to, s, text)
+        }
+        Effect::BecomeColor { to, colors } => {
+            let s = ctx.subj(*to);
+            let c: Vec<String> = colors
+                .iter()
+                .map(|c| format!("{c:?}").to_lowercase())
+                .collect();
+            let what = if c.is_empty() {
+                "colorless".to_string()
+            } else {
+                list(&c)
+            };
+            Clause::with_subject(
+                *to,
+                s,
+                format!("{} {what} {EOT}", ctx.verb(*to, "becomes", "become")),
+            )
+        }
+        Effect::BecomeLandType { to, land } => {
+            let s = ctx.subj(*to);
+            let name = basic_land_name(*land);
+            Clause::with_subject(
+                *to,
+                s,
+                format!(
+                    "{} {} {name} {EOT}",
+                    ctx.verb(*to, "becomes", "become"),
+                    article(name)
+                ),
+            )
         }
         Effect::IfYouDo(inner) => {
             let body = sentences(inner, ctx);

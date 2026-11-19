@@ -1973,6 +1973,31 @@ impl P {
                     let except = self.except_clause();
                     return Ok(Effect::BecomeCopy { of, except });
                 }
+                // "becomes blue", "becomes colorless".
+                if self.at_word("colorless") || self.word_at(0).as_deref().and_then(color).is_some()
+                {
+                    let mut colors = Vec::new();
+                    if !self.eat_word("colorless") {
+                        while let Some(c) = self.word_at(0).as_deref().and_then(color) {
+                            colors.push(c);
+                            self.pos += 1;
+                            self.eat_word("and");
+                        }
+                    }
+                    self.until_end_of_turn();
+                    return Ok(Effect::BecomeColor {
+                        to: subject,
+                        colors,
+                    });
+                }
+                // "becomes an Island".
+                if let Some(Tok::Word(w)) = self.peek()
+                    && let Some(land) = basic_land_type(w)
+                {
+                    self.pos += 1;
+                    self.until_end_of_turn();
+                    return Ok(Effect::BecomeLandType { to: subject, land });
+                }
                 let Some(Tok::Pt {
                     power,
                     toughness,
@@ -1983,11 +2008,14 @@ impl P {
                 };
                 let mut types = Vec::new();
                 let mut subtypes = Vec::new();
+                let mut colors = Vec::new();
                 while let Some(Tok::Word(w)) = self.peek() {
                     if w == "until" {
                         break;
                     }
-                    if let Some(t) = card_type(w) {
+                    if let Some(c) = color(w) {
+                        colors.push(c);
+                    } else if let Some(t) = card_type(w) {
                         types.push(t);
                     } else {
                         subtypes.push(w.clone());
@@ -2001,6 +2029,7 @@ impl P {
                     subtypes,
                     power,
                     toughness,
+                    colors,
                 })
             }
             _ => self.fail(format!("unknown verb `{w}` after a subject")),

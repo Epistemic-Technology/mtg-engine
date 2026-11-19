@@ -670,8 +670,13 @@ impl Fmt {
                 subtypes,
                 power,
                 toughness,
+                colors,
             } => {
-                let mut words: Vec<String> = subtypes.clone();
+                let mut words: Vec<String> = colors
+                    .iter()
+                    .map(|c| format!("{c:?}").to_lowercase())
+                    .collect();
+                words.extend(subtypes.iter().cloned());
                 words.extend(types.iter().map(|t| format!("{t:?}").to_lowercase()));
                 format!(
                     "{} becomes {power}/{toughness} {}",
@@ -679,6 +684,26 @@ impl Fmt {
                     words.join(" ")
                 )
             }
+            Effect::BecomeColor { to, colors } => {
+                let c: Vec<String> = colors
+                    .iter()
+                    .map(|c| format!("{c:?}").to_lowercase())
+                    .collect();
+                format!(
+                    "{} becomes {}",
+                    self.recipient(*to, t),
+                    if c.is_empty() {
+                        "colorless".to_string()
+                    } else {
+                        c.join(" and ")
+                    }
+                )
+            }
+            Effect::BecomeLandType { to, land } => format!(
+                "{} becomes {}",
+                self.recipient(*to, t),
+                crate::render::basic_land_name(*land)
+            ),
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),

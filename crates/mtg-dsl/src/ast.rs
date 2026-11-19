@@ -1007,6 +1007,18 @@ pub enum Effect {
         subtypes: Vec<String>,
         power: i32,
         toughness: i32,
+        /// Colors it becomes, if any ("4/4 green Bear artifact creature").
+        colors: Vec<Color>,
+    },
+    /// `this becomes blue`, `becomes colorless` (until end of turn).
+    BecomeColor {
+        to: Recipient,
+        colors: Vec<Color>,
+    },
+    /// `target land becomes Island` (until end of turn).
+    BecomeLandType {
+        to: Recipient,
+        land: Color,
     },
     YouMay(Vec<Sentence>),
     /// "If this spell was kicked, ..." (CR 702.33c).

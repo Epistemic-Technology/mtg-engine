@@ -739,6 +739,7 @@ impl Compiler<'_> {
                 subtypes,
                 power,
                 toughness,
+                colors,
             } => {
                 let subtypes = self.subtypes(subtypes);
                 out.push(CoreEffect::Animate {
@@ -747,8 +748,17 @@ impl Compiler<'_> {
                     subtypes,
                     power: *power,
                     toughness: *toughness,
+                    colors: (!colors.is_empty()).then(|| ColorSet::of(colors.iter().copied())),
                 });
             }
+            Effect::BecomeColor { to, colors } => out.push(CoreEffect::BecomeColor {
+                to: r(*to),
+                colors: ColorSet::of(colors.iter().copied()),
+            }),
+            Effect::BecomeLandType { to, land } => out.push(CoreEffect::BecomeLandType {
+                to: r(*to),
+                land: *land,
+            }),
             Effect::YouMay(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::YouMay(effects));
@@ -1420,6 +1430,7 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
                     subtypes: Vec::new(),
                     power,
                     toughness,
+                    colors: Vec::new(),
                 }),
                 equip: false,
                 cycling: false,

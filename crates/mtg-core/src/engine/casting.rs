@@ -1403,6 +1403,19 @@ impl GameState {
             && let Some(c) = discard
         {
             self.discard_card(p, c);
+            // "Discard two cards": the chosen card, then the rest in hand
+            // order (the engine picks them).
+            for _ in 1..cost.discard {
+                let next = self.player(p).hand.iter().copied().find(|id| {
+                    cost.discard_filter.as_ref().is_none_or(|f| {
+                        let o = &self.objects[*id];
+                        let ch = self.base_characteristics(o);
+                        f.matches(*id, o.owner, &ch, None, Some(p))
+                    })
+                });
+                let Some(n) = next else { break };
+                self.discard_card(p, n);
+            }
         }
     }
 
@@ -2579,6 +2592,7 @@ impl GameState {
                 subtypes,
                 power,
                 toughness,
+                colors,
             } => {
                 for t in self.recipients(ctx, *to) {
                     let Some(id) = on_battlefield(self, t) else {
@@ -2587,11 +2601,36 @@ impl GameState {
                     let mut parts: SmallVec<[Modification; 2]> =
                         smallvec::smallvec![Modification::AddTypes(*types)];
                     parts.extend(subtypes.iter().map(|s| Modification::AddSubtype(*s)));
+                    if let Some(c) = colors {
+                        parts.push(Modification::SetColors(*c));
+                    }
                     parts.push(Modification::SetPt {
                         power: PtValue::Fixed(*power),
                         toughness: PtValue::Fixed(*toughness),
                     });
                     self.effect_until_end_of_turn(ctx, id, parts);
+                }
+            }
+            Effect::BecomeColor { to, colors } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(
+                            ctx,
+                            id,
+                            smallvec::smallvec![Modification::SetColors(*colors)],
+                        );
+                    }
+                }
+            }
+            Effect::BecomeLandType { to, land } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(
+                            ctx,
+                            id,
+                            smallvec::smallvec![Modification::SetLandType(*land)],
+                        );
+                    }
                 }
             }
             Effect::IfKicked(inner) => {
