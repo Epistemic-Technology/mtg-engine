@@ -246,6 +246,7 @@ impl Fmt {
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::ExiledCard => "exiled card".to_string(),
             Recipient::ThoseCards(..) => "those cards".to_string(),
+            Recipient::ThoseTargets(..) => "those targets".to_string(),
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
             Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
@@ -2118,6 +2119,13 @@ fn filter_one(f: &Filter) -> String {
     match f.that_player {
         Some(mtg_core::card::ThatPlayer::Triggering) => {
             words.push("that player controls".to_string());
+        }
+        Some(mtg_core::card::ThatPlayer::TargetOrController { n, planeswalker }) => {
+            words.push(format!(
+                "that player {}{} controls",
+                if planeswalker { "or planeswalker " } else { "" },
+                n + 1
+            ));
         }
         Some(mtg_core::card::ThatPlayer::ControllerOf(n)) => {
             words.push(format!("controller of target {} controls", n + 1));

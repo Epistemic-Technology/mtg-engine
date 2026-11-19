@@ -976,7 +976,9 @@ impl Compiler<'_> {
                 CoreRecipient::Targets(u8::try_from(i).unwrap_or(u8::MAX), u8::MAX)
             }
             Recipient::Target(i) | Recipient::ThatTarget(i) => CoreRecipient::Target(i),
-            Recipient::Targets(a, n) | Recipient::ThoseCards(a, n) => CoreRecipient::Targets(
+            Recipient::Targets(a, n)
+            | Recipient::ThoseCards(a, n)
+            | Recipient::ThoseTargets(a, n) => CoreRecipient::Targets(
                 u8::try_from(a).unwrap_or(u8::MAX),
                 u8::try_from(n).unwrap_or(u8::MAX),
             ),

@@ -1856,6 +1856,9 @@ pub enum Recipient {
     /// after an effect moved them ("Exile two target creatures you
     /// control, then return those cards to the battlefield").
     ThoseCards(usize, usize),
+    /// `those targets`: every target declared so far, named again as a
+    /// group ("Those creatures can't block this turn").
+    ThoseTargets(usize, usize),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

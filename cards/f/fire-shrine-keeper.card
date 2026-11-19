@@ -1,0 +1,8 @@
+card "Fire Shrine Keeper" {
+  oracle_id 14537df5-e2c8-4906-99ac-742fb628fe08
+  cost {R}
+  type Creature — Elemental
+  pt 1/1
+  keywords menace
+  activated {7}{R}, {T}, sacrifice this: deal 3 damage to up to 2 target creature
+}

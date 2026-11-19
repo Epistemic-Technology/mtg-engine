@@ -1,0 +1,6 @@
+card "Chandra's Fury" {
+  oracle_id eb16f188-fe12-4a13-9947-d43cd6ce270c
+  cost {4}{R}
+  type Instant
+  spell: deal 4 damage to target player or planeswalker and deal 1 damage to each creature that player or planeswalker 1 controls
+}

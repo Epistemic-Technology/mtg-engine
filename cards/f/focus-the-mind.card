@@ -1,0 +1,7 @@
+card "Focus the Mind" {
+  oracle_id 695a84b5-96b0-4e48-b615-15624efab3b7
+  cost {4}{U}
+  type Instant
+  this spell costs {2} less if cast another spell this turn
+  spell: draw 3 cards then discard 1 card
+}

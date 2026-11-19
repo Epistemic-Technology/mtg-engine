@@ -986,6 +986,11 @@ pub enum ThatPlayer {
     /// effect's groups and counts; nothing matches if that target is
     /// illegal as the effect happens (CR 608.2b).
     Target(u8),
+    /// The `n`th target if it's a player, else its controller ("deals 1
+    /// damage to each creature that player or that planeswalker's
+    /// controller controls"); `planeswalker` is only the wording. Judged
+    /// for groups and counts like `Target`.
+    TargetOrController { n: u8, planeswalker: bool },
 }
 
 /// How an object a filter matches must be in combat with the source.

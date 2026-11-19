@@ -1,0 +1,169 @@
+# Damage to several targets ("deals 1 damage to each of up to two target
+# creatures", CR 601.2c, 115.3), damage to a target and the creatures its
+# player or controller controls ("1 damage to each creature that player or
+# that planeswalker's controller controls"), a second damage clause to the
+# first target's controller ("its controller", "that permanent's
+# controller"), and spells that cost less under a condition (CR 601.2f).
+
+scenario "Dual Shot deals 1 damage to each of two target creatures" {
+  battlefield A: "Mountain"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Dual Shot"
+  turn 1 A: cast "Dual Shot" targeting "Llanowar Elves", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "Dual Shot may target one creature" {
+  battlefield A: "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Dual Shot"
+  turn 1 A: cast "Dual Shot" targeting "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Dual Shot can't target the same creature twice" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Dual Shot"
+  illegal turn 1 A: cast "Dual Shot" targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Wrap in Flames: those creatures can't block" {
+  battlefield A: 4 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  hand A: "Wrap in Flames"
+  turn 1 A: cast "Wrap in Flames" targeting "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 end
+  assert damage "Grizzly Bears" 1
+  assert life B 17
+}
+
+scenario "Cast into the Fire's first mode hits each of two creatures" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Cast into the Fire"
+  turn 1 A: cast "Cast into the Fire" mode 1 targeting "Llanowar Elves", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "Radiating Lightning hits the player and each creature they control" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  battlefield B: "Llanowar Elves", "Hill Giant"
+  hand A: "Radiating Lightning"
+  turn 1 A: cast "Radiating Lightning" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Hill Giant" 1
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Chandra's Fury at a planeswalker hits its controller's creatures" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Jace Beleren", "Llanowar Elves"
+  hand A: "Chandra's Fury"
+  turn 1 A: cast "Chandra's Fury" targeting "Jace Beleren"
+  run_to turn 1 end
+  assert graveyard B contains "Jace Beleren"
+  assert graveyard B contains "Llanowar Elves"
+  assert life B 20
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Chandra's Fury at a player hits that player's creatures" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Chandra's Fury"
+  turn 1 A: cast "Chandra's Fury" targeting player B
+  run_to turn 1 end
+  assert life B 16
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Unleash Shell damages a planeswalker's controller" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Jace Beleren"
+  hand A: "Unleash Shell"
+  turn 1 A: cast "Unleash Shell" targeting "Jace Beleren"
+  run_to turn 1 end
+  assert graveyard B contains "Jace Beleren"
+  assert life B 18
+}
+
+scenario "Neonate's Rush costs {1} less with a Vampire" {
+  battlefield A: 2 "Mountain", "Vampire Nighthawk"
+  battlefield B: "Llanowar Elves"
+  hand A: "Neonate's Rush"
+  turn 1 A: cast "Neonate's Rush" targeting "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+  assert life B 19
+  assert hand A count 1
+}
+
+scenario "Neonate's Rush costs full price without a Vampire" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Neonate's Rush"
+  illegal turn 1 A: cast "Neonate's Rush" targeting "Llanowar Elves"
+  run_to turn 1 end
+}
+
+scenario "Trick Shot hits a creature and another creature token" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 2 "Plains", "Hill Giant"
+  hand B: "Raise the Alarm"
+  hand A: "Trick Shot"
+  start turn 1 B
+  turn 1 B: cast "Raise the Alarm"
+  turn 2 A: cast "Trick Shot" targeting "Hill Giant", oldest B "Soldier"
+  run_to turn 2 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B count 3
+}
+
+scenario "Trick Shot's token target can't be a nontoken creature" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Trick Shot"
+  illegal turn 1 A: cast "Trick Shot" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Fire Shrine Keeper deals 3 damage to each of two creatures" {
+  battlefield A: 8 "Mountain", "Fire Shrine Keeper"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  turn 1 A: activate "Fire Shrine Keeper" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Fire Shrine Keeper"
+}
+
+scenario "Mage Duel costs {2} less after another instant" {
+  battlefield A: 2 "Forest", "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Mage Duel", "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Mage Duel" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Mage Duel costs full price with no other spell cast" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Mage Duel"
+  illegal turn 1 A: cast "Mage Duel" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+}

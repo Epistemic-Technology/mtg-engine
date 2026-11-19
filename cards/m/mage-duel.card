@@ -1,0 +1,7 @@
+card "Mage Duel" {
+  oracle_id 763882f9-a7ad-4fb1-bdf4-c9a158d4b68e
+  cost {2}{G}
+  type Sorcery
+  this spell costs {2} less if cast another instant or sorcery spell this turn
+  spell: target creature you control gets +1/+2; then target 1 fights target creature you don't control
+}

@@ -1,0 +1,7 @@
+card "Uneasy Partings" {
+  oracle_id 15211eaa-d906-4b95-8942-2f49d3cb4b81
+  cost {3}{U}
+  type Instant
+  this spell costs {1} less if it targets attacking nontoken creature
+  spell: owner puts target creature on top or bottom of library
+}

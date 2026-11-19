@@ -2757,6 +2757,9 @@ impl P {
         if w == "targets" && matches!(self.peek_at(1), Some(Tok::Num(_))) {
             return true;
         }
+        if self.at_words(&["those", "targets"]) {
+            return true;
+        }
         if self.at_words(&["controller", "of", "that", "target"]) {
             return true;
         }
@@ -5973,6 +5976,12 @@ impl P {
             }
             return Ok(Recipient::ThoseCards(0, self.targets.len()));
         }
+        if self.eat_words(&["those", "targets"]) {
+            if self.targets.is_empty() {
+                return self.fail("`those targets` needs targets declared before it");
+            }
+            return Ok(Recipient::ThoseTargets(0, self.targets.len()));
+        }
         if self.eat_words(&["exiled", "card"]) {
             return Ok(Recipient::ExiledCard);
         }
@@ -6135,7 +6144,7 @@ impl P {
                         || (self.word_at(ws.len()).as_deref() == Some("that")
                             && matches!(
                                 self.word_at(ws.len() + 1).as_deref(),
-                                Some("entered" | "dealt" | "blocked" | "was")
+                                Some("entered" | "dealt" | "blocked" | "was" | "player")
                             )));
                 if !continues {
                     self.pos += ws.len();
@@ -6527,6 +6536,22 @@ impl P {
                         u8::try_from(self.targets.len() - 1).unwrap_or(u8::MAX),
                     ));
                     f.that_opponent = opponent;
+                }
+                // `that player 1 controls`, `that player or planeswalker 1
+                // controls`: the 1st target, a player, or its controller.
+                "that"
+                    if self.at_words(&["that", "player"])
+                        && (matches!(self.peek_at(2), Some(Tok::Num(_)))
+                            || self.at_words(&["that", "player", "or", "planeswalker"])) =>
+                {
+                    self.pos += 2;
+                    let planeswalker = self.eat_words(&["or", "planeswalker"]);
+                    let n = self.declared_target()?;
+                    self.expect_word("controls")?;
+                    f.that_player = Some(mtg_core::card::ThatPlayer::TargetOrController {
+                        n: u8::try_from(n).unwrap_or(u8::MAX),
+                        planeswalker,
+                    });
                 }
                 // "that player controls": the triggering player.
                 "that" if self.at_words(&["that", "player", "controls"]) => {

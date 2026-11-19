@@ -1356,10 +1356,31 @@ impl GameState {
         changers: &[ObjId],
     ) -> i32 {
         let mut d = 0i32;
-        if let Some((delta, cond)) = def.cond_cost
-            && self.condition_now(self.pool.condition(cond), p, id)
-        {
-            d += delta;
+        if let Some((delta, cond)) = def.cond_cost {
+            let cond = self.pool.condition(cond);
+            // "If you've cast another instant or sorcery spell this turn":
+            // the spell being cast isn't cast until its costs are paid (CR
+            // 601.2i), so it is never among the spells counted, even once
+            // it is on the stack paying them.
+            let met = if let crate::card::StaticCondition::CastThisTurn {
+                filter,
+                at_least,
+                other: true,
+            } = cond
+            {
+                self.cast_this_turn
+                    .iter()
+                    .filter(|(q, def)| {
+                        *q == p && filter.matches_characteristics(&self.printed(*def))
+                    })
+                    .count()
+                    >= *at_least as usize
+            } else {
+                self.condition_now(cond, p, id)
+            };
+            if met {
+                d += delta;
+            }
         }
         if let Some(sc) = &def.self_cost {
             let ctx = EffectCtx {
@@ -2676,7 +2697,11 @@ impl GameState {
             .all(|(i, s)| match self.that_player_of(*s) {
                 // A target player relation restricts groups and counts, not
                 // targets.
-                None | Some(crate::card::ThatPlayer::Target(_)) => true,
+                None
+                | Some(
+                    crate::card::ThatPlayer::Target(_)
+                    | crate::card::ThatPlayer::TargetOrController { .. },
+                ) => true,
                 Some(crate::card::ThatPlayer::Triggering) => {
                     matches!(s, TargetSpec::UpTo(_))
                         || self
@@ -4702,6 +4727,15 @@ impl GameState {
             ThatPlayer::Target(n) => match target(n)? {
                 Target::Player(p) => Some(Some(p)),
                 Target::Object(_) => None,
+            },
+            ThatPlayer::TargetOrController { n, .. } => match target(n)? {
+                Target::Player(p) => Some(Some(p)),
+                Target::Object(id) => self
+                    .objects
+                    .get(id)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(&id).map(|l| l.object.controller))
+                    .map(Some),
             },
             ThatPlayer::ControllerOf(n) => match target(n)? {
                 Target::Object(id) => self

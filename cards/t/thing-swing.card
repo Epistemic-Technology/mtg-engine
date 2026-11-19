@@ -1,0 +1,7 @@
+card "Thing Swing" {
+  oracle_id b8306385-ec89-49f5-ac83-7522e4f0546c
+  cost {3}{G}
+  type Instant
+  this spell costs {2} less if it targets Hero you control
+  spell: target creature you control bites twice target creature an opponent controls
+}

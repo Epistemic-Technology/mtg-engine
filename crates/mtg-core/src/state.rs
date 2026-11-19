@@ -2592,6 +2592,7 @@ impl GameState {
                 Some(Target::Player(p)) => Some(*p),
                 _ => None,
             },
+            ThatPlayer::TargetOrController { .. } => None,
         };
         let Some(player) = player else {
             return true;

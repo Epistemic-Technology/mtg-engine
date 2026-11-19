@@ -1,0 +1,7 @@
+card "Deem Inferior" {
+  oracle_id f0bd4a29-ac13-4d4f-8479-e0e80f8d846f
+  cost {3}{U}
+  type Sorcery
+  this spell costs {1} less count each drawn this turn
+  spell: owner of target nonland permanent puts it into library 2 from top or bottom
+}

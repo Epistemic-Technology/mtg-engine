@@ -1,0 +1,6 @@
+card "Synchronized Spellcraft" {
+  oracle_id bfdb13b9-7050-43a3-ac5f-d427942b1616
+  cost {4}{R}
+  type Instant
+  spell: deal 4 damage to target creature and deal count where party damage to controller of that target 1
+}

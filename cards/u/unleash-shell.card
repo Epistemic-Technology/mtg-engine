@@ -1,0 +1,6 @@
+card "Unleash Shell" {
+  oracle_id 9eaca93d-6c3d-4489-8652-b575a4cd931f
+  cost {3}{R}{R}
+  type Instant
+  spell: deal 5 damage to target creature or planeswalker and deal 2 damage to controller of that target 1
+}

@@ -1049,6 +1049,7 @@ impl<'a> Ctx<'a> {
             Recipient::TargetAnd(t, i) => self.target_and(t, i),
             Recipient::ExiledCard => "the exiled card".to_string(),
             Recipient::ThoseCards(..) => "those cards".to_string(),
+            Recipient::ThoseTargets(a, _) => format!("those {}", pluralize(&self.target_noun[a])),
         }
     }
 
@@ -1236,6 +1237,20 @@ impl<'a> Ctx<'a> {
 
     /// A list of recipients, merging fresh targets of one kind ("two target
     /// lands").
+    /// Whether `rs` names several targets of one phrase not mentioned
+    /// before ("up to two target creatures"), as `obj_list` would print
+    /// them together.
+    fn fresh_target_group(&self, rs: &[Recipient]) -> bool {
+        match rs {
+            [Recipient::Targets(a, n)] => *n > 1 && !self.target_mentioned[*a],
+            [Recipient::Target(first), _, ..] => rs.iter().all(|r| {
+                matches!(r, Recipient::Target(i)
+                    if !self.target_mentioned[*i] && self.targets[*i] == self.targets[*first])
+            }),
+            _ => false,
+        }
+    }
+
     fn obj_list(&mut self, rs: &[Recipient], all: bool) -> String {
         let fresh: Vec<usize> = rs
             .iter()
@@ -1350,6 +1365,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::EachPermanentYouControl
                 | Recipient::Group(_)
                 | Recipient::Targets(..)
+                | Recipient::ThoseTargets(..)
                 | Recipient::TargetAnd(..)
         )
     }
@@ -1376,7 +1392,6 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::CreatureYouControl
             | TargetSpec::OtherCreature
             | TargetSpec::NonlegendaryCreatureYouControl
-            | TargetSpec::CreatureOrPlaneswalker
             | TargetSpec::CreatureWithSubtype(_)
             | TargetSpec::AttackingOrBlockingCreature
             | TargetSpec::AttackingCreature
@@ -1388,6 +1403,8 @@ fn target_noun(t: &Target) -> String {
             TargetSpec::Land => "land".to_string(),
             TargetSpec::ArtifactCreatureOrLand
             | TargetSpec::ArtifactOrEnchantment
+            // "that permanent's controller" (Unleash Shell).
+            | TargetSpec::CreatureOrPlaneswalker
             | TargetSpec::Permanent
             | TargetSpec::OtherPermanent
             | TargetSpec::ArtifactOrCreature
@@ -1769,6 +1786,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             s.push_str(" target opponent controls");
         }
         Some(mtg_core::card::ThatPlayer::Target(_)) => s.push_str(" target player controls"),
+        Some(mtg_core::card::ThatPlayer::TargetOrController {
+            planeswalker: true, ..
+        }) => s.push_str(" that player or that planeswalker's controller controls"),
         Some(_) => s.push_str(" that player controls"),
         None => {}
     }
@@ -2919,7 +2939,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let objs = if *by == Recipient::Source && to.as_slice() == [Recipient::Source] {
                 "itself".to_string()
             } else {
-                ctx.obj_list(to, false)
+                // "deals 1 damage to each of up to two target creatures":
+                // the same amount to each of several targets of one phrase.
+                let each = if ctx.fresh_target_group(to) {
+                    "each of "
+                } else {
+                    ""
+                };
+                format!("{each}{}", ctx.obj_list(to, false))
             };
             Clause::with_subject(
                 Recipient::Source,

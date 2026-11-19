@@ -1,0 +1,7 @@
+card "Sparksmith" {
+  oracle_id b27bc09a-ebea-498c-87f2-753852569a73
+  cost {1}{R}
+  type Creature — Goblin
+  pt 1/1
+  activated {T}: deal count where Goblin on battlefield damage to target creature and deal count where Goblin on battlefield damage to you
+}
