@@ -405,6 +405,12 @@ impl GameState {
                 };
             }
             CountExpr::Life => return u32::try_from(self.player(you).life.max(0)).unwrap_or(0),
+            CountExpr::Votes(i) => {
+                return match ctx.chosen {
+                    Chosen::Votes(v) => u32::from(v.get(usize::from(*i)).copied().unwrap_or(0)),
+                    _ => 0,
+                };
+            }
             CountExpr::ThisWay(verb, f) => self.this_way.as_ref().map_or(0, |log| {
                 log.moved
                     .iter()
@@ -673,7 +679,9 @@ impl GameState {
                 .copied()
                 .filter(|id| card_ok(*id))
                 .collect(),
-            ChooseAct::ExileFromGraveyard | ChooseAct::ReturnFromGraveyard => self
+            ChooseAct::ExileFromGraveyard
+            | ChooseAct::ReturnFromGraveyard
+            | ChooseAct::ReturnRandomFromGraveyard => self
                 .player(p)
                 .graveyard
                 .iter()
@@ -697,6 +705,68 @@ impl GameState {
         }
     }
 
+    /// The card a resolving spell or ability comes from, for decisions
+    /// that name it.
+    fn resolving_def(&self, ctx: &EffectCtx) -> crate::card::CardRef {
+        self.objects
+            .get(ctx.source)
+            .map(|o| o.def)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+            .expect("a resolving spell or its last known information exists")
+    }
+
+    /// A vote (CR 701.38a): starting with the controller and in turn
+    /// order, each player votes for one of `choices`, with the extra votes
+    /// their permanents give them at the same time (CR 701.38d). Returns
+    /// the votes for each choice.
+    fn vote(&mut self, ctx: &EffectCtx, kind: DecisionKind, choices: &[Choice]) -> Vec<u32> {
+        let mut tally = vec![0u32; choices.len()];
+        let players: SmallVec<[PlayerId; 4]> = self.players_in_game().collect();
+        let start = players
+            .iter()
+            .position(|p| *p == ctx.controller)
+            .unwrap_or(0);
+        for k in 0..players.len() {
+            let p = players[(start + k) % players.len()];
+            let (extra, optional) = self.extra_votes(p);
+            for _ in 0..=extra {
+                let i = self.choose_mid(p, kind, choices.to_vec());
+                tally[i] += 1;
+            }
+            // "you may vote an additional time": or not.
+            for _ in 0..optional {
+                let mut options = choices.to_vec();
+                options.push(Choice::Decline);
+                let i = self.choose_mid(p, kind, options);
+                if let Some(n) = tally.get_mut(i) {
+                    *n += 1;
+                }
+            }
+        }
+        tally
+    }
+
+    /// The additional votes `p`'s permanents give them (CR 701.38d): those
+    /// they get, and those they may cast.
+    fn extra_votes(&self, p: PlayerId) -> (u32, u32) {
+        let (mut get, mut may) = (0, 0);
+        for id in self.permanents_of(p) {
+            let Some(c) = self.characteristics(id) else {
+                continue;
+            };
+            for a in &c.abilities {
+                if let AbilityDef::ExtraVote { optional } = self.pool.ability(*a) {
+                    if *optional {
+                        may += 1;
+                    } else {
+                        get += 1;
+                    }
+                }
+            }
+        }
+        (get, may)
+    }
+
     /// `Effect::ChooseAct`: the controller chooses `n` candidates (up to
     /// `n` with `up_to`) and each is acted on; returns how many were.
     /// Without `up_to`, nothing happens unless all `n` can be chosen.
@@ -716,7 +786,10 @@ impl GameState {
         let p = ctx.controller;
         let mut done = 0;
         while done < n && !cands.is_empty() {
-            let id = if !up_to && cands.len() == n - done {
+            let id = if act == ChooseAct::ReturnRandomFromGraveyard {
+                // "at random": from the game's random number generator.
+                cands[rand::Rng::random_range(&mut self.rng, 0..cands.len())]
+            } else if !up_to && cands.len() == n - done {
                 cands[0]
             } else {
                 let mut options: Vec<Choice> = cands
@@ -746,7 +819,10 @@ impl GameState {
                 ChooseAct::ExileFromGraveyard => {
                     ctx.created = Some(self.move_object(id, Zone::Exile, false));
                 }
-                ChooseAct::Bounce | ChooseAct::ReturnFromGraveyard | ChooseAct::MilledToHand => {
+                ChooseAct::Bounce
+                | ChooseAct::ReturnFromGraveyard
+                | ChooseAct::ReturnRandomFromGraveyard
+                | ChooseAct::MilledToHand => {
                     ctx.created = Some(self.move_object(id, Zone::Hand, false));
                 }
                 // An illegal target by now: nothing to attach to (CR
@@ -1992,10 +2068,17 @@ impl GameState {
                     }
                 };
                 let discards: Vec<Option<ObjId>> = if ab.cost.discard > 0 {
-                    self.discard_candidates(p, ab.cost.discard_filter.as_ref(), id)
+                    let mut c: Vec<Option<ObjId>> = self
+                        .discard_candidates(p, ab.cost.discard_filter.as_ref(), id)
                         .into_iter()
                         .map(Some)
-                        .collect()
+                        .collect();
+                    // "Discard a card at random": no choice to offer; the
+                    // card is picked as the cost is paid.
+                    if ab.cost.discard_random {
+                        c.truncate(1);
+                    }
+                    c
                 } else {
                     vec![None]
                 };
@@ -3152,7 +3235,19 @@ impl GameState {
                 self.move_object(id, Zone::Exile, true);
             }
         }
-        if cost.discard > 0
+        if cost.discard_random {
+            // CR 701.9b: the cards are chosen at random from the hand,
+            // drawing on the game's random number generator.
+            for _ in 0..cost.discard {
+                let n = self.player(p).hand.len();
+                if n == 0 {
+                    break;
+                }
+                let i = rand::Rng::random_range(&mut self.rng, 0..n);
+                let card = self.player(p).hand[i];
+                self.discard_card(p, card);
+            }
+        } else if cost.discard > 0
             && let Some(c) = discard
         {
             self.discard_card(p, c);
@@ -4022,7 +4117,7 @@ impl GameState {
 
     /// Who or what a `Recipient` denotes while `ctx`'s effects resolve.
     #[allow(clippy::too_many_lines)] // one arm per recipient kind
-    fn recipients(&self, ctx: &EffectCtx, r: Recipient) -> SmallVec<[Target; 2]> {
+    fn recipients(&mut self, ctx: &EffectCtx, r: Recipient) -> SmallVec<[Target; 2]> {
         let mut out = SmallVec::new();
         match r {
             Recipient::Target(i) => {
@@ -4181,6 +4276,14 @@ impl GameState {
                 }
             }
             Recipient::Group(f) => self.group_into(ctx, f, &mut out),
+            Recipient::RandomOf(f) => {
+                let mut all = SmallVec::new();
+                self.group_into(ctx, f, &mut all);
+                if !all.is_empty() {
+                    let i = rand::Rng::random_range(&mut self.rng, 0..all.len());
+                    out.push(all[i]);
+                }
+            }
             // "Target creature and all other creatures with the same name as
             // that creature": the target, if still legal, and the group
             // judged against it as it is now (CR 608.2b, 608.2h).
@@ -5114,6 +5217,86 @@ impl GameState {
                     }
                 }
             }
+            Effect::RevealRandom { who } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let n = self.player(p).hand.len();
+                    if n == 0 {
+                        continue;
+                    }
+                    let i = rand::Rng::random_range(&mut self.rng, 0..n);
+                    let card = self.player(p).hand[i];
+                    let def = self.objects[card].def;
+                    self.emit(Event::Revealed { obj: card, def });
+                }
+            }
+            Effect::Vote { options } => {
+                let def = self.resolving_def(ctx);
+                let choices: Vec<Choice> = (0..usize::from(*options)).map(Choice::Mode).collect();
+                let tally = self.vote(ctx, DecisionKind::ChooseOption { def }, &choices);
+                let get =
+                    |i: usize| u8::try_from(tally.get(i).copied().unwrap_or(0)).unwrap_or(u8::MAX);
+                ctx.chosen = Chosen::Votes([get(0), get(1)]);
+            }
+            Effect::VoteReturn { filter } => {
+                let you = ctx.controller;
+                let cards: Vec<ObjId> = self
+                    .player(you)
+                    .graveyard
+                    .iter()
+                    .copied()
+                    .filter(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.base_characteristics(o);
+                        filter.matches(*id, o.owner, &c, Some(ctx.source), Some(you))
+                    })
+                    .collect();
+                if cards.is_empty() {
+                    return;
+                }
+                let choices: Vec<Choice> = cards
+                    .iter()
+                    .map(|id| Choice::Discard {
+                        card: *id,
+                        def: self.objects[*id].def,
+                    })
+                    .collect();
+                let tally = self.vote(ctx, DecisionKind::ChooseCard, &choices);
+                let most = tally.iter().copied().max().unwrap_or(0);
+                if most == 0 {
+                    return;
+                }
+                for (id, n) in cards.into_iter().zip(tally) {
+                    if n == most {
+                        ctx.created = Some(self.move_object(id, Zone::Hand, false));
+                    }
+                }
+            }
+            Effect::FlipCoin { won } => {
+                // CR 705.2: the flipper calls heads or tails; the call
+                // matches the result half the time.
+                let win = rand::Rng::random_bool(&mut self.rng, 0.5);
+                self.emit(Event::FlippedCoin {
+                    player: ctx.controller,
+                    won: win,
+                });
+                if win {
+                    for e in won {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::RollDie { sides, rows } => {
+                let result = self.roll_die(ctx.controller, *sides);
+                // CR 706.3a: the row whose range holds the result.
+                if let Some(row) = rows.iter().find(|r| (r.lo..=r.hi).contains(&result)) {
+                    for e in &row.effects {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
             Effect::DiscardRandom { count, who } => {
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
@@ -5322,7 +5505,7 @@ impl GameState {
                         Some(c) => Modification::SetLandType(c),
                         None => Modification::SetCreatureType(s),
                     },
-                    Chosen::None => return,
+                    Chosen::None | Chosen::Votes(_) => return,
                 };
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -5393,7 +5576,7 @@ impl GameState {
                         }
                         _ => Modification::SetCreatureType(s),
                     },
-                    (Chosen::None, _) => return,
+                    (Chosen::None | Chosen::Votes(_), _) => return,
                 };
                 for t in recipients {
                     if let Some(id) = on_battlefield(self, t) {

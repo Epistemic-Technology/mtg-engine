@@ -1,0 +1,11 @@
+card "Spiked Pit Trap" {
+  oracle_id a0aa1aa1-f011-4c65-9886-95521947beef
+  cost {1}
+  type Artifact
+  keywords flash
+  activated {5}, {T}, sacrifice this {
+    choose target creature then roll d20
+    result 1 to 9: deal 5 damage to that target 1
+    result 10 to 20: deal 5 damage to that target 1; create 1 "Treasure"
+  }
+}

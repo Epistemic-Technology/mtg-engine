@@ -1,0 +1,8 @@
+card "Custodi Squire" {
+  oracle_id 07c7193e-f591-4aee-a3cc-3a2c52a38f9b
+  cost {4}{W}
+  type Creature — Spirit Cleric
+  pt 3/3
+  keywords flying
+  label "Will of the council" triggered when this enters: vote return artifact or creature or enchantment card
+}

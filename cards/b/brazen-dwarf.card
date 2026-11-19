@@ -1,0 +1,7 @@
+card "Brazen Dwarf" {
+  oracle_id 256ab1e2-0c6a-41c1-ba01-021f3c90cfa2
+  cost {1}{R}
+  type Creature — Dwarf Shaman
+  pt 1/3
+  triggered whenever you roll dice: deal 1 damage to each opponent
+}

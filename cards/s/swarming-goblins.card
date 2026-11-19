@@ -1,0 +1,12 @@
+card "Swarming Goblins" {
+  oracle_id 6a038dec-2d9c-4422-a0f3-94bf70e55217
+  cost {4}{R}
+  type Creature — Goblin
+  pt 4/3
+  triggered when this enters {
+    roll d20
+    result 1 to 9: create 1 "1/1 red Goblin creature"
+    result 10 to 19: create 2 "1/1 red Goblin creature"
+    result 20: create 3 "1/1 red Goblin creature"
+  }
+}

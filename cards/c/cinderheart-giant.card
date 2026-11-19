@@ -1,0 +1,8 @@
+card "Cinderheart Giant" {
+  oracle_id 13efba9f-aedd-4ec0-a387-60c09b887341
+  cost {5}{R}{R}
+  type Creature — Giant Berserker
+  pt 7/6
+  keywords trample
+  triggered when this dies: deal 7 damage to random creature an opponent controls
+}

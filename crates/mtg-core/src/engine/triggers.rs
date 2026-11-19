@@ -556,6 +556,10 @@ impl GameState {
                 let p = filter_on_battlefield(f, *obj)?;
                 Some((Some(*obj), Some(p)))
             }
+            (TriggerSpec::WinsFlip { whose }, Event::FlippedCoin { player, won: true })
+            | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. }) => {
+                whose_ok(*whose, *player).then_some((None, Some(*player)))
+            }
             (TriggerSpec::BecomesTarget(what), Event::Targeted { target: obj, .. })
             | (TriggerSpec::BecomesTapped(what), Event::Tapped { obj })
             | (TriggerSpec::BecomesUntapped(what), Event::Untapped { obj })

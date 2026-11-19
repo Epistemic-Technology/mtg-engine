@@ -171,6 +171,19 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             },
             delta.abs()
         ),
+        Event::FlippedCoin { player, won } => format!(
+            "{} a coin and {} the flip.",
+            verb(*player, viewer, "flip", "flips"),
+            if *won { "wins" } else { "loses" }
+        ),
+        Event::RolledDie {
+            player,
+            sides,
+            result,
+        } => format!(
+            "{} a d{sides}: {result}.",
+            verb(*player, viewer, "roll", "rolls")
+        ),
         Event::Destroyed { obj: o, .. } => format!("{} is destroyed.", obj(state, *o)),
         Event::Cycled { player, card, .. } => {
             format!(

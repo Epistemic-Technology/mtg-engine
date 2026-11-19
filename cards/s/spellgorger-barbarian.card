@@ -1,0 +1,8 @@
+card "Spellgorger Barbarian" {
+  oracle_id 9c0fd5ad-fbba-4598-80cf-6540888378cb
+  cost {3}{R}
+  type Creature — Human Nightmare Barbarian
+  pt 3/1
+  triggered when this enters: discard 1 card at random
+  triggered when this leaves the battlefield: draw 1 card
+}

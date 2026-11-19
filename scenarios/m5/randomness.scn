@@ -1,0 +1,423 @@
+# Randomness: rolling a die and its results table (CR 706), flipping a
+# coin (CR 705), voting (CR 701.38), and choices made at random. Every
+# random outcome comes from the game's seeded generator, so a scenario's
+# `seed` fixes it: with nothing else random first, the first d20 rolls 4
+# with seed 2, 14 with seed 0, and 20 with seed 4.
+
+# ----- dice and results tables -----
+
+scenario "Recruitment Drive: 1-9 makes two Soldiers" {
+  seed 2
+  battlefield A: 3 "Plains"
+  hand A: "Recruitment Drive"
+  turn 1 A: cast "Recruitment Drive"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+  assert battlefield A lacks "Knight"
+}
+
+scenario "Recruitment Drive: 10-19 makes two Knights" {
+  seed 0
+  battlefield A: 3 "Plains"
+  hand A: "Recruitment Drive"
+  turn 1 A: cast "Recruitment Drive"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Knight"
+  assert battlefield A lacks "Soldier"
+}
+
+scenario "Recruitment Drive: 20 makes three Knights" {
+  seed 4
+  battlefield A: 3 "Plains"
+  hand A: "Recruitment Drive"
+  turn 1 A: cast "Recruitment Drive"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Knight"
+}
+
+scenario "Swarming Goblins: the enters trigger rolls" {
+  seed 0
+  battlefield A: 5 "Mountain"
+  hand A: "Swarming Goblins"
+  turn 1 A: cast "Swarming Goblins"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Goblin"
+}
+
+scenario "Contact Other Plane: 1-9 draws two" {
+  seed 2
+  battlefield A: 4 "Island"
+  hand A: "Contact Other Plane"
+  library A: "Forest", "Swamp", "Plains"
+  turn 1 A: cast "Contact Other Plane"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert library A contains "Plains"
+}
+
+scenario "Farideh's Fireball: 1-9 deals 2 to each player" {
+  seed 2
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Farideh's Fireball"
+  turn 1 A: cast "Farideh's Fireball" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 18
+  assert life B 18
+}
+
+scenario "Farideh's Fireball: 10-20 spares its controller" {
+  seed 0
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Farideh's Fireball"
+  turn 1 A: cast "Farideh's Fireball" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 20
+  assert life B 18
+}
+
+scenario "Brazen Dwarf: a roll triggers it" {
+  seed 2
+  battlefield A: 4 "Island", "Brazen Dwarf"
+  hand A: "Contact Other Plane"
+  turn 1 A: cast "Contact Other Plane"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Brazen Dwarf: an opponent's roll doesn't" {
+  seed 2
+  battlefield A: 4 "Island"
+  battlefield B: "Brazen Dwarf"
+  hand A: "Contact Other Plane"
+  turn 1 A: cast "Contact Other Plane"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 20
+}
+
+scenario "Spiked Pit Trap: 10-20 also makes a Treasure" {
+  seed 0
+  battlefield A: 5 "Plains", "Spiked Pit Trap"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Spiked Pit Trap" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Spiked Pit Trap"
+  assert battlefield A contains "Treasure"
+}
+
+scenario "Spiked Pit Trap: 1-9 only deals the damage" {
+  seed 2
+  battlefield A: 5 "Plains", "Spiked Pit Trap"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Spiked Pit Trap" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Scion of Stygia: 10-20 taps and keeps it tapped" {
+  seed 0
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Scion of Stygia"
+  turn 1 A: cast "Scion of Stygia"
+  turn 1 A: trigger "Scion of Stygia" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Scion of Stygia: 1-9 only taps" {
+  seed 2
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Scion of Stygia"
+  turn 1 A: cast "Scion of Stygia"
+  turn 1 A: trigger "Scion of Stygia" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Scion of Stygia: the target is a creature an opponent controls" {
+  seed 0
+  battlefield A: 3 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Scion of Stygia"
+  turn 1 A: cast "Scion of Stygia"
+  illegal turn 1 A: trigger "Scion of Stygia" targeting A "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Herald of Hadar: 10-19 drains" {
+  seed 0
+  battlefield A: 6 "Swamp", "Herald of Hadar"
+  turn 1 A: activate "Herald of Hadar"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert life B 18
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Herald of Hadar: 20 drains and makes two Treasures" {
+  seed 4
+  battlefield A: 6 "Swamp", "Herald of Hadar"
+  turn 1 A: activate "Herald of Hadar"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert life B 18
+  assert battlefield A contains 2 "Treasure"
+}
+
+scenario "Earth-Cult Elemental: 1-9, each player sacrifices a permanent" {
+  seed 2
+  battlefield A: 6 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Earth-Cult Elemental"
+  turn 1 A: cast "Earth-Cult Elemental"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains 5 "Mountain"
+}
+
+scenario "Earth-Cult Elemental: 10-19, only opponents sacrifice" {
+  seed 0
+  battlefield A: 6 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Earth-Cult Elemental"
+  turn 1 A: cast "Earth-Cult Elemental"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 6 "Mountain"
+  assert battlefield A contains "Earth-Cult Elemental"
+  assert battlefield B count 1
+}
+
+# ----- coin flips -----
+# With nothing else random first, the first flip is won with seed 1 and
+# lost with seed 0.
+
+scenario "Molten Birth: the tokens, and the flip decides where it goes" {
+  seed 1
+  battlefield A: 3 "Mountain"
+  hand A: "Molten Birth"
+  turn 1 A: cast "Molten Birth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Elemental"
+  assert hand A contains "Molten Birth"
+}
+
+scenario "Molten Birth: a lost flip leaves it in the graveyard" {
+  seed 0
+  battlefield A: 3 "Mountain"
+  hand A: "Molten Birth"
+  turn 1 A: cast "Molten Birth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Elemental"
+  assert graveyard A contains "Molten Birth"
+}
+
+scenario "Tavern Scoundrel: winning the flip makes two Treasures" {
+  seed 1
+  battlefield A: "Mountain", "Tavern Scoundrel", "Grizzly Bears"
+  turn 1 A: activate "Tavern Scoundrel" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains 2 "Treasure"
+}
+
+scenario "Tavern Scoundrel: losing it makes none" {
+  seed 0
+  battlefield A: "Mountain", "Tavern Scoundrel", "Grizzly Bears"
+  turn 1 A: activate "Tavern Scoundrel" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Tavern Scoundrel: the sacrifice is of another permanent" {
+  battlefield A: "Mountain", "Tavern Scoundrel"
+  illegal turn 1 A: activate "Tavern Scoundrel" sacrificing "Tavern Scoundrel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Tavern Scoundrel"
+}
+
+# ----- at random -----
+
+scenario "Mage il-Vec: the discarded card is the only one in hand" {
+  battlefield A: "Mage il-Vec"
+  hand A: "Hill Giant"
+  turn 1 A: activate "Mage il-Vec" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert life B 19
+}
+
+scenario "Mage il-Vec: no card to discard, no activation" {
+  battlefield A: "Mage il-Vec"
+  illegal turn 1 A: activate "Mage il-Vec" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Pardic Swordsmith: one of two cards at random" {
+  battlefield A: "Mountain", "Pardic Swordsmith"
+  hand A: "Hill Giant", "Grizzly Bears"
+  turn 1 A: activate "Pardic Swordsmith"
+  run_to turn 1 postcombat_main
+  assert power "Pardic Swordsmith" 3
+  assert hand A count 1
+  assert graveyard A count 1
+}
+
+scenario "Desperate Ravings: draw two, then a random discard" {
+  battlefield A: 2 "Mountain"
+  hand A: "Desperate Ravings"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Desperate Ravings"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A count 2
+}
+
+scenario "Flay: a second card unless they pay {1}" {
+  battlefield A: 4 "Swamp"
+  hand A: "Flay"
+  hand B: "Hill Giant", "Grizzly Bears", "Serra Angel"
+  turn 1 A: cast "Flay" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+}
+
+scenario "Ghoulraiser: a Zombie card, never another card" {
+  battlefield A: 3 "Swamp"
+  hand A: "Ghoulraiser"
+  graveyard A: "Hill Giant", "Gravedigger", "Grizzly Bears"
+  turn 1 A: cast "Ghoulraiser"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A lacks "Gravedigger"
+}
+
+scenario "Haunted Fengraf: a creature card at random" {
+  battlefield A: 3 "Swamp", "Haunted Fengraf"
+  graveyard A: "Lightning Bolt", "Grizzly Bears"
+  turn 1 A: activate "Haunted Fengraf"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Cinderheart Giant: 7 damage to a creature an opponent controls" {
+  battlefield A: "Cinderheart Giant", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand B: "Murder"
+  battlefield B: 3 "Swamp"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Cinderheart Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Hired Torturer: the life loss and a revealed card" {
+  battlefield A: 4 "Swamp", "Hired Torturer"
+  hand B: "Hill Giant"
+  turn 1 A: activate "Hired Torturer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand B contains "Hill Giant"
+}
+
+# ----- voting -----
+
+scenario "Orchard Elemental: two sprout votes" {
+  battlefield A: 6 "Forest"
+  hand A: "Orchard Elemental"
+  turn 1 A: cast "Orchard Elemental"
+  run_to turn 1 postcombat_main
+  assert counters "Orchard Elemental" +1/+1 4
+  assert life A 20
+}
+
+scenario "Orchard Elemental: one vote each" {
+  battlefield A: 6 "Forest"
+  hand A: "Orchard Elemental"
+  turn 1 A: cast "Orchard Elemental"
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Orchard Elemental" +1/+1 2
+  assert life A 23
+}
+
+scenario "Lieutenants of the Guard: strength and numbers" {
+  battlefield A: 5 "Plains"
+  hand A: "Lieutenants of the Guard"
+  turn 1 A: cast "Lieutenants of the Guard"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Lieutenants of the Guard" +1/+1 1
+  assert battlefield A contains 1 "Soldier"
+}
+
+scenario "Brago's Representative: an additional vote" {
+  battlefield A: 6 "Forest", "Brago's Representative"
+  hand A: "Orchard Elemental"
+  turn 1 A: cast "Orchard Elemental"
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Orchard Elemental" +1/+1 4
+  assert life A 23
+}
+
+scenario "Ballot Broker: the additional vote may be declined" {
+  battlefield A: 6 "Forest", "Ballot Broker"
+  hand A: "Orchard Elemental"
+  turn 1 A: cast "Orchard Elemental"
+  turn 1 A: choose "1"
+  turn 1 A: choose "decline"
+  turn 1 B: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Orchard Elemental" +1/+1 2
+  assert life A 23
+}
+
+scenario "Custodi Squire: the card with the most votes returns" {
+  battlefield A: 5 "Plains"
+  hand A: "Custodi Squire"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Lightning Bolt"
+  turn 1 A: cast "Custodi Squire"
+  turn 1 A: choose "Hill Giant"
+  turn 1 B: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Custodi Squire: tied cards all return" {
+  battlefield A: 5 "Plains"
+  hand A: "Custodi Squire"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Lightning Bolt"
+  turn 1 A: cast "Custodi Squire"
+  turn 1 A: choose "Hill Giant"
+  turn 1 B: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Custodi Squire: an instant can't be voted for" {
+  battlefield A: 5 "Plains"
+  hand A: "Custodi Squire"
+  graveyard A: "Grizzly Bears", "Lightning Bolt"
+  turn 1 A: cast "Custodi Squire"
+  illegal turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+}

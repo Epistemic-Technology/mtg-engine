@@ -1,0 +1,7 @@
+card "Orchard Elemental" {
+  oracle_id 189b7c2b-81df-41c3-94ae-6b32dbd48cec
+  cost {5}{G}
+  type Creature — Elemental
+  pt 2/2
+  label "Council's dilemma" triggered when this enters: vote sprout or harvest; put count each 2 votes for sprout +1/+1 counters on this creature; you gain count each 3 votes for harvest life
+}

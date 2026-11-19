@@ -1,0 +1,7 @@
+card "Pardic Lancer" {
+  oracle_id 1bb2b090-19a4-40d9-823a-671f6eaca9f9
+  cost {4}{R}
+  type Creature — Human Barbarian
+  pt 3/2
+  activated discard 1 card at random: this gets +1/+0 and gains first strike
+}

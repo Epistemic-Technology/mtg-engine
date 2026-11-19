@@ -1,0 +1,8 @@
+card "Tavern Scoundrel" {
+  oracle_id 68c4f86f-ff12-44a6-8f18-f2ee9753b2cd
+  cost {1}{R}
+  type Creature — Human Rogue
+  pt 1/3
+  triggered whenever you win a coin flip: create 2 "Treasure"
+  activated {1}, {T}, sacrifice another permanent: flip coin
+}

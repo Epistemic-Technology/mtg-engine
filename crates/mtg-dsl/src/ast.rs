@@ -218,6 +218,12 @@ pub enum CountExpr {
     },
     /// `life lost this way`: "the life lost this way".
     LifeLostThisWay,
+    /// `votes for sprout`: the votes the ability's vote gave that choice
+    /// ("for each sprout vote"), `index` its place among the choices.
+    Votes {
+        index: u8,
+        word: String,
+    },
     /// `creature blocking it [beyond first]`: "for each creature blocking
     /// it [beyond the first]".
     BlockingIt {
@@ -341,6 +347,8 @@ pub struct Cost {
     /// `discard X cards` (a spell's additional cost): "Discard X cards",
     /// X announced as the spell is cast (CR 601.2b).
     pub discard_x: bool,
+    /// `discard 1 card at random`: "Discard a card at random".
+    pub discard_random: bool,
     /// `discard a creature card`: what the discarded card must match.
     pub discard_filter: Option<Filter>,
     /// A loyalty ability's cost (CR 606).
@@ -833,6 +841,12 @@ pub enum Ability {
         whose: Who,
         delta: Option<i32>,
     },
+    /// `extra vote`: "While voting, you get an additional vote."; `extra
+    /// vote may`: "While voting, you may vote an additional time." (CR
+    /// 701.38d).
+    ExtraVote {
+        optional: bool,
+    },
     /// `deck any number`: "A deck can have any number of cards named ~."
     /// (CR 100.2a). A deck-building rule with no meaning in a game.
     DeckAnyNumber,
@@ -1215,6 +1229,15 @@ pub struct Sentence {
     pub joins: Vec<Join>,
 }
 
+/// A row of a results table (CR 706.3a): `result 1 to 9`, `result 20`,
+/// `result 20 or more` ("20+", `hi` `None`).
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct DieRow {
+    pub lo: u32,
+    pub hi: Option<u32>,
+    pub effects: Vec<Sentence>,
+}
+
 /// How clauses of one sentence connect: "A and B", "A, then B".
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Join {
@@ -1385,6 +1408,14 @@ pub enum Trigger {
     /// defending player, CR 510.1).
     DealsCombatDamageToDefending(TriggerObj),
     GainsLife {
+        whose: Who,
+    },
+    /// `whenever you roll dice`: "Whenever you roll one or more dice".
+    RollsDice {
+        whose: Who,
+    },
+    /// `whenever you win a coin flip`.
+    WinsFlip {
         whose: Who,
     },
     CastsSpell {
@@ -1626,6 +1657,9 @@ pub enum Recipient {
     CreatedObject,
     /// `each <filter>` / `all <filter>`: the `n`th of the card's `groups`.
     Group(u16),
+    /// `random <filter>`: one of the `n`th group's permanents, picked at
+    /// random ("a creature an opponent controls chosen at random").
+    RandomOf(u16),
     /// `enchanted creature`, `equipped creature`: what the source is
     /// attached to.
     Attached,
@@ -1850,6 +1884,11 @@ pub enum Effect {
     RevealHand {
         who: Recipient,
     },
+    /// `target opponent reveals 1 card at random from hand`: "reveals a
+    /// card at random from their hand".
+    RevealRandom {
+        who: Recipient,
+    },
     /// `look at hand of target player`: "Look at target player's hand."
     /// (Information only: compiled as a reveal.)
     LookAtHand {
@@ -1858,8 +1897,37 @@ pub enum Effect {
     /// `target player discards 1 card at random`.
     DiscardRandom {
         count: Num,
-        who: Recipient,
+        /// `None`: `discard 1 card at random` ("discard a card at random",
+        /// the controller).
+        who: Option<Recipient>,
+        /// `discards another card at random`: wording for a second one.
+        another: bool,
     },
+    /// `roll d20`, then a `result 1 to 9: <effects>` line per row of its
+    /// results table: "Roll a d20." and "1—9 | ..." paragraphs (CR 706.3).
+    /// The rows are the ability's last paragraphs.
+    RollDie {
+        sides: u32,
+        rows: Vec<DieRow>,
+    },
+    /// `choose target creature an opponent controls`: "Choose target
+    /// creature ..., then roll a d20.", the target named before the roll
+    /// whose results act on it. Wording only: the target is the ability's.
+    ChooseTarget(Recipient),
+    /// `vote sprout or harvest`: "starting with you, each player votes for
+    /// sprout or harvest" (CR 701.38); `count each votes for sprout` counts
+    /// the votes.
+    Vote(Vec<String>),
+    /// `vote return artifact or creature or enchantment card`: "starting
+    /// with you, each player votes for an artifact, creature, or
+    /// enchantment card in your graveyard. Return each card with the most
+    /// votes or tied for most votes to your hand."
+    VoteReturn(Filter),
+    /// `flip coin`: "flip a coin" (CR 705); what happens if the flip is won
+    /// is the next sentence, `if you win the flip, <sentence>`.
+    FlipCoin,
+    /// `if you win the flip, <sentence>`, after `flip coin`.
+    IfWonFlip(Vec<Sentence>),
     /// `target opponent reveals hand discarding nonland card`: "Target
     /// opponent reveals their hand. You choose a nonland card from it.
     /// That player discards that card."

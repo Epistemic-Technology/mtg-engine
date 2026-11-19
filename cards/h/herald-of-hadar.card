@@ -1,0 +1,12 @@
+card "Herald of Hadar" {
+  oracle_id 25ab42a5-ec1a-4510-b957-1d4f14fa10b0
+  cost {4}{B}
+  type Creature — Human Warlock
+  pt 4/4
+  label "Circle of Death" activated {5}{B} {
+    roll d20
+    result 1 to 9: each opponent loses 2 life
+    result 10 to 19: each opponent loses 2 life and you gain 2 life
+    result 20: each opponent loses 2 life and you gain 2 life; create 2 "Treasure"
+  }
+}

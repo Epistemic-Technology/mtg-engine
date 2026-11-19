@@ -1,0 +1,7 @@
+card "Desperate Ravings" {
+  oracle_id 8b96c334-82c7-4511-805e-f04c27514d7c
+  cost {1}{R}
+  type Instant
+  spell: draw 2 cards then discard 1 card at random
+  flashback {2}{U}
+}

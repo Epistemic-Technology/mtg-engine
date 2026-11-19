@@ -120,6 +120,7 @@ double-faced permanent to its other face (CR 701.27).
 | `bargain` | Bargain (CR 702.166): as the spell is cast, its controller may sacrifice an artifact, enchantment, or token. Printed first. `bargained` is a static condition: "If this spell was bargained, ..." (`if bargained, ...` in a spell, with `instead` like kicker), "if it was bargained" (`if bargained` after a trigger), "This spell costs {2} less to cast if it's bargained." (`this spell costs {2} less if bargained`; a card in hand counts as bargained when its controller has something to sacrifice). |
 | `saddle 2` | Saddle N (CR 702.171): "Tap any number of other creatures you control with total power N or more: This Mount becomes saddled until end of turn. Saddle only as a sorcery." (chosen like crew). `triggered whenever this attacks while saddled: ...` ("Whenever this creature attacks while saddled, ..."); `saddled` is also a static condition ("it's saddled"). |
 | `deck any number` | "A deck can have any number of cards named ~." (CR 100.2a): a deck-building rule; nothing in a game. |
+| `extra vote`, `extra vote may` | "While voting, you get an additional vote.", "While voting, you may vote an additional time." (CR 701.38d: the controller's extra votes are cast when they would vote; the optional one may be declined). |
 | `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
 | `except { ... }` | What this card's copy effects add (CR 707.9b): `subtypes Illusion`, `keywords haste`, and ability lines. |
 
@@ -137,7 +138,9 @@ one line per paragraph for text that spans paragraphs:
 
 Comma-separated, printed in the order written: mana symbols (`{1}{R}`),
 `{T}`, `sacrifice this`, `sacrifice Goblin` (a filter: the player chooses
-a matching permanent they control), `discard 1 card`, `discard creature
+a matching permanent they control), `discard 1 card`, `discard 1 card
+at random` ("Discard a card at random": the card is picked at random as
+the cost is paid, CR 701.9b), `discard creature
 card` (a filter: discard one matching card, printed "Discard a creature
 card"), `discard X cards` (a spell's additional cost: "As an additional
 cost to cast this spell, discard X cards."; X is announced as the spell
@@ -190,6 +193,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
 | `when you control no Island`, `when you control no other creature` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature." Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | |
+| `whenever you roll dice`, `whenever you win a coin flip` | "Whenever you roll one or more dice" (once per roll, CR 706), "Whenever you win a coin flip" (CR 705.2) |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
 | `whenever you attack`, `whenever you attack with 3 or more creatures`, `label "Battalion" triggered whenever this and at least 2 other creatures attack` | once as the controller declares attackers (CR 508.1m), if at least that many attack (battalion: this creature among them); "Whenever this creature and at least two other creatures attack" |
 | `whenever this attacks and isn't blocked` | as blockers are declared, for an attacking creature no creature blocks (CR 509.1h) |
@@ -723,7 +727,9 @@ artifact and 1 land` is "an artifact and a land of their choice", one
 choice after the other), `<what>
 loses flying`, `<who> reveals hand`, `<who> reveals hand discarding
 nonland card` (Duress: you choose the card), `<who> discards 1 card at
-random`,
+random` (`discard 1 card at random` for you; `that player discards
+another card at random`), `<who> reveals 1 card at random from hand`
+("reveals a card at random from their hand"),
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>` (this: "attach this Equipment to ..."),
 `attach <what> to <what>` ("Attach target Equipment you control to target
@@ -1137,6 +1143,59 @@ hand. You may choose ..."), `look at hand of target player discarding card`
 ("Look at target player's hand and choose a card from it."). A sentence
 may start `then` ("Then discard two cards unless ..."). `return this to its
 owner's hand` in a spell returns the resolving spell from the stack.
+
+### Dice, coins, votes, and "at random"
+
+Every random outcome draws on the game's seeded random number generator,
+the one shuffles use, so a game replays from its seed; a search that
+determinizes the hidden state resamples it too.
+
+`roll d20` is "Roll a d20." (CR 706). Its results table (CR 706.3) is the
+`result` lines that follow it in the ability's `{ }` block, one row each,
+printed as paragraphs after the roll; the roll is the ability's last
+sentence:
+
+```
+  triggered when this enters {
+    roll d20
+    result 1 to 9: create 1 "1/1 red Goblin creature"
+    result 10 to 19: create 2 "1/1 red Goblin creature"
+    result 20: create 3 "1/1 red Goblin creature"
+  }
+```
+
+prints "When this creature enters, roll a d20.", "1—9 | Create a 1/1 red
+Goblin creature token.", "10—19 | Create two of those tokens.", "20 |
+Create three of those tokens." (`result 20 or more` is "20+"). Only the
+row holding the result happens. Each row names the source in full again
+("This artifact deals 5 damage to that creature."), and a later row
+creating the creature token the first row created prints "of those
+tokens". `choose target creature then roll d20` ("Choose target creature,
+then roll a d20.") names the target the rows act on (`that target 1`)
+before the roll; it is the ability's target, chosen as usual.
+
+`flip coin` is "flip a coin" (CR 705); the sentence after it, `if you win
+the flip, <sentence>`, happens only if the controller wins it (half the
+time: "Create two 1/1 red Elemental creature tokens, then flip a coin. If
+you win the flip, return Molten Birth to its owner's hand.").
+
+`vote sprout or harvest` is "starting with you, each player votes for
+sprout or harvest" (CR 701.38): each player in turn order from the
+controller votes for one of the two words (as a `choose` among them), and
+`count each votes for sprout` counts that word's votes in the rest of the
+ability ("Put two +1/+1 counters on this creature for each sprout vote":
+`put count each 2 votes for sprout +1/+1 counters on this creature`).
+`vote return artifact or creature or enchantment card` is "starting with
+you, each player votes for an artifact, creature, or enchantment card in
+your graveyard. Return each card with the most votes or tied for most
+votes to your hand."
+
+At random: `random creature an opponent controls` is a recipient, "a
+creature an opponent controls chosen at random", picked as the effect
+happens (`deal 7 damage to random creature an opponent controls`);
+`return 1 Zombie card from your graveyard to hand at random` ("return a
+Zombie card at random from your graveyard to your hand"); and the discards
+and reveals above.
 
 ### The mana spent to cast a spell
 

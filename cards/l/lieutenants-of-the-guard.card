@@ -1,0 +1,7 @@
+card "Lieutenants of the Guard" {
+  oracle_id 80745dea-2335-43fc-9915-f62e0436e73b
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  label "Council's dilemma" triggered when this enters: vote strength or numbers; put count each votes for strength +1/+1 counters on this creature and create count each votes for numbers "1/1 white Soldier creature"
+}

@@ -1196,7 +1196,9 @@ impl ObjFilter {
         match chosen {
             crate::state::Chosen::Color(c) => f.colors = Some(ColorSet::of([c])),
             crate::state::Chosen::Subtype(s) => f.subtypes.push(s),
-            crate::state::Chosen::None => f.colors = Some(ColorSet::default()),
+            crate::state::Chosen::None | crate::state::Chosen::Votes(_) => {
+                f.colors = Some(ColorSet::default());
+            }
         }
         f
     }
@@ -1564,6 +1566,9 @@ pub enum CountExpr {
     /// The mana from Treasures spent to cast the source ("for each mana
     /// from a Treasure spent to cast it").
     SpentTreasure,
+    /// The votes the resolution's vote (`Effect::Vote`) gave its `n`th
+    /// choice ("for each sprout vote").
+    Votes(u8),
     /// Creatures put into a graveyard from the battlefield this turn that
     /// matched the filter as they last existed ("for each Zubera that
     /// died this turn"; CR 700.4).
@@ -2366,6 +2371,11 @@ pub enum Recipient {
     /// ("all artifacts", "each creature with flying", "white creatures you
     /// control").
     Group(u16),
+    /// One battlefield object matching the pool's `n`th interned filter,
+    /// picked at random as the effect happens ("a creature an opponent
+    /// controls chosen at random"), from the game's random number
+    /// generator.
+    RandomOf(u16),
     /// What the source (an Aura or Equipment) is attached to ("enchanted
     /// creature", "equipped creature").
     Attached,
@@ -2583,10 +2593,44 @@ pub enum Effect {
     RevealHand {
         who: Recipient,
     },
+    /// "reveals a card at random from their hand": one card of each
+    /// player's hand, picked at random, is revealed.
+    RevealRandom {
+        who: Recipient,
+    },
     /// "discards a card at random".
     DiscardRandom {
         count: Num,
         who: Recipient,
+    },
+    /// "Roll a d20." (CR 706): the controller rolls a `sides`-sided die,
+    /// then the row of the results table whose range holds the result
+    /// happens (CR 706.3a), if any. The roll draws on the game's random
+    /// number generator like a shuffle, so a game replays from its seed.
+    RollDie {
+        sides: u8,
+        rows: Vec<DieRow>,
+    },
+    /// "Starting with you, each player votes for sprout or harvest." (CR
+    /// 701.38a): each player in turn order from the controller votes for
+    /// one of `options` choices, words with no rules meaning (CR
+    /// 701.38b). The tally is the resolution's (`CountExpr::Votes`: "for
+    /// each sprout vote").
+    Vote {
+        options: u8,
+    },
+    /// "Starting with you, each player votes for an artifact, creature, or
+    /// enchantment card in your graveyard. Return each card with the most
+    /// votes or tied for most votes to your hand." (CR 701.38): the votes
+    /// are for cards in the controller's graveyard matching `filter`.
+    VoteReturn {
+        filter: ObjFilter,
+    },
+    /// "Flip a coin. If you win the flip, ..." (CR 705): the controller
+    /// calls it and wins half the time (CR 705.2), drawing on the game's
+    /// random number generator; `won` happens if they win.
+    FlipCoin {
+        won: Vec<Effect>,
     },
     /// "You choose a nonland card from it. That player discards that
     /// card.": the effect's controller picks from the player's hand.
@@ -3127,8 +3171,19 @@ impl Effect {
                     },
                     ..
                 })
+                | Effect::Vote { .. }
+                | Effect::VoteReturn { .. }
         )
     }
+}
+
+/// One row of a die roll's results table (CR 706.3a): "1—9 | ...",
+/// "20+ | ..." (`hi` is `u8::MAX`).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct DieRow {
+    pub lo: u8,
+    pub hi: u8,
+    pub effects: Vec<Effect>,
 }
 
 /// What an `Effect::Instead` checks as it resolves.
@@ -3195,6 +3250,9 @@ pub enum ChooseAct {
     ExileFromGraveyard,
     /// "return a creature card from your graveyard to your hand".
     ReturnFromGraveyard,
+    /// "return a Zombie card at random from your graveyard to your hand":
+    /// the cards are picked at random, not by the controller.
+    ReturnRandomFromGraveyard,
     /// "put a permanent card from among the milled cards into your hand":
     /// cards this resolution milled, still in the graveyard.
     MilledToHand,
@@ -3411,6 +3469,7 @@ pub const WATCH_DRAW: u16 = 1024;
 pub const WATCH_CYCLE: u16 = 2048;
 pub const WATCH_DISCARD: u16 = 4096;
 pub const WATCH_ATTACH: u16 = 8192;
+pub const WATCH_ROLL: u16 = 16384;
 
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
@@ -3463,6 +3522,11 @@ pub enum TriggerSpec {
     DealsCombatDamageToPlayer(TriggerObj),
     /// "Whenever you gain life".
     GainsLife { whose: Who },
+    /// "Whenever you roll one or more dice" (CR 706): once per
+    /// instruction to roll, not per die.
+    RollsDice { whose: Who },
+    /// "Whenever you win a coin flip" (CR 705.2).
+    WinsFlip { whose: Who },
     /// "Whenever you cast a spell"; `noncreature` or `instant_or_sorcery`
     /// restrict it.
     CastsSpell {
@@ -3652,6 +3716,7 @@ impl TriggerSpec {
             TriggerSpec::DrawsNth { .. } => WATCH_DRAW,
             TriggerSpec::Exploits | TriggerSpec::Reflexive | TriggerSpec::State(_) => 0,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
+            TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,
             TriggerSpec::CastsSpell { .. }
             | TriggerSpec::CastsFiltered { .. }
             | TriggerSpec::CastsNth { .. } => WATCH_CAST,
@@ -3755,6 +3820,9 @@ pub struct Cost {
     /// "Discard X cards" (a spell's additional cost): X is announced as the
     /// spell is cast (CR 601.2b, 107.3) and that many cards are discarded.
     pub discard_x: bool,
+    /// "Discard a card at random": the `discard` cards are chosen at
+    /// random as the cost is paid, not by the player.
+    pub discard_random: bool,
     /// "Discard a creature card": what the discarded card must match.
     pub discard_filter: Option<ObjFilter>,
     /// A loyalty ability's cost (CR 606): +N puts, −N removes that many
@@ -3812,6 +3880,7 @@ impl Cost {
             life: 0,
             discard: 0,
             discard_x: false,
+            discard_random: false,
             discard_filter: None,
             loyalty: 0,
             tap: false,
@@ -4172,6 +4241,12 @@ pub enum AbilityDef {
         whose: Who,
         delta: Option<i32>,
     },
+    /// "While voting, you get an additional vote." (`optional` false) or
+    /// "While voting, you may vote an additional time." (CR 701.38d: the
+    /// votes happen when the controller would otherwise vote).
+    ExtraVote {
+        optional: bool,
+    },
     Activated(ActivatedAbility),
     Static(StaticAbility),
     Triggered(TriggeredAbility),
@@ -4199,6 +4274,7 @@ impl AbilityDef {
             | AbilityDef::AttackUnless { .. }
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
+            | AbilityDef::ExtraVote { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
@@ -4224,6 +4300,7 @@ impl AbilityDef {
             | AbilityDef::AttackUnless { .. }
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
+            | AbilityDef::ExtraVote { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
@@ -4248,6 +4325,16 @@ impl AbilityDef {
             | Effect::UnlessPays { effects: inner, .. } = e
             {
                 for i in inner {
+                    walk(i, out);
+                }
+            }
+            if let Effect::FlipCoin { won } = e {
+                for i in won {
+                    walk(i, out);
+                }
+            }
+            if let Effect::RollDie { rows, .. } = e {
+                for i in rows.iter().flat_map(|r| &r.effects) {
                     walk(i, out);
                 }
             }

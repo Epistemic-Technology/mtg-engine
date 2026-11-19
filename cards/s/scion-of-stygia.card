@@ -1,0 +1,12 @@
+card "Scion of Stygia" {
+  oracle_id a73e1f0a-8895-4eb2-9780-94951a8f227b
+  cost {2}{U}
+  type Creature — Tiefling Shaman
+  pt 2/1
+  keywords flash
+  label "Cone of Cold" triggered when this enters {
+    choose target creature an opponent controls then roll d20
+    result 1 to 9: tap that target 1
+    result 10 to 20: tap that target 1; target 1 doesn't untap next untap step
+  }
+}
