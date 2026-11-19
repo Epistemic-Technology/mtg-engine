@@ -321,13 +321,6 @@ impl GameState {
                     .then_some((None, Some(self.active_player)))
             }
             (
-                TriggerSpec::AttacksOrBlocks(what),
-                Event::Attack { attacker: obj, .. } | Event::Block { blocker: obj, .. },
-            ) => {
-                let p = on_battlefield(what, *obj)?;
-                Some((Some(*obj), Some(p)))
-            }
-            (
                 TriggerSpec::Leaves(what),
                 Event::ZoneChange {
                     old,
@@ -348,7 +341,10 @@ impl GameState {
                 };
                 ok.then_some((Some(*old), Some(l.object.controller)))
             }
-            (TriggerSpec::Attacks(what), Event::Attack { attacker, .. })
+            (
+                TriggerSpec::Attacks(what) | TriggerSpec::AttacksOrBlocks(what),
+                Event::Attack { attacker, .. },
+            )
             | (
                 TriggerSpec::BecomesBlocked(what) | TriggerSpec::BlocksOrBlocked(what),
                 Event::Blocked { attacker },
@@ -366,7 +362,9 @@ impl GameState {
                 Some((Some(*attacker), Some(p)))
             }
             (
-                TriggerSpec::Blocks(what) | TriggerSpec::BlocksOrBlocked(what),
+                TriggerSpec::Blocks(what)
+                | TriggerSpec::BlocksOrBlocked(what)
+                | TriggerSpec::AttacksOrBlocks(what),
                 Event::Block { blocker, .. },
             ) => {
                 let p = on_battlefield(what, *blocker)?;
