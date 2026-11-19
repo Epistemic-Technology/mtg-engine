@@ -1366,6 +1366,7 @@ impl Fmt {
                     ChooseAct::Tap => format!("tap {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
                     ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
+                    ChooseAct::Discard if unfiltered => format!("discard {n} {cs} chosen"),
                     ChooseAct::Discard => format!("discard {n} {f} {cs} chosen"),
                     // "put a card from your hand": no filter, no word for it.
                     ChooseAct::HandToBottom if unfiltered => {
