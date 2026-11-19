@@ -1,0 +1,303 @@
+# Keyword mechanics: ninjutsu (CR 702.49), scavenge (702.97), dash
+# (702.109), embalm (702.128), eternalize (702.129).
+
+scenario "ninjutsu: an unblocked attacker returns, the Ninja enters tapped and attacking" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Ninja of the Deep Hours"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: activate "Ninja of the Deep Hours" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Ninja of the Deep Hours"
+  assert tapped "Ninja of the Deep Hours"
+  assert life B 18
+  # Its combat damage trigger drew a card.
+  assert hand A count 2
+}
+
+scenario "ninjutsu: not before blockers are declared" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Ninja of the Deep Hours"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_attackers A: activate "Ninja of the Deep Hours" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ninja of the Deep Hours"
+  assert life B 18
+}
+
+scenario "ninjutsu: a blocked attacker can't be returned" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Ninja of the Deep Hours"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  illegal turn 1 declare_blockers A: activate "Ninja of the Deep Hours" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ninja of the Deep Hours"
+}
+
+scenario "ninjutsu: the Ninja's enters trigger, and its combat damage" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Azra Smokeshaper"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: activate "Azra Smokeshaper" sacrificing "Grizzly Bears"
+  turn 1 declare_blockers A: trigger "Azra Smokeshaper" targeting "Azra Smokeshaper"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert has "Azra Smokeshaper" indestructible
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "scavenge: counters equal to the exiled card's power, as a sorcery" {
+  battlefield A: "Grizzly Bears", 3 "Swamp", 2 "Forest"
+  graveyard A: "Dreg Mangler"
+  turn 1 A: activate "Dreg Mangler" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 3
+  assert power "Grizzly Bears" 5
+  assert exile A contains "Dreg Mangler"
+}
+
+scenario "scavenge: not at instant speed" {
+  battlefield A: "Grizzly Bears", 3 "Swamp", 2 "Forest"
+  graveyard A: "Dreg Mangler"
+  illegal turn 1 begin_combat A: activate "Dreg Mangler" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Dreg Mangler"
+}
+
+scenario "dash: haste, and back to its owner's hand at the end step" {
+  battlefield A: 2 "Mountain"
+  hand A: "Mardu Scout"
+  turn 1 A: cast "Mardu Scout" dashed
+  turn 1 A: attack "Mardu Scout"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert has "Mardu Scout" haste
+  run_to turn 2 upkeep
+  assert hand A contains "Mardu Scout"
+  assert battlefield A lacks "Mardu Scout"
+}
+
+scenario "dash: cast normally, it stays and has no haste" {
+  battlefield A: 2 "Mountain"
+  hand A: "Mardu Scout"
+  turn 1 A: cast "Mardu Scout"
+  illegal turn 1 A: attack "Mardu Scout"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Mardu Scout"
+  assert has not "Mardu Scout" haste
+}
+
+scenario "dash: the dash cost, not the mana cost" {
+  battlefield A: "Mountain", "Forest"
+  hand A: "Goblin Heelcutter"
+  illegal turn 1 A: cast "Goblin Heelcutter" dashed
+  run_to turn 1 postcombat_main
+  assert hand A contains "Goblin Heelcutter"
+}
+
+scenario "embalm: a white Zombie token copy with no mana cost" {
+  battlefield A: "Plains"
+  graveyard A: "Sacred Cat"
+  turn 1 A: activate "Sacred Cat"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Sacred Cat"
+  assert battlefield A contains "Sacred Cat"
+  assert is "Sacred Cat" white
+  assert is "Sacred Cat" Zombie
+  assert is "Sacred Cat" Cat
+  assert has "Sacred Cat" lifelink
+}
+
+scenario "embalm: only as a sorcery" {
+  battlefield A: "Plains"
+  graveyard A: "Sacred Cat"
+  illegal turn 1 end A: activate "Sacred Cat"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Sacred Cat"
+}
+
+scenario "eternalize: a 4/4 black Zombie token copy" {
+  battlefield A: 4 "Island", 2 "Swamp"
+  graveyard A: "Proven Combatant"
+  turn 1 A: activate "Proven Combatant"
+  run_to turn 1 postcombat_main
+  assert power "Proven Combatant" 4
+  assert toughness "Proven Combatant" 4
+  assert is "Proven Combatant" black
+  assert is not "Proven Combatant" blue
+  assert is "Proven Combatant" Zombie
+}
+
+scenario "backup: counters on another creature, which gains the abilities below until end of turn" {
+  battlefield A: "Grizzly Bears", 4 "Mountain", 2 "Forest"
+  hand A: "Cragsmasher Yeti"
+  turn 1 A: cast "Cragsmasher Yeti"
+  turn 1 A: trigger "Cragsmasher Yeti" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert has "Grizzly Bears" trample
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" trample
+  assert power "Grizzly Bears" 4
+}
+
+scenario "backup: on itself, only the counters" {
+  battlefield A: 4 "Plains", "Island"
+  hand A: "Golden-Scale Aeronaut"
+  turn 1 A: cast "Golden-Scale Aeronaut"
+  turn 1 A: trigger "Golden-Scale Aeronaut" targeting "Golden-Scale Aeronaut"
+  run_to turn 1 postcombat_main
+  assert counters "Golden-Scale Aeronaut" +1/+1 1
+  assert has "Golden-Scale Aeronaut" flying
+}
+
+scenario "backup: a granted triggered ability works for the other creature" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Bola Slinger"
+  turn 1 A: cast "Bola Slinger"
+  turn 1 A: trigger "Bola Slinger" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert life B 17
+}
+
+scenario "offspring: paid, a 1/1 token copy enters too" {
+  battlefield A: 4 "Plains"
+  hand A: "Intrepid Rabbit"
+  turn 1 A: cast "Intrepid Rabbit" kicked
+  run_to turn 2 upkeep
+  assert battlefield A contains 2 "Intrepid Rabbit"
+  assert power oldest "Intrepid Rabbit" 3
+  assert power newest "Intrepid Rabbit" 1
+  assert toughness newest "Intrepid Rabbit" 1
+}
+
+scenario "offspring: not paid, no token" {
+  battlefield A: 4 "Plains"
+  hand A: "Intrepid Rabbit"
+  turn 1 A: cast "Intrepid Rabbit"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Intrepid Rabbit"
+}
+
+scenario "bargain: bargained, the bigger effect, and the sacrifice is paid" {
+  battlefield A: 2 "Swamp", "Ornithopter"
+  battlefield B: "Serra Angel"
+  hand A: "Candy Grapple"
+  turn 1 A: cast "Candy Grapple" sacrificing "Ornithopter" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert graveyard A contains "Ornithopter"
+}
+
+scenario "bargain: not bargained, the plain effect" {
+  battlefield A: 2 "Swamp", "Ornithopter"
+  battlefield B: "Serra Angel"
+  hand A: "Candy Grapple"
+  turn 1 A: cast "Candy Grapple" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert battlefield A contains "Ornithopter"
+}
+
+scenario "bargain: a token can be sacrificed, a nontoken creature can't" {
+  battlefield A: 4 "Plains", 2 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Intrepid Rabbit", "Candy Grapple"
+  turn 1 A: cast "Intrepid Rabbit" kicked
+  turn 1 A: wait
+  turn 1 A: cast "Candy Grapple" sacrificing "Intrepid Rabbit" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A contains 1 "Intrepid Rabbit"
+}
+
+scenario "bargain: costs less if bargained, and isn't offered unbargained without the mana" {
+  battlefield A: 2 "Island", "Ornithopter"
+  battlefield B: "Mountain"
+  hand A: "Ice Out"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 A: cast "Ice Out" sacrificing "Ornithopter" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert graveyard A contains "Ornithopter"
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "bargain: without anything to sacrifice, the full cost" {
+  battlefield A: 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Ice Out"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  illegal turn 1 A: cast "Ice Out" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life A 17
+}
+
+scenario "bargain: if it was bargained, its enters trigger" {
+  battlefield A: 2 "Forest", "Ornithopter"
+  battlefield B: "Ornithopter"
+  hand A: "Troublemaker Ouphe"
+  turn 1 A: cast "Troublemaker Ouphe" sacrificing "Ornithopter"
+  turn 1 A: trigger "Troublemaker Ouphe" targeting B "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Ornithopter"
+  assert graveyard A contains "Ornithopter"
+}
+
+scenario "bargain: not bargained, no trigger" {
+  battlefield A: 2 "Forest", "Ornithopter"
+  battlefield B: "Ornithopter"
+  hand A: "Troublemaker Ouphe"
+  turn 1 A: cast "Troublemaker Ouphe"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Ornithopter"
+  assert battlefield A contains "Ornithopter"
+}
+
+scenario "saddle: tap other creatures with enough power; attacking while saddled triggers" {
+  battlefield A: "Alacrian Jaguar", "Grizzly Bears"
+  turn 1 A: activate "Alacrian Jaguar"
+  turn 1 A: attack "Alacrian Jaguar"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert life B 14
+}
+
+scenario "saddle: not saddled, no trigger" {
+  battlefield A: "Alacrian Jaguar", "Grizzly Bears"
+  turn 1 A: attack "Alacrian Jaguar"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert life B 16
+}
+
+scenario "saddle: only as a sorcery" {
+  battlefield A: "Alacrian Jaguar", "Grizzly Bears"
+  illegal turn 1 begin_combat A: activate "Alacrian Jaguar"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+}
+
+scenario "saddle: only with enough power among the other creatures" {
+  battlefield A: "Quilled Charger", "Ornithopter"
+  illegal turn 1 A: activate "Quilled Charger"
+  run_to turn 1 postcombat_main
+  assert untapped "Ornithopter"
+}
+
+scenario "saddle: saddled until end of turn" {
+  battlefield A: "Alacrian Jaguar", "Grizzly Bears"
+  turn 1 A: activate "Alacrian Jaguar"
+  turn 3 A: attack "Alacrian Jaguar"
+  run_to turn 3 postcombat_main
+  assert life B 16
+}

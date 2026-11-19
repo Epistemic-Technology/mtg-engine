@@ -1,0 +1,8 @@
+card "Unwavering Initiate" {
+  oracle_id e6088c23-a660-4d2c-b633-1c6cb1a59ebe
+  cost {2}{W}
+  type Creature — Human Warrior
+  pt 3/2
+  keywords vigilance
+  embalm {4}{W}
+}

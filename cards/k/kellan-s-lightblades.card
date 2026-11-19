@@ -1,0 +1,7 @@
+card "Kellan's Lightblades" {
+  oracle_id 4b803bf2-025a-4bf6-9d3c-a28d714b4781
+  cost {1}{W}
+  type Instant
+  bargain
+  spell: deal 3 damage to target attacking or blocking creature; if bargained, destroy that target 1 instead
+}

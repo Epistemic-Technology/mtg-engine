@@ -1,0 +1,9 @@
+card "Brightfield Glider" {
+  oracle_id acff6e5c-7f25-4ae1-8672-8672450ad844
+  cost {W}
+  type Creature — Possum Mount
+  pt 1/1
+  keywords vigilance
+  triggered whenever this attacks while saddled: this gets +1/+2 and gains flying
+  saddle 3
+}

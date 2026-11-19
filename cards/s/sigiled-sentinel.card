@@ -1,0 +1,8 @@
+card "Sigiled Sentinel" {
+  oracle_id 79c90a68-1c31-4e16-be53-1304132da80f
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 2/2
+  backup 1
+  keyword vigilance
+}

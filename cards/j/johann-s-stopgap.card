@@ -1,0 +1,8 @@
+card "Johann's Stopgap" {
+  oracle_id c7b235e1-746e-4467-be54-4e11e2bf6362
+  cost {3}{U}
+  type Sorcery
+  bargain
+  this spell costs {2} less if bargained
+  spell: return target nonland permanent to hand; draw 1 cards
+}

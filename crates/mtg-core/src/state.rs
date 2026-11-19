@@ -217,27 +217,60 @@ pub enum AltCast {
     Suspended,
     /// In exile: rebounding, castable at its owner's next upkeep.
     Rebounding,
+    /// Cast for its dash cost (CR 702.109a); kept by the permanent, which
+    /// has haste.
+    Dash,
 }
 
 /// A spell's chosen mode (CR 700.2, the low six bits) and cast flags:
 /// kicked (CR 702.33c; kept by the permanent it becomes, for "if it was
 /// kicked") and cast with flashback (CR 702.34a; exiled as it leaves the
-/// stack). One byte, so `GameObject` stays small.
+/// stack). Two bytes, so `GameObject` stays small.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
-pub struct CastInfo(u8);
+pub struct CastInfo(u16);
 
 impl CastInfo {
-    const KICKED: u8 = 0x40;
-    const FLASHBACK: u8 = 0x80;
+    /// Cast with its offspring cost paid (CR 702.175a); kept by the
+    /// permanent, for its trigger.
+    const OFFSPRING: u16 = 0x100;
+    /// Bargained (CR 702.166b); kept by the permanent ("if it was
+    /// bargained").
+    const BARGAINED: u16 = 0x200;
+    const KICKED: u16 = 0x40;
+    const FLASHBACK: u16 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
     /// exile.
-    const ADVENTURE: u8 = 0x20;
+    const ADVENTURE: u16 = 0x20;
     /// Cast with its buyback cost paid (CR 702.27): to its owner's hand as
     /// it resolves.
-    const BUYBACK: u8 = 0x10;
+    const BUYBACK: u16 = 0x10;
     /// Cast for its evoke cost (CR 702.74); kept by the permanent.
-    const EVOKED: u8 = 0x08;
-    const MODE: u8 = 0x07;
+    const EVOKED: u16 = 0x08;
+    const MODE: u16 = 0x07;
+
+    pub const fn offspring(self) -> bool {
+        self.0 & Self::OFFSPRING != 0
+    }
+
+    pub fn set_offspring(&mut self, on: bool) {
+        self.0 = if on {
+            self.0 | Self::OFFSPRING
+        } else {
+            self.0 & !Self::OFFSPRING
+        };
+    }
+
+    pub const fn bargained(self) -> bool {
+        self.0 & Self::BARGAINED != 0
+    }
+
+    pub fn set_bargained(&mut self, on: bool) {
+        self.0 = if on {
+            self.0 | Self::BARGAINED
+        } else {
+            self.0 & !Self::BARGAINED
+        };
+    }
 
     pub const fn evoked(self) -> bool {
         self.0 & Self::EVOKED != 0
@@ -264,11 +297,11 @@ impl CastInfo {
     }
 
     pub const fn mode(self) -> u8 {
-        self.0 & Self::MODE
+        (self.0 & Self::MODE) as u8
     }
 
     pub fn set_mode(&mut self, mode: u8) {
-        self.0 = (self.0 & !Self::MODE) | (mode & Self::MODE);
+        self.0 = (self.0 & !Self::MODE) | (u16::from(mode) & Self::MODE);
     }
 
     pub const fn kicked(self) -> bool {
@@ -310,7 +343,7 @@ impl CastInfo {
     /// What a permanent keeps of its spell's cast info (CR 702.33c).
     #[must_use]
     pub const fn kept_by_permanent(self) -> CastInfo {
-        CastInfo(self.0 & (Self::KICKED | Self::EVOKED))
+        CastInfo(self.0 & (Self::KICKED | Self::EVOKED | Self::OFFSPRING | Self::BARGAINED))
     }
 }
 
@@ -748,6 +781,16 @@ pub enum Flow {
     ChoosingBuyback {
         spell: ObjId,
     },
+    /// Choosing whether to pay a spell's offspring cost (CR 702.175a),
+    /// after buyback and before X.
+    ChoosingOffspring {
+        spell: ObjId,
+    },
+    /// Choosing whether to bargain a spell, and what to sacrifice (CR
+    /// 702.166a), after offspring and before X.
+    ChoosingBargain {
+        spell: ObjId,
+    },
     /// Attackers declared; each chooses the player or planeswalker it
     /// attacks (CR 508.1a) when the defender controls a planeswalker.
     AttackTargets {
@@ -801,6 +844,9 @@ pub struct GameState {
     /// Creatures declared as attackers this turn (boast, CR 702.142a);
     /// one put onto the battlefield attacking was never declared.
     pub attackers_this_turn: Vec<ObjId>,
+    /// Mounts saddled this turn (CR 702.171b: until end of turn, or until
+    /// it leaves the battlefield, which makes it a new object).
+    pub saddled: Vec<ObjId>,
     /// The first timestamp of this turn: a permanent whose timestamp is
     /// not older entered this turn (power-up, CR 702.193a), as a
     /// permanent's timestamp is the time it entered (CR 613.7e).
@@ -808,6 +854,13 @@ pub struct GameState {
     /// X as chosen for spells on the stack (CR 107.3), kept off
     /// `GameObject` so the hot struct stays at 120 bytes.
     pub x_values: Vec<(ObjId, u32)>,
+    /// Ninjutsu abilities on the stack (CR 702.49c): the card to enter
+    /// attacking, and what the creature returned for the cost was
+    /// attacking.
+    pub ninjutsu: Vec<(ObjId, Target)>,
+    /// Bargained spells being cast (CR 702.166a) and the permanent to
+    /// sacrifice as their costs are paid.
+    pub bargains: Vec<(ObjId, ObjId)>,
     /// How spells and abilities on the stack divide damage or counters
     /// among their targets (CR 601.2d), in target order from the variable
     /// group's first target; kept off `GameObject` like `x_values`.
@@ -1437,6 +1490,24 @@ impl GameState {
         }
     }
 
+    /// CR 702.166a: the artifacts, enchantments, and tokens `p` could
+    /// sacrifice to bargain.
+    pub fn bargain_candidates(&self, p: PlayerId) -> Vec<ObjId> {
+        self.battlefield
+            .iter()
+            .copied()
+            .filter(|id| {
+                let o = &self.objects[*id];
+                o.controller == p
+                    && (o.kind == ObjKind::Token
+                        || self.characteristics(*id).is_some_and(|c| {
+                            c.types.contains(crate::card::CardType::Artifact)
+                                || c.types.contains(crate::card::CardType::Enchantment)
+                        }))
+            })
+            .collect()
+    }
+
     /// Whether a condition holds now for `you`, about `source` (which may
     /// be entering, not yet on the battlefield): conditional "enters
     /// tapped", attack restrictions, and intervening "if" clauses.
@@ -1512,6 +1583,21 @@ impl GameState {
             C::CreatureDiedThisTurn => self.creatures_died_this_turn > 0,
             C::LandEnteredThisTurn => self.lands_entered_this_turn & (1 << you.index().min(7)) != 0,
             C::Kicked => self.objects.get(source).is_some_and(|o| o.cast.kicked()),
+            C::Bargained => match self.objects.get(source) {
+                Some(o) if o.zone == Zone::Hand => !self.bargain_candidates(you).is_empty(),
+                Some(o) => o.cast.bargained(),
+                None => self
+                    .lki
+                    .get(&source)
+                    .is_some_and(|l| l.object.cast.bargained()),
+            },
+            C::Saddled => self.saddled.contains(&source),
+            C::OffspringPaid => self
+                .objects
+                .get(source)
+                .map(|o| o.cast.offspring())
+                .or_else(|| self.lki.get(&source).map(|l| l.object.cast.offspring()))
+                .unwrap_or(false),
             C::CardsDrawnThisTurn(n) => u32::from(self.drawn_this_turn[you.index().min(3)]) >= *n,
             C::Escaped => self
                 .objects

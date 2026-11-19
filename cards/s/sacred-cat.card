@@ -1,0 +1,8 @@
+card "Sacred Cat" {
+  oracle_id d85ea576-a794-44bf-b405-1f1c49477409
+  cost {W}
+  type Creature — Cat
+  pt 1/1
+  keywords lifelink
+  embalm {W}
+}

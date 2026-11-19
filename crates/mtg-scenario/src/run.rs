@@ -435,7 +435,10 @@ impl Runner {
             DecisionKind::ChooseCopy => self.choose_copy(d, pos),
             DecisionKind::ChooseColor | DecisionKind::ChooseType => self.choose_named(d, pos),
             // `kicked` also pays buyback (an optional additional cost).
-            DecisionKind::Kicker { .. } | DecisionKind::Buyback { .. } => Ok(self.choose_kicker(d)),
+            DecisionKind::Kicker { .. }
+            | DecisionKind::Buyback { .. }
+            | DecisionKind::Offspring { .. } => Ok(self.choose_kicker(d)),
+            DecisionKind::Bargain { .. } => self.choose_bargain(d),
         }
     }
 
@@ -527,6 +530,15 @@ impl Runner {
                 self.describe_options(d)
             ),
         })
+    }
+
+    /// Whether to bargain the spell being cast (CR 702.166a): with the
+    /// scripted `sacrificing` permanent; unscripted, not.
+    fn choose_bargain(&mut self, d: &Decision) -> Res<ChoiceId> {
+        if self.pending_sacrifice.is_some() {
+            return self.choose_cost(d, "sacrifice");
+        }
+        Ok(index_of(d, &Choice::Decline).unwrap_or(0))
     }
 
     /// The mode of the modal spell being cast: the one scripted with
@@ -936,12 +948,15 @@ impl Runner {
                     discard,
                     face_down,
                     evoked,
+                    dashed,
                     ..
                 } => {
                     let choice = if *face_down {
                         Choice::CastFaceDown(self.in_hand(a.line, d.player, name)?)
                     } else if *evoked {
                         Choice::CastEvoke(self.in_hand(a.line, d.player, name)?)
+                    } else if *dashed {
+                        Choice::CastDash(self.in_hand(a.line, d.player, name)?)
                     } else if *from_graveyard {
                         Choice::Cast(self.in_graveyard(a.line, d.player, name)?)
                     } else if let Some(c) = self.face_in_hand(d.player, name) {
@@ -965,7 +980,8 @@ impl Runner {
             | Choice::Cast(id)
             | Choice::CastFace { card: id, .. }
             | Choice::CastFaceDown(id)
-            | Choice::CastEvoke(id)) = option
+            | Choice::CastEvoke(id)
+            | Choice::CastDash(id)) = option
             else {
                 unreachable!()
             };
@@ -2106,6 +2122,7 @@ impl Runner {
             }
             Choice::CastFaceDown(id) => format!("cast {} face down", self.describe_ids(&[*id])),
             Choice::CastEvoke(id) => format!("cast {} evoked", self.describe_ids(&[*id])),
+            Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
             Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
             Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
             Choice::TurnFaceUp(id) => {

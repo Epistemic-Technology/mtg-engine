@@ -1,0 +1,8 @@
+card "Dreg Mangler" {
+  oracle_id 71358110-4e28-4794-befa-ea6e27e720ef
+  cost {1}{B}{G}
+  type Creature — Plant Zombie
+  pt 3/3
+  keywords haste
+  scavenge {3}{B}{G}
+}

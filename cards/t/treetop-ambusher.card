@@ -1,0 +1,8 @@
+card "Treetop Ambusher" {
+  oracle_id 72949d87-76cd-472c-86b3-2b7d5fce3159
+  cost {1}{G}
+  type Creature — Elf Berserker
+  pt 2/1
+  dash {1}{G}
+  triggered whenever this attacks: target creature you control gets +1/+1
+}

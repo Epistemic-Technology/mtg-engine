@@ -1,0 +1,8 @@
+card "Reckless Imp" {
+  oracle_id e8e88e9a-0097-49ac-8b23-482a3190f21b
+  cost {2}{B}
+  type Creature — Imp
+  pt 2/2
+  keywords flying, can't block
+  dash {1}{B}
+}

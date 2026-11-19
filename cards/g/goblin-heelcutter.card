@@ -1,0 +1,8 @@
+card "Goblin Heelcutter" {
+  oracle_id ab52988f-ffd0-4154-9052-593a9d450d98
+  cost {3}{R}
+  type Creature — Goblin Berserker
+  pt 3/2
+  triggered whenever this attacks: target creature can't block
+  dash {2}{R}
+}

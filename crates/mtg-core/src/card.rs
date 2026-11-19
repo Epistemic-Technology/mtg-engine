@@ -309,6 +309,10 @@ pub enum Builtin {
     /// less than this spell's. You may cast it without paying its mana
     /// cost. Put the exiled cards on the bottom in a random order."
     Cascade,
+    /// CR 702.109a: "At the beginning of the next end step, return this
+    /// permanent to its owner's hand" (a dashed permanent's delayed
+    /// trigger).
+    DashReturn,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -1479,6 +1483,16 @@ pub enum StaticCondition {
     /// creature was kicked, it enters with ..." and the abilities it then
     /// has.
     Kicked,
+    /// The spell or permanent was bargained (CR 702.166b): "If this spell
+    /// was bargained", "if it was bargained". A card in hand counts as
+    /// bargained if it could be ("This spell costs {2} less to cast if
+    /// it's bargained", judged as the spell is offered).
+    Bargained,
+    /// Its offspring cost was paid (CR 702.175a).
+    OffspringPaid,
+    /// The source is saddled (CR 702.171b): "whenever this creature
+    /// attacks while saddled".
+    Saddled,
     /// Landfall: "you had a land enter the battlefield under your control
     /// this turn".
     LandEnteredThisTurn,
@@ -2503,6 +2517,13 @@ pub enum Effect {
         filter: ObjFilter,
         tapped: bool,
     },
+    /// Ninjutsu's effect (CR 702.49a, c): the source card, if still in its
+    /// owner's hand, onto the battlefield tapped and attacking the player or
+    /// planeswalker the returned creature was attacking.
+    EnterAttacking,
+    /// Saddle's effect (CR 702.171a): the source becomes saddled until end
+    /// of turn.
+    BecomeSaddled,
 }
 
 impl Effect {
@@ -3198,6 +3219,13 @@ pub enum ActivatedKeyword {
     /// cost is reduced by this permanent's mana cost. Activate this
     /// ability only once."
     PowerUp,
+    /// CR 702.49a: "[Cost], Reveal this card from your hand, Return an
+    /// unblocked attacking creature you control to its owner's hand: Put
+    /// this card onto the battlefield from your hand tapped and attacking."
+    /// Activated from the hand, once blockers are declared (CR 509.1h: only
+    /// then is an attacker unblocked); the creature returned is chosen as
+    /// the ability's `sacrifice`.
+    Ninjutsu,
 }
 
 impl ActivatedKeyword {
@@ -3207,6 +3235,7 @@ impl ActivatedKeyword {
             ActivatedKeyword::Boast => "Boast",
             ActivatedKeyword::Exhaust => "Exhaust",
             ActivatedKeyword::PowerUp => "Power-up",
+            ActivatedKeyword::Ninjutsu => "Ninjutsu",
         }
     }
 
@@ -3533,6 +3562,15 @@ pub struct CardDef {
     /// Evoke (CR 702.74): an alternative cost; an evoked permanent is
     /// sacrificed as it enters.
     pub evoke: Option<Box<ManaCost>>,
+    /// Dash (CR 702.109): an alternative cost; a dashed permanent has
+    /// haste and returns to its owner's hand at the next end step.
+    pub dash: Option<Box<ManaCost>>,
+    /// Offspring (CR 702.175): an optional additional cost; if paid, a 1/1
+    /// token copy is created as the permanent enters.
+    pub offspring: Option<Box<ManaCost>>,
+    /// Bargain (CR 702.166): "You may sacrifice an artifact, enchantment,
+    /// or token as you cast this spell."
+    pub bargain: bool,
     /// Madness (CR 702.35): cast for this cost as it's discarded.
     pub madness: Option<Box<ManaCost>>,
     /// Foretell (CR 702.143): exiled from hand for {2}, cast later for
@@ -4024,7 +4062,7 @@ pub struct CardPool {
     flanking: AbilityId,
     evoke: AbilityId,
     exploit: AbilityId,
-    builtins: [AbilityId; 4],
+    builtins: [AbilityId; 5],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -4060,7 +4098,7 @@ impl CardPool {
             flanking: AbilityId(0),
             evoke: AbilityId(0),
             exploit: AbilityId(0),
-            builtins: [AbilityId(0); 4],
+            builtins: [AbilityId(0); 5],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
         };
@@ -4155,6 +4193,18 @@ impl CardPool {
                 effects: vec![effect],
             }));
         }
+        pool.builtins[Builtin::DashReturn as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                trigger: TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::End,
+                    whose: Who::Any,
+                },
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::ReturnToHand {
+                    what: Recipient::SameObject,
+                }],
+            }));
         // Named only for logs: a face-down permanent has no name.
         pool.face_down = pool.add(
             Builder::new("face-down creature", "")
@@ -4537,6 +4587,9 @@ impl Builder {
             buyback: None,
             morph: None,
             evoke: None,
+            dash: None,
+            offspring: None,
+            bargain: false,
             target_cost: None,
             cond_cost: None,
             madness: None,
@@ -4656,6 +4709,27 @@ impl Builder {
     #[must_use]
     pub fn evoke(mut self, cost: ManaCost) -> Self {
         self.0.evoke = Some(Box::new(cost));
+        self
+    }
+
+    /// Dash (CR 702.109).
+    #[must_use]
+    pub fn dash(mut self, cost: ManaCost) -> Self {
+        self.0.dash = Some(Box::new(cost));
+        self
+    }
+
+    /// Offspring (CR 702.175).
+    #[must_use]
+    pub fn offspring(mut self, cost: ManaCost) -> Self {
+        self.0.offspring = Some(Box::new(cost));
+        self
+    }
+
+    /// Bargain (CR 702.166).
+    #[must_use]
+    pub fn bargain(mut self) -> Self {
+        self.0.bargain = true;
         self
     }
 

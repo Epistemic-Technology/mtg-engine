@@ -1,0 +1,9 @@
+card "Bridled Bighorn" {
+  oracle_id 6a1ad848-6fda-46dd-aad8-2f6a5c71a696
+  cost {3}{W}
+  type Creature — Sheep Mount
+  pt 3/4
+  keywords vigilance
+  triggered whenever this attacks while saddled: create 1 "1/1 white Sheep creature"
+  saddle 2
+}

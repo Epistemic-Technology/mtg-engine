@@ -1,0 +1,9 @@
+card "Saiba Cryptomancer" {
+  oracle_id 15f89b06-5025-4c9f-bf51-e25bc5c2dd6b
+  cost {1}{U}
+  type Creature — Moonfolk Ninja
+  pt 0/1
+  keywords flash
+  backup 1
+  keyword hexproof
+}

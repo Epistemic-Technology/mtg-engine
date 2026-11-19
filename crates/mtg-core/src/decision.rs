@@ -79,6 +79,11 @@ pub enum DecisionKind {
     Kicker { spell: ObjId },
     /// Whether to pay a spell's buyback cost (CR 702.27).
     Buyback { spell: ObjId },
+    /// Whether to pay a spell's offspring cost (CR 702.175a).
+    Offspring { spell: ObjId },
+    /// Whether to bargain a spell (CR 702.166a): `Sacrifice` options for
+    /// the artifact, enchantment, or token, or `Decline`.
+    Bargain { spell: ObjId },
     /// Which card from the hand to put onto the battlefield (offered as
     /// `Choice::Discard` options), or `Done` for none.
     PutFromHand,
@@ -184,6 +189,8 @@ pub enum Choice {
     },
     /// Cast a card for its evoke cost (CR 702.74a).
     CastEvoke(ObjId),
+    /// Cast a card for its dash cost (CR 702.109a).
+    CastDash(ObjId),
     /// Suspend a card from hand (CR 702.62a), a special action.
     Suspend(ObjId),
     /// Foretell a card from hand (CR 702.143a), a special action.
@@ -287,6 +294,7 @@ impl Choice {
                     .join(", ")
             ),
             Choice::CastEvoke(id) => format!("cast {} for its evoke cost", name(id)),
+            Choice::CastDash(id) => format!("cast {} for its dash cost", name(id)),
             Choice::Suspend(id) => format!("suspend {}", name(id)),
             Choice::Foretell(id) => format!("foretell {}", name(id)),
             Choice::CastFaceDown(id) => {

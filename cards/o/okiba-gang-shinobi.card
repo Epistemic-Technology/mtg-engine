@@ -1,0 +1,8 @@
+card "Okiba-Gang Shinobi" {
+  oracle_id efe3b58f-6f83-45d5-beb1-7dde1cae9dd7
+  cost {3}{B}{B}
+  type Creature — Rat Ninja
+  pt 3/2
+  ninjutsu {3}{B}
+  triggered whenever this deals combat damage to a player: that player discards 2 cards
+}

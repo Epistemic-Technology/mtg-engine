@@ -1,0 +1,9 @@
+card "Alacrian Jaguar" {
+  oracle_id caeb4ec1-a8ba-4ac4-ad32-edbc671e5a39
+  cost {4}{G}
+  type Creature — Cat Mount
+  pt 4/4
+  keywords vigilance
+  triggered whenever this attacks while saddled: this gets +2/+2
+  saddle 1
+}

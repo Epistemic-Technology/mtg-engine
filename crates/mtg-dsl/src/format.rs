@@ -1933,6 +1933,7 @@ fn body(
     }
 }
 
+#[allow(clippy::too_many_lines)] // one arm per condition
 fn static_cond(c: &StaticCond) -> String {
     match c {
         StaticCond::CardsInGraveyard(n) => format!("{n} cards in your graveyard"),
@@ -1976,6 +1977,8 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::OpponentDamagedThisTurn => "opponent damaged this turn".to_string(),
         StaticCond::Escaped => unreachable!("only in `escapes with`"),
         StaticCond::Kicked => unreachable!("only in `kicked with`"),
+        StaticCond::Bargained => "bargained".to_string(),
+        StaticCond::Saddled => "saddled".to_string(),
         StaticCond::LandEnteredThisTurn => "land entered this turn".to_string(),
         StaticCond::CardsDrawnThisTurn(n) => format!("drew {n} cards this turn"),
         StaticCond::CardsInHand { n, at_most } => {
@@ -2179,7 +2182,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::ActivatedKeyword::Boast) => "boast",
                 Some(mtg_core::card::ActivatedKeyword::Exhaust) => "exhaust",
                 Some(mtg_core::card::ActivatedKeyword::PowerUp) => "power-up",
-                None => "activated",
+                // Only a `ninjutsu` line's compiled form has this.
+                Some(mtg_core::card::ActivatedKeyword::Ninjutsu) | None => "activated",
             };
             body(
                 out,
@@ -2198,6 +2202,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         } => {
             let mut head = format!("triggered {}", trigger_text(trigger, false));
             let condition = match condition {
+                Some(crate::ast::TrigCond::Static(StaticCond::Saddled)) => {
+                    head.push_str(" while saddled");
+                    None
+                }
                 Some(crate::ast::TrigCond::Static(c)) => {
                     let _ = write!(head, " if {}", static_cond(c));
                     None
@@ -2405,6 +2413,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 crate::ast::Mechanic::Megamorph(c) => format!("megamorph {c}"),
                 crate::ast::Mechanic::Disguise(c) => format!("disguise {c}"),
+                crate::ast::Mechanic::Ninjutsu(c) => format!("ninjutsu {c}"),
+                crate::ast::Mechanic::Scavenge(c) => format!("scavenge {c}"),
+                crate::ast::Mechanic::Dash(c) => format!("dash {c}"),
+                crate::ast::Mechanic::Embalm(c) => format!("embalm {c}"),
+                crate::ast::Mechanic::Eternalize(c) => format!("eternalize {c}"),
+                crate::ast::Mechanic::Backup(n) => format!("backup {n}"),
+                crate::ast::Mechanic::Offspring(c) => format!("offspring {c}"),
+                crate::ast::Mechanic::Bargain => "bargain".to_string(),
+                crate::ast::Mechanic::Saddle(n) => format!("saddle {n}"),
             };
             let _ = writeln!(out, "{indent}{text}");
         }

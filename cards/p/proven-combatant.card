@@ -1,0 +1,7 @@
+card "Proven Combatant" {
+  oracle_id 24ce3dbe-2b61-43a6-ab16-32b37e385127
+  cost {U}
+  type Creature — Human Warrior
+  pt 1/1
+  eternalize {4}{U}{U}
+}

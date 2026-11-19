@@ -1,0 +1,7 @@
+card "Screamreach Brawler" {
+  oracle_id ffc84ff4-22eb-4652-9723-2f40d637a427
+  cost {2}{R}
+  type Creature — Orc Berserker
+  pt 2/3
+  dash {1}{R}
+}

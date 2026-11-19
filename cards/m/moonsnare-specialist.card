@@ -1,0 +1,8 @@
+card "Moonsnare Specialist" {
+  oracle_id ba858b68-ae93-4e1c-8a3a-3e4ac97282e8
+  cost {3}{U}
+  type Creature — Human Ninja
+  pt 2/2
+  ninjutsu {2}{U}
+  triggered when this enters: return up to one target creature to hand
+}

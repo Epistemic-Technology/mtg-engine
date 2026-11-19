@@ -1,0 +1,8 @@
+card "Thrashing Mossdog" {
+  oracle_id 8778ddbe-9aba-4a45-a22a-5453fefef952
+  cost {3}{G}
+  type Creature — Plant Dog
+  pt 3/3
+  keywords reach
+  scavenge {4}{G}{G}
+}

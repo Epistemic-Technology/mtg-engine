@@ -1,0 +1,8 @@
+card "Redcap Heelslasher" {
+  oracle_id d2134b68-d73f-4090-aaec-b2ee5c9f9f04
+  cost {3}{R}
+  type Creature — Goblin Rogue
+  pt 2/3
+  backup 1
+  keyword first strike
+}

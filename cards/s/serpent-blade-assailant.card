@@ -1,0 +1,8 @@
+card "Serpent-Blade Assailant" {
+  oracle_id 66a131ae-dbb2-4e7b-b6ce-7695f47c8f87
+  cost {2}{G}
+  type Creature — Elf Warrior
+  pt 2/1
+  backup 1
+  keyword deathtouch
+}

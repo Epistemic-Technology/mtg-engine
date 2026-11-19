@@ -1,0 +1,8 @@
+card "Intrepid Rabbit" {
+  oracle_id 7ed4afc9-959a-4868-8f4a-2221bea1ba32
+  cost {2}{W}
+  type Creature — Rabbit Soldier
+  pt 3/2
+  offspring {1}
+  triggered when this enters: target creature you control gets +1/+1
+}

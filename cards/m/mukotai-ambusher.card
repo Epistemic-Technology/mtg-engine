@@ -1,0 +1,8 @@
+card "Mukotai Ambusher" {
+  oracle_id 3a3f0bf4-7a02-4a57-8a18-ff22f012e0ef
+  cost {3}{B}
+  type Artifact Creature — Rat Ninja
+  pt 3/2
+  ninjutsu {1}{B}
+  keyword lifelink
+}

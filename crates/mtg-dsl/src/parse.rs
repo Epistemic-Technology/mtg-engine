@@ -1111,7 +1111,10 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Escape(c, n)))
             }
-            "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" => {
+            "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
+            | "saddle"
+                if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
+            {
                 self.pos += 1;
                 let n = self.number()?;
                 self.end_stmt()?;
@@ -1121,11 +1124,14 @@ impl P {
                     "afflict" => Mechanic::Afflict(n),
                     "crew" => Mechanic::Crew(n),
                     "bloodthirst" => Mechanic::Bloodthirst(n),
+                    "backup" => Mechanic::Backup(n),
+                    "saddle" => Mechanic::Saddle(n),
                     _ => Mechanic::Toxic(n),
                 }))
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
-            | "disguise" | "evoke" | "madness" | "foretell" | "entwine"
+            | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
+            | "scavenge" | "dash" | "embalm" | "eternalize" | "offspring"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1143,8 +1149,19 @@ impl P {
                     "entwine" => Mechanic::Entwine(c),
                     "megamorph" => Mechanic::Megamorph(c),
                     "disguise" => Mechanic::Disguise(c),
+                    "ninjutsu" => Mechanic::Ninjutsu(c),
+                    "scavenge" => Mechanic::Scavenge(c),
+                    "dash" => Mechanic::Dash(c),
+                    "embalm" => Mechanic::Embalm(c),
+                    "eternalize" => Mechanic::Eternalize(c),
+                    "offspring" => Mechanic::Offspring(c),
                     _ => Mechanic::Outlast(c),
                 }))
+            }
+            "bargain" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Bargain))
             }
             "suspend" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                 self.pos += 1;
@@ -1366,7 +1383,9 @@ impl P {
                 if when && !crate::format::natural_when(&trigger) {
                     trigger = Trigger::When(Box::new(trigger));
                 }
-                let condition = if self.eat_word("if") {
+                let condition = if self.eat_words(&["while", "saddled"]) {
+                    Some(crate::ast::TrigCond::Static(StaticCond::Saddled))
+                } else if self.eat_word("if") {
                     let at = self.pos;
                     if let Ok(c) = self.condition() {
                         Some(crate::ast::TrigCond::Core(c))
@@ -1701,6 +1720,12 @@ impl P {
         }
         if self.eat_words(&["attacked", "this", "turn"]) {
             return Ok(StaticCond::AttackedThisTurn);
+        }
+        if self.eat_word("bargained") {
+            return Ok(StaticCond::Bargained);
+        }
+        if self.eat_word("saddled") {
+            return Ok(StaticCond::Saddled);
         }
         if self.eat_words(&["creature", "died", "this", "turn"]) {
             return Ok(StaticCond::CreatureDiedThisTurn);

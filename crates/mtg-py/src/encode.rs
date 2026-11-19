@@ -79,10 +79,12 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::CastFromExile { .. } => 27,
         DecisionKind::ChooseType => 28,
         DecisionKind::Divide { .. } => 29,
+        DecisionKind::Offspring { .. } => 30,
+        DecisionKind::Bargain { .. } => 31,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 30] = [
+pub const DECISION_KIND_NAMES: [&str; 32] = [
     "mulligan",
     "bottom",
     "priority",
@@ -113,6 +115,8 @@ pub const DECISION_KIND_NAMES: [&str; 30] = [
     "cast_from_exile",
     "choose_type",
     "divide",
+    "offspring",
+    "bargain",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {
@@ -158,10 +162,11 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::Foretell(_) => 34,
         Choice::Subtype(_) => 35,
         Choice::Divide(_) => 36,
+        Choice::CastDash(_) => 37,
     }
 }
 
-pub const CHOICE_KIND_NAMES: [&str; 37] = [
+pub const CHOICE_KIND_NAMES: [&str; 38] = [
     "keep",
     "mulligan",
     "bottom",
@@ -199,6 +204,7 @@ pub const CHOICE_KIND_NAMES: [&str; 37] = [
     "foretell",
     "subtype",
     "divide",
+    "cast_dash",
 ];
 
 #[allow(clippy::cast_precision_loss)] // ids and counts are small
@@ -345,6 +351,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::Sacrifice(id)
             | Choice::TurnFaceUp(id)
             | Choice::CastEvoke(id)
+            | Choice::CastDash(id)
             | Choice::Suspend(id)
             | Choice::Foretell(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
             Choice::CastFaceDown(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 3.0),

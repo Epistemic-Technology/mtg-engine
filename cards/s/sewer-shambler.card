@@ -1,0 +1,8 @@
+card "Sewer Shambler" {
+  oracle_id 5d111adc-a91a-437d-8aac-3b246e980bd8
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/1
+  keywords swampwalk
+  scavenge {2}{B}
+}
