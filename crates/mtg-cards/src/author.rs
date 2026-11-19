@@ -61,7 +61,7 @@ const KEYWORDS: [&str; 38] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 77] = [
+const TEMPLATED_TAGS: [&str; 79] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -134,6 +134,8 @@ const TEMPLATED_TAGS: [&str; 77] = [
     "Ninjutsu",
     "Scavenge",
     "Dash",
+    "Bestow",
+    "Splice",
     "Embalm",
     "Eternalize",
     "Backup",
@@ -2573,12 +2575,20 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Embalm|Eternalize|Offspring) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Embalm|Eternalize|Offspring|Bestow) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.47: "Splice onto Arcane {1}{R}".
+        if let Some(c) = Regex::new(r"^Splice onto Arcane ((?:\{[0-9WUBRGCX/]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("splice {}", cap(&c, 1)));
             return Ok(());
         }
         if let Some(c) = Regex::new(

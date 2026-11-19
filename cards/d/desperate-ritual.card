@@ -1,0 +1,7 @@
+card "Desperate Ritual" {
+  oracle_id 3620ab8f-b693-4225-bb96-5ca3cb3fa465
+  cost {1}{R}
+  type Instant — Arcane
+  spell: add {R}{R}{R}
+  splice {1}{R}
+}

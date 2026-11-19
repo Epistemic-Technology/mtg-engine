@@ -1,0 +1,7 @@
+card "Lifted by Clouds" {
+  oracle_id ef742509-4474-42d0-8bca-71ec2be3d4f1
+  cost {2}{U}
+  type Instant — Arcane
+  spell: target creature gains flying
+  splice {1}{U}
+}

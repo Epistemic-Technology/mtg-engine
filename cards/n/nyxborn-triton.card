@@ -1,0 +1,8 @@
+card "Nyxborn Triton" {
+  oracle_id cdd37bbf-09db-4c1f-9947-312de48a0f4c
+  cost {2}{U}
+  type Enchantment Creature — Merfolk
+  pt 2/3
+  bestow {4}{U}
+  static enchanted: +2/+3
+}

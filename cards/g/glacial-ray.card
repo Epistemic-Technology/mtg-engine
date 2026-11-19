@@ -1,0 +1,7 @@
+card "Glacial Ray" {
+  oracle_id e65a8ab8-84a7-4fe2-b009-ceb87bec6b4e
+  cost {1}{R}
+  type Instant — Arcane
+  spell: deal 2 damage to any target
+  splice {1}{R}
+}

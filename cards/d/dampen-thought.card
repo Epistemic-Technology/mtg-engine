@@ -1,0 +1,7 @@
+card "Dampen Thought" {
+  oracle_id fa0ef984-b4e0-4c48-978c-0648e49d53f5
+  cost {1}{U}
+  type Instant — Arcane
+  spell: target player mills 4 cards
+  splice {1}{U}
+}

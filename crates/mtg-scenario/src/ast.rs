@@ -137,6 +137,12 @@ pub enum Action {
         /// `alternative`: cast for the alternative cost the card's text
         /// offers (CR 118.9, "rather than pay this spell's mana cost").
         alternative: bool,
+        /// `bestowed`: cast for the bestow cost, as an Aura spell (CR
+        /// 702.103a); its target is the creature it enchants.
+        bestowed: bool,
+        /// `splicing "X", "Y"`: cards in hand spliced onto the Arcane
+        /// spell (CR 702.47a), in order; their targets follow the spell's.
+        splice: Vec<String>,
         /// `other_cost`: pay the second of the spell's two additional costs
         /// ("sacrifice a creature or pay {3}", CR 601.2b); otherwise the
         /// first that can be paid.

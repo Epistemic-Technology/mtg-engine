@@ -307,6 +307,29 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Dash(cost)) => {
                     b = b.dash(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Bestow(cost)) => {
+                    b = b.bestow(cost.clone());
+                }
+                Ability::Mechanic(Mechanic::Splice(cost)) => {
+                    b = b.splice(mtg_core::card::Cost {
+                        mana: cost.clone(),
+                        ..mtg_core::card::Cost::default()
+                    });
+                }
+                Ability::Mechanic(Mechanic::SpliceCost(cost)) => {
+                    if cost.tap
+                        || cost.discard > 0
+                        || cost.discard_self
+                        || cost.discard_x
+                        || matches!(cost.sacrifice, Some(SacCost::This))
+                    {
+                        return self.err(
+                            "a splice cost may be mana, life, a chosen permanent, or cards exiled from the graveyard",
+                        );
+                    }
+                    let c = self.cost(cost);
+                    b = b.splice(c);
+                }
                 Ability::Mechanic(Mechanic::Offspring(cost)) => {
                     b = b.offspring(cost.clone());
                 }
@@ -465,6 +488,9 @@ impl Compiler<'_> {
                             | Mechanic::Megamorph(_)
                             | Mechanic::Disguise(_)
                             | Mechanic::Dash(_)
+                            | Mechanic::Bestow(_)
+                            | Mechanic::Splice(_)
+                            | Mechanic::SpliceCost(_)
                             | Mechanic::Bargain
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
@@ -2452,6 +2478,9 @@ impl Compiler<'_> {
                 | Mechanic::Megamorph(_)
                 | Mechanic::Disguise(_)
                 | Mechanic::Dash(_)
+                | Mechanic::Bestow(_)
+                | Mechanic::Splice(_)
+                | Mechanic::SpliceCost(_)
                 | Mechanic::Bargain
                 | Mechanic::Ascend
                 | Mechanic::StartYourEngines
@@ -2820,6 +2849,9 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Ninjutsu(_)
         | Mechanic::Scavenge(_)
         | Mechanic::Dash(_)
+        | Mechanic::Bestow(_)
+        | Mechanic::Splice(_)
+        | Mechanic::SpliceCost(_)
         | Mechanic::Embalm(_)
         | Mechanic::Eternalize(_)
         | Mechanic::Backup(_)

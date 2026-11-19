@@ -1,0 +1,9 @@
+card "Hopeful Eidolon" {
+  oracle_id 13c1ca1e-cd17-49ef-bc31-97bff99ec1e3
+  cost {W}
+  type Enchantment Creature — Spirit
+  pt 1/1
+  bestow {3}{W}
+  keyword lifelink
+  static enchanted: +1/+1, has lifelink
+}

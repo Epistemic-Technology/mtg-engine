@@ -625,6 +625,7 @@ impl Subtype {
     pub const EQUIPMENT: Subtype = Subtype(5 + 18);
     pub const AURA: Subtype = Subtype(5 + 30);
     pub const ROLE: Subtype = Subtype(5 + 36);
+    pub const ARCANE: Subtype = Subtype(5 + 43);
     pub const TREASURE: Subtype = Subtype(5 + 27);
 
     /// The color a basic land type produces (CR 305.6), if this is one.
@@ -4739,6 +4740,23 @@ pub struct CardDef {
     /// Dash (CR 702.109): an alternative cost; a dashed permanent has
     /// haste and returns to its owner's hand at the next end step.
     pub dash: Option<Box<ManaCost>>,
+    /// Bestow (CR 702.103): an alternative cost; the spell is then an Aura
+    /// with enchant creature (`bestow_face`), and the permanent becomes a
+    /// creature again when it isn't attached.
+    #[serde(default)]
+    pub bestow: Option<Box<ManaCost>>,
+    /// Filled in by `CardPool::add` for a creature with bestow: the Aura it
+    /// is as a bestowed spell or permanent (CR 702.103b: no creature type
+    /// or creature subtypes, Aura, enchant creature).
+    #[serde(skip)]
+    pub bestow_face: Option<CardRef>,
+    /// Splice onto Arcane (CR 702.47): revealed from hand as an Arcane
+    /// spell is cast, this cost paid on top, the card's effects (and
+    /// targets) are added to that spell. Mana, or mana and a permanent
+    /// chosen (sacrificed, returned, tapped) or cards exiled from the
+    /// graveyard ("Splice onto Arcane—Sacrifice two Mountains.").
+    #[serde(default)]
+    pub splice: Option<Box<Cost>>,
     /// "You may sacrifice a Mountain rather than pay this spell's mana
     /// cost." (CR 118.9): an alternative cost the card itself offers.
     pub alt_cost: Option<Box<AltCost>>,
@@ -5939,6 +5957,12 @@ impl CardPool {
 
     #[allow(clippy::too_many_lines)] // one flag per kind of definition
     pub fn add(&mut self, mut def: CardDef) -> CardRef {
+        // CR 702.103b: the Aura a bestowed spell is, registered first so
+        // the card's own definition keeps its name.
+        if def.bestow.is_some() && def.types.contains(CardType::Creature) {
+            let face = bestowed_aura(&def);
+            def.bestow_face = Some(self.add(face));
+        }
         let r = CardRef(u32::try_from(self.defs.len()).expect("card pool too large"));
         def.subtype_ids = def
             .subtypes
@@ -6125,6 +6149,25 @@ impl CardPool {
     }
 }
 
+/// CR 702.103b: what a creature card with bestow is as a bestowed Aura
+/// spell or permanent: an Aura enchantment with enchant creature, no
+/// longer a creature, without its creature types (these are copiable
+/// values); everything else (name, mana cost, abilities) as printed.
+fn bestowed_aura(def: &CardDef) -> CardDef {
+    let mut face = def.clone();
+    face.types = def
+        .types
+        .without(CardType::Creature)
+        .with(CardType::Enchantment);
+    face.subtypes = vec!["Aura".to_string()];
+    face.power = None;
+    face.toughness = None;
+    face.abilities
+        .insert(0, AbilityDef::Enchant(TargetSpec::Creature));
+    face.bestow_face = None;
+    face
+}
+
 /// Builder for M1 card definitions.
 pub struct Builder(CardDef);
 
@@ -6169,6 +6212,9 @@ impl Builder {
             morph: None,
             evoke: None,
             dash: None,
+            bestow: None,
+            bestow_face: None,
+            splice: None,
             alt_cost: None,
             additional_or: None,
             flash_if: None,
@@ -6333,6 +6379,20 @@ impl Builder {
     #[must_use]
     pub fn dash(mut self, cost: ManaCost) -> Self {
         self.0.dash = Some(Box::new(cost));
+        self
+    }
+
+    /// Bestow (CR 702.103).
+    #[must_use]
+    pub fn bestow(mut self, cost: ManaCost) -> Self {
+        self.0.bestow = Some(Box::new(cost));
+        self
+    }
+
+    /// Splice onto Arcane (CR 702.47).
+    #[must_use]
+    pub fn splice(mut self, cost: Cost) -> Self {
+        self.0.splice = Some(Box::new(cost));
         self
     }
 

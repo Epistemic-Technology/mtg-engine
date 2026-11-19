@@ -136,6 +136,10 @@ struct Runner {
     pending_kicked: bool,
     /// `other_cost` on the cast being made.
     pending_other_cost: bool,
+    /// Cards still to splice onto the spell being cast (`splicing`).
+    pending_splice: Vec<String>,
+    /// `splicing` cards scripted `illegal`: they must not be offered.
+    refused_splice: Vec<String>,
     /// The ability whose scripted targets have all been chosen.
     targets_done: Option<ObjId>,
     /// The scripted division (`dividing 2, 1`) of the spell being cast
@@ -247,6 +251,8 @@ impl Runner {
             pending_discard: None,
             pending_kicked: false,
             pending_other_cost: false,
+            pending_splice: Vec::new(),
+            refused_splice: Vec::new(),
             attack_queue: None,
             attack_targets: Vec::new(),
             block_queue: None,
@@ -462,6 +468,7 @@ impl Runner {
                 Ok(index_of(d, &want).unwrap_or(0))
             }
             DecisionKind::Bargain { .. } => self.choose_bargain(d),
+            DecisionKind::Splice { .. } => self.choose_splice(d),
         }
     }
 
@@ -553,6 +560,43 @@ impl Runner {
                 self.describe_options(d)
             ),
         })
+    }
+
+    /// The next scripted `splicing` card, else no (more) splicing.
+    fn choose_splice(&mut self, d: &Decision) -> Res<ChoiceId> {
+        if !self.refused_splice.is_empty() {
+            let names = std::mem::take(&mut self.refused_splice);
+            let st = self.state();
+            for name in names {
+                if d.options.iter().any(
+                    |c| matches!(c, Choice::Discard { def, .. } if st.pool.get(*def).name == name),
+                ) {
+                    return fail(
+                        self.current_cast_line(),
+                        format!("\"{name}\" could be spliced but the scenario says it must not be"),
+                    );
+                }
+            }
+            return Ok(index_of(d, &Choice::Done).unwrap_or(0));
+        }
+        if self.pending_splice.is_empty() {
+            return Ok(index_of(d, &Choice::Done).unwrap_or(0));
+        }
+        let name = self.pending_splice.remove(0);
+        let st = self.state();
+        d.options
+            .iter()
+            .position(
+                |c| matches!(c, Choice::Discard { def, .. } if st.pool.get(*def).name == name),
+            )
+            .map(|i| ChoiceId::try_from(i).unwrap_or(0))
+            .ok_or_else(|| Failure {
+                line: self.current_cast_line(),
+                message: format!(
+                    "\"{name}\" cannot be spliced; options: {}",
+                    self.describe_options(d)
+                ),
+            })
     }
 
     /// Whether to bargain the spell being cast (CR 702.166a): with the
@@ -1004,6 +1048,7 @@ impl Runner {
                     evoked,
                     dashed,
                     alternative,
+                    bestowed,
                     ..
                 } => {
                     let choice = if *face_down {
@@ -1012,6 +1057,8 @@ impl Runner {
                         Choice::CastEvoke(self.in_hand(a.line, d.player, name)?)
                     } else if *dashed {
                         Choice::CastDash(self.in_hand(a.line, d.player, name)?)
+                    } else if *bestowed {
+                        Choice::CastBestow(self.in_hand(a.line, d.player, name)?)
                     } else if *alternative {
                         Choice::CastAlt(self.in_hand(a.line, d.player, name)?)
                     } else if *from_graveyard {
@@ -1044,18 +1091,24 @@ impl Runner {
             | Choice::CastFaceDown(id)
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
-            | Choice::CastAlt(id)) = option
+            | Choice::CastAlt(id)
+            | Choice::CastBestow(id)) = option
             else {
                 unreachable!()
             };
             let found = index_of(d, &option);
-            let refused = match (a.illegal, found, &targets) {
+            // "illegal cast ... splicing X": the cast is made, and X must
+            // not be offered for splicing onto it.
+            let splice_refusal =
+                a.illegal && matches!(&a.action, Action::Cast { splice, .. } if !splice.is_empty());
+            let illegal = a.illegal && !splice_refusal;
+            let refused = match (illegal, found, &targets) {
                 (true, Some(idx), Some(ts)) if !ts.is_empty() => {
                     self.scripted_target_refused(idx, ts, costs.0, a.line)?
                 }
                 _ => false,
             };
-            match (a.illegal, found) {
+            match (illegal, found) {
                 // "illegal cast ... targeting X": castable, but not at X.
                 (true, Some(_)) if refused => {
                     self.fired[i] = true;
@@ -1097,8 +1150,33 @@ impl Runner {
                 (false, Some(idx)) => {
                     self.fired[i] = true;
                     if let Some(targets) = targets {
-                        let ((needed, optional, variable), pending_mode) =
+                        let ((mut needed, optional, variable), pending_mode) =
                             self.cast_needs(a.line, id, name, mode)?;
+                        // A bestowed spell targets what it enchants; spliced
+                        // cards' targets follow the spell's (CR 702.47a).
+                        if let Action::Cast {
+                            bestowed, splice, ..
+                        } = &a.action
+                        {
+                            if *bestowed {
+                                needed += 1;
+                            }
+                            if !splice_refusal {
+                                let pool = &self.state().pool;
+                                needed += splice
+                                    .iter()
+                                    .filter_map(|n| pool.lookup(n))
+                                    .map(|r| pool.get(r).cast_targets().len())
+                                    .sum::<usize>();
+                            }
+                            if splice_refusal {
+                                self.pending_splice.clear();
+                                self.refused_splice.clone_from(splice);
+                            } else {
+                                self.refused_splice.clear();
+                                self.pending_splice.clone_from(splice);
+                            }
+                        }
                         self.pending_division = match &a.action {
                             Action::Cast { divide, .. } => divide.clone(),
                             _ => Vec::new(),
@@ -2266,6 +2344,7 @@ impl Runner {
             Choice::CastEvoke(id) => format!("cast {} evoked", self.describe_ids(&[*id])),
             Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
             Choice::CastAlt(id) => format!("cast {} alternative", self.describe_ids(&[*id])),
+            Choice::CastBestow(id) => format!("cast {} bestowed", self.describe_ids(&[*id])),
             Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
             Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
             Choice::TurnFaceUp(id) => {

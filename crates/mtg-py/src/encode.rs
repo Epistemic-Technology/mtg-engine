@@ -89,10 +89,11 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::Bargain { .. } => 33,
         DecisionKind::TopOrBottom { .. } => 34,
         DecisionKind::ChooseAdditionalCost { .. } => 35,
+        DecisionKind::Splice { .. } => 36,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 36] = [
+pub const DECISION_KIND_NAMES: [&str; 37] = [
     "mulligan",
     "bottom",
     "priority",
@@ -129,6 +130,7 @@ pub const DECISION_KIND_NAMES: [&str; 36] = [
     "bargain",
     "top_or_bottom",
     "additional_cost",
+    "splice",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {
@@ -176,10 +178,11 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::Divide(_) => 36,
         Choice::CastDash(_) => 37,
         Choice::CastAlt(_) => 38,
+        Choice::CastBestow(_) => 39,
     }
 }
 
-pub const CHOICE_KIND_NAMES: [&str; 39] = [
+pub const CHOICE_KIND_NAMES: [&str; 40] = [
     "keep",
     "mulligan",
     "bottom",
@@ -219,6 +222,7 @@ pub const CHOICE_KIND_NAMES: [&str; 39] = [
     "divide",
     "cast_dash",
     "cast_alt",
+    "cast_bestow",
 ];
 
 #[allow(clippy::cast_precision_loss)] // ids and counts are small
@@ -385,6 +389,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
             | Choice::CastAlt(id)
+            | Choice::CastBestow(id)
             | Choice::Suspend(id)
             | Choice::Foretell(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
             Choice::CastFaceDown(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 3.0),

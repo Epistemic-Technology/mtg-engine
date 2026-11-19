@@ -1,0 +1,9 @@
+card "Baleful Eidolon" {
+  oracle_id 0930a976-f69e-44a8-8b19-72095f20ed13
+  cost {1}{B}
+  type Enchantment Creature — Spirit
+  pt 1/1
+  bestow {4}{B}
+  keyword deathtouch
+  static enchanted: +1/+1, has deathtouch
+}

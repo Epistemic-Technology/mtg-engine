@@ -1,0 +1,7 @@
+card "Consuming Vortex" {
+  oracle_id 863bb8d8-4571-4775-87e3-d6f3ec88c835
+  cost {1}{U}
+  type Instant — Arcane
+  spell: return target creature to hand
+  splice {3}{U}
+}

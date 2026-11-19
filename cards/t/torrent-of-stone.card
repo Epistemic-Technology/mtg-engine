@@ -1,0 +1,7 @@
+card "Torrent of Stone" {
+  oracle_id bc6ee33a-4245-4edb-a6b3-0bdcc2883fbc
+  cost {3}{R}
+  type Instant — Arcane
+  spell: deal 4 damage to target creature
+  splice sacrifice 2 Mountain
+}

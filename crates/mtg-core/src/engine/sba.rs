@@ -79,6 +79,7 @@ impl GameState {
             let mut to_destroy = Vec::new();
             let mut annihilate = Vec::new();
             let mut unattach = Vec::new();
+            let mut unbestow = Vec::new();
             let mut roles: Vec<(ObjId, PlayerId, u64, ObjId)> = Vec::new();
             // 704.5d: tokens that left the battlefield cease to exist. They
             // are listed as they leave (`move_object_now`), so only the
@@ -109,6 +110,13 @@ impl GameState {
                         self.is_legal_attachment(spec, t) && !self.protected_attachment(id, t)
                     })
                 {
+                    // CR 702.103f: a bestowed Aura not attached (or
+                    // attached illegally) becomes unattached and is an
+                    // enchantment creature again, staying put.
+                    if self.pool.get(o.card).bestow_face == Some(o.def) {
+                        unbestow.push(id);
+                        continue;
+                    }
                     to_graveyard.push(id);
                     continue;
                 }
@@ -170,6 +178,16 @@ impl GameState {
                 self.objects[id].attached_to = None;
                 self.cbump();
                 self.emit(Event::Unattached { obj: id });
+                acted = true;
+            }
+            for id in unbestow {
+                let o = &mut self.objects[id];
+                o.def = o.card;
+                let was_attached = o.attached_to.take().is_some();
+                self.cbump();
+                if was_attached {
+                    self.emit(Event::Unattached { obj: id });
+                }
                 acted = true;
             }
             // The zone changes below are simultaneous: leaves-the-battlefield

@@ -1,0 +1,7 @@
+card "Kodama's Might" {
+  oracle_id c027a8ef-6cdd-4c14-9d4f-b21c63312874
+  cost {G}
+  type Instant — Arcane
+  spell: target creature gets +2/+2
+  splice {G}
+}

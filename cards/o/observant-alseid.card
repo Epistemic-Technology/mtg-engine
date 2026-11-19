@@ -1,0 +1,9 @@
+card "Observant Alseid" {
+  oracle_id 0eb0c9d2-bc5a-4ba3-bd83-57af1da51c3b
+  cost {2}{W}
+  type Enchantment Creature — Nymph
+  pt 2/2
+  bestow {4}{W}
+  keyword vigilance
+  static enchanted: +2/+2, has vigilance
+}

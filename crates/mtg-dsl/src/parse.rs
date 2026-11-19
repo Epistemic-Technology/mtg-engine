@@ -1272,7 +1272,7 @@ impl P {
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
-            | "scavenge" | "dash" | "embalm" | "eternalize" | "offspring"
+            | "scavenge" | "dash" | "embalm" | "eternalize" | "offspring" | "bestow" | "splice"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1293,6 +1293,8 @@ impl P {
                     "ninjutsu" => Mechanic::Ninjutsu(c),
                     "scavenge" => Mechanic::Scavenge(c),
                     "dash" => Mechanic::Dash(c),
+                    "bestow" => Mechanic::Bestow(c),
+                    "splice" => Mechanic::Splice(c),
                     "embalm" => Mechanic::Embalm(c),
                     "eternalize" => Mechanic::Eternalize(c),
                     "offspring" => Mechanic::Offspring(c),
@@ -1301,13 +1303,16 @@ impl P {
             }
             // "Ward—Pay 3 life.", "Morph—Discard a card.", "Buyback—
             // Sacrifice a land.": a keyword whose cost isn't mana.
-            "ward" | "morph" | "buyback" if matches!(self.peek_at(1), Some(Tok::Word(_))) => {
+            "ward" | "morph" | "buyback" | "splice"
+                if matches!(self.peek_at(1), Some(Tok::Word(_))) =>
+            {
                 self.pos += 1;
                 let c = self.cost()?;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(match w.as_str() {
                     "ward" => Mechanic::WardCost(c),
                     "morph" => Mechanic::MorphCost(c),
+                    "splice" => Mechanic::SpliceCost(c),
                     _ => Mechanic::BuybackCost(c),
                 }))
             }
