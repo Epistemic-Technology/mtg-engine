@@ -49,6 +49,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         it_source: false,
         subject: None,
         votes: Vec::new(),
+        returned: None,
     };
     let mut cards = Vec::new();
     loop {
@@ -461,6 +462,9 @@ struct P {
     it_source: bool,
     /// The subject of the previous clause of the sentence being parsed.
     subject: Option<Recipient>,
+    /// The target an earlier effect of the ability returned to its
+    /// owner's hand: "that player" is then its owner.
+    returned: Option<usize>,
 }
 
 impl P {
@@ -1085,6 +1089,7 @@ impl P {
         self.subject = None;
         self.in_trigger = false;
         self.it_source = false;
+        self.returned = None;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
             "spend" if self.word_at(1).as_deref() == Some("only") => {
@@ -2253,6 +2258,12 @@ impl P {
             return Ok(StaticCond::AnyPlayerLifeAtMost(n));
         }
         if self.eat_word("hand") {
+            // `hand has no land card`: "you have no land cards in hand".
+            if self.eat_words(&["has", "no"]) {
+                let f = self.filter()?;
+                self.cards_word()?;
+                return Ok(StaticCond::NoCardInHand(f));
+            }
             let n = self.number()?;
             self.expect_word("or")?;
             let at_most = if self.eat_word("less") {
@@ -3650,11 +3661,15 @@ impl P {
                 if (self.at_word("card") || self.at_word("cards"))
                     && self.word_at(1).as_deref() == Some("from")
                 {
-                    self.pos += 1;
-                    self.expect_words(&["from", "hand"])?;
+                    self.pos += 2;
+                    let graveyard = self.eat_word("graveyard");
+                    if !graveyard {
+                        self.expect_word("hand")?;
+                    }
                     return Ok(Effect::ExileFromHand {
                         count,
                         who: subject,
+                        graveyard,
                     });
                 }
                 let filter = self.filter()?;
@@ -4566,6 +4581,9 @@ impl P {
                     || self.eat_words(&["your", "hand"])
                     || self.eat_word("hand")
                 {
+                    if let [Recipient::Target(i)] = all.as_slice() {
+                        self.returned = Some(*i);
+                    }
                     return Ok(Effect::ReturnToHand { what: all });
                 }
                 if all.len() > 1 {
@@ -5823,6 +5841,7 @@ impl P {
             it_source: self.it_source,
             subject: None,
             votes: self.votes.clone(),
+            returned: self.returned,
         };
         if !probe.at_recipient() {
             return false;
@@ -6165,6 +6184,14 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::ThatTarget(self.targets.len() - 1));
         }
+        // "Return target permanent to its owner's hand. Then that player
+        // discards a card.": the returned card's owner.
+        if let Some(i) = self.returned
+            && self.at_words(&["that", "player"])
+        {
+            self.pos += 2;
+            return Ok(Recipient::ThatOwner(i));
+        }
         // Likewise "that player" after a target player ("Target player
         // discards two cards. ... it deals 3 damage to that player").
         if !self.in_trigger
@@ -6322,6 +6349,7 @@ impl P {
                         it_source: false,
                         subject: None,
                         votes: Vec::new(),
+                        returned: None,
                     };
                     probe.keyword().is_some()
                 };
@@ -7819,6 +7847,11 @@ impl P {
                             self.expect_word("life")?;
                             cost.order.push(CostItem::Life);
                         }
+                    }
+                    "reveal" if self.word_at(1).as_deref() == Some("hand") => {
+                        self.pos += 2;
+                        cost.reveal_hand = true;
+                        cost.order.push(CostItem::RevealHand);
                     }
                     "sorcery" => {
                         self.pos += 1;

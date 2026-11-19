@@ -1,0 +1,7 @@
+card "Land Grant" {
+  oracle_id e36f4649-934d-4e8a-bd5f-39f164ea6937
+  cost {1}{G}
+  type Sorcery
+  alternative cost reveal hand, if hand has no land card
+  spell: search Forest card reveal to hand that card
+}

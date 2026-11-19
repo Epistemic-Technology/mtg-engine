@@ -238,6 +238,7 @@ impl Fmt {
                 "its controller".to_string()
             }
             Recipient::ThatControllerOf(i) => format!("controller of that target {}", i + 1),
+            Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TheControllerOf(i) => format!("controller of the target {}", i + 1),
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
@@ -1007,11 +1008,16 @@ impl Fmt {
                 num(*count),
                 filter(f)
             ),
-            Effect::ExileFromHand { count, who } => format!(
-                "{} exiles {} {} from hand",
+            Effect::ExileFromHand {
+                count,
+                who,
+                graveyard,
+            } => format!(
+                "{} exiles {} {} from {}",
                 self.recipient(*who, t),
                 num(*count),
-                cards(*count)
+                cards(*count),
+                if *graveyard { "graveyard" } else { "hand" }
             ),
             Effect::ExileFromGraveyardOrHand { who, filter: f } => {
                 let what = if *f == Filter::default() {
@@ -2806,6 +2812,7 @@ fn cost_text(c: &Cost) -> String {
                     parts.push(format!("pay {} life", c.life));
                 }
             }
+            CostItem::RevealHand => parts.push("reveal hand".to_string()),
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
         }
     }
@@ -3120,6 +3127,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::CardsInHand { n, at_most } => {
             format!("hand {n} or {}", if *at_most { "less" } else { "more" })
         }
+        StaticCond::NoCardInHand(f) => format!("hand has no {} card", filter(f)),
         StaticCond::YourLife { n, at_least } => {
             format!(
                 "your life {n} or {}",

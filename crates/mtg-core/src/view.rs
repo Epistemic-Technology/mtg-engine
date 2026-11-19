@@ -439,4 +439,40 @@ mod tests {
         c.determinize(PlayerId(0), 8);
         assert_ne!(a.state().rng, c.state().rng);
     }
+
+    /// A card revealed from the opponent's hand (CR 701.20) stays where it
+    /// is when the viewer's search resamples the rest; the others move.
+    #[test]
+    fn determinize_keeps_revealed_cards() {
+        let pool = Arc::new(test_pool());
+        let forest = pool.lookup("Forest").unwrap();
+        let island = pool.lookup("Island").unwrap();
+        let mut deck = vec![forest; 10];
+        deck.extend(vec![island; 10]);
+        let cfg = GameConfig {
+            decks: vec![deck.clone(), deck],
+            starting_life: 20,
+            seed: 3,
+            logging: false,
+        };
+        let e = Engine::new(pool, &cfg);
+        let mut real = e.state().clone();
+        let hand = real.player(PlayerId(1)).hand.clone();
+        real.objects[hand[2]].revealed = u8::MAX;
+        assert!(real.visible_to(PlayerId(0), hand[2]));
+        assert!(!real.visible_to(PlayerId(0), hand[0]));
+        assert_eq!(real.observe(PlayerId(0)).players[1].revealed.len(), 1);
+        assert!(real.observe(PlayerId(1)).players[0].revealed.is_empty());
+        let mut moved = false;
+        for seed in 0..20 {
+            let mut s = real.clone();
+            s.determinize(PlayerId(0), seed);
+            let h = &s.player(PlayerId(1)).hand;
+            assert_eq!(h.len(), hand.len());
+            assert_eq!(h[2], hand[2], "the revealed card stays");
+            assert_eq!(s.objects[h[2]].zone, Zone::Hand);
+            moved |= h[0] != hand[0];
+        }
+        assert!(moved, "unrevealed cards are resampled");
+    }
 }

@@ -319,6 +319,7 @@ impl Decompiler<'_> {
             once_ever: false,
             restrict: Vec::new(),
             reduce: None,
+            reveal_hand: c.reveal_hand,
         }
     }
 
@@ -472,6 +473,7 @@ impl Decompiler<'_> {
                 n: *n,
                 at_most: *at_most,
             },
+            StaticCondition::NoCardInHand(f) => StaticCond::NoCardInHand(self.filter(f)),
         }
     }
 
@@ -776,9 +778,14 @@ impl Decompiler<'_> {
                 count: *count,
                 filter: self.filter(filter),
             },
-            CoreEffect::ExileFromHand { count, who } => Effect::ExileFromHand {
+            CoreEffect::ExileFromHand {
+                count,
+                who,
+                graveyard,
+            } => Effect::ExileFromHand {
                 count: *count,
                 who: r(*who),
+                graveyard: *graveyard,
             },
             CoreEffect::ExileFromGraveyardOrHand { who, filter } => {
                 Effect::ExileFromGraveyardOrHand {

@@ -1892,6 +1892,8 @@ pub enum StaticCondition {
         filter: ObjFilter,
         at_least: u32,
     },
+    /// "you have no land cards in hand": no card in your hand matches.
+    NoCardInHand(ObjFilter),
     /// Either holds ("you control a Desert or there is a Desert card in
     /// your graveyard").
     Or(Box<StaticCondition>, Box<StaticCondition>),
@@ -2713,11 +2715,13 @@ pub enum Effect {
         filter: ObjFilter,
         count: Num,
     },
-    /// "Target opponent exiles two cards from their hand": each recipient
-    /// player chooses `count` cards from their hand and exiles them.
+    /// "Target opponent exiles two cards from their hand" (with
+    /// `graveyard`, "a card from their graveyard"): each recipient player
+    /// chooses `count` cards there and exiles them.
     ExileFromHand {
         count: Num,
         who: Recipient,
+        graveyard: bool,
     },
     /// "Target opponent reveals their hand. You choose a nonland card from
     /// that player's graveyard or hand and exile it.": the recipient
@@ -4150,6 +4154,10 @@ pub struct Cost {
     /// first.
     #[serde(default)]
     pub exile_cards: Option<Box<GraveExile>>,
+    /// "Reveal your hand" (Land Grant's alternative cost, CR 701.20):
+    /// every card left in the payer's hand becomes known.
+    #[serde(default)]
+    pub reveal_hand: bool,
 }
 
 /// A cost that exiles cards from its payer's graveyard: `n` of them (X,
@@ -4193,6 +4201,7 @@ impl Cost {
             sacrifice: None,
             count: 0,
             exile_cards: None,
+            reveal_hand: false,
         }
     }
 

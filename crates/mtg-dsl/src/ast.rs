@@ -424,6 +424,8 @@ pub struct Cost {
     /// (Oracle has no fixed one); empty means mana, tap, sacrifice,
     /// discard, life.
     pub order: Vec<CostItem>,
+    /// `reveal hand`: "reveal your hand" (an alternative cost).
+    pub reveal_hand: bool,
 }
 
 /// A cost exiling cards from the graveyard: `n` (or X) cards matching
@@ -450,6 +452,8 @@ pub enum CostItem {
     Sacrifice,
     Discard,
     Life,
+    /// `reveal hand`: "reveal your hand".
+    RevealHand,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1195,6 +1199,8 @@ pub enum StaticCond {
         n: u32,
         at_most: bool,
     },
+    /// `hand has no land card`: "you have no land cards in hand".
+    NoCardInHand(Filter),
     /// `2 instant or sorcery cards in your graveyard`: "there are two or
     /// more instant and/or sorcery cards in your graveyard"; `you have 4
     /// creature cards in your graveyard`: "you have four or more creature
@@ -1780,6 +1786,10 @@ pub enum Recipient {
     Targets(usize, usize),
     /// `controller of that target 1`: "that creature's controller".
     ThatControllerOf(usize),
+    /// "that player" after "Return target permanent to its owner's hand":
+    /// the owner of the `n`th target, printed "that player" (Recoil's
+    /// "Then that player discards a card").
+    ThatOwner(usize),
     /// `controller of the target 1`: "the creature's controller".
     TheControllerOf(usize),
     /// The `n`th target again, printed as "that creature" (Act of
@@ -2150,10 +2160,12 @@ pub enum Effect {
         filter: Filter,
     },
     /// `target opponent exiles 2 cards from hand`: "Target opponent exiles
-    /// two cards from their hand" (the player chooses).
+    /// two cards from their hand" (the player chooses); `... from
+    /// graveyard`: "from their graveyard".
     ExileFromHand {
         count: Num,
         who: Recipient,
+        graveyard: bool,
     },
     /// `target opponent reveals hand exiling nonland card from graveyard
     /// or hand`: "Target opponent reveals their hand. You choose a nonland

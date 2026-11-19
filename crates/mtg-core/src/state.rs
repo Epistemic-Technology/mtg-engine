@@ -2295,6 +2295,10 @@ impl GameState {
                     .count();
                 n >= *at_least as usize
             }
+            C::NoCardInHand(filter) => !self.player(you).hand.iter().any(|id| {
+                let c = self.base_characteristics(&self.objects[*id]);
+                filter.matches(*id, you, &c, None, Some(you))
+            }),
             C::OpponentGraveyard(n) => self
                 .players_in_game()
                 .any(|p| p != you && self.player(p).graveyard.len() >= *n as usize),

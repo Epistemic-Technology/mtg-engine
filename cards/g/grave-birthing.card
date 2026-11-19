@@ -1,0 +1,10 @@
+card "Grave Birthing" {
+  oracle_id b25962ab-21b5-47f9-bdef-35b911b45671
+  cost {2}{B}
+  type Instant
+  keywords devoid
+  spell {
+    target opponent exiles 1 card from graveyard; you create 1 "Eldrazi Scion" it has
+    draw 1 card
+  }
+}

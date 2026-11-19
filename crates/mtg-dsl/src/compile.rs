@@ -743,6 +743,7 @@ impl Compiler<'_> {
                 n: *n,
                 at_most: *at_most,
             },
+            StaticCond::NoCardInHand(f) => StaticCondition::NoCardInHand(self.filter(f)),
             StaticCond::GraveyardCards {
                 filter, at_least, ..
             } => StaticCondition::GraveyardCards {
@@ -963,6 +964,7 @@ impl Compiler<'_> {
                     filter: g.filter.as_ref().map(|f| self.filter(f)),
                 })
             }),
+            reveal_hand: c.reveal_hand,
         }
     }
 
@@ -997,7 +999,7 @@ impl Compiler<'_> {
             Recipient::ControllerOf(i)
             | Recipient::ThatControllerOf(i)
             | Recipient::TheControllerOf(i) => CoreRecipient::ControllerOf(i),
-            Recipient::OwnerOf(i) => CoreRecipient::OwnerOf(i),
+            Recipient::OwnerOf(i) | Recipient::ThatOwner(i) => CoreRecipient::OwnerOf(i),
             Recipient::EachCreature => CoreRecipient::EachCreature,
             Recipient::EachPlayer => CoreRecipient::EachPlayer,
             Recipient::EachCreatureYouControl => CoreRecipient::EachCreatureYouControl,
@@ -1418,9 +1420,14 @@ impl Compiler<'_> {
                 filter: self.filter(filter),
                 count: *count,
             }),
-            Effect::ExileFromHand { count, who } => out.push(CoreEffect::ExileFromHand {
+            Effect::ExileFromHand {
+                count,
+                who,
+                graveyard,
+            } => out.push(CoreEffect::ExileFromHand {
                 count: *count,
                 who: r(*who),
+                graveyard: *graveyard,
             }),
             Effect::ExileFromGraveyardOrHand { who, filter } => {
                 out.push(CoreEffect::ExileFromGraveyardOrHand {

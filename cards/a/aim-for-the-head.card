@@ -1,0 +1,9 @@
+card "Aim for the Head" {
+  oracle_id b191ae0c-7d54-459f-abe3-aab5d792e514
+  cost {2}{B}
+  type Sorcery
+  choose one {
+    mode: exile target Zombie
+    mode: target opponent exiles 2 cards from hand
+  }
+}

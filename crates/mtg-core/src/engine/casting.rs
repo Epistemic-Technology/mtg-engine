@@ -3311,6 +3311,9 @@ impl GameState {
         if let Some((k, n)) = cost.remove_counters {
             self.remove_counters(this, k, n);
         }
+        if cost.reveal_hand {
+            self.reveal_hand(p);
+        }
         if cost.energy > 0 {
             let e = &mut self.player_mut(p).energy;
             *e = e.saturating_sub(cost.energy);
@@ -5785,24 +5788,29 @@ impl GameState {
                     }
                 }
             }
-            Effect::ExileFromHand { count, who } => {
+            Effect::ExileFromHand {
+                count,
+                who,
+                graveyard,
+            } => {
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
                     };
-                    if self.player(p).hand.is_empty() {
+                    let ps = self.player(p);
+                    if if *graveyard { &ps.graveyard } else { &ps.hand }.is_empty() {
                         ctx.did = false;
                     }
                     for _ in 0..self.eval_num(*count, ctx) {
-                        let options: Vec<Choice> = self
-                            .player(p)
-                            .hand
-                            .iter()
-                            .map(|id| Choice::Discard {
-                                card: *id,
-                                def: self.objects[*id].def,
-                            })
-                            .collect();
+                        let ps = self.player(p);
+                        let options: Vec<Choice> =
+                            if *graveyard { &ps.graveyard } else { &ps.hand }
+                                .iter()
+                                .map(|id| Choice::Discard {
+                                    card: *id,
+                                    def: self.objects[*id].def,
+                                })
+                                .collect();
                         if options.is_empty() {
                             break;
                         }

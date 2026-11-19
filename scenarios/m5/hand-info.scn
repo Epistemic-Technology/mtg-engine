@@ -1,0 +1,219 @@
+# Discard and hand information: a player exiles cards from their hand or
+# graveyard or a permanent they control, "You choose a nonland card from
+# that player's graveyard or hand and exile it", another player searches
+# or investigates, "Then that player discards a card", and an
+# alternative cost that reveals the hand (CR 701.20).
+
+# ---- exiling from a hand or a graveyard ----
+
+scenario "Skullcap Snail: the opponent exiles the card of their choice from their hand" {
+  battlefield A: 2 "Swamp"
+  hand A: "Skullcap Snail"
+  hand B: "Shock", "Forest"
+  turn 1 A: cast "Skullcap Snail"
+  turn 1 A: trigger "Skullcap Snail" targeting player B
+  turn 1 B: choose "Forest"
+  run_to turn 1 end
+  assert exile B contains "Forest"
+  assert hand B contains "Shock"
+  assert hand B count 1
+}
+
+scenario "Unscrupulous Agent: an empty hand exiles nothing" {
+  battlefield A: 2 "Swamp"
+  hand A: "Unscrupulous Agent"
+  turn 1 A: cast "Unscrupulous Agent"
+  turn 1 A: trigger "Unscrupulous Agent" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Unscrupulous Agent"
+  assert hand B count 0
+}
+
+scenario "Witness the End: two cards exiled and 2 life lost" {
+  battlefield A: 4 "Swamp"
+  hand A: "Witness the End"
+  hand B: "Shock", "Forest", "Island"
+  turn 1 A: cast "Witness the End" targeting player B
+  turn 1 B: choose "Shock"
+  turn 1 B: choose "Island"
+  run_to turn 1 end
+  assert exile B contains "Shock"
+  assert exile B contains "Island"
+  assert hand B contains "Forest"
+  assert life B 18
+}
+
+scenario "Mind Swords: each player exiles two cards from their hand" {
+  battlefield A: 2 "Swamp"
+  hand A: "Mind Swords", "Forest", "Island", "Plains"
+  hand B: "Shock", "Mountain"
+  turn 1 A: cast "Mind Swords"
+  run_to turn 1 end
+  assert hand A count 1
+  assert exile A count 2
+  assert hand B count 0
+  assert exile B contains "Shock"
+  assert exile B contains "Mountain"
+}
+
+scenario "Grave Birthing: the opponent exiles a card from their graveyard" {
+  battlefield A: 3 "Swamp"
+  hand A: "Grave Birthing"
+  graveyard B: "Shock", "Forest"
+  turn 1 A: cast "Grave Birthing" targeting player B
+  turn 1 B: choose "Shock"
+  run_to turn 1 end
+  assert exile B contains "Shock"
+  assert graveyard B contains "Forest"
+  assert battlefield A contains "Eldrazi Scion"
+  assert hand A count 1
+}
+
+scenario "Never Happened: you choose a nonland card from their hand" {
+  battlefield A: 3 "Swamp"
+  hand A: "Never Happened"
+  hand B: "Shock", "Forest"
+  graveyard B: "Lightning Bolt"
+  turn 1 A: cast "Never Happened" targeting player B
+  turn 1 A: choose "Shock"
+  run_to turn 1 end
+  assert exile B contains "Shock"
+  assert graveyard B contains "Lightning Bolt"
+  assert hand B contains "Forest"
+}
+
+scenario "Memory Leak: or from their graveyard" {
+  battlefield A: 3 "Swamp"
+  hand A: "Memory Leak"
+  hand B: "Shock"
+  graveyard B: "Lightning Bolt"
+  turn 1 A: cast "Memory Leak" targeting player B
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 end
+  assert exile B contains "Lightning Bolt"
+  assert hand B contains "Shock"
+}
+
+scenario "Never Happened: a land can't be chosen" {
+  battlefield A: 3 "Swamp"
+  hand A: "Never Happened"
+  hand B: "Shock", "Forest"
+  turn 1 A: cast "Never Happened" targeting player B
+  illegal turn 1 A: choose "Forest"
+  run_to turn 1 end
+  assert hand B contains "Forest"
+  assert exile B contains "Shock"
+}
+
+# ---- exiling a permanent of their choice ----
+
+scenario "Debt to the Kami: the opponent exiles a creature they control" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Debt to the Kami"
+  turn 1 A: cast "Debt to the Kami" mode 1 targeting player B
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+}
+
+scenario "Early Winter: an enchantment, not a creature" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Early Winter"
+  turn 1 A: cast "Early Winter" mode 2 targeting player B
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+}
+
+# ---- another player searches or investigates ----
+
+scenario "Cleansing Wildfire: the land's controller may search for a basic land" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Island"
+  hand A: "Cleansing Wildfire"
+  library B: "Shock", "Forest", "Island"
+  turn 1 A: cast "Cleansing Wildfire" targeting "Island"
+  run_to turn 1 end
+  assert battlefield B contains "Forest"
+  assert tapped "Forest"
+  assert graveyard B contains "Island"
+  assert hand A count 1
+}
+
+scenario "Geomancer's Gambit: untapped, and nothing without a basic land" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Island"
+  hand A: "Geomancer's Gambit"
+  library B: "Shock"
+  turn 1 A: cast "Geomancer's Gambit" targeting "Island"
+  run_to turn 1 end
+  assert battlefield B lacks "Island"
+  assert library B contains "Shock"
+}
+
+scenario "Fertilid's Favor: target player searches; the counters are yours to place" {
+  battlefield A: 4 "Forest", "Grizzly Bears"
+  hand A: "Fertilid's Favor"
+  library B: "Shock", "Plains"
+  turn 1 A: cast "Fertilid's Favor" targeting player B, "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield B contains "Plains"
+  assert tapped "Plains"
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "Panther Pounce: the targeted player investigates" {
+  battlefield A: "Plains", "Grizzly Bears"
+  hand A: "Panther Pounce"
+  turn 1 A: cast "Panther Pounce" targeting player B, "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield B contains "Clue"
+  assert battlefield A lacks "Clue"
+  assert has "Grizzly Bears" flying
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Goblin Matron: the Goblin card found goes to the hand" {
+  battlefield A: 3 "Mountain"
+  hand A: "Goblin Matron"
+  library A: "Shock", "Goblin Matron"
+  turn 1 A: cast "Goblin Matron"
+  run_to turn 1 end
+  assert hand A contains "Goblin Matron"
+  assert library A contains "Shock"
+}
+
+# ---- "Then that player discards a card" ----
+
+scenario "Recoil: the returned permanent's owner discards a card" {
+  battlefield A: "Island", "Swamp", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Recoil"
+  hand B: "Shock"
+  turn 1 A: cast "Recoil" targeting "Grizzly Bears"
+  turn 1 precombat_main B: discard "Shock"
+  run_to turn 1 end
+  assert graveyard B contains "Shock"
+  assert hand B contains "Grizzly Bears"
+  assert hand B count 1
+}
+
+# ---- revealing the hand as an alternative cost ----
+
+scenario "Land Grant: reveal a hand with no lands instead of paying" {
+  hand A: "Land Grant", "Shock"
+  library A: "Island", "Forest"
+  turn 1 A: cast "Land Grant" alternative
+  run_to turn 1 end
+  assert hand A contains "Forest"
+  assert graveyard A contains "Land Grant"
+}
+
+scenario "Land Grant: not with a land card in hand" {
+  hand A: "Land Grant", "Island"
+  library A: "Forest"
+  illegal turn 1 A: cast "Land Grant" alternative
+  run_to turn 1 end
+  assert hand A contains "Land Grant"
+}
