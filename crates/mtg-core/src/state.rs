@@ -1095,6 +1095,10 @@ pub struct GameState {
     /// Battlefield permanents with a restricted mana ability (CR 106.6),
     /// so payment looks for such sources only when one is in play.
     pub restricted_mana_sources: u32,
+    /// Battlefield permanents with a triggered mana ability (CR 605.1b,
+    /// `DefFlags::MANA_TRIGGER`): tapping for mana and payment look for
+    /// them only then.
+    pub mana_trigger_sources: u32,
     /// Battlefield permanents with a static ability reading this turn's
     /// history or step (`DefFlags::TURN_STATIC`).
     pub turn_static_sources: u32,
@@ -1844,6 +1848,7 @@ impl GameState {
                 count(filter, you) >= *at_least as usize
             }
             C::YouControlNone(filter) => count(filter, you) == 0,
+            C::YouControlEach(filters) => filters.iter().all(|f| count(f, you) > 0),
             C::DefenderControls { filter, at_least } => self
                 .players_in_game()
                 .filter(|p| *p != you)

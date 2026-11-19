@@ -1,0 +1,7 @@
+card "Hickory Woodlot" {
+  oracle_id 26259c65-8f4e-42a6-b8a7-f65c36d35c4d
+  type Land
+  enters tapped
+  enters with 2 depletion counters
+  activated {T}, remove 1 depletion counter from this: add {G}{G}; if this has no depletion counters, sacrifice this
+}

@@ -1,0 +1,7 @@
+card "Viridian Joiner" {
+  oracle_id 84244aa6-11be-4940-b102-e029f955fc9a
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 1/2
+  activated {T}: add {G} count equal power
+}

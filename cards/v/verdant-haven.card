@@ -1,0 +1,8 @@
+card "Verdant Haven" {
+  oracle_id 09381494-393d-4ddf-b79f-7c0ae5dce912
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: you gain 2 life
+  triggered whenever enchanted land is tapped for mana: add any
+}

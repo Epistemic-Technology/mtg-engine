@@ -921,7 +921,16 @@ impl Fmt {
                 }
             }
             Effect::Transform { what } => format!("transform {}", self.recipient(*what, t)),
+            Effect::AddMana(m) if m == &[Mana::Chosen] => "add chosen".to_string(),
             Effect::AddMana(m) => format!("add {}", crate::render::mana_symbols(m, "any")),
+            Effect::AddManaLandCould { whose, basic } => format!(
+                "add any that {}land {} could produce",
+                if *basic { "basic " } else { "" },
+                match whose {
+                    Who::Opponents => "opponent controls",
+                    _ => "you control",
+                }
+            ),
             Effect::AddManaOneOf(m) => format!(
                 "add {}",
                 m.iter()
@@ -941,17 +950,22 @@ impl Fmt {
                 colors,
                 different,
             } => {
+                // "Add X mana ..., where X is ...": the count after.
+                let (n, tail) = match count {
+                    Num::Count(_) => ("X".to_string(), format!(" {}", num(*count))),
+                    n => (num(*n), String::new()),
+                };
                 if *different {
-                    format!("add {count} mana different colors")
+                    format!("add {n} mana different colors{tail}")
                 } else if colors.count() == 5 {
-                    format!("add {count} mana any combination")
+                    format!("add {n} mana any combination{tail}")
                 } else {
                     let syms = colors
                         .iter()
                         .map(|c| format!("{{{}}}", c.letter()))
                         .collect::<Vec<_>>()
                         .concat();
-                    format!("add {count} mana any combination of {syms}")
+                    format!("add {n} mana any combination of {syms}{tail}")
                 }
             }
             Effect::Search {
@@ -2342,6 +2356,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::BecomesAttachedTo(f) => {
             format!("whenever {} becomes attached to this", filter(f))
         }
+        Trigger::TappedForMana(o) => format!("whenever {} is tapped for mana", trigger_obj(o)),
         Trigger::BecomesUntapped(o) => format!("whenever {} becomes untapped", trigger_obj(o)),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_obj(o)),
         Trigger::DealtCombatDamage(o) => {
@@ -2710,6 +2725,10 @@ fn static_cond(c: &StaticCond) -> String {
             at_least,
         } => format!("defending player controls {at_least} {}", filter(fl)),
         StaticCond::YouControlNone(fl) => format!("you control no {}", filter(fl)),
+        StaticCond::YouControlEach(fs) => format!(
+            "you control {}",
+            fs.iter().map(filter).collect::<Vec<_>>().join(" and ")
+        ),
         StaticCond::OnBattlefield {
             filter: fl,
             at_least: 1,

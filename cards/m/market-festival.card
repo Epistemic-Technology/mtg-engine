@@ -1,0 +1,7 @@
+card "Market Festival" {
+  oracle_id 15c63f9b-d071-4522-b9f0-a1f441a61b81
+  cost {3}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered whenever enchanted land is tapped for mana: add 2 mana any combination
+}

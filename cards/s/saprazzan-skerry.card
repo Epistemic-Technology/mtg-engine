@@ -1,0 +1,7 @@
+card "Saprazzan Skerry" {
+  oracle_id e4e6e796-39ce-4a63-8c61-c7c956d75d78
+  type Land
+  enters tapped
+  enters with 2 depletion counters
+  activated {T}, remove 1 depletion counter from this: add {U}{U}; if this has no depletion counters, sacrifice this
+}

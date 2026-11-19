@@ -1,0 +1,8 @@
+card "Vivid Grove" {
+  oracle_id b7a68899-c0d3-49e0-854b-19268ae9b89d
+  type Land
+  enters tapped
+  enters with 2 charge counters
+  mana {G}
+  activated {T}, remove 1 charge counter from this: add any
+}

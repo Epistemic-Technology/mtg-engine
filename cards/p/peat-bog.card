@@ -1,0 +1,7 @@
+card "Peat Bog" {
+  oracle_id a176924c-78fc-4151-b2b5-1547b1114a40
+  type Land
+  enters tapped
+  enters with 2 depletion counters
+  activated {T}, remove 1 depletion counter from this: add {B}{B}; if this has no depletion counters, sacrifice this
+}

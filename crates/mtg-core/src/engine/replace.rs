@@ -208,8 +208,11 @@ impl GameState {
             if candidates.is_empty() {
                 return self.perform(ev);
             }
-            // CR 616.1: the affected player chooses which applies next.
-            let i = if candidates.len() == 1 {
+            // CR 616.1: the affected player chooses which applies next;
+            // a permanent's own "enters tapped" and "enters with counters"
+            // give the same result in either order ("This land enters
+            // tapped with two depletion counters on it").
+            let i = if candidates.len() == 1 || Self::commute(&candidates) {
                 0
             } else {
                 let player = ev.affected_player(self);
@@ -1080,6 +1083,20 @@ impl GameState {
                     })
             }
         }
+    }
+
+    /// Whether these candidates are all plain "enters tapped" and "enters
+    /// with counters" effects, whose order changes nothing.
+    fn commute(candidates: &[Candidate]) -> bool {
+        candidates.iter().all(|c| {
+            c.ability.then.is_empty()
+                && matches!(c.ability.replaces, crate::card::Replaces::Enters)
+                && matches!(
+                    c.ability.replacement,
+                    crate::card::Replacement::EnterTapped
+                        | crate::card::Replacement::EnterWithCounters { .. }
+                )
+        })
     }
 
     // ----- decisions in the middle of an event ------------------------------------

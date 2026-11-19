@@ -2152,6 +2152,14 @@ impl P {
                 1
             };
             let filter = self.filter()?;
+            // "you control an Urza's Mine and an Urza's Power-Plant".
+            if at_least == 1 && self.at_word("and") {
+                let mut all = vec![filter];
+                while self.eat_word("and") {
+                    all.push(self.filter()?);
+                }
+                return Ok(StaticCond::YouControlEach(all));
+            }
             return Ok(StaticCond::YouControl { filter, at_least });
         }
         let n = self.number()?;
@@ -4157,6 +4165,23 @@ impl P {
                 })
             }
             "add" => {
+                if self.eat_word("chosen") {
+                    return Ok(Effect::AddMana(vec![Mana::Chosen]));
+                }
+                // "any color that a land an opponent controls could
+                // produce" (CR 106.7).
+                if self.eat_words(&["any", "that"]) {
+                    let basic = self.eat_word("basic");
+                    self.expect_word("land")?;
+                    let whose = if self.eat_words(&["you", "control"]) {
+                        Who::You
+                    } else {
+                        self.expect_words(&["opponent", "controls"])?;
+                        Who::Opponents
+                    };
+                    self.expect_words(&["could", "produce"])?;
+                    return Ok(Effect::AddManaLandCould { whose, basic });
+                }
                 if self.eat_word("any") {
                     if matches!(self.peek(), Some(Tok::Num(_))) {
                         return Ok(Effect::AddManaTimes {
@@ -4166,8 +4191,14 @@ impl P {
                     }
                     return Ok(Effect::AddMana(vec![Mana::Any]));
                 }
-                if matches!(self.peek(), Some(Tok::Num(_))) {
-                    let count = self.number()?;
+                let x = self.at_word("x") && self.word_at(1).as_deref() == Some("mana");
+                if x || matches!(self.peek(), Some(Tok::Num(_))) {
+                    let mut count = if x {
+                        self.pos += 1;
+                        Num::X
+                    } else {
+                        Num::N(self.number()?)
+                    };
                     self.expect_word("mana")?;
                     if self.eat_words(&["different", "colors"]) {
                         return Ok(Effect::AddManaCombination {
@@ -4190,6 +4221,10 @@ impl P {
                     } else {
                         mtg_core::mana::ColorSet::ALL
                     };
+                    // "Add X mana ..., where X is the number of ...".
+                    if x && self.at_word("count") {
+                        count = self.num()?;
+                    }
                     return Ok(Effect::AddManaCombination {
                         count,
                         colors,
@@ -6073,7 +6108,7 @@ impl P {
                                 | "Platypus"
                                 | "Walrus"
                                 | "Aurochs"
-                        );
+                        ) || raw.ends_with("'s");
                         f.subtypes.push(if keep {
                             raw.clone()
                         } else {
@@ -6495,6 +6530,10 @@ impl P {
             "is" if self.at_words(&["dealt", "combat", "damage"]) => {
                 self.pos += 3;
                 Ok(Trigger::DealtCombatDamage(obj))
+            }
+            "is" if self.at_words(&["tapped", "for", "mana"]) => {
+                self.pos += 3;
+                Ok(Trigger::TappedForMana(obj))
             }
             "is" if self.at_words(&["dealt", "damage"]) => {
                 self.pos += 2;

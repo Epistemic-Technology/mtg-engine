@@ -1,0 +1,7 @@
+card "Star Compass" {
+  oracle_id b5e9599f-9561-4e3f-9904-9a4dab98cabb
+  cost {2}
+  type Artifact
+  enters tapped
+  activated {T}: add any that basic land you control could produce
+}

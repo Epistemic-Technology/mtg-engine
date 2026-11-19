@@ -1,0 +1,7 @@
+card "Wild Growth" {
+  oracle_id 706ae742-1807-44b7-a4fa-f2e26f61519a
+  cost {G}
+  type Enchantment — Aura
+  enchant land
+  triggered whenever enchanted land is tapped for mana: add {G}
+}

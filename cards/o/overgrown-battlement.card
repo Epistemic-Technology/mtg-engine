@@ -1,0 +1,8 @@
+card "Overgrown Battlement" {
+  oracle_id 585f62dc-4461-42f1-a3a4-b19a1e550d2d
+  cost {1}{G}
+  type Creature — Wall
+  pt 0/4
+  keywords defender
+  activated {T}: add {G} count each creature you control with defender
+}

@@ -1,0 +1,293 @@
+# Mana ability variants (CR 605, 106): triggered mana abilities that add
+# to what a land makes as it is tapped for mana (CR 605.1b, 605.4a),
+# depletion and storage lands whose mana abilities remove counters and
+# then sacrifice them, "any color that a land ... could produce" (CR
+# 106.7), mana that depends on what you control ("instead"), and amounts
+# of mana from a count. Payment counts all of them.
+
+scenario "Wild Growth's land makes two mana" {
+  battlefield A: "Forest", "Wild Growth" on "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Forest"
+}
+
+scenario "a Forest alone makes one mana" {
+  battlefield A: "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+}
+
+# The extra {G} stays in the pool after paying {G}, for the next spell.
+scenario "Wild Growth's extra mana is added even when it isn't needed" {
+  battlefield A: "Forest", "Wild Growth" on "Forest"
+  hand A: 2 "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Llanowar Elves"
+}
+
+scenario "Wild Growth on an opponent's Forest gives its mana to that Forest's controller" {
+  battlefield A: "Forest"
+  battlefield B: "Wild Growth" on "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Overgrowth's land makes three mana" {
+  battlefield A: "Forest", "Overgrowth" on "Forest"
+  hand A: "Centaur Courser"
+  turn 1 A: cast "Centaur Courser"
+  run_to turn 1 end
+  assert battlefield A contains "Centaur Courser"
+}
+
+scenario "Fertile Ground's extra mana is of any color" {
+  battlefield A: "Forest", "Fertile Ground" on "Forest"
+  hand A: "Watchwolf"
+  turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A contains "Watchwolf"
+}
+
+scenario "Wild Growth's extra mana is only green" {
+  battlefield A: "Forest", "Wild Growth" on "Forest"
+  hand A: "Watchwolf"
+  illegal turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert hand A contains "Watchwolf"
+}
+
+scenario "Market Festival's land makes three mana of any colors" {
+  battlefield A: "Plains", "Market Festival" on "Plains"
+  hand A: "Watchwolf"
+  turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A contains "Watchwolf"
+}
+
+scenario "Utopia Sprawl adds the chosen color" {
+  battlefield A: "Forest"
+  hand A: "Utopia Sprawl", "Growth Spiral"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Utopia Sprawl" targeting "Forest"
+  turn 1 A: choose blue
+  turn 3 A: cast "Growth Spiral"
+  run_to turn 3 end
+  assert graveyard A contains "Growth Spiral"
+}
+
+scenario "Elvish Guidance adds {G} for each Elf" {
+  battlefield A: "Forest", "Elvish Guidance" on "Forest", 2 "Elvish Berserker"
+  hand A: "Centaur Courser"
+  turn 1 A: cast "Centaur Courser"
+  run_to turn 1 end
+  assert battlefield A contains "Centaur Courser"
+}
+
+scenario "Elvish Guidance without Elves adds nothing" {
+  battlefield A: "Forest", "Elvish Guidance" on "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "a depletion land enters tapped with two depletion counters" {
+  hand A: "Hickory Woodlot"
+  turn 1 A: play "Hickory Woodlot"
+  run_to turn 1 end
+  assert tapped "Hickory Woodlot"
+  assert counters "Hickory Woodlot" depletion 2
+}
+
+scenario "a depletion land makes two mana and loses a counter" {
+  battlefield A: "Hickory Woodlot" with 2 depletion
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Hickory Woodlot" depletion 1
+  assert battlefield A contains "Hickory Woodlot"
+}
+
+scenario "a depletion land is sacrificed with its last counter" {
+  battlefield A: "Peat Bog" with 1 depletion
+  hand A: "Duress"
+  turn 1 A: cast "Duress" targeting player B
+  run_to turn 1 end
+  assert graveyard A contains "Duress"
+  assert graveyard A contains "Peat Bog"
+}
+
+scenario "a depletion land without counters makes no mana" {
+  battlefield A: "Hickory Woodlot"
+  hand A: "Llanowar Elves"
+  illegal turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert hand A contains "Llanowar Elves"
+}
+
+scenario "a Vivid land removes a charge counter for mana of any color" {
+  battlefield A: "Vivid Crag" with 2 charge
+  hand A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert battlefield A contains "Llanowar Elves"
+  assert counters "Vivid Crag" charge 1
+}
+
+scenario "a Vivid land without counters makes only its own color" {
+  battlefield A: "Vivid Crag"
+  hand A: "Llanowar Elves"
+  illegal turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert hand A contains "Llanowar Elves"
+}
+
+scenario "Gemstone Mine is sacrificed with its last mining counter" {
+  battlefield A: "Gemstone Mine" with 1 mining
+  hand A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert battlefield A contains "Llanowar Elves"
+  assert graveyard A contains "Gemstone Mine"
+}
+
+scenario "Urza's lands together make seven mana" {
+  battlefield A: "Urza's Mine", "Urza's Power Plant", "Urza's Tower"
+  hand A: "Darksteel Gargoyle"
+  turn 1 A: cast "Darksteel Gargoyle"
+  run_to turn 1 end
+  assert battlefield A contains "Darksteel Gargoyle"
+}
+
+scenario "Urza's Tower and Mine without a Power-Plant make one mana each" {
+  battlefield A: "Urza's Tower", "Urza's Mine"
+  hand A: "Astrolabe"
+  illegal turn 1 A: cast "Astrolabe"
+  run_to turn 1 end
+  assert hand A contains "Astrolabe"
+}
+
+scenario "Fellwar Stone makes a color an opponent's land could produce" {
+  battlefield A: "Fellwar Stone"
+  battlefield B: "Island"
+  hand A: "Aegis Turtle"
+  turn 1 A: cast "Aegis Turtle"
+  run_to turn 1 end
+  assert battlefield A contains "Aegis Turtle"
+}
+
+scenario "Fellwar Stone can't make a color no opponent's land could produce" {
+  battlefield A: "Fellwar Stone"
+  battlefield B: "Plains"
+  hand A: "Aegis Turtle"
+  illegal turn 1 A: cast "Aegis Turtle"
+  run_to turn 1 end
+  assert hand A contains "Aegis Turtle"
+}
+
+# CR 106.7: a tapped land could still produce its mana.
+scenario "Harvester Druid counts tapped lands" {
+  battlefield A: "Harvester Druid", "Island" tapped, "Forest"
+  hand A: "Growth Spiral"
+  library A: "Island", "Island"
+  turn 1 A: cast "Growth Spiral"
+  run_to turn 1 end
+  assert graveyard A contains "Growth Spiral"
+}
+
+scenario "Ilysian Caryatid makes two mana with a creature of power 4 or greater" {
+  battlefield A: "Ilysian Caryatid", "Craw Wurm"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Ilysian Caryatid makes one mana otherwise" {
+  battlefield A: "Ilysian Caryatid", "Grizzly Bears"
+  hand A: "Watchwolf"
+  illegal turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert hand A contains "Watchwolf"
+}
+
+scenario "Viridian Joiner makes mana equal to its power" {
+  battlefield A: "Viridian Joiner" with 2 +1/+1
+  hand A: "Centaur Courser"
+  turn 1 A: cast "Centaur Courser"
+  run_to turn 1 end
+  assert battlefield A contains "Centaur Courser"
+}
+
+scenario "Axebane Guardian makes a mana for each creature with defender" {
+  battlefield A: "Axebane Guardian", "Wall of Wood"
+  hand A: "Watchwolf"
+  turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A contains "Watchwolf"
+}
+
+scenario "Overgrown Battlement alone makes one mana" {
+  battlefield A: "Overgrown Battlement"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+}
+
+# CR 605.1a: an ability that adds mana is a mana ability even if it does
+# more; payment activates it and applies the rest.
+scenario "Elves of Deep Shadow pays for a spell and deals 1 damage to you" {
+  battlefield A: "Elves of Deep Shadow"
+  hand A: "Duress"
+  turn 1 A: cast "Duress" targeting player B
+  run_to turn 1 end
+  assert graveyard A contains "Duress"
+  assert life A 19
+}
+
+scenario "Wild Growth adds to a depletion land's mana" {
+  battlefield A: "Hickory Woodlot" with 2 depletion, "Wild Growth" on "Hickory Woodlot"
+  hand A: "Centaur Courser"
+  turn 1 A: cast "Centaur Courser"
+  run_to turn 1 end
+  assert battlefield A contains "Centaur Courser"
+  assert counters "Hickory Woodlot" depletion 1
+}
+
+scenario "Star Compass makes a color a basic land you control could produce" {
+  battlefield A: "Star Compass", "Forest" tapped
+  hand A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert battlefield A contains "Llanowar Elves"
+}
+
+scenario "Star Compass ignores nonbasic lands" {
+  battlefield A: "Star Compass", "Hickory Woodlot" tapped
+  hand A: "Llanowar Elves"
+  illegal turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert hand A contains "Llanowar Elves"
+}
+
+scenario "Astrolabe pays for a spell, then draws at the next upkeep" {
+  battlefield A: "Astrolabe", 2 "Mountain"
+  hand A: "Centaur Courser"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Centaur Courser"
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Centaur Courser"
+  assert graveyard A contains "Astrolabe"
+  assert hand A count 1
+}

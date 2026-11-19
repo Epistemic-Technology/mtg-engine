@@ -1,0 +1,8 @@
+card "Vivid Meadow" {
+  oracle_id dee99df5-628f-4a4e-a203-4dfddc927373
+  type Land
+  enters tapped
+  enters with 2 charge counters
+  mana {W}
+  activated {T}, remove 1 charge counter from this: add any
+}

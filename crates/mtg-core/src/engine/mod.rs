@@ -237,6 +237,7 @@ impl Engine {
                 state.tap_static_sources += u32::from(def.flags().has_tap_static());
                 state.cost_change_sources += u32::from(def.flags().has_cost_change());
                 state.restricted_mana_sources += u32::from(def.flags().has_restricted_mana());
+                state.mana_trigger_sources += u32::from(def.flags().has_mana_trigger());
                 state.turn_static_sources += u32::from(def.flags().has_turn_static());
                 state.attack_rule_sources += u32::from(def.flags().has_attack_rule());
                 state.grant_sources += u32::from(def.flags().grants_abilities());
@@ -507,6 +508,7 @@ impl GameState {
             tap_static_sources: 0,
             cost_change_sources: 0,
             restricted_mana_sources: 0,
+            mana_trigger_sources: 0,
             turn_static_sources: 0,
             attack_rule_sources: 0,
             grant_sources: 0,

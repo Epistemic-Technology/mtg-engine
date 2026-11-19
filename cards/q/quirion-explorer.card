@@ -1,0 +1,7 @@
+card "Quirion Explorer" {
+  oracle_id 766c8a68-9c51-44ea-903c-1f5cb30941d1
+  cost {1}{G}
+  type Creature — Elf Druid Scout
+  pt 1/1
+  activated {T}: add any that land opponent controls could produce
+}

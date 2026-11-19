@@ -1757,6 +1757,9 @@ pub enum StaticCondition {
     },
     /// "you control no untapped lands": fewer than one.
     YouControlNone(ObjFilter),
+    /// "you control an Urza's Mine and an Urza's Power-Plant": at least
+    /// one permanent matching each filter.
+    YouControlEach(Vec<ObjFilter>),
     /// Raid: "you attacked this turn".
     AttackedThisTurn,
     /// The entering object was cast with escape ("escapes with").
@@ -1980,6 +1983,7 @@ pub enum CounterKind {
     Javelin,
     Polyp,
     Healing,
+    Mining,
     /// Power/toughness counters other than +1/+1 and -1/-1 (CR 122.1a):
     /// each modifies power and toughness in layer 7c, and none annihilates
     /// with another (CR 704.5q is about +1/+1 and -1/-1 only).
@@ -2018,7 +2022,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 30] = [
+    pub const NAMED: [(&'static str, CounterKind); 31] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2039,6 +2043,7 @@ impl CounterKind {
         ("javelin", CounterKind::Javelin),
         ("polyp", CounterKind::Polyp),
         ("healing", CounterKind::Healing),
+        ("mining", CounterKind::Mining),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
         ("trample", CounterKind::Trample),
@@ -2591,9 +2596,18 @@ pub enum Effect {
     /// one at a time), "Add two mana of different colors" (`different`:
     /// no color twice).
     AddManaCombination {
-        count: u32,
+        count: Num,
         colors: ColorSet,
         different: bool,
+    },
+    /// "Add one mana of any color that a land an opponent controls could
+    /// produce" (CR 106.7): one mana of a kind the mana abilities of
+    /// `whose` lands (`basic`: basic lands only) could make, judged as it
+    /// resolves, ignoring costs and whether they could be activated.
+    /// None, no mana.
+    AddManaLandCould {
+        whose: Who,
+        basic: bool,
     },
     /// The recipient player discards N cards of their choice (CR 701.8).
     Discard {
@@ -3021,6 +3035,21 @@ pub enum Effect {
 impl Effect {
     /// Whether applying this effect may ask its controller (or another
     /// player) a question in the middle of resolution.
+    /// Whether this effect adds mana (CR 106.4), in either branch of an
+    /// "instead" ("Add {C}. If you control an Urza's Mine and an Urza's
+    /// Power-Plant, add {C}{C} instead.").
+    pub fn adds_mana(&self) -> bool {
+        match self {
+            Effect::AddMana(_)
+            | Effect::AddManaOneOf(_)
+            | Effect::AddManaTimes { .. }
+            | Effect::AddManaCombination { .. }
+            | Effect::AddManaLandCould { .. } => true,
+            Effect::Instead { base, alt, .. } => base.iter().chain(alt).any(Effect::adds_mana),
+            _ => false,
+        }
+    }
+
     pub const fn asks(&self) -> bool {
         matches!(
             self,
@@ -3040,6 +3069,7 @@ impl Effect {
                 | Effect::AddManaOneOf(_)
                 | Effect::AddManaTimes { .. }
                 | Effect::AddManaCombination { .. }
+                | Effect::AddManaLandCould { .. }
                 | Effect::SacrificeChosen { .. }
                 | Effect::ReturnChosen { .. }
                 | Effect::DiscardRandom { .. }
@@ -3972,20 +4002,13 @@ impl ActivatedKeyword {
 }
 
 impl ActivatedAbility {
-    /// CR 605.1a: no targets, not a loyalty ability, and it adds mana.
+    /// CR 605.1a: no targets, not a loyalty ability, and it could add
+    /// mana; it may do other things too ("Add {G}{G}. If there are no
+    /// depletion counters on this land, sacrifice it.").
     pub fn is_mana_ability(&self) -> bool {
         self.targets.is_empty()
             && self.cost.loyalty == 0
-            && !self.effects.is_empty()
-            && self.effects.iter().all(|e| {
-                matches!(
-                    e,
-                    Effect::AddMana(_)
-                        | Effect::AddManaOneOf(_)
-                        | Effect::AddManaTimes { .. }
-                        | Effect::AddManaCombination { .. }
-                )
-            })
+            && self.effects.iter().any(Effect::adds_mana)
     }
 }
 
@@ -4068,6 +4091,17 @@ pub enum AbilityDef {
     /// "{T}: Add <mana>" (CR 605). Basic land types grant theirs
     /// intrinsically (CR 305.6) and do not list this.
     TapForMana(Mana),
+    /// "Whenever enchanted land is tapped for mana, its controller adds
+    /// an additional {G}" (CR 605.1b): a triggered mana ability. It
+    /// triggers when a permanent matching `what` (`enchanted`: the one
+    /// this is attached to) is tapped for mana by a mana ability, and
+    /// resolves at once, right after that ability (CR 605.4a), adding
+    /// `effects`' mana for the tapped permanent's controller. Payment
+    /// counts it as part of what that permanent makes.
+    ManaTrigger {
+        what: ObjFilter,
+        effects: Vec<Effect>,
+    },
     /// "{T}, Sacrifice this artifact: Add <mana>" (Treasure, Lotus
     /// Petal): a mana ability that sacrifices its source.
     SacForMana(Mana),
@@ -4127,6 +4161,7 @@ impl AbilityDef {
             AbilityDef::Activated(a) => &a.targets,
             AbilityDef::Enchant(_)
             | AbilityDef::TapForMana(_)
+            | AbilityDef::ManaTrigger { .. }
             | AbilityDef::SacForMana(_)
             | AbilityDef::RestrictedMana { .. }
             | AbilityDef::XManaColor(_)
@@ -4147,7 +4182,7 @@ impl AbilityDef {
     /// Effects applied when this ability resolves.
     pub fn effects(&self) -> &[Effect] {
         match self {
-            AbilityDef::Spell { effects, .. } => effects,
+            AbilityDef::Spell { effects, .. } | AbilityDef::ManaTrigger { effects, .. } => effects,
             AbilityDef::Triggered(t) => &t.effects,
             AbilityDef::Activated(a) => &a.effects,
             AbilityDef::Enchant(_)
@@ -4410,6 +4445,9 @@ impl DefFlags {
     /// Valiant (`TriggerSpec::TargetedByYouFirstTime`): targeting then
     /// records which permanents their controllers targeted this turn.
     const VALIANT: u32 = 262_144;
+    /// A triggered mana ability (`AbilityDef::ManaTrigger`, CR 605.1b):
+    /// tapping for mana and payment then look for such sources.
+    const MANA_TRIGGER: u32 = 524_288;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -4494,6 +4532,10 @@ impl DefFlags {
 
     pub const fn has_valiant(self) -> bool {
         self.has(DefFlags::VALIANT)
+    }
+
+    pub const fn has_mana_trigger(self) -> bool {
+        self.has(DefFlags::MANA_TRIGGER)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -4593,6 +4635,12 @@ impl DefFlags {
             abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::Activated(ab) if ab.is_mana_ability())),
+        );
+        flags.set(
+            DefFlags::MANA_TRIGGER,
+            abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::ManaTrigger { .. })),
         );
         flags.set(
             DefFlags::RESTRICTED_MANA,

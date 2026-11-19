@@ -1,0 +1,8 @@
+card "Wizard's Rockets" {
+  oracle_id 755153b5-81b8-4ebc-b6f8-9296654fcaa4
+  cost {1}
+  type Artifact
+  enters tapped
+  activated {X}, {T}, sacrifice this: add X mana any combination
+  triggered when this dies: draw 1 card
+}

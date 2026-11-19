@@ -636,6 +636,12 @@ impl Compiler<'_> {
             StaticCond::YouControlNone(filter) => {
                 StaticCondition::YouControlNone(self.filter(filter).who(Who::You))
             }
+            StaticCond::YouControlEach(filters) => StaticCondition::YouControlEach(
+                filters
+                    .iter()
+                    .map(|f| self.filter(f).who(Who::You))
+                    .collect(),
+            ),
             StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
             StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
             StaticCond::OpponentDamagedThisTurn => StaticCondition::OpponentDamagedThisTurn,
@@ -1170,6 +1176,10 @@ impl Compiler<'_> {
                 colors: *colors,
                 different: *different,
             }),
+            Effect::AddManaLandCould { whose, basic } => out.push(CoreEffect::AddManaLandCould {
+                whose: *whose,
+                basic: *basic,
+            }),
             Effect::PumpVar {
                 power,
                 toughness,
@@ -1628,6 +1638,8 @@ impl Compiler<'_> {
             },
             Trigger::BecomesTapped(o) => TriggerSpec::BecomesTapped(self.trigger_obj(o)),
             Trigger::BecomesAttachedTo(f) => TriggerSpec::BecomesAttachedTo(self.filter(f)),
+            // Compiled as `AbilityDef::ManaTrigger` by `ability`.
+            Trigger::TappedForMana(_) => unreachable!("a triggered mana ability"),
             Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
             Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),
             Trigger::DealtCombatDamage(o) => TriggerSpec::DealtCombatDamage(self.trigger_obj(o)),
@@ -1986,6 +1998,29 @@ impl Compiler<'_> {
                     })
                 }),
             }),
+            // CR 605.1b: a triggered mana ability, resolving at once.
+            Ability::Triggered {
+                trigger: Trigger::TappedForMana(o),
+                condition,
+                targets,
+                effects,
+            } => {
+                let TriggerObj::Filter(f) = o else {
+                    return self.err("`is tapped for mana` needs a filter (`enchanted land`)");
+                };
+                let effects = self.sentences(effects)?;
+                if condition.is_some()
+                    || !targets.is_empty()
+                    || effects.is_empty()
+                    || !effects.iter().all(CoreEffect::adds_mana)
+                {
+                    return self.err("a triggered mana ability only adds mana");
+                }
+                AbilityDef::ManaTrigger {
+                    what: self.filter(f),
+                    effects,
+                }
+            }
             Ability::Triggered {
                 trigger,
                 condition,

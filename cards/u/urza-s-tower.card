@@ -1,0 +1,5 @@
+card "Urza's Tower" {
+  oracle_id 32fbb638-ab14-4e8b-a07a-d4c44e3496f2
+  type Land — Urza's Tower
+  activated {T}: add {C}; if you control Urza's Mine and Urza's Power-Plant, add {C}{C}{C} instead
+}

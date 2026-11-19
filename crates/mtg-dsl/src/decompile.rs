@@ -326,6 +326,9 @@ impl Decompiler<'_> {
                 }
             }
             StaticCondition::YouControlNone(f) => StaticCond::YouControlNone(unowned(f)),
+            StaticCondition::YouControlEach(fs) => {
+                StaticCond::YouControlEach(fs.iter().map(&unowned).collect())
+            }
             StaticCondition::OnBattlefield { filter, at_least } => StaticCond::OnBattlefield {
                 filter: self.filter(filter),
                 at_least: *at_least,
@@ -609,6 +612,10 @@ impl Decompiler<'_> {
                 count: *count,
                 colors: *colors,
                 different: *different,
+            },
+            CoreEffect::AddManaLandCould { whose, basic } => Effect::AddManaLandCould {
+                whose: *whose,
+                basic: *basic,
             },
             CoreEffect::PumpVar {
                 power,
@@ -1205,6 +1212,12 @@ impl Decompiler<'_> {
     fn ability(&self, a: &AbilityDef) -> Ability {
         match a {
             AbilityDef::TapForMana(m) => Ability::Mana(vec![*m]),
+            AbilityDef::ManaTrigger { what, effects } => Ability::Triggered {
+                trigger: Trigger::TappedForMana(TriggerObj::Filter(self.filter(what))),
+                condition: None,
+                targets: Vec::new(),
+                effects: self.sentences(effects),
+            },
             AbilityDef::Protection(f) => Ability::Protection(self.filter(f)),
             AbilityDef::AttackUnless {
                 condition,
