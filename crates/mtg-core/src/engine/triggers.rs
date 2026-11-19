@@ -984,6 +984,7 @@ impl GameState {
             counters: SmallVec::new(),
             attached_to: None,
             ability: Some(t.ability),
+            revealed: 0,
         });
         self.stack.push(obj);
         self.consecutive_passes = 0;

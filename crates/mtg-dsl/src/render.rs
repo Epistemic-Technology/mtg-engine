@@ -992,7 +992,7 @@ impl<'a> Ctx<'a> {
                 format!("that {}", enchanted_noun(self.card))
             }
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
-            Recipient::TriggeringPlayer => "that player".to_string(),
+            Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TriggeringCard => "that card".to_string(),
             Recipient::TriggeringController { that: true } => {
                 let noun = if self.trigger_is_enchanted() {
@@ -1987,6 +1987,9 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
     if a.cost.life > 0 {
         parts.push(format!("pay {} life", a.cost.life));
     }
+    if a.cost.reveal_hand {
+        parts.push("reveal your hand".to_string());
+    }
     let you_may = match a.cost.conditions.first() {
         Some(c) => format!("If {}, you may", static_cond_text(c, card)),
         None => "You may".to_string(),
@@ -2150,6 +2153,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     parts.push(format!("Pay {} life", cost.life));
                 }
             }
+            CostItem::RevealHand => parts.push("Reveal your hand".to_string()),
             CostItem::Energy => parts.push(format!("Pay {}", energy(cost.energy))),
         }
     }
@@ -3803,6 +3807,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("counter {o} unless its controller pays {mana}"))
         }
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
+        Effect::Investigates(w) => {
+            let s = ctx.subj(*w);
+            Clause::with_subject(
+                *w,
+                s,
+                ctx.verb(*w, "investigates", "investigate").to_string(),
+            )
+        }
         Effect::Investigate(n) => Clause::imperative(match n {
             1 => "investigate".to_string(),
             2 => "investigate twice".to_string(),
@@ -3989,6 +4001,62 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 *who,
                 s,
                 format!("{} {what} at random", ctx.verb(*who, "discards", "discard")),
+            )
+        }
+        Effect::ExileChosen { who, count, filter } => {
+            let s = ctx.subj(*who);
+            let what = if *count == Num::N(1) {
+                with_article(&filter_phrase(filter, ctx.card, false))
+            } else {
+                format!(
+                    "{} {}",
+                    count_words(*count, "a"),
+                    filter_phrase(filter, ctx.card, true)
+                )
+            };
+            Clause::with_subject(
+                *who,
+                s,
+                format!("{} {what} they control", ctx.verb(*who, "exiles", "exile")),
+            )
+        }
+        Effect::ExileFromHand {
+            count,
+            who,
+            graveyard,
+        } => {
+            let s = ctx.subj(*who);
+            let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{} {what} from their {}",
+                    ctx.verb(*who, "exiles", "exile"),
+                    if *graveyard { "graveyard" } else { "hand" }
+                ),
+            )
+        }
+        Effect::DrawDiscardDrawn { draw, discard } => Clause::imperative(format!(
+            "draw {} {}, then discard {} of them",
+            count_words(*draw, "a"),
+            plural(*draw, "card"),
+            count_words(*discard, "one")
+        )),
+        Effect::ExileFromGraveyardOrHand { who, filter } => {
+            let what = if *filter == Filter::default() {
+                "a card".to_string()
+            } else {
+                with_article(&format!("{} card", card_filter_phrase(filter, ctx.card)))
+            };
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{} their hand. You choose {what} from that player's graveyard or hand and exile it",
+                    ctx.verb(*who, "reveals", "reveal")
+                ),
             )
         }
         Effect::DiscardChosen {
@@ -4202,6 +4270,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             reveal,
             that_card,
             or_card,
+            who,
+            may,
         } => {
             let one = *count == Num::N(1) && !*up_to;
             let any = *count == Num::N(crate::ast::ANY_NUMBER);
@@ -4271,7 +4341,28 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ("it", "them")
             };
             let mut pron = if one { it } else { them };
-            let mut text = format!("search your library for {what}, ");
+            // "Its controller may search their library for ...".
+            let (verb, library, hand) = match who {
+                Some(w) if *w != Recipient::You => (
+                    if *may { "may search" } else { "searches" },
+                    "their library",
+                    "their hand",
+                ),
+                _ => (
+                    if *may { "may search" } else { "search" },
+                    "your library",
+                    "your hand",
+                ),
+            };
+            let mut text = format!("{verb} {library} for {what}, ");
+            // "Target player searches ..., puts it onto the battlefield
+            // tapped, then shuffles."
+            let third = !*may && who.is_some_and(|w| w != Recipient::You);
+            let (put, reveal_v, shuffle) = if third {
+                ("puts", "reveals", "shuffles")
+            } else {
+                ("put", "reveal", "shuffle")
+            };
             // "reveal that card, put it into your hand", "reveal those
             // cards, put one onto the battlefield tapped".
             let reveal_that = *that_card
@@ -4288,21 +4379,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else {
                     "them"
                 };
-                let _ = write!(text, "reveal {r}, ");
+                let _ = write!(text, "{reveal_v} {r}, ");
             }
             match to {
                 mtg_core::card::SearchTo::BattlefieldAndHand => {
-                    text.push_str(
-                        "put one onto the battlefield tapped and the other into your hand, then shuffle",
+                    let _ = write!(
+                        text,
+                        "{put} one onto the battlefield tapped and the other into {hand}, then {shuffle}",
                     );
                 }
                 mtg_core::card::SearchTo::Hand => {
-                    let _ = write!(text, "put {pron} into your hand, then shuffle");
+                    let _ = write!(text, "{put} {pron} into {hand}, then {shuffle}");
                 }
                 mtg_core::card::SearchTo::Battlefield { tapped } => {
                     let _ = write!(
                         text,
-                        "put {pron} onto the battlefield{}, then shuffle",
+                        "{put} {pron} onto the battlefield{}, then {shuffle}",
                         if *tapped { " tapped" } else { "" }
                     );
                 }
@@ -4310,7 +4402,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let _ = write!(text, "then shuffle and put {it} on top");
                 }
             }
-            Clause::imperative(text)
+            match who {
+                Some(w) if *w != Recipient::You => {
+                    let s = ctx.subj(*w);
+                    Clause::with_subject(*w, s, text)
+                }
+                _ if *may => Clause::with_subject(Recipient::You, "you".to_string(), text),
+                _ => Clause::imperative(text),
+            }
         }
         Effect::AddMana(m) if m == &[Mana::Chosen] => {
             Clause::imperative("add one mana of the chosen color".to_string())
@@ -7025,6 +7124,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "you've drawn {} or more cards this turn",
             count_words(Num::N(*n), "one")
         ),
+        StaticCond::NoCardInHand(f) => {
+            format!("you have no {} in hand", cards_phrase(f, card, true))
+        }
         StaticCond::CardsInHand { n, at_most } => match (n, at_most) {
             (0, true) => "you have no cards in hand".to_string(),
             (n, true) => format!(

@@ -49,6 +49,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         it_source: false,
         subject: None,
         votes: Vec::new(),
+        returned: None,
     };
     let mut cards = Vec::new();
     loop {
@@ -461,6 +462,9 @@ struct P {
     it_source: bool,
     /// The subject of the previous clause of the sentence being parsed.
     subject: Option<Recipient>,
+    /// The target an earlier effect of the ability returned to its
+    /// owner's hand: "that player" is then its owner.
+    returned: Option<usize>,
 }
 
 impl P {
@@ -1085,6 +1089,7 @@ impl P {
         self.subject = None;
         self.in_trigger = false;
         self.it_source = false;
+        self.returned = None;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
             "spend" if self.word_at(1).as_deref() == Some("only") => {
@@ -1386,6 +1391,8 @@ impl P {
                         reveal: true,
                         that_card: false,
                         or_card: crate::ast::OrCard::No,
+                        who: None,
+                        may: false,
                     }])],
                     equip: false,
                     cycling: true,
@@ -2256,6 +2263,12 @@ impl P {
             return Ok(StaticCond::AnyPlayerLifeAtMost(n));
         }
         if self.eat_word("hand") {
+            // `hand has no land card`: "you have no land cards in hand".
+            if self.eat_words(&["has", "no"]) {
+                let f = self.filter()?;
+                self.cards_word()?;
+                return Ok(StaticCond::NoCardInHand(f));
+            }
             let n = self.number()?;
             self.expect_word("or")?;
             let at_most = if self.eat_word("less") {
@@ -3465,6 +3478,20 @@ impl P {
                 if self.eat_word("discarding") {
                     return self.discard_chosen(subject, false);
                 }
+                // "You choose a nonland card from that player's graveyard
+                // or hand and exile it."
+                if self.eat_word("exiling") {
+                    let filter = if self.at_word("card") {
+                        Filter::default()
+                    } else {
+                        self.filter()?
+                    };
+                    self.expect_words(&["card", "from", "graveyard", "or", "hand"])?;
+                    return Ok(Effect::ExileFromGraveyardOrHand {
+                        who: subject,
+                        filter,
+                    });
+                }
                 Ok(Effect::RevealHand { who: subject })
             }
             // "loses all abilities and becomes a green Snake with base
@@ -3591,6 +3618,71 @@ impl P {
                 Ok(Effect::Discard {
                     count,
                     who: (explicit || subject != Recipient::You).then_some(subject),
+                })
+            }
+            "investigates" => Ok(Effect::Investigates(subject)),
+            // "Its controller may search their library for ...": the
+            // player searches their own library (CR 701.19).
+            "may" | "searches" if subject != Recipient::You => {
+                let may = w == "may";
+                if !may {
+                    self.pos -= 1;
+                }
+                if !self.at_word("search") && !self.at_word("searches") {
+                    return self.unexpected("`search` after `may`");
+                }
+                match self.verb_first()? {
+                    Effect::Search {
+                        filter,
+                        count,
+                        up_to,
+                        to,
+                        reveal,
+                        that_card,
+                        or_card,
+                        ..
+                    } => Ok(Effect::Search {
+                        filter,
+                        count,
+                        up_to,
+                        to,
+                        reveal,
+                        that_card,
+                        or_card,
+                        who: Some(subject),
+                        may,
+                    }),
+                    _ => self.fail("expected a search"),
+                }
+            }
+            // "Target opponent exiles two cards from their hand", "exiles
+            // a creature they control".
+            "exiles" => {
+                let count = if self.eat_word("a") || self.eat_word("an") {
+                    Num::N(1)
+                } else {
+                    self.num()?
+                };
+                if (self.at_word("card") || self.at_word("cards"))
+                    && self.word_at(1).as_deref() == Some("from")
+                {
+                    self.pos += 2;
+                    let graveyard = self.eat_word("graveyard");
+                    if !graveyard {
+                        self.expect_word("hand")?;
+                    }
+                    return Ok(Effect::ExileFromHand {
+                        count,
+                        who: subject,
+                        graveyard,
+                    });
+                }
+                let filter = self.filter()?;
+                self.expect_words(&["they", "control"])?;
+                Ok(Effect::ExileChosen {
+                    who: subject,
+                    count,
+                    filter,
                 })
             }
             "fights" => {
@@ -4494,6 +4586,9 @@ impl P {
                     || self.eat_words(&["your", "hand"])
                     || self.eat_word("hand")
                 {
+                    if let [Recipient::Target(i)] = all.as_slice() {
+                        self.returned = Some(*i);
+                    }
                     return Ok(Effect::ReturnToHand { what: all });
                 }
                 if all.len() > 1 {
@@ -4699,6 +4794,19 @@ impl P {
             "draw" => {
                 let count = self.num()?;
                 self.cards_word()?;
+                // "Draw two cards, then discard one of them."
+                if self.at_words(&["then", "discard"])
+                    && self.word_at(3).as_deref() == Some("of")
+                    && self.word_at(4).as_deref() == Some("them")
+                {
+                    self.pos += 2;
+                    let discard = self.num()?;
+                    self.expect_words(&["of", "them"])?;
+                    return Ok(Effect::DrawDiscardDrawn {
+                        draw: count,
+                        discard,
+                    });
+                }
                 Ok(Effect::DrawCards { count, who: None })
             }
             "mill" => {
@@ -4742,7 +4850,7 @@ impl P {
             "transform" => Ok(Effect::Transform {
                 what: self.recipient()?,
             }),
-            "search" => {
+            "search" | "searches" => {
                 let up_to = self.eat_words(&["up", "to"]);
                 let count = if matches!(self.peek(), Some(Tok::Num(_))) {
                     self.num()?
@@ -4812,6 +4920,8 @@ impl P {
                     reveal,
                     that_card,
                     or_card,
+                    who: None,
+                    may: false,
                 })
             }
             "add" => {
@@ -5749,6 +5859,7 @@ impl P {
             it_source: self.it_source,
             subject: None,
             votes: self.votes.clone(),
+            returned: self.returned,
         };
         if !probe.at_recipient() {
             return false;
@@ -6091,6 +6202,14 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::ThatTarget(self.targets.len() - 1));
         }
+        // "Return target permanent to its owner's hand. Then that player
+        // discards a card.": the returned card's owner.
+        if let Some(i) = self.returned
+            && self.at_words(&["that", "player"])
+        {
+            self.pos += 2;
+            return Ok(Recipient::ThatOwner(i));
+        }
         // Likewise "that player" after a target player ("Target player
         // discards two cards. ... it deals 3 damage to that player").
         if !self.in_trigger
@@ -6248,6 +6367,7 @@ impl P {
                         it_source: false,
                         subject: None,
                         votes: Vec::new(),
+                        returned: None,
                     };
                     probe.keyword().is_some()
                 };
@@ -7745,6 +7865,11 @@ impl P {
                             self.expect_word("life")?;
                             cost.order.push(CostItem::Life);
                         }
+                    }
+                    "reveal" if self.word_at(1).as_deref() == Some("hand") => {
+                        self.pos += 2;
+                        cost.reveal_hand = true;
+                        cost.order.push(CostItem::RevealHand);
                     }
                     "sorcery" => {
                         self.pos += 1;

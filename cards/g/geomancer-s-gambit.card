@@ -1,0 +1,9 @@
+card "Geomancer's Gambit" {
+  oracle_id 33bb4aff-6476-4787-b3fe-028b1b1bd1bc
+  cost {2}{R}
+  type Sorcery
+  spell {
+    destroy target land; its controller may search basic land card to battlefield
+    draw 1 card
+  }
+}

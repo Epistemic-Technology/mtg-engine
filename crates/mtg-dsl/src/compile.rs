@@ -769,6 +769,7 @@ impl Compiler<'_> {
                 n: *n,
                 at_most: *at_most,
             },
+            StaticCond::NoCardInHand(f) => StaticCondition::NoCardInHand(self.filter(f)),
             StaticCond::GraveyardCards {
                 filter, at_least, ..
             } => StaticCondition::GraveyardCards {
@@ -989,6 +990,7 @@ impl Compiler<'_> {
                     filter: g.filter.as_ref().map(|f| self.filter(f)),
                 })
             }),
+            reveal_hand: c.reveal_hand,
         }
     }
 
@@ -1023,7 +1025,7 @@ impl Compiler<'_> {
             Recipient::ControllerOf(i)
             | Recipient::ThatControllerOf(i)
             | Recipient::TheControllerOf(i) => CoreRecipient::ControllerOf(i),
-            Recipient::OwnerOf(i) => CoreRecipient::OwnerOf(i),
+            Recipient::OwnerOf(i) | Recipient::ThatOwner(i) => CoreRecipient::OwnerOf(i),
             Recipient::EachCreature => CoreRecipient::EachCreature,
             Recipient::EachPlayer => CoreRecipient::EachPlayer,
             Recipient::EachCreatureYouControl => CoreRecipient::EachCreatureYouControl,
@@ -1439,6 +1441,32 @@ impl Compiler<'_> {
                     _ => return self.err("`if you win the flip` needs a `flip coin` before it"),
                 }
             }
+            Effect::ExileChosen { who, count, filter } => out.push(CoreEffect::ExileChosen {
+                who: r(*who),
+                filter: self.filter(filter),
+                count: *count,
+            }),
+            Effect::ExileFromHand {
+                count,
+                who,
+                graveyard,
+            } => out.push(CoreEffect::ExileFromHand {
+                count: *count,
+                who: r(*who),
+                graveyard: *graveyard,
+            }),
+            Effect::DrawDiscardDrawn { draw, discard } => {
+                out.push(CoreEffect::DrawDiscardDrawn {
+                    draw: *draw,
+                    discard: *discard,
+                });
+            }
+            Effect::ExileFromGraveyardOrHand { who, filter } => {
+                out.push(CoreEffect::ExileFromGraveyardOrHand {
+                    who: r(*who),
+                    filter: self.filter(filter),
+                });
+            }
             Effect::DiscardChosen {
                 who, filter, may, ..
             } => {
@@ -1451,20 +1479,34 @@ impl Compiler<'_> {
             }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),
             Effect::Search {
-                filter, count, to, ..
+                filter,
+                count,
+                to,
+                reveal,
+                who,
+                may,
+                ..
             } => out.push(CoreEffect::Search {
                 filter: self.filter(filter),
                 count: *count,
                 to: *to,
+                who: who.map_or(CoreRecipient::You, r),
+                may: *may,
+                reveal: *reveal,
             }),
-            Effect::Investigate(n) => {
+            Effect::Investigate(_) | Effect::Investigates(_) => {
                 let Some(token) = self.pool.lookup("Clue") else {
                     return self.err("unknown token \"Clue\" (cards/tokens/clue.card)");
                 };
+                let (n, who) = match e {
+                    Effect::Investigates(w) => (1, r(*w)),
+                    Effect::Investigate(n) => (*n, CoreRecipient::You),
+                    _ => unreachable!(),
+                };
                 out.push(CoreEffect::CreateToken {
                     token,
-                    count: Num::N(*n),
-                    who: CoreRecipient::You,
+                    count: Num::N(n),
+                    who,
                     tapped: false,
                     attached: None,
                 });

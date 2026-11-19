@@ -68,7 +68,7 @@ double-faced permanent to its other face (CR 701.27).
 | `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, `undying`, `flanking`, `convoke` (CR 702.51: untapped creatures may be tapped to pay {1} or one mana of their color), and `improvise` (CR 702.126: artifacts pay {1}). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step."), `can't become untapped` (no effect or untap step untaps it, and a stun counter stays on it; granted, "Enchanted creature loses all abilities and can't become untapped."), and the blocking requirements and allowances (CR 509.1a, 509.1c) `blocks each combat if able`, `must be blocked if able`, `lure` ("All creatures able to block this creature do so."), `can block an additional creature each combat`, and `can block any number of creatures`, and `can attack as though it didn't have defender` (CR 702.3b; granted to a group, "... as though they didn't have defender"; with `can't be blocked` after it, "... and it can't be blocked") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
 | `additional cost sacrifice creature` then `additional cost or {3}{B}` | "As an additional cost to cast this spell, sacrifice a creature or pay {3}{B}." (CR 601.2b): two additional costs, of which the caster pays one, chosen as the spell is cast (before the kicker and X); only those that can be paid are offered. A mana part prints "pay {3}{B}", and the total cost includes it (CR 601.2f). |
-| `alternative cost sacrifice Mountain`, `alternative cost sacrifice 2 Mountain`, `alternative cost sacrifice Mountain, if your turn`, `alternative cost {1}, return basic land you control` | An alternative cost of the card's own (CR 118.9): "You may sacrifice a Mountain rather than pay this spell's mana cost.", "You may sacrifice two Mountains ...", "If it's your turn, you may ...", "You may pay {1} and return a basic land you control to its owner's hand ...". Mana and one kind of permanent (sacrificed, returned with `return`, or tapped with `tap untapped creature you control`), offered while the condition holds; the chosen permanent is the first and the engine picks the rest. Not combined with an additional cost that also chooses a permanent. `alternative cost pay 4 life, if you control Swamp` pays life (offered only with that much life, CR 119.4); `alternative cost if cast another white spell this turn`, with no cost at all, prints "If you've cast another white spell this turn, you may cast this spell without paying its mana cost." |
+| `alternative cost sacrifice Mountain`, `alternative cost sacrifice 2 Mountain`, `alternative cost sacrifice Mountain, if your turn`, `alternative cost {1}, return basic land you control` | An alternative cost of the card's own (CR 118.9): "You may sacrifice a Mountain rather than pay this spell's mana cost.", "You may sacrifice two Mountains ...", "If it's your turn, you may ...", "You may pay {1} and return a basic land you control to its owner's hand ...". Mana and one kind of permanent (sacrificed, returned with `return`, or tapped with `tap untapped creature you control`), offered while the condition holds; the chosen permanent is the first and the engine picks the rest. Not combined with an additional cost that also chooses a permanent. `alternative cost pay 4 life, if you control Swamp` pays life (offered only with that much life, CR 119.4); `alternative cost if cast another white spell this turn`, with no cost at all, prints "If you've cast another white spell this turn, you may cast this spell without paying its mana cost."; `alternative cost reveal hand, if hand has no land card` prints "If you have no land cards in hand, you may reveal your hand rather than pay this spell's mana cost." (every card left in the hand is then known to every player, CR 701.20). |
 | `flash as long as you control Merfolk` | "This spell has flash as long as you control a Merfolk." (CR 702.8): the card may be cast as though it had flash while the condition holds. |
 | `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. |
 | `flashback {4}{R}` / `flashback {1}{U}, pay 3 life` / `flashback sacrifice 3 creature` / `flashback tap 3 untapped white creature you control` | Flashback (CR 702.34): the card may be cast from the graveyard for this cost and is exiled as it leaves the stack. The cost is mana, life, and a chosen permanent to sacrifice, return, or tap (chosen after targets like an additional cost's, so not on a card that also has an additional cost). Prints last, as "Flashback {4}{R}" or "Flashback—Sacrifice three creatures." |
@@ -264,7 +264,8 @@ other Goblin` ("you control another Goblin"), `you control Urza's Mine and
 Urza's Power-Plant` ("you control an Urza's Mine and an Urza's
 Power-Plant": one of each), `attacked this turn` (raid),
 `creature died this turn` (morbid), `hand 0 or less` ("you have no cards
-in hand"), `hand 1 or less` ("you have one or fewer cards in hand"), and
+in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
+`hand has no land card` ("you have no land cards in hand"), and
 the shorthands `threshold`, `delirium`, `metalcraft`; also `land entered
 this turn` (landfall: "you had a land enter the battlefield under your
 control this turn") and `drew 2 cards this turn` ("you've drawn two or
@@ -753,7 +754,9 @@ life"). A list of three or more clauses separates them with `,`: `target
 opponent discards 2 cards, mills 1 card and loses 1 life` prints "Target
 opponent discards two cards, mills a card, and loses 1 life." (the last
 `and` takes the serial comma), `you draw 2 cards, lose 2 life, then mill 2
-cards` prints "..., lose 2 life, then mill two cards."
+cards` prints "..., lose 2 life, then mill two cards." `draw 2 cards then discard
+1 of them` is one effect: "Draw two cards, then discard one of them."
+(only a card drawn this way can be the one).
 Numbers are digits, `X`, or a count: `count where <expr>` ("X ...,
 where X is the number of ..."), `count equal <expr>` ("... equal to the
 number of ..."), or `count each <expr>` ("... for each ..."), with
@@ -903,7 +906,14 @@ create`: "Its controller creates two Treasure tokens"),
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
 `scry 2`, `surveil 1`, `investigate` (create a Clue token; `investigate
-twice`), `transform
+twice`; `target player investigates`: that player creates it), `<who>
+exiles 2 cards from hand` ("Target opponent exiles two cards from their
+hand"; `from graveyard`: "a card from their graveyard"; the player
+chooses), `<who> exiles 1 creature they control` ("Target opponent
+exiles a creature they control", their choice), `<who> reveals hand
+exiling nonland card from graveyard or hand` ("Target opponent reveals
+their hand. You choose a nonland card from that player's graveyard or
+hand and exile it."), `transform
 this`,
 `add {B}{B}` / `add any` ("Add {B}{B}.", "Add one mana of any color."; an
 activated ability that only adds mana is a mana ability and resolves at
@@ -945,7 +955,17 @@ not an instant or sorcery (CR 110.4a); `reveal to hand that card`:
 "reveal that card, put it into your hand"; `search up to 2 basic land
 card reveal to battlefield tapped and hand that card`: "reveal those
 cards, put one onto the battlefield tapped and the other into your
-hand" (the searcher chooses which; one found goes where they choose)),
+hand" (the searcher chooses which; one found goes where they choose);
+another player searches their own library with a subject: `its
+controller may search basic land card to battlefield tapped` ("Its
+controller may search their library for ..., put it onto the battlefield
+tapped, then shuffle": declining before finding anything is not
+searching, so nothing is shuffled), `target player searches basic land
+card to battlefield tapped` ("Target player searches their library for
+..., puts it onto the battlefield tapped, then shuffles"). A card
+revealed and put into a hand (`reveal to hand`), like every card of a
+revealed hand, is known to every player until it moves (CR 701.20):
+`determinize` keeps it in place),
 `impulse 2 next turn first` ("Exile the top two cards of your library.
 Until the end of your next turn, you may play those cards."; impulse
 draw: the controller may play the exiled cards, paying their costs, with
@@ -1314,7 +1334,11 @@ may nonland card` ("You may choose a nonland card from it."), `look at hand
 of target player discarding may nonland card` ("look at target player's
 hand. You may choose ..."), `look at hand of target player discarding card`
 ("Look at target player's hand and choose a card from it."). A sentence
-may start `then` ("Then discard two cards unless ..."). `return this to its
+may start `then` ("Then discard two cards unless ..."). After `return
+target permanent to hand`, `that player` is that permanent's owner:
+`return target permanent to hand; then that player discards 1 card`
+("Return target permanent to its owner's hand. Then that player discards
+a card."). `return this to its
 owner's hand` in a spell returns the resolving spell from the stack.
 
 ### Dice, coins, votes, and "at random"

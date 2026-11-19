@@ -1,0 +1,6 @@
+card "Panther Pounce" {
+  oracle_id ead0820e-fc6b-4ab2-9110-048d6d53985d
+  cost {W}
+  type Instant
+  spell: target player investigates; target creature gets +1/+0 and gains flying; untap it
+}

@@ -231,7 +231,7 @@ impl Fmt {
             Recipient::TriggeringController { that: true } => {
                 "controller of that creature".to_string()
             }
-            Recipient::TriggeringPlayer => "that player".to_string(),
+            Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
             Recipient::DefendingPlayerWord => "that defending player".to_string(),
             Recipient::ControllerOf(_) | Recipient::TriggeringController { that: false } => {
@@ -897,6 +897,7 @@ impl Fmt {
             ),
             Effect::Scry(n) => format!("scry {}", num(*n)),
             Effect::Investigate(1) => "investigate".to_string(),
+            Effect::Investigates(w) => format!("{} investigates", self.recipient(*w, t)),
             Effect::Investigate(2) => "investigate twice".to_string(),
             Effect::Investigate(n) => format!("investigate {n} times"),
             Effect::PumpVar {
@@ -996,6 +997,44 @@ impl Fmt {
                 self.recipient(*who, t),
                 num(*count)
             ),
+            Effect::ExileChosen {
+                who,
+                count,
+                filter: f,
+            } => format!(
+                "{} exiles {} {} they control",
+                self.recipient(*who, t),
+                num(*count),
+                filter(f)
+            ),
+            Effect::ExileFromHand {
+                count,
+                who,
+                graveyard,
+            } => format!(
+                "{} exiles {} {} from {}",
+                self.recipient(*who, t),
+                num(*count),
+                cards(*count),
+                if *graveyard { "graveyard" } else { "hand" }
+            ),
+            Effect::DrawDiscardDrawn { draw, discard } => format!(
+                "draw {} {} then discard {} of them",
+                num(*draw),
+                cards(*draw),
+                num(*discard)
+            ),
+            Effect::ExileFromGraveyardOrHand { who, filter: f } => {
+                let what = if *f == Filter::default() {
+                    "card".to_string()
+                } else {
+                    format!("{} card", filter(f))
+                };
+                format!(
+                    "{} reveals hand exiling {what} from graveyard or hand",
+                    self.recipient(*who, t)
+                )
+            }
             Effect::DiscardChosen {
                 who,
                 filter: f,
@@ -1069,8 +1108,19 @@ impl Fmt {
                 reveal,
                 that_card,
                 or_card,
+                who,
+                may,
             } => {
-                let mut t = "search ".to_string();
+                let searcher = who.map(|w| self.recipient(w, t));
+                let mut t = String::new();
+                if let Some(w) = &searcher {
+                    let _ = write!(t, "{w} ");
+                }
+                t.push_str(match (*may, searcher.is_some()) {
+                    (true, _) => "may search ",
+                    (false, true) => "searches ",
+                    (false, false) => "search ",
+                });
                 if *up_to {
                     t.push_str("up to ");
                 }
@@ -2767,6 +2817,7 @@ fn cost_text(c: &Cost) -> String {
                     parts.push(format!("pay {} life", c.life));
                 }
             }
+            CostItem::RevealHand => parts.push("reveal hand".to_string()),
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
         }
     }
@@ -3081,6 +3132,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::CardsInHand { n, at_most } => {
             format!("hand {n} or {}", if *at_most { "less" } else { "more" })
         }
+        StaticCond::NoCardInHand(f) => format!("hand has no {} card", filter(f)),
         StaticCond::YourLife { n, at_least } => {
             format!(
                 "your life {n} or {}",

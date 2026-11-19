@@ -1,0 +1,7 @@
+card "Hunting Cheetah" {
+  oracle_id 057e1cfc-d528-49e1-a386-9fb1edc1d135
+  cost {2}{G}
+  type Creature — Cat
+  pt 2/3
+  triggered whenever this deals damage to opponent: you may search Forest card reveal to hand that card
+}

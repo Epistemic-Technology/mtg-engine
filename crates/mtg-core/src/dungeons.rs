@@ -314,6 +314,9 @@ pub fn add_dungeons(pool: &mut CardPool) {
                 filter: basic_land,
                 count: n(1),
                 to: SearchTo::Hand,
+                who: Recipient::You,
+                may: false,
+                reveal: true,
             }],
         ),
         room(

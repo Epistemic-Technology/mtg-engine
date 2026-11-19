@@ -92,6 +92,7 @@ impl GameState {
             counters: SmallVec::new(),
             attached_to: None,
             ability: None,
+            revealed: 0,
         })
     }
 
@@ -317,6 +318,7 @@ impl GameState {
                 None
             },
             ability: None,
+            revealed: 0,
         });
         if let Some(l) = self.lki.get_mut(&id) {
             l.moved_to = Some(new);
@@ -742,6 +744,30 @@ impl GameState {
             result,
         });
         result
+    }
+
+    /// Reveal a card in a hand (CR 701.20a): every player has seen it,
+    /// and knows it until it moves (`GameObject::revealed`). Anything not
+    /// in a hand is only announced.
+    pub(super) fn reveal_in_hand(&mut self, id: ObjId) {
+        let Some(o) = self.objects.get_mut(id) else {
+            return;
+        };
+        if o.zone == Zone::Hand {
+            o.revealed = u8::MAX;
+        }
+        let def = o.def;
+        self.emit(Event::Revealed { obj: id, def });
+    }
+
+    /// "Target player reveals their hand" (CR 701.20a): every card in it
+    /// is known to every player until it moves.
+    pub(super) fn reveal_hand(&mut self, p: PlayerId) {
+        for i in 0..self.player(p).hand.len() {
+            let id = self.player(p).hand[i];
+            self.objects[id].revealed = u8::MAX;
+        }
+        self.emit(Event::RevealedHand { player: p });
     }
 
     /// Draw a card (CR 121.1), subject to replacement effects (CR 614.11).

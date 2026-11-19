@@ -1,0 +1,6 @@
+card "Never Happened" {
+  oracle_id ec4a1a8d-4071-40e9-812e-42c746180d99
+  cost {2}{B}
+  type Sorcery
+  spell: target opponent reveals hand exiling nonland card from graveyard or hand
+}

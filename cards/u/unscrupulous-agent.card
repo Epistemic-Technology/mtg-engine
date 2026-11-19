@@ -1,0 +1,7 @@
+card "Unscrupulous Agent" {
+  oracle_id 3e7879d5-62ea-4c9a-9fc0-659d70f3a8e1
+  cost {1}{B}
+  type Creature — Elf Detective
+  pt 1/1
+  triggered when this enters: target opponent exiles 1 card from hand
+}

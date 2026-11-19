@@ -1,0 +1,7 @@
+card "Mind Swords" {
+  oracle_id 4af20f8c-2ba0-49d5-a64e-d3668cec30cd
+  cost {1}{B}
+  type Sorcery
+  alternative cost sacrifice creature, if you control Swamp
+  spell: each player exiles 2 cards from hand
+}

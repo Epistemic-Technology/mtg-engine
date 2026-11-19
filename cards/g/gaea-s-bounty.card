@@ -1,0 +1,6 @@
+card "Gaea's Bounty" {
+  oracle_id c5a61e61-d5fe-41ef-afd6-ba5e0399b986
+  cost {2}{G}
+  type Sorcery
+  spell: search up to 2 Forest card reveal to hand that card
+}

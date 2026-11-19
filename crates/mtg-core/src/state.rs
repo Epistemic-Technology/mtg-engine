@@ -160,6 +160,14 @@ pub struct GameObject {
     pub attached_to: Option<ObjId>,
     /// For `ObjKind::Ability` objects.
     pub ability: Option<StackAbility>,
+    /// The players (bit `i` for player `i`) who have seen this card while
+    /// it is in a hidden zone: it was revealed from a hand ("Target player
+    /// reveals their hand", CR 701.20) or revealed as it was put there
+    /// ("reveal that card, put it into your hand"). A zone change makes a
+    /// new object (CR 400.7) that nobody has seen, so the knowledge lasts
+    /// until the card moves; `determinize` keeps a card the viewer has
+    /// seen where it is.
+    pub revealed: u8,
 }
 
 /// A choice an object remembers (`GameObject::chosen`): small, so the
@@ -2317,6 +2325,10 @@ impl GameState {
                     .count();
                 n >= *at_least as usize
             }
+            C::NoCardInHand(filter) => !self.player(you).hand.iter().any(|id| {
+                let c = self.base_characteristics(&self.objects[*id]);
+                filter.matches(*id, you, &c, None, Some(you))
+            }),
             C::OpponentGraveyard(n) => self
                 .players_in_game()
                 .any(|p| p != you && self.player(p).graveyard.len() >= *n as usize),

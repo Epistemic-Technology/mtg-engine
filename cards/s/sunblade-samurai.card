@@ -1,0 +1,8 @@
+card "Sunblade Samurai" {
+  oracle_id b767bd0a-a8fe-49d7-a3e7-4f9ac6a3280f
+  cost {4}{W}
+  type Enchantment Creature — Human Samurai
+  pt 4/4
+  keywords vigilance
+  label "Channel" activated {2}, discard this: search basic Plains card reveal to hand; you gain 2 life
+}
