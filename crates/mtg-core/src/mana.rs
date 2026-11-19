@@ -100,6 +100,14 @@ impl ColorSet {
     pub fn iter(self) -> impl Iterator<Item = Color> {
         Color::ALL.into_iter().filter(move |c| self.contains(*c))
     }
+
+    /// How many colors.
+    pub const fn count(self) -> u32 {
+        self.0.count_ones()
+    }
+
+    /// All five colors.
+    pub const ALL: ColorSet = ColorSet(0b1_1111);
 }
 
 impl fmt::Debug for ColorSet {

@@ -1,0 +1,7 @@
+card "Chandra's Embercat" {
+  oracle_id e75bec5c-538d-44ce-a6c7-85580d04fac8
+  cost {1}{R}
+  type Creature — Elemental Cat
+  pt 2/2
+  mana {R} only to cast Elemental spell or Chandra planeswalker spell
+}

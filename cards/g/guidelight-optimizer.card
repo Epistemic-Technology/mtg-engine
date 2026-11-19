@@ -1,0 +1,7 @@
+card "Guidelight Optimizer" {
+  oracle_id 045488b3-0206-4dcd-91ab-59ec542f06c0
+  cost {1}{U}
+  type Artifact Creature — Robot
+  pt 2/1
+  mana {U} only to cast artifact spell or activate
+}

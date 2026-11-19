@@ -36,13 +36,12 @@ impl GameState {
                 for a in &def.ability_ids {
                     if let AbilityDef::Activated(ab) = self.pool.ability(*a)
                         && ab.from_hand
-                        && payment_plan_from(
+                        && self.payable_for(
+                            p,
                             &sources,
-                            &pool,
                             &ab.cost.mana.requirements(0),
-                            ps.life,
+                            Spend::Ability,
                         )
-                        .is_some()
                         && self.targets_available(p, &ab.targets, Some(*id))
                     {
                         options.push(Choice::Activate {
@@ -86,7 +85,12 @@ impl GameState {
             // CR 702.74a: cast for the evoke cost instead.
             if let Some(ev) = &def.evoke
                 && sorcery_timing
-                && payment_plan_from(&sources, &pool, &ev.requirements(0), ps.life).is_some()
+                && self.payable_for(
+                    p,
+                    &sources,
+                    &ev.requirements(0),
+                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                )
                 && self.targets_available(p, def.cast_targets(), Some(*id))
             {
                 options.push(Choice::CastEvoke(*id));
@@ -146,13 +150,12 @@ impl GameState {
                         if let AbilityDef::Activated(ab) = self.pool.ability(*a)
                             && ab.from_graveyard
                             && (!ab.sorcery_speed || sorcery_timing)
-                            && payment_plan_from(
+                            && self.payable_for(
+                                p,
                                 &sources,
-                                &pool,
                                 &ab.cost.mana.requirements(0),
-                                ps.life,
+                                Spend::Ability,
                             )
-                            .is_some()
                             && self.targets_available(p, &ab.targets, Some(*id))
                         {
                             options.push(Choice::Activate {
@@ -179,7 +182,12 @@ impl GameState {
                 }
                 let mut req = fb.mana.requirements(0);
                 adjust_generic(&mut req, self.cost_delta(p, def, *id, &changers));
-                if payment_plan_from(&sources, &pool, &req, ps.life).is_none() {
+                if !self.payable_for(
+                    p,
+                    &sources,
+                    &req,
+                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                ) {
                     continue;
                 }
                 if fb.life > 0 && ps.life < i32::try_from(fb.life).unwrap_or(i32::MAX) {
@@ -322,9 +330,15 @@ impl GameState {
             adjust_generic(&mut req, tc.0);
         }
         let helped = Keyword::helps_pay(def.keywords);
-        let payable = if helped {
-            let mut all = sources.clone();
-            all.extend(self.helper_sources(p, def));
+        let restricted = match (self.restricted_mana_sources, &def.printed) {
+            (0, _) | (_, None) => None,
+            (_, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c)),
+        };
+        let payable = if helped || restricted.is_some() {
+            let mut all = restricted.unwrap_or_else(|| sources.clone());
+            if helped {
+                all.extend(self.helper_sources(p, def));
+            }
             payment_plan_from(&all, pool, &req, self.player(p).life).is_some()
         } else {
             payment_plan_from(sources, pool, &req, self.player(p).life).is_some()
@@ -515,6 +529,12 @@ impl GameState {
     fn spell_sources(&self, spell: ObjId) -> Sources {
         let o = &self.objects[spell];
         let mut s = self.mana_sources(o.controller);
+        if self.restricted_mana_sources > 0
+            && let Some(c) = self.characteristics(spell)
+            && let Some(all) = self.with_restricted(o.controller, &s, Spend::Spell(&c))
+        {
+            s = all;
+        }
         let def = self.pool.get(o.def);
         if Keyword::helps_pay(def.keywords) {
             s.extend(self.helper_sources(o.controller, def));
@@ -655,7 +675,7 @@ impl GameState {
             &mut req,
             self.cost_delta(o.controller, def, spell, &self.cost_changers()),
         );
-        self.payment_plan(o.controller, &req).is_some()
+        self.spell_payable(o.controller, spell, &req)
     }
 
     /// Whether `spell` (being cast) has a buyback cost its caster could pay
@@ -671,7 +691,7 @@ impl GameState {
         }
         let mut req = self.spell_requirements(spell, 0);
         req.add(&b.requirements(0));
-        self.payment_plan(o.controller, &req).is_some()
+        self.spell_payable(o.controller, spell, &req)
     }
 
     /// The mana a spell being cast costs with X fixed: its mana cost (or
@@ -701,6 +721,21 @@ impl GameState {
                 .requirements(0),
             _ => def.mana_cost.requirements(x),
         };
+        // CR 107.3: "Spend only black mana on X." X is then paid as that
+        // many black symbols.
+        if x > 0
+            && req.generic >= x
+            && let Some(c) = def
+                .ability_ids
+                .iter()
+                .find_map(|a| match self.pool.ability(*a) {
+                    AbilityDef::XManaColor(c) => Some(*c),
+                    _ => None,
+                })
+        {
+            req.generic -= x;
+            req.colored[c as usize] += x;
+        }
         if o.cast.kicked()
             && let Some(k) = &def.kicker
         {
@@ -750,7 +785,7 @@ impl GameState {
             &mut req,
             self.cost_delta(p, def, card, &self.cost_changers()),
         );
-        if self.payment_plan(p, &req).is_none() {
+        if !self.spell_payable(p, card, &req) {
             return false;
         }
         match def.modes() {
@@ -790,7 +825,7 @@ impl GameState {
             &mut req,
             self.cost_delta(p, def, card, &self.cost_changers()),
         );
-        self.payment_plan(p, &req).is_some()
+        self.spell_payable(p, card, &req)
     }
 
     /// "You may cast it": if `card` can be cast `alt`'s way, its owner
@@ -929,6 +964,8 @@ impl GameState {
         }
         let pool = self.player(p).mana_pool;
         let life = self.player(p).life;
+        let restricted = self.with_restricted(p, sources, Spend::Ability);
+        let sources = restricted.as_ref().unwrap_or(sources);
         for id in self.permanents_of(p) {
             let o = &self.objects[id];
             if !grants && !self.flags_of(o).has_activated() {
@@ -1215,7 +1252,7 @@ impl GameState {
                             &mut req,
                             self.cost_delta(o.controller, def, spell, &self.cost_changers()),
                         );
-                        self.payment_plan(o.controller, &req).is_some()
+                        self.spell_payable(o.controller, spell, &req)
                     })
             })
             .map(|(i, _)| Choice::Mode(i))
@@ -1236,7 +1273,8 @@ impl GameState {
         if ab.cost.tap {
             self.tap(sa.source);
         }
-        self.pay(controller, &ab.cost.mana.requirements(0));
+        let sources = self.ability_sources(controller);
+        self.pay_from(controller, &ab.cost.mana.requirements(0), &sources);
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew) {
                 self.tap(c);
@@ -1460,6 +1498,106 @@ impl GameState {
         payment_plan_from(&self.mana_sources(p), &ps.mana_pool, req, ps.life)
     }
 
+    /// Untapped sources of restricted mana `p` controls (CR 106.6) whose
+    /// mana may be spent on `spend`. Empty without any in play.
+    fn restricted_sources(&self, p: PlayerId, spend: Spend) -> Sources {
+        let mut out = Sources::new();
+        if self.restricted_mana_sources == 0 {
+            return out;
+        }
+        for id in self.permanents_of(p) {
+            let o = &self.objects[id];
+            if o.tapped || !self.flags_of(o).has_restricted_mana() {
+                continue;
+            }
+            let Some(c) = self.characteristics(id) else {
+                continue;
+            };
+            // CR 302.6, as for the other sources.
+            if c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste) {
+                continue;
+            }
+            for a in &c.abilities {
+                let AbilityDef::RestrictedMana { mana, restriction } = self.pool.ability(*a) else {
+                    continue;
+                };
+                let allowed = match spend {
+                    Spend::Spell(sc) => restriction.allows_spell(sc),
+                    Spend::Ability => restriction.allows_abilities(),
+                };
+                if !allowed {
+                    continue;
+                }
+                match *mana {
+                    Mana::Chosen => {
+                        if let Some(c) = o.chosen.color() {
+                            out.push((id, Mana::Colored(c)));
+                        }
+                    }
+                    m => out.push((id, m)),
+                }
+            }
+        }
+        out
+    }
+
+    /// `sources` with the restricted sources whose mana may be spent on
+    /// `spend` in front, so that the canonical plan spends restricted mana
+    /// before mana that could pay for anything; `None` when there are
+    /// none (the common case, at the cost of one counter check).
+    fn with_restricted(
+        &self,
+        p: PlayerId,
+        sources: &[(ObjId, Mana)],
+        spend: Spend,
+    ) -> Option<Sources> {
+        if self.restricted_mana_sources == 0 {
+            return None;
+        }
+        let mut all = self.restricted_sources(p, spend);
+        if all.is_empty() {
+            return None;
+        }
+        all.extend_from_slice(sources);
+        Some(all)
+    }
+
+    /// Whether `p` could pay `req` from `sources` and the pool, restricted
+    /// mana included where `spend` allows it.
+    fn payable_for(
+        &self,
+        p: PlayerId,
+        sources: &[(ObjId, Mana)],
+        req: &ManaRequirement,
+        spend: Spend,
+    ) -> bool {
+        let ps = self.player(p);
+        match self.with_restricted(p, sources, spend) {
+            Some(all) => payment_plan_from(&all, &ps.mana_pool, req, ps.life).is_some(),
+            None => payment_plan_from(sources, &ps.mana_pool, req, ps.life).is_some(),
+        }
+    }
+
+    /// Whether `p` could pay `req` to cast `card` (its current
+    /// characteristics), restricted mana included.
+    fn spell_payable(&self, p: PlayerId, card: ObjId, req: &ManaRequirement) -> bool {
+        if self.restricted_mana_sources == 0 {
+            return self.payment_plan(p, req).is_some();
+        }
+        let Some(c) = self.characteristics(card) else {
+            return false;
+        };
+        self.payable_for(p, &self.mana_sources(p), req, Spend::Spell(&c))
+    }
+
+    /// The sources `p` may tap to activate an ability: restricted mana that
+    /// allows it first (CR 106.6).
+    fn ability_sources(&self, p: PlayerId) -> Sources {
+        let sources = self.mana_sources(p);
+        self.with_restricted(p, &sources, Spend::Ability)
+            .unwrap_or(sources)
+    }
+
     /// CR 601.2g–h: activate mana abilities per the plan, then pay from the
     /// pool.
     /// The non-mana parts of a cost (CR 118.3): life, a sacrifice ("~" is
@@ -1531,6 +1669,10 @@ impl GameState {
     }
 
     /// `pay` from these sources (a spell's, with convoke or improvise).
+    /// Restricted mana (CR 106.6) is in `sources` only where it may be
+    /// spent, and the plan taps a source only once the pool can't cover
+    /// that part of the cost, so all the mana it makes is spent here and
+    /// none is left in the pool to be spent on something else.
     fn pay_from(&mut self, p: PlayerId, req: &ManaRequirement, sources: &Sources) {
         let ps = self.player(p);
         let (plan, req, life) = resolve_payment(sources, &ps.mana_pool, req, ps.life)
@@ -2401,6 +2543,33 @@ impl GameState {
                     }
                     self.bump();
                 }
+            }
+            Effect::AddManaCombination {
+                count,
+                colors,
+                different,
+            } => {
+                // CR 106.1b: each mana's color is chosen as it is added.
+                let p = ctx.controller;
+                let mut left = *colors;
+                for _ in 0..*count {
+                    let options: Vec<Choice> = left.iter().map(Choice::Color).collect();
+                    let Some(&Choice::Color(c)) = (match options.len() {
+                        0 => None,
+                        1 => options.first(),
+                        n => {
+                            let k = self.choose_mid(p, DecisionKind::ChooseColor, options.clone());
+                            options.get(k.min(n - 1))
+                        }
+                    }) else {
+                        break;
+                    };
+                    if *different {
+                        left = ColorSet::of(left.iter().filter(|x| *x != c));
+                    }
+                    self.player_mut(p).mana_pool.add(Mana::Colored(c));
+                }
+                self.bump();
             }
             Effect::Surveil { count } => {
                 self.scry_or_surveil(ctx.controller, self.eval_num(*count, ctx), true);
@@ -3554,6 +3723,15 @@ pub(super) struct EffectCtx {
 /// exact; multi-type lands are assigned to the first color that needs them.
 /// Mana sources, inline for typical board sizes.
 pub(super) type Sources = SmallVec<[(ObjId, Mana); 12]>;
+
+/// What mana is being spent on, for restricted mana (CR 106.6).
+#[derive(Copy, Clone)]
+enum Spend<'a> {
+    /// Casting a spell with these characteristics.
+    Spell(&'a crate::state::Characteristics),
+    /// Activating an ability.
+    Ability,
+}
 
 /// {3}: what a face-down spell costs (CR 702.37c).
 fn three() -> ManaRequirement {

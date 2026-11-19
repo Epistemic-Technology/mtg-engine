@@ -610,6 +610,24 @@ impl Fmt {
                     num(*count)
                 )
             }
+            Effect::AddManaCombination {
+                count,
+                colors,
+                different,
+            } => {
+                if *different {
+                    format!("add {count} mana different colors")
+                } else if colors.count() == 5 {
+                    format!("add {count} mana any combination")
+                } else {
+                    let syms = colors
+                        .iter()
+                        .map(|c| format!("{{{}}}", c.letter()))
+                        .collect::<Vec<_>>()
+                        .concat();
+                    format!("add {count} mana any combination of {syms}")
+                }
+            }
             Effect::Search {
                 filter: f,
                 count,
@@ -1568,6 +1586,39 @@ fn static_cond(c: &StaticCond) -> String {
     }
 }
 
+/// `{C} only to cast instant or sorcery spell`: a restricted mana
+/// ability's mana and restriction (CR 106.6).
+fn restricted_mana(m: Mana, r: &crate::ast::ManaRestriction) -> String {
+    use mtg_core::card::SpendWording;
+    let sym = match m {
+        Mana::Colorless => "{C}".to_string(),
+        Mana::Colored(c) => format!("{{{}}}", c.letter()),
+        Mana::Any => "any".to_string(),
+        Mana::Chosen => "chosen".to_string(),
+    };
+    // Each side of an alternative whole: "Elemental spell or Chandra
+    // planeswalker spell".
+    let spells = r.spells.as_ref().map(|f| match &f.or {
+        Some(alt) => {
+            let mut base = f.clone();
+            base.or = None;
+            format!("cast {} spell or {} spell", filter(&base), filter(alt))
+        }
+        None => format!("cast {} spell", filter(f)),
+    });
+    let rest = match (r.wording, spells) {
+        (SpendWording::CantCast, Some(s)) => format!("not to {s}"),
+        (SpendWording::ActivateFirst, Some(s)) => format!("only to activate or {s}"),
+        (SpendWording::CastFirstTo, Some(s)) if r.abilities => {
+            format!("only to {s} or to activate")
+        }
+        (_, Some(s)) if r.abilities => format!("only to {s} or activate"),
+        (_, Some(s)) => format!("only to {s}"),
+        (_, None) => "only to activate".to_string(),
+    };
+    format!("{sym} {rest}")
+}
+
 #[allow(clippy::too_many_lines)] // one arm per statement kind
 fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter]) {
     match ability {
@@ -1585,6 +1636,16 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 })
                 .collect();
             let _ = writeln!(out, "{indent}mana {}", syms.join(" or "));
+        }
+        Ability::RestrictedMana { mana, restriction } => {
+            let _ = writeln!(out, "{indent}mana {}", restricted_mana(*mana, restriction));
+        }
+        Ability::XManaColor(c) => {
+            let _ = writeln!(
+                out,
+                "{indent}spend only {} mana on x",
+                crate::render::color_name(*c)
+            );
         }
         Ability::SacMana(m) => {
             let sym = match m {

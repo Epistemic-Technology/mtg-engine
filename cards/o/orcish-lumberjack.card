@@ -1,0 +1,7 @@
+card "Orcish Lumberjack" {
+  oracle_id 383e3fe4-8558-4561-8632-6eadb5d5963c
+  cost {R}
+  type Creature — Orc
+  pt 1/1
+  activated {T}, sacrifice Forest: add 3 mana any combination of {R}{G}
+}

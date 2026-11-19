@@ -688,6 +688,15 @@ impl Compiler<'_> {
                 mana: *mana,
                 count: *count,
             }),
+            Effect::AddManaCombination {
+                count,
+                colors,
+                different,
+            } => out.push(CoreEffect::AddManaCombination {
+                count: *count,
+                colors: *colors,
+                different: *different,
+            }),
             Effect::PumpVar {
                 power,
                 toughness,
@@ -1152,6 +1161,15 @@ impl Compiler<'_> {
                 }
             }
             Ability::SacMana(m) => AbilityDef::SacForMana(*m),
+            Ability::RestrictedMana { mana, restriction } => AbilityDef::RestrictedMana {
+                mana: *mana,
+                restriction: mtg_core::card::ManaRestriction {
+                    spells: restriction.spells.as_ref().map(|f| self.filter(f)),
+                    abilities: restriction.abilities,
+                    wording: restriction.wording,
+                },
+            },
+            Ability::XManaColor(c) => AbilityDef::XManaColor(*c),
             Ability::Enchant(t) => AbilityDef::Enchant(self.target(t)),
             Ability::Spell { targets, effects } => AbilityDef::Spell {
                 targets: self.targets(targets),

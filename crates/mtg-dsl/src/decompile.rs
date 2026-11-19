@@ -364,6 +364,15 @@ impl Decompiler<'_> {
                 mana: *mana,
                 count: *count,
             },
+            CoreEffect::AddManaCombination {
+                count,
+                colors,
+                different,
+            } => Effect::AddManaCombination {
+                count: *count,
+                colors: *colors,
+                different: *different,
+            },
             CoreEffect::PumpVar {
                 power,
                 toughness,
@@ -769,6 +778,15 @@ impl Decompiler<'_> {
                 generic: c.generic,
             },
             AbilityDef::SacForMana(m) => Ability::SacMana(*m),
+            AbilityDef::RestrictedMana { mana, restriction } => Ability::RestrictedMana {
+                mana: *mana,
+                restriction: crate::ast::ManaRestriction {
+                    spells: restriction.spells.as_ref().map(|f| self.filter(f)),
+                    abilities: restriction.abilities,
+                    wording: restriction.wording,
+                },
+            },
+            AbilityDef::XManaColor(c) => Ability::XManaColor(*c),
             AbilityDef::BlockRule(r) => Ability::BlockRule(match r {
                 mtg_core::card::BlockRule::NotBy(f) => crate::ast::BlockRule::NotBy(self.filter(f)),
                 mtg_core::card::BlockRule::OnlyBy(f) => {

@@ -20,6 +20,15 @@ pub enum Kind {
     Emblem,
 }
 
+/// What restricted mana may be spent on (CR 106.6); see
+/// `mtg_core::card::ManaRestriction`.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct ManaRestriction {
+    pub spells: Option<Filter>,
+    pub abilities: bool,
+    pub wording: mtg_core::card::SpendWording,
+}
+
 /// One definition: a `card`, `token`, or `emblem` block.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Card {
@@ -346,6 +355,15 @@ pub enum Ability {
     /// "{T}, Sacrifice this artifact: Add one mana of any color."
     /// (`mana any, sacrifice this`).
     SacMana(Mana),
+    /// `mana {C} only to cast instant or sorcery spell`: "{T}: Add {C}.
+    /// Spend this mana only to cast an instant or sorcery spell." (CR
+    /// 106.6).
+    RestrictedMana {
+        mana: Mana,
+        restriction: ManaRestriction,
+    },
+    /// `spend only black mana on x`: "Spend only black mana on X."
+    XManaColor(Color),
     Enchant(Target),
     Spell {
         targets: Vec<Target>,
@@ -1046,6 +1064,15 @@ pub enum Effect {
     AddManaTimes {
         mana: Mana,
         count: Num,
+    },
+    /// `add 2 mana any combination`, `add 3 mana any combination of
+    /// {R}{G}`, `add 2 mana different colors`: "Add two mana in any
+    /// combination of colors.", "... of {R} and/or {G}.", "Add two mana of
+    /// different colors."
+    AddManaCombination {
+        count: u32,
+        colors: mtg_core::mana::ColorSet,
+        different: bool,
     },
     Surveil(Num),
     /// `who` is `None` for the imperative "discard a card".

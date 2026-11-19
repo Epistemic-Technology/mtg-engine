@@ -1,0 +1,7 @@
+card "Firemind Vessel" {
+  oracle_id d8afd7b0-7cd0-4caf-ac43-a0e24a93ca09
+  cost {4}
+  type Artifact
+  enters tapped
+  activated {T}: add 2 mana different colors
+}

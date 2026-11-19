@@ -64,6 +64,8 @@ double-faced permanent to its other face (CR 701.27).
 |---|---|
 | `mana {G}` / `mana {W} or {U}` / `mana any` / `mana {U} or chosen` | "{T}: Add {G}." A mana ability (CR 605); `any` is "one mana of any color", `chosen` "one mana of the chosen color" (the color chosen as the permanent entered; none chosen, no mana). Basic land types grant theirs intrinsically. |
 | `mana any, sacrifice this` | "{T}, Sacrifice this artifact: Add one mana of any color." (Treasure, Lotus Petal). Payment uses such sources after all others. |
+| `mana {C} only to cast instant or sorcery spell`, `mana any only to cast creature spell`, `mana {U} only to cast artifact spell or activate`, `mana {R} only to cast artifact spell or to activate`, `mana {C} only to activate or cast artifact spell`, `mana {R} only to cast Elemental spell or Chandra planeswalker spell`, `mana {U} not to cast nonartifact spell` | "{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell.", "... only to cast an artifact spell or activate an ability.", "... or to activate an ability.", "... only to activate an ability or cast an artifact spell.", "This mana can't be spent to cast a nonartifact spell." Restricted mana (CR 106.6): one kind of mana; the engine taps the source only to pay for what the restriction allows (any activated ability for `activate`; for `not to cast`, other spells and any activated ability, though not costs an effect asks for), so its mana is spent at once and never sits in the pool. |
+| `spend only black mana on x` | "Spend only black mana on X." (CR 107.3): the X in the spell's cost is paid with that color only. |
 | `cycling {2}` | Cycling (CR 702.29): "{2}, Discard this card: Draw a card.", activated from the hand. |
 | `plainscycling {2}`, `basic landcycling {1}{G}`, `landcycling {2}` | Typecycling (CR 702.29e): discard to search for a card of that type. |
 | `enchant creature` | An Aura's "Enchant" (CR 702.5), with a target specification. |
@@ -341,7 +343,11 @@ random`,
 this`,
 `add {B}{B}` / `add any` ("Add {B}{B}.", "Add one mana of any color."; an
 activated ability that only adds mana is a mana ability and resolves at
-once, CR 605), `search basic land card reveal to hand`, `search up to 2
+once, CR 605), `add any 2` ("Add two mana of any one color."), `add 2 mana
+any combination` / `add 3 mana any combination of {R}{G}` / `add 2 mana
+different colors` ("Add two mana in any combination of colors.", "Add
+three mana in any combination of {R} and/or {G}.", "Add two mana of
+different colors."; each mana's color chosen as it is added), `search basic land card reveal to hand`, `search up to 2
 Forest card to battlefield tapped`, `search basic land card reveal to
 top` ("Search your library for ..., then shuffle"; add `that card` to
 print "that card" for "it"),

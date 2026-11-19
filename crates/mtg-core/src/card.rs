@@ -1830,6 +1830,15 @@ pub enum Effect {
         mana: crate::mana::Mana,
         count: Num,
     },
+    /// "Add two mana in any combination of colors", "Add three mana in any
+    /// combination of {R} and/or {G}" (each mana one of `colors`, chosen
+    /// one at a time), "Add two mana of different colors" (`different`:
+    /// no color twice).
+    AddManaCombination {
+        count: u32,
+        colors: ColorSet,
+        different: bool,
+    },
     /// The recipient player discards N cards of their choice (CR 701.8).
     Discard {
         count: Num,
@@ -2121,6 +2130,7 @@ impl Effect {
                 | Effect::AddMana(_)
                 | Effect::AddManaOneOf(_)
                 | Effect::AddManaTimes { .. }
+                | Effect::AddManaCombination { .. }
                 | Effect::SacrificeChosen { .. }
                 | Effect::ReturnChosen { .. }
                 | Effect::DiscardRandom { .. }
@@ -2572,6 +2582,61 @@ impl Cost {
     }
 }
 
+/// What restricted mana may be spent on (CR 106.6): "Spend this mana only
+/// to cast an artifact spell or activate an ability." Mana spent on
+/// anything else (a cost an effect asks for, a special action) is never
+/// allowed.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct ManaRestriction {
+    /// The spells it may be spent to cast; `None` for none. With
+    /// `SpendWording::CantCast`, the spells it may *not* be spent on.
+    pub spells: Option<ObjFilter>,
+    /// It may be spent to activate abilities (any activated ability, mana
+    /// abilities and abilities of objects off the battlefield included).
+    pub abilities: bool,
+    /// How the sentence reads; `CantCast` also turns `spells` around.
+    pub wording: SpendWording,
+}
+
+/// The sentence of a `ManaRestriction`.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum SpendWording {
+    /// "Spend this mana only to cast an artifact spell [or activate an
+    /// ability]."
+    #[default]
+    CastFirst,
+    /// "Spend this mana only to cast an artifact spell or to activate an
+    /// ability."
+    CastFirstTo,
+    /// "Spend this mana only to activate an ability or cast an artifact
+    /// spell."
+    ActivateFirst,
+    /// "This mana can't be spent to cast a nonartifact spell.": anything
+    /// but casting a spell `spells` matches.
+    CantCast,
+}
+
+impl ManaRestriction {
+    /// Whether the mana may be spent to cast a spell with these
+    /// characteristics.
+    pub fn allows_spell(&self, c: &crate::state::Characteristics) -> bool {
+        let matched = self
+            .spells
+            .as_ref()
+            .is_some_and(|f| f.matches_characteristics(c));
+        if self.wording == SpendWording::CantCast {
+            !matched
+        } else {
+            matched
+        }
+    }
+
+    /// Whether the mana may be spent to activate an ability.
+    pub fn allows_abilities(&self) -> bool {
+        self.abilities || self.wording == SpendWording::CantCast
+    }
+}
+
 /// An activated ability (CR 602): "[cost]: [effect]". Uses the stack like a
 /// spell; mana abilities are `AbilityDef::TapForMana` instead (CR 605).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -2604,7 +2669,10 @@ impl ActivatedAbility {
             && self.effects.iter().all(|e| {
                 matches!(
                     e,
-                    Effect::AddMana(_) | Effect::AddManaOneOf(_) | Effect::AddManaTimes { .. }
+                    Effect::AddMana(_)
+                        | Effect::AddManaOneOf(_)
+                        | Effect::AddManaTimes { .. }
+                        | Effect::AddManaCombination { .. }
                 )
             })
     }
@@ -2689,6 +2757,16 @@ pub enum AbilityDef {
     /// "{T}, Sacrifice this artifact: Add <mana>" (Treasure, Lotus
     /// Petal): a mana ability that sacrifices its source.
     SacForMana(Mana),
+    /// "{T}: Add {C}. Spend this mana only to cast an instant or sorcery
+    /// spell." (CR 106.6): a mana ability whose mana may be spent only as
+    /// `restriction` allows. Payment uses it only where it is allowed.
+    RestrictedMana {
+        mana: Mana,
+        restriction: ManaRestriction,
+    },
+    /// "Spend only black mana on X." (CR 107.3): the X in this card's cost
+    /// is paid with mana of this color only.
+    XManaColor(crate::mana::Color),
     /// A blocking restriction on this creature (CR 509.1b–c): "can't be
     /// blocked by Walls", "can block only creatures with flying".
     BlockRule(BlockRule),
@@ -2736,6 +2814,8 @@ impl AbilityDef {
             AbilityDef::Enchant(_)
             | AbilityDef::TapForMana(_)
             | AbilityDef::SacForMana(_)
+            | AbilityDef::RestrictedMana { .. }
+            | AbilityDef::XManaColor(_)
             | AbilityDef::BlockRule(_)
             | AbilityDef::CostChange(_)
             | AbilityDef::AttackUnless { .. }
@@ -2759,6 +2839,8 @@ impl AbilityDef {
             AbilityDef::Enchant(_)
             | AbilityDef::TapForMana(_)
             | AbilityDef::SacForMana(_)
+            | AbilityDef::RestrictedMana { .. }
+            | AbilityDef::XManaColor(_)
             | AbilityDef::BlockRule(_)
             | AbilityDef::CostChange(_)
             | AbilityDef::AttackUnless { .. }
@@ -2961,6 +3043,9 @@ impl DefFlags {
     /// "As this enters, choose ..." (`AbilityDef::AsEntersChoose`): a
     /// question as the permanent enters, however it does.
     const ENTERS_CHOICE: u16 = 8192;
+    /// A mana ability whose mana is restricted (`AbilityDef::RestrictedMana`):
+    /// payment then looks for such sources.
+    const RESTRICTED_MANA: u16 = 16384;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u16 = DefFlags::MODIFIES_ENTERING;
 
@@ -3025,6 +3110,10 @@ impl DefFlags {
 
     pub const fn grants_abilities(self) -> bool {
         self.has(DefFlags::GRANTS)
+    }
+
+    pub const fn has_restricted_mana(self) -> bool {
+        self.has(DefFlags::RESTRICTED_MANA)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -3114,6 +3203,12 @@ impl DefFlags {
                     AbilityDef::EntersAsCopy(_) | AbilityDef::AsEntersChoose(_)
                 ) || a.all_effects().iter().any(|e| e.asks())
             }),
+        );
+        flags.set(
+            DefFlags::RESTRICTED_MANA,
+            abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::RestrictedMana { .. })),
         );
         flags.set(
             DefFlags::ENTERS_CHOICE,

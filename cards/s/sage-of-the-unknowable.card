@@ -1,0 +1,7 @@
+card "Sage of the Unknowable" {
+  oracle_id 359a570e-92a7-4954-9a05-89cc75df57e7
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 0/4
+  mana {C} only to cast colorless spell or to activate
+}
