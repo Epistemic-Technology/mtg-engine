@@ -2468,17 +2468,29 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             });
         }
         let repeat = i > 0 && s.joins.get(i - 1) == Some(&Join::AndRepeat);
+        let mut same_subject = false;
         match &c.subject {
             Some((r, text)) => {
                 if prev_subject != Some(*r) || repeat {
                     out.push_str(text);
                     out.push(' ');
+                } else {
+                    same_subject = true;
                 }
                 prev_subject = Some(*r);
             }
             None => prev_subject = None,
         }
-        out.push_str(&c.text);
+        // "deals 1 damage to any target and 1 damage to you".
+        let text = if same_subject
+            && c.text.starts_with("deals ")
+            && clauses[i - 1].text.starts_with("deals ")
+        {
+            &c.text["deals ".len()..]
+        } else {
+            &c.text
+        };
+        out.push_str(text);
         if let Some(suffix) = c.suffix
             && !shared_suffix
             && !s.eot_first
