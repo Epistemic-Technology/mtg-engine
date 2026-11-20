@@ -1,0 +1,8 @@
+card "Burn, Burn, Tree and Fern" {
+  oracle_id a97d6c5c-1cff-442d-b535-fc8389160b0b
+  cost {3}{R}
+  type Enchantment — Saga
+  triggered chapter 1: deal 6 damage to target creature an opponent controls
+  triggered chapter 2: destroy target artifact an opponent controls
+  triggered chapter 3, 4: add {R}
+}

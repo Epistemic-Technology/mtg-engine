@@ -1968,6 +1968,20 @@ paying its half's cost is a special action at sorcery speed (scenario
 - Static condition: `2 unlocked doors` ("there are two or more unlocked
   doors among Rooms you control").
 
+Sagas (CR 714) are `type Enchantment — Saga` cards whose chapter
+abilities are `triggered chapter 1: ...` ("I — ..."), `triggered
+chapter 1, 2: ...` ("I, II — ...", one ability triggering for each
+number, CR 714.2b); `label "Wark" triggered chapter 1: ...` prints the
+chapter's name after its numerals ("I — Wark — ..."). "this Saga" is the
+self-noun (a Saga creature's is "this creature"). The engine reads the
+final chapter from the abilities (`CardDef::final_chapter`): a Saga
+enters with a lore counter (CR 714.3a), gets another as its
+controller's precombat main phase begins (CR 714.3b), and is sacrificed
+once its lore counters reach the final chapter and no chapter ability of
+its own is waiting to leave the stack (CR 714.4). A chapter triggers as
+lore counters put on the Saga take their number from below its chapter
+number to at least it, however they are put there (proliferate too).
+
 Spacecraft: `station` ("Station": tap another untapped creature you
 control, put charge counters equal to its power on this permanent,
 only as a sorcery, CR 702.184) and `station 4: flying` ("4+ | Flying",

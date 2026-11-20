@@ -1406,6 +1406,9 @@ impl Decompiler<'_> {
             TriggerSpec::Attacks(o) => Trigger::Attacks(self.trigger_obj(o)),
             TriggerSpec::AttacksBattle(o) => Trigger::AttacksBattle(self.trigger_obj(o)),
             TriggerSpec::UnlocksDoor { .. } => Trigger::UnlocksDoor,
+            TriggerSpec::Chapter(mask) => {
+                Trigger::Chapter((1..=15u8).filter(|n| mask & (1 << n) != 0).collect())
+            }
             TriggerSpec::FullyUnlocks { .. } => Trigger::FullyUnlocks,
             TriggerSpec::DealsCombatDamageToPlayerOrBattle(o) => {
                 Trigger::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))

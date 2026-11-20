@@ -3154,6 +3154,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::AttacksBattle(o) => format!("whenever {} attacks a battle", trigger_obj(o)),
         Trigger::UnlocksDoor => "when you unlock this door".to_string(),
+        Trigger::Chapter(ns) => format!(
+            "chapter {}",
+            ns.iter().map(u8::to_string).collect::<Vec<_>>().join(", ")
+        ),
         Trigger::FullyUnlocks => "whenever you fully unlock a Room".to_string(),
         Trigger::DealsCombatDamageToDefending(o) => {
             format!(

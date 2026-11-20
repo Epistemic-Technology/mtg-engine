@@ -1,0 +1,8 @@
+card "Down, Down to Goblin-town" {
+  oracle_id e01860cd-0aa1-435a-9ef9-ee412bc458cd
+  cost {2}{B}
+  type Enchantment — Saga
+  triggered chapter 1: target opponent reveals hand discarding nonland card
+  triggered chapter 2: amass Goblins 1
+  triggered chapter 3, 4: target opponent loses 1 life and you gains 1 life
+}

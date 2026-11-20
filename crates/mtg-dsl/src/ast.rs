@@ -1961,6 +1961,9 @@ pub enum Trigger {
     AttacksBattle(TriggerObj),
     /// `when you unlock this door` (CR 709.5h).
     UnlocksDoor,
+    /// `chapter 1, 2`: a Saga's chapter ability (CR 714.2), printed as
+    /// its chapter numbers in Roman numerals, "I, II — ...".
+    Chapter(Vec<u8>),
     /// `whenever you fully unlock a Room` (CR 709.5i).
     FullyUnlocks,
     /// `deals combat damage to defending player`: the same trigger, worded

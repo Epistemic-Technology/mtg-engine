@@ -8802,6 +8802,22 @@ impl P {
 
     #[allow(clippy::too_many_lines)]
     fn trigger_one(&mut self) -> R<Trigger> {
+        // CR 714.2: `chapter 1, 2`.
+        if self.eat_word("chapter") {
+            let mut chapters = Vec::new();
+            loop {
+                let n = self.number()?;
+                let Some(n) = u8::try_from(n).ok().filter(|n| (1..=15).contains(n)) else {
+                    return self.unexpected("a chapter number from 1 to 15");
+                };
+                chapters.push(n);
+                if self.peek() != Some(&Tok::Comma) {
+                    break;
+                }
+                self.pos += 1;
+            }
+            return Ok(Trigger::Chapter(chapters));
+        }
         if self.eat_word("at") {
             // CR 511.2: "at end of combat" triggers as the end of combat
             // step begins.

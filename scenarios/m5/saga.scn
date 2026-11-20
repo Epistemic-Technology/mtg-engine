@@ -1,0 +1,85 @@
+# Sagas (CR 714): a Saga enters with a lore counter (CR 714.3a) and gets
+# another as its controller's precombat main phase begins (CR 714.3b).
+# Chapter abilities trigger as lore counters reach their numbers (CR
+# 714.2c); a Saga whose lore counters reach its final chapter is
+# sacrificed once no chapter ability of its own is waiting to leave the
+# stack (CR 714.4).
+
+scenario "saga: chapter I triggers as it enters" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Burn, Burn, Tree and Fern"
+  turn 1 A: cast "Burn, Burn, Tree and Fern"
+  turn 1 A: trigger "Burn, Burn, Tree and Fern" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert counters "Burn, Burn, Tree and Fern" lore 1
+  assert battlefield A contains "Burn, Burn, Tree and Fern"
+}
+
+scenario "saga: a lore counter as the precombat main phase begins" {
+  battlefield A: "The Witch's Vanity" with 1 lore
+  run_to turn 1 postcombat_main
+  assert counters "The Witch's Vanity" lore 2
+  assert battlefield A contains "Food"
+}
+
+scenario "saga: chapters already passed don't trigger again" {
+  battlefield A: "The Witch's Vanity" with 1 lore
+  battlefield B: "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Raging Goblin"
+  assert battlefield A contains 1 "Food"
+}
+
+scenario "saga: only the active player's Sagas" {
+  battlefield B: "The Witch's Vanity" with 1 lore
+  run_to turn 1 postcombat_main
+  assert counters "The Witch's Vanity" lore 1
+  assert battlefield B lacks "Food"
+  run_to turn 2 postcombat_main
+  assert counters "The Witch's Vanity" lore 2
+  assert battlefield B contains "Food"
+}
+
+scenario "saga: the final chapter waits on the stack, then the Saga is sacrificed" {
+  battlefield A: "The Witch's Vanity" with 2 lore, "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert stack top "The Witch's Vanity"
+  assert battlefield A contains "The Witch's Vanity"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "The Witch's Vanity"
+  assert battlefield A contains "Wicked"
+  assert power "Grizzly Bears" 3
+}
+
+scenario "saga: proliferate adds a lore counter and triggers the next chapter" {
+  battlefield A: "The Witch's Vanity" with 1 lore, 3 "Island"
+  hand A: "Steady Progress"
+  start turn 2 B
+  turn 2 upkeep A: cast "Steady Progress"
+  run_to turn 2 postcombat_main
+  assert counters "The Witch's Vanity" lore 2
+  assert battlefield A contains "Food"
+}
+
+scenario "saga: one ability with two chapter numbers triggers for each" {
+  battlefield A: 3 "Mountain"
+  hand A: "Summon: G.F. Ifrit", "Forest", "Forest"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Summon: G.F. Ifrit"
+  turn 1 precombat_main A: discard "Forest"
+  turn 3 precombat_main A: discard "Forest"
+  run_to turn 2 untap
+  assert counters "Summon: G.F. Ifrit" lore 1
+  assert graveyard A contains 1 "Forest"
+  run_to turn 3 postcombat_main
+  assert counters "Summon: G.F. Ifrit" lore 2
+  assert graveyard A contains 2 "Forest"
+}
+
+scenario "saga: a Saga creature is sacrificed after its last chapter" {
+  battlefield A: "Summon: G.F. Ifrit" with 3 lore
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Summon: G.F. Ifrit"
+}

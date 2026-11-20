@@ -2243,6 +2243,32 @@ impl Builder<'_> {
 
     #[allow(clippy::too_many_lines)]
     fn line(&mut self, line: &str) -> Result<(), Skip> {
+        // CR 714.2: "I, II — <effects>", a chapter perhaps named ("I — Wark
+        // — <effects>").
+        if let Some(c) = Regex::new(
+            r"^((?:I|II|III|IV|V|VI|VII)(?:, (?:I|II|III|IV|V|VI|VII))*) \u{2014} (?:([A-Z][^.\u{2014}{}]{0,40}?) \u{2014} )?(.+)$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let roman = ["I", "II", "III", "IV", "V", "VI", "VII"];
+            let ns: Vec<String> = cap(&c, 1)
+                .split(", ")
+                .filter_map(|r| roman.iter().position(|x| *x == r))
+                .map(|i| (i + 1).to_string())
+                .collect();
+            let mut targets = 0;
+            let effects = self.templates.effects(cap(&c, 3), &mut targets)?;
+            let label = c
+                .get(2)
+                .map(|l| format!("label \"{}\" ", l.as_str()))
+                .unwrap_or_default();
+            self.statements.push(format!(
+                "{label}triggered chapter {}: {effects}",
+                ns.join(", ")
+            ));
+            return Ok(());
+        }
         // "Landfall — <ability>": the label prefixes the one statement the
         // rest makes.
         if let Some((label, rest)) = line.split_once(" — ")
@@ -3180,7 +3206,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if matches!(s.layout.as_str(), "adventure" | "transform" | "split") && s.card_faces.len() == 2 {
         return author_faces(s, corpus);
     }
-    if s.name.contains(" // ") || s.layout != "normal" {
+    if s.name.contains(" // ") || !matches!(s.layout.as_str(), "normal" | "saga") {
         return Err(Skip::Layout(s.layout.clone()));
     }
     let type_line = s.type_line.clone().unwrap_or_default();
@@ -3224,7 +3250,14 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         return Err(Skip::Keyword("energy or unusual hybrid symbol".to_string()));
     }
     let oracle = strip_reminder(s.oracle_text.as_deref().unwrap_or(""));
-    let oracle = oracle.replace(&s.name, "~");
+    let mut oracle = oracle.replace(&s.name, "~");
+    // A Saga, Class, or Case names itself so; the DSL's `this` prints the
+    // noun.
+    for noun in ["Saga", "Class", "Case"] {
+        oracle = oracle
+            .replace(&format!("this {noun}"), "this enchantment")
+            .replace(&format!("This {noun}"), "This enchantment");
+    }
     let templates = Templates::new();
     let mut b = Builder {
         templates: &templates,

@@ -1,0 +1,7 @@
+card "Summon: Choco/Mog" {
+  oracle_id 8b4bfdc5-8c0a-40c3-abbf-ada4a536dc34
+  cost {2}{W}
+  type Enchantment Creature — Saga Bird Moogle
+  pt 3/3
+  label "Stampede!" triggered chapter 1, 2, 3, 4: each other creature you control gets +1/+0
+}

@@ -210,7 +210,9 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
         Event::EffectEnded { .. } | Event::Replaced { .. } | Event::Targeted { .. } => {
             return None;
         }
-        Event::CountersAdded { obj: o, kind, n } => {
+        Event::CountersAdded {
+            obj: o, kind, n, ..
+        } => {
             format!("{n} {kind:?} counter(s) put on {}.", obj(state, *o))
         }
         Event::CountersRemoved { obj: o, kind, n } => {

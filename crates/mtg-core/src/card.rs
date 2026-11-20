@@ -4656,6 +4656,11 @@ pub enum TriggerSpec {
     /// `n`th total mana to cast spells during a turn, judged as the spell
     /// that paid it becomes cast.
     Expends(u8),
+    /// A Saga's chapter ability (CR 714.2): bit `n` set for chapter `n`
+    /// ("I, II —" is bits 1 and 2, CR 714.2b). It triggers when lore
+    /// counters put on the source take their number from below `n` to `n`
+    /// or more (CR 714.2c), once for each chapter number so crossed.
+    Chapter(u16),
 }
 
 /// Which of a player's spells this turn a cast trigger wants.
@@ -4790,7 +4795,7 @@ impl TriggerSpec {
             | TriggerSpec::FullyUnlocks { .. }
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
-            TriggerSpec::CountersPut { .. } => WATCH_COUNTERS,
+            TriggerSpec::CountersPut { .. } | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
         }
     }
 }
@@ -5843,6 +5848,10 @@ pub struct CardDef {
     /// spent to cast it.
     #[serde(skip)]
     pub spent: SpentUse,
+    /// Filled in by `CardPool::add`: a Saga's final chapter number (CR
+    /// 714.2d), the greatest among its chapter abilities; 0 without any.
+    #[serde(skip)]
+    pub final_chapter: u8,
 }
 
 /// A room of a dungeon card (CR 309.4): its name (flavor, CR 309.4b), the
@@ -5988,6 +5997,9 @@ impl DefFlags {
     const BANDING: u32 = 8_388_608;
     /// A Room (`CardDef::doors`): priority then offers its locked doors.
     const ROOM: u32 = 16_777_216;
+    /// A Saga with chapter abilities (`CardDef::final_chapter`, CR 714):
+    /// the precombat main phase and state-based actions then look.
+    const SAGA: u32 = 33_554_432;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -6096,6 +6108,10 @@ impl DefFlags {
 
     pub const fn has_room(self) -> bool {
         self.has(DefFlags::ROOM)
+    }
+
+    pub const fn has_saga(self) -> bool {
+        self.has(DefFlags::SAGA)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -7318,6 +7334,21 @@ impl CardPool {
         }
         flags.set(DefFlags::MARKS, !def.marks.is_empty());
         flags.set(DefFlags::BANDING, def.keywords.contains(Keyword::Banding));
+        // CR 714.2d: the final chapter number is the greatest among its
+        // chapter abilities.
+        def.final_chapter = def
+            .abilities
+            .iter()
+            .filter_map(|a| match a {
+                AbilityDef::Triggered(TriggeredAbility {
+                    trigger: TriggerSpec::Chapter(mask),
+                    ..
+                }) if *mask != 0 => u8::try_from(15 - mask.leading_zeros()).ok(),
+                _ => None,
+            })
+            .max()
+            .unwrap_or(0);
+        flags.set(DefFlags::SAGA, def.final_chapter > 0);
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
             def: r,
@@ -7594,6 +7625,7 @@ impl Builder {
             printed: None,
             cast_targets: Vec::new(),
             flags: DefFlags::default(),
+            final_chapter: 0,
         })
     }
 

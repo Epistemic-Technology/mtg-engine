@@ -2440,6 +2440,7 @@ impl Compiler<'_> {
             Trigger::Attacks(o) => TriggerSpec::Attacks(self.trigger_obj(o)),
             Trigger::AttacksBattle(o) => TriggerSpec::AttacksBattle(self.trigger_obj(o)),
             Trigger::UnlocksDoor => TriggerSpec::UnlocksDoor { door: 0 },
+            Trigger::Chapter(ns) => TriggerSpec::Chapter(ns.iter().fold(0u16, |m, n| m | 1 << n)),
             Trigger::FullyUnlocks => TriggerSpec::FullyUnlocks { whose: Who::You },
             Trigger::DealsCombatDamageToPlayerOrBattle(o) => {
                 TriggerSpec::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))

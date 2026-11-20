@@ -168,6 +168,9 @@ pub enum Event {
         obj: ObjId,
         kind: CounterKind,
         n: u32,
+        /// How many of that kind it had before (a Saga's chapters, CR
+        /// 714.2c).
+        before: u32,
     },
     CountersRemoved {
         obj: ObjId,

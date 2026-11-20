@@ -1,0 +1,8 @@
+card "Book of Mazarbul" {
+  oracle_id 4598c221-b111-4bde-b4dc-673186c4efe6
+  cost {2}{R}
+  type Enchantment — Saga
+  triggered chapter 1: amass Orcs 1
+  triggered chapter 2: amass Orcs 2
+  triggered chapter 3: each creature you control gets +1/+0 and gains menace
+}

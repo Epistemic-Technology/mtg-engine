@@ -272,6 +272,7 @@ impl Engine {
                 state.mark_sources += u32::from(def.flags().has_marks());
                 state.banding_sources += u32::from(def.flags().has_banding());
                 state.room_count += u32::from(def.flags().has_room());
+                state.saga_count += u32::from(def.flags().has_saga());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -569,6 +570,7 @@ impl GameState {
             undone_cast: None,
             face_down_count: 0,
             room_count: 0,
+            saga_count: 0,
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
             this_way: None,
@@ -2473,6 +2475,18 @@ impl GameState {
             }
             Step::Cleanup => {
                 self.flow = Flow::Discarding;
+            }
+            // CR 714.3b: as the precombat main phase begins, the active
+            // player puts a lore counter on each Saga they control.
+            Step::PrecombatMain if self.saga_count > 0 => {
+                let sagas: Vec<ObjId> = self
+                    .permanents_of(active)
+                    .filter(|id| self.pool.get(self.objects[*id].def).final_chapter > 0)
+                    .collect();
+                for id in sagas {
+                    self.add_counters(id, crate::card::CounterKind::Lore, 1);
+                }
+                self.give_priority(active);
             }
             Step::Upkeep
             | Step::PrecombatMain

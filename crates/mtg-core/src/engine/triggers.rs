@@ -70,6 +70,14 @@ impl GameState {
                 {
                     continue;
                 }
+                // CR 714.2c: a chapter ability triggers once for each of
+                // its chapter numbers the lore counters reach.
+                let copies = match (&t.trigger, event) {
+                    (TriggerSpec::Chapter(mask), Event::CountersAdded { n, before, .. }) => {
+                        chapters_crossed(*mask, *before, *n).count_ones()
+                    }
+                    _ => 1,
+                };
                 // CR 603.2c: "one or more ... enter", once per batch.
                 let batch = matches!(
                     t.trigger,
@@ -79,6 +87,20 @@ impl GameState {
                 );
                 if batch && self.join_batch(&mut fired, ability, w.source) {
                     continue;
+                }
+                for _ in 1..copies {
+                    fired.push(PendingTrigger {
+                        controller: w.controller,
+                        ability: StackAbility {
+                            ability,
+                            source: w.source,
+                            def: w.chars.def,
+                            trigger_obj,
+                            trigger_player,
+                            trigger_amount: event_amount,
+                        },
+                        timestamp: 0,
+                    });
                 }
                 fired.push(PendingTrigger {
                     controller: w.controller,
@@ -810,6 +832,18 @@ impl GameState {
                 let p = on_battlefield(what, *obj)?;
                 Some((Some(*obj), Some(p)))
             }
+            // CR 714.2c: lore counters put on this Saga take their number
+            // from below a chapter number to at least it.
+            (
+                TriggerSpec::Chapter(mask),
+                Event::CountersAdded {
+                    obj,
+                    kind: crate::card::CounterKind::Lore,
+                    n,
+                    before,
+                },
+            ) => (*obj == w.source && chapters_crossed(*mask, *before, *n) != 0)
+                .then_some((Some(*obj), Some(w.controller))),
             (TriggerSpec::BecomesTarget(what), Event::Targeted { target: obj, .. })
             | (TriggerSpec::BecomesTapped(what), Event::Tapped { obj })
             | (TriggerSpec::BecomesUntapped(what), Event::Untapped { obj })
@@ -1546,5 +1580,24 @@ impl GameState {
         self.remove_from_zone_list(id);
         self.objects.remove(id);
         self.bump();
+        // CR 714.4: a Saga waits for its chapter abilities to leave the
+        // stack, which changes nothing else a state-based action sees.
+        if self.saga_count > 0 {
+            self.sba_touch();
+        }
     }
+}
+
+/// The chapter numbers in `mask` (bit `n` for chapter `n`) that `n` lore
+/// counters put on a Saga with `before` of them reach (CR 714.2c): those
+/// above `before` and at most `before + n`.
+fn chapters_crossed(mask: u16, before: u32, n: u32) -> u16 {
+    let bits = |k: u32| -> u16 {
+        if k >= 15 {
+            u16::MAX
+        } else {
+            (1u16 << (k + 1)) - 1
+        }
+    };
+    mask & bits(before.saturating_add(n)) & !bits(before)
 }
