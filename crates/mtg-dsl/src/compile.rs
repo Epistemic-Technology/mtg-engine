@@ -453,6 +453,9 @@ impl Compiler<'_> {
         if card.flash_cleanup {
             b = b.flash_cleanup();
         }
+        if let Some(n) = card.unkicked_targets {
+            b = b.unkicked_targets(u8::try_from(n).unwrap_or(u8::MAX));
+        }
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
         }
@@ -1193,7 +1196,8 @@ impl Compiler<'_> {
             Effect::DealDamage {
                 amount,
                 to,
-                by: by @ (Recipient::TriggeringIt | Recipient::TriggeringObject),
+                by:
+                    by @ (Recipient::TriggeringIt | Recipient::TriggeringObject | Recipient::Attached),
             } => {
                 for t in to {
                     out.push(CoreEffect::DamageFrom {

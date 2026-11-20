@@ -1956,7 +1956,7 @@ impl GameState {
                 req.add(&cost.mana.requirements(0));
                 self.spell_payable(p, spell, &req)
                     && self.additional_payable(p, cost, spell)
-                    && self.targets_available(p, def.cast_targets(), Some(spell))
+                    && self.targets_available(p, def.unkicked_cast_targets(), Some(spell))
             })
             .collect()
     }

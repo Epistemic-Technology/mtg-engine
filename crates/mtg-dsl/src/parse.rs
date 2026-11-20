@@ -51,6 +51,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         subject: None,
         votes: Vec::new(),
         returned: None,
+        kicked_targets: None,
     };
     let mut cards = Vec::new();
     loop {
@@ -469,6 +470,10 @@ struct P {
     /// The target an earlier effect of the ability returned to its
     /// owner's hand: "that player" is then its owner.
     returned: Option<usize>,
+    /// In a spell, how many targets were declared before an "if kicked"
+    /// sentence declared more (CR 601.2c: those are chosen only if the
+    /// spell is kicked).
+    kicked_targets: Option<usize>,
 }
 
 impl P {
@@ -698,6 +703,7 @@ impl P {
             alt_cost: None,
             flash_if: None,
             flash_cleanup: false,
+            unkicked_targets: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
@@ -931,6 +937,9 @@ impl P {
             }
             _ => {
                 let a = self.ability()?;
+                if matches!(a, Ability::Spell { .. }) {
+                    card.unkicked_targets = self.kicked_targets.take();
+                }
                 card.abilities.push(a);
                 Ok(())
             }
@@ -1526,6 +1535,7 @@ impl P {
             }
             "spell" => {
                 self.pos += 1;
+                self.kicked_targets = None;
                 let effects = self.effects_body()?;
                 Ok(Ability::Spell {
                     targets: std::mem::take(&mut self.targets),
@@ -3471,6 +3481,7 @@ impl P {
             if self.peek() == Some(&Tok::Comma) {
                 self.pos += 1;
             }
+            let before = self.targets.len();
             let inner = if self.peek() == Some(&Tok::LBrace) {
                 self.effects_body()?
             } else {
@@ -3479,6 +3490,9 @@ impl P {
                     Err(s) => vec![s],
                 }
             };
+            if self.targets.len() > before && self.kicked_targets.is_none() {
+                self.kicked_targets = Some(before);
+            }
             return Ok(Effect::IfKicked(inner));
         }
         if self.at_words(&["this", "turn"]) {
@@ -3540,6 +3554,7 @@ impl P {
                         | Recipient::SourceIt
                         | Recipient::TriggeringIt
                         | Recipient::TriggeringObject
+                        | Recipient::Attached
                 ) =>
             {
                 self.pos -= 1;
@@ -6160,6 +6175,7 @@ impl P {
             subject: None,
             votes: self.votes.clone(),
             returned: self.returned,
+            kicked_targets: None,
         };
         if !probe.at_recipient() {
             return false;
@@ -6673,6 +6689,7 @@ impl P {
                         subject: None,
                         votes: Vec::new(),
                         returned: None,
+                        kicked_targets: None,
                     };
                     probe.keyword().is_some()
                 };

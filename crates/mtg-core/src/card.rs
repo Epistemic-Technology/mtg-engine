@@ -4979,6 +4979,10 @@ pub struct CardDef {
     /// permanent it becomes sacrifices it at the beginning of the next
     /// cleanup step." (Spider Climb).
     pub flash_cleanup: bool,
+    /// How many of a spell's targets it has unless it was kicked: those
+    /// after are declared by "If this spell was kicked, ..." and chosen
+    /// only if it was (CR 601.2c, 702.33).
+    pub unkicked_targets: Option<u8>,
     /// Offspring (CR 702.175): an optional additional cost; if paid, a 1/1
     /// token copy is created as the permanent enters.
     pub offspring: Option<Box<ManaCost>>,
@@ -5420,6 +5424,15 @@ impl CardDef {
     /// targets, or an Aura's enchant target.
     pub fn cast_targets(&self) -> &[TargetSpec] {
         &self.cast_targets
+    }
+
+    /// The targets the spell needs to be cast at all: without those only
+    /// a kicked spell has (CR 601.2c).
+    pub fn unkicked_cast_targets(&self) -> &[TargetSpec] {
+        match self.unkicked_targets {
+            Some(n) => &self.cast_targets[..usize::from(n).min(self.cast_targets.len())],
+            None => &self.cast_targets,
+        }
     }
 
     /// Whether the card does something from its owner's graveyard
@@ -6478,6 +6491,7 @@ impl Builder {
             additional_or: None,
             flash_if: None,
             flash_cleanup: false,
+            unkicked_targets: None,
             offspring: None,
             bargain: false,
             aura_stays: false,
@@ -6643,6 +6657,13 @@ impl Builder {
     #[must_use]
     pub fn flash_cleanup(mut self) -> Self {
         self.0.flash_cleanup = true;
+        self
+    }
+
+    /// Targets declared after this many only if kicked (CR 601.2c).
+    #[must_use]
+    pub fn unkicked_targets(mut self, n: u8) -> Self {
+        self.0.unkicked_targets = Some(n);
         self
     }
 

@@ -1,0 +1,7 @@
+card "Orim's Thunder" {
+  oracle_id 380429d5-82db-449c-b9b9-3e82ab987972
+  cost {2}{W}
+  type Instant
+  kicker {R}
+  spell: destroy target artifact or enchantment; if kicked, it deals damage equal mana value of that target 1 to target creature
+}

@@ -267,6 +267,65 @@ scenario "Parapet cast on an opponent's turn is sacrificed at that turn's cleanu
   assert toughness "Grizzly Bears" 2
 }
 
+# Damage sources other than the resolving ability's source object, and
+# sources that have left the battlefield (CR 608.2h).
+scenario "kicked Orim's Thunder deals the destroyed permanent's mana value" {
+  battlefield A: 3 "Plains", "Mountain"
+  battlefield B: "Icy Manipulator", "Hill Giant"
+  hand A: "Orim's Thunder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Orim's Thunder" kicked targeting "Icy Manipulator", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Icy Manipulator"
+  assert graveyard B contains "Hill Giant"
+}
+
+# CR 601.2c: "target creature" is chosen only if the spell is kicked.
+scenario "unkicked Orim's Thunder needs no creature to target" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Icy Manipulator"
+  hand A: "Orim's Thunder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Orim's Thunder" targeting "Icy Manipulator"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Icy Manipulator"
+}
+
+scenario "Inferno Fist deals damage after it is sacrificed" {
+  battlefield A: "Mountain", "Grizzly Bears", "Inferno Fist" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Inferno Fist" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Inferno Fist"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Dizzying Gaze: enchanted creature deals the damage" {
+  battlefield A: "Mountain", "Grizzly Bears", "Dizzying Gaze" on "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dizzying Gaze" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert damage "Serra Angel" 1
+}
+
+scenario "Dizzying Gaze targets only creatures with flying" {
+  battlefield A: "Mountain", "Grizzly Bears", "Dizzying Gaze" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Dizzying Gaze" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 0
+}
+
+scenario "Falkenrath Perforator deals 1 damage to defending player as it attacks" {
+  battlefield A: "Falkenrath Perforator"
+  turn 1 A: attack "Falkenrath Perforator"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
 scenario "Gleam of Resistance untaps attackers" {
   battlefield A: 5 "Plains", "Grizzly Bears"
   hand A: "Gleam of Resistance"

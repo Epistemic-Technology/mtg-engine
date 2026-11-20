@@ -1,0 +1,7 @@
+card "Port Inspector" {
+  oracle_id 25450b06-3065-4b4f-975e-586d045e5815
+  cost {1}{U}
+  type Creature — Human
+  pt 1/2
+  triggered whenever this becomes blocked: you may look at hand of that defending player
+}

@@ -1150,8 +1150,13 @@ impl Runner {
                 (false, Some(idx)) => {
                     self.fired[i] = true;
                     if let Some(targets) = targets {
-                        let ((mut needed, optional, variable), pending_mode) =
-                            self.cast_needs(a.line, id, name, mode)?;
+                        let ((mut needed, optional, variable), pending_mode) = self.cast_needs(
+                            a.line,
+                            id,
+                            name,
+                            mode,
+                            matches!(&a.action, Action::Cast { kicked: true, .. }),
+                        )?;
                         // A bestowed spell targets what it enchants; spliced
                         // cards' targets follow the spell's (CR 702.47a).
                         if let Action::Cast {
@@ -1228,6 +1233,7 @@ impl Runner {
         id: ObjId,
         name: &str,
         mode: Option<usize>,
+        kicked: bool,
     ) -> Res<((usize, usize, bool), Option<usize>)> {
         let st = self.state();
         let mut def = st.def_of(id).expect("card in hand");
@@ -1241,7 +1247,13 @@ impl Runner {
             if mode.is_some() {
                 return fail(line, format!("\"{name}\" is not modal"));
             }
-            let t = def.cast_targets();
+            let mut t = def.cast_targets();
+            // CR 601.2c: targets only a kicked spell has.
+            if let Some(n) = def.unkicked_targets
+                && !kicked
+            {
+                t = &t[..usize::from(n).min(t.len())];
+            }
             return Ok(((t.len(), optional_count(t), unbounded(t)), None));
         };
         let m = mode.unwrap_or(1);

@@ -108,7 +108,7 @@ impl GameState {
                     &ev.requirements(0),
                     Spend::Spell(&self.printed(self.objects[*id].def)),
                 )
-                && self.targets_available(p, def.cast_targets(), Some(*id))
+                && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
             {
                 options.push(Choice::CastEvoke(*id));
             }
@@ -125,7 +125,7 @@ impl GameState {
                     &dash.requirements(0),
                     Spend::Spell(&self.printed(self.objects[*id].def)),
                 )
-                && self.targets_available(p, def.cast_targets(), Some(*id))
+                && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
             {
                 options.push(Choice::CastDash(*id));
             }
@@ -323,7 +323,7 @@ impl GameState {
                     Some(modes) => modes
                         .iter()
                         .any(|m| self.targets_available(p, &m.targets, Some(*id))),
-                    None => self.targets_available(p, def.cast_targets(), Some(*id)),
+                    None => self.targets_available(p, def.unkicked_cast_targets(), Some(*id)),
                 };
                 if targets_ok {
                     options.push(Choice::Cast(*id));
@@ -1102,7 +1102,7 @@ impl GameState {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
         }
         self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
-            && self.targets_available(p, face.cast_targets(), Some(id))
+            && self.targets_available(p, face.unkicked_cast_targets(), Some(id))
     }
 
     /// Whether `p` could cast `def` (the card `id`, or one of its faces)
@@ -1183,7 +1183,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
-            None => self.targets_available(p, def.cast_targets(), Some(id)),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
         }
     }
 
@@ -1561,7 +1561,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
-            None => self.targets_available(p, def.cast_targets(), Some(id)),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
         }
     }
 
@@ -2021,7 +2021,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
-            None => self.targets_available(p, def.cast_targets(), Some(card)),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
         }
     }
 
@@ -2036,7 +2036,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
-            None => self.targets_available(p, def.cast_targets(), Some(card)),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
         };
         // CR 601.2h: casting it without paying its mana cost still pays its
         // additional costs (Improvised Club's sacrifice).

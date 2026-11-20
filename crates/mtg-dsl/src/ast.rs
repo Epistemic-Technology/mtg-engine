@@ -109,6 +109,10 @@ pub struct Card {
     /// cast, the controller of the permanent it becomes sacrifices it at
     /// the beginning of the next cleanup step."
     pub flash_cleanup: bool,
+    /// Derived as a spell is parsed: how many of its targets come before
+    /// those an "if kicked" sentence declares (Orim's Thunder's "target
+    /// creature" is chosen only if the spell is kicked, CR 601.2c).
+    pub unkicked_targets: Option<usize>,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
@@ -156,6 +160,7 @@ impl Card {
             alt_cost: None,
             flash_if: None,
             flash_cleanup: false,
+            unkicked_targets: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
