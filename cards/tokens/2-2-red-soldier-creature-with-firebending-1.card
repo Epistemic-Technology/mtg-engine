@@ -1,0 +1,7 @@
+token "2/2 red Soldier creature with firebending 1" {
+  name "Soldier"
+  type Creature — Soldier
+  pt 2/2
+  color red
+  firebending 1
+}

@@ -2743,6 +2743,10 @@ fn token_description(name: &str, count: Num, tapped: bool, it_has: bool, ctx: &C
     for a in &token.abilities {
         match a {
             Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => bare.push(format!("toxic {n}")),
+            // "a 2/2 red Soldier creature token with firebending 1".
+            Ability::Mechanic(crate::ast::Mechanic::Firebending(Num::N(n))) => {
+                bare.push(format!("firebending {n}"));
+            }
             Ability::Keyword(k) if !is_restriction(*k) => {
                 bare.push(keyword_name(*k).to_string());
             }
