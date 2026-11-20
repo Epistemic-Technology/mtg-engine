@@ -672,6 +672,15 @@ pub struct PlayerState {
     pub energy: u32,
     pub lost: Option<LossReason>,
     pub mulligans_taken: u8,
+    /// Draw steps this player skips (CR 500.11): "Target player skips
+    /// their next draw step."
+    pub skip_draw: u8,
+    /// Combat phases this player skips: "Target opponent skips their next
+    /// combat phase."
+    pub skip_combat: u8,
+    /// Combat phases this player skips this turn only ("... skips their
+    /// next combat phase this turn"); cleared as the turn ends.
+    pub skip_combat_this_turn: u8,
 }
 
 impl PlayerState {
@@ -1062,6 +1071,7 @@ impl Moved {
             ThisWay::Milled => self.from == Zone::Library && self.to == Zone::Graveyard,
             ThisWay::PutInHand => self.to == Zone::Hand && self.from != Zone::Hand,
             ThisWay::Tapped => self.from == Zone::Battlefield && self.to == Zone::Battlefield,
+            ThisWay::Shuffled => self.to == Zone::Library && self.from != Zone::Library,
         }
     }
 }

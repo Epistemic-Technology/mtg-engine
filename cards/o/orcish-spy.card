@@ -1,0 +1,7 @@
+card "Orcish Spy" {
+  oracle_id 0d058991-3751-4afe-80c9-79f0c6e10282
+  cost {R}
+  type Creature — Orc Rogue
+  pt 1/1
+  activated {T}: look at top 3 of target player only
+}

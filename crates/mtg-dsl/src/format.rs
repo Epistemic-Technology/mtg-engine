@@ -609,11 +609,33 @@ impl Fmt {
                 unreachable!("only in expansions")
             }
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
-            Effect::LookAtTop(n) => format!("look at top {}", num(*n)),
+            Effect::LookAtTop {
+                count,
+                of,
+                by,
+                only,
+            } => {
+                let mut s = String::new();
+                if let Some(b) = by {
+                    s.push_str(&self.recipient(*b, t));
+                    s.push_str(" looks");
+                } else {
+                    s.push_str("look");
+                }
+                let _ = write!(s, " at top {}", num(*count));
+                if let Some(o) = of {
+                    let _ = write!(s, " of {}", self.recipient(*o, t));
+                }
+                if *only {
+                    s.push_str(" only");
+                }
+                s
+            }
             Effect::RevealTop { who, look, of } => match (who, look, of) {
                 (None, true, _) => "look at top card".to_string(),
                 (None, false, _) => "reveal top card".to_string(),
-                (Some(w), _, true) => format!("reveal top card of {}", self.recipient(*w, t)),
+                (Some(w), true, true) => format!("look at top card of {}", self.recipient(*w, t)),
+                (Some(w), false, true) => format!("reveal top card of {}", self.recipient(*w, t)),
                 (Some(w), _, false) => {
                     let v = if *w == Recipient::You {
                         "reveal"
@@ -697,7 +719,12 @@ impl Fmt {
                 if *card { " card" } else { "" },
                 self.line(then, t)
             ),
-            Effect::PutCard { what, to, who } => {
+            Effect::PutCard {
+                what,
+                to,
+                who,
+                that_player,
+            } => {
                 use crate::ast::CardWords;
                 use mtg_core::card::CardDest;
                 let w = match what {
@@ -710,6 +737,7 @@ impl Fmt {
                 };
                 let d = match to {
                     CardDest::Hand => "into hand",
+                    CardDest::Graveyard if *that_player => "into graveyard of that player",
                     CardDest::Graveyard => "into graveyard",
                     CardDest::Battlefield { tapped: false } => "onto battlefield",
                     CardDest::Battlefield { tapped: true } => "onto battlefield tapped",
@@ -869,6 +897,19 @@ impl Fmt {
             ),
             Effect::CantBeRegenerated { to } => {
                 format!("{} can't be regenerated", self.recipient(*to, t))
+            }
+            Effect::SkipNext { who, what } => {
+                let v = if *who == Recipient::You {
+                    "skip"
+                } else {
+                    "skips"
+                };
+                let w = match what {
+                    mtg_core::card::SkipWhat::DrawStep => "draw step",
+                    mtg_core::card::SkipWhat::CombatPhase => "combat phase",
+                    mtg_core::card::SkipWhat::CombatPhaseThisTurn => "combat phase this turn",
+                };
+                format!("{} {v} next {w}", self.recipient(*who, t))
             }
             Effect::SkipNextUntap { to, steps } => format!(
                 "{} doesn't untap next untap step{}",
@@ -1252,8 +1293,25 @@ impl Fmt {
             Effect::DiscardChosen {
                 who,
                 filter: f,
+                exile: Some(joined),
+                ..
+            } => {
+                let what = match f {
+                    None => "card".to_string(),
+                    Some(f) => format!("{} card", filter(f)),
+                };
+                let split = if *joined { "" } else { " split" };
+                format!(
+                    "{} reveals hand exiling {what}{split}",
+                    self.recipient(*who, t)
+                )
+            }
+            Effect::DiscardChosen {
+                who,
+                filter: f,
                 may,
                 look,
+                ..
             } => {
                 let lead = if *look {
                     format!("look at hand of {}", self.recipient(*who, t))
@@ -1422,7 +1480,58 @@ impl Fmt {
                     )
                 }
             },
-            Effect::HandToLibrary { count, who, bottom } => {
+            Effect::HandToLibrary {
+                count,
+                who,
+                shuffle: true,
+                ..
+            } => {
+                let rest = format!("{} {} from hand into library", num(*count), cards(*count));
+                match who {
+                    None => format!("shuffle {rest}"),
+                    Some(w) => {
+                        let v = if *w == Recipient::You {
+                            "shuffle"
+                        } else {
+                            "shuffles"
+                        };
+                        format!("{} {v} {rest}", self.recipient(*w, t))
+                    }
+                }
+            }
+            Effect::ShuffleZone {
+                who,
+                of,
+                hand,
+                filter: fl,
+                cards,
+            } => {
+                let mut s = match who {
+                    None => "shuffle".to_string(),
+                    Some(w) => {
+                        let v = if *w == Recipient::You {
+                            "shuffle"
+                        } else {
+                            "shuffles"
+                        };
+                        format!("{} {v}", self.recipient(*w, t))
+                    }
+                };
+                if let Some(fl) = fl {
+                    let _ = write!(s, " all {} card from", filter(fl));
+                } else if *cards {
+                    s.push_str(" cards from");
+                }
+                s.push_str(if *hand { " hand" } else { " graveyard" });
+                if let Some(o) = of {
+                    let _ = write!(s, " of {}", self.recipient(*o, t));
+                }
+                s.push_str(" into library");
+                s
+            }
+            Effect::HandToLibrary {
+                count, who, bottom, ..
+            } => {
                 let rest = format!(
                     "{} {} from hand on {} of library",
                     num(*count),
@@ -3222,6 +3331,8 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Exile => {
                 if c.exile_self {
                     parts.push("exile this from graveyard".to_string());
+                } else if c.exile_this {
+                    parts.push("exile this".to_string());
                 }
             }
             CostItem::ExileCards => {

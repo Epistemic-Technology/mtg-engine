@@ -1,0 +1,7 @@
+card "Merfolk Observer" {
+  oracle_id 0b5d49ce-7e02-4de6-8a65-bfc88ac0cf72
+  cost {1}{U}
+  type Creature — Merfolk Rogue
+  pt 2/1
+  triggered when this enters: look at top card of target player
+}

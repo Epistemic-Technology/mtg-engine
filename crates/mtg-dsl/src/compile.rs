@@ -1199,6 +1199,7 @@ impl Compiler<'_> {
             mana: c.mana.clone(),
             discard_self: c.discard_self,
             exile_self: c.exile_self,
+            exile_this: c.exile_this,
             crew: c.crew,
             remove_counters: c.remove_counters,
             put_counters: c.put_counters,
@@ -1731,13 +1732,18 @@ impl Compiler<'_> {
                 });
             }
             Effect::DiscardChosen {
-                who, filter, may, ..
+                who,
+                filter,
+                may,
+                exile,
+                ..
             } => {
                 let filter = filter.as_ref().map(|f| self.filter(f));
                 out.push(CoreEffect::DiscardChosen {
                     who: r(*who),
                     filter,
                     optional: *may,
+                    exile: exile.is_some(),
                 });
             }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),
@@ -1799,11 +1805,31 @@ impl Compiler<'_> {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
             }),
-            Effect::HandToLibrary { count, who, bottom } => {
+            Effect::HandToLibrary {
+                count,
+                who,
+                bottom,
+                shuffle,
+            } => {
                 out.push(CoreEffect::HandToLibrary {
                     count: *count,
                     who: who.map_or(CoreRecipient::You, r),
                     bottom: *bottom,
+                    shuffle: *shuffle,
+                });
+            }
+            Effect::ShuffleZone {
+                who,
+                of,
+                hand,
+                filter,
+                ..
+            } => {
+                let filter = filter.as_ref().map(|f| self.filter(f));
+                out.push(CoreEffect::ShuffleIntoLibrary {
+                    who: who.or(*of).map_or(CoreRecipient::You, r),
+                    hand: *hand,
+                    filter,
                 });
             }
             Effect::Fight { a, b } => out.push(CoreEffect::Fight { a: r(*a), b: r(*b) }),
@@ -2086,7 +2112,11 @@ impl Compiler<'_> {
             }
             Effect::CumulativeUpkeep(c) => out.push(CoreEffect::CumulativeUpkeep(c.clone())),
             Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
-            Effect::LookAtTop(n) => out.push(CoreEffect::LookAtTop { count: *n }),
+            Effect::LookAtTop { count, of, by, .. } => out.push(CoreEffect::LookAtTop {
+                count: *count,
+                who: r(of.unwrap_or(Recipient::You)),
+                looker: r(by.unwrap_or(Recipient::You)),
+            }),
             Effect::RevealTop { who, look, .. } => out.push(CoreEffect::RevealTop {
                 who: r(who.unwrap_or(Recipient::You)),
                 look: *look,
@@ -2207,6 +2237,10 @@ impl Compiler<'_> {
             Effect::CreatureTypes { to, all } => out.push(CoreEffect::CreatureTypes {
                 to: r(*to),
                 all: *all,
+            }),
+            Effect::SkipNext { who, what } => out.push(CoreEffect::SkipNext {
+                who: r(*who),
+                what: *what,
             }),
             Effect::SkipNextUntap { to, .. } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
             Effect::CantBeRegenerated { to } => {

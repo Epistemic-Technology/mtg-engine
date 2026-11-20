@@ -928,6 +928,10 @@ fn parse_assertion(line: &mut Line) -> Result<Assertion, ParseError> {
             Assertion::Damage(r, line.unsigned()?)
         }
         "tapped" => Assertion::Tapped(line.obj_ref()?, true),
+        "known" | "unknown" => {
+            let p = line.player()?;
+            Assertion::Known(p, line.string()?, what == "known")
+        }
         "untapped" => Assertion::Tapped(line.obj_ref()?, false),
         "winner" => Assertion::Winner(line.player()?),
         "draw" => Assertion::Draw,

@@ -1,0 +1,9 @@
+card "Auntie's Sentence" {
+  oracle_id 406e6db7-6e31-44b9-a793-57ee10688f71
+  cost {1}{B}
+  type Sorcery
+  choose one {
+    mode: target opponent reveals hand discarding nonland noninstant nonsorcery card
+    mode: target creature gets -2/-2
+  }
+}

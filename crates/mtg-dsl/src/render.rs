@@ -569,13 +569,15 @@ fn card_filter_phrase(f: &Filter, card: &Card) -> String {
             card_filter_phrase(&a, card)
         );
     }
-    // "a permanent card" (CR 110.4a).
-    if f.not_types == [CardType::Instant, CardType::Sorcery]
+    // "a permanent card" (CR 110.4a); "a nonland permanent card".
+    if f.not_types.contains(&CardType::Instant)
+        && f.not_types.contains(&CardType::Sorcery)
         && f.types.is_empty()
         && f.any_types.is_empty()
     {
         let mut g = f.clone();
-        g.not_types.clear();
+        g.not_types
+            .retain(|t| !matches!(t, CardType::Instant | CardType::Sorcery));
         let p = card_filter_phrase(&g, card);
         return if p.is_empty() {
             "permanent".to_string()
@@ -2357,6 +2359,8 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             CostItem::Exile => {
                 if cost.exile_self {
                     parts.push("Exile this card from your graveyard".to_string());
+                } else if cost.exile_this {
+                    parts.push(format!("Exile {}", ctx.source()));
                 }
             }
             CostItem::Discard => {
@@ -2688,7 +2692,11 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::CreateToken { count, .. } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
-        Effect::Scry(n) | Effect::LookAtTop(n) | Effect::ScryEach { count: n, .. } => vec![*n],
+        Effect::Scry(n)
+        | Effect::LookAtTop { count: n, .. }
+        | Effect::ScryEach { count: n, .. } => {
+            vec![*n]
+        }
         Effect::CreateReplacement(r) => match r.outcome {
             mtg_core::card::Replacement::PreventNext(n) => vec![n],
             _ => Vec::new(),
@@ -3094,7 +3102,7 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             // "Look at the top X cards of your library, where X is ...,
             // then put them back in any order."
-            CountStyle::Where if matches!(e, Effect::LookAtTop(_)) => {
+            CountStyle::Where if matches!(e, Effect::LookAtTop { only: false, .. }) => {
                 let phrase = count_phrase_in(&count.expr, ctx, false);
                 c.text =
                     c.text
@@ -3569,7 +3577,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
-        Effect::PutCard { what, to, who } => {
+        Effect::PutCard {
+            what,
+            to,
+            who,
+            that_player,
+        } => {
             use crate::ast::CardWords;
             use mtg_core::card::CardDest;
             let words = match what {
@@ -3587,6 +3600,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let many = !matches!(what, CardWords::It | CardWords::ThatCard);
             let dest = match to {
                 CardDest::Hand => format!("into {whose} hand"),
+                CardDest::Graveyard if *that_player => "into that player's graveyard".to_string(),
                 CardDest::Graveyard => format!("into {whose} graveyard"),
                 CardDest::Battlefield { tapped: false } => "onto the battlefield".to_string(),
                 CardDest::Battlefield { tapped: true } => "onto the battlefield tapped".to_string(),
@@ -3604,10 +3618,48 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
         }
-        Effect::LookAtTop(n) => Clause::imperative(format!(
-            "look at the top {} cards of your library, then put them back in any order",
-            count_words(*n, "one")
-        )),
+        Effect::LookAtTop {
+            count,
+            of,
+            by,
+            only,
+        } => {
+            let n = count_words(*count, "one");
+            let whose = match of {
+                None | Some(Recipient::You) => "your".to_string(),
+                Some(w) if by.is_some_and(|b| b == *w) => "their".to_string(),
+                Some(w) => format!("{}'s", ctx.obj(*w)),
+            };
+            match by {
+                None | Some(Recipient::You) => {
+                    let back = if *only {
+                        ""
+                    } else {
+                        ", then put them back in any order"
+                    };
+                    Clause::imperative(format!(
+                        "look at the top {n} cards of {whose} library{back}"
+                    ))
+                }
+                Some(b) => {
+                    let subject = ctx.subj(*b);
+                    let v = ctx.verb(*b, "looks at", "look at");
+                    let back = if *only {
+                        String::new()
+                    } else {
+                        format!(
+                            ", then {} them back in any order",
+                            ctx.verb(*b, "puts", "put")
+                        )
+                    };
+                    Clause::with_subject(
+                        *b,
+                        subject,
+                        format!("{v} the top {n} cards of {whose} library{back}"),
+                    )
+                }
+            }
+        }
         Effect::Dig {
             count,
             filter,
@@ -3801,6 +3853,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::CantBeRegenerated { to } => {
             let s = ctx.subj(*to);
             Clause::with_subject(*to, s, "can't be regenerated this turn".to_string())
+        }
+        Effect::SkipNext { who, what } => {
+            let s = ctx.subj(*who);
+            let whose = if *who == Recipient::You {
+                "your"
+            } else {
+                "their"
+            };
+            let w = match what {
+                mtg_core::card::SkipWhat::DrawStep => "draw step",
+                mtg_core::card::SkipWhat::CombatPhase => "combat phase",
+                mtg_core::card::SkipWhat::CombatPhaseThisTurn => "combat phase this turn",
+            };
+            let v = ctx.verb(*who, "skips", "skip");
+            Clause::with_subject(*who, s, format!("{v} {whose} next {w}"))
         }
         Effect::SkipNextUntap { to, steps } => {
             let s = match *to {
@@ -4655,8 +4722,34 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::DiscardChosen {
             who,
             filter,
+            exile: Some(joined),
+            ..
+        } => {
+            let what = match filter {
+                None => "a card".to_string(),
+                Some(f) => with_article(&format!("{} card", card_filter_phrase(f, ctx.card))),
+            };
+            let exile = if *joined {
+                " and exile that card"
+            } else {
+                ". Exile that card"
+            };
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{} their hand. You choose {what} from it{exile}",
+                    ctx.verb(*who, "reveals", "reveal")
+                ),
+            )
+        }
+        Effect::DiscardChosen {
+            who,
+            filter,
             may,
             look,
+            ..
         } => {
             let what = match filter {
                 None => "a card".to_string(),
@@ -5110,7 +5203,72 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
         }
-        Effect::HandToLibrary { count, who, bottom } => {
+        Effect::HandToLibrary {
+            count,
+            who,
+            shuffle: true,
+            ..
+        } => {
+            let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
+            let whose = if who.is_none_or(|w| w == Recipient::You) {
+                "your"
+            } else {
+                "their"
+            };
+            let rest = format!("{what} from {whose} hand into {whose} library");
+            match who {
+                None => Clause::imperative(format!("shuffle {rest}")),
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    Clause::with_subject(
+                        *w,
+                        s,
+                        format!("{} {rest}", ctx.verb(*w, "shuffles", "shuffle")),
+                    )
+                }
+            }
+        }
+        Effect::ShuffleZone {
+            who,
+            of,
+            hand,
+            filter,
+            cards,
+        } => {
+            let zone = if *hand { "hand" } else { "graveyard" };
+            // "Shuffle all creature cards from target player's graveyard
+            // into that player's library".
+            let (from, into) = match (who, of) {
+                (None, Some(o)) if *o != Recipient::You => {
+                    let o = ctx.obj(*o);
+                    (format!("{o}'s {zone}"), "that player's library".to_string())
+                }
+                (Some(w), _) if *w != Recipient::You => {
+                    (format!("their {zone}"), "their library".to_string())
+                }
+                _ => (format!("your {zone}"), "your library".to_string()),
+            };
+            let what = match filter {
+                Some(f) => format!("all {} from {from}", cards_phrase(f, ctx.card, true)),
+                None if *cards => format!("the cards from {from}"),
+                None => from,
+            };
+            let rest = format!("{what} into {into}");
+            match who {
+                None => Clause::imperative(format!("shuffle {rest}")),
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    Clause::with_subject(
+                        *w,
+                        s,
+                        format!("{} {rest}", ctx.verb(*w, "shuffles", "shuffle")),
+                    )
+                }
+            }
+        }
+        Effect::HandToLibrary {
+            count, who, bottom, ..
+        } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
             let you = who.is_none_or(|w| w == Recipient::You);
             let (hand, library) = if you {
@@ -9569,12 +9727,23 @@ pub fn normalize(text: &str) -> String {
         let parts: Vec<&str> = line.split(sep).collect();
         // Keywords, or protection from a quality ("Flying, protection
         // from enchantments").
+        // "Islandcycling {2}, swampcycling {2}": two typecycling
+        // abilities on one line (CR 702.29e), one line each.
+        let typecycling = |p: &str| {
+            p.split_once(' ').is_some_and(|(w, cost)| {
+                w.len() > "cycling".len()
+                    && w.to_ascii_lowercase().ends_with("cycling")
+                    && w.chars().all(|c| c.is_ascii_alphabetic())
+                    && cost.starts_with('{')
+                    && !cost.contains(' ')
+            })
+        };
         let all_keywords = parts.iter().all(|p| {
             Keyword::ALL
                 .iter()
                 .any(|k| keyword_name(*k).eq_ignore_ascii_case(p))
                 || p.to_ascii_lowercase().starts_with("protection from ")
-        });
+        }) || parts.iter().all(|p| typecycling(p));
         // "Protection from Spirits and from Arcane": one protection
         // ability per quality (CR 702.16g), so one line each.
         let protections = |p: &str| -> Option<Vec<String>> {

@@ -88,7 +88,7 @@ double-faced permanent to its other face (CR 701.27).
 | `mana {U} only to cast artifact spell or activate of artifact`, `mana {U} only to foretell or cast instant or sorcery spell` | "Spend this mana only to cast an artifact spell or activate an ability of an artifact source." (`of <filter>` after `activate`: only abilities of matching sources, cards in hand and graveyard included); "Spend this mana only to foretell a card from your hand or cast an instant or sorcery spell." (the foretell special action's {2}, CR 702.143a). |
 | `spend only black mana on x` | "Spend only black mana on X." (CR 107.3): the X in the spell's cost is paid with that color only. After an activated ability with {X} (`activated {X}: deal X damage to each creature and each player` then `spend only black mana on x`), it is that ability's X, printed in its paragraph (Crypt Rats). |
 | `cycling {2}`, `cycling pay 2 life` | Cycling (CR 702.29): "{2}, Discard this card: Draw a card.", activated from the hand. A cost other than mana prints "Cycling—Pay 2 life." (activated only with that much life, CR 119.4). |
-| `plainscycling {2}`, `basic landcycling {1}{G}`, `landcycling {2}` | Typecycling (CR 702.29e): discard to search for a card of that type. |
+| `plainscycling {2}`, `basic landcycling {1}{G}`, `landcycling {2}` | Typecycling (CR 702.29e): discard to search for a card of that type. Two of them, one per line (`islandcycling {2}` then `swampcycling {2}`), match Oracle's one line "Islandcycling {2}, swampcycling {2}"; each is its own ability. |
 | `enchant creature` | An Aura's "Enchant" (CR 702.5), with a target specification. |
 | `spell: <effects>` | What an instant or sorcery does on resolution. |
 | `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. `choose one or both { ... }` takes two modes, either or both ("Choose one or both —"). As a triggered ability's effect (`triggered when this enters: choose one { ... }`) the mode is chosen as the ability goes on the stack (CR 603.3c), each mode with its own targets. `choose two { ... }` (three or four unnamed modes) chooses two different modes (CR 700.2d; "Choose two —"). A named mode, `mode "Smash the Chest": destroy target artifact`, prints its name first ("• Smash the Chest — Destroy target artifact."); the name has no rules meaning. |
@@ -172,7 +172,8 @@ card"), `discard X cards` (a spell's additional cost: "As an additional
 cost to cast this spell, discard X cards."; X is announced as the spell
 is cast, at most the other cards in hand, CR 601.2b; `discard X creature
 cards` counts only matching cards), `discard this`, `exile this from graveyard` ("Exile this card from
-your graveyard"; the ability is activated from the graveyard), `return
+your graveyard"; the ability is activated from the graveyard), `exile
+this` ("Exile this artifact": the permanent exiles itself), `return
 land you control` ("Return a land you control to its owner's hand";
 `return this`: "Return this enchantment to its owner's hand") and
 `tap untapped creature you control` ("Tap an untapped creature you
@@ -1061,7 +1062,20 @@ graveyard"), `put <what> on top of library` / `on bottom of
 library` / `into library 2 from top` ("Put target creature into its
 owner's library second from the top"; fewer cards, the bottom, CR 401.7),
 `shuffle <what> into library` ("Shuffle enchanted creature into its
-owner's library"), and with the owner as subject, who makes any choice:
+owner's library"; `you may shuffle up to 1 target card from your
+graveyard into library`: "You may shuffle up to one target card from
+your graveyard into your library"), `shuffle graveyard into library`
+("Shuffle your graveyard into your library"; `target player shuffles
+graveyard into library`: "Target player shuffles their graveyard into
+their library"), `shuffle all creature card from graveyard of target
+player into library` ("Shuffle all creature cards from target player's
+graveyard into that player's library"), `shuffle cards from hand into
+library` ("shuffle the cards from your hand into your library"; `then
+draw count that many shuffled this way cards`: "then draw that many
+cards"), `shuffle 1 card from hand into library` ("shuffle a card from
+your hand into your library", the player's choice); the library is
+shuffled even when no card moved (CR 701.24), `you may shuffle` ("You
+may shuffle.": your library), and with the owner as subject, who makes any choice:
 `owner puts target creature on top or bottom of library` ("Target
 creature's owner puts it on their choice of the top or bottom of their
 library"), `owner of target nonland permanent puts it into library 2
@@ -1076,7 +1090,13 @@ loses flying`, `<who> reveals hand`, `<who> reveals hand discarding
 nonland card` (Duress: you choose the card), `<who> discards 1 card at
 random` (`discard 1 card at random` for you; `that player discards
 another card at random`), `<who> reveals 1 card at random from hand`
-("reveals a card at random from their hand"),
+("reveals a card at random from their hand"; the card is `that card`
+after it: `then loses count equal mana value of that card life`, "then
+loses life equal to that card's mana value"), `<who> skips next draw
+step` ("Target player skips their next draw step", CR 500.11), `<who>
+skips next combat phase` ("Target opponent skips their next combat
+phase"; `... combat phase this turn`: only a combat phase of this turn;
+the main phase after it still happens),
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>` (this: "attach this Equipment to ..."),
 `attach <what> to <what>` ("Attach target Equipment you control to target
@@ -1243,7 +1263,12 @@ put one of those cards back on top of your library. Put the rest into
 your graveyard.", the card kept stays on top), `look at top 3` ("look at
 the top three cards of your library, then put them back in any order";
 `look at top count where hand` puts "where X is the number of cards in
-your hand" before ", then put them back"),
+your hand" before ", then put them back"; `look at top 3 of target
+player`: "... of target player's library, then put them back in any
+order"; `look at top 3 of target player only` ends at "Look at the top
+three cards of target player's library."; `that player looks at top 3 of
+you`: "That player looks at the top three cards of your library, then puts
+them back in any order": the looker knows the cards where they are),
 `return 1 land you control chosen` ("return a land you control to its
 owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of
@@ -1578,7 +1603,7 @@ is destroyed this way"), `if land card is discarded this way, ...`, `if
 Saproling was sacrificed this way, ...`, `if you discarded card this way,
 ...` (cards you owned), `if you put Town card into hand this way, ...`.
 Verbs: `exiled`, `sacrificed`, `destroyed`, `discarded`, `milled`,
-`returned` (put into a hand). What a spell's or ability's costs sacrificed
+`returned` (put into a hand), `shuffled` (put into a library). What a spell's or ability's costs sacrificed
 or discarded counts too (CR 601.2h, 602.2b): `if the sacrificed creature was
 Human, ...`, `if the sacrificed permanent was artifact, ...`, `if the
 discarded card wasn't land card, ...`, and as an "instead": `if the
@@ -1613,7 +1638,12 @@ player discards one such card or else two). `<who> reveals hand discarding
 may nonland card` ("You may choose a nonland card from it."), `look at hand
 of target player discarding may nonland card` ("look at target player's
 hand. You may choose ..."), `look at hand of target player discarding card`
-("Look at target player's hand and choose a card from it."). A sentence
+("Look at target player's hand and choose a card from it."). `<who>
+reveals hand exiling nonland card` ("Target opponent reveals their hand.
+You choose a nonland card from it and exile that card."; `exiling
+nonland card split`: "You choose a nonland card from it. Exile that
+card."). `nonland noninstant nonsorcery card` prints "a nonland
+permanent card" (CR 110.4a). A sentence
 may start `then` ("Then discard two cards unless ..."). After `return
 target permanent to hand`, `that player` is that permanent's owner:
 `return target permanent to hand; then that player discards 1 card`
@@ -1627,7 +1657,9 @@ owner's hand` in a spell returns the resolving spell from the stack.
 card` "look at the top card of your library", `target player reveals top
 card` "Target player reveals the top card of their library", and `reveal
 top card of target opponent` "Reveal the top card of target opponent's
-library". The card stays where it is (CR 701.20b) and is `it` / `that
+library" (`look at top card of target player`: "look at the top card of
+target player's library"; `of each player`: "of each player's library").
+The card stays where it is (CR 701.20b) and is `it` / `that
 card` for the rest of the ability. `reveal until nonland card` is "reveal
 cards from the top of your library until you reveal a nonland card" (`its
 controller reveals until land card`: "Its controller reveals cards from
@@ -1641,7 +1673,9 @@ that card is Goblin card, ...` "If that card is a Goblin card, ...", and
 without `card` (`if it is land, ...`) "If it's a land, ..."; with no card
 revealed (an empty library) neither holds. `otherwise, <sentence>` after
 it happens when it didn't. The card or cards move with `put it into
-hand`, `put that card into hand`, `put it into graveyard`, `put it onto
+hand`, `put that card into hand`, `put it into graveyard` (`put that card
+into graveyard of that player`: "into that player's graveyard", after
+looking at another player's library), `put it onto
 battlefield [tapped]` (under your control, CR 110.2a), `put it on bottom of
 library`, and for every revealed card still in the library `put all
 revealed into hand` ("put all cards revealed this way into your hand"),

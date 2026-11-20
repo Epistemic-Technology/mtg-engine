@@ -1,0 +1,9 @@
+card "Sanctum Plowbeast" {
+  oracle_id ff3fae6e-d8a1-46b3-a6cc-fb4e8800ee68
+  cost {4}{W}{U}
+  type Artifact Creature — Beast
+  pt 3/6
+  keywords defender
+  plainscycling {2}
+  islandcycling {2}
+}

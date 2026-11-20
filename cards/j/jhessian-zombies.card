@@ -1,0 +1,9 @@
+card "Jhessian Zombies" {
+  oracle_id 40cc8ac6-114f-439d-816d-f65cd52bbbd2
+  cost {4}{U}{B}
+  type Creature — Zombie
+  pt 2/4
+  keywords fear
+  islandcycling {2}
+  swampcycling {2}
+}

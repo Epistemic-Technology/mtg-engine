@@ -1,0 +1,9 @@
+card "Igneous Pouncer" {
+  oracle_id ee6f1ddb-6749-4394-b2b0-4d293376f1af
+  cost {4}{B}{R}
+  type Creature — Elemental
+  pt 5/1
+  keywords haste
+  swampcycling {2}
+  mountaincycling {2}
+}

@@ -1,0 +1,6 @@
+card "Castigate" {
+  oracle_id 28a972a6-cf67-4ee3-aa91-f7b2549f6c48
+  cost {W}{B}
+  type Sorcery
+  spell: target opponent reveals hand exiling nonland card
+}

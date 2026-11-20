@@ -465,6 +465,8 @@ pub struct Cost {
     /// `exile this from graveyard`: "Exile this card from your graveyard"
     /// (activated from the graveyard).
     pub exile_self: bool,
+    /// `exile this`: "Exile this artifact" (from the battlefield).
+    pub exile_this: bool,
     /// Crew's cost (from its expansion).
     pub crew: u32,
     /// `pay 2 energy`: "Pay {E}{E}".
@@ -2602,6 +2604,11 @@ pub enum Effect {
         /// `look at hand of target player discarding ...`: "Look at
         /// target player's hand" rather than "reveals their hand".
         look: bool,
+        /// `reveals hand exiling nonland card`: "You choose a nonland card
+        /// from it and exile that card." (`Some(true)`); with `split`
+        /// after it, "You choose a nonland card from it. Exile that card."
+        /// (`Some(false)`).
+        exile: Option<bool>,
     },
     /// `transform this`: "transform this creature" (CR 701.27).
     Transform {
@@ -2678,11 +2685,29 @@ pub enum Effect {
     /// hand on the bottom of your library"; `target opponent puts 1 card
     /// from hand on top of library`: "Target opponent puts a card from
     /// their hand on top of their library". Two or more on top print "in
-    /// any order". `who` is `None` for the imperative.
+    /// any order". `who` is `None` for the imperative. With `shuffle`,
+    /// `shuffle 1 card from hand into library`: "shuffle a card from your
+    /// hand into your library".
     HandToLibrary {
         count: Num,
         who: Option<Recipient>,
         bottom: bool,
+        shuffle: bool,
+    },
+    /// `shuffle graveyard into library` ("Shuffle your graveyard into your
+    /// library"), `target player shuffles graveyard into library` ("Target
+    /// player shuffles their graveyard into their library"), `shuffle all
+    /// creature card from graveyard of target player into library`
+    /// ("Shuffle all creature cards from target player's graveyard into
+    /// that player's library"), `shuffle cards from hand into library`
+    /// ("shuffle the cards from your hand into your library"). `who` is the
+    /// subject, `of` the player whose zone it is in the imperative.
+    ShuffleZone {
+        who: Option<Recipient>,
+        of: Option<Recipient>,
+        hand: bool,
+        filter: Option<Filter>,
+        cards: bool,
     },
     Fight {
         a: Recipient,
@@ -2963,8 +2988,18 @@ pub enum Effect {
         reword: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
-    /// put them back in any order".
-    LookAtTop(Num),
+    /// put them back in any order"; `look at top 3 of target player`:
+    /// "... of target player's library, then put them back in any order";
+    /// `only` ends after the look ("Look at the top three cards of target
+    /// player's library."); with a subject (`by`), that player looks:
+    /// `that player looks at top 3 of you` ("That player looks at the top
+    /// three cards of your library, then puts them back in any order").
+    LookAtTop {
+        count: Num,
+        of: Option<Recipient>,
+        by: Option<Recipient>,
+        only: bool,
+    },
     /// `reveal top card` ("reveal the top card of your library"), `look at
     /// top card` ("look at the top card of your library"), `<who> reveals
     /// top card` ("target player reveals the top card of their library"),
@@ -3042,6 +3077,9 @@ pub enum Effect {
         what: CardWords,
         to: mtg_core::card::CardDest,
         who: Option<Recipient>,
+        /// `into graveyard of that player`: "into that player's
+        /// graveyard" (the card's owner's, where it goes anyway).
+        that_player: bool,
     },
     /// `impulse 2 next turn first`: "Exile the top two cards of your
     /// library. Until the end of your next turn, you may play those
@@ -3061,6 +3099,13 @@ pub enum Effect {
     /// `target 1 doesn't untap next untap step`: "It doesn't untap during
     /// its controller's next untap step."; `... next untap steps`: "Those
     /// creatures don't untap during their controllers' next untap steps."
+    /// `target player skips next draw step` ("Target player skips their
+    /// next draw step"), `target opponent skips next combat phase`, `...
+    /// combat phase this turn`.
+    SkipNext {
+        who: Recipient,
+        what: mtg_core::card::SkipWhat,
+    },
     SkipNextUntap {
         to: Recipient,
         steps: bool,
@@ -3197,6 +3242,7 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
         ThisWay::Milled => "milled",
         ThisWay::PutInHand => "returned",
         ThisWay::Tapped => "tapped",
+        ThisWay::Shuffled => "shuffled",
     }
 }
 
@@ -3210,6 +3256,7 @@ pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
         ThisWay::Discarded,
         ThisWay::Milled,
         ThisWay::PutInHand,
+        ThisWay::Shuffled,
     ]
     .into_iter()
     .find(|v| this_way_word(*v) == w)

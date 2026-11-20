@@ -1,0 +1,6 @@
+card "See Beyond" {
+  oracle_id 4f9942ee-d3fd-4c01-93eb-870d642ebd83
+  cost {1}{U}
+  type Sorcery
+  spell: draw 2 cards then shuffle 1 card from hand into library
+}

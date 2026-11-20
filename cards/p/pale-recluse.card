@@ -1,0 +1,9 @@
+card "Pale Recluse" {
+  oracle_id 488ca652-653b-4bb3-891c-874efdd418ff
+  cost {4}{G}{W}
+  type Creature — Spider
+  pt 4/5
+  keywords reach
+  forestcycling {2}
+  plainscycling {2}
+}

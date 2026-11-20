@@ -1,0 +1,367 @@
+# M5: library, hand and look effects: two typecycling abilities on one
+# line (CR 702.29e), looking at the top cards of another player's library,
+# shuffling a hand or a graveyard into a library, "you may shuffle".
+
+scenario "two typecycling abilities: the second searches for its own type (Sanctum Plowbeast)" {
+  battlefield A: 2 "Plains"
+  hand A: "Sanctum Plowbeast"
+  library A: "Plains", "Island", "Grizzly Bears"
+  turn 1 A: activate "Sanctum Plowbeast" ability 2
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert library A contains "Plains"
+  assert graveyard A contains "Sanctum Plowbeast"
+}
+
+scenario "two typecycling abilities: the first searches for Plains (Sanctum Plowbeast)" {
+  battlefield A: 2 "Plains"
+  hand A: "Sanctum Plowbeast"
+  library A: "Island", "Plains", "Grizzly Bears"
+  turn 1 A: activate "Sanctum Plowbeast" ability 1
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert library A contains "Island"
+}
+
+scenario "two typecycling abilities: not without the mana (Valley Rannet)" {
+  battlefield A: "Mountain"
+  hand A: "Valley Rannet"
+  illegal turn 1 A: activate "Valley Rannet"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Valley Rannet"
+}
+
+scenario "look at the top card of target player's library: the controller knows it (Merfolk Observer)" {
+  battlefield A: 2 "Island"
+  hand A: "Merfolk Observer"
+  library B: "Hill Giant", "Mountain"
+  turn 1 A: cast "Merfolk Observer"
+  turn 1 A: trigger "Merfolk Observer" targeting player B
+  run_to turn 1 postcombat_main
+  assert known A "Hill Giant"
+  assert unknown B "Hill Giant"
+  assert unknown A "Mountain"
+  assert library B count 2
+}
+
+scenario "look at the top card of each player's library (Case the Joint)" {
+  battlefield A: 4 "Island"
+  hand A: "Case the Joint"
+  library A: "Forest", "Plains", "Grizzly Bears"
+  library B: "Hill Giant", "Mountain"
+  turn 1 A: cast "Case the Joint"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A contains "Plains"
+  assert known A "Grizzly Bears"
+  assert known A "Hill Giant"
+  assert unknown B "Grizzly Bears"
+}
+
+scenario "look at the top three of target player's library (Orcish Spy)" {
+  battlefield A: "Orcish Spy"
+  library B: "Hill Giant", "Mountain", "Shock", "Grizzly Bears"
+  turn 1 A: activate "Orcish Spy" targeting player B
+  run_to turn 1 postcombat_main
+  assert known A "Hill Giant"
+  assert known A "Shock"
+  assert unknown A "Grizzly Bears"
+  assert tapped "Orcish Spy"
+}
+
+scenario "each player looks at the other's top three (Tahngarth's Glare)" {
+  battlefield A: "Mountain"
+  hand A: "Tahngarth's Glare"
+  library A: "Forest", "Plains", "Island", "Swamp"
+  library B: "Hill Giant", "Mountain", "Shock", "Grizzly Bears"
+  turn 1 A: cast "Tahngarth's Glare" targeting player B
+  run_to turn 1 postcombat_main
+  assert known A "Shock"
+  assert unknown A "Grizzly Bears"
+  assert known B "Island"
+  assert unknown B "Swamp"
+  assert unknown B "Shock"
+  assert unknown A "Forest"
+}
+
+scenario "look at the top card of target opponent's library: not your own (Saheeli's Silverwing)" {
+  battlefield A: 4 "Plains"
+  hand A: "Saheeli's Silverwing"
+  turn 1 A: cast "Saheeli's Silverwing"
+  illegal turn 1 A: trigger "Saheeli's Silverwing" targeting player A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Saheeli's Silverwing"
+}
+
+scenario "you may shuffle: declined, the looked-at cards stay known (Ponder)" {
+  battlefield A: "Island"
+  hand A: "Ponder"
+  library A: "Forest", "Plains", "Swamp", "Mountain"
+  turn 1 A: cast "Ponder"
+  turn 1 A: decline "Ponder"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert known A "Plains"
+  assert known A "Swamp"
+  assert unknown A "Mountain"
+}
+
+scenario "you may shuffle: a shuffle forgets them (Ponder)" {
+  battlefield A: "Island"
+  hand A: "Ponder"
+  library A: "Forest", "Plains", "Swamp", "Mountain"
+  turn 1 A: cast "Ponder"
+  turn 1 A: accept "Ponder"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert library A count 3
+  assert unknown A "Plains"
+  assert unknown A "Swamp"
+}
+
+scenario "a shuffle forgets what was looked at (Orcish Spy, Clear the Mind)" {
+  battlefield A: "Orcish Spy", 3 "Island"
+  hand A: "Clear the Mind"
+  library A: "Forest"
+  library B: "Hill Giant", "Mountain"
+  graveyard B: "Shock"
+  turn 1 A: activate "Orcish Spy" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Clear the Mind" targeting player B
+  run_to turn 1 postcombat_main
+  assert unknown A "Hill Giant"
+  assert library B contains "Shock"
+  assert graveyard B count 0
+  assert hand A contains "Forest"
+}
+
+scenario "shuffle your graveyard into your library, exiling the artifact (Feldon's Cane)" {
+  battlefield A: "Feldon's Cane"
+  graveyard A: "Grizzly Bears", "Shock"
+  library A: "Forest"
+  turn 1 A: activate "Feldon's Cane"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Feldon's Cane"
+  assert graveyard A count 0
+  assert library A count 3
+}
+
+scenario "exile this as a cost: only once (Feldon's Cane)" {
+  battlefield A: "Feldon's Cane"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: activate "Feldon's Cane"
+  run_to turn 1 postcombat_main
+  illegal turn 1 A: activate "Feldon's Cane"
+  assert exile A contains "Feldon's Cane"
+}
+
+scenario "shuffle only the creature cards from target player's graveyard (Repopulate)" {
+  battlefield A: 2 "Forest"
+  hand A: "Repopulate"
+  graveyard B: "Hill Giant", "Shock", "Grizzly Bears"
+  library B: "Mountain"
+  turn 1 A: cast "Repopulate" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Shock"
+  assert graveyard B count 1
+  assert library B contains "Hill Giant"
+  assert library B contains "Grizzly Bears"
+  assert library B count 3
+}
+
+scenario "shuffle your hand into your library, then draw that many (Whirlpool Rider)" {
+  battlefield A: 2 "Island"
+  hand A: "Whirlpool Rider", "Hill Giant", "Shock"
+  library A: "Forest", "Plains", "Swamp"
+  turn 1 A: cast "Whirlpool Rider"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert library A count 3
+  assert battlefield A contains "Whirlpool Rider"
+}
+
+scenario "shuffle your empty hand: nothing to draw (Whirlpool Rider)" {
+  battlefield A: 2 "Island"
+  hand A: "Whirlpool Rider"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Whirlpool Rider"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A count 2
+}
+
+scenario "draw two, then shuffle a card from your hand into your library (See Beyond)" {
+  battlefield A: 2 "Island"
+  hand A: "See Beyond"
+  library A: "Forest", "Plains", "Swamp"
+  turn 1 A: cast "See Beyond"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert hand A count 1
+  assert library A contains "Forest"
+  assert library A count 2
+}
+
+scenario "counter, then you may shuffle a card from your graveyard into your library (Put Away)" {
+  battlefield A: 2 "Mountain"
+  battlefield B: 4 "Island"
+  hand A: "Shock"
+  hand B: "Put Away"
+  graveyard B: "Hill Giant"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 B: cast "Put Away" targeting "Shock", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Shock"
+  assert library B contains "Hill Giant"
+  assert graveyard B contains "Put Away"
+}
+
+scenario "Put Away: declining leaves the card in the graveyard" {
+  battlefield A: 2 "Mountain"
+  battlefield B: 4 "Island"
+  hand A: "Shock"
+  hand B: "Put Away"
+  graveyard B: "Hill Giant"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 B: cast "Put Away" targeting "Shock", "Hill Giant"
+  turn 1 B: decline "Put Away"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "reveal, then exile the chosen nonland card (Castigate)" {
+  battlefield A: "Plains", "Swamp"
+  hand A: "Castigate"
+  hand B: "Forest", "Hill Giant", "Shock"
+  turn 1 A: cast "Castigate" targeting player B
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Shock"
+  assert graveyard B count 0
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Forest"
+}
+
+scenario "exile the chosen card: a land can't be chosen (Night Terrors)" {
+  battlefield A: 3 "Swamp"
+  hand A: "Night Terrors"
+  hand B: "Forest", "Hill Giant"
+  turn 1 A: cast "Night Terrors" targeting player B
+  illegal turn 1 precombat_main A: discard "Forest"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert hand B contains "Forest"
+}
+
+scenario "exile the chosen card, then a counter (Aggressive Negotiations)" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  hand A: "Aggressive Negotiations"
+  hand B: "Hill Giant"
+  turn 1 A: cast "Aggressive Negotiations" targeting player B, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "a nonland permanent card: not an instant (Auntie's Sentence)" {
+  battlefield A: 2 "Swamp"
+  hand A: "Auntie's Sentence"
+  hand B: "Shock", "Hill Giant"
+  turn 1 A: cast "Auntie's Sentence" mode 1 targeting player B
+  illegal turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand B contains "Shock"
+}
+
+scenario "reveal a card at random, lose life equal to its mana value (Singe-Mind Ogre)" {
+  battlefield A: 2 "Swamp", 2 "Mountain"
+  hand A: "Singe-Mind Ogre"
+  hand B: "Hill Giant"
+  turn 1 A: cast "Singe-Mind Ogre"
+  turn 1 A: trigger "Singe-Mind Ogre" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand B contains "Hill Giant"
+}
+
+scenario "skip the next draw step, only once (Fatigue)" {
+  battlefield A: 2 "Island"
+  hand A: "Fatigue"
+  library B: "Forest", "Plains", "Swamp"
+  turn 1 A: cast "Fatigue" targeting player B
+  run_to turn 2 postcombat_main
+  assert hand B count 0
+  assert library B count 3
+  run_to turn 4 precombat_main
+  assert hand B count 1
+}
+
+scenario "skip the next combat phase (Stonehorn Dignitary)" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Bloodrock Cyclops"
+  hand A: "Stonehorn Dignitary"
+  turn 1 A: cast "Stonehorn Dignitary"
+  turn 1 A: trigger "Stonehorn Dignitary" targeting player B
+  run_to turn 2 end
+  assert life A 20
+  run_to turn 4 end
+  assert life A 17
+}
+
+scenario "skip the next combat phase this turn (Moment of Silence)" {
+  battlefield A: "Plains"
+  battlefield B: "Bloodrock Cyclops"
+  hand A: "Moment of Silence"
+  turn 2 upkeep A: cast "Moment of Silence" targeting player B
+  run_to turn 2 end
+  assert life A 20
+  assert graveyard A contains "Moment of Silence"
+}
+
+scenario "skip the next combat phase this turn: not a later turn's (Moment of Silence)" {
+  battlefield A: "Plains"
+  battlefield B: "Bloodrock Cyclops"
+  hand A: "Moment of Silence"
+  turn 1 A: cast "Moment of Silence" targeting player B
+  run_to turn 2 end
+  assert life A 17
+}
+
+scenario "look at the top card of target player's library, may mill it (Lurking Informant)" {
+  battlefield A: "Lurking Informant", 2 "Island"
+  library B: "Hill Giant", "Mountain"
+  turn 1 A: activate "Lurking Informant" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A count 0
+  assert library B count 1
+}
+
+scenario "look at the top card of target player's library, may decline (Lurking Informant)" {
+  battlefield A: "Lurking Informant", 2 "Island"
+  library B: "Hill Giant", "Mountain"
+  turn 1 A: activate "Lurking Informant" targeting player B
+  turn 1 A: decline "Lurking Informant"
+  run_to turn 1 postcombat_main
+  assert library B count 2
+  assert known A "Hill Giant"
+}
+
+scenario "kinship: a shared creature type, a counter (Winnower Patrol)" {
+  battlefield A: "Winnower Patrol"
+  library A: "Llanowar Elves", "Forest"
+  run_to turn 1 precombat_main
+  assert counters "Winnower Patrol" +1/+1 1
+}
+
+scenario "look at the top card of your library (Brutal Deceiver)" {
+  battlefield A: "Brutal Deceiver", "Mountain"
+  library A: "Forest", "Plains"
+  turn 1 A: activate "Brutal Deceiver" ability 1
+  run_to turn 1 postcombat_main
+  assert known A "Forest"
+  assert unknown B "Forest"
+}

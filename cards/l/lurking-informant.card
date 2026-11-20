@@ -1,0 +1,7 @@
+card "Lurking Informant" {
+  oracle_id 4ad09b75-6d7a-46c7-95a2-d7f90995fdd1
+  cost {1}{U/B}
+  type Creature — Human Rogue
+  pt 1/2
+  activated {2}, {T}: look at top card of target player; you may put that card into graveyard of that player
+}

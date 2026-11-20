@@ -326,6 +326,10 @@ pub enum Assertion {
     NoAbilities(ObjRef),
     /// `stack top "X"`: the top object of the stack is named X.
     StackTop(String),
+    /// `known A "X"` / `unknown A "X"`: whether a card named X in a library
+    /// or hand is known to player A (revealed to them or looked at by
+    /// them, `GameObject::revealed`).
+    Known(PlayerId, String, bool),
 }
 
 /// Step names accepted in scenario files.

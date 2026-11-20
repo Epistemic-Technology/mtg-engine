@@ -1,0 +1,6 @@
+card "Put Away" {
+  oracle_id 1bc9a89c-7831-4c08-8934-896286d63e7c
+  cost {2}{U}{U}
+  type Instant
+  spell: counter target spell; you may shuffle up to 1 target card from your graveyard into library
+}

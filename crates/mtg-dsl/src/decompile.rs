@@ -320,6 +320,7 @@ impl Decompiler<'_> {
             sorcery: false,
             from_graveyard: false,
             exile_self: c.exile_self,
+            exile_this: c.exile_this,
             crew: c.crew,
             remove_counters: c.remove_counters,
             put_counters: c.put_counters,
@@ -866,11 +867,13 @@ impl Decompiler<'_> {
                 who,
                 filter,
                 optional,
+                exile,
             } => Effect::DiscardChosen {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| self.filter(f)),
                 may: *optional,
                 look: false,
+                exile: exile.then_some(true),
             },
             CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
             CoreEffect::Search {
@@ -896,10 +899,23 @@ impl Decompiler<'_> {
                 count: *count,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
             },
-            CoreEffect::HandToLibrary { count, who, bottom } => Effect::HandToLibrary {
+            CoreEffect::HandToLibrary {
+                count,
+                who,
+                bottom,
+                shuffle,
+            } => Effect::HandToLibrary {
                 count: *count,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
                 bottom: *bottom,
+                shuffle: *shuffle,
+            },
+            CoreEffect::ShuffleIntoLibrary { who, hand, filter } => Effect::ShuffleZone {
+                who: (*who != CoreRecipient::You).then(|| r(*who)),
+                of: None,
+                hand: *hand,
+                filter: filter.as_ref().map(|f| self.filter(f)),
+                cards: *hand && filter.is_none(),
             },
             CoreEffect::Fight { a, b } => Effect::Fight { a: r(*a), b: r(*b) },
             CoreEffect::DamageFrom { source, amount, to } => Effect::DealDamage {
@@ -1136,7 +1152,18 @@ impl Decompiler<'_> {
             CoreEffect::Connive { what } => Effect::Connive {
                 what: Self::recipient(*what),
             },
-            CoreEffect::LookAtTop { count } => Effect::LookAtTop(*count),
+            CoreEffect::LookAtTop { count, who, looker } => Effect::LookAtTop {
+                count: *count,
+                of: match r(*who) {
+                    Recipient::You => None,
+                    w => Some(w),
+                },
+                by: match r(*looker) {
+                    Recipient::You => None,
+                    w => Some(w),
+                },
+                only: false,
+            },
             CoreEffect::RevealTop { who, look } => Effect::RevealTop {
                 who: match r(*who) {
                     Recipient::You => None,
@@ -1187,6 +1214,7 @@ impl Decompiler<'_> {
                 },
                 to: *to,
                 who: None,
+                that_player: false,
             },
             CoreEffect::ExilePlayable { count, until } => Effect::ExilePlayable {
                 count: *count,
@@ -1235,6 +1263,10 @@ impl Decompiler<'_> {
             }
             CoreEffect::CantBeRegenerated { to } => Effect::CantBeRegenerated {
                 to: Self::recipient(*to),
+            },
+            CoreEffect::SkipNext { who, what } => Effect::SkipNext {
+                who: r(*who),
+                what: *what,
             },
             CoreEffect::SkipNextUntap { to } => Effect::SkipNextUntap {
                 to: Self::recipient(*to),

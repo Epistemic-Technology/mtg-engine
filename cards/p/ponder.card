@@ -1,0 +1,9 @@
+card "Ponder" {
+  oracle_id 02090581-61aa-4348-ad57-451be8ee91c2
+  cost {U}
+  type Sorcery
+  spell {
+    look at top 3; you may shuffle
+    draw 1 card
+  }
+}

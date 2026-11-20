@@ -1,0 +1,7 @@
+card "Singe-Mind Ogre" {
+  oracle_id a0f26f84-9607-4411-bca5-681ba4e57756
+  cost {2}{B}{R}
+  type Creature — Ogre Mutant
+  pt 3/2
+  triggered when this enters: target player reveals 1 card at random from hand then loses count equal mana value of that card life
+}

@@ -532,6 +532,9 @@ impl GameState {
                     drew_from_empty_library: false,
                     lost: None,
                     mulligans_taken: 0,
+                    skip_draw: 0,
+                    skip_combat: 0,
+                    skip_combat_this_turn: 0,
                 })
                 .collect(),
             objects: SlotMap::with_key(),
@@ -2587,7 +2590,24 @@ impl GameState {
             self.flow = Flow::BeginStep;
             return;
         }
-        if let Some(next) = self.step.next() {
+        if let Some(mut next) = self.step.next() {
+            // CR 500.11: a skipped step or phase doesn't happen; the game
+            // proceeds to the one after it.
+            let ap = self.active_player.index();
+            if next == Step::Draw && self.players[ap].skip_draw > 0 {
+                self.players[ap].skip_draw -= 1;
+                next = Step::PrecombatMain;
+            } else if next == Step::BeginningOfCombat
+                && (self.players[ap].skip_combat > 0 || self.players[ap].skip_combat_this_turn > 0)
+            {
+                let p = &mut self.players[ap];
+                if p.skip_combat_this_turn > 0 {
+                    p.skip_combat_this_turn -= 1;
+                } else {
+                    p.skip_combat -= 1;
+                }
+                next = Step::PostcombatMain;
+            }
             self.step = next;
             // "Until your next end step": the permission ends as it begins.
             if next == Step::End
@@ -2628,6 +2648,9 @@ impl GameState {
             self.saddled.clear();
             self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;
+            for p in &mut self.players {
+                p.skip_combat_this_turn = 0;
+            }
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
             self.next_spell_less = [0; 4];
             self.drawn_this_turn = [0; 4];

@@ -3608,7 +3608,9 @@ impl GameState {
                 self.move_object(s, Zone::Hand, false);
             }
         }
-        if ab.cost.exile_self && self.objects[sa.source].zone == Zone::Graveyard {
+        if ab.cost.exile_self && self.objects[sa.source].zone == Zone::Graveyard
+            || ab.cost.exile_this && self.objects[sa.source].zone == Zone::Battlefield
+        {
             self.move_object(sa.source, Zone::Exile, false);
         }
         let mut cycled = None;
@@ -6583,7 +6585,12 @@ impl GameState {
                     self.discard_n(p, n);
                 }
             }
-            Effect::HandToLibrary { count, who, bottom } => {
+            Effect::HandToLibrary {
+                count,
+                who,
+                bottom,
+                shuffle,
+            } => {
                 let place = if *bottom {
                     crate::card::LibraryPlace::Bottom
                 } else {
@@ -6615,6 +6622,37 @@ impl GameState {
                             self.put_in_library(card, place);
                         }
                     }
+                    if *shuffle {
+                        self.shuffle_library(p);
+                    }
+                }
+            }
+            Effect::ShuffleIntoLibrary { who, hand, filter } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let zone = if *hand {
+                        &self.player(p).hand
+                    } else {
+                        &self.player(p).graveyard
+                    };
+                    let cards: Vec<ObjId> = zone
+                        .iter()
+                        .copied()
+                        .filter(|id| {
+                            filter.as_ref().is_none_or(|f| {
+                                let o = &self.objects[*id];
+                                let c = self.base_characteristics(o);
+                                f.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                            })
+                        })
+                        .collect();
+                    for c in cards {
+                        self.move_object(c, Zone::Library, true);
+                    }
+                    // CR 701.24: shuffled even if nothing moved.
+                    self.shuffle_library(p);
                 }
             }
             Effect::Fight { a, b } => {
@@ -6901,6 +6939,21 @@ impl GameState {
                     }
                 }
             }
+            Effect::SkipNext { who, what } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let ps = self.player_mut(p);
+                    match what {
+                        crate::card::SkipWhat::DrawStep => ps.skip_draw += 1,
+                        crate::card::SkipWhat::CombatPhase => ps.skip_combat += 1,
+                        crate::card::SkipWhat::CombatPhaseThisTurn => {
+                            ps.skip_combat_this_turn += 1;
+                        }
+                    }
+                }
+            }
             Effect::SkipNextUntap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -7131,12 +7184,15 @@ impl GameState {
                         continue;
                     };
                     let n = self.player(p).hand.len();
+                    ctx.created = None;
                     if n == 0 {
                         continue;
                     }
                     let i = rand::Rng::random_range(&mut self.rng, 0..n);
                     let card = self.player(p).hand[i];
                     self.reveal_in_hand(card);
+                    // "then loses life equal to that card's mana value".
+                    ctx.created = Some(card);
                 }
             }
             Effect::Vote { options } => {
@@ -7238,6 +7294,7 @@ impl GameState {
                 who,
                 filter,
                 optional,
+                exile,
             } => {
                 // "If you do" / "If you don't": whether a card was chosen.
                 ctx.did = false;
@@ -7269,7 +7326,11 @@ impl GameState {
                     }
                     let k = self.choose_mid(ctx.controller, DecisionKind::Discard, options.clone());
                     if let Choice::Discard { card, .. } = options[k] {
-                        self.discard_card(p, card);
+                        if *exile {
+                            self.move_object(card, Zone::Exile, false);
+                        } else {
+                            self.discard_card(p, card);
+                        }
                         ctx.did = true;
                     }
                 }
@@ -8232,12 +8293,29 @@ impl GameState {
             Effect::Modes(_) => {}
             // Looking at the top cards keeps their order; the controller
             // knows them where they are.
-            Effect::LookAtTop { count } => {
+            Effect::LookAtTop { count, who, looker } => {
                 let n = self.eval_num(*count, ctx) as usize;
-                let bit = 1 << ctx.controller.index().min(7);
-                let lib = self.player(ctx.controller).library.clone();
-                for id in lib.iter().rev().take(n) {
-                    self.objects[*id].revealed |= bit;
+                let mut bits = 0u8;
+                for t in self.recipients(ctx, *looker) {
+                    if let Target::Player(p) = t {
+                        bits |= 1 << p.index().min(7);
+                    }
+                }
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let top: Vec<_> = self
+                        .player(p)
+                        .library
+                        .iter()
+                        .rev()
+                        .take(n)
+                        .copied()
+                        .collect();
+                    for id in top {
+                        self.objects[id].revealed |= bits;
+                    }
                 }
             }
             Effect::RevealTop { who, look } => {

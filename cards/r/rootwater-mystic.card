@@ -1,0 +1,7 @@
+card "Rootwater Mystic" {
+  oracle_id 32d8f7c8-8680-4901-b31b-e0cb66e37548
+  cost {U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  activated {1}{U}: look at top card of target player
+}

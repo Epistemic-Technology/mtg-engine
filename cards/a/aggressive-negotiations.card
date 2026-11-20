@@ -1,0 +1,6 @@
+card "Aggressive Negotiations" {
+  oracle_id c469133e-174d-476b-b135-bbf15e415e72
+  cost {2}{B}
+  type Sorcery
+  spell: target opponent reveals hand exiling nonland card; put 1 +1/+1 counter on up to 1 target creature you control
+}
