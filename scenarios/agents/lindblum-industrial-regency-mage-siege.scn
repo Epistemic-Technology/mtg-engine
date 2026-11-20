@@ -1,0 +1,29 @@
+scenario "Lindblum taps for red" {
+  battlefield A: "Lindblum, Industrial Regency // Mage Siege"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Lindblum enters tapped" {
+  hand A: "Lindblum, Industrial Regency // Mage Siege"
+  start turn 1 A precombat_main
+  turn 1 A: play "Lindblum, Industrial Regency"
+  run_to turn 1 postcombat_main
+  assert tapped "Lindblum, Industrial Regency"
+}
+
+scenario "Mage Siege is cast from hand, then Lindblum is played from exile" {
+  battlefield A: 3 "Mountain"
+  hand A: "Lindblum, Industrial Regency // Mage Siege"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mage Siege"
+  turn 1 A: wait
+  turn 1 A: play "Lindblum, Industrial Regency"
+  run_to turn 1 postcombat_main
+  assert tapped "Lindblum, Industrial Regency"
+  assert exile A count 0
+  assert battlefield A count 5
+}

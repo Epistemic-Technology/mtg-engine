@@ -91,6 +91,20 @@ impl GameState {
                 if sorcery_timing && ps.lands_played_this_turn < 1 {
                     options.push(Choice::PlayLand(*id));
                 }
+                // CR 715.3: a land with an Adventure (Midgar, City of Mako
+                // // Reactor Raid) is played as a land or cast as the
+                // Adventure.
+                if matches!(def.layout, Layout::Adventure | Layout::Omen) {
+                    for (i, f) in def.faces.iter().enumerate() {
+                        let face = self.pool.get(*f);
+                        if self.castable(p, face, *id, sorcery_timing, &sources, &pool, &changers) {
+                            options.push(Choice::CastFace {
+                                card: *id,
+                                face: u8::try_from(i).unwrap_or(0),
+                            });
+                        }
+                    }
+                }
                 continue;
             }
             // "Cast this spell only during combat" (CR 601.3).
@@ -248,6 +262,13 @@ impl GameState {
                     continue;
                 }
                 let def = self.pool.get(o.def);
+                // CR 715.3d: a land on an adventure is played, not cast.
+                if def.is_land() {
+                    if sorcery_timing && ps.lands_played_this_turn < 1 {
+                        options.push(Choice::PlayLand(*id));
+                    }
+                    continue;
+                }
                 if self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers) {
                     options.push(Choice::Cast(*id));
                 }

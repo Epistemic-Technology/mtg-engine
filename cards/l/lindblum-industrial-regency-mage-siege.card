@@ -1,0 +1,12 @@
+card "Lindblum, Industrial Regency // Mage Siege" {
+  oracle_id 4cc014f3-05e0-442e-9dee-03eab1aa65a3
+  layout adventure
+  type Land — Town
+  enters tapped
+  mana {R}
+  face "Mage Siege" {
+    cost {2}{R}
+    type Instant — Adventure
+    spell: create 1 "0/1 black Wizard creature that pings"
+  }
+}
