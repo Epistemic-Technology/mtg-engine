@@ -318,6 +318,8 @@ impl CastInfo {
     /// whose permanent is then sacrificed at the next cleanup step (Spider
     /// Climb).
     const INSTANT_TIMING: u16 = 0x4000;
+    /// The definition's `cast_snapshot` condition held as it was cast.
+    const AS_CAST: u16 = 0x8000;
     const KICKED: u16 = 0x40;
     const FLASHBACK: u16 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -355,6 +357,14 @@ impl CastInfo {
             _ => Self::CAST_ELSEWHERE,
         };
         self.0 = (self.0 & !Self::CAST_MASK) | bit;
+    }
+
+    pub const fn as_cast(self) -> bool {
+        self.0 & Self::AS_CAST != 0
+    }
+
+    pub fn set_as_cast(&mut self) {
+        self.0 |= Self::AS_CAST;
     }
 
     pub const fn instant_timing(self) -> bool {
@@ -2191,6 +2201,7 @@ impl GameState {
                 .filter(|p| *p != you)
                 .any(|p| count(filter, p) == 0),
             C::Or(a, b) => self.condition_now(a, you, source) || self.condition_now(b, you, source),
+            C::AsCast(_) => self.objects.get(source).is_some_and(|o| o.cast.as_cast()),
             C::DefenderControls { filter, at_least } => self
                 .players_in_game()
                 .filter(|p| *p != you)

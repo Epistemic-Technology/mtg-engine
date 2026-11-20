@@ -1,0 +1,6 @@
+card "Might of Old Krosa" {
+  oracle_id b50a6db0-16ce-4e98-afbd-ec37e1653e7c
+  cost {G}
+  type Instant
+  spell: target creature gets +2/+2; if cast during main phase, that target 1 gets +4/+4 instead
+}

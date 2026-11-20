@@ -262,7 +262,10 @@ if the condition no longer holds.
 Static conditions: `7 cards in your graveyard` ("there are seven or more
 cards in your graveyard"), `4 card types in your graveyard`, `you control 3
 artifact` ("you control three or more artifacts"), `you control Island`
-("you control an Island"), `your turn` ("it's your turn"), `not your turn` ("it's not your turn"), `attacking`,
+("you control an Island"), `your turn` ("it's your turn"), `not your turn` ("it's not your turn"),
+`cast during main phase` ("you cast this spell during your main phase")
+and `controlled Mount as cast` ("you controlled a Mount as you cast this
+spell"), both judged as the spell is cast and remembered by it, `attacking`,
 `enchanted`, `equipped` ("it's attacking", or "this creature is
 attacking" when the subject is something else), `opponent life 10 or
 less` ("an opponent has 10 or less life"), `your life 30 or more`,

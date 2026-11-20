@@ -3003,8 +3003,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
 fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
     match e {
         // "it deals 4 damage instead": to what the sentence before named.
-        Effect::DealDamage { amount, to, .. } if to.is_empty() => {
-            let s = ctx.source();
+        Effect::DealDamage { amount, to, by } if to.is_empty() => {
+            // "Addendum — If you cast this spell during your main phase,
+            // it deals 5 damage instead."
+            let s = if *by == Recipient::SourceIt {
+                ctx.subj(*by)
+            } else {
+                ctx.source()
+            };
             Clause::with_subject(
                 Recipient::Source,
                 s,
@@ -7409,6 +7415,11 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         }
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
         StaticCond::NotYourTurn => "it's not your turn".to_string(),
+        StaticCond::CastDuringMain => "you cast this spell during your main phase".to_string(),
+        StaticCond::ControlledAsCast(f) => format!(
+            "you controlled {} as you cast this spell",
+            filter_a(f, card)
+        ),
         StaticCond::AnyPlayerLifeAtMost(n) => format!("a player has {n} or less life"),
         StaticCond::SourceCountersThere { kind, n } => format!(
             "there are {} or more {} counters on this {}",
@@ -7861,6 +7872,7 @@ fn turn_time_text(t: mtg_core::card::TurnTime) -> &'static str {
         T::YourTurnBeforeAttackers => "during your turn, before attackers are declared",
         T::DeclareBlockers => "during the declare blockers step",
         T::EndOfCombat => "during the end of combat step",
+        T::YourMain => "during your main phase",
     }
 }
 

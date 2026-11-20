@@ -1846,6 +1846,12 @@ impl GameState {
         if def.flash_cleanup && !sorcery_timing {
             self.objects[spell].cast.set_instant_timing();
         }
+        // "If you cast this spell during your main phase": judged now.
+        if let Some(c) = def.cast_snapshot
+            && self.condition_now(self.pool.condition(c), player, spell)
+        {
+            self.objects[spell].cast.set_as_cast();
+        }
         self.flow = if def.modes().is_some() {
             Flow::ChoosingMode { spell }
         } else {

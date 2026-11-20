@@ -2136,6 +2136,14 @@ impl P {
         if self.eat_words(&["not", "your", "turn"]) {
             return Ok(StaticCond::NotYourTurn);
         }
+        if self.eat_words(&["cast", "during", "main", "phase"]) {
+            return Ok(StaticCond::CastDuringMain);
+        }
+        if self.eat_word("controlled") {
+            let f = self.filter()?;
+            self.expect_words(&["as", "cast"])?;
+            return Ok(StaticCond::ControlledAsCast(f));
+        }
         // "there is a land card in your graveyard", "there's a Lesson card
         // in your graveyard".
         let there = if self.eat_words(&["there", "is"]) {
@@ -2644,6 +2652,8 @@ impl P {
             StaticCond::During(T::DeclareBlockers)
         } else if self.eat_words(&["end", "of", "combat"]) {
             StaticCond::During(T::EndOfCombat)
+        } else if self.eat_words(&["your", "main", "phase"]) {
+            StaticCond::During(T::YourMain)
         } else if self.eat_words(&["your", "turn", "before", "attackers"]) {
             StaticCond::During(T::YourTurnBeforeAttackers)
         } else if self.eat_words(&["your", "turn"]) && !matches!(self.peek(), Some(Tok::Comma)) {

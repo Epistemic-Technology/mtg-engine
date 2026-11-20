@@ -89,6 +89,7 @@ pub fn add_card(
             implied_used: std::rc::Rc::default(),
             scavenge: None,
             token: None,
+            cast_snapshot: None,
         };
         let def = c.card()?;
         let r = pool.add(def);
@@ -111,6 +112,7 @@ pub fn add_card(
                 implied_used: std::rc::Rc::default(),
                 scavenge: None,
                 token: None,
+                cast_snapshot: None,
             };
             let def = c.card()?;
             let r = pool.add(def);
@@ -129,6 +131,7 @@ pub fn add_card(
         implied_used: std::rc::Rc::default(),
         scavenge: None,
         token,
+        cast_snapshot: None,
     };
     let mut def = c.card()?;
     link_exiles(&mut def);
@@ -188,6 +191,8 @@ struct Compiler<'a> {
     /// The token embalm, eternalize, or offspring creates, compiled
     /// before the card (`derived_token`).
     token: Option<CardRef>,
+    /// The condition a spell's `AsCast` condition judges as it is cast.
+    cast_snapshot: Option<StaticCondition>,
 }
 
 impl Compiler<'_> {
@@ -566,6 +571,9 @@ impl Compiler<'_> {
                 abilities,
             });
         }
+        if let Some(c) = self.cast_snapshot.take() {
+            b = b.cast_snapshot(self.pool.intern_condition(c));
+        }
         Ok(b.build())
     }
 
@@ -740,6 +748,17 @@ impl Compiler<'_> {
             },
             StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
             StaticCond::NotYourTurn => StaticCondition::NotYourTurn,
+            StaticCond::CastDuringMain | StaticCond::ControlledAsCast(_) => {
+                let inner = match c {
+                    StaticCond::ControlledAsCast(f) => StaticCondition::YouControl {
+                        filter: self.filter(f).who(Who::You),
+                        at_least: 1,
+                    },
+                    _ => StaticCondition::During(mtg_core::card::TurnTime::YourMain),
+                };
+                self.cast_snapshot = Some(inner.clone());
+                StaticCondition::AsCast(Box::new(inner))
+            }
             StaticCond::Attacking => StaticCondition::SourceAttacking,
             StaticCond::Enchanted => StaticCondition::SourceEnchanted,
             StaticCond::Equipped => StaticCondition::SourceEquipped,

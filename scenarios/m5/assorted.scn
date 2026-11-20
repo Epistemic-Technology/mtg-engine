@@ -326,6 +326,79 @@ scenario "Falkenrath Perforator deals 1 damage to defending player as it attacks
   assert life B 17
 }
 
+# Conditions judged as the spell was cast: "If you cast this spell during
+# your main phase", "if you controlled a Mount as you cast this spell".
+scenario "Might of Old Krosa cast in a main phase gives +4/+4" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Might of Old Krosa"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Might of Old Krosa" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 6
+}
+
+scenario "Might of Old Krosa cast in combat gives +2/+2" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Might of Old Krosa"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Might of Old Krosa" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert life B 16
+}
+
+scenario "Might of Old Krosa on an opponent's main phase gives +2/+2" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Might of Old Krosa"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Might of Old Krosa" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Summary Judgment deals 5 damage in its caster's main phase" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Serra Angel" tapped
+  hand A: "Summary Judgment"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Summary Judgment" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Summary Judgment deals 3 damage otherwise" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Serra Angel" tapped
+  hand A: "Summary Judgment"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Summary Judgment" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert damage "Serra Angel" 3
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Steer Clear deals 4 damage with a Mount" {
+  battlefield A: "Plains", "Alacrian Jaguar"
+  battlefield B: "Serra Angel"
+  hand A: "Steer Clear"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Serra Angel"
+  turn 2 declare_attackers A: cast "Steer Clear" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Steer Clear deals 2 damage without a Mount" {
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Steer Clear"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Serra Angel"
+  turn 2 declare_attackers A: cast "Steer Clear" targeting "Serra Angel"
+  run_to turn 2 end
+  assert damage "Serra Angel" 2
+}
+
 scenario "Gleam of Resistance untaps attackers" {
   battlefield A: 5 "Plains", "Grizzly Bears"
   hand A: "Gleam of Resistance"

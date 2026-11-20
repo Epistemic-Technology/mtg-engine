@@ -3163,6 +3163,8 @@ fn static_cond(c: &StaticCond) -> String {
         } => format!("you control {at_least} {}", filter(fl)),
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "your turn".to_string(),
         StaticCond::NotYourTurn => "not your turn".to_string(),
+        StaticCond::CastDuringMain => "cast during main phase".to_string(),
+        StaticCond::ControlledAsCast(f) => format!("controlled {} as cast", filter(f)),
         StaticCond::Attacking => "attacking".to_string(),
         StaticCond::Enchanted => "enchanted".to_string(),
         StaticCond::Equipped => "equipped".to_string(),
@@ -3369,6 +3371,7 @@ fn static_cond(c: &StaticCond) -> String {
                 T::YourTurnBeforeAttackers => "during your turn before attackers",
                 T::DeclareBlockers => "during declare blockers",
                 T::EndOfCombat => "during end of combat",
+                T::YourMain => "during your main phase",
             }
             .to_string()
         }

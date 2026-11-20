@@ -1172,6 +1172,12 @@ pub enum StaticCond {
     YourTurn,
     /// `not your turn`: "it's not your turn".
     NotYourTurn,
+    /// `cast during main phase`: "you cast this spell during your main
+    /// phase" (judged as it was cast).
+    CastDuringMain,
+    /// `controlled Mount as cast`: "you controlled a Mount as you cast this
+    /// spell".
+    ControlledAsCast(Filter),
     /// Written `static during your turn, <filter>: ...`.
     DuringYourTurn,
     /// `attacking`, `enchanted`, `equipped`: "it's attacking" (the source).

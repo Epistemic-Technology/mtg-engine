@@ -342,6 +342,12 @@ impl Decompiler<'_> {
             },
             StaticCondition::YourTurn => StaticCond::YourTurn,
             StaticCondition::NotYourTurn => StaticCond::NotYourTurn,
+            StaticCondition::AsCast(inner) => match &**inner {
+                StaticCondition::YouControl { filter, .. } => {
+                    StaticCond::ControlledAsCast(self.filter(filter))
+                }
+                _ => StaticCond::CastDuringMain,
+            },
             StaticCondition::SourceAttacking => StaticCond::Attacking,
             StaticCondition::SourceEnchanted => StaticCond::Enchanted,
             StaticCondition::SourceEquipped => StaticCond::Equipped,

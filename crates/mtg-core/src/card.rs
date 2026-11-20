@@ -1955,6 +1955,11 @@ pub enum StaticCondition {
     /// Either holds ("you control a Desert or there is a Desert card in
     /// your graveyard").
     Or(Box<StaticCondition>, Box<StaticCondition>),
+    /// The condition as the spell was cast ("If you cast this spell during
+    /// your main phase", "if you controlled a Mount as you cast this
+    /// spell"): judged then and remembered by the spell (the definition's
+    /// `cast_snapshot`).
+    AsCast(Box<StaticCondition>),
     /// "an opponent has eight or more cards in their graveyard".
     OpponentGraveyard(u32),
     /// "there are five or more mana values among cards in your graveyard".
@@ -2123,6 +2128,8 @@ pub enum TurnTime {
     DeclareBlockers,
     /// "during the end of combat step".
     EndOfCombat,
+    /// "during your main phase" (CR 505.1).
+    YourMain,
 }
 
 impl TurnTime {
@@ -2140,6 +2147,7 @@ impl TurnTime {
         );
         match self {
             TurnTime::YourUpkeep => step == Step::Upkeep && active == you,
+            TurnTime::YourMain => step.is_main() && active == you,
             TurnTime::OpponentUpkeep => step == Step::Upkeep && active != you,
             TurnTime::Combat => matches!(
                 step,
@@ -4983,6 +4991,9 @@ pub struct CardDef {
     /// after are declared by "If this spell was kicked, ..." and chosen
     /// only if it was (CR 601.2c, 702.33).
     pub unkicked_targets: Option<u8>,
+    /// The pool condition an `AsCast` condition of the spell judges as it
+    /// is cast.
+    pub cast_snapshot: Option<u16>,
     /// Offspring (CR 702.175): an optional additional cost; if paid, a 1/1
     /// token copy is created as the permanent enters.
     pub offspring: Option<Box<ManaCost>>,
@@ -6492,6 +6503,7 @@ impl Builder {
             flash_if: None,
             flash_cleanup: false,
             unkicked_targets: None,
+            cast_snapshot: None,
             offspring: None,
             bargain: false,
             aura_stays: false,
@@ -6657,6 +6669,13 @@ impl Builder {
     #[must_use]
     pub fn flash_cleanup(mut self) -> Self {
         self.0.flash_cleanup = true;
+        self
+    }
+
+    /// The condition judged as the spell is cast (`AsCast`).
+    #[must_use]
+    pub fn cast_snapshot(mut self, condition: u16) -> Self {
+        self.0.cast_snapshot = Some(condition);
         self
     }
 
