@@ -1682,9 +1682,7 @@ impl Compiler<'_> {
             Recipient::SameObject
             | Recipient::SameThat
             | Recipient::SameToken
-            | Recipient::SameTokens => {
-                CoreRecipient::SameObject
-            }
+            | Recipient::SameTokens => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
             Recipient::Manifested | Recipient::CreatedObject => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,

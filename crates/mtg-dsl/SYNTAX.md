@@ -544,7 +544,10 @@ counter` prints "Draw a card if that creature has a +1/+1 counter on it."
 (a target's counters are judged on the battlefield).
 `otherwise, <sentence>` after `if <condition>, ...` or after `clash; if
 you win, ...` happens only if that didn't (CR 608.2c): "Otherwise, that
-player discards a card."; creating the token the sentence before
+player discards a card."; after `you may <act>; if you do, ...` it
+happens if the act wasn't taken (an optional act that can't be done in
+full, `you may tap 2 untapped creature you control chosen`, isn't
+offered); creating the token the sentence before
 created prints "Otherwise, create one of those tokens."
 `<clause> unless that player discards 1 card` (or `unless they discard
 1 card`): the payer may discard a card of their choice to stop it.

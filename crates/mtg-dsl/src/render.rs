@@ -4842,14 +4842,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             // A graveyard ability's own card: "put this card from your
             // graveyard on top of your library".
-            if *wording == W::Put
-                && *what == Recipient::Source
-                && works_from_graveyard(ctx.current)
+            if *wording == W::Put && *what == Recipient::Source && works_from_graveyard(ctx.current)
             {
                 return Clause::imperative(match place {
-                    P::Top => "put this card from your graveyard on top of your library".to_string(),
-                    P::Shuffle => "shuffle this card from your graveyard into your library".to_string(),
-                    _ => "put this card from your graveyard on the bottom of your library".to_string(),
+                    P::Top => {
+                        "put this card from your graveyard on top of your library".to_string()
+                    }
+                    P::Shuffle => {
+                        "shuffle this card from your graveyard into your library".to_string()
+                    }
+                    _ => "put this card from your graveyard on the bottom of your library"
+                        .to_string(),
                 });
             }
             if *wording == W::Put {
@@ -5028,7 +5031,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!(
                     "{} {what} they control{}",
                     ctx.verb(*who, "exiles", "exile"),
-                    if *graveyard { " and their graveyard" } else { "" }
+                    if *graveyard {
+                        " and their graveyard"
+                    } else {
+                        ""
+                    }
                 ),
             )
         }
@@ -5772,8 +5779,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 words.push(format!("{p}/{q}"));
             }
             // "a 3/4 red and green Dinosaur creature".
-            let color_words: Vec<String> =
-                colors.iter().map(|c| format!("{c:?}").to_lowercase()).collect();
+            let color_words: Vec<String> = colors
+                .iter()
+                .map(|c| format!("{c:?}").to_lowercase())
+                .collect();
             if !color_words.is_empty() {
                 words.push(list(&color_words));
             }
@@ -9481,8 +9490,8 @@ fn restrictions_text(cost: &Cost, card: &Card) -> String {
                         _ => self_noun(card),
                     };
                     let about = match c {
-                        StaticCond::Or(a, b) | StaticCond::OrIf(a, b) => {
-                            about_source(a) || about_source(b)
+                        StaticCond::Or(left, right) | StaticCond::OrIf(left, right) => {
+                            about_source(left) || about_source(right)
                         }
                         c => about_source(c),
                     };

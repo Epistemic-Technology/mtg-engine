@@ -4776,7 +4776,10 @@ impl GameState {
                 // permanent's controller chose as it entered.
                 let filled;
                 let restriction = if restriction.spells.as_ref().is_some_and(|f| f.chosen)
-                    || restriction.ability_source.as_ref().is_some_and(|f| f.chosen)
+                    || restriction
+                        .ability_source
+                        .as_ref()
+                        .is_some_and(|f| f.chosen)
                 {
                     let fill = |f: &crate::card::ObjFilter| {
                         if f.chosen {

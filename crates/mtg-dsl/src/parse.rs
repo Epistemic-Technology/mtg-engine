@@ -5712,7 +5712,7 @@ impl P {
     /// After `return <what> to` or `put <what> onto`: `battlefield
     /// [tapped] [under your control] [with 1 +1/+1 counter] [attached to
     /// <what>]`.
-    fn to_battlefield_tail(&mut self, what: Recipient, put: bool) -> R<Effect> {
+    fn battlefield_tail(&mut self, what: Recipient, put: bool) -> R<Effect> {
         self.eat_word("the");
         self.expect_word("battlefield")?;
         let tapped = self.eat_word("tapped");
@@ -5909,8 +5909,10 @@ impl P {
             // of +1/+1 counters equal to ... on <what>", the amount before
             // the recipient.
             "put"
-                if matches!(self.peek(), Some(Tok::Pt { signed: true, .. } | Tok::Word(_)))
-                    && self.word_at(1).as_deref() == Some("counters")
+                if matches!(
+                    self.peek(),
+                    Some(Tok::Pt { signed: true, .. } | Tok::Word(_))
+                ) && self.word_at(1).as_deref() == Some("counters")
                     && self.word_at(2).as_deref() == Some("equal") =>
             {
                 let kind = self.counter_kind()?;
@@ -5949,7 +5951,7 @@ impl P {
             {
                 let what = self.recipient()?;
                 self.expect_word("onto")?;
-                self.to_battlefield_tail(what, true)
+                self.battlefield_tail(what, true)
             }
             "put"
                 if (0..8).any(|k| {
@@ -6121,7 +6123,7 @@ impl P {
                 if all.len() > 1 {
                     return self.fail("only one recipient returns to the battlefield");
                 }
-                self.to_battlefield_tail(what, false)
+                self.battlefield_tail(what, false)
             }
             "regenerate" => {
                 let to = self.recipient()?;

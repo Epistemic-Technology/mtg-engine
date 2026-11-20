@@ -4250,10 +4250,14 @@ impl Builder<'_> {
                                 }
                                 c => static_condition(c),
                             };
-                            let cond = w.strip_prefix("if ").and_then(|c| match c.split_once(" or if ") {
-                                Some((a, b)) => Some(format!("{} or if {}", one(a)?, one(b)?)),
-                                None => one(c),
-                            });
+                            let cond =
+                                w.strip_prefix("if ")
+                                    .and_then(|c| match c.split_once(" or if ") {
+                                        Some((a, b)) => {
+                                            Some(format!("{} or if {}", one(a)?, one(b)?))
+                                        }
+                                        None => one(c),
+                                    });
                             cond.map(|c| format!("if {c}"))
                                 .ok_or_else(|| Skip::Sentence(line.to_string()))?
                         }

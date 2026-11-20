@@ -1330,7 +1330,11 @@ impl Fmt {
                 self.recipient(*who, t),
                 num(*count),
                 filter(f),
-                if *graveyard { " and their graveyard" } else { "" }
+                if *graveyard {
+                    " and their graveyard"
+                } else {
+                    ""
+                }
             ),
             Effect::ExileFromHand {
                 count,
