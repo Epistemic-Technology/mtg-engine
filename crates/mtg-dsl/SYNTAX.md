@@ -711,7 +711,11 @@ outcome `double` (`replace damage from permanent you control to any:
 double`) prints "If a source you control would deal damage to a
 permanent or player, it deals double that damage to that permanent or
 player instead." (a filter without a card type names a source;
-`replace damage to you: double` "... to you instead.").
+`replace damage to you: double` "... to you instead."). Likewise
+`replace damage from permanent you control to each opponent: prevent {
+each opponent mills that much cards }` prints "If a source you control
+would deal damage to an opponent, prevent that damage and each opponent
+mills that many cards." (`that much` is the prevented damage).
 `spells red or white you cast cost {1} less` prints "Red spells and white
 spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
 spells". `defending player` as a subject prints "defending player".

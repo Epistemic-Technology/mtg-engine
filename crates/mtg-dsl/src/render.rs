@@ -7876,6 +7876,30 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 }
             }
         }
+        // "If a source you control would deal damage to an opponent,
+        // prevent that damage and each opponent mills that many cards."
+        // (The Mindskinner): the source named, and what follows joined to
+        // the sentence.
+        (
+            Replaces::Damage {
+                from: Some(Affects::Objects(f)),
+                to,
+                combat: None,
+                ..
+            },
+            Outcome::Prevent,
+        ) if !this_turn && f.types.is_empty() && f.any_types.is_empty() && r.then.len() == 1 => {
+            let p = filter_a(f, ctx.card);
+            let by = if p.contains("permanent") {
+                p.replacen("permanent", "source", 1)
+            } else {
+                p.replacen(" you control", " source you control", 1)
+            };
+            let to = affects_to(to, ctx);
+            let rest = sentences(&r.then, ctx);
+            let rest = lowercase_first(rest.trim_end_matches('.'));
+            return format!("If {by} would deal damage to {to}, prevent that damage and {rest}.");
+        }
         (Replaces::Damage { to, combat, .. }, Outcome::Prevent) => {
             let kind = match combat {
                 Some(true) => "combat damage",
