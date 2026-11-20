@@ -5317,7 +5317,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     )
                 }
             } else if filter == &Filter::default() {
-                if one {
+                // "instead search your library for any card" after a
+                // search for a particular card.
+                let other_search = matches!(ctx.current, Some(Ability::Spell { effects, .. })
+                    if effects.iter().flat_map(|s| &s.effects).any(|e| matches!(e,
+                        Effect::Search { filter, .. } if filter != &Filter::default())));
+                if one && other_search {
+                    "any card".to_string()
+                } else if one {
                     "a card".to_string()
                 } else {
                     format!("{} cards", count_words(*count, "a"))
