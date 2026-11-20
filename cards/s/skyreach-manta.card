@@ -1,0 +1,8 @@
+card "Skyreach Manta" {
+  oracle_id 58eab745-9afa-4db7-9d8a-f5eb0b9dca6c
+  cost {5}
+  type Artifact Creature — Fish
+  pt 0/0
+  sunburst
+  keyword flying
+}

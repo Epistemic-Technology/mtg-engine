@@ -1283,6 +1283,10 @@ pub enum Mechanic {
     /// `multikicker {1}{G}` (CR 702.33c): a kicker cost paid any number of
     /// times as the spell is cast.
     Multikicker(ManaCost),
+    /// `sunburst` (CR 702.44): enters with a +1/+1 counter (a creature
+    /// card) or a charge counter (any other) for each color of mana spent
+    /// to cast it.
+    Sunburst,
     /// `teamwork 2`: "Teamwork 2 (As an additional cost to cast this
     /// spell, you may tap any number of creatures you control with total
     /// power 2 or more.)"

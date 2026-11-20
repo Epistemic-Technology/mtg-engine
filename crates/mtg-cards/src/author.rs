@@ -64,7 +64,8 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 116] = [
+const TEMPLATED_TAGS: [&str; 117] = [
+    "Sunburst",
     "Multikicker",
     "Graft",
     "Vanishing",
@@ -2647,6 +2648,11 @@ impl Builder<'_> {
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.44a.
+        if line == "Sunburst" {
+            self.statements.push("sunburst".to_string());
             return Ok(());
         }
         // CR 702.63b: vanishing without a number.

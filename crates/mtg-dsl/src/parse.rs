@@ -1356,6 +1356,11 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Modular(n)))
             }
+            "sunburst" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Sunburst))
+            }
             "graft" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                 self.pos += 1;
                 let n = self.number()?;

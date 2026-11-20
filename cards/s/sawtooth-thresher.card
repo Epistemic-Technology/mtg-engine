@@ -1,0 +1,8 @@
+card "Sawtooth Thresher" {
+  oracle_id 3a8f382e-0bc6-4e79-87e2-9f99d907d234
+  cost {6}
+  type Artifact Creature — Construct
+  pt 1/1
+  sunburst
+  activated remove 2 +1/+1 counters from this: this gets +4/+4
+}

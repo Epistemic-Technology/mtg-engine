@@ -89,6 +89,7 @@ pub fn add_card(
             implied_used: std::rc::Rc::default(),
             scavenge: None,
             station: None,
+            sunburst: None,
             extort: None,
             token: None,
             cast_snapshot: None,
@@ -114,6 +115,7 @@ pub fn add_card(
                 implied_used: std::rc::Rc::default(),
                 scavenge: None,
                 station: None,
+                sunburst: None,
                 extort: None,
                 token: None,
                 cast_snapshot: None,
@@ -135,6 +137,7 @@ pub fn add_card(
         implied_used: std::rc::Rc::default(),
         scavenge: None,
         station: None,
+        sunburst: None,
         extort: None,
         token,
         cast_snapshot: None,
@@ -198,6 +201,8 @@ struct Compiler<'a> {
     scavenge: Option<u8>,
     /// Station's count (the tapped creature's power), likewise.
     station: Option<u8>,
+    /// Sunburst's count (colors of mana spent), in `counts`.
+    sunburst: Option<u8>,
     /// Extort's count (the life lost this way), once added to the counts.
     extort: Option<u8>,
     /// The token embalm, eternalize, or offspring creates, compiled
@@ -454,6 +459,11 @@ impl Compiler<'_> {
                         stat: mtg_core::card::Stat::Power,
                     });
                     self.station = u8::try_from(counts.len() - 1).ok();
+                }
+                Ability::Mechanic(Mechanic::Sunburst) => {
+                    // CR 702.44a: "for each color of mana spent to cast it".
+                    counts.push(mtg_core::card::CountExpr::SpentColors);
+                    self.sunburst = u8::try_from(counts.len() - 1).ok();
                 }
                 Ability::Mechanic(Mechanic::Scavenge(_)) => {
                     // CR 702.97a: "equal to this card's power", as the card
@@ -3298,6 +3308,36 @@ impl Compiler<'_> {
                 // Put a number of charge counters on this permanent equal
                 // to the tapped creature's power. Activate only as a
                 // sorcery."
+                // CR 702.44a: "If this object is entering as a creature,
+                // ignoring any type-changing effects that would affect it,
+                // it enters with a +1/+1 counter on it for each color of
+                // mana spent to cast it. Otherwise, it enters with a charge
+                // counter on it for each color of mana spent to cast it."
+                // The printed card decides which (CR 702.44a's "ignoring
+                // type-changing effects"); a permanent not cast spent no
+                // mana (CR 702.44b).
+                Mechanic::Sunburst => {
+                    let Some(i) = self.sunburst else {
+                        return self.err("sunburst's count is missing");
+                    };
+                    let kind = if self
+                        .card
+                        .types
+                        .contains(&mtg_core::card::CardType::Creature)
+                    {
+                        mtg_core::card::CounterKind::PlusOnePlusOne
+                    } else {
+                        mtg_core::card::CounterKind::Charge
+                    };
+                    AbilityDef::Replacement(ReplacementAbility {
+                        replaces: mtg_core::card::Replaces::Enters,
+                        replacement: mtg_core::card::Replacement::EnterWithCounters {
+                            kind,
+                            n: Num::Count(i),
+                        },
+                        then: Vec::new(),
+                    })
+                }
                 Mechanic::Station => {
                     let Some(i) = self.station else {
                         return self.err("station's count is missing");
@@ -4104,6 +4144,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Renown(_)
         | Mechanic::Unleash
         | Mechanic::Station
+        | Mechanic::Sunburst
         | Mechanic::Extort
         | Mechanic::Riot
         | Mechanic::Retrace

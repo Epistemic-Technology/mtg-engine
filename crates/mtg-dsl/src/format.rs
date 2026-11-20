@@ -4376,6 +4376,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),
                 crate::ast::Mechanic::Modular(n) => format!("modular {n}"),
                 crate::ast::Mechanic::Graft(n) => format!("graft {n}"),
+                crate::ast::Mechanic::Sunburst => "sunburst".to_string(),
                 crate::ast::Mechanic::Vanishing(0) => "vanishing".to_string(),
                 crate::ast::Mechanic::Vanishing(n) => format!("vanishing {n}"),
                 crate::ast::Mechanic::CumulativeUpkeep(c) => format!("cumulative upkeep {c}"),

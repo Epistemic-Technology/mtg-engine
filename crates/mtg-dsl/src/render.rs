@@ -9543,6 +9543,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
             crate::ast::Mechanic::Modular(n) => format!("Modular {n}"),
             crate::ast::Mechanic::Graft(n) => format!("Graft {n}"),
+            crate::ast::Mechanic::Sunburst => "Sunburst".to_string(),
             crate::ast::Mechanic::Vanishing(0) => "Vanishing".to_string(),
             crate::ast::Mechanic::Vanishing(n) => format!("Vanishing {n}"),
             crate::ast::Mechanic::CumulativeUpkeep(c) => format!("Cumulative upkeep {c}"),

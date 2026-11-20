@@ -1,0 +1,7 @@
+card "Heliophial" {
+  oracle_id 6c3be36d-2461-4e38-9ab4-4394cd4996e7
+  cost {5}
+  type Artifact
+  sunburst
+  activated {2}, sacrifice this: deal damage equal charge counters on it to any target
+}

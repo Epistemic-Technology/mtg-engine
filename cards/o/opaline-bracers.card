@@ -1,0 +1,8 @@
+card "Opaline Bracers" {
+  oracle_id a4d6cb66-698d-4b76-b922-f799ad9d8805
+  cost {4}
+  type Artifact — Equipment
+  sunburst
+  static equipped: +1/+1 count where charge counters on this
+  equip {2}
+}

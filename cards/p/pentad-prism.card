@@ -1,0 +1,7 @@
+card "Pentad Prism" {
+  oracle_id 72e8d67a-41e6-4074-bcbd-b54ead995237
+  cost {2}
+  type Artifact
+  sunburst
+  activated remove 1 charge counters from this: add any
+}
