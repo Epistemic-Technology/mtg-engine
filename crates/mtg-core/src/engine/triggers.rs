@@ -1272,6 +1272,7 @@ impl GameState {
             did: true,
             chosen: Chosen::None,
             couldnt: 0,
+            created_tokens: SmallVec::new(),
         };
         let outer = self.begin_this_way(id);
         self.apply_effects(&mut ctx, effects, split);

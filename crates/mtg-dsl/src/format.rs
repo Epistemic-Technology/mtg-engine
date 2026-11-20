@@ -277,6 +277,7 @@ impl Fmt {
                 "it".to_string()
             }
             Recipient::CreatedObject => "that token".to_string(),
+            Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.
             // `all` prints with the filter.

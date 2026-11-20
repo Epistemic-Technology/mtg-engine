@@ -79,3 +79,56 @@ scenario "Patient Naturalist: no land milled, a Treasure instead" {
   assert library A count 1
   assert battlefield A contains "Treasure"
 }
+
+# Delayed triggers (CR 603.7): one about each token a spell created, and
+# one about a target it names ("When target creature dies this turn").
+
+scenario "Thatcher Revolt: the three tokens are sacrificed at the next end step" {
+  battlefield A: 3 "Mountain"
+  hand A: "Thatcher Revolt"
+  turn 1 A: cast "Thatcher Revolt"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Human"
+  run_to turn 1 cleanup
+  assert battlefield A lacks "Human"
+}
+
+scenario "Thatcher Revolt: the hasty tokens attack the turn they're made" {
+  battlefield A: 3 "Mountain"
+  hand A: "Thatcher Revolt"
+  turn 1 A: cast "Thatcher Revolt"
+  turn 1 A: attack "Human", "Human", "Human"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Graceful Reprieve: the creature returns when it dies this turn" {
+  battlefield A: 2 "Plains", "Mountain", "Grizzly Bears"
+  hand A: "Graceful Reprieve", "Shock"
+  turn 1 A: cast "Graceful Reprieve" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
+scenario "Graceful Reprieve: an opponent's creature returns under its owner's control" {
+  battlefield A: 2 "Plains", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Graceful Reprieve", "Shock"
+  turn 1 A: cast "Graceful Reprieve" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Graceful Reprieve: a death on a later turn doesn't return it" {
+  battlefield A: 2 "Plains", "Mountain", "Grizzly Bears"
+  hand A: "Graceful Reprieve", "Shock"
+  turn 1 A: cast "Graceful Reprieve" targeting "Grizzly Bears"
+  turn 3 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}

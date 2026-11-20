@@ -1,0 +1,6 @@
+card "Graceful Reprieve" {
+  oracle_id 76cef1af-ff7e-4eab-9be6-81ba6049d222
+  cost {1}{W}
+  type Instant
+  spell: delayed target creature: when that creature dies this turn, return triggering card to battlefield
+}

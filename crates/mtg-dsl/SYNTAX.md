@@ -1264,7 +1264,16 @@ the ability is about; in one about `that creature` (the triggering object),
 creature` is the object too. `delayed target 1: when that creature dies
 this turn, <effects>` (and `when that creature leaves the battlefield this
 turn`) triggers once if that object dies (leaves) and ends unfired at the
-cleanup step (CR 603.7c).
+cleanup step (CR 603.7c). A target declared by the delayed ability
+itself prints in its trigger: `delayed target creature: when that
+creature dies this turn, return triggering card to battlefield` ("When
+target creature dies this turn, return that card to the battlefield under
+its owner's control."; `triggering card` is the card it became). After
+`create 3 "..."`, `those tokens` is every token that sentence created
+(those still on the battlefield), and `delayed those tokens: sacrifice
+those tokens at beginning of the next end step` is one delayed trigger
+about each ("Sacrifice those tokens at the beginning of the next end
+step.").
 
 Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,
 `its controller` / `its owner` (of the last target declared),

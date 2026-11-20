@@ -2660,6 +2660,10 @@ pub enum Recipient {
     /// The object the previous effect of the same resolution created or
     /// moved ("that token", "that card").
     CreatedObject,
+    /// Every token the most recent token-creating effect of the same
+    /// resolution created ("Sacrifice those tokens at the beginning of the
+    /// next end step"), those still on the battlefield.
+    CreatedTokens,
     /// Every battlefield object matching the pool's `n`th interned filter
     /// ("all artifacts", "each creature with flying", "white creatures you
     /// control").

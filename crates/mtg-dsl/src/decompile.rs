@@ -540,6 +540,7 @@ impl Decompiler<'_> {
             CoreRecipient::EachPermanentYouControl => Recipient::EachPermanentYouControl,
             CoreRecipient::SameObject => Recipient::SameObject,
             CoreRecipient::CreatedObject => Recipient::CreatedObject,
+            CoreRecipient::CreatedTokens => Recipient::CreatedTokens,
             CoreRecipient::Group(i) => Recipient::Group(i),
             CoreRecipient::RandomOf(i) => Recipient::RandomOf(i),
             CoreRecipient::OpponentsWithout(i) => Recipient::OpponentsWithout(i),

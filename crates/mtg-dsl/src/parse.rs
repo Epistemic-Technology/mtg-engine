@@ -7006,6 +7006,14 @@ impl P {
         if self.in_trigger && self.eat_words(&["controller", "of", "the", "creature"]) {
             return Ok(Recipient::TheTriggeringController);
         }
+        // "Sacrifice those tokens at the beginning of the next end step."
+        if self.eat_words(&["those", "tokens"]) {
+            return Ok(if self.in_delayed {
+                Recipient::SameTokens
+            } else {
+                Recipient::CreatedTokens
+            });
+        }
         if self.eat_words(&["those", "cards"]) {
             if self.targets.is_empty() {
                 return self.fail("`those cards` needs targets declared before it");

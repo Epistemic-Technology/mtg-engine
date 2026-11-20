@@ -1,0 +1,7 @@
+token "1/1 red Human creature with haste" {
+  name "Human"
+  type Creature — Human
+  pt 1/1
+  color red
+  keywords haste
+}

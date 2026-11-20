@@ -1091,6 +1091,7 @@ impl<'a> Ctx<'a> {
                 "each permanent you control".to_string()
             }
             Recipient::SameObject if self.delayed_that => "that creature".to_string(),
+            Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
             }
@@ -5788,13 +5789,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             trigger_first,
             this_turn,
         } => {
+            // "When target creature dies this turn, ...": a target first
+            // named by the delayed trigger itself.
+            let named = match about {
+                Recipient::Target(i) if *this_turn && !ctx.target_mentioned[*i] => {
+                    let what = ctx.obj(*about);
+                    let event = crate::format::this_turn_trigger(trigger)
+                        .strip_prefix("when that creature ")
+                        .unwrap_or("dies this turn");
+                    Some(format!("when {what} {event}"))
+                }
+                _ => None,
+            };
             let was = (ctx.in_delayed, ctx.delayed_that);
             ctx.in_delayed = true;
             ctx.delayed_that = *about == Recipient::TriggeringObject;
             let body = sentences(effects, ctx);
             (ctx.in_delayed, ctx.delayed_that) = was;
             let body = body.trim_end_matches('.').to_string();
-            let t = if *this_turn {
+            let t = if let Some(named) = named {
+                named
+            } else if *this_turn {
                 crate::format::this_turn_trigger(trigger).to_string()
             } else {
                 trigger_text(trigger, ctx, true)

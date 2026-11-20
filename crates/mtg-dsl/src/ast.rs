@@ -2135,6 +2135,11 @@ pub enum Recipient {
     /// the trigger is about (`SameObject`), printed "that creature".
     SameThat,
     CreatedObject,
+    /// `those tokens`: every token the last token-creating sentence
+    /// created; inside a delayed trigger about them, each in turn
+    /// (`SameTokens`, the core `SameObject`).
+    CreatedTokens,
+    SameTokens,
     /// `each <filter>` / `all <filter>`: the `n`th of the card's `groups`.
     Group(u16),
     /// `random <filter>`: one of the `n`th group's permanents, picked at

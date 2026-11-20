@@ -1725,6 +1725,7 @@ impl GameState {
                 did: true,
                 chosen: Chosen::None,
                 couldnt: 0,
+                created_tokens: SmallVec::new(),
             };
             let n = sc.per.saturating_mul(self.eval_num(sc.times, &ctx));
             d -= i32::try_from(n).unwrap_or(i32::MAX);
@@ -2782,6 +2783,7 @@ impl GameState {
                     did: true,
                     chosen: Chosen::None,
                     couldnt: 0,
+                    created_tokens: SmallVec::new(),
                 };
                 self.eval_count(count, &ctx)
             }
@@ -3001,6 +3003,7 @@ impl GameState {
             did: true,
             chosen: Chosen::None,
             couldnt: 0,
+            created_tokens: SmallVec::new(),
         };
         Some(self.eval_num(amount, &ctx))
     }
@@ -4208,6 +4211,7 @@ impl GameState {
             did: true,
             chosen: Chosen::None,
             couldnt: 0,
+            created_tokens: SmallVec::new(),
         };
         for e in ab.effects.iter().filter(|e| !e.adds_mana()) {
             self.apply_effect(&mut ctx, e);
@@ -4695,6 +4699,7 @@ impl GameState {
                 did: true,
                 chosen: Chosen::None,
                 couldnt: 0,
+                created_tokens: SmallVec::new(),
             };
             let split = self.mode_split_of(spell);
             let outer = self.begin_this_way(spell);
@@ -4891,6 +4896,7 @@ impl GameState {
                 did: true,
                 chosen: Chosen::None,
                 couldnt: 0,
+                created_tokens: SmallVec::new(),
             };
             start += n;
             let effects = def.spell_ability().map_or(&[][..], |(_, e)| e);
@@ -5243,6 +5249,17 @@ impl GameState {
             Recipient::CreatedObject => {
                 if let Some(id) = ctx.created.filter(|id| self.objects.contains_key(*id)) {
                     out.push(Target::Object(id));
+                }
+            }
+            Recipient::CreatedTokens => {
+                for id in &ctx.created_tokens {
+                    if self
+                        .objects
+                        .get(*id)
+                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                    {
+                        out.push(Target::Object(*id));
+                    }
                 }
             }
             Recipient::Attached => {
@@ -6967,6 +6984,7 @@ impl GameState {
                     }
                     None => None,
                 };
+                ctx.created_tokens.clear();
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
                         for _ in 0..self.eval_num(*count, ctx) {
@@ -6976,6 +6994,7 @@ impl GameState {
                                 self.attach(id, h);
                             }
                             ctx.created = Some(id);
+                            ctx.created_tokens.push(id);
                         }
                     }
                 }
@@ -8741,9 +8760,11 @@ impl GameState {
                         did: ctx.did,
                         chosen: ctx.chosen,
                         couldnt: ctx.couldnt,
+                        created_tokens: std::mem::take(&mut ctx.created_tokens),
                     };
                     self.apply_effect(&mut second, effect);
                     ctx.created = second.created;
+                    ctx.created_tokens = second.created_tokens;
                     ctx.revealed = second.revealed;
                     ctx.did = second.did;
                     ctx.chosen = second.chosen;
@@ -9004,6 +9025,9 @@ pub(super) struct EffectCtx {
     /// moved (a token, an exiled card), for "sacrifice it" clauses that
     /// follow (`Recipient::CreatedObject`).
     pub created: Option<ObjId>,
+    /// The tokens the most recent token-creating effect of this resolution
+    /// created ("those tokens", `Recipient::CreatedTokens`).
+    pub created_tokens: SmallVec<[ObjId; 2]>,
     /// The cards revealed this way, in the order revealed, still in their
     /// library ("Put all cards revealed this way into your hand",
     /// `Effect::RevealUntil`).
