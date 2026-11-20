@@ -1,0 +1,8 @@
+card "Hobbling Zombie" {
+  oracle_id 9d1c3ec1-00a4-4890-93a3-e3cf137ca7e4
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/2
+  keywords deathtouch
+  triggered when this dies: create 1 "2/2 black Zombie creature with decayed"
+}

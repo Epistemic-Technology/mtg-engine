@@ -1,0 +1,54 @@
+# Predefined tokens and odd permanents: decayed (CR 702.147), manifest
+# dread (CR 701.62), umbra armor (CR 702.89), phasing (CR 702.26),
+# cipher (CR 702.99), blight (CR 701.66), and Blood tokens.
+
+# ---- decayed ----
+
+scenario "decayed: Falcon Abomination's Zombie can't block" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Falcon Abomination"
+  turn 1 A: cast "Falcon Abomination"
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 B: block "Grizzly Bears" with "Zombie"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Zombie"
+  assert has "Zombie" decayed
+  assert life A 18
+}
+
+scenario "decayed: the Zombie is sacrificed at end of combat after it attacks" {
+  battlefield A: 3 "Swamp", "Hobbling Zombie"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Hobbling Zombie"
+  turn 3 A: attack "Zombie"
+  run_to turn 3 combat_damage
+  assert battlefield A contains "Zombie"
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert battlefield A lacks "Zombie"
+}
+
+scenario "decayed: a Zombie that doesn't attack stays" {
+  battlefield A: 3 "Swamp", 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "No Way Out"
+  hand B: "Forest", "Hill Giant"
+  turn 1 A: cast "No Way Out" targeting player B
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Zombie"
+  assert hand B count 1
+}
+
+scenario "decayed: Startle shrinks a creature, makes a Zombie, and draws" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Startle"
+  library A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Startle" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert battlefield A contains "Zombie"
+  assert hand A contains "Forest"
+}

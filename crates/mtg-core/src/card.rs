@@ -306,6 +306,13 @@ pub enum Keyword {
     /// controller divides the combat damage of creatures blocking or
     /// blocked by one with banding.
     Banding,
+    /// CR 702.147: "This creature can't block. When this creature
+    /// attacks, sacrifice it at end of combat." Its triggered half is
+    /// `CardPool::keyword_trigger`.
+    Decayed,
+    /// CR 702.26: it phases in or out before its controller untaps during
+    /// each of their untap steps.
+    Phasing,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -347,7 +354,7 @@ pub enum ExileCast {
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
-pub struct KeywordSet(u64);
+pub struct KeywordSet(u128);
 
 impl KeywordSet {
     pub const NONE: KeywordSet = KeywordSet(0);
@@ -358,7 +365,7 @@ impl KeywordSet {
 
     #[must_use]
     pub const fn with(self, k: Keyword) -> Self {
-        KeywordSet(self.0 | (1 << (k as u64)))
+        KeywordSet(self.0 | (1 << (k as u128)))
     }
 
     #[must_use]
@@ -372,7 +379,7 @@ impl KeywordSet {
     }
 
     pub const fn contains(self, k: Keyword) -> bool {
-        self.0 & (1 << (k as u64)) != 0
+        self.0 & (1 << (k as u128)) != 0
     }
 
     pub const fn intersects(self, other: KeywordSet) -> bool {
@@ -403,7 +410,8 @@ impl KeywordSet {
         .with(Keyword::Undying)
         .with(Keyword::Flanking)
         .with(Keyword::Evoke)
-        .with(Keyword::Exploit);
+        .with(Keyword::Exploit)
+        .with(Keyword::Decayed);
 
     /// The five protection-from-a-color keywords (CR 702.16).
     pub const PROTECTION: KeywordSet = KeywordSet::NONE
@@ -428,7 +436,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 64] = [
+    pub const ALL: [Keyword; 66] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -493,6 +501,8 @@ impl Keyword {
         Keyword::CantActivateNonMana,
         Keyword::CantBecomeUntapped,
         Keyword::Banding,
+        Keyword::Decayed,
+        Keyword::Phasing,
     ];
 
     /// The keyword as Oracle prints it.
@@ -547,6 +557,8 @@ impl Keyword {
             Keyword::DoesntUntap => "doesn't untap during its controller's untap step",
             Keyword::CantBecomeUntapped => "can't become untapped",
             Keyword::Banding => "banding",
+            Keyword::Decayed => "decayed",
+            Keyword::Phasing => "phasing",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -5878,6 +5890,9 @@ pub struct CardPool {
     flanking: AbilityId,
     evoke: AbilityId,
     exploit: AbilityId,
+    /// Decayed's "When this creature attacks, sacrifice it at end of
+    /// combat" (CR 702.147a).
+    decayed: AbilityId,
     builtins: [AbilityId; 6],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
@@ -5958,6 +5973,7 @@ impl CardPool {
             flanking: AbilityId(0),
             evoke: AbilityId(0),
             exploit: AbilityId(0),
+            decayed: AbilityId(0),
             builtins: [AbilityId(0); 6],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
@@ -6036,6 +6052,31 @@ impl CardPool {
             condition: None,
             targets: Vec::new(),
             effects: vec![Effect::Exploit],
+        }));
+        // CR 702.147a: "When this creature attacks, sacrifice it at end of
+        // combat."
+        let sac = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            from_graveyard: false,
+            trigger: TriggerSpec::BeginningOfStep {
+                step: crate::turn::Step::EndOfCombat,
+                whose: Who::Any,
+            },
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![Effect::Sacrifice {
+                what: Recipient::SameObject,
+            }],
+        }));
+        pool.decayed = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            from_graveyard: false,
+            trigger: TriggerSpec::Attacks(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![Effect::Delayed {
+                ability: sac,
+                about: Recipient::Source,
+                this_turn: false,
+            }],
         }));
         for (i, effect) in [
             Effect::CastExiled(ExileCast::Madness),
@@ -6447,6 +6488,7 @@ impl CardPool {
             Keyword::Flanking => Some(self.flanking),
             Keyword::Evoke => Some(self.evoke),
             Keyword::Exploit => Some(self.exploit),
+            Keyword::Decayed => Some(self.decayed),
             _ => None,
         }
     }

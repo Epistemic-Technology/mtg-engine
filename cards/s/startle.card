@@ -1,0 +1,9 @@
+card "Startle" {
+  oracle_id 7996222e-68c8-4a5c-9531-c60cdd88ae05
+  cost {1}{U}
+  type Instant
+  spell {
+    target creature gets -2/-0; create 1 "2/2 black Zombie creature with decayed"
+    draw 1 card
+  }
+}

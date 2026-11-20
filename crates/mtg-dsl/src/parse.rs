@@ -164,6 +164,8 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["undying"], Keyword::Undying),
     (&["flanking"], Keyword::Flanking),
     (&["banding"], Keyword::Banding),
+    (&["decayed"], Keyword::Decayed),
+    (&["phasing"], Keyword::Phasing),
     (&["convoke"], Keyword::Convoke),
     (&["improvise"], Keyword::Improvise),
     (&["cascade"], Keyword::Cascade),

@@ -1,0 +1,8 @@
+card "Falcon Abomination" {
+  oracle_id 21eea63f-72b2-4155-bfad-f9937a8f8614
+  cost {2}{U}
+  type Creature — Zombie Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: create 1 "2/2 black Zombie creature with decayed"
+}
