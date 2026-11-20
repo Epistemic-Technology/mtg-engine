@@ -3305,6 +3305,62 @@ impl Compiler<'_> {
                         None,
                     )
                 }
+                // CR 702.141a: "[Cost], Exile this card from your
+                // graveyard: For each opponent, create a token copy that
+                // attacks that opponent this turn if able. They gain haste.
+                // Sacrifice them at the beginning of the next end step.
+                // Activate only as a sorcery." One token: the game has one
+                // opponent, and "attacks this turn if able" is attacking
+                // whatever it can.
+                Mechanic::Encore(cost) => {
+                    let Some(token) = self.token else {
+                        return self.err("the token is missing");
+                    };
+                    let sacrifice =
+                        self.pool
+                            .register_ability(AbilityDef::Triggered(TriggeredAbility {
+                                from_graveyard: false,
+                                trigger: TriggerSpec::BeginningOfStep {
+                                    step: mtg_core::turn::Step::End,
+                                    whose: Who::Any,
+                                },
+                                condition: None,
+                                targets: Vec::new(),
+                                effects: vec![CoreEffect::Sacrifice {
+                                    what: CoreRecipient::SameObject,
+                                }],
+                            }));
+                    self.keyword_ability(
+                        a,
+                        CoreCost {
+                            mana: cost.clone(),
+                            exile_self: true,
+                            ..CoreCost::default()
+                        },
+                        Vec::new(),
+                        vec![
+                            CoreEffect::CreateToken {
+                                token,
+                                count: Num::N(1),
+                                who: CoreRecipient::You,
+                                tapped: false,
+                                attached: None,
+                            },
+                            CoreEffect::Grant {
+                                keywords: KeywordSet::NONE
+                                    .with(mtg_core::card::Keyword::Haste)
+                                    .with(mtg_core::card::Keyword::MustAttack),
+                                to: CoreRecipient::CreatedTokens,
+                            },
+                            CoreEffect::Delayed {
+                                ability: sacrifice,
+                                about: CoreRecipient::CreatedTokens,
+                                this_turn: false,
+                            },
+                        ],
+                        None,
+                    )
+                }
                 // CR 702.115a: "Whenever this creature deals combat damage
                 // to a player, that player exiles the top card of their
                 // library."
@@ -3865,6 +3921,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Splice(_)
         | Mechanic::SpliceCost(_)
         | Mechanic::Embalm(_)
+        | Mechanic::Encore(_)
         | Mechanic::Eternalize(_)
         | Mechanic::Backup(_)
         | Mechanic::Offspring(_)
@@ -3932,6 +3989,7 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
 fn derived_token(card: &Card) -> Option<Card> {
     let (color, pt) = card.abilities.iter().find_map(|a| match a {
         Ability::Mechanic(Mechanic::Embalm(_)) => Some((Some(Color::White), None)),
+        Ability::Mechanic(Mechanic::Encore(_)) => Some((None, None)),
         Ability::Mechanic(Mechanic::Eternalize(_)) => Some((Some(Color::Black), Some((4, 4)))),
         Ability::Mechanic(Mechanic::Offspring(_)) => Some((None, Some((1, 1)))),
         _ => None,
@@ -3958,7 +4016,10 @@ fn derived_token(card: &Card) -> Option<Card> {
         !matches!(
             a,
             Ability::Mechanic(
-                Mechanic::Embalm(_) | Mechanic::Eternalize(_) | Mechanic::Offspring(_)
+                Mechanic::Embalm(_)
+                    | Mechanic::Eternalize(_)
+                    | Mechanic::Offspring(_)
+                    | Mechanic::Encore(_)
             )
         )
     });

@@ -1201,6 +1201,10 @@ pub enum Mechanic {
     Embalm(ManaCost),
     /// CR 702.129: `eternalize {4}{U}{U}`: the same, a 4/4 black Zombie.
     Eternalize(ManaCost),
+    /// CR 702.141: `encore {4}{B}`: exile it from your graveyard as a
+    /// sorcery; for each opponent, a token copy that attacks that opponent
+    /// this turn if able, with haste, sacrificed at the next end step.
+    Encore(ManaCost),
     /// CR 702.165: `backup 1`: as it enters, N +1/+1 counters on target
     /// creature; another creature also gains the abilities written after
     /// this line until end of turn.

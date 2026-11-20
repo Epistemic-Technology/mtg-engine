@@ -1,0 +1,8 @@
+card "Kinsbaile Courier" {
+  oracle_id 92c0346d-c375-4851-9806-5d3b9b83425f
+  cost {2}{W}
+  type Creature — Kithkin Soldier
+  pt 2/1
+  triggered when this enters: put 1 +1/+1 counters on target creature
+  encore {2}{W}
+}

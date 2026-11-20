@@ -1,0 +1,8 @@
+card "Trove Tracker" {
+  oracle_id f27972da-ad2f-4df5-82d3-c909cce8cc91
+  cost {2}{U}
+  type Creature — Human Pirate
+  pt 2/2
+  triggered when this dies: draw 1 cards
+  encore {5}{U}{U}
+}

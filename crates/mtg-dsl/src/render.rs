@@ -9470,6 +9470,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 )
             }
             crate::ast::Mechanic::Embalm(c) => format!("Embalm {c}"),
+            crate::ast::Mechanic::Encore(c) => format!("Encore {c}"),
             crate::ast::Mechanic::Eternalize(c) => format!("Eternalize {c}"),
             crate::ast::Mechanic::Backup(n) => format!("Backup {n}"),
             crate::ast::Mechanic::Offspring(c) => format!("Offspring {c}"),

@@ -1442,7 +1442,7 @@ impl P {
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring" | "bestow"
-            | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate"
+            | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate" | "encore"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1474,6 +1474,7 @@ impl P {
                     "surge" => Mechanic::Surge(c),
                     "spectacle" => Mechanic::Spectacle(c),
                     "replicate" => Mechanic::Replicate(c),
+                    "encore" => Mechanic::Encore(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }
