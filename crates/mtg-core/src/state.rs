@@ -2193,6 +2193,7 @@ impl GameState {
                     .any(|p| mine > creatures(p))
             }
             C::YourTurn => self.active_player == you,
+            C::NotYourTurn => self.active_player != you,
             C::SourceAttacking => self
                 .combat
                 .as_ref()

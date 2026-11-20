@@ -1438,6 +1438,7 @@ impl Fmt {
                 let cs = cards(*count);
                 match act {
                     ChooseAct::Tap => format!("tap {n} {f} chosen"),
+                    ChooseAct::Untap => format!("untap {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
                     ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
                     ChooseAct::Discard if unfiltered => format!("discard {n} {cs} chosen"),
@@ -3158,6 +3159,7 @@ fn static_cond(c: &StaticCond) -> String {
             at_least,
         } => format!("you control {at_least} {}", filter(fl)),
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "your turn".to_string(),
+        StaticCond::NotYourTurn => "not your turn".to_string(),
         StaticCond::Attacking => "attacking".to_string(),
         StaticCond::Enchanted => "enchanted".to_string(),
         StaticCond::Equipped => "equipped".to_string(),
@@ -3693,6 +3695,21 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 crate::ast::BlockRule::BlocksOnly(f) => format!("can block only {}", filter(f)),
                 crate::ast::BlockRule::CantBlock(f) => format!("can't block {}", filter(f)),
+                crate::ast::BlockRule::MinBlockers(n) => {
+                    format!("can't be blocked except by {n} or more creatures")
+                }
+                crate::ast::BlockRule::BlocksShadow { had: true } => {
+                    "can block shadow as though had shadow".to_string()
+                }
+                crate::ast::BlockRule::BlocksShadow { had: false } => {
+                    "can block shadow as though didn't have shadow".to_string()
+                }
+                crate::ast::BlockRule::BlocksLandwalk => {
+                    "can block landwalk as though didn't have".to_string()
+                }
+                crate::ast::BlockRule::BlocksAdditional(n) => {
+                    format!("can block an additional {n} creatures each combat")
+                }
             };
             let _ = writeln!(out, "{indent}{text}");
         }

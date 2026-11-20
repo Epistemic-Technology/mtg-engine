@@ -339,6 +339,7 @@ impl Decompiler<'_> {
                 at_least: *at_least,
             },
             StaticCondition::YourTurn => StaticCond::YourTurn,
+            StaticCondition::NotYourTurn => StaticCond::NotYourTurn,
             StaticCondition::SourceAttacking => StaticCond::Attacking,
             StaticCondition::SourceEnchanted => StaticCond::Enchanted,
             StaticCondition::SourceEquipped => StaticCond::Equipped,
@@ -1517,6 +1518,14 @@ impl Decompiler<'_> {
                 }
                 mtg_core::card::BlockRule::CantBlock(f) => {
                     crate::ast::BlockRule::CantBlock(self.filter(f))
+                }
+                mtg_core::card::BlockRule::MinBlockers(n) => crate::ast::BlockRule::MinBlockers(*n),
+                mtg_core::card::BlockRule::BlocksShadow { had } => {
+                    crate::ast::BlockRule::BlocksShadow { had: *had }
+                }
+                mtg_core::card::BlockRule::BlocksLandwalk => crate::ast::BlockRule::BlocksLandwalk,
+                mtg_core::card::BlockRule::BlocksAdditional(n) => {
+                    crate::ast::BlockRule::BlocksAdditional(*n)
                 }
             }),
             AbilityDef::Enchant(t) => Ability::Enchant(self.target(*t)),

@@ -1219,8 +1219,8 @@ impl GameState {
                                 .iter()
                                 .copied()
                                 .filter(|(_, a)| {
-                                    chosen.iter().filter(|(_, a2)| a2 == a).count() >= 2
-                                        || !self.has_menace(*a)
+                                    chosen.iter().filter(|(_, a2)| a2 == a).count()
+                                        >= self.min_blockers(*a)
                                 })
                                 .collect();
                             self.finish_blocks(fixed);

@@ -1,0 +1,6 @@
+card "War Flare" {
+  oracle_id 7146eecb-8a79-467c-936e-f577e481cf59
+  cost {2}{R}{W}
+  type Instant
+  spell: each creature you control gets +2/+1; untap those creatures
+}

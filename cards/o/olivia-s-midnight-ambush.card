@@ -1,0 +1,6 @@
+card "Olivia's Midnight Ambush" {
+  oracle_id a3b8a08b-5409-4d5f-9bab-8a7a6376a5b9
+  cost {1}{B}
+  type Instant
+  spell: target creature gets -2/-2; if night, that target 1 gets -13/-13 instead
+}

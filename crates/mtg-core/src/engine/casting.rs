@@ -738,9 +738,11 @@ impl GameState {
         // "return an enchantment to its owner's hand": with no controller
         // named, any permanent (Drake Familiar); a sacrifice or tap is of
         // the player's own (CR 701.21a).
-        let any_controller = act == ChooseAct::Bounce && filter.who.is_none();
+        let any_controller =
+            matches!(act, ChooseAct::Bounce | ChooseAct::Untap) && filter.who.is_none();
         match act {
             ChooseAct::Tap
+            | ChooseAct::Untap
             | ChooseAct::Sacrifice
             | ChooseAct::Bounce
             | ChooseAct::AttachToTarget(_) => self
@@ -750,6 +752,7 @@ impl GameState {
                 .filter(|id| any_controller || self.objects[*id].controller == p)
                 .filter(|id| {
                     (act != ChooseAct::Tap || !self.objects[*id].tapped)
+                        && (act != ChooseAct::Untap || self.objects[*id].tapped)
                         && self
                             .characteristics(*id)
                             .is_some_and(|c| filter.matches(*id, p, &c, Some(ctx.source), Some(p)))
@@ -898,6 +901,7 @@ impl GameState {
             cands.retain(|c| *c != id);
             match act {
                 ChooseAct::Tap => self.tap(id),
+                ChooseAct::Untap => self.untap(id),
                 ChooseAct::Sacrifice => self.sacrifice(id),
                 ChooseAct::Discard => self.discard_card(p, id),
                 ChooseAct::HandToBottom => {
@@ -5758,11 +5762,27 @@ impl GameState {
                 }
             }
             Effect::DamageFrom { source, amount, to } => {
+                // CR 608.2h: a source that has left the battlefield still
+                // deals the damage, as it last existed there ("When this
+                // creature dies, it deals 1 damage to target player").
+                let left = match source {
+                    Recipient::TriggeringObject => ctx.trigger_obj,
+                    _ => None,
+                };
                 let Some(x) = self
                     .recipients(ctx, *source)
                     .first()
                     .copied()
                     .and_then(|t| on_battlefield(self, t))
+                    .or_else(|| {
+                        left.filter(|o| {
+                            self.lki.contains_key(o)
+                                && self
+                                    .objects
+                                    .get(*o)
+                                    .is_none_or(|x| x.zone != Zone::Battlefield)
+                        })
+                    })
                 else {
                     return;
                 };

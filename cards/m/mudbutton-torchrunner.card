@@ -3,5 +3,5 @@ card "Mudbutton Torchrunner" {
   cost {2}{R}
   type Creature — Goblin Warrior
   pt 1/1
-  triggered when this dies: deal 3 damage to any target
+  triggered when this dies: it deals 3 damage to any target
 }

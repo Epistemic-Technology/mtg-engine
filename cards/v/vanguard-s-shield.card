@@ -1,0 +1,7 @@
+card "Vanguard's Shield" {
+  oracle_id bc628018-f5d0-4bd2-91e7-ee4e4a5af9aa
+  cost {2}
+  type Artifact — Equipment
+  static equipped: +0/+3, has can block an additional creature each combat
+  equip {3}
+}

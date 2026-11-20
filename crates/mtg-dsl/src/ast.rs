@@ -1110,6 +1110,19 @@ pub enum BlockRule {
     /// `can't be blocked by creature with lesser power`: "Creatures with
     /// power less than this creature's power can't block it."
     NotByLesserPower,
+    /// `can't be blocked except by 3 or more creatures`.
+    MinBlockers(u8),
+    /// `can block shadow as though had shadow` ("can block creatures with
+    /// shadow as though it had shadow"), `... as though didn't have
+    /// shadow` ("... as though they didn't have shadow").
+    BlocksShadow {
+        had: bool,
+    },
+    /// `can block landwalk as though didn't have`: "can block creatures
+    /// with landwalk abilities as though they didn't have those abilities".
+    BlocksLandwalk,
+    /// `can block an additional 7 creatures each combat`.
+    BlocksAdditional(u8),
 }
 
 /// How a graveyard-card condition is worded.
@@ -1146,6 +1159,8 @@ pub enum StaticCond {
     /// `your turn`: "it's your turn"; `static during your turn, ...`
     /// prints "During your turn, ..." instead.
     YourTurn,
+    /// `not your turn`: "it's not your turn".
+    NotYourTurn,
     /// Written `static during your turn, <filter>: ...`.
     DuringYourTurn,
     /// `attacking`, `enchanted`, `equipped`: "it's attacking" (the source).

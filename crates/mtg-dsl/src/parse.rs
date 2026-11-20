@@ -1788,8 +1788,24 @@ impl P {
             "can't" | "can" => {
                 self.pos += 1;
                 let rule = if w == "can" {
-                    self.expect_words(&["block", "only"])?;
-                    BlockRule::BlocksOnly(self.filter()?)
+                    self.expect_word("block")?;
+                    if self.eat_words(&["shadow", "as", "though"]) {
+                        let had = self.eat_word("had");
+                        if !had {
+                            self.expect_words(&["didn't", "have"])?;
+                        }
+                        self.expect_word("shadow")?;
+                        BlockRule::BlocksShadow { had }
+                    } else if self.eat_words(&["landwalk", "as", "though", "didn't", "have"]) {
+                        BlockRule::BlocksLandwalk
+                    } else if self.eat_words(&["an", "additional"]) {
+                        let n = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+                        self.expect_words(&["creatures", "each", "combat"])?;
+                        BlockRule::BlocksAdditional(n)
+                    } else {
+                        self.expect_word("only")?;
+                        BlockRule::BlocksOnly(self.filter()?)
+                    }
                 } else if self.eat_word("block") {
                     BlockRule::CantBlock(self.filter()?)
                 } else {
@@ -1799,7 +1815,16 @@ impl P {
                     } else if self.eat_words(&["by", "creature", "with", "lesser", "power"]) {
                         BlockRule::NotByLesserPower
                     } else if self.eat_words(&["except", "by"]) {
-                        BlockRule::OnlyBy(self.filter()?)
+                        // "except by three or more creatures".
+                        if matches!(self.peek(), Some(Tok::Num(_)))
+                            && self.word_at(1).as_deref() == Some("or")
+                        {
+                            let n = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+                            self.expect_words(&["or", "more", "creatures"])?;
+                            BlockRule::MinBlockers(n)
+                        } else {
+                            BlockRule::OnlyBy(self.filter()?)
+                        }
                     } else {
                         self.expect_word("by")?;
                         BlockRule::NotBy(self.filter()?)
@@ -2091,6 +2116,9 @@ impl P {
         }
         if self.eat_words(&["your", "turn"]) {
             return Ok(StaticCond::YourTurn);
+        }
+        if self.eat_words(&["not", "your", "turn"]) {
+            return Ok(StaticCond::NotYourTurn);
         }
         // "there is a land card in your graveyard", "there's a Lesson card
         // in your graveyard".
@@ -4353,8 +4381,9 @@ impl P {
     /// before the clause ends or another verb starts. `return N <filter>
     /// chosen` alone is `ReturnChosen`.
     fn chosen_act_ahead(&self) -> bool {
-        const VERBS: [&str; 10] = [
+        const VERBS: [&str; 11] = [
             "tap",
+            "untap",
             "sacrifice",
             "discard",
             "exile",
@@ -4368,7 +4397,7 @@ impl P {
         let Some(verb) = self.word_at(0) else {
             return false;
         };
-        if !VERBS[..7].contains(&verb.as_str()) {
+        if !VERBS[..8].contains(&verb.as_str()) {
             return false;
         }
         let mut hand = false;
@@ -4417,6 +4446,7 @@ impl P {
         let mut this_way = false;
         let (act, filter) = match verb.as_str() {
             "tap" => (ChooseAct::Tap, self.filter()?),
+            "untap" => (ChooseAct::Untap, self.filter()?),
             "sacrifice" => (ChooseAct::Sacrifice, self.filter()?),
             "discard" => (ChooseAct::Discard, card_filter(self)?),
             // `attach 1 Equipment you control to target 1 chosen`.

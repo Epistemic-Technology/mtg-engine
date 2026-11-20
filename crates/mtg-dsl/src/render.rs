@@ -1025,9 +1025,14 @@ impl<'a> Ctx<'a> {
             Recipient::DefendingPlayerWord => "defending player".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
             Recipient::EachPlayer => "each player".to_string(),
+            // "Creatures you control get +2/+1 until end of turn. Untap
+            // those creatures."
             Recipient::EachCreatureYouControl => {
-                self.groups_mentioned.insert(r);
-                "each creature you control".to_string()
+                if self.groups_mentioned.insert(r) {
+                    "each creature you control".to_string()
+                } else {
+                    "those creatures".to_string()
+                }
             }
             Recipient::EachPermanentYouControl => {
                 self.groups_mentioned.insert(r);
@@ -4286,6 +4291,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(match act {
                 ChooseAct::Tap => format!("tap {}", permanents()),
+                ChooseAct::Untap => format!("untap {}", permanents()),
                 ChooseAct::Sacrifice => format!("sacrifice {}", permanents()),
                 ChooseAct::Bounce => format!(
                     "return {} to {} owner's hand",
@@ -7262,6 +7268,30 @@ fn block_rule_phrase(r: &crate::ast::BlockRule, card: &Card, this_turn: bool) ->
         ),
         BlockRule::BlocksOnly(f) => format!("can block only {}{turn}", pl(f)),
         BlockRule::CantBlock(f) => format!("can't block {}{turn}", pl(f)),
+        BlockRule::MinBlockers(n) => format!(
+            "can't be blocked{turn} except by {} or more creatures",
+            count_words(Num::N(u32::from(*n)), "one")
+        ),
+        BlockRule::BlocksShadow { had } => format!(
+            "can block creatures with shadow as though {}{turn}",
+            if *had {
+                "it had shadow"
+            } else {
+                "they didn't have shadow"
+            }
+        ),
+        BlockRule::BlocksLandwalk => format!(
+            "can block creatures with landwalk abilities as though they didn't have those abilities{turn}"
+        ),
+        BlockRule::BlocksAdditional(n) => format!(
+            "can block an additional {} creatures {}",
+            count_words(Num::N(u32::from(*n)), "one"),
+            if this_turn {
+                "this turn"
+            } else {
+                "each combat"
+            }
+        ),
     }
 }
 
@@ -7378,6 +7408,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("you control {what}")
         }
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
+        StaticCond::NotYourTurn => "it's not your turn".to_string(),
         StaticCond::AnyPlayerLifeAtMost(n) => format!("a player has {n} or less life"),
         StaticCond::SourceCountersThere { kind, n } => format!(
             "there are {} or more {} counters on this {}",

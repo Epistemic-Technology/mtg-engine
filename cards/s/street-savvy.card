@@ -1,0 +1,7 @@
+card "Street Savvy" {
+  oracle_id 5d13386e-faac-4440-96c3-11c60872ceec
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +0/+2, has ability { can block landwalk as though didn't have }
+}

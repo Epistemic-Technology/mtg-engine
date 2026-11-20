@@ -1,0 +1,7 @@
+card "Leafkin Druid" {
+  oracle_id 55eb9310-f24b-410b-850b-a7d0d5117946
+  cost {1}{G}
+  type Creature — Elemental Druid
+  pt 0/3
+  activated {T}: add {G}; if you control 4 creature, add {G}{G} instead
+}

@@ -733,6 +733,7 @@ impl Compiler<'_> {
                 at_least: *at_least,
             },
             StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
+            StaticCond::NotYourTurn => StaticCondition::NotYourTurn,
             StaticCond::Attacking => StaticCondition::SourceAttacking,
             StaticCond::Enchanted => StaticCondition::SourceEnchanted,
             StaticCond::Equipped => StaticCondition::SourceEquipped,
@@ -2593,6 +2594,14 @@ impl Compiler<'_> {
                 }
                 crate::ast::BlockRule::CantBlock(f) => {
                     mtg_core::card::BlockRule::CantBlock(self.filter(f))
+                }
+                crate::ast::BlockRule::MinBlockers(n) => mtg_core::card::BlockRule::MinBlockers(*n),
+                crate::ast::BlockRule::BlocksShadow { had } => {
+                    mtg_core::card::BlockRule::BlocksShadow { had: *had }
+                }
+                crate::ast::BlockRule::BlocksLandwalk => mtg_core::card::BlockRule::BlocksLandwalk,
+                crate::ast::BlockRule::BlocksAdditional(n) => {
+                    mtg_core::card::BlockRule::BlocksAdditional(*n)
                 }
             }),
             Ability::EntersAsCopy(f) => AbilityDef::EntersAsCopy(self.filter(f)),

@@ -1756,6 +1756,18 @@ pub enum BlockRule {
     /// "Creatures with power less than this creature's power can't block
     /// it." (judged as blockers are declared, CR 509.1b).
     NotByLesserPower,
+    /// "can't be blocked except by three or more creatures" (CR 509.1b,
+    /// like menace's two).
+    MinBlockers(u8),
+    /// "can block creatures with shadow as though it had shadow" (`had`)
+    /// or "... as though they didn't have shadow" (CR 702.28b): shadow
+    /// doesn't stop it blocking.
+    BlocksShadow { had: bool },
+    /// "can block creatures with landwalk abilities as though they didn't
+    /// have those abilities" (CR 702.14b).
+    BlocksLandwalk,
+    /// "can block an additional seven creatures each combat" (CR 509.1a).
+    BlocksAdditional(u8),
 }
 
 /// How long cards exiled by an impulse effect stay playable.
@@ -1816,6 +1828,8 @@ pub enum StaticCondition {
     /// "it's your turn" ("during your turn"). The turn change bumps the
     /// characteristics cache.
     YourTurn,
+    /// "it's not your turn" (Zealous Display).
+    NotYourTurn,
     /// "as long as it's attacking" (the source).
     SourceAttacking,
     /// "as long as it's enchanted" / "as long as it's equipped".
@@ -3623,6 +3637,9 @@ pub enum ChooseAct {
     Tap,
     /// "sacrifice a creature" (permanents you control).
     Sacrifice,
+    /// "untap up to two lands" (tapped permanents; anyone's unless the
+    /// filter names a controller).
+    Untap,
     /// "return up to two lands you control to their owner's hand".
     Bounce,
     /// "discard a creature card" (cards in your hand).

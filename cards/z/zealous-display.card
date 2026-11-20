@@ -1,0 +1,6 @@
+card "Zealous Display" {
+  oracle_id 0ff3afba-7a90-4f62-a1b0-b553ad81c32b
+  cost {2}{W}
+  type Instant
+  spell: each creature you control gets +2/+0; if not your turn, untap those creatures
+}

@@ -1,0 +1,7 @@
+card "Gleam of Resistance" {
+  oracle_id c4c0a391-4549-4041-bc6d-09f8b756868e
+  cost {4}{W}
+  type Instant
+  spell: each creature you control gets +1/+2; untap those creatures
+  basic landcycling {1}{W}
+}

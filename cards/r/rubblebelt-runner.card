@@ -1,0 +1,7 @@
+card "Rubblebelt Runner" {
+  oracle_id 3bfa51dd-daed-473a-8377-7bb34a2c3371
+  cost {1}{R}{G}
+  type Creature — Lizard Warrior
+  pt 3/3
+  can't be blocked by creature token
+}
