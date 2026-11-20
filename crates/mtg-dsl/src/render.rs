@@ -2258,6 +2258,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
         CostItem::Discard,
         CostItem::Life,
         CostItem::ExileCards,
+        CostItem::Blight,
     ];
     let order: &[CostItem] = if cost.order.is_empty() {
         &default_order
@@ -2361,6 +2362,11 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             }
             CostItem::RevealHand => parts.push("Reveal your hand".to_string()),
             CostItem::Energy => parts.push(format!("Pay {}", energy(cost.energy))),
+            CostItem::Blight => {
+                if cost.blight > 0 {
+                    parts.push(format!("Blight {}", cost.blight));
+                }
+            }
         }
     }
     parts.join(", ")
@@ -3336,6 +3342,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative("venture into Undercity".to_string())
         }
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
+        Effect::ManifestDread => Clause::imperative("manifest dread".to_string()),
+        Effect::Blight(n) => Clause::imperative(format!("blight {n}")),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
         Effect::Monstrosity(n) => Clause::imperative(format!("monstrosity {}", digits(*n))),
@@ -3836,6 +3844,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Explore { what } => {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "explores".to_string())
+        }
+        Effect::PhaseOut { what } => {
+            let s = ctx.subj(*what);
+            Clause::with_subject(*what, s, "phases out".to_string())
         }
         Effect::Amass { kind, count } => {
             ctx.amassed = true;
@@ -5346,6 +5358,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 lowercase_first(&body)
             };
             Clause::imperative(format!("otherwise, {}", body.trim_end_matches('.')))
+        }
+        Effect::IfYouDont(inner) => {
+            let body = lowercase_first(&sentences(inner, ctx));
+            Clause::imperative(format!("if you don't, {}", body.trim_end_matches('.')))
         }
         Effect::IfYouDo(inner) => {
             // "Counter target spell unless its controller pays {2}. If they
@@ -7198,6 +7214,8 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             };
             format!("If {who} would die{when}, {instead} instead.")
         }
+        // CR 702.89a: an Aura's keyword ability.
+        (Replaces::Destroy { .. }, Outcome::UmbraArmor) => "Umbra armor".to_string(),
         (Replaces::Destroy { to }, Outcome::Regenerate) => {
             let to = affects_to(to, ctx);
             format!("Regenerate {to}.")
@@ -9304,7 +9322,10 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let alone_pair = card.keywords.contains(&Keyword::CantAttackAlone)
         && card.keywords.contains(&Keyword::CantBlockAlone);
     for k in &card.keywords {
-        if alone_pair && *k == Keyword::CantBlockAlone || *k == Keyword::Rebound {
+        if alone_pair && *k == Keyword::CantBlockAlone
+            || *k == Keyword::Rebound
+            || *k == Keyword::Cipher
+        {
             continue;
         }
         if alone_pair && *k == Keyword::CantAttackAlone {
@@ -9370,6 +9391,10 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     // Oracle prints rebound after the spell's effect.
     if card.keywords.contains(&Keyword::Rebound) {
         lines.push("Rebound".to_string());
+    }
+    // And cipher (CR 702.99).
+    if card.keywords.contains(&Keyword::Cipher) {
+        lines.push("Cipher".to_string());
     }
     lines.join("\n")
 }

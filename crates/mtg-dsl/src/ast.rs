@@ -500,6 +500,8 @@ pub struct Cost {
     pub order: Vec<CostItem>,
     /// `reveal hand`: "reveal your hand" (an alternative cost).
     pub reveal_hand: bool,
+    /// `blight 1`: "Blight 1" (CR 701.68a).
+    pub blight: u32,
 }
 
 /// A cost exiling cards from the graveyard: `n` (or X) cards matching
@@ -531,6 +533,8 @@ pub enum CostItem {
     Life,
     /// `reveal hand`: "reveal your hand".
     RevealHand,
+    /// `blight 1`.
+    Blight,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -2765,6 +2769,9 @@ pub enum Effect {
     /// a land card from your graveyard to your hand. If you can't, draw a
     /// card.").
     IfYouCant(Vec<Sentence>),
+    /// `if you don't, ...`: only if it didn't ("You may pay {2}. If you
+    /// don't, blight 2.").
+    IfYouDont(Vec<Sentence>),
     /// `otherwise, ...`: only if the conditional sentence just before (`if
     /// <condition>, ...`, `if you win, ...`) didn't happen (CR 608.2c).
     Otherwise(Vec<Sentence>),
@@ -2837,6 +2844,10 @@ pub enum Effect {
     Explore {
         what: Recipient,
     },
+    /// `target creature phases out` (CR 702.26).
+    PhaseOut {
+        what: Recipient,
+    },
     /// `amass Zombies 2` (CR 701.47): the token is "0/0 black <kind> Army
     /// creature".
     Amass {
@@ -2847,6 +2858,10 @@ pub enum Effect {
     ClearEcho,
     /// `manifest`: "manifest the top card of your library" (CR 701.34).
     Manifest,
+    /// `manifest dread` (CR 701.62).
+    ManifestDread,
+    /// `blight 2` (CR 701.68).
+    Blight(u32),
     /// `adapt 2` (CR 701.46).
     Adapt(u32),
     /// `bolster 2` (CR 701.39).

@@ -322,6 +322,7 @@ impl Decompiler<'_> {
             crew: c.crew,
             remove_counters: c.remove_counters,
             energy: c.energy,
+            blight: c.blight,
             chosen: c.chosen,
             count: c.count,
             exile_cards: c.exile_cards.as_ref().map(|g| {
@@ -1080,11 +1081,15 @@ impl Decompiler<'_> {
             | CoreEffect::UntilYourNextTurn { .. }
             | CoreEffect::PunishEach { .. }
             | CoreEffect::DrawCastOne { .. }
+            | CoreEffect::CastCipherCopy
             | CoreEffect::RevealPutCreature { .. } => {
                 unreachable!("built-in abilities and dungeon rooms only")
             }
             CoreEffect::Ascend => unreachable!("ascend is decompiled as a keyword line"),
             CoreEffect::Explore { what } => Effect::Explore {
+                what: Self::recipient(*what),
+            },
+            CoreEffect::PhaseOut { what } => Effect::PhaseOut {
                 what: Self::recipient(*what),
             },
             CoreEffect::Amass { count, token } => Effect::Amass {
@@ -1093,6 +1098,8 @@ impl Decompiler<'_> {
             },
             CoreEffect::ClearEcho => Effect::ClearEcho,
             CoreEffect::Manifest => Effect::Manifest,
+            CoreEffect::ManifestDread => Effect::ManifestDread,
+            CoreEffect::Blight(n) => Effect::Blight(*n),
             CoreEffect::CastExiled(_)
             | CoreEffect::SuspendTick
             | CoreEffect::CopySpell

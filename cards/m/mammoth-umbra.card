@@ -1,0 +1,8 @@
+card "Mammoth Umbra" {
+  oracle_id cd0e6cdb-9b7f-47d6-9478-fb50003165af
+  cost {4}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3, has vigilance
+  replace destroy enchanted: umbra armor
+}

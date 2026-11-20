@@ -1,0 +1,9 @@
+card "Twist Reality" {
+  oracle_id 55b0518e-9c87-4f0e-81c2-9c984f760be1
+  cost {1}{U}{U}
+  type Instant
+  choose one {
+    mode: counter target spell
+    mode: manifest dread
+  }
+}

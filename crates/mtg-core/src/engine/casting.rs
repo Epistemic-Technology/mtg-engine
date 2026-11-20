@@ -1512,6 +1512,13 @@ impl GameState {
         }
     }
 
+    /// The creature a blight cost puts its counters on (CR 701.68a): the
+    /// engine picks the toughest creature `p` controls.
+    fn blight_pick(&self, p: PlayerId) -> Option<ObjId> {
+        self.creatures_of(p)
+            .max_by_key(|id| self.characteristics(*id).map_or(0, |c| c.toughness))
+    }
+
     /// What turning the face-down permanent `id` face up costs: its morph
     /// or disguise cost, or a manifested creature card's mana cost (CR
     /// 701.34a); `None` if it isn't face down or can't be turned up.
@@ -1880,7 +1887,8 @@ impl GameState {
         {
             return false;
         }
-        true
+        // CR 701.68b.
+        !(add.blight > 0 && self.creatures_of(p).next().is_none())
     }
 
     /// Whether either of a spell's additional costs ("sacrifice a creature
@@ -2375,24 +2383,38 @@ impl GameState {
 
     pub(super) fn offer_exile_cast_by(&mut self, card: ObjId, alt: AltCast, p: PlayerId) -> bool {
         let face = self.objects[card].def;
-        self.offer_exile_cast_as(card, alt, p, face)
+        self.offer_exile_cast_as(card, alt, p, face, card)
     }
 
-    /// `offer_exile_cast_by`, cast as `face` (transformed, CR 712.11a);
-    /// the caller remembers the face.
+    /// `offer_exile_cast_by`, the decision naming `shown` (the encoded card
+    /// a copy is made of, which exists before the resolution began).
+    pub(super) fn offer_exile_cast_shown(
+        &mut self,
+        card: ObjId,
+        alt: AltCast,
+        p: PlayerId,
+        shown: ObjId,
+    ) -> bool {
+        let face = self.objects[card].def;
+        self.offer_exile_cast_as(card, alt, p, face, shown)
+    }
+
+    /// `offer_exile_cast_by`, cast as `face` (transformed, CR 712.11a),
+    /// the decision naming `shown`; the caller remembers the face.
     pub(super) fn offer_exile_cast_as(
         &mut self,
         card: ObjId,
         alt: AltCast,
         p: PlayerId,
         face: crate::card::CardRef,
+        shown: ObjId,
     ) -> bool {
         if !self.exile_castable_as(p, card, alt, face) {
             return false;
         }
         let k = self.choose_mid(
             p,
-            DecisionKind::CastFromExile { card },
+            DecisionKind::CastFromExile { card: shown },
             vec![Choice::Accept, Choice::Decline],
         );
         if k == 0 {
@@ -2483,6 +2505,65 @@ impl GameState {
             {
                 self.queue_builtin(p, *a, ctx.source, def);
             }
+        }
+    }
+
+    /// CR 702.99a: as a spell with cipher resolves, its controller may
+    /// exile it encoded on a creature they control; whether they did.
+    #[cold]
+    #[inline(never)]
+    fn encode(&mut self, spell: ObjId, p: PlayerId) -> bool {
+        let options: Vec<Choice> = self
+            .creatures_of(p)
+            .map(|id| Choice::Target(Target::Object(id)))
+            .collect();
+        if options.is_empty() {
+            return false;
+        }
+        let def = self.objects[spell].def;
+        if self.choose_mid(
+            p,
+            DecisionKind::YouMay { def },
+            vec![Choice::Accept, Choice::Decline],
+        ) != 0
+        {
+            return false;
+        }
+        let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+        let Choice::Target(Target::Object(creature)) = options[k] else {
+            return false;
+        };
+        let card = self.move_object(spell, Zone::Exile, true);
+        self.encoded.push((card, creature));
+        true
+    }
+
+    /// CR 702.99a: a creature with encoded cards dealt combat damage to a
+    /// player: each encoded card's trigger, controlled by the creature's
+    /// controller. Lapsed encodings are dropped (702.99c).
+    #[cold]
+    #[inline(never)]
+    pub(super) fn cipher_triggers(&mut self, creature: ObjId) {
+        self.encoded.retain(|(card, c)| {
+            self.objects
+                .get(*card)
+                .is_some_and(|o| o.zone == Zone::Exile)
+                && self
+                    .objects
+                    .get(*c)
+                    .is_some_and(|o| o.zone == Zone::Battlefield)
+        });
+        let cards: Vec<ObjId> = self
+            .encoded
+            .iter()
+            .filter(|(_, c)| *c == creature)
+            .map(|(card, _)| *card)
+            .collect();
+        let controller = self.objects[creature].controller;
+        let ability = self.pool.builtin(crate::card::Builtin::Cipher);
+        for card in cards {
+            let def = self.objects[card].def;
+            self.queue_builtin(controller, ability, card, def);
         }
     }
 
@@ -2597,6 +2678,10 @@ impl GameState {
                     continue;
                 }
                 if ab.cost.energy > self.player(p).energy {
+                    continue;
+                }
+                // CR 701.68b: blighting needs a creature to put counters on.
+                if ab.cost.blight > 0 && self.creatures_of(p).next().is_none() {
                     continue;
                 }
                 if ab.cost.life > 0
@@ -2886,9 +2971,7 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: false,
-            renowned: false,
-            monstrous: false,
-            riot_haste: false,
+            marks: 0,
             skip_untap: false,
             chosen: Chosen::None,
             alt: crate::state::AltCast::None,
@@ -3885,6 +3968,11 @@ impl GameState {
             let e = &mut self.player_mut(p).energy;
             *e = e.saturating_sub(cost.energy);
         }
+        if cost.blight > 0
+            && let Some(c) = self.blight_pick(p)
+        {
+            self.add_counters(c, CounterKind::MinusOneMinusOne, cost.blight);
+        }
         // CR 606.4: loyalty costs are counters put on or removed from the
         // planeswalker.
         if cost.loyalty > 0 {
@@ -4824,7 +4912,10 @@ impl GameState {
                 self.move_object(spell, Zone::Hand, false);
             } else if obj.alt == AltCast::Hand && def.keywords.contains(Keyword::Rebound) {
                 self.rebound(spell);
-            } else {
+            } else if !(def.keywords.contains(Keyword::Cipher)
+                && !obj.cast.copy()
+                && self.encode(spell, obj.controller))
+            {
                 self.leave_stack(spell);
             }
         }
@@ -7954,6 +8045,13 @@ impl GameState {
             Effect::RevealPutCreature { count, counters } => {
                 self.reveal_put_creature(ctx, *count, *counters);
             }
+            Effect::PhaseOut { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.phase_out(id, false);
+                    }
+                }
+            }
             Effect::Explore { what } => {
                 for t in self.recipients(ctx, *what) {
                     if let Target::Object(id) = t {
@@ -8119,6 +8217,23 @@ impl GameState {
                     }
                 }
             }
+            Effect::CastCipherCopy => {
+                // CR 707.12: the copy is made in exile and cast from there;
+                // not cast, it ceases to exist.
+                let Some(card) = self
+                    .current_object(ctx.source)
+                    .filter(|c| self.objects[*c].zone == Zone::Exile)
+                else {
+                    return;
+                };
+                let p = ctx.controller;
+                let copy = self.new_object(self.objects[card].def, p, Zone::Exile);
+                self.objects[copy].cast = self.objects[copy].cast.copied();
+                self.player_mut(p).exile.push(copy);
+                if !self.offer_exile_cast_shown(copy, AltCast::Free, p, card) {
+                    self.remove_from_game(copy);
+                }
+            }
             Effect::CastExiled(kind) => {
                 let Some(card) = self
                     .current_object(ctx.source)
@@ -8135,7 +8250,13 @@ impl GameState {
                         let d = self.pool.get(self.objects[card].def);
                         if d.layout == Layout::Transform
                             && let Some(back) = d.faces.first().copied()
-                            && self.offer_exile_cast_as(card, AltCast::Free, ctx.controller, back)
+                            && self.offer_exile_cast_as(
+                                card,
+                                AltCast::Free,
+                                ctx.controller,
+                                back,
+                                card,
+                            )
                         {
                             self.exile_casts
                                 .get_or_insert_with(Box::default)
@@ -8256,7 +8377,7 @@ impl GameState {
                 if let Some(o) = self.objects.get_mut(ctx.source)
                     && o.zone == Zone::Battlefield
                 {
-                    o.renowned = true;
+                    o.marks |= crate::state::OBJ_RENOWNED;
                 }
             }
             Effect::Monstrosity(n) => {
@@ -8265,10 +8386,10 @@ impl GameState {
                 let n = self.eval_num(*n, ctx);
                 if let Some(id) = self.current_object(ctx.source)
                     && self.objects[id].zone == Zone::Battlefield
-                    && !self.objects[id].monstrous
+                    && !self.objects[id].monstrous()
                 {
                     self.add_counters(id, CounterKind::PlusOnePlusOne, n);
-                    self.objects[id].monstrous = true;
+                    self.objects[id].marks |= crate::state::OBJ_MONSTROUS;
                     // "As long as this creature is monstrous" (CR 701.37b).
                     self.cbump();
                 }
@@ -8420,6 +8541,54 @@ impl GameState {
                     self.objects[top].def = self.pool.face_down(false);
                     let new = self.put_onto_battlefield(top, p);
                     ctx.created = Some(new);
+                }
+            }
+            Effect::Blight(n) => {
+                // CR 701.68: a creature of the controller's choice.
+                let p = ctx.controller;
+                let options: Vec<Choice> = self
+                    .creatures_of(p)
+                    .map(|id| Choice::Target(Target::Object(id)))
+                    .collect();
+                if options.is_empty() {
+                    ctx.did = false;
+                } else {
+                    let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+                    if let Choice::Target(Target::Object(id)) = options[k] {
+                        self.add_counters(id, CounterKind::MinusOneMinusOne, *n);
+                    }
+                }
+            }
+            Effect::ManifestDread => {
+                // CR 701.62a: look at the top two, manifest one, the rest
+                // into the graveyard.
+                let p = ctx.controller;
+                let top: Vec<ObjId> = self
+                    .player(p)
+                    .library
+                    .iter()
+                    .rev()
+                    .take(2)
+                    .copied()
+                    .collect();
+                if let Some(&first) = top.first() {
+                    let pick = if top.len() > 1 {
+                        let options: Vec<Choice> = top
+                            .iter()
+                            .map(|id| Choice::Target(Target::Object(*id)))
+                            .collect();
+                        top[self.choose_mid(p, DecisionKind::ChooseCard, options)]
+                    } else {
+                        first
+                    };
+                    self.objects[pick].def = self.pool.face_down(false);
+                    let new = self.put_onto_battlefield(pick, p);
+                    ctx.created = Some(new);
+                    for id in top {
+                        if id != pick {
+                            self.move_object(id, Zone::Graveyard, true);
+                        }
+                    }
                 }
             }
             Effect::ClearEcho => {

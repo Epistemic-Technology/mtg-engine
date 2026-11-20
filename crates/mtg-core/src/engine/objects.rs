@@ -84,9 +84,7 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: false,
-            renowned: false,
-            monstrous: false,
-            riot_haste: false,
+            marks: 0,
             skip_untap: false,
             chosen: Chosen::None,
             alt: AltCast::None,
@@ -106,6 +104,10 @@ impl GameState {
             Zone::Battlefield => &mut self.battlefield,
             Zone::Stack => &mut self.stack,
             Zone::Command => return,
+            Zone::PhasedOut => {
+                self.phased_out.retain(|p| p.id != id);
+                return;
+            }
             z => self.player_mut(owner).zone_mut(z),
         };
         if let Some(i) = list.iter().position(|x| *x == id) {
@@ -313,9 +315,11 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: to == Zone::Battlefield,
-            renowned: false,
-            monstrous: false,
-            riot_haste: enter.haste && to == Zone::Battlefield,
+            marks: if enter.haste && to == Zone::Battlefield {
+                crate::state::OBJ_RIOT_HASTE
+            } else {
+                0
+            },
             skip_untap: false,
             chosen,
             // CR 702.62a: a creature cast by suspend has haste.
@@ -1061,6 +1065,10 @@ impl GameState {
                     amount,
                     combat,
                 });
+                // CR 702.99a: an encoded creature's trigger.
+                if combat && !self.encoded.is_empty() {
+                    self.cipher_triggers(source);
+                }
                 if infect {
                     // CR 702.90b: damage to a player as poison counters.
                     self.add_poison(p, amount);
@@ -1361,6 +1369,71 @@ impl GameState {
             obj: id,
             regenerate,
         });
+    }
+
+    /// CR 702.26b: `id` phases out, and what's attached to it with it
+    /// (`indirect`, CR 702.26g). It stays the same object, out of the
+    /// battlefield list, so nothing sees it; it leaves combat. No zone
+    /// change happens and nothing triggers (CR 702.26d).
+    pub(super) fn phase_out(&mut self, id: ObjId, indirect: bool) {
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        if o.zone != Zone::Battlefield {
+            return;
+        }
+        let controller = o.controller;
+        let attached: SmallVec<[ObjId; 2]> = self
+            .battlefield
+            .iter()
+            .copied()
+            .filter(|a| self.objects[*a].attached_to == Some(id))
+            .collect();
+        self.remove_from_combat(id);
+        self.battlefield.retain(|x| *x != id);
+        self.objects[id].zone = Zone::PhasedOut;
+        self.phased_out.push(crate::state::PhasedOut {
+            id,
+            controller,
+            indirect,
+        });
+        for a in attached {
+            self.phase_out(a, true);
+        }
+        self.cbump();
+    }
+
+    /// CR 702.26a: the permanents that phased out under `p`'s control
+    /// phase in, with those that phased out with them (CR 702.26g);
+    /// returns them.
+    pub(super) fn phase_in_all(&mut self, p: PlayerId) -> SmallVec<[ObjId; 2]> {
+        let mut back: SmallVec<[ObjId; 2]> = self
+            .phased_out
+            .iter()
+            .filter(|x| x.controller == p && !x.indirect)
+            .map(|x| x.id)
+            .collect();
+        let mut i = 0;
+        while i < back.len() {
+            let id = back[i];
+            for x in &self.phased_out {
+                if x.indirect && self.objects.get(x.id).and_then(|o| o.attached_to) == Some(id) {
+                    back.push(x.id);
+                }
+            }
+            i += 1;
+        }
+        self.phased_out.retain(|x| !back.contains(&x.id));
+        for id in &back {
+            if let Some(o) = self.objects.get_mut(*id) {
+                o.zone = Zone::Battlefield;
+                self.battlefield.push(*id);
+            }
+        }
+        if !back.is_empty() {
+            self.cbump();
+        }
+        back
     }
 
     fn destroy_now(&mut self, id: ObjId) {

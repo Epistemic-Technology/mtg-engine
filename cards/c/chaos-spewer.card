@@ -1,0 +1,7 @@
+card "Chaos Spewer" {
+  oracle_id 77217a66-4ba8-443f-b915-178cfcc233e1
+  cost {2}{B/R}
+  type Creature — Goblin Warlock
+  pt 5/4
+  triggered when this enters: you may pay {2}; if you don't, blight 2
+}

@@ -30,6 +30,10 @@ pub enum Zone {
     Stack,
     Exile,
     Command,
+    /// Not a zone: a phased-out permanent (CR 702.26b), still on the
+    /// battlefield by the rules but treated as though it doesn't exist. It
+    /// keeps its object id and is kept out of `GameState::battlefield`.
+    PhasedOut,
 }
 
 impl Zone {
@@ -37,7 +41,12 @@ impl Zone {
     pub const fn is_public(self) -> bool {
         matches!(
             self,
-            Zone::Battlefield | Zone::Graveyard | Zone::Stack | Zone::Exile | Zone::Command
+            Zone::Battlefield
+                | Zone::Graveyard
+                | Zone::Stack
+                | Zone::Exile
+                | Zone::Command
+                | Zone::PhasedOut
         )
     }
 }
@@ -112,6 +121,25 @@ pub enum Target {
     Player(PlayerId),
 }
 
+/// `GameObject::marks` bits.
+pub const OBJ_RENOWNED: u8 = 1;
+pub const OBJ_MONSTROUS: u8 = 2;
+pub const OBJ_RIOT_HASTE: u8 = 4;
+
+impl GameObject {
+    pub const fn renowned(&self) -> bool {
+        self.marks & OBJ_RENOWNED != 0
+    }
+
+    pub const fn monstrous(&self) -> bool {
+        self.marks & OBJ_MONSTROUS != 0
+    }
+
+    pub const fn riot_haste(&self) -> bool {
+        self.marks & OBJ_RIOT_HASTE != 0
+    }
+}
+
 #[derive(Clone, Debug)]
 #[allow(clippy::struct_excessive_bools)] // independent facts
 pub struct GameObject {
@@ -141,15 +169,10 @@ pub struct GameObject {
     /// Came onto the battlefield since its echo was last dealt with (CR
     /// 702.30a): set as it enters, cleared by its echo trigger.
     pub echo_due: bool,
-    /// Renowned (CR 702.112b): a designation it keeps until it leaves the
-    /// battlefield.
-    pub renowned: bool,
-    /// Monstrous (CR 701.37b): a designation it keeps until it leaves the
-    /// battlefield.
-    pub monstrous: bool,
-    /// Riot's haste (CR 702.136a): it entered without the counter, so it
-    /// has haste for as long as it is this object.
-    pub riot_haste: bool,
+    /// Per-object marks (`OBJ_RENOWNED`, `OBJ_MONSTROUS`, `OBJ_RIOT_HASTE`):
+    /// renowned (CR 702.112b), monstrous (CR 701.37b), and riot's haste
+    /// (CR 702.136a). One byte, so `GameObject` stays small.
+    pub marks: u8,
     /// Skips its controller's next untap step ("doesn't untap during its
     /// controller's next untap step").
     pub skip_untap: bool,
@@ -450,6 +473,7 @@ impl CastInfo {
     /// choices made casting it, but not cast).
     #[must_use]
     pub const fn copied(self) -> CastInfo {
+        // (Also marks a copy of a card cast from exile, cipher's.)
         CastInfo((self.0 & !(Self::CAST_MASK | Self::CONSPIRED)) | Self::COPY)
     }
 
@@ -610,11 +634,23 @@ impl PlayerState {
             Zone::Hand => &mut self.hand,
             Zone::Graveyard => &mut self.graveyard,
             Zone::Exile => &mut self.exile,
-            Zone::Battlefield | Zone::Stack | Zone::Command => {
+            Zone::Battlefield | Zone::Stack | Zone::Command | Zone::PhasedOut => {
                 unreachable!("{zone:?} is not a per-player zone")
             }
         }
     }
+}
+
+/// A phased-out permanent (CR 702.26b).
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub struct PhasedOut {
+    pub id: ObjId,
+    /// The player it phased out under: it phases in during their untap
+    /// step (CR 702.26a).
+    pub controller: PlayerId,
+    /// It phased out with the permanent it's attached to and phases in
+    /// with it (CR 702.26g).
+    pub indirect: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -1305,6 +1341,13 @@ pub struct GameState {
     /// this turn ("a creature dealt damage by this creature this turn"),
     /// each once.
     pub damaged_by_this_turn: Vec<(ObjId, ObjId)>,
+    /// Cards encoded on creatures (CR 702.99b): the exiled card and the
+    /// creature, each as the object it was when encoded; an entry lapses
+    /// once either has moved (702.99c).
+    pub encoded: Vec<(ObjId, ObjId)>,
+    /// Phased-out permanents (CR 702.26), with the player they phased out
+    /// under and whether they phased out with what they're attached to.
+    pub phased_out: Vec<PhasedOut>,
     /// Mounts saddled this turn (CR 702.171b: until end of turn, or until
     /// it leaves the battlefield, which makes it a new object).
     pub saddled: Vec<ObjId>,
@@ -2392,7 +2435,7 @@ impl GameState {
                 .combat
                 .as_ref()
                 .is_some_and(|c| c.attackers.iter().any(|a| a.id == source)),
-            C::SourceMonstrous => self.objects.get(source).is_some_and(|o| o.monstrous),
+            C::SourceMonstrous => self.objects.get(source).is_some_and(|o| o.monstrous()),
             C::SourceEnchanted | C::SourceEquipped => {
                 let want = if *cond == C::SourceEnchanted {
                     crate::card::Subtype::AURA

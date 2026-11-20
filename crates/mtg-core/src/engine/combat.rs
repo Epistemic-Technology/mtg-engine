@@ -133,7 +133,10 @@ impl GameState {
         self.creatures_of(p).filter(move |id| {
             !self.objects[*id].tapped
                 && self.characteristics(*id).is_some_and(|c| {
-                    !c.has(Keyword::CantBlock) && self.unless_rules_allow(*id, &c, true)
+                    // CR 702.147a: decayed creatures can't block.
+                    !c.has(Keyword::CantBlock)
+                        && !c.has(Keyword::Decayed)
+                        && self.unless_rules_allow(*id, &c, true)
                 })
         })
     }

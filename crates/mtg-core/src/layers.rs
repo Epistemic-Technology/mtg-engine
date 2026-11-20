@@ -156,7 +156,7 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
         let o = &state.objects[*id];
         o.counters.is_empty()
             && o.except.is_none()
-            && !o.riot_haste
+            && !o.riot_haste()
             && !matches!(
                 o.alt,
                 crate::state::AltCast::Suspend | crate::state::AltCast::Dash
@@ -365,7 +365,9 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             .combat
             .as_ref()
             .is_some_and(|c| c.attackers.iter().any(|a| a.id == source)),
-        StaticCondition::SourceMonstrous => state.objects.get(source).is_some_and(|o| o.monstrous),
+        StaticCondition::SourceMonstrous => {
+            state.objects.get(source).is_some_and(|o| o.monstrous())
+        }
         StaticCondition::SourceEnchanted | StaticCondition::SourceEquipped => {
             let want = if *cond == StaticCondition::SourceEnchanted {
                 crate::card::Subtype::AURA
@@ -1124,7 +1126,7 @@ fn apply_counters(work: &mut Work<'_>, layer: Layer) {
             // CR 702.62a: a creature cast by suspend has haste; CR
             // 702.109a: so does a dashed one; CR 702.136a: and one that
             // entered with riot's haste.
-            if o.riot_haste
+            if o.riot_haste()
                 || matches!(
                     o.alt,
                     crate::state::AltCast::Suspend | crate::state::AltCast::Dash

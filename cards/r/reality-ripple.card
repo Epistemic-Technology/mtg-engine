@@ -1,0 +1,6 @@
+card "Reality Ripple" {
+  oracle_id 504d5c29-7c37-4c31-8549-2a49eeef74c8
+  cost {1}{U}
+  type Instant
+  spell: target artifact, creature, or land phases out
+}

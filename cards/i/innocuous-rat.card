@@ -1,0 +1,7 @@
+card "Innocuous Rat" {
+  oracle_id 114725ef-ac81-4d13-9153-0a303c3ce9c4
+  cost {1}{B}
+  type Creature — Rat
+  pt 1/1
+  triggered when this dies: manifest dread
+}

@@ -1,0 +1,8 @@
+card "Snake Umbra" {
+  oracle_id 70ed2052-f03c-461d-b32a-8835c97c559f
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has ability { triggered whenever this deals damage to an opponent: you may draw 1 card }
+  replace destroy enchanted: umbra armor
+}

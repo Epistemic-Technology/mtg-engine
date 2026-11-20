@@ -1,0 +1,7 @@
+card "Merfolk Raiders" {
+  oracle_id 19edc98c-edc2-47bf-b2da-00f536d7c158
+  cost {1}{U}
+  type Creature — Merfolk Soldier
+  pt 2/3
+  keywords islandwalk, phasing
+}

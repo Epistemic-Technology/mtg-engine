@@ -1,0 +1,9 @@
+card "Bloodcrazed Socialite" {
+  oracle_id 7e165b4e-4c8f-4a0f-bd6e-7b0a15b12d1d
+  cost {3}{B}
+  type Creature — Vampire
+  pt 3/3
+  keywords menace
+  triggered when this enters: create 1 "Blood"
+  triggered whenever this attacks: you may sacrifice 1 Blood token chosen; if you do, it gets +2/+2
+}

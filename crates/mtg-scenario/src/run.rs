@@ -201,7 +201,7 @@ impl Runner {
                         Zone::Graveyard => ps.graveyard.push(def),
                         Zone::Exile => ps.exile.push(def),
                         Zone::Library => ps.library.push(def),
-                        Zone::Stack | Zone::Command => {
+                        Zone::Stack | Zone::Command | Zone::PhasedOut => {
                             return fail(z.line, "cannot set up the stack or command zone");
                         }
                     }
@@ -1529,12 +1529,15 @@ impl Runner {
     fn waiting_in_exile(&self, p: PlayerId, name: &str) -> bool {
         let st = self.state();
         st.player(p).exile.iter().any(|id| {
-            matches!(
+            // A card encoded on a creature (cipher) is cast as a copy by
+            // its trigger.
+            (matches!(
                 st.objects[*id].alt,
                 mtg_core::state::AltCast::Suspended
                     | mtg_core::state::AltCast::Rebounding
                     | mtg_core::state::AltCast::MadnessExiled
-            ) && st.name_of(*id) == name
+            ) || st.encoded.iter().any(|(card, _)| card == id))
+                && st.name_of(*id) == name
         })
     }
 
@@ -2535,7 +2538,7 @@ impl ZoneFree for mtg_core::state::PlayerState {
             Zone::Graveyard => &self.graveyard,
             Zone::Exile => &self.exile,
             Zone::Library => &self.library,
-            Zone::Battlefield | Zone::Stack | Zone::Command => &[],
+            Zone::Battlefield | Zone::Stack | Zone::Command | Zone::PhasedOut => &[],
         }
     }
 }

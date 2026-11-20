@@ -1,0 +1,7 @@
+card "Hands of Binding" {
+  oracle_id 9bc82078-2f3e-44ee-906d-707f3430d414
+  cost {1}{U}
+  type Sorcery
+  keywords cipher
+  spell: tap target creature an opponent controls; that target 1 doesn't untap next untap step
+}

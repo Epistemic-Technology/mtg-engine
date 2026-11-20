@@ -1,0 +1,6 @@
+card "Flip the Switch" {
+  oracle_id a28eb946-c7f2-4c90-ab6c-b194e290e33d
+  cost {2}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {4}; create 1 "2/2 black Zombie creature with decayed"
+}

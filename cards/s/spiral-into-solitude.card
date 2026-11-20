@@ -1,0 +1,8 @@
+card "Spiral into Solitude" {
+  oracle_id d8599f06-f030-4575-8497-307a4d7ec182
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  activated {1}{W}, blight 1, sacrifice this: exile enchanted creature
+}

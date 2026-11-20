@@ -1,0 +1,7 @@
+card "Teferi's Drake" {
+  oracle_id 3605c5ac-3b35-41a5-9266-286fb1d11716
+  cost {2}{U}
+  type Creature — Drake
+  pt 3/2
+  keywords flying, phasing
+}

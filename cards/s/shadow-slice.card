@@ -1,0 +1,7 @@
+card "Shadow Slice" {
+  oracle_id f4d2eca4-4645-4044-b75f-442cd726cedf
+  cost {4}{B}
+  type Sorcery
+  keywords cipher
+  spell: target opponent loses 3 life
+}

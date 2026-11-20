@@ -1,0 +1,7 @@
+token "2/2 black Zombie creature with decayed" {
+  name "Zombie"
+  type Creature — Zombie
+  pt 2/2
+  color black
+  keywords decayed
+}

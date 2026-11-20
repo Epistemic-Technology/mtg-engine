@@ -1,0 +1,7 @@
+card "Ceremonial Knife" {
+  oracle_id db221948-fcb9-4ef9-ae69-70266235dd04
+  cost {1}
+  type Artifact — Equipment
+  static equipped creature: +1/+0, has ability { triggered whenever this deals combat damage: create 1 "Blood" }
+  equip {2}
+}

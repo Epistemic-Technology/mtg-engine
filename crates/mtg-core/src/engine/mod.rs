@@ -473,6 +473,8 @@ impl GameState {
             dealt_damage_this_turn: Vec::new(),
             damaged_by_this_turn: Vec::new(),
             saddled: Vec::new(),
+            phased_out: Vec::new(),
+            encoded: Vec::new(),
             turn_started_at: 0,
             x_values: Vec::new(),
             ninjutsu: Vec::new(),
@@ -1965,7 +1967,13 @@ impl GameState {
         // CR 307.1: whether a sorcery could have been cast now.
         let sorcery_timing =
             player == self.active_player && self.step.is_main() && self.stack.is_empty();
+        // A copy of a card cast from exile (cipher, CR 702.99a) is a copy
+        // on the stack too (CR 707.12).
+        let copy = self.objects[card].cast.copy();
         let spell = self.move_object(card, Zone::Stack, true);
+        if copy {
+            self.objects[spell].cast = self.objects[spell].cast.copied();
+        }
         self.objects[spell].controller = player;
         self.objects[spell].alt = alt;
         if let Some(d) = def {
@@ -2234,6 +2242,38 @@ impl GameState {
         self.flow = Flow::BeginStep;
     }
 
+    /// CR 502.1, 502.3: the active player's permanents phase (CR 702.26a),
+    /// then untap.
+    fn untap_all(&mut self, active: PlayerId) {
+        let phased_in = if self.phased_out.is_empty() {
+            smallvec::SmallVec::new()
+        } else {
+            self.phase_in_all(active)
+        };
+        let perms: Vec<ObjId> = self.permanents_of(active).collect();
+        let mut phasing: smallvec::SmallVec<[ObjId; 2]> = smallvec::SmallVec::new();
+        for id in perms {
+            let (phases, doesnt_untap) = self.characteristics(id).map_or((false, false), |c| {
+                (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
+            });
+            // Those with phasing phase out instead of untapping, all at
+            // once with those phasing in (which don't phase out again).
+            if phases && !phased_in.contains(&id) {
+                phasing.push(id);
+                continue;
+            }
+            let o = &mut self.objects[id];
+            o.controlled_since_turn_start = true;
+            if std::mem::take(&mut o.skip_untap) || doesnt_untap {
+                continue;
+            }
+            self.untap(id);
+        }
+        for id in phasing {
+            self.phase_out(id, false);
+        }
+    }
+
     /// Turn-based actions at the start of the current step (CR 500.1 and the
     /// step rules), then priority or straight to the end of the step.
     fn begin_step(&mut self) {
@@ -2245,20 +2285,7 @@ impl GameState {
                 if self.desig.day_night != crate::state::DayNight::Neither {
                     self.day_night_check();
                 }
-                // CR 502.3: untap all permanents of the active player.
-                let perms: Vec<ObjId> = self.permanents_of(active).collect();
-                for id in perms {
-                    let o = &mut self.objects[id];
-                    o.controlled_since_turn_start = true;
-                    if std::mem::take(&mut o.skip_untap)
-                        || self
-                            .characteristics(id)
-                            .is_some_and(|c| c.has(Keyword::DoesntUntap))
-                    {
-                        continue;
-                    }
-                    self.untap(id);
-                }
+                self.untap_all(active);
                 self.player_mut(active).lands_played_this_turn = 0;
                 self.flow = Flow::EndStep;
             }

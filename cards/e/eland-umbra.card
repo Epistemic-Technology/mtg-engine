@@ -1,0 +1,8 @@
+card "Eland Umbra" {
+  oracle_id 836fdd4b-98f8-4615-ae81-9bf63205c37d
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +0/+4
+  replace destroy enchanted: umbra armor
+}

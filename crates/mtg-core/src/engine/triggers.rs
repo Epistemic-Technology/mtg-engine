@@ -1177,9 +1177,7 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: false,
-            renowned: false,
-            monstrous: false,
-            riot_haste: false,
+            marks: 0,
             skip_untap: false,
             chosen: Chosen::None,
             alt: crate::state::AltCast::None,
@@ -1323,7 +1321,7 @@ impl GameState {
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(source).is_some_and(|o| o.echo_due),
-            Condition::NotRenowned => self.objects.get(source).is_some_and(|o| !o.renowned),
+            Condition::NotRenowned => self.objects.get(source).is_some_and(|o| !o.renowned()),
             Condition::Evolves => {
                 let this = self.characteristics_or_lki(source);
                 self.evolves(this.as_ref(), trigger_obj)
@@ -1366,7 +1364,7 @@ impl GameState {
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due),
-            Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned),
+            Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned()),
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),
             Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),
             Condition::Static(i) | Condition::While(i) => {

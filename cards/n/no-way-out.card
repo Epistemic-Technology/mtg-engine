@@ -1,0 +1,6 @@
+card "No Way Out" {
+  oracle_id 8cbbb1f4-4654-4865-a14c-0c94cd5d8b19
+  cost {2}{B}
+  type Sorcery
+  spell: target opponent discards 2 cards; you create 1 "2/2 black Zombie creature with decayed"
+}

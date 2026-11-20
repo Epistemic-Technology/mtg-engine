@@ -1,0 +1,7 @@
+card "Teferi's Curse" {
+  oracle_id 6e422d5e-d9f5-492d-b82a-31f7274d4153
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant artifact or creature
+  static enchanted: has phasing
+}

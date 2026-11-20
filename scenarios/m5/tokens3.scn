@@ -1,0 +1,366 @@
+# Predefined tokens and odd permanents: decayed (CR 702.147), manifest
+# dread (CR 701.62), umbra armor (CR 702.89), phasing (CR 702.26),
+# cipher (CR 702.99), blight (CR 701.66), and Blood tokens.
+
+# ---- decayed ----
+
+scenario "decayed: Falcon Abomination's Zombie can't block" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Falcon Abomination"
+  turn 1 A: cast "Falcon Abomination"
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 B: block "Grizzly Bears" with "Zombie"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Zombie"
+  assert has "Zombie" decayed
+  assert life A 18
+}
+
+scenario "decayed: the Zombie is sacrificed at end of combat after it attacks" {
+  battlefield A: 3 "Swamp", "Hobbling Zombie"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Hobbling Zombie"
+  turn 3 A: attack "Zombie"
+  run_to turn 3 combat_damage
+  assert battlefield A contains "Zombie"
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert battlefield A lacks "Zombie"
+}
+
+scenario "decayed: a Zombie that doesn't attack stays" {
+  battlefield A: 3 "Swamp", 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "No Way Out"
+  hand B: "Forest", "Hill Giant"
+  turn 1 A: cast "No Way Out" targeting player B
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Zombie"
+  assert hand B count 1
+}
+
+scenario "decayed: Startle shrinks a creature, makes a Zombie, and draws" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Startle"
+  library A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Startle" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert battlefield A contains "Zombie"
+  assert hand A contains "Forest"
+}
+
+# ---- manifest dread ----
+
+scenario "manifest dread: the top card manifested, the other into the graveyard" {
+  battlefield A: 2 "Forest"
+  hand A: "Manifest Dread"
+  library A: "Grizzly Bears", "Hill Giant", "Island"
+  turn 1 A: cast "Manifest Dread"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+  assert graveyard A contains "Hill Giant"
+  assert library A count 1
+}
+
+scenario "manifest dread: either of the two may be manifested" {
+  battlefield A: 4 "Plains"
+  hand A: "Unsettling Twins"
+  library A: "Grizzly Bears", "Hill Giant", "Island"
+  turn 1 A: cast "Unsettling Twins"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A lacks "Hill Giant"
+}
+
+scenario "manifest dread: a manifested creature card turns face up for its mana cost" {
+  battlefield A: 2 "Forest", "Innocuous Rat"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  library A: "Grizzly Bears", "Hill Giant", "Island"
+  turn 1 B: cast "Shock" targeting "Innocuous Rat"
+  turn 1 postcombat_main A: unmorph "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "manifest dread: with one card left, it is manifested" {
+  battlefield A: 2 "Forest"
+  hand A: "Manifest Dread"
+  library A: "Grizzly Bears"
+  turn 1 A: cast "Manifest Dread"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+  assert library A count 0
+}
+
+# ---- umbra armor ----
+
+scenario "umbra armor: Eland Umbra is destroyed instead of its creature" {
+  battlefield A: "Grizzly Bears", "Eland Umbra" on "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Eland Umbra"
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "umbra armor: lethal damage is removed and the Aura destroyed" {
+  battlefield A: "Grizzly Bears", "Spider Umbra" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert graveyard A contains "Spider Umbra"
+}
+
+scenario "umbra armor: an Aura on another creature doesn't protect this one" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Hyena Umbra" on "Hill Giant"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Hyena Umbra"
+}
+
+scenario "umbra armor: the creature is still sacrificed" {
+  battlefield A: "Grizzly Bears", "Mammoth Umbra" on "Grizzly Bears"
+  battlefield B: 2 "Swamp"
+  hand B: "Diabolic Edict"
+  turn 1 B: cast "Diabolic Edict" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+# ---- phasing ----
+
+scenario "phasing: Teferi's Drake phases out, then in a turn later" {
+  battlefield A: "Teferi's Drake"
+  run_to turn 1 precombat_main
+  assert battlefield A lacks "Teferi's Drake"
+  run_to turn 2 precombat_main
+  assert battlefield A lacks "Teferi's Drake"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Teferi's Drake"
+  run_to turn 5 precombat_main
+  assert battlefield A lacks "Teferi's Drake"
+}
+
+scenario "phasing: a phased-out creature isn't destroyed with the others" {
+  battlefield A: "Tolarian Drake", "Grizzly Bears"
+  battlefield B: 4 "Plains"
+  hand B: "Day of Judgment"
+  turn 2 B: cast "Day of Judgment"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Tolarian Drake"
+}
+
+scenario "phasing: Reality Ripple's creature phases in at its controller's untap step, untapped" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Reality Ripple"
+  turn 1 A: cast "Reality Ripple" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Hill Giant"
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Hill Giant"
+  assert untapped "Hill Giant"
+}
+
+scenario "phasing: an Aura phases out with its creature and back in attached" {
+  battlefield A: 2 "Island", "Grizzly Bears", "Vanishing" on "Grizzly Bears"
+  turn 1 A: activate "Vanishing"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Grizzly Bears"
+  assert battlefield A lacks "Vanishing"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert attached "Vanishing" to "Grizzly Bears"
+}
+
+scenario "phasing: a creature that phases out leaves combat" {
+  battlefield A: 2 "Island", "Grizzly Bears", "Vanishing" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: activate "Vanishing"
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Grizzly Bears"
+  assert damage "Hill Giant" 0
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "phasing: Teferi's Curse gives an opponent's creature phasing" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Teferi's Curse"
+  turn 1 A: cast "Teferi's Curse" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert battlefield A lacks "Teferi's Curse"
+  run_to turn 4 precombat_main
+  assert battlefield B contains "Hill Giant"
+  assert attached "Teferi's Curse" to "Hill Giant"
+}
+
+# ---- blight ----
+
+scenario "blight: Bogslither's Embrace blights 1 as its additional cost" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Bogslither's Embrace"
+  turn 1 A: cast "Bogslither's Embrace" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert counters "Grizzly Bears" -1/-1 1
+}
+
+scenario "blight: with no creature, Bogslither's Embrace needs its other cost" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Bogslither's Embrace"
+  illegal turn 1 A: cast "Bogslither's Embrace" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "blight: Bogslither's Embrace may pay {3} instead" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Bogslither's Embrace"
+  turn 1 A: cast "Bogslither's Embrace" other_cost targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}
+
+scenario "blight: Gristle Glutton's cost puts a -1/-1 counter on a creature" {
+  battlefield A: "Gristle Glutton"
+  hand A: "Forest"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gristle Glutton"
+  run_to turn 1 postcombat_main
+  assert counters "Gristle Glutton" -1/-1 1
+  assert hand A contains "Island"
+  assert graveyard A contains "Forest"
+}
+
+scenario "blight: Chaos Spewer's controller pays {2}" {
+  battlefield A: 5 "Swamp"
+  hand A: "Chaos Spewer"
+  turn 1 A: cast "Chaos Spewer"
+  run_to turn 1 postcombat_main
+  assert counters "Chaos Spewer" -1/-1 0
+}
+
+scenario "blight: Chaos Spewer's controller doesn't pay and blights 2" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Chaos Spewer"
+  turn 1 A: cast "Chaos Spewer"
+  turn 1 A: decline "Chaos Spewer"
+  turn 1 A: choose "Chaos Spewer"
+  run_to turn 1 postcombat_main
+  assert counters "Chaos Spewer" -1/-1 2
+  assert power "Chaos Spewer" 3
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "blight: Blighted Blackthorn blights a creature of your choice, draws, and loses 1 life" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Blighted Blackthorn"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blighted Blackthorn"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Island"
+  assert life A 19
+}
+
+scenario "blight: Spiral into Solitude's activation exiles the enchanted creature" {
+  battlefield B: "Hill Giant"
+  battlefield A: 2 "Plains", "Grizzly Bears", "Spiral into Solitude" on "Hill Giant"
+  turn 1 A: activate "Spiral into Solitude"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert counters "Grizzly Bears" -1/-1 1
+  assert graveyard A contains "Spiral into Solitude"
+}
+
+# ---- cipher ----
+
+scenario "cipher: Shadow Slice is encoded, and its copy is cast on combat damage" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Shadow Slice"
+  turn 1 A: cast "Shadow Slice" targeting player B
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 combat_damage A: cast "Shadow Slice" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile A contains "Shadow Slice"
+  assert life B 12
+  assert graveyard A lacks "Shadow Slice"
+}
+
+scenario "cipher: the spell may be put into the graveyard instead" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Shadow Slice"
+  turn 1 A: cast "Shadow Slice" targeting player B
+  turn 1 A: decline "Shadow Slice"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shadow Slice"
+  assert life B 17
+}
+
+scenario "cipher: with no creature, the card goes to the graveyard" {
+  battlefield A: 4 "Island"
+  hand A: "Last Thoughts"
+  turn 1 A: cast "Last Thoughts"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Last Thoughts"
+}
+
+scenario "cipher: the encoding ends when the creature leaves" {
+  battlefield A: 4 "Island", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Mountain"
+  hand A: "Last Thoughts"
+  hand B: "Shock"
+  library A: "Forest", "Plains", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Last Thoughts"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  turn 3 A: attack "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert hand A count 2
+  assert exile A contains "Last Thoughts"
+}
+
+scenario "cipher: blocked, the encoded creature deals no damage to a player" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Last Thoughts"
+  library A: "Forest", "Plains", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Last Thoughts"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+
