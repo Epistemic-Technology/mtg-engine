@@ -455,6 +455,7 @@ impl GameState {
             damaged_by_this_turn: Vec::new(),
             saddled: Vec::new(),
             phased_out: Vec::new(),
+            encoded: Vec::new(),
             turn_started_at: 0,
             x_values: Vec::new(),
             ninjutsu: Vec::new(),
@@ -1897,7 +1898,13 @@ impl GameState {
     ) -> ObjId {
         self.consecutive_passes = 0;
         let from = self.objects[card].zone;
+        // A copy of a card cast from exile (cipher, CR 702.99a) is a copy
+        // on the stack too (CR 707.12).
+        let copy = self.objects[card].cast.copy();
         let spell = self.move_object(card, Zone::Stack, true);
+        if copy {
+            self.objects[spell].cast = self.objects[spell].cast.copied();
+        }
         self.objects[spell].controller = player;
         self.objects[spell].alt = alt;
         if let Some(d) = def {

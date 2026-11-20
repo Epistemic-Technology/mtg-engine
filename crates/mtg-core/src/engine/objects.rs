@@ -1022,6 +1022,10 @@ impl GameState {
                     amount,
                     combat,
                 });
+                // CR 702.99a: an encoded creature's trigger.
+                if combat && !self.encoded.is_empty() {
+                    self.cipher_triggers(source);
+                }
                 if infect {
                     // CR 702.90b: damage to a player as poison counters.
                     self.add_poison(p, amount);

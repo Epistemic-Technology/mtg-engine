@@ -302,3 +302,65 @@ scenario "blight: Spiral into Solitude's activation exiles the enchanted creatur
   assert graveyard A contains "Spiral into Solitude"
 }
 
+# ---- cipher ----
+
+scenario "cipher: Shadow Slice is encoded, and its copy is cast on combat damage" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Shadow Slice"
+  turn 1 A: cast "Shadow Slice" targeting player B
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 combat_damage A: cast "Shadow Slice" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile A contains "Shadow Slice"
+  assert life B 12
+  assert graveyard A lacks "Shadow Slice"
+}
+
+scenario "cipher: the spell may be put into the graveyard instead" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Shadow Slice"
+  turn 1 A: cast "Shadow Slice" targeting player B
+  turn 1 A: decline "Shadow Slice"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shadow Slice"
+  assert life B 17
+}
+
+scenario "cipher: with no creature, the card goes to the graveyard" {
+  battlefield A: 4 "Island"
+  hand A: "Last Thoughts"
+  turn 1 A: cast "Last Thoughts"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Last Thoughts"
+}
+
+scenario "cipher: the encoding ends when the creature leaves" {
+  battlefield A: 4 "Island", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Mountain"
+  hand A: "Last Thoughts"
+  hand B: "Shock"
+  library A: "Forest", "Plains", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Last Thoughts"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  turn 3 A: attack "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert hand A count 2
+  assert exile A contains "Last Thoughts"
+}
+
+scenario "cipher: blocked, the encoded creature deals no damage to a player" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Last Thoughts"
+  library A: "Forest", "Plains", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Last Thoughts"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+

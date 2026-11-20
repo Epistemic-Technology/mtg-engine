@@ -170,6 +170,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["improvise"], Keyword::Improvise),
     (&["cascade"], Keyword::Cascade),
     (&["rebound"], Keyword::Rebound),
+    (&["cipher"], Keyword::Cipher),
     (&["exploit"], Keyword::Exploit),
     (&["delve"], Keyword::Delve),
     (

@@ -1,0 +1,7 @@
+card "Last Thoughts" {
+  oracle_id 649d983a-e861-4893-8ae8-fb0a22cfad0a
+  cost {3}{U}
+  type Sorcery
+  keywords cipher
+  spell: draw 1 card
+}

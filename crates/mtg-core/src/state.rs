@@ -428,6 +428,7 @@ impl CastInfo {
     /// choices made casting it, but not cast).
     #[must_use]
     pub const fn copied(self) -> CastInfo {
+        // (Also marks a copy of a card cast from exile, cipher's.)
         CastInfo((self.0 & !(Self::CAST_MASK | Self::CONSPIRED)) | Self::COPY)
     }
 
@@ -1282,6 +1283,10 @@ pub struct GameState {
     /// this turn ("a creature dealt damage by this creature this turn"),
     /// each once.
     pub damaged_by_this_turn: Vec<(ObjId, ObjId)>,
+    /// Cards encoded on creatures (CR 702.99b): the exiled card and the
+    /// creature, each as the object it was when encoded; an entry lapses
+    /// once either has moved (702.99c).
+    pub encoded: Vec<(ObjId, ObjId)>,
     /// Phased-out permanents (CR 702.26), with the player they phased out
     /// under and whether they phased out with what they're attached to.
     pub phased_out: Vec<PhasedOut>,
@@ -3131,6 +3136,7 @@ mod tests {
             std::mem::size_of::<Event>()
         );
         assert!(o <= 136, "GameObject is {o} bytes");
-        assert!(c <= 72, "Characteristics is {c} bytes");
+        // 80 since the keyword set outgrew 64 keywords (two words).
+        assert!(c <= 80, "Characteristics is {c} bytes");
     }
 }

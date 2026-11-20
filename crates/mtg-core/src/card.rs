@@ -313,6 +313,9 @@ pub enum Keyword {
     /// CR 702.26: it phases in or out before its controller untaps during
     /// each of their untap steps.
     Phasing,
+    /// CR 702.99: as the spell resolves, its card may be exiled encoded on
+    /// a creature its controller controls (`GameState::encoded`).
+    Cipher,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -342,6 +345,10 @@ pub enum Builtin {
     /// CR 702.78a: conspire's reflexive trigger, "When you do, copy it
     /// and you may choose a new target for the copy."
     Conspire,
+    /// CR 702.99a: the encoded creature's "Whenever this creature deals
+    /// combat damage to a player, you may copy the encoded card and you
+    /// may cast the copy without paying its mana cost."
+    Cipher,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -353,37 +360,50 @@ pub enum ExileCast {
     Free,
 }
 
+/// A set of keywords: two words, aligned as one (a `u128` would align
+/// `Characteristics` to 16 bytes).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
-pub struct KeywordSet(u128);
+pub struct KeywordSet([u64; 2]);
 
 impl KeywordSet {
-    pub const NONE: KeywordSet = KeywordSet(0);
+    pub const NONE: KeywordSet = KeywordSet([0; 2]);
 
     pub fn of(keywords: impl IntoIterator<Item = Keyword>) -> Self {
-        keywords.into_iter().fold(KeywordSet(0), KeywordSet::with)
+        keywords
+            .into_iter()
+            .fold(KeywordSet::NONE, KeywordSet::with)
+    }
+
+    /// The word and bit of a keyword.
+    const fn bit(k: Keyword) -> (usize, u64) {
+        ((k as usize) >> 6, 1 << ((k as u64) & 63))
     }
 
     #[must_use]
     pub const fn with(self, k: Keyword) -> Self {
-        KeywordSet(self.0 | (1 << (k as u128)))
+        let (w, b) = Self::bit(k);
+        let mut out = self.0;
+        out[w] |= b;
+        KeywordSet(out)
     }
 
     #[must_use]
     pub const fn union(self, other: KeywordSet) -> Self {
-        KeywordSet(self.0 | other.0)
+        KeywordSet([self.0[0] | other.0[0], self.0[1] | other.0[1]])
     }
 
     #[must_use]
     pub const fn difference(self, other: KeywordSet) -> Self {
-        KeywordSet(self.0 & !other.0)
+        KeywordSet([self.0[0] & !other.0[0], self.0[1] & !other.0[1]])
     }
 
     pub const fn contains(self, k: Keyword) -> bool {
-        self.0 & (1 << (k as u128)) != 0
+        let (w, b) = Self::bit(k);
+        self.0[w] & b != 0
     }
 
     pub const fn intersects(self, other: KeywordSet) -> bool {
-        self.0 & other.0 != 0
+        self.0[0] & other.0[0] != 0 || self.0[1] & other.0[1] != 0
     }
 
     /// The five landwalk keywords (CR 702.14).
@@ -423,11 +443,11 @@ impl KeywordSet {
         .with(Keyword::ProtectionFromFilter);
 
     pub const fn contains_all(self, other: KeywordSet) -> bool {
-        self.0 & other.0 == other.0
+        self.0[0] & other.0[0] == other.0[0] && self.0[1] & other.0[1] == other.0[1]
     }
 
     pub const fn is_empty(self) -> bool {
-        self.0 == 0
+        self.0[0] == 0 && self.0[1] == 0
     }
 
     pub fn iter(self) -> impl Iterator<Item = Keyword> {
@@ -436,7 +456,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 66] = [
+    pub const ALL: [Keyword; 67] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -503,6 +523,7 @@ impl Keyword {
         Keyword::Banding,
         Keyword::Decayed,
         Keyword::Phasing,
+        Keyword::Cipher,
     ];
 
     /// The keyword as Oracle prints it.
@@ -559,6 +580,7 @@ impl Keyword {
             Keyword::Banding => "banding",
             Keyword::Decayed => "decayed",
             Keyword::Phasing => "phasing",
+            Keyword::Cipher => "cipher",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -3572,6 +3594,9 @@ pub enum Effect {
     /// Manifest (CR 701.34): the top card of the controller's library
     /// onto the battlefield face down as a 2/2 creature.
     Manifest,
+    /// Cipher's trigger (CR 702.99a): a copy of the encoded card (the
+    /// source, in exile) may be cast without paying its mana cost.
+    CastCipherCopy,
     /// Blight N (CR 701.68a): the controller puts N -1/-1 counters on a
     /// creature they control; without one, nothing happens and it isn't
     /// done (701.68b).
@@ -3740,6 +3765,7 @@ impl Effect {
                 | Effect::Blight(_)
                 | Effect::Connive { .. }
                 | Effect::CastExiled(_)
+                | Effect::CastCipherCopy
                 | Effect::SuspendTick
                 | Effect::Cascade
                 | Effect::PutInLibrary {
@@ -5649,15 +5675,17 @@ impl DefFlags {
                 .iter()
                 .any(|a| matches!(a, AbilityDef::CostChange(_))),
         );
+        // Cipher asks whether to encode as the spell resolves (CR 702.99a).
         flags.set(
             DefFlags::MID_CHOICE,
-            abilities.iter().any(|a| {
-                matches!(
-                    a,
-                    AbilityDef::EntersAsCopy(_) | AbilityDef::AsEntersChoose(_)
-                ) || a.enters_may()
-                    || a.all_effects().iter().any(|e| e.asks())
-            }),
+            keywords.contains(Keyword::Cipher)
+                || abilities.iter().any(|a| {
+                    matches!(
+                        a,
+                        AbilityDef::EntersAsCopy(_) | AbilityDef::AsEntersChoose(_)
+                    ) || a.enters_may()
+                        || a.all_effects().iter().any(|e| e.asks())
+                }),
         );
         flags.set(
             DefFlags::MANA_ABILITY,
@@ -5917,7 +5945,7 @@ pub struct CardPool {
     /// Decayed's "When this creature attacks, sacrifice it at end of
     /// combat" (CR 702.147a).
     decayed: AbilityId,
-    builtins: [AbilityId; 6],
+    builtins: [AbilityId; 7],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -5998,7 +6026,7 @@ impl CardPool {
             evoke: AbilityId(0),
             exploit: AbilityId(0),
             decayed: AbilityId(0),
-            builtins: [AbilityId(0); 6],
+            builtins: [AbilityId(0); 7],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -6140,6 +6168,14 @@ impl CardPool {
                 effects: vec![Effect::ReturnToHand {
                     what: Recipient::SameObject,
                 }],
+            }));
+        pool.builtins[Builtin::Cipher as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::Enters(TriggerObj::This),
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::CastCipherCopy],
             }));
         pool.builtins[Builtin::Conspire as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {

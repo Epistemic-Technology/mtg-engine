@@ -9038,7 +9038,10 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let alone_pair = card.keywords.contains(&Keyword::CantAttackAlone)
         && card.keywords.contains(&Keyword::CantBlockAlone);
     for k in &card.keywords {
-        if alone_pair && *k == Keyword::CantBlockAlone || *k == Keyword::Rebound {
+        if alone_pair && *k == Keyword::CantBlockAlone
+            || *k == Keyword::Rebound
+            || *k == Keyword::Cipher
+        {
             continue;
         }
         if alone_pair && *k == Keyword::CantAttackAlone {
@@ -9100,6 +9103,10 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     // Oracle prints rebound after the spell's effect.
     if card.keywords.contains(&Keyword::Rebound) {
         lines.push("Rebound".to_string());
+    }
+    // And cipher (CR 702.99).
+    if card.keywords.contains(&Keyword::Cipher) {
+        lines.push("Cipher".to_string());
     }
     lines.join("\n")
 }

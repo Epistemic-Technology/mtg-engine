@@ -2262,12 +2262,24 @@ impl GameState {
     }
 
     pub(super) fn offer_exile_cast_by(&mut self, card: ObjId, alt: AltCast, p: PlayerId) -> bool {
+        self.offer_exile_cast_shown(card, alt, p, card)
+    }
+
+    /// `offer_exile_cast_by`, the decision naming `shown` (the encoded card
+    /// a copy is made of, which exists before the resolution began).
+    pub(super) fn offer_exile_cast_shown(
+        &mut self,
+        card: ObjId,
+        alt: AltCast,
+        p: PlayerId,
+        shown: ObjId,
+    ) -> bool {
         if !self.exile_castable(p, card, alt) {
             return false;
         }
         let k = self.choose_mid(
             p,
-            DecisionKind::CastFromExile { card },
+            DecisionKind::CastFromExile { card: shown },
             vec![Choice::Accept, Choice::Decline],
         );
         if k == 0 {
@@ -2358,6 +2370,65 @@ impl GameState {
             {
                 self.queue_builtin(p, *a, ctx.source, def);
             }
+        }
+    }
+
+    /// CR 702.99a: as a spell with cipher resolves, its controller may
+    /// exile it encoded on a creature they control; whether they did.
+    #[cold]
+    #[inline(never)]
+    fn encode(&mut self, spell: ObjId, p: PlayerId) -> bool {
+        let options: Vec<Choice> = self
+            .creatures_of(p)
+            .map(|id| Choice::Target(Target::Object(id)))
+            .collect();
+        if options.is_empty() {
+            return false;
+        }
+        let def = self.objects[spell].def;
+        if self.choose_mid(
+            p,
+            DecisionKind::YouMay { def },
+            vec![Choice::Accept, Choice::Decline],
+        ) != 0
+        {
+            return false;
+        }
+        let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+        let Choice::Target(Target::Object(creature)) = options[k] else {
+            return false;
+        };
+        let card = self.move_object(spell, Zone::Exile, true);
+        self.encoded.push((card, creature));
+        true
+    }
+
+    /// CR 702.99a: a creature with encoded cards dealt combat damage to a
+    /// player: each encoded card's trigger, controlled by the creature's
+    /// controller. Lapsed encodings are dropped (702.99c).
+    #[cold]
+    #[inline(never)]
+    pub(super) fn cipher_triggers(&mut self, creature: ObjId) {
+        self.encoded.retain(|(card, c)| {
+            self.objects
+                .get(*card)
+                .is_some_and(|o| o.zone == Zone::Exile)
+                && self
+                    .objects
+                    .get(*c)
+                    .is_some_and(|o| o.zone == Zone::Battlefield)
+        });
+        let cards: Vec<ObjId> = self
+            .encoded
+            .iter()
+            .filter(|(_, c)| *c == creature)
+            .map(|(card, _)| *card)
+            .collect();
+        let controller = self.objects[creature].controller;
+        let ability = self.pool.builtin(crate::card::Builtin::Cipher);
+        for card in cards {
+            let def = self.objects[card].def;
+            self.queue_builtin(controller, ability, card, def);
         }
     }
 
@@ -4608,7 +4679,10 @@ impl GameState {
                 self.move_object(spell, Zone::Hand, false);
             } else if obj.alt == AltCast::Hand && def.keywords.contains(Keyword::Rebound) {
                 self.rebound(spell);
-            } else {
+            } else if !(def.keywords.contains(Keyword::Cipher)
+                && !obj.cast.copy()
+                && self.encode(spell, obj.controller))
+            {
                 self.leave_stack(spell);
             }
         }
@@ -7875,6 +7949,23 @@ impl GameState {
                     if let Target::Player(p) = t {
                         self.shuffle_library(p);
                     }
+                }
+            }
+            Effect::CastCipherCopy => {
+                // CR 707.12: the copy is made in exile and cast from there;
+                // not cast, it ceases to exist.
+                let Some(card) = self
+                    .current_object(ctx.source)
+                    .filter(|c| self.objects[*c].zone == Zone::Exile)
+                else {
+                    return;
+                };
+                let p = ctx.controller;
+                let copy = self.new_object(self.objects[card].def, p, Zone::Exile);
+                self.objects[copy].cast = self.objects[copy].cast.copied();
+                self.player_mut(p).exile.push(copy);
+                if !self.offer_exile_cast_shown(copy, AltCast::Free, p, card) {
+                    self.remove_from_game(copy);
                 }
             }
             Effect::CastExiled(kind) => {

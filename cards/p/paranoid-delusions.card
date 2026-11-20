@@ -1,0 +1,7 @@
+card "Paranoid Delusions" {
+  oracle_id 129cec2c-fc1b-4ce6-98f2-2123e4dbd1ae
+  cost {U}{B}
+  type Sorcery
+  keywords cipher
+  spell: target player mills 3 cards
+}

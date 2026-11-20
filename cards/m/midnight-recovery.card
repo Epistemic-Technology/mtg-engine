@@ -1,0 +1,7 @@
+card "Midnight Recovery" {
+  oracle_id 7904025c-7120-4362-abe9-a9f5fb64447f
+  cost {3}{B}
+  type Sorcery
+  keywords cipher
+  spell: return target creature card from your graveyard to hand
+}

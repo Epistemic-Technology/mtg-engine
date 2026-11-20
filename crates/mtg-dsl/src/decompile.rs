@@ -1062,6 +1062,7 @@ impl Decompiler<'_> {
             | CoreEffect::UntilYourNextTurn { .. }
             | CoreEffect::PunishEach { .. }
             | CoreEffect::DrawCastOne { .. }
+            | CoreEffect::CastCipherCopy
             | CoreEffect::RevealPutCreature { .. } => {
                 unreachable!("built-in abilities and dungeon rooms only")
             }

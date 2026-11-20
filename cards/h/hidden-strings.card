@@ -1,0 +1,7 @@
+card "Hidden Strings" {
+  oracle_id a50737d7-dd2d-40da-817c-f913f76b5011
+  cost {1}{U}
+  type Sorcery
+  keywords cipher
+  spell: you may tap or untap target permanent then you may tap or untap another target permanent
+}
