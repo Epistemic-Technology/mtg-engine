@@ -5853,6 +5853,20 @@ impl P {
             "adapt" => Ok(Effect::Adapt(self.count()?)),
             "bolster" => Ok(Effect::Bolster(self.num()?)),
             "monstrosity" => Ok(Effect::Monstrosity(self.num()?)),
+            // CR 701.66a: "Target land you control becomes ...": the
+            // keyword action declares its target.
+            "earthbend" => {
+                let count = self.num()?;
+                self.targets.push(Target::Filter(Filter {
+                    types: vec![mtg_core::card::CardType::Land],
+                    who: Some(Who::You),
+                    ..Filter::default()
+                }));
+                Ok(Effect::Earthbend {
+                    count,
+                    to: Recipient::Target(self.targets.len() - 1),
+                })
+            }
             "populate" => Ok(Effect::Populate),
             "incubate" => Ok(Effect::Incubate(self.num()?)),
             // CR 701.41a: "up to N other target creatures" on a permanent

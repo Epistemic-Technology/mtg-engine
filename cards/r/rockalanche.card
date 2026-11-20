@@ -1,0 +1,7 @@
+card "Rockalanche" {
+  oracle_id d1ecfad3-e79a-447b-a932-68ef728eaf1f
+  cost {2}{G}
+  type Sorcery — Lesson
+  spell: earthbend count where Forest you control
+  flashback {5}{G}
+}

@@ -1,0 +1,6 @@
+card "Earth Rumble" {
+  oracle_id f04a7763-5fba-42e5-a45a-b3dc2daba902
+  cost {3}{G}
+  type Sorcery
+  spell: earthbend 2; when you do, up to one target creature you control fights target creature an opponent controls
+}

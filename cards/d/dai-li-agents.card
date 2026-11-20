@@ -1,0 +1,8 @@
+card "Dai Li Agents" {
+  oracle_id 8c05e716-b6eb-4f95-866b-7e43a898ebe2
+  cost {3}{B}{G}
+  type Creature — Human Soldier
+  pt 3/4
+  triggered when this enters: earthbend 1, then earthbend 1
+  triggered whenever this attacks: each opponent loses count where creature you control with +1/+1 counter life and you gain count where creature you control with +1/+1 counter life
+}

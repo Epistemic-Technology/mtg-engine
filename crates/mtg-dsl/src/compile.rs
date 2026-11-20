@@ -2154,6 +2154,10 @@ impl Compiler<'_> {
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
             Effect::Bolster(n) => out.push(CoreEffect::Bolster(*n)),
             Effect::Monstrosity(n) => out.push(CoreEffect::Monstrosity(*n)),
+            Effect::Earthbend { count, to } => out.push(CoreEffect::Earthbend {
+                count: *count,
+                to: r(*to),
+            }),
             Effect::Populate => out.push(CoreEffect::Populate),
             // CR 701.41a: one counter on each target.
             Effect::Support(to) => {

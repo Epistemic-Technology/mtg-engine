@@ -602,6 +602,7 @@ impl Fmt {
             Effect::Adapt(n) => format!("adapt {n}"),
             Effect::Bolster(n) => format!("bolster {}", num(*n)),
             Effect::Monstrosity(n) => format!("monstrosity {}", num(*n)),
+            Effect::Earthbend { count, .. } => format!("earthbend {}", num(*count)),
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
             Effect::Incubate(n) => format!("incubate {}", num(*n)),

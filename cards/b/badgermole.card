@@ -1,0 +1,8 @@
+card "Badgermole" {
+  oracle_id 2084a7f6-226b-4fb4-a30e-703f674d33b4
+  cost {4}{G}
+  type Creature — Badger Mole
+  pt 4/4
+  triggered when this enters: earthbend 2
+  static creature you control with +1/+1 counter: has trample
+}

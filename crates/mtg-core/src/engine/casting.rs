@@ -8949,6 +8949,37 @@ impl GameState {
                     o.marks |= crate::state::OBJ_RENOWNED;
                 }
             }
+            Effect::Earthbend { count, to } => {
+                // CR 701.66a: the land becomes a 0/0 creature with haste
+                // in addition to its other types, gets N +1/+1 counters,
+                // and returns tapped when it dies or is put into exile.
+                let effects = [
+                    Effect::Animate {
+                        to: *to,
+                        types: crate::card::TypeSet::of([crate::card::CardType::Creature]),
+                        subtypes: crate::card::SubtypeSet::default(),
+                        pt: Some((0, 0)),
+                        colors: None,
+                        keywords: crate::card::KeywordSet::NONE.with(Keyword::Haste),
+                        indefinite: true,
+                        loses_abilities: false,
+                        in_addition: true,
+                    },
+                    Effect::AddCounters {
+                        kind: CounterKind::PlusOnePlusOne,
+                        count: *count,
+                        to: *to,
+                    },
+                    Effect::Delayed {
+                        ability: self.pool.builtin(crate::card::Builtin::EarthbendReturn),
+                        about: *to,
+                        this_turn: false,
+                    },
+                ];
+                for e in &effects {
+                    self.apply_effect(ctx, e);
+                }
+            }
             Effect::Monstrosity(n) => {
                 // CR 701.37a: only a permanent that isn't monstrous; one
                 // that has left the battlefield does nothing.

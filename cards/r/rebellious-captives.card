@@ -1,0 +1,7 @@
+card "Rebellious Captives" {
+  oracle_id 70401db7-edbc-402f-98ef-be74bd316273
+  cost {1}{G}
+  type Creature — Human Peasant Ally
+  pt 2/2
+  exhaust {6}: put 2 +1/+1 counters on this, then earthbend 2
+}

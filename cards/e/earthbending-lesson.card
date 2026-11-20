@@ -1,0 +1,6 @@
+card "Earthbending Lesson" {
+  oracle_id 5e113f0f-4469-4276-82e1-0a804f3de444
+  cost {3}{G}
+  type Sorcery — Lesson
+  spell: earthbend 4
+}

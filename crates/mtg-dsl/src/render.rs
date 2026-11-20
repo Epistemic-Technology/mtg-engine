@@ -2724,7 +2724,8 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::DistributeCounters { count, .. }
         | Effect::AddManaTimes { count, .. }
         | Effect::AddManaCombination { count, .. }
-        | Effect::CreateToken { count, .. } => vec![*count],
+        | Effect::CreateToken { count, .. }
+        | Effect::Earthbend { count, .. } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
         Effect::Scry(n)
@@ -3427,6 +3428,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
         Effect::Monstrosity(n) => Clause::imperative(format!("monstrosity {}", digits(*n))),
+        Effect::Earthbend { count, .. } => {
+            Clause::imperative(format!("earthbend {}", digits(*count)))
+        }
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
         Effect::Incubate(n) => Clause::imperative(format!("incubate {}", digits(*n))),
@@ -6724,6 +6728,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 // Oracle names no "this creature or another" for a
                 // qualifier the source may lack.
                 || f.status.modified
+                // "Whenever a nonland creature you control dies" (Beifong's
+                // Bounty Hunters).
+                || f.not_types.contains(&CardType::Land)
             {
                 format!("whenever {} {dies}", trigger_filter_a(f, ctx.card))
             } else {

@@ -1159,6 +1159,10 @@ impl Decompiler<'_> {
             CoreEffect::Adapt(n) => Effect::Adapt(*n),
             CoreEffect::Bolster(n) => Effect::Bolster(*n),
             CoreEffect::Monstrosity(n) => Effect::Monstrosity(*n),
+            CoreEffect::Earthbend { count, to } => Effect::Earthbend {
+                count: *count,
+                to: r(*to),
+            },
             CoreEffect::Populate => Effect::Populate,
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
             CoreEffect::Fabricate { .. }
@@ -1420,6 +1424,7 @@ impl Decompiler<'_> {
             TriggerSpec::BlocksOrBlocked(o) => Trigger::BlocksOrBlocked(self.trigger_obj(o)),
             TriggerSpec::AttacksOrBlocks(o) => Trigger::AttacksOrBlocks(self.trigger_obj(o)),
             TriggerSpec::Leaves(o) => Trigger::Leaves(self.trigger_obj(o)),
+            TriggerSpec::DiesOrExiled(_) => unreachable!("earthbend's built-in delayed trigger"),
             TriggerSpec::Blocks(o) => Trigger::Blocks(self.trigger_obj(o)),
             TriggerSpec::BlockPair {
                 what,

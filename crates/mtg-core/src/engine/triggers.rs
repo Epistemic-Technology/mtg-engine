@@ -203,6 +203,7 @@ impl GameState {
                 TriggerSpec::BeginningOfStep { .. }
                     | TriggerSpec::Dies(TriggerObj::This)
                     | TriggerSpec::Leaves(TriggerObj::This)
+                    | TriggerSpec::DiesOrExiled(TriggerObj::This)
             ) {
                 continue;
             }
@@ -251,16 +252,26 @@ impl GameState {
         let mut i = 0;
         while i < self.delayed_triggers.len() {
             let dt = self.delayed_triggers[i];
+            let mut gone = false;
             let at = dt.ability.trigger_obj == Some(old)
                 && match self.pool.ability(dt.ability.ability) {
                     AbilityDef::Triggered(t) => match &t.trigger {
                         TriggerSpec::Dies(TriggerObj::This) => to == Zone::Graveyard,
                         TriggerSpec::Leaves(TriggerObj::This) => true,
+                        // CR 701.66a: to a graveyard or exile; leaving for
+                        // anywhere else, it is a new object that can never
+                        // trigger this (CR 400.7), so it goes too.
+                        TriggerSpec::DiesOrExiled(TriggerObj::This) => {
+                            gone = true;
+                            matches!(to, Zone::Graveyard | Zone::Exile)
+                        }
                         _ => false,
                     },
                     _ => false,
                 };
-            if at {
+            if gone && !at {
+                self.delayed_triggers.remove(i);
+            } else if at {
                 self.delayed_triggers.remove(i);
                 fired.push(PendingTrigger {
                     controller: dt.controller,

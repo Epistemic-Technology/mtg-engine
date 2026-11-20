@@ -1,0 +1,7 @@
+card "Haru, Hidden Talent" {
+  oracle_id 7488ce54-37c6-475c-b327-59f52f2b1424
+  cost {1}{G}
+  type Legendary Creature — Human Peasant Ally
+  pt 1/1
+  triggered whenever other Ally you control enters: earthbend 1
+}

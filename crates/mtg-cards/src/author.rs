@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 113] = [
+const TEMPLATED_TAGS: [&str; 114] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -179,6 +179,7 @@ const TEMPLATED_TAGS: [&str; 113] = [
     "Bolster",
     "Populate",
     "Incubate",
+    "Earthbend",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -1187,6 +1188,18 @@ impl Templates {
             (r(r"^Monstrosity (\d+|X)$"), |c, _| {
                 Some(format!("monstrosity {}", cap(c, 1)))
             }),
+            // CR 701.66a: earthbend declares its own target land.
+            (r(r"^[Ee]arthbend (\d+)$"), |c, _| {
+                Some(format!("earthbend {}", cap(c, 1)))
+            }),
+            (
+                r(r"^[Ee]arthbend X, where X is the number of (.+)$"),
+                |c, _| Some(format!("earthbend count where {}", count_expr(cap(c, 1))?)),
+            ),
+            (
+                r(r"^[Ee]arthbend X, where X is that creature's power$"),
+                |_, _| Some("earthbend count where power of that creature".to_string()),
+            ),
             (r(r"^[Bb]olster (\d+)$"), |c, _| {
                 Some(format!("bolster {}", cap(c, 1)))
             }),

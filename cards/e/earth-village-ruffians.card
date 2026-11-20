@@ -1,0 +1,7 @@
+card "Earth Village Ruffians" {
+  oracle_id 0380e99c-18f9-4472-8223-bb208e5f0963
+  cost {2}{B/G}
+  type Creature — Human Soldier Rogue
+  pt 3/1
+  triggered when this dies: earthbend 2
+}

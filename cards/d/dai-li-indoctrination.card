@@ -1,0 +1,9 @@
+card "Dai Li Indoctrination" {
+  oracle_id 5591efbc-1b2c-489a-b4f3-935c9b6bd71a
+  cost {1}{B}
+  type Sorcery — Lesson
+  choose one {
+    mode: target opponent reveals hand discarding nonland noninstant nonsorcery card
+    mode: earthbend 2
+  }
+}

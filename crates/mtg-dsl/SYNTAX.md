@@ -645,6 +645,14 @@ card to its controller and to whoever has looked at it.
 `detain target creature an opponent controls` (CR 701.35): until the
 controller's next turn the permanent can't attack or block and its
 activated abilities can't be activated.
+`earthbend 2` (CR 701.66), `earthbend count where Forest you control`
+("Earthbend X, where X is the number of Forests you control"): declares
+its own target, "target land you control", which becomes a 0/0 creature
+with haste in addition to its other types (indefinitely) and gets N +1/+1
+counters; a delayed trigger returns it to the battlefield tapped under the
+earthbender's control when it dies or is put into exile (leaving for any
+other zone ends it). Prints "Earthbend 2." In scenarios the land is the
+spell's or ability's target like any other.
 `spells red or white you cast cost {1} less` prints "Red spells and white
 spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
 spells". `defending player` as a subject prints "defending player".

@@ -1,0 +1,7 @@
+card "Beifong's Bounty Hunters" {
+  oracle_id 8561b088-56b3-4732-82e9-8da1e3affd55
+  cost {2}{B}{G}
+  type Creature — Human Mercenary
+  pt 4/4
+  triggered whenever nonland creature you control dies: earthbend count where power of that creature
+}

@@ -3046,6 +3046,12 @@ pub enum Effect {
     Bolster(Num),
     /// `monstrosity 3` (CR 701.37): "Monstrosity 3."
     Monstrosity(Num),
+    /// `earthbend 2` (CR 701.66): "Earthbend 2." `to` is the implicit
+    /// "target land you control" the parser declares.
+    Earthbend {
+        count: Num,
+        to: Recipient,
+    },
     /// `support 2` (CR 701.41a): a +1/+1 counter on each of up to N target
     /// creatures, other than the source in a triggered ability (support on
     /// a permanent); the recipients are those targets.

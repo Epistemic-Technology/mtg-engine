@@ -369,6 +369,10 @@ pub enum Builtin {
     /// this spell from among those cards without paying their mana costs.
     /// Put the rest on the bottom of your library."
     Ripple,
+    /// CR 701.66a: earthbend's "When that land dies or is put into exile,
+    /// return it to the battlefield tapped under your control." (a
+    /// delayed trigger about the land).
+    EarthbendReturn,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -3766,6 +3770,15 @@ pub enum Effect {
     /// control with the least toughness among creatures they control and
     /// puts N +1/+1 counters on it.
     Bolster(Num),
+    /// Earthbend N (CR 701.66a): the target land the controller controls
+    /// becomes a 0/0 creature with haste in addition to its other types
+    /// (indefinitely), gets N +1/+1 counters, and a delayed trigger
+    /// (`Builtin::EarthbendReturn`) returns it to the battlefield tapped
+    /// under the controller's control when it dies or is put into exile.
+    Earthbend {
+        count: Num,
+        to: Recipient,
+    },
     /// Populate (CR 701.36a): the controller chooses a creature token they
     /// control and creates a token that's a copy of it; with none, nothing
     /// happens (CR 701.36b).
@@ -4474,6 +4487,10 @@ pub enum TriggerSpec {
     AttacksOrBlocks(TriggerObj),
     /// "When this creature leaves the battlefield" (to any zone).
     Leaves(TriggerObj),
+    /// "When that land dies or is put into exile" (earthbend's delayed
+    /// trigger, CR 701.66a): leaves the battlefield for a graveyard or
+    /// exile. Delayed triggers only.
+    DiesOrExiled(TriggerObj),
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
     /// "Whenever ~ deals combat damage to a player or battle" (CR 310.6):
@@ -4740,6 +4757,7 @@ impl TriggerSpec {
             TriggerSpec::Enters(_)
             | TriggerSpec::Dies(_)
             | TriggerSpec::Leaves(_)
+            | TriggerSpec::DiesOrExiled(_)
             | TriggerSpec::EntersBatch(_)
             | TriggerSpec::LeavesBatch { .. }
             | TriggerSpec::LeavesGraveyard(_)
@@ -6482,7 +6500,7 @@ pub struct CardPool {
     /// Decayed's "When this creature attacks, sacrifice it at end of
     /// combat" (CR 702.147a).
     decayed: AbilityId,
-    builtins: [AbilityId; 11],
+    builtins: [AbilityId; 12],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -6563,7 +6581,7 @@ impl CardPool {
             evoke: AbilityId(0),
             exploit: AbilityId(0),
             decayed: AbilityId(0),
-            builtins: [AbilityId(0); 11],
+            builtins: [AbilityId(0); 12],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -6753,6 +6771,20 @@ impl CardPool {
                     },
                     Effect::CastExiled(ExileCast::Transformed),
                 ],
+            }));
+        pool.builtins[Builtin::EarthbendReturn as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::DiesOrExiled(TriggerObj::This),
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::ReturnToBattlefield {
+                    what: Recipient::TriggeringCard,
+                    counters: None,
+                    tapped: true,
+                    under_you: true,
+                    attached: None,
+                }],
             }));
         pool.builtins[Builtin::CleanupSacrifice as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {

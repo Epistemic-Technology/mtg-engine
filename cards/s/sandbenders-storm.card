@@ -1,0 +1,9 @@
+card "Sandbenders' Storm" {
+  oracle_id dfc8b8de-be1d-4f7f-bb21-4761a0e7db4e
+  cost {3}{W}
+  type Instant
+  choose one {
+    mode: destroy target creature with power 4 or greater
+    mode: earthbend 3
+  }
+}
