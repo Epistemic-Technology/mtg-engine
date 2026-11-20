@@ -1,0 +1,13 @@
+card "Skyclave Cleric // Skyclave Basilica" {
+  oracle_id da9e3910-9a1c-43a9-9138-ca971b2bccae
+  layout modal_dfc
+  cost {1}{W}
+  type Creature — Kor Cleric
+  pt 1/3
+  triggered when this enters: you gains 2 life
+  face "Skyclave Basilica" {
+    type Land
+    enters tapped
+    mana {W}
+  }
+}

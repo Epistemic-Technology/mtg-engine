@@ -1,0 +1,12 @@
+card "Vastwood Fortification // Vastwood Thicket" {
+  oracle_id ce148a0c-6c63-49d5-a156-99efae4e367a
+  layout modal_dfc
+  cost {G}
+  type Instant
+  spell: put 1 +1/+1 counters on target creature
+  face "Vastwood Thicket" {
+    type Land
+    enters tapped
+    mana {G}
+  }
+}

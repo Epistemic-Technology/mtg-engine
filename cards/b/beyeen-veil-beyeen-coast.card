@@ -1,0 +1,12 @@
+card "Beyeen Veil // Beyeen Coast" {
+  oracle_id b03de49d-246f-44e2-9487-9e4e43ec7be4
+  layout modal_dfc
+  cost {1}{U}
+  type Instant
+  spell: all creature your opponents control gets -2/-0
+  face "Beyeen Coast" {
+    type Land
+    enters tapped
+    mana {U}
+  }
+}

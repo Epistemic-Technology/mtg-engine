@@ -763,9 +763,10 @@ impl P {
                     "transform" => mtg_core::card::Layout::Transform,
                     "split" => mtg_core::card::Layout::Split,
                     "prepare" => mtg_core::card::Layout::Prepare,
+                    "modal_dfc" => mtg_core::card::Layout::ModalDfc,
                     w => {
                         return self.fail(format!(
-                            "unknown layout `{w}` (adventure, omen, transform, split, prepare)"
+                            "unknown layout `{w}` (adventure, omen, transform, split, prepare, modal_dfc)"
                         ));
                     }
                 };
@@ -1893,6 +1894,19 @@ impl P {
                 let f = self.filter()?;
                 self.end_stmt()?;
                 Ok(Ability::EntersAsCopy(f))
+            }
+            // "As this land enters, you may pay 3 life. If you don't, it
+            // enters tapped."
+            "enters" if self.at_words(&["enters", "tapped", "unless", "pay"]) => {
+                self.pos += 4;
+                let n = self.number()?;
+                self.expect_word("life")?;
+                self.end_stmt()?;
+                Ok(Ability::Replacement(Replacement {
+                    event: Replaces::Enters,
+                    outcome: Outcome::EnterTappedUnlessPay(n),
+                    then: Vec::new(),
+                }))
             }
             "enters" if self.at_words(&["enters", "tapped", "unless"]) => {
                 self.pos += 3;

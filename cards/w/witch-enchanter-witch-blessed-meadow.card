@@ -1,0 +1,13 @@
+card "Witch Enchanter // Witch-Blessed Meadow" {
+  oracle_id 0355249a-8e4e-41db-9cea-1b901faffbe6
+  layout modal_dfc
+  cost {3}{W}
+  type Creature — Human Warlock
+  pt 2/2
+  triggered when this enters: destroy target artifact or enchantment an opponent controls
+  face "Witch-Blessed Meadow" {
+    type Land
+    enters tapped unless pay 3 life
+    mana {W}
+  }
+}

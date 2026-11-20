@@ -1,0 +1,13 @@
+card "Akoum Warrior // Akoum Teeth" {
+  oracle_id afedce7b-0e18-40ad-a26a-1933fddb560d
+  layout modal_dfc
+  cost {5}{R}
+  type Creature — Minotaur Warrior
+  pt 4/5
+  keywords trample
+  face "Akoum Teeth" {
+    type Land
+    enters tapped
+    mana {R}
+  }
+}

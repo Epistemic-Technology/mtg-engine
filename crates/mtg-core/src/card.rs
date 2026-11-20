@@ -1864,7 +1864,9 @@ pub enum LibraryPlace {
 }
 
 /// A card's physical layout (CR 709 split, 712 double-faced, 715
-/// adventurer, 722 preparation). `Omen` is an adventurer whose spell is
+/// adventurer, 722 preparation). `ModalDfc`'s face is its back face (CR
+/// 712.3), which may be cast or played instead of the front (CR 712.11b,
+/// 712.12). `Omen` is an adventurer whose spell is
 /// shuffled into its owner's library as it resolves instead of exiled.
 /// `Prepare`'s face is its prepare spell (CR 722.2a): never cast itself,
 /// only copies of it while the permanent is prepared (CR 722.3).
@@ -1877,6 +1879,7 @@ pub enum Layout {
     Transform,
     Split,
     Prepare,
+    ModalDfc,
 }
 
 /// A restriction on how this creature blocks or is blocked.
@@ -4334,6 +4337,9 @@ pub enum Replacement {
     EnterTapped,
     /// "This creature enters prepared." (CR 722.3a).
     EnterPrepared,
+    /// "As this land enters, you may pay 3 life. If you don't, it enters
+    /// tapped." (CR 614.12, 119.4): its controller is asked as it enters.
+    EnterTappedUnlessPay(u32),
     /// Enters tapped unless the pool's `n`th condition holds for its
     /// controller ("unless you control a planeswalker", CR 614.1d).
     EnterTappedUnless(u16),
@@ -5492,7 +5498,8 @@ impl AbilityDef {
             self,
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: Replacement::EnterWithCountersMay { .. }
-                    | Replacement::EnterWithCounterChoice { .. },
+                    | Replacement::EnterWithCounterChoice { .. }
+                    | Replacement::EnterTappedUnlessPay(_),
                 ..
             })
         )

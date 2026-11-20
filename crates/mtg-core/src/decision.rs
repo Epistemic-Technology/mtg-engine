@@ -388,8 +388,13 @@ impl Choice {
                     .objects
                     .get(*card)
                     .and_then(|o| state.pool.get(o.def).faces.get(*face as usize))
-                    .map_or("?", |f| state.pool.get(*f).name.as_str());
-                format!("cast {name}")
+                    .map(|f| state.pool.get(*f));
+                match name {
+                    // A modal double-faced card's land face (CR 712.12).
+                    Some(f) if f.is_land() => format!("play {}", f.name),
+                    Some(f) => format!("cast {}", f.name),
+                    None => "cast ?".to_string(),
+                }
             }
             Choice::AttackTarget(t) => format!("attack {}", target(t)),
             Choice::Sacrifice(id) => format!("sacrifice {}", name(id)),

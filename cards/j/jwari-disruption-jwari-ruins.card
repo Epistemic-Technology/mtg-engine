@@ -1,0 +1,12 @@
+card "Jwari Disruption // Jwari Ruins" {
+  oracle_id 941a4b14-ea2a-4bd0-8cc2-d609f80df32c
+  layout modal_dfc
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {1}
+  face "Jwari Ruins" {
+    type Land
+    enters tapped
+    mana {U}
+  }
+}

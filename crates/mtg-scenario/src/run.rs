@@ -1078,17 +1078,17 @@ impl Runner {
             }
             let (name, option, targets, mode, costs) = match &a.action {
                 Action::Play(name) => {
-                    let id = match self.playable_in_exile(d.player, name, true) {
-                        Some(id) if self.in_hand(a.line, d.player, name).is_err() => id,
-                        _ => self.in_hand(a.line, d.player, name)?,
+                    // `play "Murkwater Pathway"`: a modal double-faced
+                    // card's back face (CR 712.12).
+                    let choice = if let Some(c) = self.face_in_hand(d.player, name) {
+                        c
+                    } else {
+                        Choice::PlayLand(match self.playable_in_exile(d.player, name, true) {
+                            Some(id) if self.in_hand(a.line, d.player, name).is_err() => id,
+                            _ => self.in_hand(a.line, d.player, name)?,
+                        })
                     };
-                    (
-                        name,
-                        Choice::PlayLand(id),
-                        None,
-                        None,
-                        (None, None, None, false),
-                    )
+                    (name, choice, None, None, (None, None, None, false))
                 }
                 Action::Cast {
                     name,

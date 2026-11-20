@@ -1,0 +1,10 @@
+card "Cragcrown Pathway // Timbercrown Pathway" {
+  oracle_id 727ca426-f4cc-4218-8ae5-8c427af2e816
+  layout modal_dfc
+  type Land
+  mana {R}
+  face "Timbercrown Pathway" {
+    type Land
+    mana {G}
+  }
+}

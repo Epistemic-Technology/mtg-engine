@@ -1,0 +1,10 @@
+card "Brightclimb Pathway // Grimclimb Pathway" {
+  oracle_id 1c633e02-95ef-445e-b4e0-fbfbc5ed9cc9
+  layout modal_dfc
+  type Land
+  mana {W}
+  face "Grimclimb Pathway" {
+    type Land
+    mana {B}
+  }
+}

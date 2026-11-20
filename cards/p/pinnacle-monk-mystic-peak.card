@@ -1,0 +1,14 @@
+card "Pinnacle Monk // Mystic Peak" {
+  oracle_id f3d48efa-910a-4872-a5b1-a353c5dbce99
+  layout modal_dfc
+  cost {3}{R}{R}
+  type Creature — Djinn Monk
+  pt 2/2
+  keywords prowess
+  triggered when this enters: return target instant or sorcery card from your graveyard to hand
+  face "Mystic Peak" {
+    type Land
+    enters tapped unless pay 3 life
+    mana {R}
+  }
+}

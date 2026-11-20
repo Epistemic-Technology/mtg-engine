@@ -1020,6 +1020,38 @@ impl GameState {
                 })
             }
             (
+                Replacement::EnterTappedUnlessPay(life),
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => {
+                // CR 119.4: only a player with that much life can pay it.
+                let def = self.objects[obj].def;
+                let paid = self.player(controller).life >= i32::try_from(life).unwrap_or(i32::MAX)
+                    && self.choose_mid(
+                        controller,
+                        DecisionKind::YouMay { def },
+                        vec![Choice::Accept, Choice::Decline],
+                    ) == 0;
+                if paid {
+                    self.change_life(controller, -i32::try_from(life).unwrap_or(i32::MAX));
+                }
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter: Enter {
+                        tapped: enter.tapped || !paid,
+                        ..enter
+                    },
+                })
+            }
+            (
                 Replacement::EnterPrepared,
                 Proposed::ZoneChange {
                     obj,

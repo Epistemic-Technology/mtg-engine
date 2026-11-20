@@ -1,0 +1,10 @@
+card "Hengegate Pathway // Mistgate Pathway" {
+  oracle_id 461b3f2f-fcee-4160-abfa-061f8b6a784f
+  layout modal_dfc
+  type Land
+  mana {W}
+  face "Mistgate Pathway" {
+    type Land
+    mana {U}
+  }
+}

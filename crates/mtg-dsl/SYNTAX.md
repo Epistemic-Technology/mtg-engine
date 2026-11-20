@@ -44,7 +44,8 @@ ability prints its abilities after the sentence ("... token. It has
 
 A split card, adventurer, omen, or double-faced card is one block named as
 Scryfall names it (`card "Curious Pair // Treats to Share"`) with a
-`layout` line (`adventure`, `omen`, `transform`, `split`, `prepare`) and a `face
+`layout` line (`adventure`, `omen`, `transform`, `split`, `prepare`,
+`modal_dfc`) and a `face
 "Name" { ... }` block per other face, holding that face's header and
 ability lines. The block's own lines are the front face (a split card's
 block has none: both halves are faces). The gate compares each face with
@@ -60,7 +61,12 @@ creature enters prepared."; the effect `this becomes prepared`, "this
 creature becomes prepared", CR 722.3a; the trigger condition `if this
 isn't prepared`) its controller may cast a copy of the spell, with the
 spell's timing and costs, which unprepares it (CR 722.3c). The copy ceases
-to exist as it leaves the stack.
+to exist as it leaves the stack. A modal double-faced card (`layout
+modal_dfc`, CR 712.3) has its back face as its face: from the hand (or
+wherever it may be played) either face may be cast, or played if it is a
+land (CR 712.11b, 712.12), and the permanent has the face it was cast or
+played as; anywhere else it is its front face. `transform this` turns it
+to its other face as well.
 
 ## Header
 
@@ -100,6 +106,7 @@ to exist as it leaves the stack.
 | `spell: <effects>` | What an instant or sorcery does on resolution. |
 | `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. `choose one or both { ... }` takes two modes, either or both ("Choose one or both —"). As a triggered ability's effect (`triggered when this enters: choose one { ... }`) the mode is chosen as the ability goes on the stack (CR 603.3c), each mode with its own targets. `choose two { ... }` (three or four unnamed modes) chooses two different modes (CR 700.2d; "Choose two —"). A named mode, `mode "Smash the Chest": destroy target artifact`, prints its name first ("• Smash the Chest — Destroy target artifact."); the name has no rules meaning. |
 | `enters tapped unless you control planeswalker`, `enters tapped unless player life 13 or less` | "This land enters tapped unless ..." with a static condition (CR 614.1d). |
+| `enters tapped unless pay 3 life` | "As this land enters, you may pay 3 life. If you don't, it enters tapped." (CR 614.12; only with that much life, CR 119.4). |
 | `can't attack unless defending player controls Island`, `can't block unless you control other Goblin`, `can't attack or block unless ...` | Attack and block restrictions with a condition (CR 508.1c, 509.1c). Conditions only these use: `defending player poisoned` ("defending player is poisoned"), `on battlefield Mountain` / `on battlefield 5 Island` ("there is a Mountain on the battlefield", "there are five or more Islands on the battlefield"), `you control more creatures than defending player` (or `attacking player`), and, judged on the whole declaration, `at least 2 other creatures attack` (or `block`) and `black or green creature also attacks` ("a black or green creature also attacks"): a creature whose condition the declared attackers (blockers) don't meet can't be among them. `opponent damaged this turn` prints "an opponent has been dealt damage this turn" here. `can't attack if defending player controls untapped land` (`if`: the restriction applies while the condition holds: "This creature can't attack if ..."); `can't attack if creature also attacks` prints "can only attack alone" (granted: "Enchanted creature ... can only attack alone."). `attacked last turn` ("it attacked during your last turn": the source was declared as an attacker during its controller's most recent turn) also works in `static this: has doesn't untap if attacked last turn`. `defending player controls no Glimmer creature` prints "controls no Glimmer creatures". A condition's alternative written with its own article (`you control Knight or a Soldier`) prints it ("a Knight or a Soldier"). |
 | `activated <cost>: <effects>` | An activated ability (CR 602). With {X} in its cost (`activated {X}, sacrifice this: destroy target artifact with mana value X`), X is announced as it is activated, before targets (CR 602.2b, 601.2b), only as high as can be paid and some target fits; the effects read it. A mana ability's X is not asked. |
 | `boast {1}{W}: <effects>`, `exhaust {3}: <effects>`, `power-up {5}{R}: <effects>` | An activated ability after a keyword, printed "Boast — {1}{W}: ..." (the keyword's rules are reminder text). Boast (CR 702.142): only if this creature was declared as an attacker this turn, and only once each turn. Exhaust (CR 702.177) and power-up (CR 702.193): only once for the object (a new object after a zone change may again, CR 400.7); a power-up ability of a permanent that entered this turn costs its mana cost less (colored mana reduces that color, any excess generic; CR 118.7). |

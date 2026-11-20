@@ -1,0 +1,12 @@
+card "Revitalizing Repast // Old-Growth Grove" {
+  oracle_id 8dd6d060-d023-48a6-85cb-7a5521b6257b
+  layout modal_dfc
+  cost {B/G}
+  type Instant
+  spell: put 1 +1/+1 counters on target creature; target 1 gains indestructible
+  face "Old-Growth Grove" {
+    type Land
+    enters tapped
+    mana {B} or {G}
+  }
+}

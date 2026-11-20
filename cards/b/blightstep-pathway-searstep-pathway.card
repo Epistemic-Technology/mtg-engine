@@ -1,0 +1,10 @@
+card "Blightstep Pathway // Searstep Pathway" {
+  oracle_id e580a229-e800-4746-9d37-c32fcef8de28
+  layout modal_dfc
+  type Land
+  mana {B}
+  face "Searstep Pathway" {
+    type Land
+    mana {R}
+  }
+}

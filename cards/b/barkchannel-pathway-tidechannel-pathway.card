@@ -1,0 +1,10 @@
+card "Barkchannel Pathway // Tidechannel Pathway" {
+  oracle_id 59d22de5-e310-44d7-89cf-ef3529e40cef
+  layout modal_dfc
+  type Land
+  mana {G}
+  face "Tidechannel Pathway" {
+    type Land
+    mana {U}
+  }
+}

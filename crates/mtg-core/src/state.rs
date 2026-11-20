@@ -2006,6 +2006,18 @@ impl GameState {
                     || (replacers >= 1 && d.modifies_entering())
                     || d.flags().has_enters_choice()
             }),
+            // A modal double-faced card's land face (CR 712.12).
+            Some(crate::decision::Choice::CastFace { card, face }) => self
+                .objects
+                .get(*card)
+                .and_then(|o| self.pool.get(o.def).faces.get(usize::from(*face)))
+                .is_some_and(|f| {
+                    let d = self.pool.get(*f);
+                    d.is_land()
+                        && ((self.legendary_count >= 1 && d.is_legendary())
+                            || (replacers >= 1 && d.modifies_entering())
+                            || d.flags().has_enters_choice())
+                }),
             // A mana ability resolves as it is activated and may ask for a
             // color (CR 605.3).
             Some(crate::decision::Choice::Activate { ability, .. }) => {

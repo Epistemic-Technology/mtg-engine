@@ -166,9 +166,13 @@ pub fn add_card(
         pool.alias(&card.name, r);
         // CR 709.5: a Room's locked and unlocked states.
         pool.add_room_doors(r);
-        // A double-faced card's back face turns back into the front.
-        if card.layout == mtg_core::card::Layout::Transform {
-            pool.set_faces(faces[0], mtg_core::card::Layout::Transform, vec![r]);
+        // A double-faced card's back face turns back into the front (a
+        // modal one's too, CR 712.3).
+        if matches!(
+            card.layout,
+            mtg_core::card::Layout::Transform | mtg_core::card::Layout::ModalDfc
+        ) {
+            pool.set_faces(faces[0], card.layout, vec![r]);
         }
     }
     if let Some(display) = &card.display_name {
@@ -4143,6 +4147,10 @@ pub fn split_mana(card: &mut Card) {
         }
     }
     card.abilities = out;
+    // A face's own ("Old-Growth Grove": "{T}: Add {B} or {G}.").
+    for f in &mut card.faces {
+        split_mana(f);
+    }
 }
 
 impl From<Mana> for Ability {

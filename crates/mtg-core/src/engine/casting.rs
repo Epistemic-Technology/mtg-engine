@@ -70,6 +70,21 @@ impl GameState {
                     }
                 }
             }
+            // CR 712.11b, 712.12: a modal double-faced card's back face is
+            // played or cast instead.
+            if def.layout == Layout::ModalDfc
+                && let Some(&back) = def.faces.first()
+            {
+                self.back_face_option(
+                    p,
+                    *id,
+                    back,
+                    sorcery_timing,
+                    &sources,
+                    &changers,
+                    &mut options,
+                );
+            }
             if def.is_land() {
                 if sorcery_timing && ps.lands_played_this_turn < 1 {
                     options.push(Choice::PlayLand(*id));
@@ -235,6 +250,23 @@ impl GameState {
                     continue;
                 }
                 let def = self.pool.get(o.def);
+                if def.layout == Layout::ModalDfc
+                    && let Some(&back) = def.faces.first()
+                    && !options.contains(&Choice::CastFace {
+                        card: pe.card,
+                        face: 0,
+                    })
+                {
+                    self.back_face_option(
+                        p,
+                        pe.card,
+                        back,
+                        sorcery_timing,
+                        &sources,
+                        &changers,
+                        &mut options,
+                    );
+                }
                 if def.is_land() {
                     if sorcery_timing
                         && ps.lands_played_this_turn < 1
@@ -408,6 +440,7 @@ impl GameState {
         };
         options.retain(|c| match c {
             Choice::PlayLand(_) => !lands,
+            Choice::CastFace { card, face } if self.land_face(*card, *face).is_some() => !lands,
             Choice::Cast(id)
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
@@ -1562,6 +1595,48 @@ impl GameState {
         let less = self.turn_log.face_down_less[p.index().min(3)];
         req.generic = req.generic.saturating_sub(less.into());
         req
+    }
+
+    /// CR 712.11b, 712.12: a modal double-faced card's back face, played
+    /// as a land with the land play's timing and allowance, or cast as a
+    /// spell judged by that face alone (CR 712.11c).
+    #[allow(clippy::too_many_arguments)]
+    fn back_face_option(
+        &self,
+        p: PlayerId,
+        id: ObjId,
+        back: crate::card::CardRef,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+        options: &mut Vec<Choice>,
+    ) {
+        let face = self.pool.get(back);
+        let ps = self.player(p);
+        let ok = if face.is_land() {
+            sorcery_timing && ps.lands_played_this_turn < 1
+        } else {
+            self.castable(
+                p,
+                face,
+                id,
+                sorcery_timing,
+                sources,
+                &ps.mana_pool,
+                changers,
+            )
+        };
+        if ok {
+            options.push(Choice::CastFace { card: id, face: 0 });
+        }
+    }
+
+    /// The land face a `CastFace` choice plays (a modal double-faced
+    /// card's, CR 712.12), if it is one.
+    pub(crate) fn land_face(&self, card: ObjId, face: u8) -> Option<crate::card::CardRef> {
+        let o = self.objects.get(card)?;
+        let f = *self.pool.get(o.def).faces.get(usize::from(face))?;
+        (o.zone != Zone::Battlefield && self.pool.get(f).is_land()).then_some(f)
     }
 
     /// Whether `def` has a prepare spell (CR 722.2a).
@@ -6711,8 +6786,9 @@ impl GameState {
                     if o.zone != Zone::Battlefield {
                         continue;
                     }
+                    // CR 712.3: a modal double-faced card may transform too.
                     let d = self.pool.get(o.def);
-                    if d.layout != Layout::Transform {
+                    if !matches!(d.layout, Layout::Transform | Layout::ModalDfc) {
                         continue;
                     }
                     let Some(other) = d.faces.first().copied() else {

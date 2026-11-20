@@ -1,0 +1,12 @@
+card "Bala Ged Recovery // Bala Ged Sanctuary" {
+  oracle_id d2075f58-b0e9-4e85-b7e6-0523a27a1d5b
+  layout modal_dfc
+  cost {2}{G}
+  type Sorcery
+  spell: return target card from your graveyard to hand
+  face "Bala Ged Sanctuary" {
+    type Land
+    enters tapped
+    mana {G}
+  }
+}

@@ -1,0 +1,12 @@
+card "Khalni Ambush // Khalni Territory" {
+  oracle_id 37a55560-6e32-4f54-b9a8-fd157aea6eb5
+  layout modal_dfc
+  cost {2}{G}
+  type Instant
+  spell: target creature you control fights target creature you don't control
+  face "Khalni Territory" {
+    type Land
+    enters tapped
+    mana {G}
+  }
+}

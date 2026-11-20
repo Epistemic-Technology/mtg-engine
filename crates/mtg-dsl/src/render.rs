@@ -7577,6 +7577,10 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         (Replaces::Enters, Outcome::EnterTapped) => {
             format!("{} enters tapped.", capitalize(&this_ref(ctx.card)))
         }
+        (Replaces::Enters, Outcome::EnterTappedUnlessPay(n)) => format!(
+            "As {} enters, you may pay {n} life. If you don't, it enters tapped.",
+            this_ref(ctx.card)
+        ),
         (Replaces::Enters, Outcome::EnterPrepared) => {
             format!("{} enters prepared.", capitalize(&this_ref(ctx.card)))
         }

@@ -1,0 +1,16 @@
+card "Monica Rambeau // Photon, Living Light" {
+  oracle_id 8dd929cb-0fe1-4cb3-bc8d-96ca37f194f3
+  layout modal_dfc
+  cost {2}{W}
+  type Legendary Creature — Human Hero
+  pt 3/3
+  keywords flying, prowess
+  activated {2}{R}{W}{W}, sorcery: transform this
+  face "Photon, Living Light" {
+    cost {2}{R}{W}{W}
+    type Legendary Creature — Elemental Hero
+    pt 4/4
+    keywords flying, hexproof, prowess
+    triggered whenever you cast a noncreature spell: put 1 +1/+1 counters on each other creature you control
+  }
+}

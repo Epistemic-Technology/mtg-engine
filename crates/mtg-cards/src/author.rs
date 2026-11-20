@@ -1117,7 +1117,7 @@ impl Templates {
                 ))
             }),
             (
-                r(r"^[Tt]ransform (this creature|this artifact|this permanent|it)$"),
+                r(r"^[Tt]ransform (this creature|this artifact|this permanent|it|~)$"),
                 |_, _| Some("transform this".to_string()),
             ),
             (
@@ -2831,6 +2831,16 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
+        if let Some(c) = Regex::new(
+            r"^As this land enters, you may pay (\d+) life\. If you don't, it enters tapped\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            self.statements
+                .push(format!("enters tapped unless pay {} life", cap(&c, 1)));
+            return Ok(());
+        }
         if line == "This creature enters prepared." || line == "~ enters prepared." {
             self.statements.push("enters prepared".to_string());
             return Ok(());
@@ -3124,6 +3134,7 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         "adventure" => "adventure",
         "transform" => "transform",
         "prepare" => "prepare",
+        "modal_dfc" => "modal_dfc",
         _ => {
             if faces
                 .iter()
@@ -3191,7 +3202,7 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
 pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if matches!(
         s.layout.as_str(),
-        "adventure" | "transform" | "split" | "prepare"
+        "adventure" | "transform" | "split" | "prepare" | "modal_dfc"
     ) && s.card_faces.len() == 2
     {
         return author_faces(s, corpus);

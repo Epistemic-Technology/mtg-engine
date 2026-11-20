@@ -42,6 +42,9 @@ fn format_inner(card: &Card) -> String {
     }
     match card.layout {
         mtg_core::card::Layout::Normal => {}
+        mtg_core::card::Layout::ModalDfc => {
+            let _ = writeln!(out, "  layout modal_dfc");
+        }
         l => {
             let _ = writeln!(out, "  layout {}", format!("{l:?}").to_lowercase());
         }
@@ -2354,6 +2357,7 @@ fn outcome(o: &Outcome) -> String {
         }
         Outcome::EnterTapped => "tapped".to_string(),
         Outcome::EnterPrepared => "prepared".to_string(),
+        Outcome::EnterTappedUnlessPay(n) => format!("tapped unless pay {n} life"),
         Outcome::EnterWithCounters { kind, n } => {
             format!("with {} {}", num(*n), counter(*kind, *n))
         }

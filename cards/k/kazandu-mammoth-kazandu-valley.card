@@ -1,0 +1,13 @@
+card "Kazandu Mammoth // Kazandu Valley" {
+  oracle_id 2ac1c95c-2a9d-40bc-9cad-9cadfa3f19f7
+  layout modal_dfc
+  cost {1}{G}{G}
+  type Creature — Elephant
+  pt 3/3
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+  face "Kazandu Valley" {
+    type Land
+    enters tapped
+    mana {G}
+  }
+}

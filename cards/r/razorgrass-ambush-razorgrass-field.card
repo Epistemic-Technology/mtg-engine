@@ -1,0 +1,12 @@
+card "Razorgrass Ambush // Razorgrass Field" {
+  oracle_id 5da954fa-9001-4557-825c-1462035d21ed
+  layout modal_dfc
+  cost {1}{W}
+  type Instant
+  spell: deal 3 damage to target attacking or blocking creature
+  face "Razorgrass Field" {
+    type Land
+    enters tapped unless pay 3 life
+    mana {W}
+  }
+}

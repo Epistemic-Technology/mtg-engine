@@ -1664,6 +1664,19 @@ impl GameState {
             {
                 self.cast_prepared(player, card);
             }
+            (Flow::Priority, Choice::CastFace { card, face })
+                if self.land_face(card, face).is_some() =>
+            {
+                // CR 712.12: a modal double-faced card played as its back
+                // face enters with that face up.
+                self.consecutive_passes = 0;
+                if let Some(f) = self.land_face(card, face) {
+                    self.objects[card].def = f;
+                }
+                let new = self.move_object(card, Zone::Battlefield, true);
+                self.player_mut(player).lands_played_this_turn += 1;
+                self.emit(Event::LandPlayed { player, land: new });
+            }
             (Flow::Priority, Choice::CastFace { card, face }) => {
                 self.consecutive_passes = 0;
                 let main = self.pool.get(self.objects[card].def);
