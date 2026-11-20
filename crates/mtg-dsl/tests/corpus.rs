@@ -80,6 +80,11 @@ fn format_parse_compile_round_trips() {
         assert_eq!(again.len(), 1);
         let mut again = again.remove(0);
         again.line = card.line;
+        // A line the formatter splits ("mana {G} or {U}") moves the faces
+        // after it; line numbers are not part of the round trip.
+        for (f, g) in again.faces.iter_mut().zip(&card.faces) {
+            f.line = g.line;
+        }
         compile::split_mana(&mut again);
         assert_eq!(&again, card, "{}:\n{text}", card.name);
         reparsed.push(again);

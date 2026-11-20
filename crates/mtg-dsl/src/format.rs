@@ -1892,6 +1892,10 @@ impl Fmt {
                     ChooseAct::HandToBottom => {
                         format!("put {n} {f} {cs} from hand on bottom of library chosen")
                     }
+                    // "exile eight cards from your graveyard": no filter.
+                    ChooseAct::ExileFromGraveyard if unfiltered => {
+                        format!("exile {n} {cs} from your graveyard chosen")
+                    }
                     ChooseAct::ExileFromGraveyard => {
                         format!("exile {n} {f} {cs} from your graveyard chosen")
                     }
