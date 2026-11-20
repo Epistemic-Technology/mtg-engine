@@ -1,0 +1,7 @@
+card "Fire Nation Attacks" {
+  oracle_id 399fba23-fc13-440b-ab67-192eede6ecab
+  cost {4}{R}
+  type Instant
+  spell: create 2 "2/2 red Soldier creature with firebending 1"
+  flashback {8}{R}
+}

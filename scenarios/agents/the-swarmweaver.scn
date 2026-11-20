@@ -1,0 +1,22 @@
+scenario "enters with two 1/1 flying Insects" {
+  battlefield A: 2 "Swamp", 2 "Forest"
+  hand A: "The Swarmweaver"
+  turn 1 A: cast "The Swarmweaver"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Insect"
+  assert power newest A "Insect" 1
+  assert has newest A "Insect" flying
+  assert has not newest A "Insect" deathtouch
+}
+
+scenario "delirium: Insects get +1/+1 and deathtouch" {
+  battlefield A: 2 "Swamp", 2 "Forest"
+  graveyard A: "Forest", "Grizzly Bears", "Lightning Bolt", "Divination"
+  hand A: "The Swarmweaver"
+  turn 1 A: cast "The Swarmweaver"
+  run_to turn 1 postcombat_main
+  assert power newest A "Insect" 2
+  assert has newest A "Insect" deathtouch
+  assert has not "The Swarmweaver" deathtouch
+  assert power "The Swarmweaver" 2
+}

@@ -1,0 +1,6 @@
+card "Training Compound" {
+  oracle_id 99c70f4e-de8a-426d-99aa-17b2f87625ba
+  type Land
+  mana {C}
+  activated {T}, if this is that entered this turn or if you control basic land: add {R} or {G}
+}

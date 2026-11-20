@@ -1,0 +1,6 @@
+card "Break the Spell" {
+  oracle_id b9d51e07-851f-4b7b-bffe-7c1efff0714c
+  cost {W}
+  type Instant
+  spell: destroy target enchantment; if a permanent you control or a token was destroyed this way, draw 1 card
+}

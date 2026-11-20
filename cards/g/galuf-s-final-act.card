@@ -1,0 +1,6 @@
+card "Galuf's Final Act" {
+  oracle_id 9268d369-173e-4325-98f6-348beeb8ba62
+  cost {1}{G}
+  type Instant
+  spell: until end of turn, target creature gets +1/+0 and gains ability { triggered when this dies: put +1/+1 counters equal power on up to 1 target creature }
+}

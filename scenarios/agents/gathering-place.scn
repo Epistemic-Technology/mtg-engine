@@ -1,0 +1,24 @@
+scenario "the turn it enters, it taps for {G}" {
+  battlefield A: "Grizzly Bears"
+  hand A: "Gathering Place", "Giant Growth"
+  turn 1 A: play "Gathering Place"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+}
+
+scenario "later, without a basic land, only {C}" {
+  battlefield A: "Gathering Place", "Grizzly Bears"
+  hand A: "Giant Growth"
+  illegal turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "with a basic land, it taps for {G}" {
+  battlefield A: "Gathering Place", "Plains", "Grizzly Bears"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+}

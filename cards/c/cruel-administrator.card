@@ -1,0 +1,8 @@
+card "Cruel Administrator" {
+  oracle_id 24a691f3-88dc-47a5-b5cd-e02bb8026470
+  cost {3}{B}{R}
+  type Creature — Human Soldier
+  pt 5/4
+  label "Raid" enters with 1 +1/+1 counter if attacked this turn
+  triggered whenever this attacks: create 1 "2/2 red Soldier creature with firebending 1"
+}

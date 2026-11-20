@@ -1,0 +1,18 @@
+scenario "creates two 2/2 red Soldiers" {
+  battlefield A: 5 "Mountain"
+  hand A: "Fire Nation Attacks"
+  turn 1 A: cast "Fire Nation Attacks"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+  assert power newest A "Soldier" 2
+  assert graveyard A contains "Fire Nation Attacks"
+}
+
+scenario "flashback from the graveyard for {8}{R}" {
+  battlefield A: 9 "Mountain"
+  graveyard A: "Fire Nation Attacks"
+  turn 1 A: cast "Fire Nation Attacks" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+  assert exile A contains "Fire Nation Attacks"
+}

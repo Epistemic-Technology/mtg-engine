@@ -1,0 +1,6 @@
+card "Map the Frontier" {
+  oracle_id 11a46cb6-ab01-4630-9541-782db2ef3b91
+  cost {3}{G}
+  type Sorcery
+  spell: search up to 2 basic land card or Desert card to battlefield tapped
+}

@@ -119,10 +119,28 @@ impl Work<'_> {
                 let c = &self.chars[self.index[id]];
                 affectable
                     && filter.matches(*id, self.controller_of(*id), c, source, controller)
-                    && self.state.status_ok(&rest, *id)
+                    && self.status_ok_working(&rest, *id, c)
                     && (!attached || self.attached_ok(filter, *id))
             })
             .collect()
+    }
+
+    /// `GameState::status_ok` for a filter with alternatives, each side
+    /// matched against the working characteristics (`status_ok` itself
+    /// would ask for the characteristics being built, and recurse):
+    /// "Insects and Spiders you control get +1/+1".
+    fn status_ok_working(&self, f: &ObjFilter, id: ObjId, c: &Characteristics) -> bool {
+        let Some(alt) = &f.or else {
+            return self.state.status_ok(f, id);
+        };
+        let base = ObjFilter {
+            or: None,
+            ..f.clone()
+        };
+        let side = |g: &ObjFilter| {
+            g.matches(id, self.controller_of(id), c, None, None) && self.status_ok_working(g, id, c)
+        };
+        side(&base) || side(alt)
     }
 
     /// `status.enchanted` and `status.equipped` for `id`, from the working

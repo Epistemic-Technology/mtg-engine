@@ -665,6 +665,12 @@ impl GameState {
     fn apply_replacement(&mut self, c: &Candidate, ev: Proposed) -> Outcome {
         let unpreventable = self.rule_in_force(RuleKind::DamageCantBePrevented)
             || self.this_way.as_ref().is_some_and(|l| l.unpreventable);
+        // "Prevent that damage and each opponent mills that many cards":
+        // the replaced event's damage is the follow-up's "that much".
+        let that_much = match &ev {
+            Proposed::Damage { amount, .. } => *amount,
+            _ => 0,
+        };
         let outcome = match (c.ability.replacement, ev) {
             (
                 Replacement::Prevent,
@@ -1228,7 +1234,7 @@ impl GameState {
                 legal: Vec::new(),
                 trigger_obj: None,
                 trigger_player: None,
-                trigger_amount: 0,
+                trigger_amount: that_much,
                 created: None,
                 revealed: Vec::new(),
                 x: 0,

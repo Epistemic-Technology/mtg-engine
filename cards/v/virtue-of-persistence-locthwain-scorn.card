@@ -1,0 +1,12 @@
+card "Virtue of Persistence // Locthwain Scorn" {
+  oracle_id fae36da0-bf9c-484f-b2fe-dd8ab2effc5c
+  layout adventure
+  cost {5}{B}{B}
+  type Enchantment
+  triggered at beginning of your upkeep: return target creature card from a graveyard to battlefield under your control
+  face "Locthwain Scorn" {
+    cost {1}{B}
+    type Sorcery — Adventure
+    spell: target creature gets -3/-3 until end of turn; you gain 2 life
+  }
+}

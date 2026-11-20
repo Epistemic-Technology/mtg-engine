@@ -2169,6 +2169,11 @@ impl P {
                     then: Vec::new(),
                 }))
             }
+            "enters" if self.at_words(&["enters", "tapped", "if", "not", "your", "turn"]) => {
+                self.pos += 6;
+                self.end_stmt()?;
+                Ok(Ability::EntersTappedIfNotYourTurn)
+            }
             "enters" if self.at_words(&["enters", "tapped", "unless"]) => {
                 self.pos += 3;
                 let c = self.static_cond()?;
@@ -5011,10 +5016,12 @@ impl P {
                 } else {
                     self.expect_words(&["they", "control"])?;
                 }
+                let graveyard = self.eat_words(&["and", "their", "graveyard"]);
                 Ok(Effect::ExileChosen {
                     who: subject,
                     count,
                     filter,
+                    graveyard,
                 })
             }
             "fights" => {
@@ -5836,6 +5843,38 @@ impl P {
         self.eat_words(&["until", "end", "of", "turn"]);
     }
 
+    /// After `return <what> to` or `put <what> onto`: `battlefield
+    /// [tapped] [under your control] [with 1 +1/+1 counter] [attached to
+    /// <what>]`.
+    fn battlefield_tail(&mut self, what: Recipient, put: bool) -> R<Effect> {
+        self.eat_word("the");
+        self.expect_word("battlefield")?;
+        let tapped = self.eat_word("tapped");
+        self.eat_words(&["under", "its", "owner's", "control"]);
+        let under_you = self.eat_words(&["under", "your", "control"]);
+        let counters = if self.eat_word("with") {
+            let n = self.count()?;
+            let kind = self.counter_kind()?;
+            self.eat_words(&["on", "it"]);
+            Some((kind, n))
+        } else {
+            None
+        };
+        let attached = if self.eat_words(&["attached", "to"]) {
+            Some(self.recipient()?)
+        } else {
+            None
+        };
+        Ok(Effect::ReturnToBattlefield {
+            what,
+            counters,
+            tapped,
+            under_you,
+            attached,
+            put,
+        })
+    }
+
     #[allow(clippy::too_many_lines)]
     fn verb_first(&mut self) -> R<Effect> {
         if self.chosen_act_ahead() {
@@ -6007,6 +6046,27 @@ impl P {
                     count,
                 })
             }
+            // `put +1/+1 counters equal <expr> on <what>`: "put a number
+            // of +1/+1 counters equal to ... on <what>", the amount before
+            // the recipient.
+            "put"
+                if matches!(
+                    self.peek(),
+                    Some(Tok::Pt { signed: true, .. } | Tok::Word(_))
+                ) && self.word_at(1).as_deref() == Some("counters")
+                    && self.word_at(2).as_deref() == Some("equal") =>
+            {
+                let kind = self.counter_kind()?;
+                self.expect_word("equal")?;
+                let expr = self.count_expr()?;
+                let count = self.push_count(crate::ast::Count {
+                    expr,
+                    style: crate::ast::CountStyle::EqualBefore,
+                })?;
+                self.expect_word("on")?;
+                let to = self.recipient()?;
+                Ok(Effect::AddCounters { kind, count, to })
+            }
             "put" if matches!(self.peek(), Some(Tok::Num(_))) && self.hand_to_library_ahead() => {
                 let count = self.num()?;
                 let bottom = self.hand_to_library_tail()?;
@@ -6018,6 +6078,22 @@ impl P {
                 })
             }
             "shuffle" if self.shuffle_zone_ahead() => self.shuffle_zone(None),
+            // `put that target 1 onto battlefield tapped`: "put that card
+            // onto the battlefield tapped" (`return ... to battlefield`
+            // otherwise).
+            "put"
+                if (0..5).any(|k| {
+                    self.word_at(k).as_deref() == Some("onto")
+                        && self.word_at(k + 1).as_deref() == Some("battlefield")
+                }) && !(0..8).any(|k| {
+                    self.word_at(k).as_deref() == Some("from")
+                        && self.word_at(k + 1).as_deref() == Some("hand")
+                }) =>
+            {
+                let what = self.recipient()?;
+                self.expect_word("onto")?;
+                self.battlefield_tail(what, true)
+            }
             "put"
                 if (0..8).any(|k| {
                     self.word_at(k).as_deref() == Some("from")
@@ -6029,9 +6105,21 @@ impl P {
                 } else {
                     self.filter()?
                 };
-                self.expect_words(&["card", "from", "hand", "onto", "battlefield"])?;
+                self.expect_word("card")?;
+                let also = if self.eat_word("and") {
+                    let f = self.filter()?;
+                    self.expect_word("card")?;
+                    Some(f)
+                } else {
+                    None
+                };
+                self.expect_words(&["from", "hand", "onto", "battlefield"])?;
                 let tapped = self.eat_word("tapped");
-                Ok(Effect::PutFromHand { filter, tapped })
+                Ok(Effect::PutFromHand {
+                    filter,
+                    tapped,
+                    also,
+                })
             }
             "put"
                 if !matches!(self.peek(), Some(Tok::Num(_)))
@@ -6176,31 +6264,7 @@ impl P {
                 if all.len() > 1 {
                     return self.fail("only one recipient returns to the battlefield");
                 }
-                self.eat_word("the");
-                self.expect_word("battlefield")?;
-                let tapped = self.eat_word("tapped");
-                self.eat_words(&["under", "its", "owner's", "control"]);
-                let under_you = self.eat_words(&["under", "your", "control"]);
-                let counters = if self.eat_word("with") {
-                    let n = self.count()?;
-                    let kind = self.counter_kind()?;
-                    self.eat_words(&["on", "it"]);
-                    Some((kind, n))
-                } else {
-                    None
-                };
-                let attached = if self.eat_words(&["attached", "to"]) {
-                    Some(self.recipient()?)
-                } else {
-                    None
-                };
-                Ok(Effect::ReturnToBattlefield {
-                    what,
-                    counters,
-                    tapped,
-                    under_you,
-                    attached,
-                })
+                self.battlefield_tail(what, false)
             }
             "regenerate" => {
                 let to = self.recipient()?;
@@ -8182,6 +8246,10 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::SameThat);
         }
+        if self.in_delayed && self.at_words(&["that", "token"]) {
+            self.pos += 2;
+            return Ok(Recipient::SameToken);
+        }
         // In a spell or an activated ability there is no triggering object:
         // "that creature" is the target named before.
         if !self.in_trigger
@@ -8632,6 +8700,10 @@ impl P {
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,
                 "andor" if consumed == 0 && !f.and_or => {
                     f.and_or = true;
+                    self.pos += 1;
+                }
+                "andlist" if consumed == 0 && !f.and_list => {
+                    f.and_list = true;
                     self.pos += 1;
                 }
                 // "other than enchanted creature": not the source's host.
@@ -10233,7 +10305,14 @@ impl P {
                     "if" | "during" | "before" => {
                         let c = if w.eq_ignore_ascii_case("if") {
                             self.pos += 1;
-                            self.static_cond()?
+                            let c = self.static_cond()?;
+                            // "Activate only if this land entered this turn
+                            // or if you control a basic land."
+                            if self.eat_words(&["or", "if"]) {
+                                StaticCond::OrIf(Box::new(c), Box::new(self.static_cond()?))
+                            } else {
+                                c
+                            }
                         } else {
                             match self.turn_time() {
                                 Some(c) => c,
@@ -10775,6 +10854,7 @@ impl P {
                 }
             }
             "cda" => {
+                let noun = self.eat_word("noun");
                 let what = self.word()?;
                 match what.as_str() {
                     "color" | "colors" => {
@@ -10829,6 +10909,7 @@ impl P {
                             count,
                             sets,
                             plus_toughness,
+                            noun,
                         })
                     }
                     _ => self.fail(format!("unknown `cda {what}`")),

@@ -1,0 +1,6 @@
+card "Rent Is Due" {
+  oracle_id 3fe1530d-bcf2-440b-a905-5a2216daa7eb
+  cost {W}
+  type Enchantment
+  triggered at beginning of your end step: you may tap 2 andor untapped creature or Treasure you control chosen; if you do, draw 1 card; otherwise, sacrifice this
+}

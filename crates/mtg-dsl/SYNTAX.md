@@ -108,6 +108,7 @@ to its other face as well.
 | `spree { mode {2}{B}: <effects> mode {1}: <effects> }` | Spree (CR 702.172): one to three modes, each with an additional cost ("Spree", then "+ {2}{B} — Destroy target creature."). The caster chooses one or more of them and pays their costs on top; each chosen mode keeps its own targets. The engine's modes are the sets of the printed modes, the set with bits N being mode N (in scenarios, `mode 3` is the first two). |
 | `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. `choose one or both { ... }` takes two modes, either or both ("Choose one or both —"). As a triggered ability's effect (`triggered when this enters: choose one { ... }`) the mode is chosen as the ability goes on the stack (CR 603.3c), each mode with its own targets. `choose two { ... }` (three or four unnamed modes) chooses two different modes (CR 700.2d; "Choose two —"). A named mode, `mode "Smash the Chest": destroy target artifact`, prints its name first ("• Smash the Chest — Destroy target artifact."); the name has no rules meaning. |
 | `enters tapped unless you control planeswalker`, `enters tapped unless player life 13 or less` | "This land enters tapped unless ..." with a static condition (CR 614.1d). |
+| `enters tapped if not your turn` | "This creature enters tapped if it's not your turn." (the same replacement as `enters tapped unless your turn`, CR 614.1d) |
 | `enters tapped unless pay 3 life` | "As this land enters, you may pay 3 life. If you don't, it enters tapped." (CR 614.12; only with that much life, CR 119.4). |
 | `can't attack unless defending player controls Island`, `can't block unless you control other Goblin`, `can't attack or block unless ...` | Attack and block restrictions with a condition (CR 508.1c, 509.1c). Conditions only these use: `defending player poisoned` ("defending player is poisoned"), `on battlefield Mountain` / `on battlefield 5 Island` ("there is a Mountain on the battlefield", "there are five or more Islands on the battlefield"), `you control more creatures than defending player` (or `attacking player`), and, judged on the whole declaration, `at least 2 other creatures attack` (or `block`) and `black or green creature also attacks` ("a black or green creature also attacks"): a creature whose condition the declared attackers (blockers) don't meet can't be among them. `opponent damaged this turn` prints "an opponent has been dealt damage this turn" here. `can't attack if defending player controls untapped land` (`if`: the restriction applies while the condition holds: "This creature can't attack if ..."); `can't attack if creature also attacks` prints "can only attack alone" (granted: "Enchanted creature ... can only attack alone."). `attacked last turn` ("it attacked during your last turn": the source was declared as an attacker during its controller's most recent turn) also works in `static this: has doesn't untap if attacked last turn`. `defending player controls no Glimmer creature` prints "controls no Glimmer creatures". A condition's alternative written with its own article (`you control Knight or a Soldier`) prints it ("a Knight or a Soldier"). |
 | `activated <cost>: <effects>` | An activated ability (CR 602). With {X} in its cost (`activated {X}, sacrifice this: destroy target artifact with mana value X`), X is announced as it is activated, before targets (CR 602.2b, 601.2b), only as high as can be paid and some target fits; the effects read it. A mana ability's X is not asked. |
@@ -230,7 +231,9 @@ life`, `sorcery` (printed "Activate only as a sorcery."), `once` (activate
 only once each turn). `none` for a free ability. Activation restrictions
 (CR 602.5b): `if <static condition>` ("Activate only if there are seven or
 more cards in your graveyard"; `if blocked` prints "only if this creature is
-blocked", `if this is creature` "only if this permanent is a creature"),
+blocked", `if this is creature` "only if this permanent is a creature";
+`if this is that entered this turn or if you control basic land`: "only
+if this land entered this turn or if you control a basic land", either),
 `during your upkeep`, `during opponent upkeep` ("during an opponent's
 upkeep"), `during your turn`, `during combat`, `before attackers` ("before
 attackers are declared"), `during your turn before attackers` ("during your
@@ -311,7 +314,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever land card is put into your graveyard from anywhere` | "Whenever a land card is put into your graveyard from anywhere": a card the controller owns, matching as it is in the graveyard (milled, discarded, dying, ...) |
 | `whenever creature enters from your graveyard` | "Whenever a creature enters from your graveyard": a permanent the controller owns entering from their graveyard is "it" |
 | `whenever you expend 4` | "Whenever you expend 4" (CR 700.14): as the controller spends their fourth total mana to cast spells this turn, judged as the spell that spent it becomes cast (the mana counted as its cost's mana symbols) |
-| `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject (wording only) |
+| `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject, and between plural alternatives anywhere (`up to 2 target andor Mount or Vehicle`: "up to two target Mounts and/or Vehicles"; wording only); `andlist` likewise joins a singular list with "and" (`each andlist Pest or Bat or Spider you control`: "each Pest, Bat, and Spider you control") |
 
 A trigger's subject prints its controller before its "with" qualities
 ("Whenever a creature you control with power 5 or greater enters").
@@ -541,7 +544,10 @@ counter` prints "Draw a card if that creature has a +1/+1 counter on it."
 (a target's counters are judged on the battlefield).
 `otherwise, <sentence>` after `if <condition>, ...` or after `clash; if
 you win, ...` happens only if that didn't (CR 608.2c): "Otherwise, that
-player discards a card."; creating the token the sentence before
+player discards a card."; after `you may <act>; if you do, ...` it
+happens if the act wasn't taken (an optional act that can't be done in
+full, `you may tap 2 untapped creature you control chosen`, isn't
+offered); creating the token the sentence before
 created prints "Otherwise, create one of those tokens."
 `<clause> unless that player discards 1 card` (or `unless they discard
 1 card`): the payer may discard a card of their choice to stop it.
@@ -708,7 +714,11 @@ outcome `double` (`replace damage from permanent you control to any:
 double`) prints "If a source you control would deal damage to a
 permanent or player, it deals double that damage to that permanent or
 player instead." (a filter without a card type names a source;
-`replace damage to you: double` "... to you instead.").
+`replace damage to you: double` "... to you instead."). Likewise
+`replace damage from permanent you control to each opponent: prevent {
+each opponent mills that much cards }` prints "If a source you control
+would deal damage to an opponent, prevent that damage and each opponent
+mills that many cards." (`that much` is the prevented damage).
 `spells red or white you cast cost {1} less` prints "Red spells and white
 spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
 spells". `defending player` as a subject prints "defending player".
@@ -1032,13 +1042,18 @@ layer 7a, counting any count a static ability can: "~'s power and
 toughness are each equal to ..."; the count is judged from its controller
 as the layer applies), `cda power count Rat you control` ("~'s power is
 equal to the number of Rats you control"; the toughness is printed, `pt
-*/1`), `cda toughness domain` ("~'s toughness is equal to ..."), and `has ability { <ability line> }`: a quoted ability
+*/1`), `cda toughness domain` ("~'s toughness is equal to ..."; `cda noun power
+...` names the card's noun instead, "This creature's power is equal to
+...", "This Vehicle's power", where Oracle does), and `has ability { <ability line> }`: a quoted ability
 granted in layer 6 ("Enchanted creature has \"{T}: This creature deals 1
 damage to any target.\""), written as its own ability line (`activated
 {T}: deal 1 damage to any target`), where `this` is the object that has
 it; "this permanent" when the group names only a subtype (`static all
 Sliver: has ability { activated {2}: regenerate this }` prints "All
-Slivers have \"{2}: Regenerate this permanent.\""). A granted loyalty
+Slivers have \"{2}: Regenerate this permanent.\""); "this land", "this
+enchantment", "this artifact" when the group is only lands, enchantments,
+or artifacts (`static artifact you control: has ability { activated {2},
+sacrifice this: ... }`: "Sacrifice this artifact"). A granted loyalty
 ability brackets its cost (`static planeswalker you control: has ability
 { loyalty -4: ... }`: "Planeswalkers you control have \"[−4]: ...\"").
 A token a quoted ability creates prints its full description. A replacement or
@@ -1131,7 +1146,12 @@ controller draws a card"); `controller of that creature` prints "that
 creature's controller" ("that land's controller" for an Aura that
 enchants a land). `return triggering card to battlefield tapped under
 your control` takes `tapped` and `under your control` (else "under its
-owner's control"). `it deals 1 damage to each opponent` makes the
+owner's control"). A target card from a graveyard that isn't yours (`target
+creature card from a graveyard`, `... from an opponent's graveyard`)
+returned `under your control` prints "put ... onto the battlefield under
+your control"; `put that target 1 onto battlefield tapped` is the same
+effect worded "put that card onto the battlefield tapped" (Zuko's
+Conviction). `it deals 1 damage to each opponent` makes the
 triggering creature the damage's source (CR 120.3: Hawkeye's Bow), and
 `that defending player` prints "defending player" where `defending
 player` as an object prints "the player or planeswalker it's attacking".
@@ -1250,6 +1270,10 @@ power to", each creature dealing its own damage. `deal damage equal <expr>
 to <what>` puts the amount before the recipient ("deals damage equal to
 that creature's power to the creature's controller", where `deal count
 equal ... damage to <what>` prints "deals damage to <what> equal to ...").
+Counters likewise: `put count equal <expr> +1/+1 counters on <what>` prints
+"put a number of +1/+1 counters on <what> equal to ...", and `put +1/+1
+counters equal <expr> on <what>` puts the amount first: "put a number of
++1/+1 counters equal to its power on up to one target creature".
 
 Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `destroy <what> [without regeneration [joined]]` (`joined`: "destroy
@@ -1356,7 +1380,9 @@ twice`; `target player investigates`: that player creates it), `<who>
 exiles 2 cards from hand` ("Target opponent exiles two cards from their
 hand"; `from graveyard`: "a card from their graveyard"; the player
 chooses), `<who> exiles 1 creature they control` ("Target opponent
-exiles a creature they control", their choice), `<who> reveals hand
+exiles a creature they control", their choice; `... they control and
+their graveyard` then exiles their graveyard: "Target opponent exiles a
+creature they control and their graveyard"), `<who> reveals hand
 exiling nonland card from graveyard or hand` ("Target opponent reveals
 their hand. You choose a nonland card from that player's graveyard or
 hand and exile it."), `transform
@@ -1514,7 +1540,9 @@ them back in any order": the looker knows the cards where they are),
 owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of
 turn"), `put land card from hand onto battlefield [tapped]` ("put a land
-card from your hand onto the battlefield"), `<what> doesn't untap next
+card from your hand onto the battlefield"; `put creature card and land
+card from hand onto battlefield`: "put a creature card and/or a land card
+from your hand onto the battlefield", a choice of each in turn), `<what> doesn't untap next
 untap step` ("It doesn't untap during its controller's next untap
 step."; a group of targets named again, `targets 1 to 2 doesn't untap
 next untap step`, is "Those creatures don't untap during their
@@ -1596,7 +1624,9 @@ its owner's control."; `triggering card` is the card it became). After
 (those still on the battlefield), and `delayed those tokens: sacrifice
 those tokens at beginning of the next end step` is one delayed trigger
 about each ("Sacrifice those tokens at the beginning of the next end
-step."). `delayed this: whenever <trigger> this turn, <effects>` triggers on
+step."). In `delayed that token: ...`, `it` prints "it" and `that token`
+"that token" ("Exile that token at the beginning of the next end
+step."); both are the token. `delayed this: whenever <trigger> this turn, <effects>` triggers on
 every such event until the turn ends (CR 603.7c), as its controller's
 ability: "Whenever a creature blocks this turn, its controller loses 1
 life." (`its controller` is the triggering object's), "Whenever a

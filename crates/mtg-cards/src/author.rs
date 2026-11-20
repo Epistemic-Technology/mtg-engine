@@ -4291,7 +4291,25 @@ impl Builder<'_> {
                         "as a sorcery" => "sorcery".to_string(),
                         "once each turn" => "once".to_string(),
                         w => {
-                            let cond = w.strip_prefix("if ").and_then(static_condition);
+                            // "if this land entered this turn or if you
+                            // control a basic land".
+                            let one = |c: &str| match c {
+                                "this land entered this turn" => {
+                                    Some("this is that entered this turn".to_string())
+                                }
+                                "you control a basic land" => {
+                                    Some("you control basic land".to_string())
+                                }
+                                c => static_condition(c),
+                            };
+                            let cond =
+                                w.strip_prefix("if ")
+                                    .and_then(|c| match c.split_once(" or if ") {
+                                        Some((a, b)) => {
+                                            Some(format!("{} or if {}", one(a)?, one(b)?))
+                                        }
+                                        None => one(c),
+                                    });
                             cond.map(|c| format!("if {c}"))
                                 .ok_or_else(|| Skip::Sentence(line.to_string()))?
                         }

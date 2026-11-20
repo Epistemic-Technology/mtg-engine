@@ -1,0 +1,29 @@
+scenario "upkeep: a creature card from an opponent's graveyard enters under your control" {
+  battlefield A: "Virtue of Persistence // Locthwain Scorn"
+  graveyard A: "Hill Giant"
+  graveyard B: "Grizzly Bears"
+  turn 1 upkeep A: trigger "Virtue of Persistence" targeting "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "upkeep: it can take a creature card from your own graveyard" {
+  battlefield A: "Virtue of Persistence // Locthwain Scorn"
+  graveyard A: "Hill Giant"
+  turn 1 upkeep A: trigger "Virtue of Persistence" targeting "Hill Giant"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Locthwain Scorn: -3/-3 and 2 life, then the card waits in exile" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Virtue of Persistence // Locthwain Scorn"
+  turn 1 A: cast "Locthwain Scorn" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 22
+  assert exile A contains "Virtue of Persistence"
+}

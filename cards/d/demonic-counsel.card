@@ -1,0 +1,9 @@
+card "Demonic Counsel" {
+  oracle_id 712e3479-722c-40a1-9b61-d5bdde93042b
+  cost {1}{B}
+  type Sorcery
+  spell {
+  search Demon card reveal to hand
+  label "Delirium" if 4 card types in your graveyard, instead search card to hand
+  }
+}

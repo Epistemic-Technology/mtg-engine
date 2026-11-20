@@ -1,0 +1,29 @@
+scenario "combat damage to an opponent is prevented; they mill that many" {
+  battlefield A: "The Mindskinner"
+  turn 1 A: attack "The Mindskinner"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B count 10
+}
+
+scenario "a spell you control counts as a source you control" {
+  battlefield A: "The Mindskinner", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B count 3
+}
+
+scenario "damage to creatures and from opponents isn't prevented" {
+  battlefield A: "The Mindskinner", "Mountain"
+  battlefield B: "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  hand B: "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 18
+}

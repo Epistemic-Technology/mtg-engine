@@ -1436,14 +1436,32 @@ impl GameState {
         m: &crate::state::Moved,
         f: &crate::card::ObjFilter,
     ) -> bool {
+        // Each alternative on its own, with "token" (a status qualifier
+        // `matches` leaves to the caller) judged as the object last
+        // existed: "a permanent you controlled or a token".
         self.lki.get(&m.old).is_some_and(|l| {
-            f.matches(
-                m.old,
-                l.object.controller,
-                &l.characteristics,
-                Some(ctx.source),
-                Some(ctx.controller),
-            )
+            let mut alt = Some(f);
+            while let Some(a) = alt {
+                let one = crate::card::ObjFilter {
+                    or: None,
+                    ..a.clone()
+                };
+                if one.matches(
+                    m.old,
+                    l.object.controller,
+                    &l.characteristics,
+                    Some(ctx.source),
+                    Some(ctx.controller),
+                ) && one
+                    .status
+                    .token
+                    .is_none_or(|t| (l.object.kind == crate::state::ObjKind::Token) == t)
+                {
+                    return true;
+                }
+                alt = a.or.as_deref();
+            }
+            false
         })
     }
 
@@ -4824,6 +4842,30 @@ impl GameState {
             for a in &c.abilities {
                 let AbilityDef::RestrictedMana { mana, restriction } = self.pool.ability(*a) else {
                     continue;
+                };
+                // "a creature spell of the chosen type": the type this
+                // permanent's controller chose as it entered.
+                let filled;
+                let restriction = if restriction.spells.as_ref().is_some_and(|f| f.chosen)
+                    || restriction
+                        .ability_source
+                        .as_ref()
+                        .is_some_and(|f| f.chosen)
+                {
+                    let fill = |f: &crate::card::ObjFilter| {
+                        if f.chosen {
+                            f.with_chosen(o.chosen)
+                        } else {
+                            f.clone()
+                        }
+                    };
+                    let mut r = restriction.clone();
+                    r.spells = restriction.spells.as_ref().map(fill);
+                    r.ability_source = restriction.ability_source.as_ref().map(fill);
+                    filled = r;
+                    &filled
+                } else {
+                    restriction
                 };
                 let allowed = match spend {
                     Spend::Spell(sc) => restriction.allows_spell(sc),
@@ -9043,6 +9085,17 @@ impl GameState {
                 let once = self.doing_once.take();
                 if let Some(key) = once
                     && self.limited_this_turn.contains(&key)
+                {
+                    ctx.did = false;
+                    return;
+                }
+                // "You may tap two untapped creatures you control": with
+                // fewer than two it can't be done, so it isn't offered and
+                // "if you do" fails (CR 608.2c), where a required "tap two"
+                // taps what it can (CR 101.3).
+                if inner
+                    .iter()
+                    .any(|e| matches!(e, Effect::ChooseAct { .. }) && !self.can_do(ctx, e))
                 {
                     ctx.did = false;
                     return;

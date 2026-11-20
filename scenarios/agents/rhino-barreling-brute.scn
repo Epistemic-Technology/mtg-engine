@@ -1,0 +1,18 @@
+scenario "attacking after you cast a spell with mana value 4: draw a card" {
+  battlefield A: "Rhino, Barreling Brute", 4 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: attack "Rhino, Barreling Brute"
+  run_to turn 1 end
+  assert hand A count 1
+  assert life B 14
+}
+
+scenario "a smaller spell doesn't count" {
+  battlefield A: "Rhino, Barreling Brute", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: attack "Rhino, Barreling Brute"
+  run_to turn 1 end
+  assert hand A count 0
+}

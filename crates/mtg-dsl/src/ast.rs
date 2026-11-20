@@ -746,6 +746,10 @@ pub struct Filter {
     /// trigger's subject ("Whenever another Villain and/or artifact you
     /// control enters"); wording only.
     pub and_or: bool,
+    /// `andlist Pest or Bat or Spider`: its alternatives joined "and"
+    /// after "each" ("put a +1/+1 counter on each Pest, Bat, and Spider
+    /// you control"); wording only.
+    pub and_list: bool,
 }
 
 impl Filter {
@@ -1068,6 +1072,10 @@ pub enum Ability {
     /// `enters tapped unless you control planeswalker`: "This land enters
     /// tapped unless you control a planeswalker." (CR 614.1d)
     EntersTappedUnless(StaticCond),
+    /// `enters tapped if not your turn`: "This creature enters tapped if
+    /// it's not your turn." (the same replacement as `enters tapped unless
+    /// your turn`, worded with "if").
+    EntersTappedIfNotYourTurn,
     /// `enters with 1 +1/+1 counter if attacked this turn`: "This
     /// creature enters with a +1/+1 counter on it if you attacked this
     /// turn." (raid; CR 614.1c); `if spent 3 white, enters with 1 +1/+1
@@ -1728,6 +1736,9 @@ pub enum StaticCond {
     /// `you control Desert or there is Desert card in your graveyard`:
     /// either holds.
     Or(Box<StaticCond>, Box<StaticCond>),
+    /// `if this is that entered this turn or if you control basic land`
+    /// (an activation condition): either holds, printed "... or if ...".
+    OrIf(Box<StaticCond>, Box<StaticCond>),
     /// `opponent graveyard 8 or more`: "an opponent has eight or more
     /// cards in their graveyard".
     OpponentGraveyard(u32),
@@ -2445,6 +2456,10 @@ pub enum Mod {
         count: CountExpr,
         sets: mtg_core::card::CdaSets,
         plus_toughness: i32,
+        /// `cda noun power ...`: "This creature's power is equal to ..."
+        /// where Oracle names the card's noun rather than the card
+        /// (wording only).
+        noun: bool,
     },
 }
 
@@ -2549,6 +2564,10 @@ pub enum Recipient {
     /// `that creature` inside a delayed trigger about a target: the object
     /// the trigger is about (`SameObject`), printed "that creature".
     SameThat,
+    /// `that token` inside a delayed trigger about a created token: that
+    /// token (`SameObject`), printed "that token" ("Exile that token at
+    /// the beginning of the next end step").
+    SameToken,
     CreatedObject,
     /// `those tokens`: every token the last token-creating sentence
     /// created; inside a delayed trigger about them, each in turn
@@ -2694,6 +2713,9 @@ pub enum Effect {
         tapped: bool,
         under_you: bool,
         attached: Option<Recipient>,
+        /// `put that target 1 onto battlefield`: "put that card onto the
+        /// battlefield" (wording only).
+        put: bool,
     },
     Regenerate {
         to: Recipient,
@@ -2956,11 +2978,14 @@ pub enum Effect {
         discard: Num,
     },
     /// `target opponent exiles 1 creature they control`: "Target opponent
-    /// exiles a creature they control" (the player chooses).
+    /// exiles a creature they control" (the player chooses); `... and
+    /// their graveyard`: "... and their graveyard", their whole graveyard
+    /// after.
     ExileChosen {
         who: Recipient,
         count: Num,
         filter: Filter,
+        graveyard: bool,
     },
     /// `target opponent exiles 2 cards from hand`: "Target opponent exiles
     /// two cards from their hand" (the player chooses); `... from
@@ -3614,10 +3639,13 @@ pub enum Effect {
         to: Recipient,
         all: bool,
     },
-    /// `put land card from hand onto battlefield [tapped]`.
+    /// `put land card from hand onto battlefield [tapped]`; `put creature
+    /// card and land card from hand onto battlefield`: "a creature card
+    /// and/or a land card", one of each (or neither).
     PutFromHand {
         filter: Filter,
         tapped: bool,
+        also: Option<Filter>,
     },
     /// `each opponent gets 1 poison counter`.
     AddPoison {

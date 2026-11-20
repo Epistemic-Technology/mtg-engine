@@ -1,0 +1,8 @@
+card "Michelangelo, Improviser" {
+  oracle_id 1939679b-ea2e-4a75-b3ce-d7af68437484
+  cost {3}{G}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 4/4
+  sneak {2}{G}{G}
+  triggered whenever this deals combat damage to a player: you may put creature card and land card from hand onto battlefield
+}

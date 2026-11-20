@@ -1,0 +1,30 @@
+scenario "combat damage: put a creature card and a land card from hand" {
+  battlefield A: "Michelangelo, Improviser"
+  hand A: "Hill Giant", "Forest", "Lightning Bolt"
+  turn 1 A: attack "Michelangelo, Improviser"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Forest"
+  assert hand A contains "Lightning Bolt"
+  assert hand A count 1
+}
+
+scenario "only a land card in hand: just the land" {
+  battlefield A: "Michelangelo, Improviser"
+  hand A: "Forest", "Lightning Bolt"
+  turn 1 A: attack "Michelangelo, Improviser"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert hand A count 1
+}
+
+scenario "blocked: nothing" {
+  battlefield A: "Michelangelo, Improviser"
+  battlefield B: "Hill Giant"
+  hand A: "Grizzly Bears", "Forest"
+  turn 1 A: attack "Michelangelo, Improviser"
+  turn 1 B: block "Michelangelo, Improviser" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}

@@ -257,6 +257,7 @@ impl Decompiler<'_> {
             not_attached: f.not_attached,
             other_than_this: false,
             and_or: false,
+            and_list: false,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             alt_article: false,
             targeting: f.targeting.as_ref().map(|t| {
@@ -735,6 +736,7 @@ impl Decompiler<'_> {
                 tapped: *tapped,
                 under_you: *under_you,
                 attached: attached.map(r),
+                put: false,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {
@@ -912,6 +914,7 @@ impl Decompiler<'_> {
                 who: r(*who),
                 count: *count,
                 filter: self.filter(filter),
+                graveyard: false,
             },
             CoreEffect::ExileFromHand {
                 count,
@@ -1404,6 +1407,7 @@ impl Decompiler<'_> {
             CoreEffect::PutFromHand { filter, tapped } => Effect::PutFromHand {
                 filter: self.filter(filter),
                 tapped: *tapped,
+                also: None,
             },
             CoreEffect::IfThisWay { cond, then } => {
                 Effect::IfThisWay(self.this_way_cond(cond), self.sentences(then))
@@ -1762,6 +1766,7 @@ impl Decompiler<'_> {
                 count: self.cda_count(count),
                 sets: *sets,
                 plus_toughness: *plus_toughness,
+                noun: false,
             },
         }
     }

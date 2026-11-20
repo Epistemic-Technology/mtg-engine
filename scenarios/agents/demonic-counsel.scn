@@ -1,0 +1,28 @@
+scenario "finds a Demon card" {
+  battlefield A: 2 "Swamp"
+  hand A: "Demonic Counsel"
+  library A: "Hill Giant", "Soulcage Fiend", "Plains"
+  turn 1 A: cast "Demonic Counsel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Soulcage Fiend"
+  assert hand A lacks "Hill Giant"
+}
+
+scenario "without a Demon in the library, it finds nothing" {
+  battlefield A: 2 "Swamp"
+  hand A: "Demonic Counsel"
+  library A: "Hill Giant", "Plains"
+  turn 1 A: cast "Demonic Counsel"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "delirium: any card instead" {
+  battlefield A: 2 "Swamp"
+  hand A: "Demonic Counsel"
+  graveyard A: "Forest", "Grizzly Bears", "Lightning Bolt", "Divination"
+  library A: "Hill Giant", "Plains"
+  turn 1 A: cast "Demonic Counsel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}

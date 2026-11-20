@@ -1,0 +1,23 @@
+scenario "it becomes a 3/4 red and green Dinosaur until end of turn" {
+  battlefield A: "Restless Ridgeline", 2 "Mountain", 2 "Forest"
+  turn 1 A: activate "Restless Ridgeline" ability 2
+  run_to turn 1 postcombat_main
+  assert power "Restless Ridgeline" 3
+  assert toughness "Restless Ridgeline" 4
+  assert is "Restless Ridgeline" dinosaur
+  assert is "Restless Ridgeline" red
+  assert is "Restless Ridgeline" green
+  assert is "Restless Ridgeline" land
+  run_to turn 2 upkeep
+  assert is not "Restless Ridgeline" creature
+}
+
+scenario "attacking, it pumps and untaps another attacker" {
+  battlefield A: "Restless Ridgeline", 2 "Mountain", 2 "Forest", "Grizzly Bears"
+  turn 1 A: activate "Restless Ridgeline" ability 2
+  turn 1 A: attack "Restless Ridgeline", "Grizzly Bears"
+  turn 1 A: trigger "Restless Ridgeline" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert untapped "Grizzly Bears"
+}

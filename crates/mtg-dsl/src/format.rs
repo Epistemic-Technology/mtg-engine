@@ -300,7 +300,7 @@ impl Fmt {
             Recipient::SameObject | Recipient::TriggeringIt | Recipient::SourceIt => {
                 "it".to_string()
             }
-            Recipient::CreatedObject => "that token".to_string(),
+            Recipient::CreatedObject | Recipient::SameToken => "that token".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "each of them".to_string(),
             Recipient::Manifested => "manifested creature".to_string(),
@@ -954,9 +954,15 @@ impl Fmt {
                 self.recipient(*to, t),
                 if *steps { "s" } else { "" }
             ),
-            Effect::PutFromHand { filter: f, tapped } => format!(
-                "put {} card from hand onto battlefield{}",
+            Effect::PutFromHand {
+                filter: f,
+                tapped,
+                also,
+            } => format!(
+                "put {} card{} from hand onto battlefield{}",
                 filter(f),
+                also.as_ref()
+                    .map_or_else(String::new, |g| format!(" and {} card", filter(g))),
                 if *tapped { " tapped" } else { "" }
             ),
             Effect::AddEnergy { count, who } => {
@@ -1020,6 +1026,12 @@ impl Fmt {
                     )
                 }
             },
+            Effect::AddCounters { kind, count, to } if equal_before(*count).is_some() => format!(
+                "put {} equal {} on {}",
+                counter(*kind, *count),
+                equal_before(*count).unwrap_or_default(),
+                self.recipient(*to, t)
+            ),
             Effect::AddCounters { kind, count, to } => format!(
                 "put {} {} on {}",
                 num(*count),
@@ -1065,8 +1077,13 @@ impl Fmt {
                 tapped,
                 under_you,
                 attached,
+                put,
             } => {
-                let mut s = format!("return {} to battlefield", self.recipient(*what, t));
+                let mut s = if *put {
+                    format!("put {} onto battlefield", self.recipient(*what, t))
+                } else {
+                    format!("return {} to battlefield", self.recipient(*what, t))
+                };
                 if *tapped {
                     s.push_str(" tapped");
                 }
@@ -1338,11 +1355,17 @@ impl Fmt {
                 who,
                 count,
                 filter: f,
+                graveyard,
             } => format!(
-                "{} exiles {} {} they control",
+                "{} exiles {} {} they control{}",
                 self.recipient(*who, t),
                 num(*count),
-                filter(f)
+                filter(f),
+                if *graveyard {
+                    " and their graveyard"
+                } else {
+                    ""
+                }
             ),
             Effect::ExileFromHand {
                 count,
@@ -2536,6 +2559,13 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
 }
 
 pub fn filter(f: &Filter) -> String {
+    if f.and_list {
+        let g = Filter {
+            and_list: false,
+            ..f.clone()
+        };
+        return format!("andlist {}", filter(&g));
+    }
     if f.and_or {
         let g = Filter {
             and_or: false,
@@ -3749,6 +3779,7 @@ fn modification(m: &Mod) -> String {
             count,
             sets,
             plus_toughness,
+            noun,
         } => {
             use crate::ast::CountExpr;
             let c = match count {
@@ -3763,6 +3794,11 @@ fn modification(m: &Mod) -> String {
                 mtg_core::card::CdaSets::Both => "pt",
                 mtg_core::card::CdaSets::Power => "power",
                 mtg_core::card::CdaSets::Toughness => "toughness",
+            };
+            let what = if *noun {
+                format!("noun {what}")
+            } else {
+                what.to_string()
             };
             if *plus_toughness == 0 {
                 format!("cda {what} {c}")
@@ -4001,6 +4037,7 @@ fn static_cond(c: &StaticCond) -> String {
             }
         }
         StaticCond::Or(a, b) => format!("{} or {}", static_cond(a), static_cond(b)),
+        StaticCond::OrIf(a, b) => format!("{} or if {}", static_cond(a), static_cond(b)),
         StaticCond::OpponentGraveyard(n) => format!("opponent graveyard {n} or more"),
         StaticCond::ManaValuesInGraveyard(n) => format!("{n} mana values in your graveyard"),
         StaticCond::OpponentControls {
@@ -4690,6 +4727,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::EntersTappedUnless(c) => {
             let _ = writeln!(out, "{indent}enters tapped unless {}", static_cond(c));
+        }
+        Ability::EntersTappedIfNotYourTurn => {
+            let _ = writeln!(out, "{indent}enters tapped if not your turn");
         }
         Ability::EntersWithIf {
             n,

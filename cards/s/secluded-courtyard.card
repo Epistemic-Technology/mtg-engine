@@ -1,0 +1,7 @@
+card "Secluded Courtyard" {
+  oracle_id 79ba18fd-f184-43c1-86df-56ee18ce806c
+  type Land
+  as this enters choose creature type
+  activated {T}: add {C}
+  mana any only to cast creature of chosen type spell or activate of creature of chosen type
+}

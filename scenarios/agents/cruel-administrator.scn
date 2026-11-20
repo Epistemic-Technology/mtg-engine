@@ -1,0 +1,26 @@
+scenario "attacking creates a 2/2 red Soldier" {
+  battlefield A: "Cruel Administrator"
+  turn 1 A: attack "Cruel Administrator"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Soldier"
+  assert power "Soldier" 2
+  assert is "Soldier" red
+  assert life B 15
+}
+
+scenario "raid: cast after attacking, it enters with a +1/+1 counter" {
+  battlefield A: "Grizzly Bears", 3 "Swamp", 2 "Mountain"
+  hand A: "Cruel Administrator"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Cruel Administrator"
+  run_to turn 1 end
+  assert counters "Cruel Administrator" +1/+1 1
+}
+
+scenario "without an attack, no counter" {
+  battlefield A: 3 "Swamp", 2 "Mountain"
+  hand A: "Cruel Administrator"
+  turn 1 A: cast "Cruel Administrator"
+  run_to turn 1 end
+  assert counters "Cruel Administrator" +1/+1 0
+}

@@ -1,0 +1,23 @@
+scenario "the turn it enters, it taps for {R}" {
+  hand A: "Training Compound", "Lightning Bolt"
+  turn 1 A: play "Training Compound"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "later, without a basic land, only {C}" {
+  battlefield A: "Training Compound"
+  hand A: "Lightning Bolt"
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "with a basic land, it taps for {R}" {
+  battlefield A: "Training Compound", "Island"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

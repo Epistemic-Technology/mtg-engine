@@ -1413,7 +1413,7 @@ impl Compiler<'_> {
                 filter: self.filter(filter),
                 at_least: *at_least,
             },
-            StaticCond::Or(a, b) => {
+            StaticCond::Or(a, b) | StaticCond::OrIf(a, b) => {
                 StaticCondition::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
             StaticCond::OpponentGraveyard(n) => StaticCondition::OpponentGraveyard(*n),
@@ -1735,9 +1735,10 @@ impl Compiler<'_> {
             Recipient::EachPlayer => CoreRecipient::EachPlayer,
             Recipient::EachCreatureYouControl => CoreRecipient::EachCreatureYouControl,
             Recipient::EachPermanentYouControl => CoreRecipient::EachPermanentYouControl,
-            Recipient::SameObject | Recipient::SameThat | Recipient::SameTokens => {
-                CoreRecipient::SameObject
-            }
+            Recipient::SameObject
+            | Recipient::SameThat
+            | Recipient::SameToken
+            | Recipient::SameTokens => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
             Recipient::Manifested | Recipient::CreatedObject => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
@@ -1988,6 +1989,7 @@ impl Compiler<'_> {
                 tapped,
                 under_you,
                 attached,
+                put: _,
             } => {
                 out.push(CoreEffect::ReturnToBattlefield {
                     what: r(*what),
@@ -2227,11 +2229,21 @@ impl Compiler<'_> {
                     _ => return self.err("`if you win the flip` needs a `flip coin` before it"),
                 }
             }
-            Effect::ExileChosen { who, count, filter } => out.push(CoreEffect::ExileChosen {
-                who: r(*who),
-                filter: self.filter(filter),
-                count: *count,
-            }),
+            Effect::ExileChosen {
+                who,
+                count,
+                filter,
+                graveyard,
+            } => {
+                out.push(CoreEffect::ExileChosen {
+                    who: r(*who),
+                    filter: self.filter(filter),
+                    count: *count,
+                });
+                if *graveyard {
+                    out.push(CoreEffect::ExileGraveyard { who: r(*who) });
+                }
+            }
             Effect::ExileFromHand {
                 count,
                 who,
@@ -2504,10 +2516,14 @@ impl Compiler<'_> {
             Effect::Otherwise(inner) => {
                 if !matches!(
                     out.last(),
+                    // "You may tap two untapped creatures ... . If you do,
+                    // draw a card. Otherwise, sacrifice this enchantment."
+                    // (CR 608.2c): the optional action wasn't taken.
                     Some(
                         CoreEffect::IfCondition(..)
                             | CoreEffect::Clash { .. }
                             | CoreEffect::IfCard { .. }
+                            | CoreEffect::IfYouDo(..)
                     )
                 ) {
                     return self.err("`otherwise` needs a conditional sentence before it");
@@ -2839,10 +2855,20 @@ impl Compiler<'_> {
                     to: r(*to),
                 });
             }
-            Effect::PutFromHand { filter, tapped } => out.push(CoreEffect::PutFromHand {
-                filter: self.filter(filter),
-                tapped: *tapped,
-            }),
+            // "a creature card and/or a land card": a choice of each in
+            // turn, either declined.
+            Effect::PutFromHand {
+                filter,
+                tapped,
+                also,
+            } => {
+                for f in std::iter::once(filter).chain(also) {
+                    out.push(CoreEffect::PutFromHand {
+                        filter: self.filter(f),
+                        tapped: *tapped,
+                    });
+                }
+            }
             Effect::IfThisWay(c, inner) => {
                 let then = self.sentences(inner)?;
                 let cond = self.this_way_cond(c);
@@ -3239,6 +3265,7 @@ impl Compiler<'_> {
                 count,
                 sets,
                 plus_toughness,
+                noun: _,
             } => Modification::CdaPt {
                 count: self.count_expr(count),
                 sets: *sets,
@@ -3549,6 +3576,17 @@ impl Compiler<'_> {
                         kind: *kind,
                         n: *n,
                     },
+                    then: Vec::new(),
+                })
+            }
+            // "enters tapped if it's not your turn" is "unless it's your
+            // turn" (CR 614.1d).
+            Ability::EntersTappedIfNotYourTurn => {
+                let c = self.static_cond(&StaticCond::YourTurn);
+                let i = self.pool.intern_condition(c);
+                AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                     then: Vec::new(),
                 })
             }
@@ -4723,6 +4761,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         tapped: false,
                         under_you: false,
                         attached: None,
+                        put: false,
                     },
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],

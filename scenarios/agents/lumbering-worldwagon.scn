@@ -1,0 +1,18 @@
+scenario "power equals the lands you control" {
+  battlefield A: "Lumbering Worldwagon", 3 "Forest"
+  battlefield B: 2 "Mountain"
+  run_to turn 1 precombat_main
+  assert power "Lumbering Worldwagon" 3
+  assert toughness "Lumbering Worldwagon" 4
+}
+
+scenario "entering, it may fetch a basic land tapped" {
+  battlefield A: 3 "Forest"
+  hand A: "Lumbering Worldwagon"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: cast "Lumbering Worldwagon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert power "Lumbering Worldwagon" 4
+}

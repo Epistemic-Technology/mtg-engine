@@ -1,0 +1,29 @@
+scenario "cast on your turn: enters untapped and taps two creatures" {
+  battlefield A: 7 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Eddymurk Crab"
+  turn 1 A: cast "Eddymurk Crab"
+  turn 1 A: trigger "Eddymurk Crab" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Eddymurk Crab"
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "flashed in on an opponent's turn: enters tapped" {
+  battlefield A: 7 "Island"
+  hand A: "Eddymurk Crab"
+  start turn 2 B
+  turn 2 upkeep A: cast "Eddymurk Crab"
+  run_to turn 2 precombat_main
+  assert tapped "Eddymurk Crab"
+}
+
+scenario "costs {1} less per instant and sorcery card in your graveyard" {
+  battlefield A: 5 "Island"
+  graveyard A: "Lightning Bolt", "Divination", "Grizzly Bears"
+  hand A: "Eddymurk Crab"
+  turn 1 A: cast "Eddymurk Crab"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Eddymurk Crab"
+}

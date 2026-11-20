@@ -1,0 +1,9 @@
+card "Lumbering Worldwagon" {
+  oracle_id 7e60a641-1f2d-45ff-b3f2-d389be938b22
+  cost {2}{G}
+  type Artifact — Vehicle
+  pt */4
+  static this: cda noun power count land you control
+  triggered whenever this enters or attacks: you may search basic land card to battlefield tapped
+  crew 4
+}

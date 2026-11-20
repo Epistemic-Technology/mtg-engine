@@ -1,0 +1,8 @@
+card "Stormsplitter" {
+  oracle_id 4a9ae0d9-5ee7-4289-9333-ef0bcc3079ca
+  cost {3}{R}
+  type Creature — Otter Wizard
+  pt 1/4
+  keywords haste
+  triggered whenever you cast instant or sorcery spell: create token copy of this; delayed that token: exile that token at beginning of the next end step
+}

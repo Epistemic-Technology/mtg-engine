@@ -1,0 +1,25 @@
+scenario "the turn it enters, it taps for {B}" {
+  battlefield B: "Grizzly Bears"
+  hand A: "Dark Fortress", "Disfigure"
+  turn 1 A: play "Dark Fortress"
+  turn 1 A: cast "Disfigure" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "later, without a basic land, it makes only {C}" {
+  battlefield A: "Dark Fortress"
+  battlefield B: "Grizzly Bears"
+  hand A: "Disfigure"
+  illegal turn 1 A: cast "Disfigure" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "with a basic land, it taps for {R}" {
+  battlefield A: "Dark Fortress", "Plains"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

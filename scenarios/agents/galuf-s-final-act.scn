@@ -1,0 +1,26 @@
+# The granted dies trigger's counters are not asserted: a count in an
+# ability granted to another permanent is read from that permanent's card,
+# not this one (engine bug, reported), so it puts no counters yet.
+
+scenario "the target gets +1/+0 until end of turn" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  hand A: "Galuf's Final Act"
+  turn 1 A: cast "Galuf's Final Act" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 2
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "the creature's dies trigger asks for up to one target" {
+  battlefield A: 3 "Forest", "Mountain", "Grizzly Bears", "Hill Giant"
+  hand A: "Galuf's Final Act", "Lightning Bolt"
+  turn 1 A: cast "Galuf's Final Act" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: trigger "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+}

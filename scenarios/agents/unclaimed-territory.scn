@@ -1,0 +1,18 @@
+scenario "its colored mana casts a creature spell of the chosen type" {
+  battlefield A: "Mountain"
+  hand A: "Unclaimed Territory", "Grizzly Bears"
+  turn 1 A: play "Unclaimed Territory"
+  turn 1 A: choose Bear
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "but not a creature spell of another type" {
+  battlefield A: "Mountain"
+  hand A: "Unclaimed Territory", "Grizzly Bears"
+  turn 1 A: play "Unclaimed Territory"
+  turn 1 A: choose Goblin
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}

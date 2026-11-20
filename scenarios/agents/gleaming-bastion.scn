@@ -1,0 +1,25 @@
+scenario "the turn it enters, it taps for {W}" {
+  hand A: "Gleaming Bastion", "Healing Salve"
+  life A 10
+  turn 1 A: play "Gleaming Bastion"
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 13
+}
+
+scenario "later, without a basic land, only {C}" {
+  battlefield A: "Gleaming Bastion"
+  hand A: "Healing Salve"
+  illegal turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "with a basic land, it taps for {W}" {
+  battlefield A: "Gleaming Bastion", "Swamp"
+  hand A: "Healing Salve"
+  life A 10
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 13
+}

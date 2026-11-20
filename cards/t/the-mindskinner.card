@@ -1,0 +1,10 @@
+card "The Mindskinner" {
+  oracle_id 2e3ec514-fc9e-4964-a493-2a6cc9e63630
+  cost {U}{U}{U}
+  type Legendary Enchantment Creature — Nightmare
+  pt 10/1
+  keywords can't be blocked
+  replace damage from permanent you control to each opponent: prevent {
+    each opponent mills that much cards
+  }
+}

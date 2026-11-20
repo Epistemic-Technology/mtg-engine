@@ -1,0 +1,7 @@
+card "Frontier Seeker" {
+  oracle_id 466cf331-2d9c-4ebc-84f6-30c890e1b637
+  cost {1}{W}
+  type Creature — Human Scout
+  pt 2/1
+  triggered when this enters: dig 5 take Mount creature or a Plains card may revealing rest bottom random
+}
