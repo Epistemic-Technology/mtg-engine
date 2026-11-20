@@ -1,0 +1,9 @@
+card "Enclave Elite" {
+  oracle_id 27c84b2e-fc66-45a6-a5ad-d3ef204d5077
+  cost {2}{U}
+  type Creature — Merfolk Soldier
+  pt 2/2
+  multikicker {1}{U}
+  keyword islandwalk
+  enters with count each times kicked +1/+1 counters
+}

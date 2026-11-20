@@ -405,6 +405,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Storm) => {
                     b = b.storm();
                 }
+                Ability::Mechanic(Mechanic::Multikicker(c)) => {
+                    b = b.multikicker(c.clone());
+                }
                 Ability::Mechanic(Mechanic::Replicate(c)) => {
                     b = b.replicate(c.clone());
                 }
@@ -696,6 +699,7 @@ impl Compiler<'_> {
                             | Mechanic::Awaken(..)
                             | Mechanic::Assist
                             | Mechanic::Replicate(_)
+                            | Mechanic::Multikicker(_)
                             | Mechanic::Teamwork(_)
                             | Mechanic::Ripple(_)
                             | Mechanic::Strive(_)
@@ -1172,6 +1176,7 @@ impl Compiler<'_> {
             A::CardManaValue => C::CardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
             A::SpentColors => C::SpentColors,
+            A::TimesKicked => C::TimesKicked,
             A::SpentTreasure => C::SpentTreasure,
             A::CardsInOpponentsGraveyards(f) => {
                 C::CardsInOpponentsGraveyards(f.as_ref().map(|f| self.filter(f)))
@@ -3177,6 +3182,7 @@ impl Compiler<'_> {
                 | Mechanic::Awaken(..)
                 | Mechanic::Assist
                 | Mechanic::Replicate(_)
+                | Mechanic::Multikicker(_)
                 | Mechanic::Teamwork(_)
                 | Mechanic::Ripple(_)
                 | Mechanic::Strive(_)
@@ -4088,6 +4094,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Awaken(..)
         | Mechanic::Assist
         | Mechanic::Replicate(_)
+        | Mechanic::Multikicker(_)
         | Mechanic::Teamwork(_)
         | Mechanic::Ripple(_)
         | Mechanic::Ascend

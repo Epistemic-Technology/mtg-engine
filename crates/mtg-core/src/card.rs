@@ -1733,6 +1733,9 @@ pub enum CountExpr {
     /// Converge: the number of colors of mana spent to cast the source
     /// (CR 601.2h).
     SpentColors,
+    /// "for each time it was kicked": how many times the source's
+    /// multikicker cost was paid (CR 702.33d).
+    TimesKicked,
     /// The mana from Treasures spent to cast the source ("for each mana
     /// from a Treasure spent to cast it").
     SpentTreasure,
@@ -5697,6 +5700,9 @@ pub struct CardDef {
     /// your hand." 0: none.
     #[serde(default)]
     pub dredge: u8,
+    /// Multikicker (CR 702.33c): a kicker cost paid any number of times.
+    #[serde(default)]
+    pub multikicker: Option<Box<ManaCost>>,
     /// Replicate (CR 702.56): an additional cost paid any number of times;
     /// as the spell is cast, it is copied once for each time.
     #[serde(default)]
@@ -7572,6 +7578,7 @@ impl Builder {
             storm: false,
             dredge: 0,
             replicate: None,
+            multikicker: None,
             teamwork: 0,
             ripple: 0,
             splice: None,
@@ -7819,6 +7826,13 @@ impl Builder {
     #[must_use]
     pub fn storm(mut self) -> Self {
         self.0.storm = true;
+        self
+    }
+
+    /// Multikicker (CR 702.33c).
+    #[must_use]
+    pub fn multikicker(mut self, cost: ManaCost) -> Self {
+        self.0.multikicker = Some(Box::new(cost));
         self
     }
 

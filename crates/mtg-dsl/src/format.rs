@@ -2264,6 +2264,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         ),
         CountExpr::ColorsAmongPermanents => "colors among permanents".to_string(),
         CountExpr::SpentColors => "colors spent".to_string(),
+        CountExpr::TimesKicked => "times kicked".to_string(),
         CountExpr::SpentTreasure => "treasure spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
         CountExpr::CardsInOpponentsGraveyards(Some(f)) => {
@@ -4420,6 +4421,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Assist => "assist".to_string(),
                 crate::ast::Mechanic::Enlist => "enlist".to_string(),
                 crate::ast::Mechanic::Replicate(c) => format!("replicate {c}"),
+                crate::ast::Mechanic::Multikicker(c) => format!("multikicker {c}"),
                 crate::ast::Mechanic::Teamwork(n) => format!("teamwork {n}"),
                 crate::ast::Mechanic::Ripple(n) => format!("ripple {n}"),
                 crate::ast::Mechanic::Station => "station".to_string(),

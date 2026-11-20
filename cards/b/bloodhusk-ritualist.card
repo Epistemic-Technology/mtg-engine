@@ -1,0 +1,8 @@
+card "Bloodhusk Ritualist" {
+  oracle_id 93e1d3a6-e12f-4a0a-be0f-fbf568d89f1a
+  cost {2}{B}
+  type Creature — Vampire Shaman
+  pt 2/2
+  multikicker {B}
+  triggered when this enters: target opponent discards count each times kicked cards
+}

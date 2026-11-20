@@ -502,6 +502,12 @@ impl GameState {
                     .count()
             }
             CountExpr::SpentColors => self.spent_on(ctx.source).colors() as usize,
+            CountExpr::TimesKicked => self
+                .objects
+                .get(ctx.source)
+                .map(|o| o.cast)
+                .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.cast))
+                .map_or(0, |c| c.kicks() as usize),
             CountExpr::SpentTreasure => {
                 self.spent_on(ctx.source)
                     .count(crate::card::SpentKind::Treasure) as usize
@@ -2306,6 +2312,30 @@ impl GameState {
         self.spell_payable(o.controller, spell, &req)
     }
 
+    /// How many times `spell`'s caster could pay its multikicker cost on
+    /// top of its cost (CR 702.33c), at most 15.
+    pub(super) fn multikicker_max(&self, spell: ObjId) -> u32 {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let Some(c) = &def.multikicker else {
+            return 0;
+        };
+        if o.cast.flashback() {
+            return 0;
+        }
+        let one = c.requirements(0);
+        let mut req = self.spell_requirements(spell, 0);
+        let mut n = 0;
+        while n < 15 {
+            req.add(&one);
+            if !self.spell_payable(o.controller, spell, &req) {
+                break;
+            }
+            n += 1;
+        }
+        n
+    }
+
     /// How many times `spell`'s caster could pay its replicate cost on top
     /// of its cost (CR 702.56a), at most 15.
     pub(super) fn replicate_max(&self, spell: ObjId) -> u32 {
@@ -2447,6 +2477,12 @@ impl GameState {
             && let Some(k) = &def.kicker
         {
             req.add(&k.requirements(0));
+        }
+        // CR 702.33c: the multikicker cost, once for each time it was paid.
+        if let Some(k) = &def.multikicker {
+            for _ in 0..o.cast.kicks() {
+                req.add(&k.requirements(0));
+            }
         }
         if o.cast.bought_back()
             && let Some(b) = &def.buyback

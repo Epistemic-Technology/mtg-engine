@@ -2965,6 +2965,18 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "creature you attacked with this turn".to_string(),
             "creatures you attacked with this turn".to_string(),
         ),
+        // "for each time it was kicked" (CR 702.33d).
+        CountExpr::TimesKicked => {
+            let it = if is_instant_or_sorcery(card) {
+                "this spell"
+            } else {
+                "it"
+            };
+            (
+                format!("time {it} was kicked"),
+                format!("times {it} was kicked"),
+            )
+        }
         CountExpr::SpentColors | CountExpr::SpentTreasure => {
             let it = if is_instant_or_sorcery(card) {
                 "this spell"
@@ -9597,6 +9609,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Assist => "Assist".to_string(),
             crate::ast::Mechanic::Enlist => "Enlist".to_string(),
             crate::ast::Mechanic::Replicate(c) => format!("Replicate {c}"),
+            crate::ast::Mechanic::Multikicker(c) => format!("Multikicker {c}"),
             crate::ast::Mechanic::Teamwork(n) => format!("Teamwork {n}"),
             crate::ast::Mechanic::Ripple(n) => format!("Ripple {n}"),
             crate::ast::Mechanic::Station => "Station".to_string(),

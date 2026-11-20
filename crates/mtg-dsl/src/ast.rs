@@ -317,6 +317,8 @@ pub enum CountExpr {
     /// `colors spent` (converge): "colors of mana spent to cast this
     /// spell" (CR 601.2h).
     SpentColors,
+    /// `times kicked`: "time(s) it was kicked" (multikicker, CR 702.33d).
+    TimesKicked,
     /// `treasure spent`: "mana from a Treasure spent to cast it".
     SpentTreasure,
     /// `opponents graveyards [<filter>]`: "cards in your opponents'
@@ -1278,6 +1280,9 @@ pub enum Mechanic {
     /// `replicate {U}` (CR 702.56): an additional cost paid any number of
     /// times; copied once for each.
     Replicate(ManaCost),
+    /// `multikicker {1}{G}` (CR 702.33c): a kicker cost paid any number of
+    /// times as the spell is cast.
+    Multikicker(ManaCost),
     /// `teamwork 2`: "Teamwork 2 (As an additional cost to cast this
     /// spell, you may tap any number of creatures you control with total
     /// power 2 or more.)"

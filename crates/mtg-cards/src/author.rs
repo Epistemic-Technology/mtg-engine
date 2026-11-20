@@ -64,7 +64,8 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 115] = [
+const TEMPLATED_TAGS: [&str; 116] = [
+    "Multikicker",
     "Graft",
     "Vanishing",
     "Transform",
@@ -2654,7 +2655,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Multikicker) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
@@ -2850,6 +2851,20 @@ impl Builder<'_> {
             let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(line.to_string()))?;
             self.statements
                 .push(format!("enters with {n} {} counters", cap(&c, 2)));
+            return Ok(());
+        }
+        // Multikicker (CR 702.33d): "This creature enters with a +1/+1
+        // counter on it for each time it was kicked."
+        if let Some(c) = Regex::new(
+            r"^This (?:creature|artifact|enchantment) enters with an? (\+1/\+1|charge) counter on it for each time it was kicked\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            self.statements.push(format!(
+                "enters with count each times kicked {} counters",
+                cap(&c, 1)
+            ));
             return Ok(());
         }
         // "Creatures you control of the chosen color get +1/+0.", "All

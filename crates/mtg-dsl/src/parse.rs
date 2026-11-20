@@ -1485,6 +1485,7 @@ impl P {
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring" | "bestow"
             | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate" | "encore"
+            | "multikicker"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1517,6 +1518,7 @@ impl P {
                     "spectacle" => Mechanic::Spectacle(c),
                     "replicate" => Mechanic::Replicate(c),
                     "encore" => Mechanic::Encore(c),
+                    "multikicker" => Mechanic::Multikicker(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }
@@ -7003,6 +7005,9 @@ impl P {
         }
         if self.eat_words(&["colors", "spent"]) {
             return Ok(CountExpr::SpentColors);
+        }
+        if self.eat_words(&["times", "kicked"]) {
+            return Ok(CountExpr::TimesKicked);
         }
         if self.eat_words(&["treasure", "spent"]) {
             return Ok(CountExpr::SpentTreasure);

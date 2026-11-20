@@ -1,0 +1,71 @@
+# Multikicker (CR 702.33c-d): "You may pay an additional [cost] any number
+# of times as you cast this spell." `multikicked N` (where `x N` goes)
+# pays it N times; unscripted, none. The spell is kicked if it was paid at
+# least once, and "for each time it was kicked" counts the payments.
+
+scenario "multikicker: paid twice, two counters" {
+  battlefield A: 7 "Plains"
+  hand A: "Apex Hawks"
+  turn 1 A: cast "Apex Hawks" multikicked 2
+  run_to turn 1 postcombat_main
+  assert counters "Apex Hawks" +1/+1 2
+  assert power "Apex Hawks" 4
+}
+
+scenario "multikicker: unpaid, no counters" {
+  battlefield A: 7 "Plains"
+  hand A: "Apex Hawks"
+  turn 1 A: cast "Apex Hawks"
+  run_to turn 1 postcombat_main
+  assert counters "Apex Hawks" +1/+1 0
+  assert power "Apex Hawks" 2
+}
+
+scenario "multikicker: as many times as the mana pays for" {
+  battlefield A: 5 "Forest"
+  hand A: "Gnarlid Pack"
+  turn 1 A: cast "Gnarlid Pack" multikicked 1
+  run_to turn 1 postcombat_main
+  assert counters "Gnarlid Pack" +1/+1 1
+}
+
+scenario "multikicker: a free spell kicked three times" {
+  battlefield A: 6 "Forest"
+  hand A: "Everflowing Chalice"
+  turn 1 A: cast "Everflowing Chalice" multikicked 3
+  run_to turn 1 postcombat_main
+  assert counters "Everflowing Chalice" charge 3
+}
+
+scenario "multikicker: an enters trigger counts the kicks" {
+  battlefield A: 6 "Plains"
+  hand A: "Lightkeeper of Emeria"
+  turn 1 A: cast "Lightkeeper of Emeria" multikicked 2
+  run_to turn 1 postcombat_main
+  assert life A 24
+}
+
+scenario "multikicker: a token for each kick" {
+  battlefield A: 6 "Forest"
+  hand A: "Wolfbriar Elemental"
+  turn 1 A: cast "Wolfbriar Elemental" multikicked 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Wolf"
+}
+
+scenario "multikicker: target opponent discards for each kick" {
+  battlefield A: 5 "Swamp"
+  hand A: "Bloodhusk Ritualist"
+  hand B: "Forest", "Island", "Mountain"
+  turn 1 A: cast "Bloodhusk Ritualist" multikicked 2
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+}
+
+scenario "multikicker: the counters pump the Elves" {
+  battlefield A: 5 "Forest", "Llanowar Elves"
+  hand A: "Joraga Warcaller"
+  turn 1 A: cast "Joraga Warcaller" multikicked 2
+  run_to turn 1 postcombat_main
+  assert power "Llanowar Elves" 3
+}

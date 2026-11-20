@@ -993,6 +993,7 @@ fn per_count(
         | CountExpr::OpponentsAttacked
         | CountExpr::AttackedWithThisTurn
         | CountExpr::SpentColors
+        | CountExpr::TimesKicked
         | CountExpr::SpentTreasure
         | CountExpr::DiedThisTurn(_)
         | CountExpr::TriggerStat(_)

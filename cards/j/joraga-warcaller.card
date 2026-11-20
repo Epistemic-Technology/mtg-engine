@@ -1,0 +1,9 @@
+card "Joraga Warcaller" {
+  oracle_id 8959a147-75b1-4f4a-a699-cb354ff55e59
+  cost {G}
+  type Creature — Elf Warrior
+  pt 1/1
+  multikicker {1}{G}
+  enters with count each times kicked +1/+1 counters
+  static other Elf creature you control: +1/+1 count each +1/+1 counter on this
+}

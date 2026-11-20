@@ -380,6 +380,10 @@ impl CastInfo {
     /// How many times its replicate cost was paid (CR 702.56a), up to 15.
     const REPLICATE_MASK: u32 = 0xF0_0000;
     const REPLICATE_SHIFT: u32 = 20;
+    /// How many times its multikicker cost was paid (CR 702.33c), up to
+    /// 15; kept by the permanent ("for each time it was kicked").
+    const KICKS_MASK: u32 = 0x0F00_0000;
+    const KICKS_SHIFT: u32 = 24;
     const KICKED: u32 = 0x40;
     const FLASHBACK: u32 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -493,6 +497,19 @@ impl CastInfo {
             | ((n.min(15) << Self::REPLICATE_SHIFT) & Self::REPLICATE_MASK);
     }
 
+    /// How many times it was kicked with its multikicker (CR 702.33d).
+    pub const fn kicks(self) -> u32 {
+        (self.0 & Self::KICKS_MASK) >> Self::KICKS_SHIFT
+    }
+
+    /// Kicked `n` times with its multikicker; kicked at all if `n > 0`
+    /// (CR 702.33d).
+    pub fn set_kicks(&mut self, n: u32) {
+        self.0 =
+            (self.0 & !Self::KICKS_MASK) | ((n.min(15) << Self::KICKS_SHIFT) & Self::KICKS_MASK);
+        self.set_kicked(n > 0);
+    }
+
     pub const fn casualty(self) -> bool {
         self.0 & Self::CASUALTY != 0
     }
@@ -603,6 +620,7 @@ impl CastInfo {
         CastInfo(
             self.0
                 & (Self::KICKED
+                    | Self::KICKS_MASK
                     | Self::EVOKED
                     | Self::OFFSPRING
                     | Self::BARGAINED
@@ -1211,6 +1229,11 @@ pub enum Flow {
     /// Choosing whether to pay a spell's casualty cost, and what to
     /// sacrifice (CR 702.153a), after bargain.
     ChoosingCasualty {
+        spell: ObjId,
+    },
+    /// Choosing how many times to pay a spell's multikicker cost (CR
+    /// 702.33c), where a kicker is chosen.
+    ChoosingMultikicker {
         spell: ObjId,
     },
     /// Choosing how many times to pay a spell's replicate cost (CR
