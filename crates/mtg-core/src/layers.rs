@@ -494,6 +494,10 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             .is_some_and(|o| o.cast.bargained()),
         StaticCondition::Saddled => state.saddled.contains(&source),
         StaticCondition::Teamwork => state.objects.get(source).is_some_and(|o| o.cast.teamwork()),
+        StaticCondition::OptionalCostPaid => state
+            .objects
+            .get(source)
+            .is_some_and(|o| o.cast.optional_paid()),
         StaticCondition::OffspringPaid => state
             .objects
             .get(source)

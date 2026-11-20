@@ -377,6 +377,9 @@ impl CastInfo {
     /// Cast using teamwork: creatures with enough total power tapped with
     /// its costs (an optional additional cost, CR 601.2b).
     const TEAMWORK: u32 = 0x8_0000;
+    /// Its optional additional cost (`CardDef::optional_cost`) paid; kept
+    /// by the permanent ("if evidence was collected").
+    const OPTIONAL_PAID: u32 = 0x100_0000;
     /// How many times its replicate cost was paid (CR 702.56a), up to 15.
     const REPLICATE_MASK: u32 = 0xF0_0000;
     const REPLICATE_SHIFT: u32 = 20;
@@ -468,6 +471,18 @@ impl CastInfo {
             self.0 | Self::BARGAINED
         } else {
             self.0 & !Self::BARGAINED
+        };
+    }
+
+    pub const fn optional_paid(self) -> bool {
+        self.0 & Self::OPTIONAL_PAID != 0
+    }
+
+    pub fn set_optional_paid(&mut self, on: bool) {
+        self.0 = if on {
+            self.0 | Self::OPTIONAL_PAID
+        } else {
+            self.0 & !Self::OPTIONAL_PAID
         };
     }
 
@@ -606,6 +621,7 @@ impl CastInfo {
                     | Self::EVOKED
                     | Self::OFFSPRING
                     | Self::BARGAINED
+                    | Self::OPTIONAL_PAID
                     | Self::CAST_MASK),
         )
     }
@@ -1220,6 +1236,11 @@ pub enum Flow {
     },
     /// Choosing whether to cast a spell using teamwork, after casualty.
     ChoosingTeamwork {
+        spell: ObjId,
+    },
+    /// Choosing whether to pay a spell's optional additional cost, after
+    /// teamwork.
+    ChoosingOptionalCost {
         spell: ObjId,
     },
     /// Choosing whether to conspire a spell (CR 702.78a), after bargain.
@@ -2200,6 +2221,7 @@ impl GameState {
         // An unfilled "with mana value X" doesn't restrict (`source_filter`).
         if let Some((cmp, n)) = f.mana_value
             && !f.status.mana_value_x
+            && !f.status.spent_colors
         {
             let mv = self.pool.get(o.def).mana_cost.mana_value();
             if !cmp.holds(mv, u32::from(n)) {
@@ -2497,6 +2519,43 @@ impl GameState {
 
     /// The mana spent to cast `id` (or the spell it was), none if it
     /// wasn't cast or its text doesn't ask (CR 601.2h).
+    /// The mana values of the cards in `p`'s graveyard, `except` aside: what
+    /// collecting evidence may exile (CR 701.59a), by card.
+    pub fn evidence_cards(&self, p: PlayerId, except: ObjId) -> Vec<(ObjId, u32)> {
+        self.player(p)
+            .graveyard
+            .iter()
+            .copied()
+            .filter(|id| *id != except)
+            .map(|id| {
+                (
+                    id,
+                    self.pool.get(self.objects[id].def).mana_cost.mana_value(),
+                )
+            })
+            .collect()
+    }
+
+    /// Whether `p` can collect evidence `n` (CR 701.59b): the cards in
+    /// their graveyard have total mana value `n` or greater.
+    pub fn evidence_payable(&self, p: PlayerId, n: u32, except: ObjId) -> bool {
+        n == 0
+            || self
+                .evidence_cards(p, except)
+                .iter()
+                .map(|(_, mv)| *mv)
+                .sum::<u32>()
+                >= n
+    }
+
+    /// Whether the non-mana parts of an optional additional cost could be
+    /// paid by `p` (blight: a creature; collect evidence: enough mana
+    /// value in the graveyard).
+    pub fn other_costs_payable(&self, p: PlayerId, c: &crate::card::Cost, except: ObjId) -> bool {
+        !(c.blight > 0 && self.creatures_of(p).next().is_none())
+            && self.evidence_payable(p, c.evidence, except)
+    }
+
     pub fn spent_on(&self, id: ObjId) -> SpentMana {
         if self.spent_mana.is_empty() {
             return SpentMana::default();
@@ -2686,6 +2745,19 @@ impl GameState {
                     .lki
                     .get(&source)
                     .is_some_and(|l| l.object.cast.teamwork()),
+            },
+            C::OptionalCostPaid => match self.objects.get(source) {
+                Some(o) if o.zone == Zone::Hand => self
+                    .pool
+                    .get(o.def)
+                    .optional_cost
+                    .as_deref()
+                    .is_some_and(|c| self.other_costs_payable(you, c, source)),
+                Some(o) => o.cast.optional_paid(),
+                None => self
+                    .lki
+                    .get(&source)
+                    .is_some_and(|l| l.object.cast.optional_paid()),
             },
             C::OffspringPaid => self
                 .objects
@@ -3050,7 +3122,24 @@ impl GameState {
                 .mana_value
                 .map(|(cmp, _)| (cmp, u8::try_from(x).unwrap_or(u8::MAX)));
         }
+        if f.status.spent_colors
+            && let Some(s) = source
+        {
+            Self::fill_spent_colors(out.to_mut(), self.spent_on(s).colors());
+        }
         out
+    }
+
+    /// Converge in a filter (`StatusQuals::spent_colors`): its mana value
+    /// and power thresholds become the number of colors spent.
+    pub fn fill_spent_colors(g: &mut crate::card::ObjFilter, colors: u32) {
+        g.status.spent_colors = false;
+        g.mana_value = g
+            .mana_value
+            .map(|(cmp, _)| (cmp, u8::try_from(colors).unwrap_or(u8::MAX)));
+        g.power = g
+            .power
+            .map(|(cmp, _)| (cmp, i16::try_from(colors).unwrap_or(i16::MAX)));
     }
 
     /// Whether `id` is in combat with `source` as `with` asks (CR

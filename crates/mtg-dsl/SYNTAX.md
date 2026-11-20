@@ -687,6 +687,39 @@ prints "As an additional cost to cast this spell, blight 1 or pay {3}.").
 As a cost the engine puts the counters on the toughest creature its payer
 controls, and it can't be paid without a creature.
 
+Collect evidence (CR 701.59): `collect evidence 4` is an effect (the
+controller exiles cards with total mana value 4 or greater from their
+graveyard; with too little there, nothing is exiled and `if you do` after
+`you may collect evidence 4` fails) and a cost (`{T}, collect evidence 3:
+...` prints "{T}, Collect evidence 3: ..."). The engine picks the cards:
+the greatest mana values first, then it drops the smallest picks the total
+doesn't need, sparing what the spell or ability targets. Trigger `whenever
+you collect evidence`.
+
+An optional additional cost (CR 601.2b): `additional cost may collect
+evidence 6` ("As an additional cost to cast this spell, you may collect
+evidence 6.") or `additional cost may blight 1`, chosen as the spell is
+cast (scenarios: `kicked`), offered only when it can be paid. The
+conditions `evidence collected` ("evidence was collected") and
+`additional cost paid` ("this spell's additional cost was paid") read it,
+in a spell, an intervening "if", or `this spell costs {2} less if
+evidence collected` (printed after the cost, in its paragraph); the
+permanent a spell becomes keeps it.
+
+Converge (CR 601.2h): `colors spent` counts the colors of mana spent to
+cast the source ("this spell" on an instant or sorcery, "it" otherwise;
+`colors spent spell` and `colors spent creature` print "this spell" and
+"this creature"). A filter `with mana value colors spent or less` (or
+`with power colors spent or less`) prints "with mana value less than or
+equal to the number of colors of mana spent to cast this creature", in a
+target or a check (`exile target nonland permanent if target 1 is with
+mana value colors spent or less`: "... if its mana value is less than or
+equal to ..."). `enters with count each 2 colors spent +1/+1 counters`
+prints "two +1/+1 counters on it for each color ...". After creating
+tokens, `each of them` is those tokens ("Put X +1/+1 counters on each of
+them"). `gain control of target creature indefinitely` prints "Gain
+control of target creature." (no duration).
+
 Filters may have an alternative: `creature or Vehicle`, `land or
 nonblack creature`, `attacking or blocking creature`, `Bear, Spider, or
 Wolf you control`. A spell target may say what the spell targets:

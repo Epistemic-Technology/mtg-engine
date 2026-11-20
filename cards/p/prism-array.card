@@ -1,0 +1,8 @@
+card "Prism Array" {
+  oracle_id 8856d849-dad8-41b8-8212-bb839f2b359c
+  cost {4}{U}
+  type Enchantment
+  label "Converge" enters with count each colors spent crystal counters
+  activated remove 1 crystal counter from this: tap target creature
+  activated {W}{U}{B}{R}{G}: scry 3
+}

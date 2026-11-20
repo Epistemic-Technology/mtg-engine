@@ -1,0 +1,6 @@
+card "Infuse with the Elements" {
+  oracle_id beea5db2-1771-417f-9a31-028b3d31aa66
+  cost {3}{G}
+  type Instant
+  label "Converge" spell: put count where colors spent +1/+1 counters on target creature; that creature gains trample until end of turn
+}

@@ -64,7 +64,10 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 113] = [
+const TEMPLATED_TAGS: [&str; 116] = [
+    "Collect evidence",
+    "Blight",
+    "Manifest dread",
     "Transform",
     "Role token",
     "Landcycling",
@@ -183,7 +186,7 @@ const TEMPLATED_TAGS: [&str; 113] = [
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
 /// "Landfall — <ability>". Scryfall tags them like keywords.
-const ABILITY_WORDS: [&str; 41] = [
+const ABILITY_WORDS: [&str; 42] = [
     "Landfall",
     "Threshold",
     "Metalcraft",
@@ -225,6 +228,7 @@ const ABILITY_WORDS: [&str; 41] = [
     "Pack tactics",
     "Void",
     "Channel",
+    "Converge",
 ];
 
 /// Keywords whose Oracle wording is a phrase the DSL takes as written.
@@ -522,6 +526,16 @@ fn count_expr(s: &str) -> Option<String> {
             return Some("domain".to_string());
         }
         "cards in your hand" | "card in your hand" => return Some("hand".to_string()),
+        // Converge (CR 601.2h).
+        "colors of mana spent to cast it" | "color of mana spent to cast it" => {
+            return Some("colors spent".to_string());
+        }
+        "colors of mana spent to cast this spell" | "color of mana spent to cast this spell" => {
+            return Some("colors spent spell".to_string());
+        }
+        "colors of mana spent to cast this creature" => {
+            return Some("colors spent creature".to_string());
+        }
         "cards in your graveyard" | "card in your graveyard" => {
             return Some("graveyard".to_string());
         }
@@ -1005,6 +1019,15 @@ impl Templates {
                 },
             ),
             (r(r"^Investigate$"), |_, _| Some("investigate".to_string())),
+            (r(r"^[Cc]ollect evidence (\d+)$"), |c, _| {
+                Some(format!("collect evidence {}", cap(c, 1)))
+            }),
+            (r(r"^[Bb]light (\d+)$"), |c, _| {
+                Some(format!("blight {}", cap(c, 1)))
+            }),
+            (r(r"^[Mm]anifest dread$"), |_, _| {
+                Some("manifest dread".to_string())
+            }),
             (
                 r(
                     r"^(?:~|this|It|it|This creature) deals X damage to (.+?), where X is ((?:\S+ plus )?the number of .+)$",
@@ -1758,6 +1781,16 @@ fn cost_text(s: &str) -> Option<String> {
             format!("sacrifice {rest}")
         } else if part == "Discard a card" {
             "discard 1 card".to_string()
+        } else if let Some(n) = part
+            .strip_prefix("Collect evidence ")
+            .filter(|n| n.chars().all(|c| c.is_ascii_digit()))
+        {
+            format!("collect evidence {n}")
+        } else if let Some(n) = part
+            .strip_prefix("Blight ")
+            .filter(|n| n.chars().all(|c| c.is_ascii_digit()))
+        {
+            format!("blight {n}")
         } else if part == "Discard this card" {
             "discard this".to_string()
         } else if let Some(c) = remove.captures(part) {
@@ -1923,7 +1956,8 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever one or more cards leave your graveyard"
         | "Whenever one or more creature cards leave your graveyard"
         | "Whenever you expend 4"
-        | "Whenever you expend 8" => {
+        | "Whenever you expend 8"
+        | "Whenever you collect evidence" => {
             return Some(lowercase_first(head));
         }
         "Whenever a land card is put into your graveyard from anywhere" => {
@@ -2009,6 +2043,10 @@ fn static_condition(s: &str) -> Option<String> {
         "it's equipped" | "this creature is equipped" => return Some("equipped".to_string()),
         "this spell was cast using teamwork" => {
             return Some("teamwork".to_string());
+        }
+        "evidence was collected" => return Some("evidence collected".to_string()),
+        "this spell's additional cost was paid" => {
+            return Some("additional cost paid".to_string());
         }
         "it's bargained" | "it was bargained" | "this spell was bargained" => {
             return Some("bargained".to_string());
@@ -2476,6 +2514,21 @@ impl Builder<'_> {
             self.statements.push("mana any".to_string());
             return Ok(());
         }
+        // "As an additional cost to cast this spell, you may collect
+        // evidence 6." (CR 601.2b), and "This spell costs {2} less to cast
+        // if evidence was collected." after it.
+        if let Some(c) = Regex::new(
+            r"^As an additional cost to cast this spell, you may (collect evidence|blight) (\d+)\.(?: (This spell costs \{\d+\} less to cast if evidence was collected\.))?$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            self.additional = Some(format!("may {} {}", cap(&c, 1), cap(&c, 2)));
+            if !cap(&c, 3).is_empty() {
+                return self.line(cap(&c, 3));
+            }
+            return Ok(());
+        }
         if let Some(rest) = line.strip_prefix("As an additional cost to cast this spell, ") {
             let rest = rest.trim_end_matches('.');
             let cost = match rest {
@@ -2843,6 +2896,26 @@ impl Builder<'_> {
             let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(line.to_string()))?;
             self.statements
                 .push(format!("enters with {n} {} counters", cap(&c, 2)));
+            return Ok(());
+        }
+        // "This creature enters with a +1/+1 counter on it for each color
+        // of mana spent to cast it." (converge), "... two +1/+1 counters
+        // ... for each ...".
+        if let Some(c) = Regex::new(
+            r"^This (?:creature|permanent|artifact|enchantment|Vehicle) enters with (\S+) (\+1/\+1|-1/-1|[a-z]+) counters? on it for each (.+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            let what = count_expr(cap(&c, 3)).ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            let per = if n == "1" {
+                String::new()
+            } else {
+                format!("{n} ")
+            };
+            self.statements
+                .push(format!("enters with count each {per}{what} {} counters", cap(&c, 2)));
             return Ok(());
         }
         // "Creatures you control of the chosen color get +1/+0.", "All

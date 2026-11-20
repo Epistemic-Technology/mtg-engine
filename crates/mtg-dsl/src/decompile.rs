@@ -86,6 +86,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         keywords: keywords(def.keywords),
         additional: (def.additional != CoreCost::default()).then(|| d.cost(&def.additional)),
         additional_or: def.additional_or.as_deref().map(|c| d.cost(c)),
+        optional_cost: def.optional_cost.as_deref().map(|c| d.cost(c)),
         alt_cost: def.alt_cost.as_deref().map(|a| {
             let mut cost = d.cost(&a.cost);
             cost.conditions = a
@@ -326,6 +327,7 @@ impl Decompiler<'_> {
             put_counters: c.put_counters,
             energy: c.energy,
             blight: c.blight,
+            evidence: c.evidence,
             chosen: c.chosen,
             count: c.count,
             exile_cards: c.exile_cards.as_ref().map(|g| {
@@ -433,6 +435,7 @@ impl Decompiler<'_> {
             StaticCondition::Kicked => StaticCond::Kicked,
             StaticCondition::Bargained => StaticCond::Bargained,
             StaticCondition::Teamwork => StaticCond::Teamwork,
+            StaticCondition::OptionalCostPaid => StaticCond::EvidenceCollected,
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
             StaticCondition::Saddled => StaticCond::Saddled,
             StaticCondition::LandEnteredThisTurn => StaticCond::LandEnteredThisTurn,
@@ -726,7 +729,10 @@ impl Decompiler<'_> {
                 keywords: keywords(*k),
                 to: r(*to),
             },
-            CoreEffect::GainControl { of } => Effect::GainControl { of: r(*of) },
+            CoreEffect::GainControl { of, forever } => Effect::GainControl {
+                of: r(*of),
+                forever: *forever,
+            },
             CoreEffect::Attach { what, to } => Effect::Attach {
                 what: r(*what),
                 to: r(*to),
@@ -1145,6 +1151,7 @@ impl Decompiler<'_> {
             CoreEffect::Manifest => Effect::Manifest,
             CoreEffect::ManifestDread => Effect::ManifestDread,
             CoreEffect::Blight(n) => Effect::Blight(*n),
+            CoreEffect::CollectEvidence(n) => Effect::CollectEvidence(*n),
             CoreEffect::CastExiled(_)
             | CoreEffect::SuspendTick
             | CoreEffect::CopySpell
@@ -1522,6 +1529,7 @@ impl Decompiler<'_> {
             TriggerSpec::PutIntoGraveyard(f) => Trigger::PutIntoGraveyard(self.filter(f)),
             TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
+            TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),
             // "When you cast or cycle ~".

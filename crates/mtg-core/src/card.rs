@@ -1124,6 +1124,12 @@ pub struct StatusQuals {
     /// chosen), filled in by the engine where X is known; elsewhere the
     /// mana value doesn't restrict.
     pub mana_value_x: bool,
+    /// Converge (CR 702.119): "with mana value less than or equal to the
+    /// number of colors of mana spent to cast this spell" (and power
+    /// likewise): `ObjFilter::mana_value`'s and `power`'s numbers are the
+    /// colors spent to cast the source, filled in by the engine where the
+    /// source is known; elsewhere they don't restrict.
+    pub spent_colors: bool,
     /// "token" (`true`, CR 111.1) or "nontoken" (`false`).
     pub token: Option<bool>,
     /// "with a +1/+1 counter on it", "with a counter on it" (CR 122.1):
@@ -1176,6 +1182,7 @@ impl StatusQuals {
             || self.blocked_this_turn
             || self.damaged_by_source
             || self.mana_value_x
+            || self.spent_colors
             || self.counter.is_some()
             || self.modified
             || self.toxic
@@ -2090,6 +2097,11 @@ pub enum StaticCondition {
     OffspringPaid,
     /// "If this spell was cast using teamwork": its teamwork cost was paid.
     Teamwork,
+    /// "If evidence was collected", "if this spell's additional cost was
+    /// paid": its optional additional cost (`CardDef::optional_cost`) was
+    /// paid. A card in hand counts as paid when the cost could be ("This
+    /// spell costs {2} less to cast if evidence was collected").
+    OptionalCostPaid,
     /// The source is saddled (CR 702.171b): "whenever this creature
     /// attacks while saddled".
     Saddled,
@@ -2393,6 +2405,8 @@ pub enum CounterKind {
     Net,
     Flood,
     Glyph,
+    Crystal,
+    Unlock,
     /// Power/toughness counters other than +1/+1 and -1/-1 (CR 122.1a):
     /// each modifies power and toughness in layer 7c, and none annihilates
     /// with another (CR 704.5q is about +1/+1 and -1/-1 only).
@@ -2431,7 +2445,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 39] = [
+    pub const NAMED: [(&'static str, CounterKind); 41] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2461,6 +2475,8 @@ impl CounterKind {
         ("net", CounterKind::Net),
         ("flood", CounterKind::Flood),
         ("glyph", CounterKind::Glyph),
+        ("crystal", CounterKind::Crystal),
+        ("unlock", CounterKind::Unlock),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
         ("trample", CounterKind::Trample),
@@ -3300,9 +3316,11 @@ pub enum Effect {
         to: Recipient,
     },
     /// "Gain control of target creature until end of turn" (layer 2,
-    /// CR 613.1b).
+    /// CR 613.1b); with `forever`, indefinitely ("Gain control of target
+    /// creature.").
     GainControl {
         of: Recipient,
+        forever: bool,
     },
     /// Sacrifice a permanent (CR 701.21): its controller puts it into its
     /// owner's graveyard; indestructible does not help.
@@ -3826,6 +3844,11 @@ pub enum Effect {
     /// creature they control; without one, nothing happens and it isn't
     /// done (701.68b).
     Blight(u32),
+    /// Collect evidence N (CR 701.59a): the controller exiles cards with
+    /// total mana value N or greater from their graveyard (the engine picks
+    /// them); with too little there, nothing is exiled and it isn't done
+    /// (701.59b).
+    CollectEvidence(u32),
     /// Manifest dread (CR 701.62a): look at the top two cards of the
     /// controller's library, manifest one, and put the rest into their
     /// graveyard.
@@ -4487,6 +4510,8 @@ pub enum TriggerSpec {
     UnlocksDoor { door: u8 },
     /// "Whenever you fully unlock a Room" (CR 709.5i).
     FullyUnlocks { whose: Who },
+    /// "Whenever you collect evidence" (CR 701.59).
+    CollectsEvidence { whose: Who },
     /// "Whenever you gain life".
     GainsLife { whose: Who },
     /// "Whenever you gain life for the first time each turn": the life
@@ -4788,6 +4813,7 @@ impl TriggerSpec {
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
             TriggerSpec::UnlocksDoor { .. }
             | TriggerSpec::FullyUnlocks { .. }
+            | TriggerSpec::CollectsEvidence { .. }
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
             TriggerSpec::CountersPut { .. } => WATCH_COUNTERS,
@@ -4942,6 +4968,9 @@ pub struct Cost {
     /// payer controls (the engine picks the toughest).
     #[serde(default)]
     pub blight: u32,
+    /// "Collect evidence N" (CR 701.59a): exile cards with total mana value
+    /// N or greater from the payer's graveyard (the engine picks them).
+    pub evidence: u32,
 }
 
 /// A cost that exiles cards from its payer's graveyard: `n` of them (X,
@@ -4998,6 +5027,7 @@ impl Cost {
             exile_cards: None,
             reveal_hand: false,
             blight: 0,
+            evidence: 0,
         }
     }
 
@@ -5706,6 +5736,13 @@ pub struct CardDef {
     /// 0: none.
     #[serde(default)]
     pub teamwork: u8,
+    /// "As an additional cost to cast this spell, you may collect evidence
+    /// 6." / "... you may blight 1." (CR 601.2b): an optional additional
+    /// cost without mana, chosen as the spell is cast; "if evidence was
+    /// collected" and "if this spell's additional cost was paid" read it
+    /// (`StaticCondition::OptionalCostPaid`).
+    #[serde(default)]
+    pub optional_cost: Option<Box<Cost>>,
     /// Ripple N (CR 702.60): as it is cast, its caster may reveal the top
     /// N cards of their library and cast those with the same name free.
     /// 0: none.
@@ -6946,6 +6983,7 @@ impl CardPool {
     /// sentences, and its converge and Treasure counts.
     fn spent_use(&self, def: &CardDef) -> SpentUse {
         let mut out = SpentUse::default();
+        let mut converge = false;
         let mut want = |c: &StaticCondition| {
             if let StaticCondition::ManaSpent {
                 kind,
@@ -6986,11 +7024,33 @@ impl CardPool {
                         cond: EffectCond::Static(i),
                         ..
                     } => want(self.condition(*i)),
+                    // Converge in a target check: "if its mana value is
+                    // less than or equal to the number of colors ...".
+                    Effect::IfTarget { filter, .. } if filter.status.spent_colors => {
+                        converge = true;
+                    }
                     _ => {}
                 }
             }
+            // Converge in a target: "target nonland permanent ... with mana
+            // value less than or equal to the number of colors ...".
+            if a.targets().iter().any(|t| {
+                matches!(self.base_spec(*t), TargetSpec::Filtered(f)
+                    if self.filter(f).status.spent_colors)
+            }) {
+                converge = true;
+            }
+        }
+        if converge {
+            out.record = true;
+            out.converge = true;
         }
         for c in &def.counts {
+            // "two +1/+1 counters on it for each color of mana spent".
+            let c = match c {
+                CountExpr::Times(_, inner) => &**inner,
+                c => c,
+            };
             match c {
                 CountExpr::SpentColors => {
                     out.record = true;
@@ -7565,6 +7625,7 @@ impl Builder {
             dredge: 0,
             replicate: None,
             teamwork: 0,
+            optional_cost: None,
             ripple: 0,
             splice: None,
             alt_cost: None,
@@ -7837,6 +7898,13 @@ impl Builder {
     #[must_use]
     pub fn teamwork(mut self, n: u8) -> Self {
         self.0.teamwork = n;
+        self
+    }
+
+    /// An optional additional cost ("you may collect evidence 6").
+    #[must_use]
+    pub fn optional_cost(mut self, c: Cost) -> Self {
+        self.0.optional_cost = Some(Box::new(c));
         self
     }
 

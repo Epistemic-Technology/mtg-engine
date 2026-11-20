@@ -1,0 +1,6 @@
+card "Unified Front" {
+  oracle_id 1f514b02-7827-4087-a6b7-bd6a3f520a64
+  cost {3}{W}
+  type Sorcery
+  label "Converge" spell: create count each colors spent "1/1 white Kor Ally creature"
+}

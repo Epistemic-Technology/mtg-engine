@@ -1,0 +1,172 @@
+# Collect evidence N (CR 701.59): exile cards with total mana value N or
+# greater from your graveyard; with too little there, it can't be done
+# (701.59b). "As an additional cost to cast this spell, you may collect
+# evidence 6" is an optional additional cost (CR 601.2b), paid with
+# `kicked`; the engine picks the cards (the greatest mana values first,
+# then dropping what the total doesn't need).
+
+scenario "collect evidence: the optional cost paid, the stun counter too" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Serra Angel", "Lightning Bolt"
+  hand A: "Crimestopper Sprite"
+  turn 1 A: cast "Crimestopper Sprite" kicked
+  turn 1 A: trigger "Crimestopper Sprite" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" stun 1
+  assert exile A contains "Serra Angel"
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "collect evidence: not paid, no stun counter" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Serra Angel", "Lightning Bolt"
+  hand A: "Crimestopper Sprite"
+  turn 1 A: cast "Crimestopper Sprite"
+  turn 1 A: trigger "Crimestopper Sprite" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" stun 0
+  assert graveyard A contains "Serra Angel"
+}
+
+scenario "collect evidence: too little mana value in the graveyard" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Serra Angel"
+  hand A: "Crimestopper Sprite"
+  turn 1 A: cast "Crimestopper Sprite" kicked
+  turn 1 A: trigger "Crimestopper Sprite" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" stun 0
+  assert graveyard A contains "Serra Angel"
+}
+
+scenario "collect evidence: only the cards the total needs" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Hill Giant", "Grizzly Bears", "Lightning Bolt"
+  hand A: "Vitu-Ghazi Inspector"
+  turn 1 A: cast "Vitu-Ghazi Inspector" kicked
+  turn 1 A: trigger "Vitu-Ghazi Inspector" targeting "Vitu-Ghazi Inspector"
+  run_to turn 1 postcombat_main
+  assert counters "Vitu-Ghazi Inspector" +1/+1 1
+  assert life A 22
+  assert exile A contains "Hill Giant"
+  assert exile A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "collect evidence: the intervening if, not collected" {
+  battlefield A: 2 "Forest"
+  graveyard A: "Hill Giant", "Grizzly Bears"
+  hand A: "Vitu-Ghazi Inspector"
+  turn 1 A: cast "Vitu-Ghazi Inspector"
+  run_to turn 1 postcombat_main
+  assert counters "Vitu-Ghazi Inspector" +1/+1 0
+  assert life A 20
+}
+
+scenario "collect evidence: the spell costs {2} less if evidence was collected" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  battlefield A: "Hill Giant"
+  graveyard A: "Serra Angel", "Lightning Bolt"
+  hand A: "Bite Down on Crime"
+  turn 1 A: cast "Bite Down on Crime" kicked targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Hill Giant" 5
+}
+
+scenario "collect evidence: without evidence the spell costs its full cost" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  battlefield A: "Hill Giant"
+  hand A: "Bite Down on Crime"
+  illegal turn 1 A: cast "Bite Down on Crime" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Bite Down on Crime"
+}
+
+scenario "collect evidence: as an activated ability's cost" {
+  battlefield A: "Forensic Researcher"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Divination"
+  turn 1 A: activate "Forensic Researcher" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert exile A contains "Divination"
+}
+
+scenario "collect evidence: not without the mana value" {
+  battlefield A: "Forensic Researcher"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Lightning Bolt"
+  illegal turn 1 A: activate "Forensic Researcher" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+}
+
+scenario "collect evidence: whenever you collect evidence" {
+  battlefield A: 4 "Island"
+  graveyard A: "Hill Giant"
+  hand A: "Surveillance Monitor"
+  turn 1 A: cast "Surveillance Monitor"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Thopter"
+  assert exile A contains "Hill Giant"
+}
+
+scenario "collect evidence: declined, nothing happens" {
+  battlefield A: 4 "Island"
+  graveyard A: "Hill Giant"
+  hand A: "Surveillance Monitor"
+  turn 1 A: cast "Surveillance Monitor"
+  turn 1 A: decline "Surveillance Monitor"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Thopter"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "collect evidence: when you do, a reflexive trigger" {
+  battlefield A: "Sample Collector"
+  graveyard A: "Divination"
+  turn 1 A: attack "Sample Collector"
+  run_to turn 1 postcombat_main
+  assert counters "Sample Collector" +1/+1 1
+  assert life B 17
+}
+
+scenario "collect evidence: if you do, create Spiders" {
+  battlefield A: 4 "Swamp", 2 "Forest"
+  graveyard A: "Hill Giant"
+  hand A: "Izoni, Center of the Web"
+  turn 1 A: cast "Izoni, Center of the Web"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Spider"
+}
+
+scenario "collect evidence: a base power and toughness instead" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  graveyard A: "Serra Angel", "Lightning Bolt"
+  hand A: "Behind the Mask"
+  turn 1 A: cast "Behind the Mask" kicked targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert is "Hill Giant" artifact
+}
+
+scenario "collect evidence: without it, 4/3" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Behind the Mask"
+  turn 1 A: cast "Behind the Mask" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 3
+}

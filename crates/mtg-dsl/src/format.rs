@@ -85,6 +85,9 @@ fn format_inner(card: &Card) -> String {
     if let Some(c) = &card.additional_or {
         let _ = writeln!(out, "  additional cost or {}", cost_text(c));
     }
+    if let Some(c) = &card.optional_cost {
+        let _ = writeln!(out, "  additional cost may {}", cost_text(c));
+    }
     if let Some(a) = &card.alt_cost {
         let mut text = cost_text(&a.cost);
         if a.count > 1 {
@@ -288,6 +291,7 @@ impl Fmt {
             }
             Recipient::CreatedObject => "that token".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
+            Recipient::CreatedThem => "each of them".to_string(),
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.
             // `all` prints with the filter.
@@ -599,6 +603,7 @@ impl Fmt {
             Effect::Manifest => "manifest".to_string(),
             Effect::ManifestDread => "manifest dread".to_string(),
             Effect::Blight(n) => format!("blight {n}"),
+            Effect::CollectEvidence(n) => format!("collect evidence {n}"),
             Effect::Adapt(n) => format!("adapt {n}"),
             Effect::Bolster(n) => format!("bolster {}", num(*n)),
             Effect::Monstrosity(n) => format!("monstrosity {}", num(*n)),
@@ -1102,7 +1107,11 @@ impl Fmt {
                 };
                 format!("{} {v} {}", self.recipient(*to, t), keywords(ks))
             }
-            Effect::GainControl { of } => format!("gain control of {}", self.recipient(*of, t)),
+            Effect::GainControl { of, forever } => format!(
+                "gain control of {}{}",
+                self.recipient(*of, t),
+                if *forever { " indefinitely" } else { "" }
+            ),
             Effect::Attach {
                 what: Recipient::Source,
                 to,
@@ -1439,6 +1448,8 @@ impl Fmt {
                     mv = g.mana_value.take().map(|(cmp, n)| {
                         let n = if g.status.mana_value_x {
                             "X".to_string()
+                        } else if g.status.spent_colors {
+                            "colors spent".to_string()
                         } else {
                             n.to_string()
                         };
@@ -1446,6 +1457,7 @@ impl Fmt {
                     });
                     if mv.is_some() {
                         g.status.mana_value_x = false;
+                        g.status.spent_colors = false;
                     }
                 }
                 if g != Filter::default() {
@@ -2263,7 +2275,11 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             n + 1
         ),
         CountExpr::ColorsAmongPermanents => "colors among permanents".to_string(),
-        CountExpr::SpentColors => "colors spent".to_string(),
+        CountExpr::SpentColors(of) => match of {
+            crate::ast::SpentOf::Default => "colors spent".to_string(),
+            crate::ast::SpentOf::Spell => "colors spent spell".to_string(),
+            crate::ast::SpentOf::Creature => "colors spent creature".to_string(),
+        },
         CountExpr::SpentTreasure => "treasure spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
         CountExpr::CardsInOpponentsGraveyards(Some(f)) => {
@@ -2401,10 +2417,13 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     {
         let n = if g.status.mana_value_x {
             "X".to_string()
+        } else if g.status.spent_colors {
+            "colors spent".to_string()
         } else {
             n.to_string()
         };
         g.status.mana_value_x = false;
+        g.status.spent_colors = false;
         mv = format!(" with mana value {n}{}", cmp_suffix(cmp));
     }
     if g == Filter::default() {
@@ -2574,11 +2593,17 @@ fn filter_one(f: &Filter) -> String {
     }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
         if let Some((cmp, n)) = v {
-            words.push(format!("with {name} {n}{}", cmp_suffix(cmp)));
+            if f.status.spent_colors && name == "power" {
+                words.push("with power colors spent or less".to_string());
+            } else {
+                words.push(format!("with {name} {n}{}", cmp_suffix(cmp)));
+            }
         }
     }
     if let Some((cmp, n)) = f.mana_value {
-        if f.status.mana_value_x {
+        if f.status.spent_colors {
+            words.push("with mana value colors spent or less".to_string());
+        } else if f.status.mana_value_x {
             words.push(format!("with mana value X{}", cmp_suffix(cmp)));
         } else {
             words.push(format!("with mana value {n}{}", cmp_suffix(cmp)));
@@ -3309,6 +3334,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             format!("whenever {} enters from your graveyard", filter(f))
         }
         Trigger::Expends(n) => format!("whenever you expend {n}"),
+        Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
         Trigger::EntersBatch(f) => format!("whenever one or more {} enter", filter(f)),
         Trigger::LeavesBatch { filter: f, dies } => format!(
             "whenever one or more {} {}",
@@ -3332,6 +3358,7 @@ fn cost_text(c: &Cost) -> String {
         CostItem::Life,
         CostItem::ExileCards,
         CostItem::Blight,
+        CostItem::Evidence,
     ];
     let order: &[CostItem] = if c.order.is_empty() {
         &default_order
@@ -3433,6 +3460,11 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Blight => {
                 if c.blight > 0 {
                     parts.push(format!("blight {}", c.blight));
+                }
+            }
+            CostItem::Evidence => {
+                if c.evidence > 0 {
+                    parts.push(format!("collect evidence {}", c.evidence));
                 }
             }
         }
@@ -3767,6 +3799,8 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Kicked => "kicked".to_string(),
         StaticCond::Bargained => "bargained".to_string(),
         StaticCond::Teamwork => "teamwork".to_string(),
+        StaticCond::EvidenceCollected => "evidence collected".to_string(),
+        StaticCond::AdditionalCostPaid => "additional cost paid".to_string(),
         StaticCond::ManaSpent {
             kind,
             at_least,

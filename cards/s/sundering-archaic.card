@@ -1,0 +1,8 @@
+card "Sundering Archaic" {
+  oracle_id b095526e-94a4-416b-83de-d6271804ccf3
+  cost {6}
+  type Creature — Avatar
+  pt 3/3
+  label "Converge" triggered when this enters: exile target nonland permanent an opponent controls with mana value colors spent or less
+  activated {2}: put target card from a graveyard on bottom of its owner's library
+}

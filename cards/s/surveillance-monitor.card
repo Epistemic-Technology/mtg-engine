@@ -1,0 +1,8 @@
+card "Surveillance Monitor" {
+  oracle_id 9be5a350-c38e-425f-9d6a-8eb111132a89
+  cost {3}{U}
+  type Creature — Vedalken Detective
+  pt 3/3
+  triggered when this enters: you may collect evidence 4
+  triggered whenever you collect evidence: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

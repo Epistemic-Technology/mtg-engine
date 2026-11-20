@@ -1,0 +1,8 @@
+card "Skyrider Elf" {
+  oracle_id c71f19be-aabc-44ef-a62b-57522b3a2c98
+  cost {X}{G}{U}
+  type Creature — Elf Warrior Ally
+  pt 0/0
+  keywords flying
+  label "Converge" enters with count each colors spent +1/+1 counters
+}

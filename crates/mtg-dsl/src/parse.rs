@@ -713,6 +713,7 @@ impl P {
             keywords: Vec::new(),
             additional: None,
             additional_or: None,
+            optional_cost: None,
             alt_cost: None,
             flash_if: None,
             flash_cleanup: false,
@@ -874,6 +875,14 @@ impl P {
                         return self.fail("`additional cost or` follows an `additional cost`");
                     }
                     card.additional_or = Some(self.cost()?);
+                } else if self.eat_word("may") {
+                    // `additional cost may collect evidence 6` (CR 601.2b).
+                    let c = self.cost()?;
+                    if !c.mana.is_empty() || c.blight == 0 && c.evidence == 0 {
+                        return self
+                            .fail("an optional additional cost is blight or collect evidence");
+                    }
+                    card.optional_cost = Some(c);
                 } else {
                     card.additional = Some(self.cost()?);
                 }
@@ -2667,6 +2676,12 @@ impl P {
         if self.eat_word("teamwork") {
             return Ok(StaticCond::Teamwork);
         }
+        if self.eat_words(&["evidence", "collected"]) {
+            return Ok(StaticCond::EvidenceCollected);
+        }
+        if self.eat_words(&["additional", "cost", "paid"]) {
+            return Ok(StaticCond::AdditionalCostPaid);
+        }
         if self.eat_word("spent") {
             return self.spent_cond();
         }
@@ -4145,7 +4160,7 @@ impl P {
                     self.expect_word("of")?;
                     let of = self.recipient()?;
                     self.until_end_of_turn();
-                    return Ok(Effect::GainControl { of });
+                    return Ok(Effect::GainControl { of, forever: false });
                 }
                 if self.eat_words(&["choice", "of"]) {
                     let mut keywords = Vec::new();
@@ -6033,6 +6048,7 @@ impl P {
             }
             "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
             "blight" => Ok(Effect::Blight(self.count()?)),
+            "collect" if self.eat_word("evidence") => Ok(Effect::CollectEvidence(self.count()?)),
             "manifest" => {
                 self.eat_words(&["the", "top", "card", "of", "your", "library"]);
                 Ok(Effect::Manifest)
@@ -6087,8 +6103,11 @@ impl P {
                 self.expect_word("control")?;
                 self.expect_word("of")?;
                 let of = self.recipient()?;
-                self.until_end_of_turn();
-                Ok(Effect::GainControl { of })
+                let forever = self.eat_word("indefinitely");
+                if !forever {
+                    self.until_end_of_turn();
+                }
+                Ok(Effect::GainControl { of, forever })
             }
             "draw" => {
                 let count = self.num()?;
@@ -6986,7 +7005,14 @@ impl P {
             return Ok(CountExpr::ColorsAmongPermanents);
         }
         if self.eat_words(&["colors", "spent"]) {
-            return Ok(CountExpr::SpentColors);
+            let of = if self.eat_word("spell") {
+                crate::ast::SpentOf::Spell
+            } else if self.eat_word("creature") {
+                crate::ast::SpentOf::Creature
+            } else {
+                crate::ast::SpentOf::Default
+            };
+            return Ok(CountExpr::SpentColors(of));
         }
         if self.eat_words(&["treasure", "spent"]) {
             return Ok(CountExpr::SpentTreasure);
@@ -7495,6 +7521,10 @@ impl P {
             } else {
                 Recipient::CreatedTokens
             });
+        }
+        // "Put X +1/+1 counters on each of them" after creating tokens.
+        if !self.in_delayed && self.eat_words(&["each", "of", "them"]) {
+            return Ok(Recipient::CreatedThem);
         }
         if self.eat_words(&["those", "cards"]) {
             if self.targets.is_empty() {
@@ -8193,6 +8223,23 @@ impl P {
                     };
                     f.mana_value = Some((cmp, 0));
                     f.status.mana_value_x = true;
+                }
+                // Converge: "with mana value less than or equal to the
+                // number of colors of mana spent to cast this spell".
+                "with"
+                    if !f.status.spent_colors
+                        && (self.at_words(&["with", "mana", "value", "colors", "spent"])
+                            || self.at_words(&["with", "power", "colors", "spent"])) =>
+                {
+                    self.pos += 1;
+                    if self.eat_word("power") {
+                        f.power = Some((Cmp::AtMost, 0));
+                    } else {
+                        self.expect_words(&["mana", "value"])?;
+                        f.mana_value = Some((Cmp::AtMost, 0));
+                    }
+                    self.expect_words(&["colors", "spent", "or", "less"])?;
+                    f.status.spent_colors = true;
                 }
                 // "with three or more level counters on it".
                 "with"
@@ -8976,6 +9023,9 @@ impl P {
                 return Ok(Trigger::Discards { whose, filter });
             }
         }
+        if self.eat_words(&["you", "collect", "evidence"]) {
+            return Ok(Trigger::CollectsEvidence);
+        }
         // CR 700.14: "you expend 4".
         if self.eat_words(&["you", "expend"]) {
             let n = self.number()?;
@@ -9602,6 +9652,14 @@ impl P {
                         self.pos += 1;
                         cost.blight = self.count()?;
                         cost.order.push(CostItem::Blight);
+                    }
+                    "collect"
+                        if self.word_at(1).as_deref() == Some("evidence")
+                            && matches!(self.peek_at(2), Some(Tok::Num(_))) =>
+                    {
+                        self.pos += 2;
+                        cost.evidence = self.count()?;
+                        cost.order.push(CostItem::Evidence);
                     }
                     "reveal" if self.word_at(1).as_deref() == Some("hand") => {
                         self.pos += 2;

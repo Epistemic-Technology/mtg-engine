@@ -1,0 +1,8 @@
+card "Bite Down on Crime" {
+  oracle_id ff387264-31da-4f6b-88c6-2843f56acbda
+  cost {3}{G}
+  type Sorcery
+  additional cost may collect evidence 6
+  this spell costs {2} less if evidence collected
+  spell: target creature you control gets +2/+0 until end of turn; target 1 bites target creature you don't control
+}

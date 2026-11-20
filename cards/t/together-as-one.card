@@ -1,0 +1,6 @@
+card "Together as One" {
+  oracle_id 234f1c4b-dd0c-4c4e-b3c1-3b9ccfc42226
+  cost {6}
+  type Sorcery
+  label "Converge" spell: target player draws count where colors spent cards, this deals count where colors spent damage to any target and you gain count where colors spent life
+}

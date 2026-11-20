@@ -1652,6 +1652,50 @@ impl GameState {
         }
     }
 
+    /// Collect evidence `n` (CR 701.59a): exile cards from `p`'s graveyard
+    /// (other than `except`) with total mana value `n` or greater, the
+    /// engine picking them: the greatest mana values first, then dropping
+    /// the smallest picks the total doesn't need. Sparing what the spell or
+    /// ability being paid for targets. Whether it was done.
+    pub(super) fn collect_evidence(&mut self, p: PlayerId, n: u32, except: ObjId) -> bool {
+        if !self.evidence_payable(p, n, except) {
+            return false;
+        }
+        let mut cands = self.evidence_cards(p, except);
+        let targeted = |s: &GameState, id: ObjId| {
+            s.stack
+                .last()
+                .and_then(|t| s.objects.get(*t))
+                .is_some_and(|top| top.targets.contains(&Target::Object(id)))
+        };
+        cands.sort_by_key(|(id, mv)| (targeted(self, *id), std::cmp::Reverse(*mv)));
+        let mut picks: Vec<(ObjId, u32)> = Vec::new();
+        let mut total = 0;
+        for c in cands {
+            if total >= n {
+                break;
+            }
+            total += c.1;
+            picks.push(c);
+        }
+        // Drop picks the total doesn't need, smallest first.
+        picks.sort_by_key(|(_, mv)| *mv);
+        let mut i = 0;
+        while i < picks.len() {
+            if total - picks[i].1 >= n {
+                total -= picks[i].1;
+                picks.remove(i);
+            } else {
+                i += 1;
+            }
+        }
+        for (id, _) in picks {
+            self.move_object(id, Zone::Exile, true);
+        }
+        self.emit(Event::CollectedEvidence { player: p });
+        true
+    }
+
     /// The creature a blight cost puts its counters on (CR 701.68a): the
     /// engine picks the toughest creature `p` controls.
     fn blight_pick(&self, p: PlayerId) -> Option<ObjId> {
@@ -2039,8 +2083,8 @@ impl GameState {
         {
             return false;
         }
-        // CR 701.68b.
-        !(add.blight > 0 && self.creatures_of(p).next().is_none())
+        // CR 701.68b, 701.59b.
+        self.other_costs_payable(p, add, spell)
     }
 
     /// Whether either of a spell's additional costs ("sacrifice a creature
@@ -2914,8 +2958,9 @@ impl GameState {
                 if ab.cost.energy > self.player(p).energy {
                     continue;
                 }
-                // CR 701.68b: blighting needs a creature to put counters on.
-                if ab.cost.blight > 0 && self.creatures_of(p).next().is_none() {
+                // CR 701.68b: blighting needs a creature to put counters
+                // on; CR 701.59b: collecting evidence, enough mana value.
+                if !self.other_costs_payable(p, &ab.cost, id) {
                     continue;
                 }
                 if ab.cost.life > 0
@@ -4215,6 +4260,9 @@ impl GameState {
         {
             self.add_counters(c, CounterKind::MinusOneMinusOne, cost.blight);
         }
+        if cost.evidence > 0 {
+            self.collect_evidence(p, cost.evidence, this);
+        }
         // CR 606.4: loyalty costs are counters put on or removed from the
         // planeswalker.
         if cost.loyalty > 0 {
@@ -4866,6 +4914,18 @@ impl GameState {
                 }
             } else {
                 self.objects[spell].cast.set_teamwork(false);
+            }
+        }
+        // The optional additional cost ("you may collect evidence 6", "you
+        // may blight 1"), paid with the others.
+        if self.objects[spell].cast.optional_paid()
+            && let Some(c) = def.optional_cost.as_deref()
+        {
+            if self.other_costs_payable(caster, c, spell) {
+                let c = c.clone();
+                self.pay_other_costs(caster, &c, spell, None, None);
+            } else {
+                self.objects[spell].cast.set_optional_paid(false);
             }
         }
         // CR 702.78a: conspire taps two creatures with the costs.
@@ -7064,13 +7124,19 @@ impl GameState {
                     }
                 }
             }
-            Effect::GainControl { of } => {
+            Effect::GainControl { of, forever } => {
+                let duration = if *forever {
+                    Duration::Permanent
+                } else {
+                    Duration::UntilEndOfTurn
+                };
                 for t in self.recipients(ctx, *of) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.effect_until_end_of_turn(
+                        self.effect_on(
                             ctx,
                             id,
                             smallvec::smallvec![Modification::Control],
+                            duration,
                         );
                         self.control_effects += 1;
                     }
@@ -9157,6 +9223,9 @@ impl GameState {
                     }
                 }
             }
+            Effect::CollectEvidence(n) => {
+                ctx.did = self.collect_evidence(ctx.controller, *n, ctx.source);
+            }
             Effect::ManifestDread => {
                 // CR 701.62a: look at the top two, manifest one, the rest
                 // into the graveyard.
@@ -9549,6 +9618,17 @@ impl GameState {
     /// `n`th target matches, judged as it last existed if it has left
     /// (CR 608.2h).
     fn nth_target_matches(&self, ctx: &EffectCtx, n: u8, filter: &crate::card::ObjFilter) -> bool {
+        // Converge: "if its mana value is less than or equal to the number
+        // of colors of mana spent to cast this spell".
+        let filled;
+        let filter = if filter.status.spent_colors {
+            let mut g = filter.clone();
+            GameState::fill_spent_colors(&mut g, self.spent_on(ctx.source).colors());
+            filled = g;
+            &filled
+        } else {
+            filter
+        };
         let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
             return false;
         };

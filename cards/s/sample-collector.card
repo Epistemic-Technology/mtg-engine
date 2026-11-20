@@ -1,0 +1,7 @@
+card "Sample Collector" {
+  oracle_id 566b65bb-fa5d-4da6-a766-b08128ee0049
+  cost {2}{G}
+  type Creature — Troll Detective
+  pt 2/3
+  triggered whenever this attacks: you may collect evidence 3; when you do, put 1 +1/+1 counter on target creature you control
+}

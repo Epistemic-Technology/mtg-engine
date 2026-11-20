@@ -746,6 +746,9 @@ impl GameState {
             (TriggerSpec::UnlocksDoor { door }, Event::Unlocked { obj, door: d, .. }) => {
                 (*obj == w.source && d == door).then_some((Some(*obj), Some(w.controller)))
             }
+            (TriggerSpec::CollectsEvidence { whose }, Event::CollectedEvidence { player }) => {
+                whose_ok(*whose, *player).then_some((None, Some(*player)))
+            }
             // CR 709.5i.
             (
                 TriggerSpec::FullyUnlocks { whose },

@@ -1,0 +1,7 @@
+card "Kaleidoscorch" {
+  oracle_id b02bd695-ec7f-47be-b797-e2b4b309cc2a
+  cost {1}{R}
+  type Sorcery
+  label "Converge" spell: deal count where colors spent damage to any target
+  flashback {4}{R}
+}

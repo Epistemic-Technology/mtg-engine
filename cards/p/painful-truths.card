@@ -1,0 +1,6 @@
+card "Painful Truths" {
+  oracle_id 58a2d15f-1b4b-4303-b524-8cc0d1b3e7d2
+  cost {2}{B}
+  type Sorcery
+  label "Converge" spell: you draw count where colors spent cards and lose count where colors spent life
+}

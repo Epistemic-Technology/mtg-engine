@@ -93,9 +93,11 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::TopOrBottom { .. } => 34,
         DecisionKind::ChooseAdditionalCost { .. } => 35,
         DecisionKind::Splice { .. } => 36,
-        // Teamwork shares conspire's slot (Accept taps creatures the
-        // engine picks).
-        DecisionKind::Conspire { .. } | DecisionKind::Teamwork { .. } => 37,
+        // Teamwork and an optional additional cost share conspire's slot
+        // (Accept pays a cost the engine settles).
+        DecisionKind::Conspire { .. }
+        | DecisionKind::Teamwork { .. }
+        | DecisionKind::OptionalCost { .. } => 37,
         DecisionKind::CopyTarget { .. } => 38,
         DecisionKind::FormBand { .. } => 39,
     }

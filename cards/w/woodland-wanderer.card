@@ -1,0 +1,8 @@
+card "Woodland Wanderer" {
+  oracle_id d5f3c711-edfa-4105-9844-e3f444942a03
+  cost {3}{G}
+  type Creature — Elemental
+  pt 2/2
+  keywords vigilance, trample
+  label "Converge" enters with count each colors spent +1/+1 counters
+}
