@@ -10024,6 +10024,13 @@ impl P {
                         let c = if w.eq_ignore_ascii_case("if") {
                             self.pos += 1;
                             self.static_cond()?
+                        } else if self.at_words(&["during", "your", "turn"])
+                            && self.peek_at(3) == Some(&Tok::Comma)
+                        {
+                            // `during your turn, if ...`: "Activate only
+                            // during your turn and only if ...".
+                            self.pos += 3;
+                            StaticCond::DuringYourTurn
                         } else {
                             match self.turn_time() {
                                 Some(c) => c,

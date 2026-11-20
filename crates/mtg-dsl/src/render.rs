@@ -9372,9 +9372,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("you've gained {n} or more life this turn")
         }
         StaticCond::CrimeThisTurn => "you've committed a crime this turn".to_string(),
-        StaticCond::LeftGraveyardThisTurn => {
-            "one or more cards left your graveyard this turn".to_string()
-        }
+        StaticCond::LeftGraveyardThisTurn => "a card left your graveyard this turn".to_string(),
         StaticCond::SacrificedThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
             format!(
@@ -10031,10 +10029,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             "This spell costs {{{}}} {} to cast if {}.",
             delta.unsigned_abs(),
             if *delta < 0 { "less" } else { "more" },
-            if *cond == StaticCond::Bargained {
-                "it's bargained".to_string()
-            } else {
-                static_cond_text(cond, card)
+            match cond {
+                StaticCond::Bargained => "it's bargained".to_string(),
+                // "if one or more cards left your graveyard this turn"
+                // (Wilt in the Heat).
+                StaticCond::LeftGraveyardThisTurn => {
+                    "one or more cards left your graveyard this turn".to_string()
+                }
+                _ => static_cond_text(cond, card),
             }
         ),
         Ability::TargetCost {

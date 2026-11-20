@@ -1,0 +1,7 @@
+card "Essence Anchor" {
+  oracle_id e28a3f0e-40bd-4293-b5eb-ec9d185c1e1c
+  cost {2}{U}
+  type Artifact
+  triggered at beginning of your upkeep: surveil 1
+  activated {T}, during your turn, if card left your graveyard this turn: create 1 "2/2 black Zombie Druid creature"
+}

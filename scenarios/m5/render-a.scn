@@ -439,6 +439,54 @@ scenario "Goddric stays a 3/3 Human after one permanent enters" {
   assert has not "Goddric, Cloaked Reveler" flying
 }
 
+scenario "Primary Research returns a permanent card, then draws at end step" {
+  battlefield A: 5 "Plains"
+  graveyard A: "Grizzly Bears"
+  hand A: "Primary Research"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primary Research"
+  turn 1 A: trigger "Primary Research" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Essence Anchor makes a Zombie Druid once a card left your graveyard" {
+  battlefield A: "Essence Anchor", 5 "Plains"
+  graveyard A: "Grizzly Bears"
+  hand A: "Primary Research"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primary Research"
+  turn 1 A: trigger "Primary Research" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Essence Anchor"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zombie Druid"
+}
+
+scenario "Essence Anchor can't be activated if no card left your graveyard" {
+  battlefield A: "Essence Anchor"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Essence Anchor"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Zombie Druid"
+}
+
+scenario "Living History pumps an attacker after a card left your graveyard" {
+  battlefield A: "Living History", "Grizzly Bears", 5 "Plains"
+  graveyard A: "Centaur Courser"
+  hand A: "Primary Research"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primary Research"
+  turn 1 A: trigger "Primary Research" targeting "Centaur Courser"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Living History" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 4
+}
+
 scenario "Brambleguard Captain gives its power to a creature you control" {
   battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
   start turn 1 A precombat_main
