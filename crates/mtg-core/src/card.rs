@@ -4939,6 +4939,15 @@ pub struct CardDef {
     /// or creature subtypes, Aura, enchant creature).
     #[serde(skip)]
     pub bestow_face: Option<CardRef>,
+    /// Overload (CR 702.96): an alternative cost; an overloaded spell's
+    /// text has "each" for "target" (`overload_face`).
+    #[serde(default)]
+    pub overload: Option<Box<ManaCost>>,
+    /// Filled in by `CardPool::add` for a spell with overload: the spell
+    /// as cast overloaded, without targets (CR 702.96b). It resolves once
+    /// for each object or player the card's target spec matches.
+    #[serde(skip)]
+    pub overload_face: Option<CardRef>,
     /// Splice onto Arcane (CR 702.47): revealed from hand as an Arcane
     /// spell is cast, this cost paid on top, the card's effects (and
     /// targets) are added to that spell. Mana, or mana and a permanent
@@ -6161,6 +6170,18 @@ impl CardPool {
             let face = bestowed_aura(&def);
             def.bestow_face = Some(self.add(face));
         }
+        // CR 702.96b: the overloaded spell has no targets (and so is
+        // not registered again).
+        if def.overload.is_some() && def.spell_ability().is_some_and(|(t, _)| !t.is_empty()) {
+            let mut face = def.clone();
+            for a in &mut face.abilities {
+                if let AbilityDef::Spell { targets, .. } = a {
+                    targets.clear();
+                }
+            }
+            face.overload_face = None;
+            def.overload_face = Some(self.add(face));
+        }
         let r = CardRef(u32::try_from(self.defs.len()).expect("card pool too large"));
         def.subtype_ids = def
             .subtypes
@@ -6434,6 +6455,8 @@ impl Builder {
             dash: None,
             bestow: None,
             bestow_face: None,
+            overload: None,
+            overload_face: None,
             splice: None,
             alt_cost: None,
             additional_or: None,
@@ -6609,6 +6632,13 @@ impl Builder {
     #[must_use]
     pub fn bestow(mut self, cost: ManaCost) -> Self {
         self.0.bestow = Some(Box::new(cost));
+        self
+    }
+
+    /// Overload (CR 702.96).
+    #[must_use]
+    pub fn overload(mut self, cost: ManaCost) -> Self {
+        self.0.overload = Some(Box::new(cost));
         self
     }
 

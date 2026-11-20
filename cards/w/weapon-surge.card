@@ -1,0 +1,7 @@
+card "Weapon Surge" {
+  oracle_id 2c46bc05-1133-4eaf-8865-eb8a1d880bd9
+  cost {R}
+  type Instant
+  spell: target creature you control gets +1/+0 and gains first strike
+  overload {1}{R}
+}

@@ -1,0 +1,7 @@
+card "Stirring Address" {
+  oracle_id 45a60f56-35e4-46e5-838f-8b4407a67cd6
+  cost {1}{W}
+  type Instant
+  spell: target creature you control gets +2/+2
+  overload {5}{W}
+}

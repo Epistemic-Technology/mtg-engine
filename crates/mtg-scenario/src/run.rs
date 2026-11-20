@@ -1049,6 +1049,7 @@ impl Runner {
                     dashed,
                     alternative,
                     bestowed,
+                    overloaded,
                     ..
                 } => {
                     let choice = if *face_down {
@@ -1059,6 +1060,8 @@ impl Runner {
                         Choice::CastDash(self.in_hand(a.line, d.player, name)?)
                     } else if *bestowed {
                         Choice::CastBestow(self.in_hand(a.line, d.player, name)?)
+                    } else if *overloaded {
+                        Choice::CastOverload(self.in_hand(a.line, d.player, name)?)
                     } else if *alternative {
                         Choice::CastAlt(self.in_hand(a.line, d.player, name)?)
                     } else if *from_graveyard {
@@ -1092,7 +1095,8 @@ impl Runner {
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
             | Choice::CastAlt(id)
-            | Choice::CastBestow(id)) = option
+            | Choice::CastBestow(id)
+            | Choice::CastOverload(id)) = option
             else {
                 unreachable!()
             };
@@ -1155,11 +1159,17 @@ impl Runner {
                         // A bestowed spell targets what it enchants; spliced
                         // cards' targets follow the spell's (CR 702.47a).
                         if let Action::Cast {
-                            bestowed, splice, ..
+                            bestowed,
+                            overloaded,
+                            splice,
+                            ..
                         } = &a.action
                         {
                             if *bestowed {
                                 needed += 1;
+                            }
+                            if *overloaded {
+                                needed = 0;
                             }
                             if !splice_refusal {
                                 let pool = &self.state().pool;
@@ -2345,6 +2355,9 @@ impl Runner {
             Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
             Choice::CastAlt(id) => format!("cast {} alternative", self.describe_ids(&[*id])),
             Choice::CastBestow(id) => format!("cast {} bestowed", self.describe_ids(&[*id])),
+            Choice::CastOverload(id) => {
+                format!("cast {} overloaded", self.describe_ids(&[*id]))
+            }
             Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
             Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
             Choice::TurnFaceUp(id) => {

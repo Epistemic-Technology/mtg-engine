@@ -1457,6 +1457,11 @@ impl GameState {
                 let face = self.pool.get(self.objects[card].def).bestow_face;
                 self.begin_cast_as(player, card, crate::state::AltCast::Bestow, face);
             }
+            (Flow::Priority, Choice::CastOverload(card)) => {
+                // CR 702.96b: on the stack it is the spell without targets.
+                let face = self.pool.get(self.objects[card].def).overload_face;
+                self.begin_cast_as(player, card, crate::state::AltCast::Overload, face);
+            }
             (Flow::Priority, Choice::CastAlt(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::AltCost);
             }

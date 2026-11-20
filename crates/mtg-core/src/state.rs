@@ -252,6 +252,8 @@ pub enum AltCast {
     AltCost,
     /// Cast for its bestow cost (CR 702.103a): an Aura spell.
     Bestow,
+    /// Cast for its overload cost (CR 702.96a): "each" for "target".
+    Overload,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
@@ -2708,7 +2710,6 @@ impl GameState {
 
     /// `is_legal_target_for` with X taken as `x` ("with mana value X"
     /// while X is being chosen) rather than the spell's chosen X.
-    #[allow(clippy::too_many_lines)]
     pub fn is_legal_target_x(
         &self,
         caster: PlayerId,
@@ -2717,9 +2718,33 @@ impl GameState {
         source: Option<ObjId>,
         x: Option<u32>,
     ) -> bool {
+        self.spec_matches(caster, spec, target, source, x, true)
+    }
+
+    /// Whether `target` answers `spec`'s description; `targeting`: also
+    /// that it can be targeted (hexproof, shroud, protection, CR 115.5).
+    /// Without, the objects "each" means for an overloaded spell (CR
+    /// 702.96a).
+    #[allow(clippy::too_many_lines)]
+    pub fn spec_matches(
+        &self,
+        caster: PlayerId,
+        spec: crate::card::TargetSpec,
+        target: Target,
+        source: Option<ObjId>,
+        x: Option<u32>,
+        targeting: bool,
+    ) -> bool {
         use crate::card::TargetSpec;
         if let TargetSpec::UpTo(_) | TargetSpec::Many(_) = spec {
-            return self.is_legal_target_x(caster, self.pool.base_spec(spec), target, source, x);
+            return self.spec_matches(
+                caster,
+                self.pool.base_spec(spec),
+                target,
+                source,
+                x,
+                targeting,
+            );
         }
         match target {
             Target::Player(p) => {
@@ -2890,6 +2915,9 @@ impl GameState {
                     | TargetSpec::Many(_)
                     | TargetSpec::CreatureCardInYourGraveyard => false,
                 };
+                if !targeting {
+                    return type_ok;
+                }
                 let hexproof_ok = (!c.has(Keyword::Hexproof) || obj.controller == caster)
                     && !c.has(Keyword::Shroud);
                 // CR 702.16b: protection from a quality forbids targeting by

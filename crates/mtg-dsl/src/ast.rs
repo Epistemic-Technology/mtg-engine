@@ -1062,6 +1062,8 @@ pub enum Mechanic {
     /// CR 702.103: `bestow {3}{W}`: an alternative cost; the spell is an
     /// Aura with enchant creature, a creature again once unattached.
     Bestow(ManaCost),
+    /// Overload (CR 702.96): `overload {1}{U}`.
+    Overload(ManaCost),
     /// CR 702.47: `splice {1}{R}`: splice onto Arcane; revealed from hand
     /// as an Arcane spell is cast, this paid too, its effects added.
     Splice(ManaCost),

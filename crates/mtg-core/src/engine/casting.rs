@@ -135,6 +135,12 @@ impl GameState {
             {
                 options.push(Choice::CastBestow(*id));
             }
+            // CR 702.96a: cast for the overload cost, without targets.
+            if let Some(face) = def.overload_face
+                && self.overload_castable(p, def, face, *id, sorcery_timing, &sources, &changers)
+            {
+                options.push(Choice::CastOverload(*id));
+            }
             // CR 702.37c: face down as a 2/2 creature spell for {3}.
             if def.morph.is_some() && sorcery_timing {
                 self.face_down_option(p, *id, &sources, &mut options);
@@ -1101,6 +1107,35 @@ impl GameState {
             && self.targets_available(p, face.cast_targets(), Some(id))
     }
 
+    /// Whether `p` could cast the card `id` for its overload cost now
+    /// (CR 702.96a): as the spell `face`, which has no targets.
+    #[allow(clippy::too_many_arguments)] // the parts precomputed once per listing
+    #[cold]
+    #[inline(never)]
+    fn overload_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        face_ref: crate::card::CardRef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+    ) -> bool {
+        let Some(cost) = &def.overload else {
+            return false;
+        };
+        if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id)) {
+            return false;
+        }
+        let face = self.pool.get(face_ref);
+        let mut req = cost.requirements(0);
+        if !changers.is_empty() {
+            adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
+        }
+        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
+    }
+
     /// Whether `p` could cast `def` (the card `id`, or one of its faces)
     /// now: timing, mana, additional costs, and targets (CR 601.2).
     #[inline]
@@ -1913,6 +1948,9 @@ impl GameState {
             }
             (_, false) if o.alt == AltCast::Dash && def.dash.is_some() => {
                 def.dash.as_ref().expect("checked").requirements(x)
+            }
+            (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
+                def.overload.as_ref().expect("checked").requirements(x)
             }
             (_, false) if o.alt == AltCast::AltCost && def.alt_cost.is_some() => def
                 .alt_cost
@@ -4266,6 +4304,11 @@ impl GameState {
         } else {
             self.splices.iter().find(|s| s.spell == spell).cloned()
         };
+        // CR 702.96a: an overloaded spell's "target" reads "each".
+        let overloaded = (obj.alt == AltCast::Overload)
+            .then(|| pool.get(obj.card))
+            .filter(|c| c.overload_face == Some(obj.def))
+            .and_then(|c| c.cast_targets().first().copied());
         if let Some((specs, effects)) = parts {
             let specs = spliced.as_ref().map_or(specs, |s| s.targets.as_slice());
             // CR 608.2b: targets that are no longer legal are ignored; if all
@@ -4304,7 +4347,10 @@ impl GameState {
             if def.marks.has(crate::card::Marks::ASCEND) {
                 self.ascend(obj.controller);
             }
-            self.apply_effects(&mut ctx, effects, split);
+            match overloaded {
+                Some(spec) => self.apply_overloaded(&mut ctx, spec, effects),
+                None => self.apply_effects(&mut ctx, effects, split),
+            }
             if let Some(sp) = &spliced {
                 self.apply_spliced(&ctx, sp, crate::state::targets_in(&pool, &obj).len());
             }
@@ -4331,6 +4377,36 @@ impl GameState {
             } else {
                 self.leave_stack(spell);
             }
+        }
+    }
+
+    /// CR 702.96a: an overloaded spell's effects, once for each object
+    /// or player its target spec describes (no targeting, so hexproof and
+    /// protection don't matter, CR 702.96b), as though that were the
+    /// target: players in turn order, then permanents in timestamp order.
+    #[cold]
+    #[inline(never)]
+    fn apply_overloaded(&mut self, ctx: &mut EffectCtx, spec: TargetSpec, effects: &[Effect]) {
+        let spec = self.pool.base_spec(spec);
+        let mut each: Vec<Target> = self
+            .players_in_game()
+            .map(Target::Player)
+            .filter(|t| self.spec_matches(ctx.controller, spec, *t, Some(ctx.source), None, false))
+            .collect();
+        each.extend(
+            self.battlefield
+                .iter()
+                .map(|id| Target::Object(*id))
+                .filter(|t| {
+                    self.spec_matches(ctx.controller, spec, *t, Some(ctx.source), None, false)
+                }),
+        );
+        for t in each {
+            ctx.targets = vec![t];
+            ctx.legal = vec![true];
+            ctx.created = None;
+            ctx.did = true;
+            self.apply_effects(ctx, effects, None);
         }
     }
 

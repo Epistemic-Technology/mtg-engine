@@ -3811,6 +3811,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Scavenge(c) => format!("scavenge {c}"),
                 crate::ast::Mechanic::Dash(c) => format!("dash {c}"),
                 crate::ast::Mechanic::Bestow(c) => format!("bestow {c}"),
+                crate::ast::Mechanic::Overload(c) => format!("overload {c}"),
                 crate::ast::Mechanic::Splice(c) => format!("splice {c}"),
                 crate::ast::Mechanic::SpliceCost(c) => format!("splice {}", cost_text(c)),
                 crate::ast::Mechanic::Embalm(c) => format!("embalm {c}"),

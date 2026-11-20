@@ -8440,6 +8440,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Scavenge(c) => format!("Scavenge {c}"),
             crate::ast::Mechanic::Dash(c) => format!("Dash {c}"),
             crate::ast::Mechanic::Bestow(c) => format!("Bestow {c}"),
+            crate::ast::Mechanic::Overload(c) => format!("Overload {c}"),
             crate::ast::Mechanic::Splice(c) => format!("Splice onto Arcane {c}"),
             crate::ast::Mechanic::SpliceCost(c) => {
                 format!(

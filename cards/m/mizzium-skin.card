@@ -1,0 +1,7 @@
+card "Mizzium Skin" {
+  oracle_id 02d998a6-0afd-4be1-a209-05618fcc43ea
+  cost {U}
+  type Instant
+  spell: target creature you control gets +0/+1 and gains hexproof
+  overload {1}{U}
+}
