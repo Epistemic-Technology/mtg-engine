@@ -9178,12 +9178,8 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             at_least,
             other,
         } => {
-            let p = card_filter_phrase(f, card);
-            let noun = if p.is_empty() {
-                "spell".to_string()
-            } else {
-                format!("{p} spell")
-            };
+            // "a spell with mana value 4 or greater".
+            let noun = spell_noun(&card_filter_phrase(f, card));
             if *at_least <= 1 {
                 let what = if *other {
                     format!("another {noun}")

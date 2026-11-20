@@ -1,0 +1,8 @@
+card "Rhino, Barreling Brute" {
+  oracle_id 9a6bf8a3-7640-4890-ac62-d5028f41978b
+  cost {3}{R}{R}{G}{G}
+  type Legendary Creature — Human Villain
+  pt 6/7
+  keywords vigilance, trample, haste
+  triggered whenever this attacks if cast with mana value 4 or greater spell this turn: draw 1 card
+}

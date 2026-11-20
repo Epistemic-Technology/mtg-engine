@@ -3102,8 +3102,15 @@ impl GameState {
                 at_least,
                 other,
             } => {
-                let matches =
-                    |def: crate::card::CardRef| filter.matches_characteristics(&self.printed(def));
+                // "a spell with mana value 4 or greater": the mana value
+                // `matches_characteristics` leaves to the caller, judged from
+                // the card's mana cost.
+                let matches = |def: crate::card::CardRef| {
+                    filter.matches_characteristics(&self.printed(def))
+                        && filter.mana_value.is_none_or(|(cmp, n)| {
+                            cmp.holds(self.pool.get(def).mana_cost.mana_value(), u32::from(n))
+                        })
+                };
                 let n = self
                     .cast_this_turn
                     .iter()
