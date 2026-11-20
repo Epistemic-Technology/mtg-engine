@@ -2131,6 +2131,9 @@ pub enum Trigger {
         this: bool,
         min: u8,
     },
+    /// `whenever one or more creatures you control attack`: the older
+    /// wording of `whenever you attack` (CR 508.1m), the same trigger.
+    CreaturesYouControlAttack,
     /// `whenever this attacks and isn't blocked`.
     AttacksUnblocked(TriggerObj),
     /// `whenever this becomes blocked`.

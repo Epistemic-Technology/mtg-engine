@@ -7124,6 +7124,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             this: false,
             min: 1,
         } => "whenever you attack".to_string(),
+        Trigger::CreaturesYouControlAttack => {
+            "whenever one or more creatures you control attack".to_string()
+        }
         Trigger::AttacksWith { this: false, min } => format!(
             "whenever you attack with {} or more creatures",
             count_words(Num::N(u32::from(*min)), "one")

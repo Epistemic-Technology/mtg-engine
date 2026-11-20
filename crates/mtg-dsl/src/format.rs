@@ -3223,6 +3223,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             this: false,
             min: 1,
         } => "whenever you attack".to_string(),
+        Trigger::CreaturesYouControlAttack => {
+            "whenever one or more creatures you control attack".to_string()
+        }
         Trigger::AttacksWith { this: false, min } => {
             format!("whenever you attack with {min} or more creatures")
         }

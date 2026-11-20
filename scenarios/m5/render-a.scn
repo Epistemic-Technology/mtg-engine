@@ -332,6 +332,21 @@ scenario "Resplendent Angel: less than 5 life makes no Angel" {
   assert battlefield A lacks "Angel"
 }
 
+scenario "Ancestor Dragon: gain 1 life for each attacking creature" {
+  battlefield A: "Ancestor Dragon", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 declare_blockers
+  assert life A 22
+}
+
+scenario "Ancestor Dragon: no attack, no life" {
+  battlefield A: "Ancestor Dragon", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
 scenario "Brambleguard Captain gives its power to a creature you control" {
   battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
   start turn 1 A precombat_main

@@ -2865,6 +2865,10 @@ impl Compiler<'_> {
                 TriggerSpec::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
             }
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
+            Trigger::CreaturesYouControlAttack => TriggerSpec::AttacksWith {
+                this: false,
+                min: 1,
+            },
             Trigger::AttacksWith { this, min } => TriggerSpec::AttacksWith {
                 this: *this,
                 min: *min,

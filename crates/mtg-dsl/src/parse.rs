@@ -9401,6 +9401,9 @@ impl P {
             return Ok(Trigger::Expends(u8::try_from(n).unwrap_or(u8::MAX)));
         }
         // CR 122.1: "one or more +1/+1 counters are put on this creature".
+        if self.eat_words(&["one", "or", "more", "creatures", "you", "control", "attack"]) {
+            return Ok(Trigger::CreaturesYouControlAttack);
+        }
         if self.at_words(&["one", "or", "more"]) && matches!(self.peek_at(3), Some(Tok::Pt { .. }))
         {
             self.pos += 3;

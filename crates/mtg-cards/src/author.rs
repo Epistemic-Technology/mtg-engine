@@ -2738,6 +2738,9 @@ fn trigger_general(head: &str) -> Option<String> {
             Some("whenever this attacks and isn't blocked")
         }
         "Whenever you attack" => Some("whenever you attack"),
+        "Whenever one or more creatures you control attack" => {
+            Some("whenever one or more creatures you control attack")
+        }
         "Whenever one or more +1/+1 counters are put on this creature" => {
             Some("whenever one or more +1/+1 counters put on this")
         }
