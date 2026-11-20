@@ -1,0 +1,7 @@
+card "Geistblast" {
+  oracle_id 10891656-070f-49f4-80e0-78061b773f17
+  cost {2}{R}
+  type Instant
+  spell: deal 2 damage to any target
+  activated {2}{U}, exile this from graveyard: copy target instant or sorcery spell you control new targets
+}

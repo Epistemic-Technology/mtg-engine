@@ -1,0 +1,7 @@
+card "Dual Casting" {
+  oracle_id 4d22b01b-63dd-4698-a221-0acaefb2000b
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {R}, {T}: copy target instant or sorcery spell you control new targets }
+}

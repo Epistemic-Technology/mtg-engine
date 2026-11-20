@@ -1,0 +1,8 @@
+card "Mirrorpool" {
+  oracle_id 57b86d5c-3269-44bc-a838-3c5439d820d9
+  type Land
+  enters tapped
+  activated {T}: add {C}
+  activated {2}{C}, {T}, sacrifice this: copy target instant or sorcery spell you control new targets
+  activated {4}{C}, {T}, sacrifice this: create token copy of target creature you control
+}

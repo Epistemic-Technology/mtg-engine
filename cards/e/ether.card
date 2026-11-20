@@ -1,0 +1,6 @@
+card "Ether" {
+  oracle_id 566533af-5e67-463f-ac33-dfcf1ec735c9
+  cost {3}{U}
+  type Artifact
+  activated {T}, exile this: add {U}; delayed this: when next you cast instant or sorcery spell this turn, copy that spell new targets
+}

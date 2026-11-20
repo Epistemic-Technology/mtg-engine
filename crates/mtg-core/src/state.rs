@@ -2137,6 +2137,10 @@ impl GameState {
         }
         if let Some(ce) = &xd.copy_except {
             c.keywords = c.keywords.union(ce.keywords);
+            c.types = c.types.union(ce.types);
+            if ce.not_legendary {
+                c.supertypes = c.supertypes.without(crate::card::Supertype::Legendary);
+            }
         }
         for a in &xd.except_ability_ids {
             c.abilities.push(*a);

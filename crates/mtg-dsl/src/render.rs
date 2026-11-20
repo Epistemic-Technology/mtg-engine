@@ -430,7 +430,10 @@ fn spell_noun(what: &str) -> String {
 /// Whether a spell filter's subject starts lowercase: "an artifact spell",
 /// "a historic spell" (CR 700.6), but "a Giant spell".
 fn lower_spell_subject(f: &Filter) -> bool {
-    f.subtypes.is_empty() || f.subtypes.iter().any(|s| s == crate::ast::HISTORIC)
+    f.subtypes.is_empty()
+        || f.subtypes
+            .iter()
+            .any(|s| s == crate::ast::HISTORIC || s == crate::ast::OUTLAW)
 }
 
 fn a_spell(f: &Filter, card: &Card) -> String {
@@ -939,8 +942,16 @@ impl<'a> Ctx<'a> {
     fn spell_target_phrase(&self, spell: &Filter) -> String {
         let mut base_filter = spell.clone();
         let targeting = base_filter.targeting.take();
+        // "target instant or sorcery spell you control".
+        let yours = base_filter.who == Some(Who::You) && !base_filter.dont_control;
+        if yours {
+            base_filter.who = None;
+        }
         let base = card_filter_phrase(&base_filter, self.card);
         let mut out = format!("target {}", spell_noun(&base));
+        if yours {
+            out.push_str(" you control");
+        }
         if let Some(what) = targeting {
             out.push_str(" that targets ");
             // "that targets this creature".
@@ -2353,6 +2364,11 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     };
                     parts.push(match cost.chosen {
                         mtg_core::card::ChosenCost::Sacrifice => format!("Sacrifice {what}"),
+                        // "Return two lands you control to their owner's
+                        // hand".
+                        mtg_core::card::ChosenCost::Return if cost.count > 1 => {
+                            format!("Return {what} to their owner's hand")
+                        }
                         mtg_core::card::ChosenCost::Return => {
                             format!("Return {what} to its owner's hand")
                         }
@@ -2678,10 +2694,16 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
         return String::new();
     };
     let mut parts = Vec::new();
-    if !x.subtypes.is_empty() {
+    if x.not_legendary {
+        parts.push("it isn't legendary".to_string());
+    }
+    // "it's a Vehicle artifact in addition to its other types".
+    if !x.subtypes.is_empty() || !x.types.is_empty() {
+        let mut words = x.subtypes.clone();
+        words.extend(x.types.iter().map(|t| type_noun(*t).to_string()));
         parts.push(format!(
             "it's {} in addition to its other types",
-            with_article(&x.subtypes.join(" "))
+            with_article(&words.join(" "))
         ));
     }
     if !x.keywords.is_empty() {
@@ -2725,6 +2747,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::AddManaTimes { count, .. }
         | Effect::AddManaCombination { count, .. }
         | Effect::CreateToken { count, .. } => vec![*count],
+        Effect::CopySpells { times, .. } => vec![*times],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
         Effect::Scry(n)
@@ -2919,6 +2942,13 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "card you've drawn this turn".to_string(),
             "cards you've drawn this turn".to_string(),
         ),
+        CountExpr::OtherInstantSorceryCast { before } => {
+            let b = if *before { "before it " } else { "" };
+            (
+                format!("other instant and sorcery spell you've cast {b}this turn"),
+                format!("other instant and sorcery spells you've cast {b}this turn"),
+            )
+        }
         CountExpr::SpellsCastThisTurn { other } => {
             let o = if *other { "other " } else { "" };
             (
@@ -3225,6 +3255,20 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let _ = write!(c.tail, " {}", count_phrase(&count.expr, ctx.card, true));
             }
         }
+    }
+    // CR 707.10c: "You may choose new targets for the copy."
+    if let Effect::CopySpells {
+        times,
+        new_targets: true,
+        ..
+    } = e
+    {
+        let what = if *times == Num::N(1) {
+            "copy"
+        } else {
+            "copies"
+        };
+        let _ = write!(c.tail, ". You may choose new targets for the {what}");
     }
     if let Effect::Counter { dest, .. } | Effect::CounterUnlessPays { dest, .. } = e {
         c.tail.push_str(match dest {
@@ -4518,6 +4562,38 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::imperative(text)
         }
+        Effect::CopySpells {
+            what,
+            times,
+            except,
+            ..
+        } => {
+            let o = match what {
+                Recipient::TriggeringObject => "that spell".to_string(),
+                // "copy this spell" (a creature spell's own trigger).
+                Recipient::Source => {
+                    ctx.source_mentioned = true;
+                    "this spell".to_string()
+                }
+                r => ctx.obj(*r),
+            };
+            let mut text = format!("copy {o}");
+            match times {
+                Num::N(1) | Num::Count(_) => {}
+                Num::N(2) => text.push_str(" twice"),
+                n => {
+                    let _ = write!(text, " {} times", count_words(*n, "one"));
+                }
+            }
+            if *except {
+                // "except the copy isn't legendary".
+                let x = except_text(ctx.card, ctx.current)
+                    .replace("it isn't", "the copy isn't")
+                    .replace("it's", "the copy is");
+                let _ = write!(text, ", except {x}");
+            }
+            Clause::imperative(text)
+        }
         Effect::BecomeCopy { of, except } => {
             let s = ctx.source();
             let o = ctx.obj(*of);
@@ -5735,7 +5811,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::IfCondition(c, inner, crate::ast::IfWording::After) => {
             let cond = static_cond_text(c, ctx.card);
             let body = sentences(inner, ctx);
-            Clause::imperative(format!("{} if {cond}", body.trim_end_matches('.')))
+            let body = body.trim_end_matches('.');
+            // "copy it if you gained life this turn. You may choose new
+            // targets for the copy."
+            if let Some(i) = body.find(". You may choose new targets for the cop") {
+                let (head, rest) = body.split_at(i);
+                return Clause::imperative(format!("{head} if {cond}{rest}"));
+            }
+            Clause::imperative(format!("{body} if {cond}"))
         }
         Effect::IfCondition(c, inner, crate::ast::IfWording::Unless) => {
             let cond = static_cond_text(c, ctx.card);
@@ -6594,6 +6677,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
     };
     match t {
         Trigger::When(_) => unreachable!("unwrapped above"),
+        // "When you next cast an instant or sorcery spell" (the delayed
+        // trigger adds "this turn").
+        Trigger::Next(inner) => {
+            trigger_text(inner, ctx, next).replacen("whenever you cast", "when you next cast", 1)
+        }
         Trigger::State(c) => format!("when {}", static_cond_text(c, ctx.card)),
         Trigger::Either(a, b) => {
             let a = trigger_text(a, ctx, next);
@@ -7014,6 +7102,27 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             });
             if base == Filter::default() {
                 return format!("whenever {who} a spell{that}");
+            }
+            // "an instant or sorcery spell with mana value 4 or less".
+            if !base.any_types.is_empty() {
+                let types: Vec<String> = base
+                    .any_types
+                    .iter()
+                    .map(|t| type_noun(*t).to_string())
+                    .collect();
+                let mut g = base.clone();
+                g.any_types.clear();
+                let rest = card_filter_phrase(&g, ctx.card);
+                let rest = rest.trim();
+                let joined = or_list(&types);
+                let what = if rest.is_empty() {
+                    joined
+                } else if rest.starts_with("with ") {
+                    format!("{joined} {rest}")
+                } else {
+                    format!("{rest} {joined}")
+                };
+                return format!("whenever {who} {}{that}", with_article(&spell_noun(&what)));
             }
             let what = spells_subject(&base, ctx.card);
             let what = what.strip_suffix(" spells").unwrap_or(&what);
@@ -8971,6 +9080,8 @@ fn restrictions_text(cost: &Cost, card: &Card) -> String {
                     };
                     if about_source(c) {
                         t = t.replace("it's", &format!("this {noun} is"));
+                        // "Activate only if Kitsa's power is 3 or greater".
+                        t = t.replace("its power", &format!("{}'s power", this_ref(card)));
                     }
                     if *c == StaticCond::BeingBlocked {
                         t = t.replace("blocking it", &format!("blocking this {noun}"));

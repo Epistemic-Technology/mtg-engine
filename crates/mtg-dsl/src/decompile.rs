@@ -118,6 +118,8 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             subtypes: x.subtypes.clone(),
             keywords: keywords(x.keywords),
             abilities: x.abilities.iter().map(|a| d.ability(a)).collect(),
+            not_legendary: x.not_legendary,
+            types: x.types.iter().collect(),
         }),
         mismatch: None,
         line: 0,
@@ -748,6 +750,17 @@ impl Decompiler<'_> {
             },
             CoreEffect::CreateTokenCopy { of, except } => Effect::CreateTokenCopy {
                 of: r(*of),
+                except: *except,
+            },
+            CoreEffect::CopySpells {
+                what,
+                times,
+                new_targets,
+                except,
+            } => Effect::CopySpells {
+                what: r(*what),
+                times: *times,
+                new_targets: *new_targets,
                 except: *except,
             },
             CoreEffect::BecomeCopy { of, except } => Effect::BecomeCopy {
@@ -1523,6 +1536,7 @@ impl Decompiler<'_> {
             TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
+            TriggerSpec::Next(inner) => Trigger::Next(Box::new(self.trigger(inner))),
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),
             // "When you cast or cycle ~".
             TriggerSpec::Either(pair)

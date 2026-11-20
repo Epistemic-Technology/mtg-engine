@@ -1,0 +1,6 @@
+card "Reverberate" {
+  oracle_id a1f55890-31c5-4ed4-a2cd-7a4a9f05f8ca
+  cost {R}{R}
+  type Instant
+  spell: copy target instant or sorcery spell new targets
+}

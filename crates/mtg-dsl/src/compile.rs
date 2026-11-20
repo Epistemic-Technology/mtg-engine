@@ -752,6 +752,8 @@ impl Compiler<'_> {
                 subtypes: x.subtypes.clone(),
                 keywords: KeywordSet::of(x.keywords.iter().copied()),
                 abilities,
+                not_legendary: x.not_legendary,
+                types: mtg_core::card::TypeSet::of(x.types.iter().copied()),
             });
         }
         if let Some(c) = self.cast_snapshot.take() {
@@ -1161,6 +1163,7 @@ impl Compiler<'_> {
             A::GreatestManaValue => C::GreatestManaValue,
             A::CardsDrawnThisTurn => C::CardsDrawnThisTurn,
             A::SpellsCastThisTurn { other } => C::SpellsCastThisTurn { other: *other },
+            A::OtherInstantSorceryCast { before } => C::OtherInstantSorceryCast { before: *before },
             A::SourceToughness => C::SourceToughness,
             A::TargetManaValue { n, .. } => C::TargetManaValue(*n),
             A::CardManaValue => C::CardManaValue,
@@ -1622,6 +1625,17 @@ impl Compiler<'_> {
             }
             Effect::CreateTokenCopy { of, except } => out.push(CoreEffect::CreateTokenCopy {
                 of: r(*of),
+                except: *except,
+            }),
+            Effect::CopySpells {
+                what,
+                times,
+                new_targets,
+                except,
+            } => out.push(CoreEffect::CopySpells {
+                what: r(*what),
+                times: *times,
+                new_targets: *new_targets,
                 except: *except,
             }),
             Effect::BecomeCopy { of, except } => out.push(CoreEffect::BecomeCopy {
@@ -2536,6 +2550,7 @@ impl Compiler<'_> {
                 or_discard: *or_discard,
             },
             Trigger::CastThis { or_cycle: false } => TriggerSpec::CastThis,
+            Trigger::Next(inner) => TriggerSpec::Next(Box::new(self.trigger(inner))),
             Trigger::Sacrifices(f) => TriggerSpec::Sacrifices(self.filter(f)),
             Trigger::CastThis { or_cycle: true } => TriggerSpec::Either(Box::new((
                 TriggerSpec::CastThis,

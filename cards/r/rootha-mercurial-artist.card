@@ -1,0 +1,7 @@
+card "Rootha, Mercurial Artist" {
+  oracle_id 3735559f-efe5-43ad-9b3e-3ef127c0ceda
+  cost {1}{U}{R}
+  type Legendary Creature — Orc Shaman
+  pt 1/4
+  activated {2}, return this: copy target instant or sorcery spell you control new targets
+}

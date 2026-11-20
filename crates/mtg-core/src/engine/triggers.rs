@@ -183,23 +183,32 @@ impl GameState {
     /// until the turn ends ("Whenever a creature blocks this turn, ...";
     /// CR 603.7c), seen as their controller's: not removed as they
     /// trigger, but at the cleanup step with the other "this turn" ones.
+    /// "When you next cast ... this turn" (`TriggerSpec::Next`) triggers
+    /// only once and is removed as it does.
     #[cold]
     #[inline(never)]
     fn delayed_turn_triggers(
-        &self,
+        &mut self,
         event: &Event,
         event_amount: u32,
         fired: &mut SmallVec<[PendingTrigger; 2]>,
     ) {
-        for dt in &self.delayed_triggers {
+        let mut i = 0;
+        while i < self.delayed_triggers.len() {
+            let dt = self.delayed_triggers[i];
+            i += 1;
             if !dt.this_turn {
                 continue;
             }
             let AbilityDef::Triggered(t) = self.pool.ability(dt.ability.ability) else {
                 continue;
             };
+            let (spec, once) = match &t.trigger {
+                TriggerSpec::Next(inner) => (&**inner, true),
+                other => (other, false),
+            };
             if matches!(
-                t.trigger,
+                spec,
                 TriggerSpec::BeginningOfStep { .. }
                     | TriggerSpec::Dies(TriggerObj::This)
                     | TriggerSpec::Leaves(TriggerObj::This)
@@ -221,7 +230,7 @@ impl GameState {
                 chars,
                 in_graveyard: false,
             };
-            let Some((trigger_obj, trigger_player)) = self.fires(&t.trigger, event, &w) else {
+            let Some((trigger_obj, trigger_player)) = self.fires(spec, event, &w) else {
                 continue;
             };
             fired.push(PendingTrigger {
@@ -234,6 +243,10 @@ impl GameState {
                 },
                 timestamp: 0,
             });
+            if once {
+                i -= 1;
+                self.delayed_triggers.remove(i);
+            }
         }
     }
 
@@ -1010,6 +1023,8 @@ impl GameState {
                 ) && self.status_ok(f, *blocker))
                 .then_some((Some(*blocker), Some(o.controller)))
             }
+            // Magecraft (CR 707.10): "Whenever you cast or copy ..." sees
+            // copies too.
             (
                 TriggerSpec::CastsSpell {
                     whose,
@@ -1020,6 +1035,15 @@ impl GameState {
                 Event::Cast {
                     player, spell, def, ..
                 },
+            )
+            | (
+                TriggerSpec::CastsSpell {
+                    whose,
+                    noncreature,
+                    instant_or_sorcery,
+                    or_copy: true,
+                },
+                Event::SpellCopied { player, spell, def },
             ) => {
                 let d = self.pool.get(*def);
                 let ok = whose_ok(*whose, *player)

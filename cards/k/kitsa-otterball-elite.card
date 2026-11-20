@@ -1,0 +1,9 @@
+card "Kitsa, Otterball Elite" {
+  oracle_id 16414460-11ce-481d-ab54-6f0e0ea7d83d
+  cost {1}{U}
+  type Legendary Creature — Otter Wizard
+  pt 1/3
+  keywords vigilance, prowess
+  activated {T}: draw 1 card then discard 1 card
+  activated {2}, {T}, if this is with power 3 or greater: copy target instant or sorcery spell you control new targets
+}

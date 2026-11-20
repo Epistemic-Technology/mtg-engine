@@ -1,0 +1,6 @@
+card "Double Down" {
+  oracle_id 60dd4233-ee50-42b8-88f5-ac5d105d83cd
+  cost {3}{U}
+  type Enchantment
+  triggered whenever you cast outlaw spell: copy that spell
+}

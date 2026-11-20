@@ -1,0 +1,8 @@
+card "Chancellor of Tales" {
+  oracle_id 529f259a-df66-4283-bc28-de3933c42e67
+  cost {3}{U}
+  type Creature — Faerie Advisor
+  pt 2/3
+  keywords flying
+  triggered whenever you cast Adventure spell: you may copy it new targets
+}

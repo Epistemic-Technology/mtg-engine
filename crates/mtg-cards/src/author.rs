@@ -1294,6 +1294,31 @@ impl Templates {
             (r(r"^Scry (\d+)$"), |c, _| {
                 Some(format!("scry {}", cap(c, 1)))
             }),
+            // CR 707.10: "Copy target instant or sorcery spell", "copy that
+            // spell", "copy it X times" ("You may choose new targets for
+            // the copy" is the next sentence, joined in `effects`).
+            (
+                r(
+                    r"^[Cc]opy (target .+ spell(?: you control)?|that spell|it|this spell)( twice| X times)?$",
+                ),
+                |c, t| {
+                    let what = match cap(c, 1) {
+                        "that spell" => "that spell".to_string(),
+                        "it" => "it".to_string(),
+                        "this spell" => "this".to_string(),
+                        target => {
+                            *t += 1;
+                            target.to_string()
+                        }
+                    };
+                    let times = match cap(c, 2) {
+                        " twice" => " times 2",
+                        " X times" => " times x",
+                        _ => "",
+                    };
+                    Some(format!("copy {what}{times}"))
+                },
+            ),
             (r(r"^Surveil (\d+)$"), |c, _| {
                 Some(format!("surveil {}", cap(c, 1)))
             }),
@@ -1608,6 +1633,18 @@ impl Templates {
         .unwrap();
         let mut out: Vec<String> = Vec::new();
         for sentence in split_sentences(text) {
+            // CR 707.10c: "You may choose new targets for the copy."
+            if sentence == "You may choose new targets for the copy"
+                || sentence == "You may choose new targets for the copies"
+            {
+                match out.last_mut() {
+                    Some(last) if last.contains("copy ") => {
+                        last.push_str(" new targets");
+                        continue;
+                    }
+                    _ => return Err(Skip::Sentence(sentence)),
+                }
+            }
             if sentence == "It can't be regenerated" || sentence == "They can't be regenerated" {
                 match out.last_mut() {
                     Some(last) if last.starts_with("destroy ") => {

@@ -990,6 +990,7 @@ fn per_count(
         | CountExpr::SourceToughness
         | CountExpr::CardsDrawnThisTurn
         | CountExpr::SpellsCastThisTurn { .. }
+        | CountExpr::OtherInstantSorceryCast { .. }
         | CountExpr::OpponentsAttacked
         | CountExpr::AttackedWithThisTurn
         | CountExpr::SpentColors

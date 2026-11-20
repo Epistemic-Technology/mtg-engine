@@ -1,0 +1,6 @@
+card "Lucky Clover" {
+  oracle_id 370d67f6-8d43-46ca-ae6c-00799bb0bd0c
+  cost {2}
+  type Artifact
+  triggered whenever you cast Adventure instant or sorcery spell: copy it new targets
+}

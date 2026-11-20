@@ -1,0 +1,7 @@
+card "Reiterate" {
+  oracle_id 38394ee3-6726-4f91-bc25-36bce0c6aab9
+  cost {1}{R}{R}
+  type Instant
+  buyback {3}
+  spell: copy target instant or sorcery spell new targets
+}

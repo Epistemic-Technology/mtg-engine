@@ -1,0 +1,8 @@
+card "Uyo, Silent Prophet" {
+  oracle_id 93da1e63-54d6-4b05-af91-f13e7e111176
+  cost {4}{U}{U}
+  type Legendary Creature — Moonfolk Wizard
+  pt 4/4
+  keywords flying
+  activated {2}, return 2 land you control: copy target instant or sorcery spell new targets
+}

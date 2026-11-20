@@ -87,6 +87,13 @@ pub enum Event {
         def: CardRef,
         targets: Vec<Target>,
     },
+    /// A copy of a spell put onto the stack (CR 707.10): not cast, but
+    /// "whenever you cast or copy" (magecraft) sees it.
+    SpellCopied {
+        player: PlayerId,
+        spell: ObjId,
+        def: CardRef,
+    },
     Tapped {
         obj: ObjId,
     },
@@ -349,7 +356,7 @@ impl Event {
             Event::Block { .. } | Event::Blocked { .. } | Event::Unblocked { .. } => WATCH_BLOCK,
             Event::Damage { .. } => WATCH_DAMAGE,
             Event::LifeChange { .. } => WATCH_LIFE_CHANGE,
-            Event::Cast { .. } => WATCH_CAST,
+            Event::Cast { .. } | Event::SpellCopied { .. } => WATCH_CAST,
             Event::Targeted { .. } => WATCH_TARGETED,
             Event::Tapped { .. } | Event::Untapped { .. } => WATCH_TAP,
             Event::TurnedFaceUp { .. } => WATCH_FACE_UP,

@@ -1,0 +1,7 @@
+card "Sigil Tracer" {
+  oracle_id 532ff38d-bf52-4e99-bf1c-254074e4d625
+  cost {1}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  activated {1}{U}, tap 2 untapped Wizard you control: copy target instant or sorcery spell new targets
+}

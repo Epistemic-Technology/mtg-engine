@@ -332,6 +332,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "permanent"], Recipient::TriggeringObject),
     (&["that", "Vehicle"], Recipient::TriggeringObject),
     (&["that", "object"], Recipient::TriggeringObject),
+    (&["that", "spell"], Recipient::TriggeringObject),
     (&["that", "player"], Recipient::TriggeringPlayer),
     (
         &["that", "defending", "player"],
@@ -974,6 +975,25 @@ impl P {
                         Some("keyword" | "keywords") => {
                             self.pos += 1;
                             except.keywords.extend(self.keyword_list()?);
+                            self.end_stmt()?;
+                        }
+                        // "it isn't legendary" (CR 707.9b).
+                        Some("not") if self.word_at(1).as_deref() == Some("legendary") => {
+                            self.pos += 2;
+                            except.not_legendary = true;
+                            self.end_stmt()?;
+                        }
+                        // "it's an artifact in addition to its other types".
+                        Some("type" | "types") => {
+                            self.pos += 1;
+                            while let Some(t) = self.word_at(0).as_deref().and_then(card_type) {
+                                except.types.push(t);
+                                self.pos += 1;
+                                self.eat_word("and");
+                            }
+                            if except.types.is_empty() {
+                                return self.unexpected("a card type");
+                            }
                             self.end_stmt()?;
                         }
                         _ => except.abilities.push(self.ability()?),
@@ -6336,6 +6356,24 @@ impl P {
                     times,
                 })
             }
+            // `copy target instant or sorcery spell you control [times
+            // N] [new targets] [with exceptions]` (CR 707.10).
+            "copy" => {
+                let what = self.recipient()?;
+                let times = if self.eat_word("times") {
+                    self.num()?
+                } else {
+                    Num::N(1)
+                };
+                let new_targets = self.eat_words(&["new", "targets"]);
+                let except = self.except_clause();
+                Ok(Effect::CopySpells {
+                    what,
+                    times,
+                    new_targets,
+                    except,
+                })
+            }
             "counter" => {
                 let to = self.recipient()?;
                 if self.eat_word("unless") {
@@ -6975,6 +7013,11 @@ impl P {
         }
         if self.eat_words(&["other", "spells", "cast", "this", "turn"]) {
             return Ok(CountExpr::SpellsCastThisTurn { other: true });
+        }
+        if self.eat_words(&["other", "instant", "and", "sorcery", "spells", "cast"]) {
+            let before = self.eat_words(&["before", "it"]);
+            self.expect_words(&["this", "turn"])?;
+            return Ok(CountExpr::OtherInstantSorceryCast { before });
         }
         if self.eat_words(&["opponents", "attacked"]) {
             return Ok(CountExpr::OpponentsAttacked);
@@ -7893,6 +7936,10 @@ impl P {
             self.filter()?
         };
         if self.eat_word("spell") || self.eat_word("spells") {
+            // "target instant or sorcery spell you control".
+            if f.who.is_none() && self.eat_words(&["you", "control"]) {
+                f.who = Some(Who::You);
+            }
             f.targeting = self.spell_targeting()?;
             return Ok(Target::Spell(f));
         }
@@ -8862,6 +8909,20 @@ impl P {
         if !(self.eat_word("when") || self.eat_word("whenever")) {
             return self.unexpected("`when`, `whenever`, or `at`");
         }
+        // `when next you cast instant or sorcery spell`: "When you next
+        // cast an instant or sorcery spell" (a delayed trigger, once).
+        if !whenever && self.at_words(&["next", "you", "cast"]) {
+            // Read the rest as `whenever you cast ...`.
+            self.toks[self.pos].tok = Tok::Word("whenever".to_string());
+            let inner = self.trigger_one()?;
+            if !matches!(
+                inner,
+                Trigger::CastsSpell { .. } | Trigger::CastsFiltered { .. }
+            ) {
+                return self.fail("`when next` takes a `you cast` trigger");
+            }
+            return Ok(Trigger::Next(Box::new(inner)));
+        }
         // "When you control no Islands", "When you control a Dwarf": a
         // state trigger (CR 603.8).
         if !whenever && self.at_words(&["you", "control"]) {
@@ -9103,7 +9164,8 @@ impl P {
             }
             let simple = self.at_word("spell")
                 || self.at_words(&["noncreature", "spell"])
-                || self.at_words(&["instant", "or", "sorcery", "spell"]);
+                || (self.at_words(&["instant", "or", "sorcery", "spell"])
+                    && !self.at_words(&["instant", "or", "sorcery", "spell", "that", "targets"]));
             if !simple {
                 let mut filter = self.filter()?;
                 self.expect_word("spell")?;
