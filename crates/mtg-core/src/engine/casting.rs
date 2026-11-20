@@ -812,6 +812,24 @@ impl GameState {
             CountExpr::GreatestPowerInGraveyard(f) => {
                 return u32::try_from(self.greatest_power_in_graveyard(you, f).max(0)).unwrap_or(0);
             }
+            CountExpr::ThoseObjects => {
+                return self
+                    .this_way
+                    .as_ref()
+                    .map_or(0, |log| u32::try_from(log.group.len()).unwrap_or(u32::MAX));
+            }
+            // CR 608.2h: the triggering object as it last existed.
+            CountExpr::TriggerCounters(kind) => {
+                return ctx.trigger_obj.map_or(0, |id| match self.objects.get(id) {
+                    Some(o) if o.zone == Zone::Battlefield => o.counters(*kind),
+                    o => self
+                        .lki
+                        .get(&id)
+                        .map(|l| l.object.counters(*kind))
+                        .or_else(|| o.map(|o| o.counters(*kind)))
+                        .unwrap_or(0),
+                });
+            }
             CountExpr::TriggerStat(stat) => {
                 return ctx.trigger_obj.map_or(0, |id| self.stat_value(id, *stat));
             }
@@ -6359,6 +6377,18 @@ impl GameState {
             .collect()
     }
 
+    /// Remember the objects a group recipient denoted, for "them" and
+    /// "those creatures" later in the resolution (`Recipient::ThoseObjects`).
+    fn note_group(&mut self, out: &[Target]) {
+        if let Some(log) = &mut self.this_way {
+            log.group.clear();
+            log.group.extend(out.iter().filter_map(|t| match t {
+                Target::Object(id) => Some(*id),
+                Target::Player(_) => None,
+            }));
+        }
+    }
+
     /// Who or what a `Recipient` denotes while `ctx`'s effects resolve.
     #[allow(clippy::too_many_lines)] // one arm per recipient kind
     fn recipients(&mut self, ctx: &EffectCtx, r: Recipient) -> SmallVec<[Target; 2]> {
@@ -6476,13 +6506,31 @@ impl GameState {
                         .filter(|id| self.is_creature_on_battlefield(*id))
                         .map(Target::Object),
                 );
+                self.note_group(&out);
             }
             Recipient::EachPlayer => out.extend(self.players_in_game().map(Target::Player)),
             Recipient::EachCreatureYouControl => {
                 out.extend(self.creatures_of(ctx.controller).map(Target::Object));
+                self.note_group(&out);
             }
             Recipient::EachPermanentYouControl => {
                 out.extend(self.permanents_of(ctx.controller).map(Target::Object));
+                self.note_group(&out);
+            }
+            // "Untap them": what the last group denoted (CR 608.2c).
+            Recipient::ThoseObjects => {
+                if let Some(log) = &self.this_way {
+                    out.extend(
+                        log.group
+                            .iter()
+                            .filter(|id| {
+                                self.objects
+                                    .get(**id)
+                                    .is_some_and(|o| o.zone == Zone::Battlefield)
+                            })
+                            .map(|id| Target::Object(*id)),
+                    );
+                }
             }
             Recipient::SameObject => {
                 if let Some(id) = ctx.trigger_obj.filter(|id| self.objects.contains_key(*id)) {
@@ -6530,7 +6578,10 @@ impl GameState {
                     out.push(Target::Player(p));
                 }
             }
-            Recipient::Group(f) => self.group_into(ctx, f, &mut out),
+            Recipient::Group(f) => {
+                self.group_into(ctx, f, &mut out);
+                self.note_group(&out);
+            }
             Recipient::ExiledCard => {
                 // CR 607.2a: what the source's linked ability exiled, while
                 // it's still in exile.

@@ -49,6 +49,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         in_trigger: false,
         it_source: false,
         in_spell: false,
+        group_named: false,
         subject: None,
         votes: Vec::new(),
         returned: None,
@@ -327,8 +328,6 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["each", "player"], Recipient::EachPlayer),
     (&["each", "creature"], Recipient::EachCreature),
     (&["all", "creatures"], Recipient::EachCreature),
-    (&["those", "creatures"], Recipient::EachCreatureYouControl),
-    (&["those", "permanents"], Recipient::EachPermanentYouControl),
     (&["that", "creature"], Recipient::TriggeringObject),
     (&["that", "permanent"], Recipient::TriggeringObject),
     (&["that", "Vehicle"], Recipient::TriggeringObject),
@@ -479,6 +478,9 @@ struct P {
     /// of a modal spell): `it` after a target is that target, since the
     /// spell itself can only be the "it" that deals damage.
     in_spell: bool,
+    /// A group (`each <filter>`, `creatures you control`) has been named
+    /// in this ability, for `them` and `those creatures` after it.
+    group_named: bool,
     /// The subject of the previous clause of the sentence being parsed.
     subject: Option<Recipient>,
     /// The target an earlier effect of the ability returned to its
@@ -1179,6 +1181,7 @@ impl P {
         self.in_trigger = false;
         self.it_source = false;
         self.in_spell = false;
+        self.group_named = false;
         self.returned = None;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
@@ -3581,6 +3584,9 @@ impl P {
             return true;
         }
         if self.at_words(&["those", "targets"]) {
+            return true;
+        }
+        if self.group_named && self.at_those().is_some() {
             return true;
         }
         if self.at_words(&["controller", "of", "that", "target"]) {
@@ -7174,10 +7180,23 @@ impl P {
                 return Ok(CountExpr::SourceCounters { kind, it: false });
             }
             if self.eat_word("it") {
+                // In a triggered ability `it` is the triggering object
+                // ("for each +1/+1 counter on it" of the creature that
+                // left), as a recipient is.
+                if self.in_trigger && !self.it_source && !self.in_delayed {
+                    return Ok(CountExpr::TriggerCounters(kind));
+                }
                 return Ok(CountExpr::SourceCounters { kind, it: true });
             }
         }
         self.pos = at;
+        // "for each of those creatures": a group named before.
+        if self.group_named
+            && let Some((t, n)) = self.at_those()
+        {
+            self.pos += n;
+            return Ok(CountExpr::Those(t));
+        }
         if self.eat_words(&["excess", "damage", "dealt", "this", "way"]) {
             return Ok(CountExpr::DamageThisWay { excess: true });
         }
@@ -7560,6 +7579,7 @@ impl P {
             in_trigger: self.in_trigger,
             it_source: self.it_source,
             in_spell: self.in_spell,
+            group_named: self.group_named,
             subject: None,
             votes: self.votes.clone(),
             returned: self.returned,
@@ -7678,8 +7698,52 @@ impl P {
         Ok(vec![self.recipient()?])
     }
 
-    #[allow(clippy::too_many_lines)] // one check per recipient form
+    /// `them`, `they`, `those creatures`, `those permanents`: a group
+    /// named earlier in the ability, if here.
+    fn at_those(&self) -> Option<(crate::ast::Those, usize)> {
+        use crate::ast::Those;
+        if self.at_words(&["those", "creatures"]) {
+            Some((Those::Creatures, 2))
+        } else if self.at_words(&["those", "permanents"]) {
+            Some((Those::Permanents, 2))
+        } else if self.at_word("them")
+            || self.at_word("they") && !self.at_words(&["they", "control"])
+        {
+            Some((Those::Them, 1))
+        } else {
+            None
+        }
+    }
+
     fn recipient(&mut self) -> R<Recipient> {
+        // `them`, `those creatures`: the objects a group named earlier in
+        // the ability denoted (CR 608.2c).
+        if let Some((t, n)) = self.at_those() {
+            if self.group_named {
+                self.pos += n;
+                return Ok(Recipient::Those(t));
+            }
+            if n == 2 {
+                return self.fail(
+                    "`those creatures` needs a group (`each creature you control`) before it",
+                );
+            }
+        }
+        let r = self.recipient_inner()?;
+        if matches!(
+            r,
+            Recipient::Group(_)
+                | Recipient::EachCreature
+                | Recipient::EachCreatureYouControl
+                | Recipient::EachPermanentYouControl
+        ) {
+            self.group_named = true;
+        }
+        Ok(r)
+    }
+
+    #[allow(clippy::too_many_lines)] // one check per recipient form
+    fn recipient_inner(&mut self) -> R<Recipient> {
         // "A creature dealt damage this way can't be regenerated this turn."
         if self.eat_words(&["creature", "dealt", "damage", "this", "way"]) {
             return Ok(Recipient::DamagedThisWay);
@@ -8137,6 +8201,7 @@ impl P {
                         in_trigger: false,
                         it_source: false,
                         in_spell: false,
+                        group_named: false,
                         subject: None,
                         votes: Vec::new(),
                         returned: None,
@@ -10729,6 +10794,38 @@ card "Test Charm" {
             Ability::Modal(modes) => assert_eq!(modes.len(), 2),
             other => panic!("{other:?}"),
         }
+    }
+
+    #[test]
+    fn them_after_a_group_is_that_group() {
+        let cards = parse(
+            r#"
+card "Test Takeover" {
+  cost {R}
+  type Sorcery
+  spell: gain control of all artifact your opponents control until end of turn; untap them; they gain haste
+}
+"#,
+        )
+        .unwrap();
+        let Ability::Spell { effects, .. } = &cards[0].abilities[0] else {
+            panic!("{:?}", cards[0].abilities[0]);
+        };
+        let text = format!("{effects:?}");
+        assert_eq!(text.matches("Those(Them)").count(), 2, "{text}");
+        // Nothing named before: an error, not every creature you control.
+        assert!(
+            parse(
+                r#"
+card "Test Untap" {
+  cost {W}
+  type Instant
+  spell: untap those creatures
+}
+"#
+            )
+            .is_err()
+        );
     }
 
     #[test]

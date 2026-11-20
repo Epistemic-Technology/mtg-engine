@@ -993,7 +993,10 @@ impl<'a> Ctx<'a> {
     fn each_of(&self, r: Recipient) -> &'static str {
         if matches!(
             r,
-            Recipient::Targets(..) | Recipient::ThoseTargets(..) | Recipient::CreatedThem
+            Recipient::Targets(..)
+                | Recipient::ThoseTargets(..)
+                | Recipient::CreatedThem
+                | Recipient::Those(_)
         ) || self.is_many(r)
         {
             "each of "
@@ -1161,6 +1164,7 @@ impl<'a> Ctx<'a> {
             Recipient::SameObject if self.delayed_that => "that creature".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "them".to_string(),
+            Recipient::Those(t) => crate::format::those_word(t).to_string(),
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
             }
@@ -1315,6 +1319,8 @@ impl<'a> Ctx<'a> {
 
     fn subj(&mut self, r: Recipient) -> String {
         match r {
+            // "Untap them. They gain haste until end of turn."
+            Recipient::Those(crate::ast::Those::Them) => "they".to_string(),
             // As a subject Oracle keeps "defending player" ("defending
             // player loses 4 life").
             Recipient::DefendingPlayer => "defending player".to_string(),
@@ -1533,6 +1539,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::CreatedTokens
                 | Recipient::CreatedThem
                 | Recipient::SameTokens
+                | Recipient::Those(_)
         )
     }
 
@@ -3136,6 +3143,20 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::LifeLostThisTurn => return "the life you've lost this turn".to_string(),
         // "the number of +1/+1 counters on this creature", "for each
         // scream counter on this Aura", "the number of age counters on it".
+        // "for each +1/+1 counter on it" of the triggering object.
+        CountExpr::TriggerCounters(kind) => (
+            format!("{} counter on it", counter_name(*kind)),
+            format!("{} counters on it", counter_name(*kind)),
+        ),
+        // "for each of those creatures".
+        CountExpr::Those(t) => {
+            let w = crate::format::those_word(*t);
+            return if each {
+                format!("for each of {w}")
+            } else {
+                format!("the number of {w}")
+            };
+        }
         CountExpr::SourceCounters { kind, it } => {
             let on = if *it {
                 "it".to_string()
@@ -4518,7 +4539,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             .until_eot()
         }
         Effect::GainControl { of, forever } => {
-            let o = ctx.obj(*of);
+            // "Gain control of all artifacts your opponents control" (`all
+            // <filter>`) against "each permanent with a corruption counter".
+            let o = match of {
+                Recipient::Group(i)
+                    if ctx.card.groups.get(usize::from(*i)).is_some_and(|f| f.all) =>
+                {
+                    ctx.obj_all(*of)
+                }
+                _ => ctx.obj(*of),
+            };
             let c = Clause::imperative(format!("gain control of {o}"));
             if *forever { c } else { c.until_eot() }
         }

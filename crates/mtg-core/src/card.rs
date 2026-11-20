@@ -1707,6 +1707,14 @@ pub enum CountExpr {
     /// Life the resolution made players lose ("You gain life equal to the
     /// life lost this way").
     LifeLostThisWay,
+    /// The objects the most recent group of this resolution denoted ("You
+    /// gain 1 life for each of those creatures"; `Recipient::ThoseObjects`).
+    ThoseObjects,
+    /// Counters of a kind on the triggering object, as it last existed
+    /// once it has left (CR 608.2h): "Whenever a creature you control with
+    /// a +1/+1 counter on it leaves the battlefield, create a Mutagen token
+    /// for each +1/+1 counter on it."
+    TriggerCounters(CounterKind),
     /// Creatures blocking the triggering object, or else the source ("for
     /// each creature blocking it"), less `beyond` ("beyond the first").
     BlockingIt { beyond: u32 },
@@ -2867,6 +2875,14 @@ pub enum Recipient {
     /// battlefield, return the exiled card ..."), still in exile; see
     /// `Effect::ExileLinked`.
     ExiledCard,
+    /// The objects the most recent group of this resolution denoted
+    /// (`Group`, `EachCreature`, `EachCreatureYouControl`,
+    /// `EachPermanentYouControl`), those still on the battlefield: "Gain
+    /// control of all artifacts your opponents control until end of turn.
+    /// Untap them.", "Put a +1/+1 counter on each creature token you
+    /// control. They gain trample". The same objects even if they no
+    /// longer match the group's filter (CR 608.2c).
+    ThoseObjects,
 }
 
 /// A number in an effect's text: a constant, or X as chosen when the spell

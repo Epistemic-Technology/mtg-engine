@@ -1569,8 +1569,23 @@ targeted last), `defending player`, `each creature`, `each creature you control`
 `the target 1` ("the creature": "If you control a black permanent,
 destroy the creature instead"), `controller of the creature` in a
 triggered ability ("the creature's controller": the triggering object's),
-`those creatures` (the same, mentioned again: "Creatures you control get
-+2/+1 until end of turn. Untap those creatures."), `each permanent you control`,
+`those creatures`, `those permanents`, and `them` (printed "they" as a
+subject) after a group named earlier in the ability (`each <filter>`,
+`all <filter>`, `each creature you control`): the objects that group
+denoted when its effect happened, still on the battlefield, even those
+that no longer match it (CR 608.2c): "Creatures you control get +2/+1
+until end of turn. Untap those creatures.", `gain control of all artifact
+your opponents control until end of turn; untap them; they gain haste`
+("Gain control of all artifacts your opponents control until end of turn.
+Untap them. They gain haste until end of turn.": the stolen artifacts, not
+every permanent you now control), `put 1 +1/+1 counters on each token
+creature you control; they gain trample`. As a count, `count each those
+creatures` is "for each of those creatures" (Bounding Felidar's "You gain
+1 life for each of those creatures"). Without a group before it, `those
+creatures` is an error. In a triggered ability, `+1/+1 counters on it`
+counts the triggering object's counters, as it last existed (The Ooze's
+"create a Mutagen token for each +1/+1 counter on it"); `on this` counts
+the source's. `each permanent you control`,
 `enchanted creature` / `equipped creature` / `attached` (what this Aura or
 Equipment is attached to; printed "it" after its first mention in the
 ability, or after a condition `if attached is untapped`: "tap enchanted

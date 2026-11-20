@@ -1014,6 +1014,8 @@ fn per_count(
         | CountExpr::TargetStat { .. }
         | CountExpr::ThisWay(..)
         | CountExpr::LifeLostThisWay
+        | CountExpr::ThoseObjects
+        | CountExpr::TriggerCounters(_)
         | CountExpr::Votes(_)
         | CountExpr::BlockingIt { .. }
         | CountExpr::TargetManaValue(_)

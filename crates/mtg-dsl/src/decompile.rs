@@ -600,6 +600,7 @@ impl Decompiler<'_> {
             CoreRecipient::AttachedController => Recipient::AttachedController,
             CoreRecipient::BlockingIt => Recipient::BlockingIt,
             CoreRecipient::ExiledCard => Recipient::ExiledCard,
+            CoreRecipient::ThoseObjects => Recipient::Those(crate::ast::Those::Them),
         }
     }
 

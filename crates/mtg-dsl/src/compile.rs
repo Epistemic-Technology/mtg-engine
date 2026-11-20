@@ -1532,6 +1532,8 @@ impl Compiler<'_> {
             A::DamageThisWay { excess } => C::DamageThisWay { excess: *excess },
             A::CardTypesInGraveyards => C::CardTypesInAllGraveyards,
             A::SourceCounters { kind, .. } => C::SourceCounters(*kind),
+            A::TriggerCounters(kind) => C::TriggerCounters(*kind),
+            A::Those(_) => C::ThoseObjects,
             A::HostGraveyard(f) => C::HostGraveyard(f.as_ref().map(|f| self.filter(f))),
             A::Devotion { colors, .. } => C::Devotion(ColorSet::of(colors.iter().copied())),
         }
@@ -1688,6 +1690,7 @@ impl Compiler<'_> {
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
             Recipient::ExiledCard => CoreRecipient::ExiledCard,
+            Recipient::Those(_) => CoreRecipient::ThoseObjects,
         }
     }
 

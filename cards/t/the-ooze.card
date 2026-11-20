@@ -1,0 +1,7 @@
+card "The Ooze" {
+  oracle_id 82a6fa6f-13c2-4ea3-bec2-c51b56b2783b
+  cost {2}
+  type Legendary Artifact
+  triggered whenever creature you control with +1/+1 counter leaves the battlefield: create count each +1/+1 counters on it "Mutagen"
+  activated {T}: exile target card from a graveyard; create 1 "Mutagen"
+}

@@ -388,6 +388,13 @@ pub enum CountExpr {
         kind: mtg_core::card::CounterKind,
         it: bool,
     },
+    /// `+1/+1 counters on it` in a triggered ability whose `it` is the
+    /// triggering object: that object's counters ("create a Mutagen token
+    /// for each +1/+1 counter on it" of the creature that left).
+    TriggerCounters(mtg_core::card::CounterKind),
+    /// `those creatures` / `them` after a group: how many objects that
+    /// group denoted ("You gain 1 life for each of those creatures").
+    Those(Those),
     /// `attached controller graveyard [<filter>]`: "the number of creature
     /// cards in its controller's graveyard" (of what the source enchants).
     HostGraveyard(Option<Filter>),
@@ -2416,6 +2423,18 @@ pub enum Mod {
     },
 }
 
+/// How a back-reference to a group named earlier in the ability is
+/// printed (`Recipient::Those`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub enum Those {
+    /// `them`: "them" as an object, "they" as a subject.
+    Them,
+    /// `those creatures`.
+    Creatures,
+    /// `those permanents`.
+    Permanents,
+}
+
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum Recipient {
     /// The `n`th target (0-based), declared by its first mention; printed
@@ -2543,6 +2562,12 @@ pub enum Recipient {
     /// their kind ("If this spell was kicked, put a stun counter on each
     /// of those creatures").
     ThoseTargets(usize, usize),
+    /// `them`, `those creatures`, `those permanents` after a group (`each
+    /// <filter>`, `creatures you control`) named earlier in the ability:
+    /// the objects that group denoted, even those that no longer match it
+    /// ("Gain control of all artifacts your opponents control until end of
+    /// turn. Untap them. They gain haste until end of turn.").
+    Those(Those),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

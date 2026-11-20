@@ -1164,6 +1164,9 @@ pub struct ThisWayLog {
     /// The permanents dealt damage, in order ("a creature dealt damage
     /// this way").
     pub damaged: Vec<ObjId>,
+    /// The objects the most recent group recipient denoted ("Untap
+    /// them", `Recipient::ThoseObjects`).
+    pub group: Vec<ObjId>,
 }
 
 /// A card a permanent exiled (`GameState::linked_exiles`).

@@ -286,6 +286,7 @@ impl Fmt {
             Recipient::ExiledCard => "exiled card".to_string(),
             Recipient::ThoseCards(..) => "those cards".to_string(),
             Recipient::ThoseTargets(..) => "those targets".to_string(),
+            Recipient::Those(t) => those_word(t).to_string(),
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
             Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
@@ -2375,6 +2376,8 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             kind.name(),
             if *it { "it" } else { "this" }
         ),
+        CountExpr::TriggerCounters(kind) => format!("{} counters on it", kind.name()),
+        CountExpr::Those(t) => those_word(*t).to_string(),
     }
 }
 
@@ -4861,5 +4864,14 @@ pub fn player_rule_words(kind: mtg_core::card::PlayerRuleKind) -> &'static str {
     match kind {
         mtg_core::card::PlayerRuleKind::CantPlayLands => "play lands",
         mtg_core::card::PlayerRuleKind::CantCastCreatureSpells => "cast creature spells",
+    }
+}
+
+/// `them`, `those creatures`, `those permanents` (`Recipient::Those`).
+pub(crate) fn those_word(t: crate::ast::Those) -> &'static str {
+    match t {
+        crate::ast::Those::Them => "them",
+        crate::ast::Those::Creatures => "those creatures",
+        crate::ast::Those::Permanents => "those permanents",
     }
 }
