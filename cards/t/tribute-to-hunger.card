@@ -1,0 +1,6 @@
+card "Tribute to Hunger" {
+  oracle_id dc5a501c-e16c-4d4b-a510-70a14272473e
+  cost {2}{B}
+  type Instant
+  spell: target opponent sacrifices 1 creature; you gain count equal toughness of that target 1 life
+}

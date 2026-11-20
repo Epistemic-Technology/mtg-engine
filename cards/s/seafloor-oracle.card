@@ -1,0 +1,7 @@
+card "Seafloor Oracle" {
+  oracle_id f9f719cb-7778-4109-bbd3-4504ee1b5f49
+  cost {2}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 2/3
+  triggered whenever Merfolk you control deals combat damage to a player: draw 1 cards
+}

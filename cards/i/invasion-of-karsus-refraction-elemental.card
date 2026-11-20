@@ -1,0 +1,15 @@
+card "Invasion of Karsus // Refraction Elemental" {
+  oracle_id 2d125ef5-074c-44eb-a1d0-c308d48bfbc2
+  layout transform
+  cost {2}{R}{R}
+  type Battle — Siege
+  defense 4
+  triggered when this enters: deal 3 damage to each creature and each planeswalker
+  face "Refraction Elemental" {
+    type Creature — Elemental
+    pt 4/4
+    color red
+    ward pay 2 life
+    triggered whenever you cast a spell: deal 2 damage to each opponent
+  }
+}

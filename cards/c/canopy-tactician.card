@@ -1,0 +1,8 @@
+card "Canopy Tactician" {
+  oracle_id 8b20d6f4-6322-4435-92d5-acaae74774f4
+  cost {3}{G}
+  type Creature — Elf Warrior
+  pt 3/3
+  static other Elf you control: +1/+1
+  activated {T}: add {G}{G}{G}
+}

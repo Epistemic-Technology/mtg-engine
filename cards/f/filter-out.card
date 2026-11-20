@@ -1,0 +1,6 @@
+card "Filter Out" {
+  oracle_id 8c95d823-6bbd-4484-8f38-b1bb20403085
+  cost {1}{U}{U}
+  type Instant
+  spell: return all noncreature, nonland permanent to hand
+}

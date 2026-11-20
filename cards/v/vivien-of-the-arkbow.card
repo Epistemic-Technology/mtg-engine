@@ -1,0 +1,9 @@
+card "Vivien of the Arkbow" {
+  oracle_id 34fe53c2-8909-4786-b5c0-331de997ff81
+  cost {4}{G}{G}
+  type Legendary Planeswalker — Vivien
+  loyalty 5
+  loyalty +2: put 2 +1/+1 counters on up to one target creature
+  loyalty -3: target creature you control bites target creature you don't control
+  loyalty -9: each creature you control gets +4/+4 and gains trample
+}

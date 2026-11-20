@@ -1,0 +1,8 @@
+card "Thalia's Lieutenant" {
+  oracle_id 91508175-fa1d-4c51-99d4-036a2de6abb0
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  triggered when this enters: put 1 +1/+1 counters on each other Human you control
+  triggered whenever other Human you control enters: put 1 +1/+1 counters on this
+}

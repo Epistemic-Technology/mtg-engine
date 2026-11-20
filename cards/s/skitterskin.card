@@ -1,0 +1,8 @@
+card "Skitterskin" {
+  oracle_id ff3f5b1e-9d53-4258-84ee-cfecf685dd05
+  cost {3}{B}
+  type Creature — Eldrazi Drone
+  pt 4/3
+  keywords devoid, can't block
+  activated {1}{B}, if you control other colorless creature: regenerate this
+}

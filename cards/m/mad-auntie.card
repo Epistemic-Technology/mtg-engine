@@ -1,0 +1,8 @@
+card "Mad Auntie" {
+  oracle_id b582b696-17fa-4eea-8124-293f9bd3a208
+  cost {2}{B}
+  type Creature — Goblin Shaman
+  pt 2/2
+  static other Goblin creature you control: +1/+1
+  activated {T}: regenerate another target Goblin
+}

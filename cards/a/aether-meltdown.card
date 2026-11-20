@@ -1,0 +1,9 @@
+card "Aether Meltdown" {
+  oracle_id 433a2880-d989-4c40-99fa-0896de341b88
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature or Vehicle
+  triggered when this enters: you get 2 energy
+  static enchanted: -4/-0
+}

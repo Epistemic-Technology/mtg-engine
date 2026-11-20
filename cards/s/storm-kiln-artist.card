@@ -1,0 +1,8 @@
+card "Storm-Kiln Artist" {
+  oracle_id a145ff8c-5812-4bcb-bd16-9839dc25121d
+  cost {3}{R}
+  type Creature — Dwarf Shaman
+  pt 2/2
+  static this: +1/+0 count each artifact you control
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: create 1 "Treasure"
+}

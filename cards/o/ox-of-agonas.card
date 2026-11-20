@@ -1,0 +1,9 @@
+card "Ox of Agonas" {
+  oracle_id 22113051-c971-4108-953b-95356d21323a
+  cost {3}{R}{R}
+  type Creature — Ox
+  pt 4/2
+  triggered when this enters: discard hand then draw 3 cards
+  escape {R}{R} exile 8
+  escapes with 1 +1/+1 counters
+}

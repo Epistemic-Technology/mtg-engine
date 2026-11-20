@@ -1,0 +1,9 @@
+card "Battlewing Mystic" {
+  oracle_id 49f0b317-6b06-482e-ab64-e02713e6c7e8
+  cost {1}{U}
+  type Creature — Bird Wizard
+  pt 2/1
+  kicker {R}
+  keyword flying
+  triggered when this enters if kicked: discard hand then draw 2 cards
+}

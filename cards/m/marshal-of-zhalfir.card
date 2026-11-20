@@ -1,0 +1,8 @@
+card "Marshal of Zhalfir" {
+  oracle_id 9ad01fb2-2ba7-447a-a5ef-e57d46421635
+  cost {W}{U}
+  type Creature — Human Knight
+  pt 2/2
+  static other Knight you control: +1/+1
+  activated {W}{U}, {T}: tap another target creature
+}

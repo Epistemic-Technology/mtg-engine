@@ -1,0 +1,8 @@
+card "Zephyr Boots" {
+  oracle_id 02f3b9c3-f611-4f05-ab3e-b296916efdad
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: has flying
+  triggered whenever equipped creature deals combat damage to a player: draw 1 cards then discard 1 cards
+  equip {2}
+}

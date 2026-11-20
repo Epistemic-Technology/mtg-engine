@@ -1,0 +1,7 @@
+card "Sterling Grove" {
+  oracle_id 2c275a85-5a15-46cd-a6e7-add63f9b853d
+  cost {G}{W}
+  type Enchantment
+  static other enchantment you control: has shroud
+  activated {1}, sacrifice this: search enchantment card reveal to top that card
+}

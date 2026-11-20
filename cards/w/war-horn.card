@@ -1,0 +1,6 @@
+card "War Horn" {
+  oracle_id 99bc739e-c745-47d8-8401-2f34b6becd85
+  cost {3}
+  type Artifact
+  static attacking creature you control: +1/+0
+}

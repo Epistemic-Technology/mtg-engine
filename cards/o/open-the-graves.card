@@ -1,0 +1,6 @@
+card "Open the Graves" {
+  oracle_id 28778958-a1f9-4fea-b551-c193d1257f18
+  cost {3}{B}{B}
+  type Enchantment
+  triggered whenever nontoken creature you control dies: create 1 "2/2 black Zombie creature"
+}

@@ -1,0 +1,6 @@
+token "1/1 green Plant creature" {
+  name "Plant"
+  type Creature — Plant
+  pt 1/1
+  color green
+}

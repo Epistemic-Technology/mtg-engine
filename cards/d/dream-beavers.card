@@ -1,0 +1,8 @@
+card "Dream Beavers" {
+  oracle_id a1cec8e8-cf3c-42a4-b625-ca0cd148664e
+  cost {B}
+  type Creature — Beaver Nightmare
+  pt 1/1
+  keywords flying
+  triggered when this enters: each opponent loses 1 life and you gains 1 life; scry 1
+}

@@ -1,0 +1,8 @@
+card "Sizzling Changeling" {
+  oracle_id 60ad7aaa-8ce6-4449-8e8d-4ccf925010db
+  cost {2}{R}
+  type Creature — Shapeshifter
+  pt 3/2
+  keywords changeling
+  triggered when this dies: impulse 1 next turn first
+}

@@ -1,0 +1,8 @@
+card "Boldwyr Aggressor" {
+  oracle_id ab32c671-7686-435b-a987-14a08f6790eb
+  cost {3}{R}{R}
+  type Creature — Giant Warrior
+  pt 2/5
+  keywords double strike
+  static other Giant you control: has double strike
+}

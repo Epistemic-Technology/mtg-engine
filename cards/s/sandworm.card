@@ -1,0 +1,8 @@
+card "Sandworm" {
+  oracle_id e92185f8-579c-4645-9cb8-ef5deb9eebc8
+  cost {4}{R}
+  type Creature — Worm
+  pt 5/4
+  keywords haste
+  triggered when this enters: destroy target land; its controller may search basic land card to battlefield tapped
+}

@@ -1,0 +1,13 @@
+card "Great Ugly-Looking Goblin // Clap! Snap!" {
+  oracle_id 27e17542-549b-4c05-8091-c10a245c916b
+  layout adventure
+  cost {5}{B}
+  type Creature — Goblin Soldier
+  pt 4/4
+  static each creature you control with +1/+1 counter: has menace
+  face "Clap! Snap!" {
+    cost {1}{B}
+    type Sorcery — Adventure
+    spell: amass Goblins 2
+  }
+}

@@ -1,0 +1,8 @@
+card "Grasping Giant" {
+  oracle_id d601a28d-a02f-45eb-9dab-a3cf50a87ca4
+  cost {5}{W}
+  type Creature — Giant
+  pt 5/7
+  keywords vigilance
+  triggered whenever this becomes blocked by a creature: exile that creature until this leaves
+}

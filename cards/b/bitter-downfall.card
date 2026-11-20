@@ -1,0 +1,7 @@
+card "Bitter Downfall" {
+  oracle_id 19c22e08-29b6-4b3d-bf6e-28a5add620bb
+  cost {3}{B}
+  type Instant
+  this spell costs {3} less if it targets creature that was dealt damage this turn
+  spell: destroy target creature; its controller loses 2 life
+}

@@ -1,0 +1,7 @@
+card "Raiders' Spoils" {
+  oracle_id 45fd14b9-d66a-452d-add4-36f512fff9c2
+  cost {3}{B}
+  type Enchantment
+  static creature you control: +1/+0
+  triggered whenever Warrior you control deals combat damage to a player: you may pay 1 life; if you do, draw 1 cards
+}

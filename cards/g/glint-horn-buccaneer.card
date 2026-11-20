@@ -1,0 +1,9 @@
+card "Glint-Horn Buccaneer" {
+  oracle_id 64ad5657-78e9-4f34-8877-18c4f51fff9a
+  cost {1}{R}{R}
+  type Creature — Minotaur Pirate
+  pt 2/4
+  keywords haste
+  triggered whenever you discard a card: deal 1 damage to each opponent
+  activated {1}{R}, discard 1 card, if attacking: draw 1 cards
+}

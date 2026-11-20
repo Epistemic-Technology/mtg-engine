@@ -1,0 +1,6 @@
+card "Suspension Field" {
+  oracle_id baf8310f-5baf-459e-95ae-6b43a1d47e24
+  cost {1}{W}
+  type Enchantment
+  triggered when this enters: you may exile target creature with toughness 3 or greater until this leaves
+}

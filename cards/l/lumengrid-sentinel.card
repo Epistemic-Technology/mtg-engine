@@ -1,0 +1,8 @@
+card "Lumengrid Sentinel" {
+  oracle_id ede92fb6-dfd6-40b4-b58f-af1f7a155efc
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 1/2
+  keywords flying
+  triggered whenever artifact you control enters: you may tap target permanent
+}

@@ -1,0 +1,8 @@
+card "Merrow Reejerey" {
+  oracle_id 6b7e6ae4-2ee1-44bf-ac93-79fc87494515
+  cost {2}{U}
+  type Creature — Merfolk Soldier
+  pt 2/2
+  static other Merfolk creature you control: +1/+1
+  triggered whenever you cast Merfolk spell: you may tap or untap target permanent
+}

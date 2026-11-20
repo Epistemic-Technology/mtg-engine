@@ -1,0 +1,8 @@
+card "Drogskol Captain" {
+  oracle_id c33604ac-636a-43ad-9efe-8d7b3a28bf81
+  cost {1}{W}{U}
+  type Creature — Spirit Soldier
+  pt 2/2
+  keywords flying
+  static other Spirit creature you control: +1/+1, has hexproof
+}

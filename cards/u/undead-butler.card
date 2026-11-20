@@ -1,0 +1,8 @@
+card "Undead Butler" {
+  oracle_id 426fa8e8-b0f9-4b6c-b22b-04ec2073187a
+  cost {1}{B}
+  type Creature — Zombie
+  pt 1/2
+  triggered when this enters: mill 3 cards
+  triggered when this dies: you may exile this; when you do, return target creature card from your graveyard to hand
+}

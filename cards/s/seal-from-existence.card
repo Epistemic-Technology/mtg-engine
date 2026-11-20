@@ -1,0 +1,7 @@
+card "Seal from Existence" {
+  oracle_id 72c4c682-df97-4408-997b-e849f54aba39
+  cost {1}{W}{W}
+  type Enchantment
+  ward {3}
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+}

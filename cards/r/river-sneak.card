@@ -1,0 +1,8 @@
+card "River Sneak" {
+  oracle_id 678095cc-ec8f-471a-b675-e59905d65c33
+  cost {1}{U}
+  type Creature — Merfolk Warrior
+  pt 1/1
+  keywords can't be blocked
+  triggered whenever other Merfolk you control enters: this gets +1/+1
+}

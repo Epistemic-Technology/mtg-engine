@@ -1,0 +1,7 @@
+card "Spiteful Visions" {
+  oracle_id 922cf963-2b1b-43ad-819e-6e49133e6aae
+  cost {2}{B/R}{B/R}
+  type Enchantment
+  triggered at beginning of each draw step: that player draws 1 card
+  triggered whenever a player draws a card: deal 1 damage to that player
+}

@@ -1,0 +1,8 @@
+card "Equilibrium Adept" {
+  oracle_id 42bf9435-02e6-428f-a93c-fe4652deb4fc
+  cost {3}{R}
+  type Creature — Dog Monk
+  pt 2/4
+  triggered when this enters: impulse 1 next turn first
+  label "Flurry" triggered whenever you cast your second spell each turn: this gains double strike
+}

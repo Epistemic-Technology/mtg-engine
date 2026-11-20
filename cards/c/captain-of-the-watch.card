@@ -1,0 +1,9 @@
+card "Captain of the Watch" {
+  oracle_id 9f2af06d-8fb7-4276-bb92-3559a6d1fa18
+  cost {4}{W}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  keywords vigilance
+  static other Soldier creature you control: +1/+1, has vigilance
+  triggered when this enters: create 3 "1/1 white Soldier creature"
+}

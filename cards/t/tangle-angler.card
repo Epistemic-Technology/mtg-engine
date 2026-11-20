@@ -1,0 +1,8 @@
+card "Tangle Angler" {
+  oracle_id 887a9f2f-17b4-4a20-a464-9665cde6f293
+  cost {3}{G}
+  type Creature — Phyrexian Horror
+  pt 1/5
+  keywords infect
+  activated {G}: target creature blocks this if able
+}

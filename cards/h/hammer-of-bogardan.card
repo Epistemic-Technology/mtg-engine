@@ -1,0 +1,7 @@
+card "Hammer of Bogardan" {
+  oracle_id 3089bdd7-87e6-4d0e-ad98-c32e6f861c30
+  cost {1}{R}{R}
+  type Sorcery
+  spell: deal 3 damage to any target
+  activated {2}{R}{R}{R}, during your upkeep, from graveyard: return this to hand
+}

@@ -1,0 +1,8 @@
+card "Private Eye" {
+  oracle_id 20750317-061b-4b65-9fc8-43477fcd7a21
+  cost {1}{W}{U}
+  type Creature — Homunculus Detective
+  pt 3/3
+  static other Detective you control: +1/+1
+  triggered whenever you draw your second card each turn: target Detective can't be blocked
+}

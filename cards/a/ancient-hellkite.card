@@ -1,0 +1,8 @@
+card "Ancient Hellkite" {
+  oracle_id de672a4b-07eb-4be8-a03f-23dfbb7ac0fa
+  cost {4}{R}{R}{R}
+  type Creature — Dragon
+  pt 6/6
+  keywords flying
+  activated {R}, if attacking: deal 1 damage to target creature defending player controls
+}

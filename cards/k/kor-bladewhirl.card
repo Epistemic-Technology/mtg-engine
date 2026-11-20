@@ -1,0 +1,7 @@
+card "Kor Bladewhirl" {
+  oracle_id 7024d9db-df2e-4eba-9fa0-76ebe3df05a7
+  cost {1}{W}
+  type Creature — Kor Soldier Ally
+  pt 2/2
+  label "Rally" triggered whenever this or Ally you control enters: each creature you control gains first strike
+}

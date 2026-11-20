@@ -1,0 +1,6 @@
+card "Temporary Lockdown" {
+  oracle_id b21c99b3-b975-4428-9c9a-326ded2fa8dc
+  cost {1}{W}{W}
+  type Enchantment
+  triggered when this enters: exile each nonland permanent with mana value 2 or less until this leaves
+}

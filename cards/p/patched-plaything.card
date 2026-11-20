@@ -1,0 +1,8 @@
+card "Patched Plaything" {
+  oracle_id 0b7e950a-89e1-4ec4-94af-5af2f1252b12
+  cost {2}{W}
+  type Artifact Creature — Toy
+  pt 4/3
+  keywords double strike
+  enters with 2 -1/-1 counters if cast from hand
+}

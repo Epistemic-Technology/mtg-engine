@@ -1,0 +1,7 @@
+card "Favored of Iroas" {
+  oracle_id 5df784c0-3adc-4613-ba30-905ec8cf66f9
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  label "Constellation" triggered whenever enchantment you control enters: this gains double strike
+}

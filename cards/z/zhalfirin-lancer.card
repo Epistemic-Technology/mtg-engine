@@ -1,0 +1,7 @@
+card "Zhalfirin Lancer" {
+  oracle_id 5adcd0cb-9305-4e77-a117-31e9dca5c96d
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 3/3
+  triggered whenever other Knight you control enters: this gets +1/+1 and gains vigilance
+}

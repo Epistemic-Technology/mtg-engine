@@ -1,0 +1,7 @@
+card "Kambal, Consul of Allocation" {
+  oracle_id 4987c458-604a-4727-b360-170616e91e67
+  cost {1}{W}{B}
+  type Legendary Creature — Human Advisor
+  pt 2/3
+  triggered whenever an opponent casts noncreature spell: that player loses 2 life and you gains 2 life
+}

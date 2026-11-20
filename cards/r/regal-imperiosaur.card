@@ -1,0 +1,7 @@
+card "Regal Imperiosaur" {
+  oracle_id 83a76601-ef59-4888-af70-5088dd1f504c
+  cost {1}{G}{G}
+  type Creature — Dinosaur
+  pt 5/4
+  static other Dinosaur you control: +1/+1
+}

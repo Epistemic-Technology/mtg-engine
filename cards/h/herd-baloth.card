@@ -1,0 +1,7 @@
+card "Herd Baloth" {
+  oracle_id 03873314-6e64-43ab-95c0-3d8692a57a03
+  cost {3}{G}{G}
+  type Creature — Beast
+  pt 4/4
+  triggered whenever one or more +1/+1 counters put on this: you may create 1 "4/4 green Beast creature"
+}

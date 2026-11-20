@@ -1,0 +1,7 @@
+card "Vengeful Rebel" {
+  oracle_id 273bf1a8-42a9-4db5-bd83-06db4cb5e5df
+  cost {2}{B}
+  type Creature — Aetherborn Warrior
+  pt 3/2
+  label "Revolt" triggered when this enters if permanent left this turn: target creature an opponent controls gets -3/-3
+}

@@ -1,0 +1,6 @@
+card "Regal Bunnicorn" {
+  oracle_id efd93428-88a5-4f7b-95f3-1d6eec069a4c
+  cost {1}{W}
+  type Creature — Rabbit Unicorn
+  static this: cda pt count nonland permanent you control
+}

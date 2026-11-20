@@ -1,0 +1,7 @@
+card "Ragamuffyn" {
+  oracle_id 20d09deb-6b78-4aa9-93c2-81385e0091a9
+  cost {2}{B}
+  type Creature — Zombie Cleric
+  pt 2/2
+  label "Hellbent" activated {T}, sacrifice creature or land, if hand 0 or less: draw 1 cards
+}

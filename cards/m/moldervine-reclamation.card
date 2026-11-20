@@ -1,0 +1,6 @@
+card "Moldervine Reclamation" {
+  oracle_id 68639a3d-2192-4921-8298-c76bb0cd6b02
+  cost {3}{B}{G}
+  type Enchantment
+  triggered whenever creature you control dies: you gain 1 life and draw 1 card
+}

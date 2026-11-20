@@ -1,0 +1,8 @@
+card "Spincrusher" {
+  oracle_id 1932a19a-0c2b-4d16-a2ba-34ed136d8e70
+  cost {2}
+  type Artifact Creature — Construct
+  pt 0/2
+  triggered whenever this blocks: put 1 +1/+1 counters on this
+  activated remove 1 +1/+1 counters from this: this creature can't be blocked
+}

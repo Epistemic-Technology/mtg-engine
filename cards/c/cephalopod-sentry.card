@@ -1,0 +1,8 @@
+card "Cephalopod Sentry" {
+  oracle_id e8270c29-1887-4d3f-b70f-6b79ada8fe47
+  cost {2}{W}{U}
+  type Artifact Creature — Phyrexian Squid
+  pt */5
+  keywords flying
+  static this: cda power count artifact you control
+}

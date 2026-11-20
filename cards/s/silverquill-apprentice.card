@@ -1,0 +1,7 @@
+card "Silverquill Apprentice" {
+  oracle_id 5ab91144-5eb3-491b-a8be-7e1139d0d6c8
+  cost {W}{B}
+  type Creature — Human Warlock
+  pt 2/2
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: target creature gets +1/+0
+}

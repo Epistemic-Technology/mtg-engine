@@ -1,0 +1,8 @@
+card "Dusk Rose Reliquary" {
+  oracle_id dca7102e-c020-4fdc-9b59-f186e3e615a5
+  cost {W}
+  type Artifact
+  additional cost sacrifice artifact or creature
+  ward {2}
+  triggered when this enters: exile target artifact or creature an opponent controls until this leaves
+}

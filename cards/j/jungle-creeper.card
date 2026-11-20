@@ -1,0 +1,7 @@
+card "Jungle Creeper" {
+  oracle_id acc091c0-3891-41b9-b5f6-7537fe9493fe
+  cost {1}{B}{G}
+  type Creature — Elemental
+  pt 3/3
+  activated {3}{B}{G}, from graveyard: return this to hand
+}

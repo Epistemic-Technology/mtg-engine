@@ -1,0 +1,8 @@
+card "Gravetiller Wurm" {
+  oracle_id 020d0c91-da68-40da-8561-5522377f3d07
+  cost {5}{G}
+  type Creature — Wurm
+  pt 4/4
+  keywords trample
+  label "Morbid" enters with 4 +1/+1 counters if creature died this turn
+}

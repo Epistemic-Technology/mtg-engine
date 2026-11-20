@@ -1,0 +1,8 @@
+card "Silumgar, the Drifting Death" {
+  oracle_id b26c91d9-87de-45f7-a24c-bbe0cef3a35c
+  cost {4}{U}{B}
+  type Legendary Creature — Dragon
+  pt 3/7
+  keywords flying, hexproof
+  triggered whenever Dragon you control attacks: each creature defending player controls gets -1/-1
+}

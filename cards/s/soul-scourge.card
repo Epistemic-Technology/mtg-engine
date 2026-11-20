@@ -1,0 +1,9 @@
+card "Soul Scourge" {
+  oracle_id d66e89a3-d582-4867-899c-f560b8a5b973
+  cost {4}{B}
+  type Creature — Nightmare Horror
+  pt 3/2
+  keywords flying
+  triggered when this enters: target player loses 3 life
+  triggered when this leaves the battlefield: that player gains 3 life
+}

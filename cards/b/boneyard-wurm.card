@@ -1,0 +1,6 @@
+card "Boneyard Wurm" {
+  oracle_id 6e5f908a-f4f1-4718-ac39-34176e401756
+  cost {1}{G}
+  type Creature — Wurm
+  static this: cda pt graveyard creature
+}

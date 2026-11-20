@@ -1,0 +1,8 @@
+card "Verdant Eidolon" {
+  oracle_id a3acc388-4015-42e4-88ff-b35a91134d12
+  cost {3}{G}
+  type Creature — Spirit
+  pt 2/2
+  activated {G}, sacrifice this: add any 3
+  triggered from graveyard whenever you cast multicolored spell: you may return this to hand
+}

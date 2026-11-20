@@ -1,0 +1,8 @@
+card "Drana, Liberator of Malakir" {
+  oracle_id 89b24b5f-d837-4274-8877-8ff7dc2708ba
+  cost {1}{B}{B}
+  type Legendary Creature — Vampire Ally
+  pt 2/3
+  keywords flying, first strike
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on each attacking creature you control
+}

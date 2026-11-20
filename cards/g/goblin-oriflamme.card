@@ -1,0 +1,6 @@
+card "Goblin Oriflamme" {
+  oracle_id 836bd011-2da5-443a-a814-19a664b98a1a
+  cost {1}{R}
+  type Enchantment
+  static attacking creature you control: +1/+0
+}

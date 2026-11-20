@@ -1,0 +1,8 @@
+card "Council of Echoes" {
+  oracle_id 7b513bd0-27df-45f3-a85f-1f0aba3cae48
+  cost {4}{U}{U}
+  type Creature — Spirit Advisor
+  pt 4/4
+  keywords flying
+  label "Descend 4" triggered when this enters if 4 permanent cards in your graveyard: return up to one target nonland permanent other than this to hand
+}

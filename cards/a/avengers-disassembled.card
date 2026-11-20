@@ -1,0 +1,9 @@
+card "Avengers Disassembled" {
+  oracle_id 34493cf5-7586-48ef-806d-57273b2ab034
+  cost {1}{R}{R}
+  type Sorcery
+  choose one or both {
+    mode: deal 3 damage to each creature
+    mode: destroy target land; its controller may search basic land card to battlefield tapped
+  }
+}

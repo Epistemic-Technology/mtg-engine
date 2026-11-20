@@ -1,0 +1,6 @@
+card "Pledge of Unity" {
+  oracle_id ad501bcb-b838-4716-9759-98c484772285
+  cost {1}{G}{W}
+  type Instant
+  spell: put 1 +1/+1 counters on each creature you control; you gain count each creature you control life
+}

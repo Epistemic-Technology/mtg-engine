@@ -1,0 +1,7 @@
+card "Eclipsed Boggart" {
+  oracle_id 9cc3b91b-ad70-4b01-b718-fda3819f84d0
+  cost {B/R}{B/R}{B/R}
+  type Creature — Goblin Scout
+  pt 2/3
+  triggered when this enters: dig 4 take Goblin, Swamp, or Mountain card may revealing rest bottom random
+}

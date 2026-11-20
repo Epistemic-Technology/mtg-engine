@@ -1,0 +1,8 @@
+card "Battlegrace Angel" {
+  oracle_id 40216d09-ae4d-4a41-b3f6-1a8035093045
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying, exalted
+  triggered whenever creature you control attacks alone: it gains lifelink
+}

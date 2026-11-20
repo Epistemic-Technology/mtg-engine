@@ -1,0 +1,7 @@
+card "Oath of Ajani" {
+  oracle_id 1ec39c8f-eb1e-4881-a749-0c188788b612
+  cost {G}{W}
+  type Legendary Enchantment
+  triggered when this enters: put 1 +1/+1 counters on each creature you control
+  spells planeswalker you cast cost {1} less
+}

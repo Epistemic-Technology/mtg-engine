@@ -1,0 +1,6 @@
+card "Traitorous Greed" {
+  oracle_id 344cdec9-60b3-42ec-a3d5-41ee1d4f7c6c
+  cost {3}{R}
+  type Sorcery
+  spell: gain control of target creature; untap that creature; target 1 gains haste; add any 2
+}

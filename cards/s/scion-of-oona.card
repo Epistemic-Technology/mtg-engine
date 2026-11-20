@@ -1,0 +1,9 @@
+card "Scion of Oona" {
+  oracle_id b34601d2-2aeb-4649-9d73-d0895611bd69
+  cost {2}{U}
+  type Creature — Faerie Soldier
+  pt 1/1
+  keywords flash, flying
+  static other Faerie creature you control: +1/+1
+  static other Faerie you control: has shroud
+}

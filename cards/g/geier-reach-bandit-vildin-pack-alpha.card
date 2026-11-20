@@ -1,0 +1,16 @@
+card "Geier Reach Bandit // Vildin-Pack Alpha" {
+  oracle_id 64720167-b88b-47f7-bfc1-d5e005c9fd68
+  layout transform
+  cost {2}{R}
+  type Creature — Human Rogue Werewolf
+  pt 3/2
+  keywords haste
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Vildin-Pack Alpha" {
+    type Creature — Werewolf
+    pt 4/3
+    color red
+    triggered whenever Werewolf you control enters: you may transform it
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

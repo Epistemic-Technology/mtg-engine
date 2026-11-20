@@ -1,0 +1,6 @@
+card "Glass Casket" {
+  oracle_id d9167046-7908-4d16-8cc1-3eb02d1ba547
+  cost {1}{W}
+  type Artifact
+  triggered when this enters: exile target creature an opponent controls with mana value 3 or less until this leaves
+}

@@ -1,0 +1,8 @@
+card "Harald, King of Skemfar" {
+  oracle_id 0089b07c-7f47-4a9a-9fb7-cc38ec9d7bcd
+  cost {1}{B}{G}
+  type Legendary Creature — Elf Warrior
+  pt 3/2
+  keywords menace
+  triggered when this enters: dig 5 take Elf, Warrior, or Tyvar card may revealing rest bottom random
+}

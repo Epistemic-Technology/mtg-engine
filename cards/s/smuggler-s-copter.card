@@ -1,0 +1,9 @@
+card "Smuggler's Copter" {
+  oracle_id 49136bdc-bc50-49a2-999a-1ef9c16ea130
+  cost {2}
+  type Artifact — Vehicle
+  pt 3/3
+  keywords flying
+  triggered whenever this attacks or blocks: you may draw 1 cards; if you do, discard 1 cards
+  crew 1
+}

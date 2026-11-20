@@ -1,0 +1,9 @@
+card "Gnashing of Teeth" {
+  oracle_id 188a3f61-3f7c-450d-8ee7-e12ad13b86c6
+  cost {1}{B}{B}
+  type Sorcery
+  choose one {
+    mode: target creature gets -5/-5; this turn, replace target 1 dies: exile
+    mode: each creature target player controls gets -1/-1
+  }
+}

@@ -1,0 +1,6 @@
+card "Angel's Feather" {
+  oracle_id 3d0d4ba4-d5aa-4d9f-89ab-46687637fecf
+  cost {2}
+  type Artifact
+  triggered whenever a player casts white spell: you may you gain 1 life
+}

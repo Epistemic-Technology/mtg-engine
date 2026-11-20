@@ -1,0 +1,7 @@
+card "Nimbus Maze" {
+  oracle_id d7e1d4eb-1d4e-460e-9304-7db9ab50ccb5
+  type Land
+  mana {C}
+  activated {T}, if you control Island: add {W}
+  activated {T}, if you control Plains: add {U}
+}

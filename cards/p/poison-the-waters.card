@@ -1,0 +1,9 @@
+card "Poison the Waters" {
+  oracle_id 2c9bf40b-ddcb-4f46-a81e-56b91dfc784f
+  cost {1}{B}
+  type Sorcery
+  choose one {
+    mode: all creatures gets -1/-1
+    mode: target player reveals hand discarding artifact or creature card
+  }
+}

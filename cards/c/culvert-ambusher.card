@@ -1,0 +1,8 @@
+card "Culvert Ambusher" {
+  oracle_id c11fef0f-972d-4756-9902-fd3e3af00707
+  cost {3}{G}{G}
+  type Creature — Wurm Horror
+  pt 4/5
+  triggered when this enters or is turned face up: target creature blocks if able
+  disguise {4}{G}
+}

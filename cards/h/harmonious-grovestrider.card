@@ -1,0 +1,7 @@
+card "Harmonious Grovestrider" {
+  oracle_id 0ebec97e-3cb1-41e2-a693-0febb5623016
+  cost {3}{G}{G}
+  type Creature — Beast
+  ward {2}
+  static this: cda pt count land you control
+}

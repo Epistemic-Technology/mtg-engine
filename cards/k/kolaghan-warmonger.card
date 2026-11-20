@@ -1,0 +1,8 @@
+card "Kolaghan Warmonger" {
+  oracle_id 4c7e6520-d179-4590-afdc-92eb2c0740a6
+  cost {2}{R}
+  type Creature — Ogre Warrior
+  pt 3/2
+  keywords haste
+  triggered whenever this attacks: dig 6 take Dragon card may revealing rest bottom random
+}

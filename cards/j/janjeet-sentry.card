@@ -1,0 +1,8 @@
+card "Janjeet Sentry" {
+  oracle_id fb818d43-8e5d-41aa-98f8-5826dfd5dfdb
+  cost {2}{U}
+  type Creature — Vedalken Soldier
+  pt 2/3
+  triggered when this enters: you get 2 energy
+  activated {T}, pay 2 energy: you may tap or untap target artifact or creature
+}

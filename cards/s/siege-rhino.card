@@ -1,0 +1,8 @@
+card "Siege Rhino" {
+  oracle_id e1087ce2-e3c2-4ab1-bd08-1dc9ab70f12f
+  cost {1}{W}{B}{G}
+  type Creature — Rhino
+  pt 4/5
+  keywords trample
+  triggered when this enters: each opponent loses 3 life and you gains 3 life
+}

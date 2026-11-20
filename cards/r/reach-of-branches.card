@@ -1,0 +1,7 @@
+card "Reach of Branches" {
+  oracle_id 951b59c5-6d5a-4fca-b3ae-e783814e7e7a
+  cost {4}{G}
+  type Kindred Instant — Treefolk
+  spell: create 1 "2/5 green Treefolk Shaman creature"
+  triggered from graveyard whenever Forest you control enters: you may return this to hand
+}

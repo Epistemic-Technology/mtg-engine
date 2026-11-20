@@ -1,0 +1,6 @@
+card "Redeem the Lost" {
+  oracle_id 3c5e269e-1baa-4b40-8e0f-1763ac85dc6b
+  cost {1}{W}
+  type Instant
+  spell: target creature you control gains protection from color of choice; clash; if you win, return this to its owner's hand
+}

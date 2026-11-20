@@ -1,0 +1,6 @@
+card "Scepter of Fugue" {
+  oracle_id f0b1dcdc-4fbb-4bcb-a4b0-1aa5928347f9
+  cost {B}{B}
+  type Artifact
+  activated {1}{B}, {T}, during your turn: target player discards 1 cards
+}

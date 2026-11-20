@@ -1,0 +1,7 @@
+card "Combine Chrysalis" {
+  oracle_id a1cee8d7-f619-47b4-ba8c-faf3106d4e41
+  cost {G}{U}
+  type Artifact
+  static creature token you control: has flying
+  activated {2}{G}{U}, {T}, sacrifice token, sorcery: create 1 "4/4 green Beast creature"
+}

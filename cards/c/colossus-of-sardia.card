@@ -1,0 +1,8 @@
+card "Colossus of Sardia" {
+  oracle_id 9be9625e-b98b-416b-aac4-9f7b2dfbd39d
+  cost {9}
+  type Artifact Creature — Golem
+  pt 9/9
+  keywords trample, doesn't untap
+  activated {9}, during your upkeep: untap this
+}

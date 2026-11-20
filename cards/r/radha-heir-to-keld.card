@@ -1,0 +1,8 @@
+card "Radha, Heir to Keld" {
+  oracle_id 61d94fe7-b559-4bd4-94a7-f4ed4c853b4b
+  cost {R}{G}
+  type Legendary Creature — Elf Warrior
+  pt 2/2
+  triggered whenever this attacks: you may add {R}{R}
+  mana {G}
+}

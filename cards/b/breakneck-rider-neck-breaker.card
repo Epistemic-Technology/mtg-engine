@@ -1,0 +1,15 @@
+card "Breakneck Rider // Neck Breaker" {
+  oracle_id 51685f85-06ad-4de2-a7a6-06e6f59a1cbb
+  layout transform
+  cost {1}{R}{R}
+  type Creature — Human Scout Werewolf
+  pt 3/3
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Neck Breaker" {
+    type Creature — Werewolf
+    pt 4/3
+    color red
+    static attacking creature you control: +1/+0, has trample
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

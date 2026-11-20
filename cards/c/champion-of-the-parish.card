@@ -1,0 +1,7 @@
+card "Champion of the Parish" {
+  oracle_id faeaa3eb-6eb8-4621-98c7-0c6f58bbff85
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  triggered whenever other Human you control enters: put 1 +1/+1 counters on this
+}

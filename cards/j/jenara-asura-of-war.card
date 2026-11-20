@@ -1,0 +1,8 @@
+card "Jenara, Asura of War" {
+  oracle_id d06cd670-7ffc-4295-97d1-0eff042fb6d5
+  cost {G}{W}{U}
+  type Legendary Creature — Angel
+  pt 3/3
+  keywords flying
+  activated {1}{W}: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,8 @@
+card "Apostle of Invasion" {
+  oracle_id d56f1543-2b2d-4ce3-bcfe-41224a0cece4
+  cost {4}{W}{W}
+  type Creature — Phyrexian Angel
+  pt 4/4
+  keywords flying
+  label "Corrupted" static as long as opponent poison 3 or more, this: has double strike
+}

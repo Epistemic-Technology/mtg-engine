@@ -1,0 +1,7 @@
+card "Unconventional Tactics" {
+  oracle_id 95ee46ec-4b60-4fea-a09b-d15c083916b3
+  cost {2}{W}
+  type Sorcery
+  spell: target creature gets +3/+3 and gains flying
+  triggered from graveyard whenever Zombie you control enters: you may pay {W}; if you do, return this to hand
+}

@@ -1,0 +1,9 @@
+card "Ferocification" {
+  oracle_id 814e06c0-9b61-4a64-8c67-73a8eb00a768
+  cost {2}{R}
+  type Enchantment
+  triggered at beginning of your combat: choose one {
+    mode: target creature you control gets +2/+0
+    mode: target creature you control gains menace, haste
+  }
+}

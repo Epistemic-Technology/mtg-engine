@@ -1,0 +1,8 @@
+card "Prowler, Clawed Thief" {
+  oracle_id 76742bfc-ae99-4b06-b29d-e0e41d92ae14
+  cost {1}{U}{B}
+  type Legendary Creature — Human Rogue Villain
+  pt 2/3
+  keywords menace
+  triggered whenever other Villain you control enters: this connives
+}

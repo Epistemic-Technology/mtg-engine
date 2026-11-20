@@ -1,0 +1,7 @@
+card "Spider-Byte, Web Warden" {
+  oracle_id 845472ca-3fcb-4bcd-953c-96eb8d914af9
+  cost {2}{U}
+  type Legendary Creature — Spider Avatar Hero
+  pt 2/2
+  triggered when this enters: return up to one target nonland permanent to hand
+}

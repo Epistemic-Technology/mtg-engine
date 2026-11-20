@@ -1,0 +1,7 @@
+card "Wreak Havoc" {
+  oracle_id b1d2519e-7340-4ea4-a62e-cf0740d4e57a
+  cost {2}{R}{G}
+  type Sorcery
+  this spell can't be countered
+  spell: destroy target artifact or land
+}

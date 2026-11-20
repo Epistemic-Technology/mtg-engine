@@ -1,0 +1,9 @@
+card "Dwynen, Gilt-Leaf Daen" {
+  oracle_id 30d0d75f-e94c-460b-b957-9f1d655c0f65
+  cost {2}{G}{G}
+  type Legendary Creature — Elf Warrior
+  pt 3/4
+  keywords reach
+  static other Elf creature you control: +1/+1
+  triggered whenever this attacks: you gain count each attacking Elf you control life
+}

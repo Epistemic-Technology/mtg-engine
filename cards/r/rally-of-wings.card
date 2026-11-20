@@ -1,0 +1,6 @@
+card "Rally of Wings" {
+  oracle_id 984336a7-85bd-4549-9771-03a0c2367db0
+  cost {1}{W}
+  type Instant
+  spell: untap all creature you control; each creature you control with flying gets +2/+2
+}

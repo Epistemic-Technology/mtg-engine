@@ -1,0 +1,9 @@
+card "Sleep Magic" {
+  oracle_id 33d6f4f0-e1ad-4363-a012-46a1bd9daeb7
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+  triggered when enchanted creature is dealt damage: sacrifice this
+}

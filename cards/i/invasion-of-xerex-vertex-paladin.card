@@ -1,0 +1,14 @@
+card "Invasion of Xerex // Vertex Paladin" {
+  oracle_id 8b5add91-2e82-4430-bfc5-f4a6366dbbdb
+  layout transform
+  cost {2}{W}{U}
+  type Battle — Siege
+  defense 4
+  triggered when this enters: return up to one target creature to hand
+  face "Vertex Paladin" {
+    type Creature — Angel Knight
+    color blue white
+    keywords flying
+    static this: cda pt count creature you control
+  }
+}

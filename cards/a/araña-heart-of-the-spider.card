@@ -1,0 +1,8 @@
+card "Araña, Heart of the Spider" {
+  oracle_id a16037f2-a0f6-465d-8d6e-cec34b4a6320
+  cost {1}{R}{W}
+  type Legendary Creature — Spider Human Hero
+  pt 3/3
+  triggered whenever you attack: put 1 +1/+1 counters on target attacking creature
+  triggered whenever modified creature you control deals combat damage to a player: impulse 1 this turn
+}

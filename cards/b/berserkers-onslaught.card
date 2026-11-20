@@ -1,0 +1,6 @@
+card "Berserkers' Onslaught" {
+  oracle_id 85d2948c-1a79-418d-80c4-bc1012a4d313
+  cost {3}{R}{R}
+  type Enchantment
+  static attacking creature you control: has double strike
+}

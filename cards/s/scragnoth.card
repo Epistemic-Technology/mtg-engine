@@ -1,0 +1,8 @@
+card "Scragnoth" {
+  oracle_id 9e66f2d6-cc51-4747-914d-2c04e439da2b
+  cost {4}{G}
+  type Creature — Beast
+  pt 3/4
+  this spell can't be countered
+  keyword protection from blue
+}

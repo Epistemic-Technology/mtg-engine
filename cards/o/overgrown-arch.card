@@ -1,0 +1,9 @@
+card "Overgrown Arch" {
+  oracle_id 802f8bcd-9219-48cd-a4c5-d9ea9ef60c9e
+  cost {1}{G}
+  type Creature — Plant Wall
+  pt 0/4
+  keywords defender
+  activated {T}: you gains 1 life
+  activated {2}, sacrifice this: learn
+}

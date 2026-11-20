@@ -1,0 +1,8 @@
+card "Minister of Pain" {
+  oracle_id 5d5b63a4-c9d9-4971-9d4e-2eab86f251e2
+  cost {2}{B}
+  type Creature — Human Shaman
+  pt 2/3
+  keywords exploit
+  triggered when this exploits a creature: each creature your opponents control gets -1/-1
+}

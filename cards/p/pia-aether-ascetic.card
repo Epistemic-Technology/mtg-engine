@@ -1,0 +1,7 @@
+card "Pia, Aether Ascetic" {
+  oracle_id 6519dc16-4960-4220-aaa8-7e4279743714
+  cost {2}{G}
+  type Legendary Creature — Human Druid
+  pt 2/2
+  triggered when this enters: you may discard 1 cards; if you do, search enchantment card reveal to hand
+}

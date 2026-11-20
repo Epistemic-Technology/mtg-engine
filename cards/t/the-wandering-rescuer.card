@@ -1,0 +1,8 @@
+card "The Wandering Rescuer" {
+  oracle_id b8ef65df-f8e7-44e3-9864-9c127232a2b6
+  cost {3}{W}{W}
+  type Legendary Creature — Human Samurai Noble
+  pt 3/4
+  keywords flash, convoke, double strike
+  static other tapped creature you control: has hexproof
+}

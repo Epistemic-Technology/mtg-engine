@@ -1,0 +1,7 @@
+card "Stoneforge Acolyte" {
+  oracle_id c3c40f93-7e10-4139-b9e0-b6dfff8b8038
+  cost {W}
+  type Creature — Kor Artificer Ally
+  pt 1/2
+  label "Cohort" activated {T}, tap untapped Ally you control: dig 4 take Equipment card may revealing rest bottom
+}

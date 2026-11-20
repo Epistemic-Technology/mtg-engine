@@ -1,0 +1,8 @@
+card "Zalto, Fire Giant Duke" {
+  oracle_id fb1c507d-ef94-438e-bee5-29eb48dc8e70
+  cost {3}{R}{R}
+  type Legendary Creature — Giant Barbarian
+  pt 7/3
+  keywords trample
+  triggered whenever this is dealt damage: venture
+}

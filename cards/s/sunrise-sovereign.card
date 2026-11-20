@@ -1,0 +1,7 @@
+card "Sunrise Sovereign" {
+  oracle_id c9abbb90-e3ae-4e7c-87ca-06ebebf65edb
+  cost {5}{R}
+  type Creature — Giant Warrior
+  pt 5/5
+  static other Giant creature you control: +2/+2, has trample
+}

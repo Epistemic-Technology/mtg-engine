@@ -1,0 +1,6 @@
+card "Faith of the Devoted" {
+  oracle_id 99af5247-06cf-40b2-9a7c-65ad59b1ddf6
+  cost {2}{B}
+  type Enchantment
+  triggered whenever you cycle or discard a card: you may pay {1}; if you do, each opponent loses 2 life and you gains 2 life
+}

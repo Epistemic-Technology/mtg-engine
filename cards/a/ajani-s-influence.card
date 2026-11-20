@@ -1,0 +1,9 @@
+card "Ajani's Influence" {
+  oracle_id 2a3e3f3b-1f74-4ac7-b5ac-7c3cb9cc38a6
+  cost {2}{W}{W}
+  type Sorcery
+  spell {
+    put 2 +1/+1 counters on target creature
+    dig 5 take white card may revealing rest bottom random
+  }
+}

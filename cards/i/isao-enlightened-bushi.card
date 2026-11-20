@@ -1,0 +1,9 @@
+card "Isao, Enlightened Bushi" {
+  oracle_id 15ec1bfc-b0a0-4058-87bb-8dbaf17b7f3b
+  cost {2}{G}
+  type Legendary Creature — Human Samurai
+  pt 2/1
+  this spell can't be countered
+  bushido 2
+  activated {2}: regenerate target Samurai
+}

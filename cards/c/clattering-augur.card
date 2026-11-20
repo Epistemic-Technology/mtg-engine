@@ -1,0 +1,9 @@
+card "Clattering Augur" {
+  oracle_id d88f249f-5bf1-448a-91d1-f81538dfd475
+  cost {1}{B}
+  type Creature — Skeleton Shaman
+  pt 1/1
+  keywords can't block
+  triggered when this enters: you draw 1 card, and you lose 1 life
+  activated {2}{B}{B}, from graveyard: return this to hand
+}

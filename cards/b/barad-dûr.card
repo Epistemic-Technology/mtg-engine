@@ -1,0 +1,7 @@
+card "Barad-dûr" {
+  oracle_id 88159872-d37d-4847-b048-e4a9af6437bd
+  type Legendary Land
+  enters tapped unless you control legendary creature
+  mana {B}
+  activated {X}{X}{B}, {T}, if creature died this turn: amass Orcs X
+}

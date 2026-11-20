@@ -1,0 +1,8 @@
+card "Sarinth Greatwurm" {
+  oracle_id 5b5b9390-bb3a-4f71-809a-cfe2a6566b59
+  cost {4}{R}{G}
+  type Creature — Wurm
+  pt 7/6
+  keywords trample
+  triggered whenever land enters: create 1 tapped "Powerstone"
+}

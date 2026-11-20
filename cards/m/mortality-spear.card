@@ -1,0 +1,7 @@
+card "Mortality Spear" {
+  oracle_id 544acde0-850d-4c4f-8389-e22930d87345
+  cost {2}{B}{G}
+  type Instant
+  this spell costs {2} less if gained life this turn
+  spell: destroy target nonland permanent
+}

@@ -1,0 +1,9 @@
+card "Predator Ooze" {
+  oracle_id a51ec70d-1356-4403-a858-b99445bac54a
+  cost {G}{G}{G}
+  type Creature — Ooze
+  pt 1/1
+  keywords indestructible
+  triggered whenever this attacks: put 1 +1/+1 counters on this
+  triggered whenever creature dealt damage by this this turn dies: put 1 +1/+1 counters on this
+}

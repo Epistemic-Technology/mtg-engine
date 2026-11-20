@@ -1,0 +1,8 @@
+card "Gothmog, Morgul Lieutenant" {
+  oracle_id f3817f63-7bde-46c5-93cb-b4756f5f821e
+  cost {3}{B}
+  type Legendary Creature — Human Soldier
+  pt 3/3
+  triggered when this enters: amass Orcs 1
+  static creature token you control: has deathtouch
+}

@@ -1,0 +1,8 @@
+card "Ingenious Infiltrator" {
+  oracle_id 354defd2-f63f-4a48-9fd4-2526b3878a84
+  cost {2}{U}{B}
+  type Creature — Vedalken Ninja
+  pt 2/3
+  ninjutsu {U}{B}
+  triggered whenever Ninja you control deals combat damage to a player: draw 1 cards
+}

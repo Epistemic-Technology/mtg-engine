@@ -1,0 +1,6 @@
+card "Release the Ants" {
+  oracle_id b420e429-9dec-4993-a45f-3458795e5cbe
+  cost {1}{R}
+  type Instant
+  spell: deal 1 damage to any target; clash; if you win, return this to its owner's hand
+}

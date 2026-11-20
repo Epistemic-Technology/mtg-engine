@@ -1,0 +1,7 @@
+card "Village Cannibals" {
+  oracle_id 973504d6-e2e4-49c4-86cb-69f31d66388b
+  cost {2}{B}
+  type Creature — Human
+  pt 2/2
+  triggered whenever other Human creature dies: put 1 +1/+1 counters on this
+}

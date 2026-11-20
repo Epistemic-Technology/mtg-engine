@@ -1,0 +1,8 @@
+card "Borborygmos" {
+  oracle_id 9ab0820b-4f5f-47b3-8fa9-43f802aed275
+  cost {3}{R}{R}{G}{G}
+  type Legendary Creature — Cyclops
+  pt 6/7
+  keywords trample
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on each creature you control
+}

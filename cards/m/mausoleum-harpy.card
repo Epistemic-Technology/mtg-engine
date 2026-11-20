@@ -1,0 +1,9 @@
+card "Mausoleum Harpy" {
+  oracle_id ba682da8-50f5-478f-99cc-60a57d229a04
+  cost {4}{B}
+  type Creature — Harpy
+  pt 3/3
+  keywords flying
+  ascend
+  triggered whenever other creature you control dies if city's blessing: put 1 +1/+1 counters on this
+}

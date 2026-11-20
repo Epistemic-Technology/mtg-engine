@@ -1,0 +1,7 @@
+card "Grovetender Druids" {
+  oracle_id 1fc8b186-bb74-4fe1-a2da-e8ce3074f988
+  cost {2}{G}{W}
+  type Creature — Elf Druid Ally
+  pt 3/3
+  label "Rally" triggered whenever this or Ally you control enters: you may pay {1}; if you do, create 1 "1/1 green Plant creature"
+}

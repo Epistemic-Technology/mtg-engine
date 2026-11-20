@@ -1,0 +1,7 @@
+card "Greenwheel Liberator" {
+  oracle_id 121a8717-4c5b-45a8-875a-2b802c1fe6f8
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 2/1
+  label "Revolt" enters with 2 +1/+1 counters if permanent left this turn
+}

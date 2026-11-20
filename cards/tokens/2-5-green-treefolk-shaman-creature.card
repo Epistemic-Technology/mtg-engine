@@ -1,0 +1,6 @@
+token "2/5 green Treefolk Shaman creature" {
+  name "Treefolk Shaman"
+  type Creature — Treefolk Shaman
+  pt 2/5
+  color green
+}

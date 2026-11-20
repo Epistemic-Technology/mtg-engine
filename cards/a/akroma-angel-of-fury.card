@@ -1,0 +1,10 @@
+card "Akroma, Angel of Fury" {
+  oracle_id 2b80faaf-92fd-4fa0-a3f6-8bb263e7ff1d
+  cost {5}{R}{R}{R}
+  type Legendary Creature — Angel
+  pt 6/6
+  this spell can't be countered
+  keyword flying, trample, protection from white, protection from blue
+  activated {R}: this gets +1/+0
+  morph {3}{R}{R}{R}
+}

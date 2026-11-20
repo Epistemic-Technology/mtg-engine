@@ -1,0 +1,8 @@
+card "Markov Waltzer" {
+  oracle_id bc9ac394-15b6-4d95-acca-5dc247235d2b
+  cost {2}{R}{W}
+  type Creature — Vampire
+  pt 1/3
+  keywords flying, haste
+  triggered at beginning of your combat: up to two target creatures you control each gets +1/+0
+}

@@ -1,0 +1,8 @@
+card "Kuldotha Phoenix" {
+  oracle_id 884260cf-b3f3-43a4-82b6-4f6a0b19cc75
+  cost {2}{R}{R}{R}
+  type Creature — Phoenix
+  pt 4/4
+  keywords flying, haste
+  label "Metalcraft" activated {4}, during your upkeep, if you control 3 artifact, from graveyard: return this to battlefield
+}

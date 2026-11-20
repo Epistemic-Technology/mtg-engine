@@ -1,0 +1,7 @@
+card "Haunter of Nightveil" {
+  oracle_id 496c852b-ec62-4320-afbb-e19f534954c9
+  cost {3}{U}{B}
+  type Creature — Spirit
+  pt 3/4
+  static creature your opponents control: -1/-0
+}

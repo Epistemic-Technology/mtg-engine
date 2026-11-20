@@ -1,0 +1,8 @@
+card "Relentless Skaabs" {
+  oracle_id 5089cd0f-1338-4ecd-bb1b-664d7e72f8fc
+  cost {3}{U}{U}
+  type Creature — Zombie
+  pt 4/4
+  keywords undying
+  additional cost exile creature card from graveyard
+}

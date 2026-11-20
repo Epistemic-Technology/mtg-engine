@@ -1,0 +1,7 @@
+card "Enterprising Scallywag" {
+  oracle_id 97607bf5-ca7b-4b1b-963e-390faf6e413e
+  cost {1}{R}
+  type Creature — Goblin Pirate
+  pt 2/2
+  triggered at beginning of your end step if descended this turn: create 1 "Treasure"
+}

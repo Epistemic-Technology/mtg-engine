@@ -1,0 +1,8 @@
+card "Guiding Hydra" {
+  oracle_id 24f1445c-16c9-45c0-be56-0266e6c78cdb
+  cost {X}{W}
+  type Creature — Hydra Horror
+  pt 1/0
+  enters with X +1/+1 counters
+  triggered at beginning of your combat: you may remove 1 +1/+1 counters from this; if you do, put 1 +1/+1 counters on each other creature you control
+}

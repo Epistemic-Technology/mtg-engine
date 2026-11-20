@@ -1,0 +1,8 @@
+card "Jeskai Shrinekeeper" {
+  oracle_id bb50b4f4-f0da-4283-821b-6d74bd20752f
+  cost {2}{U}{R}{W}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying, haste
+  triggered whenever this deals combat damage to a player: you gain 1 life and draw 1 card
+}

@@ -1,0 +1,7 @@
+card "Gates of Istfell" {
+  oracle_id 6f85c26e-3c87-4112-ad1a-8a5708555a93
+  type Land
+  enters tapped
+  mana {W}
+  activated {2}{W}{U}{U}, {T}, sacrifice this: you gain 2 life and draw 2 card
+}

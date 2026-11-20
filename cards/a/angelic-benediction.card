@@ -1,0 +1,7 @@
+card "Angelic Benediction" {
+  oracle_id 6b19377c-f178-49cb-95f8-fd3451acc7cf
+  cost {3}{W}
+  type Enchantment
+  keywords exalted
+  triggered whenever creature you control attacks alone: you may tap target creature
+}

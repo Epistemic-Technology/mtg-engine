@@ -1,0 +1,8 @@
+card "All-Fates Stalker" {
+  oracle_id da9ec010-8b42-4927-b602-4e96bced4e99
+  cost {3}{W}
+  type Creature — Drix Assassin
+  pt 2/3
+  triggered when this enters: exile up to one target non-Assassin creature until this leaves
+  warp {1}{W}
+}

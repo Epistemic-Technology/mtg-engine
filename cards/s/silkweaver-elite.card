@@ -1,0 +1,8 @@
+card "Silkweaver Elite" {
+  oracle_id 3d0eb524-15e7-46f2-8f53-db08a07944d7
+  cost {2}{G}
+  type Creature — Elf Archer
+  pt 2/2
+  keywords reach
+  label "Revolt" triggered when this enters if permanent left this turn: draw 1 cards
+}

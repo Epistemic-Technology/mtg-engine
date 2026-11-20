@@ -1,0 +1,6 @@
+card "Into the Void" {
+  oracle_id 4d5a970b-dd36-4871-a2aa-36ba21917cdf
+  cost {3}{U}
+  type Sorcery
+  spell: return up to two target creatures to hand
+}

@@ -1,0 +1,8 @@
+card "Weftstalker Ardent" {
+  oracle_id 926d52a5-4db1-46ce-9567-17c28bf56ae7
+  cost {2}{R}
+  type Creature — Drix Artificer
+  pt 2/3
+  triggered whenever other creature or artifact you control enters: deal 1 damage to each opponent
+  warp {R}
+}

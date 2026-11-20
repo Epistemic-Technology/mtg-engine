@@ -1,0 +1,17 @@
+card "Instigator Gang // Wildblood Pack" {
+  oracle_id 27c2bb87-7e50-4a80-b41c-ff0237a3d648
+  layout transform
+  cost {3}{R}
+  type Creature — Human Werewolf
+  pt 2/3
+  static attacking creature you control: +1/+0
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Wildblood Pack" {
+    type Creature — Werewolf
+    pt 5/5
+    color red
+    keywords trample
+    static attacking creature you control: +3/+0
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

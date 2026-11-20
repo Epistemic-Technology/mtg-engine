@@ -1,0 +1,7 @@
+card "Karok Wrangler" {
+  oracle_id 031f629f-7a9a-4143-9f5d-434ed1c23b7f
+  cost {4}{G}
+  type Creature — Elf Druid
+  pt 3/3
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: put 1 +1/+1 counters on target creature you control
+}

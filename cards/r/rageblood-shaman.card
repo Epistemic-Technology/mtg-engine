@@ -1,0 +1,8 @@
+card "Rageblood Shaman" {
+  oracle_id 2608f905-a678-4e40-9e73-cf1c42ec880d
+  cost {1}{R}{R}
+  type Creature — Minotaur Shaman
+  pt 2/3
+  keywords trample
+  static other Minotaur creature you control: +1/+1, has trample
+}

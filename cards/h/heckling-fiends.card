@@ -1,0 +1,7 @@
+card "Heckling Fiends" {
+  oracle_id 4b8fb8dc-f1c5-4994-8a58-4849e7e85539
+  cost {2}{R}
+  type Creature — Devil
+  pt 2/2
+  activated {2}{R}: target creature attacks if able
+}

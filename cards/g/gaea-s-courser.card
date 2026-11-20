@@ -1,0 +1,7 @@
+card "Gaea's Courser" {
+  oracle_id 5d13aa6a-5a04-45e0-bb33-daa707ffaf9f
+  cost {4}{G}
+  type Creature — Centaur Soldier
+  pt 4/5
+  triggered whenever this attacks if 3 creature cards in your graveyard: draw 1 cards
+}

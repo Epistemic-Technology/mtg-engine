@@ -1,0 +1,6 @@
+card "Titan's Revenge" {
+  oracle_id 0a0be326-643f-449f-a7ff-13b5ae569f20
+  cost {X}{R}{R}
+  type Sorcery
+  spell: deal X damage to any target; clash; if you win, return this to its owner's hand
+}

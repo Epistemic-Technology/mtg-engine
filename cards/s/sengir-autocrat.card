@@ -1,0 +1,8 @@
+card "Sengir Autocrat" {
+  oracle_id 0561043a-3896-4bb1-8ff5-ee674ddfea2a
+  cost {3}{B}
+  type Creature — Human
+  pt 2/2
+  triggered when this enters: create 3 "0/1 black Serf creature"
+  triggered when this leaves the battlefield: exile each Serf token
+}

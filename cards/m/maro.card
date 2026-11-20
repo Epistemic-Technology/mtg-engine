@@ -1,0 +1,6 @@
+card "Maro" {
+  oracle_id ef32258a-d567-4fbc-ab85-8c00080f5b36
+  cost {2}{G}{G}
+  type Creature — Elemental
+  static this: cda pt hand
+}

@@ -1,0 +1,8 @@
+card "Gixian Puppeteer" {
+  oracle_id 9d6a9a37-a245-4503-baeb-9488553798ab
+  cost {3}{B}
+  type Creature — Phyrexian Warlock
+  pt 4/3
+  triggered whenever you draw your second card each turn: each opponent loses 2 life and you gains 2 life
+  triggered when this dies: return another target creature card with mana value 3 or less from your graveyard to battlefield
+}

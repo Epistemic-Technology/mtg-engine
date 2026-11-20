@@ -1,0 +1,9 @@
+card "Sephiroth, Planet's Heir" {
+  oracle_id 6af71c5a-2c1b-4120-b3c9-c3c70d94a5c9
+  cost {4}{U}{B}
+  type Legendary Creature — Human Avatar Soldier
+  pt 4/4
+  keywords vigilance
+  triggered when this enters: each creature your opponents control gets -2/-2
+  triggered whenever creature an opponent controls dies: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Hidden Stockpile" {
+  oracle_id f5ded323-75c8-471e-a516-238b9d6b06d3
+  cost {W}{B}
+  type Enchantment
+  label "Revolt" triggered at beginning of your end step if permanent left this turn: create 1 "1/1 colorless Servo artifact creature"
+  activated {1}, sacrifice creature: scry 1
+}

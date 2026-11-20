@@ -1,0 +1,10 @@
+card "Silverquill Charm" {
+  oracle_id d985b12e-2731-4ccf-9f51-90218b20b42a
+  cost {W}{B}
+  type Instant
+  choose one {
+    mode: put 2 +1/+1 counters on target creature
+    mode: exile target creature with power 2 or less
+    mode: each opponent loses 3 life and you gains 3 life
+  }
+}

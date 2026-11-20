@@ -1,0 +1,7 @@
+card "Vermiculos" {
+  oracle_id 88cadf97-4b24-481a-9136-96c017fd96e9
+  cost {4}{B}
+  type Creature — Horror
+  pt 1/1
+  triggered whenever artifact enters: this gets +4/+4
+}

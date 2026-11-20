@@ -1,0 +1,9 @@
+card "Nevermaker" {
+  oracle_id 38a2ef3e-3311-4e0a-807d-e5ccdd05af49
+  cost {3}{U}
+  type Creature — Elemental
+  pt 2/3
+  keywords flying
+  triggered when this leaves the battlefield: put target nonland permanent on top of library
+  evoke {3}{U}
+}

@@ -1,0 +1,7 @@
+card "Improbable Alliance" {
+  oracle_id b4ca6a20-b1ba-4dee-ae8a-83f8edf360c4
+  cost {U}{R}
+  type Enchantment
+  triggered whenever you draw your second card each turn: create 1 "1/1 blue Faerie creature with flying"
+  activated {4}{U}{R}: draw 1 cards then discard 1 cards
+}

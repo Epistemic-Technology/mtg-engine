@@ -1,0 +1,6 @@
+token "0/1 black Serf creature" {
+  name "Serf"
+  type Creature — Serf
+  pt 0/1
+  color black
+}

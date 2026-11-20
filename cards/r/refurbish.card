@@ -1,0 +1,6 @@
+card "Refurbish" {
+  oracle_id e4e61fe3-27a4-4149-bdfb-67dcfc8eb32c
+  cost {3}{W}
+  type Sorcery
+  spell: return target artifact card from your graveyard to battlefield
+}

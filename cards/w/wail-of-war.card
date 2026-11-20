@@ -1,0 +1,9 @@
+card "Wail of War" {
+  oracle_id fc0abdf3-3a88-4cb2-ba79-35fcaebbf7d2
+  cost {2}{B}
+  type Instant
+  choose one {
+    mode: each creature target opponent controls gets -1/-1
+    mode: return up to two target creature card from your graveyard to hand
+  }
+}

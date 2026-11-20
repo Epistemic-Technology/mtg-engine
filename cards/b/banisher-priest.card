@@ -1,0 +1,7 @@
+card "Banisher Priest" {
+  oracle_id 9f560b83-32d4-4bb4-a956-8f5db18599db
+  cost {1}{W}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  triggered when this enters: exile target creature an opponent controls until this leaves
+}

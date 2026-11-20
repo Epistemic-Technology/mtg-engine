@@ -1,0 +1,8 @@
+card "Veilborn Ghoul" {
+  oracle_id 8381b04a-666b-4e33-b277-6db39fdfe905
+  cost {4}{B}
+  type Creature — Zombie
+  pt 4/1
+  keywords can't block
+  triggered from graveyard whenever Swamp you control enters: you may return this to hand
+}

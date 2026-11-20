@@ -1,0 +1,8 @@
+card "Rosa, Resolute White Mage" {
+  oracle_id 9c4fdd20-0396-40b7-8687-43b1035b6956
+  cost {3}{W}
+  type Legendary Creature — Human Noble Cleric
+  pt 2/3
+  keywords reach
+  triggered at beginning of your combat: put 1 +1/+1 counters on target creature you control; target 1 gains lifelink
+}

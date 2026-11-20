@@ -1,0 +1,9 @@
+card "Deepfathom Skulker" {
+  oracle_id a09a4556-8913-495c-8768-e05413c48f0b
+  cost {5}{U}
+  type Creature — Eldrazi
+  pt 4/4
+  keywords devoid
+  triggered whenever creature you control deals combat damage to a player: you may draw 1 cards
+  activated {3}{C}: target creature can't be blocked
+}

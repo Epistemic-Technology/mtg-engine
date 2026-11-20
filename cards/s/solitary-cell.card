@@ -1,0 +1,7 @@
+card "Solitary Cell" {
+  oracle_id 66a22b35-3dc0-4a74-8474-e73293403de6
+  cost {R}{W}
+  type Artifact
+  triggered when this enters: exile target nonland permanent an opponent controls with mana value 3 or less until this leaves
+  activated {1}, {T}, discard legendary card: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Spit Flame" {
+  oracle_id f63278e0-3c67-421d-87ce-67725e5e74df
+  cost {2}{R}
+  type Instant
+  spell: deal 4 damage to target creature
+  triggered from graveyard whenever Dragon you control enters: you may pay {R}; if you do, return this to hand
+}

@@ -1,0 +1,9 @@
+card "Markov Baron" {
+  oracle_id bafc2e11-5f1c-46f1-a852-2330e099b8e2
+  cost {2}{B}
+  type Creature — Vampire Noble
+  pt 2/2
+  keywords convoke, lifelink
+  static other Vampire you control: +1/+1
+  madness {2}{B}
+}

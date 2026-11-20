@@ -1,0 +1,7 @@
+card "Atarka Pummeler" {
+  oracle_id 4b2831f5-70e3-4f4f-8393-4cd141c9da34
+  cost {4}{R}
+  type Creature — Ogre Warrior
+  pt 4/5
+  label "Formidable" activated {3}{R}{R}, if total power 8 or more: each creature you control gains menace
+}

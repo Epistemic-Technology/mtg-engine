@@ -1,0 +1,10 @@
+card "Territorial Kavu" {
+  oracle_id 5f0be4ce-898e-4849-ab8f-a85fb05c3017
+  cost {R}{G}
+  type Creature — Kavu
+  label "Domain" static this: cda pt domain
+  triggered whenever this attacks: choose one {
+    mode: discard 1 cards; if you do, draw 1 cards
+    mode: exile up to one target card from a graveyard
+  }
+}

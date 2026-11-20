@@ -1,0 +1,11 @@
+card "Lorehold Command" {
+  oracle_id 107becb1-f8a3-4777-b39f-a0456c2d580e
+  cost {3}{R}{W}
+  type Instant
+  choose two {
+    mode: create 1 "3/2 red and white Spirit creature"
+    mode: each creature you control gets +1/+0 and gains indestructible, haste
+    mode: deal 3 damage to any target; target player gains 3 life
+    mode: sacrifice 1 permanent chosen then draw 2 cards
+  }
+}

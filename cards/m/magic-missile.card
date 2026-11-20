@@ -1,0 +1,7 @@
+card "Magic Missile" {
+  oracle_id e48b8d78-3f8b-4bf8-853a-76c435bc31f0
+  cost {1}{R}{R}
+  type Sorcery
+  this spell can't be countered
+  spell: deal 3 damage divided among 1 to 3 targets
+}

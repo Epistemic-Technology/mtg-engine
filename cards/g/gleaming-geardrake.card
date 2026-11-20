@@ -1,0 +1,9 @@
+card "Gleaming Geardrake" {
+  oracle_id af294df7-f8a0-4d52-88cb-086678463970
+  cost {U}{R}
+  type Artifact Creature — Drake
+  pt 1/1
+  keywords flying
+  triggered when this enters: investigate
+  triggered whenever you sacrifice artifact: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,6 @@
+card "Food Coma" {
+  oracle_id aab3774c-4ec3-4946-a09b-af0fab7cacb7
+  cost {3}{W}
+  type Enchantment
+  triggered when this enters: exile target creature an opponent controls until this leaves; create 1 "Food"
+}

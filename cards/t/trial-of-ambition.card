@@ -1,0 +1,7 @@
+card "Trial of Ambition" {
+  oracle_id bf614953-bd62-4000-a960-e2c26e1f7bb0
+  cost {1}{B}
+  type Enchantment
+  triggered when this enters: target opponent sacrifices 1 creature
+  triggered when Cartouche you control enters: return this to hand
+}

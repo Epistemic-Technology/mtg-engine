@@ -1,0 +1,7 @@
+card "Blasting Station" {
+  oracle_id 3a38d2d1-c4ff-4088-b1df-5feb9602ee2e
+  cost {3}
+  type Artifact
+  activated {T}, sacrifice creature: deal 1 damage to any target
+  triggered whenever creature enters: you may untap this
+}

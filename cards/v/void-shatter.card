@@ -1,0 +1,7 @@
+card "Void Shatter" {
+  oracle_id 3d9f854e-1ee5-4aa1-a33b-d3ae08f15dd0
+  cost {1}{U}{U}
+  type Instant
+  keywords devoid
+  spell: counter target spell to exile
+}

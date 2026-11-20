@@ -1,0 +1,8 @@
+card "Mischievous Pup" {
+  oracle_id e75b187d-0e3b-4d94-a940-8b7e4e7ed1ca
+  cost {2}{W}
+  type Creature — Dog
+  pt 3/1
+  keywords flash
+  triggered when this enters: return up to 1 another target permanent you control to hand
+}

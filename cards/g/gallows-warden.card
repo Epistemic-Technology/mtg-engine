@@ -1,0 +1,8 @@
+card "Gallows Warden" {
+  oracle_id 06157e34-dbe1-4936-a718-3b1d70726794
+  cost {4}{W}
+  type Creature — Spirit
+  pt 3/3
+  keywords flying
+  static other Spirit creature you control: +0/+1
+}

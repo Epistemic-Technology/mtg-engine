@@ -1,0 +1,8 @@
+card "Harnessed Snubhorn" {
+  oracle_id e1dd9dca-cb5f-46b4-b16d-a61ae651d653
+  cost {3}{W}
+  type Creature — Dinosaur
+  pt 2/5
+  keywords vigilance
+  triggered whenever this deals combat damage to a player: return target artifact or enchantment card from your graveyard to battlefield
+}

@@ -1,0 +1,12 @@
+card "Elder Gargaroth" {
+  oracle_id 397b9dcf-690a-4a58-8637-bb9baab7cc2f
+  cost {3}{G}{G}
+  type Creature — Beast
+  pt 6/6
+  keywords reach, vigilance, trample
+  triggered whenever this attacks or blocks: choose one {
+    mode: create 1 "3/3 green Beast creature"
+    mode: you gains 3 life
+    mode: draw 1 cards
+  }
+}

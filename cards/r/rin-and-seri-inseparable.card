@@ -1,0 +1,9 @@
+card "Rin and Seri, Inseparable" {
+  oracle_id 28c46eb7-bdfc-44b9-b7e9-b073260851f0
+  cost {1}{R}{G}{W}
+  type Legendary Creature — Dog Cat
+  pt 4/4
+  triggered whenever you cast Dog spell: create 1 "1/1 green Cat creature"
+  triggered whenever you cast Cat spell: create 1 "1/1 white Dog creature"
+  activated {R}{G}{W}, {T}: deal count equal Dog you control damage to any target; you gains count equal Cat you control life
+}

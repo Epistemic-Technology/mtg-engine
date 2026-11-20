@@ -1,0 +1,8 @@
+card "Thornfist Striker" {
+  oracle_id d0d13d5d-677d-4e1a-9e58-2f9840581f6d
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 3/3
+  ward {1}
+  label "Infusion" static creature you control: +1/+0, has trample as long as gained life this turn
+}

@@ -1,0 +1,7 @@
+card "Thunderheads" {
+  oracle_id 9c5bc3a7-42fe-4f8f-b799-ece7dd98ea4d
+  cost {2}{U}
+  type Instant
+  replicate {2}{U}
+  spell: create 1 "3/3 blue Weird creature with defender and flying"; delayed that token: exile it at beginning of the next end step
+}

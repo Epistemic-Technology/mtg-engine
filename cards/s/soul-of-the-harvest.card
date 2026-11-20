@@ -1,0 +1,8 @@
+card "Soul of the Harvest" {
+  oracle_id 6b9194dd-2296-4879-ac5e-f89b18431df6
+  cost {4}{G}{G}
+  type Creature — Elemental
+  pt 6/6
+  keywords trample
+  triggered whenever other nontoken creature you control enters: you may draw 1 cards
+}

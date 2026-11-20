@@ -1,0 +1,8 @@
+card "Ulvenwald Hydra" {
+  oracle_id 40b85f70-78b6-427a-9fb9-c3a72b8528ed
+  cost {4}{G}{G}
+  type Creature — Hydra
+  keywords reach
+  static this: cda pt count land you control
+  triggered when this enters: you may search land card to battlefield tapped
+}

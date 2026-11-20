@@ -1,0 +1,6 @@
+card "Lifegift" {
+  oracle_id c99d4be7-244c-4fb5-877a-8aee961a2666
+  cost {2}{G}
+  type Enchantment
+  triggered whenever land enters: you may you gain 1 life
+}

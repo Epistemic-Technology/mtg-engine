@@ -1,0 +1,6 @@
+card "Cryptic Caves" {
+  oracle_id b2eb7a64-a307-4a78-a25d-63fb3ae1e237
+  type Land
+  mana {C}
+  activated {1}, {T}, sacrifice this, if you control 5 land: draw 1 cards
+}

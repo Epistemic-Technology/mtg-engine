@@ -1,0 +1,8 @@
+card "Angel of Renewal" {
+  oracle_id c604fda4-164c-4966-94f8-1e3a96d5ef9d
+  cost {5}{W}
+  type Creature — Angel Ally
+  pt 4/4
+  keywords flying
+  triggered when this enters: you gain count each creature you control life
+}

@@ -1,0 +1,8 @@
+card "Gibbering Fiend" {
+  oracle_id 2aa03852-6c38-4e91-afed-0c4cd5964598
+  cost {1}{R}
+  type Creature — Devil
+  pt 2/1
+  triggered when this enters: deal 1 damage to each opponent
+  label "Delirium" triggered at beginning of each opponent's upkeep step if 4 card types in your graveyard: deal 1 damage to that player
+}

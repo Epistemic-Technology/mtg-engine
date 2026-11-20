@@ -1,0 +1,11 @@
+card "Kykar, Zephyr Awakener" {
+  oracle_id 0156c94b-e64c-49de-a46c-a203c5e05e98
+  cost {2}{W}{U}
+  type Legendary Creature — Bird Wizard
+  pt 3/4
+  keywords flying
+  triggered whenever you cast a noncreature spell: choose one {
+    mode: exile another target creature you control; delayed target 1: return it to battlefield at beginning of the next end step
+    mode: create 1 "1/1 white Spirit creature with flying"
+  }
+}

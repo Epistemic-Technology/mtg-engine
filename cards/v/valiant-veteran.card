@@ -1,0 +1,8 @@
+card "Valiant Veteran" {
+  oracle_id ba21f18e-ee65-4c10-92c9-b9fb41510eba
+  cost {1}{W}
+  type Creature — Kor Soldier
+  pt 2/2
+  static other Soldier you control: +1/+1
+  activated {3}{W}{W}, exile this from graveyard: put 1 +1/+1 counters on each Soldier you control
+}

@@ -1,0 +1,6 @@
+card "Cumber Stone" {
+  oracle_id 49199997-65cd-4cb9-bdd6-74c93c1f6b5a
+  cost {3}{U}
+  type Artifact
+  static creature your opponents control: -1/-0
+}

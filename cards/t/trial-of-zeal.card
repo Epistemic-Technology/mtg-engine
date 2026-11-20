@@ -1,0 +1,7 @@
+card "Trial of Zeal" {
+  oracle_id 0798eb13-83f1-4b7c-b537-83a9da2915a6
+  cost {2}{R}
+  type Enchantment
+  triggered when this enters: deal 3 damage to any target
+  triggered when Cartouche you control enters: return this to hand
+}

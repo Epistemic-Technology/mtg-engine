@@ -1,0 +1,9 @@
+card "Basking Broodscale" {
+  oracle_id a7c69802-99c4-4778-934e-cc09ba58c267
+  cost {1}{G}
+  type Creature — Eldrazi Lizard
+  pt 2/2
+  keywords devoid
+  activated {1}{G}: adapt 1
+  triggered whenever one or more +1/+1 counters put on this: you may create 1 "Eldrazi Spawn"
+}

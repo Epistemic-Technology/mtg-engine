@@ -1,0 +1,9 @@
+card "S.H.I.E.L.D. Flying Car" {
+  oracle_id 12d51534-a98d-487b-9ba9-c10861dff992
+  cost {2}{U}
+  type Artifact — Vehicle
+  pt 3/3
+  keywords flash, flying
+  triggered when this enters: exile up to one target creature you control; delayed target 1: return it to battlefield at beginning of the next end step
+  crew 1
+}

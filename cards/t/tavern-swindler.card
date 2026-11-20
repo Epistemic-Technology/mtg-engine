@@ -1,0 +1,7 @@
+card "Tavern Swindler" {
+  oracle_id 81674138-08d0-4126-9e6d-27f6e7dd2403
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 2/2
+  activated {T}, pay 3 life: flip coin; if you win the flip, you gains 6 life
+}

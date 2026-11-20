@@ -1,0 +1,6 @@
+card "Thassa's Ire" {
+  oracle_id fb3b365b-eb8c-4695-bfd6-88060ad20741
+  cost {U}
+  type Enchantment
+  activated {3}{U}: you may tap or untap target creature
+}

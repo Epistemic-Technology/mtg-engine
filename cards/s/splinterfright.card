@@ -1,0 +1,8 @@
+card "Splinterfright" {
+  oracle_id e54c6fa9-59ca-47dc-9354-91681228371e
+  cost {2}{G}
+  type Creature — Elemental
+  keywords trample
+  static this: cda pt graveyard creature
+  triggered at beginning of your upkeep: mill 2 cards
+}

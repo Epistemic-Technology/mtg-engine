@@ -1,0 +1,7 @@
+card "Shattered Perception" {
+  oracle_id 9853d789-b048-4cba-a64d-db2694ca9173
+  cost {2}{R}
+  type Sorcery
+  spell: discard all cards in hand then draw count that many discarded this way cards
+  flashback {5}{R}
+}

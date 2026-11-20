@@ -1,0 +1,9 @@
+card "Clockwork Hydra" {
+  oracle_id 6fd37ff3-e75d-459a-8717-8f6a9865fb32
+  cost {5}
+  type Artifact Creature — Hydra
+  pt 0/0
+  enters with 4 +1/+1 counters
+  triggered whenever this attacks or blocks: remove 1 +1/+1 counters from this; if you do, deal 1 damage to any target
+  activated {T}: put 1 +1/+1 counters on this
+}

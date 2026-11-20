@@ -1,0 +1,9 @@
+card "Baseball Bat" {
+  oracle_id 9b5a3765-943b-4925-b008-fc734b2934f7
+  cost {G}{W}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static enchanted: +1/+1
+  triggered whenever equipped creature attacks: tap up to one target creature
+  equip {3}
+}

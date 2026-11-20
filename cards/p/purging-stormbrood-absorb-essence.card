@@ -1,0 +1,15 @@
+card "Purging Stormbrood // Absorb Essence" {
+  oracle_id 5e8086d5-ea48-4555-b65a-a33d08ba4afd
+  layout omen
+  cost {4}{B}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  ward pay 2 life
+  triggered when this enters: remove all counters from up to one target creature
+  face "Absorb Essence" {
+    cost {1}{W}
+    type Instant — Omen
+    spell: target creature gets +2/+2 and gains lifelink, hexproof
+  }
+}

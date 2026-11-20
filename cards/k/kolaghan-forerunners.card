@@ -1,0 +1,9 @@
+card "Kolaghan Forerunners" {
+  oracle_id 07b6fbd3-03f9-4aef-929e-514c799d75b9
+  cost {2}{R}
+  type Creature — Human Berserker
+  pt */3
+  keywords trample
+  static this: cda power count creature you control
+  dash {2}{R}
+}

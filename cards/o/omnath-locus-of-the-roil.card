@@ -1,0 +1,8 @@
+card "Omnath, Locus of the Roil" {
+  oracle_id ffd34151-457a-4a93-82db-24b18319a06b
+  cost {1}{G}{U}{R}
+  type Legendary Creature — Elemental
+  pt 3/3
+  triggered when this enters: deal count equal Elemental you control damage to any target
+  label "Landfall" triggered whenever land you control enters: put 1 +1/+1 counters on target Elemental you control; if you control 8 land, draw 1 cards
+}

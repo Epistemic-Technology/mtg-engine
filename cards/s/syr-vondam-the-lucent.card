@@ -1,0 +1,8 @@
+card "Syr Vondam, the Lucent" {
+  oracle_id 28225bae-2d96-4352-b256-0c2ff4ef65e9
+  cost {2}{W}{B}{B}
+  type Legendary Creature — Human Knight
+  pt 4/4
+  keywords deathtouch, lifelink
+  triggered whenever this enters or attacks: each other creature you control gets +1/+0 and gains deathtouch
+}

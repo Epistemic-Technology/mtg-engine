@@ -1,0 +1,7 @@
+card "Encroaching Dragonstorm" {
+  oracle_id 1e95c273-7fec-4f8d-8be9-e21ad4b93717
+  cost {3}{G}
+  type Enchantment
+  triggered when this enters: search up to 2 basic land card to battlefield tapped
+  triggered when Dragon you control enters: return this to hand
+}

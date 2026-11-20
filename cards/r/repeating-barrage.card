@@ -1,0 +1,7 @@
+card "Repeating Barrage" {
+  oracle_id a08c599e-ee75-4d2b-ae9b-0987c233dd17
+  cost {1}{R}{R}
+  type Sorcery
+  spell: deal 3 damage to any target
+  label "Raid" activated {3}{R}{R}, if attacked this turn, from graveyard: return this to hand
+}

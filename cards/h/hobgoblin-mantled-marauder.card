@@ -1,0 +1,8 @@
+card "Hobgoblin, Mantled Marauder" {
+  oracle_id 1d453331-6b8e-4d3d-b658-683eab2760da
+  cost {1}{R}
+  type Legendary Creature — Goblin Human Villain
+  pt 1/2
+  keywords flying, haste
+  triggered whenever you discard a card: this gets +2/+0
+}

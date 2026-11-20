@@ -1,0 +1,6 @@
+card "Altar of the Brood" {
+  oracle_id c3aafcdd-c890-4971-b8a9-5bfcad794c0b
+  cost {1}
+  type Artifact
+  triggered whenever other permanent you control enters: each opponent mills 1 cards
+}

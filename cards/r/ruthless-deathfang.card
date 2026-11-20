@@ -1,0 +1,8 @@
+card "Ruthless Deathfang" {
+  oracle_id 69c22788-cb90-4100-a64d-891124082dd4
+  cost {4}{U}{B}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered whenever you sacrifice creature: target opponent sacrifices 1 creature
+}

@@ -1,0 +1,9 @@
+card "Captain Lannery Storm" {
+  oracle_id 235bf0ba-658c-463f-b112-7478ba27bd7b
+  cost {2}{R}
+  type Legendary Creature — Human Pirate
+  pt 2/2
+  keywords haste
+  triggered whenever this attacks: create 1 "Treasure"
+  triggered whenever you sacrifice Treasure: this gets +1/+0
+}

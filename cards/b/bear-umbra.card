@@ -1,0 +1,8 @@
+card "Bear Umbra" {
+  oracle_id 44661108-d72f-4d02-9303-7e4b0ecf7e9c
+  cost {2}{G}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has ability { triggered whenever this attacks: untap each land you control }
+  replace destroy enchanted: umbra armor
+}

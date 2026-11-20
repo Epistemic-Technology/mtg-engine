@@ -1,0 +1,9 @@
+card "Terror Ballista" {
+  oracle_id 3044a00d-7f88-47e8-9110-2e898b20416c
+  cost {7}
+  type Artifact Creature — Construct
+  pt 5/3
+  keywords menace
+  triggered whenever this attacks: you may sacrifice 1 another creature chosen; when you do, destroy target creature an opponent controls
+  unearth {3}{B}{B}
+}

@@ -1,0 +1,8 @@
+card "Vengeful Devil" {
+  oracle_id ba771caa-2cfb-4373-bbd9-6160b0543010
+  cost {1}{R}
+  type Creature — Devil
+  pt 1/1
+  keywords haste
+  label "Morbid" activated {T}, if creature died this turn: deal 1 damage to any target
+}

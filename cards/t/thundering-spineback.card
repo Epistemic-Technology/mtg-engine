@@ -1,0 +1,8 @@
+card "Thundering Spineback" {
+  oracle_id c9db31d7-00cf-4200-a11f-74cc2d9e843e
+  cost {5}{G}{G}
+  type Creature — Dinosaur
+  pt 5/5
+  static other Dinosaur you control: +1/+1
+  activated {5}{G}: create 1 "3/3 green Dinosaur creature with trample"
+}

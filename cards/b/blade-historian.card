@@ -1,0 +1,7 @@
+card "Blade Historian" {
+  oracle_id 314f0a96-5e91-42a3-9d75-3f641f22a9ee
+  cost {R/W}{R/W}{R/W}{R/W}
+  type Creature — Human Cleric
+  pt 2/3
+  static attacking creature you control: has double strike
+}

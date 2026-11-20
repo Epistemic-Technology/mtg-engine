@@ -1,0 +1,8 @@
+card "Tide Drifter" {
+  oracle_id 428c18aa-b195-4cf2-a1a9-09723b26eb0a
+  cost {1}{U}
+  type Creature — Eldrazi Drone
+  pt 0/5
+  keywords devoid
+  static other colorless creature you control: +0/+1
+}

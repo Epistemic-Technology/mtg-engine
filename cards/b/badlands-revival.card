@@ -1,0 +1,6 @@
+card "Badlands Revival" {
+  oracle_id a61267d2-2cc7-4208-a365-581d56b92e1c
+  cost {3}{B}{G}
+  type Sorcery
+  spell: return up to one target creature card from your graveyard to battlefield; return up to one target permanent card from your graveyard to hand
+}

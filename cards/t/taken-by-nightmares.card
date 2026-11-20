@@ -1,0 +1,6 @@
+card "Taken by Nightmares" {
+  oracle_id e5557c9f-e4c2-41af-9fcc-371409e1dec6
+  cost {2}{B}{B}
+  type Instant
+  spell: exile target creature; if you control enchantment, scry 2
+}

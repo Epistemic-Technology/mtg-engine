@@ -1,0 +1,7 @@
+card "Chittering Skitterling" {
+  oracle_id 864fc52a-e9f4-4254-901e-b949d96b34eb
+  cost {2}{B}
+  type Creature — Phyrexian Rat
+  pt 1/4
+  label "Corrupted" activated sacrifice artifact or creature, if opponent poison 3 or more, once: draw 1 cards
+}

@@ -1,0 +1,9 @@
+card "Stormscale Scion" {
+  oracle_id cf37426d-b0ad-42c3-81be-79701aa4e0cf
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  static other Dragon you control: +1/+1
+  storm
+}

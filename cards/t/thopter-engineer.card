@@ -1,0 +1,8 @@
+card "Thopter Engineer" {
+  oracle_id 4ac53b34-20d2-4a53-bade-4f998fb6ae67
+  cost {2}{R}
+  type Creature — Human Artificer
+  pt 1/3
+  triggered when this enters: create 1 "1/1 colorless Thopter artifact creature with flying"
+  static artifact creature you control: has haste
+}

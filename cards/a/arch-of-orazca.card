@@ -1,0 +1,7 @@
+card "Arch of Orazca" {
+  oracle_id 3bb518ff-399b-4ce7-b9ad-a1d563dd7792
+  type Land
+  ascend
+  mana {C}
+  activated {5}, {T}, if city's blessing: draw 1 cards
+}

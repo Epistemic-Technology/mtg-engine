@@ -1,0 +1,14 @@
+card "Ondu Knotmaster // Throw a Line" {
+  oracle_id dc69a130-967a-4d9f-992f-db7fad2fcd6d
+  layout adventure
+  cost {2}{W}{B}
+  type Creature — Kor Rogue
+  pt 2/2
+  keywords lifelink
+  triggered whenever other modified creature you control dies: put 2 +1/+1 counters on this
+  face "Throw a Line" {
+    cost {W}{B}
+    type Sorcery — Adventure
+    spell: distribute 2 +1/+1 counters among 1 to 2 target creatures
+  }
+}

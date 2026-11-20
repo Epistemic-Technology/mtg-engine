@@ -1,0 +1,7 @@
+card "Chief of the Foundry" {
+  oracle_id 4fdfa41a-75a5-4b36-8c9e-083e26d137e2
+  cost {3}
+  type Artifact Creature — Construct
+  pt 2/3
+  static other artifact creature you control: +1/+1
+}

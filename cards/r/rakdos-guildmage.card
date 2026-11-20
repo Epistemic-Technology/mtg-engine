@@ -1,0 +1,8 @@
+card "Rakdos Guildmage" {
+  oracle_id 650949ca-609b-46c5-bc6b-6f782cdcb6d2
+  cost {B/R}{B/R}
+  type Creature — Zombie Shaman
+  pt 2/2
+  activated {3}{B}, discard 1 card: target creature gets -2/-2
+  activated {3}{R}: create 1 "2/1 red Goblin creature with haste"; delayed that token: exile it at beginning of the next end step
+}

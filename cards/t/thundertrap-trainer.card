@@ -1,0 +1,8 @@
+card "Thundertrap Trainer" {
+  oracle_id d0be5969-0442-4557-a5fc-bee56e1835c2
+  cost {1}{U}
+  type Creature — Otter Wizard
+  pt 1/2
+  offspring {4}
+  triggered when this enters: dig 4 take noncreature, nonland card may revealing rest bottom random
+}

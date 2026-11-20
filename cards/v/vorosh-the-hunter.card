@@ -1,0 +1,8 @@
+card "Vorosh, the Hunter" {
+  oracle_id fda3c312-1a76-425c-8b23-0196452c4a5e
+  cost {3}{B}{G}{U}
+  type Legendary Creature — Dragon
+  pt 6/6
+  keywords flying
+  triggered whenever this deals combat damage to a player: you may pay {2}{G}; if you do, put 6 +1/+1 counters on this creature
+}

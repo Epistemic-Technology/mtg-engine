@@ -1,0 +1,7 @@
+card "Daemogoth Titan" {
+  oracle_id a52e73bb-47cb-4912-9b81-4ae40641eabb
+  cost {B/G}{B/G}{B/G}{B/G}
+  type Creature — Demon
+  pt 11/10
+  triggered whenever this attacks or blocks: sacrifice 1 creature chosen
+}

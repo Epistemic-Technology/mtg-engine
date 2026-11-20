@@ -1,0 +1,7 @@
+card "Dictate of Erebos" {
+  oracle_id 7c777a41-e40a-4b40-96bf-8ddd5c12924c
+  cost {3}{B}{B}
+  type Enchantment
+  keywords flash
+  triggered whenever creature you control dies: each opponent sacrifices 1 creature
+}

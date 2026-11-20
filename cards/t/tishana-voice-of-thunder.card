@@ -1,0 +1,8 @@
+card "Tishana, Voice of Thunder" {
+  oracle_id 479dd04b-0048-446a-9202-a4dc9472e5c3
+  cost {5}{G}{U}
+  type Legendary Creature — Merfolk Shaman
+  static this: cda pt hand
+  hand size none
+  triggered when this enters: draw count each creature you control cards
+}

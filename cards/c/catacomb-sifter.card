@@ -1,0 +1,9 @@
+card "Catacomb Sifter" {
+  oracle_id 4c2c5f3b-61f3-4772-9ade-f5be80719e9f
+  cost {1}{B}{G}
+  type Creature — Eldrazi Drone
+  pt 2/3
+  keywords devoid
+  triggered when this enters: create 1 "Eldrazi Scion" it has
+  triggered whenever other creature you control dies: scry 1
+}

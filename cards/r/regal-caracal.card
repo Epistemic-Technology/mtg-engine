@@ -1,0 +1,8 @@
+card "Regal Caracal" {
+  oracle_id aa571676-b390-4b8a-baea-4c4cd60c01f6
+  cost {3}{W}{W}
+  type Creature — Cat
+  pt 3/3
+  static other Cat you control: +1/+1, has lifelink
+  triggered when this enters: create 2 "1/1 white Cat creature with lifelink"
+}

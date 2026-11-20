@@ -1,0 +1,6 @@
+card "Spawning Bed" {
+  oracle_id 49e43de3-460b-4562-aef6-da43bd56debc
+  type Land
+  mana {C}
+  activated {6}, {T}, sacrifice this: create 3 "Eldrazi Scion" it has
+}

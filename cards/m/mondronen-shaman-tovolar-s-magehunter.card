@@ -1,0 +1,15 @@
+card "Mondronen Shaman // Tovolar's Magehunter" {
+  oracle_id f94cb722-7e46-4569-b474-9654ecf7ec14
+  layout transform
+  cost {3}{R}
+  type Creature — Human Shaman Werewolf
+  pt 3/2
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Tovolar's Magehunter" {
+    type Creature — Werewolf
+    pt 5/5
+    color red
+    triggered whenever an opponent casts a spell: deal 2 damage to that player
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

@@ -1,0 +1,7 @@
+card "Burrowguard Mentor" {
+  oracle_id f293da27-e42d-4e87-8b61-d3c27e4c6d71
+  cost {G}{W}
+  type Creature — Rabbit Soldier
+  keywords trample
+  static this: cda pt count creature you control
+}

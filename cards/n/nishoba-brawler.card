@@ -1,0 +1,8 @@
+card "Nishoba Brawler" {
+  oracle_id c501e577-5137-4dd6-b923-95408b78258a
+  cost {1}{G}
+  type Creature — Cat Warrior
+  pt */3
+  keywords trample
+  label "Domain" static this: cda power domain
+}

@@ -1,0 +1,8 @@
+card "Abbot of Keral Keep" {
+  oracle_id 09be0f69-9c7f-491f-964d-bfbbc2d4251f
+  cost {1}{R}
+  type Creature — Human Monk
+  pt 2/1
+  keywords prowess
+  triggered when this enters: impulse 1 this turn first
+}

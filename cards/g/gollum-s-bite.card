@@ -1,0 +1,7 @@
+card "Gollum's Bite" {
+  oracle_id cf0492de-cec5-4455-839f-212246b7e9ea
+  cost {B}
+  type Instant
+  spell: target creature gets -2/-2
+  activated {3}{B}, exile this from graveyard, sorcery: the ring tempts you
+}

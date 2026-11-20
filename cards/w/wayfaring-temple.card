@@ -1,0 +1,7 @@
+card "Wayfaring Temple" {
+  oracle_id c0525645-9b5a-488d-b4d1-e80f16a1e4e1
+  cost {1}{G}{W}
+  type Creature — Elemental
+  static this: cda pt count creature you control
+  triggered whenever this deals combat damage to a player: populate
+}

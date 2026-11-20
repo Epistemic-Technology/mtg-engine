@@ -1,0 +1,8 @@
+card "River Hoopoe" {
+  oracle_id 058bbc0a-9c09-4c98-8735-83255a71bbca
+  cost {G}{U}
+  type Creature — Bird
+  pt 1/3
+  keywords flying
+  activated {3}{G}{U}: you gain 2 life and draw 1 card
+}

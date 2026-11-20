@@ -1,0 +1,7 @@
+card "Doomed Necromancer" {
+  oracle_id 155422a0-a0cd-4399-8ed9-fa68ac2c80a6
+  cost {2}{B}
+  type Creature — Human Cleric Mercenary
+  pt 2/2
+  activated {B}, {T}, sacrifice this: return target creature card from your graveyard to battlefield
+}

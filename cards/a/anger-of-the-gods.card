@@ -1,0 +1,6 @@
+card "Anger of the Gods" {
+  oracle_id 3a7fe095-8278-4b1d-bec4-19b35bdcdd1b
+  cost {1}{R}{R}
+  type Sorcery
+  spell: deal 3 damage to each creature; this turn, replace creature dealt damage this way dies: exile
+}

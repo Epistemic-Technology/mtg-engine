@@ -1,0 +1,8 @@
+card "Furyblade Vampire" {
+  oracle_id f8dbfc60-33e9-4068-a0dd-0d0ed5b9b42c
+  cost {1}{R}
+  type Creature — Vampire Berserker
+  pt 1/2
+  keywords trample
+  triggered at beginning of your combat: you may discard 1 cards; if you do, this creature gets +3/+0
+}

@@ -1,0 +1,9 @@
+card "Sarkhan's Dragonfire" {
+  oracle_id 2a08d878-7816-4d0a-9532-4f2d3c8eee90
+  cost {3}{R}{R}
+  type Sorcery
+  spell {
+    deal 3 damage to any target
+    dig 5 take red card may revealing rest bottom random
+  }
+}

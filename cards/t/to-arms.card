@@ -1,0 +1,9 @@
+card "To Arms!" {
+  oracle_id 90c97fc4-597c-45cf-96c6-3ba9558ede0d
+  cost {1}{W}
+  type Instant
+  spell {
+    untap all creature you control
+    draw 1 cards
+  }
+}

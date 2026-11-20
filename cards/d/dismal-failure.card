@@ -1,0 +1,6 @@
+card "Dismal Failure" {
+  oracle_id 1feeb881-ebe6-4afb-ba31-3d116d8ab7a1
+  cost {2}{U}{U}
+  type Instant
+  spell: counter target spell; its controller discards 1 cards
+}

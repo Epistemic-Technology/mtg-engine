@@ -1,0 +1,8 @@
+card "Faith Unbroken" {
+  oracle_id a57fe358-baf3-4eb5-9417-8945b41f84de
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered when this enters: exile target creature an opponent controls until this leaves
+  static enchanted: +2/+2
+}

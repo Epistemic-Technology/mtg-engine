@@ -1,0 +1,9 @@
+card "Sheoldred, Whispering One" {
+  oracle_id 9218b56d-aaec-482f-99e9-d95d227bfe25
+  cost {5}{B}{B}
+  type Legendary Creature — Phyrexian Praetor
+  pt 6/6
+  keywords swampwalk
+  triggered at beginning of your upkeep: return target creature card from your graveyard to battlefield
+  triggered at beginning of each opponent's upkeep step: that player sacrifices 1 creature
+}

@@ -1,0 +1,8 @@
+card "Silver Sable, Mercenary Leader" {
+  oracle_id 40b82dee-98c7-4b86-88b8-28388cd0331f
+  cost {2}{W}
+  type Legendary Creature — Human Mercenary Hero
+  pt 2/3
+  triggered when this enters: put 1 +1/+1 counters on another target creature
+  triggered whenever this attacks: target modified creature you control gains lifelink
+}

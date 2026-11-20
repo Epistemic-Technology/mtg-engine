@@ -1,0 +1,15 @@
+card "Invasion of Moag // Bloomwielder Dryads" {
+  oracle_id a9855326-8958-4b03-b81b-1f9e4d1335b1
+  layout transform
+  cost {2}{G}{W}
+  type Battle — Siege
+  defense 5
+  triggered when this enters: put 1 +1/+1 counters on each creature you control
+  face "Bloomwielder Dryads" {
+    type Creature — Dryad
+    pt 3/3
+    color green white
+    ward {2}
+    triggered at beginning of your end step: put 1 +1/+1 counters on target creature you control
+  }
+}

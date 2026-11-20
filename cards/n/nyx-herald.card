@@ -1,0 +1,7 @@
+card "Nyx Herald" {
+  oracle_id ed347609-15f9-4d57-9523-63a33a9dccbc
+  cost {2}{G}
+  type Enchantment Creature — Centaur Shaman
+  pt 2/3
+  triggered at beginning of your combat: target enchanted creature or enchantment creature you control gets +1/+1 and gains trample
+}

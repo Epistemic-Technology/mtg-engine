@@ -1,0 +1,7 @@
+card "Roiling Dragonstorm" {
+  oracle_id 6badc583-fabb-4d63-b70c-e7380acafc23
+  cost {1}{U}
+  type Enchantment
+  triggered when this enters: draw 2 cards then discard 1 cards
+  triggered when Dragon you control enters: return this to hand
+}

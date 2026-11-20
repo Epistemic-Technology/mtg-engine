@@ -1,0 +1,6 @@
+card "One with Nothing" {
+  oracle_id ba995901-bb32-45ed-8af8-f98784b5a9b0
+  cost {B}
+  type Instant
+  spell: discard hand
+}

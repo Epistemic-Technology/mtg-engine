@@ -1,0 +1,8 @@
+card "Airdrop Aeronauts" {
+  oracle_id 009a399b-c78e-475b-8bc3-7db2afc9d676
+  cost {3}{W}{W}
+  type Creature — Dwarf Scout
+  pt 4/3
+  keywords flying
+  label "Revolt" triggered when this enters if permanent left this turn: you gains 5 life
+}

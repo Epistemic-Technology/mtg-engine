@@ -1,0 +1,8 @@
+card "Aya of Alexandria" {
+  oracle_id 27b690f2-d7ce-43b6-8e8b-98a8ffe487bb
+  cost {2}{R}{W}
+  type Legendary Creature — Human Assassin
+  pt 4/3
+  keywords menace, lifelink
+  triggered whenever historic creature you control deals combat damage to a player: create 1 "1/1 black Assassin creature with menace"
+}

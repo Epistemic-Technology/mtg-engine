@@ -1,0 +1,6 @@
+card "Basic Conjuration" {
+  oracle_id 547ab16c-b8d1-4357-9219-7cabde80f5ba
+  cost {1}{G}{G}
+  type Sorcery — Lesson
+  spell: dig 6 take creature card may revealing rest bottom random; you gains 3 life
+}

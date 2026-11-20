@@ -1,0 +1,9 @@
+card "Skithiryx, the Blight Dragon" {
+  oracle_id daf6c421-e7f7-4fc6-967c-65f4ab96fcfd
+  cost {3}{B}{B}
+  type Legendary Creature — Phyrexian Dragon Skeleton
+  pt 4/4
+  keywords flying, infect
+  activated {B}: this gains haste
+  activated {B}{B}: regenerate this
+}

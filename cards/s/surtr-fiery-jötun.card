@@ -1,0 +1,8 @@
+card "Surtr, Fiery Jötun" {
+  oracle_id 424084cf-418f-47b4-915f-b254c8adb3bd
+  cost {3}{R}{R}
+  type Legendary Creature — Giant God Warrior
+  pt 5/5
+  keywords trample
+  triggered whenever you cast historic spell: deal 3 damage to any target
+}

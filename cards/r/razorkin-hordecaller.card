@@ -1,0 +1,8 @@
+card "Razorkin Hordecaller" {
+  oracle_id 3fc4bdf1-7da3-4f9f-806f-f82cd18ea65f
+  cost {4}{R}
+  type Creature — Human Clown Berserker
+  pt 4/4
+  keywords haste
+  triggered whenever you attack: create 1 "1/1 red Gremlin creature"
+}

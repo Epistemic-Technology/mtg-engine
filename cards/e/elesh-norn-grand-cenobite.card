@@ -1,0 +1,9 @@
+card "Elesh Norn, Grand Cenobite" {
+  oracle_id 958d71ff-c9f7-46f0-96ca-79e7f4d65a16
+  cost {5}{W}{W}
+  type Legendary Creature — Phyrexian Praetor
+  pt 4/7
+  keywords vigilance
+  static other creature you control: +2/+2
+  static creature your opponents control: -2/-2
+}

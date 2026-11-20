@@ -1,0 +1,8 @@
+card "Lifecraft Cavalry" {
+  oracle_id 13db0230-b57e-47fd-9025-580d06cc88ee
+  cost {4}{G}
+  type Creature — Elf Warrior
+  pt 4/4
+  keywords trample
+  label "Revolt" enters with 2 +1/+1 counters if permanent left this turn
+}

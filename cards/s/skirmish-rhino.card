@@ -1,0 +1,8 @@
+card "Skirmish Rhino" {
+  oracle_id 40eb7f43-7cee-41a1-a4d1-f34ee125ccd1
+  cost {W}{B}{G}
+  type Creature — Rhino
+  pt 3/4
+  keywords trample
+  triggered when this enters: each opponent loses 2 life and you gains 2 life
+}

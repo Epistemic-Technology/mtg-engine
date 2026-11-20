@@ -1,0 +1,8 @@
+card "White Orchid Phantom" {
+  oracle_id 6edd2a36-3d65-4bf9-bd82-b6d03a7e8fea
+  cost {W}{W}
+  type Creature — Spirit Knight
+  pt 2/2
+  keywords flying, first strike
+  triggered when this enters: destroy up to one target nonbasic land; its controller may search basic land card to battlefield tapped
+}

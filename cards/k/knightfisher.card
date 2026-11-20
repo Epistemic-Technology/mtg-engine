@@ -1,0 +1,8 @@
+card "Knightfisher" {
+  oracle_id cb2d222c-df42-41a7-a517-0a41e47a4280
+  cost {3}{U}{U}
+  type Creature — Bird Knight
+  pt 4/5
+  keywords flying
+  triggered whenever other nontoken Bird you control enters: create 1 "1/1 blue Fish creature"
+}

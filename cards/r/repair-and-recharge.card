@@ -1,0 +1,6 @@
+card "Repair and Recharge" {
+  oracle_id 4f42517b-e62e-4b8c-8c56-cb32fb62c478
+  cost {3}{W}{W}
+  type Sorcery
+  spell: return target artifact, enchantment, or planeswalker card from your graveyard to battlefield; create 1 tapped "Powerstone"
+}

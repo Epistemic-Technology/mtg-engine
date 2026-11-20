@@ -1,0 +1,9 @@
+card "Piru, the Volatile" {
+  oracle_id dcd13eab-7ed7-4e95-bdae-d140c1ff84df
+  cost {2}{R}{R}{W}{W}{B}{B}
+  type Legendary Creature — Elder Dragon
+  pt 7/7
+  keywords flying, lifelink
+  triggered at beginning of your upkeep: sacrifice this unless you pay {R}{W}{B}
+  triggered when this dies: deal 7 damage to each nonlegendary creature
+}

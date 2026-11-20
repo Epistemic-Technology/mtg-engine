@@ -1,0 +1,9 @@
+card "Captain America's Shield" {
+  oracle_id 8255a797-ddd3-4db0-a3f5-dd8f38c3b908
+  cost {2}
+  type Legendary Artifact — Equipment
+  keywords indestructible
+  static enchanted: +0/+8, has vigilance
+  triggered whenever equipped creature attacks: tap target creature defending player controls
+  equip {2}
+}

@@ -1,0 +1,8 @@
+card "Hoverguard Sweepers" {
+  oracle_id 853ef032-a2f7-4e6b-a210-03e96855d062
+  cost {6}{U}{U}
+  type Creature — Drone
+  pt 5/6
+  keywords flying
+  triggered when this enters: you may return up to two target creatures to hand
+}

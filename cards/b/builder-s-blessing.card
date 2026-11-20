@@ -1,0 +1,6 @@
+card "Builder's Blessing" {
+  oracle_id 33a64de1-dc78-43d3-b89e-b4b13049e174
+  cost {3}{W}
+  type Enchantment
+  static untapped creature you control: +0/+2
+}

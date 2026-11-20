@@ -1,0 +1,7 @@
+card "Crowd of Cinders" {
+  oracle_id fc071117-08aa-47c3-ae4a-4b6c630befa3
+  cost {3}{B}
+  type Creature — Elemental
+  keywords fear
+  static this: cda pt count black permanent you control
+}

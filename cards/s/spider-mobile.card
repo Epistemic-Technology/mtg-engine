@@ -1,0 +1,9 @@
+card "Spider-Mobile" {
+  oracle_id 3c322d99-2bc4-4618-aeb3-5583fce54f1b
+  cost {3}
+  type Artifact — Vehicle
+  pt 3/3
+  keywords trample
+  triggered whenever this attacks or blocks: this gets +1/+1 count each Spider you control
+  crew 2
+}

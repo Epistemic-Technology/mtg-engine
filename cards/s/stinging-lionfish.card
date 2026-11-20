@@ -1,0 +1,7 @@
+card "Stinging Lionfish" {
+  oracle_id ffd6c4b8-928d-40f1-9549-d13fa0b3af82
+  cost {1}{U}
+  type Enchantment Creature — Fish
+  pt 2/1
+  triggered whenever you cast your first spell during each opponent's turn: you may tap or untap target nonland permanent
+}

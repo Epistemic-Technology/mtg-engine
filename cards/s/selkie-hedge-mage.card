@@ -1,0 +1,8 @@
+card "Selkie Hedge-Mage" {
+  oracle_id 1f1c369a-3209-405b-9880-0e10b86e5698
+  cost {2}{G/U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  triggered when this enters if you control 2 Forest: you may you gain 3 life
+  triggered when this enters if you control 2 Island: you may return target tapped creature to hand
+}

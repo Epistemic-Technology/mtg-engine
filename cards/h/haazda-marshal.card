@@ -1,0 +1,7 @@
+card "Haazda Marshal" {
+  oracle_id 3a1efa7e-21d5-47a1-bcd8-7d4616be0d58
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  triggered whenever this and at least 2 other creatures attack: create 1 "1/1 white Soldier creature with lifelink"
+}

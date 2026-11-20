@@ -1,0 +1,7 @@
+card "Iname, Life Aspect" {
+  oracle_id cb806239-32bf-4850-be65-239444c347a5
+  cost {4}{G}{G}
+  type Legendary Creature — Spirit
+  pt 4/4
+  triggered when this dies: you may exile this; if you do, return any number of target Spirit cards from your graveyard to hand
+}

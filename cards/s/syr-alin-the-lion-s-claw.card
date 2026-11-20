@@ -1,0 +1,8 @@
+card "Syr Alin, the Lion's Claw" {
+  oracle_id 5d9a4905-4a26-410e-936c-56de849e9ca3
+  cost {3}{W}{W}
+  type Legendary Creature — Human Knight
+  pt 4/4
+  keywords first strike
+  triggered whenever this attacks: each other creature you control gets +1/+1
+}

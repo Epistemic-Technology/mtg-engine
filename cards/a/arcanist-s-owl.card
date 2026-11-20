@@ -1,0 +1,8 @@
+card "Arcanist's Owl" {
+  oracle_id 4bd38337-fb79-4809-848a-308c682825d1
+  cost {W/U}{W/U}{W/U}{W/U}
+  type Artifact Creature — Bird
+  pt 3/3
+  keywords flying
+  triggered when this enters: dig 4 take artifact or enchantment card may revealing rest bottom random
+}

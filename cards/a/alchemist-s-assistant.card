@@ -1,0 +1,8 @@
+card "Alchemist's Assistant" {
+  oracle_id 2844d274-cb60-46c1-a73b-e763c633e496
+  cost {1}{B}
+  type Creature — Monkey
+  pt 2/1
+  keywords lifelink
+  label "Renew" activated {1}{B}, exile this from graveyard, sorcery: put 1 lifelink counters on target creature
+}

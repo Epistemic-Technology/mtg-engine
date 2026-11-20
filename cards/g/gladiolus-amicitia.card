@@ -1,0 +1,8 @@
+card "Gladiolus Amicitia" {
+  oracle_id fb5a05d1-baa5-459d-a2e5-438f4a60b82f
+  cost {4}{R}{G}
+  type Legendary Creature — Human Warrior
+  pt 6/6
+  triggered when this enters: search land card to battlefield tapped
+  label "Landfall" triggered whenever land you control enters: another target creature you control gets +2/+2 and gains trample
+}

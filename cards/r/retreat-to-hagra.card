@@ -1,0 +1,9 @@
+card "Retreat to Hagra" {
+  oracle_id 73cbb4f0-90d6-4228-9341-791e3e9c4b48
+  cost {2}{B}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: choose one {
+    mode: target creature gets +1/+0 and gains deathtouch
+    mode: each opponent loses 1 life and you gains 1 life
+  }
+}

@@ -1,0 +1,8 @@
+card "Yoshimaru, Scrappy Stray" {
+  oracle_id c87da757-3daa-4874-a1e4-be0aa2adcb28
+  cost {1}{G}
+  type Legendary Creature — Dog
+  pt 1/1
+  triggered when this enters: another target creature you control fights up to one target creature an opponent controls
+  activated {6}: put 1 +1/+1 counters on target nonlegendary creature
+}

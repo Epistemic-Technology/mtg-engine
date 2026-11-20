@@ -1,0 +1,7 @@
+card "Thrór's Map" {
+  oracle_id 925cacdc-6d09-4fbd-9258-9f0539da180c
+  cost {2}
+  type Legendary Artifact
+  triggered when this enters: search basic land card reveal to hand
+  activated {2}, {T}: draw 1 cards then discard 1 cards
+}

@@ -1,0 +1,7 @@
+card "Lurking Arynx" {
+  oracle_id 57303267-7e69-4bd3-8e1f-a528d41121a1
+  cost {4}{G}
+  type Creature — Cat Beast
+  pt 3/5
+  label "Formidable" activated {2}{G}, if total power 8 or more: target creature blocks this if able
+}

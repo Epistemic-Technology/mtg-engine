@@ -1,0 +1,8 @@
+card "Renet, Temporal Apprentice" {
+  oracle_id 6c754808-86a6-43d3-8aeb-96ec19f7396c
+  cost {3}{U}{U}
+  type Legendary Creature — Human Wizard
+  pt 4/3
+  keywords flash
+  triggered when this enters: return each other nonland permanent that entered this turn to hand
+}

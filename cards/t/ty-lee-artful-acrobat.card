@@ -1,0 +1,8 @@
+card "Ty Lee, Artful Acrobat" {
+  oracle_id 3726b9a0-67cb-4f45-ab50-62db50f93568
+  cost {2}{R}
+  type Legendary Creature — Human Performer
+  pt 3/2
+  keywords prowess
+  triggered whenever this attacks: you may pay {1}; when you do, target creature can't block
+}

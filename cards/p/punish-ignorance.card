@@ -1,0 +1,6 @@
+card "Punish Ignorance" {
+  oracle_id 0fc56124-bdcd-4f4f-886f-0fafcf8003bc
+  cost {W}{U}{U}{B}
+  type Instant
+  spell: counter target spell; its controller loses 3 life and you gains 3 life
+}

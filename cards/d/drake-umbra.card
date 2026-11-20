@@ -1,0 +1,8 @@
+card "Drake Umbra" {
+  oracle_id 2b143ef1-afbb-499c-9189-1009105b406b
+  cost {4}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3, has flying
+  replace destroy enchanted: umbra armor
+}

@@ -1,0 +1,7 @@
+card "Nihilistic Glee" {
+  oracle_id a7243fd7-e30f-4b7a-a1e8-ca16366b6c49
+  cost {2}{B}{B}
+  type Enchantment
+  activated {2}{B}, discard 1 card: target opponent loses 1 life and you gains 1 life
+  label "Hellbent" activated {1}, pay 2 life, if hand 0 or less: draw 1 cards
+}

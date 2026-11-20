@@ -1,0 +1,9 @@
+card "Cyclops Superconductor" {
+  oracle_id 10bca1b1-4f92-40e8-b9c0-d08c534903e1
+  cost {1}{U}{R}
+  type Creature — Cyclops Wizard
+  pt 2/2
+  keywords prowess
+  triggered when this enters: you get 3 energy
+  triggered when this dies: you may pay 3 energy; when you do, this creature bites any target
+}

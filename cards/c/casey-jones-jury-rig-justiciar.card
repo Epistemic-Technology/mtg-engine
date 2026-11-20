@@ -1,0 +1,8 @@
+card "Casey Jones, Jury-Rig Justiciar" {
+  oracle_id b4c4fdb9-e034-49c0-9f7f-07e8cae19eb2
+  cost {1}{R}
+  type Legendary Creature — Human Berserker
+  pt 2/1
+  keywords haste
+  triggered when this enters: dig 4 take artifact card may revealing rest bottom random
+}

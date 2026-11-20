@@ -1,0 +1,7 @@
+card "Lesser Gargadon" {
+  oracle_id 7e162cc1-9482-4812-8897-209ec2927ec0
+  cost {2}{R}{R}
+  type Creature — Beast
+  pt 6/4
+  triggered whenever this attacks or blocks: sacrifice 1 land chosen
+}

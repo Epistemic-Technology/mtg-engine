@@ -1,0 +1,7 @@
+card "This Town Ain't Big Enough" {
+  oracle_id 2550c2ae-834d-46e7-9ab4-d7bf7bfa6a78
+  cost {4}{U}
+  type Instant
+  this spell costs {3} less if it targets permanent you control
+  spell: return up to two target nonland permanents to hand
+}

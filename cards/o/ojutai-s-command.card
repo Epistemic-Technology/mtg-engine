@@ -1,0 +1,11 @@
+card "Ojutai's Command" {
+  oracle_id c1fafe93-8fd2-44c1-a4a0-5c9ecee550cc
+  cost {2}{W}{U}
+  type Instant
+  choose two {
+    mode: return target creature card with mana value 2 or less from your graveyard to battlefield
+    mode: you gains 4 life
+    mode: counter target creature spell
+    mode: draw 1 cards
+  }
+}

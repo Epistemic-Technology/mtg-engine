@@ -1,0 +1,6 @@
+card "Diplomacy of the Wastes" {
+  oracle_id 8b4670b9-6701-4ca6-afd7-256742267e86
+  cost {2}{B}
+  type Sorcery
+  spell: target opponent reveals hand discarding nonland card; if you control Warrior, that player loses 2 life
+}

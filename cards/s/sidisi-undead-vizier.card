@@ -1,0 +1,8 @@
+card "Sidisi, Undead Vizier" {
+  oracle_id 3406db41-6b95-48fc-b58e-4476220fd34d
+  cost {3}{B}{B}
+  type Legendary Creature — Zombie Snake
+  pt 4/6
+  keywords deathtouch, exploit
+  triggered when this exploits a creature: you may search card to hand
+}

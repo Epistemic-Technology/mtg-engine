@@ -1,0 +1,8 @@
+card "Harvester of Souls" {
+  oracle_id 5987ce77-10ad-4871-900a-5a005fcf4955
+  cost {4}{B}{B}
+  type Creature — Demon
+  pt 5/5
+  keywords deathtouch
+  triggered whenever other nontoken creature dies: you may draw 1 cards
+}

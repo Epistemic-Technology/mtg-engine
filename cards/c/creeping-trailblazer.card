@@ -1,0 +1,8 @@
+card "Creeping Trailblazer" {
+  oracle_id 94431642-cfcf-48f4-9e0b-fcddc5b051ef
+  cost {R}{G}
+  type Creature — Elemental
+  pt 2/2
+  static other Elemental you control: +1/+0
+  activated {2}{R}{G}: this gets +1/+1 count each Elemental you control
+}

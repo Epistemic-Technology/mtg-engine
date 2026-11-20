@@ -1,0 +1,7 @@
+card "Tajuru Warcaller" {
+  oracle_id 8b89c6f1-8c9e-43ef-ad6b-11424de090e4
+  cost {3}{G}{G}
+  type Creature — Elf Warrior Ally
+  pt 2/1
+  label "Rally" triggered whenever this or Ally you control enters: each creature you control gets +2/+2
+}

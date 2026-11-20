@@ -1,0 +1,14 @@
+card "Hanweir Militia Captain // Westvale Cult Leader" {
+  oracle_id 2d8eba16-cfca-4a38-bde0-6ee36c67231a
+  layout transform
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered at beginning of your upkeep if you control 4 creature: transform this
+  face "Westvale Cult Leader" {
+    type Creature — Human Cleric
+    color white
+    static this: cda pt count creature you control
+    triggered at beginning of your end step: create 1 "1/1 white and black Human Cleric creature"
+  }
+}

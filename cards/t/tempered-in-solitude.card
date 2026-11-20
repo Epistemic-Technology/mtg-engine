@@ -1,0 +1,6 @@
+card "Tempered in Solitude" {
+  oracle_id f4aedfd3-4414-493c-bbba-75db301c0737
+  cost {1}{R}
+  type Enchantment
+  triggered whenever creature you control attacks alone: impulse 1 this turn
+}

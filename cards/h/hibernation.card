@@ -1,0 +1,6 @@
+card "Hibernation" {
+  oracle_id 633b541b-e37f-451a-be73-3398e61e0f75
+  cost {2}{U}
+  type Instant
+  spell: return all green permanent to hand
+}

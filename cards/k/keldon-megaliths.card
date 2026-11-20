@@ -1,0 +1,7 @@
+card "Keldon Megaliths" {
+  oracle_id ec0ea7f7-52ce-40d1-b34c-e36dd4b26120
+  type Land
+  enters tapped
+  mana {R}
+  label "Hellbent" activated {1}{R}, {T}, if hand 0 or less: deal 1 damage to any target
+}

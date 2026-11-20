@@ -1,0 +1,9 @@
+card "Igneous Inspiration" {
+  oracle_id 2e31af8f-5e94-4888-857d-911253eac2cd
+  cost {2}{R}
+  type Sorcery
+  spell {
+    deal 3 damage to any target
+    learn
+  }
+}

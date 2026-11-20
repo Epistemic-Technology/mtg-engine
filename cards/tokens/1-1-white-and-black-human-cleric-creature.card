@@ -1,0 +1,6 @@
+token "1/1 white and black Human Cleric creature" {
+  name "Human Cleric"
+  type Creature — Human Cleric
+  pt 1/1
+  color white black
+}

@@ -1,0 +1,7 @@
+card "Malakir Soothsayer" {
+  oracle_id 6ebfce76-82a2-4168-bd64-99cf16882dee
+  cost {4}{B}
+  type Creature — Vampire Shaman Ally
+  pt 4/4
+  label "Cohort" activated {T}, tap untapped Ally you control: you draw 1 card, and you lose 1 life
+}

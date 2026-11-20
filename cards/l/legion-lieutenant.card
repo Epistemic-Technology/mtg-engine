@@ -1,0 +1,7 @@
+card "Legion Lieutenant" {
+  oracle_id 5fa1b2f0-3ba4-49db-9cb5-b6130e4c255e
+  cost {W}{B}
+  type Creature — Vampire Knight
+  pt 2/2
+  static other Vampire you control: +1/+1
+}

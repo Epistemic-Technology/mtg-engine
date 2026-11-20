@@ -1,0 +1,8 @@
+card "Bishop of Rebirth" {
+  oracle_id 05058594-608f-4046-bf44-b736a7072f0a
+  cost {3}{W}{W}
+  type Creature — Vampire Cleric
+  pt 3/4
+  keywords vigilance
+  triggered whenever this attacks: you may return target creature card with mana value 3 or less from your graveyard to battlefield
+}

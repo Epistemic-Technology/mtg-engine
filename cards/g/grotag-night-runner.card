@@ -1,0 +1,7 @@
+card "Grotag Night-Runner" {
+  oracle_id 623e261c-d4b9-4dea-930d-e0573a1deaee
+  cost {2}{R}
+  type Creature — Goblin Rogue
+  pt 2/3
+  triggered whenever this deals combat damage to a player: impulse 1 this turn
+}

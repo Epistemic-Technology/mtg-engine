@@ -1,0 +1,7 @@
+card "Jagged-Scar Archers" {
+  oracle_id f7139c70-dfcc-41ae-9d0d-b6e8c07a063d
+  cost {1}{G}{G}
+  type Creature — Elf Archer
+  static this: cda pt count Elf you control
+  activated {T}: this bites target creature with flying
+}

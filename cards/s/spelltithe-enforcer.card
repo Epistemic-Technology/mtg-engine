@@ -1,0 +1,7 @@
+card "Spelltithe Enforcer" {
+  oracle_id 0da4988f-47ca-4786-ac33-edbc9cfd6785
+  cost {3}{W}{W}
+  type Creature — Elephant Wizard
+  pt 3/3
+  triggered whenever an opponent casts a spell: that player sacrifices 1 permanent unless they pay {1}
+}

@@ -1,0 +1,6 @@
+card "Drownyard Temple" {
+  oracle_id c30f9be4-c274-4ad0-b5d7-7d3421aa4277
+  type Land
+  mana {C}
+  activated {3}, from graveyard: return this to battlefield tapped
+}

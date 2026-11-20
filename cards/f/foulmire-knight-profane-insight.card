@@ -1,0 +1,13 @@
+card "Foulmire Knight // Profane Insight" {
+  oracle_id 10c0f814-e302-49ff-aded-1b8d8424fd60
+  layout adventure
+  cost {B}
+  type Creature — Zombie Knight
+  pt 1/1
+  keywords deathtouch
+  face "Profane Insight" {
+    cost {2}{B}
+    type Instant — Adventure
+    spell: you draw 1 card, and you lose 1 life
+  }
+}

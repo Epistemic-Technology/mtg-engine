@@ -9184,6 +9184,8 @@ impl P {
                 self.eat_word("step");
                 return Ok(Trigger::AttachedStep(step));
             }
+            // `each opponent's` before `each`, which would take its first
+            // word (the formatter writes `each opponent's upkeep step`).
             let whose = if self.eat_word("your") {
                 Who::You
             } else if self.eat_words(&["each", "opponent's"])

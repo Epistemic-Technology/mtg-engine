@@ -1,0 +1,8 @@
+card "Stromkirk Captain" {
+  oracle_id 599c3fd6-3309-4b5d-adec-9c4062848ad5
+  cost {1}{B}{R}
+  type Creature — Vampire Soldier
+  pt 2/2
+  keywords first strike
+  static other Vampire creature you control: +1/+1, has first strike
+}

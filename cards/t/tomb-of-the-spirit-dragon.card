@@ -1,0 +1,6 @@
+card "Tomb of the Spirit Dragon" {
+  oracle_id 22f6391e-2634-440f-af1b-9581d1bff818
+  type Land
+  mana {C}
+  activated {2}, {T}: you gain count each colorless creature you control life
+}

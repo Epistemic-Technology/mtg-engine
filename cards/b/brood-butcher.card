@@ -1,0 +1,9 @@
+card "Brood Butcher" {
+  oracle_id a20edb8d-219d-4d0f-8346-0c31064eb49f
+  cost {3}{B}{G}
+  type Creature — Eldrazi Drone
+  pt 3/3
+  keywords devoid
+  triggered when this enters: create 1 "Eldrazi Scion" it has
+  activated {B}{G}, sacrifice creature: target creature gets -2/-2
+}

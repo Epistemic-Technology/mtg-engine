@@ -1,0 +1,6 @@
+card "Might of the Ancestors" {
+  oracle_id 5e4107ce-8450-4501-9cb3-a6344ef320f1
+  cost {2}{W}
+  type Enchantment
+  triggered at beginning of your combat: target creature you control gets +2/+0 and gains vigilance
+}

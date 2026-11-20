@@ -1,0 +1,8 @@
+card "Wylie Duke, Atiin Hero" {
+  oracle_id b3ac27d6-7e18-404d-9af2-b03897a5f1d9
+  cost {1}{G}{W}
+  type Legendary Creature — Human Ranger
+  pt 4/2
+  keywords vigilance
+  triggered whenever this becomes tapped: you gain 1 life and draw 1 card
+}

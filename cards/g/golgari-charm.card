@@ -1,0 +1,10 @@
+card "Golgari Charm" {
+  oracle_id f0ab7166-9fcf-46e5-af2c-b7f628db4789
+  cost {B}{G}
+  type Instant
+  choose one {
+    mode: all creatures gets -1/-1
+    mode: destroy target enchantment
+    mode: regenerate each creature you control
+  }
+}

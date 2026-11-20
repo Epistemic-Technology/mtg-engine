@@ -1,0 +1,11 @@
+card "Primal Command" {
+  oracle_id 350f5c0a-563f-41c5-8f7b-10f409bb4d3b
+  cost {3}{G}{G}
+  type Sorcery
+  choose two {
+    mode: target player gains 7 life
+    mode: put target noncreature permanent on top of library
+    mode: target player shuffles graveyard into library
+    mode: search creature card reveal to hand
+  }
+}

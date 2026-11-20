@@ -1,0 +1,6 @@
+card "Golgari Germination" {
+  oracle_id 3f9cf871-7df6-49d5-aab3-ad945571b707
+  cost {1}{B}{G}
+  type Enchantment
+  triggered whenever nontoken creature you control dies: create 1 "1/1 green Saproling creature"
+}

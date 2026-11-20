@@ -1,0 +1,7 @@
+card "Mental Vapors" {
+  oracle_id e0151f37-790b-47f4-9928-cd8f32f68e4c
+  cost {3}{B}
+  type Sorcery
+  keywords cipher
+  spell: target player discards 1 cards
+}

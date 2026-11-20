@@ -1,0 +1,8 @@
+card "Ultima Weapon" {
+  oracle_id 0dc4bf39-67d6-44e5-8993-dd18b20cfdee
+  cost {7}
+  type Legendary Artifact — Equipment
+  triggered whenever equipped creature attacks: destroy target creature an opponent controls
+  static enchanted: +7/+7
+  equip {7}
+}

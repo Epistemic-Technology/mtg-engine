@@ -1,0 +1,8 @@
+card "Cobbled Lancer" {
+  oracle_id 200bbf1d-835d-4d61-a6ab-a0b2abfbed79
+  cost {U}
+  type Creature — Zombie Horse
+  pt 3/3
+  additional cost exile creature card from graveyard
+  activated {3}{U}, exile this from graveyard: draw 1 cards
+}

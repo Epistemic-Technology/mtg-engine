@@ -1,0 +1,7 @@
+card "Super Villain Lockup" {
+  oracle_id 192e150a-96b0-42d6-9d39-03d0bed61f41
+  cost {1}{W}
+  type Enchantment
+  keywords flash
+  triggered when this enters: exile target tapped creature an opponent controls until this leaves
+}

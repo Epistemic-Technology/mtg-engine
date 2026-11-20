@@ -1,0 +1,7 @@
+card "Emmara, Soul of the Accord" {
+  oracle_id c65ba242-3369-48a9-864f-1b1f85238f67
+  cost {G}{W}
+  type Legendary Creature — Elf Cleric
+  pt 2/2
+  triggered whenever this becomes tapped: create 1 "1/1 white Soldier creature with lifelink"
+}

@@ -1,0 +1,8 @@
+card "Kamahl, Pit Fighter" {
+  oracle_id 153bb46f-ee8a-4da3-aab4-ae884f6ff403
+  cost {4}{R}{R}
+  type Legendary Creature — Human Barbarian
+  pt 6/1
+  keywords haste
+  activated {T}: deal 3 damage to any target
+}

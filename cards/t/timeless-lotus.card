@@ -1,0 +1,7 @@
+card "Timeless Lotus" {
+  oracle_id fec77e0a-433e-4d32-9260-e26a37f6ad23
+  cost {5}
+  type Legendary Artifact
+  enters tapped
+  activated {T}: add {W}{U}{B}{R}{G}
+}

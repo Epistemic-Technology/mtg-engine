@@ -1,0 +1,7 @@
+card "Altac Bloodseeker" {
+  oracle_id 7f9d5219-0306-4c39-8640-dcb4314042de
+  cost {1}{R}
+  type Creature — Human Berserker
+  pt 2/1
+  triggered whenever creature an opponent controls dies: this gets +2/+0 and gains first strike, haste
+}

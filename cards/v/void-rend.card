@@ -1,0 +1,7 @@
+card "Void Rend" {
+  oracle_id 713f16db-95ec-479e-a48c-7a69f7668d7f
+  cost {W}{U}{B}
+  type Instant
+  this spell can't be countered
+  spell: destroy target nonland permanent
+}

@@ -1,0 +1,6 @@
+card "Path of Discovery" {
+  oracle_id 52714c3c-6821-44dd-88ba-813554df9914
+  cost {3}{G}
+  type Enchantment
+  triggered whenever creature you control enters: it explores
+}

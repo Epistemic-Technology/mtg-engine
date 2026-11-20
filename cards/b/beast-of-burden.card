@@ -1,0 +1,6 @@
+card "Beast of Burden" {
+  oracle_id 67389ccc-dacc-4ce3-a9a2-f551a0d6e9d3
+  cost {6}
+  type Artifact Creature — Golem
+  static this: cda pt count creature on battlefield
+}

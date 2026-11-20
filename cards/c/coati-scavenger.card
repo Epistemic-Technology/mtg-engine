@@ -1,0 +1,7 @@
+card "Coati Scavenger" {
+  oracle_id 535f9bc6-9a07-4850-91eb-c00d06633e7e
+  cost {2}{G}
+  type Creature — Raccoon
+  pt 3/2
+  label "Descend 4" triggered when this enters if 4 permanent cards in your graveyard: return target permanent card from your graveyard to hand
+}

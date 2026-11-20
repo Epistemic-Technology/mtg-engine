@@ -1,0 +1,7 @@
+card "Mad Ratter" {
+  oracle_id 779fa24d-e9d2-475d-b3aa-dc0388b18307
+  cost {3}{R}
+  type Creature — Goblin
+  pt 1/2
+  triggered whenever you draw your second card each turn: create 2 "1/1 black Rat creature"
+}

@@ -1,0 +1,8 @@
+card "Siege Veteran" {
+  oracle_id 4d4fc571-a859-4460-a3c7-3f76a671ab1b
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered at beginning of your combat: put 1 +1/+1 counters on target creature you control
+  triggered whenever other nontoken Soldier you control dies: create 1 "1/1 colorless Soldier artifact creature"
+}

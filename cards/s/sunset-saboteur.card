@@ -1,0 +1,9 @@
+card "Sunset Saboteur" {
+  oracle_id c3731735-2b78-4a15-bff4-4d8559401f68
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 4/1
+  keywords menace
+  ward discard 1 card
+  triggered whenever this attacks: put 1 +1/+1 counters on target creature an opponent controls
+}

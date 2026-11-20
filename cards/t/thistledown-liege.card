@@ -1,0 +1,9 @@
+card "Thistledown Liege" {
+  oracle_id 7b07356f-9c3f-4875-939e-aa64eb6b5ce2
+  cost {1}{W/U}{W/U}{W/U}
+  type Creature — Kithkin Knight
+  pt 1/3
+  keywords flash
+  static other white creature you control: +1/+1
+  static other blue creature you control: +1/+1
+}

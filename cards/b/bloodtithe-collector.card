@@ -1,0 +1,8 @@
+card "Bloodtithe Collector" {
+  oracle_id 93088b0c-d158-473a-9c06-aa2f344a9868
+  cost {4}{B}
+  type Creature — Vampire Noble
+  pt 3/4
+  keywords flying
+  triggered when this enters if opponent lost life this turn: each opponent discards 1 cards
+}

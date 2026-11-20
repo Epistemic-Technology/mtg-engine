@@ -1,0 +1,6 @@
+card "Hieromancer's Cage" {
+  oracle_id 207c7f93-3abf-44c5-ace6-3f86359c9745
+  cost {3}{W}
+  type Enchantment
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+}

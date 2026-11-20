@@ -1,0 +1,8 @@
+card "Scurry Oak" {
+  oracle_id eee6c02b-7d6a-4445-ad27-8b03176147d4
+  cost {2}{G}
+  type Creature — Treefolk
+  pt 1/2
+  evolve
+  triggered whenever one or more +1/+1 counters put on this: you may create 1 "1/1 green Squirrel creature"
+}

@@ -1,0 +1,6 @@
+card "Assassin's Strike" {
+  oracle_id 1ad6339d-6206-49bf-bf97-05e6d3bcaab7
+  cost {4}{B}{B}
+  type Sorcery
+  spell: destroy target creature; its controller discards 1 cards
+}

@@ -1,0 +1,8 @@
+card "Reaper King" {
+  oracle_id 70034860-5198-421f-871d-7c1676337b6e
+  cost {2/W}{2/U}{2/B}{2/R}{2/G}
+  type Legendary Artifact Creature — Scarecrow
+  pt 6/6
+  static other Scarecrow creature you control: +1/+1
+  triggered whenever other Scarecrow you control enters: destroy target permanent
+}

@@ -1,0 +1,9 @@
+card "Retreat to Kazandu" {
+  oracle_id 3f8e5ff1-af89-427e-924c-19a44f9a3788
+  cost {2}{G}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: choose one {
+    mode: put 1 +1/+1 counters on target creature
+    mode: you gains 2 life
+  }
+}

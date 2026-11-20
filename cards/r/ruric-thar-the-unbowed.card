@@ -1,0 +1,8 @@
+card "Ruric Thar, the Unbowed" {
+  oracle_id 6ed13a89-4284-4c01-8099-75e2d68c8c63
+  cost {4}{R}{G}
+  type Legendary Creature — Ogre Warrior
+  pt 6/6
+  keywords reach, vigilance, attacks each combat if able
+  triggered whenever a player casts noncreature spell: deal 6 damage to that player
+}

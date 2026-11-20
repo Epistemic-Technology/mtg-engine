@@ -1,0 +1,8 @@
+card "Smoke Bomb" {
+  oracle_id c262e015-f379-484f-894f-1a1deb3c75cc
+  cost {3}
+  type Artifact
+  keywords flash
+  static creature: has shroud
+  triggered at beginning of your upkeep: sacrifice this; when you do, target creature you control can't be blocked
+}

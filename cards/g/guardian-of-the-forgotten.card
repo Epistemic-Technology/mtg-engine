@@ -1,0 +1,8 @@
+card "Guardian of the Forgotten" {
+  oracle_id 89b88a6c-92be-43eb-9de4-f79cc75c6d90
+  cost {3}{W}
+  type Creature — Elephant Warrior
+  pt 4/4
+  keywords vigilance
+  triggered whenever modified creature you control dies: manifest
+}

@@ -1,0 +1,7 @@
+card "Clever Lumimancer" {
+  oracle_id 901eb916-f318-4a30-a43e-8e7f9eef358b
+  cost {W}
+  type Creature — Human Wizard
+  pt 0/1
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: this gets +2/+2
+}

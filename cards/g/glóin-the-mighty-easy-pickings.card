@@ -1,0 +1,13 @@
+card "Glóin the Mighty // Easy Pickings" {
+  oracle_id 6505a53b-00db-44c4-8eaa-09a1a01451a4
+  layout adventure
+  cost {3}{R}
+  type Legendary Creature — Dwarf Warrior
+  pt 4/3
+  triggered at beginning of your first main: add {R}{R}
+  face "Easy Pickings" {
+    cost {2}{R}
+    type Sorcery — Adventure
+    spell: deal 1 damage to each creature your opponents control
+  }
+}

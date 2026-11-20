@@ -1,0 +1,9 @@
+card "Debris Beetle" {
+  oracle_id 2b15d571-2f90-44f7-9153-20ed51253045
+  cost {2}{B}{G}
+  type Artifact — Vehicle
+  pt 6/6
+  keywords trample
+  triggered when this enters: each opponent loses 3 life and you gains 3 life
+  crew 2
+}

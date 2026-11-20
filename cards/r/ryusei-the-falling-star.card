@@ -1,0 +1,8 @@
+card "Ryusei, the Falling Star" {
+  oracle_id 5e99ba3b-dc2b-4c3c-84ce-228d4772cfee
+  cost {5}{R}
+  type Legendary Creature — Dragon Spirit
+  pt 5/5
+  keywords flying
+  triggered when this dies: deal 5 damage to each creature without flying
+}

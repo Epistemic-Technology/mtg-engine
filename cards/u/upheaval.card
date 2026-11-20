@@ -1,0 +1,6 @@
+card "Upheaval" {
+  oracle_id 7cafc972-a6f5-4cac-a3d3-8a3ae36ffb1e
+  cost {4}{U}{U}
+  type Sorcery
+  spell: return all permanent to hand
+}

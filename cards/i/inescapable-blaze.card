@@ -1,0 +1,7 @@
+card "Inescapable Blaze" {
+  oracle_id 5fcc057e-e6c2-4e37-a786-9a5ef94926e1
+  cost {4}{R}{R}
+  type Instant
+  this spell can't be countered
+  spell: deal 6 damage to any target
+}

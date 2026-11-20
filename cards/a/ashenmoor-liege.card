@@ -1,0 +1,9 @@
+card "Ashenmoor Liege" {
+  oracle_id f779754a-3de9-4621-b190-cf32949da0e8
+  cost {1}{B/R}{B/R}{B/R}
+  type Creature — Elemental Knight
+  pt 4/1
+  static other black creature you control: +1/+1
+  static other red creature you control: +1/+1
+  triggered whenever this becomes targeted by opponent: that player loses 4 life
+}

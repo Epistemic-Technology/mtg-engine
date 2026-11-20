@@ -1,0 +1,7 @@
+card "Adverse Conditions" {
+  oracle_id 7a5a81f7-1597-4972-8565-fd2a5667df99
+  cost {3}{U}
+  type Instant
+  keywords devoid
+  spell: tap up to two target creatures; targets 1 to 2 doesn't untap next untap step; create 1 "Eldrazi Scion" it has
+}

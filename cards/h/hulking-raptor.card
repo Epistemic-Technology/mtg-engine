@@ -1,0 +1,8 @@
+card "Hulking Raptor" {
+  oracle_id 9f2e7533-cfc1-4dd8-a9b8-09cdc712ef2f
+  cost {2}{G}{G}
+  type Creature — Dinosaur
+  pt 5/3
+  ward {2}
+  triggered at beginning of your first main: add {G}{G}
+}

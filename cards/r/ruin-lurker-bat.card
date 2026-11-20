@@ -1,0 +1,8 @@
+card "Ruin-Lurker Bat" {
+  oracle_id e6f379ad-96b1-46c3-bbc6-a8cb57156a7f
+  cost {W}
+  type Creature — Bat
+  pt 1/1
+  keywords flying, lifelink
+  triggered at beginning of your end step if descended this turn: scry 1
+}

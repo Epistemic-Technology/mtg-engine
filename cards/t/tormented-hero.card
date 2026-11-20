@@ -1,0 +1,8 @@
+card "Tormented Hero" {
+  oracle_id 47fbb4f0-565b-4682-9971-0735210c76e5
+  cost {B}
+  type Creature — Human Warrior
+  pt 2/1
+  enters tapped
+  label "Heroic" triggered whenever you cast a spell that targets this: each opponent loses 1 life; you gain count equal life lost this way life
+}

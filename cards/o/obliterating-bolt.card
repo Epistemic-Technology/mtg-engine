@@ -1,0 +1,6 @@
+card "Obliterating Bolt" {
+  oracle_id 57fe941c-a830-4570-afe2-18f93c7a7b84
+  cost {1}{R}
+  type Sorcery
+  spell: deal 4 damage to target creature or planeswalker; this turn, replace target 1 dies: exile
+}

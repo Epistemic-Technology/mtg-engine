@@ -1,0 +1,8 @@
+card "Skymarcher Aspirant" {
+  oracle_id 0b6db929-1b6a-4372-8146-aa047258b552
+  cost {W}
+  type Creature — Vampire Soldier
+  pt 2/1
+  ascend
+  static this: has flying as long as city's blessing
+}

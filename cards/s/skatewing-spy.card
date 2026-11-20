@@ -1,0 +1,8 @@
+card "Skatewing Spy" {
+  oracle_id 49701c15-c6f7-4b72-9e89-d34148e5c675
+  cost {3}{U}
+  type Creature — Vedalken Rogue Mutant
+  pt 2/3
+  activated {5}{U}: adapt 2
+  static each creature you control with +1/+1 counter: has flying
+}

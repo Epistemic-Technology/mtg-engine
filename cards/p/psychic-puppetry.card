@@ -1,0 +1,7 @@
+card "Psychic Puppetry" {
+  oracle_id 8d3c4e50-6709-42f9-97e7-3165ee501684
+  cost {1}{U}
+  type Instant — Arcane
+  spell: you may tap or untap target permanent
+  splice {U}
+}

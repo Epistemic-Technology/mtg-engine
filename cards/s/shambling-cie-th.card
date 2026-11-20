@@ -1,0 +1,8 @@
+card "Shambling Cie'th" {
+  oracle_id d3f4aa87-a89e-43f8-abc3-712e6bf08889
+  cost {2}{B}
+  type Creature — Mutant Horror
+  pt 3/3
+  enters tapped
+  triggered from graveyard whenever you cast a noncreature spell: you may pay {B}; if you do, return this to hand
+}

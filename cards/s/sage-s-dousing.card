@@ -1,0 +1,6 @@
+card "Sage's Dousing" {
+  oracle_id 374f550a-a761-4994-a4aa-b05a2ec415de
+  cost {2}{U}
+  type Kindred Instant — Wizard
+  spell: counter target spell unless its controller pays {3}; if you control Wizard, draw 1 cards
+}

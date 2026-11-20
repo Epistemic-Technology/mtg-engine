@@ -1,0 +1,6 @@
+card "Fateful Showdown" {
+  oracle_id 729b7ce8-7e7f-4db9-b3ce-67aba46a7b0d
+  cost {2}{R}{R}
+  type Instant
+  spell: deal count equal hand damage to any target; discard all cards in hand then draw count that many discarded this way cards
+}

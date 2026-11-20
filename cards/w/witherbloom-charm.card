@@ -1,0 +1,10 @@
+card "Witherbloom Charm" {
+  oracle_id ee1db746-f5c1-4dce-82eb-24b273cc9507
+  cost {B}{G}
+  type Instant
+  choose one {
+    mode: you may sacrifice 1 permanent chosen; if you do, draw 2 cards
+    mode: you gains 5 life
+    mode: destroy target nonland permanent with mana value 2 or less
+  }
+}

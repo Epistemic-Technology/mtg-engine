@@ -1,0 +1,8 @@
+card "Vivisection Evangelist" {
+  oracle_id 007f3b20-d58b-4986-8de8-9e419af88628
+  cost {3}{W}{B}
+  type Creature — Phyrexian Cleric
+  pt 4/4
+  keywords vigilance
+  label "Corrupted" triggered when this enters if opponent poison 3 or more: destroy target creature or planeswalker an opponent controls
+}

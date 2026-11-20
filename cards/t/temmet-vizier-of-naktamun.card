@@ -1,0 +1,8 @@
+card "Temmet, Vizier of Naktamun" {
+  oracle_id e245d5c9-ae3a-4246-bd74-c6fed76b9fad
+  cost {W}{U}
+  type Legendary Creature — Human Cleric
+  pt 2/2
+  triggered at beginning of your combat: target creature token you control gets +1/+1 until end of turn and can't be blocked
+  embalm {3}{W}{U}
+}

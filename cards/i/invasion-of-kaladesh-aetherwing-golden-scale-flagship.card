@@ -1,0 +1,16 @@
+card "Invasion of Kaladesh // Aetherwing, Golden-Scale Flagship" {
+  oracle_id bc6f4f73-e10c-44ae-926d-9e5f6ddc14be
+  layout transform
+  cost {U}{R}
+  type Battle — Siege
+  defense 4
+  triggered when this enters: create 1 "1/1 colorless Thopter artifact creature with flying"
+  face "Aetherwing, Golden-Scale Flagship" {
+    type Legendary Artifact — Vehicle
+    pt */4
+    color red blue
+    keywords flying
+    static this: cda power count artifact you control
+    crew 1
+  }
+}

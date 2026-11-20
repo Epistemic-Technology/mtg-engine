@@ -1,0 +1,6 @@
+card "Revive the Fallen" {
+  oracle_id 2f857ef6-c1e5-4b85-b3fb-8163be4895b5
+  cost {1}{B}
+  type Sorcery
+  spell: return target creature card from a graveyard to hand; clash; if you win, return this to its owner's hand
+}

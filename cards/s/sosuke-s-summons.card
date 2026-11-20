@@ -1,0 +1,7 @@
+card "Sosuke's Summons" {
+  oracle_id 6be663a5-70e2-435a-91ae-16168402787b
+  cost {2}{G}
+  type Sorcery
+  spell: create 2 "1/1 green Snake creature"
+  triggered from graveyard whenever nontoken Snake you control enters: you may return this to hand
+}

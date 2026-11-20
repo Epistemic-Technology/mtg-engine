@@ -1,0 +1,8 @@
+card "Molderhulk" {
+  oracle_id a6fa840a-817c-4e84-9dd3-d28a011f2214
+  cost {7}{B}{G}
+  type Creature — Fungus Zombie
+  pt 6/6
+  label "Undergrowth" this spell costs {1} less count each graveyard creature
+  triggered when this enters: return target land card from your graveyard to battlefield
+}

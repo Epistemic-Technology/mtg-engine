@@ -1,0 +1,7 @@
+token "3/3 blue Weird creature with defender and flying" {
+  name "Weird"
+  type Creature — Weird
+  pt 3/3
+  color blue
+  keywords defender, flying
+}

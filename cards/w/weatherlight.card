@@ -1,0 +1,9 @@
+card "Weatherlight" {
+  oracle_id 73b3682f-396a-4ebe-aaac-6ce3ee36283a
+  cost {4}
+  type Legendary Artifact — Vehicle
+  pt 4/5
+  keywords flying
+  triggered whenever this deals combat damage to a player: dig 5 take historic card may revealing rest bottom random
+  crew 3
+}

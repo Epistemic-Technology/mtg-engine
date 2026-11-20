@@ -1,0 +1,6 @@
+card "Sea Gate Wreckage" {
+  oracle_id 91f34686-cb96-49c0-b4a7-49dd1fd076e2
+  type Land
+  mana {C}
+  activated {2}{C}, {T}, if hand 0 or less: draw 1 cards
+}

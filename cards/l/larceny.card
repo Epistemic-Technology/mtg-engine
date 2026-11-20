@@ -1,0 +1,6 @@
+card "Larceny" {
+  oracle_id f356087e-e1d2-4c25-aa1d-215d09535e7c
+  cost {3}{B}{B}
+  type Enchantment
+  triggered whenever creature you control deals combat damage to a player: that player discards 1 cards
+}

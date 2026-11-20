@@ -1,0 +1,8 @@
+card "Waker of Waves" {
+  oracle_id 3a19a959-ea83-404b-89f7-e5dbf4cb7995
+  cost {5}{U}{U}
+  type Creature — Whale
+  pt 7/7
+  static creature your opponents control: -1/-0
+  activated {1}{U}, discard this: dig 2 take card rest graveyard
+}

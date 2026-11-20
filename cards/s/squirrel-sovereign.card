@@ -1,0 +1,7 @@
+card "Squirrel Sovereign" {
+  oracle_id f43d1ea5-8127-4b64-a87b-ee5cc9b9e9fa
+  cost {1}{G}
+  type Creature — Squirrel Noble
+  pt 2/2
+  static other Squirrel you control: +1/+1
+}

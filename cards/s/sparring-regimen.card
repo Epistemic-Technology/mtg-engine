@@ -1,0 +1,7 @@
+card "Sparring Regimen" {
+  oracle_id 2aac3575-4a06-452c-bb0f-68dc34086226
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: learn
+  triggered whenever you attack: put 1 +1/+1 counters on target attacking creature and untap it
+}

@@ -1,0 +1,8 @@
+card "Torch Breath" {
+  oracle_id b6d61d96-a56a-4f4c-a196-05e03fe16ed2
+  cost {X}{R}
+  type Instant
+  this spell costs {2} less if it targets blue permanent
+  this spell can't be countered
+  spell: deal X damage to target creature or planeswalker
+}

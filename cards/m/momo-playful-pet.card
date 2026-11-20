@@ -1,0 +1,12 @@
+card "Momo, Playful Pet" {
+  oracle_id 85ee8ab6-8db5-45d7-85ae-64838771146a
+  cost {W}
+  type Legendary Creature — Lemur Bat Ally
+  pt 1/1
+  keywords flying, vigilance
+  triggered when this leaves the battlefield: choose one {
+    mode: create 1 "Food"
+    mode: put 1 +1/+1 counters on target creature you control
+    mode: scry 2
+  }
+}

@@ -1,0 +1,7 @@
+card "Ordruun Veteran" {
+  oracle_id 119af12a-b767-4408-9bb5-72a6d0ec63d1
+  cost {2}{R}{W}
+  type Creature — Minotaur Soldier
+  pt 3/1
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: this creature gains double strike
+}

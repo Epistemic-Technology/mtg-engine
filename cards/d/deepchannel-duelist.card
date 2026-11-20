@@ -1,0 +1,8 @@
+card "Deepchannel Duelist" {
+  oracle_id c892d28c-4a78-4a7f-b8d5-c3663b819c5e
+  cost {W}{U}
+  type Creature — Merfolk Soldier
+  pt 2/2
+  triggered at beginning of your end step: untap target Merfolk you control
+  static other Merfolk you control: +1/+1
+}

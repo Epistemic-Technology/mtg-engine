@@ -1,0 +1,8 @@
+card "Shroudstomper" {
+  oracle_id 36415fe3-6bf3-4fec-909c-6c16584c44eb
+  cost {3}{W}{W}{B}{B}
+  type Creature — Elemental
+  pt 5/5
+  keywords deathtouch
+  triggered whenever this enters or attacks: each opponent loses 2 life; you gain 2 life and draw 1 card
+}

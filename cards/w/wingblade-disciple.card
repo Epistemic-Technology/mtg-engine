@@ -1,0 +1,8 @@
+card "Wingblade Disciple" {
+  oracle_id c566317e-cd82-46c1-b506-f41256d815f6
+  cost {2}{U}
+  type Creature — Human Monk
+  pt 2/2
+  keywords flying
+  label "Flurry" triggered whenever you cast your second spell each turn: create 1 "1/1 white Bird creature with flying"
+}

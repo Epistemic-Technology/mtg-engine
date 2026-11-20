@@ -1,0 +1,9 @@
+card "Dragon Whisperer" {
+  oracle_id 54884040-b426-43da-9bb1-016621e1446d
+  cost {R}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {R}: this gains flying
+  activated {1}{R}: this gets +1/+0
+  label "Formidable" activated {4}{R}{R}, if total power 8 or more: create 1 "4/4 red Dragon creature with flying"
+}

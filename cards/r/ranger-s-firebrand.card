@@ -1,0 +1,6 @@
+card "Ranger's Firebrand" {
+  oracle_id 796d3836-d820-440c-b0ad-5907b3cfcb10
+  cost {R}
+  type Sorcery
+  spell: deal 2 damage to any target; the ring tempts you
+}

@@ -1,0 +1,7 @@
+card "Molimo, Maro-Sorcerer" {
+  oracle_id b87a2d20-4e9f-4256-9d24-80c38515119e
+  cost {4}{G}{G}{G}
+  type Legendary Creature — Elemental Sorcerer
+  keywords trample
+  static this: cda pt count land you control
+}

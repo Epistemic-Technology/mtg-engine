@@ -1,0 +1,8 @@
+card "Yellowjacket, Heartless Marauder" {
+  oracle_id 0a364879-31bd-4760-833d-165cde1e96c6
+  cost {1}{B}
+  type Legendary Creature — Human Rogue Villain
+  pt 1/2
+  keywords flying
+  triggered whenever other Villain you control enters: this gets +1/+0 and gains lifelink
+}

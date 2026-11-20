@@ -1,0 +1,6 @@
+card "Day of Destiny" {
+  oracle_id 64247fcb-0e1b-48c9-bdac-769d7edd8d1d
+  cost {3}{W}
+  type Legendary Enchantment
+  static legendary creature you control: +2/+2
+}

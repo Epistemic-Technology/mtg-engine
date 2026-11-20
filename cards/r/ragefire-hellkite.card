@@ -1,0 +1,8 @@
+card "Ragefire Hellkite" {
+  oracle_id 0166996d-941f-49fe-bf4f-64b6fd4b69e9
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 5/3
+  keywords flying
+  triggered whenever this attacks: you may sacrifice 1 another creature chosen; if you do, this creature gains double strike
+}

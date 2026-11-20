@@ -1,0 +1,8 @@
+card "Paragon of Eternal Wilds" {
+  oracle_id 942a461a-49aa-4eeb-b399-a2afba41ade9
+  cost {3}{G}
+  type Creature — Human Druid
+  pt 2/2
+  static other green creature you control: +1/+1
+  activated {G}, {T}: another target green creature you control gains trample
+}

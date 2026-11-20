@@ -1,0 +1,6 @@
+card "Warstorm Surge" {
+  oracle_id 42fb1a1c-ab3d-4cdc-a6ff-a591f7481583
+  cost {5}{R}
+  type Enchantment
+  triggered whenever creature you control enters: it bites any target
+}

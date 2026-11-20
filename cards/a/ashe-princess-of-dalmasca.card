@@ -1,0 +1,7 @@
+card "Ashe, Princess of Dalmasca" {
+  oracle_id db75577d-1001-4088-999f-40684218a07f
+  cost {2}{W}
+  type Legendary Creature — Human Rebel Noble
+  pt 3/2
+  triggered whenever this attacks: dig 5 take artifact card may revealing rest bottom random
+}

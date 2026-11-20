@@ -1,0 +1,7 @@
+card "Inevitable End" {
+  oracle_id e1a5c389-6a56-4da7-b7c4-e26fdec224e5
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { triggered at beginning of your upkeep: sacrifice 1 creature chosen }
+}

@@ -1,0 +1,8 @@
+card "Orazca Relic" {
+  oracle_id 48b84b58-1a06-4bb4-be1f-ad3ca69e66dc
+  cost {3}
+  type Artifact
+  ascend
+  mana {C}
+  activated {T}, sacrifice this, if city's blessing: you gain 3 life and draw 1 card
+}

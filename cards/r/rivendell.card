@@ -1,0 +1,7 @@
+card "Rivendell" {
+  oracle_id 2550099d-b3e2-4eb6-9f36-0fc412828ca6
+  type Legendary Land
+  enters tapped unless you control legendary creature
+  mana {U}
+  activated {1}{U}, {T}, if you control legendary creature: scry 2
+}

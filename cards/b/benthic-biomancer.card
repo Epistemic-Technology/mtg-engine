@@ -1,0 +1,8 @@
+card "Benthic Biomancer" {
+  oracle_id b9000917-4f09-42f4-ae85-fc1ac7571d93
+  cost {U}
+  type Creature — Merfolk Wizard Mutant
+  pt 1/1
+  activated {1}{U}: adapt 1
+  triggered whenever one or more +1/+1 counters put on this: draw 1 cards then discard 1 cards
+}

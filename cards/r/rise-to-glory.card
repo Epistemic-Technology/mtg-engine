@@ -1,0 +1,9 @@
+card "Rise to Glory" {
+  oracle_id a41297c4-5c2d-475d-b1f5-439df30fbad7
+  cost {3}{W}{B}
+  type Sorcery
+  choose one or both {
+    mode: return target creature card from your graveyard to battlefield
+    mode: return target Aura card from your graveyard to battlefield
+  }
+}

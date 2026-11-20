@@ -1,0 +1,8 @@
+card "Emrakul's Messenger" {
+  oracle_id f1409c9e-f0d9-49e1-b02e-d0f04a658331
+  cost {1}{U}
+  type Creature — Eldrazi Faerie Rogue
+  pt 2/1
+  keywords devoid, flying
+  triggered whenever you draw your second card each turn: create 1 "Eldrazi Spawn"
+}

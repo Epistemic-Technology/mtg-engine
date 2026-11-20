@@ -1,0 +1,6 @@
+card "Blessed Respite" {
+  oracle_id 8c888122-9d05-4641-931c-83f771ba9d09
+  cost {1}{G}
+  type Instant
+  spell: target player shuffles graveyard into library; prevent all combat damage this turn
+}

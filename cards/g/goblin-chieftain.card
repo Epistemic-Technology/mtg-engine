@@ -1,0 +1,8 @@
+card "Goblin Chieftain" {
+  oracle_id 368b4052-174e-4458-a6e6-eaf8093aa0fe
+  cost {1}{R}{R}
+  type Creature — Goblin
+  pt 2/2
+  keywords haste
+  static other Goblin creature you control: +1/+1, has haste
+}

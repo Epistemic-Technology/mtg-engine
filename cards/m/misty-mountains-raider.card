@@ -1,0 +1,7 @@
+card "Misty Mountains Raider" {
+  oracle_id c394b767-620c-4310-b78f-ece312259e46
+  cost {4}{R}
+  type Creature — Goblin Soldier
+  pt 4/4
+  triggered whenever you attack: amass Goblins 2
+}

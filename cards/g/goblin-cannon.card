@@ -1,0 +1,6 @@
+card "Goblin Cannon" {
+  oracle_id c939e74d-4206-4ad1-bdaa-84103db0ac41
+  cost {4}
+  type Artifact
+  activated {2}: deal 1 damage to any target; sacrifice this creature
+}

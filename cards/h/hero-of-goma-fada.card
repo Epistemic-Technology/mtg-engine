@@ -1,0 +1,7 @@
+card "Hero of Goma Fada" {
+  oracle_id f15908ea-2be0-4035-933d-4412fe032164
+  cost {4}{W}
+  type Creature — Human Knight Ally
+  pt 4/3
+  label "Rally" triggered whenever this or Ally you control enters: each creature you control gains indestructible
+}

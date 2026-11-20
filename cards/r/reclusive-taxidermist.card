@@ -1,0 +1,8 @@
+card "Reclusive Taxidermist" {
+  oracle_id 7a0168c5-e258-4c50-96aa-95deb2198e6f
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 1/2
+  static this: +3/+2 as long as 4 creature cards in your graveyard
+  mana any
+}

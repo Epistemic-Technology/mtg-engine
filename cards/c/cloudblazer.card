@@ -1,0 +1,8 @@
+card "Cloudblazer" {
+  oracle_id f84d1291-1f82-4b67-a26e-b79624b4ce1d
+  cost {3}{W}{U}
+  type Creature — Human Scout
+  pt 2/2
+  keywords flying
+  triggered when this enters: you gain 2 life and draw 2 card
+}

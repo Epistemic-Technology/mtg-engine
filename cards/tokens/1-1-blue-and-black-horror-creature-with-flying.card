@@ -1,0 +1,7 @@
+token "1/1 blue and black Horror creature with flying" {
+  name "Horror"
+  type Creature — Horror
+  pt 1/1
+  color blue black
+  keywords flying
+}

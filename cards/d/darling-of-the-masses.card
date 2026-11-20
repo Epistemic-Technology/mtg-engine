@@ -1,0 +1,8 @@
+card "Darling of the Masses" {
+  oracle_id 96818698-c104-48f4-b73f-c8722d1d1be4
+  cost {2}{G}{W}
+  type Creature — Elf Citizen
+  pt 2/4
+  static other Citizen you control: +1/+0
+  triggered whenever this attacks: create 1 "1/1 green and white Citizen creature"
+}

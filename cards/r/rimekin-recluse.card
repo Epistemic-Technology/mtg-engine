@@ -1,0 +1,7 @@
+card "Rimekin Recluse" {
+  oracle_id ad99e430-e13f-4819-a2ee-bf3332ef517d
+  cost {2}{U}
+  type Creature — Elemental Wizard
+  pt 3/2
+  triggered when this enters: return up to 1 another target creature to hand
+}

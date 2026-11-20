@@ -1,0 +1,8 @@
+card "Greenbelt Radical" {
+  oracle_id d0a4efc3-fa68-48f2-a6d0-2fff93e05c77
+  cost {3}{G}
+  type Creature — Centaur Citizen
+  pt 4/4
+  disguise {5}{G}{G}
+  triggered when this is turned face up: put 1 +1/+1 counters on each creature you control; all creature you control gains trample
+}

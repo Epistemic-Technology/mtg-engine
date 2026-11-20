@@ -1,0 +1,8 @@
+card "Aragorn and Arwen, Wed" {
+  oracle_id b8a3440a-03c5-444c-a1de-252524c3db82
+  cost {4}{G}{W}
+  type Legendary Creature — Human Elf Noble
+  pt 3/6
+  keywords vigilance
+  triggered whenever this enters or attacks: put 1 +1/+1 counters on each other creature you control; you gain count each other creature you control life
+}

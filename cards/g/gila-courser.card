@@ -1,0 +1,8 @@
+card "Gila Courser" {
+  oracle_id bc983c67-eb5d-4a85-a12e-a410f85e949e
+  cost {2}{R}
+  type Creature — Lizard Mount
+  pt 4/2
+  triggered whenever this attacks while saddled: impulse 1 next turn first
+  saddle 1
+}

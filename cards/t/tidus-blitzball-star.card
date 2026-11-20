@@ -1,0 +1,8 @@
+card "Tidus, Blitzball Star" {
+  oracle_id ef827c62-a5c5-4a7a-92a8-edefb081fae8
+  cost {1}{W}{U}
+  type Legendary Creature — Human Warrior
+  pt 2/1
+  triggered whenever artifact you control enters: put 1 +1/+1 counters on this
+  triggered whenever this attacks: tap target creature an opponent controls
+}

@@ -1,0 +1,10 @@
+card "Balefire Liege" {
+  oracle_id ee35ed62-d5a2-4e65-a7eb-fcdcb3665532
+  cost {2}{R/W}{R/W}{R/W}
+  type Creature — Spirit Horror
+  pt 2/4
+  static other red creature you control: +1/+1
+  static other white creature you control: +1/+1
+  triggered whenever you cast red spell: deal 3 damage to target player or planeswalker
+  triggered whenever you cast white spell: you gains 3 life
+}

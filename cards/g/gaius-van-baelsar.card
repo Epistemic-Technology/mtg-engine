@@ -1,0 +1,11 @@
+card "Gaius van Baelsar" {
+  oracle_id 86d2a45a-e452-4241-8ab4-28a2bb808ffa
+  cost {2}{B}{B}
+  type Legendary Creature — Human Soldier
+  pt 3/2
+  triggered when this enters: choose one {
+    mode: each player sacrifices 1 creature token
+    mode: each player sacrifices 1 nontoken creature
+    mode: each player sacrifices 1 enchantment
+  }
+}

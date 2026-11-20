@@ -1,0 +1,7 @@
+card "Deeproot Elite" {
+  oracle_id 764e8e6e-0ace-4fc8-8ca5-468a10ae3b73
+  cost {1}{G}
+  type Creature — Merfolk Warrior
+  pt 1/1
+  triggered whenever other Merfolk you control enters: put 1 +1/+1 counters on target Merfolk you control
+}

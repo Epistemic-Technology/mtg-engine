@@ -1,0 +1,7 @@
+card "Bontu's Monument" {
+  oracle_id 940ba435-7abc-40f8-a5af-c1c653b3284e
+  cost {3}
+  type Legendary Artifact
+  spells black creature you cast cost {1} less
+  triggered whenever you cast creature spell: each opponent loses 1 life and you gains 1 life
+}

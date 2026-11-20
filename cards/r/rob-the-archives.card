@@ -1,0 +1,7 @@
+card "Rob the Archives" {
+  oracle_id df45a344-5937-4a3f-a80f-581ea456ea05
+  cost {1}{R}
+  type Sorcery
+  casualty 1
+  spell: impulse 2 this turn
+}

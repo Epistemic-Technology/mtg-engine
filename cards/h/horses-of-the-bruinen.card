@@ -1,0 +1,6 @@
+card "Horses of the Bruinen" {
+  oracle_id 100d1c9e-15aa-4bab-9fb3-76c2cd6abc2f
+  cost {3}{U}{U}
+  type Sorcery
+  spell: return up to two target creatures to hand; scry 1; the ring tempts you
+}

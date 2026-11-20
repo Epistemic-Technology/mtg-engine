@@ -1,0 +1,7 @@
+card "Marwyn, the Clearcutter" {
+  oracle_id aff4e43d-cafa-47de-8e39-011f9254a26a
+  cost {R}
+  type Legendary Creature — Elf Warrior
+  pt 2/1
+  activated {2}, {T}, sacrifice artifact or land: draw 1 cards
+}

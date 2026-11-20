@@ -1,0 +1,7 @@
+card "Into the Fray" {
+  oracle_id 3d165dec-1821-4d3f-8407-8ce8bb347f8b
+  cost {R}
+  type Instant — Arcane
+  spell: target creature attacks if able
+  splice {R}
+}

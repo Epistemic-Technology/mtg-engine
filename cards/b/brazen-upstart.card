@@ -1,0 +1,8 @@
+card "Brazen Upstart" {
+  oracle_id e0a9c4be-74fe-4984-9028-60380db1575b
+  cost {R}{G}{W}
+  type Creature — Elf Shaman
+  pt 4/2
+  keywords vigilance
+  triggered when this dies: dig 5 take creature card may revealing rest bottom random
+}

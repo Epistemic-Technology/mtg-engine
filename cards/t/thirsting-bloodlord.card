@@ -1,0 +1,7 @@
+card "Thirsting Bloodlord" {
+  oracle_id b04ba676-a1f5-4216-9d93-3c475b504bfa
+  cost {2}{B}{B}
+  type Creature — Vampire
+  pt 3/3
+  static other Vampire you control: +1/+1
+}

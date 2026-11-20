@@ -1,0 +1,9 @@
+card "Smothering Abomination" {
+  oracle_id c3db28e5-6162-4642-a1c9-a7ace0737950
+  cost {2}{B}{B}
+  type Creature — Eldrazi
+  pt 4/3
+  keywords devoid, flying
+  triggered at beginning of your upkeep: sacrifice 1 creature chosen
+  triggered whenever you sacrifice creature: draw 1 cards
+}

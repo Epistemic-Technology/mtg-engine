@@ -1,0 +1,9 @@
+card "Boartusk Liege" {
+  oracle_id 4fcffb56-5ab6-44e2-804e-8b3c55cc5415
+  cost {1}{R/G}{R/G}{R/G}
+  type Creature — Goblin Knight
+  pt 3/4
+  keywords trample
+  static other red creature you control: +1/+1
+  static other green creature you control: +1/+1
+}

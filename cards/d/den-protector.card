@@ -1,0 +1,9 @@
+card "Den Protector" {
+  oracle_id 59324efc-65b7-4b31-89c5-17aed5c7eeb1
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 2/1
+  can't be blocked by creature with lesser power
+  megamorph {1}{G}
+  triggered when this is turned face up: return target card from your graveyard to hand
+}

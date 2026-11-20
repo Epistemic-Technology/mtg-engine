@@ -1,0 +1,9 @@
+card "Nacatl Hunt-Pride" {
+  oracle_id 094bc780-3c37-4863-b6ed-e2d16ed94544
+  cost {5}{W}
+  type Creature — Cat Warrior
+  pt 5/4
+  keywords vigilance
+  activated {R}, {T}: target creature can't block
+  activated {G}, {T}: target creature blocks if able
+}

@@ -1,0 +1,6 @@
+card "Commune with Lava" {
+  oracle_id f4aa0f64-d202-42a1-af62-0e53bbe87782
+  cost {X}{R}{R}
+  type Instant
+  spell: impulse X next turn first
+}

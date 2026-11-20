@@ -1,0 +1,8 @@
+card "Novel Nunchaku" {
+  oracle_id 6d819742-3d02-4d60-9b10-82caa49a9d49
+  cost {2}{G}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control; when you do, equipped creature fights up to one target creature an opponent controls
+  static enchanted: +1/+1, has trample
+  equip {3}
+}

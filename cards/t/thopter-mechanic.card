@@ -1,0 +1,8 @@
+card "Thopter Mechanic" {
+  oracle_id a7e7be75-646d-4c99-8388-15bb422c8e25
+  cost {1}{U}
+  type Creature — Human Artificer
+  pt 2/1
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counters on this
+  triggered when this dies: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

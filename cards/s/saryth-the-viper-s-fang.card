@@ -1,0 +1,9 @@
+card "Saryth, the Viper's Fang" {
+  oracle_id 4e07a0b3-f340-4ed1-a8a9-c25fe6f37fb3
+  cost {2}{G}{G}
+  type Legendary Creature — Human Warlock
+  pt 3/4
+  static other tapped creature you control: has deathtouch
+  static other untapped creature you control: has hexproof
+  activated {1}, {T}: untap another target creature or land you control
+}

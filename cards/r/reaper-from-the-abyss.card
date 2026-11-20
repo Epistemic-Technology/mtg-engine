@@ -1,0 +1,8 @@
+card "Reaper from the Abyss" {
+  oracle_id d3a50d73-3a1f-43aa-ab97-c6c0031bb734
+  cost {3}{B}{B}{B}
+  type Creature — Demon
+  pt 6/6
+  keywords flying
+  label "Morbid" triggered at beginning of every end step if creature died this turn: destroy target non-Demon creature
+}

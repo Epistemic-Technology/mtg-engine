@@ -1,0 +1,9 @@
+card "Borborygmos Enraged" {
+  oracle_id b7505737-1fc8-4ee8-8b1d-5dde73b6a76d
+  cost {4}{R}{R}{G}{G}
+  type Legendary Creature — Cyclops
+  pt 7/6
+  keywords trample
+  triggered whenever this deals combat damage to a player: dig 3 reveal take all land card rest graveyard
+  activated discard land card: deal 3 damage to any target
+}

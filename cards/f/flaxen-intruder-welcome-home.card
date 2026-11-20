@@ -1,0 +1,13 @@
+card "Flaxen Intruder // Welcome Home" {
+  oracle_id bacedc99-46d9-4757-8a27-8df77d7c2f02
+  layout adventure
+  cost {G}
+  type Creature — Human Berserker
+  pt 1/2
+  triggered whenever this deals combat damage to a player: you may sacrifice this; when you do, destroy target artifact or enchantment
+  face "Welcome Home" {
+    cost {5}{G}{G}
+    type Sorcery — Adventure
+    spell: create 3 "2/2 green Bear creature"
+  }
+}

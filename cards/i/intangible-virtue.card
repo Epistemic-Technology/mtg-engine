@@ -1,0 +1,6 @@
+card "Intangible Virtue" {
+  oracle_id d21c3c8f-d105-4ba9-bf69-e5f26f0f8ec5
+  cost {1}{W}
+  type Enchantment
+  static creature token you control: +1/+1, has vigilance
+}

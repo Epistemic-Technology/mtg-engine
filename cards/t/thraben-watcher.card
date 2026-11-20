@@ -1,0 +1,8 @@
+card "Thraben Watcher" {
+  oracle_id 53cd9d9f-c1a7-404e-9934-4542415e3431
+  cost {2}{W}{W}
+  type Creature — Angel
+  pt 2/2
+  keywords flying, vigilance
+  static other nontoken creature you control: +1/+1, has vigilance
+}

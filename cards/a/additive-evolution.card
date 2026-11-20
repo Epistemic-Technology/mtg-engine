@@ -1,0 +1,7 @@
+card "Additive Evolution" {
+  oracle_id ce1a6c1f-6b4e-4d19-b256-48d073b359b7
+  cost {3}{G}{G}
+  type Enchantment
+  triggered when this enters: create 1 "0/0 green and blue Fractal creature"; put 3 +1/+1 counters on this
+  triggered at beginning of your combat: put 1 +1/+1 counters on target creature you control; target 1 gains vigilance
+}

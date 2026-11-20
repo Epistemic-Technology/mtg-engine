@@ -1,0 +1,7 @@
+card "Lingering Phantom" {
+  oracle_id 76164af1-275e-4d68-9df5-9801768512ef
+  cost {5}{B}
+  type Creature — Spirit
+  pt 5/4
+  triggered from graveyard whenever you cast historic spell: you may pay {B}; if you do, return this to hand
+}

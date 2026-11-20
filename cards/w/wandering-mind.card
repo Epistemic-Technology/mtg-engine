@@ -1,0 +1,8 @@
+card "Wandering Mind" {
+  oracle_id 0fa886c2-9b58-4368-b2d0-e619c62a554f
+  cost {1}{U}{R}
+  type Creature — Horror
+  pt 2/1
+  keywords flying
+  triggered when this enters: dig 6 take noncreature, nonland card may revealing rest bottom random
+}

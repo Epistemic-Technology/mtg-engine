@@ -1,0 +1,8 @@
+card "Faerie Vandal" {
+  oracle_id b872f147-00eb-4cf8-af8c-4144356b2089
+  cost {1}{U}
+  type Creature — Faerie Rogue
+  pt 1/2
+  keywords flash, flying
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counters on this
+}

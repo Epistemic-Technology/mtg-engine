@@ -1,0 +1,7 @@
+card "Lantern Scout" {
+  oracle_id 803f2f95-533e-4b5a-8ede-d00fad779430
+  cost {2}{W}
+  type Creature — Human Scout Ally
+  pt 3/2
+  label "Rally" triggered whenever this or Ally you control enters: each creature you control gains lifelink
+}

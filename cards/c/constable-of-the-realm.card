@@ -1,0 +1,8 @@
+card "Constable of the Realm" {
+  oracle_id 2a263e61-303f-449d-a431-c26cabdc68e0
+  cost {4}{W}
+  type Creature — Giant Soldier
+  pt 3/3
+  renown 2
+  triggered whenever one or more +1/+1 counters put on this: exile up to 1 another target nonland permanent until this leaves
+}

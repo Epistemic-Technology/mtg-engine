@@ -1,0 +1,6 @@
+card "Golem's Heart" {
+  oracle_id 650890bc-aba6-45fb-8096-3a36b0a015b3
+  cost {2}
+  type Artifact
+  triggered whenever a player casts artifact spell: you may you gain 1 life
+}

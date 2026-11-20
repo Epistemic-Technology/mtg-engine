@@ -1,0 +1,8 @@
+card "The Walls of Ba Sing Se" {
+  oracle_id af7d7da5-aff5-48e1-901a-f81257a85f71
+  cost {8}
+  type Legendary Artifact Creature — Wall
+  pt 0/30
+  keywords defender
+  static other permanent you control: has indestructible
+}

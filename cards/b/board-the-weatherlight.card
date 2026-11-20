@@ -1,0 +1,6 @@
+card "Board the Weatherlight" {
+  oracle_id c4ce96d8-3ce4-4ed2-9ad3-73119aa79fbe
+  cost {1}{W}
+  type Sorcery
+  spell: dig 5 take historic card may revealing rest bottom random
+}

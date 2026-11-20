@@ -1,0 +1,7 @@
+card "Champion of the Perished" {
+  oracle_id f3654fbd-16a5-4953-84ac-534e8421032f
+  cost {B}
+  type Creature — Zombie
+  pt 1/1
+  triggered whenever other Zombie you control enters: put 1 +1/+1 counters on this
+}

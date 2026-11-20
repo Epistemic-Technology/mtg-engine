@@ -1,0 +1,8 @@
+card "Byway Barterer" {
+  oracle_id a864b032-6e1a-4211-ad6e-54a5a5c7321b
+  cost {2}{R}
+  type Creature — Raccoon Rogue
+  pt 3/3
+  keywords menace
+  triggered whenever you expend 4: you may discard hand; if you do, draw 2 cards
+}

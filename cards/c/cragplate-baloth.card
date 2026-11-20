@@ -1,0 +1,10 @@
+card "Cragplate Baloth" {
+  oracle_id 3f599e15-cbc5-4170-b6b4-efd16aa222ac
+  cost {5}{G}{G}
+  type Creature — Beast
+  pt 6/6
+  kicker {2}{G}
+  this spell can't be countered
+  keyword hexproof, haste
+  kicked with 4 +1/+1 counters
+}

@@ -1,0 +1,8 @@
+card "Master Piandao" {
+  oracle_id e294d9d2-df91-4410-85d3-8ffb13fb2285
+  cost {4}{W}
+  type Legendary Creature — Human Warrior Ally
+  pt 4/4
+  keywords first strike
+  triggered whenever this attacks: dig 4 take Ally, Equipment, or Lesson card may revealing rest bottom random
+}

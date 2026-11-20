@@ -1,0 +1,11 @@
+card "Silverquill Command" {
+  oracle_id 6075b999-75c5-41c8-898d-ee612ba79a92
+  cost {2}{W}{B}
+  type Sorcery
+  choose two {
+    mode: target creature gets +3/+3 and gains flying
+    mode: return target creature card with mana value 2 or less from your graveyard to battlefield
+    mode: target player draws a card and loses 1 life
+    mode: target opponent sacrifices 1 creature
+  }
+}

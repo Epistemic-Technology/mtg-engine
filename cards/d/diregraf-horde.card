@@ -1,0 +1,7 @@
+card "Diregraf Horde" {
+  oracle_id d7947858-f11d-438c-8ad3-991afe950a11
+  cost {4}{B}
+  type Creature — Zombie
+  pt 3/4
+  triggered when this enters: create 2 "2/2 black Zombie creature with decayed"; when you do, exile up to two target card from graveyards
+}

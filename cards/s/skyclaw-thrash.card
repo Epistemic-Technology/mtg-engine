@@ -1,0 +1,7 @@
+card "Skyclaw Thrash" {
+  oracle_id 5d11cdb2-5a44-4e0e-b357-bb1be59f68fb
+  cost {3}{U}{R}
+  type Artifact Creature — Lizard Warrior
+  pt 4/4
+  triggered whenever this attacks: flip coin; if you win the flip, this creature gets +1/+1 and gains flying
+}

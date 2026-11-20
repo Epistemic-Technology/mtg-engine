@@ -1,0 +1,9 @@
+card "Abiding Grace" {
+  oracle_id f4e7bc58-336d-4670-84cb-a46ca1f48671
+  cost {2}{W}
+  type Enchantment
+  triggered at beginning of your end step: choose one {
+    mode: you gains 1 life
+    mode: return target creature card with mana value 1 from your graveyard to battlefield
+  }
+}

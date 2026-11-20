@@ -1,0 +1,7 @@
+card "Spirit Bonds" {
+  oracle_id f41ea1b5-2c31-43fa-b142-244add1efd35
+  cost {1}{W}
+  type Enchantment
+  triggered whenever nontoken creature you control enters: you may pay {W}; if you do, create 1 "1/1 white Spirit creature with flying"
+  activated {1}{W}, sacrifice Spirit: target non-Spirit creature gains indestructible
+}

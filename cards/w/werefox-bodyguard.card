@@ -1,0 +1,9 @@
+card "Werefox Bodyguard" {
+  oracle_id d5ee2ced-29f4-430f-962e-2f930b92624c
+  cost {1}{W}{W}
+  type Creature — Elf Fox Knight
+  pt 2/2
+  keywords flash
+  triggered when this enters: exile up to 1 another target non-Fox creature until this leaves
+  activated {1}{W}, sacrifice this: you gains 2 life
+}

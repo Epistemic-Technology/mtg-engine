@@ -1,0 +1,8 @@
+card "Gravewaker" {
+  oracle_id 7ceec1c7-c1f9-4d47-a203-6ee98c5d30d2
+  cost {4}{B}{B}
+  type Creature — Bird Spirit
+  pt 5/5
+  keywords flying
+  activated {5}{B}{B}: return target creature card from your graveyard to battlefield tapped
+}

@@ -1,0 +1,7 @@
+card "Squirrel Sanctuary" {
+  oracle_id 693d20e9-ad92-44ad-9190-d247c94660eb
+  cost {G}
+  type Enchantment
+  triggered when this enters: create 1 "1/1 green Squirrel creature"
+  triggered whenever nontoken creature you control dies: you may pay {1}; if you do, return this to hand
+}

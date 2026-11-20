@@ -1,0 +1,8 @@
+card "Sire of Seven Deaths" {
+  oracle_id a15547d0-bbcb-41ee-a9ae-8325a9e7fe1f
+  cost {7}
+  type Creature — Eldrazi
+  pt 7/7
+  keywords reach, first strike, vigilance, menace, trample, lifelink
+  ward pay 7 life
+}

@@ -1,0 +1,7 @@
+card "Merfolk Mistbinder" {
+  oracle_id be56dfea-1ece-4f06-b1cc-d7425b5018b4
+  cost {G}{U}
+  type Creature — Merfolk Shaman
+  pt 2/2
+  static other Merfolk you control: +1/+1
+}

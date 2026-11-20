@@ -1,0 +1,8 @@
+card "Morcant's Loyalist" {
+  oracle_id b2c30683-cc7f-4341-add1-b08cb9b93eeb
+  cost {1}{B}{G}
+  type Creature — Elf Warrior
+  pt 3/2
+  static other Elf you control: +1/+1
+  triggered when this dies: return another target Elf card from your graveyard to hand
+}

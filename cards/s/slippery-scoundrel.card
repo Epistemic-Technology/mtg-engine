@@ -1,0 +1,8 @@
+card "Slippery Scoundrel" {
+  oracle_id 3c7ea8d0-d866-4c02-bdfc-13bbc87c094a
+  cost {2}{U}
+  type Creature — Human Pirate
+  pt 2/2
+  ascend
+  static as long as city's blessing, this: has hexproof, has can't be blocked
+}

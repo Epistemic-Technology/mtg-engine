@@ -1,0 +1,8 @@
+card "Flock Impostor" {
+  oracle_id 6522070b-7002-44fd-8deb-832fe67ef9a9
+  cost {2}{W}
+  type Creature — Shapeshifter
+  pt 2/2
+  keywords changeling, flash, flying
+  triggered when this enters: return up to 1 another target creature you control to hand
+}

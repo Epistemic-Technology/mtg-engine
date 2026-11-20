@@ -1,0 +1,8 @@
+card "Spectrum Sentinel" {
+  oracle_id 7c13d0ad-1235-41f7-8f9a-f39d7c544b74
+  cost {1}
+  type Artifact Creature — Soldier
+  pt 1/2
+  protection from multicolored
+  triggered whenever nonbasic land an opponent controls enters: you gains 1 life
+}

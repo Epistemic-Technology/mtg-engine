@@ -1,0 +1,7 @@
+card "Volcanic Fallout" {
+  oracle_id bd6ce147-c991-40ac-b276-65b630fad8b6
+  cost {1}{R}{R}
+  type Instant
+  this spell can't be countered
+  spell: deal 2 damage to each creature and each player
+}

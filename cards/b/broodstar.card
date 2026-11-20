@@ -1,0 +1,8 @@
+card "Broodstar" {
+  oracle_id 428cc1cb-a491-4cc4-9436-28ee8acc37d6
+  cost {8}{U}{U}
+  type Creature — Beast
+  affinity for artifact
+  keyword flying
+  static this: cda pt count artifact you control
+}

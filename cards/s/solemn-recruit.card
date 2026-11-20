@@ -1,0 +1,8 @@
+card "Solemn Recruit" {
+  oracle_id cf747d6e-05ae-484d-9e72-1d0fb71fd4ff
+  cost {1}{W}{W}
+  type Creature — Dwarf Warrior
+  pt 2/2
+  keywords double strike
+  label "Revolt" triggered at beginning of your end step if permanent left this turn: put 1 +1/+1 counters on this
+}

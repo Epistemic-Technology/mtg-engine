@@ -1,0 +1,9 @@
+card "Ral, Caller of Storms" {
+  oracle_id d7b10518-b6dc-4a39-881a-edd346034f28
+  cost {4}{U}{R}
+  type Legendary Planeswalker — Ral
+  loyalty 4
+  loyalty +1: draw 1 cards
+  loyalty -2: deal 3 damage divided among 1 to 3 targets
+  loyalty -7: draw 7 cards; deal 7 damage to each creature your opponents control
+}

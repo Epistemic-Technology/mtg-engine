@@ -1,0 +1,9 @@
+card "Broodguard Elite" {
+  oracle_id c90da077-de8c-4402-abfc-b63dd15853da
+  cost {X}{G}{G}
+  type Creature — Insect Knight
+  pt 0/0
+  enters with X +1/+1 counters
+  triggered when this leaves the battlefield: put its counters on target creature you control
+  warp {X}{G}
+}

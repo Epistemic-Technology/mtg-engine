@@ -1,0 +1,8 @@
+card "Kuro, Pitlord" {
+  oracle_id c80a7d22-076a-4fd7-bcf4-4769143647f0
+  cost {6}{B}{B}{B}
+  type Legendary Creature — Demon Spirit
+  pt 9/9
+  triggered at beginning of your upkeep: sacrifice this unless you pay {B}{B}{B}{B}
+  activated pay 1 life: target creature gets -1/-1
+}

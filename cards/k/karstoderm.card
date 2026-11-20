@@ -1,0 +1,8 @@
+card "Karstoderm" {
+  oracle_id 6025ce2f-d527-457c-866c-cb5c119d0bf4
+  cost {2}{G}{G}
+  type Creature — Beast
+  pt 0/0
+  enters with 5 +1/+1 counters
+  triggered whenever artifact enters: remove 1 +1/+1 counters from this
+}

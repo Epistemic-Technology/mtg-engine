@@ -1,0 +1,7 @@
+card "Fleeting Memories" {
+  oracle_id fbb0173d-7ec9-4f43-b457-f8de6703497e
+  cost {2}{U}
+  type Enchantment
+  triggered when this enters: investigate
+  triggered whenever you sacrifice Clue: target player mills 3 cards
+}

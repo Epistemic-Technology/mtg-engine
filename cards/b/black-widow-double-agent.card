@@ -1,0 +1,8 @@
+card "Black Widow, Double Agent" {
+  oracle_id e6c181f1-f4f7-4a96-b50c-717cf2a02098
+  cost {1}{W}{B}
+  type Legendary Creature — Human Hero Villain
+  pt 3/2
+  keywords deathtouch
+  triggered whenever creature you control attacks alone: it gains first strike, menace
+}

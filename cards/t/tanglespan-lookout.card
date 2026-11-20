@@ -1,0 +1,7 @@
+card "Tanglespan Lookout" {
+  oracle_id d6a767c2-8bc8-4686-899a-0ba3a525977a
+  cost {2}{G}
+  type Creature — Satyr
+  pt 2/3
+  triggered whenever Aura you control enters: draw 1 cards
+}

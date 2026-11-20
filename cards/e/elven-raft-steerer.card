@@ -1,0 +1,10 @@
+card "Elven Raft-Steerer" {
+  oracle_id d0f62148-1015-49b8-b61f-a4332325a6b0
+  cost {2}{U}
+  type Creature — Elf Pilot
+  pt 3/2
+  label "Landfall" triggered whenever land you control enters: choose one {
+    mode: tap target creature an opponent controls
+    mode: untap target creature you control
+  }
+}

@@ -1,0 +1,8 @@
+card "Donatello, Way with Machines" {
+  oracle_id 194af2be-50c7-484b-bdd3-402bad70335b
+  cost {2}{U}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 1/2
+  keywords flying
+  triggered whenever artifact you control enters: put 1 +1/+1 counters on this
+}

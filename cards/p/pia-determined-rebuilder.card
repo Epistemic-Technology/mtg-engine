@@ -1,0 +1,8 @@
+card "Pia, Determined Rebuilder" {
+  oracle_id a49c0c64-ea87-44f4-9acf-e7181962aeb2
+  cost {2}{R}
+  type Legendary Creature — Human Artificer
+  pt 2/2
+  triggered when this enters: create 1 "1/1 colorless Thopter artifact creature with flying"
+  activated {5}{R}: target creature gets +1/+0 count where artifact you control
+}

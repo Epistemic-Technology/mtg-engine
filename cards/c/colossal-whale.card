@@ -1,0 +1,8 @@
+card "Colossal Whale" {
+  oracle_id cd04b735-125f-47b5-a68e-ab2a008100b9
+  cost {5}{U}{U}
+  type Creature — Whale
+  pt 5/5
+  keywords islandwalk
+  triggered whenever this attacks: you may exile target creature defending player controls until this leaves
+}

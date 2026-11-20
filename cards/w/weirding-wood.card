@@ -1,0 +1,8 @@
+card "Weirding Wood" {
+  oracle_id 9ce5cc2f-e223-4c3b-adc1-c0109fd31762
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: investigate
+  static enchanted: has ability { activated {T}: add any 2 }
+}

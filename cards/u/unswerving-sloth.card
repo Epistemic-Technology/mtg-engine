@@ -1,0 +1,8 @@
+card "Unswerving Sloth" {
+  oracle_id 5e512ce9-5e2e-4ec3-9486-a10c63cff299
+  cost {3}{W}{W}
+  type Creature — Sloth Mount
+  pt 5/5
+  triggered whenever this attacks while saddled: this gains indestructible; untap all creature you control
+  saddle 4
+}

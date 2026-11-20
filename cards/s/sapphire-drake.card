@@ -1,0 +1,8 @@
+card "Sapphire Drake" {
+  oracle_id 1987bb61-a31b-4d5a-910f-88e9cbc6c8b3
+  cost {5}{U}
+  type Creature — Drake
+  pt 4/4
+  keywords flying
+  static each creature you control with +1/+1 counter: has flying
+}

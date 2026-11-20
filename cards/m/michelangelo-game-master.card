@@ -1,0 +1,7 @@
+card "Michelangelo, Game Master" {
+  oracle_id 594c6b1f-ff0e-4122-8b29-852632a22a79
+  cost {2}{G}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 3/3
+  label "Disappear" triggered at beginning of your end step if permanent left this turn: put 1 +1/+1 counters on this
+}

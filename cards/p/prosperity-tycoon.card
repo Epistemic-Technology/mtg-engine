@@ -1,0 +1,8 @@
+card "Prosperity Tycoon" {
+  oracle_id 07acb7e5-7aae-4d89-aabf-cbd329b3480b
+  cost {3}{W}
+  type Creature — Human Noble
+  pt 4/2
+  triggered when this enters: create 1 "Mercenary"
+  activated {2}, sacrifice token: this gains indestructible; tap this
+}

@@ -1,0 +1,6 @@
+card "Rally Maneuver" {
+  oracle_id 6bbdf771-75d5-4910-bd16-6232e254f7f6
+  cost {2}{W}
+  type Instant
+  spell: target creature gets +2/+0 and gains first strike; up to 1 another target creature gets +0/+2 and gains lifelink
+}

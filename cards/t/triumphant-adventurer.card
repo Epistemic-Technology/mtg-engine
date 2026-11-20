@@ -1,0 +1,9 @@
+card "Triumphant Adventurer" {
+  oracle_id 6aac0ae4-d9a7-4c40-a39e-229186c84d74
+  cost {W}{B}
+  type Creature — Human Knight
+  pt 1/1
+  keywords deathtouch
+  static during your turn, this: has first strike
+  triggered whenever this attacks: venture
+}

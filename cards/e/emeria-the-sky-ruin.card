@@ -1,0 +1,7 @@
+card "Emeria, the Sky Ruin" {
+  oracle_id cc999cf2-c99b-4911-8c52-6cc4a99fcc7b
+  type Land
+  enters tapped
+  triggered at beginning of your upkeep if you control 7 Plain: you may return target creature card from your graveyard to battlefield
+  mana {W}
+}

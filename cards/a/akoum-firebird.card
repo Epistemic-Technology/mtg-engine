@@ -1,0 +1,8 @@
+card "Akoum Firebird" {
+  oracle_id 10ab3102-43a3-4c60-8641-2c5a7c1e29c2
+  cost {2}{R}{R}
+  type Creature — Phoenix
+  pt 3/3
+  keywords flying, haste, attacks each combat if able
+  label "Landfall" triggered from graveyard whenever land you control enters: you may pay {4}{R}{R}; if you do, return this to battlefield
+}

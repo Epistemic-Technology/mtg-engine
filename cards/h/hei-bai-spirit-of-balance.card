@@ -1,0 +1,8 @@
+card "Hei Bai, Spirit of Balance" {
+  oracle_id 8f709660-bb26-409f-9650-e5228ac8db7e
+  cost {2}{W/B}{W/B}
+  type Legendary Creature — Bear Spirit
+  pt 3/3
+  triggered whenever this enters or attacks: you may sacrifice 1 another creature or artifact chosen; if you do, put 2 +1/+1 counters on this creature
+  triggered when this leaves the battlefield: put its counters on target creature you control
+}
