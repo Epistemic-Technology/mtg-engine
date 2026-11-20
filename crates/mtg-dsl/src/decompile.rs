@@ -994,6 +994,10 @@ impl Decompiler<'_> {
                 in_addition: *in_addition,
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
+            CoreEffect::PlayerMay { who, effects } => Effect::PlayerMay {
+                who: Self::recipient(*who),
+                inner: self.sentences(effects),
+            },
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
             CoreEffect::EachPutsFromGraveyard { who, filter } => Effect::EachPutsFromGraveyard {
                 who: Self::recipient(*who),

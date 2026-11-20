@@ -4507,6 +4507,20 @@ impl P {
                     may: false,
                 })
             }
+            // "That player may pay {4}", "that player may discard a card
+            // at random": the player decides and acts (`PlayerMay`).
+            "may"
+                if subject != Recipient::You
+                    && (self.at_word("pay") || self.at_word("discard")) =>
+            {
+                let saved = self.subject.take();
+                let s = self.sentence()?;
+                self.subject = saved;
+                Ok(Effect::PlayerMay {
+                    who: subject,
+                    inner: vec![s],
+                })
+            }
             // "Its controller may search their library for ...": the
             // player searches their own library (CR 701.19).
             "may" | "searches" if subject != Recipient::You => {
@@ -7385,6 +7399,9 @@ impl P {
         }
         if self.in_trigger && self.eat_words(&["controller", "of", "the", "creature"]) {
             return Ok(Recipient::TheTriggeringController);
+        }
+        if self.in_trigger && !self.in_delayed && self.eat_words(&["the", "creature"]) {
+            return Ok(Recipient::TheTriggeringObject);
         }
         // "Sacrifice those tokens at the beginning of the next end step."
         if self.eat_words(&["those", "tokens"]) {

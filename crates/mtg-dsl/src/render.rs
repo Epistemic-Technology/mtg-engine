@@ -833,6 +833,9 @@ struct Ctx<'a> {
     /// A spell was just countered unless its controller paid: "If they
     /// do" follows.
     they_paid: bool,
+    /// "That player may pay {4}": a following "If you do" prints "If the
+    /// player does".
+    player_did: bool,
     /// The next sentence is "If you don't, ...": an optional choice before
     /// it prints its result "If you do, ..." ("You may choose a creature
     /// card from it. If you do, that player discards that card.").
@@ -866,6 +869,7 @@ impl<'a> Ctx<'a> {
             pumped: Vec::new(),
             in_won: false,
             they_paid: false,
+            player_did: false,
             before_if_you_dont: false,
             in_unless: false,
         }
@@ -1078,6 +1082,7 @@ impl<'a> Ctx<'a> {
                 "that Vehicle".to_string()
             }
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
+            Recipient::TheTriggeringObject => "the creature".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TriggeringCard => "that card".to_string(),
             Recipient::TriggeringController { that: true } => {
@@ -5615,14 +5620,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::IfYouDo(inner) => {
             // "Counter target spell unless its controller pays {2}. If they
             // do, ...".
-            let who = if std::mem::take(&mut ctx.they_paid) {
-                "they"
+            let who = if std::mem::take(&mut ctx.player_did) {
+                "the player does"
+            } else if std::mem::take(&mut ctx.they_paid) {
+                "they do"
             } else {
-                "you"
+                "you do"
             };
             let body = sentences(inner, ctx);
             let body = lowercase_first(&body);
-            Clause::imperative(format!("if {who} do, {}", body.trim_end_matches('.')))
+            Clause::imperative(format!("if {who}, {}", body.trim_end_matches('.')))
         }
         Effect::Pay { mana, life } => Clause::imperative(if *life > 0 {
             format!("pay {life} life")
@@ -6002,6 +6009,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
             .until_eot()
+        }
+        Effect::PlayerMay { who, inner } => {
+            let who = ctx.obj(*who);
+            let body = lowercase_first(&sentences(inner, ctx));
+            let body = body.strip_prefix("you ").unwrap_or(&body);
+            ctx.player_did = true;
+            Clause::imperative(format!("{who} may {}", body.trim_end_matches('.')))
         }
         Effect::YouMay(inner) => {
             if let [one] = inner.as_slice()

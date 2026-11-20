@@ -7891,6 +7891,50 @@ impl GameState {
                     }
                 }
             }
+            // "That player may pay {4}. If the player does, ...": the
+            // player decides (CR 608.2d) and acts as the one doing it; an
+            // act they can't complete in full isn't offered (CR 101.3).
+            Effect::PlayerMay { who, effects } => {
+                let Some(p) = self
+                    .recipients(ctx, *who)
+                    .into_iter()
+                    .find_map(|t| match t {
+                        Target::Player(p) => Some(p),
+                        Target::Object(_) => None,
+                    })
+                else {
+                    ctx.did = false;
+                    return;
+                };
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                    .expect("a resolving spell or its last known information exists");
+                let you = ctx.controller;
+                ctx.controller = p;
+                let possible = effects.iter().all(|e| match e {
+                    Effect::Pay { mana, life } => {
+                        (*life == 0
+                            || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX))
+                            && self.can_pay(p, &mana.requirements(0))
+                    }
+                    e => self.can_do(ctx, e),
+                });
+                ctx.did = possible
+                    && self.choose_mid(
+                        p,
+                        DecisionKind::YouMay { def },
+                        vec![Choice::Accept, Choice::Decline],
+                    ) == 0;
+                if ctx.did {
+                    for e in effects {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+                ctx.controller = you;
+            }
             Effect::Pay { mana, life } => {
                 let p = ctx.controller;
                 let req = mana.requirements(0);

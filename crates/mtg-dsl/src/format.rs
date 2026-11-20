@@ -258,6 +258,7 @@ impl Fmt {
             Recipient::SourceNamed => NOUN.with(|n| format!("this {}", n.borrow())),
             Recipient::SourceCard => "this card".to_string(),
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
+            Recipient::TheTriggeringObject => "the creature".to_string(),
             Recipient::TriggeringCard => "triggering card".to_string(),
             Recipient::TriggeringController { that: true } => {
                 "controller of that creature".to_string()
@@ -1681,6 +1682,10 @@ impl Fmt {
                 format!("{} becomes that type", self.recipient(*to, t))
             }
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
+            Effect::PlayerMay { who, inner } => {
+                let who = self.recipient(*who, t);
+                format!("{who} may {}", self.line(inner, t))
+            }
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
             Effect::EachPutsFromGraveyard { who, filter: f } => format!(
                 "{} puts 1 {} card from graveyard onto battlefield",

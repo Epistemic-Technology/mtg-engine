@@ -3372,6 +3372,14 @@ pub enum Effect {
     },
     /// "You may [do these]": the controller decides on resolution.
     YouMay(Vec<Effect>),
+    /// "That player may pay {4}", "that player may discard a card at
+    /// random": the player `who` names decides on resolution and does
+    /// these as their own (CR 608.2d); "If the player does" then sees
+    /// whether they did.
+    PlayerMay {
+        who: Recipient,
+        effects: Vec<Effect>,
+    },
     /// "pay {2}" / "pay 2 life", inside "you may": it happens only if the
     /// controller can pay; "If you do" then sees whether it did.
     Pay {
@@ -3921,6 +3929,7 @@ impl Effect {
         matches!(
             self,
             Effect::YouMay(_)
+                | Effect::PlayerMay { .. }
                 | Effect::ForEachCouldnt(_)
                 | Effect::EachPutsFromGraveyard { .. }
                 | Effect::IfKicked(_)
@@ -5416,6 +5425,7 @@ impl AbilityDef {
         fn walk<'a>(e: &'a Effect, out: &mut Vec<&'a Effect>) {
             out.push(e);
             if let Effect::YouMay(inner)
+            | Effect::PlayerMay { effects: inner, .. }
             | Effect::IfKicked(inner)
             | Effect::IfYouDo(inner)
             | Effect::Otherwise(inner)

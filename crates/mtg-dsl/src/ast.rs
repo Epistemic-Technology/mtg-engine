@@ -2237,6 +2237,9 @@ pub enum Recipient {
     /// The triggering object written `it` in a triggered ability ("Whenever
     /// another creature you control attacks, it gets +0/+1").
     TriggeringIt,
+    /// The triggering object written `the creature` in a triggered
+    /// ability: "If the player does, untap the creature." (Paralyze).
+    TheTriggeringObject,
     TriggeringPlayer,
     DefendingPlayer,
     /// `that defending player`: the defending player, printed "defending
@@ -2818,6 +2821,13 @@ pub enum Effect {
         in_addition: bool,
     },
     YouMay(Vec<Sentence>),
+    /// `that player may pay {4}`: "that player may pay {4}" (the player
+    /// decides and acts); a following `if they do` prints "If the player
+    /// does".
+    PlayerMay {
+        who: Recipient,
+        inner: Vec<Sentence>,
+    },
     /// "If this spell was kicked, ..." (CR 702.33c).
     IfKicked(Vec<Sentence>),
     /// `each player puts 1 creature card from graveyard onto battlefield`:

@@ -1221,7 +1221,12 @@ or triggered ability`, `target activated ability`, `target triggered
 ability`, `target activated ability from an artifact source`; `target spell that
 targets this` ("that targets this
 creature"),
-`you may <clause>`, `pay {2}` / `pay 2 life` (after `you may`), `if you do,
+`you may <clause>`, `pay {2}` / `pay 2 life` (after `you may`),
+`that player may pay {4}` / `that player may discard 1 card at random`
+(another player decides and acts as it resolves, CR 608.2d; an act they
+can't complete isn't offered; a following `if they do,` prints "If the
+player does,"), `the creature` (in a triggered ability, the triggering
+object printed "the creature": "untap the creature"), `if you do,
 <clause>` (only if the optional action before it happened: "You may pay
 {2}. If you do, draw a card."), `if you don't, <clause>` / `if you dont, <clause>` (only if it
 didn't: "You may pay {U}. If you don't, destroy target Knight."; after

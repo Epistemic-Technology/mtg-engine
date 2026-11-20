@@ -1,0 +1,9 @@
+card "Paralyze" {
+  oracle_id e9b4e857-39e5-4a06-89ad-3dd94b3f252a
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+  triggered at beginning of enchanted controller's upkeep: that player may pay {4}; if they do, untap the creature
+}

@@ -1268,9 +1268,9 @@ impl Compiler<'_> {
             Recipient::TriggeringController { .. } | Recipient::TheTriggeringController => {
                 CoreRecipient::TriggeringController
             }
-            Recipient::TriggeringObject | Recipient::TriggeringIt => {
-                CoreRecipient::TriggeringObject
-            }
+            Recipient::TriggeringObject
+            | Recipient::TriggeringIt
+            | Recipient::TheTriggeringObject => CoreRecipient::TriggeringObject,
             Recipient::TriggeringPlayer => CoreRecipient::TriggeringPlayer,
             Recipient::DefendingPlayer | Recipient::DefendingPlayerWord => {
                 CoreRecipient::DefendingPlayer
@@ -1917,6 +1917,13 @@ impl Compiler<'_> {
             Effect::YouMay(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::YouMay(effects));
+            }
+            Effect::PlayerMay { who, inner } => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::PlayerMay {
+                    who: r(*who),
+                    effects,
+                });
             }
             Effect::IfTarget(n, f, inner, _) => {
                 let then = self.sentences(inner)?;

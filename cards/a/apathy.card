@@ -1,0 +1,8 @@
+card "Apathy" {
+  oracle_id 09ac5adf-f722-417e-b0fc-7ed0d8c9abd6
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has doesn't untap
+  triggered at beginning of enchanted controller's upkeep: that player may discard 1 card at random; if they do, untap that creature
+}
