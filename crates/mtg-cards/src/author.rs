@@ -2500,6 +2500,7 @@ fn trigger_text(head: &str) -> Option<String> {
 /// Trigger phrases of a regular shape: the attached creature's events,
 /// this permanent's other events, and a class of permanents entering,
 /// dying, or attacking.
+#[allow(clippy::too_many_lines)] // one arm per trigger phrase
 fn trigger_general(head: &str) -> Option<String> {
     let fixed = match head {
         "When this creature leaves the battlefield"
@@ -2698,7 +2699,10 @@ fn static_condition(s: &str) -> Option<String> {
     }
     let more =
         Regex::new(r"^there are (\S+) or more ((?:[a-z]+ )*)cards in your graveyard$").unwrap();
-    if let Some(c) = more.captures(s) {
+    // Not "card types among cards in your graveyard" (below).
+    if let Some(c) = more.captures(s)
+        && !cap(&c, 2).contains(" among ")
+    {
         return Some(format!(
             "{} {}cards in your graveyard",
             number(cap(&c, 1))?,
