@@ -2651,10 +2651,13 @@ impl P {
         if self.eat_words(&["basic", "land", "types"]) {
             return Ok(StaticCond::BasicLandTypes(n));
         }
-        if self
-            .word_at(0)
-            .is_some_and(|w| card_type(&w).is_some() || w.starts_with("non") || color(&w).is_some())
-            || matches!(self.peek(), Some(Tok::Word(w)) if w.chars().next().is_some_and(char::is_uppercase))
+        if self.word_at(0).is_some_and(|w| {
+            card_type(&w).is_some()
+                    || w.starts_with("non")
+                    || color(&w).is_some()
+                    // Descend: "four or more permanent cards".
+                    || w == "permanent"
+        }) || matches!(self.peek(), Some(Tok::Word(w)) if w.chars().next().is_some_and(char::is_uppercase))
         {
             let filter = self.filter()?;
             // "an artifact card is in your graveyard".

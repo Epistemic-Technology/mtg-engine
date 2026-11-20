@@ -1,0 +1,8 @@
+card "Didact Echo" {
+  oracle_id 8151668c-6459-41b5-9e57-bb47c3876b81
+  cost {4}{U}
+  type Creature — Spirit Cleric
+  pt 3/2
+  triggered when this enters: draw 1 card
+  label "Descend 4" static this: has flying as long as 4 permanent cards in your graveyard
+}

@@ -1,0 +1,8 @@
+card "Malamet Veteran" {
+  oracle_id 25a9c864-59c6-4230-a234-bf78bf1ef24c
+  cost {4}{G}
+  type Creature — Cat Warrior
+  pt 5/4
+  keywords trample
+  label "Descend 4" triggered whenever this attacks if 4 permanent cards in your graveyard: put 1 +1/+1 counter on target creature
+}

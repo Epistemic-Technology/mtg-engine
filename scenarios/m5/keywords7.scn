@@ -338,3 +338,38 @@ scenario "reinforce: an instant's reinforce instead of casting it" {
   assert power "Grizzly Bears" 3
   assert graveyard A contains "Earthbrawn"
 }
+
+# Descend 4, an ability word (CR 207.2c): "if there are four or more
+# permanent cards in your graveyard".
+
+scenario "descend: four permanent cards in the graveyard" {
+  battlefield A: "Basking Capybara"
+  graveyard A: "Forest", "Grizzly Bears", "Ornithopter", "Pacifism"
+  run_to turn 1 postcombat_main
+  assert power "Basking Capybara" 4
+}
+
+scenario "descend: instants and sorceries aren't permanent cards" {
+  battlefield A: "Basking Capybara"
+  graveyard A: "Forest", "Grizzly Bears", "Ornithopter", "Lightning Bolt", "Shock"
+  run_to turn 1 postcombat_main
+  assert power "Basking Capybara" 1
+}
+
+scenario "descend: an attack trigger with four" {
+  battlefield A: "Malamet Veteran", "Hill Giant"
+  graveyard A: "Forest", "Grizzly Bears", "Ornithopter", "Pacifism"
+  turn 1 A: attack "Malamet Veteran"
+  turn 1 A: trigger "Malamet Veteran" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "descend: no trigger with three" {
+  battlefield A: "Malamet Veteran", "Hill Giant"
+  graveyard A: "Forest", "Ornithopter", "Pacifism"
+  turn 1 A: attack "Malamet Veteran"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+  assert counters "Malamet Veteran" +1/+1 0
+}

@@ -301,7 +301,8 @@ control this turn") and `drew 2 cards this turn` ("you've drawn two or
 more cards this turn").
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 `2 instant or sorcery cards in your graveyard` ("there are two or more
-instant and/or sorcery cards in your graveyard"; any card filter), `you
+instant and/or sorcery cards in your graveyard"; any card filter, `4 permanent
+cards in your graveyard` for descend), `you
 have 4 creature cards in your graveyard`, `there is land card in your
 graveyard` ("there is a land card in your graveyard"; `there's Lesson card
 in your graveyard` prints "there's a"), `1 artifact card is in your
