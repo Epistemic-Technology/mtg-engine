@@ -2421,10 +2421,14 @@ impl Compiler<'_> {
             Effect::Otherwise(inner) => {
                 if !matches!(
                     out.last(),
+                    // "You may tap two untapped creatures ... . If you do,
+                    // draw a card. Otherwise, sacrifice this enchantment."
+                    // (CR 608.2c): the optional action wasn't taken.
                     Some(
                         CoreEffect::IfCondition(..)
                             | CoreEffect::Clash { .. }
                             | CoreEffect::IfCard { .. }
+                            | CoreEffect::IfYouDo(..)
                     )
                 ) {
                     return self.err("`otherwise` needs a conditional sentence before it");

@@ -8854,6 +8854,17 @@ impl GameState {
                 }
             }
             Effect::YouMay(inner) => {
+                // "You may tap two untapped creatures you control": with
+                // fewer than two it can't be done, so it isn't offered and
+                // "if you do" fails (CR 608.2c), where a required "tap two"
+                // taps what it can (CR 101.3).
+                if inner
+                    .iter()
+                    .any(|e| matches!(e, Effect::ChooseAct { .. }) && !self.can_do(ctx, e))
+                {
+                    ctx.did = false;
+                    return;
+                }
                 let def = self
                     .objects
                     .get(ctx.source)

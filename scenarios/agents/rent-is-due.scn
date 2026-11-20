@@ -1,0 +1,26 @@
+scenario "end step: tap a creature and a Treasure to draw a card" {
+  battlefield A: "Rent Is Due", "Grizzly Bears", "Treasure"
+  run_to turn 1 cleanup
+  assert tapped "Grizzly Bears"
+  assert tapped "Treasure"
+  assert hand A count 1
+  assert battlefield A contains "Rent Is Due"
+}
+
+scenario "declined: sacrifice it" {
+  battlefield A: "Rent Is Due", "Grizzly Bears", "Hill Giant"
+  turn 1 end A: decline "Rent Is Due"
+  run_to turn 1 cleanup
+  assert untapped "Grizzly Bears"
+  assert hand A count 0
+  assert graveyard A contains "Rent Is Due"
+}
+
+scenario "only one untapped creature: sacrifice it" {
+  battlefield A: "Rent Is Due", "Grizzly Bears", "Hill Giant" tapped
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert untapped "Grizzly Bears"
+  assert hand A count 0
+  assert graveyard A contains "Rent Is Due"
+}
