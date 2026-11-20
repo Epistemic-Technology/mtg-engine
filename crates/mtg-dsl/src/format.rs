@@ -3436,6 +3436,23 @@ fn cost_text(c: &Cost) -> String {
                     parts.push(format!("blight {}", c.blight));
                 }
             }
+            CostItem::Behold => {
+                if let Some(b) = &c.behold {
+                    let mut s = String::new();
+                    if b.optional {
+                        s.push_str("may ");
+                    }
+                    s.push_str("behold ");
+                    if b.exile {
+                        s.push_str("and exile ");
+                    }
+                    if b.n != 1 {
+                        let _ = write!(s, "{} ", b.n);
+                    }
+                    s.push_str(&filter(&b.filter));
+                    parts.push(s);
+                }
+            }
         }
     }
     if c.restrict.is_empty() {
@@ -3768,6 +3785,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Kicked => "kicked".to_string(),
         StaticCond::Bargained => "bargained".to_string(),
         StaticCond::Teamwork => "teamwork".to_string(),
+        StaticCond::Beheld => "beheld".to_string(),
         StaticCond::ManaSpent {
             kind,
             at_least,

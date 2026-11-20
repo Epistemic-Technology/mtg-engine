@@ -2039,8 +2039,82 @@ impl GameState {
         {
             return false;
         }
+        if let Some(b) = &add.behold
+            && self.behold_candidates(p, b, spell).len() < b.n as usize
+        {
+            return false;
+        }
         // CR 701.68b.
         !(add.blight > 0 && self.creatures_of(p).next().is_none())
+    }
+
+    /// What `p` could behold for `b` (CR 701.69a): matching permanents
+    /// they control, then matching cards in their hand, never `this` (the
+    /// spell being cast). For "and exile it" the hand comes first: the
+    /// engine picks, and keeping its permanents is usually better.
+    pub(super) fn behold_candidates(
+        &self,
+        p: PlayerId,
+        b: &crate::card::Behold,
+        this: ObjId,
+    ) -> SmallVec<[ObjId; 4]> {
+        let mut board: SmallVec<[ObjId; 4]> = self
+            .permanents_of(p)
+            .filter(|s| {
+                *s != this
+                    && self.characteristics(*s).is_some_and(|c| {
+                        b.filter
+                            .matches(*s, self.objects[*s].controller, &c, Some(this), Some(p))
+                    })
+            })
+            .collect();
+        let hand = self.player(p).hand.iter().copied().filter(|h| {
+            *h != this
+                && self
+                    .characteristics(*h)
+                    .is_some_and(|c| b.filter.matches_characteristics(&c))
+        });
+        if b.exile {
+            let mut out: SmallVec<[ObjId; 4]> = hand.collect();
+            out.extend(board);
+            out
+        } else {
+            board.extend(hand);
+            board
+        }
+    }
+
+    /// Pay a behold cost (CR 701.69a): choose the permanents or reveal
+    /// the cards; "and exile it" exiles them, linked to `this` (CR
+    /// 607.2a).
+    #[cold]
+    fn pay_behold(&mut self, p: PlayerId, b: &crate::card::Behold, this: ObjId) {
+        let picks: SmallVec<[ObjId; 4]> = self
+            .behold_candidates(p, b, this)
+            .into_iter()
+            .take(b.n as usize)
+            .collect();
+        if picks.len() < b.n as usize {
+            return;
+        }
+        for id in picks {
+            if self.objects[id].zone == Zone::Hand {
+                self.reveal_in_hand(id);
+            }
+            if b.exile {
+                let new = self.move_object(id, Zone::Exile, true);
+                if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                    self.linked_exiles.push(crate::state::LinkedExile {
+                        source: this,
+                        card: new,
+                        until: false,
+                    });
+                }
+            }
+        }
+        if let Some(o) = self.objects.get_mut(this) {
+            o.cast.set_beheld();
+        }
     }
 
     /// Whether either of a spell's additional costs ("sacrifice a creature
@@ -4209,6 +4283,9 @@ impl GameState {
         if cost.energy > 0 {
             let e = &mut self.player_mut(p).energy;
             *e = e.saturating_sub(cost.energy);
+        }
+        if let Some(b) = &cost.behold {
+            self.pay_behold(p, b, this);
         }
         if cost.blight > 0
             && let Some(c) = self.blight_pick(p)
@@ -6468,8 +6545,12 @@ impl GameState {
                     // "return Psychic Miasma to its owner's hand": the
                     // resolving spell itself, from the stack (it then
                     // doesn't go to the graveyard, CR 608.2n).
+                    // "return the exiled card to its owner's hand" (CR
+                    // 607.2a): a linked card, from exile.
                     let in_zone = self.objects.get(id).is_some_and(|o| {
                         matches!(o.zone, Zone::Battlefield | Zone::Graveyard)
+                            || (o.zone == Zone::Exile
+                                && *what == crate::card::Recipient::ExiledCard)
                             || (o.zone == Zone::Stack
                                 && id == ctx.source
                                 && o.kind != ObjKind::Ability)

@@ -1,0 +1,9 @@
+card "Lys Alana Dignitary" {
+  oracle_id ce7582a2-e014-41fb-8753-00d29cffc81a
+  cost {1}{G}
+  type Creature — Elf Advisor
+  pt 2/3
+  additional cost behold Elf
+  additional cost or {2}
+  activated {T}, if there is Elf card in your graveyard: add {G}{G}
+}

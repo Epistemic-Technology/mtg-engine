@@ -380,6 +380,8 @@ impl CastInfo {
     /// How many times its replicate cost was paid (CR 702.56a), up to 15.
     const REPLICATE_MASK: u32 = 0xF0_0000;
     const REPLICATE_SHIFT: u32 = 20;
+    /// Its behold cost was paid ("If a Dragon was beheld", CR 701.69).
+    const BEHELD: u32 = 0x100_0000;
     const KICKED: u32 = 0x40;
     const FLASHBACK: u32 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -559,6 +561,14 @@ impl CastInfo {
 
     pub fn set_mode(&mut self, mode: u8) {
         self.0 = (self.0 & !Self::MODE) | (u32::from(mode) & Self::MODE);
+    }
+
+    pub const fn beheld(self) -> bool {
+        self.0 & Self::BEHELD != 0
+    }
+
+    pub fn set_beheld(&mut self) {
+        self.0 |= Self::BEHELD;
     }
 
     pub const fn kicked(self) -> bool {
@@ -2680,6 +2690,7 @@ impl GameState {
                     .is_some_and(|l| l.object.cast.bargained()),
             },
             C::Saddled => self.saddled.contains(&source),
+            C::Beheld => self.objects.get(source).is_some_and(|o| o.cast.beheld()),
             C::Teamwork => match self.objects.get(source) {
                 Some(o) => o.cast.teamwork(),
                 None => self

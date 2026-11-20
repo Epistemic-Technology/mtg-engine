@@ -1,0 +1,9 @@
+card "Silvergill Mentor" {
+  oracle_id dcf07f38-422f-46c3-aee9-50540b9c9115
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 2/1
+  additional cost behold Merfolk
+  additional cost or {2}
+  triggered when this enters: create 1 "1/1 white and blue Merfolk creature"
+}

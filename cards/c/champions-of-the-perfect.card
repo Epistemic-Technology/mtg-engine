@@ -1,0 +1,9 @@
+card "Champions of the Perfect" {
+  oracle_id 9cb7f23f-322d-4a87-b6c6-15b9d446aef3
+  cost {3}{G}
+  type Creature — Elf Warrior
+  pt 6/6
+  additional cost behold and exile Elf
+  triggered whenever you cast a creature spell: draw 1 card
+  triggered when this leaves the battlefield: return exiled card to hand
+}

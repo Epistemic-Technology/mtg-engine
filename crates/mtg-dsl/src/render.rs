@@ -2435,6 +2435,28 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     parts.push(format!("Blight {}", cost.blight));
                 }
             }
+            // CR 701.69a: "behold a Kithkin and exile it", "you may behold
+            // a Dragon", "Behold three Elementals".
+            CostItem::Behold => {
+                if let Some(b) = &cost.behold {
+                    let what = if b.n == 1 {
+                        filter_a(&b.filter, ctx.card)
+                    } else {
+                        format!(
+                            "{} {}",
+                            count_words(Num::N(b.n), "one"),
+                            filter_phrase(&b.filter, ctx.card, true)
+                        )
+                    };
+                    let may = if b.optional {
+                        "you may behold"
+                    } else {
+                        "Behold"
+                    };
+                    let exile = if b.exile { " and exile it" } else { "" };
+                    parts.push(format!("{may} {what}{exile}"));
+                }
+            }
         }
     }
     parts.join(", ")
@@ -8544,6 +8566,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         }
         StaticCond::Bargained => "it was bargained".to_string(),
         StaticCond::Teamwork => "this spell was cast using teamwork".to_string(),
+        // "If a Dragon was beheld": the card's behold cost's filter.
+        StaticCond::Beheld => {
+            let what = card
+                .additional
+                .as_ref()
+                .and_then(|c| c.behold.as_ref())
+                .map_or_else(|| "a card".to_string(), |b| filter_a(&b.filter, card));
+            format!("{what} was beheld")
+        }
         StaticCond::ManaSpent {
             kind: mtg_core::card::SpentKind::Total,
             at_least,

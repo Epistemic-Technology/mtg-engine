@@ -512,6 +512,20 @@ pub struct Cost {
     pub reveal_hand: bool,
     /// `blight 1`: "Blight 1" (CR 701.68a).
     pub blight: u32,
+    /// `behold Kithkin`, `behold and exile Elf`, `behold 3 Elemental`,
+    /// `may behold Dragon` (CR 701.69a).
+    pub behold: Option<Box<Behold>>,
+}
+
+/// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and
+/// exile it"; `may` (a spell's additional cost): "you may behold a
+/// Dragon", an optional additional cost.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct Behold {
+    pub filter: Filter,
+    pub n: u32,
+    pub exile: bool,
+    pub optional: bool,
 }
 
 /// A cost exiling cards from the graveyard: `n` (or X) cards matching
@@ -546,6 +560,8 @@ pub enum CostItem {
     RevealHand,
     /// `blight 1`.
     Blight,
+    /// `behold Kithkin`.
+    Behold,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1531,6 +1547,9 @@ pub enum StaticCond {
     Bargained,
     /// `teamwork`: "this spell was cast using teamwork".
     Teamwork,
+    /// `beheld`: "a Dragon was beheld" (its behold cost was paid; the
+    /// filter is the card's behold cost's).
+    Beheld,
     /// `saddled`: "it's saddled"; after a trigger, `while saddled`
     /// ("Whenever this creature attacks while saddled, ...", CR 702.171b).
     Saddled,

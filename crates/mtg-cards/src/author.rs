@@ -64,7 +64,8 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 116] = [
+const TEMPLATED_TAGS: [&str; 117] = [
+    "Behold",
     "Empower Jace",
     "Station",
     "Start your engines!",
@@ -1261,6 +1262,11 @@ impl Templates {
                     ))
                 },
             ),
+            // CR 607.2a: what this permanent's behold cost exiled.
+            (
+                r(r"^[Rr]eturn the exiled card to its owner's hand$"),
+                |_, _| Some("return exiled card to hand".to_string()),
+            ),
             // "Empower Jace 2." (its reminder text already gone).
             (r(r"^[Ee]mpower Jace (\w+)$"), |c, _| {
                 Some(format!("empower jace {}", number(cap(c, 1))?))
@@ -1896,6 +1902,7 @@ fn trigger_text(head: &str) -> Option<String> {
         }
         "Whenever this creature enters or dies" => "whenever this enters or dies",
         "Whenever this creature enters or attacks" => "whenever this enters or attacks",
+        "When this creature leaves the battlefield" => "when this leaves the battlefield",
         "When this creature enters or leaves the battlefield"
         | "When this artifact enters or leaves the battlefield" => {
             "when this enters or leaves the battlefield"
@@ -2514,6 +2521,23 @@ impl Builder<'_> {
         }
         if let Some(rest) = line.strip_prefix("As an additional cost to cast this spell, ") {
             let rest = rest.trim_end_matches('.');
+            // CR 701.69a: "behold a Kithkin or pay {2}", "behold an Elf
+            // and exile it", "you may behold a Dragon".
+            if let Some(c) = Regex::new(
+                r"^(you may )?behold (?:a|an) ([A-Z][a-z]+)( and exile it)?(?: or pay ((?:\{[0-9WUBRGC]+\})+))?$",
+            )
+            .unwrap()
+            .captures(rest)
+            {
+                let may = if cap(&c, 1).is_empty() { "" } else { "may " };
+                let exile = if cap(&c, 3).is_empty() { "" } else { "and exile " };
+                let mut cost = format!("{may}behold {exile}{}", cap(&c, 2));
+                if !cap(&c, 4).is_empty() {
+                    let _ = write!(cost, "\n  additional cost or {}", cap(&c, 4));
+                }
+                self.additional = Some(cost);
+                return Ok(());
+            }
             let cost = match rest {
                 "sacrifice a creature" => "sacrifice creature".to_string(),
                 "discard a card" => "discard 1 card".to_string(),

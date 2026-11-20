@@ -573,6 +573,15 @@ impl Compiler<'_> {
         }
         if let Some(cost) = &card.additional_or {
             b = b.additional_or(self.cost(cost));
+        } else if card
+            .additional
+            .as_ref()
+            .and_then(|c| c.behold.as_ref())
+            .is_some_and(|b| b.optional)
+        {
+            // "you may behold a Dragon": an optional additional cost, the
+            // other of two costs being nothing (CR 601.2b).
+            b = b.additional_or(CoreCost::default());
         }
         if let Some(a) = &card.alt_cost {
             if a.cost.conditions.len() > 1 || a.cost.tap || a.cost.discard > 0 {
@@ -1059,6 +1068,7 @@ impl Compiler<'_> {
             StaticCond::Kicked => StaticCondition::Kicked,
             StaticCond::Bargained => StaticCondition::Bargained,
             StaticCond::Teamwork => StaticCondition::Teamwork,
+            StaticCond::Beheld => StaticCondition::Beheld,
             StaticCond::Saddled => StaticCondition::Saddled,
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
             StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
@@ -1309,6 +1319,13 @@ impl Compiler<'_> {
                 })
             }),
             reveal_hand: c.reveal_hand,
+            behold: c.behold.as_ref().map(|b| {
+                Box::new(mtg_core::card::Behold {
+                    filter: self.filter(&b.filter),
+                    n: b.n,
+                    exile: b.exile,
+                })
+            }),
         }
     }
 

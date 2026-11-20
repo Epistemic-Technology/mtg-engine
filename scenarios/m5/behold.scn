@@ -1,0 +1,123 @@
+# Behold (CR 701.69a): to behold a Kithkin, choose a Kithkin you control
+# or reveal a Kithkin card from your hand. The engine picks: a permanent
+# first, or for "and exile it" a card in hand first.
+
+scenario "Behold a permanent you control instead of paying {2}" {
+  battlefield A: "Amrou Kithkin", "Plains"
+  hand A: "Kinsbaile Aspirant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kinsbaile Aspirant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Kinsbaile Aspirant"
+  assert battlefield A contains "Amrou Kithkin"
+}
+
+scenario "Behold a card revealed from your hand" {
+  battlefield A: "Plains"
+  hand A: "Kinsbaile Aspirant", "Amrou Kithkin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kinsbaile Aspirant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Kinsbaile Aspirant"
+  assert hand A contains "Amrou Kithkin"
+  assert known B "Amrou Kithkin"
+}
+
+scenario "Nothing to behold: the spell costs {2} more" {
+  battlefield A: "Plains"
+  hand A: "Kinsbaile Aspirant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Kinsbaile Aspirant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Kinsbaile Aspirant"
+}
+
+scenario "Nothing to behold: pay {2} instead" {
+  battlefield A: 3 "Plains"
+  hand A: "Kinsbaile Aspirant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kinsbaile Aspirant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Kinsbaile Aspirant"
+}
+
+scenario "Behold and exile: the exiled card returns to hand when the creature leaves" {
+  battlefield A: 4 "Forest"
+  hand A: "Champions of the Perfect", "Llanowar Elves", "Murder"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Champions of the Perfect"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Llanowar Elves"
+  turn 1 postcombat_main B: cast "Murder" targeting "Champions of the Perfect"
+  run_to turn 1 end
+  assert graveyard A contains "Champions of the Perfect"
+  assert hand A contains "Llanowar Elves"
+}
+
+scenario "Behold and exile can't be paid without an Elf" {
+  battlefield A: 4 "Forest"
+  hand A: "Champions of the Perfect"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Champions of the Perfect"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Champions of the Perfect"
+}
+
+scenario "Behold and exile a permanent you control" {
+  battlefield A: 4 "Forest", "Llanowar Elves"
+  hand A: "Champions of the Perfect"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Champions of the Perfect"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Llanowar Elves"
+  assert battlefield A contains "Champions of the Perfect"
+}
+
+scenario "You may behold a Dragon: if a Dragon was beheld, gain 2 life" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Osseous Exhale", "Shivan Dragon"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Osseous Exhale" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 22
+}
+
+scenario "Without a Dragon: no life" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Osseous Exhale"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Osseous Exhale" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "Choosing not to behold: no life" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Osseous Exhale", "Shivan Dragon"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Osseous Exhale" other_cost targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "Champion of the Path: another Elemental deals damage equal to its power" {
+  battlefield A: 6 "Mountain"
+  hand A: "Champion of the Path", "Flamekin Brawler", "Flamekin Spitfire"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Champion of the Path"
+  turn 1 postcombat_main A: cast "Flamekin Spitfire"
+  run_to turn 1 end
+  assert exile A contains "Flamekin Brawler"
+  assert life B 19
+}

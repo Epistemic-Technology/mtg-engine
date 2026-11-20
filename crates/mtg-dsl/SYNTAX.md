@@ -687,6 +687,21 @@ prints "As an additional cost to cast this spell, blight 1 or pay {3}.").
 As a cost the engine puts the counters on the toughest creature its payer
 controls, and it can't be paid without a creature.
 
+Behold (CR 701.69a) is a cost: `additional cost behold Kithkin` with
+`additional cost or {2}` prints "As an additional cost to cast this
+spell, behold a Kithkin or pay {2}."; `behold and exile Elf` "behold an
+Elf and exile it"; `behold 3 Elemental` "Behold three Elementals"; `may
+behold Dragon` (a spell's additional cost) "you may behold a Dragon", an
+optional additional cost (scenarios decline it with `other_cost`). The
+payer chooses a matching permanent they control or reveals a matching
+card from their hand, never the spell itself; the engine picks, a
+permanent first, or with `and exile` a card in hand first. What a spell's
+behold cost exiles is linked to the permanent the spell becomes (CR
+607.2a): `triggered when this leaves the battlefield: return exiled card
+to hand` ("return the exiled card to its owner's hand"). The condition
+`beheld` (`if beheld, you gain 2 life`) prints "If a Dragon was beheld"
+with the card's behold filter: the behold cost was paid.
+
 Filters may have an alternative: `creature or Vehicle`, `land or
 nonblack creature`, `attacking or blocking creature`, `Bear, Spider, or
 Wolf you control`. A spell target may say what the spell targets:

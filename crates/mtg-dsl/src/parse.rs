@@ -2671,6 +2671,9 @@ impl P {
         if self.eat_word("teamwork") {
             return Ok(StaticCond::Teamwork);
         }
+        if self.eat_word("beheld") {
+            return Ok(StaticCond::Beheld);
+        }
         if self.eat_word("spent") {
             return self.spent_cond();
         }
@@ -9606,6 +9609,27 @@ impl P {
                             self.expect_word("life")?;
                             cost.order.push(CostItem::Life);
                         }
+                    }
+                    "behold" | "may"
+                        if self.word_at(0).as_deref() == Some("behold")
+                            || self.word_at(1).as_deref() == Some("behold") =>
+                    {
+                        let optional = self.eat_word("may");
+                        self.pos += 1;
+                        let exile = self.eat_words(&["and", "exile"]);
+                        let n = if matches!(self.peek(), Some(Tok::Num(_))) {
+                            self.count()?
+                        } else {
+                            1
+                        };
+                        let filter = self.filter()?;
+                        cost.behold = Some(Box::new(crate::ast::Behold {
+                            filter,
+                            n,
+                            exile,
+                            optional,
+                        }));
+                        cost.order.push(CostItem::Behold);
                     }
                     "blight" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                         self.pos += 1;

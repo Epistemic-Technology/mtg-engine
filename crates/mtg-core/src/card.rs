@@ -2090,6 +2090,9 @@ pub enum StaticCondition {
     OffspringPaid,
     /// "If this spell was cast using teamwork": its teamwork cost was paid.
     Teamwork,
+    /// "If a Dragon was beheld": the spell's behold cost was paid (CR
+    /// 701.69).
+    Beheld,
     /// The source is saddled (CR 702.171b): "whenever this creature
     /// attacks while saddled".
     Saddled,
@@ -4950,6 +4953,22 @@ pub struct Cost {
     /// payer controls (the engine picks the toughest).
     #[serde(default)]
     pub blight: u32,
+    /// "Behold a Kithkin" (CR 701.69a): choose a Kithkin you control or
+    /// reveal a Kithkin card from your hand; "and exile it".
+    #[serde(default)]
+    pub behold: Option<Box<Behold>>,
+}
+
+/// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
+/// permanent the payer controls or a card revealed from their hand; with
+/// `exile`, "behold a Kithkin and exile it", they are exiled, linked to
+/// the spell's permanent ("return the exiled card to its owner's hand",
+/// CR 607.2a).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct Behold {
+    pub filter: ObjFilter,
+    pub n: u32,
+    pub exile: bool,
 }
 
 /// A cost that exiles cards from its payer's graveyard: `n` of them (X,
@@ -5006,6 +5025,7 @@ impl Cost {
             exile_cards: None,
             reveal_hand: false,
             blight: 0,
+            behold: None,
         }
     }
 

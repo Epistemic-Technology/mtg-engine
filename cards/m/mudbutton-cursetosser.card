@@ -1,0 +1,10 @@
+card "Mudbutton Cursetosser" {
+  oracle_id b63e5518-61f3-4cde-a799-5f3ee6aba70b
+  cost {B}
+  type Creature — Goblin Warlock
+  pt 2/1
+  additional cost behold Goblin
+  additional cost or {2}
+  keywords can't block
+  triggered when this dies: destroy target creature an opponent controls with power 2 or less
+}
