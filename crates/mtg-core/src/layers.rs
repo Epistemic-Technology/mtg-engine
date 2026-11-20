@@ -371,9 +371,10 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             .combat
             .as_ref()
             .is_some_and(|c| c.attackers.iter().any(|a| a.id == source)),
-        StaticCondition::SourceMonstrous => {
-            state.objects.get(source).is_some_and(|o| o.monstrous())
-        }
+        StaticCondition::SourceMonstrous => state
+            .objects
+            .get(source)
+            .is_some_and(super::state::GameObject::monstrous),
         StaticCondition::SourceEnchanted | StaticCondition::SourceEquipped => {
             let want = if *cond == StaticCondition::SourceEnchanted {
                 crate::card::Subtype::AURA

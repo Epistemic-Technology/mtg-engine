@@ -9647,6 +9647,7 @@ fn cast_only_text(card: &Card) -> Option<String> {
 }
 
 /// The card's full Oracle text.
+#[allow(clippy::too_many_lines)] // one block per kind of line, in Oracle order
 pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let mut lines: Vec<String> = Vec::new();
     // "Bargain", then "This spell costs {3} less to cast if ..." come

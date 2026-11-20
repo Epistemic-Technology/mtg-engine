@@ -2566,7 +2566,7 @@ impl GameState {
                 .combat
                 .as_ref()
                 .is_some_and(|c| c.attackers.iter().any(|a| a.id == source)),
-            C::SourceMonstrous => self.objects.get(source).is_some_and(|o| o.monstrous()),
+            C::SourceMonstrous => self.objects.get(source).is_some_and(GameObject::monstrous),
             C::SourceEnchanted | C::SourceEquipped => {
                 let want = if *cond == C::SourceEnchanted {
                     crate::card::Subtype::AURA
