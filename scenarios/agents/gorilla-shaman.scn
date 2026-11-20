@@ -1,0 +1,17 @@
+scenario "Gorilla Shaman with X 0 destroys a mana value 0 artifact for {1}" {
+  battlefield A: "Gorilla Shaman", "Mountain"
+  battlefield B: "Mox Ruby"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gorilla Shaman" targeting "Mox Ruby"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Mox Ruby"
+}
+
+scenario "Gorilla Shaman can't target an artifact creature" {
+  battlefield A: "Gorilla Shaman", "Mountain"
+  battlefield B: "Ornithopter"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Gorilla Shaman" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Ornithopter"
+}

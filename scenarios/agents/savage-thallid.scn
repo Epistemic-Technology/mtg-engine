@@ -1,0 +1,31 @@
+scenario "Savage Thallid: upkeep spore counter, three counters make a Saproling" {
+  battlefield A: "Savage Thallid" with 2 spore
+  start turn 1 A upkeep
+  turn 1 A: activate "Savage Thallid" ability 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Saproling"
+  assert counters "Savage Thallid" spore 0
+}
+
+scenario "Savage Thallid: sacrificing a Saproling regenerates a Fungus" {
+  battlefield A: "Savage Thallid", "1/1 green Saproling creature"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Savage Thallid" ability 2 sacrificing "Saproling" targeting "Savage Thallid"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Savage Thallid"
+  run_to turn 1 end
+  assert battlefield A contains "Savage Thallid"
+  assert tapped "Savage Thallid"
+  assert battlefield A lacks "Saproling"
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "Savage Thallid: two spore counters are not enough" {
+  battlefield A: "Savage Thallid" with 1 spore
+  start turn 1 A upkeep
+  illegal turn 1 A: activate "Savage Thallid" ability 1
+  run_to turn 1 postcombat_main
+  assert counters "Savage Thallid" spore 2
+  assert battlefield A lacks "Saproling"
+}

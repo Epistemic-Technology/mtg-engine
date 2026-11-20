@@ -1,0 +1,10 @@
+scenario "jilt kicked bounces one creature and deals 2 damage to another" {
+  battlefield A: 2 "Island", 2 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Jilt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jilt" kicked targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand B contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+}

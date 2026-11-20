@@ -102,6 +102,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
         flash_cleanup: def.flash_cleanup,
         unkicked_targets: def.unkicked_targets.map(usize::from),
+        cast_only: def.cast_only.map(|c| d.static_cond(pool.condition(c))),
         kicker: def.kicker.as_deref().cloned(),
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
@@ -210,6 +211,8 @@ impl Decompiler<'_> {
             }),
             named_first: false,
             enchanted_late: false,
+            equipped_late: false,
+            attacking_late: false,
             attached_to: f.attached_to.map(|a| {
                 use crate::ast::AttachedRef;
                 use mtg_core::card::AttachedTo;
@@ -691,6 +694,7 @@ impl Decompiler<'_> {
             CoreEffect::Sacrifice { what } => Effect::Sacrifice { what: r(*what) },
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
+            CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
             CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
@@ -1197,6 +1201,7 @@ impl Decompiler<'_> {
                 random: *random,
                 then: false,
                 top: *top,
+                reword: false,
             },
             CoreEffect::Modes(modes) => Effect::Modes(modes.iter().map(|m| self.mode(m)).collect()),
             CoreEffect::GrantAbility { ability, to } => Effect::GrantAbility {

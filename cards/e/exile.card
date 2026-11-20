@@ -1,0 +1,6 @@
+card "Exile" {
+  oracle_id 8c91d50b-bf58-4d06-b3b7-4b6db867bfce
+  cost {2}{W}
+  type Instant
+  spell: exile target attacking late nonwhite creature; you gain count equal toughness of target 1 life
+}

@@ -1,0 +1,24 @@
+scenario "Merrow Bonegnawer makes a player exile a graveyard card" {
+  battlefield A: "Merrow Bonegnawer"
+  graveyard B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Merrow Bonegnawer" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+  assert tapped "Merrow Bonegnawer"
+}
+
+scenario "Merrow Bonegnawer untaps when you cast a black spell" {
+  battlefield A: "Merrow Bonegnawer", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard B: "Grizzly Bears", "Wind Drake"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Merrow Bonegnawer" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Merrow Bonegnawer"
+  assert graveyard B contains "Hill Giant"
+}

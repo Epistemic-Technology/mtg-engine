@@ -1,0 +1,20 @@
+scenario "waxing moon transforms a werewolf and gives trample" {
+  battlefield A: "Solitary Hunter // One of the Pack", "Grizzly Bears", 2 "Forest"
+  hand A: "Waxing Moon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Waxing Moon" targeting "Solitary Hunter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "One of the Pack"
+  assert has "One of the Pack" trample
+  assert has "Grizzly Bears" trample
+}
+
+scenario "waxing moon with no target still gives trample" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Waxing Moon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Waxing Moon"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" trample
+  assert graveyard A contains "Waxing Moon"
+}

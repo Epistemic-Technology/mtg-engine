@@ -1,0 +1,21 @@
+scenario "Sudden Storm: taps two creatures that stay tapped through their next untap step" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Sudden Storm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sudden Storm" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert graveyard A contains "Sudden Storm"
+}
+
+scenario "Sudden Storm: the creatures untap the turn after" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Sudden Storm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sudden Storm" targeting "Grizzly Bears"
+  run_to turn 4 precombat_main
+  assert untapped "Grizzly Bears"
+}

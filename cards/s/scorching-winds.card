@@ -1,0 +1,7 @@
+card "Scorching Winds" {
+  oracle_id db025c94-1182-412e-9665-b5ae89d26616
+  cost {R}
+  type Instant
+  cast only during declare attackers if attacked
+  spell: deal 1 damage to each attacking creature
+}

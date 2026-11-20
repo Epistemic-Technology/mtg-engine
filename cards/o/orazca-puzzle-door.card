@@ -1,0 +1,6 @@
+card "Orazca Puzzle-Door" {
+  oracle_id 6bcf21ef-6641-4752-a0da-937a9277c812
+  cost {U}
+  type Artifact
+  activated {1}, {T}, sacrifice this: dig 2 take card rest graveyard reword
+}

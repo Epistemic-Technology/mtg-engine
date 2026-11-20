@@ -1,0 +1,7 @@
+card "Hardened Berserker" {
+  oracle_id 2894efc6-ee78-4353-b98a-8005a2451139
+  cost {2}{R}
+  type Creature — Human Berserker
+  pt 3/2
+  triggered whenever this attacks: next spell costs {1} less
+}

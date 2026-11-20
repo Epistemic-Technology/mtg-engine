@@ -106,6 +106,14 @@ fn format_inner(card: &Card) -> String {
     if card.flash_cleanup {
         let _ = writeln!(out, "  flash with cleanup sacrifice");
     }
+    if let Some(c) = &card.cast_only {
+        let c = static_cond(c);
+        if c.starts_with("during") || c.starts_with("before") {
+            let _ = writeln!(out, "  cast only {c}");
+        } else {
+            let _ = writeln!(out, "  cast only if {c}");
+        }
+    }
     if let Some(k) = &card.kicker {
         let _ = writeln!(out, "  kicker {k}");
     }
@@ -248,6 +256,7 @@ impl Fmt {
             Recipient::EachOtherPlayer => "each other player".to_string(),
             Recipient::Source => "this".to_string(),
             Recipient::SourceNamed => NOUN.with(|n| format!("this {}", n.borrow())),
+            Recipient::SourceCard => "this card".to_string(),
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
             Recipient::TriggeringCard => "triggering card".to_string(),
             Recipient::TriggeringController { that: true } => {
@@ -732,6 +741,7 @@ impl Fmt {
                 random,
                 then,
                 top,
+                reword,
             } => {
                 let mut s = format!("dig {}", num(*count));
                 if *then {
@@ -774,6 +784,9 @@ impl Fmt {
                 });
                 if *random {
                     s.push_str(" random");
+                }
+                if *reword {
+                    s.push_str(" reword");
                 }
                 s
             }
@@ -987,6 +1000,7 @@ impl Fmt {
             ),
             Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
             Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
+            Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
             Effect::Goad { what } => format!("goad {}", self.recipient(*what, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
             Effect::Grant { keywords: ks, to } => {
@@ -1593,6 +1607,7 @@ impl Fmt {
                 self.line(inner, t)
             ),
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
+            Effect::IfYouCant(inner) => format!("if you can't, {}", self.line(inner, t)),
             Effect::Otherwise(inner) => format!("otherwise, {}", self.line(inner, t)),
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
@@ -2338,7 +2353,15 @@ fn filter_one(f: &Filter) -> String {
         words.push("face-down".to_string());
     }
     if f.attacking {
-        words.push("attacking".to_string());
+        words.push(if f.attacking_late {
+            "attacking late".to_string()
+        } else {
+            "attacking".to_string()
+        });
+        // "attacking equipped creature": written where it prints.
+        if f.status.equipped && f.equipped_late {
+            words.push("with Equipment late".to_string());
+        }
     }
     if f.blocking {
         words.push("blocking".to_string());
@@ -2401,8 +2424,12 @@ fn filter_one(f: &Filter) -> String {
             .to_string(),
         );
     }
-    if f.status.equipped {
-        words.push("with Equipment".to_string());
+    if f.status.equipped && !(f.equipped_late && f.attacking) {
+        words.push(if f.equipped_late {
+            "with Equipment late".to_string()
+        } else {
+            "with Equipment".to_string()
+        });
     }
     if f.status.toxic {
         words.push("with toxic".to_string());
@@ -3649,6 +3676,10 @@ fn static_cond(c: &StaticCond) -> String {
                 T::DeclareBlockers => "during declare blockers",
                 T::EndOfCombat => "during end of combat",
                 T::YourMain => "during your main phase",
+                T::DeclareAttackers => "during declare attackers",
+                T::BeforeBlockers => "during combat before blockers",
+                T::AfterBlockers => "during combat after blockers",
+                T::AttackedThisStep => "during declare attackers if attacked",
             }
             .to_string()
         }

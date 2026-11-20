@@ -1025,6 +1025,10 @@ impl<'a> Ctx<'a> {
                 self.source_mentioned = true;
                 "it".to_string()
             }
+            Recipient::SourceCard => {
+                self.source_mentioned = true;
+                "this card".to_string()
+            }
             // "When enchanted creature is dealt damage, destroy it."
             Recipient::TriggeringObject if self.trigger_is_enchanted() => "it".to_string(),
             // "Whenever enchanted creature deals damage to a creature,
@@ -1763,7 +1767,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.enchanted == Some(true) && !f.enchanted_late {
         words.push("enchanted".to_string());
     }
-    if f.status.equipped {
+    if f.status.equipped && !f.equipped_late {
         words.push("equipped".to_string());
     }
     if let Some(t) = f.tapped {
@@ -1783,11 +1787,14 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some(b) = f.status.blocked {
         words.push(if b { "blocked" } else { "unblocked" }.to_string());
     }
-    if f.attacking {
+    if f.attacking && !f.attacking_late {
         words.push("attacking".to_string());
     }
     if f.blocking {
         words.push("blocking".to_string());
+    }
+    if f.status.equipped && f.equipped_late {
+        words.push("equipped".to_string());
     }
     if let Some(cc) = f.color_count {
         words.push(format!("{cc:?}").to_lowercase());
@@ -1829,6 +1836,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     negs.extend(f.not_subtypes.iter().map(|s| format!("non-{s}")));
     if !negs.is_empty() {
         words.push(negs.join(", "));
+    }
+    if f.attacking && f.attacking_late {
+        words.push("attacking".to_string());
     }
     let mut noun: Vec<String> = Vec::new();
     for s in &f.subtypes {
@@ -3561,6 +3571,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             random,
             then,
             top,
+            reword,
         } => {
             let n = count_words(*count, "one");
             let head = if *reveal_top {
@@ -3622,8 +3633,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // "Put two of those cards into your hand and the rest into
                 // your graveyard."
                 let k = count_words(Num::N(*take), "one");
+                let those = if *reword { "them" } else { "those cards" };
                 return Clause::imperative(format!(
-                    "{head}. Put {k} of those cards into your hand and {}",
+                    "{head}. Put {k} of {those} into your hand and {}",
                     rest("the rest")
                 ));
             }
@@ -3659,7 +3671,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     rest("the rest")
                 ),
                 (None, _, _) => format!(
-                    "Put one of them into your hand and {}",
+                    "Put one of {} into your hand and {}",
+                    if *reword { "those cards" } else { "them" },
                     rest(if two { "the other" } else { "the rest" })
                 ),
             };
@@ -4079,6 +4092,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let v = ctx.verb(*who, "sacrifices", "sacrifice");
             Clause::with_subject(*who, s, format!("{v} {o}"))
         }
+        Effect::NextSpellLess(n) => Clause::imperative(format!(
+            "the next spell you cast this turn costs {{{n}}} less to cast"
+        )),
         Effect::TapOrUntap { to } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("tap or untap {o}"))
@@ -4702,7 +4718,29 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::OneOf(options) => {
             // "sacrifice an artifact or discard a card"; "create a Food
             // token or a Treasure token" (the verb once).
-            let texts: Vec<String> = options.iter().map(|o| clause(o, ctx).text).collect();
+            // "Destroy all enchantments or all nonwhite enchantments";
+            // with a subject, each option names it: "Lava Storm deals 2
+            // damage to each attacking creature or Lava Storm deals 2
+            // damage to each blocking creature".
+            let mut first: Option<(Recipient, String)> = None;
+            let texts: Vec<String> = options
+                .iter()
+                .map(|o| {
+                    let c = clause(o, ctx);
+                    match c.subject {
+                        Some((r, s)) if !s.is_empty() => {
+                            // The same subject is named again, not "it".
+                            let s = match &first {
+                                Some((fr, fs)) if *fr == r => fs.clone(),
+                                _ => s,
+                            };
+                            first.get_or_insert((r, s.clone()));
+                            format!("{s} {}", c.text)
+                        }
+                        _ => c.text,
+                    }
+                })
+                .collect();
             let verb = texts[0].split(' ').next().unwrap_or_default().to_string();
             let same = texts
                 .iter()
@@ -4710,7 +4748,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let mut out = texts[0].clone();
             for t in &texts[1..] {
                 out.push_str(" or ");
-                if same && verb == "create" {
+                if same && (verb == "create" || verb == "destroy") {
                     out.push_str(t[verb.len()..].trim_start());
                 } else {
                     out.push_str(t);
@@ -5320,6 +5358,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = sentences(inner, ctx);
             let body = lowercase_first(&body);
             Clause::imperative(format!("if {who} do, {}", body.trim_end_matches('.')))
+        }
+        Effect::IfYouCant(inner) => {
+            let body = sentences(inner, ctx);
+            let body = lowercase_first(&body);
+            Clause::imperative(format!("if you can't, {}", body.trim_end_matches('.')))
         }
         Effect::Pay { mana, life } => Clause::imperative(if *life > 0 {
             format!("pay {life} life")
@@ -8388,6 +8431,12 @@ fn turn_time_text(t: mtg_core::card::TurnTime) -> &'static str {
         T::DeclareBlockers => "during the declare blockers step",
         T::EndOfCombat => "during the end of combat step",
         T::YourMain => "during your main phase",
+        T::DeclareAttackers => "during the declare attackers step",
+        T::BeforeBlockers => "during combat before blockers are declared",
+        T::AfterBlockers => "during combat after blockers are declared",
+        T::AttackedThisStep => {
+            "during the declare attackers step and only if you've been attacked this step"
+        }
     }
 }
 
@@ -9189,6 +9238,16 @@ pub fn mode_text(card: &Card, m: &crate::ast::Mode, lookup: &dyn Lookup) -> Stri
 const FLASH_CLEANUP: &str = "You may cast this spell as though it had flash. If you cast it any \
     time a sorcery couldn't have been cast, the controller of the permanent it becomes \
     sacrifices it at the beginning of the next cleanup step.";
+/// "Cast this spell only during combat.", "Cast this spell only if you
+/// control a creature." (CR 601.3).
+fn cast_only_text(card: &Card) -> Option<String> {
+    let when = match card.cast_only.as_ref()? {
+        StaticCond::During(t) => turn_time_text(*t).to_string(),
+        StaticCond::DuringYourTurn => "during your turn".to_string(),
+        c => format!("if {}", static_cond_text(c, card)),
+    };
+    Some(format!("Cast this spell only {when}."))
+}
 
 /// The card's full Oracle text.
 pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
@@ -9219,6 +9278,8 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     if card.flash_cleanup {
         lines.push(FLASH_CLEANUP.to_string());
     }
+    // "Cast this spell only during combat." (CR 601.3), first.
+    lines.splice(0..0, cast_only_text(card));
     if let Some(k) = &card.kicker {
         lines.push(format!("Kicker {k}"));
     }
@@ -9279,11 +9340,18 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         let text = ability_text(card, &card.abilities[i], lookup);
         // "This land enters tapped. As it enters, choose a color." is one
         // line.
-        match (&card.abilities[i], lines.last_mut()) {
-            (Ability::AsEntersChoose { joined: true, .. } | Ability::AuraStays, Some(last)) => {
-                last.push(' ');
-                last.push_str(&text);
+        // "{X}: ... Spend only black mana on X." after an activated ability
+        // is part of its paragraph.
+        let joined = match &card.abilities[i] {
+            Ability::AsEntersChoose { joined, .. } => *joined,
+            Ability::AuraStays => true,
+            Ability::XManaColor(_) => {
+                i > 0 && matches!(card.abilities[i - 1], Ability::Activated { .. })
             }
+            _ => false,
+        };
+        match lines.last_mut() {
+            Some(last) if joined => *last = format!("{last} {text}"),
             _ => lines.push(text),
         }
         i += 1;

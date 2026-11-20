@@ -1057,9 +1057,12 @@ pub enum Flow {
         spell: ObjId,
     },
     /// Choosing X for a spell being cast (CR 601.2b), after the mode and
-    /// before targets.
+    /// before targets, or for an activated ability with {X} in its cost
+    /// (CR 602.2b), with the permanent or card its cost chose.
     ChoosingX {
         spell: ObjId,
+        sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
     },
     /// Turning a face-down permanent face up for a morph cost that
     /// discards a card or returns a permanent (CR 702.37e): the player
@@ -1335,6 +1338,10 @@ pub struct GameState {
     /// Spells each player has cast this turn, and the most any one player
     /// cast last turn ("if no spells were cast last turn", werewolves).
     pub spells_this_turn: [u8; 4],
+    /// Generic mana the next spell each player casts this turn costs less
+    /// ("the next spell you cast this turn costs {1} less to cast"), by
+    /// player index like `spells_this_turn`; zero in most games.
+    pub next_spell_less: [u16; 4],
     /// Cards each player drew this turn ("your second card each turn").
     pub drawn_this_turn: [u8; 4],
     /// Total mana each player has spent to cast spells this turn (expend,
@@ -2670,6 +2677,14 @@ impl GameState {
             C::CompletedDungeon => self.desig.completed(you) > 0,
             C::CityBlessing => self.desig.blessed(you),
             C::MaxSpeed => self.desig.speed(you) >= 4,
+            C::During(crate::card::TurnTime::AttackedThisStep) => {
+                self.step == crate::turn::Step::DeclareAttackers
+                    && self.combat.as_ref().is_some_and(|c| {
+                        c.attackers
+                            .iter()
+                            .any(|a| a.attacking == Target::Player(you))
+                    })
+            }
             C::During(t) => t.now(self.step, self.active_player, you),
             _ => false,
         }

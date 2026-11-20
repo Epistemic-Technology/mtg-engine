@@ -714,6 +714,7 @@ impl P {
             flash_if: None,
             flash_cleanup: false,
             unkicked_targets: None,
+            cast_only: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
@@ -926,6 +927,12 @@ impl P {
             "flash" if self.at_words(&["flash", "as", "long", "as"]) => {
                 self.pos += 4;
                 card.flash_if = Some(self.static_cond()?);
+                self.end_stmt()
+            }
+            "cast" if self.at_words(&["cast", "only"]) => {
+                self.pos += 2;
+                self.eat_word("if");
+                card.cast_only = Some(self.static_cond()?);
                 self.end_stmt()
             }
             "flashback" => {
@@ -2816,6 +2823,10 @@ impl P {
             StaticCond::During(T::YourUpkeep)
         } else if self.eat_words(&["opponent", "upkeep"]) {
             StaticCond::During(T::OpponentUpkeep)
+        } else if self.eat_words(&["combat", "before", "blockers"]) {
+            StaticCond::During(T::BeforeBlockers)
+        } else if self.eat_words(&["combat", "after", "blockers"]) {
+            StaticCond::During(T::AfterBlockers)
         } else if self.eat_word("combat") {
             StaticCond::During(T::Combat)
         } else if self.eat_words(&["declare", "blockers"]) {
@@ -2824,6 +2835,10 @@ impl P {
             StaticCond::During(T::EndOfCombat)
         } else if self.eat_words(&["your", "main", "phase"]) {
             StaticCond::During(T::YourMain)
+        } else if self.eat_words(&["declare", "attackers", "if", "attacked"]) {
+            StaticCond::During(T::AttackedThisStep)
+        } else if self.eat_words(&["declare", "attackers"]) {
+            StaticCond::During(T::DeclareAttackers)
         } else if self.eat_words(&["your", "turn", "before", "attackers"]) {
             StaticCond::During(T::YourTurnBeforeAttackers)
         } else if self.eat_words(&["your", "turn"]) && !matches!(self.peek(), Some(Tok::Comma)) {
@@ -3707,6 +3722,17 @@ impl P {
             let s = self.sentence()?;
             self.subject = saved;
             return Ok(Effect::IfYouDo(vec![s]));
+        }
+        // "If you can't, ..." after an action that may do nothing.
+        if self.at_words(&["if", "you", "can't"]) {
+            self.pos += 3;
+            if self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+            }
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfYouCant(vec![s]));
         }
         // "Otherwise, ..." after a conditional sentence (CR 608.2c).
         if self.at_word("otherwise") && self.peek_at(1) == Some(&Tok::Comma) {
@@ -5570,6 +5596,7 @@ impl P {
                     false
                 };
                 let random = !rest_graveyard && self.eat_word("random");
+                let reword = self.eat_word("reword");
                 Ok(Effect::Dig {
                     count,
                     filter,
@@ -5583,6 +5610,7 @@ impl P {
                     random,
                     top,
                     then,
+                    reword,
                 })
             }
             "look" if self.at_words(&["at", "top", "card"]) => {
@@ -5650,6 +5678,12 @@ impl P {
             "sacrifice" => {
                 let what = self.recipient()?;
                 Ok(Effect::Sacrifice { what })
+            }
+            "next" if self.at_word("spell") => {
+                self.expect_words(&["spell", "costs"])?;
+                let n = self.mana_cost()?.mana_value();
+                self.expect_word("less")?;
+                Ok(Effect::NextSpellLess(n))
             }
             "tap" if self.at_words(&["or", "untap"]) => {
                 self.pos += 2;
@@ -6997,6 +7031,11 @@ impl P {
             // printed "it" ("If this spell was kicked, it deals 2 damage").
             return Ok(Recipient::SourceIt);
         }
+        // `this card`: the source's card ("Exile this card.").
+        if self.at_words(&["this", "card"]) {
+            self.pos += 2;
+            return Ok(Recipient::SourceCard);
+        }
         // `this creature`: the source named in full even after a mention.
         if self.at_word("this")
             && self
@@ -7776,6 +7815,9 @@ impl P {
                 "with" if self.word_at(1).as_deref() == Some("equipment") && !f.status.equipped => {
                     f.status.equipped = true;
                     self.pos += 2;
+                    if self.eat_word("late") {
+                        f.equipped_late = true;
+                    }
                 }
                 "blocked" | "unblocked"
                     if self.word_at(1).as_deref() != Some("by") && f.status.blocked.is_none() =>
@@ -7880,6 +7922,9 @@ impl P {
                 "attacking" => {
                     f.attacking = true;
                     self.pos += 1;
+                    if self.eat_word("late") {
+                        f.attacking_late = true;
+                    }
                 }
                 "blocking" => {
                     f.blocking = true;
@@ -8382,8 +8427,9 @@ impl P {
         if !(self.eat_word("when") || self.eat_word("whenever")) {
             return self.unexpected("`when`, `whenever`, or `at`");
         }
-        // "When you control no Islands": a state trigger (CR 603.8).
-        if !whenever && self.at_words(&["you", "control", "no"]) {
+        // "When you control no Islands", "When you control a Dwarf": a
+        // state trigger (CR 603.8).
+        if !whenever && self.at_words(&["you", "control"]) {
             return Ok(Trigger::State(self.static_cond()?));
         }
         if self.at_words(&["you", "gain", "life"]) {

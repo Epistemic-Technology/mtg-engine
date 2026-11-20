@@ -1240,13 +1240,36 @@ impl GameState {
             self.remove_from_game(id);
             return;
         }
-        let legal = self.targets_legal(
+        let mut legal = self.targets_legal(
             obj.controller,
             targets,
             &obj.targets,
             Some(sa.source),
             sa.trigger_player,
         );
+        // An activated ability's X (CR 107.3): "target artifact with mana
+        // value X" is judged with it.
+        let x = if self.x_values.is_empty() {
+            0
+        } else {
+            self.x_of(id)
+        };
+        if x > 0 || self.x_chosen(id).is_some() {
+            for (i, l) in legal.iter_mut().enumerate() {
+                if let (Some(spec), Some(t)) =
+                    (crate::card::spec_for(targets, i), obj.targets.get(i))
+                {
+                    *l = *l
+                        && self.is_legal_target_x(
+                            obj.controller,
+                            spec,
+                            *t,
+                            Some(sa.source),
+                            Some(x),
+                        );
+                }
+            }
+        }
         if !legal.is_empty() && legal.iter().all(|l| !l) {
             self.emit(Event::Fizzle {
                 spell: id,
@@ -1270,7 +1293,7 @@ impl GameState {
             trigger_amount: sa.trigger_amount,
             created: None,
             revealed: Vec::new(),
-            x: 0,
+            x,
             did: true,
             chosen: Chosen::None,
             couldnt: 0,
@@ -1396,6 +1419,9 @@ impl GameState {
     pub(super) fn remove_from_game(&mut self, id: ObjId) {
         if !self.divisions.is_empty() {
             self.divisions.retain(|(s, _)| *s != id);
+        }
+        if !self.x_values.is_empty() {
+            self.x_values.retain(|(s, _)| *s != id);
         }
         self.remove_from_zone_list(id);
         self.objects.remove(id);

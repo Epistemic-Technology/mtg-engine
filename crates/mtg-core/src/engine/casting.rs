@@ -76,6 +76,12 @@ impl GameState {
                 }
                 continue;
             }
+            // "Cast this spell only during combat" (CR 601.3).
+            if let Some(c) = def.cast_only
+                && !self.condition_now(self.pool.condition(c), p, *id)
+            {
+                continue;
+            }
             // CR 715.3, 709.3: an adventurer's spell or a split card's
             // half is cast as that face.
             if !def.faces.is_empty()
@@ -1277,7 +1283,7 @@ impl GameState {
         }
         let face = self.pool.get(face_ref);
         let mut req = cost.requirements(0);
-        if !changers.is_empty() {
+        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
         }
         self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
@@ -1307,7 +1313,7 @@ impl GameState {
         }
         let face = self.pool.get(face_ref);
         let mut req = cost.requirements(0);
-        if !changers.is_empty() {
+        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
         }
         self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
@@ -1332,7 +1338,11 @@ impl GameState {
             return false;
         }
         let mut req = def.mana_cost.requirements(0);
-        if def.self_cost.is_some() || def.cond_cost.is_some() || !changers.is_empty() {
+        if def.self_cost.is_some()
+            || def.cond_cost.is_some()
+            || !changers.is_empty()
+            || self.next_spell_less[p.index().min(3)] > 0
+        {
             adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
         }
         // Cheaper with a fitting target: castable if one exists (targets
@@ -1692,7 +1702,7 @@ impl GameState {
         id: ObjId,
         changers: &[ObjId],
     ) -> i32 {
-        let mut d = 0i32;
+        let mut d = -i32::from(self.next_spell_less[p.index().min(3)]);
         if let Some((delta, cond)) = def.cond_cost {
             let cond = self.pool.condition(cond);
             // "If you've cast another instant or sorcery spell this turn":
@@ -2261,7 +2271,11 @@ impl GameState {
         } else if !other && !def.additional.mana.is_empty() {
             req.add(&def.additional.mana.requirements(0));
         }
-        if def.self_cost.is_some() || def.cond_cost.is_some() || !self.cost_changers().is_empty() {
+        if def.self_cost.is_some()
+            || def.cond_cost.is_some()
+            || !self.cost_changers().is_empty()
+            || self.next_spell_less[o.controller.index().min(3)] > 0
+        {
             adjust_generic(
                 &mut req,
                 self.cost_delta(o.controller, def, spell, &self.cost_changers()),
@@ -2750,7 +2764,34 @@ impl GameState {
     /// power-up ability of a permanent that entered this turn costs its
     /// mana cost less (702.193b, 118.7).
     pub(super) fn activation_mana(&self, source: ObjId, ab: &ActivatedAbility) -> ManaRequirement {
-        let mut req = ab.cost.mana.requirements(0);
+        self.activation_mana_x(source, ab, 0)
+    }
+
+    /// `activation_mana` with X as `x` (CR 107.3); "Spend only black mana
+    /// on X." pays X as that many black symbols.
+    pub(super) fn activation_mana_x(
+        &self,
+        source: ObjId,
+        ab: &ActivatedAbility,
+        x: u32,
+    ) -> ManaRequirement {
+        let mut req = ab.cost.mana.requirements(x);
+        if x > 0
+            && req.generic >= x
+            && let Some(o) = self.objects.get(source)
+            && let Some(c) =
+                self.pool
+                    .get(o.def)
+                    .ability_ids
+                    .iter()
+                    .find_map(|a| match self.pool.ability(*a) {
+                        AbilityDef::XManaColor(c) => Some(*c),
+                        _ => None,
+                    })
+        {
+            req.generic -= x;
+            req.colored[c as usize] += x;
+        }
         if ab.keyword == Some(ActivatedKeyword::PowerUp)
             && let Some(o) = self.objects.get(source)
             && o.zone == Zone::Battlefield
@@ -2867,11 +2908,26 @@ impl GameState {
         });
         self.stack.push(obj);
         self.bump();
-        self.flow = crate::state::Flow::Casting {
-            spell: obj,
-            next_target: 0,
-            sacrifice,
-            discard,
+        // CR 602.2b, 601.2b: X in the activation cost is announced before
+        // targets are chosen. (A mana ability's X is paid as it is
+        // activated, Wizard's Rockets, and isn't asked.)
+        let has_x = matches!(
+            self.pool.ability(ability),
+            AbilityDef::Activated(a) if a.cost.mana.has_x() && !a.is_mana_ability()
+        );
+        self.flow = if has_x {
+            crate::state::Flow::ChoosingX {
+                spell: obj,
+                sacrifice,
+                discard,
+            }
+        } else {
+            crate::state::Flow::Casting {
+                spell: obj,
+                next_target: 0,
+                sacrifice,
+                discard,
+            }
         };
     }
 
@@ -2901,7 +2957,20 @@ impl GameState {
             return vec![Choice::X(0)];
         }
         let caster = self.objects[spell].controller;
-        let sources = self.spell_sources(spell);
+        // An activated ability's X (CR 602.2b): its cost, from the sources
+        // that may pay for its source's abilities.
+        let ability =
+            self.objects[spell]
+                .ability
+                .and_then(|sa| match self.pool.ability(sa.ability) {
+                    AbilityDef::Activated(a) => Some((sa.source, a)),
+                    _ => None,
+                });
+        let sources = match ability {
+            Some((source, _)) => self.ability_sources(caster, source),
+            None => self.spell_sources(spell),
+        };
+        let exclude = ability.map(|(source, _)| source);
         let pool = self.player(caster).mana_pool;
         // "X target creatures": X can't exceed the creatures there are to
         // target (CR 601.2c).
@@ -2950,13 +3019,17 @@ impl GameState {
             .collect();
         (0..=max_x.min(MAX_X))
             .take_while(|x| {
+                let req = match ability {
+                    Some((source, a)) => self.activation_mana_x(source, a, *x),
+                    None => self.spell_requirements(spell, *x),
+                };
                 self.payable(
                     caster,
                     &sources,
                     &pool,
-                    &self.spell_requirements(spell, *x),
+                    &req,
                     self.player(caster).life,
-                    None,
+                    exclude,
                 )
             })
             .filter(|x| x_specs.iter().all(|s| self.x_fits(caster, *s, spell, *x)))
@@ -2967,9 +3040,11 @@ impl GameState {
     /// Whether some object is a legal target for `spec` of `spell` with X
     /// as `x`.
     fn x_fits(&self, caster: PlayerId, spec: TargetSpec, spell: ObjId, x: u32) -> bool {
+        // An ability's source is the permanent (protection judges it).
+        let source = self.objects[spell].ability.map_or(spell, |a| a.source);
         let fits = |id: &ObjId| {
             *id != spell
-                && self.is_legal_target_x(caster, spec, Target::Object(*id), Some(spell), Some(x))
+                && self.is_legal_target_x(caster, spec, Target::Object(*id), Some(source), Some(x))
         };
         if self.pool.base_spec(spec).is_graveyard() {
             self.players_in_game()
@@ -3357,7 +3432,7 @@ impl GameState {
             sacrifice = None;
         }
         let sources = self.ability_sources(controller, sa.source);
-        let req = self.activation_mana(sa.source, ab);
+        let req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
         self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
@@ -4461,6 +4536,9 @@ impl GameState {
         }
         let n = &mut self.spells_this_turn[caster.index().min(3)];
         *n = n.saturating_add(1);
+        // "The next spell you cast this turn costs {1} less": used up by
+        // this spell, its total cost paid (CR 601.2f-h).
+        self.next_spell_less[caster.index().min(3)] = 0;
         self.cast_this_turn.push((caster, def_ref));
         // "As long as you've cast an instant or sorcery spell this turn":
         // the cast is recorded after the card left its zone, so a
@@ -6460,6 +6538,11 @@ impl GameState {
                         self.tap(id);
                     }
                 }
+            }
+            Effect::NextSpellLess(n) => {
+                let i = ctx.controller.index().min(3);
+                self.next_spell_less[i] =
+                    self.next_spell_less[i].saturating_add(u16::try_from(*n).unwrap_or(u16::MAX));
             }
             Effect::TapOrUntap { to } => {
                 for t in self.recipients(ctx, *to) {

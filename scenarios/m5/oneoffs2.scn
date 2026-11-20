@@ -1,0 +1,405 @@
+# One-off phrasings, second sweep: state triggers on a positive condition
+# ("When you control a Dwarf", CR 603.8) and "the next spell you cast this
+# turn costs {1} less to cast" (CR 601.2f).
+
+# ----- state triggers on a positive condition -----
+
+scenario "Goblins of the Flarg stays while you control no Dwarf" {
+  battlefield A: "Goblins of the Flarg", "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Goblins of the Flarg"
+}
+
+scenario "Goblins of the Flarg is sacrificed once you control a Dwarf" {
+  battlefield A: "Goblins of the Flarg", "Plains"
+  hand A: "Staunch Shieldmate"
+  turn 1 A: cast "Staunch Shieldmate"
+  run_to turn 1 end
+  assert battlefield A contains "Staunch Shieldmate"
+  assert graveyard A contains "Goblins of the Flarg"
+}
+
+scenario "An opponent's Dwarf doesn't make Goblins of the Flarg go" {
+  battlefield A: "Goblins of the Flarg"
+  battlefield B: "Staunch Shieldmate"
+  run_to turn 1 end
+  assert battlefield A contains "Goblins of the Flarg"
+}
+
+scenario "Endangered Armodon is sacrificed when you control a creature with toughness 2 or less" {
+  battlefield A: "Endangered Armodon", "Forest"
+  hand A: "Llanowar Elves"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Endangered Armodon"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard A contains "Endangered Armodon"
+}
+
+scenario "Endangered Armodon ignores a creature with toughness 3" {
+  battlefield A: "Endangered Armodon", "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Endangered Armodon"
+}
+
+# ----- the next spell you cast this turn costs {1} less -----
+
+scenario "Hardened Berserker attacks, and the next spell costs {1} less" {
+  battlefield A: "Hardened Berserker", 3 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: attack "Hardened Berserker"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  turn 1 postcombat_main A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Without an attack, Hill Giant costs its full {3}{R}" {
+  battlefield A: "Hardened Berserker", 3 "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Only the next spell costs less, even one that pays no generic mana" {
+  battlefield A: "Hardened Berserker", 4 "Mountain"
+  hand A: "Shock", "Hill Giant"
+  turn 1 A: attack "Hardened Berserker"
+  run_to turn 1 postcombat_main
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  illegal turn 1 postcombat_main A: cast "Hill Giant"
+  run_to turn 1 end
+  assert life B 15
+  assert hand A contains "Hill Giant"
+}
+
+scenario "The reduction ends with the turn" {
+  battlefield A: "Hardened Berserker", 3 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: attack "Hardened Berserker"
+  illegal turn 3 A: cast "Hill Giant"
+  run_to turn 3 end
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Peerless Samurai attacking alone makes the next spell cheaper" {
+  battlefield A: "Peerless Samurai", 3 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: attack "Peerless Samurai"
+  run_to turn 1 postcombat_main
+  turn 1 postcombat_main A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Peerless Samurai attacking with another creature doesn't trigger" {
+  battlefield A: "Peerless Samurai", "Grizzly Bears", 3 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: attack "Peerless Samurai", "Grizzly Bears"
+  illegal turn 1 postcombat_main A: cast "Hill Giant"
+  run_to turn 1 end
+  assert hand A contains "Hill Giant"
+}
+
+# ----- {X} in an activated ability's cost (CR 602.2b, 107.3) -----
+
+scenario "Hearth Kami with X 1 destroys Sol Ring" {
+  battlefield A: "Hearth Kami", "Mountain"
+  battlefield B: "Sol Ring", "Ornithopter"
+  turn 1 A: activate "Hearth Kami" x 1 targeting "Sol Ring"
+  run_to turn 1 end
+  assert graveyard B contains "Sol Ring"
+  assert battlefield B contains "Ornithopter"
+  assert graveyard A contains "Hearth Kami"
+  assert tapped "Mountain"
+}
+
+scenario "Hearth Kami with X 0 can't target a mana value 1 artifact" {
+  battlefield A: "Hearth Kami", "Mountain"
+  battlefield B: "Sol Ring", "Ornithopter"
+  illegal turn 1 A: activate "Hearth Kami" x 0 targeting "Sol Ring"
+  run_to turn 1 end
+  assert battlefield B contains "Sol Ring"
+}
+
+scenario "Hearth Kami can't pay for an X its mana doesn't reach" {
+  battlefield A: "Hearth Kami", "Mountain"
+  battlefield B: "Bottle Gnomes"
+  illegal turn 1 A: activate "Hearth Kami" x 3 targeting "Bottle Gnomes"
+  run_to turn 1 end
+  assert battlefield B contains "Bottle Gnomes"
+  assert battlefield A contains "Hearth Kami"
+}
+
+scenario "Gorilla Shaman pays {X}{X}{1}" {
+  battlefield A: "Gorilla Shaman", 3 "Mountain"
+  battlefield B: "Sol Ring"
+  turn 1 A: activate "Gorilla Shaman" x 1 targeting "Sol Ring"
+  run_to turn 1 end
+  assert graveyard B contains "Sol Ring"
+}
+
+scenario "Pain Kami deals X damage" {
+  battlefield A: "Pain Kami", 3 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Pain Kami" x 2 targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Crypt Rats deals X damage to each creature and each player" {
+  battlefield A: "Crypt Rats", 2 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Crypt Rats" x 2
+  run_to turn 1 end
+  assert life A 18
+  assert life B 18
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Crypt Rats"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Crypt Rats spends only black mana on X" {
+  battlefield A: "Crypt Rats", "Swamp", "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Crypt Rats" x 1
+  run_to turn 1 end
+  assert life B 19
+  assert damage "Hill Giant" 1
+  assert untapped "Mountain"
+}
+
+# ----- "A or B" without "Choose one", and filter word order -----
+
+scenario "Lava Storm deals 2 damage to each attacking creature" {
+  start turn 2 B
+  battlefield A: 5 "Mountain", "Llanowar Elves"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Lava Storm"
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Lava Storm"
+  run_to turn 2 end
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Llanowar Elves"
+}
+
+scenario "Lava Storm may instead deal 2 damage to each blocking creature" {
+  start turn 2 B
+  battlefield A: 5 "Mountain", "Llanowar Elves"
+  battlefield B: "Hill Giant"
+  hand A: "Lava Storm"
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Llanowar Elves"
+  turn 2 declare_blockers A: cast "Lava Storm"
+  turn 2 declare_blockers A: choose "2"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Llanowar Elves"
+  assert life A 20
+  assert damage "Hill Giant" 0
+}
+
+scenario "Essence Filter destroys all enchantments" {
+  battlefield A: 3 "Forest", "Holy Strength" on "Grizzly Bears", "Grizzly Bears"
+  battlefield B: "Pacifism" on "Hill Giant", "Hill Giant"
+  hand A: "Essence Filter"
+  turn 1 A: cast "Essence Filter"
+  run_to turn 1 end
+  assert graveyard A contains "Holy Strength"
+  assert graveyard B contains "Pacifism"
+}
+
+scenario "Essence Filter may spare white enchantments" {
+  battlefield A: 3 "Forest", "Holy Strength" on "Grizzly Bears", "Grizzly Bears"
+  battlefield B: "Unholy Strength" on "Hill Giant", "Hill Giant"
+  hand A: "Essence Filter"
+  turn 1 A: cast "Essence Filter"
+  turn 1 A: choose "2"
+  run_to turn 1 end
+  assert battlefield A contains "Holy Strength"
+  assert graveyard B contains "Unholy Strength"
+}
+
+scenario "Item Shopkeep gives an attacking equipped creature menace" {
+  battlefield A: "Item Shopkeep", "Grizzly Bears", "Bonesplitter" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Item Shopkeep" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert has "Grizzly Bears" menace
+}
+
+scenario "Item Shopkeep can't target an attacker without Equipment" {
+  battlefield A: "Item Shopkeep", "Grizzly Bears", "Hill Giant", "Bonesplitter" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  illegal turn 1 declare_attackers A: trigger "Item Shopkeep" targeting "Hill Giant"
+  run_to turn 1 combat_damage
+  assert has not "Hill Giant" menace
+}
+
+scenario "Exile exiles a nonwhite attacker and gains its toughness in life" {
+  start turn 2 B
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant", "White Knight"
+  hand A: "Exile"
+  turn 2 B: attack "Hill Giant", "White Knight"
+  illegal turn 2 declare_attackers A: cast "Exile" targeting "White Knight"
+  turn 2 declare_attackers A: cast "Exile" targeting "Hill Giant"
+  run_to turn 2 end
+  assert exile B contains "Hill Giant"
+  assert life A 21
+}
+
+# ----- "Cast this spell only ..." (CR 601.3) -----
+
+scenario "Just Fate destroys an attacker once you've been attacked" {
+  start turn 2 B
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Just Fate"
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Just Fate" targeting "Hill Giant"
+  run_to turn 2 end
+  assert graveyard B contains "Hill Giant"
+  assert life A 20
+}
+
+scenario "Just Fate can't be cast outside the declare attackers step" {
+  start turn 2 B
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Just Fate"
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 precombat_main A: cast "Just Fate"
+  illegal turn 2 declare_blockers A: cast "Just Fate"
+  run_to turn 2 end
+  assert hand A contains "Just Fate"
+  assert life A 17
+}
+
+scenario "Remove can't be cast by the attacking player" {
+  battlefield A: "Island", "Hill Giant"
+  hand A: "Remove"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 declare_attackers A: cast "Remove" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand A contains "Remove"
+}
+
+scenario "Teleport makes a creature unblockable during declare attackers" {
+  battlefield A: 3 "Island", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Teleport"
+  illegal turn 1 precombat_main A: cast "Teleport" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_attackers A: cast "Teleport" targeting "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "Gorilla War Cry is cast before blockers and draws next upkeep" {
+  battlefield A: 2 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Gorilla War Cry"
+  library A: "Forest", "Forest"
+  library B: "Forest", "Forest"
+  illegal turn 1 precombat_main A: cast "Gorilla War Cry"
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_attackers A: cast "Gorilla War Cry"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 draw
+  assert life B 17
+  assert hand A count 1
+}
+
+# ----- wording: "two of them", "one of those cards", "this card" -----
+
+scenario "Bitter Revelation puts two cards into hand and two into the graveyard" {
+  battlefield A: 4 "Swamp"
+  hand A: "Bitter Revelation"
+  library A: 4 "Island", "Forest"
+  turn 1 A: cast "Bitter Revelation"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 3
+  assert library A count 1
+  assert life A 18
+}
+
+scenario "Blood Price puts the rest on the bottom" {
+  battlefield A: 4 "Swamp"
+  hand A: "Blood Price"
+  library A: 4 "Island", "Forest"
+  turn 1 A: cast "Blood Price"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 1
+  assert library A count 3
+  assert life A 18
+}
+
+scenario "Orazca Puzzle-Door puts one card into hand and the other into the graveyard" {
+  battlefield A: "Orazca Puzzle-Door", "Island"
+  library A: 2 "Island", "Forest"
+  turn 1 A: activate "Orazca Puzzle-Door"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A count 2
+  assert library A count 1
+}
+
+scenario "Cyclopean Giant makes a land a Swamp and exiles itself" {
+  start turn 2 B
+  battlefield A: "Cyclopean Giant"
+  battlefield B: "Forest", "Mountain"
+  hand B: "Lightning Bolt"
+  turn 2 B: cast "Lightning Bolt" targeting "Cyclopean Giant"
+  turn 2 A: trigger "Cyclopean Giant" targeting "Forest"
+  run_to turn 2 end
+  assert exile A contains "Cyclopean Giant"
+  assert is "Forest" swamp
+  assert is not "Forest" forest
+}
+
+scenario "Flitting Guerrilla may exile itself to put a creature card on top" {
+  start turn 2 B
+  battlefield A: "Flitting Guerrilla"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  graveyard A: "Hill Giant"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 2 B: cast "Lightning Bolt" targeting "Flitting Guerrilla"
+  turn 2 A: accept "Flitting Guerrilla"
+  turn 2 A: trigger "Flitting Guerrilla" targeting "Hill Giant"
+  run_to turn 2 end
+  assert exile A contains "Flitting Guerrilla"
+  assert library A count 2
+  assert graveyard B count 3
+}
+
+# ----- "If you can't, ..." -----
+
+scenario "Patient Naturalist puts a milled land into your hand" {
+  battlefield A: 3 "Forest"
+  hand A: "Patient Naturalist"
+  library A: "Grizzly Bears", "Island", "Hill Giant", "Forest"
+  turn 1 A: cast "Patient Naturalist"
+  run_to turn 1 end
+  assert hand A contains "Island"
+  assert graveyard A count 2
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Patient Naturalist makes a Treasure when no land was milled" {
+  battlefield A: 3 "Forest"
+  hand A: "Patient Naturalist"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Forest"
+  turn 1 A: cast "Patient Naturalist"
+  run_to turn 1 end
+  assert hand A count 0
+  assert graveyard A count 3
+  assert battlefield A contains "Treasure"
+}

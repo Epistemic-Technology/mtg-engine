@@ -560,6 +560,10 @@ impl Compiler<'_> {
         if let Some(n) = card.unkicked_targets {
             b = b.unkicked_targets(u8::try_from(n).unwrap_or(u8::MAX));
         }
+        if let Some(c) = &card.cast_only {
+            let c = self.static_cond(c);
+            b = b.cast_only(self.pool.intern_condition(c));
+        }
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
         }
@@ -1219,9 +1223,10 @@ impl Compiler<'_> {
             ),
             Recipient::You => CoreRecipient::You,
             Recipient::EachOpponent | Recipient::EachOtherPlayer => CoreRecipient::EachOpponent,
-            Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt => {
-                CoreRecipient::Source
-            }
+            Recipient::Source
+            | Recipient::SourceNamed
+            | Recipient::SourceCard
+            | Recipient::SourceIt => CoreRecipient::Source,
             Recipient::TriggeringCard => CoreRecipient::TriggeringCard,
             Recipient::TriggeringController { .. } | Recipient::TheTriggeringController => {
                 CoreRecipient::TriggeringController
@@ -1474,6 +1479,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Sacrifice { what: r(*what) });
             }
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
+            Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
             Effect::Tap { to } => {
                 for t in to {
@@ -1898,6 +1904,14 @@ impl Compiler<'_> {
             Effect::IfYouDo(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfYouDo(effects));
+            }
+            // What happens when the choice before found nothing to act on.
+            Effect::IfYouCant(inner) => {
+                if !matches!(out.last(), Some(CoreEffect::ChooseAct { .. })) {
+                    return self.err("`if you can't` needs a choice before it");
+                }
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::Otherwise(effects));
             }
             Effect::Otherwise(inner) => {
                 if !matches!(

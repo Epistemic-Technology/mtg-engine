@@ -1,0 +1,7 @@
+card "Teleport" {
+  oracle_id 9efcf3d1-a0be-4a34-90c6-85a46b48fb83
+  cost {U}{U}{U}
+  type Instant
+  cast only during declare attackers
+  spell: target creature gains can't be blocked
+}

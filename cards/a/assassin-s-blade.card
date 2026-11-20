@@ -1,0 +1,7 @@
+card "Assassin's Blade" {
+  oracle_id 76da2150-34b9-4483-99df-131e1c5468d5
+  cost {1}{B}
+  type Instant
+  cast only during declare attackers if attacked
+  spell: destroy target attacking late nonblack creature
+}

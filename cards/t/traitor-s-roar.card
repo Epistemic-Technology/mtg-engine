@@ -1,0 +1,7 @@
+card "Traitor's Roar" {
+  oracle_id 04e9ac31-3377-4a4c-9337-53ee0ada882a
+  cost {4}{B/R}
+  type Sorcery
+  spell: tap target untapped creature; target 1 bites its controller
+  conspire
+}

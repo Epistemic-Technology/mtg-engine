@@ -1,0 +1,7 @@
+card "Eightfold Maze" {
+  oracle_id 9097457c-ceb3-4944-8f01-c28ddefbb270
+  cost {2}{W}
+  type Instant
+  cast only during declare attackers if attacked
+  spell: destroy target attacking creature
+}

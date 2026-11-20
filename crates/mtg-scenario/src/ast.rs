@@ -199,6 +199,8 @@ pub enum Action {
         source: String,
         /// `ability N` (1-based among the permanent's activated abilities).
         ability: Option<usize>,
+        /// `x N` for an ability with {X} in its cost (CR 602.2b).
+        x: Option<u32>,
         sacrifice: Option<String>,
         /// `discarding "X"` for a "discard a card" cost.
         discard: Option<String>,

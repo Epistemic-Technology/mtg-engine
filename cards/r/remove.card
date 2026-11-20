@@ -1,0 +1,7 @@
+card "Remove" {
+  oracle_id a1ed0f7e-56c3-4866-89c4-77b81a952955
+  cost {U}
+  type Instant
+  cast only during declare attackers if attacked
+  spell: return target attacking creature to hand
+}

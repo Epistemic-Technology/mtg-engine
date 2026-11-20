@@ -1,0 +1,6 @@
+card "Bitter Revelation" {
+  oracle_id f3e025ce-6114-42d0-842f-73366c853657
+  cost {3}{B}
+  type Sorcery
+  spell: dig 4 take 2 card rest graveyard reword; you lose 2 life
+}

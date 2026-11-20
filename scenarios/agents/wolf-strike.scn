@@ -1,0 +1,32 @@
+scenario "wolf strike: own creature bites an opposing creature (not night, no pump)" {
+  battlefield A: "Hill Giant", 3 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Wolf Strike"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wolf Strike" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Hill Giant" 3
+  assert damage "Hill Giant" 0
+}
+
+scenario "wolf strike: deals only its power, a bigger creature survives" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Wolf Strike"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wolf Strike" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}
+
+scenario "wolf strike: the first target must be a creature you control" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  battlefield B: "Hill Giant", "Raging Goblin"
+  hand A: "Wolf Strike"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Wolf Strike" targeting "Hill Giant", "Raging Goblin"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Raging Goblin"
+}

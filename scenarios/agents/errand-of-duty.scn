@@ -1,0 +1,13 @@
+scenario "Errand of Duty: creates a 1/1 white Knight with banding" {
+  battlefield A: 2 "Plains"
+  hand A: "Errand of Duty"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Errand of Duty"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Knight"
+  assert has "Knight" banding
+  assert power "Knight" 1
+  assert toughness "Knight" 1
+  assert is "Knight" white
+  assert graveyard A contains "Errand of Duty"
+}

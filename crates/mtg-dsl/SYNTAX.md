@@ -73,7 +73,8 @@ double-faced permanent to its other face (CR 701.27).
 | `alternative cost sacrifice Mountain`, `alternative cost sacrifice 2 Mountain`, `alternative cost sacrifice Mountain, if your turn`, `alternative cost {1}, return basic land you control` | An alternative cost of the card's own (CR 118.9): "You may sacrifice a Mountain rather than pay this spell's mana cost.", "You may sacrifice two Mountains ...", "If it's your turn, you may ...", "You may pay {1} and return a basic land you control to its owner's hand ...". Mana and one kind of permanent (sacrificed, returned with `return`, or tapped with `tap untapped creature you control`), offered while the condition holds; the chosen permanent is the first and the engine picks the rest. Not combined with an additional cost that also chooses a permanent. `alternative cost pay 4 life, if you control Swamp` pays life (offered only with that much life, CR 119.4); `alternative cost if cast another white spell this turn`, with no cost at all, prints "If you've cast another white spell this turn, you may cast this spell without paying its mana cost."; `alternative cost reveal hand, if hand has no land card` prints "If you have no land cards in hand, you may reveal your hand rather than pay this spell's mana cost." (every card left in the hand is then known to every player, CR 701.20). `alternative cost {1}{W}, exile creature card from graveyard` prints "You may pay {1}{W} and exile a creature card from your graveyard rather than pay this spell's mana cost."; `alternative cost exile top 3 black cards from graveyard` "You may exile the top three black cards of your graveyard rather than ..." (the most recent matching cards; without `top`, the oldest). An alternative cost prints before the keywords. |
 | `flash as long as you control Merfolk` | "This spell has flash as long as you control a Merfolk." (CR 702.8): the card may be cast as though it had flash while the condition holds. |
 | `flash with cleanup sacrifice` | "You may cast this spell as though it had flash. If you cast it any time a sorcery couldn't have been cast, the controller of the permanent it becomes sacrifices it at the beginning of the next cleanup step." (Spider Climb): cast other than in its controller's main phase with an empty stack (CR 307.1), the permanent gets a delayed trigger at the next cleanup step (CR 514.3a). |
-| `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. Targets first declared in a spell's `if kicked` sentence ("If this spell was kicked, it deals damage equal to that permanent's mana value to target creature.") are chosen only if it is kicked (CR 601.2c). |
+| `cast only during combat`, `cast only during opponent upkeep`, `cast only during combat before blockers`, `cast only during combat after blockers`, `cast only during declare attackers`, `cast only during declare attackers if attacked`, `cast only if you control creature` | "Cast this spell only during combat." (CR 601.3), printed first: the card is offered for casting from the hand only while the condition holds for its caster (any static condition, or a part of the turn as for activation restrictions). `if attacked` prints "during the declare attackers step and only if you've been attacked this step" (a creature attacks the caster; not one of their planeswalkers). |
+| `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. |
 | `flashback {4}{R}` / `flashback {1}{U}, pay 3 life` / `flashback sacrifice 3 creature` / `flashback tap 3 untapped white creature you control` | Flashback (CR 702.34): the card may be cast from the graveyard for this cost and is exiled as it leaves the stack. The cost is mana, life, and a chosen permanent to sacrifice, return, or tap (chosen after targets like an additional cost's, so not on a card that also has an additional cost). Prints last, as "Flashback {4}{R}" or "Flashback—Sacrifice three creatures." |
 | `oracle_mismatch "reason"` | The rendered text is allowed to differ from Oracle; the gate reports it as allowed. Use it for cards whose text includes an ability the engine does not implement. |
 
@@ -84,8 +85,8 @@ double-faced permanent to its other face (CR 701.27).
 | `mana {G}` / `mana {W} or {U}` / `mana any` / `mana {U} or chosen` | "{T}: Add {G}." A mana ability (CR 605); `any` is "one mana of any color", `chosen` "one mana of the chosen color" (the color chosen as the permanent entered; none chosen, no mana). Basic land types grant theirs intrinsically. |
 | `mana any, sacrifice this` | "{T}, Sacrifice this artifact: Add one mana of any color." (Treasure, Lotus Petal). Payment uses such sources after all others. |
 | `mana {C} only to cast instant or sorcery spell`, `mana any only to cast creature spell`, `mana {U} only to cast artifact spell or activate`, `mana {R} only to cast artifact spell or to activate`, `mana {C} only to activate or cast artifact spell`, `mana {R} only to cast Elemental spell or Chandra planeswalker spell`, `mana {U} not to cast nonartifact spell` | "{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell.", "... only to cast an artifact spell or activate an ability.", "... or to activate an ability.", "... only to activate an ability or cast an artifact spell.", "This mana can't be spent to cast a nonartifact spell." Restricted mana (CR 106.6): one kind of mana; the engine taps the source only to pay for what the restriction allows (any activated ability for `activate`; for `not to cast`, other spells and any activated ability, though not costs an effect asks for), so its mana is spent at once and never sits in the pool. |
-| `mana {U} only to cast artifact spell or activate of artifact`, `mana {U} only to foretell or cast instant or sorcery spell` | "Spend this mana only to cast an artifact spell or activate an ability of an artifact source." (`of <filter>` after `activate`: only abilities of matching sources, cards in hand and graveyard included); "Spend this mana only to foretell a card from your hand or cast an instant or sorcery spell." (the foretell special action's {2}, CR 702.143a); `mana {U} only to pay disturb or cast instant or sorcery spell` ("Spend this mana only to pay a disturb cost or cast an instant or sorcery spell."; disturb isn't implemented, so only the spells). |
-| `spend only black mana on x` | "Spend only black mana on X." (CR 107.3): the X in the spell's cost is paid with that color only. |
+| `mana {U} only to cast artifact spell or activate of artifact`, `mana {U} only to foretell or cast instant or sorcery spell` | "Spend this mana only to cast an artifact spell or activate an ability of an artifact source." (`of <filter>` after `activate`: only abilities of matching sources, cards in hand and graveyard included); "Spend this mana only to foretell a card from your hand or cast an instant or sorcery spell." (the foretell special action's {2}, CR 702.143a). |
+| `spend only black mana on x` | "Spend only black mana on X." (CR 107.3): the X in the spell's cost is paid with that color only. After an activated ability with {X} (`activated {X}: deal X damage to each creature and each player` then `spend only black mana on x`), it is that ability's X, printed in its paragraph (Crypt Rats). |
 | `cycling {2}`, `cycling pay 2 life` | Cycling (CR 702.29): "{2}, Discard this card: Draw a card.", activated from the hand. A cost other than mana prints "Cycling—Pay 2 life." (activated only with that much life, CR 119.4). |
 | `plainscycling {2}`, `basic landcycling {1}{G}`, `landcycling {2}` | Typecycling (CR 702.29e): discard to search for a card of that type. |
 | `enchant creature` | An Aura's "Enchant" (CR 702.5), with a target specification. |
@@ -93,7 +94,7 @@ double-faced permanent to its other face (CR 701.27).
 | `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. `choose one or both { ... }` takes two modes, either or both ("Choose one or both —"). As a triggered ability's effect (`triggered when this enters: choose one { ... }`) the mode is chosen as the ability goes on the stack (CR 603.3c), each mode with its own targets. `choose two { ... }` (three or four unnamed modes) chooses two different modes (CR 700.2d; "Choose two —"). A named mode, `mode "Smash the Chest": destroy target artifact`, prints its name first ("• Smash the Chest — Destroy target artifact."); the name has no rules meaning. |
 | `enters tapped unless you control planeswalker`, `enters tapped unless player life 13 or less` | "This land enters tapped unless ..." with a static condition (CR 614.1d). |
 | `can't attack unless defending player controls Island`, `can't block unless you control other Goblin`, `can't attack or block unless ...` | Attack and block restrictions with a condition (CR 508.1c, 509.1c). Conditions only these use: `defending player poisoned` ("defending player is poisoned"), `on battlefield Mountain` / `on battlefield 5 Island` ("there is a Mountain on the battlefield", "there are five or more Islands on the battlefield"), `you control more creatures than defending player` (or `attacking player`), and, judged on the whole declaration, `at least 2 other creatures attack` (or `block`) and `black or green creature also attacks` ("a black or green creature also attacks"): a creature whose condition the declared attackers (blockers) don't meet can't be among them. `opponent damaged this turn` prints "an opponent has been dealt damage this turn" here. `can't attack if defending player controls untapped land` (`if`: the restriction applies while the condition holds: "This creature can't attack if ..."); `can't attack if creature also attacks` prints "can only attack alone" (granted: "Enchanted creature ... can only attack alone."). `attacked last turn` ("it attacked during your last turn": the source was declared as an attacker during its controller's most recent turn) also works in `static this: has doesn't untap if attacked last turn`. `defending player controls no Glimmer creature` prints "controls no Glimmer creatures". A condition's alternative written with its own article (`you control Knight or a Soldier`) prints it ("a Knight or a Soldier"). |
-| `activated <cost>: <effects>` | An activated ability (CR 602). |
+| `activated <cost>: <effects>` | An activated ability (CR 602). With {X} in its cost (`activated {X}, sacrifice this: destroy target artifact with mana value X`), X is announced as it is activated, before targets (CR 602.2b, 601.2b), only as high as can be paid and some target fits; the effects read it. A mana ability's X is not asked. |
 | `boast {1}{W}: <effects>`, `exhaust {3}: <effects>`, `power-up {5}{R}: <effects>` | An activated ability after a keyword, printed "Boast — {1}{W}: ..." (the keyword's rules are reminder text). Boast (CR 702.142): only if this creature was declared as an attacker this turn, and only once each turn. Exhaust (CR 702.177) and power-up (CR 702.193): only once for the object (a new object after a zone change may again, CR 400.7); a power-up ability of a permanent that entered this turn costs its mana cost less (colored mana reduces that color, any excess generic; CR 118.7). |
 | `loyalty +1: <effects>` | A loyalty ability (CR 606); `-6` likewise. |
 | `equip {1}`, `equip Knight {1}`, `equip {0}, once` | Equip (CR 702.6): "Equip {1}"; with a creature type, only onto a creature of that type you control ("Equip Knight {1}", CR 702.6c); `once` prints "Equip {0}. Activate only once each turn." |
@@ -212,7 +213,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `at beginning of enchanted controller's upkeep`, `at beginning of enchanted controller's end step` | "At the beginning of the upkeep of enchanted creature's controller" (the noun from the Aura's enchant restriction): the step of whoever controls what the source is attached to, judged as the step begins; that permanent is `that creature`, its controller `that player` |
 | `whenever this attacks`, `whenever creature you control attacks`, `whenever this blocks` | attacks or blocks |
 | `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
-| `when you control no Island`, `when you control no other creature` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature." Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
+| `when you control no Island`, `when you control no other creature`, `when you control Dwarf` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature."; any static condition after `when you control` ("When you control a Dwarf", "When you control a creature with toughness 2 or less"). Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | |
 | `whenever you roll dice`, `whenever you win a coin flip` | "Whenever you roll one or more dice" (once per roll, CR 706), "Whenever you win a coin flip" (CR 705.2) |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
@@ -578,6 +579,9 @@ cards in your graveyard, scry 2` ("Spell mastery — If there are two or more
 instant and/or sorcery cards in your graveyard, scry 2."). `that target
 1` prints "that creature" even after the first mention.
 `tap or untap target creature` (the controller chooses on resolution).
+`next spell costs {1} less` prints "the next spell you cast this turn costs {1}
+less to cast" (CR 601.2f): generic mana off the controller's next spell
+this turn; several add up, and that spell uses them all up.
 `learn` (CR 701.48) prints "Learn."; there are no Lesson cards outside the
 game here, so it is "you may discard a card; if you do, draw a card".
 `goad target creature` (CR 701.15; `goad target 1` prints "Goad it.",
@@ -842,7 +846,10 @@ creature types` (until end of turn). `this: add subtype Cleric, add
 subtype Rogue, ...` (two or more) prints "~ is also a Cleric, Rogue, ..."
 and the types are the card's in every zone. A group `creature you control
 with aura late` prints "creatures you control that are enchanted"
-(Magemarks; `with aura` prints "enchanted creatures"). "You control"
+(Magemarks; `with aura` prints "enchanted creatures"). Wording-only
+order: `attacking with Equipment late creature` prints "attacking equipped
+creature" (`with Equipment` alone, "equipped attacking"), and `attacking
+late nonwhite creature` "nonwhite attacking creature". "You control"
 prints before a group's qualities: "other creatures you control with
 defender", "creatures you control with power 5 or greater".
 
@@ -1196,7 +1203,8 @@ your hand"; `take any creature card may revealing`: "You may reveal any
 number of creature cards from among them and put the revealed cards into
 your hand"; `take creature card and land card may`: "a creature card
 and/or a land card" (one of each); `rest bottom random`: "in a random
-order"; `dig 3 then take card rest graveyard`: "look at the top three
+order"; a final `reword` (wording only) prints "two of them" for "two of
+those cards" and "one of those cards" for "one of them"; `dig 3 then take card rest graveyard`: "look at the top three
 cards of your library, then put one of them into your hand and the rest
 into your graveyard"; `dig 3 take card may top rest graveyard`: "You may
 put one of those cards back on top of your library. Put the rest into
@@ -1302,7 +1310,9 @@ turn."). Alternatives in the plural join with "and": `each Ninja or Rogue
 you control gains menace` prints "Ninjas and Rogues you control gain
 menace".
 
-How the source names itself (CR 201.5): `this` prints "this creature" (the
+How the source names itself (CR 201.5): `this card` prints "this card" (the
+source's card, as a dies trigger exiles it from the graveyard: "Exile this
+card."). `this` prints "this creature" (the
 card's own noun: "this land", "this Aura", "this Equipment"), or a spell's
 name, at its first mention in an ability and "it" after. A legendary
 permanent uses its name instead of "this creature", up to the first comma
@@ -1497,9 +1507,17 @@ do` then sees:
 `A or B` joins alternatives the controller chooses between, among those it
 can do: `you may sacrifice 1 artifact chosen or discard 1 card; if you do,
 draw 1 card`, `create 1 "Food" or create 1 "Treasure"` ("create a Food
-token or a Treasure token"). `target creature gains choice of lifelink or
+token or a Treasure token"; `destroy each enchantment or destroy each nonwhite
+enchantment` likewise names "destroy" once). A subject is named in each
+alternative: `deal 2 damage to each attacking creature or deal 2 damage to
+each blocking creature` is "Lava Storm deals 2 damage to each attacking
+creature or Lava Storm deals 2 damage to each blocking creature". `target creature gains choice of lifelink or
 indestructible` is "gains your choice of lifelink or indestructible until
 end of turn". With none possible nothing happens and `if you do` sees that.
+After a choice (`return 1 creature card from your graveyard to hand chosen`,
+`put 1 land card from among milled cards into hand chosen`), `if you can't,
+...` happens only if it found nothing to act on: "Put a land card from among
+the milled cards into your hand. If you can't, create a Treasure token."
 
 Conditions on what the resolution did "this way" (CR 608.2c), judged on
 the objects as they last existed (CR 608.2h): `if creature card was exiled

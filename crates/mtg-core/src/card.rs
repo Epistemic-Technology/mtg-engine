@@ -2218,6 +2218,15 @@ pub enum TurnTime {
     EndOfCombat,
     /// "during your main phase" (CR 505.1).
     YourMain,
+    /// "during the declare attackers step".
+    DeclareAttackers,
+    /// "during combat before blockers are declared".
+    BeforeBlockers,
+    /// "during combat after blockers are declared".
+    AfterBlockers,
+    /// "during the declare attackers step and only if you've been attacked
+    /// this step": a creature attacks you (judged by the game state).
+    AttackedThisStep,
 }
 
 impl TurnTime {
@@ -2250,6 +2259,19 @@ impl TurnTime {
             TurnTime::YourTurnBeforeAttackers => before && active == you,
             TurnTime::DeclareBlockers => step == Step::DeclareBlockers,
             TurnTime::EndOfCombat => step == Step::EndOfCombat,
+            TurnTime::DeclareAttackers | TurnTime::AttackedThisStep => {
+                step == Step::DeclareAttackers
+            }
+            TurnTime::BeforeBlockers => {
+                matches!(step, Step::BeginningOfCombat | Step::DeclareAttackers)
+            }
+            TurnTime::AfterBlockers => matches!(
+                step,
+                Step::DeclareBlockers
+                    | Step::FirstStrikeDamage
+                    | Step::CombatDamage
+                    | Step::EndOfCombat
+            ),
         }
     }
 }
@@ -3128,6 +3150,11 @@ pub enum Effect {
     Tap {
         to: Recipient,
     },
+    /// "The next spell you cast this turn costs {1} less to cast" (CR
+    /// 601.2f): the controller's next spell this turn costs that much less
+    /// generic mana; several such effects add up, and that one spell uses
+    /// them all up.
+    NextSpellLess(u32),
     /// "Tap or untap target permanent": its controller (the ability's)
     /// chooses as it resolves.
     TapOrUntap {
@@ -5396,6 +5423,10 @@ pub struct CardDef {
     /// The pool condition an `AsCast` condition of the spell judges as it
     /// is cast.
     pub cast_snapshot: Option<u16>,
+    /// "Cast this spell only during combat." / "... only if you control a
+    /// creature." (CR 601.3): the pool condition the caster must meet to
+    /// cast the card.
+    pub cast_only: Option<u16>,
     /// Offspring (CR 702.175): an optional additional cost; if paid, a 1/1
     /// token copy is created as the permanent enters.
     pub offspring: Option<Box<ManaCost>>,
@@ -7082,6 +7113,7 @@ impl Builder {
             flash_cleanup: false,
             unkicked_targets: None,
             cast_snapshot: None,
+            cast_only: None,
             offspring: None,
             bargain: false,
             aura_stays: false,
@@ -7317,6 +7349,13 @@ impl Builder {
     #[must_use]
     pub fn flash_if(mut self, condition: u16) -> Self {
         self.0.flash_if = Some(condition);
+        self
+    }
+
+    /// "Cast this spell only ..." (CR 601.3).
+    #[must_use]
+    pub fn cast_only(mut self, condition: u16) -> Self {
+        self.0.cast_only = Some(condition);
         self
     }
 

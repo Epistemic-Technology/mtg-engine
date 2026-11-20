@@ -134,6 +134,9 @@ pub struct Card {
     /// those an "if kicked" sentence declares (Orim's Thunder's "target
     /// creature" is chosen only if the spell is kicked, CR 601.2c).
     pub unkicked_targets: Option<usize>,
+    /// `cast only during combat`, `cast only if you control creature`:
+    /// "Cast this spell only during combat." (CR 601.3).
+    pub cast_only: Option<StaticCond>,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
@@ -183,6 +186,7 @@ impl Card {
             flash_if: None,
             flash_cleanup: false,
             unkicked_targets: None,
+            cast_only: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
@@ -640,6 +644,12 @@ pub struct Filter {
     /// `with aura late`: "creatures you control that are enchanted"
     /// (`status.enchanted`, printed after the controller).
     pub enchanted_late: bool,
+    /// `with Equipment late`: "attacking equipped creature" (`equipped`
+    /// printed after "attacking"/"blocking" rather than before).
+    pub equipped_late: bool,
+    /// `attacking late`: "nonwhite attacking creature" (`attacking`
+    /// printed after colors and negations rather than before).
+    pub attacking_late: bool,
     /// `attached to this`, `attached to attached`, `attached to target 1`
     /// (`ObjFilter::attached_to`).
     pub attached_to: Option<AttachedRef>,
@@ -2141,6 +2151,9 @@ pub enum Recipient {
     /// named in full even after a mention ("..., you may sacrifice it. If
     /// you do, this creature deals 3 damage to that player.").
     SourceNamed,
+    /// `this card`: the source printed "this card" (its card in a
+    /// graveyard: "When this creature dies, ... Exile this card.").
+    SourceCard,
     /// `it` in a spell or an activated ability: the source as "it" even at
     /// its first mention ("If this spell was kicked, it deals 2 damage").
     SourceIt,
@@ -2324,6 +2337,9 @@ pub enum Effect {
         to: Vec<Recipient>,
     },
     /// `tap or untap target creature`.
+    /// `next spell costs {1} less`: "the next spell you cast this turn
+    /// costs {1} less to cast".
+    NextSpellLess(u32),
     TapOrUntap {
         to: Recipient,
     },
@@ -2745,6 +2761,10 @@ pub enum Effect {
     },
     /// `if you do, ...`: only if the optional action before happened.
     IfYouDo(Vec<Sentence>),
+    /// `if you can't, ...`: only if the action before did nothing ("return
+    /// a land card from your graveyard to your hand. If you can't, draw a
+    /// card.").
+    IfYouCant(Vec<Sentence>),
     /// `otherwise, ...`: only if the conditional sentence just before (`if
     /// <condition>, ...`, `if you win, ...`) didn't happen (CR 608.2c).
     Otherwise(Vec<Sentence>),
@@ -2888,6 +2908,9 @@ pub enum Effect {
         /// `take card may top`: "You may put one of those cards back on
         /// top of your library" (it stays there; the rest go).
         top: bool,
+        /// `reword`, wording only: "two of them" for "two of those cards",
+        /// and "one of those cards" for "one of them".
+        reword: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
     /// put them back in any order".

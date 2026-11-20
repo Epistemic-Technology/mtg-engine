@@ -1,0 +1,6 @@
+card "Sudden Storm" {
+  oracle_id 32e915fb-3836-4bed-93b1-61c9c3951ad1
+  cost {3}{U}
+  type Instant
+  spell: tap up to 2 target creature; targets 1 to 2 doesn't untap next untap steps; scry 1
+}

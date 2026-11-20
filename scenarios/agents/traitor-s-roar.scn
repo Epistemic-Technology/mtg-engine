@@ -1,0 +1,34 @@
+scenario "Traitor's Roar: taps the creature and it deals damage equal to its power to its controller" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Traitor's Roar"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Traitor's Roar" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert life B 17
+  assert life A 20
+}
+
+scenario "Traitor's Roar: a tapped creature can't be targeted" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Traitor's Roar"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Traitor's Roar" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Traitor's Roar: conspired, the copy hits a second creature" {
+  battlefield A: 5 "Mountain", 2 "Goblin Piker"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Traitor's Roar"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Traitor's Roar" conspired targeting "Hill Giant"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Serra Angel"
+  assert life B 13
+}

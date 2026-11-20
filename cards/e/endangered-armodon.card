@@ -1,0 +1,7 @@
+card "Endangered Armodon" {
+  oracle_id 68879437-bbe2-4e99-b17b-ddec30bfd3d0
+  cost {2}{G}{G}
+  type Creature — Elephant
+  pt 4/5
+  triggered when you control creature with toughness 2 or less: sacrifice this
+}
