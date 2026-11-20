@@ -1,0 +1,8 @@
+card "Dragonologist" {
+  oracle_id f6791df0-a37b-44dc-8bf3-40ac2304d188
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 1/3
+  triggered when this enters: dig 6 take instant or sorcery or Dragon card may revealing rest bottom random
+  static untapped Dragon you control: has hexproof
+}

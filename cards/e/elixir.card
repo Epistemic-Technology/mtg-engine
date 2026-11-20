@@ -1,0 +1,7 @@
+card "Elixir" {
+  oracle_id 3e978db3-77ef-4b93-8f8f-e414e27254bd
+  cost {1}
+  type Artifact
+  enters tapped
+  activated {5}, {T}, exile this: shuffle all nonland card from graveyard into library; you gain count equal shuffled this way life
+}

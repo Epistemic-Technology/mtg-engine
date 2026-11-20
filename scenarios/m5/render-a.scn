@@ -257,6 +257,81 @@ scenario "Defossilize returns a creature, which explores twice" {
   assert counters "Hill Giant" +1/+1 2
 }
 
+scenario "Cerebral Download surveils by artifacts, then draws three" {
+  battlefield A: 5 "Island", 2 "Ornithopter"
+  hand A: "Cerebral Download"
+  library A: 6 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cerebral Download"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A contains "Cerebral Download"
+}
+
+scenario "Dragonologist takes a Dragon card; untapped Dragons have hexproof" {
+  battlefield A: 3 "Island", "Shivan Dragon"
+  hand A: "Dragonologist"
+  library A: "Forest", "Shivan Dragon", "Forest", "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dragonologist"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shivan Dragon"
+  assert has A "Shivan Dragon" hexproof
+}
+
+scenario "Questing Druid grows on a red spell, not a green one" {
+  battlefield A: "Questing Druid", 2 "Mountain", "Forest"
+  hand A: "Lightning Bolt", "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Questing Druid"
+  run_to turn 1 postcombat_main
+  assert counters "Questing Druid" +1/+1 1
+}
+
+scenario "Elixir shuffles nonland cards back and gains that much life" {
+  battlefield A: "Elixir", 5 "Plains"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Elixir"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert graveyard A count 1
+  assert exile A contains "Elixir"
+}
+
+scenario "Brambleguard Veteran: Raccoons get +1/+1 and vigilance on expend 4" {
+  battlefield A: "Brambleguard Veteran", 5 "Mountain"
+  hand A: "Hill Giant", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Brambleguard Veteran" 4
+  assert has "Brambleguard Veteran" vigilance
+  assert power "Hill Giant" 3
+}
+
+scenario "Resplendent Angel makes an Angel after you gain 5 life" {
+  battlefield A: "Resplendent Angel", 6 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Resplendent Angel"
+  turn 1 A: attack "Resplendent Angel"
+  run_to turn 1 cleanup
+  assert life A 25
+  assert battlefield A contains "Angel"
+}
+
+scenario "Resplendent Angel: less than 5 life makes no Angel" {
+  battlefield A: "Resplendent Angel", 6 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Resplendent Angel"
+  run_to turn 1 cleanup
+  assert battlefield A lacks "Angel"
+}
+
 scenario "Brambleguard Captain gives its power to a creature you control" {
   battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
   start turn 1 A precombat_main

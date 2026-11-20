@@ -1850,6 +1850,19 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         sides.push(filter_phrase_one(&b, card, plural_form));
         cur = a;
     }
+    // "an instant, sorcery, or Dragon card": types that are alternatives
+    // of their own ("instant or sorcery") join the list.
+    if !plural_form
+        && sides
+            .iter()
+            .all(|s| !s.contains(' ') || s.split(" or ").all(|w| !w.contains(' ')))
+        && sides.iter().any(|s| s.contains(" or "))
+    {
+        sides = sides
+            .iter()
+            .flat_map(|s| s.split(" or ").map(str::to_string).collect::<Vec<_>>())
+            .collect();
+    }
     // In the plural the alternatives join with "and": "Ninjas and Rogues
     // you control", "Bears, Spiders, and Wolves".
     let conj = if plural_form { "and" } else { "or" };
@@ -2860,6 +2873,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
         Effect::Scry(n)
+        | Effect::Surveil(n)
         | Effect::LookAtTop { count: n, .. }
         | Effect::ScryEach { count: n, .. } => {
             vec![*n]
@@ -3026,7 +3040,11 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::Times(..) => unreachable!("unwrapped above"),
         // "for each enchantment destroyed this way".
         CountExpr::ThisWay { verb, filter } => {
-            let verb = crate::ast::this_way_word(*verb);
+            // "the number of cards shuffled into your library this way".
+            let verb = match verb {
+                mtg_core::card::ThisWay::Shuffled => "shuffled into your library",
+                v => crate::ast::this_way_word(*v),
+            };
             match filter {
                 None => (
                     format!("card {verb} this way"),
@@ -6717,6 +6735,28 @@ fn lowercase_first(s: &str) -> String {
     {
         return s.to_string();
     }
+    // "Raccoons you control get +1/+1": a creature type in the plural.
+    let mut words = s.split(' ');
+    if let (Some(first), Some("you"), Some("control")) = (words.next(), words.next(), words.next())
+        && first.chars().next().is_some_and(char::is_uppercase)
+        && first.ends_with('s')
+        && !matches!(
+            first,
+            "Creatures"
+                | "Permanents"
+                | "Artifacts"
+                | "Lands"
+                | "Enchantments"
+                | "Planeswalkers"
+                | "Battles"
+                | "Tokens"
+                | "Spells"
+                | "Cards"
+                | "Others"
+        )
+    {
+        return s.to_string();
+    }
     let mut c = s.chars();
     match c.next() {
         Some(f) => f.to_lowercase().collect::<String>() + c.as_str(),
@@ -7338,6 +7378,16 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             } else {
                 what.to_string()
             };
+            // Four colors or more: "a spell that's white, blue, black, or
+            // red" (Quirion Dryad).
+            let colors = ["white", "blue", "black", "red", "green"];
+            if what.split(", ").count() >= 4
+                && what
+                    .split(", ")
+                    .all(|w| colors.contains(&w.trim_start_matches("or ")))
+            {
+                return format!("whenever {who} a spell that's {what}{that}");
+            }
             format!("whenever {who} {}{that}", with_article(&spell_noun(&what)))
         }
         Trigger::TurnedFaceUp(TriggerObj::This) => format!("when {} is turned face up", this(ctx)),
@@ -9142,6 +9192,16 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         {
             "it entered this turn".to_string()
         }
+        // "if it isn't a token" (Gruff Triplets).
+        StaticCond::Is(f)
+            if f.status.token == Some(false) && {
+                let mut g = f.clone();
+                g.status.token = None;
+                g == Filter::default()
+            } =>
+        {
+            "it isn't a token".to_string()
+        }
         StaticCond::Is(f) => format!("it's {}", is_predicate(f, card)),
         StaticCond::Modified => "it's modified".to_string(),
         StaticCond::AttackingAlone => "it's attacking alone".to_string(),
@@ -9719,6 +9779,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 {
                     let _ = write!(out, ", if {} was dealt damage this turn", this_ref(card));
                     ctx.source_mentioned = true;
+                }
+                // An intervening "if" in the past tense: "At the beginning of
+                // each end step, if you gained 5 or more life this turn".
+                Some(crate::ast::TrigCond::Static(StaticCond::LifeGainedThisTurn(n))) => {
+                    let _ = write!(out, ", if you gained {n} or more life this turn");
                 }
                 Some(crate::ast::TrigCond::Static(c)) => {
                     out.push_str(", if ");

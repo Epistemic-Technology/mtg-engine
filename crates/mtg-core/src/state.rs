@@ -2488,8 +2488,7 @@ impl GameState {
         if q.counter.is_some_and(|c| !o.counters_match(c)) {
             return false;
         }
-        q.token
-            .is_none_or(|t| (self.objects[id].kind == ObjKind::Token) == t)
+        q.token.is_none_or(|t| (o.kind == ObjKind::Token) == t)
     }
 
     /// Whether the spell `obj` targets what `t` asks for, judged by
@@ -2984,11 +2983,25 @@ impl GameState {
                 .players_in_game()
                 .filter(|p| *p != you)
                 .any(|p| count(filter, p) >= *at_least as usize),
-            C::SourceIs(filter) => self.objects.get(source).is_some_and(|o| {
-                self.characteristics_or_lki(source).is_some_and(|c| {
-                    filter.matches(source, o.controller, &c, Some(source), Some(you))
-                }) && self.status_ok(filter, source)
-            }),
+            C::SourceIs(filter) => match self.objects.get(source) {
+                Some(o) => {
+                    self.characteristics_or_lki(source).is_some_and(|c| {
+                        filter.matches(source, o.controller, &c, Some(source), Some(you))
+                    }) && self.status_ok(filter, source)
+                }
+                // A leaves-the-battlefield trigger's "if it isn't a token"
+                // (Sphinx of False Conclusions): the permanent as it last
+                // existed (CR 603.10a, 608.2h).
+                None => self.lki.get(&source).is_some_and(|l| {
+                    let o = &l.object;
+                    self.characteristics_or_lki(source).is_some_and(|c| {
+                        filter.matches(source, o.controller, &c, Some(source), Some(you))
+                    }) && filter.tapped.is_none_or(|t| o.tapped == t)
+                        && !filter.attacking
+                        && !filter.blocking
+                        && (!filter.status.any() || self.status_quals_ok(filter.status, source, o))
+                }),
+            },
             C::AttachedIs(filter) => self
                 .objects
                 .get(source)
