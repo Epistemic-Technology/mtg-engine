@@ -1,0 +1,11 @@
+token "Incubator" {
+  layout transform
+  type Artifact — Incubator
+  color
+  activated {2}: transform this
+  face "Phyrexian Token" {
+    type Artifact Creature — Phyrexian
+    pt 0/0
+    color
+  }
+}

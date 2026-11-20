@@ -1,0 +1,7 @@
+card "Glint-Sleeve Artisan" {
+  oracle_id b5f35577-3d94-4835-bfca-3090cb0c63ff
+  cost {2}{W}
+  type Creature — Dwarf Artificer
+  pt 2/2
+  fabricate 1
+}

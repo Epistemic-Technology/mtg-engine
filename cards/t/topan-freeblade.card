@@ -1,0 +1,8 @@
+card "Topan Freeblade" {
+  oracle_id 9e2cd0d5-1537-412b-9ecd-989ab4ac2700
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords vigilance
+  renown 1
+}

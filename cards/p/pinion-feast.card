@@ -1,0 +1,6 @@
+card "Pinion Feast" {
+  oracle_id 9812bdf9-98b6-4b4d-8381-a7bbb25069d8
+  cost {4}{G}
+  type Instant
+  spell: destroy target creature with flying; bolster 2
+}

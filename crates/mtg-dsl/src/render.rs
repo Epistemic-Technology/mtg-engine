@@ -3151,6 +3151,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
+        Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
+        Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
+        Effect::Populate => Clause::imperative("populate".to_string()),
+        Effect::Incubate(n) => Clause::imperative(format!("incubate {}", digits(*n))),
         Effect::Discover(n) => Clause::imperative(format!("discover {n}")),
         Effect::MoveSourceCounters { to } => {
             let o = ctx.obj(*to);
@@ -6222,6 +6226,11 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         }
         Condition::Static(_) | Condition::While(_) => unreachable!("an AST condition"),
         Condition::Evoked => "if it was evoked".to_string(),
+        Condition::NotRenowned => "if it isn't renowned".to_string(),
+        Condition::Evolves => format!(
+            "if that creature has greater power or toughness than {}",
+            this_ref(ctx.card)
+        ),
     }
 }
 
@@ -8462,6 +8471,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "If it's neither day nor night, it becomes day as {} enters.",
                 this_ref(card)
             ),
+            crate::ast::Mechanic::Fabricate(n) => format!("Fabricate {n}"),
+            crate::ast::Mechanic::Evolve => "Evolve".to_string(),
+            crate::ast::Mechanic::Renown(n) => format!("Renown {n}"),
+            crate::ast::Mechanic::Unleash => "Unleash".to_string(),
         },
         Ability::EntersWithIf {
             n,

@@ -932,6 +932,95 @@ impl GameState {
         done
     }
 
+    /// Bolster N (CR 701.39a): N +1/+1 counters on a creature the
+    /// controller controls with the least toughness among them, chosen if
+    /// several are tied.
+    fn bolster(&mut self, ctx: &EffectCtx, n: u32) {
+        let p = ctx.controller;
+        let creatures: SmallVec<[(ObjId, i32); 8]> = self
+            .permanents_of(p)
+            .filter_map(|id| {
+                self.characteristics(id)
+                    .filter(crate::state::Characteristics::is_creature)
+                    .map(|c| (id, c.toughness()))
+            })
+            .collect();
+        let Some(least) = creatures.iter().map(|(_, t)| *t).min() else {
+            return;
+        };
+        let tied: SmallVec<[ObjId; 4]> = creatures
+            .iter()
+            .filter(|(_, t)| *t == least)
+            .map(|(id, _)| *id)
+            .collect();
+        let id = if tied.len() == 1 {
+            tied[0]
+        } else {
+            let options = tied
+                .iter()
+                .map(|id| Choice::Target(Target::Object(*id)))
+                .collect();
+            tied[self.choose_mid(p, DecisionKind::ChooseCard, options)]
+        };
+        self.add_counters(id, CounterKind::PlusOnePlusOne, n);
+    }
+
+    /// Populate (CR 701.36a): a copy of a creature token the controller
+    /// controls, chosen; with none, nothing (CR 701.36b).
+    fn populate(&mut self, ctx: &mut EffectCtx) {
+        let p = ctx.controller;
+        let tokens: SmallVec<[ObjId; 4]> = self
+            .permanents_of(p)
+            .filter(|id| {
+                self.objects[*id].kind == ObjKind::Token
+                    && self.characteristics(*id).is_some_and(|c| c.is_creature())
+            })
+            .collect();
+        let of = match tokens.len() {
+            0 => return,
+            1 => tokens[0],
+            _ => {
+                let options = tokens
+                    .iter()
+                    .map(|id| Choice::Target(Target::Object(*id)))
+                    .collect();
+                tokens[self.choose_mid(p, DecisionKind::ChooseCard, options)]
+            }
+        };
+        let new = self.create_token_copy(of, p, None);
+        if self.objects.contains_key(new) {
+            ctx.created = Some(new);
+        }
+    }
+
+    /// Fabricate N (CR 702.123a): N +1/+1 counters on the source if its
+    /// controller wants them and it is still on the battlefield, otherwise
+    /// N Servos.
+    fn fabricate(&mut self, ctx: &mut EffectCtx, n: u32, token: crate::card::CardRef) {
+        let p = ctx.controller;
+        let here = self
+            .objects
+            .get(ctx.source)
+            .filter(|o| o.zone == Zone::Battlefield)
+            .map(|o| o.def);
+        if let Some(def) = here
+            && self.choose_mid(
+                p,
+                DecisionKind::YouMay { def },
+                vec![Choice::Accept, Choice::Decline],
+            ) == 0
+        {
+            self.add_counters(ctx.source, CounterKind::PlusOnePlusOne, n);
+            return;
+        }
+        for _ in 0..n {
+            let new = self.create_token(token, p);
+            if self.objects.contains_key(new) {
+                ctx.created = Some(new);
+            }
+        }
+    }
+
     /// Whether the controller can do `e` now, for `Effect::OneOf`: a
     /// choice needs something to choose; anything else can be done.
     fn can_do(&self, ctx: &EffectCtx, e: &Effect) -> bool {
@@ -2526,6 +2615,7 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: false,
+            renowned: false,
             skip_untap: false,
             chosen: Chosen::None,
             alt: crate::state::AltCast::None,
@@ -7325,6 +7415,36 @@ impl GameState {
                     && self.objects[id].counters(CounterKind::PlusOnePlusOne) == 0
                 {
                     self.add_counters(id, CounterKind::PlusOnePlusOne, *n);
+                }
+            }
+            Effect::Bolster(n) => {
+                let n = self.eval_num(*n, ctx);
+                self.bolster(ctx, n);
+            }
+            Effect::Populate => self.populate(ctx),
+            Effect::Incubate { count, token } => {
+                // CR 701.53a: it enters with the counters (CR 122.6).
+                let n = self.eval_num(*count, ctx);
+                let new = self.create_token_entering(
+                    *token,
+                    ctx.controller,
+                    super::replace::Enter {
+                        tapped: false,
+                        counters: (n > 0).then_some((CounterKind::PlusOnePlusOne, n)),
+                    },
+                );
+                if self.objects.contains_key(new) {
+                    ctx.created = Some(new);
+                }
+            }
+            Effect::Fabricate { count, token } => self.fabricate(ctx, *count, *token),
+            Effect::BecomeRenowned => {
+                // CR 702.112b: only a permanent; one that has left the
+                // battlefield doesn't become renowned.
+                if let Some(o) = self.objects.get_mut(ctx.source)
+                    && o.zone == Zone::Battlefield
+                {
+                    o.renowned = true;
                 }
             }
             Effect::Connive { what } => {

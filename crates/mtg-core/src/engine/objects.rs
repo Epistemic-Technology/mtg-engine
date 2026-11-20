@@ -84,6 +84,7 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: false,
+            renowned: false,
             skip_untap: false,
             chosen: Chosen::None,
             alt: AltCast::None,
@@ -300,6 +301,7 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: to == Zone::Battlefield,
+            renowned: false,
             skip_untap: false,
             chosen,
             // CR 702.62a: a creature cast by suspend has haste.
@@ -579,16 +581,27 @@ impl GameState {
         controller: PlayerId,
         tapped: bool,
     ) -> ObjId {
-        let id = self.new_object(def, controller, Zone::Command);
-        self.objects[id].kind = ObjKind::Token;
-        let new = self.put_onto_battlefield_with(
-            id,
+        self.create_token_entering(
+            def,
             controller,
             Enter {
                 tapped,
                 counters: None,
             },
-        );
+        )
+    }
+
+    /// `create_token`, the token entering as `enter` says ("an Incubator
+    /// token with two +1/+1 counters on it", CR 122.6).
+    pub(super) fn create_token_entering(
+        &mut self,
+        def: CardRef,
+        controller: PlayerId,
+        enter: Enter,
+    ) -> ObjId {
+        let id = self.new_object(def, controller, Zone::Command);
+        self.objects[id].kind = ObjKind::Token;
+        let new = self.put_onto_battlefield_with(id, controller, enter);
         self.emit(Event::TokenCreated {
             obj: new,
             def,

@@ -1,0 +1,8 @@
+card "Peema Outrider" {
+  oracle_id 7747e94c-35a7-4e3b-956b-339a16634502
+  cost {2}{G}{G}
+  type Creature — Elf Artificer
+  pt 3/3
+  keywords trample
+  fabricate 1
+}

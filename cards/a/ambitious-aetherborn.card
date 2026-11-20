@@ -1,0 +1,7 @@
+card "Ambitious Aetherborn" {
+  oracle_id 31f54f88-85a6-43f4-a6de-fb6ef5f0c38d
+  cost {4}{B}
+  type Creature — Aetherborn Artificer
+  pt 4/3
+  fabricate 1
+}

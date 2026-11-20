@@ -1,0 +1,8 @@
+card "Crocanura" {
+  oracle_id 2071f278-77ba-46f8-85a0-ccd761199f29
+  cost {2}{G}
+  type Creature — Crocodile Frog
+  pt 1/3
+  keywords reach
+  evolve
+}

@@ -1,0 +1,7 @@
+card "Sandsteppe Scavenger" {
+  oracle_id 747ee321-f2dc-4d27-90cd-c4e610086958
+  cost {4}{G}
+  type Creature — Dog Scout
+  pt 2/2
+  triggered when this enters: bolster 2
+}

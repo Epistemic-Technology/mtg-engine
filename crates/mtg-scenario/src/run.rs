@@ -691,7 +691,10 @@ impl Runner {
     fn choice_name(&self, c: &Choice) -> Option<String> {
         let st = self.state();
         match c {
-            Choice::Sacrifice(id) => Some(st.name_of(*id).to_string()),
+            // A permanent chosen as an effect resolves (bolster, populate).
+            Choice::Sacrifice(id) | Choice::Target(Target::Object(id)) => {
+                Some(st.name_of(*id).to_string())
+            }
             Choice::Discard { def, .. } => Some(st.pool.get(*def).name.clone()),
             Choice::Mode(i) => Some((i + 1).to_string()),
             _ => None,

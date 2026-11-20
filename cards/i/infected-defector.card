@@ -1,0 +1,7 @@
+card "Infected Defector" {
+  oracle_id cff8dd65-e531-4496-aa49-e8d4350b9620
+  cost {4}{W}
+  type Creature — Phyrexian Knight
+  pt 4/3
+  triggered when this dies: incubate 3
+}

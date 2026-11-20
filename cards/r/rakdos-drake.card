@@ -1,0 +1,8 @@
+card "Rakdos Drake" {
+  oracle_id 0715167b-00b1-45a4-94a0-60d4097a1428
+  cost {2}{B}
+  type Creature — Drake
+  pt 1/2
+  keywords flying
+  unleash
+}

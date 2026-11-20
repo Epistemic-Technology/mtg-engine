@@ -1060,6 +1060,7 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: false,
+            renowned: false,
             skip_untap: false,
             chosen: Chosen::None,
             alt: crate::state::AltCast::None,
@@ -1178,6 +1179,11 @@ impl GameState {
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(source).is_some_and(|o| o.echo_due),
+            Condition::NotRenowned => self.objects.get(source).is_some_and(|o| !o.renowned),
+            Condition::Evolves => {
+                let this = self.characteristics_or_lki(source);
+                self.evolves(this.as_ref(), trigger_obj)
+            }
             Condition::Evoked => self
                 .objects
                 .get(source)
@@ -1216,11 +1222,26 @@ impl GameState {
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due),
+            Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned),
+            Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),
             Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),
             Condition::Static(i) | Condition::While(i) => {
                 self.condition_for(self.pool.condition(i), w.controller, w.source, trigger_obj)
             }
         }
+    }
+
+    /// Evolve (CR 702.100a): the entering creature (as it last existed, if
+    /// it has left) has greater power or greater toughness than the
+    /// creature with evolve. Neither can be a noncreature (CR 702.100c).
+    fn evolves(&self, this: Option<&Characteristics>, other: Option<ObjId>) -> bool {
+        let Some(this) = this.filter(|c| c.is_creature()) else {
+            return false;
+        };
+        other
+            .and_then(|o| self.characteristics_or_lki(o))
+            .filter(Characteristics::is_creature)
+            .is_some_and(|c| c.power() > this.power() || c.toughness() > this.toughness())
     }
 
     /// CR 702.33c: whether the object (or, once it has moved, the object it

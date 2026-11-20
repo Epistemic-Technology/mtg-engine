@@ -1,0 +1,6 @@
+card "Rootborn Defenses" {
+  oracle_id 04046ae4-5c51-434b-930c-f3b1d348bf4b
+  cost {2}{W}
+  type Instant
+  spell: populate; each creature you control gain indestructible
+}

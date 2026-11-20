@@ -1284,8 +1284,17 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Provoke))
             }
+            "evolve" | "unleash" => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(if w == "evolve" {
+                    Mechanic::Evolve
+                } else {
+                    Mechanic::Unleash
+                }))
+            }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
-            | "saddle" | "poisonous" | "frenzy" | "absorb"
+            | "saddle" | "poisonous" | "frenzy" | "absorb" | "fabricate" | "renown"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
@@ -1302,6 +1311,8 @@ impl P {
                     "poisonous" => Mechanic::Poisonous(n),
                     "frenzy" => Mechanic::Frenzy(n),
                     "absorb" => Mechanic::Absorb(n),
+                    "fabricate" => Mechanic::Fabricate(n),
+                    "renown" => Mechanic::Renown(n),
                     _ => Mechanic::Toxic(n),
                 }))
             }
@@ -4905,6 +4916,29 @@ impl P {
             }
             "proliferate" => Ok(Effect::Proliferate),
             "adapt" => Ok(Effect::Adapt(self.count()?)),
+            "bolster" => Ok(Effect::Bolster(self.num()?)),
+            "populate" => Ok(Effect::Populate),
+            "incubate" => Ok(Effect::Incubate(self.num()?)),
+            // CR 701.41a: "up to N other target creatures" on a permanent
+            // (its triggered ability), "up to N target creatures" on a
+            // spell.
+            "support" => {
+                let n = self.count()?;
+                if n == 0 {
+                    return self.fail("`support N`: N is at least 1");
+                }
+                let spec = Target::UpTo(Box::new(Target::Spec(if self.in_trigger {
+                    TargetSpec::OtherCreature
+                } else {
+                    TargetSpec::Creature
+                })));
+                let mut to = Vec::new();
+                for _ in 0..n {
+                    to.push(Recipient::Target(self.targets.len()));
+                    self.targets.push(spec.clone());
+                }
+                Ok(Effect::Support(to))
+            }
             "discover" => Ok(Effect::Discover(self.count()?)),
             "impulse" => {
                 let count = self.num()?;
@@ -8012,6 +8046,12 @@ impl P {
         }
         if self.eat_words(&["echo", "due"]) {
             return Ok(Condition::EchoDue);
+        }
+        if self.eat_words(&["not", "renowned"]) {
+            return Ok(Condition::NotRenowned);
+        }
+        if self.eat_word("evolves") {
+            return Ok(Condition::Evolves);
         }
         if self.eat_word("evoked") {
             return Ok(Condition::Evoked);

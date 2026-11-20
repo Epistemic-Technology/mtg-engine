@@ -1,0 +1,8 @@
+card "Firefiend Elemental" {
+  oracle_id 59c898d8-14f0-4645-84e7-aeedb2ee6c5e
+  cost {3}{R}
+  type Creature — Elemental
+  pt 3/2
+  keywords haste
+  renown 1
+}

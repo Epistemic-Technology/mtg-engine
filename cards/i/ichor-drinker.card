@@ -1,0 +1,8 @@
+card "Ichor Drinker" {
+  oracle_id 470a8ee9-1870-44d8-8ade-64ec8084b9f7
+  cost {B}
+  type Creature — Phyrexian Vampire
+  pt 1/1
+  keywords lifelink
+  activated {B}, exile this from graveyard, sorcery: incubate 2
+}

@@ -1,0 +1,8 @@
+card "Pharika's Disciple" {
+  oracle_id d7798312-657c-4f4a-9e2d-906284caf50f
+  cost {3}{G}
+  type Creature — Centaur Warrior
+  pt 2/3
+  keywords deathtouch
+  renown 1
+}

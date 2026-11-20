@@ -1,0 +1,8 @@
+card "Abzan Skycaptain" {
+  oracle_id 866fc4b9-f661-444b-b7fd-929814dbc69d
+  cost {3}{W}
+  type Creature — Bird Soldier
+  pt 2/2
+  keywords flying
+  triggered when this dies: bolster 2
+}

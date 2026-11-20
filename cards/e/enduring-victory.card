@@ -1,0 +1,6 @@
+card "Enduring Victory" {
+  oracle_id 955ff3bf-4323-452e-a8b1-b7662034473d
+  cost {4}{W}
+  type Instant
+  spell: destroy target attacking or blocking creature; bolster 1
+}

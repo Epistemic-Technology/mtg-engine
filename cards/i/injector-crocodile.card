@@ -1,0 +1,8 @@
+card "Injector Crocodile" {
+  oracle_id 619c7d51-51d1-4467-a58b-4f275ff9df0f
+  cost {4}{B}{B}
+  type Creature — Phyrexian Crocodile
+  pt 5/5
+  triggered when this dies: incubate 3
+  swampcycling {2}
+}

@@ -1,0 +1,9 @@
+card "Shoulder to Shoulder" {
+  oracle_id 4ffa7cc8-4774-430d-b898-5bd26366e124
+  cost {2}{W}
+  type Sorcery
+  spell {
+    support 2
+    draw 1 card
+  }
+}

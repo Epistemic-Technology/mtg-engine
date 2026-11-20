@@ -1,0 +1,7 @@
+card "Dead Reveler" {
+  oracle_id 5cee3505-0291-4f1b-9e5f-2909a31acd8e
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/3
+  unleash
+}

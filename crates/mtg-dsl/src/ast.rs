@@ -1097,6 +1097,16 @@ pub enum Mechanic {
     /// `becomes day as this enters`: "If it's neither day nor night, it
     /// becomes day as this creature enters." (CR 731.1).
     BecomesDay,
+    /// `fabricate 1` (CR 702.123): when this enters, N +1/+1 counters on
+    /// it or N 1/1 Servos.
+    Fabricate(u32),
+    /// `evolve` (CR 702.100).
+    Evolve,
+    /// `renown 1` (CR 702.112).
+    Renown(u32),
+    /// `unleash` (CR 702.98): may enter with a +1/+1 counter; can't block
+    /// as long as it has one.
+    Unleash,
 }
 
 /// A blocking restriction on this creature.
@@ -2561,6 +2571,16 @@ pub enum Effect {
     Manifest,
     /// `adapt 2` (CR 701.46).
     Adapt(u32),
+    /// `bolster 2` (CR 701.39).
+    Bolster(Num),
+    /// `support 2` (CR 701.41a): a +1/+1 counter on each of up to N target
+    /// creatures, other than the source in a triggered ability (support on
+    /// a permanent); the recipients are those targets.
+    Support(Vec<Recipient>),
+    /// `populate` (CR 701.36).
+    Populate,
+    /// `incubate 2` (CR 701.53): the token is "Incubator".
+    Incubate(Num),
     /// `discover 4` (CR 701.57).
     Discover(u32),
     /// Modular's "put its +1/+1 counters on [recipient]" (internal).

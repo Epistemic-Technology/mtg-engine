@@ -3341,6 +3341,30 @@ pub enum Effect {
     /// Adapt N (CR 701.46): if the source has no +1/+1 counters, it gets
     /// N.
     Adapt(u32),
+    /// Bolster N (CR 701.39a): the controller chooses a creature they
+    /// control with the least toughness among creatures they control and
+    /// puts N +1/+1 counters on it.
+    Bolster(Num),
+    /// Populate (CR 701.36a): the controller chooses a creature token they
+    /// control and creates a token that's a copy of it; with none, nothing
+    /// happens (CR 701.36b).
+    Populate,
+    /// Incubate N (CR 701.53a): create `token` (an Incubator, a
+    /// double-faced token, CR 111.10i) entering with N +1/+1 counters.
+    Incubate {
+        count: Num,
+        token: CardRef,
+    },
+    /// Fabricate N (CR 702.123a): the controller may put N +1/+1 counters
+    /// on the source; if they don't (or can't: it has left the
+    /// battlefield), they create N `token`s (1/1 Servos).
+    Fabricate {
+        count: u32,
+        token: CardRef,
+    },
+    /// The source becomes renowned (CR 702.112a, b), if it is still on the
+    /// battlefield.
+    BecomeRenowned,
     /// The recipient creature connives (CR 701.50): its controller draws
     /// and discards a card; a nonland discard puts a +1/+1 counter on it.
     Connive {
@@ -3554,6 +3578,11 @@ impl Effect {
                 | Effect::PunishEach { .. }
                 | Effect::DrawCastOne { .. }
                 | Effect::RevealPutCreature { .. }
+                // Which creature (tied for least toughness, or token) and
+                // whether to take the counters.
+                | Effect::Bolster(_)
+                | Effect::Populate
+                | Effect::Fabricate { .. }
         )
     }
 }
@@ -3794,6 +3823,9 @@ pub enum Replacement {
     },
     /// Enters with counters.
     EnterWithCounters { kind: CounterKind, n: Num },
+    /// Its controller may have it enter with N more counters (unleash, CR
+    /// 702.98a).
+    EnterWithCountersMay { kind: CounterKind, n: u32 },
     /// CR 701.15a: instead of being destroyed, the permanent has all damage
     /// removed, is tapped, and leaves combat. A stored shield; used once.
     Regenerate,
@@ -4193,6 +4225,11 @@ pub enum Condition {
     /// Echo (CR 702.30a): the source came under its controller's control
     /// since their last upkeep.
     EchoDue,
+    /// "if it isn't renowned" (renown, CR 702.112a).
+    NotRenowned,
+    /// Evolve (CR 702.100a): the triggering creature's power is greater
+    /// than the source's, or its toughness is greater than the source's.
+    Evolves,
     /// The pool's `n`th static condition ("if you control an artifact",
     /// "if you have 5 or less life").
     Static(u16),
@@ -4767,6 +4804,18 @@ impl AbilityDef {
         }
     }
 
+    /// "You may have this permanent enter with ..." (unleash, CR 702.98a):
+    /// its controller is asked as it enters.
+    pub const fn enters_may(&self) -> bool {
+        matches!(
+            self,
+            AbilityDef::Replacement(ReplacementAbility {
+                replacement: Replacement::EnterWithCountersMay { .. },
+                ..
+            })
+        )
+    }
+
     /// Every effect this ability can apply, across modes and "you may"
     /// clauses, for static inspection.
     pub fn all_effects(&self) -> Vec<&Effect> {
@@ -5330,7 +5379,8 @@ impl DefFlags {
                 matches!(
                     a,
                     AbilityDef::EntersAsCopy(_) | AbilityDef::AsEntersChoose(_)
-                ) || a.all_effects().iter().any(|e| e.asks())
+                ) || a.enters_may()
+                    || a.all_effects().iter().any(|e| e.asks())
             }),
         );
         flags.set(
@@ -5355,7 +5405,7 @@ impl DefFlags {
             DefFlags::ENTERS_CHOICE,
             abilities
                 .iter()
-                .any(|a| matches!(a, AbilityDef::AsEntersChoose(_))),
+                .any(|a| matches!(a, AbilityDef::AsEntersChoose(_)) || a.enters_may()),
         );
         flags.set(
             DefFlags::VALIANT,

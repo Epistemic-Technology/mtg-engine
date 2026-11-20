@@ -1,0 +1,8 @@
+card "Aerie Auxiliary" {
+  oracle_id 0c97aea7-c997-45b4-a044-84fb5c07a021
+  cost {3}{W}
+  type Creature — Bird Soldier
+  pt 3/3
+  keywords flying
+  triggered when this enters: support 2
+}

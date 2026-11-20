@@ -1,0 +1,8 @@
+card "Expedition Raptor" {
+  oracle_id 0a44da1d-7914-4592-a00f-7e40e0d07f91
+  cost {3}{W}{W}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: support 2
+}

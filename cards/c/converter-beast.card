@@ -1,0 +1,7 @@
+card "Converter Beast" {
+  oracle_id 7fbb9547-a805-4768-8574-e283e64600a4
+  cost {3}{G}
+  type Creature — Phyrexian Beast
+  pt 0/1
+  triggered when this enters: incubate 5
+}

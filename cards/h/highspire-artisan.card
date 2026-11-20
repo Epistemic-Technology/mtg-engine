@@ -1,0 +1,8 @@
+card "Highspire Artisan" {
+  oracle_id fc8c54c4-a436-43cc-888b-f4ba3e751c16
+  cost {2}{G}
+  type Creature — Elf Artificer
+  pt 0/3
+  keywords reach
+  fabricate 1
+}

@@ -1,0 +1,8 @@
+card "Maulfist Squad" {
+  oracle_id 2a8ec988-b513-4e66-b7f5-b2196b4bbff2
+  cost {3}{B}
+  type Creature — Human Artificer
+  pt 3/1
+  keywords menace
+  fabricate 1
+}

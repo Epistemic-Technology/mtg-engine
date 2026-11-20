@@ -1,0 +1,8 @@
+card "Experiment One" {
+  oracle_id 8520ee67-439b-4f15-838b-420bacbb8b13
+  cost {G}
+  type Creature — Human Ooze
+  pt 1/1
+  evolve
+  activated remove 2 +1/+1 counters from this: regenerate it
+}

@@ -1,0 +1,7 @@
+card "Saddleback Lagac" {
+  oracle_id 3d720d55-3df8-40fd-bc93-ad99c1105249
+  cost {3}{G}
+  type Creature — Lizard
+  pt 3/1
+  triggered when this enters: support 2
+}

@@ -101,7 +101,13 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         kicker: def.kicker.as_deref().cloned(),
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
-        abilities: def.abilities.iter().map(|a| d.ability(a)).collect(),
+        // Unleash's second static ability comes back with its keyword line.
+        abilities: def
+            .abilities
+            .iter()
+            .filter(|a| **a != crate::compile::unleash_static())
+            .map(|a| d.ability(a))
+            .collect(),
         except: def.copy_except.as_ref().map(|x| Except {
             subtypes: x.subtypes.clone(),
             keywords: keywords(x.keywords),
@@ -1050,6 +1056,12 @@ impl Decompiler<'_> {
                 unreachable!("built-in abilities only")
             }
             CoreEffect::Adapt(n) => Effect::Adapt(*n),
+            CoreEffect::Bolster(n) => Effect::Bolster(*n),
+            CoreEffect::Populate => Effect::Populate,
+            CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
+            CoreEffect::Fabricate { .. } | CoreEffect::BecomeRenowned => {
+                unreachable!("decompiled as a keyword line")
+            }
             CoreEffect::Discover(n) => Effect::Discover(*n),
             CoreEffect::MoveSourceCounters { to } => Effect::MoveSourceCounters {
                 to: Self::recipient(*to),
@@ -1601,6 +1613,34 @@ impl Decompiler<'_> {
                     cycling: act.cycling,
                 }
             }
+            // Keyword lines that compile to a trigger of their own.
+            AbilityDef::Triggered(t)
+                if matches!(t.effects.as_slice(), [CoreEffect::Fabricate { .. }]) =>
+            {
+                let [CoreEffect::Fabricate { count, .. }] = t.effects.as_slice() else {
+                    unreachable!("matched above")
+                };
+                Ability::Mechanic(crate::ast::Mechanic::Fabricate(*count))
+            }
+            AbilityDef::Triggered(t)
+                if t.condition == Some(mtg_core::card::Condition::NotRenowned) =>
+            {
+                let n = match t.effects.first() {
+                    Some(CoreEffect::AddCounters {
+                        count: mtg_core::card::Num::N(n),
+                        ..
+                    }) => *n,
+                    _ => 1,
+                };
+                Ability::Mechanic(crate::ast::Mechanic::Renown(n))
+            }
+            AbilityDef::Triggered(t) if t.condition == Some(mtg_core::card::Condition::Evolves) => {
+                Ability::Mechanic(crate::ast::Mechanic::Evolve)
+            }
+            AbilityDef::Replacement(ReplacementAbility {
+                replacement: mtg_core::card::Replacement::EnterWithCountersMay { .. },
+                ..
+            }) => Ability::Mechanic(crate::ast::Mechanic::Unleash),
             AbilityDef::Triggered(t) => Ability::Triggered {
                 trigger: self.trigger(&t.trigger),
                 condition: t.condition.map(|c| match c {

@@ -551,6 +551,10 @@ impl Fmt {
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
             Effect::Adapt(n) => format!("adapt {n}"),
+            Effect::Bolster(n) => format!("bolster {}", num(*n)),
+            Effect::Support(to) => format!("support {}", to.len()),
+            Effect::Populate => "populate".to_string(),
+            Effect::Incubate(n) => format!("incubate {}", num(*n)),
             Effect::Discover(n) => format!("discover {n}"),
             Effect::MoveSourceCounters { .. } | Effect::CumulativeUpkeep(_) => {
                 unreachable!("only in expansions")
@@ -1965,7 +1969,9 @@ fn outcome(o: &Outcome) -> String {
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
         Outcome::WinGame => "win".to_string(),
-        Outcome::EnterTappedUnless(_) | Outcome::EnterWithCountersIf { .. } => {
+        Outcome::EnterTappedUnless(_)
+        | Outcome::EnterWithCountersIf { .. }
+        | Outcome::EnterWithCountersMay { .. } => {
             unreachable!("an AST ability of its own")
         }
         Outcome::EnterTapped => "tapped".to_string(),
@@ -3591,6 +3597,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     head.push_str(" if no creatures are on the battlefield");
                 }
                 Some(mtg_core::card::Condition::EchoDue) => head.push_str(" if echo due"),
+                Some(mtg_core::card::Condition::NotRenowned) => head.push_str(" if not renowned"),
+                Some(mtg_core::card::Condition::Evolves) => head.push_str(" if evolves"),
                 Some(mtg_core::card::Condition::Evoked) => head.push_str(" if evoked"),
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
                 Some(mtg_core::card::Condition::NoSpellsLastTurn) => {
@@ -3823,6 +3831,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Ascend => "ascend".to_string(),
                 crate::ast::Mechanic::StartYourEngines => "start your engines".to_string(),
                 crate::ast::Mechanic::BecomesDay => "becomes day as this enters".to_string(),
+                crate::ast::Mechanic::Fabricate(n) => format!("fabricate {n}"),
+                crate::ast::Mechanic::Evolve => "evolve".to_string(),
+                crate::ast::Mechanic::Renown(n) => format!("renown {n}"),
+                crate::ast::Mechanic::Unleash => "unleash".to_string(),
             };
             let _ = writeln!(out, "{indent}{text}");
         }

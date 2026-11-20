@@ -1,0 +1,6 @@
+card "Trostani's Judgment" {
+  oracle_id 97cf544e-ffbf-4730-8cd2-4f1d5be933f2
+  cost {5}{W}
+  type Instant
+  spell: exile target creature, then populate
+}

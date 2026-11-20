@@ -1,0 +1,8 @@
+card "Shambleshark" {
+  oracle_id 0e235b96-9507-4f4b-9578-4fb8ed854cc2
+  cost {G}{U}
+  type Creature — Shark Crab
+  pt 2/1
+  keywords flash
+  evolve
+}

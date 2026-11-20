@@ -1,0 +1,7 @@
+card "Sandcrafter Mage" {
+  oracle_id 6bf9c91f-f278-4b97-8517-d062118c4e56
+  cost {2}{W}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: bolster 1
+}

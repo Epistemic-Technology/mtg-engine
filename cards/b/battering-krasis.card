@@ -1,0 +1,8 @@
+card "Battering Krasis" {
+  oracle_id 3d0c1301-4fa7-4245-a13f-f613188eb638
+  cost {2}{G}
+  type Creature — Shark Beast
+  pt 2/1
+  keywords trample
+  evolve
+}

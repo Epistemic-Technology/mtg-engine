@@ -1,0 +1,8 @@
+card "Clinging Anemones" {
+  oracle_id 7058e7c3-b704-47f6-85f8-ee584f76a1fe
+  cost {3}{U}
+  type Creature — Jellyfish
+  pt 1/4
+  keywords defender
+  evolve
+}

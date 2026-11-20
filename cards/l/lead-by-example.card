@@ -1,0 +1,6 @@
+card "Lead by Example" {
+  oracle_id 9a50418c-3cdc-4e3e-b02c-6da646093120
+  cost {1}{G}
+  type Instant
+  spell: support 2
+}

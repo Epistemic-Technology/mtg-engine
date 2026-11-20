@@ -1,0 +1,8 @@
+card "Akroan Sergeant" {
+  oracle_id 8a206c6f-4f6f-4c31-9dab-d73a57db989c
+  cost {2}{R}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords first strike
+  renown 1
+}

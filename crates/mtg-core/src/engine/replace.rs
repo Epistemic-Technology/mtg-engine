@@ -1058,6 +1058,44 @@ impl GameState {
                     },
                 })
             }
+            // CR 702.98a: "You may have this permanent enter with an
+            // additional +1/+1 counter on it."
+            (
+                Replacement::EnterWithCountersMay { kind, n },
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => {
+                let def = self.objects[obj].def;
+                let counters = if self.choose_mid(
+                    controller,
+                    DecisionKind::YouMay { def },
+                    vec![Choice::Accept, Choice::Decline],
+                ) == 0
+                {
+                    match enter.counters {
+                        Some((k, m)) if k == kind => Some((k, m + n)),
+                        Some(other) => Some(other),
+                        None => Some((kind, n)),
+                    }
+                } else {
+                    enter.counters
+                };
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter: Enter {
+                        tapped: enter.tapped,
+                        counters,
+                    },
+                })
+            }
             // `applies` only offers matching pairs.
             (_, ev) => Outcome::Event(ev),
         };
@@ -1109,6 +1147,7 @@ impl GameState {
                     c.ability.replacement,
                     crate::card::Replacement::EnterTapped
                         | crate::card::Replacement::EnterWithCounters { .. }
+                        | crate::card::Replacement::EnterWithCountersMay { .. }
                 )
         })
     }

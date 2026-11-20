@@ -1,0 +1,8 @@
+card "Splatter Thug" {
+  oracle_id 3baee36b-d64f-448c-ae45-c1ec124c92ec
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  keywords first strike
+  unleash
+}

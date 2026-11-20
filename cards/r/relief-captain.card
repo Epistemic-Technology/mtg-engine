@@ -1,0 +1,7 @@
+card "Relief Captain" {
+  oracle_id 97e088a3-65eb-42f5-85b8-6aeb770a3f56
+  cost {2}{W}{W}
+  type Creature — Kor Knight Ally
+  pt 3/2
+  triggered when this enters: support 3
+}

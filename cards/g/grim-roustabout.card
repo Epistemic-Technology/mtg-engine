@@ -1,0 +1,8 @@
+card "Grim Roustabout" {
+  oracle_id 1adcc4a8-b2dd-4d9a-bded-188b81c84a10
+  cost {1}{B}
+  type Creature — Skeleton Warrior
+  pt 1/1
+  unleash
+  activated {1}{B}: regenerate this
+}

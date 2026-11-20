@@ -1,0 +1,7 @@
+card "Adaptive Snapjaw" {
+  oracle_id 0a56e2ad-684d-45a7-9145-479d1505bba2
+  cost {4}{G}
+  type Creature — Lizard Beast
+  pt 6/2
+  evolve
+}

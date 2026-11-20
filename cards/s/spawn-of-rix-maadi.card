@@ -1,0 +1,7 @@
+card "Spawn of Rix Maadi" {
+  oracle_id 39d4373b-35b4-4ceb-b4d5-9ca474365eb0
+  cost {3}{B}{R}
+  type Creature — Horror
+  pt 5/3
+  unleash
+}

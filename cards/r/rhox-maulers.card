@@ -1,0 +1,8 @@
+card "Rhox Maulers" {
+  oracle_id 019461d9-63ae-43d3-a9d4-bd745d0cf46c
+  cost {4}{G}
+  type Creature — Rhino Soldier
+  pt 4/4
+  keywords trample
+  renown 2
+}

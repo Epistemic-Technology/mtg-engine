@@ -535,6 +535,11 @@ impl Compiler<'_> {
             }
             let compiled = self.ability(a)?;
             b = b.ability(compiled);
+            // CR 702.98a: unleash's second static ability, "This permanent
+            // can't block as long as it has a +1/+1 counter on it."
+            if let Ability::Mechanic(Mechanic::Unleash) = a {
+                b = b.ability(unleash_static());
+            }
             // "... and with first strike": abilities the permanent has as
             // long as it was kicked (fixed as it enters, CR 702.33c).
             if let Ability::Mechanic(Mechanic::KickedWith(_, ks)) = a
@@ -1797,6 +1802,27 @@ impl Compiler<'_> {
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
+            Effect::Bolster(n) => out.push(CoreEffect::Bolster(*n)),
+            Effect::Populate => out.push(CoreEffect::Populate),
+            // CR 701.41a: one counter on each target.
+            Effect::Support(to) => {
+                for t in to {
+                    out.push(CoreEffect::AddCounters {
+                        kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                        count: Num::N(1),
+                        to: r(*t),
+                    });
+                }
+            }
+            Effect::Incubate(count) => {
+                let Some(token) = self.pool.lookup(INCUBATOR) else {
+                    return self.err(format!("unknown token \"{INCUBATOR}\""));
+                };
+                out.push(CoreEffect::Incubate {
+                    count: *count,
+                    token,
+                });
+            }
             Effect::Discover(n) => out.push(CoreEffect::Discover(*n)),
             Effect::MoveSourceCounters { to } => {
                 out.push(CoreEffect::MoveSourceCounters { to: r(*to) });
@@ -2709,6 +2735,48 @@ impl Compiler<'_> {
                     )
                 }
                 Mechanic::Backup(n) => self.backup(a, *n)?,
+                // CR 702.123a: "When this permanent enters, you may put N
+                // +1/+1 counters on it. If you don't, create N 1/1
+                // colorless Servo artifact creature tokens."
+                Mechanic::Fabricate(n) => {
+                    let Some(token) = self.pool.lookup(SERVO) else {
+                        return self.err(format!("unknown token \"{SERVO}\""));
+                    };
+                    AbilityDef::Triggered(TriggeredAbility {
+                        from_graveyard: false,
+                        trigger: TriggerSpec::Enters(CoreTriggerObj::This),
+                        condition: None,
+                        targets: Vec::new(),
+                        effects: vec![CoreEffect::Fabricate { count: *n, token }],
+                    })
+                }
+                // CR 702.112a: "When this creature deals combat damage to a
+                // player, if it isn't renowned, put N +1/+1 counters on it
+                // and it becomes renowned."
+                Mechanic::Renown(n) => AbilityDef::Triggered(TriggeredAbility {
+                    from_graveyard: false,
+                    trigger: TriggerSpec::DealsCombatDamageToPlayer(CoreTriggerObj::This),
+                    condition: Some(mtg_core::card::Condition::NotRenowned),
+                    targets: Vec::new(),
+                    effects: vec![
+                        CoreEffect::AddCounters {
+                            kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                            count: Num::N(*n),
+                            to: CoreRecipient::Source,
+                        },
+                        CoreEffect::BecomeRenowned,
+                    ],
+                }),
+                // CR 702.98a: the first of unleash's two static abilities
+                // (the card adds the second, `unleash_static`).
+                Mechanic::Unleash => AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterWithCountersMay {
+                        kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                        n: 1,
+                    },
+                    then: Vec::new(),
+                }),
                 Mechanic::Saddle(n) => AbilityDef::Activated(ActivatedAbility {
                     cost: CoreCost {
                         crew: *n,
@@ -2774,6 +2842,27 @@ impl Compiler<'_> {
     }
 }
 
+/// The token Fabricate creates (CR 702.123a).
+const SERVO: &str = "1/1 colorless Servo artifact creature";
+/// The token Incubate creates (CR 701.53a, 111.10i).
+const INCUBATOR: &str = "Incubator";
+
+/// Unleash's "This permanent can't block as long as it has a +1/+1 counter
+/// on it." (CR 702.98a).
+pub(crate) fn unleash_static() -> AbilityDef {
+    AbilityDef::Static(StaticAbility {
+        affected: ObjFilter::this(),
+        parts: vec![Modification::AddKeywords(KeywordSet::of([
+            mtg_core::card::Keyword::CantBlock,
+        ]))],
+        condition: Some(StaticCondition::SourceCounters {
+            kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+            n: 1,
+            at_least: true,
+        }),
+    })
+}
+
 /// What a keyword ability with a parameter stands for, as an ordinary
 /// ability (CR 702).
 #[allow(clippy::too_many_lines)] // one arm per mechanic
@@ -2781,6 +2870,27 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
     use crate::ast::{Effect as E, Join};
     let one = |e: E| vec![Sentence::new(vec![e])];
     match m {
+        // CR 702.100a: "Whenever a creature you control enters, if that
+        // creature's power is greater than this creature's power and/or
+        // that creature's toughness is greater than this creature's
+        // toughness, put a +1/+1 counter on this creature."
+        Mechanic::Evolve => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Enters(TriggerObj::Filter(Filter {
+                types: vec![mtg_core::card::CardType::Creature],
+                who: Some(Who::You),
+                ..Filter::default()
+            })),
+            condition: Some(crate::ast::TrigCond::Core(
+                mtg_core::card::Condition::Evolves,
+            )),
+            targets: Vec::new(),
+            effects: one(E::AddCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                count: Num::N(1),
+                to: Recipient::Source,
+            }),
+        },
         Mechanic::Bushido(n) => Ability::Triggered {
             from_graveyard: false,
             trigger: Trigger::BlocksOrBlocked(TriggerObj::This),
@@ -3094,6 +3204,9 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Ascend
         | Mechanic::StartYourEngines
         | Mechanic::BecomesDay
+        | Mechanic::Fabricate(_)
+        | Mechanic::Renown(_)
+        | Mechanic::Unleash
         | Mechanic::Saddle(_) => unreachable!("not an expansion"),
     }
 }

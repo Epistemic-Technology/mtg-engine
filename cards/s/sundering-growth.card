@@ -1,0 +1,6 @@
+card "Sundering Growth" {
+  oracle_id a2a380d8-4df7-4357-862c-ed3fb795db6c
+  cost {G/W}{G/W}
+  type Instant
+  spell: destroy target artifact or enchantment, then populate
+}

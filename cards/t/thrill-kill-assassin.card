@@ -1,0 +1,8 @@
+card "Thrill-Kill Assassin" {
+  oracle_id f13f5705-e3e0-4e1e-a5b3-61e04e23a374
+  cost {1}{B}
+  type Creature — Human Assassin
+  pt 1/2
+  keywords deathtouch
+  unleash
+}

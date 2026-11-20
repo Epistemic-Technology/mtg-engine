@@ -1,0 +1,8 @@
+card "Gluttonous Slug" {
+  oracle_id 68fbc13c-00b3-49bb-b343-4f2f1e8f5a7c
+  cost {1}{B}
+  type Creature — Slug Horror
+  pt 0/3
+  keywords menace
+  evolve
+}

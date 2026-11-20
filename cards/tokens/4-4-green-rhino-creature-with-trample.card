@@ -1,0 +1,7 @@
+token "4/4 green Rhino creature with trample" {
+  name "Rhino"
+  type Creature — Rhino
+  pt 4/4
+  color green
+  keywords trample
+}

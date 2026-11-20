@@ -141,6 +141,9 @@ pub struct GameObject {
     /// Came onto the battlefield since its echo was last dealt with (CR
     /// 702.30a): set as it enters, cleared by its echo trigger.
     pub echo_due: bool,
+    /// Renowned (CR 702.112b): a designation it keeps until it leaves the
+    /// battlefield.
+    pub renowned: bool,
     /// Skips its controller's next untap step ("doesn't untap during its
     /// controller's next untap step").
     pub skip_untap: bool,

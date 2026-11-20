@@ -1,0 +1,7 @@
+card "Knight of the Pilgrim's Road" {
+  oracle_id 40999aa6-6424-42e4-9d47-33bee6bbb886
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 3/2
+  renown 1
+}

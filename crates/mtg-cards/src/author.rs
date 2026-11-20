@@ -61,7 +61,7 @@ const KEYWORDS: [&str; 38] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 79] = [
+const TEMPLATED_TAGS: [&str; 87] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -142,6 +142,14 @@ const TEMPLATED_TAGS: [&str; 79] = [
     "Offspring",
     "Bargain",
     "Saddle",
+    "Fabricate",
+    "Renown",
+    "Evolve",
+    "Unleash",
+    "Support",
+    "Bolster",
+    "Populate",
+    "Incubate",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -1147,6 +1155,16 @@ impl Templates {
             (r(r"^Adapt (\d+)$"), |c, _| {
                 Some(format!("adapt {}", cap(c, 1)))
             }),
+            (r(r"^[Bb]olster (\d+)$"), |c, _| {
+                Some(format!("bolster {}", cap(c, 1)))
+            }),
+            (r(r"^[Ss]upport (\d+)$"), |c, _| {
+                Some(format!("support {}", cap(c, 1)))
+            }),
+            (r(r"^[Ii]ncubate (\d+)$"), |c, _| {
+                Some(format!("incubate {}", cap(c, 1)))
+            }),
+            (r(r"^[Pp]opulate$"), |_, _| Some("populate".to_string())),
             (r(r"^(It|This creature|~) connives$"), |_, t| {
                 (*t == 0).then(|| "this connives".to_string())
             }),
@@ -2565,7 +2583,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle) (\d+)$",
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown) (\d+)$",
         )
         .unwrap()
         .captures(line)
@@ -2648,6 +2666,10 @@ impl Builder<'_> {
         }
         if line == "Bargain" {
             self.statements.push("bargain".to_string());
+            return Ok(());
+        }
+        if line == "Evolve" || line == "Unleash" {
+            self.statements.push(line.to_lowercase());
             return Ok(());
         }
         if let Some(c) = Regex::new(r"^Affinity for (\w+)$").unwrap().captures(line) {

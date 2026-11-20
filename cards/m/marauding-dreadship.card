@@ -1,0 +1,9 @@
+card "Marauding Dreadship" {
+  oracle_id 12172602-89db-4c8b-b752-4f8380896589
+  cost {2}{R}
+  type Artifact — Vehicle
+  pt 4/1
+  keywords haste
+  triggered when this enters: incubate 2
+  crew 2
+}

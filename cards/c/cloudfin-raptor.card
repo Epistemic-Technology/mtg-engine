@@ -1,0 +1,8 @@
+card "Cloudfin Raptor" {
+  oracle_id cb0e1afa-fd9e-4bf9-bcb1-6e8110d6e2ff
+  cost {U}
+  type Creature — Bird Mutant
+  pt 0/1
+  keywords flying
+  evolve
+}

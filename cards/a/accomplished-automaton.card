@@ -1,0 +1,7 @@
+card "Accomplished Automaton" {
+  oracle_id f5af0d1b-531e-4053-848a-5e0fa1022f9a
+  cost {7}
+  type Artifact Creature — Construct
+  pt 5/7
+  fabricate 1
+}

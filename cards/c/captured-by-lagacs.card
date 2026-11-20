@@ -1,0 +1,8 @@
+card "Captured by Lagacs" {
+  oracle_id db1a29f9-1608-4502-a366-89048c2e9bda
+  cost {1}{G}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  triggered when this enters: support 2
+}

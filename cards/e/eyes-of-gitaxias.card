@@ -1,0 +1,9 @@
+card "Eyes of Gitaxias" {
+  oracle_id 7ef6ca6e-a8b8-4ea6-b13d-a08eb847c12d
+  cost {2}{U}
+  type Sorcery
+  spell {
+    incubate 3
+    draw 1 card
+  }
+}

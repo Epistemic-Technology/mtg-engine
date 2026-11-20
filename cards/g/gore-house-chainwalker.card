@@ -1,0 +1,7 @@
+card "Gore-House Chainwalker" {
+  oracle_id dbe3e317-3c39-4b38-ae06-eae02a910c37
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 2/1
+  unleash
+}

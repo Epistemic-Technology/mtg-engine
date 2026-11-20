@@ -1,0 +1,8 @@
+card "Iron League Steed" {
+  oracle_id bafeab74-918b-4fcd-8057-55922dbc1784
+  cost {4}
+  type Artifact Creature — Construct
+  pt 2/2
+  keywords haste
+  fabricate 1
+}

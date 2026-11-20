@@ -1,0 +1,6 @@
+card "Map the Wastes" {
+  oracle_id b845e69b-5d49-40ff-9cf7-d5cf2ccec7be
+  cost {2}{G}
+  type Sorcery
+  spell: search basic land card to battlefield tapped; bolster 1
+}

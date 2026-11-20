@@ -1,0 +1,8 @@
+card "Aven Tactician" {
+  oracle_id f2d5949b-3cdc-4efd-9841-7d450e12dbbe
+  cost {4}{W}
+  type Creature — Bird Soldier
+  pt 2/3
+  keywords flying
+  triggered when this enters: bolster 1
+}
