@@ -1038,6 +1038,7 @@ impl Decompiler<'_> {
             }
             CoreEffect::CreateReplacement(rep) => Effect::CreateReplacement(self.replacement(rep)),
             CoreEffect::Rule(k) => Effect::Rule(*k),
+            CoreEffect::DamageUnpreventable => Effect::DamageUnpreventable,
             CoreEffect::PlayerRule { who, kind } => Effect::PlayerRule {
                 who: Self::recipient(*who),
                 kind: *kind,
@@ -1227,6 +1228,7 @@ impl Decompiler<'_> {
             CoreEffect::IfThisWay { cond, then } => {
                 Effect::IfThisWay(self.this_way_cond(cond), self.sentences(then))
             }
+            CoreEffect::IfExcessDamage(then) => Effect::IfExcessDamage(self.sentences(then)),
             CoreEffect::ChooseAct {
                 act,
                 filter,

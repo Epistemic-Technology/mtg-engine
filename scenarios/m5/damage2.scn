@@ -340,3 +340,48 @@ scenario "Dark Bargain: two of the top three to hand, the other to the graveyard
   assert library A count 1
   assert life A 18
 }
+
+# ---- the damage can't be prevented ----
+
+scenario "Pinpoint Avalanche: its damage ignores prevention" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Daunting Defender"
+  hand A: "Pinpoint Avalanche"
+  turn 1 A: cast "Pinpoint Avalanche" targeting "Daunting Defender"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Daunting Defender"
+}
+
+scenario "Pinpoint Avalanche: other damage is still prevented" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Daunting Defender", "Hill Giant"
+  hand A: "Pinpoint Avalanche", "Lightning Bolt"
+  turn 1 A: cast "Pinpoint Avalanche" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Daunting Defender"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert damage "Daunting Defender" 2
+}
+
+# ---- if excess damage was dealt this way ----
+
+scenario "Orbital Plunge: excess damage makes a Lander" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Orbital Plunge"
+  turn 1 A: cast "Orbital Plunge" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Lander"
+}
+
+scenario "Orbital Plunge: exactly lethal damage makes no Lander" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Colossal Dreadmaw"
+  hand A: "Orbital Plunge"
+  turn 1 A: cast "Orbital Plunge" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Colossal Dreadmaw"
+  assert battlefield A lacks "Lander"
+}

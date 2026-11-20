@@ -1590,6 +1590,9 @@ impl Fmt {
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
             }
+            Effect::IfExcessDamage(inner) => {
+                format!("if excess damage dealt this way, {}", self.line(inner, t))
+            }
             Effect::ChooseAct {
                 act,
                 count,
@@ -1857,6 +1860,7 @@ impl Fmt {
             Effect::Rule(RuleKind::DamageCantBePrevented) => {
                 "damage can't be prevented this turn".to_string()
             }
+            Effect::DamageUnpreventable => "the damage can't be prevented".to_string(),
             Effect::PlayerRule { who, kind } => format!(
                 "{} can't {} this turn",
                 self.recipient(*who, t),

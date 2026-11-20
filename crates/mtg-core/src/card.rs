@@ -3589,6 +3589,10 @@ pub enum Effect {
     CantBeRegenerated {
         to: Recipient,
     },
+    /// "The damage can't be prevented." (Pinpoint Avalanche, CR 615.12):
+    /// no damage this resolution deals is prevented. Read before the
+    /// spell's effects happen, wherever it is written among them.
+    DamageUnpreventable,
     /// "This creature assigns no combat damage this turn" (CR 510.1a):
     /// it assigns none in this turn's combat damage steps.
     AssignsNoCombatDamage {
@@ -3617,6 +3621,9 @@ pub enum Effect {
         cond: ThisWayCond,
         then: Vec<Effect>,
     },
+    /// "If excess damage was dealt this way, [these]" (CR 120.4a): the
+    /// resolution has dealt damage beyond lethal so far.
+    IfExcessDamage(Vec<Effect>),
     /// "you may tap two other untapped creatures you control", "return up
     /// to two lands you control to their owner's hand": the controller
     /// chooses `count` objects matching `filter` (up to `count` with
@@ -3734,6 +3741,7 @@ impl Effect {
                 | Effect::OfChoice { .. }
                 | Effect::Choose(_)
                 | Effect::IfThisWay { .. }
+                | Effect::IfExcessDamage(_)
                 | Effect::ChooseAct { .. }
                 | Effect::OneOf(_)
                 | Effect::DiscardUnless { .. }
@@ -5068,6 +5076,7 @@ impl AbilityDef {
             | Effect::IfTarget { then: inner, .. }
             | Effect::IfCard { then: inner, .. }
             | Effect::IfThisWay { then: inner, .. }
+            | Effect::IfExcessDamage(inner)
             | Effect::OneOf(inner)
             | Effect::UnlessPays { effects: inner, .. } = e
             {

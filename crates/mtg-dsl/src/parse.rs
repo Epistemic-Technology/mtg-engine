@@ -3625,6 +3625,15 @@ impl P {
                 crate::ast::TargetCheck::default(),
             ));
         }
+        // "If excess damage was dealt this way, ..." (CR 120.4a).
+        if self.at_words(&["if", "excess", "damage", "dealt", "this", "way"]) {
+            self.pos += 6;
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfExcessDamage(vec![s]));
+        }
         if self.at_word("if") && self.this_way_ahead() {
             self.pos += 1;
             let cond = self.this_way_cond()?;
@@ -5938,6 +5947,11 @@ impl P {
             "damage" => {
                 self.expect_words(&["can't", "be", "prevented", "this", "turn"])?;
                 Ok(Effect::Rule(RuleKind::DamageCantBePrevented))
+            }
+            // "The damage can't be prevented." (Pinpoint Avalanche).
+            "the" if self.at_words(&["damage", "can't", "be", "prevented"]) => {
+                self.pos += 4;
+                Ok(Effect::DamageUnpreventable)
             }
             _ => self.fail(format!("unknown effect `{w}`")),
         }

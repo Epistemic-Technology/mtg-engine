@@ -1848,6 +1848,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::CreateReplacement(compiled));
             }
             Effect::Rule(k) => out.push(CoreEffect::Rule(*k)),
+            Effect::DamageUnpreventable => out.push(CoreEffect::DamageUnpreventable),
             Effect::PlayerRule { who, kind } => out.push(CoreEffect::PlayerRule {
                 who: r(*who),
                 kind: *kind,
@@ -2057,6 +2058,10 @@ impl Compiler<'_> {
                 let then = self.sentences(inner)?;
                 let cond = self.this_way_cond(c);
                 out.push(CoreEffect::IfThisWay { cond, then });
+            }
+            Effect::IfExcessDamage(inner) => {
+                let then = self.sentences(inner)?;
+                out.push(CoreEffect::IfExcessDamage(then));
             }
             Effect::ChooseAct {
                 act,

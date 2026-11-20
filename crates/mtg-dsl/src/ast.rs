@@ -2873,6 +2873,9 @@ pub enum Effect {
     CantBeRegenerated {
         to: Recipient,
     },
+    /// `the damage can't be prevented`: "The damage can't be prevented."
+    /// (this spell's damage, CR 615.12).
+    DamageUnpreventable,
     /// `this assigns no combat damage this turn`: "This creature assigns
     /// no combat damage this turn."
     AssignsNoCombatDamage {
@@ -2936,6 +2939,9 @@ pub enum Effect {
     /// sacrificed creature was Human, <sentence>`: what the resolution, or
     /// the costs paid for it, did (CR 608.2c).
     IfThisWay(ThisWayCond, Vec<Sentence>),
+    /// `if excess damage dealt this way, <sentence>`: "If excess damage
+    /// was dealt this way, ..." (CR 120.4a).
+    IfExcessDamage(Vec<Sentence>),
     /// `tap 1 other untapped Citizen you control chosen`, `exile 2
     /// creature card from your graveyard chosen`, `return up to 2 land you
     /// control chosen`: the controller chooses what to act on.

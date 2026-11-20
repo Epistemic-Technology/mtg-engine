@@ -649,7 +649,8 @@ impl GameState {
     /// effects (CR 615.5).
     #[allow(clippy::too_many_lines)] // one arm per (replacement, event) pair
     fn apply_replacement(&mut self, c: &Candidate, ev: Proposed) -> Outcome {
-        let unpreventable = self.rule_in_force(RuleKind::DamageCantBePrevented);
+        let unpreventable = self.rule_in_force(RuleKind::DamageCantBePrevented)
+            || self.this_way.as_ref().is_some_and(|l| l.unpreventable);
         let outcome = match (c.ability.replacement, ev) {
             (
                 Replacement::Prevent,

@@ -1253,7 +1253,9 @@ planeswalker would die this turn" and covers the planeswalker too, CR
 exile`: "If a creature dealt damage this way would die this turn, exile
 it instead.", one effect locked to each permanent the resolution has
 dealt damage to so far, CR 608.2c), `players can't gain life this turn`,
-`damage can't be prevented this turn`, and
+`damage can't be prevented this turn`, `the damage can't be prevented`
+(after a spell's damage: "The damage can't be prevented.", that spell's
+damage only, CR 615.12), and
 `delayed <what>: <effects> at beginning of the next end step` (a delayed
 triggered ability, CR 603.7; write the trigger first, then a comma, then the
 effects, to print it that way); `at beginning of the next turn's upkeep`
@@ -1509,7 +1511,8 @@ destroyed this way"), `count equal life lost this way` ("life equal to the
 life lost this way"), `count that many discarded this way` ("draw that
 many cards"), `count equal damage dealt this way` ("life equal to the
 damage dealt this way", CR 120.3), `count equal excess damage dealt this
-way` (CR 120.4a: beyond lethal damage, given damage already marked, or
+way` (CR 120.4a, and `if excess damage dealt this way, create 1
+"Lander"`: "If excess damage was dealt this way, ..."; beyond lethal damage, given damage already marked, or
 beyond a planeswalker's loyalty). What the resolution or its costs moved,
 as it last existed: `toughness of the sacrificed creature` ("the
 sacrificed creature's toughness"), `mana value of the sacrificed

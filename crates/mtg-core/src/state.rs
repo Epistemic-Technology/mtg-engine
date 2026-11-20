@@ -912,6 +912,9 @@ pub struct ThisWayLog {
     /// Damage dealt (CR 120.3), and of it the excess (CR 120.4a).
     pub damage: u32,
     pub excess: u32,
+    /// "The damage can't be prevented" (CR 615.12): this resolution's
+    /// damage.
+    pub unpreventable: bool,
     /// The permanents dealt damage, in order ("a creature dealt damage
     /// this way").
     pub damaged: Vec<ObjId>,

@@ -1,0 +1,6 @@
+card "Pinpoint Avalanche" {
+  oracle_id d619cce4-036a-4da2-ae64-f43fc095ebe9
+  cost {3}{R}{R}
+  type Instant
+  spell: deal 4 damage to target creature; the damage can't be prevented
+}

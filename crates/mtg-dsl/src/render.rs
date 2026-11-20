@@ -4541,6 +4541,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
+        Effect::IfExcessDamage(inner) => {
+            let body = sentences(inner, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!(
+                "if excess damage was dealt this way, {}",
+                body.trim_end_matches('.')
+            ))
+        }
         Effect::IfThisWay(cond, inner) => {
             let cond = this_way_text(cond, ctx.card);
             let body = sentences(inner, ctx);
@@ -5709,6 +5721,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Rule(RuleKind::DamageCantBePrevented) => {
             Clause::imperative("damage can't be prevented this turn".to_string())
+        }
+        Effect::DamageUnpreventable => {
+            Clause::imperative("the damage can't be prevented".to_string())
         }
         Effect::PlayerRule { who, kind } => {
             let s = ctx.subj(*who);

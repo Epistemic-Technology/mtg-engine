@@ -4560,6 +4560,13 @@ impl GameState {
             };
             let split = self.mode_split_of(spell);
             let outer = self.begin_this_way(spell);
+            // "The damage can't be prevented" covers the spell's damage
+            // dealt before the sentence too (CR 615.12).
+            if effects.contains(&Effect::DamageUnpreventable)
+                && let Some(log) = &mut self.this_way
+            {
+                log.unpreventable = true;
+            }
             // CR 702.131a: ascend on an instant or sorcery, first.
             if def.marks.has(crate::card::Marks::ASCEND) {
                 self.ascend(obj.controller);
@@ -6390,6 +6397,11 @@ impl GameState {
                     }
                 }
             }
+            Effect::DamageUnpreventable => {
+                if let Some(log) = &mut self.this_way {
+                    log.unpreventable = true;
+                }
+            }
             Effect::AssignsNoCombatDamage { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -7088,6 +7100,13 @@ impl GameState {
             }
             Effect::IfThisWay { cond, then } => {
                 if self.this_way_holds(ctx, cond) {
+                    for e in then {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::IfExcessDamage(then) => {
+                if self.this_way.as_ref().is_some_and(|l| l.excess > 0) {
                     for e in then {
                         self.apply_effect(ctx, e);
                     }
