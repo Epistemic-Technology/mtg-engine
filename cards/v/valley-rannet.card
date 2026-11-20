@@ -1,0 +1,8 @@
+card "Valley Rannet" {
+  oracle_id d0a3b261-3daf-4082-8bc5-e66326a6c382
+  cost {4}{R}{G}
+  type Creature — Beast
+  pt 6/3
+  mountaincycling {2}
+  forestcycling {2}
+}

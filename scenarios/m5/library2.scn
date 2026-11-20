@@ -1,0 +1,32 @@
+# M5: library, hand and look effects: two typecycling abilities on one
+# line (CR 702.29e), looking at the top cards of another player's library,
+# shuffling a hand or a graveyard into a library, "you may shuffle".
+
+scenario "two typecycling abilities: the second searches for its own type (Sanctum Plowbeast)" {
+  battlefield A: 2 "Plains"
+  hand A: "Sanctum Plowbeast"
+  library A: "Plains", "Island", "Grizzly Bears"
+  turn 1 A: activate "Sanctum Plowbeast" ability 2
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert library A contains "Plains"
+  assert graveyard A contains "Sanctum Plowbeast"
+}
+
+scenario "two typecycling abilities: the first searches for Plains (Sanctum Plowbeast)" {
+  battlefield A: 2 "Plains"
+  hand A: "Sanctum Plowbeast"
+  library A: "Island", "Plains", "Grizzly Bears"
+  turn 1 A: activate "Sanctum Plowbeast" ability 1
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert library A contains "Island"
+}
+
+scenario "two typecycling abilities: not without the mana (Valley Rannet)" {
+  battlefield A: "Mountain"
+  hand A: "Valley Rannet"
+  illegal turn 1 A: activate "Valley Rannet"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Valley Rannet"
+}

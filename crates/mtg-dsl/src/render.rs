@@ -9122,12 +9122,23 @@ pub fn normalize(text: &str) -> String {
         let parts: Vec<&str> = line.split(sep).collect();
         // Keywords, or protection from a quality ("Flying, protection
         // from enchantments").
+        // "Islandcycling {2}, swampcycling {2}": two typecycling
+        // abilities on one line (CR 702.29e), one line each.
+        let typecycling = |p: &str| {
+            p.split_once(' ').is_some_and(|(w, cost)| {
+                w.len() > "cycling".len()
+                    && w.to_ascii_lowercase().ends_with("cycling")
+                    && w.chars().all(|c| c.is_ascii_alphabetic())
+                    && cost.starts_with('{')
+                    && !cost.contains(' ')
+            })
+        };
         let all_keywords = parts.iter().all(|p| {
             Keyword::ALL
                 .iter()
                 .any(|k| keyword_name(*k).eq_ignore_ascii_case(p))
                 || p.to_ascii_lowercase().starts_with("protection from ")
-        });
+        }) || parts.iter().all(|p| typecycling(p));
         // "Protection from Spirits and from Arcane": one protection
         // ability per quality (CR 702.16g), so one line each.
         let protections = |p: &str| -> Option<Vec<String>> {
