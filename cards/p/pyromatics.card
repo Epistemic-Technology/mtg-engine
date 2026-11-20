@@ -1,0 +1,7 @@
+card "Pyromatics" {
+  oracle_id 9c01e2a6-61e7-455c-b09f-8c0de2266782
+  cost {1}{R}
+  type Instant
+  replicate {1}{R}
+  spell: deal 1 damage to any target
+}

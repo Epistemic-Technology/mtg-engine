@@ -1442,7 +1442,7 @@ impl P {
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring" | "bestow"
-            | "splice" | "strive" | "overload" | "surge" | "spectacle"
+            | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1473,6 +1473,7 @@ impl P {
                     "strive" => Mechanic::Strive(c),
                     "surge" => Mechanic::Surge(c),
                     "spectacle" => Mechanic::Spectacle(c),
+                    "replicate" => Mechanic::Replicate(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }
@@ -1496,6 +1497,11 @@ impl P {
                 self.pos += 1;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Conspire))
+            }
+            "storm" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Storm))
             }
             "station" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;

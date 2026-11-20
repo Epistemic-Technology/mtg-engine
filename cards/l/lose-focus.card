@@ -1,0 +1,7 @@
+card "Lose Focus" {
+  oracle_id 1cea6439-7ae5-4887-8c33-7da9fb36e2d4
+  cost {1}{U}
+  type Instant
+  replicate {U}
+  spell: counter target spell unless its controller pays {2}
+}

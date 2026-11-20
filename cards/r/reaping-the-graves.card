@@ -1,0 +1,7 @@
+card "Reaping the Graves" {
+  oracle_id 80c663a5-2794-4748-b47a-34352fb2112f
+  cost {2}{B}
+  type Instant
+  spell: return target creature card from your graveyard to hand
+  storm
+}

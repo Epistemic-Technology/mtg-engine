@@ -2184,6 +2184,30 @@ impl GameState {
         self.spell_payable(o.controller, spell, &req)
     }
 
+    /// How many times `spell`'s caster could pay its replicate cost on top
+    /// of its cost (CR 702.56a), at most 15.
+    pub(super) fn replicate_max(&self, spell: ObjId) -> u32 {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let Some(c) = &def.replicate else {
+            return 0;
+        };
+        if o.cast.flashback() {
+            return 0;
+        }
+        let one = c.requirements(0);
+        let mut req = self.spell_requirements(spell, 0);
+        let mut n = 0;
+        while n < 15 {
+            req.add(&one);
+            if !self.spell_payable(o.controller, spell, &req) {
+                break;
+            }
+            n += 1;
+        }
+        n
+    }
+
     /// The mana a spell being cast costs with X fixed: its mana cost (or
     /// its flashback cost, CR 702.34a) plus its kicker if kicked.
     pub(super) fn spell_requirements(&self, spell: ObjId, x: u32) -> ManaRequirement {
@@ -2191,7 +2215,8 @@ impl GameState {
     }
 
     /// The splice costs of the cards spliced onto `spell` (CR 702.47a,
-    /// 601.2f), and strive's cost once for each target beyond the first.
+    /// 601.2f), strive's cost once for each target beyond the first, and
+    /// the replicate cost once for each time it was paid (CR 702.56a).
     fn add_splice_and_strive(
         &self,
         spell: ObjId,
@@ -2211,6 +2236,12 @@ impl GameState {
         if let Some(s) = &def.strive {
             for _ in 1..targets {
                 req.add(&s.requirements(0));
+            }
+        }
+        // CR 702.56a: the replicate cost, once for each time it was paid.
+        if let Some(r) = &def.replicate {
+            for _ in 0..self.objects[spell].cast.replicated() {
+                req.add(&r.requirements(0));
             }
         }
     }
@@ -4751,14 +4782,20 @@ impl GameState {
             self.queue_builtin(caster, ability, spell, def_ref);
         }
         // CR 702.78a, 702.153a: "When you do, copy it" / "copy this
-        // spell".
-        if self
-            .objects
-            .get(spell)
-            .is_some_and(|o| o.cast.conspired() || o.cast.casualty())
-        {
+        // spell". CR 702.40a: storm copies it once for each spell cast
+        // before it this turn; CR 702.56a: replicate once for each time
+        // its cost was paid. (Each copy is its own trigger here.)
+        let mut copies = self.objects.get(spell).map_or(0, |o| {
+            usize::from(o.cast.conspired() || o.cast.casualty()) + o.cast.replicated() as usize
+        });
+        if def.storm {
+            copies += self.cast_this_turn.len().saturating_sub(1);
+        }
+        if copies > 0 {
             let ability = self.pool.builtin(crate::card::Builtin::Conspire);
-            self.queue_builtin(caster, ability, spell, def_ref);
+            for _ in 0..copies {
+                self.queue_builtin(caster, ability, spell, def_ref);
+            }
         }
         self.emit_targeted(spell);
         self.give_priority(caster);

@@ -1221,6 +1221,12 @@ pub enum Mechanic {
     /// sacrifice a creature with power N or greater. When you do, copy
     /// this spell."
     Casualty(u32),
+    /// `storm` (CR 702.40): "When you cast this spell, copy it for each
+    /// spell cast before it this turn."
+    Storm,
+    /// `replicate {U}` (CR 702.56): an additional cost paid any number of
+    /// times; copied once for each.
+    Replicate(ManaCost),
     /// `teamwork 2`: "Teamwork 2 (As an additional cost to cast this
     /// spell, you may tap any number of creatures you control with total
     /// power 2 or more.)"

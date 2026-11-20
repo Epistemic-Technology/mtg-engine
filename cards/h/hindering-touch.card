@@ -1,0 +1,7 @@
+card "Hindering Touch" {
+  oracle_id 90c6f338-fc41-4499-8f39-1cd202a2cd31
+  cost {3}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {2}
+  storm
+}

@@ -1,0 +1,7 @@
+card "Astral Steel" {
+  oracle_id ef8ac291-3789-4147-a11f-c62fd8566dbe
+  cost {2}{W}
+  type Instant
+  spell: target creature gets +1/+2
+  storm
+}

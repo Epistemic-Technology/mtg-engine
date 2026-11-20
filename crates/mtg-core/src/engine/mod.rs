@@ -811,6 +811,19 @@ impl GameState {
                         options: vec![Choice::Accept, Choice::Decline],
                     });
                 }
+                Flow::ChoosingReplicate { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    let options = (0..=self.replicate_max(spell)).map(Choice::X).collect();
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::Replicate { spell },
+                        options,
+                    });
+                }
                 Flow::ChoosingBargain { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -1763,6 +1776,11 @@ impl GameState {
             (Flow::ChoosingOffspring { spell }, Choice::Decline) => {
                 self.flow = self.after_offspring(spell);
             }
+            // CR 702.56a: the replicate cost, paid this many times.
+            (Flow::ChoosingReplicate { spell }, Choice::X(n)) => {
+                self.objects[spell].cast.set_replicated(n);
+                self.flow = self.after_replicate(spell);
+            }
             // CR 702.166a: the sacrifice is an additional cost, paid with
             // the others; the spell is bargained from here on, for its
             // cost and text (CR 601.2f).
@@ -2148,6 +2166,15 @@ impl GameState {
     }
 
     fn after_offspring(&self, spell: ObjId) -> Flow {
+        // CR 702.56a: replicate, payable at least once.
+        if self.replicate_max(spell) > 0 {
+            Flow::ChoosingReplicate { spell }
+        } else {
+            self.after_replicate(spell)
+        }
+    }
+
+    fn after_replicate(&self, spell: ObjId) -> Flow {
         let o = &self.objects[spell];
         if self.pool.get(o.def).bargain
             && !o.cast.flashback()

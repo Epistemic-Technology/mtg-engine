@@ -390,6 +390,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Conspire) => {
                     b = b.conspire();
                 }
+                Ability::Mechanic(Mechanic::Storm) => {
+                    b = b.storm();
+                }
+                Ability::Mechanic(Mechanic::Replicate(c)) => {
+                    b = b.replicate(c.clone());
+                }
                 Ability::Mechanic(Mechanic::Casualty(n)) => {
                     let Ok(n) = u8::try_from(*n) else {
                         return self.err("casualty is at most 255");
@@ -667,6 +673,8 @@ impl Compiler<'_> {
                             | Mechanic::Bargain
                             | Mechanic::Conspire
                             | Mechanic::Casualty(_)
+                            | Mechanic::Storm
+                            | Mechanic::Replicate(_)
                             | Mechanic::Teamwork(_)
                             | Mechanic::Ripple(_)
                             | Mechanic::Strive(_)
@@ -3100,6 +3108,8 @@ impl Compiler<'_> {
                 | Mechanic::Bargain
                 | Mechanic::Conspire
                 | Mechanic::Casualty(_)
+                | Mechanic::Storm
+                | Mechanic::Replicate(_)
                 | Mechanic::Teamwork(_)
                 | Mechanic::Ripple(_)
                 | Mechanic::Strive(_)
@@ -3857,6 +3867,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Bargain
         | Mechanic::Conspire
         | Mechanic::Casualty(_)
+        | Mechanic::Storm
+        | Mechanic::Replicate(_)
         | Mechanic::Teamwork(_)
         | Mechanic::Ripple(_)
         | Mechanic::Ascend

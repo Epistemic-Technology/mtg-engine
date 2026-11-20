@@ -375,6 +375,9 @@ impl CastInfo {
     /// Cast using teamwork: creatures with enough total power tapped with
     /// its costs (an optional additional cost, CR 601.2b).
     const TEAMWORK: u32 = 0x8_0000;
+    /// How many times its replicate cost was paid (CR 702.56a), up to 15.
+    const REPLICATE_MASK: u32 = 0xF0_0000;
+    const REPLICATE_SHIFT: u32 = 20;
     const KICKED: u32 = 0x40;
     const FLASHBACK: u32 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -476,6 +479,16 @@ impl CastInfo {
         } else {
             self.0 & !Self::TEAMWORK
         };
+    }
+
+    /// How many times its replicate cost was paid (CR 702.56a).
+    pub const fn replicated(self) -> u32 {
+        (self.0 & Self::REPLICATE_MASK) >> Self::REPLICATE_SHIFT
+    }
+
+    pub fn set_replicated(&mut self, n: u32) {
+        self.0 = (self.0 & !Self::REPLICATE_MASK)
+            | ((n.min(15) << Self::REPLICATE_SHIFT) & Self::REPLICATE_MASK);
     }
 
     pub const fn casualty(self) -> bool {
@@ -1196,6 +1209,11 @@ pub enum Flow {
     /// Choosing whether to pay a spell's casualty cost, and what to
     /// sacrifice (CR 702.153a), after bargain.
     ChoosingCasualty {
+        spell: ObjId,
+    },
+    /// Choosing how many times to pay a spell's replicate cost (CR
+    /// 702.56a), after offspring.
+    ChoosingReplicate {
         spell: ObjId,
     },
     /// Choosing whether to cast a spell using teamwork, after casualty.

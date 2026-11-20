@@ -441,7 +441,7 @@ impl Runner {
             DecisionKind::ChooseReplacement => Ok(self.choose_replacement(d, pos)),
             DecisionKind::LegendRule => Ok(self.keep_legend(d, pos)),
             DecisionKind::ChooseMode { .. } => self.choose_mode(d),
-            DecisionKind::ChooseX { .. } => self.choose_x(d),
+            DecisionKind::ChooseX { .. } | DecisionKind::Replicate { .. } => self.choose_x(d),
             DecisionKind::Divide { .. } => self.choose_division(d),
             DecisionKind::ChooseSacrifice { .. } => self.choose_cost(d, "sacrifice"),
             DecisionKind::ChooseDiscardCost { .. } => self.choose_cost(d, "discard"),
@@ -2035,7 +2035,8 @@ impl Runner {
     /// For an `illegal` line with targets: on a copy of the game, take the
     /// action and answer target choices as scripted; whether the engine
     /// refuses one of the scripted targets (other choices take the first
-    /// option, X the scripted one). A scripted target the engine never
+    /// option, X the scripted one; a scripted replicate count not offered
+    /// counts as refused). A scripted target the engine never
     /// asks for (a variable group with nothing legal to choose, CR
     /// 601.2c) counts as refused.
     fn scripted_target_refused(
@@ -2055,6 +2056,15 @@ impl Runner {
                 return Ok(false);
             };
             let pick = match d.kind {
+                // A replicate count the mana can't pay for counts as
+                // refused (CR 702.56a).
+                DecisionKind::Replicate { .. } => match x {
+                    Some(x) => match index_of(&d, &Choice::X(x)) {
+                        Some(i) => i,
+                        None => return Ok(true),
+                    },
+                    None => 0,
+                },
                 DecisionKind::ChooseX { .. } => {
                     x.and_then(|x| index_of(&d, &Choice::X(x))).unwrap_or(0)
                 }

@@ -1,0 +1,7 @@
+card "Leap of Flame" {
+  oracle_id cf3b1070-2c08-49b9-aa78-fe676fab38aa
+  cost {U}{R}
+  type Instant
+  replicate {U}{R}
+  spell: target creature gets +1/+0 and gains flying, first strike
+}

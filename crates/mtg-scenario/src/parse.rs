@@ -566,7 +566,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 None
             };
-            let x = if line.peek_ident("x") {
+            let x = if line.peek_ident("x") || line.peek_ident("replicated") {
                 line.pos += 1;
                 Some(u32::try_from(line.count()?).unwrap_or(u32::MAX))
             } else {

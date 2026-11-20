@@ -1,0 +1,7 @@
+card "Ground Rift" {
+  oracle_id c1f7d451-ca70-403d-81bf-8822876d1a54
+  cost {R}
+  type Sorcery
+  spell: target creature without flying can't block
+  storm
+}

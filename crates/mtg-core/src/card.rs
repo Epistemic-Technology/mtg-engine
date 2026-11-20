@@ -5595,6 +5595,14 @@ pub struct CardDef {
     /// copied. 0: none.
     #[serde(default)]
     pub casualty: u8,
+    /// Storm (CR 702.40): "When you cast this spell, copy it for each spell
+    /// cast before it this turn."
+    #[serde(default)]
+    pub storm: bool,
+    /// Replicate (CR 702.56): an additional cost paid any number of times;
+    /// as the spell is cast, it is copied once for each time.
+    #[serde(default)]
+    pub replicate: Option<ManaCost>,
     /// Teamwork N: "As an additional cost to cast this spell, you may tap
     /// any number of creatures you control with total power N or more."
     /// 0: none.
@@ -7395,6 +7403,8 @@ impl Builder {
             goads: false,
             conspire: false,
             casualty: 0,
+            storm: false,
+            replicate: None,
             teamwork: 0,
             ripple: 0,
             splice: None,
@@ -7619,6 +7629,20 @@ impl Builder {
     #[must_use]
     pub fn conspire(mut self) -> Self {
         self.0.conspire = true;
+        self
+    }
+
+    /// Storm (CR 702.40).
+    #[must_use]
+    pub fn storm(mut self) -> Self {
+        self.0.storm = true;
+        self
+    }
+
+    /// Replicate (CR 702.56).
+    #[must_use]
+    pub fn replicate(mut self, cost: ManaCost) -> Self {
+        self.0.replicate = Some(cost);
         self
     }
 
