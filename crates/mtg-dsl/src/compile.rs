@@ -3455,6 +3455,17 @@ impl Compiler<'_> {
                     then: Vec::new(),
                 })
             }
+            // "enters tapped if it's not your turn" is "unless it's your
+            // turn" (CR 614.1d).
+            Ability::EntersTappedIfNotYourTurn => {
+                let c = self.static_cond(&StaticCond::YourTurn);
+                let i = self.pool.intern_condition(c);
+                AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
+                    then: Vec::new(),
+                })
+            }
             Ability::EntersTappedUnless(c) => {
                 let c = self.static_cond(c);
                 let i = self.pool.intern_condition(c);

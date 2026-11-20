@@ -1,0 +1,10 @@
+card "Eddymurk Crab" {
+  oracle_id 3c345e24-1726-45ac-91ca-e348d1e7acfe
+  cost {5}{U}{U}
+  type Creature — Elemental Crab
+  pt 5/5
+  keywords flash
+  this spell costs {1} less count each graveyard instant or sorcery
+  enters tapped if not your turn
+  triggered when this enters: tap up to 2 target creature
+}

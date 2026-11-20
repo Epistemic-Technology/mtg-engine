@@ -4642,6 +4642,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::EntersTappedUnless(c) => {
             let _ = writeln!(out, "{indent}enters tapped unless {}", static_cond(c));
         }
+        Ability::EntersTappedIfNotYourTurn => {
+            let _ = writeln!(out, "{indent}enters tapped if not your turn");
+        }
         Ability::EntersWithIf {
             n,
             kind,

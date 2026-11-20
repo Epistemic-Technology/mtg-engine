@@ -2056,6 +2056,11 @@ impl P {
                     then: Vec::new(),
                 }))
             }
+            "enters" if self.at_words(&["enters", "tapped", "if", "not", "your", "turn"]) => {
+                self.pos += 6;
+                self.end_stmt()?;
+                Ok(Ability::EntersTappedIfNotYourTurn)
+            }
             "enters" if self.at_words(&["enters", "tapped", "unless"]) => {
                 self.pos += 3;
                 let c = self.static_cond()?;

@@ -1040,6 +1040,10 @@ pub enum Ability {
     /// `enters tapped unless you control planeswalker`: "This land enters
     /// tapped unless you control a planeswalker." (CR 614.1d)
     EntersTappedUnless(StaticCond),
+    /// `enters tapped if not your turn`: "This creature enters tapped if
+    /// it's not your turn." (the same replacement as `enters tapped unless
+    /// your turn`, worded with "if").
+    EntersTappedIfNotYourTurn,
     /// `enters with 1 +1/+1 counter if attacked this turn`: "This
     /// creature enters with a +1/+1 counter on it if you attacked this
     /// turn." (raid; CR 614.1c); `if spent 3 white, enters with 1 +1/+1

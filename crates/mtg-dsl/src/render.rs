@@ -10119,6 +10119,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             capitalize(&this_ref(card)),
             static_cond_text(c, card)
         ),
+        Ability::EntersTappedIfNotYourTurn => format!(
+            "{} enters tapped if it's not your turn.",
+            capitalize(&this_ref(card))
+        ),
         Ability::AttackUnless { .. } if only_attacks_alone(a) => {
             format!("{} can only attack alone.", capitalize(&this_ref(card)))
         }
