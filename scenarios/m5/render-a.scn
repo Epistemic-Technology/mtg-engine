@@ -413,6 +413,32 @@ scenario "Spider-Man No More: a 1/1 Citizen with defender" {
   assert is "Serra Angel" "Citizen"
 }
 
+scenario "Goddric becomes a 4/4 flying Dragon after two permanents enter" {
+  battlefield A: "Goddric, Cloaked Reveler", "Mountain"
+  hand A: "Ornithopter", "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: activate "Goddric, Cloaked Reveler"
+  run_to turn 1 postcombat_main
+  assert is "Goddric, Cloaked Reveler" "Dragon"
+  assert has "Goddric, Cloaked Reveler" flying
+  assert power "Goddric, Cloaked Reveler" 5
+  assert toughness "Goddric, Cloaked Reveler" 4
+}
+
+scenario "Goddric stays a 3/3 Human after one permanent enters" {
+  battlefield A: "Goddric, Cloaked Reveler"
+  hand A: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert power "Goddric, Cloaked Reveler" 3
+  assert has not "Goddric, Cloaked Reveler" flying
+}
+
 scenario "Brambleguard Captain gives its power to a creature you control" {
   battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
   start turn 1 A precombat_main

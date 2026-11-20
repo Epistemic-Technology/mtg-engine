@@ -8662,6 +8662,21 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         && parts[0].contains(" with base power and toughness ")
         && !plural_form
         && mods.last() == Some(&Mod::RemoveAllAbilities);
+    // "is a Dragon with base power and toughness 4/4, flying, and
+    // \"{R}: ...\"": what it has joins the "with".
+    if !split
+        && parts.len() >= 3
+        && parts[0].contains(" with base power and toughness ")
+        && parts[1..]
+            .iter()
+            .all(|p| p.starts_with("has ") || p.starts_with('"'))
+    {
+        for p in &mut parts[1..] {
+            if let Some(rest) = p.strip_prefix("has ") {
+                *p = rest.to_string();
+            }
+        }
+    }
     let mut body = if split {
         format!("{subject} {}. It {}", parts[0], parts[1..].join(" and "))
     } else {
