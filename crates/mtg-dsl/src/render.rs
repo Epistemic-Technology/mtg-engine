@@ -1712,7 +1712,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.enchanted == Some(true) && !f.enchanted_late {
         words.push("enchanted".to_string());
     }
-    if f.status.equipped {
+    if f.status.equipped && !f.equipped_late {
         words.push("equipped".to_string());
     }
     if let Some(t) = f.tapped {
@@ -1732,11 +1732,14 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some(b) = f.status.blocked {
         words.push(if b { "blocked" } else { "unblocked" }.to_string());
     }
-    if f.attacking {
+    if f.attacking && !f.attacking_late {
         words.push("attacking".to_string());
     }
     if f.blocking {
         words.push("blocking".to_string());
+    }
+    if f.status.equipped && f.equipped_late {
+        words.push("equipped".to_string());
     }
     if let Some(cc) = f.color_count {
         words.push(format!("{cc:?}").to_lowercase());
@@ -1778,6 +1781,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     negs.extend(f.not_subtypes.iter().map(|s| format!("non-{s}")));
     if !negs.is_empty() {
         words.push(negs.join(", "));
+    }
+    if f.attacking && f.attacking_late {
+        words.push("attacking".to_string());
     }
     let mut noun: Vec<String> = Vec::new();
     for s in &f.subtypes {
@@ -4616,7 +4622,29 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::OneOf(options) => {
             // "sacrifice an artifact or discard a card"; "create a Food
             // token or a Treasure token" (the verb once).
-            let texts: Vec<String> = options.iter().map(|o| clause(o, ctx).text).collect();
+            // "Destroy all enchantments or all nonwhite enchantments";
+            // with a subject, each option names it: "Lava Storm deals 2
+            // damage to each attacking creature or Lava Storm deals 2
+            // damage to each blocking creature".
+            let mut first: Option<(Recipient, String)> = None;
+            let texts: Vec<String> = options
+                .iter()
+                .map(|o| {
+                    let c = clause(o, ctx);
+                    match c.subject {
+                        Some((r, s)) if !s.is_empty() => {
+                            // The same subject is named again, not "it".
+                            let s = match &first {
+                                Some((fr, fs)) if *fr == r => fs.clone(),
+                                _ => s,
+                            };
+                            first.get_or_insert((r, s.clone()));
+                            format!("{s} {}", c.text)
+                        }
+                        _ => c.text,
+                    }
+                })
+                .collect();
             let verb = texts[0].split(' ').next().unwrap_or_default().to_string();
             let same = texts
                 .iter()
@@ -4624,7 +4652,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let mut out = texts[0].clone();
             for t in &texts[1..] {
                 out.push_str(" or ");
-                if same && verb == "create" {
+                if same && (verb == "create" || verb == "destroy") {
                     out.push_str(t[verb.len()..].trim_start());
                 } else {
                     out.push_str(t);

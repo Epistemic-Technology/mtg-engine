@@ -2321,7 +2321,11 @@ fn filter_one(f: &Filter) -> String {
         words.push("face-down".to_string());
     }
     if f.attacking {
-        words.push("attacking".to_string());
+        words.push(if f.attacking_late {
+            "attacking late".to_string()
+        } else {
+            "attacking".to_string()
+        });
     }
     if f.blocking {
         words.push("blocking".to_string());
@@ -2385,7 +2389,11 @@ fn filter_one(f: &Filter) -> String {
         );
     }
     if f.status.equipped {
-        words.push("with Equipment".to_string());
+        words.push(if f.equipped_late {
+            "with Equipment late".to_string()
+        } else {
+            "with Equipment".to_string()
+        });
     }
     if f.status.toxic {
         words.push("with toxic".to_string());

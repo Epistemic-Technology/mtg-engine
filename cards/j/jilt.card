@@ -1,0 +1,7 @@
+card "Jilt" {
+  oracle_id 382bc554-d170-4c19-82dd-829f254e855e
+  cost {1}{U}
+  type Instant
+  kicker {1}{R}
+  spell: return target creature to hand; if kicked, it deals 2 damage to another target creature
+}

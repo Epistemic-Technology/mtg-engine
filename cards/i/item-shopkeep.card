@@ -1,0 +1,7 @@
+card "Item Shopkeep" {
+  oracle_id 7532f0ea-9d13-43ca-9b7d-2d22f2a66017
+  cost {1}{R}
+  type Creature — Human Citizen
+  pt 2/2
+  triggered whenever you attack: target attacking with Equipment late creature gains menace
+}

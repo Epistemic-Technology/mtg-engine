@@ -7541,6 +7541,9 @@ impl P {
                 "with" if self.word_at(1).as_deref() == Some("equipment") && !f.status.equipped => {
                     f.status.equipped = true;
                     self.pos += 2;
+                    if self.eat_word("late") {
+                        f.equipped_late = true;
+                    }
                 }
                 "blocked" | "unblocked"
                     if self.word_at(1).as_deref() != Some("by") && f.status.blocked.is_none() =>
@@ -7645,6 +7648,9 @@ impl P {
                 "attacking" => {
                     f.attacking = true;
                     self.pos += 1;
+                    if self.eat_word("late") {
+                        f.attacking_late = true;
+                    }
                 }
                 "blocking" => {
                     f.blocking = true;

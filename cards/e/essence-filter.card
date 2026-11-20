@@ -1,0 +1,6 @@
+card "Essence Filter" {
+  oracle_id b9f63388-d1ac-4895-84c5-e5b1db187463
+  cost {1}{G}{G}
+  type Sorcery
+  spell: destroy each enchantment or destroy each nonwhite enchantment
+}

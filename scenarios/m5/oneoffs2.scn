@@ -171,3 +171,82 @@ scenario "Crypt Rats spends only black mana on X" {
   assert damage "Hill Giant" 1
   assert untapped "Mountain"
 }
+
+# ----- "A or B" without "Choose one", and filter word order -----
+
+scenario "Lava Storm deals 2 damage to each attacking creature" {
+  start turn 2 B
+  battlefield A: 5 "Mountain", "Llanowar Elves"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Lava Storm"
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Lava Storm"
+  run_to turn 2 end
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Llanowar Elves"
+}
+
+scenario "Lava Storm may instead deal 2 damage to each blocking creature" {
+  start turn 2 B
+  battlefield A: 5 "Mountain", "Llanowar Elves"
+  battlefield B: "Hill Giant"
+  hand A: "Lava Storm"
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Llanowar Elves"
+  turn 2 declare_blockers A: cast "Lava Storm"
+  turn 2 declare_blockers A: choose "2"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Llanowar Elves"
+  assert life A 20
+  assert damage "Hill Giant" 0
+}
+
+scenario "Essence Filter destroys all enchantments" {
+  battlefield A: 3 "Forest", "Holy Strength" on "Grizzly Bears", "Grizzly Bears"
+  battlefield B: "Pacifism" on "Hill Giant", "Hill Giant"
+  hand A: "Essence Filter"
+  turn 1 A: cast "Essence Filter"
+  run_to turn 1 end
+  assert graveyard A contains "Holy Strength"
+  assert graveyard B contains "Pacifism"
+}
+
+scenario "Essence Filter may spare white enchantments" {
+  battlefield A: 3 "Forest", "Holy Strength" on "Grizzly Bears", "Grizzly Bears"
+  battlefield B: "Unholy Strength" on "Hill Giant", "Hill Giant"
+  hand A: "Essence Filter"
+  turn 1 A: cast "Essence Filter"
+  turn 1 A: choose "2"
+  run_to turn 1 end
+  assert battlefield A contains "Holy Strength"
+  assert graveyard B contains "Unholy Strength"
+}
+
+scenario "Item Shopkeep gives an attacking equipped creature menace" {
+  battlefield A: "Item Shopkeep", "Grizzly Bears", "Bonesplitter" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Item Shopkeep" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert has "Grizzly Bears" menace
+}
+
+scenario "Item Shopkeep can't target an attacker without Equipment" {
+  battlefield A: "Item Shopkeep", "Grizzly Bears", "Hill Giant", "Bonesplitter" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  illegal turn 1 declare_attackers A: trigger "Item Shopkeep" targeting "Hill Giant"
+  run_to turn 1 combat_damage
+  assert has not "Hill Giant" menace
+}
+
+scenario "Exile exiles a nonwhite attacker and gains its toughness in life" {
+  start turn 2 B
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant", "White Knight"
+  hand A: "Exile"
+  turn 2 B: attack "Hill Giant", "White Knight"
+  illegal turn 2 declare_attackers A: cast "Exile" targeting "White Knight"
+  turn 2 declare_attackers A: cast "Exile" targeting "Hill Giant"
+  run_to turn 2 end
+  assert exile B contains "Hill Giant"
+  assert life A 21
+}

@@ -833,7 +833,10 @@ creature types` (until end of turn). `this: add subtype Cleric, add
 subtype Rogue, ...` (two or more) prints "~ is also a Cleric, Rogue, ..."
 and the types are the card's in every zone. A group `creature you control
 with aura late` prints "creatures you control that are enchanted"
-(Magemarks; `with aura` prints "enchanted creatures"). "You control"
+(Magemarks; `with aura` prints "enchanted creatures"). Wording-only
+order: `attacking with Equipment late creature` prints "attacking equipped
+creature" (`with Equipment` alone, "equipped attacking"), and `attacking
+late nonwhite creature` "nonwhite attacking creature". "You control"
 prints before a group's qualities: "other creatures you control with
 defender", "creatures you control with power 5 or greater".
 
@@ -1476,7 +1479,11 @@ do` then sees:
 `A or B` joins alternatives the controller chooses between, among those it
 can do: `you may sacrifice 1 artifact chosen or discard 1 card; if you do,
 draw 1 card`, `create 1 "Food" or create 1 "Treasure"` ("create a Food
-token or a Treasure token"). `target creature gains choice of lifelink or
+token or a Treasure token"; `destroy each enchantment or destroy each nonwhite
+enchantment` likewise names "destroy" once). A subject is named in each
+alternative: `deal 2 damage to each attacking creature or deal 2 damage to
+each blocking creature` is "Lava Storm deals 2 damage to each attacking
+creature or Lava Storm deals 2 damage to each blocking creature". `target creature gains choice of lifelink or
 indestructible` is "gains your choice of lifelink or indestructible until
 end of turn". With none possible nothing happens and `if you do` sees that.
 

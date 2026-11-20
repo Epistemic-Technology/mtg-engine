@@ -207,6 +207,8 @@ impl Decompiler<'_> {
             }),
             named_first: false,
             enchanted_late: false,
+            equipped_late: false,
+            attacking_late: false,
             attached_to: f.attached_to.map(|a| {
                 use crate::ast::AttachedRef;
                 use mtg_core::card::AttachedTo;

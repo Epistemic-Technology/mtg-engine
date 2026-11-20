@@ -618,6 +618,12 @@ pub struct Filter {
     /// `with aura late`: "creatures you control that are enchanted"
     /// (`status.enchanted`, printed after the controller).
     pub enchanted_late: bool,
+    /// `with Equipment late`: "attacking equipped creature" (`equipped`
+    /// printed after "attacking"/"blocking" rather than before).
+    pub equipped_late: bool,
+    /// `attacking late`: "nonwhite attacking creature" (`attacking`
+    /// printed after colors and negations rather than before).
+    pub attacking_late: bool,
     /// `attached to this`, `attached to attached`, `attached to target 1`
     /// (`ObjFilter::attached_to`).
     pub attached_to: Option<AttachedRef>,
