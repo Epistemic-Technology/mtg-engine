@@ -1781,10 +1781,7 @@ impl GameState {
             return false;
         }
         // CR 701.68b.
-        if add.blight > 0 && self.creatures_of(p).next().is_none() {
-            return false;
-        }
-        true
+        !(add.blight > 0 && self.creatures_of(p).next().is_none())
     }
 
     /// Whether either of a spell's additional costs ("sacrifice a creature

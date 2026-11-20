@@ -2160,6 +2160,38 @@ impl GameState {
         self.flow = Flow::BeginStep;
     }
 
+    /// CR 502.1, 502.3: the active player's permanents phase (CR 702.26a),
+    /// then untap.
+    fn untap_all(&mut self, active: PlayerId) {
+        let phased_in = if self.phased_out.is_empty() {
+            smallvec::SmallVec::new()
+        } else {
+            self.phase_in_all(active)
+        };
+        let perms: Vec<ObjId> = self.permanents_of(active).collect();
+        let mut phasing: smallvec::SmallVec<[ObjId; 2]> = smallvec::SmallVec::new();
+        for id in perms {
+            let (phases, doesnt_untap) = self.characteristics(id).map_or((false, false), |c| {
+                (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
+            });
+            // Those with phasing phase out instead of untapping, all at
+            // once with those phasing in (which don't phase out again).
+            if phases && !phased_in.contains(&id) {
+                phasing.push(id);
+                continue;
+            }
+            let o = &mut self.objects[id];
+            o.controlled_since_turn_start = true;
+            if std::mem::take(&mut o.skip_untap) || doesnt_untap {
+                continue;
+            }
+            self.untap(id);
+        }
+        for id in phasing {
+            self.phase_out(id, false);
+        }
+    }
+
     /// Turn-based actions at the start of the current step (CR 500.1 and the
     /// step rules), then priority or straight to the end of the step.
     fn begin_step(&mut self) {
@@ -2171,38 +2203,7 @@ impl GameState {
                 if self.desig.day_night != crate::state::DayNight::Neither {
                     self.day_night_check();
                 }
-                // CR 502.1, 702.26a: phasing, before the active player
-                // untaps.
-                let phased_in = if self.phased_out.is_empty() {
-                    smallvec::SmallVec::new()
-                } else {
-                    self.phase_in_all(active)
-                };
-                // CR 502.3: untap all permanents of the active player.
-                let perms: Vec<ObjId> = self.permanents_of(active).collect();
-                let mut phasing: smallvec::SmallVec<[ObjId; 2]> = smallvec::SmallVec::new();
-                for id in perms {
-                    let (phases, doesnt_untap) =
-                        self.characteristics(id).map_or((false, false), |c| {
-                            (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
-                        });
-                    // Those with phasing phase out instead of untapping,
-                    // all at once with those phasing in (which don't phase
-                    // out again).
-                    if phases && !phased_in.contains(&id) {
-                        phasing.push(id);
-                        continue;
-                    }
-                    let o = &mut self.objects[id];
-                    o.controlled_since_turn_start = true;
-                    if std::mem::take(&mut o.skip_untap) || doesnt_untap {
-                        continue;
-                    }
-                    self.untap(id);
-                }
-                for id in phasing {
-                    self.phase_out(id, false);
-                }
+                self.untap_all(active);
                 self.player_mut(active).lands_played_this_turn = 0;
                 self.flow = Flow::EndStep;
             }
