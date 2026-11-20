@@ -296,3 +296,45 @@ scenario "spectacle: your own life loss doesn't count" {
   assert life A 17
   assert life B 20
 }
+
+# Ingest (CR 702.115), reinforce (702.77).
+
+scenario "ingest: combat damage to a player exiles their top card" {
+  battlefield A: "Culling Drone"
+  library B: "Hill Giant", "Forest"
+  turn 1 A: attack "Culling Drone"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert exile B contains "Hill Giant"
+  assert library B count 1
+}
+
+scenario "ingest: blocked, nothing exiled" {
+  battlefield A: "Culling Drone"
+  battlefield B: "Grizzly Bears"
+  library B: "Hill Giant", "Forest"
+  turn 1 A: attack "Culling Drone"
+  turn 1 B: block "Culling Drone" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B lacks "Hill Giant"
+  assert library B count 2
+}
+
+scenario "reinforce: discard it from hand for counters on target creature" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Burrenton Bombardier"
+  turn 1 A: activate "Burrenton Bombardier" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert graveyard A contains "Burrenton Bombardier"
+}
+
+scenario "reinforce: an instant's reinforce instead of casting it" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Earthbrawn"
+  turn 1 A: activate "Earthbrawn" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert graveyard A contains "Earthbrawn"
+}

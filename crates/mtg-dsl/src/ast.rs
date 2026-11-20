@@ -1191,6 +1191,12 @@ pub enum Mechanic {
     /// `spectacle {R}` (CR 702.137): an alternative cost if an opponent
     /// lost life this turn.
     Spectacle(ManaCost),
+    /// `ingest` (CR 702.115): whenever this deals combat damage to a
+    /// player, that player exiles the top card of their library.
+    Ingest,
+    /// `reinforce 1 {1}{R}` (CR 702.77): "Reinforce 1—{1}{R}", "{1}{R},
+    /// Discard this card: Put a +1/+1 counter on target creature."
+    Reinforce(u32, ManaCost),
 }
 
 /// A blocking restriction on this creature.

@@ -1,0 +1,7 @@
+card "Fowl Strike" {
+  oracle_id 390320f7-11b8-4b61-8316-36c396470a09
+  cost {1}{G}
+  type Instant
+  spell: destroy target creature with flying
+  reinforce 2 {2}{G}
+}

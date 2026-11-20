@@ -62,7 +62,7 @@ const KEYWORDS: [&str; 39] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 99] = [
+const TEMPLATED_TAGS: [&str; 101] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -159,6 +159,8 @@ const TEMPLATED_TAGS: [&str; 99] = [
     "Jump-start",
     "Surge",
     "Spectacle",
+    "Ingest",
+    "Reinforce",
     "Support",
     "Bolster",
     "Populate",
@@ -2633,6 +2635,15 @@ impl Builder<'_> {
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
             return Ok(());
         }
+        // CR 702.77: "Reinforce 1—{1}{R}".
+        if let Some(c) = Regex::new(r"^Reinforce (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("reinforce {} {}", cap(&c, 1), cap(&c, 2)));
+            return Ok(());
+        }
         // CR 702.47: "Splice onto Arcane {1}{R}".
         if let Some(c) = Regex::new(r"^Splice onto Arcane ((?:\{[0-9WUBRGCX/]+\})+)$")
             .unwrap()
@@ -2714,7 +2725,7 @@ impl Builder<'_> {
         }
         if matches!(
             line,
-            "Evolve" | "Unleash" | "Extort" | "Mentor" | "Riot" | "Retrace"
+            "Evolve" | "Unleash" | "Extort" | "Mentor" | "Riot" | "Retrace" | "Ingest"
         ) {
             self.statements.push(line.to_lowercase());
             return Ok(());

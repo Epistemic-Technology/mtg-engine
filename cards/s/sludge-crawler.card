@@ -1,0 +1,9 @@
+card "Sludge Crawler" {
+  oracle_id dd05294b-2c5b-48c2-a9f6-8a528baa3dff
+  cost {B}
+  type Creature — Eldrazi Drone
+  pt 1/1
+  keywords devoid
+  ingest
+  activated {2}: this gets +1/+1
+}

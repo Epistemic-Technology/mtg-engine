@@ -1,0 +1,11 @@
+card "Break Ties" {
+  oracle_id 1e44bb4e-aeea-4f43-9cbd-4c24a9b6b022
+  cost {2}{W}
+  type Instant
+  choose one {
+    mode: destroy target artifact
+    mode: destroy target enchantment
+    mode: exile target card from a graveyard
+  }
+  reinforce 1 {W}
+}

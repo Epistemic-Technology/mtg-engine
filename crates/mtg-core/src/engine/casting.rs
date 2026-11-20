@@ -5881,6 +5881,15 @@ impl GameState {
                     }
                 }
             }
+            Effect::ExileTop { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t
+                        && let Some(top) = self.player(p).library.last().copied()
+                    {
+                        self.move_object(top, Zone::Exile, true);
+                    }
+                }
+            }
             Effect::CreateEmblem { emblem } => {
                 self.create_emblem(*emblem, ctx.controller);
             }

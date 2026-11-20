@@ -1,0 +1,8 @@
+card "Burrenton Bombardier" {
+  oracle_id 13ec2390-e08a-4645-99e9-bac7e41917bb
+  cost {2}{W}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  keywords flying
+  reinforce 2 {2}{W}
+}

@@ -1,0 +1,9 @@
+card "Dominator Drone" {
+  oracle_id 3c98c925-f380-4520-970d-4c1abbebefe3
+  cost {2}{B}
+  type Creature — Eldrazi Drone
+  pt 3/2
+  keywords devoid
+  ingest
+  triggered when this enters if you control other colorless creature: each opponent loses 2 life
+}

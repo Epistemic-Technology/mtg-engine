@@ -1,0 +1,8 @@
+card "Culling Drone" {
+  oracle_id bda0ca68-78a6-4b32-842f-0bee9a9c84ef
+  cost {1}{B}
+  type Creature — Eldrazi Drone
+  pt 2/2
+  keywords devoid
+  ingest
+}

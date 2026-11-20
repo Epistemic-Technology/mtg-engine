@@ -2774,6 +2774,11 @@ pub enum Effect {
         count: Num,
         who: Recipient,
     },
+    /// The recipient player exiles the top card of their library (ingest,
+    /// CR 702.115a).
+    ExileTop {
+        who: Recipient,
+    },
     /// The controller gets an emblem (CR 114) with this definition's
     /// abilities, in the command zone.
     CreateEmblem {

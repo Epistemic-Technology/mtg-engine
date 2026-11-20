@@ -8877,6 +8877,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Riot => "Riot".to_string(),
             crate::ast::Mechanic::LivingWeapon => "Living weapon".to_string(),
             crate::ast::Mechanic::Retrace => "Retrace".to_string(),
+            crate::ast::Mechanic::Ingest => "Ingest".to_string(),
+            crate::ast::Mechanic::Reinforce(n, c) => format!("Reinforce {n}\u{2014}{c}"),
             crate::ast::Mechanic::JumpStart => "Jump-start".to_string(),
             crate::ast::Mechanic::Surge(c) => format!("Surge {c}"),
             crate::ast::Mechanic::Spectacle(c) => format!("Spectacle {c}"),

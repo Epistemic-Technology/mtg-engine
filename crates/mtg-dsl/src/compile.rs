@@ -3053,6 +3053,18 @@ impl Compiler<'_> {
                         None,
                     )
                 }
+                // CR 702.115a: "Whenever this creature deals combat damage
+                // to a player, that player exiles the top card of their
+                // library."
+                Mechanic::Ingest => AbilityDef::Triggered(TriggeredAbility {
+                    from_graveyard: false,
+                    trigger: TriggerSpec::DealsCombatDamageToPlayer(CoreTriggerObj::This),
+                    condition: None,
+                    targets: Vec::new(),
+                    effects: vec![CoreEffect::ExileTop {
+                        who: CoreRecipient::TriggeringPlayer,
+                    }],
+                }),
                 // CR 702.101a: "Whenever you cast a spell, you may pay
                 // {W/B}. If you do, each opponent loses 1 life and you gain
                 // life equal to the total life lost this way."
@@ -3242,6 +3254,26 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 then_first: false,
                 joins: vec![Join::Then],
             }],
+        },
+        // CR 702.77a: "[Cost], Discard this card: Put N +1/+1 counters on
+        // target creature."
+        Mechanic::Reinforce(n, cost) => Ability::Activated {
+            cost: Cost {
+                mana: cost.clone(),
+                discard_self: true,
+                ..Default::default()
+            },
+            targets: vec![Target::Filter(Filter {
+                types: vec![mtg_core::card::CardType::Creature],
+                ..Filter::default()
+            })],
+            effects: one(E::AddCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                count: Num::N(*n),
+                to: Recipient::Target(0),
+            }),
+            equip: false,
+            cycling: false,
         },
         Mechanic::Bushido(n) => Ability::Triggered {
             from_graveyard: false,
@@ -3564,6 +3596,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Extort
         | Mechanic::Riot
         | Mechanic::Retrace
+        | Mechanic::Ingest
         | Mechanic::JumpStart
         | Mechanic::Surge(_)
         | Mechanic::Spectacle(_)

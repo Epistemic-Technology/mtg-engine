@@ -1089,7 +1089,9 @@ impl Decompiler<'_> {
             CoreEffect::Monstrosity(n) => Effect::Monstrosity(*n),
             CoreEffect::Populate => Effect::Populate,
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
-            CoreEffect::Fabricate { .. } | CoreEffect::BecomeRenowned => {
+            CoreEffect::Fabricate { .. }
+            | CoreEffect::BecomeRenowned
+            | CoreEffect::ExileTop { .. } => {
                 unreachable!("decompiled as a keyword line")
             }
             CoreEffect::Discover(n) => Effect::Discover(*n),
@@ -1713,6 +1715,11 @@ impl Decompiler<'_> {
                     unreachable!("matched above")
                 };
                 Ability::Mechanic(crate::ast::Mechanic::Fabricate(*count))
+            }
+            AbilityDef::Triggered(t)
+                if matches!(t.effects.as_slice(), [CoreEffect::ExileTop { .. }]) =>
+            {
+                Ability::Mechanic(crate::ast::Mechanic::Ingest)
             }
             AbilityDef::Triggered(t)
                 if t.condition == Some(mtg_core::card::Condition::NotRenowned) =>

@@ -1312,6 +1312,21 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Provoke))
             }
+            "ingest" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Ingest))
+            }
+            "reinforce"
+                if matches!(self.peek_at(1), Some(Tok::Num(_)))
+                    && matches!(self.peek_at(2), Some(Tok::Sym(_))) =>
+            {
+                self.pos += 1;
+                let n = self.number()?;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Reinforce(n, c)))
+            }
             "retrace" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;

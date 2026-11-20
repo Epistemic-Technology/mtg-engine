@@ -1,0 +1,9 @@
+card "Benthic Infiltrator" {
+  oracle_id b2977807-5f46-424a-a6e9-14262f8a723a
+  cost {2}{U}
+  type Creature — Eldrazi Drone
+  pt 1/4
+  keywords devoid
+  ingest
+  keywords can't be blocked
+}
