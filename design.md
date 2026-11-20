@@ -2693,3 +2693,28 @@ have the engine choose where the player should. Per-game throughput fell
 about 2.8% (mono-red mirror, pinned best of five). Coverage: 88.9% of
 Pauper, 46.6% of Standard, 52.5% of Modern; gate 14,479 match; 6,010
 scenarios pass.
+
+Status 2026-11-20, evening: card agents and a second feature wave. A
+matched trial of 40 uncovered Standard cards had an Opus card agent
+accept 18 for 192k tokens and a Sonnet agent 11 for 200k; with Opus at
+twice the price per token the cost per accepted card is about equal, so
+all agents stay on Opus. Twenty batches of 40 Standard cards accepted
+214 (about 27%, 18k tokens per accepted card); their `unsupported`
+reasons chose the second wave's features: "triggers only once each
+turn" (34 cards), back-references to a group ("those creatures",
+"them"; 11), copying spells, tokens with exceptions, and abilities (56),
+and two agents on renderer wording near-misses (76). The template author
+then wrote 28 more. Agents also found forms that pass the gate with the
+wrong meaning: `it` in a spell bound to the spell and not its target, a
+modal spell compiled as a spell with one effect, a lost target on Fiery
+Justice, chosen-type mana restrictions that never matched, and spell
+copies of buyback or Adventure spells leaving the stack to hand or
+exile. All are fixed. Two accepted cards broke the format/parse round
+trip, which was not run before their commit; the whole test suite is now
+run before every card commit. Open: a count in an ability granted to
+another permanent reads the wrong card (Galuf's Final Act, Food Fight);
+X in a permanent's enters trigger is 0 (Morlun is held back for it); a
+scenario cannot choose a mode for a triggered or activated ability.
+Coverage: 89.1% of Pauper, 53.7% of Standard, 54.5% of Modern; gate
+14,926 match; 6,751 scenarios pass; random-deck fuzz clean over 30,000
+games. The bench was not run.
