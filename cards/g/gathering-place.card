@@ -1,0 +1,6 @@
+card "Gathering Place" {
+  oracle_id 36b58705-c5a5-4547-8d8b-a7c35e1f69ae
+  type Land
+  mana {C}
+  activated {T}, if this is that entered this turn or if you control basic land: add {G} or {W}
+}

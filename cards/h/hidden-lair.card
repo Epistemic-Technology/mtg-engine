@@ -1,0 +1,6 @@
+card "Hidden Lair" {
+  oracle_id 7069d241-4e66-40bf-afd1-551a4a5457f0
+  type Land
+  mana {C}
+  activated {T}, if this is that entered this turn or if you control basic land: add {U} or {B}
+}

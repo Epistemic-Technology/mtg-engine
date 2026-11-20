@@ -1,0 +1,6 @@
+card "Gleaming Bastion" {
+  oracle_id 7785ffd4-f169-475d-9558-ce4877b3378a
+  type Land
+  mana {C}
+  activated {T}, if this is that entered this turn or if you control basic land: add {W} or {U}
+}
