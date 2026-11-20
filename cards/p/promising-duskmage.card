@@ -1,0 +1,7 @@
+card "Promising Duskmage" {
+  oracle_id 44958014-7e30-4e70-9aef-b148843f9c45
+  cost {2}{B}
+  type Creature — Human Warlock
+  pt 2/3
+  triggered when this dies if it had +1/+1 counter: draw 1 card
+}

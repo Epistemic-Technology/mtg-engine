@@ -4121,6 +4121,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::HadNoCounters(k)) => {
                     let _ = write!(head, " if it had no {}", counter(*k, Num::N(2)));
                 }
+                Some(mtg_core::card::Condition::HadCounters(k)) => {
+                    let _ = write!(head, " if it had {}", counter(*k, Num::N(1)));
+                }
                 None => {}
             }
             body(out, indent, &head, effects, targets, groups);

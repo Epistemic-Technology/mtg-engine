@@ -279,6 +279,7 @@ this is tapped` ("if this creature is tapped"),
 `if no creatures are on the battlefield`, `if kicked` ("if it was kicked",
 CR 702.33c, for a permanent with `kicker`), `if it had no -1/-1 counters`
 ("if it had no -1/-1 counters on it", judged as the source last existed),
+`if it had +1/+1 counter` ("if it had a +1/+1 counter on it", the same way),
 any static condition below (`if you control artifact`, `if attacked this
 turn`),
 `if no spells were cast last turn`, `if a player cast two or more spells

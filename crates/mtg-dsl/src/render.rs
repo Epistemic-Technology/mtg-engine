@@ -7063,6 +7063,10 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::NoCreatures => "if no creatures are on the battlefield".to_string(),
         Condition::Kicked => "if it was kicked".to_string(),
         Condition::HadNoCounters(k) => format!("if it had no {} counters on it", counter_name(k)),
+        Condition::HadCounters(k) => format!(
+            "if it had {} on it",
+            with_article(&format!("{} counter", counter_name(k)))
+        ),
         Condition::NoSpellsLastTurn => "if no spells were cast last turn".to_string(),
         Condition::TwoSpellsLastTurn => "if a player cast two or more spells last turn".to_string(),
         Condition::EchoDue => {

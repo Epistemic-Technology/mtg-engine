@@ -1430,6 +1430,7 @@ impl GameState {
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(source),
             Condition::HadNoCounters(k) => self.had_no_counters(source, k),
+            Condition::HadCounters(k) => self.had_counters(source, k),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(source).is_some_and(|o| o.echo_due),
@@ -1473,6 +1474,7 @@ impl GameState {
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(w.source),
             Condition::HadNoCounters(k) => self.had_no_counters(w.source, k),
+            Condition::HadCounters(k) => self.had_counters(w.source, k),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due),
@@ -1515,6 +1517,14 @@ impl GameState {
             .get(&id)
             .map(|l| l.object.counters(k) == 0)
             .or_else(|| self.objects.get(id).map(|o| o.counters(k) == 0))
+            .unwrap_or(false)
+    }
+
+    fn had_counters(&self, id: ObjId, k: crate::card::CounterKind) -> bool {
+        self.lki
+            .get(&id)
+            .map(|l| l.object.counters(k) > 0)
+            .or_else(|| self.objects.get(id).map(|o| o.counters(k) > 0))
             .unwrap_or(false)
     }
 

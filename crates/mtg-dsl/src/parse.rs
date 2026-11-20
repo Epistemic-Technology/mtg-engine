@@ -9266,6 +9266,13 @@ impl P {
             self.eat_word("counters");
             return Ok(Condition::HadNoCounters(k));
         }
+        if self.eat_words(&["it", "had"]) {
+            let k = self.counter_kind()?;
+            if !self.eat_word("counter") {
+                self.eat_word("counters");
+            }
+            return Ok(Condition::HadCounters(k));
+        }
         self.unexpected("a condition")
     }
 

@@ -4752,6 +4752,9 @@ pub enum Condition {
     /// "if it had no -1/-1 counters on it" (persist), judged from the
     /// source as it last existed on the battlefield.
     HadNoCounters(CounterKind),
+    /// "if it had a +1/+1 counter on it" (Promising Duskmage), judged the
+    /// same way.
+    HadCounters(CounterKind),
     /// "if no spells were cast last turn" (werewolves).
     NoSpellsLastTurn,
     /// "if a player cast two or more spells last turn".
