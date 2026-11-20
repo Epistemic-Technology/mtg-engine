@@ -1,0 +1,7 @@
+card "Plague Fiend" {
+  oracle_id d287c11e-0684-42ed-abdb-758852ed0502
+  cost {1}{B}
+  type Creature — Insect
+  pt 1/1
+  triggered whenever this deals combat damage to creature: destroy that creature unless its controller pays {2}
+}

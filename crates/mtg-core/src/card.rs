@@ -1866,6 +1866,9 @@ pub enum StaticCondition {
     /// "it's your turn" ("during your turn"). The turn change bumps the
     /// characteristics cache.
     YourTurn,
+    /// "during turns other than yours": it isn't the controller's turn.
+    /// The turn change bumps the characteristics cache, as for `YourTurn`.
+    NotYourTurn,
     /// "as long as it's attacking" (the source).
     SourceAttacking,
     /// "as long as it's enchanted" / "as long as it's equipped".
@@ -4073,6 +4076,8 @@ pub const WATCH_ROLL: u32 = 16384;
 pub const WATCH_DESIG: u32 = 32768;
 /// Sacrifices (CR 701.21).
 pub const WATCH_SACRIFICE: u32 = 65536;
+/// Counters put on permanents (CR 122.1).
+pub const WATCH_COUNTERS: u32 = 131_072;
 
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
@@ -4277,6 +4282,10 @@ pub enum TriggerSpec {
     /// permanent that entered from its controller's graveyard (the
     /// source's controller's), the triggering object.
     EntersFromGraveyard(ObjFilter),
+    /// "Whenever one or more +1/+1 counters are put on this creature" (CR
+    /// 122.1): once per instruction putting counters of that kind on it,
+    /// however many.
+    CountersPut { what: TriggerObj, kind: CounterKind },
     /// "Whenever you expend 4" (CR 700.14): as the controller spends their
     /// `n`th total mana to cast spells during a turn, judged as the spell
     /// that paid it becomes cast.
@@ -4407,6 +4416,7 @@ impl TriggerSpec {
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
             TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
+            TriggerSpec::CountersPut { .. } => WATCH_COUNTERS,
         }
     }
 }
@@ -4833,6 +4843,10 @@ pub struct CostChange {
     /// Whose spells, from the source's controller.
     pub whose: Who,
     pub generic: i32,
+    /// Only while this pooled condition holds for the source's controller
+    /// ("During turns other than yours, spells you cast cost {1} less").
+    #[serde(default)]
+    pub cond: Option<u16>,
 }
 
 /// "This spell costs {1} less to cast for each artifact you control"

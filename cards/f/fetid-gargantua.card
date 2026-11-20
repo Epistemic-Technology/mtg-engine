@@ -1,0 +1,8 @@
+card "Fetid Gargantua" {
+  oracle_id b8c35a80-2c72-49ff-af5c-e8885c97f6fc
+  cost {4}{B}
+  type Creature — Horror
+  pt 4/4
+  activated {2}{B}: adapt 2
+  triggered whenever one or more +1/+1 counters put on this: you may draw 2 cards; if you do, you lose 2 life
+}

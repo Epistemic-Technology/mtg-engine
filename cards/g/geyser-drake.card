@@ -1,0 +1,8 @@
+card "Geyser Drake" {
+  oracle_id 411b9158-e427-4099-bd30-3fbb22edb553
+  cost {2}{U}
+  type Creature — Drake
+  pt 2/3
+  keywords flying
+  static during turns other than yours, spells you cast cost {1} less
+}

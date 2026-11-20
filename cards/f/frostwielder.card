@@ -1,0 +1,8 @@
+card "Frostwielder" {
+  oracle_id f895ec2e-7481-4280-a5c0-38b58c440faf
+  cost {2}{R}{R}
+  type Creature — Human Shaman
+  pt 1/2
+  replace creature dealt damage by this this turn dies: exile
+  activated {T}: deal 1 damage to any target
+}

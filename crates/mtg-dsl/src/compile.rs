@@ -758,6 +758,7 @@ impl Compiler<'_> {
                 at_least: *at_least,
             },
             StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
+            StaticCond::NotYourTurn => StaticCondition::NotYourTurn,
             StaticCond::Attacking => StaticCondition::SourceAttacking,
             StaticCond::Enchanted => StaticCondition::SourceEnchanted,
             StaticCond::Equipped => StaticCondition::SourceEquipped,
@@ -2201,6 +2202,10 @@ impl Compiler<'_> {
             // Compiled as `AbilityDef::ManaTrigger` by `ability`.
             Trigger::TappedForMana(_) => unreachable!("a triggered mana ability"),
             Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
+            Trigger::CountersPut { obj, kind } => TriggerSpec::CountersPut {
+                what: self.trigger_obj(obj),
+                kind: *kind,
+            },
             Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),
             Trigger::DealtCombatDamage(o) => TriggerSpec::DealtCombatDamage(self.trigger_obj(o)),
             Trigger::DealsDamage { obj, to, combat } => TriggerSpec::DealsDamage {
@@ -2780,11 +2785,19 @@ impl Compiler<'_> {
                 filter,
                 whose,
                 generic,
-            } => AbilityDef::CostChange(mtg_core::card::CostChange {
-                spells: self.filter(filter),
-                whose: *whose,
-                generic: *generic,
-            }),
+                cond,
+            } => {
+                let cond = cond.as_ref().map(|c| {
+                    let c = self.static_cond(c);
+                    self.pool.intern_condition(c)
+                });
+                AbilityDef::CostChange(mtg_core::card::CostChange {
+                    spells: self.filter(filter),
+                    whose: *whose,
+                    generic: *generic,
+                    cond,
+                })
+            }
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Mechanic(m) => match m {
                 Mechanic::Toxic(n) => AbilityDef::Toxic(*n),

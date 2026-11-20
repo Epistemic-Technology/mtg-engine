@@ -1,0 +1,7 @@
+card "Necrite" {
+  oracle_id e6ab8a04-e225-4ff0-bb8b-c80d0e6ce50c
+  cost {1}{B}{B}
+  type Creature — Thrull
+  pt 2/2
+  triggered whenever this attacks and isn't blocked: you may sacrifice this; if you do, destroy target creature defending player controls without regeneration
+}

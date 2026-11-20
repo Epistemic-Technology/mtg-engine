@@ -1,0 +1,8 @@
+card "Wormwood Dryad" {
+  oracle_id 277bd0c7-2400-4c94-ba82-4c9472badb60
+  cost {2}{G}
+  type Creature — Dryad
+  pt 3/1
+  activated {G}: this gains forestwalk until end of turn and deal 1 damage to you
+  activated {B}: this gains swampwalk until end of turn and deal 1 damage to you
+}

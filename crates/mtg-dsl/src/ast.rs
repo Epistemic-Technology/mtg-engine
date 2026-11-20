@@ -911,6 +911,9 @@ pub enum Ability {
         filter: Filter,
         whose: Who,
         generic: i32,
+        /// `static during turns other than yours, spells you cast cost {1}
+        /// less`: only while the condition holds, printed first.
+        cond: Option<StaticCond>,
     },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."
@@ -1211,6 +1214,9 @@ pub enum StaticCond {
     YourTurn,
     /// Written `static during your turn, <filter>: ...`.
     DuringYourTurn,
+    /// `static during turns other than yours, ...`: "During turns other
+    /// than yours, ..." (it isn't the controller's turn).
+    NotYourTurn,
     /// `attacking`, `enchanted`, `equipped`: "it's attacking" (the source).
     Attacking,
     Enchanted,
@@ -1773,6 +1779,12 @@ pub enum Trigger {
     BecomesTargetWhenever(TriggerObj),
     BecomesTapped(TriggerObj),
     BecomesUntapped(TriggerObj),
+    /// `whenever one or more +1/+1 counters put on this`: "Whenever one or
+    /// more +1/+1 counters are put on this creature" (CR 122.1).
+    CountersPut {
+        obj: TriggerObj,
+        kind: CounterKind,
+    },
     /// `whenever Aura becomes attached to this`: "Whenever an Aura becomes
     /// attached to this creature".
     BecomesAttachedTo(Filter),

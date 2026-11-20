@@ -349,6 +349,7 @@ impl Decompiler<'_> {
                 at_least: *at_least,
             },
             StaticCondition::YourTurn => StaticCond::YourTurn,
+            StaticCondition::NotYourTurn => StaticCond::NotYourTurn,
             StaticCondition::SourceAttacking => StaticCond::Attacking,
             StaticCondition::SourceEnchanted => StaticCond::Enchanted,
             StaticCondition::SourceEquipped => StaticCond::Equipped,
@@ -1367,6 +1368,10 @@ impl Decompiler<'_> {
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
             TriggerSpec::BecomesAttachedTo(f) => Trigger::BecomesAttachedTo(self.filter(f)),
             TriggerSpec::BecomesUntapped(o) => Trigger::BecomesUntapped(self.trigger_obj(o)),
+            TriggerSpec::CountersPut { what, kind } => Trigger::CountersPut {
+                obj: self.trigger_obj(what),
+                kind: *kind,
+            },
             TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),
             TriggerSpec::DealtCombatDamage(o) => Trigger::DealtCombatDamage(self.trigger_obj(o)),
             TriggerSpec::DealsDamage { what, to, combat } => Trigger::DealsDamage {
@@ -1592,6 +1597,7 @@ impl Decompiler<'_> {
                 filter: self.filter(&c.spells),
                 whose: c.whose,
                 generic: c.generic,
+                cond: c.cond.map(|i| self.static_cond(self.pool.condition(i))),
             },
             AbilityDef::SacForMana(m) => Ability::SacMana(*m),
             AbilityDef::RestrictedMana { mana, restriction } => Ability::RestrictedMana {

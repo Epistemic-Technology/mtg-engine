@@ -1,0 +1,6 @@
+card "Sarkhan's Rage" {
+  oracle_id 3313aa8f-6441-4daa-b8fa-e6144f60bea8
+  cost {4}{R}
+  type Instant
+  spell: deal 5 damage to any target; if you control no Dragon, deal 2 damage to you
+}

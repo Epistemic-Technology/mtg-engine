@@ -689,6 +689,15 @@ impl GameState {
             | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
             }
+            // CR 122.1: "Whenever one or more +1/+1 counters are put on
+            // this creature": once per event, however many counters.
+            (TriggerSpec::CountersPut { what, kind }, Event::CountersAdded { obj, kind: k, .. }) => {
+                if k != kind {
+                    return None;
+                }
+                let p = on_battlefield(what, *obj)?;
+                Some((Some(*obj), Some(p)))
+            }
             (TriggerSpec::BecomesTarget(what), Event::Targeted { target: obj, .. })
             | (TriggerSpec::BecomesTapped(what), Event::Tapped { obj })
             | (TriggerSpec::BecomesUntapped(what), Event::Untapped { obj })

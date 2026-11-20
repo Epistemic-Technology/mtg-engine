@@ -1,0 +1,8 @@
+card "Incendiary Oracle" {
+  oracle_id 2c3ed6b9-1a2b-42ad-baa9-ee2a0ad505a7
+  cost {1}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {1}{R}: this gets +1/+0 until end of turn
+  replace creature dealt damage by this this turn dies: exile
+}

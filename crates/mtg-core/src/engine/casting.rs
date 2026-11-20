@@ -1665,6 +1665,9 @@ impl GameState {
                         && cc
                             .spells
                             .matches(id, p, chars, Some(*src), Some(o.controller))
+                        && cc.cond.is_none_or(|i| {
+                            self.condition_now(self.pool.condition(i), o.controller, *src)
+                        })
                     {
                         d += cc.generic;
                     }

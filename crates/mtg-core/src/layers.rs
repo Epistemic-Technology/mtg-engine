@@ -356,6 +356,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             n >= *at_least as usize
         }
         StaticCondition::YourTurn => state.active_player == you,
+        StaticCondition::NotYourTurn => state.active_player != you,
         StaticCondition::SourceAttacking => state
             .combat
             .as_ref()

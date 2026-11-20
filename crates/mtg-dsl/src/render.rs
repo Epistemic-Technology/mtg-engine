@@ -6416,6 +6416,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::BecomesUntapped(o) => {
             format!("whenever {} becomes untapped", trigger_subject(o, ctx))
         }
+        Trigger::CountersPut { obj, kind } => format!(
+            "whenever one or more {} counters are put on {}",
+            counter_name(*kind),
+            trigger_subject(obj, ctx)
+        ),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_subject(o, ctx)),
         Trigger::DealtCombatDamage(o) => {
             format!(
@@ -7025,8 +7030,20 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             let who = match to {
                 Affects::Target(i) => {
                     ctx.target_mentioned[*i] = true;
-                    format!("that {}", ctx.target_noun[*i])
+                    // "If that creature or planeswalker would die this
+                    // turn" (Fanged Flames): the target's own two nouns.
+                    if matches!(
+                        ctx.targets.get(*i).map(Target::base),
+                        Some(Target::Spec(TargetSpec::CreatureOrPlaneswalker))
+                    ) {
+                        "that creature or planeswalker".to_string()
+                    } else {
+                        format!("that {}", ctx.target_noun[*i])
+                    }
                 }
+                // "If a creature dealt damage by this creature this turn
+                // would die" (Frostwielder).
+                Affects::Objects(f) => filter_a(f, ctx.card),
                 other => affects_to(other, ctx),
             };
             let when = if this_turn { " this turn" } else { "" };
@@ -7762,6 +7779,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("you control {what}")
         }
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
+        StaticCond::NotYourTurn => "it isn't your turn".to_string(),
         StaticCond::AnyPlayerLifeAtMost(n) => format!("a player has {n} or less life"),
         StaticCond::SourceCountersThere { kind, n } => format!(
             "there are {} or more {} counters on this {}",
@@ -8373,6 +8391,8 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
         };
         if *c == StaticCond::DuringYourTurn {
             format!("During your turn, {rest}")
+        } else if *c == StaticCond::NotYourTurn {
+            format!("During turns other than yours, {rest}")
         } else {
             format!("As long as {cond}, {rest}")
         }
@@ -8700,19 +8720,30 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             filter,
             whose,
             generic,
+            cond,
         } => {
+            let head = match cond {
+                Some(StaticCond::NotYourTurn) => "During turns other than yours, ",
+                Some(StaticCond::DuringYourTurn) => "During your turn, ",
+                _ => "",
+            };
             let whose = match whose {
                 Who::You => " you cast",
                 Who::Opponents => " your opponents cast",
                 Who::Any => "",
             };
             let more = if *generic > 0 { "more" } else { "less" };
-            format!(
+            let body = format!(
                 "{} {whose} cost {{{}}} {more} to cast.",
                 cost_spells_subject(filter, card),
                 generic.unsigned_abs()
             )
-            .replace("  ", " ")
+            .replace("  ", " ");
+            if head.is_empty() {
+                body
+            } else {
+                format!("{head}{}", lowercase_first(&body))
+            }
         }
         Ability::CondCost { delta, cond } => format!(
             "This spell costs {{{}}} {} to cast if {}.",

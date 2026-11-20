@@ -2975,6 +2975,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::TappedForMana(o) => format!("whenever {} is tapped for mana", trigger_obj(o)),
         Trigger::BecomesUntapped(o) => format!("whenever {} becomes untapped", trigger_obj(o)),
+        Trigger::CountersPut { obj, kind } => format!(
+            "whenever one or more {} counters put on {}",
+            kind.name(),
+            trigger_obj(obj)
+        ),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_obj(o)),
         Trigger::DealtCombatDamage(o) => {
             format!("whenever {} is dealt combat damage", trigger_obj(o))
@@ -3405,6 +3410,7 @@ fn static_cond(c: &StaticCond) -> String {
             at_least,
         } => format!("you control {at_least} {}", filter(fl)),
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "your turn".to_string(),
+        StaticCond::NotYourTurn => "turns other than yours".to_string(),
         StaticCond::Attacking => "attacking".to_string(),
         StaticCond::Enchanted => "enchanted".to_string(),
         StaticCond::Equipped => "equipped".to_string(),
@@ -3902,6 +3908,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                         filter(fl)
                     );
                 }
+                Some(StaticCond::NotYourTurn) => {
+                    let _ = writeln!(
+                        out,
+                        "{indent}static during turns other than yours, {}: {mods}",
+                        filter(fl)
+                    );
+                }
                 Some(c) if *cond_first => {
                     let _ = writeln!(
                         out,
@@ -3964,7 +3977,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             filter: f,
             whose,
             generic,
+            cond,
         } => {
+            let head = match cond {
+                Some(StaticCond::NotYourTurn) => "static during turns other than yours, ",
+                Some(StaticCond::DuringYourTurn) => "static during your turn, ",
+                _ => "",
+            };
             let subject = if *f == Filter::default() {
                 String::new()
             } else {
@@ -3978,7 +3997,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let more = if *generic > 0 { "more" } else { "less" };
             let _ = writeln!(
                 out,
-                "{indent}spells{subject}{whose} cost {{{}}} {more}",
+                "{indent}{head}spells{subject}{whose} cost {{{}}} {more}",
                 generic.unsigned_abs()
             );
         }

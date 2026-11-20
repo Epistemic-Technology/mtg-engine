@@ -98,12 +98,12 @@ double-faced permanent to its other face (CR 701.27).
 | `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger). |
 | `enters tapped` / `enters with 2 +1/+1 counters` | How this permanent enters (CR 614.1c). `enters with 2 +1/+1 counters if creature died this turn` (any static condition, judged as it enters) prints "This creature enters with two +1/+1 counters on it if a creature died this turn."; `enters with count equal graveyard creature +1/+1 counters` prints "... enters with a number of +1/+1 counters on it equal to the number of creature cards in your graveyard" (counted as it enters). Both, in that order, print as one sentence: "This land enters tapped with two depletion counters on it." (the order they apply in changes nothing, so it isn't asked). |
 | `static <filter>: <modifications>` | A static ability generating a continuous effect (CR 604, 611.3). `static each creature you control with +1/+1 counter: has trample` prints the subject one at a time: "Each creature you control with a +1/+1 counter on it has trample." |
-| `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last; `static this: has can't be blocked if cast historic spell this turn` prints "if" ("This creature can't be blocked if ..."). `static during your turn, this: has first strike` prints "During your turn, ...". |
+| `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last; `static this: has can't be blocked if cast historic spell this turn` prints "if" ("This creature can't be blocked if ..."). `static during your turn, this: has first strike` prints "During your turn, ..."; `static during turns other than yours, this: +0/+2` prints "During turns other than yours, ..." (it isn't the controller's turn). |
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
 | `can't be blocked by Wall`, `can't be blocked except by creature with flying`, `can't be blocked by more than one creature`, `can block only creature with flying`, `can't block creature with flying` | Blocking restrictions on this creature (CR 509.1b–c). Alternatives print with "and/or" ("can't be blocked except by artifact creatures and/or white creatures", `black or red creature`: "black and/or red creatures"). Granted, they print unquoted: `static enchanted: has ability { can't be blocked except by Wall }` is "Enchanted creature can't be blocked except by Walls."; `this gains ability { can't be blocked by creature with power 2 or less }` is "This creature can't be blocked by creatures with power 2 or less this turn." ("can't be blocked this turn except by ..."). `can't be blocked by creature with lesser power` prints "Creatures with power less than this creature's power can't block it." |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
 | `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as this enters choose land type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12; `land type` is "a basic land type"): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen`, `has protection from chosen color`, `set land chosen`, `add chosen type`, and filters `of chosen color` / `of chosen type`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). |
-| `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". |
+| `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". `static during turns other than yours, spells you cast cost {1} less` (or `during your turn`) applies only then: "During turns other than yours, spells you cast cost {1} less to cast." |
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
 | `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything`, `protection from creature your opponents control` | Protection from a quality other than a color (CR 702.16); colors are keywords. A controller in the quality is judged from the protected object's controller ("protection from creatures your opponents control": its own creatures still may block and target it). Consecutive protections print as one line, "Protection from Spirits and from Arcane" (the gate splits such a line into one protection each, CR 702.16g); in a list of granted keywords, "has protection from green and from blue". |
@@ -221,6 +221,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `when this becomes targeted` | becomes the target of a spell or ability |
 | `whenever this becomes targeted` | "Whenever this creature becomes the target of a spell or ability" (`when` prints "When") |
 | `whenever this becomes tapped`, `whenever this becomes untapped` | |
+| `whenever one or more +1/+1 counters put on this` | "Whenever one or more +1/+1 counters are put on this creature" (CR 122.1): once per instruction putting counters of that kind on it (adapt, a spell), however many |
 | `whenever Aura becomes attached to this` | "Whenever an Aura becomes attached to this creature" (CR 701.3a; an Aura entering attached too); the object attached is the triggering object |
 | `whenever enchanted land is tapped for mana: add {G}` | "Whenever enchanted land is tapped for mana, its controller adds an additional {G}." (`enchanted Forest` for an Aura with `enchant Forest`). A triggered mana ability (CR 605.1b): its effects may only add mana (`add any`, `add {G}{G}`, `add 2 mana any combination`, `add chosen`, `add {G} count each Elf on battlefield`), for the tapped permanent's controller, and it resolves at once when the permanent is tapped for mana by a mana ability (CR 605.4a), whether paying a cost or activated by hand. Payment counts the extra mana as part of what the permanent makes. |
 | `whenever this is dealt damage` | (enrage) |
@@ -717,7 +718,9 @@ this turn` (`damaged` printed "creature dealt damage this turn"), `dealt
 damage by this this turn` ("a creature dealt damage by this creature this
 turn": the source dealt it damage this turn; only a dies trigger's subject,
 `triggered whenever creature dealt damage by this this turn dies`, which
-looks back, CR 603.10a), and
+looks back, CR 603.10a, and a dies replacement's, `replace creature dealt
+damage by this this turn dies: exile`: "If a creature dealt damage by this
+creature this turn would die, exile it instead."), and
 `with mana value X` / `with mana value X or less` (X of the spell, CR
 107.3; X is chosen before targets, CR 601.2b, so only an X some object
 fits is offered; on a card, the mana value prints after the noun: `target
@@ -1234,7 +1237,9 @@ battlefield damage to target creature this turn` ("Prevent the next X
 damage ..., where X is ...", counted as it resolves),
 `this turn, replace <event>: <outcome>` (`this turn, replace target 1
 dies: exile`: "If that creature would die this turn, exile it
-instead."; `this turn, replace creature dealt damage this way dies:
+instead."; a target "creature or planeswalker" prints "If that creature or
+planeswalker would die this turn" and covers the planeswalker too, CR
+700.4; `this turn, replace creature dealt damage this way dies:
 exile`: "If a creature dealt damage this way would die this turn, exile
 it instead.", one effect locked to each permanent the resolution has
 dealt damage to so far, CR 608.2c), `players can't gain life this turn`,

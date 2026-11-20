@@ -1,0 +1,8 @@
+card "Merfolk Spy" {
+  oracle_id d004b481-a1d5-459d-8282-76baa9d13652
+  cost {U}
+  type Creature — Merfolk Rogue
+  pt 1/1
+  keywords islandwalk
+  triggered whenever this deals combat damage to a player: that player reveals 1 card at random from hand
+}
