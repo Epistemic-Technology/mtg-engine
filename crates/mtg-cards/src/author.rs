@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 113] = [
+const TEMPLATED_TAGS: &[&str] = &[
     "Transform",
     "Role token",
     "Landcycling",
@@ -179,11 +179,15 @@ const TEMPLATED_TAGS: [&str; 113] = [
     "Bolster",
     "Populate",
     "Incubate",
+    "Ascend",
+    "Venture into the dungeon",
+    "Clash",
+    "Learn",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
 /// "Landfall — <ability>". Scryfall tags them like keywords.
-const ABILITY_WORDS: [&str; 41] = [
+const ABILITY_WORDS: &[&str] = &[
     "Landfall",
     "Threshold",
     "Metalcraft",
@@ -652,6 +656,8 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
             | "this enchantment"
             | "this land"
             | "this Aura"
+            | "this Siege"
+            | "~"
     ) {
         return Some("this".to_string());
     }
@@ -747,7 +753,8 @@ fn singular(s: &str) -> String {
     s.split(' ')
         .map(|w| match w {
             "creatures" | "artifacts" | "enchantments" | "lands" | "permanents" | "Auras"
-            | "Slivers" | "Goblins" | "Walls" | "instants" | "sorceries" | "planeswalkers" => {
+            | "Slivers" | "Goblins" | "Walls" | "instants" | "sorceries" | "planeswalkers"
+            | "tokens" => {
                 if w == "sorceries" {
                     "sorcery".to_string()
                 } else {
@@ -1291,6 +1298,16 @@ impl Templates {
             (r(r"^Add one mana of any color$"), |_, _| {
                 Some("add any".to_string())
             }),
+            (r(r"^Add (two|three) mana of any one color$"), |c, _| {
+                Some(format!("add any {}", number(cap(c, 1))?))
+            }),
+            (r(r"^Add two mana in any combination of colors$"), |_, _| {
+                Some("add 2 mana any combination".to_string())
+            }),
+            // "you may gain 1 life" after `you may` (the DSL keeps `you`).
+            (r(r"^Gain (\S+) life$"), |c, _| {
+                Some(format!("you gain {} life", number(cap(c, 1))?))
+            }),
             (r(r"^Scry (\d+)$"), |c, _| {
                 Some(format!("scry {}", cap(c, 1)))
             }),
@@ -1339,11 +1356,56 @@ impl Templates {
             (r(r"^Destroy (.+)$"), |c, t| {
                 Some(format!("destroy {}", recipient(cap(c, 1), t)?))
             }),
+            // CR 610.3: "exile target creature an opponent controls until
+            // this creature leaves the battlefield" (Banishing Light).
+            (
+                r(
+                    r"^Exile (.+) until (?:this (?:creature|enchantment|artifact|permanent|Aura|land)|~) leaves the battlefield$",
+                ),
+                |c, t| {
+                    Some(format!(
+                        "exile {} until this leaves",
+                        recipient(cap(c, 1), t)?
+                    ))
+                },
+            ),
             (r(r"^Exile (.+)$"), |c, t| {
                 Some(format!("exile {}", recipient(cap(c, 1), t)?))
             }),
+            // A spell or legendary permanent returning itself (Molten Birth).
+            (r(r"^Return ~ to its owner's hand$"), |_, _| {
+                Some("return this to its owner's hand".to_string())
+            }),
             (r(r"^Return (.+?) to (?:its owner's|your) hand$"), |c, t| {
                 Some(format!("return {} to hand", recipient(cap(c, 1), t)?))
+            }),
+            // "Return target creature card from your graveyard to the
+            // battlefield" (Breath of Life).
+            (
+                r(r"^Return (.+? from your graveyard) to the battlefield( tapped)?$"),
+                |c, t| {
+                    Some(format!(
+                        "return {} to battlefield{}",
+                        recipient(cap(c, 1), t)?,
+                        cap(c, 2)
+                    ))
+                },
+            ),
+            (r(r"^[Vv]enture into the dungeon$"), |_, _| {
+                Some("venture".to_string())
+            }),
+            (r(r"^[Cc]lash with an opponent$"), |_, _| {
+                Some("clash".to_string())
+            }),
+            (r(r"^Learn$"), |_, _| Some("learn".to_string())),
+            (r(r"^[Yy]ou become the monarch$"), |_, _| {
+                Some("become monarch".to_string())
+            }),
+            (r(r"^[Yy]ou take the initiative$"), |_, _| {
+                Some("take initiative".to_string())
+            }),
+            (r(r"^[Tt]he Ring tempts you$"), |_, _| {
+                Some("the ring tempts you".to_string())
             }),
             (r(r"^Detain (.+)$"), |c, t| {
                 Some(format!("detain {}", recipient(cap(c, 1), t)?))
@@ -1393,6 +1455,21 @@ impl Templates {
             (r(r"^Sacrifice (.+)$"), |c, t| {
                 Some(format!("sacrifice {}", recipient(cap(c, 1), t)?))
             }),
+            // "you may sacrifice another creature. If you do, ...": the
+            // player chooses which (Undercity Scavenger).
+            (
+                r(r"^Sacrifice (a|an|another|two|three) ([a-z]+(?: or [a-z]+)?)$"),
+                |c, _| {
+                    let (n, other) = match cap(c, 1) {
+                        "another" => ("1".to_string(), "another "),
+                        w => (number(w)?, ""),
+                    };
+                    Some(format!(
+                        "sacrifice {n} {other}{} chosen",
+                        singular(cap(c, 2))
+                    ))
+                },
+            ),
             (
                 r(r"^Gain control of (.+?)(?: until end of turn)?$"),
                 |c, t| Some(format!("gain control of {}", recipient(cap(c, 1), t)?)),
@@ -1478,20 +1555,22 @@ impl Templates {
         let rest_of = |s: &str| -> &'static str {
             if s.contains("graveyard") {
                 "graveyard"
+            } else if s.contains("random") {
+                "bottom random"
             } else {
                 "bottom"
             }
         };
         let may = Regex::new(
-            r"^(Look at|Reveal) the top (\w+) cards of your library\. You may (reveal|put) (an? .+?) card from among them (?:and put it )?into your hand\. Put the rest (on the bottom of your library(?: in any order)?|into your graveyard)\.?\s*(.*)$",
+            r"^(Look at|Reveal) the top (\w+) cards of your library\. You may (reveal|put) (an? .+?) card from among them (?:and put it )?into your hand\. Put the rest (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
         )
         .unwrap();
         let one = Regex::new(
-            r"^Look at the top (\w+) cards of your library\. Put one of them into your hand and the (?:rest|other) (on the bottom of your library(?: in any order)?|into your graveyard)\.?\s*(.*)$",
+            r"^Look at the top (\w+) cards of your library\. Put one of them into your hand and the (?:rest|other) (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
         )
         .unwrap();
         let all = Regex::new(
-            r"^Reveal the top (\w+) cards of your library\. Put all (.+?) cards revealed this way into your hand and the rest (into your graveyard|on the bottom of your library in any order)\.?\s*(.*)$",
+            r"^Reveal the top (\w+) cards of your library\. Put all (.+?) cards revealed this way into your hand and the rest (into your graveyard|on the bottom of your library in (?:any|a random) order)\.?\s*(.*)$",
         )
         .unwrap();
         let (dsl, tail) = if let Some(c) = may.captures(&text) {
@@ -1606,8 +1685,17 @@ impl Templates {
             r"^Manifest the top card of your library, then put (a|two|three) \+1/\+1 counters? on it$",
         )
         .unwrap();
+        let delayed = Regex::new(
+            r"^(Sacrifice|Exile|Destroy|Return) (it|them|that card|that creature|that token|those tokens|this creature|~)( to (?:its owner's|their owners') hand| to the battlefield under (?:its|their) owner's control)? at (the beginning of the next end step|end of combat)$",
+        )
+        .unwrap();
         let mut out: Vec<String> = Vec::new();
-        for sentence in split_sentences(text) {
+        for sentence in merge_impulse(split_sentences(text)) {
+            // A sentence pair `merge_impulse` already wrote as DSL.
+            if let Some(dsl) = sentence.strip_prefix('\u{1}') {
+                out.push(dsl.to_string());
+                continue;
+            }
             if sentence == "It can't be regenerated" || sentence == "They can't be regenerated" {
                 match out.last_mut() {
                     Some(last) if last.starts_with("destroy ") => {
@@ -1617,6 +1705,92 @@ impl Templates {
                     _ => return Err(Skip::Sentence(sentence)),
                 }
             }
+            // "Counter target spell. If that spell is countered this way,
+            // exile it instead ..." (Dissipate).
+            let dest = match sentence.as_str() {
+                "If that spell is countered this way, exile it instead of putting it into its owner's graveyard" => {
+                    Some(" to exile")
+                }
+                "If that spell is countered this way, put it on top of its owner's library instead of into that player's graveyard" => {
+                    Some(" to library top")
+                }
+                _ => None,
+            };
+            if let Some(dest) = dest {
+                match out.last_mut() {
+                    Some(last) if last.starts_with("counter ") => {
+                        last.push_str(dest);
+                        continue;
+                    }
+                    _ => return Err(Skip::Sentence(sentence)),
+                }
+            }
+            // Eldrazi Spawn and Scion tokens (Call the Scions): the token
+            // and its quoted mana ability are the corpus's token.
+            if matches!(
+                sentence.as_str(),
+                "They have \"Sacrifice this token: Add {C}.\""
+                    | "It has \"Sacrifice this token: Add {C}.\""
+            ) {
+                let last = out
+                    .last_mut()
+                    .ok_or_else(|| Skip::Sentence(sentence.clone()))?;
+                let fixed = last
+                    .replace(
+                        "\"0/1 colorless Eldrazi Spawn creature\"",
+                        "\"Eldrazi Spawn\"",
+                    )
+                    .replace(
+                        "\"1/1 colorless Eldrazi Scion creature\"",
+                        "\"Eldrazi Scion\"",
+                    );
+                if fixed == *last || !fixed.contains("create ") {
+                    return Err(Skip::Sentence(sentence));
+                }
+                *last = format!("{fixed} it has");
+                continue;
+            }
+            // "Exile target creature. Return that card to the battlefield
+            // under its owner's control at the beginning of the next end
+            // step." (Turn to Mist): a delayed trigger on what the earlier
+            // sentence named.
+            if let Some(c) = delayed.captures(&sentence) {
+                let obj = cap(&c, 2);
+                let made_token = out.last().is_some_and(|l| l.contains("create "));
+                let who = if made_token && matches!(obj, "it" | "that token") {
+                    "that token".to_string()
+                } else if made_token && matches!(obj, "them" | "those tokens") {
+                    "those tokens".to_string()
+                } else if matches!(obj, "this creature" | "~") {
+                    "this".to_string()
+                } else if *targets > 0 && matches!(obj, "it" | "that card" | "that creature") {
+                    format!("target {}", *targets)
+                } else {
+                    return Err(Skip::Sentence(sentence));
+                };
+                let what = match obj {
+                    "that card" | "that token" => "it",
+                    "~" => "this creature",
+                    "them" => "those tokens",
+                    o => o,
+                };
+                let dest = match cap(&c, 3) {
+                    "" => "",
+                    d if d.contains("hand") => " to hand",
+                    _ => " to battlefield",
+                };
+                let when = if cap(&c, 4) == "end of combat" {
+                    "end of combat"
+                } else {
+                    "beginning of the next end step"
+                };
+                out.push(format!(
+                    "delayed {who}: {} {what}{dest} at {when}",
+                    cap(&c, 1).to_ascii_lowercase()
+                ));
+                continue;
+            }
+            let if_cond;
             let (prefix, body) = if let Some(rest) = sentence
                 .strip_prefix("you may ")
                 .or_else(|| sentence.strip_prefix("You may "))
@@ -1626,6 +1800,17 @@ impl Templates {
                 ("if you do, ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("If this spell was kicked, ") {
                 ("if kicked, ", rest.to_string())
+            } else if let Some(rest) = sentence.strip_prefix("If you win, ") {
+                ("if you win, ", rest.to_string())
+            } else if let Some(rest) = sentence.strip_prefix("Otherwise, ") {
+                ("otherwise, ", rest.to_string())
+            } else if let Some((cond, rest)) = sentence
+                .strip_prefix("If ")
+                .and_then(|r| r.split_once(", "))
+                .and_then(|(c, r)| Some((static_condition(c)?, r)))
+            {
+                if_cond = format!("if {cond}, ");
+                (if_cond.as_str(), rest.to_string())
             } else {
                 ("", sentence.clone())
             };
@@ -1671,7 +1856,17 @@ impl Templates {
                 };
                 parts.push(format!("{e}{tail}"));
             }
-            let e = parts.join(" then ");
+            let mut e = parts.join(" then ");
+            // After a first mention, `this` prints "it"; Oracle's "this
+            // creature" there is `this creature`, named in full.
+            if !out.is_empty()
+                && let Some(noun) = ["creature", "artifact", "enchantment", "land", "permanent"]
+                    .into_iter()
+                    .find(|n| lowercase_first(&body).starts_with(&format!("this {n} ")))
+                && let Some(rest) = e.strip_prefix("this ")
+            {
+                e = format!("this {noun} {rest}");
+            }
             out.push(format!("{prefix}{e}"));
         }
         if out.is_empty() {
@@ -1681,11 +1876,62 @@ impl Templates {
     }
 }
 
+/// Impulse draw (CR 305.2, 601.3): "Exile the top two cards of your
+/// library. Until the end of your next turn, you may play those cards."
+/// is one effect, `impulse 2 next turn first`; the pair becomes one
+/// sentence holding that DSL after a `\u{1}` marker.
+fn merge_impulse(sentences: Vec<String>) -> Vec<String> {
+    let exile = Regex::new(
+        r"^(If you do, |you may |You may )?[Ee]xile the top (card|\w+ cards) of your library$",
+    )
+    .unwrap();
+    let mut out: Vec<String> = Vec::new();
+    let mut it = sentences.into_iter().peekable();
+    while let Some(s) = it.next() {
+        let merged = exile.captures(&s).and_then(|c| {
+            let n = match cap(&c, 2) {
+                "card" => "1".to_string(),
+                w => number(w.strip_suffix(" cards")?)?,
+            };
+            let next = it.peek()?;
+            let when = match next
+                .replace("that card", "those cards")
+                .replace("them", "it")
+                .as_str()
+            {
+                "Until the end of your next turn, you may play those cards" => "next turn first",
+                "Until end of turn, you may play those cards" => "this turn first",
+                "Until your next end step, you may play those cards" => "next end step first",
+                "You may play those cards this turn" => "this turn",
+                "You may play those cards until the end of your next turn" => "next turn",
+                "You may play it this turn" => "this turn it",
+                "You may play it until the end of your next turn" => "next turn it",
+                "You may play it until your next end step" => "next end step it",
+                _ => return None,
+            };
+            let prefix = match cap(&c, 1) {
+                "If you do, " => "if you do, ",
+                "" => "",
+                _ => "you may ",
+            };
+            Some(format!("\u{1}{prefix}impulse {n} {when}"))
+        });
+        match merged {
+            Some(m) => {
+                it.next();
+                out.push(m);
+            }
+            None => out.push(s),
+        }
+    }
+    out
+}
+
 /// Subjects as the DSL names them ("This creature gets" → "this").
 fn subject(s: &str) -> String {
     match s {
         "This creature" | "This permanent" | "this creature" | "This artifact"
-        | "This enchantment" | "This land" | "~" => "this".to_string(),
+        | "This enchantment" | "This land" | "This Siege" | "~" => "this".to_string(),
         "It" => "it".to_string(),
         "You" => "you".to_string(),
         "Target creature" => "target creature".to_string(),
@@ -1808,7 +2054,10 @@ fn trigger_text(head: &str) -> Option<String> {
     // noun.
     let head = head
         .replace("this Vehicle", "this creature")
-        .replace("this Equipment", "this artifact");
+        .replace("this Siege", "this creature")
+        .replace("this Equipment", "this artifact")
+        .replace("When ~ ", "When this creature ")
+        .replace("Whenever ~ ", "Whenever this creature ");
     let head = head.as_str();
     let t = match head {
         "When this creature enters"
@@ -1998,6 +2247,7 @@ fn trigger_text(head: &str) -> Option<String> {
 
 /// "seven or more cards are in your graveyard" → `7 cards in your
 /// graveyard`, and the other conditions `static_cond` parses.
+#[allow(clippy::too_many_lines)] // one arm per condition phrase
 fn static_condition(s: &str) -> Option<String> {
     match s {
         "you attacked this turn" => return Some("attacked this turn".to_string()),
@@ -2012,6 +2262,27 @@ fn static_condition(s: &str) -> Option<String> {
         }
         "it's bargained" | "it was bargained" | "this spell was bargained" => {
             return Some("bargained".to_string());
+        }
+        // Designations (CR 702.131, 309.7, 725).
+        "you have the city's blessing" => return Some("city's blessing".to_string()),
+        "you've completed a dungeon" => return Some("completed dungeon".to_string()),
+        "you're the monarch" => return Some("you are monarch".to_string()),
+        "you gained life this turn" => return Some("gained life this turn".to_string()),
+        "an opponent lost life this turn" => {
+            return Some("opponent lost life this turn".to_string());
+        }
+        "an opponent was dealt damage this turn" => {
+            return Some("opponent damaged this turn".to_string());
+        }
+        "an opponent is poisoned" => return Some("opponent poisoned".to_string()),
+        "you've cast an instant or sorcery spell this turn" => {
+            return Some("cast instant or sorcery spell this turn".to_string());
+        }
+        "it's not your turn" => return Some("not your turn".to_string()),
+        "you've surveilled this turn" => return Some("surveilled this turn".to_string()),
+        "you descended this turn" => return Some("descended this turn".to_string()),
+        "a permanent left the battlefield under your control this turn" => {
+            return Some("permanent left this turn".to_string());
         }
         _ => {}
     }
@@ -2057,6 +2328,18 @@ fn static_condition(s: &str) -> Option<String> {
     let more = Regex::new(r"^there are (\S+) or more cards in your graveyard$").unwrap();
     if let Some(c) = more.captures(s) {
         return Some(format!("{} cards in your graveyard", number(cap(&c, 1))?));
+    }
+    if let Some(c) = Regex::new(r"^creatures you control have total power (\d+) or greater$")
+        .unwrap()
+        .captures(s)
+    {
+        return Some(format!("total power {} or more", cap(&c, 1)));
+    }
+    if let Some(c) = Regex::new(r"^an opponent has (\w+) or more poison counters$")
+        .unwrap()
+        .captures(s)
+    {
+        return Some(format!("opponent poison {} or more", number(cap(&c, 1))?));
     }
     let types =
         Regex::new(r"^there are (\S+) or more card types among cards in your graveyard$").unwrap();
@@ -2262,6 +2545,42 @@ impl Builder<'_> {
             self.statements.push(st);
             return Ok(());
         }
+        // CR 101.2: "This spell can't be countered." on any card, before
+        // the spell's own paragraphs.
+        if line == "This spell can't be countered." {
+            self.statements
+                .push("this spell can't be countered".to_string());
+            return Ok(());
+        }
+        if line == "Creatures with power less than this creature's power can't block it." {
+            self.statements
+                .push("can't be blocked by creature with lesser power".to_string());
+            return Ok(());
+        }
+        // "Other Elves you control get +1/+1.", "Creature tokens you
+        // control get +1/+1.": a lord over a class of permanents.
+        if let Some(c) = Regex::new(
+            r"^(Other [A-Za-z ]+?|Creature tokens|Attacking creatures|Nontoken creatures|Tapped creatures|Untapped creatures|Artifact creatures|Legendary creatures) you control ((?:get|have) .+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && let Some(mods) = static_mods(cap(&c, 2))
+        {
+            let class = singular(&lowercase_first(cap(&c, 1)));
+            self.statements
+                .push(format!("static {class} you control: {mods}"));
+            return Ok(());
+        }
+        // CR 401.2: information only.
+        if line == "You may look at the top card of your library any time." {
+            self.statements.push("may look top".to_string());
+            return Ok(());
+        }
+        // CR 702.131: "Ascend" as an ability line.
+        if line == "Ascend" {
+            self.statements.push("ascend".to_string());
+            return Ok(());
+        }
         // "Enchanted creature has \"{T}: ...\"", "Creatures you control
         // have \"...\"", "Equipped creature gets +1/+1 and has \"...\"".
         if let Some(c) = Regex::new(
@@ -2375,6 +2694,7 @@ impl Builder<'_> {
         if let Some(rest) = line
             .strip_prefix("This creature ")
             .or_else(|| line.strip_prefix("This permanent "))
+            .or_else(|| line.strip_prefix("~ "))
             && let Some(rest) = rest.strip_suffix('.')
             && let Some(k) = RESTRICTIONS.iter().find(|r| **r == rest)
         {
@@ -2497,6 +2817,7 @@ impl Builder<'_> {
                 "permanent" => "permanent",
                 "creature you control" => "creature you control",
                 "artifact or creature" => "artifact or creature",
+                "creature or Vehicle" => "creature or Vehicle",
                 "tapped creature" => "tapped creature",
                 _ => return Err(Skip::Sentence(line.to_string())),
             };
@@ -2561,11 +2882,12 @@ impl Builder<'_> {
             self.statements.push(format!("mana {}", syms.join(" or ")));
             return Ok(());
         }
-        if let Some(c) =
-            Regex::new(r"^This (land|creature|artifact|permanent) enters tapped unless (.+)\.$")
-                .unwrap()
-                .captures(line)
-            && let Some(cond) = static_condition(cap(&c, 2))
+        if let Some(c) = Regex::new(
+            r"^(?:This (?:land|creature|artifact|permanent)|~) enters tapped unless (.+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && let Some(cond) = static_condition(cap(&c, 1))
         {
             self.statements.push(format!("enters tapped unless {cond}"));
             return Ok(());
@@ -2653,6 +2975,19 @@ impl Builder<'_> {
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.21: "Ward—Pay 2 life."
+        if let Some(c) = Regex::new(r"^Ward\u{2014}Pay (\d+) life\.?$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("ward pay {} life", cap(&c, 1)));
+            return Ok(());
+        }
+        if line == "Ward\u{2014}Discard a card." {
+            self.statements.push("ward discard 1 card".to_string());
             return Ok(());
         }
         // CR 702.113: "Awaken 3—{5}{B}".
@@ -2826,7 +3161,32 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
+        // CR 604.3: "~'s power and toughness are each equal to the number
+        // of creatures you control."
+        if let Some(c) = Regex::new(
+            r"^~'s (power and toughness are each|power is|toughness is) equal to the number of (.+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && let Some(expr) = count_expr(cap(&c, 2))
+        {
+            let which = match cap(&c, 1) {
+                "power is" => "power",
+                "toughness is" => "toughness",
+                _ => "pt",
+            };
+            // Permanents are `count <filter>`; other counts as written.
+            let count = if expr.ends_with(" you control") || expr.ends_with(" on battlefield") {
+                "count "
+            } else {
+                ""
+            };
+            self.statements
+                .push(format!("static this: cda {which} {count}{expr}"));
+            return Ok(());
+        }
         if line == "This land enters tapped."
+            || line == "~ enters tapped."
             || line == "This creature enters tapped."
             || line == "This artifact enters tapped."
             || line == "This permanent enters tapped."
@@ -2961,6 +3321,23 @@ impl Builder<'_> {
         .iter()
         .find_map(|(prefix, word)| Some((*word, line.strip_prefix(prefix)?)))
         .unwrap_or(("activated", line));
+        // Loyalty abilities (CR 606): "+1: ...", "−2: ...", "0: ...".
+        if let Some(c) = Regex::new(r"^([+\u{2212}]?)(\d+|X): (.+)$")
+            .unwrap()
+            .captures(line)
+            && word == "activated"
+        {
+            let sign = match cap(&c, 1) {
+                "+" => "+",
+                "" => "",
+                _ => "-",
+            };
+            let mut targets = 0;
+            let effects = self.templates.effects(cap(&c, 3), &mut targets)?;
+            self.statements
+                .push(format!("loyalty {sign}{}: {effects}", cap(&c, 2)));
+            return Ok(());
+        }
         // Activated abilities: "<cost>: <effects>[ Activate only once each turn.]".
         if let Some((cost, rest)) = line.split_once(": ")
             && let Some(mut cost) = cost_text(cost)
@@ -2979,6 +3356,50 @@ impl Builder<'_> {
                 }
                 None => rest,
             };
+            // Activation restrictions (CR 602.5b): "Activate only during
+            // your turn.", "Activate only if you gained life this turn."
+            let rest = if let Some((r, when)) = rest.rsplit_once(" Activate only ")
+                && let Some(when) = when.strip_suffix('.')
+            {
+                for part in when.split(" and only ") {
+                    let restriction = match part {
+                        "during your turn" => "during your turn".to_string(),
+                        "during your upkeep" => "during your upkeep".to_string(),
+                        "during combat" => "during combat".to_string(),
+                        "during an opponent's upkeep" => "during opponent upkeep".to_string(),
+                        "before attackers are declared" => "before attackers".to_string(),
+                        "once" => "once ever".to_string(),
+                        "as a sorcery" => "sorcery".to_string(),
+                        "once each turn" => "once".to_string(),
+                        w => {
+                            let cond = w.strip_prefix("if ").and_then(static_condition);
+                            cond.map(|c| format!("if {c}"))
+                                .ok_or_else(|| Skip::Sentence(line.to_string()))?
+                        }
+                    };
+                    let _ = write!(cost, ", {restriction}");
+                }
+                r
+            } else {
+                rest
+            };
+            // "{2}{B}: Return this card from your graveyard to your hand."
+            // is activated from the graveyard.
+            let from_graveyard = match rest.trim_end_matches('.') {
+                "Return this card from your graveyard to your hand" => Some("return this to hand"),
+                "Return this card from your graveyard to the battlefield" => {
+                    Some("return this to battlefield")
+                }
+                "Return this card from your graveyard to the battlefield tapped" => {
+                    Some("return this to battlefield tapped")
+                }
+                _ => None,
+            };
+            if let Some(effect) = from_graveyard {
+                self.statements
+                    .push(format!("{word} {cost}, from graveyard: {effect}"));
+                return Ok(());
+            }
             let mut targets = 0;
             let effects = self.templates.effects(rest, &mut targets)?;
             self.statements.push(format!("{word} {cost}: {effects}"));
@@ -3174,6 +3595,138 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     })
 }
 
+/// How much of two texts agrees: the common prefix and suffix lengths.
+fn similarity(a: &str, b: &str) -> usize {
+    let pre = a.bytes().zip(b.bytes()).take_while(|(x, y)| x == y).count();
+    let suf = a
+        .bytes()
+        .rev()
+        .zip(b.bytes().rev())
+        .take_while(|(x, y)| x == y)
+        .count();
+    pre + suf.min(a.len().min(b.len()) - pre)
+}
+
+/// Single-word rewrites of a card file that name the same object or group
+/// another way, so they change only the wording the renderer prints:
+/// `each`/`all` (a filter's wording flags), `this`/`this creature` (the
+/// source either way), and `this`/`it` where `it` is the source too (a
+/// spell or an activated ability) or the triggering object of a trigger
+/// on something other than this permanent, which is what Oracle's "it"
+/// names there.
+#[allow(clippy::too_many_lines)]
+fn wording_variants(text: &str) -> Vec<String> {
+    const VERBS: [&str; 10] = [
+        "untap",
+        "tap",
+        "destroy",
+        "exile",
+        "sacrifice",
+        "regenerate",
+        "from",
+        "then",
+        "and",
+        "return",
+    ];
+    const HEADS: [&str; 10] = [
+        "card ",
+        "oracle_id ",
+        "cost ",
+        "type ",
+        "pt ",
+        "loyalty ",
+        "defense ",
+        "color ",
+        "keywords ",
+        "layout ",
+    ];
+    let lines: Vec<&str> = text.lines().collect();
+    let mut out = Vec::new();
+    // Inside a block (`spell {`, `choose one {`), whether its opener lets
+    // `it` name the source.
+    let mut block_it_ok = false;
+    for (i, line) in lines.iter().enumerate() {
+        let body = line.trim_start();
+        let opener_it_ok = [
+            "activated ",
+            "spell",
+            "loyalty ",
+            "boast ",
+            "exhaust ",
+            "power-up ",
+            "choose ",
+        ]
+        .iter()
+        .any(|p| body.starts_with(p))
+            || (body.starts_with("triggered ")
+                && !body.starts_with("triggered when this")
+                && !body.starts_with("triggered whenever this"));
+        let indent = line.len() - body.len();
+        if body.ends_with('{') {
+            block_it_ok = opener_it_ok && !body.starts_with("triggered ");
+        }
+        if body == "}"
+            || (HEADS.iter().any(|h| body.starts_with(h))
+                && !body.starts_with("loyalty +")
+                && !body.starts_with("loyalty -")
+                && !body.starts_with("loyalty 0:"))
+        {
+            continue;
+        }
+        if body.contains("delayed") || body.starts_with("face ") {
+            continue;
+        }
+        let it_ok = if indent > 2 {
+            block_it_ok
+        } else {
+            opener_it_ok
+        };
+        // Only the effects: after the first ": " of a statement line.
+        let start = if indent > 2 && !body.starts_with("mode") {
+            0
+        } else {
+            match line.find(": ") {
+                Some(k) => line[..k].split(' ').count(),
+                None => continue,
+            }
+        };
+        let words: Vec<&str> = line.split(' ').collect();
+        for (j, w) in words.iter().enumerate().skip(start) {
+            let prev = if j > 0 { words[j - 1] } else { "" };
+            let next = words.get(j + 1).copied().unwrap_or("");
+            let after_clause = prev.ends_with(':') || prev.ends_with(';') || VERBS.contains(&prev);
+            let mut alts: Vec<String> = Vec::new();
+            match *w {
+                "each" if after_clause && next != "counters" => alts.push("all".to_string()),
+                "all" if after_clause && !matches!(next, "counters" | "graveyards") => {
+                    alts.push("each".to_string());
+                }
+                "this" if !matches!(next, "turn" | "spell" | "creature" | "way") => {
+                    alts.push("this creature".to_string());
+                    if it_ok {
+                        alts.push("it".to_string());
+                    }
+                }
+                "this" if next == "creature" => alts.push(String::new()),
+                _ => {}
+            }
+            for alt in alts {
+                let mut ws: Vec<String> = words.iter().map(|s| (*s).to_string()).collect();
+                if alt.is_empty() {
+                    // `this creature` → `this`.
+                    ws.remove(j + 1);
+                } else {
+                    ws[j] = alt;
+                }
+                let mut ls: Vec<String> = lines.iter().map(|s| (*s).to_string()).collect();
+                ls[i] = ws.join(" ");
+                out.push(ls.join("\n") + "\n");
+            }
+        }
+    }
+    out
+}
+
 /// Build the card file for one Scryfall record, or say why not.
 #[allow(clippy::too_many_lines)]
 pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
@@ -3195,7 +3748,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     for w in left.split(' ') {
         match w {
             "Basic" | "Legendary" | "Snow" | "World" | "Artifact" | "Creature" | "Enchantment"
-            | "Land" | "Planeswalker" | "Kindred" => {}
+            | "Land" | "Planeswalker" | "Kindred" | "Battle" => {}
             "Instant" | "Sorcery" => is_spell = true,
             other => return Err(Skip::Type(other.to_string())),
         }
@@ -3224,7 +3777,15 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         return Err(Skip::Keyword("energy or unusual hybrid symbol".to_string()));
     }
     let oracle = strip_reminder(s.oracle_text.as_deref().unwrap_or(""));
-    let oracle = oracle.replace(&s.name, "~");
+    let mut oracle = oracle.replace(&s.name, "~");
+    // A legendary card names itself by the part before a comma ("Thrun"
+    // for "Thrun, the Last Troll"; CR 201.5), as the renderer prints it.
+    if type_line.contains("Legendary")
+        && let Some((short, _)) = s.name.split_once(", ")
+    {
+        let word = Regex::new(&format!(r"\b{}\b", regex::escape(short))).unwrap();
+        oracle = word.replace_all(&oracle, "~").into_owned();
+    }
     let templates = Templates::new();
     let mut b = Builder {
         templates: &templates,
@@ -3286,10 +3847,15 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     }
     let _ = writeln!(text, "  type {type_line}");
     if let (Some(p), Some(t)) = (&s.power, &s.toughness) {
-        if p.contains('*') || t.contains('*') {
+        // A characteristic-defining ability sets a `*` (CR 604.3): `pt
+        // */1` beside `cda power ...`, no line for `*/*`.
+        let cda = b.statements.iter().any(|st| st.contains(": cda "));
+        if (p.contains('*') || t.contains('*')) && !cda {
             return Err(Skip::Sentence("variable power/toughness".to_string()));
         }
-        let _ = writeln!(text, "  pt {p}/{t}");
+        if p != "*" || t != "*" {
+            let _ = writeln!(text, "  pt {p}/{t}");
+        }
     }
     if let Some(l) = &s.loyalty {
         let _ = writeln!(text, "  loyalty {l}");
@@ -3354,19 +3920,41 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         tokens.push((key.to_string(), block));
     }
     // Verify: parse, render, compare.
-    let mut cards = mtg_dsl::parse(&text).map_err(|e| Skip::Sentence(format!("parse: {e}")))?;
-    let card = cards.remove(0);
-    if card.kind != Kind::Card {
-        return Err(Skip::Layout("not a card".to_string()));
-    }
     let by_name: std::collections::HashMap<&str, &Card> = corpus
         .iter()
         .chain(token_cards.iter())
         .map(|c| (c.name.as_str(), c))
         .collect();
     let lookup: &dyn Lookup = &by_name;
-    let rendered = render::normalize(&render::oracle_text(&card, lookup));
     let expected = render::normalize(s.oracle_text.as_deref().unwrap_or(""));
+    let render_of = |text: &str| -> Result<String, Skip> {
+        let mut cards = mtg_dsl::parse(text).map_err(|e| Skip::Sentence(format!("parse: {e}")))?;
+        let card = cards.remove(0);
+        if card.kind != Kind::Card {
+            return Err(Skip::Layout("not a card".to_string()));
+        }
+        Ok(render::normalize(&render::oracle_text(&card, lookup)))
+    };
+    let mut rendered = render_of(&text)?;
+    // A near miss may be wording only: try the DSL's synonyms for the
+    // same object (`each`/`all`, `this`/`this creature`/`it`), keeping
+    // whichever brings the text closer, until it matches.
+    let mut rounds = 0;
+    while rendered != expected && rounds < 4 {
+        rounds += 1;
+        let score = |r: &str| similarity(r, &expected);
+        let best = wording_variants(&text)
+            .into_iter()
+            .filter_map(|v| render_of(&v).ok().map(|r| (score(&r), v, r)))
+            .max_by_key(|(sc, _, _)| *sc);
+        match best {
+            Some((sc, variant, again)) if sc > score(&rendered) => {
+                text = variant;
+                rendered = again;
+            }
+            _ => break,
+        }
+    }
     if rendered != expected {
         return Err(Skip::Mismatch {
             rendered,
