@@ -1960,7 +1960,8 @@ pub enum StaticCondition {
     /// "it's your turn" ("during your turn"). The turn change bumps the
     /// characteristics cache.
     YourTurn,
-    /// "it's not your turn" (Zealous Display).
+    /// "during turns other than yours": it isn't the controller's turn.
+    /// The turn change bumps the characteristics cache, as for `YourTurn`.
     NotYourTurn,
     /// "as long as it's attacking" (the source).
     SourceAttacking,
@@ -3805,6 +3806,20 @@ pub enum Effect {
     CantBeRegenerated {
         to: Recipient,
     },
+    /// "The damage can't be prevented." (Pinpoint Avalanche, CR 615.12):
+    /// no damage this resolution deals is prevented. Read before the
+    /// spell's effects happen, wherever it is written among them.
+    DamageUnpreventable,
+    /// "Excess damage is dealt to that creature's controller instead."
+    /// (Pigment Storm, CR 120.4a): read before the spell's effects
+    /// happen; its damage to a creature beyond lethal goes to that
+    /// creature's controller.
+    ExcessToController,
+    /// "This creature assigns no combat damage this turn" (CR 510.1a):
+    /// it assigns none in this turn's combat damage steps.
+    AssignsNoCombatDamage {
+        to: Recipient,
+    },
     /// "Target creature blocks this creature this turn if able" (CR
     /// 509.1c): a blocking requirement on `blocker` for one attacker.
     BlocksIfAble {
@@ -3828,6 +3843,9 @@ pub enum Effect {
         cond: ThisWayCond,
         then: Vec<Effect>,
     },
+    /// "If excess damage was dealt this way, [these]" (CR 120.4a): the
+    /// resolution has dealt damage beyond lethal so far.
+    IfExcessDamage(Vec<Effect>),
     /// "you may tap two other untapped creatures you control", "return up
     /// to two lands you control to their owner's hand": the controller
     /// chooses `count` objects matching `filter` (up to `count` with
@@ -3951,6 +3969,7 @@ impl Effect {
                 | Effect::OfChoice { .. }
                 | Effect::Choose(_)
                 | Effect::IfThisWay { .. }
+                | Effect::IfExcessDamage(_)
                 | Effect::ChooseAct { .. }
                 | Effect::OneOf(_)
                 | Effect::DiscardUnless { .. }
@@ -4338,6 +4357,8 @@ pub const WATCH_ROLL: u32 = 16384;
 pub const WATCH_DESIG: u32 = 32768;
 /// Sacrifices (CR 701.21).
 pub const WATCH_SACRIFICE: u32 = 65536;
+/// Counters put on permanents (CR 122.1).
+pub const WATCH_COUNTERS: u32 = 131_072;
 
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
@@ -4401,6 +4422,9 @@ pub enum TriggerSpec {
     FullyUnlocks { whose: Who },
     /// "Whenever you gain life".
     GainsLife { whose: Who },
+    /// "Whenever you gain life for the first time each turn": the life
+    /// gain event that starts the player's life gained this turn.
+    GainsLifeFirst { whose: Who },
     /// "Whenever you roll one or more dice" (CR 706): once per
     /// instruction to roll, not per die.
     RollsDice { whose: Who },
@@ -4434,6 +4458,10 @@ pub enum TriggerSpec {
         other: ObjFilter,
         blocks: bool,
         blocked: bool,
+        /// "blocks or becomes blocked by one or more Orcs": once for the
+        /// declaration, on the first matching pair, not once per pair.
+        #[serde(default)]
+        any: bool,
     },
     /// Ward (CR 702.21a): "Whenever this permanent becomes the target of a
     /// spell or ability an opponent controls"; the spell or ability is the
@@ -4553,6 +4581,10 @@ pub enum TriggerSpec {
     /// permanent that entered from its controller's graveyard (the
     /// source's controller's), the triggering object.
     EntersFromGraveyard(ObjFilter),
+    /// "Whenever one or more +1/+1 counters are put on this creature" (CR
+    /// 122.1): once per instruction putting counters of that kind on it,
+    /// however many.
+    CountersPut { what: TriggerObj, kind: CounterKind },
     /// "Whenever you expend 4" (CR 700.14): as the controller spends their
     /// `n`th total mana to cast spells during a turn, judged as the spell
     /// that paid it becomes cast.
@@ -4670,7 +4702,7 @@ impl TriggerSpec {
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
             TriggerSpec::Exploits | TriggerSpec::Reflexive | TriggerSpec::State(_) => 0,
-            TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
+            TriggerSpec::GainsLife { .. } | TriggerSpec::GainsLifeFirst { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,
             TriggerSpec::CastsSpell { .. }
             | TriggerSpec::CastsFiltered { .. }
@@ -4691,6 +4723,7 @@ impl TriggerSpec {
             | TriggerSpec::FullyUnlocks { .. }
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
+            TriggerSpec::CountersPut { .. } => WATCH_COUNTERS,
         }
     }
 }
@@ -5147,6 +5180,10 @@ pub struct CostChange {
     /// Whose spells, from the source's controller.
     pub whose: Who,
     pub generic: i32,
+    /// Only while this pooled condition holds for the source's controller
+    /// ("During turns other than yours, spells you cast cost {1} less").
+    #[serde(default)]
+    pub cond: Option<u16>,
 }
 
 /// "This spell costs {1} less to cast for each artifact you control"
@@ -5370,6 +5407,7 @@ impl AbilityDef {
             | Effect::IfTarget { then: inner, .. }
             | Effect::IfCard { then: inner, .. }
             | Effect::IfThisWay { then: inner, .. }
+            | Effect::IfExcessDamage(inner)
             | Effect::OneOf(inner)
             | Effect::UnlessPays { effects: inner, .. } = e
             {

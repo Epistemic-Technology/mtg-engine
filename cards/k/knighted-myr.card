@@ -1,0 +1,8 @@
+card "Knighted Myr" {
+  oracle_id dfee20a6-7737-49a8-b1cb-0a4914ac0ad3
+  cost {2}{W}
+  type Artifact Creature — Myr Knight
+  pt 2/2
+  activated {2}{W}: adapt 1
+  triggered whenever one or more +1/+1 counters put on this: this gains double strike until end of turn
+}

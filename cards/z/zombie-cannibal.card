@@ -1,0 +1,7 @@
+card "Zombie Cannibal" {
+  oracle_id baab3245-6616-4a4a-a168-3215a7878073
+  cost {B}
+  type Creature — Zombie
+  pt 1/1
+  triggered whenever this deals combat damage to a player: you may exile target card from that player's graveyard
+}

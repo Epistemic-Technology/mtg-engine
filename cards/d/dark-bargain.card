@@ -1,0 +1,6 @@
+card "Dark Bargain" {
+  oracle_id 2f872417-3dbe-40ec-ac91-e3132c0b7514
+  cost {3}{B}
+  type Instant
+  spell: dig 3 take 2 card rest graveyard; deal 2 damage to you
+}

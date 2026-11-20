@@ -759,6 +759,10 @@ impl GameState {
 
     /// Whether `id` assigns combat damage in the current damage step (CR 510.4).
     pub(super) fn deals_damage_this_step(&self, id: ObjId, first_strike_step: bool) -> bool {
+        // "This creature assigns no combat damage this turn" (CR 510.1a).
+        if !self.no_combat_damage.is_empty() && self.no_combat_damage.contains(&id) {
+            return false;
+        }
         let Some(c) = self.characteristics(id) else {
             return false;
         };

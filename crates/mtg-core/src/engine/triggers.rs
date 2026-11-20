@@ -772,6 +772,14 @@ impl GameState {
             (TriggerSpec::GainsLife { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
             }
+            // Triggers are detected as each event is emitted, so the first
+            // gain is the one whose amount is all gained this turn.
+            (TriggerSpec::GainsLifeFirst { whose }, Event::LifeChange { player, delta, .. }) => {
+                (*delta > 0
+                    && whose_ok(*whose, *player)
+                    && self.turn_log.life_gained[player.index().min(3)] == delta.unsigned_abs())
+                .then_some((None, Some(*player)))
+            }
             (TriggerSpec::BecomesAttachedTo(f), Event::Attached { obj, to }) => {
                 if *to != w.source {
                     return None;
@@ -792,6 +800,15 @@ impl GameState {
             (TriggerSpec::WinsFlip { whose }, Event::FlippedCoin { player, won: true })
             | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
+            }
+            // CR 122.1: "Whenever one or more +1/+1 counters are put on
+            // this creature": once per event, however many counters.
+            (TriggerSpec::CountersPut { what, kind }, Event::CountersAdded { obj, kind: k, .. }) => {
+                if k != kind {
+                    return None;
+                }
+                let p = on_battlefield(what, *obj)?;
+                Some((Some(*obj), Some(p)))
             }
             (TriggerSpec::BecomesTarget(what), Event::Targeted { target: obj, .. })
             | (TriggerSpec::BecomesTapped(what), Event::Tapped { obj })
@@ -926,24 +943,57 @@ impl GameState {
                     other,
                     blocks,
                     blocked,
+                    any,
                 },
                 Event::Block { blocker, attacker },
             ) => {
                 // CR 509.3b, 509.3d: once per blocking pair (a blocker that
                 // blocks several attackers makes one event per attacker);
                 // the other creature is judged as it is now (CR 509.3f).
-                let that = if *blocks && on_battlefield(what, *blocker).is_some() {
-                    *attacker
+                let (me, that) = if *blocks && on_battlefield(what, *blocker).is_some() {
+                    (*blocker, *attacker)
                 } else if *blocked && on_battlefield(what, *attacker).is_some() {
-                    *blocker
+                    (*attacker, *blocker)
                 } else {
                     return None;
                 };
+                let matches = |id: ObjId| {
+                    self.objects.get(id).is_some_and(|o| {
+                        self.characteristics(id).is_some_and(|c| {
+                            other.matches(id, o.controller, &c, Some(w.source), Some(w.controller))
+                        }) && self.status_ok(other, id)
+                    })
+                };
+                if !matches(that) {
+                    return None;
+                }
+                // "by one or more Orcs" (CR 509.3c, 509.3e): once, on the
+                // first matching pair of the declaration.
+                if *any {
+                    let c = self.combat.as_ref()?;
+                    let first = if me == *attacker {
+                        c.attackers
+                            .iter()
+                            .find(|a| a.id == me)
+                            .and_then(|a| a.blockers.iter().copied().find(|b| matches(*b)))
+                    } else {
+                        c.attackers
+                            .iter()
+                            .filter(|a| a.blockers.contains(&me))
+                            .map(|a| a.id)
+                            .find(|a| matches(*a))
+                    };
+                    if first != Some(that) {
+                        return None;
+                    }
+                    // No one other creature is "that creature": "it" is
+                    // the blocking or blocked creature itself (Hedron
+                    // Blade's equipped creature).
+                    let o = self.objects.get(me)?;
+                    return Some((Some(me), Some(o.controller)));
+                }
                 let o = self.objects.get(that)?;
-                let c = self.characteristics(that)?;
-                (other.matches(that, o.controller, &c, Some(w.source), Some(w.controller))
-                    && self.status_ok(other, that))
-                .then_some((Some(that), Some(o.controller)))
+                Some((Some(that), Some(o.controller)))
             }
             (TriggerSpec::BlockedBy(f), Event::Block { blocker, attacker }) => {
                 if *attacker != w.source {

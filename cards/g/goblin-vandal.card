@@ -1,0 +1,7 @@
+card "Goblin Vandal" {
+  oracle_id 50bebbb9-01b7-4eb6-8efd-307c9bcd2517
+  cost {R}
+  type Creature — Goblin Rogue
+  pt 1/1
+  triggered whenever this attacks and isn't blocked: you may pay {R}; if you do, destroy target artifact defending player controls, and this creature assigns no combat damage this turn
+}

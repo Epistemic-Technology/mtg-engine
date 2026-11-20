@@ -1,0 +1,7 @@
+card "Daunting Defender" {
+  oracle_id 618f29e1-0ea0-4457-91a6-7210f7619c9a
+  cost {4}{W}
+  type Creature — Human Cleric
+  pt 3/3
+  replace damage to Cleric creature you control: prevent next 1
+}

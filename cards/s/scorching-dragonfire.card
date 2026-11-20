@@ -1,0 +1,6 @@
+card "Scorching Dragonfire" {
+  oracle_id d14f313c-fea6-49c4-8197-5b74ee584a6b
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to target creature or planeswalker; this turn, replace target 1 dies: exile
+}

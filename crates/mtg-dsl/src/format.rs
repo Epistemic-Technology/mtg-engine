@@ -911,6 +911,12 @@ impl Fmt {
                 };
                 format!("{} {v} next {w}", self.recipient(*who, t))
             }
+            Effect::AssignsNoCombatDamage { to } => {
+                format!(
+                    "{} assigns no combat damage this turn",
+                    self.recipient(*to, t)
+                )
+            }
             Effect::SkipNextUntap { to, steps } => format!(
                 "{} doesn't untap next untap step{}",
                 self.recipient(*to, t),
@@ -1744,6 +1750,9 @@ impl Fmt {
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
             }
+            Effect::IfExcessDamage(inner) => {
+                format!("if excess damage dealt this way, {}", self.line(inner, t))
+            }
             Effect::ChooseAct {
                 act,
                 count,
@@ -2017,6 +2026,8 @@ impl Fmt {
             Effect::Rule(RuleKind::DamageCantBePrevented) => {
                 "damage can't be prevented this turn".to_string()
             }
+            Effect::DamageUnpreventable => "the damage can't be prevented".to_string(),
+            Effect::ExcessToController => "excess damage to its controller instead".to_string(),
             Effect::PlayerRule { who, kind } => format!(
                 "{} can't {} this turn",
                 self.recipient(*who, t),
@@ -2889,9 +2900,17 @@ pub fn block_pair_verb(blocks: bool, blocked: bool) -> &'static str {
 }
 
 /// `whenever this blocks a creature with flying`.
-fn block_pair_text(obj: &TriggerObj, other: &Filter, blocks: bool, blocked: bool) -> String {
+fn block_pair_text(
+    obj: &TriggerObj,
+    other: &Filter,
+    blocks: bool,
+    blocked: bool,
+    any: bool,
+) -> String {
     let f = filter(other);
-    let a = if f.starts_with(['a', 'e', 'i', 'o', 'u']) {
+    let a = if any {
+        "one or more"
+    } else if f.starts_with(['a', 'e', 'i', 'o', 'u']) {
         "an"
     } else {
         "a"
@@ -3091,7 +3110,8 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             other,
             blocks,
             blocked,
-        } => block_pair_text(obj, other, *blocks, *blocked),
+            any,
+        } => block_pair_text(obj, other, *blocks, *blocked, *any),
         Trigger::AttacksOrBlocks(o) => format!("whenever {} attacks or blocks", trigger_obj(o)),
         Trigger::Leaves(o) => format!("whenever {} leaves the battlefield", trigger_obj(o)),
         Trigger::DealsCombatDamageToPlayer(o) => {
@@ -3128,6 +3148,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             Who::You => "whenever you gain life".to_string(),
             _ => "whenever a player gains life".to_string(),
         },
+        Trigger::GainsLifeFirst { .. } => "whenever you gain life first time each turn".to_string(),
         Trigger::CastsSpell {
             whose,
             noncreature,
@@ -3170,6 +3191,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::TappedForMana(o) => format!("whenever {} is tapped for mana", trigger_obj(o)),
         Trigger::BecomesUntapped(o) => format!("whenever {} becomes untapped", trigger_obj(o)),
+        Trigger::CountersPut { obj, kind } => format!(
+            "whenever one or more {} counters put on {}",
+            kind.name(),
+            trigger_obj(obj)
+        ),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_obj(o)),
         Trigger::DealtCombatDamage(o) => {
             format!("whenever {} is dealt combat damage", trigger_obj(o))
@@ -4130,6 +4156,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                         filter(fl)
                     );
                 }
+                Some(StaticCond::NotYourTurn) => {
+                    let _ = writeln!(
+                        out,
+                        "{indent}static during turns other than yours, {}: {mods}",
+                        filter(fl)
+                    );
+                }
                 Some(c) if *cond_first => {
                     let _ = writeln!(
                         out,
@@ -4207,7 +4240,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             filter: f,
             whose,
             generic,
+            cond,
         } => {
+            let head = match cond {
+                Some(StaticCond::NotYourTurn) => "static during turns other than yours, ",
+                Some(StaticCond::DuringYourTurn) => "static during your turn, ",
+                _ => "",
+            };
             let subject = if *f == Filter::default() {
                 String::new()
             } else {
@@ -4221,7 +4260,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let more = if *generic > 0 { "more" } else { "less" };
             let _ = writeln!(
                 out,
-                "{indent}spells{subject}{whose} cost {{{}}} {more}",
+                "{indent}{head}spells{subject}{whose} cost {{{}}} {more}",
                 generic.unsigned_abs()
             );
         }

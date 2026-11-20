@@ -1,0 +1,6 @@
+card "Sphere of Purity" {
+  oracle_id 790d3ee2-8b93-464c-9b16-afe62db0048c
+  cost {3}{W}
+  type Enchantment
+  replace damage from artifact to you: prevent next 1
+}

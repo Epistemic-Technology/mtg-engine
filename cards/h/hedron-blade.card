@@ -1,0 +1,8 @@
+card "Hedron Blade" {
+  oracle_id cf7ca005-410d-40c8-aae4-89f41f81848b
+  cost {1}
+  type Artifact — Equipment
+  static equipped: +1/+1
+  triggered whenever equipped creature becomes blocked by one or more colorless creature: it gains deathtouch until end of turn
+  equip {2}
+}

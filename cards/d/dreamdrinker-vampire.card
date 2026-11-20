@@ -1,0 +1,9 @@
+card "Dreamdrinker Vampire" {
+  oracle_id 5b4e1163-09aa-4597-9a41-e1e384975056
+  cost {1}{B}
+  type Creature — Vampire
+  pt 2/1
+  keywords lifelink
+  activated {1}{B}: adapt 1
+  triggered whenever one or more +1/+1 counters put on this: this gains menace until end of turn
+}

@@ -1,0 +1,7 @@
+card "Mesa Lynx" {
+  oracle_id 211add65-b63d-43ad-8d69-b0598e003fef
+  cost {1}{W}
+  type Creature — Cat
+  pt 2/1
+  static during turns other than yours, this: +0/+2
+}

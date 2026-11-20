@@ -487,7 +487,12 @@ impl GameState {
                 self.objects
                     .get(*obj)
                     .is_some_and(|o| o.zone == Zone::Battlefield)
-                    && self.characteristics(*obj).is_some_and(|c| c.is_creature())
+                    // CR 700.4: a planeswalker dies too; a targeted one
+                    // ("If that creature or planeswalker would die") counts.
+                    && self.characteristics(*obj).is_some_and(|c| {
+                        c.is_creature()
+                            || (c.is_planeswalker() && matches!(to, Affects::Target(_)))
+                    })
                     && self.affects(to, Target::Object(*obj), source, controller, lock)
             }
             // `Enters` effects apply only from the entering permanent itself
@@ -583,6 +588,9 @@ impl GameState {
         self.characteristics(id)
             .is_some_and(|c| f.matches(id, o.controller, &c, Some(source), Some(controller)))
             && self.status_ok(f, id)
+            // "a creature dealt damage by this creature this turn"
+            // (Frostwielder): the source dealt it damage this turn.
+            && (!f.status.damaged_by_source || self.damaged_by_this_turn.contains(&(source, id)))
     }
 
     /// `f` with "of the chosen color" filled in from what `source` chose as
@@ -653,7 +661,8 @@ impl GameState {
     /// effects (CR 615.5).
     #[allow(clippy::too_many_lines)] // one arm per (replacement, event) pair
     fn apply_replacement(&mut self, c: &Candidate, ev: Proposed) -> Outcome {
-        let unpreventable = self.rule_in_force(RuleKind::DamageCantBePrevented);
+        let unpreventable = self.rule_in_force(RuleKind::DamageCantBePrevented)
+            || self.this_way.as_ref().is_some_and(|l| l.unpreventable);
         let outcome = match (c.ability.replacement, ev) {
             (
                 Replacement::Prevent,

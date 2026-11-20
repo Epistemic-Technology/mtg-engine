@@ -1799,6 +1799,9 @@ impl GameState {
                         && cc
                             .spells
                             .matches(id, p, chars, Some(*src), Some(o.controller))
+                        && cc.cond.is_none_or(|i| {
+                            self.condition_now(self.pool.condition(i), o.controller, *src)
+                        })
                     {
                         d += cc.generic;
                     }
@@ -4984,6 +4987,18 @@ impl GameState {
             };
             let split = self.mode_split_of(spell);
             let outer = self.begin_this_way(spell);
+            // "The damage can't be prevented" covers the spell's damage
+            // dealt before the sentence too (CR 615.12).
+            if effects.contains(&Effect::DamageUnpreventable)
+                && let Some(log) = &mut self.this_way
+            {
+                log.unpreventable = true;
+            }
+            if effects.contains(&Effect::ExcessToController)
+                && let Some(log) = &mut self.this_way
+            {
+                log.excess_to_controller = true;
+            }
             // CR 702.131a: ascend on an instant or sorcery, first.
             if def.marks.has(crate::card::Marks::ASCEND) {
                 self.ascend(obj.controller);
@@ -6169,8 +6184,33 @@ impl GameState {
         };
         match effect {
             Effect::DealDamage { amount, to } => {
+                let excess_away = self
+                    .this_way
+                    .as_ref()
+                    .is_some_and(|l| l.excess_to_controller);
                 for t in self.recipients(ctx, *to) {
-                    self.deal_damage(ctx.source, t, self.eval_num(*amount, ctx), false);
+                    let n = self.eval_num(*amount, ctx);
+                    // CR 120.4a: "Excess damage is dealt to that
+                    // creature's controller instead" (a spell's damage,
+                    // never deathtouch).
+                    if excess_away
+                        && let Target::Object(id) = t
+                        && let Some(c) = self.characteristics(id)
+                        && c.is_creature()
+                        && self
+                            .objects
+                            .get(id)
+                            .is_some_and(|o| o.zone == Zone::Battlefield)
+                    {
+                        let lethal = self.lethal_left(id, &c, false);
+                        let ctl = self.objects[id].controller;
+                        self.deal_damage(ctx.source, t, n.min(lethal), false);
+                        if n > lethal {
+                            self.deal_damage(ctx.source, Target::Player(ctl), n - lethal, false);
+                        }
+                        continue;
+                    }
+                    self.deal_damage(ctx.source, t, n, false);
                 }
             }
             Effect::Pump {
@@ -6925,6 +6965,23 @@ impl GameState {
                     }
                 }
             }
+            Effect::DamageUnpreventable => {
+                if let Some(log) = &mut self.this_way {
+                    log.unpreventable = true;
+                }
+            }
+            Effect::ExcessToController => {
+                if let Some(log) = &mut self.this_way {
+                    log.excess_to_controller = true;
+                }
+            }
+            Effect::AssignsNoCombatDamage { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.no_combat_damage.push(id);
+                    }
+                }
+            }
             Effect::CantBlockThis { blocker, attacker } => {
                 let attackers: SmallVec<[ObjId; 2]> = self
                     .recipients(ctx, *attacker)
@@ -7644,6 +7701,13 @@ impl GameState {
             }
             Effect::IfThisWay { cond, then } => {
                 if self.this_way_holds(ctx, cond) {
+                    for e in then {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::IfExcessDamage(then) => {
+                if self.this_way.as_ref().is_some_and(|l| l.excess > 0) {
                     for e in then {
                         self.apply_effect(ctx, e);
                     }

@@ -3732,9 +3732,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ));
             }
             if filter.is_none() && *take != 1 {
+                let k = count_words(Num::N(*take), "one");
+                // "Put two of them into your hand and the other into your
+                // graveyard." (Dark Bargain): one card left over.
+                if *count == Num::N(*take + 1) {
+                    return Clause::imperative(format!(
+                        "{head}. Put {k} of them into your hand and {}",
+                        rest("the other")
+                    ));
+                }
                 // "Put two of those cards into your hand and the rest into
                 // your graveyard."
-                let k = count_words(Num::N(*take), "one");
                 let those = if *reword { "them" } else { "those cards" };
                 return Clause::imperative(format!(
                     "{head}. Put {k} of {those} into your hand and {}",
@@ -3868,6 +3876,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             let v = ctx.verb(*who, "skips", "skip");
             Clause::with_subject(*who, s, format!("{v} {whose} next {w}"))
+        }
+        Effect::AssignsNoCombatDamage { to } => {
+            let s = ctx.subj(*to);
+            Clause::with_subject(*to, s, "assigns no combat damage this turn".to_string())
         }
         Effect::SkipNextUntap { to, steps } => {
             let s = match *to {
@@ -4786,6 +4798,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ctx.verb(*who, "reveals", "reveal")
                 ),
             )
+        }
+        Effect::IfExcessDamage(inner) => {
+            let body = sentences(inner, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!(
+                "if excess damage was dealt this way, {}",
+                body.trim_end_matches('.')
+            ))
         }
         Effect::IfThisWay(cond, inner) => {
             let cond = this_way_text(cond, ctx.card);
@@ -6089,6 +6113,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Rule(RuleKind::DamageCantBePrevented) => {
             Clause::imperative("damage can't be prevented this turn".to_string())
         }
+        Effect::DamageUnpreventable => {
+            Clause::imperative("the damage can't be prevented".to_string())
+        }
+        Effect::ExcessToController => Clause::imperative(
+            "excess damage is dealt to that creature's controller instead".to_string(),
+        ),
         Effect::PlayerRule { who, kind } => {
             let s = ctx.subj(*who);
             Clause::with_subject(
@@ -6722,17 +6752,30 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             other,
             blocks,
             blocked,
+            any,
         } => {
-            let s = format!(
-                "whenever {} {} {}",
-                trigger_subject(obj, ctx),
-                crate::format::block_pair_verb(*blocks, *blocked),
+            let who = if *any {
+                // "by one or more blue and/or black creatures" (CR
+                // 509.3c).
+                let p = filter_phrase(other, ctx.card, true);
+                let p = if other.colors.as_ref().is_some_and(|c| c.len() == 2) {
+                    p.replacen(" or ", " and/or ", 1)
+                } else {
+                    p
+                };
+                format!("one or more {p}")
+            } else {
                 // "by a creature that has been dealt damage this turn"
                 // (Giant Shark).
                 filter_a(other, ctx.card).replace(
                     " that was dealt damage this turn",
-                    " that has been dealt damage this turn"
+                    " that has been dealt damage this turn",
                 )
+            };
+            let s = format!(
+                "whenever {} {} {who}",
+                trigger_subject(obj, ctx),
+                crate::format::block_pair_verb(*blocks, *blocked),
             );
             // With another creature named, Oracle names the source again
             // ("..., this creature deals 1 damage to that creature").
@@ -6798,6 +6841,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             Who::You => "whenever you gain life".to_string(),
             _ => "whenever a player gains life".to_string(),
         },
+        Trigger::GainsLifeFirst { .. } => {
+            "whenever you gain life for the first time each turn".to_string()
+        }
         Trigger::CastsSpell {
             whose,
             noncreature,
@@ -6835,6 +6881,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::BecomesUntapped(o) => {
             format!("whenever {} becomes untapped", trigger_subject(o, ctx))
         }
+        Trigger::CountersPut { obj, kind } => format!(
+            "whenever one or more {} counters are put on {}",
+            counter_name(*kind),
+            trigger_subject(obj, ctx)
+        ),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_subject(o, ctx)),
         Trigger::DealtCombatDamage(o) => {
             format!(
@@ -7154,10 +7205,14 @@ fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
                     format!("Prevent all {kind} that would be dealt{to}{turn}.")
                 }
                 (Some(f), DamageWording::WouldDeal) => {
+                    // "prevent all combat damage this creature would deal
+                    // this turn" (Zealot il-Vec), but a static's "Prevent
+                    // all damage that this creature would deal to ...".
                     let that = if matches!(
                         f,
                         Affects::Target(_) | Affects::ThatTarget(_) | Affects::Chosen(_)
-                    ) {
+                    ) || (this_turn && matches!(f, Affects::This))
+                    {
                         ""
                     } else {
                         "that "
@@ -7194,6 +7249,31 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             if this_turn || r.then.is_empty() =>
         {
             prevent_all_text(&r.event, ctx, this_turn)
+        }
+        // A static ability prevents that much of every damage event (CR
+        // 615.1): "If a source would deal damage to a Cleric creature you
+        // control, prevent 1 of that damage." (Daunting Defender), "If an
+        // artifact would deal damage to you, ..." (Sphere of Purity).
+        (
+            Replaces::Damage {
+                from,
+                to,
+                combat: None,
+                ..
+            },
+            Outcome::PreventNext(n),
+        ) if !this_turn && r.then.is_empty() => {
+            let n = digits(*n);
+            let by = match from {
+                Some(Affects::Objects(f)) => filter_a(f, ctx.card),
+                Some(f) => damage_source(f, ctx),
+                None => "a source".to_string(),
+            };
+            let to = match to {
+                Affects::Objects(f) => filter_a(f, ctx.card),
+                other => affects_to(other, ctx),
+            };
+            format!("If {by} would deal damage to {to}, prevent {n} of that damage.")
         }
         (
             Replaces::Damage {
@@ -7444,8 +7524,20 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             let who = match to {
                 Affects::Target(i) => {
                     ctx.target_mentioned[*i] = true;
-                    format!("that {}", ctx.target_noun[*i])
+                    // "If that creature or planeswalker would die this
+                    // turn" (Fanged Flames): the target's own two nouns.
+                    if matches!(
+                        ctx.targets.get(*i).map(Target::base),
+                        Some(Target::Spec(TargetSpec::CreatureOrPlaneswalker))
+                    ) {
+                        "that creature or planeswalker".to_string()
+                    } else {
+                        format!("that {}", ctx.target_noun[*i])
+                    }
                 }
+                // "If a creature dealt damage by this creature this turn
+                // would die" (Frostwielder).
+                Affects::Objects(f) => filter_a(f, ctx.card),
                 other => affects_to(other, ctx),
             };
             let when = if this_turn { " this turn" } else { "" };
@@ -8858,6 +8950,8 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
         };
         if *c == StaticCond::DuringYourTurn {
             format!("During your turn, {rest}")
+        } else if *c == StaticCond::NotYourTurn {
+            format!("During turns other than yours, {rest}")
         } else {
             format!("As long as {cond}, {rest}")
         }
@@ -9192,7 +9286,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             filter,
             whose,
             generic,
+            cond,
         } => {
+            let head = match cond {
+                Some(StaticCond::NotYourTurn) => "During turns other than yours, ",
+                Some(StaticCond::DuringYourTurn) => "During your turn, ",
+                _ => "",
+            };
             let whose = match whose {
                 Who::You => " you cast",
                 Who::Opponents => " your opponents cast",
@@ -9212,12 +9312,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 Some((cmp, n)) => (f, format!(" with mana value {n}{}", cmp_words(cmp))),
                 None => (filter.clone(), String::new()),
             };
-            format!(
+            let body = format!(
                 "{} {whose}{mv} cost {{{}}} {more} to cast.",
                 cost_spells_subject(&f, card),
                 generic.unsigned_abs()
             )
-            .replace("  ", " ")
+            .replace("  ", " ");
+            if head.is_empty() {
+                body
+            } else {
+                format!("{head}{}", lowercase_first(&body))
+            }
         }
         Ability::CondCost { delta, cond } => format!(
             "This spell costs {{{}}} {} to cast if {}.",

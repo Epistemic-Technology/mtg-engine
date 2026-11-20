@@ -2051,6 +2051,8 @@ impl Compiler<'_> {
                 out.push(CoreEffect::CreateReplacement(compiled));
             }
             Effect::Rule(k) => out.push(CoreEffect::Rule(*k)),
+            Effect::DamageUnpreventable => out.push(CoreEffect::DamageUnpreventable),
+            Effect::ExcessToController => out.push(CoreEffect::ExcessToController),
             Effect::PlayerRule { who, kind } => out.push(CoreEffect::PlayerRule {
                 who: r(*who),
                 kind: *kind,
@@ -2246,6 +2248,9 @@ impl Compiler<'_> {
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });
             }
+            Effect::AssignsNoCombatDamage { to } => {
+                out.push(CoreEffect::AssignsNoCombatDamage { to: r(*to) });
+            }
             Effect::BlocksIfAble { blocker, attacker } => out.push(CoreEffect::BlocksIfAble {
                 blocker: r(*blocker),
                 attacker: r(*attacker),
@@ -2275,6 +2280,10 @@ impl Compiler<'_> {
                 let then = self.sentences(inner)?;
                 let cond = self.this_way_cond(c);
                 out.push(CoreEffect::IfThisWay { cond, then });
+            }
+            Effect::IfExcessDamage(inner) => {
+                let then = self.sentences(inner)?;
+                out.push(CoreEffect::IfExcessDamage(then));
             }
             Effect::ChooseAct {
                 act,
@@ -2385,16 +2394,19 @@ impl Compiler<'_> {
                 other,
                 blocks,
                 blocked,
+                any,
             } => TriggerSpec::BlockPair {
                 what: self.trigger_obj(obj),
                 other: self.filter(other),
                 blocks: *blocks,
                 blocked: *blocked,
+                any: *any,
             },
             Trigger::DealsCombatDamageToPlayer(o) | Trigger::DealsCombatDamageToDefending(o) => {
                 TriggerSpec::DealsCombatDamageToPlayer(self.trigger_obj(o))
             }
             Trigger::GainsLife { whose } => TriggerSpec::GainsLife { whose: *whose },
+            Trigger::GainsLifeFirst { whose } => TriggerSpec::GainsLifeFirst { whose: *whose },
             Trigger::RollsDice { whose } => TriggerSpec::RollsDice { whose: *whose },
             Trigger::DayNight => TriggerSpec::DayNight,
             Trigger::Sacrificed { obj, whose } => TriggerSpec::Sacrificed {
@@ -2429,6 +2441,10 @@ impl Compiler<'_> {
             // Compiled as `AbilityDef::ManaTrigger` by `ability`.
             Trigger::TappedForMana(_) => unreachable!("a triggered mana ability"),
             Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
+            Trigger::CountersPut { obj, kind } => TriggerSpec::CountersPut {
+                what: self.trigger_obj(obj),
+                kind: *kind,
+            },
             Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),
             Trigger::DealtCombatDamage(o) => TriggerSpec::DealtCombatDamage(self.trigger_obj(o)),
             Trigger::DealsDamage { obj, to, combat } => TriggerSpec::DealsDamage {
@@ -3017,11 +3033,19 @@ impl Compiler<'_> {
                 filter,
                 whose,
                 generic,
-            } => AbilityDef::CostChange(mtg_core::card::CostChange {
-                spells: self.filter(filter),
-                whose: *whose,
-                generic: *generic,
-            }),
+                cond,
+            } => {
+                let cond = cond.as_ref().map(|c| {
+                    let c = self.static_cond(c);
+                    self.pool.intern_condition(c)
+                });
+                AbilityDef::CostChange(mtg_core::card::CostChange {
+                    spells: self.filter(filter),
+                    whose: *whose,
+                    generic: *generic,
+                    cond,
+                })
+            }
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Mechanic(m) => match m {
                 Mechanic::Toxic(n) => AbilityDef::Toxic(*n),

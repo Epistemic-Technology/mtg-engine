@@ -1,0 +1,8 @@
+card "Mistblade Shinobi" {
+  oracle_id 16856e22-6f9e-4f8e-b4ee-622a7c2ee453
+  cost {2}{U}
+  type Creature — Human Ninja
+  pt 1/1
+  ninjutsu {U}
+  triggered whenever this deals combat damage to a player: you may return target creature that player controls to hand
+}

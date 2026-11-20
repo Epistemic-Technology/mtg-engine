@@ -961,6 +961,9 @@ pub enum Ability {
         filter: Filter,
         whose: Who,
         generic: i32,
+        /// `static during turns other than yours, spells you cast cost {1}
+        /// less`: only while the condition holds, printed first.
+        cond: Option<StaticCond>,
     },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."
@@ -1344,7 +1347,8 @@ pub enum StaticCond {
     /// `your turn`: "it's your turn"; `static during your turn, ...`
     /// prints "During your turn, ..." instead.
     YourTurn,
-    /// `not your turn`: "it's not your turn".
+    /// `not your turn`: "it's not your turn"; `static during turns other
+    /// than yours, ...` prints "During turns other than yours, ...".
     NotYourTurn,
     /// `cast during main phase`: "you cast this spell during your main
     /// phase" (judged as it was cast).
@@ -1874,6 +1878,8 @@ pub enum Trigger {
         other: Box<Filter>,
         blocks: bool,
         blocked: bool,
+        /// `... by one or more Orc`: once, not once per pair.
+        any: bool,
     },
     /// `whenever this attacks or blocks`.
     AttacksOrBlocks(TriggerObj),
@@ -1900,6 +1906,11 @@ pub enum Trigger {
     /// defending player, CR 510.1).
     DealsCombatDamageToDefending(TriggerObj),
     GainsLife {
+        whose: Who,
+    },
+    /// `whenever you gain life first time each turn`: "Whenever you gain
+    /// life for the first time each turn".
+    GainsLifeFirst {
         whose: Who,
     },
     /// `whenever day becomes night or night becomes day` (CR 731.1a).
@@ -1937,6 +1948,12 @@ pub enum Trigger {
     BecomesTargetWhenever(TriggerObj),
     BecomesTapped(TriggerObj),
     BecomesUntapped(TriggerObj),
+    /// `whenever one or more +1/+1 counters put on this`: "Whenever one or
+    /// more +1/+1 counters are put on this creature" (CR 122.1).
+    CountersPut {
+        obj: TriggerObj,
+        kind: CounterKind,
+    },
     /// `whenever Aura becomes attached to this`: "Whenever an Aura becomes
     /// attached to this creature".
     BecomesAttachedTo(Filter),
@@ -3115,6 +3132,17 @@ pub enum Effect {
     CantBeRegenerated {
         to: Recipient,
     },
+    /// `the damage can't be prevented`: "The damage can't be prevented."
+    /// (this spell's damage, CR 615.12).
+    DamageUnpreventable,
+    /// `excess damage to its controller instead`: "Excess damage is dealt
+    /// to that creature's controller instead." (CR 120.4a).
+    ExcessToController,
+    /// `this assigns no combat damage this turn`: "This creature assigns
+    /// no combat damage this turn."
+    AssignsNoCombatDamage {
+        to: Recipient,
+    },
     /// `target creature blocks this if able`: "Target creature blocks this
     /// creature this turn if able."
     BlocksIfAble {
@@ -3173,6 +3201,9 @@ pub enum Effect {
     /// sacrificed creature was Human, <sentence>`: what the resolution, or
     /// the costs paid for it, did (CR 608.2c).
     IfThisWay(ThisWayCond, Vec<Sentence>),
+    /// `if excess damage dealt this way, <sentence>`: "If excess damage
+    /// was dealt this way, ..." (CR 120.4a).
+    IfExcessDamage(Vec<Sentence>),
     /// `tap 1 other untapped Citizen you control chosen`, `exile 2
     /// creature card from your graveyard chosen`, `return up to 2 land you
     /// control chosen`: the controller chooses what to act on.

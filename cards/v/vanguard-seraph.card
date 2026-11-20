@@ -1,0 +1,8 @@
+card "Vanguard Seraph" {
+  oracle_id 3250466f-82a4-45e1-9722-ff247ddf8c15
+  cost {3}{W}
+  type Creature — Angel Warrior
+  pt 3/3
+  keywords flying
+  triggered whenever you gain life first time each turn: surveil 1
+}

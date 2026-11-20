@@ -1080,6 +1080,8 @@ impl Decompiler<'_> {
             }
             CoreEffect::CreateReplacement(rep) => Effect::CreateReplacement(self.replacement(rep)),
             CoreEffect::Rule(k) => Effect::Rule(*k),
+            CoreEffect::DamageUnpreventable => Effect::DamageUnpreventable,
+            CoreEffect::ExcessToController => Effect::ExcessToController,
             CoreEffect::PlayerRule { who, kind } => Effect::PlayerRule {
                 who: Self::recipient(*who),
                 kind: *kind,
@@ -1268,6 +1270,9 @@ impl Decompiler<'_> {
                 who: r(*who),
                 what: *what,
             },
+            CoreEffect::AssignsNoCombatDamage { to } => Effect::AssignsNoCombatDamage {
+                to: Self::recipient(*to),
+            },
             CoreEffect::SkipNextUntap { to } => Effect::SkipNextUntap {
                 to: Self::recipient(*to),
                 steps: false,
@@ -1294,6 +1299,7 @@ impl Decompiler<'_> {
             CoreEffect::IfThisWay { cond, then } => {
                 Effect::IfThisWay(self.this_way_cond(cond), self.sentences(then))
             }
+            CoreEffect::IfExcessDamage(then) => Effect::IfExcessDamage(self.sentences(then)),
             CoreEffect::ChooseAct {
                 act,
                 filter,
@@ -1400,16 +1406,19 @@ impl Decompiler<'_> {
                 other,
                 blocks,
                 blocked,
+                any,
             } => Trigger::BlockPair {
                 obj: self.trigger_obj(what),
                 other: Box::new(self.filter(other)),
                 blocks: *blocks,
                 blocked: *blocked,
+                any: *any,
             },
             TriggerSpec::DealsCombatDamageToPlayer(o) => {
                 Trigger::DealsCombatDamageToPlayer(self.trigger_obj(o))
             }
             TriggerSpec::GainsLife { whose } => Trigger::GainsLife { whose: *whose },
+            TriggerSpec::GainsLifeFirst { whose } => Trigger::GainsLifeFirst { whose: *whose },
             TriggerSpec::RollsDice { whose } => Trigger::RollsDice { whose: *whose },
             TriggerSpec::DayNight => Trigger::DayNight,
             TriggerSpec::Sacrificed { what, whose } => Trigger::Sacrificed {
@@ -1444,6 +1453,10 @@ impl Decompiler<'_> {
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
             TriggerSpec::BecomesAttachedTo(f) => Trigger::BecomesAttachedTo(self.filter(f)),
             TriggerSpec::BecomesUntapped(o) => Trigger::BecomesUntapped(self.trigger_obj(o)),
+            TriggerSpec::CountersPut { what, kind } => Trigger::CountersPut {
+                obj: self.trigger_obj(what),
+                kind: *kind,
+            },
             TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),
             TriggerSpec::DealtCombatDamage(o) => Trigger::DealtCombatDamage(self.trigger_obj(o)),
             TriggerSpec::DealsDamage { what, to, combat } => Trigger::DealsDamage {
@@ -1678,6 +1691,7 @@ impl Decompiler<'_> {
                 filter: self.filter(&c.spells),
                 whose: c.whose,
                 generic: c.generic,
+                cond: c.cond.map(|i| self.static_cond(self.pool.condition(i))),
             },
             AbilityDef::SacForMana(m) => Ability::SacMana(*m),
             AbilityDef::RestrictedMana { mana, restriction } => Ability::RestrictedMana {

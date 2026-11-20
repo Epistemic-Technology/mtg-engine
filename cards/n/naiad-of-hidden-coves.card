@@ -1,0 +1,7 @@
+card "Naiad of Hidden Coves" {
+  oracle_id 38b4798d-47cc-4ffd-8b0b-e90b5da2ee2d
+  cost {2}{U}
+  type Enchantment Creature — Nymph
+  pt 2/3
+  static during turns other than yours, spells you cast cost {1} less
+}

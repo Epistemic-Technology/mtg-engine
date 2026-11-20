@@ -1,0 +1,7 @@
+card "Mindstab Thrull" {
+  oracle_id 43abe1f3-7b92-411a-bf93-e158f949685c
+  cost {1}{B}{B}
+  type Creature — Thrull
+  pt 2/2
+  triggered whenever this attacks and isn't blocked: you may sacrifice this; if you do, defending player discards 3 cards
+}

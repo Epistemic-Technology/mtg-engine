@@ -1041,6 +1041,11 @@ pub struct ThisWayLog {
     /// Damage dealt (CR 120.3), and of it the excess (CR 120.4a).
     pub damage: u32,
     pub excess: u32,
+    /// "The damage can't be prevented" (CR 615.12): this resolution's
+    /// damage.
+    pub unpreventable: bool,
+    /// "Excess damage is dealt to that creature's controller instead."
+    pub excess_to_controller: bool,
     /// The permanents dealt damage, in order ("a creature dealt damage
     /// this way").
     pub damaged: Vec<ObjId>,
@@ -1471,6 +1476,8 @@ pub struct GameState {
     pub block_bans: Vec<(ObjId, ObjId)>,
     /// Permanents that can't be regenerated this turn (CR 701.15).
     pub no_regen: Vec<ObjId>,
+    /// Creatures that assign no combat damage this turn (CR 510.1a).
+    pub no_combat_damage: Vec<ObjId>,
     /// Players who had a land enter under their control this turn
     /// (landfall), one bit each.
     pub lands_entered_this_turn: u8,

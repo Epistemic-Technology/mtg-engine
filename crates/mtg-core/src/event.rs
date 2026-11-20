@@ -337,9 +337,10 @@ impl Event {
     #[inline]
     pub fn watch_bit(&self) -> u32 {
         use crate::card::{
-            WATCH_ATTACH, WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_CYCLE, WATCH_DAMAGE,
-            WATCH_DESIG, WATCH_DISCARD, WATCH_DRAW, WATCH_FACE_UP, WATCH_LIFE_CHANGE, WATCH_ROLL,
-            WATCH_SACRIFICE, WATCH_STEP_BEGIN, WATCH_TAP, WATCH_TARGETED, WATCH_ZONE_CHANGE,
+            WATCH_ATTACH, WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_COUNTERS, WATCH_CYCLE,
+            WATCH_DAMAGE, WATCH_DESIG, WATCH_DISCARD, WATCH_DRAW, WATCH_FACE_UP, WATCH_LIFE_CHANGE,
+            WATCH_ROLL, WATCH_SACRIFICE, WATCH_STEP_BEGIN, WATCH_TAP, WATCH_TARGETED,
+            WATCH_ZONE_CHANGE,
         };
         match self {
             Event::ZoneChange { .. } => WATCH_ZONE_CHANGE,
@@ -359,6 +360,7 @@ impl Event {
             Event::RolledDie { .. } | Event::FlippedCoin { .. } => WATCH_ROLL,
             Event::DayNight { .. } | Event::Unlocked { .. } => WATCH_DESIG,
             Event::Sacrificed { .. } => WATCH_SACRIFICE,
+            Event::CountersAdded { .. } => WATCH_COUNTERS,
             _ => 0,
         }
     }

@@ -1,0 +1,7 @@
+card "Fanged Flames" {
+  oracle_id 46515251-2172-4b0a-81ac-4c0120b73360
+  cost {1}{R}
+  type Sorcery
+  keywords devoid
+  spell: deal 4 damage to target creature or planeswalker; this turn, replace target 1 dies: exile
+}

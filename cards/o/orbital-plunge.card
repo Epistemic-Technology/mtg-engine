@@ -1,0 +1,6 @@
+card "Orbital Plunge" {
+  oracle_id 4f10b164-6d36-4935-92e7-53be73ac4c8a
+  cost {3}{R}
+  type Sorcery
+  spell: deal 6 damage to target creature; if excess damage dealt this way, create 1 "Lander"
+}

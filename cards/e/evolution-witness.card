@@ -1,0 +1,8 @@
+card "Evolution Witness" {
+  oracle_id 0e07f1af-5ff6-4da5-8683-aea4cc390975
+  cost {2}{G}
+  type Creature — Elf Shaman Mutant
+  pt 2/1
+  activated {1}{G}: adapt 2
+  triggered whenever one or more +1/+1 counters put on this: return target permanent card from your graveyard to hand
+}

@@ -1,0 +1,6 @@
+card "Hunt the Weak" {
+  oracle_id 37864d13-2aaa-477b-8453-a42f77ab4437
+  cost {3}{G}
+  type Sorcery
+  spell: put 1 +1/+1 counter on target creature you control; then that target 1 fights target creature you don't control
+}

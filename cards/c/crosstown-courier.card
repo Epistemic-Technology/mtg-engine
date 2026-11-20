@@ -1,0 +1,7 @@
+card "Crosstown Courier" {
+  oracle_id 82184f0a-54a1-4ae0-9b99-2b3450c6e544
+  cost {1}{U}
+  type Creature — Vedalken
+  pt 2/1
+  triggered whenever this deals combat damage to a player: that player mills that much cards
+}

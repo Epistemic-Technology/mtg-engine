@@ -102,12 +102,12 @@ double-faced permanent to its other face (CR 701.27).
 | `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger). |
 | `enters tapped` / `enters with 2 +1/+1 counters` | How this permanent enters (CR 614.1c). `enters with 2 +1/+1 counters if creature died this turn` (any static condition, judged as it enters) prints "This creature enters with two +1/+1 counters on it if a creature died this turn."; `enters with count equal graveyard creature +1/+1 counters` prints "... enters with a number of +1/+1 counters on it equal to the number of creature cards in your graveyard" (counted as it enters). Both, in that order, print as one sentence: "This land enters tapped with two depletion counters on it." (the order they apply in changes nothing, so it isn't asked). |
 | `static <filter>: <modifications>` | A static ability generating a continuous effect (CR 604, 611.3). `static each creature you control with +1/+1 counter: has trample` prints the subject one at a time: "Each creature you control with a +1/+1 counter on it has trample." |
-| `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last; `static this: has can't be blocked if cast historic spell this turn` prints "if" ("This creature can't be blocked if ..."). `static during your turn, this: has first strike` prints "During your turn, ...". |
+| `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last; `static this: has can't be blocked if cast historic spell this turn` prints "if" ("This creature can't be blocked if ..."). `static during your turn, this: has first strike` prints "During your turn, ..."; `static during turns other than yours, this: +0/+2` prints "During turns other than yours, ..." (it isn't the controller's turn). |
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
 | `can't be blocked by Wall`, `can't be blocked except by creature with flying`, `can't be blocked by more than one creature`, `can block only creature with flying`, `can't block creature with flying` | Blocking restrictions on this creature (CR 509.1b–c). Alternatives print with "and/or" ("can't be blocked except by artifact creatures and/or white creatures", `black or red creature`: "black and/or red creatures"). Granted, they print unquoted: `static enchanted: has ability { can't be blocked except by Wall }` is "Enchanted creature can't be blocked except by Walls."; `this gains ability { can't be blocked by creature with power 2 or less }` is "This creature can't be blocked by creatures with power 2 or less this turn." ("can't be blocked this turn except by ..."). `can't be blocked by creature with lesser power` prints "Creatures with power less than this creature's power can't block it." Alternatives in `can't be blocked by` print with "or" (`can't be blocked by creature with aura or enchantment creature`: "can't be blocked by enchanted creatures or enchantment creatures"). `can't be blocked except by 3 or more creatures` (CR 509.1b: blocked by none or by at least that many, like menace's two). Allowances (CR 509.1a): `can block shadow as though had shadow` ("can block creatures with shadow as though it had shadow"; `as though didn't have shadow`: "... as though they didn't have shadow", CR 702.28b), `can block landwalk as though didn't have` ("can block creatures with landwalk abilities as though they didn't have those abilities", CR 702.14b), `can block an additional 7 creatures each combat` (eight in all). |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
 | `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as this enters choose land type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12; `land type` is "a basic land type"): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen`, `has protection from chosen color`, `set land chosen`, `add chosen type`, and filters `of chosen color` / `of chosen type`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). |
-| `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". A mana value prints after who casts them: `spells creature with mana value 6 or greater you cast cost {2} less` is "Creature spells you cast with mana value 6 or greater cost {2} less to cast." |
+| `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". `static during turns other than yours, spells you cast cost {1} less` (or `during your turn`) applies only then: "During turns other than yours, spells you cast cost {1} less to cast." A mana value prints after who casts them: `spells creature with mana value 6 or greater you cast cost {2} less` is "Creature spells you cast with mana value 6 or greater cost {2} less to cast." |
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
 | `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything`, `protection from creature your opponents control` | Protection from a quality other than a color (CR 702.16); colors are keywords. A controller in the quality is judged from the protected object's controller ("protection from creatures your opponents control": its own creatures still may block and target it). Consecutive protections print as one line, "Protection from Spirits and from Arcane" (the gate splits such a line into one protection each, CR 702.16g); in a list of granted keywords, "has protection from green and from blue". |
@@ -222,12 +222,13 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
 | `when you control no Island`, `when you control no other creature`, `when you control Dwarf` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature."; any static condition after `when you control` ("When you control a Dwarf", "When you control a creature with toughness 2 or less"). Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | |
+| `whenever you gain life first time each turn` | "Whenever you gain life for the first time each turn": the gain that starts the life you gained this turn (one of several simultaneous lifelink gains) |
 | `whenever you roll dice`, `whenever you win a coin flip` | "Whenever you roll one or more dice" (once per roll, CR 706), "Whenever you win a coin flip" (CR 705.2) |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
 | `whenever you attack`, `whenever you attack with 3 or more creatures`, `label "Battalion" triggered whenever this and at least 2 other creatures attack` | once as the controller declares attackers (CR 508.1m), if at least that many attack (battalion: this creature among them); "Whenever this creature and at least two other creatures attack" |
 | `whenever this attacks and isn't blocked` | as blockers are declared, for an attacking creature no creature blocks (CR 509.1h) |
 | `whenever this becomes blocked`, `whenever this blocks or becomes blocked` | |
-| `whenever this blocks a creature with flying`, `whenever this becomes blocked by a creature`, `whenever this blocks or becomes blocked by a nonblack creature` | once for each attacker it blocks (CR 509.3b) or each creature blocking it (CR 509.3d); the other creature, which must match the filter, is "that creature"; `a creature with Equipment` prints "an equipped creature", `a creature that was dealt damage this turn` "... that has been dealt damage this turn" |
+| `whenever this blocks a creature with flying`, `whenever this becomes blocked by a creature`, `whenever this blocks or becomes blocked by a nonblack creature` | once for each attacker it blocks (CR 509.3b) or each creature blocking it (CR 509.3d); the other creature, which must match the filter, is "that creature"; `a creature with Equipment` prints "an equipped creature", `a creature that was dealt damage this turn` "... that has been dealt damage this turn". `... by one or more blue or black creature` ("by one or more blue and/or black creatures", CR 509.3c, 509.3e) triggers once, on the first matching pair, and "it" is the blocking or blocked creature itself (`whenever equipped creature becomes blocked by one or more colorless creature: it gains deathtouch until end of turn`) |
 | `at end of combat` | as the end of combat step begins (CR 511.2); also a delayed trigger: `delayed that creature: destroy that creature at end of combat` |
 | `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell`, `whenever a player casts a spell` | |
 | `label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: ...` | "Magecraft — Whenever you cast or copy an instant or sorcery spell, ..." (a copy would trigger it too, CR 707.10; nothing copies spells yet) |
@@ -236,6 +237,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `when this becomes targeted` | becomes the target of a spell or ability |
 | `whenever this becomes targeted` | "Whenever this creature becomes the target of a spell or ability" (`when` prints "When") |
 | `whenever this becomes tapped`, `whenever this becomes untapped` | |
+| `whenever one or more +1/+1 counters put on this` | "Whenever one or more +1/+1 counters are put on this creature" (CR 122.1): once per instruction putting counters of that kind on it (adapt, a spell), however many |
 | `whenever Aura becomes attached to this` | "Whenever an Aura becomes attached to this creature" (CR 701.3a; an Aura entering attached too); the object attached is the triggering object |
 | `whenever enchanted land is tapped for mana: add {G}` | "Whenever enchanted land is tapped for mana, its controller adds an additional {G}." (`enchanted Forest` for an Aura with `enchant Forest`). A triggered mana ability (CR 605.1b): its effects may only add mana (`add any`, `add {G}{G}`, `add 2 mana any combination`, `add chosen`, `add {G} count each Elf on battlefield`), for the tapped permanent's controller, and it resolves at once when the permanent is tapped for mana by a mana ability (CR 605.4a), whether paying a cost or activated by hand. Payment counts the extra mana as part of what the permanent makes. |
 | `whenever this is dealt damage` | (enrage) |
@@ -683,6 +685,11 @@ effect is created, among permanents and spells on the stack, CR
 target. A filter that isn't of creatures prints as sources:
 `from artifact` is "by artifact sources". A static prevention with no
 effects after it prints "Prevent all damage that would be dealt to ...";
+a static `prevent next 1` prevents 1 of every damage event (CR 615.1) and
+prints "If a source would deal damage to a Cleric creature you control,
+prevent 1 of that damage." (`replace damage to Cleric creature you
+control: prevent next 1`; `from artifact to you` prints "If an artifact
+would deal damage to you, ...");
 with them (Phantom Tiger), "If damage would be dealt to ..., prevent that
 damage.".
 
@@ -757,7 +764,9 @@ this turn` (`damaged` printed "creature dealt damage this turn"), `dealt
 damage by this this turn` ("a creature dealt damage by this creature this
 turn": the source dealt it damage this turn; only a dies trigger's subject,
 `triggered whenever creature dealt damage by this this turn dies`, which
-looks back, CR 603.10a), and
+looks back, CR 603.10a, and a dies replacement's, `replace creature dealt
+damage by this this turn dies: exile`: "If a creature dealt damage by this
+creature this turn would die, exile it instead."), and
 `with mana value X` / `with mana value X or less` (X of the spell, CR
 107.3; X is chosen before targets, CR 601.2b, so only an X some object
 fits is offered; on a card, the mana value prints after the noun: `target
@@ -1017,6 +1026,9 @@ turn"), `<what> attacks if able` ("attacks this turn if able", CR 508.1d;
 creature blocks this creature this turn if able": a requirement on that
 blocker for that attacker only, CR 509.1c), `<what> can't block <what>`
 ("Target creature can't block this creature this turn", CR 509.1b),
+`<what> assigns no combat damage this turn` ("If you do, this creature
+assigns no combat damage this turn.", CR 510.1a: it assigns none in this
+turn's combat damage steps; write `this creature` to name it again),
 `<what> can't be regenerated` ("That creature can't be regenerated this
 turn": no regeneration shield replaces its destruction this turn, CR
 701.15), `<what> can attack as though it
@@ -1251,7 +1263,8 @@ into your graveyard"; `dig 4 reveal take all land card rest graveyard`:
 your hand and the rest into your graveyard"; `take 2 instant or sorcery
 card may`: "up to two instant and/or sorcery cards", and without a
 filter `dig 4 take 2 card rest graveyard`: "Put two of those cards into
-your hand"; `take any creature card may revealing`: "You may reveal any
+your hand" (with one card left over, `dig 3 take 2 card rest graveyard`,
+"Put two of them into your hand and the other into your graveyard"); `take any creature card may revealing`: "You may reveal any
 number of creature cards from among them and put the revealed cards into
 your hand"; `take creature card and land card may`: "a creature card
 and/or a land card" (one of each); `rest bottom random`: "in a random
@@ -1318,11 +1331,18 @@ battlefield damage to target creature this turn` ("Prevent the next X
 damage ..., where X is ...", counted as it resolves),
 `this turn, replace <event>: <outcome>` (`this turn, replace target 1
 dies: exile`: "If that creature would die this turn, exile it
-instead."; `this turn, replace creature dealt damage this way dies:
+instead."; a target "creature or planeswalker" prints "If that creature or
+planeswalker would die this turn" and covers the planeswalker too, CR
+700.4; `this turn, replace creature dealt damage this way dies:
 exile`: "If a creature dealt damage this way would die this turn, exile
 it instead.", one effect locked to each permanent the resolution has
 dealt damage to so far, CR 608.2c), `players can't gain life this turn`,
-`damage can't be prevented this turn`, and
+`damage can't be prevented this turn`, `excess damage to its controller
+instead` (after a spell's damage to a creature: "Excess damage is dealt to
+that creature's controller instead.", CR 120.4a: beyond lethal damage, as
+a second damage event), `the damage can't be prevented`
+(after a spell's damage: "The damage can't be prevented.", that spell's
+damage only, CR 615.12), and
 `delayed <what>: <effects> at beginning of the next end step` (a delayed
 triggered ability, CR 603.7; write the trigger first, then a comma, then the
 effects, to print it that way); `at beginning of the next turn's upkeep`
@@ -1613,7 +1633,8 @@ destroyed this way"), `count equal life lost this way` ("life equal to the
 life lost this way"), `count that many discarded this way` ("draw that
 many cards"), `count equal damage dealt this way` ("life equal to the
 damage dealt this way", CR 120.3), `count equal excess damage dealt this
-way` (CR 120.4a: beyond lethal damage, given damage already marked, or
+way` (CR 120.4a, and `if excess damage dealt this way, create 1
+"Lander"`: "If excess damage was dealt this way, ..."; beyond lethal damage, given damage already marked, or
 beyond a planeswalker's loyalty). What the resolution or its costs moved,
 as it last existed: `toughness of the sacrificed creature` ("the
 sacrificed creature's toughness"), `mana value of the sacrificed

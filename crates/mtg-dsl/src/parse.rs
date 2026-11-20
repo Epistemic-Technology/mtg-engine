@@ -1174,36 +1174,7 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::XManaColor(c))
             }
-            "spells" => {
-                self.pos += 1;
-                let filter = if self.at_word("you") || self.at_word("your") || self.at_word("cost")
-                {
-                    Filter::default()
-                } else {
-                    self.filter()?
-                };
-                let whose = if self.eat_words(&["you", "cast"]) {
-                    Who::You
-                } else if self.eat_words(&["your", "opponents", "cast"]) {
-                    Who::Opponents
-                } else {
-                    Who::Any
-                };
-                self.expect_word("cost")?;
-                let n = i32::try_from(self.mana_cost()?.mana_value()).unwrap_or(0);
-                let generic = if self.eat_word("less") {
-                    -n
-                } else {
-                    self.expect_word("more")?;
-                    n
-                };
-                self.end_stmt()?;
-                Ok(Ability::CostChange {
-                    filter,
-                    whose,
-                    generic,
-                })
-            }
+            "spells" => self.cost_change(None),
             "this" if self.at_words(&["this", "spell", "can't", "be", "countered"]) => {
                 self.pos += 5;
                 self.end_stmt()?;
@@ -2035,6 +2006,13 @@ impl P {
                     condition = Some(StaticCond::DuringYourTurn);
                     cond_first = true;
                     self.expect(&Tok::Comma)?;
+                } else if self.eat_words(&["during", "turns", "other", "than", "yours"]) {
+                    condition = Some(StaticCond::NotYourTurn);
+                    cond_first = true;
+                    self.expect(&Tok::Comma)?;
+                }
+                if condition.is_some() && self.at_word("spells") {
+                    return self.cost_change(condition);
                 }
                 let each = self.at_word("each");
                 let mut filter = self.filter()?;
@@ -2070,6 +2048,39 @@ impl P {
             }
             _ => self.unexpected("a statement"),
         }
+    }
+
+    /// `spells artifact you cast cost {1} less` (at `spells`), with the
+    /// static condition written before it, if any.
+    fn cost_change(&mut self, cond: Option<StaticCond>) -> R<Ability> {
+        self.pos += 1;
+        let filter = if self.at_word("you") || self.at_word("your") || self.at_word("cost") {
+            Filter::default()
+        } else {
+            self.filter()?
+        };
+        let whose = if self.eat_words(&["you", "cast"]) {
+            Who::You
+        } else if self.eat_words(&["your", "opponents", "cast"]) {
+            Who::Opponents
+        } else {
+            Who::Any
+        };
+        self.expect_word("cost")?;
+        let n = i32::try_from(self.mana_cost()?.mana_value()).unwrap_or(0);
+        let generic = if self.eat_word("less") {
+            -n
+        } else {
+            self.expect_word("more")?;
+            n
+        };
+        self.end_stmt()?;
+        Ok(Ability::CostChange {
+            filter,
+            whose,
+            generic,
+            cond,
+        })
     }
 
     /// `7 cards in your graveyard`, `4 card types in your graveyard`,
@@ -3912,6 +3923,15 @@ impl P {
                 crate::ast::TargetCheck::default(),
             ));
         }
+        // "If excess damage was dealt this way, ..." (CR 120.4a).
+        if self.at_words(&["if", "excess", "damage", "dealt", "this", "way"]) {
+            self.pos += 6;
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfExcessDamage(vec![s]));
+        }
         if self.at_word("if") && self.this_way_ahead() {
             self.pos += 1;
             let cond = self.this_way_cond()?;
@@ -4663,6 +4683,12 @@ impl P {
                 };
                 self.expect_words(&["this", "turn"])?;
                 Ok(Effect::PlayerRule { who: subject, kind })
+            }
+            // "This creature assigns no combat damage this turn" (CR
+            // 510.1a).
+            "assigns" if self.at_words(&["no", "combat", "damage", "this", "turn"]) => {
+                self.pos += 5;
+                Ok(Effect::AssignsNoCombatDamage { to: subject })
             }
             "can't" => {
                 let keywords = if self.eat_word("block") {
@@ -6421,6 +6447,17 @@ impl P {
             "damage" => {
                 self.expect_words(&["can't", "be", "prevented", "this", "turn"])?;
                 Ok(Effect::Rule(RuleKind::DamageCantBePrevented))
+            }
+            // "Excess damage is dealt to that creature's controller
+            // instead." (Pigment Storm).
+            "excess" if self.at_words(&["damage", "to", "its", "controller", "instead"]) => {
+                self.pos += 5;
+                Ok(Effect::ExcessToController)
+            }
+            // "The damage can't be prevented." (Pinpoint Avalanche).
+            "the" if self.at_words(&["damage", "can't", "be", "prevented"]) => {
+                self.pos += 4;
+                Ok(Effect::DamageUnpreventable)
             }
             _ => self.fail(format!("unknown effect `{w}`")),
         }
@@ -8574,8 +8611,9 @@ impl P {
     /// The rest of `blocks a creature`, `becomes blocked by a creature`:
     /// the other creature of the pair.
     fn block_pair(&mut self, obj: TriggerObj, blocks: bool, blocked: bool) -> R<Trigger> {
-        if !(self.eat_word("a") || self.eat_word("an")) {
-            return self.unexpected("`a` or `an`");
+        let any = self.eat_words(&["one", "or", "more"]);
+        if !(any || self.eat_word("a") || self.eat_word("an")) {
+            return self.unexpected("`a`, `an`, or `one or more`");
         }
         let other = Box::new(self.filter()?);
         Ok(Trigger::BlockPair {
@@ -8583,6 +8621,7 @@ impl P {
             other,
             blocks,
             blocked,
+            any,
         })
     }
 
@@ -8703,6 +8742,9 @@ impl P {
         }
         if self.at_words(&["you", "gain", "life"]) {
             self.pos += 3;
+            if self.eat_words(&["first", "time", "each", "turn"]) {
+                return Ok(Trigger::GainsLifeFirst { whose: Who::You });
+            }
             return Ok(Trigger::GainsLife { whose: Who::You });
         }
         if self.eat_words(&["you", "unlock", "this", "door"]) {
@@ -8811,6 +8853,20 @@ impl P {
         if self.eat_words(&["you", "expend"]) {
             let n = self.number()?;
             return Ok(Trigger::Expends(u8::try_from(n).unwrap_or(u8::MAX)));
+        }
+        // CR 122.1: "one or more +1/+1 counters are put on this creature".
+        if self.at_words(&["one", "or", "more"]) && matches!(self.peek_at(3), Some(Tok::Pt { .. }))
+        {
+            self.pos += 3;
+            let kind = self.counter_kind()?;
+            self.eat_word("counters");
+            self.expect_words(&["put", "on"])?;
+            let obj = if self.eat_word("this") {
+                TriggerObj::This
+            } else {
+                TriggerObj::Filter(self.filter()?)
+            };
+            return Ok(Trigger::CountersPut { obj, kind });
         }
         // "one or more cards leave your graveyard", "one or more creature
         // cards leave your graveyard" (CR 603.2c).
@@ -9517,6 +9573,17 @@ impl P {
             return Ok(Replaces::Dies {
                 to: Affects::DamagedThisWay,
             });
+        }
+        // `creature dealt damage by this this turn dies` (Frostwielder),
+        // `<affects> dies` in general.
+        if !self.at_word("damage") && !self.at_word("combat") && !self.at_word("noncombat") {
+            let at = self.pos;
+            if let Ok(to) = self.affects()
+                && self.eat_word("dies")
+            {
+                return Ok(Replaces::Dies { to });
+            }
+            self.pos = at;
         }
         if self.eat_word("destroy") {
             return Ok(Replaces::Destroy {

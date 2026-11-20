@@ -1,0 +1,7 @@
+card "Soul Charmer" {
+  oracle_id de56a8d9-faeb-4e73-bdc1-cc81a6b6d05c
+  cost {2}{W}
+  type Creature — Human Rebel
+  pt 2/2
+  triggered whenever this deals combat damage to creature: you gain 2 life unless controller of that creature pays {2}
+}
