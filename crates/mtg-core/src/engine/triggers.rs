@@ -535,6 +535,7 @@ impl GameState {
                         ) && (!f.enchanted || enchants(*old))
                             && (!f.status.damaged_by_source
                                 || self.damaged_by_this_turn.contains(&(w.source, *old)))
+                            && (!f.needs_state() || self.lki_status_ok(f, *old, l))
                     }
                 };
                 ok.then_some((Some(*old), Some(l.object.controller)))

@@ -1,0 +1,8 @@
+card "Temperamental Oozewagg" {
+  oracle_id 07b0b2ad-4364-4a8d-94d5-8bf984b23d05
+  cost {3}{G}
+  type Creature — Ooze Brushwagg
+  pt 4/4
+  activated {2}{G}: adapt 2
+  static modified creature you control: has trample
+}

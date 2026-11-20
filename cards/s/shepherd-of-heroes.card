@@ -1,0 +1,8 @@
+card "Shepherd of Heroes" {
+  oracle_id 6a732900-6529-4d5c-ab94-52bd0048d483
+  cost {4}{W}
+  type Creature — Angel Cleric
+  pt 3/4
+  keywords flying
+  triggered when this enters: you gain count each 2 party life
+}

@@ -1,0 +1,7 @@
+card "Akki Ember-Keeper" {
+  oracle_id 8df42f4a-022c-4fcb-a953-fb165fdbfc13
+  cost {1}{R}
+  type Enchantment Creature — Goblin Warrior
+  pt 2/1
+  triggered whenever nontoken modified creature you control dies: create 1 "1/1 colorless Spirit creature"
+}

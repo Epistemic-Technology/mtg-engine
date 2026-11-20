@@ -526,6 +526,15 @@ impl GameState {
                     .max()
                     .unwrap_or(0);
             }
+            // CR 700.5: each permanent's mana cost (a face-down one has
+            // none, CR 708.2).
+            CountExpr::Devotion(colors) => {
+                return self
+                    .permanents_of(you)
+                    .filter_map(|id| self.characteristics(id))
+                    .map(|c| self.pool.get(c.def).mana_cost.devotion(*colors))
+                    .sum();
+            }
             CountExpr::GreatestManaValue => {
                 return self
                     .permanents_of(you)

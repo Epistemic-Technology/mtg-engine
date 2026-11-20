@@ -1,0 +1,8 @@
+card "Thornwatch Scarecrow" {
+  oracle_id fe01e07c-dbca-4598-a944-1b194df44260
+  cost {6}
+  type Artifact Creature — Scarecrow
+  pt 4/4
+  static this: has wither as long as you control green creature
+  static this: has vigilance as long as you control white creature
+}

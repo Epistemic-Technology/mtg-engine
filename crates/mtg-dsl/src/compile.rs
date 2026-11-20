@@ -579,6 +579,24 @@ impl Compiler<'_> {
             }
             return self.filter(&chain.expect("five alternatives"));
         }
+        // "historic" (CR 700.6): artifacts, legendaries, and Sagas, one
+        // alternative each.
+        if let Some(i) = f.subtypes.iter().position(|s| s == crate::ast::HISTORIC) {
+            let mut base = f.clone();
+            base.subtypes.remove(i);
+            let mut saga = base.clone();
+            saga.subtypes.push("Saga".to_string());
+            saga.or = f.or.clone();
+            let mut legendary = base.clone();
+            legendary
+                .supertypes
+                .push(mtg_core::card::Supertype::Legendary);
+            legendary.or = Some(Box::new(saga));
+            let mut artifact = base;
+            artifact.types.push(mtg_core::card::CardType::Artifact);
+            artifact.or = Some(Box::new(legendary));
+            return self.filter(&artifact);
+        }
         ObjFilter {
             who: f.who,
             types: TypeSet::of(f.types.iter().copied()),
@@ -960,6 +978,7 @@ impl Compiler<'_> {
             A::CardTypesInGraveyards => C::CardTypesInAllGraveyards,
             A::SourceCounters { kind, .. } => C::SourceCounters(*kind),
             A::HostGraveyard(f) => C::HostGraveyard(f.as_ref().map(|f| self.filter(f))),
+            A::Devotion { colors, .. } => C::Devotion(ColorSet::of(colors.iter().copied())),
         }
     }
 

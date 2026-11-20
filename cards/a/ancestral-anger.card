@@ -1,0 +1,9 @@
+card "Ancestral Anger" {
+  oracle_id e0828e8d-f01f-4088-9123-6d923ddb3242
+  cost {R}
+  type Sorcery
+  spell {
+    target creature gains trample and gets +1/+0 count where plus 1 graveyard named this
+    draw 1 card
+  }
+}

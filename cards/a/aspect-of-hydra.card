@@ -1,0 +1,6 @@
+card "Aspect of Hydra" {
+  oracle_id d1580692-ca1c-4682-8cad-7ad380b39454
+  cost {G}
+  type Instant
+  spell: target creature gets +1/+1 count where devotion green
+}

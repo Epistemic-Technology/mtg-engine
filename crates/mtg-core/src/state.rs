@@ -2508,6 +2508,49 @@ impl GameState {
         })
     }
 
+    /// The state qualifiers of a filter that a permanent's last known
+    /// information answers (CR 603.10a: leaves-the-battlefield abilities
+    /// look back): tapped, token, counters, and modified (CR 700.9; its
+    /// Auras and Equipment are still attached as the event is seen, the
+    /// state-based actions not yet performed). Other qualifiers don't
+    /// restrict here.
+    pub fn lki_status_ok(&self, f: &crate::card::ObjFilter, old: ObjId, l: &LastKnown) -> bool {
+        let o = &l.object;
+        // An alternative ("creature or Vehicle") isn't judged here.
+        if f.or.is_some() {
+            return true;
+        }
+        if f.tapped.is_some_and(|t| o.tapped != t) {
+            return false;
+        }
+        let q = f.status;
+        if q.token.is_some_and(|t| (o.kind == ObjKind::Token) != t) {
+            return false;
+        }
+        match q.counter {
+            Some(crate::card::CounterQual::Any) if !o.counters.iter().any(|(_, n)| *n > 0) => {
+                return false;
+            }
+            Some(crate::card::CounterQual::Kind(k)) if o.counters(k) == 0 => return false,
+            _ => {}
+        }
+        if q.modified && !o.counters.iter().any(|(_, n)| *n > 0) {
+            let has = |a: ObjId, s: crate::card::Subtype| {
+                self.characteristics(a).is_some_and(|c| c.has_subtype(s))
+            };
+            let attached = self.battlefield.iter().any(|a| {
+                let att = &self.objects[*a];
+                att.attached_to == Some(old)
+                    && (has(*a, crate::card::Subtype::EQUIPMENT)
+                        || (att.controller == o.controller && has(*a, crate::card::Subtype::AURA)))
+            });
+            if !attached {
+                return false;
+            }
+        }
+        true
+    }
+
     /// Characteristics of an object that may have left the game, falling
     /// back to last-known information.
     /// `f` with its `same` relation ("named ~", "that shares a color with

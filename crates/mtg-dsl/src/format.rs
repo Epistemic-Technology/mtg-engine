@@ -1852,6 +1852,17 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::CardsInHand => "hand".to_string(),
         CountExpr::CardsInGraveyard(None) => "graveyard".to_string(),
         CountExpr::HostGraveyard(None) => "attached controller graveyard".to_string(),
+        CountExpr::Devotion { colors, chroma } => {
+            let names: Vec<&str> = colors
+                .iter()
+                .map(|c| crate::render::color_name(*c))
+                .collect();
+            if *chroma {
+                format!("{} mana symbols", names.join(" and "))
+            } else {
+                format!("devotion {}", names.join(" and "))
+            }
+        }
         CountExpr::HostGraveyard(Some(f)) => {
             format!("attached controller graveyard {}", card_filter(f))
         }

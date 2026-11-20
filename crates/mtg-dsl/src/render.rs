@@ -421,6 +421,12 @@ fn spell_noun(what: &str) -> String {
     }
 }
 
+/// Whether a spell filter's subject starts lowercase: "an artifact spell",
+/// "a historic spell" (CR 700.6), but "a Giant spell".
+fn lower_spell_subject(f: &Filter) -> bool {
+    f.subtypes.is_empty() || f.subtypes.iter().any(|s| s == crate::ast::HISTORIC)
+}
+
 fn a_spell(f: &Filter, card: &Card) -> String {
     if let Some(alt) = &f.or {
         let (b, a) = crate::format::factor_qualifiers(f, alt);
@@ -445,8 +451,8 @@ fn a_spell(f: &Filter, card: &Card) -> String {
     }
     let what = spells_subject(f, card);
     let what = what.strip_suffix(" spells").unwrap_or(&what);
-    // "an artifact spell", but "a Giant spell".
-    let what = if f.subtypes.is_empty() {
+    // "an artifact spell", but "a Giant spell"; "a historic spell".
+    let what = if lower_spell_subject(f) {
         lowercase_first(what)
     } else {
         what.to_string()
@@ -1697,6 +1703,11 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some(t) = f.tapped {
         words.push(if t { "tapped" } else { "untapped" }.to_string());
     }
+    // "a nontoken modified creature".
+    let nontoken_first = f.status.modified && f.status.token == Some(false);
+    if nontoken_first {
+        words.push("nontoken".to_string());
+    }
     if f.status.modified {
         words.push("modified".to_string());
     }
@@ -1733,7 +1744,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     // "noncreature, nonland card", "nonartifact, nonblack creature":
     // several negations are listed, types before colors.
-    if f.status.token == Some(false) {
+    if f.status.token == Some(false) && !nontoken_first {
         words.push("nontoken".to_string());
     }
     let mut negs: Vec<String> = f
@@ -2821,6 +2832,18 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 format!("{} counters on {on}", counter_name(*kind)),
             )
         }
+        // CR 700.5.
+        CountExpr::Devotion { colors, chroma } => {
+            let names: Vec<&str> = colors.iter().map(|c| color_name(*c)).collect();
+            let names = names.join(" and ");
+            if !*chroma {
+                return format!("your devotion to {names}");
+            }
+            (
+                format!("{names} mana symbol in the mana costs of permanents you control"),
+                format!("{names} mana symbols in the mana costs of permanents you control"),
+            )
+        }
         CountExpr::HostGraveyard(f) => {
             let f = f.clone().unwrap_or_default();
             (
@@ -2942,9 +2965,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             CountStyle::Each if matches!(e, Effect::CounterUnlessPays { .. }) => {
                 let (pays, inner) = match &count.expr {
                     crate::ast::CountExpr::Times(n, inner) => (format!("{{{n}}}"), &**inner),
-                    crate::ast::CountExpr::Plus { n, inner, .. } => {
-                        (format!("{{{n}}} plus an additional {{1}}"), &**inner)
-                    }
+                    // "{2} plus an additional {2} for each card named Rune
+                    // Snag in each graveyard".
+                    crate::ast::CountExpr::Plus { n, inner, .. } => match &**inner {
+                        crate::ast::CountExpr::Times(m, inner) => {
+                            (format!("{{{n}}} plus an additional {{{m}}}"), &**inner)
+                        }
+                        inner => (format!("{{{n}}} plus an additional {{1}}"), inner),
+                    },
                     other => ("{1}".to_string(), other),
                 };
                 c.text = c.text.replacen("{X}", &pays, 1);
@@ -3039,9 +3067,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Num::Count(i) => ctx.card.counts.get(usize::from(*i)).cloned(),
                 _ => None,
             };
+            // "Target creature gets +3/+3 until end of turn. It gets an
+            // additional +2/+2 until end of turn for each card named ...":
+            // a scaled second pump of the same recipient.
+            let same = |r: Recipient| match r {
+                Recipient::ThatTarget(n) => Recipient::Target(n),
+                r => r,
+            };
+            let additional = if ctx.pumped.contains(&same(*to)) {
+                "an additional "
+            } else {
+                ""
+            };
             let (mods, tail) = match &count {
                 Some(c) if c.style == CountStyle::Each => (
-                    pt_mod(*power, *toughness),
+                    format!("{additional}{}", pt_mod(*power, *toughness)),
                     format!(" {}", count_phrase(&c.expr, ctx.card, true)),
                 ),
                 Some(c) => (
@@ -5844,6 +5884,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 || f.enchanted
                 || !can_be_self
                 || f.status.damaged_by_source
+                // "Whenever a nontoken modified creature you control dies":
+                // Oracle names no "this creature or another" for a
+                // qualifier the source may lack.
+                || f.status.modified
             {
                 format!("whenever {} {dies}", trigger_filter_a(f, ctx.card))
             } else {
@@ -6097,7 +6141,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             let what = spells_subject(&base, ctx.card);
             let what = what.strip_suffix(" spells").unwrap_or(&what);
             // "an artifact spell", but "a Giant spell".
-            let what = if base.subtypes.is_empty() {
+            let what = if lower_spell_subject(&base) {
                 lowercase_first(what)
             } else {
                 what.to_string()

@@ -259,6 +259,23 @@ impl ManaCost {
             })
     }
 
+    /// The symbols of this cost that are of any of these colors (devotion,
+    /// CR 700.5): a hybrid or Phyrexian symbol counts once.
+    pub fn devotion(&self, colors: ColorSet) -> u32 {
+        let n = self
+            .symbols
+            .iter()
+            .filter(|s| match s {
+                ManaSymbol::Colored(c) | ManaSymbol::TwoHybrid(c) | ManaSymbol::Phyrexian(c) => {
+                    colors.contains(*c)
+                }
+                ManaSymbol::Hybrid(a, b) => colors.contains(*a) || colors.contains(*b),
+                _ => false,
+            })
+            .count();
+        u32::try_from(n).unwrap_or(u32::MAX)
+    }
+
     pub fn has_x(&self) -> bool {
         self.symbols.contains(&ManaSymbol::X)
     }

@@ -1,0 +1,187 @@
+# Filter words and counts: historic (CR 700.6), devotion and chroma (CR
+# 700.5), nonsnow, modified, outlaw, party, and counts of cards named ~.
+
+scenario "historic: an artifact spell triggers Cabal Paladin" {
+  battlefield A: "Cabal Paladin", "Mountain"
+  hand A: "Silent Dart"
+  turn 1 A: cast "Silent Dart"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "historic: a legendary spell triggers, a plain creature spell doesn't" {
+  battlefield A: "Cabal Paladin", 5 "Mountain", 2 "Forest"
+  hand A: "Zhao, the Seething Flame", "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Zhao, the Seething Flame"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Zhao, the Seething Flame"
+  assert life B 18
+}
+
+scenario "historic: Serra Disciple grows on an artifact creature spell" {
+  battlefield A: "Serra Disciple"
+  hand A: "Ornithopter"
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert power "Serra Disciple" 2
+  assert toughness "Serra Disciple" 2
+}
+
+scenario "devotion: Aspect of Hydra counts green symbols, hybrid included" {
+  battlefield A: "Nylea's Disciple", "Selesnya Guildmage", "Grizzly Bears", "Forest"
+  hand A: "Aspect of Hydra"
+  turn 1 A: cast "Aspect of Hydra" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  # {2}{G}{G} + {G/W}{G/W} + {1}{G}: devotion to green 5.
+  assert power "Grizzly Bears" 7
+  assert toughness "Grizzly Bears" 7
+}
+
+scenario "devotion: an opponent's permanents don't count" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Nylea's Disciple"
+  hand A: "Aspect of Hydra"
+  turn 1 A: cast "Aspect of Hydra" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+}
+
+scenario "devotion: Gray Merchant drains by its own and other black symbols" {
+  battlefield A: "Typhoid Rats", 5 "Swamp"
+  hand A: "Gray Merchant of Asphodel"
+  turn 1 A: cast "Gray Merchant of Asphodel"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "devotion: Daybreak Chimera costs {X} less" {
+  battlefield A: 3 "Soul Warden", 2 "Plains"
+  hand A: "Daybreak Chimera"
+  turn 1 A: cast "Daybreak Chimera"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Daybreak Chimera"
+}
+
+scenario "devotion: without enough devotion Daybreak Chimera can't be cast" {
+  battlefield A: 2 "Soul Warden", 2 "Plains"
+  hand A: "Daybreak Chimera"
+  illegal turn 1 A: cast "Daybreak Chimera"
+  run_to turn 1 postcombat_main
+}
+
+scenario "chroma: Heartlash Cinder counts red symbols among your permanents" {
+  battlefield A: "Typhoid Rats", 2 "Mountain"
+  hand A: "Heartlash Cinder"
+  turn 1 A: cast "Heartlash Cinder"
+  run_to turn 1 postcombat_main
+  assert power "Heartlash Cinder" 2
+  assert toughness "Heartlash Cinder" 1
+}
+
+scenario "nonsnow: Chill to the Bone can't target a snow creature" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Squall Drifter", "Grizzly Bears"
+  hand A: "Chill to the Bone"
+  illegal turn 1 A: cast "Chill to the Bone" targeting "Squall Drifter"
+  run_to turn 1 postcombat_main
+}
+
+scenario "nonsnow: Chill to the Bone destroys a nonsnow creature" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Squall Drifter", "Grizzly Bears"
+  hand A: "Chill to the Bone"
+  turn 1 A: cast "Chill to the Bone" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "named ~: Growth Cycle grows with copies in your graveyard" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  graveyard A: 2 "Growth Cycle"
+  graveyard B: "Growth Cycle"
+  hand A: "Growth Cycle"
+  turn 1 A: cast "Growth Cycle" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 9
+  assert toughness "Grizzly Bears" 9
+}
+
+scenario "named ~: Rune Snag's price grows with copies in each graveyard" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Forest"
+  graveyard B: "Rune Snag"
+  hand A: "Rune Snag"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Rune Snag" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "named ~: with no copies Rune Snag asks only {2}" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Forest"
+  hand A: "Rune Snag"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Rune Snag" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "named ~: Pack Mastiff pumps each creature you control named Pack Mastiff" {
+  battlefield A: 2 "Pack Mastiff", "Grizzly Bears", 2 "Mountain"
+  turn 1 A: activate "Pack Mastiff"
+  run_to turn 1 postcombat_main
+  assert power oldest "Pack Mastiff" 3
+  assert power newest "Pack Mastiff" 3
+  assert power "Grizzly Bears" 2
+}
+
+scenario "modified: Akki Ember-Keeper sees a modified creature die" {
+  battlefield A: "Akki Ember-Keeper", "Grizzly Bears" with 1 +1/+1, "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Spirit"
+}
+
+scenario "modified: an unmodified creature dying makes no Spirit" {
+  battlefield A: "Akki Ember-Keeper", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A lacks "Spirit"
+}
+
+scenario "outlaw: Mine Raider makes a Treasure beside a Rogue" {
+  battlefield A: "Zulaport Duelist", 3 "Mountain"
+  hand A: "Mine Raider"
+  turn 1 A: cast "Mine Raider"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+}
+
+scenario "outlaw: Mine Raider alone makes nothing" {
+  battlefield A: 3 "Mountain"
+  hand A: "Mine Raider"
+  turn 1 A: cast "Mine Raider"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "party: Shepherd of Heroes counts itself and a Rogue" {
+  battlefield A: "Zulaport Duelist", 5 "Plains"
+  hand A: "Shepherd of Heroes"
+  turn 1 A: cast "Shepherd of Heroes"
+  run_to turn 1 postcombat_main
+  assert life A 24
+}

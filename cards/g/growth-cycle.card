@@ -1,0 +1,6 @@
+card "Growth Cycle" {
+  oracle_id ec714e79-10ec-43ea-a0ff-f8c9083fe015
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3; target 1 gets +2/+2 count each graveyard named this
+}

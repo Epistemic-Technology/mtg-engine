@@ -1,0 +1,7 @@
+card "Pack Mastiff" {
+  oracle_id f62d4437-bac6-49c8-9aeb-07de78551df7
+  cost {1}{R}
+  type Creature — Dog
+  pt 2/2
+  activated {1}{R}: each single creature you control named this gets +1/+0
+}

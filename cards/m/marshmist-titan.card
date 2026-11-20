@@ -1,0 +1,7 @@
+card "Marshmist Titan" {
+  oracle_id f8b1ac76-2f9b-454e-a20a-1cb79c23f414
+  cost {6}{B}
+  type Creature — Giant
+  pt 4/5
+  this spell costs {1} less count where devotion black
+}

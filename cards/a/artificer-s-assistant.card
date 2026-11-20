@@ -1,0 +1,8 @@
+card "Artificer's Assistant" {
+  oracle_id 6191a7eb-04b5-47e6-a31f-43f9aa91d4d7
+  cost {U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered whenever you cast historic spell: scry 1
+}

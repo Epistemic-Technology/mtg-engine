@@ -1,0 +1,8 @@
+card "Serra Disciple" {
+  oracle_id 0f052d9f-5a40-4eb9-9d8a-e01dec1db191
+  cost {1}{W}
+  type Creature — Bird Cleric
+  pt 1/1
+  keywords flying, first strike
+  triggered whenever you cast historic spell: this gets +1/+1
+}
