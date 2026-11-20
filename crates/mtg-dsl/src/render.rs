@@ -5679,7 +5679,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if let (Some((p, q)), false) = (pt, base) {
                 words.push(format!("{p}/{q}"));
             }
-            words.extend(colors.iter().map(|c| format!("{c:?}").to_lowercase()));
+            // "a 3/4 red and green Dinosaur creature".
+            let color_words: Vec<String> =
+                colors.iter().map(|c| format!("{c:?}").to_lowercase()).collect();
+            if !color_words.is_empty() {
+                words.push(list(&color_words));
+            }
             words.extend(subtypes.iter().cloned());
             words.extend(types.iter().map(|t| type_noun(*t).to_string()));
             let mut text = if plural && *in_addition {

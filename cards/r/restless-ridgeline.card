@@ -1,0 +1,8 @@
+card "Restless Ridgeline" {
+  oracle_id 4c0f4a63-586a-4dde-9621-b0dd9118b2e5
+  type Land
+  enters tapped
+  activated {T}: add {R} or {G}
+  activated {2}{R}{G}: this becomes 3/4 red green Dinosaur creature until end of turn
+  triggered whenever this attacks: another target attacking creature gets +2/+0 until end of turn; untap that target 1
+}
