@@ -1166,6 +1166,9 @@ pub enum Mechanic {
     /// for this cost and an unblocked attacker returned to hand; the
     /// permanent enters tapped and attacking.
     Sneak(ManaCost),
+    /// CR 702.174: `gift card`, `gift food`, `gift tapped fish`, `gift
+    /// treasure`: "Gift a card" and kin.
+    Gift(GiftKind),
     /// CR 702.170: `plot {2}{B}`: exiled from hand for this cost as a
     /// sorcery, cast free as a sorcery on a later turn.
     Plot(ManaCost),
@@ -1693,6 +1696,9 @@ pub enum StaticCond {
     },
     /// `no mana spent`: "it wasn't cast or no mana was spent to cast it".
     NoManaSpent,
+    /// `not kicked`: "this spell wasn't kicked"; on a card with gift, "the
+    /// gift wasn't promised" (CR 702.174).
+    NotKicked,
     /// `sneak paid`, `his sneak paid`, `her sneak paid`: "this spell's
     /// sneak cost was paid" (an instant or sorcery), "its (his, her) sneak
     /// cost was paid" (CR 702.190). The pronoun: 0 its, 1 his, 2 her.
@@ -1718,6 +1724,42 @@ pub struct Mode {
     /// `mode "Smash the Chest": ...`: a named mode, "• Smash the Chest —
     /// Destroy target artifact."
     pub name: Option<String>,
+}
+
+/// What a gift gives the chosen opponent (CR 702.174d-h).
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum GiftKind {
+    /// "Gift a card": they draw a card.
+    Card,
+    /// "Gift a Food": they create a Food token.
+    Food,
+    /// "Gift a tapped Fish": they create a tapped 1/1 blue Fish creature
+    /// token.
+    TappedFish,
+    /// "Gift a Treasure": they create a Treasure token.
+    Treasure,
+}
+
+impl GiftKind {
+    /// The DSL words after `gift`.
+    pub const fn words(self) -> &'static str {
+        match self {
+            GiftKind::Card => "card",
+            GiftKind::Food => "food",
+            GiftKind::TappedFish => "tapped fish",
+            GiftKind::Treasure => "treasure",
+        }
+    }
+
+    /// The Oracle words after "Gift".
+    pub const fn oracle(self) -> &'static str {
+        match self {
+            GiftKind::Card => "a card",
+            GiftKind::Food => "a Food",
+            GiftKind::TappedFish => "a tapped Fish",
+            GiftKind::Treasure => "a Treasure",
+        }
+    }
 }
 
 /// What an `instead` sentence checks.

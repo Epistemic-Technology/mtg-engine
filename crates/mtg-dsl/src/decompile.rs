@@ -448,6 +448,7 @@ impl Decompiler<'_> {
             StaticCondition::Bargained => StaticCond::Bargained,
             StaticCondition::Teamwork => StaticCond::Teamwork,
             StaticCondition::NoManaSpent => StaticCond::NoManaSpent,
+            StaticCondition::NotKicked => StaticCond::NotKicked,
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
             StaticCondition::Saddled => StaticCond::Saddled,

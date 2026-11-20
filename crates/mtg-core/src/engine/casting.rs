@@ -5354,6 +5354,13 @@ impl GameState {
             if def.marks.has(crate::card::Marks::ASCEND) {
                 self.ascend(obj.controller);
             }
+            // CR 702.174j: a promised gift, before the spell's other
+            // effects.
+            if let Some(gift) = &def.gift
+                && obj.cast.kicked()
+            {
+                self.apply_effects(&mut ctx, gift, &[]);
+            }
             match overloaded {
                 Some(spec) => self.apply_overloaded(&mut ctx, spec, effects),
                 None => self.apply_effects(&mut ctx, effects, &split),

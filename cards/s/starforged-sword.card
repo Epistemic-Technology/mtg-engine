@@ -1,0 +1,9 @@
+card "Starforged Sword" {
+  oracle_id 2cdc1d82-30dc-4f0a-af20-33dde90269b1
+  cost {4}
+  type Artifact — Equipment
+  gift tapped fish
+  triggered when this enters if kicked: attach this to target creature you control
+  static equipped: +3/+3, loses flying
+  equip {3}
+}

@@ -479,7 +479,9 @@ impl Runner {
             }
             DecisionKind::Bargain { .. } | DecisionKind::Casualty { .. } => self.choose_bargain(d),
             DecisionKind::Splice { .. } => self.choose_splice(d),
-            DecisionKind::Conspire { .. } | DecisionKind::Teamwork { .. } => {
+            DecisionKind::Conspire { .. }
+            | DecisionKind::Teamwork { .. }
+            | DecisionKind::Gift { .. } => {
                 let want = if std::mem::take(&mut self.pending_conspired) {
                     Choice::Accept
                 } else {

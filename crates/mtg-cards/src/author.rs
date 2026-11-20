@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 116] = [
+const TEMPLATED_TAGS: [&str; 117] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -160,6 +160,7 @@ const TEMPLATED_TAGS: [&str; 116] = [
     "Plot",
     "Sneak",
     "Spree",
+    "Gift",
     "Ripple",
     "Saddle",
     "Fabricate",
@@ -1627,8 +1628,13 @@ impl Templates {
                 ("you may ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("If you do, ") {
                 ("if you do, ", rest.to_string())
-            } else if let Some(rest) = sentence.strip_prefix("If this spell was kicked, ") {
+            } else if let Some(rest) = sentence
+                .strip_prefix("If this spell was kicked, ")
+                .or_else(|| sentence.strip_prefix("If the gift was promised, "))
+            {
                 ("if kicked, ", rest.to_string())
+            } else if let Some(rest) = sentence.strip_prefix("If the gift wasn't promised, ") {
+                ("if not kicked, ", rest.to_string())
             } else {
                 ("", sentence.clone())
             };
@@ -2663,6 +2669,20 @@ impl Builder<'_> {
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
             return Ok(());
         }
+        // CR 702.174: "Gift a card", "Gift a tapped Fish".
+        if let Some(c) = Regex::new(r"^Gift (a card|a Food|a tapped Fish|a Treasure)$")
+            .unwrap()
+            .captures(line)
+        {
+            let kind = match cap(&c, 1) {
+                "a card" => "card",
+                "a Food" => "food",
+                "a tapped Fish" => "tapped fish",
+                _ => "treasure",
+            };
+            self.statements.push(format!("gift {kind}"));
+            return Ok(());
+        }
         // CR 702.113: "Awaken 3—{5}{B}".
         if let Some(c) = Regex::new(r"^Awaken (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
             .unwrap()
@@ -3036,7 +3056,10 @@ impl Builder<'_> {
                 (" if this is untapped", r)
             } else if let Some(r) = rest.strip_prefix("if no creatures are on the battlefield, ") {
                 (" if no creatures are on the battlefield", r)
-            } else if let Some(r) = rest.strip_prefix("if it was kicked, ") {
+            } else if let Some(r) = rest
+                .strip_prefix("if it was kicked, ")
+                .or_else(|| rest.strip_prefix("if the gift was promised, "))
+            {
                 (" if kicked", r)
             } else if let Some(r) = rest.strip_prefix("if no spells were cast last turn, ") {
                 (" if no spells were cast last turn", r)

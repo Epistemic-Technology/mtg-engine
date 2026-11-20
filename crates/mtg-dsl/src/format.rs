@@ -3780,6 +3780,7 @@ fn static_cond(c: &StaticCond) -> String {
         ),
         StaticCond::Saddled => "saddled".to_string(),
         StaticCond::NoManaSpent => "no mana spent".to_string(),
+        StaticCond::NotKicked => "not kicked".to_string(),
         StaticCond::SneakPaid(p) => format!(
             "{}sneak paid",
             match p {
@@ -4397,6 +4398,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Madness(c) => format!("madness {c}"),
                 crate::ast::Mechanic::Foretell(c) => format!("foretell {c}"),
                 crate::ast::Mechanic::Plot(c) => format!("plot {c}"),
+                crate::ast::Mechanic::Gift(k) => format!("gift {}", k.words()),
                 crate::ast::Mechanic::Sneak(c) => format!("sneak {c}"),
                 crate::ast::Mechanic::Suspend(n, c) => format!("suspend {n} {c}"),
                 crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),

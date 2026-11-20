@@ -1,0 +1,7 @@
+card "Nocturnal Hunger" {
+  oracle_id ed7f64d1-69ba-40f5-9863-3edba10e23c7
+  cost {2}{B}
+  type Instant
+  gift food
+  spell: destroy target creature; if not kicked, you lose 2 life
+}

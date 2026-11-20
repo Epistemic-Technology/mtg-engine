@@ -1195,6 +1195,10 @@ pub enum Flow {
     ChoosingKicker {
         spell: ObjId,
     },
+    /// Choosing whether to promise a gift (CR 702.174a), after the kicker.
+    ChoosingGift {
+        spell: ObjId,
+    },
     /// Choosing which of a spell's two additional costs to pay
     /// ("sacrifice a creature or pay {3}", CR 601.2b), after the mode.
     ChoosingAdditional {
@@ -2690,6 +2694,7 @@ impl GameState {
                 self.artifacts_entered_this_turn & (1 << you.index().min(7)) != 0
             }
             C::Kicked => self.objects.get(source).is_some_and(|o| o.cast.kicked()),
+            C::NotKicked => self.objects.get(source).is_some_and(|o| !o.cast.kicked()),
             C::ManaSpent {
                 kind,
                 at_least,

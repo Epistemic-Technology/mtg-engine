@@ -1,0 +1,110 @@
+# Gift (CR 702.174): "As an additional cost to cast this spell, you may
+# choose an opponent." A promised gift is given before an instant's or
+# sorcery's other effects, or by a permanent's "When this permanent
+# enters, if its gift cost was paid" trigger. `gift` on a cast promises
+# it; unscripted, it isn't promised.
+
+scenario "gift: a promised tapped Fish, and the target only the gift gives" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant"
+  library A: 3 "Island"
+  hand A: "Mind Spiral"
+  turn 1 A: cast "Mind Spiral" gift targeting player A, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert battlefield B contains "Fish"
+  assert tapped "Fish"
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+}
+
+scenario "gift: not promised, no Fish and no second target" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant"
+  library A: 3 "Island"
+  hand A: "Mind Spiral"
+  turn 1 A: cast "Mind Spiral" targeting player A
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert battlefield B lacks "Fish"
+  assert untapped "Hill Giant"
+}
+
+scenario "gift: the gift wasn't promised, you lose 2 life" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Nocturnal Hunger"
+  turn 1 A: cast "Nocturnal Hunger" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 18
+  assert battlefield B lacks "Food"
+}
+
+scenario "gift: a promised Food, and no life lost" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Nocturnal Hunger"
+  turn 1 A: cast "Nocturnal Hunger" gift targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 20
+  assert battlefield B contains "Food"
+}
+
+scenario "gift: a Treasure, and the spell also hits the controller" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Blooming Blast"
+  turn 1 A: cast "Blooming Blast" gift targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 17
+  assert battlefield B contains "Treasure"
+}
+
+scenario "gift: a permanent's gift as it enters, and its own promised trigger" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Ornithopter"
+  library B: 3 "Island"
+  hand A: "Scrapshooter"
+  turn 1 A: cast "Scrapshooter" gift
+  turn 1 A: trigger "Scrapshooter" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert hand B count 1
+}
+
+scenario "gift: a permanent cast without the gift" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Ornithopter"
+  library B: 3 "Island"
+  hand A: "Scrapshooter"
+  turn 1 A: cast "Scrapshooter"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Ornithopter"
+  assert hand B count 0
+}
+
+scenario "gift: Kitnap without the gift stuns the stolen creature" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Kitnap"
+  turn 1 A: cast "Kitnap" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 3
+}
+
+scenario "gift: Kitnap with the gift, no stun counters" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  library B: 3 "Island"
+  hand A: "Kitnap"
+  turn 1 A: cast "Kitnap" gift targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" stun 0
+  assert hand B count 1
+}

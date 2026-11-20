@@ -100,6 +100,9 @@ pub enum DecisionKind {
     /// Whether to cast `spell` using teamwork: `Accept` taps creatures
     /// with enough total power (the engine picks them), `Decline` doesn't.
     Teamwork { spell: ObjId },
+    /// Whether to promise an opponent a gift as `spell` is cast (CR
+    /// 702.174a): `Accept` or `Decline`.
+    Gift { spell: ObjId },
     /// Which card from the hand to put onto the battlefield (offered as
     /// `Choice::Discard` options), or `Done` for none.
     PutFromHand,

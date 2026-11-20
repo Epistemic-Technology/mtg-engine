@@ -95,7 +95,9 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::Splice { .. } => 36,
         // Teamwork shares conspire's slot (Accept taps creatures the
         // engine picks).
-        DecisionKind::Conspire { .. } | DecisionKind::Teamwork { .. } => 37,
+        DecisionKind::Conspire { .. }
+        | DecisionKind::Teamwork { .. }
+        | DecisionKind::Gift { .. } => 37,
         DecisionKind::CopyTarget { .. } => 38,
         DecisionKind::FormBand { .. } => 39,
     }

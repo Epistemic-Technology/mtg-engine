@@ -867,6 +867,17 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::ChoosingGift { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    return StepResult::Decision(Decision {
+                        player: obj.controller,
+                        kind: DecisionKind::Gift { spell },
+                        options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
                 Flow::ChoosingTeamwork { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -1842,6 +1853,14 @@ impl GameState {
             (Flow::ChoosingCasualty { spell }, Choice::Decline) => {
                 self.flow = self.after_casualty(spell);
             }
+            // CR 702.174k: the gift was promised (kept as the kicker flag).
+            (Flow::ChoosingGift { spell }, Choice::Accept) => {
+                self.objects[spell].cast.set_kicked(true);
+                self.flow = self.after_gift(spell);
+            }
+            (Flow::ChoosingGift { spell }, Choice::Decline) => {
+                self.flow = self.after_gift(spell);
+            }
             // Teamwork: the creatures are tapped as the costs are paid.
             (Flow::ChoosingTeamwork { spell }, Choice::Accept) => {
                 self.objects[spell].cast.set_teamwork(true);
@@ -2190,6 +2209,24 @@ impl GameState {
     }
 
     fn after_kicker(&self, spell: ObjId) -> Flow {
+        // CR 702.174a: a gift, with an opponent to promise it to and the
+        // targets only a promised gift gives (CR 702.174m).
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        if def.gift.is_some() && !o.cast.kicked() {
+            let p = o.controller;
+            let targets = def.kicker_targets.is_none_or(|_| {
+                def.spell_ability()
+                    .is_none_or(|(t, _)| self.targets_available(p, t, Some(spell)))
+            });
+            if targets && self.players_in_game().any(|q| q != p) {
+                return Flow::ChoosingGift { spell };
+            }
+        }
+        self.after_gift(spell)
+    }
+
+    fn after_gift(&self, spell: ObjId) -> Flow {
         if self.buyback_payable(spell) {
             Flow::ChoosingBuyback { spell }
         } else {

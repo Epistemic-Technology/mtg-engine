@@ -328,6 +328,10 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Plot(cost)) => {
                     b = b.plot(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Gift(kind)) => {
+                    let effects = self.gift_effects(*kind)?;
+                    b = b.gift(effects);
+                }
                 Ability::Spree(modes) => {
                     b = b.spree(modes.iter().map(|(c, _)| c.clone()).collect());
                 }
@@ -663,6 +667,18 @@ impl Compiler<'_> {
             );
         }
         for a in &card.abilities {
+            // CR 702.174b: an instant's or sorcery's gift happens as it
+            // resolves; a permanent's is a triggered ability.
+            if matches!(unlabeled(a), Ability::Mechanic(Mechanic::Gift(_)))
+                && card.types.iter().any(|t| {
+                    matches!(
+                        t,
+                        mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery
+                    )
+                })
+            {
+                continue;
+            }
             if matches!(
                 unlabeled(a),
                 Ability::Keyword(_)
@@ -941,6 +957,33 @@ impl Compiler<'_> {
         Ok(out)
     }
 
+    /// What a gift gives the chosen opponent (CR 702.174d-h); the game
+    /// has one opponent, so it is each opponent.
+    fn gift_effects(
+        &mut self,
+        kind: crate::ast::GiftKind,
+    ) -> Result<Vec<CoreEffect>, CompileError> {
+        use crate::ast::{Effect as E, GiftKind, Recipient as R};
+        let token = |name: &str, tapped: bool| E::CreateToken {
+            token: name.to_string(),
+            count: Num::N(1),
+            tapped,
+            who: Some(R::EachOpponent),
+            it_has: false,
+            attached: None,
+        };
+        let e = match kind {
+            GiftKind::Card => E::DrawCards {
+                count: Num::N(1),
+                who: Some(R::EachOpponent),
+            },
+            GiftKind::Food => token("Food", false),
+            GiftKind::TappedFish => token("1/1 blue Fish creature", true),
+            GiftKind::Treasure => token("Treasure", false),
+        };
+        self.sentences(&[Sentence::new(vec![e])])
+    }
+
     /// A spree spell's modes (CR 702.172a): every nonempty set of the
     /// printed modes, the set with bits `b` at index `b - 1`, each made of
     /// its modes' targets and effects in printed order (`split`, `split2`
@@ -1088,6 +1131,7 @@ impl Compiler<'_> {
             StaticCond::Bargained => StaticCondition::Bargained,
             StaticCond::Teamwork => StaticCondition::Teamwork,
             StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
+            StaticCond::NotKicked => StaticCondition::NotKicked,
             StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
             StaticCond::Saddled => StaticCondition::Saddled,
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
@@ -3519,6 +3563,15 @@ impl Compiler<'_> {
                 // CR 702.101a: "Whenever you cast a spell, you may pay
                 // {W/B}. If you do, each opponent loses 1 life and you gain
                 // life equal to the total life lost this way."
+                // CR 702.174b: "When this permanent enters, if its gift
+                // cost was paid, [effect]."
+                Mechanic::Gift(kind) => AbilityDef::Triggered(TriggeredAbility {
+                    from_graveyard: false,
+                    trigger: TriggerSpec::Enters(CoreTriggerObj::This),
+                    condition: Some(mtg_core::card::Condition::Kicked),
+                    targets: Vec::new(),
+                    effects: self.gift_effects(*kind)?,
+                }),
                 Mechanic::Extort => {
                     let Some(i) = self.extort else {
                         return self.err("extort's count is missing");
@@ -4056,6 +4109,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Madness(_)
         | Mechanic::Foretell(_)
         | Mechanic::Plot(_)
+        | Mechanic::Gift(_)
         | Mechanic::Sneak(_)
         | Mechanic::Suspend(..)
         | Mechanic::Entwine(_)

@@ -1,0 +1,9 @@
+card "Kitnap" {
+  oracle_id a1bd1e83-40ac-449f-838c-ef308f275a5d
+  cost {2}{U}{U}
+  type Enchantment — Aura
+  gift card
+  enchant creature
+  triggered when this enters: tap enchanted creature; if not kicked, put 3 stun counters on enchanted creature
+  static enchanted: control
+}

@@ -2245,6 +2245,9 @@ pub enum StaticCondition {
     /// paid to cast the source (CR 601.2h; cast without paying its mana
     /// cost, plotted, or not cast at all).
     NoManaSpent,
+    /// "If the gift wasn't promised" (CR 702.174; a promised gift is the
+    /// kicker flag): the source wasn't kicked.
+    NotKicked,
     /// "If this spell's sneak cost was paid", "if its sneak cost was
     /// paid" (CR 702.190): the source was cast for its sneak cost (kept by
     /// the permanent). The number is wording only: the pronoun for a
@@ -5816,6 +5819,16 @@ pub struct CardDef {
     pub plot: Option<Box<ManaCost>>,
     /// Suspend N—cost (CR 702.62).
     pub suspend: Option<Box<(u32, ManaCost)>>,
+    /// Gift (CR 702.174): "As an additional cost to cast this spell, you
+    /// may choose an opponent" (the game's opponent). A promised gift is
+    /// kept as the spell's kicker flag (`CastInfo::kicked`), so the
+    /// card's "if the gift was promised" sentences are its kicker
+    /// conditions. These effects give the gift (to `EachOpponent`): an
+    /// instant or sorcery applies them before its other effects as it
+    /// resolves (CR 702.174j); a permanent has them as its own triggered
+    /// ability ("When this permanent enters, if its gift cost was paid").
+    #[serde(default)]
+    pub gift: Option<Box<Vec<Effect>>>,
     /// Spree (CR 702.172): the additional cost of each of the spell's
     /// modes, in order. The modal ability's modes are then every nonempty
     /// set of them, the set with bits `b` at index `b - 1` (at most three
@@ -7625,6 +7638,7 @@ impl Builder {
             plot: None,
             suspend: None,
             spree: Vec::new(),
+            gift: None,
             entwine: None,
             escape: None,
             modular: 0,
@@ -8010,6 +8024,13 @@ impl Builder {
     #[must_use]
     pub fn modular(mut self, n: u32) -> Self {
         self.0.modular = n;
+        self
+    }
+
+    /// Gift (CR 702.174): the gift's effects.
+    #[must_use]
+    pub fn gift(mut self, effects: Vec<Effect>) -> Self {
+        self.0.gift = Some(Box::new(effects));
         self
     }
 

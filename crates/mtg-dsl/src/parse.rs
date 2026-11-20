@@ -1736,6 +1736,24 @@ impl P {
                     effects,
                 })
             }
+            "gift" => {
+                self.pos += 1;
+                let kind = if self.eat_word("card") {
+                    crate::ast::GiftKind::Card
+                } else if self.eat_word("food") {
+                    crate::ast::GiftKind::Food
+                } else if self.eat_words(&["tapped", "fish"]) {
+                    crate::ast::GiftKind::TappedFish
+                } else if self.eat_word("treasure") {
+                    crate::ast::GiftKind::Treasure
+                } else {
+                    return self.fail(
+                        "expected `card`, `food`, `tapped fish`, or `treasure` after `gift`",
+                    );
+                };
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Gift(kind)))
+            }
             "spree" if self.peek_at(1) == Some(&Tok::LBrace) => {
                 self.pos += 1;
                 let modes = self.spree_block()?;
@@ -2713,6 +2731,9 @@ impl P {
         }
         if self.eat_words(&["no", "mana", "spent"]) {
             return Ok(StaticCond::NoManaSpent);
+        }
+        if self.eat_words(&["not", "kicked"]) {
+            return Ok(StaticCond::NotKicked);
         }
         for (i, w) in ["sneak", "his", "her"].iter().enumerate() {
             let words: &[&str] = if i == 0 {

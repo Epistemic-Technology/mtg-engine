@@ -1,0 +1,7 @@
+card "Valley Rally" {
+  oracle_id 5b919920-b1b6-499b-a7fe-c630778a7831
+  cost {2}{R}
+  type Instant
+  gift food
+  spell: each creature you control gets +2/+0; if kicked, target creature you control gains first strike
+}
