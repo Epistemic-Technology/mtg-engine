@@ -1,0 +1,8 @@
+card "Kithkeeper" {
+  oracle_id 5c5766f9-befd-4426-9527-d50af0699ca1
+  cost {6}{W}
+  type Creature — Elemental
+  pt 3/3
+  label "Vivid" triggered when this enters: create count where colors among permanents "1/1 green and white Kithkin creature"
+  activated tap 3 untapped creature you control: this gets +3/+0 and gains flying
+}

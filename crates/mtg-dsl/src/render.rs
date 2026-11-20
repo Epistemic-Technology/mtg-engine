@@ -6388,6 +6388,7 @@ fn lowercase_first(s: &str) -> String {
             first,
             "Target"
                 | "Reveal"
+                | "Draw"
                 | "This"
                 | "That"
                 | "These"

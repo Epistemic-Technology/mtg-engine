@@ -187,7 +187,8 @@ const TEMPLATED_TAGS: [&str; 117] = [
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
 /// "Landfall — <ability>". Scryfall tags them like keywords.
-const ABILITY_WORDS: [&str; 42] = [
+const ABILITY_WORDS: [&str; 43] = [
+    "Vivid",
     // CR 702.179e: a condition, not a bare label; the DSL compiles it.
     "Max speed",
     "Landfall",
@@ -528,6 +529,10 @@ fn count_expr(s: &str) -> Option<String> {
             return Some("domain".to_string());
         }
         "cards in your hand" | "card in your hand" => return Some("hand".to_string()),
+        // Vivid.
+        "colors among permanents you control" | "color among permanents you control" => {
+            return Some("colors among permanents".to_string());
+        }
         "cards in your graveyard" | "card in your graveyard" => {
             return Some("graveyard".to_string());
         }

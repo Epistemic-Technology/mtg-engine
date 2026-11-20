@@ -1,0 +1,8 @@
+card "Shimmercreep" {
+  oracle_id 52244c23-7680-4bed-8ef8-8d10e289d3f7
+  cost {4}{B}
+  type Creature — Elemental
+  pt 3/5
+  keywords menace
+  label "Vivid" triggered when this enters: each opponent loses count where colors among permanents life and you gain count where colors among permanents life
+}

@@ -1044,7 +1044,8 @@ you control", the same count), `greatest power`
 drawn this turn"), `spells cast this turn`, `other spells cast this turn`
 ("the number of other spells you've cast this turn": not the resolving
 spell itself), `colors among permanents` ("colors among permanents
-you control"), `colors spent` (converge: "the number of colors of mana
+you control"; vivid, `label "Vivid"`; also a characteristic-defining
+power, `static this: cda power colors among permanents`), `colors spent` (converge: "the number of colors of mana
 spent to cast this spell"), `treasure spent` ("for each mana from a
 Treasure spent to cast it"), `opponents graveyards [<filter>]` ("creature cards in your
 opponents' graveyards"), `opponents attacked` ("opponents you're

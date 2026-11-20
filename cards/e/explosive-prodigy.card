@@ -1,0 +1,7 @@
+card "Explosive Prodigy" {
+  oracle_id 22d059fc-4e47-44b5-9e21-4a56f1dff6a7
+  cost {1}{R}
+  type Creature — Elemental Sorcerer
+  pt 1/1
+  label "Vivid" triggered when this enters: deal count where colors among permanents damage to target creature an opponent controls
+}
