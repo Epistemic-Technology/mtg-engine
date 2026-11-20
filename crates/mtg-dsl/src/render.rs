@@ -9591,6 +9591,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Morph(c) => format!("Morph {c}"),
             crate::ast::Mechanic::Evoke(c) => format!("Evoke {c}"),
             crate::ast::Mechanic::Madness(c) => format!("Madness {c}"),
+            crate::ast::Mechanic::Mayhem(c) => format!("Mayhem {c}"),
             crate::ast::Mechanic::Foretell(c) => format!("Foretell {c}"),
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),

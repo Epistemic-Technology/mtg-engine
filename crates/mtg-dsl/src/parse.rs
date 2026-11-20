@@ -1466,7 +1466,7 @@ impl P {
                 }))
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
-            | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
+            | "disguise" | "evoke" | "madness" | "mayhem" | "foretell" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring" | "bestow"
             | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate" | "encore"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
@@ -1482,6 +1482,7 @@ impl P {
                     "morph" => Mechanic::Morph(c),
                     "evoke" => Mechanic::Evoke(c),
                     "madness" => Mechanic::Madness(c),
+                    "mayhem" => Mechanic::Mayhem(c),
                     "foretell" => Mechanic::Foretell(c),
                     "entwine" => Mechanic::Entwine(c),
                     "megamorph" => Mechanic::Megamorph(c),

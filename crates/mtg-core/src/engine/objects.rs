@@ -1376,7 +1376,16 @@ impl GameState {
             }
             return;
         }
-        self.move_object(card, Zone::Graveyard, true);
+        let mayhem = self.pool.get(self.objects[card].def).mayhem.is_some();
+        let new = self.move_object(card, Zone::Graveyard, true);
+        if mayhem
+            && self
+                .objects
+                .get(new)
+                .is_some_and(|o| o.zone == Zone::Graveyard)
+        {
+            self.mayhem_discarded.push(new);
+        }
     }
 
     /// Puts one of the pool's built-in triggered abilities (madness,

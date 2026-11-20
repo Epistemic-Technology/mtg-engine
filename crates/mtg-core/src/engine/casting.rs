@@ -315,7 +315,9 @@ impl GameState {
                     }
                 }
                 if def.flashback.is_none() {
-                    if def.escape.is_some() && self.escape_castable(p, *id, sorcery_timing) {
+                    if (def.escape.is_some() && self.escape_castable(p, *id, sorcery_timing))
+                        || (def.mayhem.is_some() && self.mayhem_castable(p, *id, sorcery_timing))
+                    {
                         options.push(Choice::Cast(*id));
                     }
                     continue;
@@ -2466,6 +2468,9 @@ impl GameState {
             (_, false) if o.alt == AltCast::Escape && def.escape.is_some() => {
                 def.escape.as_ref().expect("checked").0.requirements(x)
             }
+            (_, false) if o.alt == AltCast::Mayhem && def.mayhem.is_some() => {
+                def.mayhem.as_ref().expect("checked").requirements(x)
+            }
             (_, false) if o.alt == AltCast::Bestow && def.bestow.is_some() => {
                 def.bestow.as_ref().expect("checked").requirements(x)
             }
@@ -2565,6 +2570,39 @@ impl GameState {
             adjust_generic(&mut req, tc.0);
         }
         req
+    }
+
+    /// Mayhem: a card its owner discarded this turn, in their graveyard,
+    /// castable for its mayhem cost; timing rules still apply. A land
+    /// isn't cast.
+    #[cold]
+    #[inline(never)]
+    fn mayhem_castable(&self, p: PlayerId, card: ObjId, sorcery_timing: bool) -> bool {
+        let def = self.pool.get(self.objects[card].def);
+        let Some(cost) = def.mayhem.as_deref() else {
+            return false;
+        };
+        if def.is_land() || !self.mayhem_discarded.contains(&card) {
+            return false;
+        }
+        let instant = def.is_instant() || self.has_flash(p, def, card);
+        if !(instant || sorcery_timing) {
+            return false;
+        }
+        let mut req = cost.requirements(0);
+        adjust_generic(
+            &mut req,
+            self.cost_delta(p, def, card, &self.cost_changers()),
+        );
+        if !self.spell_payable(p, card, &req) {
+            return false;
+        }
+        match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(card))),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
+        }
     }
 
     /// CR 702.138a: a card with escape in the graveyard, castable for its

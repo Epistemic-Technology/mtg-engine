@@ -5825,6 +5825,10 @@ pub struct CardDef {
     pub entwine: Option<Box<ManaCost>>,
     /// Escape—cost, exile N other cards from your graveyard (CR 702.138).
     pub escape: Option<Box<(ManaCost, u32)>>,
+    /// Mayhem—cost: cast from the graveyard for this cost if its owner
+    /// discarded it this turn.
+    #[serde(default)]
+    pub mayhem: Option<Box<ManaCost>>,
     /// Modular N (CR 702.43): enters with N +1/+1 counters (its dies
     /// trigger is an ordinary ability).
     pub modular: u32,
@@ -6318,6 +6322,7 @@ impl CardDef {
     pub fn graveyard_active(&self) -> bool {
         self.flashback.is_some()
             || self.escape.is_some()
+            || self.mayhem.is_some()
             || self
                 .abilities
                 .iter()
@@ -7619,6 +7624,7 @@ impl Builder {
             suspend: None,
             entwine: None,
             escape: None,
+            mayhem: None,
             modular: 0,
             flashback: None,
             retrace: false,
@@ -7995,6 +8001,14 @@ impl Builder {
     #[must_use]
     pub fn entwine(mut self, cost: ManaCost) -> Self {
         self.0.entwine = Some(Box::new(cost));
+        self
+    }
+
+    /// Mayhem: cast from the graveyard for `cost` the turn it was
+    /// discarded.
+    #[must_use]
+    pub fn mayhem(mut self, cost: ManaCost) -> Self {
+        self.0.mayhem = Some(Box::new(cost));
         self
     }
 

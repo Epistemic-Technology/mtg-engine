@@ -276,6 +276,9 @@ pub enum AltCast {
     /// Cast from the graveyard with escape (CR 702.138); kept by the
     /// permanent ("escapes with").
     Escape,
+    /// Cast from the graveyard for its mayhem cost, the turn it was
+    /// discarded.
+    Mayhem,
     /// In exile: discarded with madness, waiting for its trigger.
     MadnessExiled,
     /// In exile: foretold, castable on a later turn.
@@ -1541,6 +1544,9 @@ pub struct GameState {
     pub left_this_turn: u8,
     /// Players who discarded a card this turn, one bit each.
     pub discarded_this_turn: u8,
+    /// Cards with mayhem discarded this turn, as the graveyard objects
+    /// they became (castable for their mayhem cost until the turn ends).
+    pub mayhem_discarded: Vec<ObjId>,
     /// The spells cast this turn, by caster ("if you've cast a noncreature
     /// spell this turn"); inline, so copying the state rarely allocates.
     pub cast_this_turn: SmallVec<[(PlayerId, crate::card::CardRef); 4]>,

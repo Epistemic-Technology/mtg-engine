@@ -503,6 +503,7 @@ impl GameState {
             lost_life_this_turn: 0,
             left_this_turn: 0,
             discarded_this_turn: 0,
+            mayhem_discarded: Vec::new(),
             cast_this_turn: smallvec::SmallVec::new(),
             turn_log: crate::state::TurnLog::default(),
             desig: crate::state::Designations::default(),
@@ -1684,10 +1685,16 @@ impl GameState {
                 // CR 702.34a: a card cast from the graveyard is cast with
                 // flashback.
                 let o = &self.objects[id];
-                let escape = self.pool.get(o.def).flashback.is_none();
+                let gdef = self.pool.get(o.def);
+                let escape = gdef.flashback.is_none();
+                // Mayhem: a card discarded this turn, cast for its mayhem
+                // cost (a card with escape too uses escape only when it
+                // wasn't discarded this turn).
+                let mayhem = escape && gdef.mayhem.is_some() && self.mayhem_discarded.contains(&id);
                 let flashback = o.zone == Zone::Graveyard && !escape;
                 let alt = match (o.zone, o.alt) {
                     (Zone::Hand, _) => crate::state::AltCast::Hand,
+                    (Zone::Graveyard, _) if mayhem => crate::state::AltCast::Mayhem,
                     (Zone::Graveyard, _) if escape => crate::state::AltCast::Escape,
                     (Zone::Exile, crate::state::AltCast::Foretold) => {
                         crate::state::AltCast::Foretell
@@ -2707,6 +2714,7 @@ impl GameState {
             self.lost_life_this_turn = 0;
             self.left_this_turn = 0;
             self.discarded_this_turn = 0;
+            self.mayhem_discarded.clear();
             self.cast_this_turn.clear();
             self.turn_log = crate::state::TurnLog::default();
             if let Some(e) = &mut self.exile_casts {

@@ -4395,6 +4395,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Morph(c) => format!("morph {c}"),
                 crate::ast::Mechanic::Evoke(c) => format!("evoke {c}"),
                 crate::ast::Mechanic::Madness(c) => format!("madness {c}"),
+                crate::ast::Mechanic::Mayhem(c) => format!("mayhem {c}"),
                 crate::ast::Mechanic::Foretell(c) => format!("foretell {c}"),
                 crate::ast::Mechanic::Suspend(n, c) => format!("suspend {n} {c}"),
                 crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),

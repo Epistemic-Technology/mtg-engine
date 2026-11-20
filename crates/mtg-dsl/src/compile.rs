@@ -331,6 +331,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Madness(cost)) => {
                     b = b.madness(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Mayhem(cost)) => {
+                    b = b.mayhem(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Foretell(cost)) => {
                     b = b.foretell(cost.clone());
                 }
@@ -687,6 +690,7 @@ impl Compiler<'_> {
                             | Mechanic::MorphCost(_)
                             | Mechanic::Evoke(_)
                             | Mechanic::Madness(_)
+                            | Mechanic::Mayhem(_)
                             | Mechanic::Foretell(_)
                             | Mechanic::Suspend(..)
                             | Mechanic::Entwine(_)
@@ -3221,6 +3225,7 @@ impl Compiler<'_> {
                 | Mechanic::MorphCost(_)
                 | Mechanic::Evoke(_)
                 | Mechanic::Madness(_)
+                | Mechanic::Mayhem(_)
                 | Mechanic::Foretell(_)
                 | Mechanic::Suspend(..)
                 | Mechanic::Entwine(_)
@@ -4071,6 +4076,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Bloodthirst(_)
         | Mechanic::Evoke(_)
         | Mechanic::Madness(_)
+        | Mechanic::Mayhem(_)
         | Mechanic::Foretell(_)
         | Mechanic::Suspend(..)
         | Mechanic::Entwine(_)

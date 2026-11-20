@@ -1183,6 +1183,9 @@ pub enum Mechanic {
     Evoke(ManaCost),
     /// CR 702.35: cast for this cost as it's discarded.
     Madness(ManaCost),
+    /// `mayhem {B}`: "Mayhem {B}": cast from the graveyard for this cost
+    /// the turn it was discarded.
+    Mayhem(ManaCost),
     /// CR 702.143: exiled for {2} on its owner's turn, cast later for this.
     Foretell(ManaCost),
     /// CR 702.62: `suspend 4 {1}{U}`.

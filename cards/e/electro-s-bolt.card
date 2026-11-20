@@ -1,0 +1,7 @@
+card "Electro's Bolt" {
+  oracle_id e9222f89-e495-4502-bb0c-f5e802686b01
+  cost {2}{R}
+  type Sorcery
+  spell: deal 4 damage to target creature
+  mayhem {1}{R}
+}
