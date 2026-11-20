@@ -1,0 +1,6 @@
+card "Thousand-Year Storm" {
+  oracle_id dd4cf149-2fae-40e5-b50b-639f6bcec65e
+  cost {4}{U}{R}
+  type Enchantment
+  triggered whenever you cast an instant or sorcery spell: copy it times count each other instant and sorcery spells cast before it this turn new targets
+}

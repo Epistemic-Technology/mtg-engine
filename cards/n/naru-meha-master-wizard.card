@@ -1,0 +1,9 @@
+card "Naru Meha, Master Wizard" {
+  oracle_id 562c9c68-e5a7-45ab-b098-5b649d165ff5
+  cost {2}{U}{U}
+  type Legendary Creature — Human Wizard
+  pt 3/3
+  keywords flash
+  triggered when this enters: copy target instant or sorcery spell you control new targets
+  static other Wizard you control: +1/+1
+}

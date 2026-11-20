@@ -1,0 +1,8 @@
+card "Sage of the Skies" {
+  oracle_id cfc7cef7-0a95-49f8-970f-abff2cacd82d
+  cost {2}{W}
+  type Creature — Human Monk
+  pt 2/3
+  triggered when you cast this if cast another spell this turn: copy this
+  keywords flying, lifelink
+}

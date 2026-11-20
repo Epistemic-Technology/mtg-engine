@@ -1,0 +1,7 @@
+card "Followed Footsteps" {
+  oracle_id 732b1314-68bb-4d3d-9f3f-7e66e763caf5
+  cost {3}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered at beginning of your upkeep: create token copy of enchanted creature
+}

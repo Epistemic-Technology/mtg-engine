@@ -1,0 +1,7 @@
+card "Lumaret's Favor" {
+  oracle_id d514704b-4055-48ed-9da3-e4397fca7576
+  cost {1}{G}
+  type Instant
+  label "Infusion" triggered when you cast this: copy it new targets if gained life this turn
+  spell: target creature gets +2/+4 until end of turn
+}

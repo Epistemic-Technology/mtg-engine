@@ -1,0 +1,6 @@
+card "Teach by Example" {
+  oracle_id d85ba214-fa05-44ca-a7f9-ab2c5dc07962
+  cost {U/R}{U/R}
+  type Instant
+  spell: delayed this: when next you cast instant or sorcery spell this turn, copy that spell new targets
+}

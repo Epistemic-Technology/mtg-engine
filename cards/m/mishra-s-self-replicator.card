@@ -1,0 +1,7 @@
+card "Mishra's Self-Replicator" {
+  oracle_id 5546d127-a961-4e33-bbc9-06ee14b0cb04
+  cost {5}
+  type Artifact Creature — Assembly-Worker
+  pt 2/2
+  triggered whenever you cast historic spell: you may pay {1}; if you do, create token copy of this creature
+}

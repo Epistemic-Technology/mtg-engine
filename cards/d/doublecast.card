@@ -1,0 +1,6 @@
+card "Doublecast" {
+  oracle_id 946675f5-8998-4f1b-934b-85ffe6e2f002
+  cost {R}{R}
+  type Sorcery
+  spell: delayed this: when next you cast instant or sorcery spell this turn, copy that spell new targets
+}

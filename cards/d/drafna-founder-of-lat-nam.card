@@ -1,0 +1,8 @@
+card "Drafna, Founder of Lat-Nam" {
+  oracle_id ed2e8718-4b20-4310-96ce-05a29a24ef32
+  cost {1}{U}
+  type Legendary Creature — Human Artificer Advisor
+  pt 2/1
+  activated {1}{U}: return target artifact you control to hand
+  activated {3}, {T}: copy target artifact spell you control
+}

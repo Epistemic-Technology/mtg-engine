@@ -308,6 +308,13 @@ pub enum CountExpr {
     SpellsCastThisTurn {
         other: bool,
     },
+    /// `other instant and sorcery spells cast this turn` ("other instant
+    /// and sorcery spell you've cast this turn"); `other instant and
+    /// sorcery spells cast before it this turn` ("... you've cast before
+    /// it this turn").
+    OtherInstantSorceryCast {
+        before: bool,
+    },
     /// `toughness`: the source's, "its toughness".
     SourceToughness,
     /// `mana value of target 1` ("its mana value"), `mana value of that
@@ -431,6 +438,10 @@ pub struct Except {
     pub subtypes: Vec<String>,
     pub keywords: Vec<Keyword>,
     pub abilities: Vec<Ability>,
+    /// `not legendary`: "it isn't legendary" (CR 707.9b).
+    pub not_legendary: bool,
+    /// `types Artifact`: "it's an artifact in addition to its other types".
+    pub types: Vec<mtg_core::card::CardType>,
 }
 
 /// What takes an activated ability's cost down (`reduced {1} each Town you
@@ -2273,6 +2284,10 @@ pub enum Trigger {
     /// A trigger that would print "Whenever" printed "When" ("When this
     /// creature blocks, return it to its owner's hand"): written `when`.
     When(Box<Trigger>),
+    /// `when you next cast instant or sorcery spell` (in a delayed
+    /// trigger, followed by `this turn`): "When you next cast an instant
+    /// or sorcery spell this turn" (CR 603.7c), once.
+    Next(Box<Trigger>),
     /// `when you cycle this` ("When you cycle this card"), `whenever you
     /// cycle a card`, `whenever you cycle another card`, `whenever you
     /// cycle or discard a card` (CR 702.29).
@@ -2794,6 +2809,17 @@ pub enum Effect {
     },
     CreateTokenCopy {
         of: Recipient,
+        except: bool,
+    },
+    /// `copy target instant or sorcery spell you control [times N] [new
+    /// targets] [with exceptions]` (CR 707.10): "Copy target instant or
+    /// sorcery spell you control. You may choose new targets for the
+    /// copy."; `copy this times x new targets`: "copy it X times. You may
+    /// choose new targets for the copies."
+    CopySpells {
+        what: Recipient,
+        times: Num,
+        new_targets: bool,
         except: bool,
     },
     BecomeCopy {

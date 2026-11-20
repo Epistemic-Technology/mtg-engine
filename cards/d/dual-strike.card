@@ -1,0 +1,7 @@
+card "Dual Strike" {
+  oracle_id a498ca5f-7743-47b7-a57a-471efa1a99e8
+  cost {R}{R}
+  type Instant
+  spell: delayed this: when next you cast instant or sorcery with mana value 4 or less spell this turn, copy that spell new targets
+  foretell {R}
+}

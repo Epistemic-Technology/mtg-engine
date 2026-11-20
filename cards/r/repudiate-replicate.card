@@ -1,0 +1,14 @@
+card "Repudiate // Replicate" {
+  oracle_id a43ecf8b-5dc9-4ac4-ae1f-b663aa8c9d7b
+  layout split
+  face "Repudiate" {
+    cost {G/U}{G/U}
+    type Instant
+    spell: counter target activated or triggered ability
+  }
+  face "Replicate" {
+    cost {1}{G}{U}
+    type Sorcery
+    spell: create token copy of target creature you control
+  }
+}

@@ -1,0 +1,11 @@
+card "Electroduplicate" {
+  oracle_id 112f2b3f-32e7-40b1-b80e-0b99184a840c
+  cost {2}{R}
+  type Sorcery
+  spell: create token copy of target creature you control with exceptions
+  flashback {2}{R}{R}
+  except {
+    keywords haste
+    triggered at the beginning of the end step: sacrifice this
+  }
+}

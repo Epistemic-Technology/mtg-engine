@@ -1,0 +1,7 @@
+card "Photon Blast Barrage" {
+  oracle_id a5424e33-ff4e-4c82-8aa9-9d25ced7830a
+  cost {X}{R}{R}
+  type Sorcery
+  triggered when you cast this: copy it times x new targets
+  spell: deal 1 damage to target creature
+}

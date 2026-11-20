@@ -1,0 +1,7 @@
+card "Spitting Image" {
+  oracle_id a30dee74-86e3-4888-980e-b22437fbbb66
+  cost {4}{G/U}{G/U}
+  type Sorcery
+  spell: create token copy of target creature
+  retrace
+}

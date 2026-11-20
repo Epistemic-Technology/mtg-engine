@@ -186,7 +186,7 @@ to its other face as well.
 | `as turned face up put 4 +1/+1 counters`, `as enters or turned face up put count where other creature you control +1/+1 counters` | "As this creature is turned face up, put four +1/+1 counters on it.", "As this creature enters or is turned face up, put X +1/+1 counters on it, where X is the number of other creatures you control." CR 708.11: the counters are put on while it turns face up (by its cost or by an effect), before "turned face up" triggers look; with `enters or` it also enters with them (CR 614.1c, the count judged as it enters). |
 | `may look face-down`, `may look face-down opponents`, `may look top`, `may look top face-down` | "You may look at face-down creatures you don't control any time." ("... your opponents control ...", the same in a two-player game), "You may look at the top card of your library any time.", "You may look at the top card of your library and at face-down creatures you don't control any time." Information only (CR 401.2, 708.5): the controller's view shows those cards. |
 | `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
-| `except { ... }` | What this card's copy effects add (CR 707.9b): `subtypes Illusion`, `keywords haste`, and ability lines. |
+| `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`) is made as it last existed. |
 
 Effects written after `:` sit on one line; write `{` instead of `:` and put
 one line per paragraph for text that spans paragraphs:
@@ -278,7 +278,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this blocks a creature with flying`, `whenever this becomes blocked by a creature`, `whenever this blocks or becomes blocked by a nonblack creature` | once for each attacker it blocks (CR 509.3b) or each creature blocking it (CR 509.3d); the other creature, which must match the filter, is "that creature"; `a creature with Equipment` prints "an equipped creature", `a creature that was dealt damage this turn` "... that has been dealt damage this turn". `... by one or more blue or black creature` ("by one or more blue and/or black creatures", CR 509.3c, 509.3e) triggers once, on the first matching pair, and "it" is the blocking or blocked creature itself (`whenever equipped creature becomes blocked by one or more colorless creature: it gains deathtouch until end of turn`) |
 | `at end of combat` | as the end of combat step begins (CR 511.2); also a delayed trigger: `delayed that creature: destroy that creature at end of combat` |
 | `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell`, `whenever a player casts a spell` | |
-| `label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: ...` | "Magecraft — Whenever you cast or copy an instant or sorcery spell, ..." (a copy would trigger it too, CR 707.10; nothing copies spells yet) |
+| `label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: ...` | "Magecraft — Whenever you cast or copy an instant or sorcery spell, ..." (a copy triggers it too, CR 707.10) |
 | `label "Heroic" triggered whenever you cast a spell that targets this: ...` | "Heroic — Whenever you cast a spell that targets this creature, ..." (any spell filter: `whenever you cast red spell that targets this`): the spell's targets as it is cast (CR 601.2c), so copies and abilities don't trigger it. The spell is the triggering object, but `it` in the effects is this creature, as Oracle has it ("put a +1/+1 counter on it"). |
 | `label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: ...` | "Repartee — Whenever you cast an instant or sorcery spell that targets a creature, ...": any creature among the spell's targets as it is cast (CR 601.2c). |
 | `label "Valiant" triggered whenever this becomes targeted by you first time each turn: ...` | "Valiant — Whenever this creature becomes the target of a spell or ability you control for the first time each turn, ...": once a turn, the first time its controller's spell or ability targets it. |
@@ -1178,7 +1178,11 @@ costs of permanents you control, a hybrid symbol counting once;
 you control", the same count), `greatest power`
 ("the greatest power among creatures you control"), `greatest mana value`
 ("... among permanents you control"), `drawn this turn` ("cards you've
-drawn this turn"), `spells cast this turn`, `other spells cast this turn`
+drawn this turn"), `spells cast this turn`, `other spells cast this turn`, `other
+instant and sorcery spells cast this turn` ("other instant and sorcery
+spell you've cast this turn"), `other instant and sorcery spells cast
+before it this turn` ("... you've cast before it this turn": before the
+triggering spell)
 ("the number of other spells you've cast this turn": not the resolving
 spell itself), `colors among permanents` ("colors among permanents
 you control"; vivid, `label "Vivid"`; also a characteristic-defining
@@ -1326,7 +1330,26 @@ sentence: "Create a 1/1 colorless Eldrazi Scion creature token. It has
 it could enchant, no token is created, CR 303.4f), `<who> creates 2
 "Treasure"` (`its controller creates`, `each player creates`, `you
 create`: "Its controller creates two Treasure tokens"),
-`create token copy of <what> [with exceptions]`, `emblem "Name"`,
+`create token copy of <what> [with exceptions]`, `copy <what> [times
+<num>] [new targets] [with exceptions]` (CR 707.10: `copy target instant
+or sorcery spell you control new targets` prints "Copy target instant or
+sorcery spell you control. You may choose new targets for the copy.";
+`copy that spell` in a cast trigger, `copy it` for "it" there or in
+`when you cast this`, `copy this` "copy this spell"; `times 2` prints
+"twice", `times x` "X times" (the copied spell's X), `times count each
+<count>` "for each ..."; "copies" after more than one. The copy is the
+ability's controller's, is not cast, keeps the spell's mode, X, and
+targets, and with `new targets` its controller may change them (CR
+707.10c; `choose "Hill Giant"` in scenarios); `with exceptions` applies
+the card's `except` block to the copy, "except the copy isn't
+legendary". A copy of a permanent spell becomes a token as it resolves,
+CR 608.3f; a copy of a spell that has left the stack is made from it as
+it last existed). Abilities on the stack are copied the same way (CR
+707.10, 707.10b: the copy has the same source and isn't activated): `copy
+target triggered ability you control new targets`, `copy target
+activated or triggered ability you control [from a creature source | from
+an artifact source]` (targets "you control" only the ability's
+controller's), `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
 `scry 2`, `surveil 1`, `investigate` (create a Clue token; `investigate
 twice`; `target player investigates`: that player creates it), `<who>
@@ -1577,7 +1600,12 @@ step."). `delayed this: whenever <trigger> this turn, <effects>` triggers on
 every such event until the turn ends (CR 603.7c), as its controller's
 ability: "Whenever a creature blocks this turn, its controller loses 1
 life." (`its controller` is the triggering object's), "Whenever a
-nontoken creature you control dies this turn, create ...".
+nontoken creature you control dies this turn, create ...". `delayed
+this: when next you cast instant or sorcery spell this turn, copy that
+spell new targets` ("When you next cast an instant or sorcery spell this
+turn, copy that spell. ...", CR 603.7c) triggers only the first time,
+then ends; any cast trigger may follow `when next` (`when next you cast
+instant or sorcery with mana value 4 or less spell`).
 
 Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,
 `its controller` / `its owner` (of the last target declared),

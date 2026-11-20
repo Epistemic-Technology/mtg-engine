@@ -1,0 +1,7 @@
+card "Galvanic Iteration" {
+  oracle_id c51ed6e3-813b-49c4-b1de-7f92a77f8f6e
+  cost {U}{R}
+  type Instant
+  flashback {1}{U}{R}
+  spell: delayed this: when next you cast instant or sorcery spell this turn, copy that spell new targets
+}

@@ -1,0 +1,8 @@
+card "Elvish Hydromancer" {
+  oracle_id 9a708f82-a4a1-47f9-8ff3-65608269eebd
+  cost {2}{G}
+  type Creature — Elf Wizard
+  pt 3/2
+  kicker {3}{U}
+  triggered when this enters if kicked: create token copy of target creature you control
+}

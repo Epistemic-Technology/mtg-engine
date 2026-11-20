@@ -781,6 +781,38 @@ impl GameState {
                         .is_some_and(|o| o.zone == Zone::Stack && o.cast.cast_from().is_some());
                 return u32::try_from(n.saturating_sub(usize::from(own))).unwrap_or(u32::MAX);
             }
+            CountExpr::OtherInstantSorceryCast { before } => {
+                let pool = &self.pool;
+                let instant_or_sorcery = |d: crate::card::CardRef| {
+                    let d = pool.get(d);
+                    d.is_instant() || d.is_sorcery()
+                };
+                // The spell itself: the triggering spell, or the source.
+                let spell = ctx.trigger_obj.unwrap_or(ctx.source);
+                let def = self
+                    .objects
+                    .get(spell)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&spell).map(|l| l.object.def));
+                let casts = &self.cast_this_turn;
+                // Its own cast, the latest of that card by you.
+                let own = def.and_then(|d| casts.iter().rposition(|(p, c)| *p == you && *c == d));
+                let upto = if *before {
+                    own.unwrap_or(casts.len())
+                } else {
+                    casts.len()
+                };
+                let n = casts[..upto]
+                    .iter()
+                    .filter(|(p, d)| *p == you && instant_or_sorcery(*d))
+                    .count();
+                let n = if *before {
+                    n
+                } else {
+                    n.saturating_sub(usize::from(own.is_some()))
+                };
+                return u32::try_from(n).unwrap_or(u32::MAX);
+            }
             CountExpr::SourceToughness => {
                 return self
                     .characteristics_or_lki(ctx.source)
@@ -5964,12 +5996,21 @@ impl GameState {
             && o.zone == Zone::Stack
         {
             if def.is_permanent_card() {
+                // CR 608.3f, 707.10f: a copy of a permanent spell becomes a
+                // token as it enters (not "created").
+                if obj.cast.copy() {
+                    self.objects[spell].kind = ObjKind::Token;
+                }
                 self.choose_copy_on_entering(spell);
                 if obj.alt == AltCast::Sneak {
                     self.enter_sneaking(spell, obj.controller);
                 } else {
                     self.put_onto_battlefield(spell, obj.controller);
                 }
+            } else if obj.cast.copy() {
+                // CR 707.10a: a copy ceases to exist off the stack (no
+                // buyback to hand, no adventure in exile).
+                self.leave_stack(spell);
             } else if obj.cast.adventure() {
                 self.finish_adventure(spell);
             } else if obj.cast.bought_back() && !obj.cast.flashback() {
@@ -6054,46 +6095,90 @@ impl GameState {
 
     /// CR 707.10: a copy of the source spell on the stack (as it last
     /// existed there if it has left), controlled by the ability's
-    /// controller, with the spell's choices: mode, X, targets, division,
-    /// how it was cast (overloaded). Its controller may change each target
-    /// to another legal one (CR 707.10c).
+    /// controller, its controller may choose new targets (CR 707.10c).
     #[cold]
     #[inline(never)]
     fn copy_spell(&mut self, ctx: &EffectCtx) {
-        let orig = match self.objects.get(ctx.source) {
-            Some(o) if o.zone == Zone::Stack && o.kind == ObjKind::Card => o.clone(),
-            Some(_) => return,
-            None => match self.lki.get(&ctx.source) {
-                Some(l) if l.object.zone == Zone::Stack && l.object.kind == ObjKind::Card => {
-                    l.object.clone()
-                }
-                _ => return,
-            },
+        self.copy_spell_object(ctx.source, ctx.controller, true, None);
+    }
+
+    /// `Effect::CopySpells`: `times` copies of each recipient spell. "Copy
+    /// it" and "copy that spell" (the source or the triggering spell) copy
+    /// it as it last existed on the stack if it has left (CR 707.10); a
+    /// target spell must still be a legal target (CR 608.2b).
+    #[cold]
+    #[inline(never)]
+    fn copy_spells(
+        &mut self,
+        ctx: &mut EffectCtx,
+        what: Recipient,
+        times: crate::card::Num,
+        new_targets: bool,
+        except: bool,
+    ) {
+        let spells: SmallVec<[ObjId; 2]> = match what {
+            Recipient::Source => smallvec::smallvec![ctx.source],
+            Recipient::TriggeringObject => ctx.trigger_obj.into_iter().collect(),
+            other => self
+                .recipients(ctx, other)
+                .into_iter()
+                .filter_map(|t| match t {
+                    Target::Object(id) => Some(id),
+                    Target::Player(_) => None,
+                })
+                .collect(),
         };
-        let copy = self.new_object(orig.def, ctx.controller, Zone::Stack);
-        self.stack.push(copy);
-        {
-            let o = &mut self.objects[copy];
-            o.card = orig.card;
-            o.except = orig.except;
-            o.controller = ctx.controller;
-            o.cast = orig.cast.copied();
-            o.alt = if orig.alt == AltCast::Overload {
-                AltCast::Overload
+        let x = except.then(|| self.resolving_def(ctx));
+        for spell in spells {
+            // "Copy it X times": the copied spell's X.
+            let n = if times == crate::card::Num::X {
+                self.x_chosen(spell).unwrap_or(ctx.x)
             } else {
-                AltCast::None
+                self.eval_num(times, ctx)
             };
-            o.targets.clone_from(&orig.targets);
+            for _ in 0..n {
+                if self
+                    .copy_spell_object(spell, ctx.controller, new_targets, x)
+                    .is_none()
+                {
+                    ctx.did = false;
+                    break;
+                }
+            }
         }
-        if let Some(x) = self.x_chosen(ctx.source) {
+    }
+
+    /// CR 707.10, 707.10b: a copy of the ability object `orig` on the
+    /// stack, with its source, mode, X, and targets, controlled by
+    /// `controller` (who may choose new targets with `new_targets`). A
+    /// copy of an activated ability isn't activated.
+    #[cold]
+    #[inline(never)]
+    fn copy_ability_object(&mut self, of: ObjId, controller: PlayerId, new_targets: bool) -> ObjId {
+        let orig = self.objects[of].clone();
+        let timestamp = self.tick();
+        let copy = self.objects.insert(crate::state::GameObject {
+            controller,
+            owner: controller,
+            timestamp,
+            ..orig
+        });
+        self.stack.push(copy);
+        if let Some(x) = self.x_chosen(of) {
             self.x_values.push((copy, x));
         }
-        if let Some(d) = self.divisions.iter().find(|(s, _)| *s == ctx.source) {
-            let d = d.1.clone();
-            self.divisions.push((copy, d));
-        }
         self.cbump();
-        // CR 707.10c: new targets, each still a legal one for its spec.
+        if new_targets {
+            let source = orig.ability.map_or(copy, |sa| sa.source);
+            self.choose_copy_targets(copy, controller, source);
+        }
+        self.emit_targeted(copy);
+        copy
+    }
+
+    /// CR 707.10c: the copy's controller may change each of its targets to
+    /// another one legal for its spec (judged from `source`), or keep it.
+    fn choose_copy_targets(&mut self, copy: ObjId, controller: PlayerId, source: ObjId) {
         let specs: Vec<TargetSpec> =
             crate::state::targets_in(&self.pool, &self.objects[copy]).to_vec();
         for i in 0..self.objects[copy].targets.len() {
@@ -6103,7 +6188,7 @@ impl GameState {
             let current = self.objects[copy].targets[i];
             let mut options = vec![Choice::Target(current)];
             options.extend(
-                self.legal_targets(ctx.controller, spec, Some(copy))
+                self.legal_targets(controller, spec, Some(source))
                     .into_iter()
                     .filter(|t| *t != current && !self.objects[copy].targets.contains(t))
                     .map(Choice::Target),
@@ -6112,7 +6197,7 @@ impl GameState {
                 continue;
             }
             let k = self.choose_mid(
-                ctx.controller,
+                controller,
                 DecisionKind::CopyTarget {
                     spell: copy,
                     index: i,
@@ -6123,7 +6208,73 @@ impl GameState {
                 self.objects[copy].targets[i] = *t;
             }
         }
+    }
+
+    /// CR 707.10: a copy of the spell `of` on the stack (as it last
+    /// existed there if it has left), controlled by `controller`, with the
+    /// spell's choices: mode, X, targets, division, how it was cast
+    /// (overloaded). With `new_targets`, its controller may change each
+    /// target to another legal one (CR 707.10c). `except` is a definition
+    /// whose copy exceptions apply to the copy (CR 707.9b).
+    #[cold]
+    #[inline(never)]
+    pub(super) fn copy_spell_object(
+        &mut self,
+        of: ObjId,
+        controller: PlayerId,
+        new_targets: bool,
+        except: Option<crate::card::CardRef>,
+    ) -> Option<ObjId> {
+        let orig = match self.objects.get(of) {
+            // CR 707.10: an activated or triggered ability on the stack is
+            // copied the same way ("Copy target triggered ability you
+            // control"); the copy has the same source (CR 707.10b).
+            Some(o) if o.zone == Zone::Stack && o.kind == ObjKind::Ability => {
+                return Some(self.copy_ability_object(of, controller, new_targets));
+            }
+            Some(o) if o.zone == Zone::Stack && o.kind == ObjKind::Card => o.clone(),
+            Some(_) => return None,
+            None => match self.lki.get(&of) {
+                Some(l) if l.object.zone == Zone::Stack && l.object.kind == ObjKind::Card => {
+                    l.object.clone()
+                }
+                _ => return None,
+            },
+        };
+        let copy = self.new_object(orig.def, controller, Zone::Stack);
+        self.stack.push(copy);
+        {
+            let o = &mut self.objects[copy];
+            o.card = orig.card;
+            o.except = except.or(orig.except);
+            o.controller = controller;
+            o.cast = orig.cast.copied();
+            o.alt = if orig.alt == AltCast::Overload {
+                AltCast::Overload
+            } else {
+                AltCast::None
+            };
+            o.targets.clone_from(&orig.targets);
+        }
+        if let Some(x) = self.x_chosen(of) {
+            self.x_values.push((copy, x));
+        }
+        if let Some(d) = self.divisions.iter().find(|(s, _)| *s == of) {
+            let d = d.1.clone();
+            self.divisions.push((copy, d));
+        }
+        self.cbump();
+        if new_targets {
+            self.choose_copy_targets(copy, controller, copy);
+        }
+        let def = self.objects[copy].def;
+        self.emit(Event::SpellCopied {
+            player: controller,
+            spell: copy,
+            def,
+        });
         self.emit_targeted(copy);
+        Some(copy)
     }
 
     /// The parts of `spell`'s splice costs other than mana (CR 702.47a).
@@ -9381,6 +9532,12 @@ impl GameState {
                 }
             }
             Effect::CopySpell => self.copy_spell(ctx),
+            Effect::CopySpells {
+                what,
+                times,
+                new_targets,
+                except,
+            } => self.copy_spells(ctx, *what, *times, *new_targets, *except),
             Effect::FaceDownSpellsLess(n) => {
                 let i = ctx.controller.index().min(3);
                 let less = &mut self.turn_log.face_down_less[i];
@@ -10316,7 +10473,33 @@ impl GameState {
                         .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.card))
                         .expect("a resolving spell or its last known information exists")
                 });
-                for t in self.recipients(ctx, *of) {
+                // "When this creature dies, ... create a token that's a copy
+                // of it": the copiable values it last had on the
+                // battlefield (CR 111.12, 707.2).
+                let left = match of {
+                    Recipient::Source => Some(ctx.source),
+                    Recipient::TriggeringObject => ctx.trigger_obj,
+                    _ => None,
+                }
+                .filter(|id| {
+                    self.objects
+                        .get(*id)
+                        .is_none_or(|o| o.zone != Zone::Battlefield)
+                });
+                if let Some(left) = left {
+                    if let Some(l) = self
+                        .lki
+                        .get(&left)
+                        .filter(|l| l.object.zone == Zone::Battlefield)
+                    {
+                        let (def, was) = (l.object.def, l.object.except);
+                        let new = self.create_token_copy_of(def, x.or(was), ctx.controller);
+                        ctx.created = Some(new);
+                    }
+                    return;
+                }
+                let recipients = self.recipients(ctx, *of);
+                for t in recipients {
                     if let Some(id) = on_battlefield(self, t) {
                         let new = self.create_token_copy(id, ctx.controller, x);
                         ctx.created = Some(new);

@@ -1,0 +1,8 @@
+card "Giant Adephage" {
+  oracle_id 8e1d261d-b8d3-4fb1-922d-47789854b5b3
+  cost {5}{G}{G}
+  type Creature — Insect
+  pt 7/7
+  keywords trample
+  triggered whenever this deals combat damage to a player: create token copy of this creature
+}

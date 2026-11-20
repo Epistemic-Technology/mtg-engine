@@ -1,0 +1,7 @@
+card "Kirol, Attentive First-Year" {
+  oracle_id 3a272fa9-5f28-43a4-95de-10cb511f1b43
+  cost {1}{R/W}{R/W}
+  type Legendary Creature — Vampire Cleric
+  pt 3/3
+  activated tap 2 untapped creature you control, once: copy target triggered ability you control new targets
+}

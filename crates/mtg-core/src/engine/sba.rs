@@ -365,7 +365,14 @@ impl GameState {
             let mut by_name: HashMap<&str, Vec<ObjId>> = HashMap::new();
             for id in self.permanents_of(p) {
                 let def = self.pool.get(self.objects[id].def);
-                if def.is_legendary() {
+                // "Except it isn't legendary" (CR 707.9b): a copy
+                // exception can take the supertype away.
+                if def.is_legendary()
+                    && (self.objects[id].except.is_none()
+                        || self.characteristics(id).is_some_and(|c| {
+                            c.supertypes.contains(crate::card::Supertype::Legendary)
+                        }))
+                {
                     by_name.entry(def.name.as_str()).or_default().push(id);
                 }
             }

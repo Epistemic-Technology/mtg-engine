@@ -1,0 +1,6 @@
+card "Swarm Intelligence" {
+  oracle_id 4a7a5ea9-b633-459f-bcd4-40de53afce0e
+  cost {6}{U}
+  type Enchantment
+  triggered whenever you cast an instant or sorcery spell: you may copy that spell new targets
+}

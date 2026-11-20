@@ -1,0 +1,6 @@
+card "Cloven Casting" {
+  oracle_id 2b08e5f7-c771-4e03-8560-15de6a8bec71
+  cost {5}{U}{R}
+  type Enchantment
+  triggered whenever you cast multicolored instant or sorcery spell: you may pay {1}; if you do, copy that spell new targets
+}

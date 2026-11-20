@@ -1,0 +1,9 @@
+card "Molten Duplication" {
+  oracle_id 92b91910-9b65-4421-8eef-a33793161089
+  cost {1}{R}
+  type Sorcery
+  spell: create token copy of target artifact or creature you control with exceptions; that token gains haste until end of turn; delayed that token: sacrifice it at beginning of the next end step
+  except {
+    types Artifact
+  }
+}

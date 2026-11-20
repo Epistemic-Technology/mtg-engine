@@ -1,0 +1,8 @@
+card "Spawnwrithe" {
+  oracle_id afc59d95-d85c-4ab8-b6c5-c78b608b53b7
+  cost {2}{G}
+  type Creature — Elemental
+  pt 2/2
+  keywords trample
+  triggered whenever this deals combat damage to a player: create token copy of this creature
+}

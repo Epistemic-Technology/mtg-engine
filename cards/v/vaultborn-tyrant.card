@@ -1,0 +1,12 @@
+card "Vaultborn Tyrant" {
+  oracle_id e8d0accc-b320-4c07-8a71-a09db860351e
+  cost {5}{G}{G}
+  type Creature — Dinosaur
+  pt 6/6
+  keywords trample
+  triggered whenever this or creature you control with power 4 or greater enters: you gain 3 life and draw 1 card
+  triggered when this dies if this is nontoken: create token copy of it with exceptions
+  except {
+    types Artifact
+  }
+}

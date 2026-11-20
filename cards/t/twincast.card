@@ -1,0 +1,6 @@
+card "Twincast" {
+  oracle_id 8f878efc-850f-43d2-a6fe-5ea8d1dd5afb
+  cost {U}{U}
+  type Instant
+  spell: copy target instant or sorcery spell new targets
+}

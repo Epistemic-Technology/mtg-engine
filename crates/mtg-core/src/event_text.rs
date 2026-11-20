@@ -136,6 +136,13 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             s.push('.');
             s
         }
+        Event::SpellCopied { player, spell, .. } => {
+            format!(
+                "{} {}.",
+                verb(*player, viewer, "copy", "copies"),
+                obj(state, *spell)
+            )
+        }
         Event::Tapped { .. }
         | Event::Untapped { .. }
         | Event::Pass { .. }

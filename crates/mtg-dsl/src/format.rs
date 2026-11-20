@@ -131,6 +131,13 @@ fn format_inner(card: &Card) -> String {
     }
     if let Some(x) = &card.except {
         out.push_str("  except {\n");
+        if x.not_legendary {
+            out.push_str("    not legendary\n");
+        }
+        if !x.types.is_empty() {
+            let ts: Vec<String> = x.types.iter().map(|t| format!("{t:?}")).collect();
+            let _ = writeln!(out, "    types {}", ts.join(" "));
+        }
         if !x.subtypes.is_empty() {
             let _ = writeln!(out, "    subtypes {}", x.subtypes.join(" "));
         }
@@ -1171,6 +1178,28 @@ impl Fmt {
             }
             Effect::CreateTokenCopy { of, except } => {
                 let mut s = format!("create token copy of {}", self.recipient(*of, t));
+                if *except {
+                    s.push_str(" with exceptions");
+                }
+                s
+            }
+            Effect::CopySpells {
+                what,
+                times,
+                new_targets,
+                except,
+            } => {
+                let what = match what {
+                    Recipient::TriggeringObject => "that spell".to_string(),
+                    r => self.recipient(*r, t),
+                };
+                let mut s = format!("copy {what}");
+                if *times != Num::N(1) {
+                    let _ = write!(s, " times {}", num(*times));
+                }
+                if *new_targets {
+                    s.push_str(" new targets");
+                }
                 if *except {
                     s.push_str(" with exceptions");
                 }
@@ -2319,6 +2348,12 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::CardsDrawnThisTurn => "drawn this turn".to_string(),
         CountExpr::SpellsCastThisTurn { other: false } => "spells cast this turn".to_string(),
         CountExpr::SpellsCastThisTurn { other: true } => "other spells cast this turn".to_string(),
+        CountExpr::OtherInstantSorceryCast { before: false } => {
+            "other instant and sorcery spells cast this turn".to_string()
+        }
+        CountExpr::OtherInstantSorceryCast { before: true } => {
+            "other instant and sorcery spells cast before it this turn".to_string()
+        }
         CountExpr::SourceToughness => "toughness".to_string(),
         CountExpr::CardManaValue => "mana value of that card".to_string(),
         CountExpr::TargetManaValue { n, that, the_spell } => format!(
@@ -2868,12 +2903,20 @@ fn of_chosen(c: crate::ast::OfChosen) -> &'static str {
 fn spell_target(f: &Filter) -> String {
     let mut g = f.clone();
     let t = g.targeting.take();
+    // "target instant or sorcery spell you control".
+    let yours = g.who == Some(Who::You) && !g.dont_control;
+    if yours {
+        g.who = None;
+    }
     let base = filter(&g);
     let mut s = if base.is_empty() {
         "target spell".to_string()
     } else {
         format!("target {base} spell")
     };
+    if yours {
+        s.push_str(" you control");
+    }
     if let Some(t) = t {
         s.push_str(" that targets ");
         s.push_str(&targeting(&t, filter));
@@ -3164,6 +3207,7 @@ pub fn trigger_text(t: &Trigger, next: bool) -> String {
 fn trigger_text_one(t: &Trigger, next: bool) -> String {
     match t {
         Trigger::When(_) => unreachable!("unwrapped by trigger_text"),
+        Trigger::Next(inner) => trigger_text(inner, next).replacen("whenever", "when next", 1),
         Trigger::State(c) => format!("when {}", static_cond(c)),
         Trigger::Enters(o) => format!("whenever {} enters", trigger_obj(o)),
         Trigger::Dies(o) => format!("whenever {} dies", trigger_obj(o)),

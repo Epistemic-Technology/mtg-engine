@@ -73,6 +73,23 @@ impl TypeSet {
         self.0 == 0
     }
 
+    /// The types in the set, in `CardType` order.
+    pub fn iter(self) -> impl Iterator<Item = CardType> {
+        [
+            CardType::Artifact,
+            CardType::Battle,
+            CardType::Creature,
+            CardType::Enchantment,
+            CardType::Instant,
+            CardType::Kindred,
+            CardType::Land,
+            CardType::Planeswalker,
+            CardType::Sorcery,
+        ]
+        .into_iter()
+        .filter(move |t| self.contains(*t))
+    }
+
     pub const fn is_permanent_type(self) -> bool {
         self.contains(CardType::Artifact)
             || self.contains(CardType::Battle)
@@ -134,6 +151,11 @@ impl SupertypeSet {
 
     pub const fn contains(self, t: Supertype) -> bool {
         self.0 & (1 << (t as u8)) != 0
+    }
+
+    #[must_use]
+    pub const fn without(self, t: Supertype) -> Self {
+        SupertypeSet(self.0 & !(1 << (t as u8)))
     }
 
     pub const fn contains_all(self, other: SupertypeSet) -> bool {
@@ -1745,6 +1767,11 @@ pub enum CountExpr {
     /// source's own cast ("the number of other spells you've cast this
     /// turn").
     SpellsCastThisTurn { other: bool },
+    /// The other instant and sorcery spells you've cast this turn (not
+    /// the source or triggering spell itself); with `before`, only those
+    /// cast before it ("copy it for each other instant and sorcery spell
+    /// you've cast before it this turn").
+    OtherInstantSorceryCast { before: bool },
     /// The source's toughness ("where X is its toughness").
     SourceToughness,
     /// Colors among permanents you control (vivid).
@@ -2692,12 +2719,15 @@ pub enum TargetSpec {
     /// "target activated or triggered ability", "target activated ability
     /// from an artifact source" (`source`: the ability's source has that
     /// card type, as it last existed if it has left). Mana abilities never
-    /// use the stack, so are never targeted (CR 605.3b).
+    /// use the stack, so are never targeted (CR 605.3b). `yours`: "...
+    /// you control".
     OnStack {
         spells: bool,
         activated: bool,
         triggered: bool,
         source: Option<CardType>,
+        #[serde(default)]
+        yours: bool,
     },
     /// "target opponent".
     Opponent,
@@ -3671,6 +3701,21 @@ pub enum Effect {
     /// last existed there; its controller may choose new targets for the
     /// copy (CR 707.10c). Conspire's trigger (`Builtin::Conspire`).
     CopySpell,
+    /// "Copy target instant or sorcery spell you control", "copy that
+    /// spell", "copy it X times" (CR 707.10): `times` copies of each
+    /// recipient spell (as it is on the stack, or as it last existed
+    /// there), controlled by the ability's controller. With `new_targets`
+    /// ("You may choose new targets for the copy"), the copy's controller
+    /// may change its targets (CR 707.10c); with `except`, the source
+    /// definition's `copy_except` applies to the copy ("except the copy
+    /// isn't legendary", CR 707.9b). A copy of a permanent spell becomes a
+    /// token as it resolves (CR 608.3f).
+    CopySpells {
+        what: Recipient,
+        times: Num,
+        new_targets: bool,
+        except: bool,
+    },
     /// Goad (CR 701.15): until the controller's next turn, each recipient
     /// creature attacks each combat if able and attacks a player other
     /// than the controller if able.
@@ -4158,6 +4203,7 @@ impl Effect {
                 | Effect::Surveil { .. }
                 | Effect::RemoveCounterChosen { .. }
                 | Effect::CopySpell
+                | Effect::CopySpells { .. }
                 | Effect::Discard { .. }
                 | Effect::HandToLibrary { .. }
                 | Effect::ShuffleIntoLibrary { .. }
@@ -4679,8 +4725,7 @@ pub enum TriggerSpec {
     /// "Whenever you cast a spell"; `noncreature` or `instant_or_sorcery`
     /// restrict it. `or_copy` is magecraft's "Whenever you cast or copy an
     /// instant or sorcery spell" (CR 207.2c): a copy of a spell made on
-    /// the stack would trigger it too (CR 707.10), though no effect here
-    /// copies spells yet.
+    /// the stack triggers it too (CR 707.10, `Event::SpellCopied`).
     CastsSpell {
         whose: Who,
         noncreature: bool,
@@ -4773,6 +4818,10 @@ pub enum TriggerSpec {
     /// spell and resolves first; countering the spell doesn't stop it.
     /// "When you cast or cycle ~" is this and `Cycles { this }`.
     CastThis,
+    /// "When you next cast an instant or sorcery spell this turn" (CR
+    /// 603.7c): a delayed trigger on the inner event that triggers only
+    /// the first time it happens, then ends.
+    Next(Box<TriggerSpec>),
     /// "Whenever you sacrifice another Eldrazi" (CR 701.21a: only a
     /// permanent's controller sacrifices it): the sacrificed permanent,
     /// matching the filter as it is sacrificed, is the triggering object.
@@ -4980,6 +5029,7 @@ impl TriggerSpec {
             } => WATCH_DISCARD,
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
+            TriggerSpec::Next(inner) => inner.watch_mask(),
             TriggerSpec::UnlocksDoor { .. }
             | TriggerSpec::BecomesStage(_)
             | TriggerSpec::FullyUnlocks { .. }
@@ -5539,12 +5589,20 @@ pub struct Mode {
 
 /// Modifications a copy effect makes as part of copying (CR 707.9b):
 /// "except it's an Illusion and has ..." (Phantasmal Image), "except it has
-/// haste" (Kiki-Jiki). They become part of the copiable values.
+/// haste" (Kiki-Jiki), "except it isn't legendary", "except it's an
+/// artifact in addition to its other types". They become part of the
+/// copiable values.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
 pub struct CopyExcept {
     pub subtypes: Vec<String>,
     pub keywords: KeywordSet,
     pub abilities: Vec<AbilityDef>,
+    /// "except it isn't legendary": the copy has no legendary supertype.
+    #[serde(default)]
+    pub not_legendary: bool,
+    /// "except it's an artifact in addition to its other types".
+    #[serde(default)]
+    pub types: TypeSet,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

@@ -1,0 +1,8 @@
+card "Nivix Guildmage" {
+  oracle_id d04356f1-0e1a-4689-8e54-f88c4c6dd936
+  cost {U}{R}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {1}{U}{R}: draw 1 card then discard 1 card
+  activated {2}{U}{R}: copy target instant or sorcery spell you control new targets
+}

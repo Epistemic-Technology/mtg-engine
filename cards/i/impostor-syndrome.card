@@ -1,0 +1,9 @@
+card "Impostor Syndrome" {
+  oracle_id 7be47440-b627-411e-a28f-d5a92e5e2fb7
+  cost {4}{U}{U}
+  type Enchantment
+  triggered whenever nontoken creature you control deals combat damage to a player: create token copy of it with exceptions
+  except {
+    not legendary
+  }
+}

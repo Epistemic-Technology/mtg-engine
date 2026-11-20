@@ -1,0 +1,7 @@
+card "Show of Confidence" {
+  oracle_id 6f7c29ff-955c-496b-9300-2efb9e99ba2d
+  cost {1}{W}
+  type Instant
+  triggered when you cast this: copy it times count each other instant and sorcery spells cast this turn new targets
+  spell: put 1 +1/+1 counter on target creature; it gains vigilance until end of turn
+}

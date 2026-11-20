@@ -1,0 +1,10 @@
+card "Storm of Saruman" {
+  oracle_id cf5f4860-e805-46a3-9352-a2c583e33403
+  cost {4}{U}{U}
+  type Enchantment
+  ward {3}
+  triggered whenever you cast your second spell each turn: copy it new targets with exceptions
+  except {
+    not legendary
+  }
+}

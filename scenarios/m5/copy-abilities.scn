@@ -1,0 +1,71 @@
+# Copying activated and triggered abilities (CR 707.10): the copy is put
+# onto the stack with the same source (CR 707.10b), mode, X, and targets,
+# under the copier's control; a copy of an activated ability isn't
+# activated. "You may choose new targets for the copy" (CR 707.10c).
+
+scenario "strionic resonator: copies a triggered ability" {
+  battlefield A: 4 "Mountain", "Strionic Resonator"
+  hand A: "Sparkmage Apprentice"
+  turn 1 A: cast "Sparkmage Apprentice"
+  turn 1 A: trigger "Sparkmage Apprentice" targeting player B
+  turn 1 A: activate "Strionic Resonator" targeting "Sparkmage Apprentice"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "strionic resonator: the copy may have a new target" {
+  battlefield A: 4 "Mountain", "Strionic Resonator"
+  battlefield B: "Grizzly Bears"
+  hand A: "Sparkmage Apprentice"
+  turn 1 A: cast "Sparkmage Apprentice"
+  turn 1 A: trigger "Sparkmage Apprentice" targeting player B
+  turn 1 A: activate "Strionic Resonator" targeting "Sparkmage Apprentice"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "strionic resonator: not an opponent's triggered ability" {
+  battlefield A: 2 "Mountain", "Strionic Resonator"
+  battlefield B: 2 "Mountain"
+  hand B: "Sparkmage Apprentice"
+  start turn 2 B
+  turn 2 B: cast "Sparkmage Apprentice"
+  turn 2 B: trigger "Sparkmage Apprentice" targeting player A
+  illegal turn 2 A: activate "Strionic Resonator" targeting "Sparkmage Apprentice"
+  run_to turn 2 postcombat_main
+}
+
+scenario "lithoform engine: copies an activated ability" {
+  battlefield A: 2 "Island", "Zuran Spellcaster", "Lithoform Engine"
+  turn 1 A: activate "Zuran Spellcaster" targeting player B
+  turn 1 A: activate "Lithoform Engine" targeting "Zuran Spellcaster"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "lithoform engine: a permanent spell's copy becomes a token" {
+  battlefield A: 6 "Forest", "Lithoform Engine"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: activate "Lithoform Engine" ability 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+}
+
+scenario "lithoform engine: not an instant spell with the permanent-spell ability" {
+  battlefield A: 6 "Mountain", "Lithoform Engine"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  illegal turn 1 A: activate "Lithoform Engine" ability 3 targeting "Shock"
+  run_to turn 1 postcombat_main
+}
+
+scenario "echo: copies an ability from a creature source" {
+  battlefield A: 2 "Island", "Zuran Spellcaster", "Echo, Perceptive Prodigy"
+  turn 1 A: activate "Zuran Spellcaster" targeting player B
+  turn 1 A: activate "Echo, Perceptive Prodigy" targeting "Zuran Spellcaster"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

@@ -1,0 +1,8 @@
+card "Sprouting Phytohydra" {
+  oracle_id 66847507-f8bb-4266-bd6e-a91c0baf0000
+  cost {4}{G}
+  type Creature — Plant Hydra
+  pt 0/2
+  keywords defender
+  triggered whenever this is dealt damage: you may create token copy of this creature
+}

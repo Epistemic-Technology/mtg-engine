@@ -1,0 +1,6 @@
+card "Mirari" {
+  oracle_id 8f6a2fce-719e-4745-80d3-aabce5c9bafa
+  cost {5}
+  type Legendary Artifact
+  triggered whenever you cast an instant or sorcery spell: you may pay {3}; if you do, copy that spell new targets
+}

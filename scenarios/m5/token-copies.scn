@@ -1,0 +1,91 @@
+# Token copies with exceptions (CR 707.9b): "except it isn't legendary",
+# "except it's an artifact in addition to its other types", "except it has
+# haste and ..." become part of the token's copiable values. A token copy
+# of a creature that died is made from its last known information (CR
+# 111.12).
+
+scenario "impostor syndrome: the copy isn't legendary" {
+  battlefield A: "Impostor Syndrome", "Kitsa, Otterball Elite"
+  turn 1 A: attack "Kitsa, Otterball Elite"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Kitsa, Otterball Elite"
+  assert is not newest A "Kitsa, Otterball Elite" legendary
+  assert is oldest A "Kitsa, Otterball Elite" legendary
+}
+
+scenario "impostor syndrome: a token creature's damage makes no copy" {
+  battlefield A: "Impostor Syndrome", 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Heat Shimmer"
+  turn 1 A: cast "Heat Shimmer" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "vaultborn tyrant: dies, comes back as an artifact token" {
+  battlefield A: "Vaultborn Tyrant", 3 "Swamp"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Vaultborn Tyrant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Vaultborn Tyrant"
+  assert is "Vaultborn Tyrant" artifact
+  assert is "Vaultborn Tyrant" creature
+  assert graveyard A contains "Vaultborn Tyrant"
+}
+
+scenario "vaultborn tyrant: the token's death makes no copy" {
+  battlefield A: "Vaultborn Tyrant", 6 "Swamp"
+  hand A: 2 "Murder"
+  turn 1 A: cast "Murder" targeting "Vaultborn Tyrant"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Vaultborn Tyrant"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Vaultborn Tyrant"
+}
+
+scenario "molten duplication: an artifact copy with haste, sacrificed at end step" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Molten Duplication"
+  turn 1 A: cast "Molten Duplication" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert is newest A "Grizzly Bears" artifact
+  assert is not oldest A "Grizzly Bears" artifact
+  assert has newest A "Grizzly Bears" haste
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "heat shimmer: a hasty copy of an opponent's creature, exiled at end step" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Heat Shimmer"
+  turn 1 A: cast "Heat Shimmer" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Hill Giant"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "electroduplicate: the copy sacrifices itself at the end step" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Electroduplicate"
+  turn 1 A: cast "Electroduplicate" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "cackling counterpart: a plain token copy" {
+  battlefield A: 3 "Island", "Hill Giant"
+  hand A: "Cackling Counterpart"
+  turn 1 A: cast "Cackling Counterpart" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Hill Giant"
+}

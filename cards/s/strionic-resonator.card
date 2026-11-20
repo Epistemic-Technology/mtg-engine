@@ -1,0 +1,6 @@
+card "Strionic Resonator" {
+  oracle_id cf751552-156f-4f81-ac94-9814dce099f9
+  cost {2}
+  type Artifact
+  activated {2}, {T}: copy target triggered ability you control new targets
+}
