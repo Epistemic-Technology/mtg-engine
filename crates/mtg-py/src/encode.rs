@@ -189,7 +189,7 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::Subtype(_) => 35,
         Choice::Divide(_) => 36,
         // Warp shares dash's slot (an alternative cost from the hand).
-        Choice::CastDash(_) | Choice::CastWarp(_) => 37,
+        Choice::CastDash(_) | Choice::CastWarp(_) | Choice::CastSneak(_) => 37,
         // The one-hot is full (`CHOICE_KINDS`): overload counts as an
         // alternative cost.
         Choice::CastAlt(_) | Choice::CastOverload(_) | Choice::CastAwaken(_) => 38,
@@ -405,6 +405,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
+            | Choice::CastSneak(id)
             | Choice::CastAlt(id)
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)

@@ -1,0 +1,9 @@
+card "Shredder, Unrelenting" {
+  oracle_id 59d96fc0-6580-43c2-8c6a-dcf983644561
+  cost {4}{B}
+  type Legendary Creature — Human Ninja
+  pt 6/4
+  sneak {3}{B}
+  keywords deathtouch
+  triggered whenever this enters or attacks: another target creature you control gains deathtouch
+}

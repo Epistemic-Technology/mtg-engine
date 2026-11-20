@@ -1,0 +1,8 @@
+card "Raphael, the Nightwatcher" {
+  oracle_id 8c1e5b25-ee5a-4ea9-a715-08dd1a4f51c4
+  cost {2}{R}{R}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 2/3
+  sneak {1}{R}{R}
+  static attacking creature you control: has double strike
+}

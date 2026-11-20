@@ -1,0 +1,7 @@
+card "Donatello's Technique" {
+  oracle_id 194284f7-cf92-4d9f-a8ce-e4dc3505ab7a
+  cost {2}{U}
+  type Sorcery
+  sneak {U}
+  spell: draw 2 cards
+}

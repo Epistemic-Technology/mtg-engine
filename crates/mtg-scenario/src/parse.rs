@@ -502,6 +502,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let sneaked = if line.peek_ident("sneaked") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let warped = if line.peek_ident("warped") {
                 line.pos += 1;
                 true
@@ -641,6 +647,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     evoked,
                     dashed,
                     warped,
+                    sneaked,
                     alternative,
                     bestowed,
                     overloaded,

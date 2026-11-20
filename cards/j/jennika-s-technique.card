@@ -1,0 +1,7 @@
+card "Jennika's Technique" {
+  oracle_id 90b1226f-4c90-47fd-98f3-ad4edd3b3518
+  cost {2}{R}
+  type Instant
+  sneak {R}
+  spell: deal 2 damage to each creature
+}

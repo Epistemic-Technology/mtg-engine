@@ -1,0 +1,81 @@
+# Sneak (CR 702.190): "Any time you could cast an instant during your
+# declare blockers step, you may cast this spell by paying [cost] and
+# returning an unblocked creature you control to its owner's hand rather
+# than paying this spell's mana cost." A permanent spell cast this way
+# enters tapped and attacking what that creature attacked.
+
+scenario "sneak: an unblocked attacker returns, the creature enters tapped and attacking" {
+  battlefield A: "Grizzly Bears", "Swamp", "Plains"
+  hand A: "Leonardo, Cutting Edge"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Leonardo, Cutting Edge" sneaked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Leonardo, Cutting Edge"
+  assert tapped "Leonardo, Cutting Edge"
+  # Lifelink: its 1 combat damage gained a life, and that put a counter on it.
+  assert life B 19
+  assert life A 21
+  assert counters "Leonardo, Cutting Edge" +1/+1 1
+}
+
+scenario "sneak: not before blockers are declared" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Leonardo, Cutting Edge"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_attackers A: cast "Leonardo, Cutting Edge" sneaked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Leonardo, Cutting Edge"
+  assert life B 18
+}
+
+scenario "sneak: a blocked attacker can't be returned" {
+  battlefield A: "Grizzly Bears", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Leonardo, Cutting Edge"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  illegal turn 1 declare_blockers A: cast "Leonardo, Cutting Edge" sneaked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Leonardo, Cutting Edge"
+}
+
+scenario "sneak: not on the opponent's turn" {
+  battlefield A: "Plains", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Leonardo, Cutting Edge"
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 declare_blockers A: cast "Leonardo, Cutting Edge" sneaked sacrificing "Grizzly Bears"
+  run_to turn 2 end
+  assert hand A contains "Leonardo, Cutting Edge"
+}
+
+scenario "sneak: a sorcery with sneak at instant speed in the declare blockers step" {
+  battlefield A: "Grizzly Bears", "Island"
+  hand A: "Donatello's Technique"
+  library A: 3 "Island"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Donatello's Technique" sneaked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  # The Bears and two cards drawn.
+  assert hand A count 3
+  assert life B 20
+}
+
+scenario "sneak: the sneak cost paid, Leonardo pumps the team" {
+  battlefield A: "Grizzly Bears", "Raging Goblin", 5 "Plains"
+  hand A: "Leonardo, Leader in Blue"
+  turn 1 A: attack "Grizzly Bears", "Raging Goblin"
+  turn 1 declare_blockers A: cast "Leonardo, Leader in Blue" sneaked sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  # Raging Goblin 3 and Leonardo 4.
+  assert life B 13
+}
+
+scenario "sneak: cast for its mana cost, no pump" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Leonardo, Leader in Blue"
+  turn 1 A: cast "Leonardo, Leader in Blue"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}

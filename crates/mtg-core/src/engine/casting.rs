@@ -148,6 +148,11 @@ impl GameState {
             {
                 options.push(Choice::CastWarp(*id));
             }
+            // CR 702.190a: cast for the sneak cost during its controller's
+            // declare blockers step, an unblocked attacker to return.
+            if def.sneak.is_some() && self.sneak_castable(p, def, *id, &sources) {
+                options.push(Choice::CastSneak(*id));
+            }
             // CR 702.103a: cast for the bestow cost, as an Aura spell.
             if let Some(face) = def.bestow_face
                 && self.bestow_castable(p, def, face, *id, sorcery_timing, &sources, &changers)
@@ -422,6 +427,7 @@ impl GameState {
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
+            | Choice::CastSneak(id)
             | Choice::CastAlt(id) => !(creatures && creature(id)),
             Choice::CastFaceDown(_) => !creatures,
             Choice::CastFace { card, face } => {
@@ -2040,6 +2046,46 @@ impl GameState {
         }
     }
 
+    /// CR 702.190a: whether `p` may cast `id` for its sneak cost now: any
+    /// time they could cast an instant during their declare blockers step,
+    /// with an unblocked attacker to return.
+    #[cold]
+    #[inline(never)]
+    fn sneak_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sources: &Sources,
+    ) -> bool {
+        let Some(cost) = &def.sneak else {
+            return false;
+        };
+        if self.step != crate::turn::Step::DeclareBlockers
+            || p != self.active_player
+            || def.additional.sacrifice.is_some()
+            || def.additional_or.is_some()
+            || self.unblocked_attackers(p).is_empty()
+        {
+            return false;
+        }
+        if !self.payable_for(
+            p,
+            sources,
+            &cost.requirements(0),
+            Spend::Spell(&self.printed(self.objects[id].def)),
+        ) || !self.additional_payable(p, &def.additional, id)
+        {
+            return false;
+        }
+        match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(id))),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+        }
+    }
+
     /// Whether `p` can pay a spell's additional costs (CR 601.2h): enough
     /// life (CR 119.4), other cards to discard, something to sacrifice,
     /// cards to exile from the graveyard. The spell's own card is never one
@@ -2429,6 +2475,9 @@ impl GameState {
             }
             (_, false) if o.alt == AltCast::Warp && def.warp.is_some() => {
                 def.warp.as_ref().expect("checked").requirements(x)
+            }
+            (_, false) if o.alt == AltCast::Sneak && def.sneak.is_some() => {
+                def.sneak.as_ref().expect("checked").requirements(x)
             }
             (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
                 def.overload.as_ref().expect("checked").requirements(x)
@@ -4841,7 +4890,23 @@ impl GameState {
             .alt_cost
             .as_deref()
             .filter(|_| self.objects[spell].alt == AltCast::AltCost);
-        let add_sacrifice = if alt.is_some() { None } else { sacrifice };
+        // CR 702.190a: sneak returns the chosen unblocked attacker; the
+        // permanent will attack what it was attacking.
+        let sneak = self.objects[spell].alt == AltCast::Sneak;
+        if sneak && let Some(c) = sacrifice {
+            self.ninjutsu.retain(|(s, _)| *s != spell);
+            if let Some(at) = self.combat.as_ref().and_then(|cb| cb.attacker(c)) {
+                self.ninjutsu.push((spell, at.attacking));
+            }
+            if self.objects.contains_key(c) {
+                self.move_object(c, Zone::Hand, false);
+            }
+        }
+        let add_sacrifice = if alt.is_some() || sneak {
+            None
+        } else {
+            sacrifice
+        };
         let other = self.objects[spell].cast.other_cost();
         self.pay_costs_recorded(spell, |s| {
             let chosen = match &def.additional_or {
@@ -5243,7 +5308,11 @@ impl GameState {
         {
             if def.is_permanent_card() {
                 self.choose_copy_on_entering(spell);
-                self.put_onto_battlefield(spell, obj.controller);
+                if obj.alt == AltCast::Sneak {
+                    self.enter_sneaking(spell, obj.controller);
+                } else {
+                    self.put_onto_battlefield(spell, obj.controller);
+                }
             } else if obj.cast.adventure() {
                 self.finish_adventure(spell);
             } else if obj.cast.bought_back() && !obj.cast.flashback() {
@@ -5257,6 +5326,41 @@ impl GameState {
             {
                 self.leave_stack(spell);
             }
+        }
+    }
+
+    /// CR 702.190b: a permanent spell whose sneak cost was paid enters
+    /// tapped and attacking what the returned creature was attacking.
+    #[cold]
+    #[inline(never)]
+    fn enter_sneaking(&mut self, spell: ObjId, controller: PlayerId) {
+        let at = self
+            .ninjutsu
+            .iter()
+            .position(|(s, _)| *s == spell)
+            .map(|i| self.ninjutsu.remove(i).1);
+        let new = self.put_onto_battlefield_with(
+            spell,
+            controller,
+            super::replace::Enter {
+                tapped: true,
+                counters: None,
+                haste: false,
+            },
+        );
+        if self
+            .objects
+            .get(new)
+            .is_some_and(|o| o.zone == Zone::Battlefield)
+        {
+            let defender = at.unwrap_or_else(|| {
+                Target::Player(
+                    self.players_in_game()
+                        .find(|q| *q != controller)
+                        .unwrap_or(controller),
+                )
+            });
+            self.enter_attacking(new, defender);
         }
     }
 

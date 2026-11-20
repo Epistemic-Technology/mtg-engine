@@ -8537,6 +8537,17 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Bargained => "it was bargained".to_string(),
         StaticCond::Teamwork => "this spell was cast using teamwork".to_string(),
         StaticCond::NoManaSpent => "it wasn't cast or no mana was spent to cast it".to_string(),
+        StaticCond::SneakPaid(_) if is_spell(card) => {
+            "this spell's sneak cost was paid".to_string()
+        }
+        StaticCond::SneakPaid(p) => format!(
+            "{} sneak cost was paid",
+            match p {
+                1 => "his",
+                2 => "her",
+                _ => "its",
+            }
+        ),
         StaticCond::ManaSpent {
             kind: mtg_core::card::SpentKind::Total,
             at_least,
@@ -9534,6 +9545,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Madness(c) => format!("Madness {c}"),
             crate::ast::Mechanic::Foretell(c) => format!("Foretell {c}"),
             crate::ast::Mechanic::Plot(c) => format!("Plot {c}"),
+            crate::ast::Mechanic::Sneak(c) => format!("Sneak {c}"),
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
             crate::ast::Mechanic::Modular(n) => format!("Modular {n}"),

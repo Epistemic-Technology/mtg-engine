@@ -965,6 +965,23 @@ impl GameState {
                         // an alternative cost's permanent likewise (CR
                         // 118.9).
                         let d = self.pool.get(def);
+                        // CR 702.190a: the unblocked attacker sneak returns.
+                        if sacrifice.is_none()
+                            && self.objects[spell].alt == crate::state::AltCast::Sneak
+                        {
+                            let options: Vec<Choice> = self
+                                .unblocked_attackers(caster)
+                                .into_iter()
+                                .map(Choice::Sacrifice)
+                                .collect();
+                            if !options.is_empty() {
+                                return StepResult::Decision(Decision {
+                                    player: caster,
+                                    kind: DecisionKind::ChooseSacrifice { spell },
+                                    options,
+                                });
+                            }
+                        }
                         let add = match &d.alt_cost {
                             Some(alt)
                                 if self.objects[spell].alt == crate::state::AltCast::AltCost =>
@@ -1593,6 +1610,9 @@ impl GameState {
             }
             (Flow::Priority, Choice::CastDash(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Dash);
+            }
+            (Flow::Priority, Choice::CastSneak(card)) => {
+                self.begin_cast(player, card, crate::state::AltCast::Sneak);
             }
             (Flow::Priority, Choice::CastWarp(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Warp);

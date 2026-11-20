@@ -1,0 +1,7 @@
+card "Shredder's Technique" {
+  oracle_id d92714c0-4e22-47f9-a4d4-405894e734d0
+  cost {2}{B}
+  type Sorcery
+  sneak {B}
+  spell: destroy target creature or enchantment; if an enchantment was destroyed this way, you lose 2 life
+}

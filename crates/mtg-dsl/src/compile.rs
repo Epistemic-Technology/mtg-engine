@@ -328,6 +328,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Plot(cost)) => {
                     b = b.plot(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Sneak(cost)) => {
+                    b = b.sneak(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Suspend(n, cost)) => {
                     b = b.suspend(*n, cost.clone());
                 }
@@ -674,6 +677,7 @@ impl Compiler<'_> {
                             | Mechanic::Madness(_)
                             | Mechanic::Foretell(_)
                             | Mechanic::Plot(_)
+                            | Mechanic::Sneak(_)
                             | Mechanic::Suspend(..)
                             | Mechanic::Entwine(_)
                             | Mechanic::Escape(..)
@@ -1030,6 +1034,7 @@ impl Compiler<'_> {
             StaticCond::Bargained => StaticCondition::Bargained,
             StaticCond::Teamwork => StaticCondition::Teamwork,
             StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
+            StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
             StaticCond::Saddled => StaticCondition::Saddled,
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
             StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
@@ -3158,6 +3163,7 @@ impl Compiler<'_> {
                 | Mechanic::Madness(_)
                 | Mechanic::Foretell(_)
                 | Mechanic::Plot(_)
+                | Mechanic::Sneak(_)
                 | Mechanic::Suspend(..)
                 | Mechanic::Entwine(_)
                 | Mechanic::Escape(..)
@@ -3995,6 +4001,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Madness(_)
         | Mechanic::Foretell(_)
         | Mechanic::Plot(_)
+        | Mechanic::Sneak(_)
         | Mechanic::Suspend(..)
         | Mechanic::Entwine(_)
         | Mechanic::Escape(..)

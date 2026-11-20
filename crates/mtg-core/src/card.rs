@@ -2245,6 +2245,11 @@ pub enum StaticCondition {
     /// paid to cast the source (CR 601.2h; cast without paying its mana
     /// cost, plotted, or not cast at all).
     NoManaSpent,
+    /// "If this spell's sneak cost was paid", "if its sneak cost was
+    /// paid" (CR 702.190): the source was cast for its sneak cost (kept by
+    /// the permanent). The number is wording only: the pronoun for a
+    /// permanent (0 "its", 1 "his", 2 "her").
+    SneakPaid(u8),
 }
 
 /// What a "mana spent to cast" condition or count looks at (CR 601.2h).
@@ -5678,6 +5683,12 @@ pub struct CardDef {
     /// be cast from exile on a later turn.
     #[serde(default)]
     pub warp: Option<Box<ManaCost>>,
+    /// Sneak (CR 702.190): during its controller's declare blockers step,
+    /// cast for this cost, returning an unblocked attacker they control to
+    /// its owner's hand, instead of its mana cost; the permanent enters
+    /// tapped and attacking what that creature attacked.
+    #[serde(default)]
+    pub sneak: Option<Box<ManaCost>>,
     /// Bestow (CR 702.103): an alternative cost; the spell is then an Aura
     /// with enchant creature (`bestow_face`), and the permanent becomes a
     /// creature again when it isn't attached.
@@ -7569,6 +7580,7 @@ impl Builder {
             evoke: None,
             dash: None,
             warp: None,
+            sneak: None,
             bestow: None,
             bestow_face: None,
             overload: None,
@@ -7778,6 +7790,13 @@ impl Builder {
     #[must_use]
     pub fn unkicked_targets(mut self, n: u8) -> Self {
         self.0.unkicked_targets = Some(n);
+        self
+    }
+
+    /// Sneak (CR 702.190).
+    #[must_use]
+    pub fn sneak(mut self, cost: ManaCost) -> Self {
+        self.0.sneak = Some(Box::new(cost));
         self
     }
 

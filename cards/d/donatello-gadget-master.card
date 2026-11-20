@@ -1,0 +1,8 @@
+card "Donatello, Gadget Master" {
+  oracle_id bb6aef0d-052b-44e6-b4cd-2d2eafd84969
+  cost {2}{U}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 3/2
+  sneak {1}{U}
+  triggered whenever this deals combat damage to a player: create token copy of target artifact you control
+}

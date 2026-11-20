@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 114] = [
+const TEMPLATED_TAGS: [&str; 115] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -158,6 +158,7 @@ const TEMPLATED_TAGS: [&str; 114] = [
     "Teamwork",
     "Warp",
     "Plot",
+    "Sneak",
     "Ripple",
     "Saddle",
     "Fabricate",
@@ -2008,6 +2009,11 @@ fn static_condition(s: &str) -> Option<String> {
         "it's attacking" | "this creature is attacking" => return Some("attacking".to_string()),
         "it's enchanted" | "this creature is enchanted" => return Some("enchanted".to_string()),
         "it's equipped" | "this creature is equipped" => return Some("equipped".to_string()),
+        "this spell's sneak cost was paid" | "its sneak cost was paid" => {
+            return Some("sneak paid".to_string());
+        }
+        "his sneak cost was paid" => return Some("his sneak paid".to_string()),
+        "her sneak cost was paid" => return Some("her sneak paid".to_string()),
         "this spell was cast using teamwork" => {
             return Some("teamwork".to_string());
         }
@@ -2648,7 +2654,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {

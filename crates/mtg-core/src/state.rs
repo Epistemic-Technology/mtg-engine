@@ -293,6 +293,9 @@ pub enum AltCast {
     Dash,
     /// Cast for its warp cost (CR 702.185a).
     Warp,
+    /// Cast for its sneak cost (CR 702.190a); kept by the permanent, which
+    /// enters tapped and attacking.
+    Sneak,
     /// Cast for the alternative cost its own text offers (CR 118.9, "rather
     /// than pay this spell's mana cost").
     AltCost,
@@ -2676,6 +2679,13 @@ impl GameState {
             // Judged by `condition_for`, which knows the triggering spell.
             C::ManaSpent { that: true, .. } => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
+            C::SneakPaid(_) => match self.objects.get(source) {
+                Some(o) => o.alt == AltCast::Sneak,
+                None => self
+                    .lki
+                    .get(&source)
+                    .is_some_and(|l| l.object.alt == AltCast::Sneak),
+            },
             C::Bargained => match self.objects.get(source) {
                 Some(o) if o.zone == Zone::Hand => !self.bargain_candidates(you).is_empty(),
                 Some(o) => o.cast.bargained(),

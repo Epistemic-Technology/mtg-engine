@@ -3780,6 +3780,14 @@ fn static_cond(c: &StaticCond) -> String {
         ),
         StaticCond::Saddled => "saddled".to_string(),
         StaticCond::NoManaSpent => "no mana spent".to_string(),
+        StaticCond::SneakPaid(p) => format!(
+            "{}sneak paid",
+            match p {
+                1 => "his ",
+                2 => "her ",
+                _ => "",
+            }
+        ),
         StaticCond::LandEnteredThisTurn => "land entered this turn".to_string(),
         StaticCond::ArtifactEnteredThisTurn => "artifact entered this turn".to_string(),
         StaticCond::CardsDrawnThisTurn(n) => format!("drew {n} cards this turn"),
@@ -4375,6 +4383,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Madness(c) => format!("madness {c}"),
                 crate::ast::Mechanic::Foretell(c) => format!("foretell {c}"),
                 crate::ast::Mechanic::Plot(c) => format!("plot {c}"),
+                crate::ast::Mechanic::Sneak(c) => format!("sneak {c}"),
                 crate::ast::Mechanic::Suspend(n, c) => format!("suspend {n} {c}"),
                 crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),
                 crate::ast::Mechanic::Modular(n) => format!("modular {n}"),

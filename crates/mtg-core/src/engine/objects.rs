@@ -328,8 +328,10 @@ impl GameState {
             // CR 702.62a: a creature cast by suspend has haste.
             alt: if old.zone == Zone::Stack
                 && to == Zone::Battlefield
-                && matches!(old.alt, AltCast::Suspend | AltCast::Escape | AltCast::Dash)
-            {
+                && matches!(
+                    old.alt,
+                    AltCast::Suspend | AltCast::Escape | AltCast::Dash | AltCast::Sneak
+                ) {
                 old.alt
             } else {
                 AltCast::None

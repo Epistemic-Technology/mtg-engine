@@ -1,0 +1,10 @@
+card "Karai's Technique" {
+  oracle_id e53fb128-bf90-4af6-b998-ef9c250001cb
+  cost {1}{W}{B}
+  type Sorcery
+  sneak {W}{B}
+  choose one or both {
+    mode: target creature gets +3/+3
+    mode: target creature gets -3/-3
+  }
+}

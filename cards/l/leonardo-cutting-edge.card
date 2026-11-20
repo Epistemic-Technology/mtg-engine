@@ -1,0 +1,9 @@
+card "Leonardo, Cutting Edge" {
+  oracle_id 933fe6e5-8d00-4411-aa54-7780382c1ea6
+  cost {1}{W}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 1/1
+  sneak {W}
+  keywords lifelink
+  triggered whenever you gain life: put 1 +1/+1 counter on this
+}

@@ -1466,9 +1466,10 @@ impl P {
                 }))
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
-            | "disguise" | "evoke" | "madness" | "foretell" | "plot" | "entwine" | "ninjutsu"
-            | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring" | "bestow"
-            | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate" | "encore"
+            | "disguise" | "evoke" | "madness" | "foretell" | "plot" | "sneak" | "entwine"
+            | "ninjutsu" | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring"
+            | "bestow" | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate"
+            | "encore"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1484,6 +1485,7 @@ impl P {
                     "madness" => Mechanic::Madness(c),
                     "foretell" => Mechanic::Foretell(c),
                     "plot" => Mechanic::Plot(c),
+                    "sneak" => Mechanic::Sneak(c),
                     "entwine" => Mechanic::Entwine(c),
                     "megamorph" => Mechanic::Megamorph(c),
                     "disguise" => Mechanic::Disguise(c),
@@ -2670,6 +2672,16 @@ impl P {
         }
         if self.eat_words(&["no", "mana", "spent"]) {
             return Ok(StaticCond::NoManaSpent);
+        }
+        for (i, w) in ["sneak", "his", "her"].iter().enumerate() {
+            let words: &[&str] = if i == 0 {
+                &["sneak", "paid"]
+            } else {
+                &[w, "sneak", "paid"]
+            };
+            if self.eat_words(words) {
+                return Ok(StaticCond::SneakPaid(u8::try_from(i).unwrap_or(0)));
+            }
         }
         if self.eat_word("spent") {
             return self.spent_cond();

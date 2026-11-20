@@ -1159,6 +1159,10 @@ pub enum Mechanic {
     Madness(ManaCost),
     /// CR 702.143: exiled for {2} on its owner's turn, cast later for this.
     Foretell(ManaCost),
+    /// CR 702.190: `sneak {2}{W}`: during your declare blockers step, cast
+    /// for this cost and an unblocked attacker returned to hand; the
+    /// permanent enters tapped and attacking.
+    Sneak(ManaCost),
     /// CR 702.170: `plot {2}{B}`: exiled from hand for this cost as a
     /// sorcery, cast free as a sorcery on a later turn.
     Plot(ManaCost),
@@ -1686,6 +1690,10 @@ pub enum StaticCond {
     },
     /// `no mana spent`: "it wasn't cast or no mana was spent to cast it".
     NoManaSpent,
+    /// `sneak paid`, `his sneak paid`, `her sneak paid`: "this spell's
+    /// sneak cost was paid" (an instant or sorcery), "its (his, her) sneak
+    /// cost was paid" (CR 702.190). The pronoun: 0 its, 1 his, 2 her.
+    SneakPaid(u8),
 }
 
 /// An activation restriction, in the order written and printed ("Activate
