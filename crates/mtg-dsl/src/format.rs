@@ -2507,6 +2507,13 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
 }
 
 pub fn filter(f: &Filter) -> String {
+    if f.and_list {
+        let g = Filter {
+            and_list: false,
+            ..f.clone()
+        };
+        return format!("andlist {}", filter(&g));
+    }
     if f.and_or {
         let g = Filter {
             and_or: false,

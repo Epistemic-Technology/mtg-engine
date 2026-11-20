@@ -723,6 +723,10 @@ pub struct Filter {
     /// trigger's subject ("Whenever another Villain and/or artifact you
     /// control enters"); wording only.
     pub and_or: bool,
+    /// `andlist Pest or Bat or Spider`: its alternatives joined "and"
+    /// after "each" ("put a +1/+1 counter on each Pest, Bat, and Spider
+    /// you control"); wording only.
+    pub and_list: bool,
 }
 
 impl Filter {

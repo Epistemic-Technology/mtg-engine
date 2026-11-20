@@ -8468,6 +8468,10 @@ impl P {
                     f.and_or = true;
                     self.pos += 1;
                 }
+                "andlist" if consumed == 0 && !f.and_list => {
+                    f.and_list = true;
+                    self.pos += 1;
+                }
                 // "other than enchanted creature": not the source's host.
                 "other" if self.at_words(&["other", "than", "enchanted"]) => {
                     f.not_attached = true;

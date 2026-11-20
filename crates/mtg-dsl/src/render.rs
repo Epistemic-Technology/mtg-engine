@@ -1824,9 +1824,11 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     // In the plural the alternatives join with "and": "Ninjas and Rogues
     // you control", "Bears, Spiders, and Wolves"; `andor` prints
     // "and/or" ("up to two target Mounts and/or Vehicles").
+    // `andlist`: "each Pest, Bat, Insect, Snake, and Spider".
     let conj = match (plural_form, f.and_or) {
         (true, true) => "and/or",
         (true, false) => "and",
+        (false, _) if f.and_list => "and",
         (false, _) => "or",
     };
     if sides.len() == 2 {

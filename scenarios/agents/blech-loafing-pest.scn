@@ -1,0 +1,13 @@
+scenario "gaining life puts a counter on each Pest, Bat, and Snake you control" {
+  battlefield A: "Blech, Loafing Pest", "Sengir Bats", "Zodiac Snake", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Sengir Bats"
+  hand A: "Revitalize"
+  turn 1 A: cast "Revitalize"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert counters "Blech, Loafing Pest" +1/+1 1
+  assert counters A "Sengir Bats" +1/+1 1
+  assert counters "Zodiac Snake" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+  assert counters B "Sengir Bats" +1/+1 0
+}

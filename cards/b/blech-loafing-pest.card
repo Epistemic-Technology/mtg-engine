@@ -1,0 +1,7 @@
+card "Blech, Loafing Pest" {
+  oracle_id c1bdd361-c7f2-4aa2-8d07-b582775551ff
+  cost {1}{B}{G}
+  type Legendary Creature — Pest
+  pt 3/4
+  triggered whenever you gain life: put 1 +1/+1 counter on each andlist Pest or Bat or Insect or Snake or Spider you control
+}
