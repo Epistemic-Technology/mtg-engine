@@ -1,0 +1,14 @@
+scenario "enters with X counters; dies into that many tapped Treasures" {
+  battlefield A: 4 "Forest"
+  battlefield B: 3 "Swamp"
+  hand A: "Goldvein Hydra"
+  hand B: "Murder"
+  turn 1 A: cast "Goldvein Hydra" x 3
+  run_to turn 1 postcombat_main
+  assert counters "Goldvein Hydra" +1/+1 3
+  turn 2 B: cast "Murder" targeting "Goldvein Hydra"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Goldvein Hydra"
+  assert battlefield A contains 3 "Treasure"
+  assert tapped newest A "Treasure"
+}

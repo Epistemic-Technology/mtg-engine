@@ -1,0 +1,11 @@
+scenario "a basic land and a Desert enter tapped" {
+  battlefield A: 4 "Forest"
+  hand A: "Map the Frontier"
+  library A: "Hill Giant", "Sunscorched Desert", "Plains", "Grizzly Bears"
+  turn 1 A: cast "Map the Frontier"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sunscorched Desert"
+  assert battlefield A contains "Plains"
+  assert tapped "Plains"
+  assert library A contains "Hill Giant"
+}

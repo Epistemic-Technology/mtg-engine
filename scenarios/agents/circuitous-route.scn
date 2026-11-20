@@ -1,0 +1,11 @@
+scenario "a basic land and a Gate enter tapped" {
+  battlefield A: 4 "Forest"
+  hand A: "Circuitous Route"
+  library A: "Hill Giant", "Azorius Guildgate", "Island", "Grizzly Bears"
+  turn 1 A: cast "Circuitous Route"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Azorius Guildgate"
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert library A contains "Hill Giant"
+}

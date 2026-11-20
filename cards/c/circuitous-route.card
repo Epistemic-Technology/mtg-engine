@@ -1,0 +1,6 @@
+card "Circuitous Route" {
+  oracle_id 30afacd9-4680-4aac-8c22-584f9418822d
+  cost {3}{G}
+  type Sorcery
+  spell: search up to 2 basic land card or Gate card to battlefield tapped
+}

@@ -1478,7 +1478,15 @@ impl<'a> Ctx<'a> {
             }
             // "creatures you control".
             Target::Spec(TargetSpec::CreatureYouControl) => "creatures you control".to_string(),
-            Target::Spec(s) => pluralize(&target_phrase(*s).replace("target ", "")),
+            // "two target artifacts and/or enchantments": Oracle's plural
+            // of a target of either type (but "attacking or blocking
+            // creatures", one type with either quality).
+            Target::Spec(s @ TargetSpec::AttackingOrBlockingCreature) => {
+                pluralize(&target_phrase(*s).replace("target ", ""))
+            }
+            Target::Spec(s) => {
+                pluralize(&target_phrase(*s).replace("target ", "")).replace(" or ", " and/or ")
+            }
             Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
             Target::Filter(f) => filter_phrase(f, self.card, true),
             Target::Spell(f) => format!("{} spells", filter_phrase(f, self.card, false)),
@@ -1965,7 +1973,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
                 if plural_form { pluralize(&n) } else { n }
             })
             .collect();
-        noun.push(or_list(&names));
+        // `andor`: "two target artifacts and/or enchantments".
+        if plural_form && f.and_or {
+            noun.push(or_list(&names).replace(" or ", " and/or "));
+        } else {
+            noun.push(or_list(&names));
+        }
     }
     words.extend(noun);
     let mut s = words.join(" ");

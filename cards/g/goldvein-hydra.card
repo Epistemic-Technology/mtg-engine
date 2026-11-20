@@ -1,0 +1,9 @@
+card "Goldvein Hydra" {
+  oracle_id 2b62543f-a475-457a-a96b-b5d070383d3c
+  cost {X}{G}
+  type Creature — Hydra
+  pt 0/0
+  keywords vigilance, trample, haste
+  enters with X +1/+1 counters
+  triggered when this dies: create count equal power of it tapped "Treasure"
+}
