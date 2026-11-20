@@ -4886,10 +4886,12 @@ impl P {
                 } else {
                     self.expect_words(&["they", "control"])?;
                 }
+                let graveyard = self.eat_words(&["and", "their", "graveyard"]);
                 Ok(Effect::ExileChosen {
                     who: subject,
                     count,
                     filter,
+                    graveyard,
                 })
             }
             "fights" => {

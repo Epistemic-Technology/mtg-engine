@@ -1330,7 +1330,9 @@ twice`; `target player investigates`: that player creates it), `<who>
 exiles 2 cards from hand` ("Target opponent exiles two cards from their
 hand"; `from graveyard`: "a card from their graveyard"; the player
 chooses), `<who> exiles 1 creature they control` ("Target opponent
-exiles a creature they control", their choice), `<who> reveals hand
+exiles a creature they control", their choice; `... they control and
+their graveyard` then exiles their graveyard: "Target opponent exiles a
+creature they control and their graveyard"), `<who> reveals hand
 exiling nonland card from graveyard or hand` ("Target opponent reveals
 their hand. You choose a nonland card from that player's graveyard or
 hand and exile it."), `transform

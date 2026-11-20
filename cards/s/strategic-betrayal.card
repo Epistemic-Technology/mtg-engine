@@ -1,0 +1,6 @@
+card "Strategic Betrayal" {
+  oracle_id 0127c13f-7b0f-44c3-8b35-97f306c5f239
+  cost {1}{B}
+  type Sorcery
+  spell: target opponent exiles 1 creature they control and their graveyard
+}

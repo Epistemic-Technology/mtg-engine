@@ -1324,11 +1324,13 @@ impl Fmt {
                 who,
                 count,
                 filter: f,
+                graveyard,
             } => format!(
-                "{} exiles {} {} they control",
+                "{} exiles {} {} they control{}",
                 self.recipient(*who, t),
                 num(*count),
-                filter(f)
+                filter(f),
+                if *graveyard { " and their graveyard" } else { "" }
             ),
             Effect::ExileFromHand {
                 count,

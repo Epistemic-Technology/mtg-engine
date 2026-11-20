@@ -2914,11 +2914,14 @@ pub enum Effect {
         discard: Num,
     },
     /// `target opponent exiles 1 creature they control`: "Target opponent
-    /// exiles a creature they control" (the player chooses).
+    /// exiles a creature they control" (the player chooses); `... and
+    /// their graveyard`: "... and their graveyard", their whole graveyard
+    /// after.
     ExileChosen {
         who: Recipient,
         count: Num,
         filter: Filter,
+        graveyard: bool,
     },
     /// `target opponent exiles 2 cards from hand`: "Target opponent exiles
     /// two cards from their hand" (the player chooses); `... from

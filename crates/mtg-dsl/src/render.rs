@@ -4993,7 +4993,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("{} {what} at random", ctx.verb(*who, "discards", "discard")),
             )
         }
-        Effect::ExileChosen { who, count, filter } => {
+        Effect::ExileChosen {
+            who,
+            count,
+            filter,
+            graveyard,
+        } => {
             let s = ctx.subj(*who);
             let what = if *count == Num::N(1) {
                 with_article(&filter_phrase(filter, ctx.card, false))
@@ -5007,7 +5012,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::with_subject(
                 *who,
                 s,
-                format!("{} {what} they control", ctx.verb(*who, "exiles", "exile")),
+                format!(
+                    "{} {what} they control{}",
+                    ctx.verb(*who, "exiles", "exile"),
+                    if *graveyard { " and their graveyard" } else { "" }
+                ),
             )
         }
         Effect::ExileFromHand {

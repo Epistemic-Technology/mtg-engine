@@ -899,6 +899,7 @@ impl Decompiler<'_> {
                 who: r(*who),
                 count: *count,
                 filter: self.filter(filter),
+                graveyard: false,
             },
             CoreEffect::ExileFromHand {
                 count,

@@ -2145,11 +2145,21 @@ impl Compiler<'_> {
                     _ => return self.err("`if you win the flip` needs a `flip coin` before it"),
                 }
             }
-            Effect::ExileChosen { who, count, filter } => out.push(CoreEffect::ExileChosen {
-                who: r(*who),
-                filter: self.filter(filter),
-                count: *count,
-            }),
+            Effect::ExileChosen {
+                who,
+                count,
+                filter,
+                graveyard,
+            } => {
+                out.push(CoreEffect::ExileChosen {
+                    who: r(*who),
+                    filter: self.filter(filter),
+                    count: *count,
+                });
+                if *graveyard {
+                    out.push(CoreEffect::ExileGraveyard { who: r(*who) });
+                }
+            }
             Effect::ExileFromHand {
                 count,
                 who,

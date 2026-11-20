@@ -1,0 +1,23 @@
+scenario "the opponent exiles a creature and their graveyard" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard B: "Hill Giant", "Lightning Bolt"
+  graveyard A: "Serra Angel"
+  hand A: "Strategic Betrayal"
+  turn 1 A: cast "Strategic Betrayal" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert exile B contains "Lightning Bolt"
+  assert graveyard B count 0
+  assert graveyard A contains "Serra Angel"
+}
+
+scenario "with no creature, the graveyard still goes" {
+  battlefield A: 2 "Swamp"
+  graveyard B: "Hill Giant"
+  hand A: "Strategic Betrayal"
+  turn 1 A: cast "Strategic Betrayal" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}
