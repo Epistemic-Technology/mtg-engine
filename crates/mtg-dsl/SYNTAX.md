@@ -696,6 +696,28 @@ the greatest mana values first, then it drops the smallest picks the total
 doesn't need, sparing what the spell or ability targets. Trigger `whenever
 you collect evidence`.
 
+Suspect (CR 701.60): `suspect target creature`, `suspect this`, `suspect
+enchanted creature` (a suspected permanent has menace and "This creature
+can't block" for as long as it's suspected, CR 701.60c; it stops being
+suspected as it leaves the battlefield), `all suspected creature no
+longer suspected` ("All suspected creatures are no longer suspected."),
+the filter word `suspected` ("Sacrifice a suspected creature"), and the
+conditions `suspected` / `not suspected` ("if it's not suspected"; at the
+start of an activated ability's sentence, "If this creature is suspected,
+... it"). `each opponent blights 1` (CR 701.68a): each of those players
+puts the counters on a creature of their own choice.
+
+Manifest dread: after it, `manifested creature` is the creature
+manifested, printed "that creature" ("manifest dread, then put three
++1/+1 counters on that creature"; `attach to manifested creature`:
+"attach this Equipment to that creature"). `delayed target 1: when it
+dies this turn, manifest dread` prints "When it dies this turn, ...".
+Trigger `whenever you turn a permanent face up` (a permanent you
+control; "it" is that permanent). `return up to 2 permanent card from
+among them to hand chosen` after a mill prints "return ... from among
+them to your hand"; `impulse 2 next turn it` prints "You may play them
+until the end of your next turn."
+
 An optional additional cost (CR 601.2b): `additional cost may collect
 evidence 6` ("As an additional cost to cast this spell, you may collect
 evidence 6.") or `additional cost may blight 1`, chosen as the spell is

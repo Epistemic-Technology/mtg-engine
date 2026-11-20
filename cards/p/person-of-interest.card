@@ -1,0 +1,7 @@
+card "Person of Interest" {
+  oracle_id 3d18cd9b-6013-48d7-9269-4787e7585a51
+  cost {3}{R}
+  type Creature — Human Rogue
+  pt 2/2
+  triggered when this enters: suspect this; create 1 "2/2 white and blue Detective creature"
+}

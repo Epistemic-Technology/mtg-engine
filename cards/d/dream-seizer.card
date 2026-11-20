@@ -1,0 +1,8 @@
+card "Dream Seizer" {
+  oracle_id c7e4bc5d-e1d9-4fbc-8d53-0cec73086828
+  cost {3}{B}
+  type Creature — Faerie Rogue
+  pt 3/2
+  keywords flying
+  triggered when this enters: you may blight 1; if you do, each opponent discards 1 card
+}

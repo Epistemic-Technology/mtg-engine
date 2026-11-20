@@ -1,0 +1,9 @@
+card "Reasonable Doubt" {
+  oracle_id 020503f5-0915-4cd5-a617-1c7bde045e10
+  cost {1}{U}
+  type Instant
+  spell {
+    counter target spell unless its controller pays {2}
+    suspect up to 1 target creature
+  }
+}

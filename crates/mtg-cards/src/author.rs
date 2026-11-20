@@ -64,7 +64,8 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 116] = [
+const TEMPLATED_TAGS: [&str; 117] = [
+    "Suspect",
     "Collect evidence",
     "Blight",
     "Manifest dread",
@@ -1027,6 +1028,10 @@ impl Templates {
             }),
             (r(r"^[Mm]anifest dread$"), |_, _| {
                 Some("manifest dread".to_string())
+            }),
+            // CR 701.60a: "Suspect it.", "suspect up to one target creature".
+            (r(r"^[Ss]uspect (.+)$"), |c, t| {
+                Some(format!("suspect {}", recipient(cap(c, 1), t)?))
             }),
             (
                 r(

@@ -1,0 +1,7 @@
+card "Requiting Hex" {
+  oracle_id eda16b31-33db-4ad2-901a-80fbe6273733
+  cost {B}
+  type Instant
+  additional cost may blight 1
+  spell: destroy target creature with mana value 2 or less; if additional cost paid, you gain 2 life
+}

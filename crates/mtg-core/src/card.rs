@@ -4057,6 +4057,7 @@ impl Effect {
                 | Effect::Dig { .. }
                 | Effect::ManifestDread
                 | Effect::Blight(_)
+                | Effect::BlightBy { .. }
                 | Effect::Connive { .. }
                 | Effect::CastExiled(_)
                 | Effect::CastCipherCopy

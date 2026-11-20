@@ -1,0 +1,107 @@
+# Blight N (CR 701.68): put N -1/-1 counters on a creature you control. As
+# an optional additional cost ("you may blight 1", paid with `kicked`),
+# "if this spell's additional cost was paid" reads it; "each opponent
+# blights 1" has each opponent choose a creature of their own.
+
+scenario "blight: the optional cost paid, four damage instead" {
+  battlefield A: "Mountain", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Cinder Strike"
+  turn 1 A: cast "Cinder Strike" kicked targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert counters "Hill Giant" -1/-1 1
+}
+
+scenario "blight: not paid, two damage" {
+  battlefield A: "Mountain", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Cinder Strike"
+  turn 1 A: cast "Cinder Strike" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert damage "Serra Angel" 2
+  assert counters "Hill Giant" -1/-1 0
+}
+
+scenario "blight: without a creature the cost can't be paid" {
+  battlefield A: "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Cinder Strike"
+  turn 1 A: cast "Cinder Strike" kicked targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert damage "Serra Angel" 2
+}
+
+scenario "blight: if the additional cost was paid, gain 2 life" {
+  battlefield A: "Swamp", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Requiting Hex"
+  turn 1 A: cast "Requiting Hex" kicked targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 22
+}
+
+scenario "blight: if you do, create Goblins" {
+  battlefield A: 4 "Mountain", "Hill Giant"
+  hand A: "Sourbread Auntie"
+  turn 1 A: cast "Sourbread Auntie"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" -1/-1 2
+  assert battlefield A contains 2 "Goblin"
+}
+
+scenario "blight: if you don't, lose 3 life" {
+  battlefield A: "Gutsplitter Gang"
+  start turn 3 A
+  turn 3 A: decline "Gutsplitter Gang"
+  run_to turn 3 postcombat_main
+  assert life A 17
+  assert counters "Gutsplitter Gang" -1/-1 0
+}
+
+scenario "blight: if you do, no life lost" {
+  battlefield A: "Gutsplitter Gang"
+  start turn 3 A
+  run_to turn 3 postcombat_main
+  assert life A 20
+  assert counters "Gutsplitter Gang" -1/-1 2
+}
+
+scenario "blight: each opponent blights 1" {
+  battlefield A: 2 "Swamp", 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "High Perfect Morcant"
+  turn 1 A: cast "High Perfect Morcant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" -1/-1 1
+  assert counters "High Perfect Morcant" -1/-1 0
+}
+
+scenario "blight: as an activated ability's cost" {
+  battlefield A: 2 "Mountain", "Sting-Slinger"
+  turn 1 A: activate "Sting-Slinger"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Sting-Slinger" -1/-1 1
+}
+
+scenario "blight: when you do, haste" {
+  battlefield A: "Warren Torchmaster", "Hill Giant"
+  start turn 3 A
+  turn 3 A: choose "Hill Giant"
+  turn 3 A: trigger "Warren Torchmaster" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert counters "Hill Giant" -1/-1 1
+  assert has "Hill Giant" haste
+}
+
+scenario "blight: return from the graveyard by blighting" {
+  battlefield A: 2 "Plains", "Hill Giant"
+  graveyard A: "Evershrike's Gift"
+  turn 1 A: activate "Evershrike's Gift"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Evershrike's Gift"
+  assert counters "Hill Giant" -1/-1 2
+}

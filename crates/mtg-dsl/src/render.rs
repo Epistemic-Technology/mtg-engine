@@ -3469,7 +3469,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("suspect {o}"))
         }
         Effect::Suspect { what, on: false } => {
-            let s = ctx.subj(*what);
+            // "All suspected creatures are no longer suspected."
+            let s = if matches!(what, Recipient::Group(_)) {
+                ctx.obj_all(*what)
+            } else {
+                ctx.subj(*what)
+            };
             Clause::with_subject(
                 *what,
                 s,
@@ -5818,6 +5823,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "If this spell was kicked, those creatures also gain trample".
             let cond = if kicked {
                 format!("this {} was kicked", kicked_noun(ctx.card))
+            } else if matches!(c, StaticCond::Suspected(_))
+                && !is_spell(ctx.card)
+                && !ctx.source_mentioned
+            {
+                // "If this creature is suspected, put a +1/+1 counter on
+                // it.": the source named in the condition, "it" after.
+                ctx.source_mentioned = true;
+                static_cond_text(c, ctx.card).replacen(
+                    "it's",
+                    &format!("this {} is", self_noun(ctx.card)),
+                    1,
+                )
             } else {
                 static_cond_text(c, ctx.card)
             };
@@ -6020,7 +6037,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // creature instead".
             let kicked = matches!(
                 cond,
-                InsteadCond::Kicked | InsteadCond::Static(StaticCond::Teamwork)
+                InsteadCond::Kicked
+                    | InsteadCond::Static(
+                        StaticCond::Teamwork
+                            | StaticCond::AdditionalCostPaid
+                            | StaticCond::EvidenceCollected
+                    )
             );
             let cond = match cond {
                 InsteadCond::Kicked => format!("this {} was kicked", kicked_noun(ctx.card)),
@@ -7164,7 +7186,9 @@ fn trigger_subject(o: &TriggerObj, ctx: &mut Ctx) -> String {
                 .strip_prefix("an ")
                 .or_else(|| p.strip_prefix("a "))
                 .unwrap_or(&p);
-            format!("this {} or another {p}", self_noun(ctx.card))
+            // "Whenever High Perfect Morcant or another Elf you control
+            // enters": a legendary source by name (CR 201.5).
+            format!("{} or another {p}", this_ref(ctx.card))
         }
     }
 }

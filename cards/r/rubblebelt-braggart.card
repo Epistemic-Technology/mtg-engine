@@ -1,0 +1,7 @@
+card "Rubblebelt Braggart" {
+  oracle_id 4ae7f959-9f44-4769-8bd3-49ca18928aba
+  cost {4}{R}
+  type Creature — Lizard Warrior
+  pt 5/5
+  triggered whenever this attacks if not suspected: you may suspect it
+}
