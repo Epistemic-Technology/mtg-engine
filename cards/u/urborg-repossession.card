@@ -1,0 +1,7 @@
+card "Urborg Repossession" {
+  oracle_id 0c0eeb01-62e7-4a7f-923d-a7b830e4c83b
+  cost {B}
+  type Sorcery
+  kicker {1}{G}
+  spell: return target creature card from your graveyard to hand; you gain 2 life; if kicked, return another target permanent card from your graveyard to hand
+}

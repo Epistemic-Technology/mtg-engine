@@ -1,0 +1,6 @@
+card "Oblivion's Hunger" {
+  oracle_id 517be4da-9aa0-4a83-a559-962df0450f2c
+  cost {1}{B}
+  type Instant
+  spell: target creature you control gains indestructible; draw 1 card if that target 1 is with +1/+1 counter
+}

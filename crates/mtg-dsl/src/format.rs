@@ -1542,8 +1542,13 @@ impl Fmt {
                 )
             }
             Effect::IfTarget(n, f, inner, check) if check.after => format!(
-                "{} if target {} is {}",
+                "{} if {}target {} is {}",
                 self.line(inner, t),
+                if check.tense == crate::ast::TargetTense::ThatIs {
+                    "that "
+                } else {
+                    ""
+                },
                 n + 1,
                 filter(f)
             ),
@@ -2145,7 +2150,8 @@ fn outcome(o: &Outcome) -> String {
         Outcome::WinGame => "win".to_string(),
         Outcome::EnterTappedUnless(_)
         | Outcome::EnterWithCountersIf { .. }
-        | Outcome::EnterWithCountersMay { .. } => {
+        | Outcome::EnterWithCountersMay { .. }
+        | Outcome::EnterWithCounterChoice { .. } => {
             unreachable!("an AST ability of its own")
         }
         Outcome::EnterTapped => "tapped".to_string(),
@@ -2398,6 +2404,9 @@ fn filter_one(f: &Filter) -> String {
         Some(mtg_core::card::CounterQual::Any) => words.push("with counter".to_string()),
         Some(mtg_core::card::CounterQual::Kind(k)) => {
             words.push(format!("with {} counter", k.name()));
+        }
+        Some(mtg_core::card::CounterQual::AtLeast(k, n)) => {
+            words.push(format!("with {n} or more {} counters", k.name()));
         }
         None => {}
     }
@@ -3489,7 +3498,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::OpponentLostLifeThisTurn => "opponent lost life this turn".to_string(),
         StaticCond::PermanentLeftThisTurn => "permanent left this turn".to_string(),
         StaticCond::Escaped => unreachable!("only in `escapes with`"),
-        StaticCond::Kicked => unreachable!("only in `kicked with`"),
+        StaticCond::Kicked => "kicked".to_string(),
         StaticCond::Bargained => "bargained".to_string(),
         StaticCond::ManaSpent {
             kind,
@@ -4060,6 +4069,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::EscapesWith(n) => {
                     format!("escapes with {n} +1/+1 counters")
                 }
+                crate::ast::Mechanic::CounterChoice([a, b], escapes) => format!(
+                    "{} with choice {} or {}",
+                    if *escapes { "escapes" } else { "enters" },
+                    counter(*a, Num::N(1)),
+                    counter(*b, Num::N(1))
+                ),
                 crate::ast::Mechanic::Bloodthirst(n) => format!("bloodthirst {n}"),
                 crate::ast::Mechanic::KickedWith(n, ks) if ks.is_empty() => {
                     format!("kicked with {n} +1/+1 counters")

@@ -1,0 +1,10 @@
+card "Timely Interference" {
+  oracle_id d64feb23-8259-4445-9b40-efc8b4466679
+  cost {U}
+  type Instant
+  kicker {1}{R}
+  spell {
+  target creature gets -1/-0; if kicked, that target 1 blocks this turn if able
+  draw 1 card
+  }
+}

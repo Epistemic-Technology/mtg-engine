@@ -1975,7 +1975,15 @@ impl GameState {
     }
 
     fn after_additional(&self, spell: ObjId) -> Flow {
-        if self.kicker_payable(spell) {
+        // A kicked spell needs the targets only kicking gives it (CR
+        // 601.2c).
+        let def = self.pool.get(self.objects[spell].def);
+        let kicked_targets = def.kicker_targets.is_none_or(|_| {
+            let p = self.objects[spell].controller;
+            def.spell_ability()
+                .is_none_or(|(t, _)| self.targets_available(p, t, Some(spell)))
+        });
+        if kicked_targets && self.kicker_payable(spell) {
             Flow::ChoosingKicker { spell }
         } else {
             self.after_kicker(spell)

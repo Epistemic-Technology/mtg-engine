@@ -1087,6 +1087,8 @@ pub enum CounterQual {
     Any,
     /// "with a +1/+1 counter on it".
     Kind(CounterKind),
+    /// "with three or more level counters on it".
+    AtLeast(CounterKind, u32),
 }
 
 impl StatusQuals {
@@ -4005,6 +4007,14 @@ pub enum Replacement {
     /// Its controller may have it enter with N more counters (unleash, CR
     /// 702.98a).
     EnterWithCountersMay { kind: CounterKind, n: u32 },
+    /// "This creature enters with your choice of a flying counter or a
+    /// first strike counter on it" (CR 614.1c, 122.1b): its controller
+    /// chooses one of `kinds` as it enters; with `cond` ("escapes with
+    /// ..."), only while the pool's condition holds.
+    EnterWithCounterChoice {
+        kinds: [CounterKind; 2],
+        cond: Option<u16>,
+    },
     /// CR 701.15a: instead of being destroyed, the permanent has all damage
     /// removed, is tapped, and leaves combat. A stored shield; used once.
     Regenerate,
@@ -5023,13 +5033,15 @@ impl AbilityDef {
         }
     }
 
-    /// "You may have this permanent enter with ..." (unleash, CR 702.98a):
-    /// its controller is asked as it enters.
+    /// "You may have this permanent enter with ..." (unleash, CR 702.98a)
+    /// or "enters with your choice of ...": its controller is asked as it
+    /// enters.
     pub const fn enters_may(&self) -> bool {
         matches!(
             self,
             AbilityDef::Replacement(ReplacementAbility {
-                replacement: Replacement::EnterWithCountersMay { .. },
+                replacement: Replacement::EnterWithCountersMay { .. }
+                    | Replacement::EnterWithCounterChoice { .. },
                 ..
             })
         )
@@ -5168,6 +5180,11 @@ pub struct CardDef {
     /// Kicker (CR 702.33): an optional additional mana cost chosen as the
     /// spell is cast.
     pub kicker: Option<Box<ManaCost>>,
+    /// The spell's targets from this index on are chosen only if it was
+    /// kicked ("If this spell was kicked, return another target permanent
+    /// card ...", CR 601.2c).
+    #[serde(default)]
+    pub kicker_targets: Option<u8>,
     /// What this spell's own text takes off its cost (affinity).
     pub self_cost: Option<SelfCost>,
     /// "This spell costs {3} less to cast if it targets a tapped
@@ -6550,7 +6567,11 @@ impl CardPool {
         });
         def.spent = self.spent_use(&def);
         def.cast_targets = match def.spell_ability() {
-            Some((t, _)) => t.to_vec(),
+            // Targets only a kicked spell has aren't needed to cast it.
+            Some((t, _)) => t[..def
+                .kicker_targets
+                .map_or(t.len(), |n| t.len().min(n.into()))]
+                .to_vec(),
             None => def.enchant().into_iter().collect(),
         };
         let mut flags = DefFlags::of(&def.abilities, def.keywords);
@@ -6743,6 +6764,7 @@ impl Builder {
             except_flags: DefFlags::default(),
             additional: Cost::default(),
             kicker: None,
+            kicker_targets: None,
             self_cost: None,
             buyback: None,
             buyback_sacrifice: None,
@@ -7012,6 +7034,14 @@ impl Builder {
     #[must_use]
     pub fn uncounterable(mut self) -> Self {
         self.0.uncounterable = true;
+        self
+    }
+
+    /// Targets chosen only if the spell is kicked (see
+    /// `CardDef::kicker_targets`).
+    #[must_use]
+    pub fn kicker_targets(mut self, from: u8) -> Self {
+        self.0.kicker_targets = Some(from);
         self
     }
 

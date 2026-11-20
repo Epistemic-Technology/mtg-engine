@@ -1,0 +1,8 @@
+card "Tizerus Charger" {
+  oracle_id 8f94754d-fb2a-4634-a1de-049c82fa6f30
+  cost {2}{B}
+  type Creature — Pegasus
+  pt 3/2
+  escape {4}{B} exile 5
+  escapes with choice +1/+1 counter or flying counter
+}

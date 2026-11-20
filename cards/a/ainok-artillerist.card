@@ -1,0 +1,7 @@
+card "Ainok Artillerist" {
+  oracle_id 860d0449-8032-458b-8335-30be238d6689
+  cost {2}{G}
+  type Creature — Dog Archer
+  pt 4/1
+  static this: has reach as long as this has 1 or more +1/+1 counters
+}

@@ -1882,8 +1882,17 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     // "creature you control with a +1/+1 counter on it" (after the
     // controller, as Oracle prints it).
-    if let Some(q) = f.status.counter {
+    if let Some(mtg_core::card::CounterQual::AtLeast(k, n)) = f.status.counter {
+        let _ = write!(
+            s,
+            " with {} or more {} counters on {}",
+            count_words(Num::N(n), "one"),
+            counter_name(k),
+            if plural_form { "them" } else { "it" }
+        );
+    } else if let Some(q) = f.status.counter {
         let kind = match q {
+            mtg_core::card::CounterQual::AtLeast(..) => unreachable!("above"),
             mtg_core::card::CounterQual::Any => String::new(),
             mtg_core::card::CounterQual::Kind(k) => format!("{} ", counter_name(k)),
         };
@@ -5308,12 +5317,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::IfCondition(c, inner, also) => {
             let also = *also == crate::ast::IfWording::Also;
-            let cond = static_cond_text(c, ctx.card);
+            let kicked = *c == StaticCond::Kicked;
+            // "If this spell was kicked, those creatures also gain trample".
+            let cond = if kicked {
+                format!("this {} was kicked", kicked_noun(ctx.card))
+            } else {
+                static_cond_text(c, ctx.card)
+            };
             // "Adamant — If at least three red mana was spent to cast this
             // spell, Searing Barrage deals 3 damage ...": a spell names
             // itself again after a condition ("If you control an
             // Equipment, Misthios's Fury also deals ...").
-            if is_spell(ctx.card) {
+            if is_spell(ctx.card) && !kicked {
                 ctx.source_mentioned = false;
             }
             let body = sentences(inner, ctx);
@@ -5569,6 +5584,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 body
             } else {
                 lowercase_first(&body)
+            };
+            // "If this spell was kicked, they get +1/+1 until end of turn."
+            let body = match body.strip_prefix("those creatures ") {
+                Some(rest) => format!("they {rest}"),
+                None => body,
             };
             Clause::imperative(format!(
                 "if this spell was kicked, {}",
@@ -8391,6 +8411,13 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
         }
     } else {
         let stem = body.strip_suffix('.').unwrap_or(body);
+        // "This creature has flying as long as it has a +1/+1 counter on
+        // it."
+        if matches!(c, StaticCond::SourceCounters { at_least: true, .. })
+            && body.starts_with(&capitalize(&this_ref(card)))
+        {
+            cond = cond.replacen(&format!("this {} has", self_noun(card)), "it has", 1);
+        }
         format!("{stem} as long as {cond}.")
     }
 }
@@ -8830,6 +8857,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "{} escapes with {} on it.",
                 capitalize(&this_ref(card)),
                 counters(Num::N(*n), CounterKind::PlusOnePlusOne)
+            ),
+            crate::ast::Mechanic::CounterChoice([a, b], escapes) => format!(
+                "{} {} with your choice of {} or {} on it.",
+                capitalize(&this_ref(card)),
+                if *escapes { "escapes" } else { "enters" },
+                counters(Num::N(1), *a),
+                counters(Num::N(1), *b)
             ),
             crate::ast::Mechanic::Bloodthirst(n) => format!("Bloodthirst {n}"),
             crate::ast::Mechanic::KickedWith(n, ks) => {

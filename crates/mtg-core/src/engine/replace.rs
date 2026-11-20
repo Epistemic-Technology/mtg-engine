@@ -1098,6 +1098,45 @@ impl GameState {
                     },
                 })
             }
+            (
+                Replacement::EnterWithCounterChoice { kinds, cond },
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => {
+                let applies = cond
+                    .is_none_or(|c| self.condition_now(self.pool.condition(c), controller, obj));
+                let counters = if applies {
+                    let def = self.objects[obj].def;
+                    let i = self.choose_mid(
+                        controller,
+                        DecisionKind::ChooseOption { def },
+                        vec![Choice::Mode(0), Choice::Mode(1)],
+                    );
+                    let kind = kinds[i.min(1)];
+                    match enter.counters {
+                        Some((k, m)) if k == kind => Some((k, m + 1)),
+                        Some(other) => Some(other),
+                        None => Some((kind, 1)),
+                    }
+                } else {
+                    enter.counters
+                };
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter: Enter {
+                        tapped: enter.tapped,
+                        counters,
+                    },
+                })
+            }
             // `applies` only offers matching pairs.
             (_, ev) => Outcome::Event(ev),
         };

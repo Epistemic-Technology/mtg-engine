@@ -100,6 +100,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         }),
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
         kicker: def.kicker.as_deref().cloned(),
+        kicker_targets: def.kicker_targets,
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
         // Unleash's second static ability comes back with its keyword line.
@@ -1747,6 +1748,10 @@ impl Decompiler<'_> {
                 effects: self.sentences(&t.effects),
                 from_graveyard: t.from_graveyard,
             },
+            AbilityDef::Replacement(ReplacementAbility {
+                replacement: mtg_core::card::Replacement::EnterWithCounterChoice { kinds, cond },
+                ..
+            }) => Ability::Mechanic(crate::ast::Mechanic::CounterChoice(*kinds, cond.is_some())),
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                 ..

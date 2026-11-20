@@ -1,0 +1,7 @@
+card "Boot Nipper" {
+  oracle_id e6337404-2978-47a8-a5ae-4a70add2df69
+  cost {1}{B}
+  type Creature — Beast
+  pt 2/1
+  enters with choice deathtouch counter or lifelink counter
+}

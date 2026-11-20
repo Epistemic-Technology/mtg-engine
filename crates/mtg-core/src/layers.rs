@@ -351,6 +351,12 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                             Some(source),
                             Some(you),
                         )
+                        // "a creature with three or more level counters
+                        // on it".
+                        && filter
+                            .status
+                            .counter
+                            .is_none_or(|q| state.objects[**id].counters_match(q))
                 })
                 .count();
             n >= *at_least as usize

@@ -8537,9 +8537,13 @@ impl GameState {
                     || c.abilities.iter().any(|a| {
                         matches!(self.pool.ability(*a), crate::card::AbilityDef::Toxic(_))
                     }))
-        }) && (!(filter.attacking || filter.blocking || filter.tapped.is_some())
-            // "If that creature is attacking": its state while it is still
-            // on the battlefield.
+        }) && (!(filter.attacking
+            || filter.blocking
+            || filter.tapped.is_some()
+            || filter.status.counter.is_some())
+            // "If that creature is attacking", "If that creature has a
+            // +1/+1 counter on it": its state while it is still on the
+            // battlefield.
             || (self
                 .objects
                 .get(id)

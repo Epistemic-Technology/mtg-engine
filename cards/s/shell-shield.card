@@ -1,0 +1,7 @@
+card "Shell Shield" {
+  oracle_id 73535033-2875-4a82-98d5-84548e349f13
+  cost {U}
+  type Instant
+  kicker {1}
+  spell: target creature you control gets +0/+3; if kicked, also that target 1 gains hexproof
+}

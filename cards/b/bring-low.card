@@ -1,0 +1,6 @@
+card "Bring Low" {
+  oracle_id cfe4d707-41b3-4897-b13a-dcae8f1f3350
+  cost {3}{R}
+  type Instant
+  spell: deal 3 damage to target creature; if that target 1 is with +1/+1 counter, deal 5 damage to target 1 instead
+}

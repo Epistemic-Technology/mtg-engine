@@ -123,6 +123,10 @@ pub struct Card {
     pub flash_if: Option<StaticCond>,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
+    /// The spell's targets from this index on are declared in its `if
+    /// kicked, ...` and chosen only if it is kicked (CR 601.2c); set by
+    /// the parser, never written.
+    pub kicker_targets: Option<u8>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
     pub flashback: Option<Cost>,
     /// Filters behind `Recipient::Group`, in order of first mention.
@@ -168,6 +172,7 @@ impl Card {
             alt_cost: None,
             flash_if: None,
             kicker: None,
+            kicker_targets: None,
             flashback: None,
             groups: Vec::new(),
             abilities: Vec::new(),
@@ -1083,6 +1088,10 @@ pub enum Mechanic {
     Escape(ManaCost, u32),
     /// `escapes with 2 +1/+1 counters`.
     EscapesWith(u32),
+    /// `enters with choice flying counter or first strike counter`: "This
+    /// creature enters with your choice of a flying counter or a first
+    /// strike counter on it." (CR 614.1c); `true`: "escapes with ...".
+    CounterChoice([CounterKind; 2], bool),
     /// `kicked with 2 +1/+1 counters [and first strike]`: "If this
     /// creature was kicked, it enters with two +1/+1 counters on it [and
     /// with first strike]." (CR 702.33c, 614.1c).

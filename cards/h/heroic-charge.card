@@ -1,0 +1,7 @@
+card "Heroic Charge" {
+  oracle_id 862511a3-672f-44fe-8121-a9afe1d1404f
+  cost {2}{W}{W}
+  type Instant
+  kicker {1}{R}
+  spell: each creature you control gets +2/+1; if kicked, also each creature you control gains trample
+}
