@@ -630,7 +630,16 @@ fn cost_spells_subject(f: &Filter, card: &Card) -> String {
             .collect();
         return format!("{} and {}", words[0], lowercase_first(&words[1]));
     }
-    spells_subject(f, card)
+    // "Creature spells with flying you cast": the keyword quality follows
+    // "spells".
+    let subject = spells_subject(f, card);
+    if !f.keywords.is_empty()
+        && let Some(head) = subject.strip_suffix(" spells")
+        && let Some((head, quality)) = head.split_once(" with ")
+    {
+        return format!("{head} spells with {quality}");
+    }
+    subject
 }
 
 fn spells_subject(f: &Filter, card: &Card) -> String {
@@ -655,12 +664,6 @@ fn spells_subject(f: &Filter, card: &Card) -> String {
             format!("{rest} {joined}")
         }
     };
-    // "Creature spells with flying": the keyword quality follows "spells".
-    if !f.keywords.is_empty()
-        && let Some((head, quality)) = noun.trim().split_once(" with ")
-    {
-        return capitalize(&format!("{head} spells with {quality}"));
-    }
     capitalize(&format!("{} spells", noun.trim()))
 }
 
