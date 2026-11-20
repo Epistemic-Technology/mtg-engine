@@ -3552,6 +3552,12 @@ pub enum Effect {
     },
     /// "Pay {E}{E}", inside "you may": like `Pay`.
     PayEnergy(u32),
+    /// "Level 2" (a Class's level ability, CR 716.2a: the stage is the
+    /// level less one) or "it becomes solved" (a Case's to-solve ability,
+    /// CR 719.3a: stage 1): the source becomes that stage of its card
+    /// (`CardDef::stages`) if it is at an earlier one, gaining the
+    /// abilities the stage adds (CR 716.2b, 719.3b).
+    BecomeStage(u8),
     /// "You become the monarch" (CR 725): `You`, or for the monarch's own
     /// combat-damage trigger `TriggeringController` (CR 725.2).
     BecomeMonarch {
@@ -4661,6 +4667,9 @@ pub enum TriggerSpec {
     /// counters put on the source take their number from below `n` to `n`
     /// or more (CR 714.2c), once for each chapter number so crossed.
     Chapter(u16),
+    /// "When this Class becomes level 2" (CR 716.2c): the source becomes
+    /// that stage of its card (`Effect::BecomeStage`).
+    BecomesStage(u8),
 }
 
 /// Which of a player's spells this turn a cast trigger wants.
@@ -4792,6 +4801,7 @@ impl TriggerSpec {
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
             TriggerSpec::UnlocksDoor { .. }
+            | TriggerSpec::BecomesStage(_)
             | TriggerSpec::FullyUnlocks { .. }
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
@@ -5601,6 +5611,12 @@ pub struct CardDef {
     /// fully locked and fully unlocked states.
     #[serde(default)]
     pub doors: Option<Box<RoomDoors>>,
+    /// A Class's levels (CR 716) or a Case's unsolved and solved states
+    /// (CR 719), in order, the first the card itself: each a definition
+    /// with the abilities it has then. Set by `CardPool::set_stages` on
+    /// every one of them; empty for other cards.
+    #[serde(default)]
+    pub stages: Vec<CardRef>,
     /// Ascend, start your engines!, and becoming day as it enters
     /// (`Marks`).
     #[serde(default)]
@@ -7366,6 +7382,14 @@ impl CardPool {
         r
     }
 
+    /// Link a Class's levels or a Case's states (`CardDef::stages`), the
+    /// card itself first.
+    pub fn set_stages(&mut self, stages: &[CardRef]) {
+        for r in stages {
+            self.defs[r.0 as usize].stages = stages.to_vec();
+        }
+    }
+
     /// Make `r` findable by `key` as well as its name.
     pub fn alias(&mut self, key: &str, r: CardRef) {
         self.by_name.insert(key.to_string(), r);
@@ -7566,6 +7590,7 @@ impl Builder {
             defense: 0,
             rooms: Vec::new(),
             doors: None,
+            stages: Vec::new(),
             marks: Marks::NONE,
             copy_except: None,
             subtype_ids: SubtypeSet::new(),

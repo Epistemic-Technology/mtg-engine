@@ -1,0 +1,66 @@
+# Classes (CR 716): a Class starts at level 1 with its first class
+# ability. "{2}{U}: Level 2" is activated only as a sorcery and only while
+# it is level 1 (CR 716.2a); as it resolves, the Class becomes level 2 and
+# gains that level's ability as well (CR 716.2b), and "When this Class
+# becomes level 2" triggers (CR 716.2c). The level is lost as the Class
+# leaves the battlefield.
+
+scenario "class: gain a level and its trigger" {
+  battlefield A: "Wizard Class", 3 "Island"
+  library A: "Island", "Island", "Island"
+  turn 1 A: activate "Wizard Class"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert tapped oldest "Island"
+}
+
+scenario "class: a level ability only as a sorcery" {
+  battlefield A: "Wizard Class", 3 "Island"
+  start turn 2 B
+  illegal turn 2 A: activate "Wizard Class"
+  run_to turn 2 end
+  assert untapped oldest "Island"
+}
+
+scenario "class: the next level's ability only once the level before is gained" {
+  battlefield A: "Wizard Class", 5 "Island"
+  library A: "Island", "Island", "Island"
+  turn 1 A: activate "Wizard Class"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Wizard Class"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "class: level 3's ability, with level 1's kept" {
+  battlefield A: "Wizard Class", 8 "Island", "Grizzly Bears"
+  library A: "Island", "Island", "Island", "Island"
+  turn 1 A: activate "Wizard Class"
+  turn 1 A: wait
+  turn 1 A: activate "Wizard Class"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+  run_to turn 3 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert hand A count 3
+}
+
+scenario "class: level 3's ability isn't there at level 2" {
+  battlefield A: "Wizard Class", 3 "Island", "Grizzly Bears"
+  library A: "Island", "Island", "Island", "Island"
+  turn 1 A: activate "Wizard Class"
+  run_to turn 3 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "class: level 3 blinks the creature, not the Class" {
+  battlefield A: "Gossip's Talent", 6 "Island", "Grizzly Bears"
+  turn 1 A: activate "Gossip's Talent"
+  turn 1 A: wait
+  turn 1 A: activate "Gossip's Talent"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Grizzly Bears"
+  assert battlefield A contains "Gossip's Talent"
+}

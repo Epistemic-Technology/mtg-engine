@@ -844,6 +844,10 @@ impl GameState {
                 },
             ) => (*obj == w.source && chapters_crossed(*mask, *before, *n) != 0)
                 .then_some((Some(*obj), Some(w.controller))),
+            // CR 716.2c: "When this Class becomes level 2".
+            (TriggerSpec::BecomesStage(k), Event::StageChanged { obj, stage }) => {
+                (*obj == w.source && stage == k).then_some((Some(*obj), Some(w.controller)))
+            }
             (TriggerSpec::BecomesTarget(what), Event::Targeted { target: obj, .. })
             | (TriggerSpec::BecomesTapped(what), Event::Tapped { obj })
             | (TriggerSpec::BecomesUntapped(what), Event::Untapped { obj })

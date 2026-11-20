@@ -6901,6 +6901,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         Trigger::UnlocksDoor => "when you unlock this door".to_string(),
         Trigger::Chapter(ns) => chapter_numerals(ns),
+        Trigger::BecomesLevel(n) => format!("when {} becomes level {n}", this(ctx)),
         Trigger::FullyUnlocks => "whenever you fully unlock a Room".to_string(),
         Trigger::AttacksBattle(TriggerObj::This) => {
             format!("whenever {} attacks a battle", this(ctx))
@@ -9718,6 +9719,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let ks: Vec<String> = keywords.iter().map(|k| capitalize(k.name())).collect();
             format!("{n}+ | {}", ks.join(", "))
         }
+        // CR 716.2a, 719.2.
+        Ability::ClassLevel { level, cost } => format!("{cost}: Level {level}"),
+        Ability::ToSolve(c) => format!("To solve — {}.", capitalize(&static_cond_text(c, card))),
+        Ability::Solved(inner) => format!("Solved — {}", ability_text(card, inner, lookup)),
         Ability::CrewsAs {
             saddles,
             toughness,

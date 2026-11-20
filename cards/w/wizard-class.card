@@ -1,0 +1,10 @@
+card "Wizard Class" {
+  oracle_id 36f68aa3-9955-46f1-bc87-497f16ef5222
+  cost {U}
+  type Enchantment — Class
+  hand size none
+  level 2 {2}{U}
+  triggered when this becomes level 2: draw 2 cards
+  level 3 {4}{U}
+  triggered whenever you draw a card: put 1 +1/+1 counters on target creature you control
+}

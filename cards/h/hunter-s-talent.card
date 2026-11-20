@@ -1,0 +1,10 @@
+card "Hunter's Talent" {
+  oracle_id a8a9b103-0cb8-4810-a2d7-42f6a10f80bd
+  cost {1}{G}
+  type Enchantment — Class
+  triggered when this enters: target creature you control bites target creature you don't control
+  level 2 {1}{G}
+  triggered whenever you attack: target attacking creature gets +1/+0 and gains trample
+  level 3 {3}{G}
+  triggered at beginning of your end step if you control creature with power 4 or greater: draw 1 card
+}

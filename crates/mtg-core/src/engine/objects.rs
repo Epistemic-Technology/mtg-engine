@@ -1450,6 +1450,36 @@ impl GameState {
 
     /// Unlock a Room's door (CR 709.5e-f): the permanent takes the
     /// definition of its new set of unlocked doors.
+    /// A Class gains a level or a Case becomes solved (CR 716.2a,
+    /// 719.3a): the permanent becomes that stage of its card, if it is at
+    /// an earlier one. It stays the same object.
+    pub(super) fn become_stage(&mut self, id: ObjId, stage: u8) {
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        if o.zone != Zone::Battlefield {
+            return;
+        }
+        let stages = &self.pool.get(o.def).stages;
+        let (Some(now), Some(&to)) = (
+            stages.iter().position(|s| *s == o.def),
+            stages.get(usize::from(stage)),
+        ) else {
+            return;
+        };
+        if now >= usize::from(stage) {
+            return;
+        }
+        let flags = self.flags_of(&self.objects[id]);
+        let legendary = self.pool.get(self.objects[id].def).is_legendary();
+        self.count_sources(flags, legendary, false);
+        self.objects[id].def = to;
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, legendary, true);
+        self.cbump();
+        self.emit(Event::StageChanged { obj: id, stage });
+    }
+
     pub(super) fn unlock(&mut self, id: ObjId, door: u8) {
         let Some(o) = self.objects.get(id) else {
             return;

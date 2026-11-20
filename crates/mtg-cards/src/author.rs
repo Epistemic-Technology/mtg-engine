@@ -64,8 +64,10 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 113] = [
+const TEMPLATED_TAGS: [&str; 115] = [
     "Transform",
+    "To solve",
+    "Solved",
     "Role token",
     "Landcycling",
     "Basic landcycling",
@@ -1810,6 +1812,10 @@ fn trigger_text(head: &str) -> Option<String> {
         .replace("this Vehicle", "this creature")
         .replace("this Equipment", "this artifact");
     let head = head.as_str();
+    // CR 716.2c: "When this Class becomes level 2".
+    if let Some(n) = head.strip_prefix("When this enchantment becomes level ") {
+        return Some(format!("when this becomes level {n}"));
+    }
     let t = match head {
         "When this creature enters"
         | "When this land enters"
@@ -2243,6 +2249,34 @@ impl Builder<'_> {
 
     #[allow(clippy::too_many_lines)]
     fn line(&mut self, line: &str) -> Result<(), Skip> {
+        // CR 716.2a: "{R}{G}: Level 2".
+        if let Some(c) = Regex::new(r"^((?:\{[0-9WUBRGC]+\})+): Level (\d)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("level {} {}", cap(&c, 2), cap(&c, 1)));
+            return Ok(());
+        }
+        // CR 719.2: "To solve — <condition>." and "Solved — <ability>".
+        if let Some(rest) = line.strip_prefix("To solve \u{2014} ") {
+            let cond = rest
+                .strip_suffix('.')
+                .and_then(|c| static_condition(&lowercase_first(c)))
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            self.statements.push(format!("to solve {cond}"));
+            return Ok(());
+        }
+        if let Some(rest) = line.strip_prefix("Solved \u{2014} ") {
+            let before = self.statements.len();
+            self.line(rest)?;
+            if self.statements.len() != before + 1 {
+                return Err(Skip::Sentence(line.to_string()));
+            }
+            let st = self.statements.pop().unwrap_or_default();
+            self.statements.push(format!("solved {st}"));
+            return Ok(());
+        }
         // CR 714.2: "I, II — <effects>", a chapter perhaps named ("I — Wark
         // — <effects>").
         if let Some(c) = Regex::new(
@@ -3206,7 +3240,8 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if matches!(s.layout.as_str(), "adventure" | "transform" | "split") && s.card_faces.len() == 2 {
         return author_faces(s, corpus);
     }
-    if s.name.contains(" // ") || !matches!(s.layout.as_str(), "normal" | "saga") {
+    if s.name.contains(" // ") || !matches!(s.layout.as_str(), "normal" | "saga" | "class" | "case")
+    {
         return Err(Skip::Layout(s.layout.clone()));
     }
     let type_line = s.type_line.clone().unwrap_or_default();
