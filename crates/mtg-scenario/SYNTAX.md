@@ -138,6 +138,7 @@ assert counters "Grizzly Bears" +1/+1 3     assert counters "Jace Beleren" loyal
 assert attached "Holy Strength" to "Grizzly Bears"
 assert no_abilities "Serra Angel"
 assert has newest A "Grizzly Bears" haste   # the most recent of several
+assert known A "Island"     assert unknown B "Island"   # a card in a library or hand revealed to / looked at by that player
 ```
 
 Zones: `battlefield` (by controller), `hand`, `graveyard`, `library`,

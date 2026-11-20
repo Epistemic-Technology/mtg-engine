@@ -1,0 +1,8 @@
+card "Saheeli's Silverwing" {
+  oracle_id ab5f6e83-a151-48b6-8cc5-3b2dae94079c
+  cost {4}
+  type Artifact Creature — Drake
+  pt 2/3
+  keywords flying
+  triggered when this enters: look at top card of target opponent
+}

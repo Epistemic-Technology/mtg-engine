@@ -3914,6 +3914,12 @@ impl P {
                     choice_first,
                 })
             }
+            // "That player looks at the top three cards of your library,
+            // then puts them back in any order."
+            "looks" if self.at_words(&["at", "top"]) => {
+                self.pos += 2;
+                self.look_at_top(Some(subject))
+            }
             "reveal" | "reveals" if self.at_words(&["top", "card"]) => {
                 self.pos += 2;
                 self.revealed = true;
@@ -4840,6 +4846,23 @@ impl P {
         }))
     }
 
+    /// After `look at top` / `<who> looks at top`: `3 [of <who>] [only]`.
+    fn look_at_top(&mut self, by: Option<Recipient>) -> R<Effect> {
+        let count = self.num()?;
+        let of = if self.eat_word("of") {
+            Some(self.recipient()?)
+        } else {
+            None
+        };
+        let only = self.eat_word("only");
+        Ok(Effect::LookAtTop {
+            count,
+            of,
+            by,
+            only,
+        })
+    }
+
     /// After `discarding`: `[may] card` or `[may] <filter> card`.
     fn discard_chosen(&mut self, who: Recipient, look: bool) -> R<Effect> {
         let may = self.eat_word("may");
@@ -5382,10 +5405,16 @@ impl P {
             "look" if self.at_words(&["at", "top", "card"]) => {
                 self.pos += 3;
                 self.revealed = true;
+                // "look at the top card of target player's library".
+                let who = if self.eat_word("of") {
+                    Some(self.recipient()?)
+                } else {
+                    None
+                };
                 Ok(Effect::RevealTop {
-                    who: None,
+                    of: who.is_some(),
+                    who,
                     look: true,
-                    of: false,
                 })
             }
             "reveal" if self.at_words(&["top", "card"]) => {
@@ -5419,7 +5448,7 @@ impl P {
             }
             "look" if self.at_words(&["at", "top"]) => {
                 self.pos += 2;
-                Ok(Effect::LookAtTop(self.num()?))
+                self.look_at_top(None)
             }
             "manifest" => {
                 self.eat_words(&["the", "top", "card", "of", "your", "library"]);

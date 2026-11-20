@@ -30,3 +30,65 @@ scenario "two typecycling abilities: not without the mana (Valley Rannet)" {
   run_to turn 1 postcombat_main
   assert hand A contains "Valley Rannet"
 }
+
+scenario "look at the top card of target player's library: the controller knows it (Merfolk Observer)" {
+  battlefield A: 2 "Island"
+  hand A: "Merfolk Observer"
+  library B: "Hill Giant", "Mountain"
+  turn 1 A: cast "Merfolk Observer"
+  turn 1 A: trigger "Merfolk Observer" targeting player B
+  run_to turn 1 postcombat_main
+  assert known A "Hill Giant"
+  assert unknown B "Hill Giant"
+  assert unknown A "Mountain"
+  assert library B count 2
+}
+
+scenario "look at the top card of each player's library (Case the Joint)" {
+  battlefield A: 4 "Island"
+  hand A: "Case the Joint"
+  library A: "Forest", "Plains", "Grizzly Bears"
+  library B: "Hill Giant", "Mountain"
+  turn 1 A: cast "Case the Joint"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A contains "Plains"
+  assert known A "Grizzly Bears"
+  assert known A "Hill Giant"
+  assert unknown B "Grizzly Bears"
+}
+
+scenario "look at the top three of target player's library (Orcish Spy)" {
+  battlefield A: "Orcish Spy"
+  library B: "Hill Giant", "Mountain", "Shock", "Grizzly Bears"
+  turn 1 A: activate "Orcish Spy" targeting player B
+  run_to turn 1 postcombat_main
+  assert known A "Hill Giant"
+  assert known A "Shock"
+  assert unknown A "Grizzly Bears"
+  assert tapped "Orcish Spy"
+}
+
+scenario "each player looks at the other's top three (Tahngarth's Glare)" {
+  battlefield A: "Mountain"
+  hand A: "Tahngarth's Glare"
+  library A: "Forest", "Plains", "Island", "Swamp"
+  library B: "Hill Giant", "Mountain", "Shock", "Grizzly Bears"
+  turn 1 A: cast "Tahngarth's Glare" targeting player B
+  run_to turn 1 postcombat_main
+  assert known A "Shock"
+  assert unknown A "Grizzly Bears"
+  assert known B "Island"
+  assert unknown B "Swamp"
+  assert unknown B "Shock"
+  assert unknown A "Forest"
+}
+
+scenario "look at the top card of target opponent's library: not your own (Saheeli's Silverwing)" {
+  battlefield A: 4 "Plains"
+  hand A: "Saheeli's Silverwing"
+  turn 1 A: cast "Saheeli's Silverwing"
+  illegal turn 1 A: trigger "Saheeli's Silverwing" targeting player A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Saheeli's Silverwing"
+}

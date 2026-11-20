@@ -1191,7 +1191,12 @@ put one of those cards back on top of your library. Put the rest into
 your graveyard.", the card kept stays on top), `look at top 3` ("look at
 the top three cards of your library, then put them back in any order";
 `look at top count where hand` puts "where X is the number of cards in
-your hand" before ", then put them back"),
+your hand" before ", then put them back"; `look at top 3 of target
+player`: "... of target player's library, then put them back in any
+order"; `look at top 3 of target player only` ends at "Look at the top
+three cards of target player's library."; `that player looks at top 3 of
+you`: "That player looks at the top three cards of your library, then puts
+them back in any order": the looker knows the cards where they are),
 `return 1 land you control chosen` ("return a land you control to its
 owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of
@@ -1530,7 +1535,9 @@ owner's hand` in a spell returns the resolving spell from the stack.
 card` "look at the top card of your library", `target player reveals top
 card` "Target player reveals the top card of their library", and `reveal
 top card of target opponent` "Reveal the top card of target opponent's
-library". The card stays where it is (CR 701.20b) and is `it` / `that
+library" (`look at top card of target player`: "look at the top card of
+target player's library"; `of each player`: "of each player's library").
+The card stays where it is (CR 701.20b) and is `it` / `that
 card` for the rest of the ability. `reveal until nonland card` is "reveal
 cards from the top of your library until you reveal a nonland card" (`its
 controller reveals until land card`: "Its controller reveals cards from

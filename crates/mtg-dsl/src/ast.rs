@@ -2756,8 +2756,18 @@ pub enum Effect {
         top: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
-    /// put them back in any order".
-    LookAtTop(Num),
+    /// put them back in any order"; `look at top 3 of target player`:
+    /// "... of target player's library, then put them back in any order";
+    /// `only` ends after the look ("Look at the top three cards of target
+    /// player's library."); with a subject (`by`), that player looks:
+    /// `that player looks at top 3 of you` ("That player looks at the top
+    /// three cards of your library, then puts them back in any order").
+    LookAtTop {
+        count: Num,
+        of: Option<Recipient>,
+        by: Option<Recipient>,
+        only: bool,
+    },
     /// `reveal top card` ("reveal the top card of your library"), `look at
     /// top card` ("look at the top card of your library"), `<who> reveals
     /// top card` ("target player reveals the top card of their library"),

@@ -577,11 +577,33 @@ impl Fmt {
                 unreachable!("only in expansions")
             }
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
-            Effect::LookAtTop(n) => format!("look at top {}", num(*n)),
+            Effect::LookAtTop {
+                count,
+                of,
+                by,
+                only,
+            } => {
+                let mut s = String::new();
+                if let Some(b) = by {
+                    s.push_str(&self.recipient(*b, t));
+                    s.push_str(" looks");
+                } else {
+                    s.push_str("look");
+                }
+                s.push_str(&format!(" at top {}", num(*count)));
+                if let Some(o) = of {
+                    s.push_str(&format!(" of {}", self.recipient(*o, t)));
+                }
+                if *only {
+                    s.push_str(" only");
+                }
+                s
+            }
             Effect::RevealTop { who, look, of } => match (who, look, of) {
                 (None, true, _) => "look at top card".to_string(),
                 (None, false, _) => "reveal top card".to_string(),
-                (Some(w), _, true) => format!("reveal top card of {}", self.recipient(*w, t)),
+                (Some(w), true, true) => format!("look at top card of {}", self.recipient(*w, t)),
+                (Some(w), false, true) => format!("reveal top card of {}", self.recipient(*w, t)),
                 (Some(w), _, false) => {
                     let v = if *w == Recipient::You {
                         "reveal"

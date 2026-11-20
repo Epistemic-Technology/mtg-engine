@@ -2200,6 +2200,20 @@ impl Runner {
                     *want,
                 )
             }
+            Assertion::Known(p, name, want) => {
+                let bit = 1u8 << p.index().min(7);
+                let known = st
+                    .players
+                    .iter()
+                    .flat_map(|q| q.library.iter().chain(q.hand.iter()))
+                    .any(|id| st.name_of(*id) == *name && st.objects[*id].revealed & bit != 0);
+                expect(
+                    line,
+                    format!("whether {} knows \"{name}\"", player_name(*p)),
+                    known,
+                    *want,
+                )
+            }
             Assertion::Winner(p) => match st.result {
                 Some(GameResult::Win { winner }) if winner == *p => Ok(()),
                 other => fail(

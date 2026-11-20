@@ -1,0 +1,6 @@
+card "Case the Joint" {
+  oracle_id 575d067a-83a0-49e7-8a74-e3e46a946c8c
+  cost {3}{U}
+  type Instant
+  spell: draw 2 cards then look at top card of each player
+}

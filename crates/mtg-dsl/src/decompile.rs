@@ -1098,7 +1098,18 @@ impl Decompiler<'_> {
             CoreEffect::Connive { what } => Effect::Connive {
                 what: Self::recipient(*what),
             },
-            CoreEffect::LookAtTop { count } => Effect::LookAtTop(*count),
+            CoreEffect::LookAtTop { count, who, looker } => Effect::LookAtTop {
+                count: *count,
+                of: match r(*who) {
+                    Recipient::You => None,
+                    w => Some(w),
+                },
+                by: match r(*looker) {
+                    Recipient::You => None,
+                    w => Some(w),
+                },
+                only: false,
+            },
             CoreEffect::RevealTop { who, look } => Effect::RevealTop {
                 who: match r(*who) {
                     Recipient::You => None,

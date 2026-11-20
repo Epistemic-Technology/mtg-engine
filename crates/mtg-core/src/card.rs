@@ -3424,9 +3424,14 @@ pub enum Effect {
         until: PlayUntil,
     },
     /// "Look at the top three cards of your library, then put them back in
-    /// any order" (the engine keeps the order).
+    /// any order" (the engine keeps the order). `who` owns the library
+    /// ("target player's library") and `looker` looks ("That player looks
+    /// at the top three cards of your library"): the looker knows those
+    /// cards where they are (`GameObject::revealed`).
     LookAtTop {
         count: Num,
+        who: Recipient,
+        looker: Recipient,
     },
     /// "Reveal the top card of your library" (CR 701.20) or, with `look`,
     /// "look at the top card of your library": the card stays where it is

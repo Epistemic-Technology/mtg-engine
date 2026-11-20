@@ -1904,7 +1904,11 @@ impl Compiler<'_> {
             }
             Effect::CumulativeUpkeep(c) => out.push(CoreEffect::CumulativeUpkeep(c.clone())),
             Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
-            Effect::LookAtTop(n) => out.push(CoreEffect::LookAtTop { count: *n }),
+            Effect::LookAtTop { count, of, by, .. } => out.push(CoreEffect::LookAtTop {
+                count: *count,
+                who: r(of.unwrap_or(Recipient::You)),
+                looker: r(by.unwrap_or(Recipient::You)),
+            }),
             Effect::RevealTop { who, look, .. } => out.push(CoreEffect::RevealTop {
                 who: r(who.unwrap_or(Recipient::You)),
                 look: *look,

@@ -7719,12 +7719,22 @@ impl GameState {
             Effect::Modes(_) => {}
             // Looking at the top cards keeps their order; the controller
             // knows them where they are.
-            Effect::LookAtTop { count } => {
+            Effect::LookAtTop { count, who, looker } => {
                 let n = self.eval_num(*count, ctx) as usize;
-                let bit = 1 << ctx.controller.index().min(7);
-                let lib = self.player(ctx.controller).library.clone();
-                for id in lib.iter().rev().take(n) {
-                    self.objects[*id].revealed |= bit;
+                let mut bits = 0u8;
+                for t in self.recipients(ctx, *looker) {
+                    if let Target::Player(p) = t {
+                        bits |= 1 << p.index().min(7);
+                    }
+                }
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let top: Vec<_> = self.player(p).library.iter().rev().take(n).copied().collect();
+                    for id in top {
+                        self.objects[id].revealed |= bits;
+                    }
                 }
             }
             Effect::RevealTop { who, look } => {

@@ -1,0 +1,6 @@
+card "Tahngarth's Glare" {
+  oracle_id 390cbc61-6291-4e7d-b262-4de57c827702
+  cost {R}
+  type Sorcery
+  spell: look at top 3 of target opponent; that player looks at top 3 of you
+}

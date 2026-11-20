@@ -1,0 +1,8 @@
+card "Architects of Will" {
+  oracle_id 79d290ea-c095-4135-9711-f3ce089dae43
+  cost {2}{U}{B}
+  type Artifact Creature — Human Wizard
+  pt 3/3
+  triggered when this enters: look at top 3 of target player
+  cycling {U/B}
+}

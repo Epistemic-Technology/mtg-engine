@@ -1,0 +1,8 @@
+card "Dewdrop Spy" {
+  oracle_id 14bee98b-6dd8-48f3-8043-06f03cc93aa7
+  cost {1}{U}{U}
+  type Creature — Faerie Rogue
+  pt 2/2
+  keywords flash, flying
+  triggered when this enters: look at top card of target player
+}

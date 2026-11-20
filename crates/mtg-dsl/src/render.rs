@@ -2567,7 +2567,9 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::CreateToken { count, .. } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
-        Effect::Scry(n) | Effect::LookAtTop(n) | Effect::ScryEach { count: n, .. } => vec![*n],
+        Effect::Scry(n) | Effect::LookAtTop { count: n, .. } | Effect::ScryEach { count: n, .. } => {
+            vec![*n]
+        }
         Effect::CreateReplacement(r) => match r.outcome {
             mtg_core::card::Replacement::PreventNext(n) => vec![n],
             _ => Vec::new(),
@@ -2972,7 +2974,7 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             // "Look at the top X cards of your library, where X is ...,
             // then put them back in any order."
-            CountStyle::Where if matches!(e, Effect::LookAtTop(_)) => {
+            CountStyle::Where if matches!(e, Effect::LookAtTop { only: false, .. }) => {
                 let phrase = count_phrase_in(&count.expr, ctx, false);
                 c.text =
                     c.text
@@ -3460,10 +3462,43 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
         }
-        Effect::LookAtTop(n) => Clause::imperative(format!(
-            "look at the top {} cards of your library, then put them back in any order",
-            count_words(*n, "one")
-        )),
+        Effect::LookAtTop {
+            count,
+            of,
+            by,
+            only,
+        } => {
+            let n = count_words(*count, "one");
+            let whose = match of {
+                None | Some(Recipient::You) => "your".to_string(),
+                Some(w) if by.is_some_and(|b| b == *w) => "their".to_string(),
+                Some(w) => format!("{}'s", ctx.obj(*w)),
+            };
+            match by {
+                None | Some(Recipient::You) => {
+                    let back = if *only {
+                        ""
+                    } else {
+                        ", then put them back in any order"
+                    };
+                    Clause::imperative(format!("look at the top {n} cards of {whose} library{back}"))
+                }
+                Some(b) => {
+                    let subject = ctx.subj(*b);
+                    let v = ctx.verb(*b, "looks at", "look at");
+                    let back = if *only {
+                        String::new()
+                    } else {
+                        format!(", then {} them back in any order", ctx.verb(*b, "puts", "put"))
+                    };
+                    Clause::with_subject(
+                        *b,
+                        subject,
+                        format!("{v} the top {n} cards of {whose} library{back}"),
+                    )
+                }
+            }
+        }
         Effect::Dig {
             count,
             filter,
