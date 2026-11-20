@@ -122,7 +122,7 @@ fn pluralize(word: &str) -> String {
     match word {
         "Plains" | "Equipment" | "Kavu" | "Aurochs" | "Sheep" | "Fish" | "Moonfolk" | "Kithkin"
         | "Merfolk" | "Samurai" | "Kor" | "Zubera" | "Vedalken" | "Aetherborn" | "Eldrazi"
-        | "Treefolk" | "Arcane" => {
+        | "Treefolk" | "Arcane" | "Spacecraft" => {
             return word.to_string();
         }
         "Elf" => return "Elves".to_string(),
@@ -713,8 +713,17 @@ pub fn self_noun(card: &Card) -> String {
     if card.types.contains(&CardType::Artifact) {
         // "this Vehicle", "this Equipment" (Oracle's templating since
         // 2024).
-        if card.subtypes.iter().any(|s| s == "Vehicle") {
-            return "Vehicle".to_string();
+        if card
+            .subtypes
+            .iter()
+            .any(|s| s == "Vehicle" || s == "Spacecraft")
+        {
+            return card
+                .subtypes
+                .iter()
+                .find(|s| *s == "Vehicle" || *s == "Spacecraft")
+                .cloned()
+                .unwrap_or_default();
         }
         if card.subtypes.iter().any(|s| s == "Equipment") {
             return "Equipment".to_string();
@@ -725,7 +734,18 @@ pub fn self_noun(card: &Card) -> String {
         if card.subtypes.iter().any(|s| s == "Aura") {
             return "Aura".to_string();
         }
+        // "this Room" (Duskmourn's templating).
+        if card.subtypes.iter().any(|s| s == "Room") {
+            return "Room".to_string();
+        }
         return "enchantment".to_string();
+    }
+    // "this Siege" (CR 310.3).
+    if card.types.contains(&CardType::Battle) {
+        if card.subtypes.iter().any(|s| s == "Siege") {
+            return "Siege".to_string();
+        }
+        return "battle".to_string();
     }
     "permanent".to_string()
 }
@@ -1415,6 +1435,7 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::AttackingCreature
             | TargetSpec::BlockingCreature => "creature".to_string(),
             TargetSpec::PlayerOrPlaneswalker
+            | TargetSpec::PlayerOrBattle
             | TargetSpec::Player
             | TargetSpec::Opponent
             | TargetSpec::OpponentOrPlaneswalker => "player".to_string(),
@@ -1481,6 +1502,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::Any => "any target",
         TargetSpec::Creature | TargetSpec::CreatureWithSubtype(_) => "target creature",
         TargetSpec::PlayerOrPlaneswalker => "target player or planeswalker",
+        TargetSpec::PlayerOrBattle => "target player or battle",
         TargetSpec::CreatureOrPlaneswalker => "target creature or planeswalker",
         TargetSpec::Land => "target land",
         TargetSpec::Player => "target player",
@@ -4611,6 +4633,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             })
         }
         Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
+        Effect::DoublePower { to, .. } => {
+            let s = ctx.subj(*to);
+            let whose = if s == "it" {
+                "its".to_string()
+            } else {
+                format!("{s}'s")
+            };
+            Clause::imperative(format!("double {whose} power until end of turn"))
+        }
         Effect::Discard { count, who } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
             match who {
@@ -5972,6 +6003,24 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         Trigger::DealsCombatDamageToPlayer(TriggerObj::This) => {
             format!("whenever {} deals combat damage to a player", this(ctx))
+        }
+        Trigger::DealsCombatDamageToPlayerOrBattle(TriggerObj::This) => {
+            format!(
+                "whenever {} deals combat damage to a player or battle",
+                this(ctx)
+            )
+        }
+        Trigger::DealsCombatDamageToPlayerOrBattle(o) => {
+            format!(
+                "whenever {} deals combat damage to a player or battle",
+                trigger_subject(o, ctx)
+            )
+        }
+        Trigger::AttacksBattle(TriggerObj::This) => {
+            format!("whenever {} attacks a battle", this(ctx))
+        }
+        Trigger::AttacksBattle(o) => {
+            format!("whenever {} attacks a battle", trigger_subject(o, ctx))
         }
         Trigger::DealsCombatDamageToDefending(o) => {
             let s = match o {
@@ -7571,6 +7620,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             ),
         },
         StaticCond::Attacking => "it's attacking".to_string(),
+        StaticCond::AttackedBattleThisTurn => "it attacked a battle this turn".to_string(),
         StaticCond::Enchanted => "it's enchanted".to_string(),
         StaticCond::Equipped => "it's equipped".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("an opponent has {n} or less life"),

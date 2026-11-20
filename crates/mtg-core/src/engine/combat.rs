@@ -430,7 +430,10 @@ impl GameState {
             set = self.legal_part(&set, false);
         }
         let defender = self.opponent(self.active_player);
-        if !set.is_empty() && self.planeswalkers_of(defender).next().is_some() {
+        if !set.is_empty()
+            && (self.planeswalkers_of(defender).next().is_some()
+                || self.attackable_battles(defender).next().is_some())
+        {
             self.flow = crate::state::Flow::AttackTargets {
                 chosen: Vec::new(),
                 remaining: set,
@@ -442,6 +445,18 @@ impl GameState {
             .map(|id| (id, Target::Player(defender)))
             .collect();
         self.finish_attackers_with(chosen);
+    }
+
+    /// Battles the active player may attack (CR 310.9b): those `defender`
+    /// protects, whoever controls them (a Siege its attacker controls).
+    pub(super) fn attackable_battles(
+        &self,
+        defender: PlayerId,
+    ) -> impl Iterator<Item = ObjId> + '_ {
+        self.battlefield.iter().copied().filter(move |id| {
+            self.characteristics(*id).is_some_and(|c| c.is_battle())
+                && self.protector(*id) == Some(defender)
+        })
     }
 
     /// Planeswalkers `p` controls.
@@ -480,6 +495,11 @@ impl GameState {
                 self.tap(id);
             }
             self.attackers_this_turn.push(id);
+            if let Target::Object(b) = target
+                && self.characteristics(b).is_some_and(|c| c.is_battle())
+            {
+                self.battle_attackers_this_turn.push(id);
+            }
             attackers.push(Attacker {
                 id,
                 attacking: target,

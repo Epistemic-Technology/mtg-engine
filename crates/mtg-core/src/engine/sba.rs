@@ -148,6 +148,16 @@ impl GameState {
                     to_graveyard.push(id);
                     continue;
                 }
+                // CR 310.7, 310.8 (704.5v): a battle with no defense goes
+                // to the graveyard; a Siege waits while its defeat trigger
+                // (or any other ability from it) hasn't left the stack.
+                if c.is_battle()
+                    && o.counters(CounterKind::Defense) == 0
+                    && !(c.has_subtype(Subtype::SIEGE) && self.ability_waiting_from(id))
+                {
+                    to_graveyard.push(id);
+                    continue;
+                }
                 if !c.is_creature() {
                     continue;
                 }
@@ -240,6 +250,18 @@ impl GameState {
             any = true;
         }
         any
+    }
+
+    /// Whether a triggered ability from `source` has triggered but not
+    /// left the stack (CR 310.7, 309.6).
+    pub(super) fn ability_waiting_from(&self, source: ObjId) -> bool {
+        self.pending_triggers
+            .iter()
+            .any(|t| t.ability.source == source)
+            || self
+                .stack
+                .iter()
+                .any(|s| self.objects[*s].ability.is_some_and(|a| a.source == source))
     }
 
     /// CR 704.5j: for each player controlling two or more legendary

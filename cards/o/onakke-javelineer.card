@@ -1,0 +1,8 @@
+card "Onakke Javelineer" {
+  oracle_id e834b281-279f-4df3-9c0e-764502b809c5
+  cost {4}{R}
+  type Creature — Ogre Spirit
+  pt 5/4
+  keywords reach
+  activated {T}: deal 2 damage to target player or battle
+}

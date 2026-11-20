@@ -1,0 +1,8 @@
+card "Beamtown Beatstick" {
+  oracle_id 035e33ab-adfe-4831-bdbc-52f4ddc7ffe8
+  cost {R}
+  type Artifact — Equipment
+  static equipped: +1/+0, has menace
+  triggered whenever equipped creature deals combat damage to a player or battle: create 1 "Treasure"
+  equip {2}
+}

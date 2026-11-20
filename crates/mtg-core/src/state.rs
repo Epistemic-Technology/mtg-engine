@@ -199,6 +199,9 @@ pub struct ExileCasts {
     /// Cards to be cast as the current resolution finishes ("you may cast
     /// it without paying its mana cost"): the caster, the card, how.
     pub pending: Vec<(PlayerId, ObjId, AltCast)>,
+    /// Pending cards to be cast transformed, with the face they are cast
+    /// as (CR 712.11a: a defeated Siege).
+    pub transformed: Vec<(ObjId, CardRef)>,
     /// Cards foretold this turn (CR 702.143a: castable on a later turn).
     pub foretold_this_turn: Vec<ObjId>,
     /// Cards exiled by impulse effects that a player may play.
@@ -765,6 +768,10 @@ impl Characteristics {
         self.types.contains(CardType::Planeswalker)
     }
 
+    pub fn is_battle(&self) -> bool {
+        self.types.contains(CardType::Battle)
+    }
+
     pub fn has(&self, k: Keyword) -> bool {
         self.keywords.contains(k)
     }
@@ -1185,6 +1192,9 @@ pub struct GameState {
     /// Creatures declared as attackers this turn (boast, CR 702.142a);
     /// one put onto the battlefield attacking was never declared.
     pub attackers_this_turn: Vec<ObjId>,
+    /// Creatures that attacked a battle this turn (CR 310.5: "as long as
+    /// it attacked a battle this turn").
+    pub battle_attackers_this_turn: Vec<ObjId>,
     /// The creatures each player attacked with during their last turn
     /// ("if it attacked during your last turn").
     pub attacked_last_turn: Vec<(PlayerId, ObjId)>,
@@ -1438,6 +1448,23 @@ impl GameState {
     /// The single opponent in a two-player game.
     pub fn opponent(&self, p: PlayerId) -> PlayerId {
         self.next_player(p)
+    }
+
+    /// A battle's protector (CR 310.9): a Siege's is its controller's
+    /// opponent (CR 310.12a), another battle's its controller (CR
+    /// 310.9a). With two players the choice is forced, and a change of
+    /// control re-chooses it the same way (CR 310.11), so it is derived.
+    pub fn protector(&self, id: ObjId) -> Option<PlayerId> {
+        let o = self.objects.get(id)?;
+        let c = self.characteristics(id)?;
+        if !c.is_battle() {
+            return None;
+        }
+        Some(if c.has_subtype(crate::card::Subtype::SIEGE) {
+            self.opponent(o.controller)
+        } else {
+            o.controller
+        })
     }
 
     pub fn obj(&self, id: ObjId) -> Option<&GameObject> {
@@ -2050,6 +2077,7 @@ impl GameState {
             | TargetSpec::NoncreatureSpell
             | TargetSpec::OnStack { .. }
             | TargetSpec::PlayerOrPlaneswalker
+            | TargetSpec::PlayerOrBattle
             | TargetSpec::OpponentOrPlaneswalker
             | TargetSpec::SpellFiltered(_)
             | TargetSpec::GraveyardCard { .. }
@@ -2193,6 +2221,7 @@ impl GameState {
                     .any(|p| mine > creatures(p))
             }
             C::YourTurn => self.active_player == you,
+            C::SourceAttackedBattle => self.battle_attackers_this_turn.contains(&source),
             C::SourceAttacking => self
                 .combat
                 .as_ref()
@@ -2726,9 +2755,10 @@ impl GameState {
                 p.index() < self.num_players()
                     && self.player(p).lost.is_none()
                     && match spec {
-                        TargetSpec::Any | TargetSpec::Player | TargetSpec::PlayerOrPlaneswalker => {
-                            true
-                        }
+                        TargetSpec::Any
+                        | TargetSpec::Player
+                        | TargetSpec::PlayerOrPlaneswalker
+                        | TargetSpec::PlayerOrBattle => true,
                         TargetSpec::Opponent | TargetSpec::OpponentOrPlaneswalker => p != caster,
                         _ => false,
                     }
@@ -2811,11 +2841,11 @@ impl GameState {
                     return false;
                 };
                 let type_ok = match spec {
-                    // CR 115.4: "any target" is a creature, player, or
-                    // planeswalker (battles are not modelled).
-                    TargetSpec::Any | TargetSpec::CreatureOrPlaneswalker => {
-                        c.is_creature() || c.is_planeswalker()
-                    }
+                    // CR 115.4: "any target" is a creature, player,
+                    // planeswalker, or battle.
+                    TargetSpec::Any => c.is_creature() || c.is_planeswalker() || c.is_battle(),
+                    TargetSpec::CreatureOrPlaneswalker => c.is_creature() || c.is_planeswalker(),
+                    TargetSpec::PlayerOrBattle => c.is_battle(),
                     TargetSpec::PlayerOrPlaneswalker | TargetSpec::OpponentOrPlaneswalker => {
                         c.is_planeswalker()
                     }

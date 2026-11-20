@@ -69,6 +69,9 @@ fn format_inner(card: &Card) -> String {
     if let Some(n) = card.loyalty {
         let _ = writeln!(out, "  loyalty {n}");
     }
+    if let Some(n) = card.defense {
+        let _ = writeln!(out, "  defense {n}");
+    }
     if let Some(colors) = &card.color_indicator {
         let names: Vec<&str> = colors.iter().map(|c| color_name(*c)).collect();
         let _ = writeln!(out, "  color {}", names.join(" "));
@@ -1212,6 +1215,7 @@ impl Fmt {
                 t
             }
             Effect::Surveil(n) => format!("surveil {}", num(*n)),
+            Effect::DoublePower { .. } => "double this power".to_string(),
             Effect::Discard { count, who } => match who {
                 None => format!("discard {} {}", num(*count), cards(*count)),
                 Some(w) => {
@@ -2694,6 +2698,13 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 trigger_obj(o)
             )
         }
+        Trigger::DealsCombatDamageToPlayerOrBattle(o) => {
+            format!(
+                "whenever {} deals combat damage to a player or battle",
+                trigger_obj(o)
+            )
+        }
+        Trigger::AttacksBattle(o) => format!("whenever {} attacks a battle", trigger_obj(o)),
         Trigger::DealsCombatDamageToDefending(o) => {
             format!(
                 "whenever {} deals combat damage to defending player",
@@ -3227,6 +3238,7 @@ fn static_cond(c: &StaticCond) -> String {
             if *attacking { "attacking" } else { "defending" }
         ),
         StaticCond::AttackedThisTurn => "attacked this turn".to_string(),
+        StaticCond::AttackedBattleThisTurn => "attacked a battle this turn".to_string(),
         StaticCond::AttackedLastTurn => "attacked last turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "opponent damaged this turn".to_string(),

@@ -1,0 +1,14 @@
+card "Invasion of Dominaria // Serra Faithkeeper" {
+  oracle_id dcbd8b15-e5fd-4f0d-ba2d-06f018b64fb3
+  layout transform
+  cost {2}{W}
+  type Battle — Siege
+  defense 5
+  triggered when this enters: you gain 4 life and draw 1 card
+  face "Serra Faithkeeper" {
+    type Creature — Angel
+    pt 4/4
+    color white
+    keywords flying, vigilance
+  }
+}

@@ -401,6 +401,9 @@ impl Compiler<'_> {
         if let Some(n) = card.loyalty {
             b = b.loyalty(n);
         }
+        if let Some(n) = card.defense {
+            b = b.defense(n);
+        }
         if let Some(colors) = &card.color_indicator {
             b = b.color_indicator(colors.iter().copied());
         } else if let Some(colors) = card.abilities.iter().find_map(|a| match a {
@@ -792,6 +795,7 @@ impl Compiler<'_> {
                     .collect(),
             ),
             StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
+            StaticCond::AttackedBattleThisTurn => StaticCondition::SourceAttackedBattle,
             StaticCond::AttackedLastTurn => StaticCondition::AttackedLastTurn,
             StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
             StaticCond::OpponentDamagedThisTurn => StaticCondition::OpponentDamagedThisTurn,
@@ -1564,6 +1568,12 @@ impl Compiler<'_> {
                 });
             }
             Effect::Surveil(n) => out.push(CoreEffect::Surveil { count: *n }),
+            Effect::DoublePower { to, times } => out.push(CoreEffect::PumpVar {
+                power: 1,
+                toughness: 0,
+                times: *times,
+                to: r(*to),
+            }),
             Effect::Discard { count, who } => out.push(CoreEffect::Discard {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
@@ -1978,6 +1988,10 @@ impl Compiler<'_> {
             },
             Trigger::AttachedStep(step) => TriggerSpec::AttachedControllersStep(*step),
             Trigger::Attacks(o) => TriggerSpec::Attacks(self.trigger_obj(o)),
+            Trigger::AttacksBattle(o) => TriggerSpec::AttacksBattle(self.trigger_obj(o)),
+            Trigger::DealsCombatDamageToPlayerOrBattle(o) => {
+                TriggerSpec::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
+            }
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
             Trigger::AttacksWith { this, min } => TriggerSpec::AttacksWith {
                 this: *this,

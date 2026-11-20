@@ -2023,7 +2023,19 @@ impl GameState {
     /// Whether `card` (exiled) could be cast `alt`'s way now: a nonland
     /// card with targets for some mode, whose cost (if any) is payable.
     fn exile_castable(&self, p: PlayerId, card: ObjId, alt: AltCast) -> bool {
-        let def = self.pool.get(self.objects[card].def);
+        self.exile_castable_as(p, card, alt, self.objects[card].def)
+    }
+
+    /// `exile_castable`, the spell having the characteristics of `face`
+    /// (CR 712.11c: only the face to be cast is evaluated).
+    fn exile_castable_as(
+        &self,
+        p: PlayerId,
+        card: ObjId,
+        alt: AltCast,
+        face: crate::card::CardRef,
+    ) -> bool {
+        let def = self.pool.get(face);
         if def.is_land() {
             return false;
         }
@@ -2063,7 +2075,20 @@ impl GameState {
     }
 
     pub(super) fn offer_exile_cast_by(&mut self, card: ObjId, alt: AltCast, p: PlayerId) -> bool {
-        if !self.exile_castable(p, card, alt) {
+        let face = self.objects[card].def;
+        self.offer_exile_cast_as(card, alt, p, face)
+    }
+
+    /// `offer_exile_cast_by`, cast as `face` (transformed, CR 712.11a);
+    /// the caller remembers the face.
+    pub(super) fn offer_exile_cast_as(
+        &mut self,
+        card: ObjId,
+        alt: AltCast,
+        p: PlayerId,
+        face: crate::card::CardRef,
+    ) -> bool {
+        if !self.exile_castable_as(p, card, alt, face) {
             return false;
         }
         let k = self.choose_mid(
@@ -7243,6 +7268,21 @@ impl GameState {
                 let alt = match kind {
                     crate::card::ExileCast::Madness => AltCast::Madness,
                     crate::card::ExileCast::Free => AltCast::Free,
+                    crate::card::ExileCast::Transformed => {
+                        // CR 310.12b: "you" (the Siege's controller) may
+                        // cast it transformed.
+                        let d = self.pool.get(self.objects[card].def);
+                        if d.layout == Layout::Transform
+                            && let Some(back) = d.faces.first().copied()
+                            && self.offer_exile_cast_as(card, AltCast::Free, ctx.controller, back)
+                        {
+                            self.exile_casts
+                                .get_or_insert_with(Box::default)
+                                .transformed
+                                .push((card, back));
+                        }
+                        return;
+                    }
                 };
                 self.objects[card].alt = AltCast::None;
                 if !self.offer_exile_cast(card, alt) && *kind == crate::card::ExileCast::Madness {

@@ -91,6 +91,8 @@ pub struct Card {
     pub subtypes: Vec<String>,
     pub pt: Option<(i32, i32)>,
     pub loyalty: Option<u32>,
+    /// A battle's printed defense (CR 310.4a): `defense 5`.
+    pub defense: Option<u32>,
     /// In the order written, which is the order printed.
     pub keywords: Vec<Keyword>,
     /// "As an additional cost to cast this spell, ..." (CR 601.2b).
@@ -145,6 +147,7 @@ impl Card {
             subtypes: Vec::new(),
             pt: None,
             loyalty: None,
+            defense: None,
             keywords: Vec::new(),
             additional: None,
             additional_or: None,
@@ -1224,6 +1227,9 @@ pub enum StaticCond {
     YouControlEach(Vec<Filter>),
     /// `attacked this turn` (raid): "you attacked this turn".
     AttackedThisTurn,
+    /// `attacked a battle this turn`: "it attacked a battle this turn"
+    /// (the source).
+    AttackedBattleThisTurn,
     /// `attacked last turn`: "it attacked during your last turn".
     AttackedLastTurn,
     /// `creature died this turn` (morbid).
@@ -1665,6 +1671,10 @@ pub enum Trigger {
     },
     Blocks(TriggerObj),
     DealsCombatDamageToPlayer(TriggerObj),
+    /// `deals combat damage to a player or battle` (CR 310.6).
+    DealsCombatDamageToPlayerOrBattle(TriggerObj),
+    /// `whenever this attacks a battle` (CR 310.5).
+    AttacksBattle(TriggerObj),
     /// `deals combat damage to defending player`: the same trigger, worded
     /// with "defending player" (combat damage to a player is dealt to the
     /// defending player, CR 510.1).
@@ -2359,6 +2369,13 @@ pub enum Effect {
         basic: bool,
     },
     Surveil(Num),
+    /// `double this power`: "double its power until end of turn" (CR
+    /// 701.10f: it gets +X/+0, X its power); `times` is the count of its
+    /// power.
+    DoublePower {
+        to: Recipient,
+        times: Num,
+    },
     /// `who` is `None` for the imperative "discard a card".
     Discard {
         count: Num,

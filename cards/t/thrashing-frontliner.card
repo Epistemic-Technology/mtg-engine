@@ -1,0 +1,8 @@
+card "Thrashing Frontliner" {
+  oracle_id e75f1834-10b8-4362-adbe-847ad9909dee
+  cost {1}{R}
+  type Creature — Phyrexian Lizard
+  pt 2/2
+  keywords trample
+  triggered whenever this attacks a battle: this gets +1/+1
+}

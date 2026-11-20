@@ -62,6 +62,9 @@ pub struct Card {
     pub toughness: Option<String>,
     #[serde(default)]
     pub loyalty: Option<String>,
+    /// A battle's printed defense (CR 310.4a).
+    #[serde(default)]
+    pub defense: Option<String>,
     #[serde(default)]
     pub color_indicator: Option<Vec<String>>,
     #[serde(default)]
@@ -94,6 +97,9 @@ pub struct Face {
     pub toughness: Option<String>,
     #[serde(default)]
     pub loyalty: Option<String>,
+    /// A battle's printed defense (CR 310.4a).
+    #[serde(default)]
+    pub defense: Option<String>,
     #[serde(default)]
     pub color_indicator: Option<Vec<String>>,
 }
@@ -110,6 +116,7 @@ impl Card {
             power: f.power.clone(),
             toughness: f.toughness.clone(),
             loyalty: f.loyalty.clone(),
+            defense: f.defense.clone(),
             color_indicator: f.color_indicator.clone(),
             card_faces: Vec::new(),
             ..self.clone()

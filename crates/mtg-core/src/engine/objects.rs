@@ -174,6 +174,11 @@ impl GameState {
         if d.types.contains(crate::card::CardType::Planeswalker) && d.loyalty > 0 {
             counters.push((CounterKind::Loyalty, d.loyalty));
         }
+        // CR 310.4b: a battle enters with its printed defense in defense
+        // counters.
+        if d.types.contains(crate::card::CardType::Battle) && d.defense > 0 {
+            counters.push((CounterKind::Defense, d.defense));
+        }
         // CR 702.43a: modular's counters.
         if d.modular > 0 {
             match counters
@@ -1056,6 +1061,10 @@ impl GameState {
                 if c.is_planeswalker() {
                     self.remove_counters(id, CounterKind::Loyalty, amount);
                 }
+                // CR 310.6: damage to a battle removes defense counters.
+                if c.is_battle() {
+                    self.remove_counters(id, CounterKind::Defense, amount);
+                }
                 if c.is_creature() {
                     let o = &mut self.objects[id];
                     if !wither {
@@ -1104,6 +1113,9 @@ impl GameState {
         }
         if c.is_planeswalker() {
             left = left.min(o.counters(CounterKind::Loyalty));
+        }
+        if c.is_battle() {
+            left = left.min(o.counters(CounterKind::Defense));
         }
         left
     }
@@ -1232,8 +1244,21 @@ impl GameState {
             return;
         }
         o.remove_counters(kind, n);
+        let defeated = kind == CounterKind::Defense && o.counters(kind) == 0;
         self.cbump();
         self.emit(Event::CountersRemoved { obj: id, kind, n });
+        // CR 310.12b: a Siege's intrinsic "When the last defense counter is
+        // removed from this permanent, exile it, then you may cast it
+        // transformed without paying its mana cost."
+        if defeated
+            && let Some(c) = self.characteristics(id)
+            && c.is_battle()
+            && c.has_subtype(crate::card::Subtype::SIEGE)
+        {
+            let ability = self.pool.builtin(crate::card::Builtin::SiegeDefeated);
+            let controller = self.objects[id].controller;
+            self.queue_builtin(controller, ability, id, c.def);
+        }
     }
 
     /// Destroy a permanent (CR 701.7), unless it is indestructible (CR

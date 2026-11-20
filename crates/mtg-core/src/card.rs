@@ -327,6 +327,10 @@ pub enum Builtin {
     /// permanent to its owner's hand" (a dashed permanent's delayed
     /// trigger).
     DashReturn,
+    /// CR 310.12b: a Siege's "When the last defense counter is removed
+    /// from this permanent, exile it, then you may cast it transformed
+    /// without paying its mana cost."
+    SiegeDefeated,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -336,6 +340,9 @@ pub enum ExileCast {
     Madness,
     /// Without paying its mana cost.
     Free,
+    /// Transformed (its back face, CR 712.11), without paying its mana
+    /// cost: a defeated Siege (CR 310.12b).
+    Transformed,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
@@ -627,6 +634,10 @@ impl Subtype {
     pub const ROLE: Subtype = Subtype(5 + 36);
     pub const ARCANE: Subtype = Subtype(5 + 43);
     pub const TREASURE: Subtype = Subtype(5 + 27);
+    pub const VEHICLE: Subtype = Subtype(5 + 28);
+    pub const SPACECRAFT: Subtype = Subtype(5 + 29);
+    pub const ROOM: Subtype = Subtype(5 + 37);
+    pub const SIEGE: Subtype = Subtype(5 + 47);
     /// Not interned: "is every creature type" (layer 4), held among an
     /// object's subtypes in place of its creature types; `has_subtype`
     /// treats it as each of them, like changeling (CR 702.73a) but as a
@@ -1818,6 +1829,9 @@ pub enum StaticCondition {
     YourTurn,
     /// "as long as it's attacking" (the source).
     SourceAttacking,
+    /// "as long as it attacked a battle this turn" (the source, CR
+    /// 310.5).
+    SourceAttackedBattle,
     /// "as long as it's enchanted" / "as long as it's equipped".
     SourceEnchanted,
     SourceEquipped,
@@ -2147,6 +2161,8 @@ pub enum CounterKind {
     MinusOneMinusOne,
     /// Loyalty counters on a planeswalker (CR 306.5).
     Loyalty,
+    /// Defense counters on a battle (CR 310.4b).
+    Defense,
     /// CR 122.1d: as the permanent would untap, a stun counter is removed
     /// instead.
     Stun,
@@ -2312,6 +2328,9 @@ impl CounterKind {
         if self == CounterKind::Loyalty {
             return "loyalty";
         }
+        if self == CounterKind::Defense {
+            return "defense";
+        }
         if let Some((n, ..)) = CounterKind::PT.iter().find(|(_, k, ..)| *k == self) {
             return n;
         }
@@ -2325,6 +2344,9 @@ impl CounterKind {
     pub fn by_name(name: &str) -> Option<CounterKind> {
         if name == "loyalty" {
             return Some(CounterKind::Loyalty);
+        }
+        if name == "defense" {
+            return Some(CounterKind::Defense);
         }
         CounterKind::PT
             .iter()
@@ -2418,6 +2440,8 @@ pub enum TargetSpec {
     OpponentOrPlaneswalker,
     /// "target artifact or creature".
     ArtifactOrCreature,
+    /// "target player or battle".
+    PlayerOrBattle,
     /// "target attacking or blocking creature".
     AttackingOrBlockingCreature,
     /// "target attacking creature".
@@ -3912,6 +3936,11 @@ pub enum TriggerSpec {
     Leaves(TriggerObj),
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
+    /// "Whenever ~ deals combat damage to a player or battle" (CR 310.6):
+    /// the player dealt damage is the triggering player.
+    DealsCombatDamageToPlayerOrBattle(TriggerObj),
+    /// "Whenever this creature attacks a battle" (CR 310.5, 508.1).
+    AttacksBattle(TriggerObj),
     /// "Whenever you gain life".
     GainsLife { whose: Who },
     /// "Whenever you roll one or more dice" (CR 706): once per
@@ -4133,6 +4162,7 @@ impl TriggerSpec {
                 WATCH_STEP_BEGIN
             }
             TriggerSpec::Attacks(_)
+            | TriggerSpec::AttacksBattle(_)
             | TriggerSpec::AttacksAlone(_)
             | TriggerSpec::AttacksWith { .. } => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
@@ -4142,6 +4172,7 @@ impl TriggerSpec {
             | TriggerSpec::BlockPair { .. }
             | TriggerSpec::AttacksUnblocked(_) => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_)
+            | TriggerSpec::DealsCombatDamageToPlayerOrBattle(_)
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. }
@@ -4863,6 +4894,8 @@ pub struct CardDef {
     pub emblem: bool,
     /// A planeswalker's printed loyalty (CR 306.5b).
     pub loyalty: u32,
+    /// A battle's printed defense (CR 310.4a).
+    pub defense: u32,
     /// A dungeon card's rooms (CR 309.4), topmost first; empty for any
     /// other card.
     #[serde(default)]
@@ -5588,7 +5621,7 @@ pub struct CardPool {
     flanking: AbilityId,
     evoke: AbilityId,
     exploit: AbilityId,
-    builtins: [AbilityId; 5],
+    builtins: [AbilityId; 6],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -5668,7 +5701,7 @@ impl CardPool {
             flanking: AbilityId(0),
             evoke: AbilityId(0),
             exploit: AbilityId(0),
-            builtins: [AbilityId(0); 5],
+            builtins: [AbilityId(0); 6],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -5785,6 +5818,19 @@ impl CardPool {
                 effects: vec![Effect::ReturnToHand {
                     what: Recipient::SameObject,
                 }],
+            }));
+        pool.builtins[Builtin::SiegeDefeated as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::Reflexive,
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![
+                    Effect::Exile {
+                        what: Recipient::Source,
+                    },
+                    Effect::CastExiled(ExileCast::Transformed),
+                ],
             }));
         pool.add_designations();
         // Named only for logs: a face-down permanent has no name.
@@ -6211,6 +6257,7 @@ impl CardPool {
             || sa.affected.blocking
             || matches!(sa.condition, Some(
                 StaticCondition::SourceAttacking
+                    | StaticCondition::SourceAttackedBattle
                     | StaticCondition::SourceAttackingAlone
                     | StaticCondition::SourceBlocked
                     | StaticCondition::SourceBeingBlocked
@@ -6416,6 +6463,7 @@ impl Builder {
             token: false,
             emblem: false,
             loyalty: 0,
+            defense: 0,
             rooms: Vec::new(),
             marks: Marks::NONE,
             copy_except: None,
@@ -6511,6 +6559,12 @@ impl Builder {
     #[must_use]
     pub fn loyalty(mut self, n: u32) -> Self {
         self.0.loyalty = n;
+        self
+    }
+
+    #[must_use]
+    pub fn defense(mut self, n: u32) -> Self {
+        self.0.defense = n;
         self
     }
 

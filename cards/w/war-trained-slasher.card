@@ -1,0 +1,8 @@
+card "War-Trained Slasher" {
+  oracle_id bc89face-92b1-47d3-8cdb-360b7334d3b8
+  cost {3}{R}
+  type Creature — Wolverine Dinosaur
+  pt 4/3
+  keywords menace
+  triggered whenever this attacks a battle: double this power
+}

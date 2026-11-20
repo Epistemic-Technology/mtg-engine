@@ -651,7 +651,8 @@ impl GameState {
                 Some((Some(*blocker), Some(p)))
             }
             (
-                TriggerSpec::DealsCombatDamageToPlayer(what),
+                TriggerSpec::DealsCombatDamageToPlayer(what)
+                | TriggerSpec::DealsCombatDamageToPlayerOrBattle(what),
                 Event::Damage {
                     source,
                     target: Target::Player(p),
@@ -661,6 +662,34 @@ impl GameState {
             ) => {
                 on_battlefield(what, *source)?;
                 Some((Some(*source), Some(*p)))
+            }
+            (
+                TriggerSpec::DealsCombatDamageToPlayerOrBattle(what),
+                Event::Damage {
+                    source,
+                    target: Target::Object(b),
+                    combat: true,
+                    ..
+                },
+            ) => {
+                if !self.characteristics(*b).is_some_and(|c| c.is_battle()) {
+                    return None;
+                }
+                on_battlefield(what, *source)?;
+                Some((Some(*source), self.protector(*b)))
+            }
+            (
+                TriggerSpec::AttacksBattle(what),
+                Event::Attack {
+                    attacker,
+                    target: Target::Object(b),
+                },
+            ) => {
+                if !self.characteristics(*b).is_some_and(|c| c.is_battle()) {
+                    return None;
+                }
+                let p = on_battlefield(what, *attacker)?;
+                Some((Some(*attacker), Some(p)))
             }
             (TriggerSpec::GainsLife { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))

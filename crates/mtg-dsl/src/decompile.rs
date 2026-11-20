@@ -82,6 +82,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             _ => None,
         },
         loyalty: (def.loyalty > 0).then_some(def.loyalty),
+        defense: (def.defense > 0).then_some(def.defense),
         keywords: keywords(def.keywords),
         additional: (def.additional != CoreCost::default()).then(|| d.cost(&def.additional)),
         additional_or: def.additional_or.as_deref().map(|c| d.cost(c)),
@@ -388,6 +389,7 @@ impl Decompiler<'_> {
                 }
             }
             StaticCondition::AttackedThisTurn => StaticCond::AttackedThisTurn,
+            StaticCondition::SourceAttackedBattle => StaticCond::AttackedBattleThisTurn,
             StaticCondition::AttackedLastTurn => StaticCond::AttackedLastTurn,
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
@@ -1214,6 +1216,10 @@ impl Decompiler<'_> {
             TriggerSpec::AttachedControllersStep(step) => Trigger::AttachedStep(*step),
             TriggerSpec::State(i) => Trigger::State(self.static_cond(self.pool.condition(*i))),
             TriggerSpec::Attacks(o) => Trigger::Attacks(self.trigger_obj(o)),
+            TriggerSpec::AttacksBattle(o) => Trigger::AttacksBattle(self.trigger_obj(o)),
+            TriggerSpec::DealsCombatDamageToPlayerOrBattle(o) => {
+                Trigger::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
+            }
             TriggerSpec::AttacksAlone(o) => Trigger::AttacksAlone(self.trigger_obj(o)),
             TriggerSpec::AttacksWith { this, min } => Trigger::AttacksWith {
                 this: *this,

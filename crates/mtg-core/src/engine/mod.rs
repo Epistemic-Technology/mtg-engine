@@ -234,6 +234,17 @@ impl Engine {
                 {
                     o.add_counters(crate::card::CounterKind::Loyalty, l);
                 }
+                // CR 310.4b: a battle likewise has its printed defense.
+                let printed_defense = state.pool.get(perm.def).defense;
+                let o = &mut state.objects[id];
+                if printed_defense > 0
+                    && !perm
+                        .counters
+                        .iter()
+                        .any(|(k, _)| *k == crate::card::CounterKind::Defense)
+                {
+                    o.add_counters(crate::card::CounterKind::Defense, printed_defense);
+                }
                 state.battlefield.push(id);
                 let def = state.pool.get(perm.def);
                 state.trigger_sources += u32::from(def.has_triggers());
@@ -448,6 +459,7 @@ impl GameState {
             activated_once: Vec::new(),
             activated_ever: Vec::new(),
             attackers_this_turn: Vec::new(),
+            battle_attackers_this_turn: Vec::new(),
             attacked_last_turn: Vec::new(),
             blockers_this_turn: Vec::new(),
             dealt_damage_this_turn: Vec::new(),
@@ -634,7 +646,12 @@ impl GameState {
                             .get(card)
                             .is_some_and(|o| matches!(o.zone, Zone::Exile | Zone::Hand))
                         {
-                            self.begin_cast(p, card, alt);
+                            // CR 712.11a: cast transformed, back face up.
+                            let face = self.exile_casts.as_mut().and_then(|e| {
+                                let i = e.transformed.iter().position(|(c, _)| *c == card)?;
+                                Some(e.transformed.swap_remove(i).1)
+                            });
+                            self.begin_cast_as(p, card, alt, face);
                         }
                         continue;
                     }
@@ -1140,6 +1157,10 @@ impl GameState {
                     options.extend(
                         self.planeswalkers_of(defender)
                             .map(|pw| Choice::AttackTarget(Target::Object(pw))),
+                    );
+                    options.extend(
+                        self.attackable_battles(defender)
+                            .map(|b| Choice::AttackTarget(Target::Object(b))),
                     );
                     return StepResult::Decision(Decision {
                         player,
@@ -2239,6 +2260,10 @@ impl GameState {
         self.attacked_last_turn.retain(|(p, _)| *p != ending);
         self.attacked_last_turn
             .extend(self.attackers_this_turn.drain(..).map(|id| (ending, id)));
+        if !self.battle_attackers_this_turn.is_empty() {
+            self.battle_attackers_this_turn.clear();
+            self.cbump();
+        }
     }
 
     /// The current step ends (CR 500.2): mana empties, combat clears, and the

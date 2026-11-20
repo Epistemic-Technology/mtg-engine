@@ -115,6 +115,10 @@ pub fn header_diff(card: &Card, s: &ScryCard) -> Option<String> {
     if loyalty != s.loyalty {
         diffs.push(format!("loyalty {loyalty:?} vs {:?}", s.loyalty));
     }
+    let defense = card.defense.map(|n| n.to_string());
+    if defense != s.defense {
+        diffs.push(format!("defense {defense:?} vs {:?}", s.defense));
+    }
     if diffs.is_empty() {
         None
     } else {

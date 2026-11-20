@@ -273,6 +273,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
         &["player", "or", "planeswalker"],
         TargetSpec::PlayerOrPlaneswalker,
     ),
+    (&["player", "or", "battle"], TargetSpec::PlayerOrBattle),
     (
         &["creature", "or", "planeswalker"],
         TargetSpec::CreatureOrPlaneswalker,
@@ -692,6 +693,7 @@ impl P {
             subtypes: Vec::new(),
             pt: None,
             loyalty: None,
+            defense: None,
             keywords: Vec::new(),
             additional: None,
             additional_or: None,
@@ -812,6 +814,11 @@ impl P {
             "loyalty" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                 self.pos += 1;
                 card.loyalty = Some(self.number()?);
+                self.end_stmt()
+            }
+            "defense" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                card.defense = Some(self.number()?);
                 self.end_stmt()
             }
             "color" | "colors" => {
@@ -2330,6 +2337,9 @@ impl P {
         }
         if self.eat_words(&["attacked", "this", "turn"]) {
             return Ok(StaticCond::AttackedThisTurn);
+        }
+        if self.eat_words(&["attacked", "a", "battle", "this", "turn"]) {
+            return Ok(StaticCond::AttackedBattleThisTurn);
         }
         if self.eat_words(&["attacked", "last", "turn"]) {
             return Ok(StaticCond::AttackedLastTurn);
@@ -5273,6 +5283,18 @@ impl P {
                 Ok(Effect::AddMana(out))
             }
             "surveil" => Ok(Effect::Surveil(self.num()?)),
+            "double" if self.at_words(&["this", "power"]) => {
+                self.pos += 2;
+                self.until_end_of_turn();
+                let times = self.push_count(crate::ast::Count {
+                    expr: crate::ast::CountExpr::SourcePower,
+                    style: crate::ast::CountStyle::Equal,
+                })?;
+                Ok(Effect::DoublePower {
+                    to: Recipient::Source,
+                    times,
+                })
+            }
             "counter" => {
                 let to = self.recipient()?;
                 if self.eat_word("unless") {
@@ -6056,6 +6078,7 @@ impl P {
                 None => return self.fail(format!("unknown counter kind {power:+}/{toughness:+}")),
             },
             Some(Tok::Word(w)) if w == "loyalty" => CounterKind::Loyalty,
+            Some(Tok::Word(w)) if w == "defense" => CounterKind::Defense,
             Some(Tok::Word(w)) => {
                 // "stun", "first strike": the named kinds.
                 let two = self.word_at(0).map(|n| format!("{w} {n}"));
@@ -7905,6 +7928,9 @@ impl P {
                 if self.eat_words(&["and", "isn't", "blocked"]) {
                     return Ok(Trigger::AttacksUnblocked(obj));
                 }
+                if self.eat_words(&["a", "battle"]) {
+                    return Ok(Trigger::AttacksBattle(obj));
+                }
                 Ok(Trigger::Attacks(obj))
             }
             "blocks" if self.at_words(&["or", "becomes", "blocked"]) => {
@@ -7919,6 +7945,10 @@ impl P {
             }
             "blocks" => Ok(Trigger::Blocks(obj)),
             "deals" => {
+                if self.at_words(&["combat", "damage", "to", "a", "player", "or", "battle"]) {
+                    self.pos += 7;
+                    return Ok(Trigger::DealsCombatDamageToPlayerOrBattle(obj));
+                }
                 if self.at_words(&["combat", "damage", "to", "a", "player"]) {
                     self.pos += 5;
                     return Ok(Trigger::DealsCombatDamageToPlayer(obj));

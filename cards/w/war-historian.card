@@ -1,0 +1,8 @@
+card "War Historian" {
+  oracle_id 2676d0c3-0a24-4e93-ae80-8f3fe03da483
+  cost {2}{G}
+  type Creature — Human Monk
+  pt 3/3
+  keywords reach
+  static this: has indestructible as long as attacked a battle this turn
+}

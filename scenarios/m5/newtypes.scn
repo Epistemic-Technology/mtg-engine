@@ -1,0 +1,140 @@
+# M5: newer permanent types: battles (CR 310), Rooms (CR 709.5), and
+# Vehicles crewed in other ways (CR 702.122).
+
+scenario "battle: a Siege enters with defense counters and its ETB" {
+  battlefield A: 3 "Plains"
+  hand A: "Invasion of Dominaria"
+  turn 1 A: cast "Invasion of Dominaria"
+  run_to turn 1 end
+  assert battlefield A contains "Invasion of Dominaria"
+  assert counters "Invasion of Dominaria" defense 5
+  assert life A 24
+  assert hand A count 1
+}
+
+scenario "battle: its controller attacks the Siege its opponent protects" {
+  battlefield A: "Invasion of Dominaria" with 5 defense, "Hill Giant"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Dominaria"
+  run_to turn 3 postcombat_main
+  assert counters "Invasion of Dominaria" defense 2
+  assert life B 20
+}
+
+scenario "battle: the protector's creatures block an attacker of the battle" {
+  battlefield A: "Invasion of Dominaria" with 5 defense, "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Dominaria"
+  turn 3 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert counters "Invasion of Dominaria" defense 5
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "battle: the protector can't attack the Siege" {
+  battlefield A: "Invasion of Dominaria" with 5 defense
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  # Only the player could be attacked: no target was asked for.
+  assert life A 17
+  assert counters "Invasion of Dominaria" defense 5
+}
+
+scenario "battle: defeated, the Siege is exiled and cast transformed" {
+  battlefield A: "Invasion of Dominaria" with 2 defense, "Hill Giant"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Dominaria"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Serra Faithkeeper"
+  assert has "Serra Faithkeeper" flying
+  assert power "Serra Faithkeeper" 4
+  assert battlefield A lacks "Invasion of Dominaria"
+}
+
+scenario "battle: any target includes battles; damage removes defense" {
+  battlefield A: "Invasion of Dominaria" with 5 defense
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Invasion of Dominaria"
+  run_to turn 2 end
+  assert counters "Invasion of Dominaria" defense 2
+}
+
+scenario "battle: a Siege dealt its last defense by a spell is defeated" {
+  battlefield A: "Invasion of Belenon" with 3 defense, "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Invasion of Belenon"
+  run_to turn 2 end
+  assert battlefield A contains "Belenon War Anthem"
+  assert power "Grizzly Bears" 3
+}
+
+scenario "battle: target player or battle" {
+  battlefield A: "Invasion of Dominaria" with 5 defense, "Onakke Javelineer"
+  turn 1 A: activate "Onakke Javelineer" targeting "Invasion of Dominaria"
+  run_to turn 1 end
+  assert counters "Invasion of Dominaria" defense 3
+}
+
+scenario "battle: target player or battle refuses a creature" {
+  battlefield A: "Onakke Javelineer", "Grizzly Bears"
+  illegal turn 1 A: activate "Onakke Javelineer" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "battle: attacks-a-battle triggers and the indestructible it gives" {
+  battlefield A: "Invasion of Dominaria" with 9 defense, "War-Trained Slasher", "Thrashing Frontliner", "War Historian"
+  start turn 3 A
+  turn 3 A: attack "War-Trained Slasher" at "Invasion of Dominaria"
+  turn 3 A: attack "Thrashing Frontliner" at "Invasion of Dominaria"
+  turn 3 A: attack "War Historian" at "Invasion of Dominaria"
+  run_to turn 3 declare_blockers
+  assert power "War-Trained Slasher" 8
+  assert power "Thrashing Frontliner" 3
+  assert toughness "Thrashing Frontliner" 3
+  assert has "War Historian" indestructible
+}
+
+scenario "battle: attacking a player doesn't trigger attacks-a-battle" {
+  battlefield A: "Invasion of Dominaria" with 9 defense, "War-Trained Slasher", "War Historian"
+  start turn 3 A
+  turn 3 A: attack "War-Trained Slasher", "War Historian"
+  run_to turn 3 declare_blockers
+  assert power "War-Trained Slasher" 4
+  assert has not "War Historian" indestructible
+}
+
+scenario "battle: combat damage to a battle triggers a player-or-battle trigger" {
+  battlefield A: "Invasion of Dominaria" with 9 defense, "Grizzly Bears", "Beamtown Beatstick" on "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears" at "Invasion of Dominaria"
+  run_to turn 3 postcombat_main
+  assert counters "Invasion of Dominaria" defense 6
+  assert battlefield A contains "Treasure"
+}
+
+scenario "battle: creature, planeswalker, or battle" {
+  battlefield A: "Invasion of Dominaria" with 5 defense
+  battlefield B: 2 "Mountain"
+  hand B: "Volcanic Spite"
+  start turn 2 B
+  turn 2 B: cast "Volcanic Spite" targeting "Invasion of Dominaria"
+  turn 2 B: decline "Volcanic Spite"
+  run_to turn 2 end
+  assert counters "Invasion of Dominaria" defense 2
+}
+
+scenario "Spacecraft: destroy target creature or Spacecraft" {
+  battlefield A: "Swamp", "Ornithopter"
+  battlefield B: "Grizzly Bears"
+  hand A: "Embrace Oblivion"
+  turn 1 A: cast "Embrace Oblivion" sacrificing "Ornithopter" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
