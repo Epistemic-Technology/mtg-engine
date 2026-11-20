@@ -991,6 +991,21 @@ impl Templates {
                     ))
                 },
             ),
+            // The corpus's Eldrazi Spawn and Scion tokens (Writhing
+            // Chrysalis).
+            (
+                r(
+                    r#"^[Cc]reate (\S+) (?:0/1 colorless Eldrazi (Spawn)|1/1 colorless Eldrazi (Scion)) creature tokens? with "Sacrifice this token: Add \{C\}\."$"#,
+                ),
+                |c, _| {
+                    let kind = if cap(c, 2).is_empty() {
+                        cap(c, 3)
+                    } else {
+                        cap(c, 2)
+                    };
+                    Some(format!("create {} \"Eldrazi {kind}\"", number(cap(c, 1))?))
+                },
+            ),
             (r(TOKEN_PHRASE), |c, _| {
                 let key = format!("{}{}", cap(c, 2), cap(c, 3));
                 token_block(&key)?;
@@ -1985,6 +2000,8 @@ impl Templates {
                 ("if you win the flip, ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("Otherwise, ") {
                 ("otherwise, ", rest.to_string())
+            } else if let Some(rest) = sentence.strip_prefix("When you do, ") {
+                ("when you do, ", rest.to_string())
             } else if let Some((cond, rest)) = sentence
                 .strip_prefix("If ")
                 .and_then(|r| r.split_once(", "))
@@ -2475,6 +2492,38 @@ fn trigger_general(head: &str) -> Option<String> {
         | "When this permanent leaves the battlefield"
         | "When this land leaves the battlefield" => Some("when this leaves the battlefield"),
         "At the beginning of combat on your turn" => Some("at beginning of your combat"),
+        "At the beginning of each end step" => Some("at beginning of every end step"),
+        "At the beginning of each opponent's upkeep" => {
+            Some("at beginning of each opponent's upkeep step")
+        }
+        "At the beginning of each opponent's end step" => {
+            Some("at beginning of each opponent's end step")
+        }
+        "At the beginning of your first main phase"
+        | "At the beginning of your precombat main phase" => {
+            Some("at beginning of your first main")
+        }
+        "At the beginning of your second main phase"
+        | "At the beginning of your postcombat main phase" => {
+            Some("at beginning of your second main")
+        }
+        "When you cast this spell" => Some("when you cast this"),
+        "Whenever an opponent casts a spell" => Some("whenever an opponent casts a spell"),
+        "Whenever you cast or copy an instant or sorcery spell" => {
+            Some("whenever you cast or copy instant or sorcery spell")
+        }
+        "Whenever this creature and at least two other creatures attack" => {
+            Some("whenever this and at least 2 other creatures attack")
+        }
+        "Whenever this creature and at least one other creature attack" => {
+            Some("whenever this and at least 1 other creatures attack")
+        }
+        "Whenever you attack with three or more creatures" => {
+            Some("whenever you attack with 3 or more creatures")
+        }
+        "Whenever you attack with two or more creatures" => {
+            Some("whenever you attack with 2 or more creatures")
+        }
         "At the beginning of each combat" => Some("at beginning of each combat"),
         "Whenever this creature attacks or blocks" => Some("whenever this attacks or blocks"),
         "When this creature attacks or blocks" => Some("when this attacks or blocks"),
@@ -2519,9 +2568,22 @@ fn trigger_general(head: &str) -> Option<String> {
     // Goblin you control attacks", "Whenever an artifact you control
     // enters".
     let class = Regex::new(
-        r"^(When|Whenever) (a|an|another) ((?:[a-z]+ )*?(?:[A-Z][a-z]+ )*?(?:creature|artifact|enchantment|land|permanent|planeswalker|token|[A-Z][a-z]+)(?: creature)?(?: token)?(?: you control| an opponent controls| your opponents control)?) (enters|dies|attacks|blocks)$",
+        r"^(When|Whenever) (a|an|another) ((?:[a-z]+ )*?(?:[A-Z][a-z]+ )*?(?:creature|artifact|enchantment|land|permanent|planeswalker|token|[A-Z][a-z]+)(?: creature)?(?: token)?(?: you control| an opponent controls| your opponents control)?) (enters|dies|attacks|blocks|attacks alone|becomes blocked|deals combat damage to a player)$",
     )
     .unwrap();
+    // "Whenever you sacrifice a Food", "Whenever you sacrifice another
+    // creature".
+    if let Some(c) = Regex::new(r"^Whenever you sacrifice (a|an|another) ([A-Za-z]+)$")
+        .unwrap()
+        .captures(head)
+    {
+        let other = if cap(&c, 1) == "another" {
+            "other "
+        } else {
+            ""
+        };
+        return Some(format!("whenever you sacrifice {other}{}", cap(&c, 2)));
+    }
     if let Some(c) = class.captures(head) {
         let other = if cap(&c, 2) == "another" {
             "other "

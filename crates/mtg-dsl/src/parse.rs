@@ -8831,8 +8831,14 @@ impl P {
                 self.eat_word("step");
                 return Ok(Trigger::AttachedStep(step));
             }
+            // `each opponent's` before `each`, which would take its first
+            // word (the formatter writes `each opponent's upkeep step`).
             let whose = if self.eat_word("your") {
                 Who::You
+            } else if self.eat_words(&["each", "opponent's"])
+                || self.eat_words(&["an", "opponent's"])
+            {
+                Who::Opponents
             } else if self.eat_words(&["each", "player's"])
                 || self.eat_word("each")
                 || self.eat_word("the")
@@ -8840,10 +8846,6 @@ impl P {
             {
                 self.eat_word("next");
                 Who::Any
-            } else if self.eat_words(&["each", "opponent's"])
-                || self.eat_words(&["an", "opponent's"])
-            {
-                Who::Opponents
             } else {
                 return self.unexpected("`your`, `each`, or `the`");
             };
