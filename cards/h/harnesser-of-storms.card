@@ -1,0 +1,7 @@
+card "Harnesser of Storms" {
+  oracle_id fb8f7047-280b-464f-aca2-6add3e21df8f
+  cost {2}{R}
+  type Creature — Otter Wizard
+  pt 1/4
+  triggered once each turn whenever you cast noncreature or Otter spell: you may impulse 1 this turn first
+}

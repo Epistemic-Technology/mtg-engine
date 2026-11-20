@@ -1,0 +1,7 @@
+card "Morbid Opportunist" {
+  oracle_id 322f44f0-e6da-4ee0-b474-e7d5e9a461c5
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 1/3
+  triggered once each turn whenever one or more other creature die: draw 1 card
+}

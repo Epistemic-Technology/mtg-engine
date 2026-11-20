@@ -1,0 +1,10 @@
+card "Caretaker's Talent" {
+  oracle_id c97957a2-8310-4cff-8aad-871b7901d124
+  cost {2}{W}
+  type Enchantment — Class
+  triggered once each turn whenever one or more token you control enter: draw 1 card
+  level 2 {W}
+  triggered when this becomes level 2: create token copy of target token you control
+  level 3 {3}{W}
+  static creature token you control: +2/+2
+}

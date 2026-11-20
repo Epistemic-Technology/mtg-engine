@@ -1,0 +1,7 @@
+card "Homicide Investigator" {
+  oracle_id dc4d5602-47cb-47c8-8a43-3b840e12b79c
+  cost {1}{B}
+  type Creature — Human Detective
+  pt 2/2
+  triggered once each turn whenever one or more nontoken creature you control die: investigate
+}

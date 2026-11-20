@@ -1,0 +1,7 @@
+card "Vraan, Executioner Thane" {
+  oracle_id b2f2645f-5f74-456a-bd02-83169d8b8a7e
+  cost {1}{B}
+  type Legendary Creature — Phyrexian Vampire
+  pt 2/2
+  triggered once each turn whenever one or more other creature you control die: each opponent loses 2 life and you gain 2 life
+}

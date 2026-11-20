@@ -1,0 +1,8 @@
+card "Suki, Courageous Rescuer" {
+  oracle_id 70ea1a9d-ec52-4c11-8c4d-0d957e5491ad
+  cost {1}{W}{W}
+  type Legendary Creature — Human Warrior Ally
+  pt 2/4
+  static other creature you control: +1/+0
+  triggered once each turn whenever other permanent you control leaves the battlefield during your turn: create 1 "1/1 white Ally creature"
+}

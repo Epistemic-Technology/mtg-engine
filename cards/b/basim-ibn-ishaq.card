@@ -1,0 +1,8 @@
+card "Basim Ibn Ishaq" {
+  oracle_id 8a70bde5-c514-4dcf-919a-48bdd1c17768
+  cost {U}{B}
+  type Legendary Creature — Human Assassin
+  pt 2/2
+  triggered once each turn whenever you cast historic spell: draw 1 cards; this can't be blocked
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+}

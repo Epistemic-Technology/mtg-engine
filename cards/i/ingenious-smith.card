@@ -1,0 +1,8 @@
+card "Ingenious Smith" {
+  oracle_id f3988b96-9e00-445c-b3e1-6b2df9b13dac
+  cost {1}{W}
+  type Creature — Human Artificer
+  pt 1/1
+  triggered when this enters: dig 4 take artifact card may revealing rest bottom random
+  triggered once each turn whenever one or more artifact you control enter: put 1 +1/+1 counters on this
+}

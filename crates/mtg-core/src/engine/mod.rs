@@ -466,6 +466,8 @@ impl GameState {
             emblems: Vec::new(),
             loyalty_activated: Vec::new(),
             activated_once: Vec::new(),
+            limited_this_turn: Vec::new(),
+            doing_once: None,
             activated_ever: Vec::new(),
             attackers_this_turn: Vec::new(),
             battle_attackers_this_turn: Vec::new(),
@@ -2894,6 +2896,7 @@ impl GameState {
             }
             self.loyalty_activated.clear();
             self.activated_once.clear();
+            self.limited_this_turn.clear();
             self.record_attacked_last_turn();
             self.blockers_this_turn.clear();
             self.targeted_by_controller.clear();

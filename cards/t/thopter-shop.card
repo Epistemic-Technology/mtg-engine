@@ -1,0 +1,7 @@
+card "Thopter Shop" {
+  oracle_id b2f9e07b-64b7-40b3-9a5e-5f1d59b35af7
+  cost {3}
+  type Artifact
+  triggered once each turn whenever one or more artifact creature you control die: draw 1 card
+  activated {2}{W}, {T}: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

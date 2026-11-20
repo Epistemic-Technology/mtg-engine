@@ -963,6 +963,11 @@ pub enum Ability {
         /// `triggered from graveyard ...`: works only while the card is
         /// in its owner's graveyard (CR 113.6k).
         from_graveyard: bool,
+
+        /// `triggered once each turn ...` ("This ability triggers only
+        /// once each turn."), `twice each turn`, `do once each turn` ("Do
+        /// this only once each turn.").
+        limit: mtg_core::card::TurnLimit,
     },
     Replacement(Replacement),
     Static {

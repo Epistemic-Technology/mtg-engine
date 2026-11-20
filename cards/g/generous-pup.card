@@ -1,0 +1,8 @@
+card "Generous Pup" {
+  oracle_id 9ee0d4a0-fd8d-43c4-a2aa-c4e6af5beecc
+  cost {1}{W}
+  type Creature — Dog
+  pt 2/2
+  keywords vigilance
+  triggered once each turn whenever one or more +1/+1 counters put on this: put 1 +1/+1 counters on each other creature you control
+}

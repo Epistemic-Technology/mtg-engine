@@ -1,0 +1,8 @@
+card "Baron Bertram Graywater" {
+  oracle_id e25b516c-bf95-42bc-8b1e-04617a3d28df
+  cost {2}{W}{B}
+  type Legendary Creature — Vampire Noble
+  pt 3/4
+  triggered once each turn whenever one or more token you control enter: create 1 "1/1 black Vampire Rogue creature with lifelink"
+  activated {1}{B}, sacrifice other creature or artifact: draw 1 card
+}

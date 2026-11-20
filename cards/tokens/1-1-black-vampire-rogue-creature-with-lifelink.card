@@ -1,0 +1,7 @@
+token "1/1 black Vampire Rogue creature with lifelink" {
+  name "Vampire Rogue"
+  type Creature — Vampire Rogue
+  pt 1/1
+  color black
+  keywords lifelink
+}

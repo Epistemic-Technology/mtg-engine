@@ -1,0 +1,8 @@
+card "Dusk Legion Duelist" {
+  oracle_id 30367a59-a812-41d4-a451-80d9071dd4a4
+  cost {1}{W}
+  type Creature — Vampire Soldier
+  pt 2/2
+  keywords vigilance
+  triggered once each turn whenever one or more +1/+1 counters put on this: draw 1 cards
+}

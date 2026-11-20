@@ -114,7 +114,7 @@ to its other face as well.
 | `boast {1}{W}: <effects>`, `exhaust {3}: <effects>`, `power-up {5}{R}: <effects>` | An activated ability after a keyword, printed "Boast — {1}{W}: ..." (the keyword's rules are reminder text). Boast (CR 702.142): only if this creature was declared as an attacker this turn, and only once each turn. Exhaust (CR 702.177) and power-up (CR 702.193): only once for the object (a new object after a zone change may again, CR 400.7); a power-up ability of a permanent that entered this turn costs its mana cost less (colored mana reduces that color, any excess generic; CR 118.7). |
 | `loyalty +1: <effects>` | A loyalty ability (CR 606); `-6` likewise. |
 | `equip {1}`, `equip Knight {1}`, `equip {0}, once` | Equip (CR 702.6): "Equip {1}"; with a creature type, only onto a creature of that type you control ("Equip Knight {1}", CR 702.6c); `once` prints "Equip {0}. Activate only once each turn." |
-| `triggered <trigger> [if <condition>]: <effects>` | A triggered ability (CR 603). |
+| `triggered <trigger> [if <condition>]: <effects>` | A triggered ability (CR 603). `triggered once each turn <trigger>: ...` ("This ability triggers only once each turn."), `twice each turn`, and `do once each turn` ("Do this only once each turn.") limit it each turn (below). |
 | `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger). |
 | `enters tapped` / `enters with 2 +1/+1 counters` / `enters prepared` | How this permanent enters (CR 614.1c; prepared, CR 722.3a). `enters with 2 +1/+1 counters if creature died this turn` (any static condition, judged as it enters) prints "This creature enters with two +1/+1 counters on it if a creature died this turn."; `enters with count equal graveyard creature +1/+1 counters` prints "... enters with a number of +1/+1 counters on it equal to the number of creature cards in your graveyard" (counted as it enters). Both, in that order, print as one sentence: "This land enters tapped with two depletion counters on it." (the order they apply in changes nothing, so it isn't asked). |
 | `static <filter>: <modifications>` | A static ability generating a continuous effect (CR 604, 611.3). `static each creature you control with +1/+1 counter: has trample` prints the subject one at a time: "Each creature you control with a +1/+1 counter on it has trample." |
@@ -724,6 +724,18 @@ and once it leaves the graveyard the ability can't return it. `return this
 to battlefield attached to that creature` (an Aura, CR 303.4f): "...
 attached to that creature"; nothing happens if that creature is gone or
 can't be enchanted by it (CR 303.4g).
+
+`triggered once each turn <trigger>: ...` prints "This ability triggers
+only once each turn." after the effects (`twice each turn`: "only twice
+each turn"): past that many times in a turn the ability doesn't trigger
+at all. `triggered do once each turn <trigger>: you may ...` prints "Do
+this only once each turn.": the ability triggers every time, but its
+first `you may` is offered only until its controller has done it this
+turn (declining doesn't count). Both count per object and ability and
+reset each turn; a permanent that changes zones is a new object and
+starts fresh (CR 400.7). Each goes after `from graveyard`, before the
+trigger, and works in a granted ability (`has ability { triggered once
+each turn ... }`), counted for the permanent that has it.
 Cards from hand into a library: `put 1 card from hand on bottom of
 library` ("put a card from your hand on the bottom of your library"),
 `put 2 cards from hand on top of library` ("... on top of your library in

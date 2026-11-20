@@ -1,0 +1,7 @@
+card "Spiteful Banditry" {
+  oracle_id fde2653f-5270-4b8f-9642-0835dbb076c2
+  cost {X}{R}{R}
+  type Enchantment
+  triggered when this enters: this deals X damage to each creature
+  triggered once each turn whenever one or more creature your opponents control die: you create 1 "Treasure"
+}

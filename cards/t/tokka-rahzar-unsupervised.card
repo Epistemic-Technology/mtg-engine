@@ -1,0 +1,8 @@
+card "Tokka & Rahzar, Unsupervised" {
+  oracle_id 8d857d79-bdb2-4ca3-abd6-7db8f6b3bcfa
+  cost {2}{R}
+  type Legendary Creature — Turtle Wolf Mutant
+  pt 3/3
+  keywords first strike
+  triggered once each turn whenever other nontoken creature you control leaves the battlefield: put 1 +1/+1 counter on this and create 1 "Treasure"
+}

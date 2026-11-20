@@ -1,0 +1,7 @@
+card "Well Rested" {
+  oracle_id f8cebb33-9235-4f63-8171-15af8b8e1436
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { triggered once each turn whenever this becomes untapped: put 2 +1/+1 counters on this then you gain 2 life and draw 1 card }
+}

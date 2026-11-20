@@ -56,12 +56,10 @@ impl GameState {
                 }
             }
             for ability in abilities {
-                let AbilityDef::Triggered(t) = self.pool.ability(ability) else {
-                    continue;
+                let t = match self.pool.ability(ability) {
+                    AbilityDef::Triggered(t) if t.from_graveyard == w.in_graveyard => t,
+                    _ => continue,
                 };
-                if t.from_graveyard != w.in_graveyard {
-                    continue;
-                }
                 let Some((trigger_obj, trigger_player)) = self.fires(&t.trigger, event, w) else {
                     continue;
                 };
@@ -70,7 +68,7 @@ impl GameState {
                 {
                     continue;
                 }
-                let copies = chapter_copies(&t.trigger, event);
+                let (copies, limit) = (chapter_copies(&t.trigger, event), t.limit);
                 // CR 603.2c: "one or more ... enter", once per batch.
                 let batch = matches!(
                     t.trigger,
@@ -78,7 +76,9 @@ impl GameState {
                         | TriggerSpec::LeavesBatch { .. }
                         | TriggerSpec::LeavesGraveyard(_)
                 );
-                if batch && self.join_batch(&mut fired, ability, w.source) {
+                if (batch && self.join_batch(&mut fired, ability, w.source))
+                    || !self.count_trigger(limit, w.source, ability)
+                {
                     continue;
                 }
                 let pending = PendingTrigger {
@@ -141,6 +141,27 @@ impl GameState {
             }
             self.pending_triggers.push(t);
         }
+    }
+
+    /// "This ability triggers only once each turn.": whether it may
+    /// trigger again this turn, counting it if so.
+    #[inline]
+    fn count_trigger(
+        &mut self,
+        limit: crate::card::TurnLimit,
+        source: ObjId,
+        ability: AbilityId,
+    ) -> bool {
+        let crate::card::TurnLimit::Triggers(n) = limit else {
+            return true;
+        };
+        let key = (source, ability);
+        let times = self.limited_this_turn.iter().filter(|k| **k == key).count();
+        if times >= usize::from(n) {
+            return false;
+        }
+        self.limited_this_turn.push(key);
+        true
     }
 
     /// Delayed triggered abilities waiting for the beginning of `step`
@@ -1359,9 +1380,9 @@ impl GameState {
     pub(super) fn resolve_ability(&mut self, id: ObjId) {
         let obj = self.objects[id].clone();
         let sa = obj.ability.expect("ability object");
-        let condition = match self.pool.ability(sa.ability) {
-            AbilityDef::Triggered(t) => t.condition,
-            AbilityDef::Activated(_) => None,
+        let (condition, limit) = match self.pool.ability(sa.ability) {
+            AbilityDef::Triggered(t) => (t.condition, t.limit),
+            AbilityDef::Activated(_) => (None, crate::card::TurnLimit::None),
             _ => unreachable!("only triggered and activated abilities use the stack"),
         };
         // A modal ability's targets and effects are its chosen mode's.
@@ -1439,7 +1460,15 @@ impl GameState {
             created_tokens: SmallVec::new(),
         };
         let outer = self.begin_this_way(id);
+        // "Do this only once each turn.": its "you may" asks only until it
+        // is done (`Effect::YouMay`).
+        let doing = if limit == crate::card::TurnLimit::Do {
+            self.doing_once.replace((sa.source, sa.ability))
+        } else {
+            self.doing_once.take()
+        };
         self.apply_effects(&mut ctx, effects, &split);
+        self.doing_once = doing;
         self.end_this_way(outer);
         if self.objects.contains_key(id) {
             self.remove_from_game(id);

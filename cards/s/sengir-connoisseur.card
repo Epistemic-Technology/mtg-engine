@@ -1,0 +1,8 @@
+card "Sengir Connoisseur" {
+  oracle_id 8a4d505e-b884-4b8b-93d5-495992f3858e
+  cost {3}{B}{B}
+  type Creature — Vampire
+  pt 3/3
+  keywords flying
+  triggered once each turn whenever one or more other creature die: put 1 +1/+1 counters on this
+}

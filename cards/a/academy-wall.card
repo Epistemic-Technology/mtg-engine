@@ -1,0 +1,8 @@
+card "Academy Wall" {
+  oracle_id 0cd77ee1-408c-4c51-ac87-24f4fc50083d
+  cost {2}{U}
+  type Creature — Wall
+  pt 0/5
+  keywords defender
+  triggered once each turn whenever you cast an instant or sorcery spell: you may draw 1 cards; if you do, discard 1 cards
+}

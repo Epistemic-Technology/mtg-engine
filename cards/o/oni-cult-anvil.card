@@ -1,0 +1,7 @@
+card "Oni-Cult Anvil" {
+  oracle_id c018f072-8f6d-4835-a717-ed4ecba70d97
+  cost {B}{R}
+  type Artifact
+  triggered once each turn whenever one or more artifact you control leave the battlefield during your turn: create 1 "1/1 colorless Construct artifact creature"
+  activated {T}, sacrifice artifact: this deals 1 damage to each opponent; you gain 1 life
+}

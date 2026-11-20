@@ -1,0 +1,8 @@
+card "Welcoming Vampire" {
+  oracle_id 605c1ee0-5e8a-4e0a-a99b-42a38873f822
+  cost {2}{W}
+  type Creature — Vampire
+  pt 2/3
+  keywords flying
+  triggered once each turn whenever one or more other creature you control with power 2 or less enter: draw 1 card
+}

@@ -9567,6 +9567,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             condition,
             targets,
             effects,
+            limit,
             ..
         } => {
             let mut ctx = Ctx::new(card, lookup, targets);
@@ -9666,6 +9667,21 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     out.push_str(rest);
                 }
                 _ => out.push_str(&text),
+            }
+            match limit {
+                mtg_core::card::TurnLimit::None => {}
+                mtg_core::card::TurnLimit::Triggers(n) => {
+                    let _ = write!(
+                        out,
+                        " This ability triggers only {} each turn.",
+                        match n {
+                            1 => "once".to_string(),
+                            2 => "twice".to_string(),
+                            n => format!("{} times", count_words(Num::N(u32::from(*n)), "one")),
+                        }
+                    );
+                }
+                mtg_core::card::TurnLimit::Do => out.push_str(" Do this only once each turn."),
             }
             out
         }

@@ -1,0 +1,80 @@
+# Triggered abilities limited each turn: "This ability triggers only once
+# each turn." stops triggering after the first time in a turn and starts
+# again next turn; a permanent that changes zones is a new object with a
+# fresh count (CR 400.7). "Do this only once each turn." triggers every
+# time, but its "you may" is offered only until it has been done.
+
+scenario "once each turn: a second artifact entering the same turn makes no Robot" {
+  battlefield A: "Mechan Assembler", 2 "Island"
+  hand A: "Ornithopter", "Ornithopter"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Ornithopter"
+  assert battlefield A contains 1 "Robot"
+}
+
+scenario "once each turn: it triggers again the next turn" {
+  battlefield A: "Mechan Assembler"
+  hand A: "Ornithopter", "Ornithopter"
+  turn 1 A: cast "Ornithopter"
+  turn 3 A: cast "Ornithopter"
+  run_to turn 3 end
+  assert battlefield A contains 2 "Robot"
+}
+
+scenario "once each turn: the first death draws, the second doesn't" {
+  battlefield A: "Morbid Opportunist", "Grizzly Bears", "Raging Goblin", 2 "Mountain"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Raging Goblin"
+  run_to turn 1 end
+  assert graveyard A contains "Raging Goblin"
+  assert hand A count 1
+}
+
+scenario "once each turn: a permanent that left and came back is a new object" {
+  battlefield A: "Morbid Opportunist", "Grizzly Bears", "Raging Goblin", 5 "Mountain", "Island", 3 "Swamp"
+  hand A: "Lightning Bolt", "Shock", "Unsummon"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Unsummon" targeting "Morbid Opportunist"
+  turn 1 A: wait
+  turn 1 A: cast "Morbid Opportunist"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Raging Goblin"
+  run_to turn 1 end
+  assert battlefield A contains "Morbid Opportunist"
+  assert graveyard A contains "Raging Goblin"
+  assert hand A count 2
+}
+
+scenario "do once each turn: declining doesn't use it up" {
+  battlefield A: "Irreverent Gremlin", 2 "Mountain"
+  hand A: "Forest", "Memnite", "Memnite", "Memnite", "Island"
+  library A: "Plains", "Swamp", "Wastes"
+  turn 1 A: cast "Memnite"
+  turn 1 A: decline "Irreverent Gremlin"
+  turn 1 A: wait
+  turn 1 A: cast "Memnite"
+  turn 1 A: wait
+  turn 1 A: cast "Memnite"
+  run_to turn 1 end
+  assert graveyard A count 1
+  assert graveyard A contains "Forest"
+  assert hand A contains "Plains"
+  assert hand A count 2
+}
+
+scenario "once each turn: a granted ability counts for each permanent that has it" {
+  battlefield A: "Dionus, Elvish Archdruid", "Llanowar Elves", "Elvish Mystic"
+  start turn 3 A
+  turn 3 A: attack "Llanowar Elves", "Elvish Mystic"
+  run_to turn 3 postcombat_main
+  assert untapped "Llanowar Elves"
+  assert untapped "Elvish Mystic"
+  assert counters "Llanowar Elves" +1/+1 1
+  assert counters "Elvish Mystic" +1/+1 1
+}

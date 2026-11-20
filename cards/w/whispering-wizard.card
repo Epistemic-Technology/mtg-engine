@@ -1,0 +1,7 @@
+card "Whispering Wizard" {
+  oracle_id 321e101c-a426-4d18-be0b-c26c5348b70d
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 3/2
+  triggered once each turn whenever you cast a noncreature spell: create 1 "1/1 white Spirit creature with flying"
+}

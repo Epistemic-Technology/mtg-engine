@@ -1,0 +1,7 @@
+card "Mary Jane Watson" {
+  oracle_id 6d44c87b-8945-4c39-b034-7690cf483992
+  cost {1}{G/W}
+  type Legendary Creature — Human Performer
+  pt 2/2
+  triggered once each turn whenever Spider you control enters: draw 1 cards
+}
