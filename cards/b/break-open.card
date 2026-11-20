@@ -1,0 +1,6 @@
+card "Break Open" {
+  oracle_id 1fcec3b2-47ba-4c56-9ce1-a4807e8ad262
+  cost {1}{R}
+  type Instant
+  spell: turn face up target face-down creature an opponent controls
+}

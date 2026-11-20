@@ -1068,6 +1068,19 @@ impl Fmt {
             Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
             Effect::Goad { what } => format!("goad {}", self.recipient(*what, t)),
+            Effect::TurnFaceUp { what } => format!("turn face up {}", self.recipient(*what, t)),
+            Effect::TurnFaceDown { what } => {
+                format!("turn face down {}", self.recipient(*what, t))
+            }
+            Effect::LookAtFaceDown { what } => {
+                format!("look at face-down {}", self.recipient(*what, t))
+            }
+            Effect::LookAtPlayer { who } => {
+                format!(
+                    "look at hand top and face-down of {}",
+                    self.recipient(*who, t)
+                )
+            }
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
             Effect::Grant { keywords: ks, to } => {
                 let v = if matches!(
@@ -2418,7 +2431,8 @@ pub fn filter(f: &Filter) -> String {
         let mut base = f.clone();
         base.or = None;
         if let Some(rest) = attacking_or_blocking(&base, alt) {
-            return format!("attacking or blocking {}", filter(&rest));
+            let late = if rest.attacking_late { " late" } else { "" };
+            return format!("attacking or blocking{late} {}", filter(&rest));
         }
         if let Some(k) = keyword_alternative(&base, alt) {
             return format!("{} or {}", filter_one(&base), keyword_name(k));
@@ -2580,6 +2594,9 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.status.toxic {
         words.push("with toxic".to_string());
+    }
+    if f.status.morph {
+        words.push("with morph".to_string());
     }
     match f.status.on {
         Some(mtg_core::card::OnHost::Creature) => words.push("attached to creature".to_string()),
@@ -3818,6 +3835,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::DescendedThisTurn => "descended this turn".to_string(),
         StaticCond::SurveilledThisTurn => "surveilled this turn".to_string(),
         StaticCond::CounterPutThisTurn => "counter put this turn".to_string(),
+        StaticCond::FaceDownEnteredThisTurn => "face-down creature entered this turn".to_string(),
         StaticCond::CreatureEnteredThisTurn { other } => format!(
             "{}creature entered this turn",
             if *other { "another " } else { "" }
@@ -4450,6 +4468,19 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 } else {
                     format!("plus {plus}")
                 }
+            );
+        }
+        Ability::MayLook {
+            top,
+            face_down,
+            opponents,
+        } => {
+            let _ = writeln!(
+                out,
+                "{indent}may look{}{}{}",
+                if *top { " top" } else { "" },
+                if *face_down { " face-down" } else { "" },
+                if *opponents { " opponents" } else { "" }
             );
         }
         Ability::ExtraVote { optional } => {

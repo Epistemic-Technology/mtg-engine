@@ -1,0 +1,8 @@
+card "Tunnel Tipster" {
+  oracle_id 8d0bf685-e521-4d72-acc6-86794f685ce2
+  cost {1}{G}
+  type Creature — Mole Scout
+  pt 1/1
+  triggered at beginning of your end step if face-down creature entered this turn: put 1 +1/+1 counter on this
+  mana {G}
+}

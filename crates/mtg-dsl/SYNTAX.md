@@ -147,6 +147,7 @@ double-faced permanent to its other face (CR 701.27).
 | `saddle 2` | Saddle N (CR 702.171): "Tap any number of other creatures you control with total power N or more: This Mount becomes saddled until end of turn. Saddle only as a sorcery." (chosen like crew). `triggered whenever this attacks while saddled: ...` ("Whenever this creature attacks while saddled, ..."); `saddled` is also a static condition ("it's saddled"). |
 | `deck any number` | "A deck can have any number of cards named ~." (CR 100.2a): a deck-building rule; nothing in a game. |
 | `extra vote`, `extra vote may` | "While voting, you get an additional vote.", "While voting, you may vote an additional time." (CR 701.38d: the controller's extra votes are cast when they would vote; the optional one may be declined). |
+| `may look face-down`, `may look face-down opponents`, `may look top`, `may look top face-down` | "You may look at face-down creatures you don't control any time." ("... your opponents control ...", the same in a two-player game), "You may look at the top card of your library any time.", "You may look at the top card of your library and at face-down creatures you don't control any time." Information only (CR 401.2, 708.5): the controller's view shows those cards. |
 | `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
 | `except { ... }` | What this card's copy effects add (CR 707.9b): `subtypes Illusion`, `keywords haste`, and ability lines. |
 
@@ -345,7 +346,9 @@ life this turn`, `gained or lost life this turn`, `descended this turn`
 ("you descended this turn", CR 700.11: a permanent card was put into your
 graveyard from anywhere), `surveilled this turn` ("you've surveilled this
 turn"), `counter put this turn` ("a +1/+1 counter was put on a permanent
-under your control this turn"), `another creature entered this turn`
+under your control this turn"), `face-down creature entered this turn`
+("a face-down creature entered the battlefield under your control this
+turn", CR 708.3), `another creature entered this turn`
 ("another creature entered the battlefield under your control this
 turn"; `creature entered this turn` without "another"), `2 nonland
 entered this turn` (celebration: "two or more nonland permanents entered
@@ -602,6 +605,25 @@ game here, so it is "you may discard a card; if you do, draw a card".
 `goad targets 1 to 3` "Goad them."): until the controller's next turn the
 creature attacks each combat if able, and attacks a player other than the
 controller if able.
+`turn face up target face-down creature an opponent controls` prints "Turn
+target face-down creature an opponent controls face up." (CR 708.8: no
+cost is paid, so megamorph adds no counter, CR 702.37b; "turned face up"
+triggers fire; a face-down instant or sorcery card is revealed and stays
+face down, CR 701.40g). `turn face down target creature with morph` prints
+"Turn target creature with a morph ability face down." (CR 708.2a: a 2/2
+with no text, no ward even for a disguise card; it can be turned face up
+again for its morph cost; a face-down or double-faced permanent is
+unaffected, CR 708.2b, 712.16). `with morph` is a filter word ("with a
+morph ability", CR 702.37: morph or megamorph, not disguise).
+`look at face-down target face-down creature` prints "Look at target
+face-down creature." (CR 708.5): the controller learns the card;
+`you may look at face-down each face-down attacking or blocking late
+creature` prints "You may look at each face-down creature that's attacking
+or blocking." (`attacking or blocking late` prints the combat words after
+the noun). `look at hand top and face-down of target player` prints "Look
+at target player's hand, the top card of that player's library, and any
+face-down creatures they control." Information only: an agent's view shows a face-down permanent's
+card to its controller and to whoever has looked at it.
 `spells red or white you cast cost {1} less` prints "Red spells and white
 spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
 spells". `defending player` as a subject prints "defending player".

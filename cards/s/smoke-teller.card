@@ -1,0 +1,7 @@
+card "Smoke Teller" {
+  oracle_id 387a5937-cdbd-4e8e-8efb-4d444aa9cbc9
+  cost {1}{G}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {1}{U}: look at face-down target face-down creature
+}

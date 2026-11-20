@@ -1696,6 +1696,13 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     let mut base = f.clone();
     base.or = None;
     if let Some(rest) = crate::format::attacking_or_blocking(&base, alt) {
+        // "each face-down creature that's attacking or blocking".
+        if rest.attacking_late {
+            return format!(
+                "{} that's attacking or blocking",
+                filter_phrase_one(&rest, card, plural_form)
+            );
+        }
         return format!(
             "attacking or blocking {}",
             filter_phrase_one(&rest, card, plural_form)
@@ -1944,6 +1951,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     // "each other creature you control with toxic" (CR 702.164).
     if f.status.toxic {
         s.push_str(" with toxic");
+    }
+    // "target creature with a morph ability" (CR 702.37).
+    if f.status.morph {
+        s.push_str(" with a morph ability");
     }
     // "target Aura attached to a creature".
     match f.status.on {
@@ -4236,6 +4247,29 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::TapOrUntap { to } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("tap or untap {o}"))
+        }
+        Effect::TurnFaceUp { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("turn {o} face up"))
+        }
+        Effect::TurnFaceDown { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("turn {o} face down"))
+        }
+        Effect::LookAtFaceDown { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("look at {o}"))
+        }
+        Effect::LookAtPlayer { who } => {
+            let o = ctx.obj(*who);
+            let whose = match o.as_str() {
+                "you" => "your".to_string(),
+                "it" | "them" => "their".to_string(),
+                o => format!("{o}'s"),
+            };
+            Clause::imperative(format!(
+                "look at {whose} hand, the top card of that player's library, and any face-down creatures they control"
+            ))
         }
         Effect::Goad { what } => {
             let o = ctx.obj(*what);
@@ -8712,6 +8746,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::CounterPutThisTurn => {
             "a +1/+1 counter was put on a permanent under your control this turn".to_string()
         }
+        StaticCond::FaceDownEnteredThisTurn => {
+            "a face-down creature entered the battlefield under your control this turn".to_string()
+        }
         StaticCond::CreatureEnteredThisTurn { other } => format!(
             "{} creature entered the battlefield under your control this turn",
             if *other { "another" } else { "a" }
@@ -9574,6 +9611,25 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 format!("as though its power were {plus} greater")
             };
             format!("This {} {verb} {how}.", self_noun(card))
+        }
+        Ability::MayLook {
+            top,
+            face_down,
+            opponents,
+        } => {
+            let whose = if *opponents {
+                "your opponents control"
+            } else {
+                "you don't control"
+            };
+            let what = match (*top, *face_down) {
+                (true, true) => {
+                    format!("the top card of your library and at face-down creatures {whose}")
+                }
+                (true, false) => "the top card of your library".to_string(),
+                _ => format!("face-down creatures {whose}"),
+            };
+            format!("You may look at {what} any time.")
         }
         Ability::ExtraVote { optional: false } => {
             "While voting, you get an additional vote.".to_string()

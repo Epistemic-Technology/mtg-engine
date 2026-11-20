@@ -1,0 +1,133 @@
+# M5: effects that turn permanents face up or face down (CR 708.2a,
+# 708.8), look at face-down creatures (CR 708.5), and "you may look at
+# ... any time".
+
+scenario "turn face up: a face-down creature turns up for free, its trigger fires" {
+  battlefield A: 3 "Mountain"
+  battlefield B: 2 "Mountain"
+  hand A: "Atarka Efreet"
+  hand B: "Break Open"
+  turn 1 A: cast "Atarka Efreet" face_down
+  turn 2 B: cast "Break Open" targeting "face-down creature"
+  turn 2 A: trigger "Atarka Efreet" targeting player B
+  run_to turn 2 end
+  assert battlefield A contains "Atarka Efreet"
+  # No megamorph counter: its cost wasn't paid (CR 702.37b).
+  assert power "Atarka Efreet" 5
+  assert counters "Atarka Efreet" +1/+1 0
+  assert life B 19
+}
+
+scenario "turn face up: only a face-down creature an opponent controls" {
+  battlefield A: 5 "Mountain"
+  hand A: "Atarka Efreet", "Break Open"
+  turn 1 A: cast "Atarka Efreet" face_down
+  illegal turn 1 postcombat_main A: cast "Break Open" targeting "face-down creature"
+  run_to turn 1 end
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "turn face down: a morph creature becomes a face-down 2/2 and can turn up again" {
+  battlefield A: "Atarka Efreet", 3 "Mountain"
+  battlefield B: 2 "Island"
+  hand B: "Backslide"
+  start turn 2 B
+  turn 2 B: cast "Backslide" targeting "Atarka Efreet"
+  run_to turn 2 end
+  assert battlefield A contains "face-down creature"
+  assert battlefield A lacks "Atarka Efreet"
+  assert power "face-down creature" 2
+  turn 3 A: unmorph "Atarka Efreet"
+  turn 3 A: trigger "Atarka Efreet" targeting player B
+  run_to turn 3 postcombat_main
+  # Megamorph paid this time: a +1/+1 counter.
+  assert power "Atarka Efreet" 6
+  assert life B 19
+}
+
+scenario "turn face down: not a creature without a morph ability" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: 2 "Island"
+  hand B: "Backslide"
+  start turn 2 B
+  illegal turn 2 B: cast "Backslide" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "look at target face-down creature: the activator learns what it is" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Smoke Teller", "Island", "Forest"
+  hand A: "Atarka Efreet"
+  turn 1 A: cast "Atarka Efreet" face_down
+  run_to turn 1 end
+  assert known A "Atarka Efreet"
+  assert unknown B "Atarka Efreet"
+  turn 2 B: activate "Smoke Teller" targeting "face-down creature"
+  run_to turn 2 end
+  assert known B "Atarka Efreet"
+}
+
+scenario "may look any time: face-down creatures you don't control" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Keeper of the Lens"
+  hand A: "Atarka Efreet"
+  turn 1 A: cast "Atarka Efreet" face_down
+  run_to turn 1 end
+  assert known B "Atarka Efreet"
+}
+
+scenario "may look any time: the top card of your library" {
+  battlefield A: "Lens of Clarity"
+  library A: "Grizzly Bears", "Hill Giant"
+  library B: "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert known A "Grizzly Bears"
+  assert unknown A "Hill Giant"
+  assert unknown B "Hill Giant"
+}
+
+scenario "look at each face-down creature attacking or blocking; no combat damage" {
+  battlefield A: 3 "Mountain"
+  battlefield B: 3 "Forest"
+  hand A: "Atarka Efreet"
+  hand B: "Revealing Wind"
+  turn 1 A: cast "Atarka Efreet" face_down
+  turn 3 A: attack "face-down creature"
+  turn 3 declare_attackers B: cast "Revealing Wind"
+  run_to turn 3 end
+  assert life B 20
+  assert known B "Atarka Efreet"
+}
+
+scenario "look at a player's hand, top card, and face-down creatures" {
+  battlefield A: "Island"
+  battlefield B: 3 "Mountain"
+  hand A: "Spy Network"
+  hand B: "Atarka Efreet", "Shock"
+  library B: "Hill Giant", "Grizzly Bears", "Serra Angel"
+  start turn 2 B
+  turn 2 B: cast "Atarka Efreet" face_down
+  turn 2 postcombat_main A: cast "Spy Network" targeting player B
+  run_to turn 2 end
+  assert known A "Atarka Efreet"
+  assert known A "Shock"
+  assert known A "Grizzly Bears"
+  assert unknown A "Serra Angel"
+}
+
+scenario "face-down creature entered this turn: the end step counter" {
+  battlefield A: "Tunnel Tipster", 3 "Mountain"
+  hand A: "Atarka Efreet"
+  turn 1 A: cast "Atarka Efreet" face_down
+  run_to turn 2 upkeep
+  assert counters "Tunnel Tipster" +1/+1 1
+}
+
+scenario "face-down creature entered this turn: not for a face-up one" {
+  battlefield A: "Tunnel Tipster", 4 "Mountain"
+  hand A: "Atarka Efreet"
+  turn 1 A: cast "Atarka Efreet"
+  run_to turn 2 upkeep
+  assert counters "Tunnel Tipster" +1/+1 0
+}

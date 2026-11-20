@@ -1253,6 +1253,21 @@ impl P {
                     plus,
                 })
             }
+            "may" if self.word_at(1).as_deref() == Some("look") => {
+                self.pos += 2;
+                let top = self.eat_word("top");
+                let face_down = self.eat_word("face-down");
+                let opponents = face_down && self.eat_word("opponents");
+                if !top && !face_down {
+                    return self.fail("expected `top` or `face-down`".to_string());
+                }
+                self.end_stmt()?;
+                Ok(Ability::MayLook {
+                    top,
+                    face_down,
+                    opponents,
+                })
+            }
             "extra" if self.word_at(1).as_deref() == Some("vote") => {
                 self.pos += 2;
                 let optional = self.eat_word("may");
@@ -2431,6 +2446,9 @@ impl P {
         }
         if self.eat_words(&["counter", "put", "this", "turn"]) {
             return Ok(StaticCond::CounterPutThisTurn);
+        }
+        if self.eat_words(&["face-down", "creature", "entered", "this", "turn"]) {
+            return Ok(StaticCond::FaceDownEnteredThisTurn);
         }
         if self.eat_words(&["creature", "entered", "this", "turn"]) {
             return Ok(StaticCond::CreatureEnteredThisTurn { other: false });
@@ -5907,6 +5925,28 @@ impl P {
                 self.expect_word("card")?;
                 Ok(Effect::RevealUntil { who: None, filter })
             }
+            "look" if self.at_words(&["at", "hand", "top", "and", "face-down", "of"]) => {
+                self.pos += 6;
+                Ok(Effect::LookAtPlayer {
+                    who: self.recipient()?,
+                })
+            }
+            "look" if self.at_words(&["at", "face-down"]) => {
+                self.pos += 2;
+                Ok(Effect::LookAtFaceDown {
+                    what: self.recipient()?,
+                })
+            }
+            "turn" if self.at_words(&["face", "up"]) || self.at_words(&["face", "down"]) => {
+                self.pos += 1;
+                let up = self.word()? == "up";
+                let what = self.recipient()?;
+                Ok(if up {
+                    Effect::TurnFaceUp { what }
+                } else {
+                    Effect::TurnFaceDown { what }
+                })
+            }
             "look" if self.at_words(&["at", "hand", "of"]) => {
                 self.pos += 3;
                 let who = self.recipient()?;
@@ -7710,7 +7750,7 @@ impl P {
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
-                        | (Some("with"), Some("counter" | "toxic"))
+                        | (Some("with"), Some("counter" | "toxic" | "morph"))
                         | (Some("blocked"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
                 ) || comma_type
@@ -8107,6 +8147,11 @@ impl P {
                     f.status.toxic = true;
                     self.pos += 2;
                 }
+                // "with a morph ability" (CR 702.37).
+                "with" if self.word_at(1).as_deref() == Some("morph") && !f.status.morph => {
+                    f.status.morph = true;
+                    self.pos += 2;
+                }
                 "with" | "without"
                     if self.word_at(1).as_deref() == Some("aura")
                         && f.status.enchanted.is_none() =>
@@ -8224,6 +8269,10 @@ impl P {
                     f.attacking = true;
                     or_blocking = true;
                     self.pos += 3;
+                    // "face-down creature that's attacking or blocking".
+                    if self.eat_word("late") {
+                        f.attacking_late = true;
+                    }
                 }
                 "attacking" => {
                     f.attacking = true;

@@ -1029,6 +1029,7 @@ impl Compiler<'_> {
             StaticCond::DescendedThisTurn => StaticCondition::DescendedThisTurn,
             StaticCond::SurveilledThisTurn => StaticCondition::SurveilledThisTurn,
             StaticCond::CounterPutThisTurn => StaticCondition::CounterPutThisTurn,
+            StaticCond::FaceDownEnteredThisTurn => StaticCondition::FaceDownEnteredThisTurn,
             StaticCond::CreatureEnteredThisTurn { other } => {
                 StaticCondition::CreatureEnteredThisTurn { other: *other }
             }
@@ -1519,6 +1520,12 @@ impl Compiler<'_> {
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
+            Effect::TurnFaceUp { what } => out.push(CoreEffect::TurnFaceUp { what: r(*what) }),
+            Effect::TurnFaceDown { what } => out.push(CoreEffect::TurnFaceDown { what: r(*what) }),
+            Effect::LookAtFaceDown { what } => {
+                out.push(CoreEffect::LookAtFaceDown { what: r(*what) });
+            }
+            Effect::LookAtPlayer { who } => out.push(CoreEffect::LookAtPlayer { who: r(*who) }),
             Effect::Tap { to } => {
                 for t in to {
                     out.push(CoreEffect::Tap { to: r(*t) });
@@ -3344,6 +3351,15 @@ impl Compiler<'_> {
             }
             Ability::ExtraVote { optional } => AbilityDef::ExtraVote {
                 optional: *optional,
+            },
+            Ability::MayLook {
+                top,
+                face_down,
+                opponents,
+            } => AbilityDef::MayLook {
+                top: *top,
+                face_down: *face_down,
+                opponents: *opponents,
             },
             Ability::CrewsAs {
                 saddles,

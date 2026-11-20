@@ -473,6 +473,7 @@ impl Decompiler<'_> {
             StaticCondition::DescendedThisTurn => StaticCond::DescendedThisTurn,
             StaticCondition::SurveilledThisTurn => StaticCond::SurveilledThisTurn,
             StaticCondition::CounterPutThisTurn => StaticCond::CounterPutThisTurn,
+            StaticCondition::FaceDownEnteredThisTurn => StaticCond::FaceDownEnteredThisTurn,
             StaticCondition::CreatureEnteredThisTurn { other } => {
                 StaticCond::CreatureEnteredThisTurn { other: *other }
             }
@@ -705,6 +706,10 @@ impl Decompiler<'_> {
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
             CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },
+            CoreEffect::TurnFaceUp { what } => Effect::TurnFaceUp { what: r(*what) },
+            CoreEffect::TurnFaceDown { what } => Effect::TurnFaceDown { what: r(*what) },
+            CoreEffect::LookAtFaceDown { what } => Effect::LookAtFaceDown { what: r(*what) },
+            CoreEffect::LookAtPlayer { who } => Effect::LookAtPlayer { who: r(*who) },
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),
@@ -1677,6 +1682,15 @@ impl Decompiler<'_> {
             },
             AbilityDef::ExtraVote { optional } => Ability::ExtraVote {
                 optional: *optional,
+            },
+            AbilityDef::MayLook {
+                top,
+                face_down,
+                opponents,
+            } => Ability::MayLook {
+                top: *top,
+                face_down: *face_down,
+                opponents: *opponents,
             },
             AbilityDef::CrewsAs {
                 saddles,

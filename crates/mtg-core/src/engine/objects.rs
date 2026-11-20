@@ -434,6 +434,9 @@ impl GameState {
             self.count_sources(flags, self.pool.get(def).is_legendary(), true);
             if self.pool.is_face_down(def) {
                 self.face_down_count += 1;
+                // "if a face-down creature entered the battlefield under
+                // your control this turn".
+                self.turn_log.face_down_entered |= 1 << controller.index().min(7);
             }
         }
         match to {
@@ -689,12 +692,10 @@ impl GameState {
         new
     }
 
-    /// CR 707: `id` becomes a copy of `of`, keeping `except`'s exceptions
-    /// (CR 707.9b). Counters, damage, and attachments stay; the board
-    /// counts follow the new definition.
     /// CR 708.8: a face-down permanent turns face up as the card it is;
-    /// megamorph adds a +1/+1 counter (CR 702.37b).
-    pub(super) fn turn_face_up(&mut self, id: ObjId) {
+    /// megamorph adds a +1/+1 counter if its cost was `paid` (CR
+    /// 702.37b).
+    pub(super) fn turn_face_up(&mut self, id: ObjId, paid: bool) {
         let o = &self.objects[id];
         let (old_flags, card) = (self.flags_of(o), o.card);
         self.count_sources(old_flags, false, false);
@@ -711,12 +712,34 @@ impl GameState {
         );
         self.count_sources(flags, legend, true);
         self.cbump();
-        if mega {
+        if mega && paid {
             self.add_counters(id, CounterKind::PlusOnePlusOne, 1);
         }
         self.emit(Event::TurnedFaceUp { obj: id });
     }
 
+    /// CR 708.2a: a face-up permanent turned face down by an effect that
+    /// lists no characteristics is a 2/2 face-down creature with no text
+    /// (no ward, even if its card has disguise). It stays the same object;
+    /// what anyone has looked at is forgotten.
+    pub(super) fn turn_face_down(&mut self, id: ObjId) {
+        let o = &self.objects[id];
+        let (old_flags, legend) = (self.flags_of(o), self.pool.get(o.def).is_legendary());
+        self.count_sources(old_flags, legend, false);
+        let face_down = self.pool.face_down(false);
+        let o = &mut self.objects[id];
+        o.def = face_down;
+        o.except = None;
+        o.revealed = 0;
+        self.face_down_count += 1;
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, false, true);
+        self.cbump();
+    }
+
+    /// CR 707: `id` becomes a copy of `of`, keeping `except`'s exceptions
+    /// (CR 707.9b). Counters, damage, and attachments stay; the board
+    /// counts follow the new definition.
     pub(super) fn become_copy(&mut self, id: ObjId, of: ObjId, except: Option<CardRef>) {
         let (def, x) = {
             let o = &self.objects[of];

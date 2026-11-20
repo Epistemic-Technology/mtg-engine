@@ -2256,12 +2256,17 @@ impl Runner {
                 )
             }
             Assertion::Known(p, name, want) => {
-                let bit = 1u8 << p.index().min(7);
-                let known = st
-                    .players
-                    .iter()
-                    .flat_map(|q| q.library.iter().chain(q.hand.iter()))
-                    .any(|id| st.name_of(*id) == *name && st.objects[*id].revealed & bit != 0);
+                // A face-down permanent by the card it is (CR 708.5).
+                let face_down = st.battlefield.iter().any(|id| {
+                    st.face_down_card_for(*p, *id)
+                        .is_some_and(|c| st.pool.get(c).name == *name)
+                });
+                let known = face_down
+                    || st
+                        .players
+                        .iter()
+                        .flat_map(|q| q.library.iter().chain(q.hand.iter()))
+                        .any(|id| st.name_of(*id) == *name && st.knows(*p, *id));
                 expect(
                     line,
                     format!("whether {} knows \"{name}\"", player_name(*p)),

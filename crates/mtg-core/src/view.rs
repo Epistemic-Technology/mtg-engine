@@ -24,6 +24,10 @@ pub struct ObjectView {
     pub blocking: Option<ObjId>,
     /// For spells on the stack.
     pub targets: Vec<Target>,
+    /// The card a face-down permanent is, when the viewer may know it
+    /// (`GameState::face_down_card_for`).
+    #[serde(default)]
+    pub face_down_card: Option<CardRef>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -43,6 +47,10 @@ pub struct PlayerView {
     pub mana_pool: ManaPool,
     pub lands_played_this_turn: u32,
     pub lost: bool,
+    /// The top card of the viewer's own library, when they may look at it
+    /// any time (`AbilityDef::MayLook`).
+    #[serde(default)]
+    pub library_top: Option<ObjectView>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -76,7 +84,63 @@ impl GameState {
         o.revealed & (1 << viewer.index().min(7)) != 0
     }
 
-    fn object_view(&self, id: ObjId) -> ObjectView {
+    /// The `MayLook` abilities (top of library, face-down creatures) of
+    /// `viewer`'s permanents.
+    fn may_look(&self, viewer: PlayerId) -> (bool, bool) {
+        let (mut top, mut face_down) = (false, false);
+        for id in self.permanents_of(viewer) {
+            let Some(c) = self.characteristics(id) else {
+                continue;
+            };
+            for a in &c.abilities {
+                if let crate::card::AbilityDef::MayLook {
+                    top: t,
+                    face_down: f,
+                    ..
+                } = self.pool.ability(*a)
+                {
+                    top |= *t;
+                    face_down |= *f;
+                }
+            }
+        }
+        (top, face_down)
+    }
+
+    /// The card a face-down permanent is, if `viewer` may know it: its
+    /// controller may look at it (CR 708.5), as may a player who looked at
+    /// it ("Look at target face-down creature") or who may look at
+    /// face-down creatures any time (`MayLook`).
+    pub fn face_down_card_for(&self, viewer: PlayerId, id: ObjId) -> Option<CardRef> {
+        let o = self.objects.get(id)?;
+        if !self.pool.is_face_down(o.def) {
+            return None;
+        }
+        (o.controller == viewer || Self::seen_by(o, viewer) || self.may_look(viewer).1)
+            .then_some(o.card)
+    }
+
+    /// Whether `viewer` knows the card `id` in a library, a hand, or face
+    /// down on the battlefield: it was revealed to or looked at by them,
+    /// it is the top of their library and they may look at it any time,
+    /// or `face_down_card_for`.
+    pub fn knows(&self, viewer: PlayerId, id: ObjId) -> bool {
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        match o.zone {
+            Zone::Battlefield => self.face_down_card_for(viewer, id).is_some(),
+            Zone::Library => {
+                Self::seen_by(o, viewer)
+                    || (o.owner == viewer
+                        && self.player(viewer).library.last() == Some(&id)
+                        && self.may_look(viewer).0)
+            }
+            _ => Self::seen_by(o, viewer),
+        }
+    }
+
+    fn object_view(&self, id: ObjId, viewer: PlayerId) -> ObjectView {
         let o = &self.objects[id];
         let c = self.characteristics(id).expect("object exists");
         let combat = self.combat.as_ref();
@@ -99,6 +163,11 @@ impl GameState {
             attacking: combat.and_then(|cb| cb.attacker(id)).map(|a| a.attacking),
             blocking: combat.and_then(|cb| cb.blocked_by(id)),
             targets: o.targets.iter().copied().collect(),
+            face_down_card: if o.zone == Zone::Battlefield {
+                self.face_down_card_for(viewer, id)
+            } else {
+                None
+            },
         }
     }
 
@@ -113,22 +182,39 @@ impl GameState {
                     life: p.life,
                     library_count: p.library.len(),
                     hand_count: p.hand.len(),
-                    hand: (id == viewer)
-                        .then(|| p.hand.iter().map(|o| self.object_view(*o)).collect()),
+                    hand: (id == viewer).then(|| {
+                        p.hand
+                            .iter()
+                            .map(|o| self.object_view(*o, viewer))
+                            .collect()
+                    }),
                     revealed: if id == viewer {
                         Vec::new()
                     } else {
                         p.hand
                             .iter()
                             .filter(|o| Self::seen_by(&self.objects[**o], viewer))
-                            .map(|o| self.object_view(*o))
+                            .map(|o| self.object_view(*o, viewer))
                             .collect()
                     },
-                    graveyard: p.graveyard.iter().map(|o| self.object_view(*o)).collect(),
-                    exile: p.exile.iter().map(|o| self.object_view(*o)).collect(),
+                    graveyard: p
+                        .graveyard
+                        .iter()
+                        .map(|o| self.object_view(*o, viewer))
+                        .collect(),
+                    exile: p
+                        .exile
+                        .iter()
+                        .map(|o| self.object_view(*o, viewer))
+                        .collect(),
                     mana_pool: p.mana_pool,
                     lands_played_this_turn: p.lands_played_this_turn,
                     lost: p.lost.is_some(),
+                    library_top: p
+                        .library
+                        .last()
+                        .filter(|t| id == viewer && self.knows(viewer, **t))
+                        .map(|t| self.object_view(*t, viewer)),
                 }
             })
             .collect();
@@ -142,9 +228,13 @@ impl GameState {
             battlefield: self
                 .battlefield
                 .iter()
-                .map(|o| self.object_view(*o))
+                .map(|o| self.object_view(*o, viewer))
                 .collect(),
-            stack: self.stack.iter().map(|o| self.object_view(*o)).collect(),
+            stack: self
+                .stack
+                .iter()
+                .map(|o| self.object_view(*o, viewer))
+                .collect(),
         }
     }
 }
@@ -171,6 +261,11 @@ impl GameState {
         use std::fmt::Write as _;
         let o = &self.objects[id];
         let mut s = format!("{} {}", Self::label(id), self.name_of(id));
+        if o.zone == Zone::Battlefield
+            && let Some(card) = self.face_down_card_for(viewer, id)
+        {
+            let _ = write!(s, " (face down: {})", self.pool.get(card).name);
+        }
         let Some(c) = self.characteristics(id) else {
             return s;
         };
@@ -260,6 +355,12 @@ impl GameState {
             }
             if ps.lost.is_some() {
                 out.push_str(", has lost");
+            }
+            if let Some(top) = ps.library.last()
+                && p == viewer
+                && self.knows(viewer, *top)
+            {
+                let _ = write!(out, ", top of library {}", self.name_of(*top));
             }
             out.push('\n');
             let perms: Vec<String> = self

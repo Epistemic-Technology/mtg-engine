@@ -1133,6 +1133,9 @@ pub struct StatusQuals {
     pub on: Option<OnHost>,
     /// "face-down creature" (CR 708.2): a face-down permanent.
     pub face_down: bool,
+    /// "creature with a morph ability" (CR 702.37; megamorph is morph,
+    /// CR 702.37b, disguise isn't).
+    pub morph: bool,
 }
 
 /// The kind of permanent `StatusQuals::on` asks the object to be attached
@@ -1171,6 +1174,7 @@ impl StatusQuals {
             || self.toxic
             || self.on.is_some()
             || self.face_down
+            || self.morph
     }
 }
 
@@ -2151,6 +2155,9 @@ pub enum StaticCondition {
     /// "a +1/+1 counter was put on a permanent under your control this
     /// turn".
     CounterPutThisTurn,
+    /// "a face-down creature entered the battlefield under your control
+    /// this turn" (CR 708.3).
+    FaceDownEnteredThisTurn,
     /// "another creature entered the battlefield under your control this
     /// turn" (`other`: not counting the source's own entry).
     CreatureEnteredThisTurn {
@@ -3232,6 +3239,30 @@ pub enum Effect {
     /// generic mana; several such effects add up, and that one spell uses
     /// them all up.
     NextSpellLess(u32),
+    /// "Turn target face-down creature an opponent controls face up" (CR
+    /// 708.8): no cost is paid, so megamorph adds no counter (CR
+    /// 702.37b); one whose card is an instant or sorcery is revealed and
+    /// stays face down (CR 701.40g).
+    TurnFaceUp {
+        what: Recipient,
+    },
+    /// "Turn target creature with a morph ability face down" (CR 708.2a):
+    /// a 2/2 face-down creature with no text; a face-down or double-faced
+    /// permanent is unaffected (CR 708.2b, 712.16).
+    TurnFaceDown {
+        what: Recipient,
+    },
+    /// "Look at target face-down creature" (CR 708.5): the controller
+    /// learns what it is; information only.
+    LookAtFaceDown {
+        what: Recipient,
+    },
+    /// "Look at target player's hand, the top card of that player's
+    /// library, and any face-down creatures they control." (CR 708.5):
+    /// the controller learns those cards; information only.
+    LookAtPlayer {
+        who: Recipient,
+    },
     /// "Tap or untap target permanent": its controller (the ability's)
     /// chooses as it resolves.
     TapOrUntap {
@@ -5305,6 +5336,16 @@ pub enum AbilityDef {
     ExtraVote {
         optional: bool,
     },
+    /// "You may look at the top card of your library any time." (`top`),
+    /// "You may look at face-down creatures you don't control any time."
+    /// (`face_down`; `opponents`: "... your opponents control ...", the
+    /// same in a two-player game): information only (CR 401.2, 708.5),
+    /// what the controller's view shows.
+    MayLook {
+        top: bool,
+        face_down: bool,
+        opponents: bool,
+    },
     /// "This creature crews Vehicles using its toughness rather than its
     /// power." (`toughness`), "... saddles Mounts and crews Vehicles as
     /// though its power were 2 greater." (`plus` 2): what it counts for
@@ -5343,6 +5384,7 @@ impl AbilityDef {
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
+            | AbilityDef::MayLook { .. }
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)
@@ -5370,6 +5412,7 @@ impl AbilityDef {
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
+            | AbilityDef::MayLook { .. }
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)
@@ -6318,6 +6361,15 @@ impl CardDef {
             }
             _ => None,
         })
+    }
+
+    /// "with a morph ability" (CR 702.37): morph or megamorph (CR
+    /// 702.37b), not disguise.
+    pub fn has_morph(&self) -> bool {
+        matches!(
+            self.morph.as_deref(),
+            Some((_, MorphKind::Morph | MorphKind::Megamorph))
+        )
     }
 }
 

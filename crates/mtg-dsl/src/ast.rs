@@ -1037,6 +1037,16 @@ pub enum Ability {
     ExtraVote {
         optional: bool,
     },
+    /// `may look top`: "You may look at the top card of your library any
+    /// time."; `may look face-down`: "You may look at face-down creatures
+    /// you don't control any time." (`may look face-down opponents`:
+    /// "... your opponents control ..."); `may look top face-down`, both
+    /// in one sentence. Information only.
+    MayLook {
+        top: bool,
+        face_down: bool,
+        opponents: bool,
+    },
     /// `crews using toughness`: "This creature crews Vehicles using its
     /// toughness rather than its power."; `saddles and crews plus 2`:
     /// "This creature saddles Mounts and crews Vehicles as though its
@@ -1551,6 +1561,9 @@ pub enum StaticCond {
     /// `counter put this turn`: "a +1/+1 counter was put on a permanent
     /// under your control this turn".
     CounterPutThisTurn,
+    /// `face-down creature entered this turn`: "a face-down creature
+    /// entered the battlefield under your control this turn".
+    FaceDownEnteredThisTurn,
     /// `creature entered this turn`, `another creature entered this turn`
     /// ("another creature entered the battlefield under your control this
     /// turn").
@@ -2407,6 +2420,28 @@ pub enum Effect {
     NextSpellLess(u32),
     TapOrUntap {
         to: Recipient,
+    },
+    /// `turn face up target face-down creature opponent controls` (CR
+    /// 708.8): "Turn target face-down creature an opponent controls face
+    /// up."
+    TurnFaceUp {
+        what: Recipient,
+    },
+    /// `turn face down target creature with morph` (CR 708.2a): "Turn
+    /// target creature with a morph ability face down."
+    TurnFaceDown {
+        what: Recipient,
+    },
+    /// `look at face-down target face-down creature` (CR 708.5): "Look at
+    /// target face-down creature."
+    LookAtFaceDown {
+        what: Recipient,
+    },
+    /// `look at hand top and face-down of target player`: "Look at target
+    /// player's hand, the top card of that player's library, and any
+    /// face-down creatures they control."
+    LookAtPlayer {
+        who: Recipient,
     },
     /// `goad target creature` (CR 701.15).
     Goad {

@@ -1,0 +1,9 @@
+card "Backslide" {
+  oracle_id 6d9746bc-0b72-4ac4-b48a-742b63b1c41b
+  cost {1}{U}
+  type Instant
+  spell {
+    turn face down target creature with morph
+  }
+  cycling {U}
+}

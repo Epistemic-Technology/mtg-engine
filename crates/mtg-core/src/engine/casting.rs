@@ -1567,7 +1567,7 @@ impl GameState {
             (pick, None)
         };
         self.pay_other_costs(p, cost, id, sac, discard);
-        self.turn_face_up(id);
+        self.turn_face_up(id, true);
     }
 
     /// Other untapped creatures `p` controls that could crew `vehicle`
@@ -8297,6 +8297,69 @@ impl GameState {
                 }
             }
             Effect::CopySpell => self.copy_spell(ctx),
+            Effect::TurnFaceUp { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let o = &self.objects[id];
+                    if !self.pool.is_face_down(o.def) {
+                        continue;
+                    }
+                    if self.pool.get(o.card).is_permanent_card() {
+                        self.turn_face_up(id, false);
+                    } else {
+                        // CR 701.40g: revealed, it stays face down.
+                        self.objects[id].revealed = u8::MAX;
+                    }
+                }
+            }
+            Effect::TurnFaceDown { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let o = &self.objects[id];
+                    // CR 708.2b, 712.16: nothing happens.
+                    if self.pool.is_face_down(o.def)
+                        || self.pool.get(o.card).layout == Layout::Transform
+                    {
+                        continue;
+                    }
+                    self.turn_face_down(id);
+                }
+            }
+            Effect::LookAtFaceDown { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t)
+                        && self.pool.is_face_down(self.objects[id].def)
+                    {
+                        self.objects[id].revealed |= 1 << ctx.controller.index().min(7);
+                    }
+                }
+            }
+            Effect::LookAtPlayer { who } => {
+                let bit = 1 << ctx.controller.index().min(7);
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let ps = self.player(p);
+                    let seen: Vec<ObjId> = ps
+                        .hand
+                        .iter()
+                        .chain(ps.library.last())
+                        .copied()
+                        .chain(
+                            self.permanents_of(p)
+                                .filter(|id| self.pool.is_face_down(self.objects[*id].def)),
+                        )
+                        .collect();
+                    for id in seen {
+                        self.objects[id].revealed |= bit;
+                    }
+                }
+            }
             Effect::Goad { what } => {
                 for t in self.recipients(ctx, *what) {
                     let Some(id) = on_battlefield(self, t) else {

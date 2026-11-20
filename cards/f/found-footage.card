@@ -1,0 +1,7 @@
+card "Found Footage" {
+  oracle_id ad37551c-9d20-4902-8190-6a0aa32a7947
+  cost {1}
+  type Artifact — Clue
+  may look face-down opponents
+  activated {2}, sacrifice this: surveil 2 then draw 1 card
+}
