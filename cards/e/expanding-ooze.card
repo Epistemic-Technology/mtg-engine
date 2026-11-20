@@ -1,0 +1,8 @@
+card "Expanding Ooze" {
+  oracle_id 4feeb493-8db5-41d3-bd27-486052e61f28
+  cost {1}{B}{G}
+  type Creature — Ooze
+  pt 3/3
+  activated {B}{G}: adapt 1
+  triggered whenever this attacks: put 1 +1/+1 counter on target modified creature you control
+}

@@ -1,0 +1,7 @@
+card "Seafloor Stalker" {
+  oracle_id d3ee7f5d-56b4-4d87-9642-dcd8449dfb45
+  cost {2}{U}
+  type Creature — Merfolk Rogue
+  pt 2/3
+  activated {4}{U}, reduced {1} each party: this gets +1/+0 and gains can't be blocked
+}

@@ -1,0 +1,7 @@
+card "Nylea's Disciple" {
+  oracle_id aaefdb6f-306e-4fdc-9e49-af7a63e70f06
+  cost {2}{G}{G}
+  type Creature — Centaur Archer
+  pt 3/3
+  triggered when this enters: you gain count equal devotion green life
+}

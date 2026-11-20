@@ -699,9 +699,11 @@ impl Fmt {
             Effect::CantBeRegenerated { to } => {
                 format!("{} can't be regenerated", self.recipient(*to, t))
             }
-            Effect::SkipNextUntap { to } => {
-                format!("{} doesn't untap next untap step", self.recipient(*to, t))
-            }
+            Effect::SkipNextUntap { to, steps } => format!(
+                "{} doesn't untap next untap step{}",
+                self.recipient(*to, t),
+                if *steps { "s" } else { "" }
+            ),
             Effect::PutFromHand { filter: f, tapped } => format!(
                 "put {} card from hand onto battlefield{}",
                 filter(f),
@@ -1863,6 +1865,17 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::CardsInHand => "hand".to_string(),
         CountExpr::CardsInGraveyard(None) => "graveyard".to_string(),
         CountExpr::HostGraveyard(None) => "attached controller graveyard".to_string(),
+        CountExpr::Devotion { colors, chroma } => {
+            let names: Vec<&str> = colors
+                .iter()
+                .map(|c| crate::render::color_name(*c))
+                .collect();
+            if *chroma {
+                format!("{} mana symbols", names.join(" and "))
+            } else {
+                format!("devotion {}", names.join(" and "))
+            }
+        }
         CountExpr::HostGraveyard(Some(f)) => {
             format!("attached controller graveyard {}", card_filter(f))
         }
@@ -2164,6 +2177,9 @@ fn filter_one(f: &Filter) -> String {
     if f.damaged && !f.damaged_short {
         words.push("damaged".to_string());
     }
+    if f.status.modified {
+        words.push("modified".to_string());
+    }
     if let Some(cc) = f.color_count {
         words.push(format!("{cc:?}").to_lowercase());
     }
@@ -2215,9 +2231,6 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.status.equipped {
         words.push("with Equipment".to_string());
-    }
-    if f.status.modified {
-        words.push("modified".to_string());
     }
     if f.status.toxic {
         words.push("with toxic".to_string());

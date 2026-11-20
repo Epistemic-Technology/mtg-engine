@@ -1688,6 +1688,12 @@ pub enum CountExpr {
     /// gets -X/-X, where X is the number of creature cards in its
     /// controller's graveyard"); 0 unattached.
     HostGraveyard(Option<ObjFilter>),
+    /// Devotion (CR 700.5): the mana symbols of these colors among the
+    /// mana costs of permanents you control ("your devotion to green");
+    /// a hybrid symbol of two of them counts once (CR 700.5a). Also
+    /// chroma's "the number of red mana symbols in the mana costs of
+    /// permanents you control".
+    Devotion(ColorSet),
 }
 
 /// A characteristic a count reads from an object.

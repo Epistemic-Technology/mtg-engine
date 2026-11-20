@@ -1,0 +1,8 @@
+card "Wingrattle Scarecrow" {
+  oracle_id 034264da-a404-4037-b215-b095bba77490
+  cost {3}
+  type Artifact Creature — Scarecrow
+  pt 2/2
+  static this: has flying as long as you control blue creature
+  static this: has persist as long as you control black creature
+}

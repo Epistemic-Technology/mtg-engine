@@ -1,0 +1,7 @@
+card "Gray Merchant of Asphodel" {
+  oracle_id 38f3b157-0df4-409b-89cc-086e1531cd5b
+  cost {3}{B}{B}
+  type Creature — Zombie
+  pt 2/4
+  triggered when this enters: each opponent loses count where devotion black life; you gain count equal life lost this way life
+}

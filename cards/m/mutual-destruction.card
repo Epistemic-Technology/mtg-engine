@@ -1,0 +1,8 @@
+card "Mutual Destruction" {
+  oracle_id b01cd710-3906-486b-8bb5-8c4efa46e4d9
+  cost {B}
+  type Sorcery
+  flash as long as you control permanent with flash
+  additional cost sacrifice creature
+  spell: destroy target creature
+}

@@ -4126,8 +4126,12 @@ impl P {
             "explores" => Ok(Effect::Explore { what: subject }),
             "connives" => Ok(Effect::Connive { what: subject }),
             "doesn't" => {
-                self.expect_words(&["untap", "next", "untap", "step"])?;
-                Ok(Effect::SkipNextUntap { to: subject })
+                self.expect_words(&["untap", "next", "untap"])?;
+                let steps = self.eat_word("steps");
+                if !steps {
+                    self.expect_word("step")?;
+                }
+                Ok(Effect::SkipNextUntap { to: subject, steps })
             }
             "get" | "gets" => match self.next() {
                 Some(Tok::Pt {
@@ -5910,6 +5914,29 @@ impl P {
         if self.eat_word("party") {
             return Ok(CountExpr::Party);
         }
+        // `devotion green`, `devotion white and blue` (CR 700.5); `red
+        // mana symbols` (chroma).
+        let chroma = self.word_at(0).as_deref().and_then(color).is_some()
+            && self.word_at(1).as_deref() == Some("mana")
+            && self.word_at(2).as_deref() == Some("symbols");
+        if chroma || self.eat_word("devotion") {
+            let mut colors = Vec::new();
+            loop {
+                let Some(c) = self.word_at(0).as_deref().and_then(color) else {
+                    return self.unexpected("a color");
+                };
+                self.pos += 1;
+                colors.push(c);
+                if !self.eat_word("and") {
+                    break;
+                }
+            }
+            if chroma {
+                self.expect_word("mana")?;
+                self.expect_word("symbols")?;
+            }
+            return Ok(CountExpr::Devotion { colors, chroma });
+        }
         if self.eat_words(&["greatest", "mana", "value"]) {
             return Ok(CountExpr::GreatestManaValue);
         }
@@ -7408,6 +7435,9 @@ impl P {
                             f.not_types.push(t);
                         } else if let Some(c) = color(rest) {
                             f.not_colors.push(c);
+                        } else if rest == "snow" {
+                            // "nonsnow" (CR 205.4g).
+                            f.not_supertypes.push(Supertype::Snow);
                         } else if rest_raw.chars().next().is_some_and(char::is_uppercase) {
                             f.not_subtypes.push(rest_raw.to_string());
                         } else {
@@ -7424,6 +7454,11 @@ impl P {
                         // "an outlaw": an Assassin, Mercenary, Pirate, Rogue,
                         // or Warlock (a batch of subtypes, CR 700.12).
                         f.subtypes.push(crate::ast::OUTLAW.to_string());
+                        self.pos += 1;
+                    } else if w == "historic" && f.subtypes.is_empty() {
+                        // "a historic spell": an artifact, a legendary, or a
+                        // Saga (CR 700.6).
+                        f.subtypes.push(crate::ast::HISTORIC.to_string());
                         self.pos += 1;
                     } else if raw.chars().next().is_some_and(char::is_uppercase) {
                         // Plural subtypes are singular in a filter; a few

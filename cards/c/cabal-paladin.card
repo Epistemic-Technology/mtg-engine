@@ -1,0 +1,7 @@
+card "Cabal Paladin" {
+  oracle_id 1104a746-169c-450a-80ad-bea0493c0576
+  cost {3}{B}
+  type Creature — Human Knight
+  pt 4/2
+  triggered whenever you cast historic spell: deal 2 damage to each opponent
+}

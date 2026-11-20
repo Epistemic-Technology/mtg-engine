@@ -1,0 +1,7 @@
+card "Toxic Iguanar" {
+  oracle_id 87e148a0-4299-4771-b68a-6652a4c1c535
+  cost {R}
+  type Creature — Lizard
+  pt 1/1
+  static this: has deathtouch as long as you control green permanent
+}

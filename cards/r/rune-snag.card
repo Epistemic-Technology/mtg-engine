@@ -1,0 +1,6 @@
+card "Rune Snag" {
+  oracle_id 49bf3805-cc9e-4550-8a01-171282aa49c9
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X} count each plus 2 2 each graveyard named this
+}

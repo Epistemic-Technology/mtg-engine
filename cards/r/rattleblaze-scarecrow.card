@@ -1,0 +1,8 @@
+card "Rattleblaze Scarecrow" {
+  oracle_id 313130ab-13db-4d0a-b3f3-b60e060b303c
+  cost {6}
+  type Artifact Creature — Scarecrow
+  pt 5/3
+  static this: has persist as long as you control black creature
+  static this: has haste as long as you control red creature
+}

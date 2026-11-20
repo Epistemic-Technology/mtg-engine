@@ -1,0 +1,8 @@
+card "Welkin Hawk" {
+  oracle_id 4547625a-0caf-4ecc-a65f-0fd2cad70294
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered when this dies: you may search card named this reveal to hand that card
+}

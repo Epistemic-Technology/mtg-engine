@@ -1,0 +1,9 @@
+card "Balduvian Rage" {
+  oracle_id 1bc7d73b-0f54-4807-b13a-3def0c5e5616
+  cost {X}{R}
+  type Instant
+  spell {
+    target attacking creature gets +1/+0 X
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

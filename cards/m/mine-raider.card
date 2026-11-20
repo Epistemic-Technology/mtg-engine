@@ -1,0 +1,8 @@
+card "Mine Raider" {
+  oracle_id 5d575b78-3d7b-4860-abc3-e99e429279a1
+  cost {2}{R}
+  type Creature — Human Rogue
+  pt 3/2
+  keywords trample
+  triggered when this enters if you control other outlaw: create 1 "Treasure"
+}

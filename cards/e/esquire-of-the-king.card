@@ -1,0 +1,7 @@
+card "Esquire of the King" {
+  oracle_id 3ccaa78e-f3e5-4de4-b53c-cecd73a73b9c
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {4}{W}, {T}, reduced {2} if you control legendary creature: each creature you control gets +1/+1
+}

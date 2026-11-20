@@ -1,0 +1,7 @@
+card "Blight-Breath Catoblepas" {
+  oracle_id 4098ab29-bf90-4ec9-b547-05d304fc7798
+  cost {4}{B}{B}
+  type Creature — Beast
+  pt 3/2
+  triggered when this enters: target creature an opponent controls gets -1/-1 count where devotion black
+}

@@ -1,0 +1,8 @@
+card "Sultai Runemark" {
+  oracle_id 59410454-93ff-41f0-ab62-cdaf156163d0
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  static enchanted: has deathtouch as long as you control green or blue permanent
+}

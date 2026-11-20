@@ -1,0 +1,8 @@
+card "Grotag Bug-Catcher" {
+  oracle_id 1b6bfd22-2964-4274-a566-81964348b003
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 1/2
+  keywords trample
+  triggered whenever this attacks: this gets +1/+0 count each party
+}

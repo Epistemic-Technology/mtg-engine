@@ -1,0 +1,9 @@
+card "Kytheon's Tactics" {
+  oracle_id 8ecbbf14-68c3-4378-9fce-383f9d901bfa
+  cost {1}{W}{W}
+  type Sorcery
+  spell {
+    each creature you control gets +2/+1
+    label "Spell mastery" if 2 instant or sorcery cards in your graveyard, also those creatures gain vigilance
+  }
+}

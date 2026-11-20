@@ -157,7 +157,8 @@ card"), `discard X cards` (a spell's additional cost: "As an additional
 cost to cast this spell, discard X cards."; X is announced as the spell
 is cast, at most the other cards in hand, CR 601.2b), `discard this`, `exile this from graveyard` ("Exile this card from
 your graveyard"; the ability is activated from the graveyard), `return
-land you control` ("Return a land you control to its owner's hand") and
+land you control` ("Return a land you control to its owner's hand";
+`return this`: "Return this enchantment to its owner's hand") and
 `tap untapped creature you control` ("Tap an untapped creature you
 control"), chosen like a sacrifice; a count after `sacrifice`, `return`,
 or `tap` takes that many: `tap 2 untapped artifact or creature you
@@ -262,7 +263,8 @@ CR 702.33c, for a permanent with `kicker`), `if it had no -1/-1 counters`
 any static condition below (`if you control artifact`, `if attacked this
 turn`),
 `if no spells were cast last turn`, `if a player cast two or more spells
-last turn`. After an attack or block trigger, `while <static condition>`
+last turn`, `if this is damaged` ("if this creature was dealt damage this
+turn", damage still marked on it). After an attack or block trigger, `while <static condition>`
 is a trigger condition instead (CR 603.2): "Whenever this creature attacks
 while you control two or more artifacts, ..." (`triggered whenever this
 attacks while you control 2 artifact: ...`, `while saddled`, `while
@@ -520,7 +522,9 @@ permanent with oil counter` (any named counter kind), and `you control
 7 land or Treefolk` ("seven or more lands and/or Treefolk"). The filter
 word `outlaw` is an Assassin, Mercenary, Pirate, Rogue, or Warlock (CR
 700.12): `that target 1 gets -4/-0 instead if you control outlaw`, `if
-outlaw was sacrificed this way, ...`. `put 1 card from hand on bottom of
+outlaw was sacrificed this way, ...`. The filter word `historic` is an
+artifact, a legendary, or a Saga (CR 700.6): `triggered whenever you cast
+historic spell: scry 1` ("Whenever you cast a historic spell, scry 1."). `put 1 card from hand on bottom of
 library chosen`: "put a card from your hand on the bottom of your
 library". A graveyard target may name a keyword after the noun: `target
 creature card with infect from your graveyard`. A target check may be
@@ -642,6 +646,10 @@ More filter words: `token` ("a token", "artifact token", CR 111.1),
 `nontoken`, `tapped`, `untapped`, `attacking`, `blocking`,
 `damaged` (also written `that was dealt damage this turn`),
 `multicolored`, `monocolored`, `colorless`, `basic`, `legendary`, `snow`,
+`nonsnow`, `modified` (CR 700.9; `nontoken modified creature` prints
+"nontoken modified creature", and a dies trigger judges `tapped`,
+`token`/`nontoken`, counters, and `modified` as the creature last existed,
+CR 603.10a),
 colors joined with `or` (`red or green creature`, sharing a color), types
 joined with `or` or listed (`artifact or enchantment`, `artifact,
 enchantment, or land`: at least one), negations listed with commas
@@ -876,7 +884,12 @@ value"), `greatest power creature you control` ("the greatest power
 among creatures you control"), or `life`; `this gets +1/+1 count each creature you
 it has left), `mana value of target 1` ("its mana value"), `toughness`
 (the source's), `life`, `party` ("creatures in your party", CR 700.8: one
-each of Cleric, Rogue, Warrior, and Wizard at most), `greatest power`
+each of Cleric, Rogue, Warrior, and Wizard at most), `devotion green`
+("your devotion to green", CR 700.5: the green mana symbols in the mana
+costs of permanents you control, a hybrid symbol counting once;
+`devotion white and blue` counts symbols of either), `red mana symbols`
+(chroma: "the number of red mana symbols in the mana costs of permanents
+you control", the same count), `greatest power`
 ("the greatest power among creatures you control"), `greatest mana value`
 ("... among permanents you control"), `drawn this turn` ("cards you've
 drawn this turn"), `spells cast this turn`, `other spells cast this turn`
@@ -1078,7 +1091,9 @@ is "until your next end step", which ends as that step begins),
 `... pays {X}` (the spell's X), `... pays {X} count each hand` ("{1} for
 each card in your hand"; `count each 2 Wizard on battlefield` is "{2} for
 each Wizard on the battlefield", `count each plus 2 Faerie you control`
-is "{2} plus an additional {1} for each Faerie you control", `count where
+is "{2} plus an additional {1} for each Faerie you control", `count each
+plus 2 2 each graveyard named this` "{2} plus an additional {2} for each
+card named ~ in each graveyard", `count where
 mana value of target 1` is "{X}, where X is its mana value"), and after
 either `to exile` / `to library top` ("If that spell is countered this
 way, exile it instead of putting it into its owner's graveyard" / "put it
@@ -1140,7 +1155,9 @@ cards of your library, then put one of them into your hand and the rest
 into your graveyard"; `dig 3 take card may top rest graveyard`: "You may
 put one of those cards back on top of your library. Put the rest into
 your graveyard.", the card kept stays on top), `look at top 3` ("look at
-the top three cards of your library, then put them back in any order"),
+the top three cards of your library, then put them back in any order";
+`look at top count where hand` puts "where X is the number of cards in
+your hand" before ", then put them back"),
 `return 1 land you control chosen` ("return a land you control to its
 owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of
@@ -1149,7 +1166,8 @@ card from your hand onto the battlefield"), `<what> doesn't untap next
 untap step` ("It doesn't untap during its controller's next untap
 step."; a group of targets named again, `targets 1 to 2 doesn't untap
 next untap step`, is "Those creatures don't untap during their
-controller's next untap step", and a group `each attacking creature
+controller's next untap step", or with `next untap steps` "... during
+their controllers' next untap steps", and a group `each attacking creature
 doesn't untap next untap step` "Each attacking creature doesn't untap
 ..."), `<who> sacrifices that creature` ("that player sacrifices that
 creature": a sacrifice of that one permanent, worded with its
@@ -1512,7 +1530,13 @@ opponent each reveal the top card of their library, then each (the active
 player first) puts it on the top or bottom; the sentence after it, `if you
 win, <sentence>`, happens only if the controller's card had the greater
 mana value (or the opponent revealed nothing). "If you win, that creature
-gets an additional +2/+2" for a second pump of the same target.
+gets an additional +2/+2" for a second pump of the same target. A
+second pump of the same target scaled by `count each` prints "an
+additional" too: `target creature gets +3/+3; target 1 gets +2/+2 count
+each graveyard named this` ("It gets an additional +2/+2 until end of
+turn for each card named Growth Cycle in your graveyard."). After a
+condition, `also those creatures gain vigilance` prints "those creatures
+also gain vigilance".
 
 `vote sprout or harvest` is "starting with you, each player votes for
 sprout or harvest" (CR 701.38): each player in turn order from the

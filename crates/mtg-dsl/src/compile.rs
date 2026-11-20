@@ -584,6 +584,9 @@ impl Compiler<'_> {
             }
             return self.filter(&chain.expect("five alternatives"));
         }
+        if let Some(h) = historic(f) {
+            return self.filter(&h);
+        }
         ObjFilter {
             who: f.who,
             types: TypeSet::of(f.types.iter().copied()),
@@ -965,6 +968,7 @@ impl Compiler<'_> {
             A::CardTypesInGraveyards => C::CardTypesInAllGraveyards,
             A::SourceCounters { kind, .. } => C::SourceCounters(*kind),
             A::HostGraveyard(f) => C::HostGraveyard(f.as_ref().map(|f| self.filter(f))),
+            A::Devotion { colors, .. } => C::Devotion(ColorSet::of(colors.iter().copied())),
         }
     }
 
@@ -1892,7 +1896,7 @@ impl Compiler<'_> {
                 to: r(*to),
                 all: *all,
             }),
-            Effect::SkipNextUntap { to } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
+            Effect::SkipNextUntap { to, .. } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });
             }
@@ -2523,6 +2527,7 @@ impl Compiler<'_> {
             Ability::Exert(effects) => {
                 let mut inner = vec![Sentence::new(vec![crate::ast::Effect::SkipNextUntap {
                     to: Recipient::Source,
+                    steps: false,
                 }])];
                 inner.extend(effects.iter().cloned());
                 return self.ability(&Ability::Triggered {
@@ -3351,4 +3356,23 @@ fn same_damage_recipients(effects: &[Sentence], before: &Sentence) -> Vec<Senten
         }
     }
     out
+}
+
+/// "historic" (CR 700.6): an artifact, a legendary, or a Saga, one
+/// alternative each; `None` for a filter without the word.
+fn historic(f: &Filter) -> Option<Filter> {
+    let i = f.subtypes.iter().position(|s| s == crate::ast::HISTORIC)?;
+    let mut base = f.clone();
+    base.subtypes.remove(i);
+    let mut saga = base.clone();
+    saga.subtypes.push("Saga".to_string());
+    let mut legendary = base.clone();
+    legendary
+        .supertypes
+        .push(mtg_core::card::Supertype::Legendary);
+    legendary.or = Some(Box::new(saga));
+    let mut artifact = base;
+    artifact.types.push(mtg_core::card::CardType::Artifact);
+    artifact.or = Some(Box::new(legendary));
+    Some(artifact)
 }

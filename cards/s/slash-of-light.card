@@ -1,0 +1,6 @@
+card "Slash of Light" {
+  oracle_id 3cc4d6f4-79b2-4210-84de-a0febf81eb67
+  cost {1}{W}
+  type Instant
+  spell: deal damage equal creature you control plus Equipment you control to target creature
+}

@@ -954,6 +954,7 @@ fn per_count(
         | CountExpr::DifferentlyNamed(_)
         | CountExpr::Party(_)
         | CountExpr::GreatestManaValue
+        | CountExpr::Devotion(_)
         | CountExpr::SourceToughness
         | CountExpr::CardsDrawnThisTurn
         | CountExpr::SpellsCastThisTurn { .. }

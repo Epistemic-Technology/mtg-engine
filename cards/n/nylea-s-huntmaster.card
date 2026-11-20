@@ -1,0 +1,7 @@
+card "Nylea's Huntmaster" {
+  oracle_id 5ce273f2-a865-4934-afd4-cf6d5c4f1a4f
+  cost {3}{G}
+  type Creature — Centaur Shaman
+  pt 4/3
+  triggered when this enters: target creature you control gets +1/+0 count where devotion green
+}

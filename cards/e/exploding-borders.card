@@ -1,0 +1,6 @@
+card "Exploding Borders" {
+  oracle_id 1a19fc9e-a822-49ca-ade0-d58054f3caf6
+  cost {2}{R}{G}
+  type Sorcery
+  label "Domain" spell: search basic land card to battlefield tapped that card; deal count where domain damage to target player or planeswalker
+}

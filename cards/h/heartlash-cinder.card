@@ -1,0 +1,8 @@
+card "Heartlash Cinder" {
+  oracle_id 04560bc2-df00-4f75-95a0-a63e2ce760b0
+  cost {1}{R}
+  type Creature — Elemental Warrior
+  pt 1/1
+  keywords haste
+  label "Chroma" triggered when this enters: this gets +1/+0 count where red mana symbols
+}

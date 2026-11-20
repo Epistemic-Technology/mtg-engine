@@ -335,6 +335,14 @@ pub enum CountExpr {
     /// `attached controller graveyard [<filter>]`: "the number of creature
     /// cards in its controller's graveyard" (of what the source enchants).
     HostGraveyard(Option<Filter>),
+    /// `devotion green`: "your devotion to green" (CR 700.5); `devotion
+    /// white and blue`: "your devotion to white and blue"; `red mana
+    /// symbols`: "the number of red mana symbols in the mana costs of
+    /// permanents you control" (chroma).
+    Devotion {
+        colors: Vec<mtg_core::mana::Color>,
+        chroma: bool,
+    },
 }
 
 /// What a target-dependent cost's filter names: a permanent, a spell, or a
@@ -493,6 +501,10 @@ pub struct Targeting {
 /// The subtype a filter names for "outlaw" (CR 700.12): it compiles to
 /// "Assassin, Mercenary, Pirate, Rogue, or Warlock".
 pub const OUTLAW: &str = "outlaw";
+
+/// The subtype a filter names for "historic" (CR 700.6): it compiles to
+/// "artifact, legendary, or Saga".
+pub const HISTORIC: &str = "historic";
 
 /// The creature types "outlaw" stands for (CR 700.12).
 pub const OUTLAW_TYPES: [&str; 5] = ["Assassin", "Mercenary", "Pirate", "Rogue", "Warlock"];
@@ -2681,9 +2693,11 @@ pub enum Effect {
     /// this creature enters, choose one —" (CR 603.3c).
     Modes(Vec<Mode>),
     /// `target 1 doesn't untap next untap step`: "It doesn't untap during
-    /// its controller's next untap step."
+    /// its controller's next untap step."; `... next untap steps`: "Those
+    /// creatures don't untap during their controllers' next untap steps."
     SkipNextUntap {
         to: Recipient,
+        steps: bool,
     },
     /// `that creature can't be regenerated`: "That creature can't be
     /// regenerated this turn."

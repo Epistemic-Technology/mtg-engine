@@ -1,0 +1,6 @@
+card "Gossamer Chains" {
+  oracle_id af3936ab-0156-438d-9fef-a924d2fcffc3
+  cost {W}{W}
+  type Enchantment
+  activated return this: prevent all combat damage from target unblocked creature this turn
+}

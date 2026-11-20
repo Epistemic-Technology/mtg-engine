@@ -1,0 +1,7 @@
+card "D'Avenant Trapper" {
+  oracle_id 745d37dd-d18e-47cc-81d0-8e61a07342f2
+  cost {2}{W}
+  type Creature — Human Archer
+  pt 3/2
+  triggered whenever you cast historic spell: tap target creature an opponent controls
+}

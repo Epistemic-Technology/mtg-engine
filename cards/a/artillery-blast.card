@@ -1,0 +1,6 @@
+card "Artillery Blast" {
+  oracle_id dad0b69f-ef33-475b-aebc-3a3ca880feb1
+  cost {1}{W}
+  type Instant
+  label "Domain" spell: deal count where plus 1 domain damage to target tapped creature
+}
