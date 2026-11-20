@@ -1,0 +1,71 @@
+# Feature-agent brief
+
+You are adding one rules feature to a Rust Magic: The Gathering rules
+engine. You work in your own git worktree (your current directory); the
+lead engineer merges your branch afterwards, while others change `main`
+in parallel. Keep your change focused on the feature you were given.
+
+## The codebase
+
+- `crates/mtg-core`: the rules engine. `src/card.rs` (card definitions:
+  `Effect`, `AbilityDef`, `TriggerSpec`, `StaticCondition`, `Cost`,
+  `ObjFilter`, `Keyword`), `src/state.rs` (`GameState`, `GameObject`),
+  `src/engine/` (`casting.rs`: priority options, casting, costs, effect
+  resolution in `apply_effect`; `triggers.rs`; `combat.rs`; `layers.rs`
+  for continuous effects; `replace.rs`; `objects.rs`; `mod.rs`: the
+  decision flow).
+- `crates/mtg-dsl`: the card language. `src/ast.rs`, `src/parse.rs`,
+  `src/compile.rs` (AST to core), `src/decompile.rs` (core to AST),
+  `src/format.rs` (AST to DSL text; must round-trip through parse),
+  `src/render.rs` (AST to Oracle text; must match Oracle exactly).
+  `SYNTAX.md` documents the language: update it for what you add.
+- `crates/mtg-cards`: `src/author.rs` (templates that turn Oracle text
+  into DSL; add a template if the phrasing is regular), the gate.
+- `crates/mtg-scenario`: rules tests (`SYNTAX.md`); scenarios live in
+  `scenarios/`.
+- `cards/`: the card corpus (`cards/<x>/<slug>.card`), embedded at build
+  time.
+
+Do not read `design.md` (it is 2,500 lines of history). To see how a
+feature is threaded through every layer (core type, engine behavior, AST,
+parse, compile, decompile, format, render, SYNTAX.md, scenarios), read
+the diff of one recent feature commit close to yours (`git log --oneline
+-30`, then `git show <hash>`), or grep for `Effect::TapOrUntap`,
+`Effect::BecomeColor`, `Trigger::Leaves`, or `CardDef::target_cost`.
+Cite rules (CR numbers) in comments the way the code does.
+
+Your worktree lacks the gitignored `data/` directory: symlink it from
+the main checkout before running anything that reads the snapshot.
+
+Other agents are working in parallel. Your instructions list what each
+of them is building. If you find you need a primitive on that list, do
+not build your own version: skip the cards that need it and say so in
+your reply.
+
+## Requirements
+
+1. Implement the feature in the engine and the DSL, rendering the exact
+   Oracle wording of the cards listed for you.
+2. Write the listed cards whose Oracle text your feature completes
+   (header lines from `cargo run -q --release -p mtg-cards --
+   model-author --prompt-only "Name"`), each passing
+   `cargo run -q --release -p mtg-cards -- gate --diff "Name"` (`Match`).
+   Skip any that need something else too.
+3. Add scenarios in `scenarios/m5/<feature>.scn` exercising the rules
+   (positive and negative cases; `illegal` lines check refusals).
+4. All of this must pass before you finish, each wrapped in `timeout`:
+   `cargo fmt --all`, `cargo clippy -q --workspace` (no warnings),
+   `timeout 1800 cargo test -q --workspace --no-fail-fast`, and
+   `cargo run -q --release -p mtg-cli -- scenario` (the whole scenario
+   corpus).
+5. Performance matters: keep hot paths (priority options, characteristics,
+   trigger detection) free of new per-call work; gate new checks on a
+   cheap flag or counter the way existing features do.
+6. Commit on your branch as you go (one commit per mechanic is fine),
+   each with a message in the repository's style (a summary line, then
+   what and why), ending with the `Co-Authored-By` line given in your
+   instructions. Write the message to a file first and use `git commit
+   -F <file>`. Do not push, do not touch `main`, never force anything.
+   When everything is committed, delete your worktree's `target/`.
+7. Reply with: the branch name, the commit hash, what you implemented,
+   the cards you added, and anything you left out or are unsure of.

@@ -2113,6 +2113,20 @@ it).
   rebalanced cards and Alchemy sets). Arena is not a legality format in
   the snapshot; its pool is Scryfall's `games` containing "arena" minus
   Alchemy. Baselines at the revision: Standard 30.9%, Modern 39.0%.
+- Efficiency review (2026-11-20), same acceptance bar. The order above
+  is the order in which pools must reach their target, not a rule that
+  one pool is finished before the next is touched: features are picked
+  by cards unlocked across Pauper, Standard, and Modern together, since
+  Pauper's remaining buckets hold 8 to 18 cards each and Standard's 20
+  to 57 (sagas, the prepare layout, Plot, Station), most of which count
+  for Modern too. The template author (`mtg-cards author --write`) runs
+  for every target format after each wave; a dry run found 16 Pauper,
+  196 Standard, and 1,421 Modern cards it can already write with no
+  model. Each agent's model is set explicitly (feature agents on Opus;
+  card and retry agents trialled on Sonnet). Feature agents no longer
+  read this document, and each is told what the others are building so
+  a primitive is built once. The procedure, briefs, and census scripts
+  are in `scripts/coverage/`.
 
 Status 2026-11-18, slice 1 (mana symbols and tokens) done: hybrid
 (`{R/G}`), monocolored hybrid (`{2/W}`), and Phyrexian (`{R/P}`) symbols
