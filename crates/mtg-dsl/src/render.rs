@@ -3768,8 +3768,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         rest("the rest")
                     )
                 }
+                // `reword`: "... into your hand. Then put the rest on the
+                // bottom of your library in any order." (Ancient Stirrings).
                 (Some(w), false, true) if *revealing => format!(
-                    "You may reveal {w} from among them and put {it} into your hand. Put {}",
+                    "You may reveal {w} from among them and put {it} into your hand. {} {}",
+                    if *reword { "Then put" } else { "Put" },
                     rest("the rest")
                 ),
                 (Some(w), false, true) => format!(

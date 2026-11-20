@@ -3010,7 +3010,8 @@ pub enum Effect {
         /// top of your library" (it stays there; the rest go).
         top: bool,
         /// `reword`, wording only: "two of them" for "two of those cards",
-        /// and "one of those cards" for "one of them".
+        /// "one of those cards" for "one of them", and "Then put the rest"
+        /// after a card revealed and put into your hand.
         reword: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then

@@ -1,0 +1,8 @@
+card "Sinking Feeling" {
+  oracle_id 8a5e925f-320d-4bb7-9374-0384e7ac41e7
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has doesn't untap during its controller's untap step
+  static enchanted: has ability { activated {1}, put 1 -1/-1 counter on this: untap this creature }
+}

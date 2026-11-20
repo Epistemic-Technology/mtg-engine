@@ -1,0 +1,23 @@
+scenario "Ward of Lights cast at sorcery timing stays and gives protection from the chosen color" {
+  battlefield A: "Grizzly Bears", 2 "Plains", "Mountain"
+  hand A: "Ward of Lights", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ward of Lights" targeting "Grizzly Bears"
+  turn 1 A: choose red
+  illegal turn 1 postcombat_main A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert attached "Ward of Lights" to "Grizzly Bears"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Ward of Lights cast at instant speed is sacrificed at the next cleanup" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Ward of Lights"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Ward of Lights" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert attached "Ward of Lights" to "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert graveyard A contains "Ward of Lights"
+  assert battlefield A contains "Grizzly Bears"
+}

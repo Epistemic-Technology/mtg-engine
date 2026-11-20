@@ -99,3 +99,13 @@ scenario "had a counter: dying without one draws nothing" {
   assert graveyard A contains "Promising Duskmage"
   assert hand A count 1
 }
+
+scenario "dig: Ancient Stirrings finds a colorless card, then the rest go to the bottom" {
+  battlefield A: "Forest"
+  hand A: "Ancient Stirrings"
+  library A: "Grizzly Bears", "Shock", "Ornithopter", "Murder", "Doom Blade", "Swamp"
+  turn 1 A: cast "Ancient Stirrings"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ornithopter"
+  assert library A count 5
+}

@@ -1,0 +1,10 @@
+card "Ward of Lights" {
+  oracle_id edc05b33-2bfa-4692-bb3b-26b7cf111ce8
+  cost {W}{W}
+  type Enchantment — Aura
+  flash with cleanup sacrifice
+  enchant creature
+  as this enters choose color
+  static enchanted: has protection from chosen color
+  protection doesn't remove this
+}

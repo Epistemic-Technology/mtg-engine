@@ -1,0 +1,22 @@
+scenario "sinking feeling keeps the creature tapped through untap" {
+  battlefield A: "Grizzly Bears" tapped, "Sinking Feeling" on "Grizzly Bears", "Forest"
+  run_to turn 1 precombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "sinking feeling's granted ability untaps for a -1/-1 counter" {
+  battlefield A: "Grizzly Bears" tapped, "Sinking Feeling" on "Grizzly Bears", "Forest"
+  turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert counters "Grizzly Bears" -1/-1 1
+  assert toughness "Grizzly Bears" 1
+  assert tapped "Forest"
+}
+
+scenario "sinking feeling can't be cast without a creature" {
+  battlefield A: "Island", "Island", "Island"
+  hand A: "Sinking Feeling"
+  illegal turn 1 A: cast "Sinking Feeling" targeting auto
+  run_to turn 1 postcombat_main
+}

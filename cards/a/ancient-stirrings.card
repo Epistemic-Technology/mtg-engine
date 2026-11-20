@@ -1,0 +1,6 @@
+card "Ancient Stirrings" {
+  oracle_id 82f18e7d-5c42-47c4-8e74-3fccc9b7b1f0
+  cost {G}
+  type Sorcery
+  spell: dig 5 take colorless card may revealing rest bottom reword
+}
