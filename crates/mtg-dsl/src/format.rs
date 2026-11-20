@@ -567,6 +567,7 @@ impl Fmt {
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
+            Effect::ManifestDread => "manifest dread".to_string(),
             Effect::Adapt(n) => format!("adapt {n}"),
             Effect::Bolster(n) => format!("bolster {}", num(*n)),
             Effect::Support(to) => format!("support {}", to.len()),

@@ -5423,6 +5423,7 @@ impl P {
                 self.pos += 2;
                 Ok(Effect::LookAtTop(self.num()?))
             }
+            "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
             "manifest" => {
                 self.eat_words(&["the", "top", "card", "of", "your", "library"]);
                 Ok(Effect::Manifest)

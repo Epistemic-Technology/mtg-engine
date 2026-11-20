@@ -3243,6 +3243,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative("venture into Undercity".to_string())
         }
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
+        Effect::ManifestDread => Clause::imperative("manifest dread".to_string()),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),

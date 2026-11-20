@@ -1,0 +1,7 @@
+card "Bashful Beastie" {
+  oracle_id e7aeabd9-a72c-47ee-b275-b025d7142766
+  cost {4}{G}
+  type Creature — Beast
+  pt 5/4
+  triggered when this dies: manifest dread
+}

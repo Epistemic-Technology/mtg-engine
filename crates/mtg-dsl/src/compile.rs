@@ -1876,6 +1876,7 @@ impl Compiler<'_> {
             }
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
             Effect::Manifest => out.push(CoreEffect::Manifest),
+            Effect::ManifestDread => out.push(CoreEffect::ManifestDread),
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
             Effect::Bolster(n) => out.push(CoreEffect::Bolster(*n)),
             Effect::Populate => out.push(CoreEffect::Populate),

@@ -1,0 +1,6 @@
+card "Manifest Dread" {
+  oracle_id df5a66d1-61f6-44d9-b464-3ee739e78dce
+  cost {1}{G}
+  type Sorcery
+  spell: manifest dread
+}

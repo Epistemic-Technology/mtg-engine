@@ -1,0 +1,7 @@
+card "Unsettling Twins" {
+  oracle_id b0b2ca8c-cb5a-45f8-ae7c-63ad9ebb4afd
+  cost {3}{W}
+  type Creature — Human
+  pt 2/2
+  triggered when this enters: manifest dread
+}

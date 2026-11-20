@@ -2695,6 +2695,8 @@ pub enum Effect {
     ClearEcho,
     /// `manifest`: "manifest the top card of your library" (CR 701.34).
     Manifest,
+    /// `manifest dread` (CR 701.62).
+    ManifestDread,
     /// `adapt 2` (CR 701.46).
     Adapt(u32),
     /// `bolster 2` (CR 701.39).

@@ -8123,6 +8123,38 @@ impl GameState {
                     ctx.created = Some(new);
                 }
             }
+            Effect::ManifestDread => {
+                // CR 701.62a: look at the top two, manifest one, the rest
+                // into the graveyard.
+                let p = ctx.controller;
+                let top: Vec<ObjId> = self
+                    .player(p)
+                    .library
+                    .iter()
+                    .rev()
+                    .take(2)
+                    .copied()
+                    .collect();
+                if let Some(&first) = top.first() {
+                    let pick = if top.len() > 1 {
+                        let options: Vec<Choice> = top
+                            .iter()
+                            .map(|id| Choice::Target(Target::Object(*id)))
+                            .collect();
+                        top[self.choose_mid(p, DecisionKind::ChooseCard, options)]
+                    } else {
+                        first
+                    };
+                    self.objects[pick].def = self.pool.face_down(false);
+                    let new = self.put_onto_battlefield(pick, p);
+                    ctx.created = Some(new);
+                    for id in top {
+                        if id != pick {
+                            self.move_object(id, Zone::Graveyard, true);
+                        }
+                    }
+                }
+            }
             Effect::ClearEcho => {
                 if let Some(id) = self.current_object(ctx.source)
                     && let Some(o) = self.objects.get_mut(id)

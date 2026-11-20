@@ -3567,6 +3567,10 @@ pub enum Effect {
     /// Manifest (CR 701.34): the top card of the controller's library
     /// onto the battlefield face down as a 2/2 creature.
     Manifest,
+    /// Manifest dread (CR 701.62a): look at the top two cards of the
+    /// controller's library, manifest one, and put the rest into their
+    /// graveyard.
+    ManifestDread,
     /// "Target creature gains '...' until end of turn": a registered
     /// ability granted until end of turn (layer 6).
     GrantAbility {
@@ -3723,6 +3727,7 @@ impl Effect {
                 | Effect::Explore { .. }
                 | Effect::PutFromHand { .. }
                 | Effect::Dig { .. }
+                | Effect::ManifestDread
                 | Effect::Connive { .. }
                 | Effect::CastExiled(_)
                 | Effect::SuspendTick

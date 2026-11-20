@@ -1074,6 +1074,7 @@ impl Decompiler<'_> {
             },
             CoreEffect::ClearEcho => Effect::ClearEcho,
             CoreEffect::Manifest => Effect::Manifest,
+            CoreEffect::ManifestDread => Effect::ManifestDread,
             CoreEffect::CastExiled(_)
             | CoreEffect::SuspendTick
             | CoreEffect::CopySpell

@@ -52,3 +52,50 @@ scenario "decayed: Startle shrinks a creature, makes a Zombie, and draws" {
   assert battlefield A contains "Zombie"
   assert hand A contains "Forest"
 }
+
+# ---- manifest dread ----
+
+scenario "manifest dread: the top card manifested, the other into the graveyard" {
+  battlefield A: 2 "Forest"
+  hand A: "Manifest Dread"
+  library A: "Grizzly Bears", "Hill Giant", "Island"
+  turn 1 A: cast "Manifest Dread"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+  assert graveyard A contains "Hill Giant"
+  assert library A count 1
+}
+
+scenario "manifest dread: either of the two may be manifested" {
+  battlefield A: 4 "Plains"
+  hand A: "Unsettling Twins"
+  library A: "Grizzly Bears", "Hill Giant", "Island"
+  turn 1 A: cast "Unsettling Twins"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A lacks "Hill Giant"
+}
+
+scenario "manifest dread: a manifested creature card turns face up for its mana cost" {
+  battlefield A: 2 "Forest", "Innocuous Rat"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  library A: "Grizzly Bears", "Hill Giant", "Island"
+  turn 1 B: cast "Shock" targeting "Innocuous Rat"
+  turn 1 postcombat_main A: unmorph "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "manifest dread: with one card left, it is manifested" {
+  battlefield A: 2 "Forest"
+  hand A: "Manifest Dread"
+  library A: "Grizzly Bears"
+  turn 1 A: cast "Manifest Dread"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+  assert library A count 0
+}

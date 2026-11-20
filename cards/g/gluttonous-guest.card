@@ -1,0 +1,8 @@
+card "Gluttonous Guest" {
+  oracle_id 2d338aa5-22bc-4cc4-a1e0-cc5018ce001e
+  cost {2}{B}
+  type Creature — Vampire
+  pt 1/4
+  triggered when this enters: create 1 "Blood"
+  triggered whenever you sacrifice Blood token: you gain 1 life
+}
