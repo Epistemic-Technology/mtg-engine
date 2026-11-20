@@ -331,8 +331,47 @@ impl GameState {
             }
         }
         self.activation_options(p, sorcery_timing, &sources, &mut options);
+        if !self.player_rules.is_empty() {
+            self.forbid_by_player_rules(p, &mut options);
+        }
         options.push(Choice::Pass);
         options
+    }
+
+    /// Leave out what a "can't" effect on `p` forbids this turn: land
+    /// plays ("can't play lands", CR 305.1) and casting creature spells
+    /// ("can't cast creature spells"; a face-down spell is a creature
+    /// spell, CR 708.4, and a bestowed one an Aura, CR 702.103b).
+    fn forbid_by_player_rules(&self, p: PlayerId, options: &mut Vec<Choice>) {
+        let lands = self.player_rule(p, crate::card::PlayerRuleKind::CantPlayLands);
+        let creatures = self.player_rule(p, crate::card::PlayerRuleKind::CantCastCreatureSpells);
+        if !lands && !creatures {
+            return;
+        }
+        let creature = |id: &ObjId| {
+            self.objects
+                .get(*id)
+                .is_some_and(|o| self.pool.get(o.def).is_creature())
+        };
+        options.retain(|c| match c {
+            Choice::PlayLand(_) => !lands,
+            Choice::Cast(id)
+            | Choice::CastEvoke(id)
+            | Choice::CastDash(id)
+            | Choice::CastAlt(id) => !(creatures && creature(id)),
+            Choice::CastFaceDown(_) => !creatures,
+            Choice::CastFace { card, face } => {
+                !(creatures
+                    && self.objects.get(*card).is_some_and(|o| {
+                        self.pool
+                            .get(o.def)
+                            .faces
+                            .get(usize::from(*face))
+                            .is_some_and(|f| self.pool.get(*f).is_creature())
+                    }))
+            }
+            _ => true,
+        });
     }
 
     /// A variable amount's value as an effect happens: X from the spell, or
@@ -1570,6 +1609,7 @@ impl GameState {
                 x: 0,
                 did: true,
                 chosen: Chosen::None,
+                couldnt: 0,
             };
             let n = sc.per.saturating_mul(self.eval_num(sc.times, &ctx));
             d -= i32::try_from(n).unwrap_or(i32::MAX);
@@ -2586,6 +2626,7 @@ impl GameState {
                     x: 0,
                     did: true,
                     chosen: Chosen::None,
+                    couldnt: 0,
                 };
                 self.eval_count(count, &ctx)
             }
@@ -2804,6 +2845,7 @@ impl GameState {
             x: self.x_of(spell),
             did: true,
             chosen: Chosen::None,
+            couldnt: 0,
         };
         Some(self.eval_num(amount, &ctx))
     }
@@ -3981,6 +4023,7 @@ impl GameState {
             x: 0,
             did: true,
             chosen: Chosen::None,
+            couldnt: 0,
         };
         for e in ab.effects.iter().filter(|e| !e.adds_mana()) {
             self.apply_effect(&mut ctx, e);
@@ -4179,6 +4222,14 @@ impl GameState {
                 }
                 for c in chosen {
                     s.pay_other_costs(caster, &one, spell, Some(c), None);
+                }
+                // "have each other player gain 6 life".
+                if alt.others_gain > 0 {
+                    let others: Vec<PlayerId> =
+                        s.players_in_game().filter(|q| *q != caster).collect();
+                    for q in others {
+                        s.gain_life(q, alt.others_gain);
+                    }
                 }
             }
         });
@@ -4434,6 +4485,7 @@ impl GameState {
                 x: self.x_of(spell),
                 did: true,
                 chosen: Chosen::None,
+                couldnt: 0,
             };
             let split = self.mode_split_of(spell);
             let outer = self.begin_this_way(spell);
@@ -4522,6 +4574,7 @@ impl GameState {
                 x: 0,
                 did: true,
                 chosen: Chosen::None,
+                couldnt: 0,
             };
             start += n;
             let effects = def.spell_ability().map_or(&[][..], |(_, e)| e);
@@ -4914,6 +4967,38 @@ impl GameState {
                         .filter(|l| l.source == ctx.source)
                         .map(|l| Target::Object(l.card)),
                 );
+            }
+            Recipient::DamagedThisWay => {
+                if let Some(log) = &self.this_way {
+                    out.extend(
+                        log.damaged
+                            .iter()
+                            .filter(|id| {
+                                self.objects
+                                    .get(**id)
+                                    .is_some_and(|o| o.zone == Zone::Battlefield)
+                            })
+                            .map(|id| Target::Object(*id)),
+                    );
+                }
+            }
+            Recipient::OpponentsWithout(f) => {
+                let filter = self.pool.filter(f);
+                let source = self.current_object(ctx.source);
+                let players: SmallVec<[PlayerId; 4]> = self
+                    .players_in_game()
+                    .filter(|q| *q != ctx.controller)
+                    .collect();
+                for q in players {
+                    let controls = self.permanents_of(q).any(|id| {
+                        self.characteristics(id).is_some_and(|c| {
+                            filter.matches(id, q, &c, source, Some(ctx.controller))
+                        }) && self.status_ok(filter, id)
+                    });
+                    if !controls {
+                        out.push(Target::Player(q));
+                    }
+                }
             }
             Recipient::RandomOf(f) => {
                 let mut all = SmallVec::new();
@@ -5643,8 +5728,19 @@ impl GameState {
                     }
                 }
             }
-            Effect::Scry { count } => {
-                self.scry_or_surveil(ctx.controller, self.eval_num(*count, ctx), false);
+            Effect::Scry { count, who } => {
+                let n = self.eval_num(*count, ctx);
+                if *who == Recipient::You {
+                    self.scry_or_surveil(ctx.controller, n, false);
+                } else {
+                    // "Each player may scry 1": in turn order (CR 101.4),
+                    // each their own library.
+                    for t in self.recipients(ctx, *who) {
+                        if let Target::Player(p) = t {
+                            self.scry_or_surveil(p, n, false);
+                        }
+                    }
+                }
             }
             Effect::Search {
                 filter,
@@ -5818,6 +5914,7 @@ impl GameState {
                 self.scry_or_surveil(ctx.controller, self.eval_num(*count, ctx), true);
             }
             Effect::Discard { count, who } => {
+                ctx.couldnt = 0;
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
@@ -5826,6 +5923,9 @@ impl GameState {
                         ctx.did = false;
                     }
                     let n = self.eval_num(*count, ctx);
+                    if (self.player(p).hand.len() as u64) < u64::from(n) {
+                        ctx.couldnt += 1;
+                    }
                     self.discard_n(p, n);
                 }
             }
@@ -5930,6 +6030,63 @@ impl GameState {
                 }
             }
             Effect::CreateReplacement(r) => self.create_replacement(ctx, r),
+            Effect::EachPutsFromGraveyard { who, filter } => {
+                let mut chosen: SmallVec<[(ObjId, PlayerId); 2]> = SmallVec::new();
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let options: Vec<Choice> = self
+                        .player(p)
+                        .graveyard
+                        .iter()
+                        .copied()
+                        .filter(|id| {
+                            let c = self.base_characteristics(&self.objects[*id]);
+                            filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                                && self.status_ok(filter, *id)
+                        })
+                        .map(|id| Choice::Discard {
+                            card: id,
+                            def: self.objects[id].def,
+                        })
+                        .collect();
+                    if options.is_empty() {
+                        continue;
+                    }
+                    let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+                    if let Choice::Discard { card, .. } = options[k] {
+                        chosen.push((card, p));
+                    }
+                }
+                for (id, p) in chosen {
+                    if self
+                        .objects
+                        .get(id)
+                        .is_some_and(|o| o.zone == Zone::Graveyard)
+                    {
+                        self.put_onto_battlefield(id, p);
+                    }
+                }
+            }
+            Effect::ForEachCouldnt(effects) => {
+                for _ in 0..ctx.couldnt {
+                    for e in effects {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::PlayerRule { who, kind } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        self.player_rules.push(crate::state::PlayerRuleEffect {
+                            player: p,
+                            kind: *kind,
+                        });
+                    }
+                }
+                self.bump();
+            }
             Effect::Rule(kind) => {
                 self.rules.push(RuleEffect {
                     kind: *kind,
@@ -8218,6 +8375,7 @@ impl GameState {
                         x: ctx.x,
                         did: ctx.did,
                         chosen: ctx.chosen,
+                        couldnt: ctx.couldnt,
                     };
                     self.apply_effect(&mut second, effect);
                     ctx.created = second.created;
@@ -8496,6 +8654,10 @@ pub(super) struct EffectCtx {
     /// creature type.", CR 608.2d), for the filters and effects that refer
     /// to it later in the resolution.
     pub chosen: Chosen,
+    /// Players who couldn't do what the last per-player effect asked
+    /// ("each opponent discards a card. For each opponent who can't, you
+    /// draw a card"): those with too few cards in hand to discard.
+    pub couldnt: u32,
 }
 
 /// The ways to divide `total` among `k` targets, each getting at least 1

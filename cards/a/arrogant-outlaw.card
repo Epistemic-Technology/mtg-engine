@@ -1,0 +1,7 @@
+card "Arrogant Outlaw" {
+  oracle_id f202712d-7cd1-47aa-9664-526a884a1be2
+  cost {2}{B}
+  type Creature — Vampire Noble
+  pt 3/2
+  triggered when this enters if opponent lost life this turn: each opponent loses 2 life and you gain 2 life
+}

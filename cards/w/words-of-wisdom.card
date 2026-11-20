@@ -1,0 +1,6 @@
+card "Words of Wisdom" {
+  oracle_id cff1b9bb-2a4c-4522-94a4-a674f942e376
+  cost {1}{U}
+  type Instant
+  spell: you draw 2 cards then each other player draws 1 card
+}

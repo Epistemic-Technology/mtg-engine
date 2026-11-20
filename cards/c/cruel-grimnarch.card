@@ -1,0 +1,8 @@
+card "Cruel Grimnarch" {
+  oracle_id 4c27b7cd-dcbf-45a7-9e15-a6d8dfd3a087
+  cost {5}{B}
+  type Creature — Phyrexian Cleric
+  pt 5/5
+  keywords deathtouch
+  triggered when this enters: each opponent discards 1 card; for each opponent who can't, you gain 4 life
+}

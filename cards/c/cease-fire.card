@@ -1,0 +1,9 @@
+card "Cease-Fire" {
+  oracle_id 9e48eb8e-ec62-4d73-ac80-31e6fe74ec31
+  cost {2}{W}
+  type Instant
+  spell {
+  target player can't cast creature spells this turn
+  draw 1 card
+  }
+}

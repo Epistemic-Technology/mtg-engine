@@ -1228,6 +1228,7 @@ impl GameState {
             x: 0,
             did: true,
             chosen: Chosen::None,
+            couldnt: 0,
         };
         let outer = self.begin_this_way(id);
         self.apply_effects(&mut ctx, effects, split);

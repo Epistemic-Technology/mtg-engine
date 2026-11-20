@@ -1,0 +1,9 @@
+card "Solfatara" {
+  oracle_id 6053a192-fcf9-4b06-9f46-e84eaadaa882
+  cost {2}{R}
+  type Instant
+  spell {
+  target player can't play lands this turn
+  delayed this: draw 1 card at beginning of the next turn's upkeep
+  }
+}

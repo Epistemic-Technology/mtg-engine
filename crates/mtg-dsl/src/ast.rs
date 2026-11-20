@@ -402,6 +402,10 @@ pub enum ReduceBy {
 pub struct AltCost {
     pub cost: Cost,
     pub count: u32,
+    /// `alternative cost each other player gains 6 life, if you control
+    /// Forest`: "you may have each other player gain 6 life rather than
+    /// pay this spell's mana cost".
+    pub others_gain: u32,
 }
 
 /// A cost (CR 118): of an activated ability or the additional cost of a
@@ -554,6 +558,10 @@ pub struct Filter {
     pub dont_control: bool,
     /// `who` is `Opponents`, written and printed "your opponents control".
     pub your_opponents: bool,
+    /// `who` is `Opponents`, written and printed "they control" after a
+    /// recipient that is the opponents ("each opponent and each creature
+    /// they control").
+    pub they_control: bool,
     /// `who` is `Opponents`, written and printed "defending player
     /// controls" (two players: the attacker's opponent).
     pub defending: bool,
@@ -1985,6 +1993,12 @@ pub enum Recipient {
     OwnerOf(usize),
     You,
     EachOpponent,
+    /// `each opponent who doesn't control Elf`: "each opponent who doesn't
+    /// control an Elf" (the group's filter).
+    OpponentsWithout(u16),
+    /// `creature dealt damage this way`: "a creature dealt damage this
+    /// way" (each permanent the resolution has dealt damage to).
+    DamagedThisWay,
     /// `each other player`: "each other player", the same players as
     /// each opponent.
     EachOtherPlayer,
@@ -2245,6 +2259,14 @@ pub enum Effect {
         dest: CounteredTo,
     },
     Scry(Num),
+    /// `each player may scry 1`, `each opponent may scry 1`: each in turn
+    /// order scries their own library. `may` is wording: declining to scry
+    /// leaves the library as scrying and keeping every card on top does.
+    ScryEach {
+        who: Recipient,
+        count: Num,
+        may: bool,
+    },
     /// "Investigate" (CR 701.16): create a Clue token; `investigate
     /// twice` ("investigate twice") does it two times.
     Investigate(u32),
@@ -2280,6 +2302,10 @@ pub enum Effect {
     ReturnChosen {
         count: Num,
         filter: Filter,
+        /// `each player returns 1 creature they control`: "Each player
+        /// returns a creature they control to its owner's hand", each
+        /// choosing one of their own (CR 101.4).
+        who: Option<Recipient>,
     },
     /// `target creature loses flying`: until end of turn.
     Strip {
@@ -2530,6 +2556,20 @@ pub enum Effect {
     YouMay(Vec<Sentence>),
     /// "If this spell was kicked, ..." (CR 702.33c).
     IfKicked(Vec<Sentence>),
+    /// `each player puts 1 creature card from graveyard onto battlefield`:
+    /// "Each player puts a creature card from their graveyard onto the
+    /// battlefield."
+    EachPutsFromGraveyard {
+        who: Recipient,
+        filter: Filter,
+    },
+    /// `for each opponent who can't, you gain 4 life` (after `each
+    /// opponent discards 1 card`): the sentence once for each player who
+    /// couldn't. `opponent` is the word printed ("opponent" or "player").
+    ForEachCouldnt {
+        opponent: bool,
+        inner: Vec<Sentence>,
+    },
     /// `if target 1 was Human, ...`: "If that creature was a Human, ...";
     /// `if target 1 is Vampire, also ...`: "If it's a Vampire, it also
     /// ..." (the target as it resolves).
@@ -2607,6 +2647,12 @@ pub enum Effect {
     /// A replacement or prevention effect that lasts until end of turn.
     CreateReplacement(Replacement),
     Rule(RuleKind),
+    /// `target player can't play lands this turn`, `... can't cast
+    /// creature spells this turn`.
+    PlayerRule {
+        who: Recipient,
+        kind: mtg_core::card::PlayerRuleKind,
+    },
     /// `proliferate` (CR 701.27).
     Proliferate,
     /// `the ring tempts you` (CR 701.54): "the Ring tempts you".

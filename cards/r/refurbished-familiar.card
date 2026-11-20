@@ -1,0 +1,9 @@
+card "Refurbished Familiar" {
+  oracle_id 009e1638-9055-4872-93e1-85841bce4648
+  cost {3}{B}
+  type Artifact Creature — Zombie Rat
+  pt 2/1
+  affinity for artifact
+  keywords flying
+  triggered when this enters: each opponent discards 1 card; for each opponent who can't, you draw 1 card
+}

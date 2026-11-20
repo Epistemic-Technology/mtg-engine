@@ -1,0 +1,9 @@
+card "Gravebind" {
+  oracle_id 0ce01e24-42db-42db-9ba2-38f653383991
+  cost {B}
+  type Instant
+  spell {
+  target creature can't be regenerated
+  delayed this: draw 1 card at beginning of the next turn's upkeep
+  }
+}

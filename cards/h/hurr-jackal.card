@@ -1,0 +1,7 @@
+card "Hurr Jackal" {
+  oracle_id d17f5afa-a884-4b99-aa9e-89ddb3d43b22
+  cost {R}
+  type Creature — Jackal
+  pt 1/1
+  activated {T}: target creature can't be regenerated
+}

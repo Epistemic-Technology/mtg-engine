@@ -1,0 +1,7 @@
+card "Flash of Defiance" {
+  oracle_id 9f66855d-3ae8-4163-a5f1-aa23a9cd06a5
+  cost {1}{R}
+  type Sorcery
+  spell: each green creature or white creature can't block
+  flashback {1}{R}, pay 3 life
+}

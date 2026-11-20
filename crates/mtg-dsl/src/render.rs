@@ -1045,7 +1045,14 @@ impl<'a> Ctx<'a> {
             }
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
-                format!("each {}", self.group_phrase(i, false))
+                // "each creature and planeswalker they control": Oracle
+                // joins these two types with "and" after "each".
+                let phrase = self.group_phrase(i, false);
+                let phrase = match phrase.strip_prefix("creature or planeswalker") {
+                    Some(rest) => format!("creature and planeswalker{rest}"),
+                    None => phrase,
+                };
+                format!("each {phrase}")
             }
             // "enchanted creature's controller sacrifices it".
             Recipient::AttachedController => {
@@ -1055,6 +1062,14 @@ impl<'a> Ctx<'a> {
                     filter_phrase(&Filter::enchanted(), self.card, false)
                 )
             }
+            Recipient::DamagedThisWay => "a creature dealt damage this way".to_string(),
+            Recipient::OpponentsWithout(i) => match self.card.groups.get(usize::from(i)) {
+                Some(f) => format!(
+                    "each opponent who doesn't control {}",
+                    filter_a(f, self.card)
+                ),
+                None => "each opponent".to_string(),
+            },
             Recipient::RandomOf(i) => match self.card.groups.get(usize::from(i)) {
                 Some(f) => format!("{} chosen at random", filter_a(f, self.card)),
                 None => "a permanent chosen at random".to_string(),
@@ -1828,6 +1843,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         Some(Who::You) if !you_first => s.push_str(" you control"),
         Some(Who::Opponents) if f.dont_control => s.push_str(" you don't control"),
         Some(Who::Opponents) if f.your_opponents => s.push_str(" your opponents control"),
+        Some(Who::Opponents) if f.they_control => s.push_str(" they control"),
         Some(Who::Opponents) if f.defending => s.push_str(" defending player controls"),
         Some(Who::Opponents) => s.push_str(" an opponent controls"),
         Some(Who::You | Who::Any) | None => {}
@@ -2046,6 +2062,12 @@ fn card_filter_a(f: &Filter, card: &Card) -> String {
 /// control to its owner's hand rather than pay this spell's mana cost."
 fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
     let mut parts = Vec::new();
+    if a.others_gain > 0 {
+        parts.push(format!(
+            "have each other player gain {} life",
+            a.others_gain
+        ));
+    }
     let mana = a.cost.mana.to_string();
     if !mana.is_empty() {
         parts.push(format!("pay {mana}"));
@@ -2082,6 +2104,17 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
     // spell without paying its mana cost."
     if parts.is_empty() {
         return format!("{you_may} cast this spell without paying its mana cost.");
+    }
+    // "If you control a Forest, rather than pay this spell's mana cost, you
+    // may have each other player gain 6 life." (the older wording).
+    if a.others_gain > 0
+        && let Some(c) = a.cost.conditions.first()
+    {
+        return format!(
+            "If {}, rather than pay this spell's mana cost, you may {}.",
+            static_cond_text(c, card),
+            parts.join(" and ")
+        );
     }
     format!(
         "{you_may} {} rather than pay this spell's mana cost.",
@@ -2534,7 +2567,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::CreateToken { count, .. } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
-        Effect::Scry(n) | Effect::LookAtTop(n) => vec![*n],
+        Effect::Scry(n) | Effect::LookAtTop(n) | Effect::ScryEach { count: n, .. } => vec![*n],
         Effect::CreateReplacement(r) => match r.outcome {
             mtg_core::card::Replacement::PreventNext(n) => vec![n],
             _ => Vec::new(),
@@ -3582,7 +3615,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::with_subject(*to, s, format!("{} {q}", ctx.verb(*to, "gains", "gain")))
                 .until_eot()
         }
-        Effect::ReturnChosen { count, filter } => {
+        Effect::ReturnChosen { count, filter, who } => {
             let what = if *count == Num::N(1) {
                 filter_a(filter, ctx.card)
             } else {
@@ -3592,6 +3625,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     filter_phrase(filter, ctx.card, true)
                 )
             };
+            let owner = if *count == Num::N(1) {
+                "its owner's hand"
+            } else {
+                "their owners' hands"
+            };
+            if let Some(who) = who {
+                let s = ctx.subj(*who);
+                return Clause::with_subject(
+                    *who,
+                    s,
+                    format!("{} {what} to {owner}", ctx.verb(*who, "returns", "return")),
+                );
+            }
             Clause::imperative(format!("return {what} to its owner's hand"))
         }
         Effect::BlocksIfAble { blocker, attacker } => {
@@ -4181,6 +4227,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("counter {o} unless its controller pays {mana}"))
         }
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
+        Effect::ScryEach { who, count, may } => {
+            let s = ctx.subj(*who);
+            let verb = if *may {
+                "may scry".to_string()
+            } else {
+                ctx.verb(*who, "scries", "scry").to_string()
+            };
+            Clause::with_subject(*who, s, format!("{verb} {}", digits(*count)))
+        }
         Effect::Investigates(w) => {
             let s = ctx.subj(*w);
             Clause::with_subject(
@@ -5470,6 +5525,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 None => text,
             })
         }
+        Effect::EachPutsFromGraveyard { who, filter } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{} {} card from their graveyard onto the battlefield",
+                    ctx.verb(*who, "puts", "put"),
+                    filter_a(filter, ctx.card)
+                ),
+            )
+        }
+        Effect::ForEachCouldnt { opponent, inner } => {
+            let body = sentences(inner, ctx);
+            Clause::imperative(format!(
+                "for each {} who can't, {}",
+                if *opponent { "opponent" } else { "player" },
+                lowercase_first(body.trim_end_matches('.'))
+            ))
+        }
         Effect::IfKicked(inner) => {
             let body = sentences(inner, ctx);
             let body = if starts_with_name(&body, ctx.card) {
@@ -5617,6 +5692,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Rule(RuleKind::DamageCantBePrevented) => {
             Clause::imperative("damage can't be prevented this turn".to_string())
+        }
+        Effect::PlayerRule { who, kind } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "can't {} this turn",
+                    crate::format::player_rule_words(*kind)
+                ),
+            )
         }
     }
 }
@@ -6473,6 +6559,7 @@ fn controller_first(f: &Filter, s: String) -> String {
         Some(Who::You) => " you control",
         Some(Who::Opponents) if f.dont_control => " you don't control",
         Some(Who::Opponents) if f.your_opponents => " your opponents control",
+        Some(Who::Opponents) if f.they_control => " they control",
         Some(Who::Opponents) if !f.defending => " an opponent controls",
         _ => return s,
     };

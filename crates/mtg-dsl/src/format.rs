@@ -87,6 +87,14 @@ fn format_inner(card: &Card) -> String {
         if a.count > 1 {
             text = text.replacen("sacrifice ", &format!("sacrifice {} ", a.count), 1);
         }
+        if a.others_gain > 0 {
+            let gain = format!("each other player gains {} life", a.others_gain);
+            text = if text.is_empty() {
+                gain
+            } else {
+                format!("{gain}, {text}")
+            };
+        }
         let _ = writeln!(out, "  alternative cost {text}");
     }
     if let Some(c) = &card.flash_if {
@@ -278,6 +286,11 @@ impl Fmt {
                 }
                 format!("{first} and {group}")
             }
+            Recipient::DamagedThisWay => "creature dealt damage this way".to_string(),
+            Recipient::OpponentsWithout(i) => match self.groups.get(usize::from(i)) {
+                Some(f) => format!("each opponent who doesn't control {}", filter(f)),
+                None => "each opponent".to_string(),
+            },
             Recipient::RandomOf(i) => match self.groups.get(usize::from(i)) {
                 Some(f) => format!("random {}", filter(f)),
                 None => "random permanent".to_string(),
@@ -788,7 +801,19 @@ impl Fmt {
                     nested(ability, &self.groups)
                 ),
             },
-            Effect::ReturnChosen { count, filter: f } => {
+            Effect::ReturnChosen {
+                count,
+                filter: f,
+                who: Some(who),
+            } => format!(
+                "{} returns {} {}",
+                self.recipient(*who, t),
+                num(*count),
+                filter(f)
+            ),
+            Effect::ReturnChosen {
+                count, filter: f, ..
+            } => {
                 format!("return {} {} chosen", num(*count), filter(f))
             }
             Effect::BlocksIfAble { blocker, attacker } => format!(
@@ -1033,6 +1058,12 @@ impl Fmt {
                 countered_to(*dest)
             ),
             Effect::Scry(n) => format!("scry {}", num(*n)),
+            Effect::ScryEach { who, count, may } => format!(
+                "{} {} {}",
+                self.recipient(*who, t),
+                if *may { "may scry" } else { "scries" },
+                num(*count)
+            ),
             Effect::Investigate(1) => "investigate".to_string(),
             Effect::Investigates(w) => format!("{} investigates", self.recipient(*w, t)),
             Effect::Investigate(2) => "investigate twice".to_string(),
@@ -1488,6 +1519,16 @@ impl Fmt {
             }
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
+            Effect::EachPutsFromGraveyard { who, filter: f } => format!(
+                "{} puts 1 {} card from graveyard onto battlefield",
+                self.recipient(*who, t),
+                filter(f)
+            ),
+            Effect::ForEachCouldnt { opponent, inner } => format!(
+                "for each {} who can't, {}",
+                if *opponent { "opponent" } else { "player" },
+                self.line(inner, t)
+            ),
             Effect::IfTarget(n, f, inner, check)
                 if check.tense == crate::ast::TargetTense::Was
                     && *f == Filter::controlled_by_you() =>
@@ -1808,6 +1849,11 @@ impl Fmt {
             Effect::Rule(RuleKind::DamageCantBePrevented) => {
                 "damage can't be prevented this turn".to_string()
             }
+            Effect::PlayerRule { who, kind } => format!(
+                "{} can't {} this turn",
+                self.recipient(*who, t),
+                player_rule_words(*kind)
+            ),
         }
     }
 }
@@ -2370,6 +2416,7 @@ fn filter_one(f: &Filter) -> String {
         Some(Who::Opponents) if f.your_opponents => {
             words.push("your opponents control".to_string());
         }
+        Some(Who::Opponents) if f.they_control => words.push("they control".to_string()),
         Some(Who::Opponents) if f.defending => {
             words.push("defending player controls".to_string());
         }
@@ -2548,6 +2595,7 @@ pub fn share_qualifiers(base: &mut Filter, alt: &mut Filter) {
     if base.who.is_none() && alt.who.is_some() {
         base.who = alt.who;
         base.dont_control = alt.dont_control;
+        base.they_control = alt.they_control;
     }
     if base.types.is_empty()
         && !base.subtypes.is_empty()
@@ -2578,9 +2626,14 @@ pub fn relation_any(f: &mut Filter) {
 pub fn factor_qualifiers(base: &Filter, alt: &Filter) -> (Filter, Filter) {
     let (mut b, mut a) = (base.clone(), alt.clone());
     b.or = None;
-    if b.who.is_some() && b.who == a.who && b.dont_control == a.dont_control {
+    if b.who.is_some()
+        && b.who == a.who
+        && b.dont_control == a.dont_control
+        && b.they_control == a.they_control
+    {
         b.who = None;
         b.dont_control = false;
+        b.they_control = false;
     }
     if !b.subtypes.is_empty() && !a.subtypes.is_empty() && !a.types.is_empty() && b.types == a.types
     {
@@ -4193,5 +4246,13 @@ mod tests {
             };
             assert_eq!(targets, &[Target::Spec(*spec)], "{}", target_phrase(*spec));
         }
+    }
+}
+
+/// What a player can't do: "play lands", "cast creature spells".
+pub fn player_rule_words(kind: mtg_core::card::PlayerRuleKind) -> &'static str {
+    match kind {
+        mtg_core::card::PlayerRuleKind::CantPlayLands => "play lands",
+        mtg_core::card::PlayerRuleKind::CantCastCreatureSpells => "cast creature spells",
     }
 }

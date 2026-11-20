@@ -1,0 +1,7 @@
+card "Skyshroud Cutter" {
+  oracle_id fbd71691-d0fd-4842-913b-fe6096d509a3
+  cost {3}{G}
+  type Creature — Beast
+  pt 2/2
+  alternative cost each other player gains 5 life, if you control Forest
+}

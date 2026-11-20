@@ -95,6 +95,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             crate::ast::AltCost {
                 cost,
                 count: a.count,
+                others_gain: a.others_gain,
             }
         }),
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
@@ -177,6 +178,7 @@ impl Decompiler<'_> {
             no_abilities: f.no_abilities,
             dont_control: false,
             your_opponents: false,
+            they_control: false,
             defending: false,
             any_types: types(f.any_types),
             power: f.power,
@@ -526,6 +528,8 @@ impl Decompiler<'_> {
             CoreRecipient::CreatedObject => Recipient::CreatedObject,
             CoreRecipient::Group(i) => Recipient::Group(i),
             CoreRecipient::RandomOf(i) => Recipient::RandomOf(i),
+            CoreRecipient::OpponentsWithout(i) => Recipient::OpponentsWithout(i),
+            CoreRecipient::DamagedThisWay => Recipient::DamagedThisWay,
             CoreRecipient::TargetAndGroup(t, i) => Recipient::TargetAnd(t, i),
             CoreRecipient::Attached => Recipient::Attached,
             CoreRecipient::AttachedController => Recipient::AttachedController,
@@ -718,7 +722,15 @@ impl Decompiler<'_> {
                 x: *x,
                 dest: *dest,
             },
-            CoreEffect::Scry { count } => Effect::Scry(*count),
+            CoreEffect::Scry {
+                count,
+                who: CoreRecipient::You,
+            } => Effect::Scry(*count),
+            CoreEffect::Scry { count, who } => Effect::ScryEach {
+                who: Self::recipient(*who),
+                count: *count,
+                may: false,
+            },
             CoreEffect::AddMana(m) => Effect::AddMana(m.clone()),
             CoreEffect::AddManaOneOf(m) => Effect::AddManaOneOf(m.clone()),
             CoreEffect::AddManaTimes { mana, count } => Effect::AddManaTimes {
@@ -934,6 +946,14 @@ impl Decompiler<'_> {
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
+            CoreEffect::EachPutsFromGraveyard { who, filter } => Effect::EachPutsFromGraveyard {
+                who: Self::recipient(*who),
+                filter: self.filter(filter),
+            },
+            CoreEffect::ForEachCouldnt(inner) => Effect::ForEachCouldnt {
+                opponent: true,
+                inner: self.sentences(inner),
+            },
             CoreEffect::Instead { .. } => unreachable!("a sentence pair, in `sentences`"),
             CoreEffect::IfTarget { n, filter, then } => Effect::IfTarget(
                 usize::from(*n),
@@ -1016,6 +1036,10 @@ impl Decompiler<'_> {
             }
             CoreEffect::CreateReplacement(rep) => Effect::CreateReplacement(self.replacement(rep)),
             CoreEffect::Rule(k) => Effect::Rule(*k),
+            CoreEffect::PlayerRule { who, kind } => Effect::PlayerRule {
+                who: Self::recipient(*who),
+                kind: *kind,
+            },
             CoreEffect::AddPoison { count, who } => Effect::AddPoison {
                 count: *count,
                 who: Self::recipient(*who),
@@ -1159,12 +1183,13 @@ impl Decompiler<'_> {
                 ability: Box::new(self.ability(self.pool.ability(*ability))),
                 to: Self::recipient(*to),
             },
-            CoreEffect::ReturnChosen { filter, count, .. } => {
+            CoreEffect::ReturnChosen { filter, count, who } => {
                 let mut f = self.filter(filter);
                 f.who = Some(mtg_core::card::Who::You);
                 Effect::ReturnChosen {
                     count: *count,
                     filter: f,
+                    who: (*who != CoreRecipient::You).then(|| Self::recipient(*who)),
                 }
             }
             CoreEffect::CantBeRegenerated { to } => Effect::CantBeRegenerated {

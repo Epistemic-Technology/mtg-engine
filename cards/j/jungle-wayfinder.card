@@ -1,0 +1,7 @@
+card "Jungle Wayfinder" {
+  oracle_id 794ad296-4718-45b7-ab85-6ae45903ada7
+  cost {2}{G}
+  type Creature — Elf Warrior
+  pt 3/3
+  triggered when this enters: each player may search basic land card reveal to hand
+}
