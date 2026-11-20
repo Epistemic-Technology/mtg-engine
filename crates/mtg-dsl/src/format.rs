@@ -3516,6 +3516,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Escaped => unreachable!("only in `escapes with`"),
         StaticCond::Kicked => unreachable!("only in `kicked with`"),
         StaticCond::Bargained => "bargained".to_string(),
+        StaticCond::Teamwork => "teamwork".to_string(),
         StaticCond::ManaSpent {
             kind,
             at_least,
@@ -4127,6 +4128,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Bargain => "bargain".to_string(),
                 crate::ast::Mechanic::Conspire => "conspire".to_string(),
                 crate::ast::Mechanic::Casualty(n) => format!("casualty {n}"),
+                crate::ast::Mechanic::Teamwork(n) => format!("teamwork {n}"),
                 crate::ast::Mechanic::Station => "station".to_string(),
                 crate::ast::Mechanic::Saddle(n) => format!("saddle {n}"),
                 crate::ast::Mechanic::Ascend => "ascend".to_string(),

@@ -62,7 +62,7 @@ const KEYWORDS: [&str; 39] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 90] = [
+const TEMPLATED_TAGS: [&str; 91] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -145,6 +145,7 @@ const TEMPLATED_TAGS: [&str; 90] = [
     "Bargain",
     "Conspire",
     "Casualty",
+    "Teamwork",
     "Saddle",
     "Fabricate",
     "Renown",
@@ -1976,6 +1977,9 @@ fn static_condition(s: &str) -> Option<String> {
         "it's attacking" | "this creature is attacking" => return Some("attacking".to_string()),
         "it's enchanted" | "this creature is enchanted" => return Some("enchanted".to_string()),
         "it's equipped" | "this creature is equipped" => return Some("equipped".to_string()),
+        "this spell was cast using teamwork" => {
+            return Some("teamwork".to_string());
+        }
         "it's bargained" | "it was bargained" | "this spell was bargained" => {
             return Some("bargained".to_string());
         }
@@ -2603,7 +2607,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Casualty) (\d+)$",
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Casualty|Teamwork) (\d+)$",
         )
         .unwrap()
         .captures(line)

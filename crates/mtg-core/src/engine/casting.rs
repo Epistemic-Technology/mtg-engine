@@ -4431,6 +4431,17 @@ impl GameState {
                 self.sacrifice(s);
             }
         }
+        // Teamwork taps creatures with the costs.
+        if self.objects[spell].cast.teamwork() {
+            let n = def.teamwork;
+            if let Some(cs) = self.teamwork_tappers(caster, n) {
+                for c in cs {
+                    self.tap(c);
+                }
+            } else {
+                self.objects[spell].cast.set_teamwork(false);
+            }
+        }
         // CR 702.78a: conspire taps two creatures with the costs.
         if self.objects[spell].cast.conspired() {
             let two: Vec<ObjId> = self.conspirators(spell).into_iter().take(2).collect();

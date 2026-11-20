@@ -1,0 +1,7 @@
+card "Helicarrier Strike" {
+  oracle_id ca3cda24-0ecd-4edf-b1b3-54311ad58a51
+  cost {W}
+  type Instant
+  teamwork 2
+  spell: deal 2 damage to target attacking or blocking creature; if teamwork, deal 4 damage to that target 1 instead
+}

@@ -1182,6 +1182,10 @@ pub enum Mechanic {
     /// sacrifice a creature with power N or greater. When you do, copy
     /// this spell."
     Casualty(u32),
+    /// `teamwork 2`: "Teamwork 2 (As an additional cost to cast this
+    /// spell, you may tap any number of creatures you control with total
+    /// power 2 or more.)"
+    Teamwork(u32),
     /// CR 702.184: `station`: "Tap another untapped creature you control:
     /// Put a number of charge counters on this permanent equal to the
     /// tapped creature's power. Activate only as a sorcery."
@@ -1382,6 +1386,8 @@ pub enum StaticCond {
     /// `bargained`: "this spell was bargained" (an instant or sorcery),
     /// "it was bargained", "it's bargained" (a cost) (CR 702.166b).
     Bargained,
+    /// `teamwork`: "this spell was cast using teamwork".
+    Teamwork,
     /// `saddled`: "it's saddled"; after a trigger, `while saddled`
     /// ("Whenever this creature attacks while saddled, ...", CR 702.171b).
     Saddled,

@@ -336,6 +336,9 @@ impl CastInfo {
     /// Its casualty cost paid (CR 702.153a): a creature sacrificed with
     /// its costs, and it is copied.
     const CASUALTY: u32 = 0x4_0000;
+    /// Cast using teamwork: creatures with enough total power tapped with
+    /// its costs (an optional additional cost, CR 601.2b).
+    const TEAMWORK: u32 = 0x8_0000;
     const KICKED: u32 = 0x40;
     const FLASHBACK: u32 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -424,6 +427,18 @@ impl CastInfo {
             self.0 | Self::BARGAINED
         } else {
             self.0 & !Self::BARGAINED
+        };
+    }
+
+    pub const fn teamwork(self) -> bool {
+        self.0 & Self::TEAMWORK != 0
+    }
+
+    pub fn set_teamwork(&mut self, on: bool) {
+        self.0 = if on {
+            self.0 | Self::TEAMWORK
+        } else {
+            self.0 & !Self::TEAMWORK
         };
     }
 
@@ -1104,6 +1119,10 @@ pub enum Flow {
     /// Choosing whether to pay a spell's casualty cost, and what to
     /// sacrifice (CR 702.153a), after bargain.
     ChoosingCasualty {
+        spell: ObjId,
+    },
+    /// Choosing whether to cast a spell using teamwork, after casualty.
+    ChoosingTeamwork {
         spell: ObjId,
     },
     /// Choosing whether to conspire a spell (CR 702.78a), after bargain.
@@ -2256,6 +2275,50 @@ impl GameState {
         }
     }
 
+    /// Teamwork: the untapped creatures the caster of `spell` would tap,
+    /// with total power `n` or more, or `None` if they can't. The engine
+    /// picks: the one with the least power that is enough alone, else the
+    /// most powerful first; creatures that make mana last.
+    pub fn teamwork_tappers(&self, p: PlayerId, n: u8) -> Option<Vec<ObjId>> {
+        let n = i16::from(n);
+        let mut all: Vec<(bool, i16, ObjId)> = self
+            .creatures_of(p)
+            .filter(|id| !self.objects[*id].tapped)
+            .filter_map(|id| {
+                let c = self.characteristics(id)?;
+                let mana = self
+                    .pool
+                    .get(self.objects[id].def)
+                    .abilities
+                    .iter()
+                    .any(|a| matches!(a, crate::card::AbilityDef::TapForMana(_)));
+                Some((mana, c.power, id))
+            })
+            .collect();
+        for mana in [false, true] {
+            if let Some((_, _, id)) = all
+                .iter()
+                .filter(|(m, pw, _)| (!*m || mana) && *pw >= n)
+                .min_by_key(|(m, pw, _)| (*m, *pw))
+            {
+                return Some(vec![*id]);
+            }
+        }
+        all.sort_by_key(|(mana, power, _)| (*mana, -*power));
+        let mut total = 0i16;
+        let mut out = Vec::new();
+        for (_, power, id) in all {
+            if total >= n {
+                break;
+            }
+            if power > 0 {
+                total += power;
+                out.push(id);
+            }
+        }
+        (total >= n).then_some(out)
+    }
+
     /// CR 702.153a: the creatures with power `n` or greater `p` could
     /// sacrifice for casualty.
     pub fn casualty_candidates(&self, p: PlayerId, n: u8) -> Vec<ObjId> {
@@ -2472,6 +2535,13 @@ impl GameState {
                     .is_some_and(|l| l.object.cast.bargained()),
             },
             C::Saddled => self.saddled.contains(&source),
+            C::Teamwork => match self.objects.get(source) {
+                Some(o) => o.cast.teamwork(),
+                None => self
+                    .lki
+                    .get(&source)
+                    .is_some_and(|l| l.object.cast.teamwork()),
+            },
             C::OffspringPaid => self
                 .objects
                 .get(source)

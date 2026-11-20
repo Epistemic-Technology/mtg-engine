@@ -388,6 +388,12 @@ impl Compiler<'_> {
                     };
                     b = b.casualty(n);
                 }
+                Ability::Mechanic(Mechanic::Teamwork(n)) => {
+                    let Ok(n) = u8::try_from(*n) else {
+                        return self.err("teamwork is at most 255");
+                    };
+                    b = b.teamwork(n);
+                }
                 Ability::AuraStays => {
                     b = b.aura_stays();
                 }
@@ -578,6 +584,7 @@ impl Compiler<'_> {
                             | Mechanic::Bargain
                             | Mechanic::Conspire
                             | Mechanic::Casualty(_)
+                            | Mechanic::Teamwork(_)
                             | Mechanic::Strive(_)
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
@@ -879,6 +886,7 @@ impl Compiler<'_> {
             StaticCond::Escaped => StaticCondition::Escaped,
             StaticCond::Kicked => StaticCondition::Kicked,
             StaticCond::Bargained => StaticCondition::Bargained,
+            StaticCond::Teamwork => StaticCondition::Teamwork,
             StaticCond::Saddled => StaticCondition::Saddled,
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
             StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
@@ -2908,6 +2916,7 @@ impl Compiler<'_> {
                 | Mechanic::Bargain
                 | Mechanic::Conspire
                 | Mechanic::Casualty(_)
+                | Mechanic::Teamwork(_)
                 | Mechanic::Strive(_)
                 | Mechanic::Ascend
                 | Mechanic::StartYourEngines
@@ -3506,6 +3515,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Bargain
         | Mechanic::Conspire
         | Mechanic::Casualty(_)
+        | Mechanic::Teamwork(_)
         | Mechanic::Ascend
         | Mechanic::StartYourEngines
         | Mechanic::BecomesDay

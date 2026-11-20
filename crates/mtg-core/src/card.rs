@@ -2013,6 +2013,8 @@ pub enum StaticCondition {
     Bargained,
     /// Its offspring cost was paid (CR 702.175a).
     OffspringPaid,
+    /// "If this spell was cast using teamwork": its teamwork cost was paid.
+    Teamwork,
     /// The source is saddled (CR 702.171b): "whenever this creature
     /// attacks while saddled".
     Saddled,
@@ -5338,6 +5340,11 @@ pub struct CardDef {
     /// copied. 0: none.
     #[serde(default)]
     pub casualty: u8,
+    /// Teamwork N: "As an additional cost to cast this spell, you may tap
+    /// any number of creatures you control with total power N or more."
+    /// 0: none.
+    #[serde(default)]
+    pub teamwork: u8,
     /// "Enchanted creature ... is goaded" (CR 701.15): the permanent's
     /// static ability grants "attacks each combat if able"; this marks
     /// that what it is attached to attacks a player other than the
@@ -7055,6 +7062,7 @@ impl Builder {
             goads: false,
             conspire: false,
             casualty: 0,
+            teamwork: 0,
             splice: None,
             alt_cost: None,
             additional_or: None,
@@ -7275,6 +7283,13 @@ impl Builder {
     #[must_use]
     pub fn casualty(mut self, n: u8) -> Self {
         self.0.casualty = n;
+        self
+    }
+
+    /// Teamwork N.
+    #[must_use]
+    pub fn teamwork(mut self, n: u8) -> Self {
+        self.0.teamwork = n;
         self
     }
 

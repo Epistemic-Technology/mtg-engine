@@ -526,7 +526,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
-            let conspired = if line.peek_ident("conspired") {
+            let conspired = if line.peek_ident("conspired") || line.peek_ident("teamwork") {
                 line.pos += 1;
                 true
             } else {

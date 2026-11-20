@@ -1371,7 +1371,7 @@ impl P {
             }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
             | "saddle" | "poisonous" | "frenzy" | "absorb" | "fabricate" | "renown"
-            | "casualty"
+            | "casualty" | "teamwork"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
@@ -1391,6 +1391,7 @@ impl P {
                     "fabricate" => Mechanic::Fabricate(n),
                     "renown" => Mechanic::Renown(n),
                     "casualty" => Mechanic::Casualty(n),
+                    "teamwork" => Mechanic::Teamwork(n),
                     _ => Mechanic::Toxic(n),
                 }))
             }
@@ -2502,6 +2503,9 @@ impl P {
         }
         if self.eat_word("bargained") {
             return Ok(StaticCond::Bargained);
+        }
+        if self.eat_word("teamwork") {
+            return Ok(StaticCond::Teamwork);
         }
         if self.eat_word("spent") {
             return self.spent_cond();

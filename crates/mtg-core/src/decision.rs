@@ -94,6 +94,9 @@ pub enum DecisionKind {
     /// Whether to pay `spell`'s casualty cost (CR 702.153a): `Sacrifice`
     /// options for the creatures with enough power, or `Decline`.
     Casualty { spell: ObjId },
+    /// Whether to cast `spell` using teamwork: `Accept` taps creatures
+    /// with enough total power (the engine picks them), `Decline` doesn't.
+    Teamwork { spell: ObjId },
     /// Which card from the hand to put onto the battlefield (offered as
     /// `Choice::Discard` options), or `Done` for none.
     PutFromHand,

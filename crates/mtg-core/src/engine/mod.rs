@@ -845,6 +845,17 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::ChoosingTeamwork { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    return StepResult::Decision(Decision {
+                        player: obj.controller,
+                        kind: DecisionKind::Teamwork { spell },
+                        options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
                 Flow::ChoosingConspire { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -1742,6 +1753,14 @@ impl GameState {
             (Flow::ChoosingCasualty { spell }, Choice::Decline) => {
                 self.flow = self.after_casualty(spell);
             }
+            // Teamwork: the creatures are tapped as the costs are paid.
+            (Flow::ChoosingTeamwork { spell }, Choice::Accept) => {
+                self.objects[spell].cast.set_teamwork(true);
+                self.flow = self.after_teamwork(spell);
+            }
+            (Flow::ChoosingTeamwork { spell }, Choice::Decline) => {
+                self.flow = self.after_teamwork(spell);
+            }
             // CR 702.78a: the creatures are tapped as the costs are paid.
             (Flow::ChoosingConspire { spell }, Choice::Accept) => {
                 self.objects[spell].cast.set_conspired(true);
@@ -2106,6 +2125,16 @@ impl GameState {
     }
 
     fn after_casualty(&self, spell: ObjId) -> Flow {
+        // Teamwork, with creatures to tap.
+        let o = &self.objects[spell];
+        let n = self.pool.get(o.def).teamwork;
+        if n > 0 && self.teamwork_tappers(o.controller, n).is_some() {
+            return Flow::ChoosingTeamwork { spell };
+        }
+        self.after_teamwork(spell)
+    }
+
+    fn after_teamwork(&self, spell: ObjId) -> Flow {
         // CR 702.78a: conspire, with two creatures to tap.
         let o = &self.objects[spell];
         if self.pool.get(o.def).conspire && self.conspirators(spell).len() >= 2 {
