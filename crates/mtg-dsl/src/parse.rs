@@ -48,6 +48,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         delayed_dies: false,
         in_trigger: false,
         it_source: false,
+        in_spell: false,
         subject: None,
         votes: Vec::new(),
         returned: None,
@@ -474,6 +475,10 @@ struct P {
     /// (heroic): `it` is the source, as Oracle has it ("put a +1/+1
     /// counter on it").
     it_source: bool,
+    /// Inside an instant or sorcery's own effects (`spell:`, or the modes
+    /// of a modal spell): `it` after a target is that target, since the
+    /// spell itself can only be the "it" that deals damage.
+    in_spell: bool,
     /// The subject of the previous clause of the sentence being parsed.
     subject: Option<Recipient>,
     /// The target an earlier effect of the ability returned to its
@@ -1173,6 +1178,7 @@ impl P {
         self.revealed = false;
         self.in_trigger = false;
         self.it_source = false;
+        self.in_spell = false;
         self.returned = None;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
@@ -1835,6 +1841,7 @@ impl P {
             "spell" => {
                 self.pos += 1;
                 self.kicked_targets = None;
+                self.in_spell = true;
                 let mut effects = self.effects_body()?;
                 // `spell: choose one { ... }` is a modal spell: its modes
                 // are chosen on casting (CR 700.2a), not on resolution.
@@ -7552,6 +7559,7 @@ impl P {
             delayed_dies: self.delayed_dies,
             in_trigger: self.in_trigger,
             it_source: self.it_source,
+            in_spell: self.in_spell,
             subject: None,
             votes: self.votes.clone(),
             returned: self.returned,
@@ -7744,6 +7752,12 @@ impl P {
             }
             if self.in_trigger && !self.it_source {
                 return Ok(Recipient::TriggeringIt);
+            }
+            // In an instant or sorcery, `it` after a target is that
+            // target ("... gains flying. Untap it."), unless it deals the
+            // damage.
+            if self.in_spell && !self.targets.is_empty() && !self.at_word("deals") {
+                return Ok(Recipient::Target(self.targets.len() - 1));
             }
             // In a spell or an activated ability, `it` is the source,
             // printed "it" ("If this spell was kicked, it deals 2 damage").
@@ -8122,6 +8136,7 @@ impl P {
                         delayed_dies: false,
                         in_trigger: false,
                         it_source: false,
+                        in_spell: false,
                         subject: None,
                         votes: Vec::new(),
                         returned: None,
@@ -10714,6 +10729,32 @@ card "Test Charm" {
             Ability::Modal(modes) => assert_eq!(modes.len(), 2),
             other => panic!("{other:?}"),
         }
+    }
+
+    #[test]
+    fn it_in_a_spell_is_the_last_target_unless_it_deals_damage() {
+        let cards = parse(
+            r#"
+card "Test Pounce" {
+  cost {W}
+  type Instant
+  spell: target creature gains flying; untap it
+}
+
+card "Test Thunder" {
+  cost {R}
+  type Instant
+  spell: destroy target artifact; it deals 2 damage to target creature
+}
+"#,
+        )
+        .unwrap();
+        let effects = |i: usize| match &cards[i].abilities[0] {
+            Ability::Spell { effects, .. } => format!("{effects:?}"),
+            other => panic!("{other:?}"),
+        };
+        assert!(effects(0).contains("Target(0)") && !effects(0).contains("SourceIt"));
+        assert!(effects(1).contains("by: SourceIt"), "{}", effects(1));
     }
 
     #[test]

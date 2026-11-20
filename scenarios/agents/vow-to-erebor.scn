@@ -1,0 +1,8 @@
+scenario "Vow to Erebor pumps the target" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Vow to Erebor"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vow to Erebor" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}

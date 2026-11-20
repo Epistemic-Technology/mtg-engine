@@ -1,0 +1,9 @@
+scenario "Panther Pounce untaps the creature" {
+  battlefield A: 4 "Plains", "Grizzly Bears" tapped
+  hand A: "Panther Pounce"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Panther Pounce" targeting player A, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+}
