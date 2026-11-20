@@ -1,0 +1,11 @@
+scenario "aven windreader: target player reveals the top card, which stays put" {
+  battlefield A: "Aven Windreader", 2 "Island"
+  library B: "Forest", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Aven Windreader" targeting player B
+  run_to turn 1 begin_combat
+  assert tapped oldest "Island"
+  assert tapped newest "Island"
+  assert library B count 2
+  assert hand B count 0
+}

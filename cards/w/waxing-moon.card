@@ -1,0 +1,6 @@
+card "Waxing Moon" {
+  oracle_id bbb4f08f-3016-40c2-ae7c-afc720eeb27a
+  cost {1}{G}
+  type Instant
+  spell: transform up to 1 target Werewolf you control; each creature you control gains trample
+}

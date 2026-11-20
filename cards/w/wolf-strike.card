@@ -1,0 +1,6 @@
+card "Wolf Strike" {
+  oracle_id 34237f39-1db3-4b3d-b87b-5fd1fbd5462a
+  cost {2}{G}
+  type Instant
+  spell: target creature you control gets +2/+0 if night; then target 1 bites target creature you don't control
+}

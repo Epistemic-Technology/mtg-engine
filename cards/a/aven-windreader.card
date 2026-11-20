@@ -1,0 +1,8 @@
+card "Aven Windreader" {
+  oracle_id 8406b724-a824-4905-83e0-a6c02d7f72e3
+  cost {3}{U}{U}
+  type Creature — Bird Soldier Wizard
+  pt 3/3
+  keywords flying
+  activated {1}{U}: target player reveals top card
+}

@@ -1,0 +1,9 @@
+card "Savage Thallid" {
+  oracle_id 309a57cb-cc08-4892-bc63-c424ca9c5b43
+  cost {3}{G}{G}
+  type Creature — Fungus
+  pt 5/2
+  triggered at beginning of your upkeep: put 1 spore counters on this
+  activated remove 3 spore counters from this: create 1 "1/1 green Saproling creature"
+  activated sacrifice Saproling: regenerate target Fungus
+}

@@ -1,0 +1,7 @@
+card "Raze to the Ground" {
+  oracle_id efe24eed-e1e2-4807-ae61-2e5be529ae3c
+  cost {2}{R}
+  type Sorcery
+  this spell can't be countered
+  spell: destroy target artifact; if target 1 was with mana value 1 or less, draw 1 card
+}

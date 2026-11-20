@@ -1,0 +1,22 @@
+scenario "Alabaster Potion gains X life" {
+  battlefield A: 5 "Plains"
+  hand A: "Alabaster Potion"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Alabaster Potion" mode 1 x 3 targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert graveyard A contains "Alabaster Potion"
+}
+
+scenario "Alabaster Potion prevents the next X damage" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Alabaster Potion"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Alabaster Potion" mode 2 x 2 targeting "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+}

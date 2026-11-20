@@ -1,0 +1,8 @@
+card "Merrow Bonegnawer" {
+  oracle_id dad36dc0-39aa-46f9-819b-cad7a578c037
+  cost {B}
+  type Creature — Merfolk Rogue
+  pt 1/1
+  activated {T}: target player exiles 1 card from graveyard
+  triggered whenever you cast black spell: you may untap this
+}

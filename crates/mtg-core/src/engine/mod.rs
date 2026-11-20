@@ -838,18 +838,19 @@ impl GameState {
                         options,
                     });
                 }
-                Flow::ChoosingX { spell } => {
+                Flow::ChoosingX { spell, .. } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
                         continue;
                     };
                     let player = obj.controller;
+                    let is_ability = obj.kind == ObjKind::Ability;
                     let options = self.x_options(spell);
                     if options.is_empty() {
                         // No affordable X has a target its mana value fits
-                        // ("with mana value X"): the cast is undone (CR
-                        // 726).
-                        self.undo_cast(spell, false);
+                        // ("with mana value X"): the cast or activation is
+                        // undone (CR 726).
+                        self.undo_cast(spell, is_ability);
                         continue;
                     }
                     return StepResult::Decision(Decision {
@@ -1001,6 +1002,19 @@ impl GameState {
                         .map(Choice::Target)
                         .collect();
                     self.retain_that_player(spell, &specs, spec, &mut options);
+                    // An ability's "with mana value X" is judged with the X
+                    // announced for it (its source is the permanent).
+                    if is_ability
+                        && !self.x_values.is_empty()
+                        && let Some(x) = self.x_chosen(spell)
+                    {
+                        options.retain(|c| match c {
+                            Choice::Target(t) => {
+                                self.is_legal_target_x(caster, spec, *t, source, Some(x))
+                            }
+                            _ => true,
+                        });
+                    }
                     // "X target cards from a single graveyard", "up to two
                     // target cards from a single graveyard": the rest come
                     // from the first one's graveyard. A variable group's
@@ -1620,13 +1634,20 @@ impl GameState {
                     .set_mode(u8::try_from(i).unwrap_or(0));
                 self.flow = self.after_mode(spell);
             }
-            (Flow::ChoosingX { spell }, Choice::X(x)) => {
+            (
+                Flow::ChoosingX {
+                    spell,
+                    sacrifice,
+                    discard,
+                },
+                Choice::X(x),
+            ) => {
                 self.x_values.push((spell, x));
                 self.flow = Flow::Casting {
                     spell,
                     next_target: 0,
-                    sacrifice: None,
-                    discard: None,
+                    sacrifice,
+                    discard,
                 };
             }
             (Flow::ChoosingAdditional { spell }, Choice::Mode(i)) => {
@@ -2118,7 +2139,11 @@ impl GameState {
         let def = self.pool.get(self.objects[spell].def);
         let add = self.additional_of(spell);
         if def.mana_cost.has_x() || add.discard_x || add.exile_cards.as_ref().is_some_and(|g| g.x) {
-            Flow::ChoosingX { spell }
+            Flow::ChoosingX {
+                spell,
+                sacrifice: None,
+                discard: None,
+            }
         } else {
             Flow::Casting {
                 spell,

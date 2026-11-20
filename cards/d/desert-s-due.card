@@ -1,0 +1,6 @@
+card "Desert's Due" {
+  oracle_id 909eacf3-05ce-4c2b-97a8-49b6ea597b64
+  cost {1}{B}
+  type Instant
+  spell: target creature gets -2/-2; target 1 gets -1/-1 count each Desert you control
+}

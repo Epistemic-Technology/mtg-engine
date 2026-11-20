@@ -1,0 +1,7 @@
+card "Hearth Kami" {
+  oracle_id 2496424b-2312-40d9-acbf-e22272d90bad
+  cost {1}{R}
+  type Creature — Spirit
+  pt 2/1
+  activated {X}, sacrifice this: destroy target artifact with mana value X
+}

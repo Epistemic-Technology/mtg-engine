@@ -9062,11 +9062,18 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         let text = ability_text(card, &card.abilities[i], lookup);
         // "This land enters tapped. As it enters, choose a color." is one
         // line.
-        match (&card.abilities[i], lines.last_mut()) {
-            (Ability::AsEntersChoose { joined: true, .. } | Ability::AuraStays, Some(last)) => {
-                last.push(' ');
-                last.push_str(&text);
+        // "{X}: ... Spend only black mana on X." after an activated ability
+        // is part of its paragraph.
+        let joined = match &card.abilities[i] {
+            Ability::AsEntersChoose { joined, .. } => *joined,
+            Ability::AuraStays => true,
+            Ability::XManaColor(_) => {
+                i > 0 && matches!(card.abilities[i - 1], Ability::Activated { .. })
             }
+            _ => false,
+        };
+        match lines.last_mut() {
+            Some(last) if joined => *last = format!("{last} {text}"),
             _ => lines.push(text),
         }
         i += 1;

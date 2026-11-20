@@ -1,0 +1,34 @@
+scenario "Raze to the Ground destroys a cheap artifact and draws" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Sol Ring"
+  hand A: "Raze to the Ground"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raze to the Ground" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Sol Ring"
+  assert hand A count 1
+}
+
+scenario "Raze to the Ground doesn't draw for a mana value 2 artifact" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Mind Stone"
+  hand A: "Raze to the Ground"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raze to the Ground" targeting "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Mind Stone"
+  assert hand A count 0
+}
+
+scenario "Raze to the Ground can't be countered" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Mind Stone", 2 "Island"
+  hand A: "Raze to the Ground"
+  hand B: "Counterspell"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raze to the Ground" targeting "Mind Stone"
+  turn 1 B: cast "Counterspell" targeting "Raze to the Ground"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Mind Stone"
+  assert graveyard B contains "Counterspell"
+}

@@ -1,0 +1,6 @@
+card "Restorative Technique" {
+  oracle_id f7b2606c-42b8-46d6-bcaa-8d4506b348eb
+  cost {2}{G}
+  type Sorcery
+  spell: target player gains 2 life then target 1 searches basic land card to battlefield tapped; put 1 +1/+1 counter on up to 1 target creature
+}

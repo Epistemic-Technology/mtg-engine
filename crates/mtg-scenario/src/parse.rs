@@ -721,6 +721,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 None
             };
+            let x = if line.peek_ident("x") {
+                line.pos += 1;
+                Some(u32::try_from(line.count()?).unwrap_or(u32::MAX))
+            } else {
+                None
+            };
             let sacrifice = if line.peek_ident("sacrificing") {
                 line.pos += 1;
                 Some(line.string()?)
@@ -749,6 +755,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                 Action::Activate {
                     source,
                     ability,
+                    x,
                     sacrifice,
                     discard,
                     targets,

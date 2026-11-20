@@ -1,0 +1,9 @@
+card "Alabaster Potion" {
+  oracle_id 2fcca686-03c8-4407-9f9f-2b7462470044
+  cost {X}{W}{W}
+  type Instant
+  choose one {
+    mode: target player gains X life
+    mode: prevent next X damage to any target this turn
+  }
+}

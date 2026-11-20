@@ -1019,9 +1019,12 @@ pub enum Flow {
         spell: ObjId,
     },
     /// Choosing X for a spell being cast (CR 601.2b), after the mode and
-    /// before targets.
+    /// before targets, or for an activated ability with {X} in its cost
+    /// (CR 602.2b), with the permanent or card its cost chose.
     ChoosingX {
         spell: ObjId,
+        sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
     },
     /// Turning a face-down permanent face up for a morph cost that
     /// discards a card or returns a permanent (CR 702.37e): the player

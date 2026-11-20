@@ -1,0 +1,9 @@
+scenario "hearth kami destroys an artifact with mana value 0 for X=0" {
+  battlefield A: "Hearth Kami"
+  battlefield B: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hearth Kami" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert graveyard A contains "Hearth Kami"
+}

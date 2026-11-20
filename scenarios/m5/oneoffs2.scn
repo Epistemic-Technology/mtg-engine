@@ -102,3 +102,72 @@ scenario "Peerless Samurai attacking with another creature doesn't trigger" {
   run_to turn 1 end
   assert hand A contains "Hill Giant"
 }
+
+# ----- {X} in an activated ability's cost (CR 602.2b, 107.3) -----
+
+scenario "Hearth Kami with X 1 destroys Sol Ring" {
+  battlefield A: "Hearth Kami", "Mountain"
+  battlefield B: "Sol Ring", "Ornithopter"
+  turn 1 A: activate "Hearth Kami" x 1 targeting "Sol Ring"
+  run_to turn 1 end
+  assert graveyard B contains "Sol Ring"
+  assert battlefield B contains "Ornithopter"
+  assert graveyard A contains "Hearth Kami"
+  assert tapped "Mountain"
+}
+
+scenario "Hearth Kami with X 0 can't target a mana value 1 artifact" {
+  battlefield A: "Hearth Kami", "Mountain"
+  battlefield B: "Sol Ring", "Ornithopter"
+  illegal turn 1 A: activate "Hearth Kami" x 0 targeting "Sol Ring"
+  run_to turn 1 end
+  assert battlefield B contains "Sol Ring"
+}
+
+scenario "Hearth Kami can't pay for an X its mana doesn't reach" {
+  battlefield A: "Hearth Kami", "Mountain"
+  battlefield B: "Bottle Gnomes"
+  illegal turn 1 A: activate "Hearth Kami" x 3 targeting "Bottle Gnomes"
+  run_to turn 1 end
+  assert battlefield B contains "Bottle Gnomes"
+  assert battlefield A contains "Hearth Kami"
+}
+
+scenario "Gorilla Shaman pays {X}{X}{1}" {
+  battlefield A: "Gorilla Shaman", 3 "Mountain"
+  battlefield B: "Sol Ring"
+  turn 1 A: activate "Gorilla Shaman" x 1 targeting "Sol Ring"
+  run_to turn 1 end
+  assert graveyard B contains "Sol Ring"
+}
+
+scenario "Pain Kami deals X damage" {
+  battlefield A: "Pain Kami", 3 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Pain Kami" x 2 targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Crypt Rats deals X damage to each creature and each player" {
+  battlefield A: "Crypt Rats", 2 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Crypt Rats" x 2
+  run_to turn 1 end
+  assert life A 18
+  assert life B 18
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Crypt Rats"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Crypt Rats spends only black mana on X" {
+  battlefield A: "Crypt Rats", "Swamp", "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Crypt Rats" x 1
+  run_to turn 1 end
+  assert life B 19
+  assert damage "Hill Giant" 1
+  assert untapped "Mountain"
+}

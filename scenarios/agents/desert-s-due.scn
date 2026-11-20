@@ -1,0 +1,31 @@
+scenario "Desert's Due: -2/-2 plus -1/-1 for each Desert you control" {
+  battlefield A: 2 "Swamp", 2 "Desert"
+  battlefield B: "Serra Angel"
+  hand A: "Desert's Due"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Desert's Due" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Desert's Due: no Deserts, just -2/-2" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Desert's Due"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Desert's Due" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Desert's Due: one Desert makes it -3/-3" {
+  battlefield A: 2 "Swamp", "Desert"
+  battlefield B: "Hill Giant"
+  hand A: "Desert's Due"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Desert's Due" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

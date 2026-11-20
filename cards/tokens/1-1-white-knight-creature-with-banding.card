@@ -1,0 +1,7 @@
+token "1/1 white Knight creature with banding" {
+  name "Knight"
+  type Creature — Knight
+  pt 1/1
+  color white
+  keywords banding
+}

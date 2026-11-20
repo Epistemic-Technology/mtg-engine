@@ -2634,7 +2634,34 @@ impl GameState {
     /// power-up ability of a permanent that entered this turn costs its
     /// mana cost less (702.193b, 118.7).
     pub(super) fn activation_mana(&self, source: ObjId, ab: &ActivatedAbility) -> ManaRequirement {
-        let mut req = ab.cost.mana.requirements(0);
+        self.activation_mana_x(source, ab, 0)
+    }
+
+    /// `activation_mana` with X as `x` (CR 107.3); "Spend only black mana
+    /// on X." pays X as that many black symbols.
+    pub(super) fn activation_mana_x(
+        &self,
+        source: ObjId,
+        ab: &ActivatedAbility,
+        x: u32,
+    ) -> ManaRequirement {
+        let mut req = ab.cost.mana.requirements(x);
+        if x > 0
+            && req.generic >= x
+            && let Some(o) = self.objects.get(source)
+            && let Some(c) =
+                self.pool
+                    .get(o.def)
+                    .ability_ids
+                    .iter()
+                    .find_map(|a| match self.pool.ability(*a) {
+                        AbilityDef::XManaColor(c) => Some(*c),
+                        _ => None,
+                    })
+        {
+            req.generic -= x;
+            req.colored[c as usize] += x;
+        }
         if ab.keyword == Some(ActivatedKeyword::PowerUp)
             && let Some(o) = self.objects.get(source)
             && o.zone == Zone::Battlefield
@@ -2749,11 +2776,26 @@ impl GameState {
         });
         self.stack.push(obj);
         self.bump();
-        self.flow = crate::state::Flow::Casting {
-            spell: obj,
-            next_target: 0,
-            sacrifice,
-            discard,
+        // CR 602.2b, 601.2b: X in the activation cost is announced before
+        // targets are chosen. (A mana ability's X is paid as it is
+        // activated, Wizard's Rockets, and isn't asked.)
+        let has_x = matches!(
+            self.pool.ability(ability),
+            AbilityDef::Activated(a) if a.cost.mana.has_x() && !a.is_mana_ability()
+        );
+        self.flow = if has_x {
+            crate::state::Flow::ChoosingX {
+                spell: obj,
+                sacrifice,
+                discard,
+            }
+        } else {
+            crate::state::Flow::Casting {
+                spell: obj,
+                next_target: 0,
+                sacrifice,
+                discard,
+            }
         };
     }
 
@@ -2783,7 +2825,20 @@ impl GameState {
             return vec![Choice::X(0)];
         }
         let caster = self.objects[spell].controller;
-        let sources = self.spell_sources(spell);
+        // An activated ability's X (CR 602.2b): its cost, from the sources
+        // that may pay for its source's abilities.
+        let ability =
+            self.objects[spell]
+                .ability
+                .and_then(|sa| match self.pool.ability(sa.ability) {
+                    AbilityDef::Activated(a) => Some((sa.source, a)),
+                    _ => None,
+                });
+        let sources = match ability {
+            Some((source, _)) => self.ability_sources(caster, source),
+            None => self.spell_sources(spell),
+        };
+        let exclude = ability.map(|(source, _)| source);
         let pool = self.player(caster).mana_pool;
         // "X target creatures": X can't exceed the creatures there are to
         // target (CR 601.2c).
@@ -2832,13 +2887,17 @@ impl GameState {
             .collect();
         (0..=max_x.min(MAX_X))
             .take_while(|x| {
+                let req = match ability {
+                    Some((source, a)) => self.activation_mana_x(source, a, *x),
+                    None => self.spell_requirements(spell, *x),
+                };
                 self.payable(
                     caster,
                     &sources,
                     &pool,
-                    &self.spell_requirements(spell, *x),
+                    &req,
                     self.player(caster).life,
-                    None,
+                    exclude,
                 )
             })
             .filter(|x| x_specs.iter().all(|s| self.x_fits(caster, *s, spell, *x)))
@@ -2849,9 +2908,11 @@ impl GameState {
     /// Whether some object is a legal target for `spec` of `spell` with X
     /// as `x`.
     fn x_fits(&self, caster: PlayerId, spec: TargetSpec, spell: ObjId, x: u32) -> bool {
+        // An ability's source is the permanent (protection judges it).
+        let source = self.objects[spell].ability.map_or(spell, |a| a.source);
         let fits = |id: &ObjId| {
             *id != spell
-                && self.is_legal_target_x(caster, spec, Target::Object(*id), Some(spell), Some(x))
+                && self.is_legal_target_x(caster, spec, Target::Object(*id), Some(source), Some(x))
         };
         if self.pool.base_spec(spec).is_graveyard() {
             self.players_in_game()
@@ -3237,7 +3298,7 @@ impl GameState {
             sacrifice = None;
         }
         let sources = self.ability_sources(controller, sa.source);
-        let req = self.activation_mana(sa.source, ab);
+        let req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
         self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew) {

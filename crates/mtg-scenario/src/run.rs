@@ -1044,6 +1044,7 @@ impl Runner {
             if let Action::Activate {
                 source,
                 ability,
+                x,
                 sacrifice,
                 discard,
                 targets,
@@ -1053,7 +1054,7 @@ impl Runner {
                     d,
                     &a,
                     source,
-                    *ability,
+                    (*ability, *x),
                     sacrifice.as_deref(),
                     discard.as_deref(),
                     targets,
@@ -1329,7 +1330,7 @@ impl Runner {
         d: &Decision,
         a: &ScriptedAction,
         source: &str,
-        nth: Option<usize>,
+        (nth, x): (Option<usize>, Option<u32>),
         sacrifice: Option<&str>,
         discard: Option<&str>,
         targets: &[TargetRef],
@@ -1379,7 +1380,7 @@ impl Runner {
         match (a.illegal, found) {
             // "illegal ... targeting X": legal to activate, but not at X.
             (true, Some(idx))
-                if self.scripted_target_refused(idx_u32(idx), targets, None, a.line)? =>
+                if self.scripted_target_refused(idx_u32(idx), targets, x, a.line)? =>
             {
                 self.fired[i] = true;
                 Ok(None)
@@ -1432,6 +1433,7 @@ impl Runner {
                 if needed > 0 {
                     self.pending_targets = Some(targets.clone());
                 }
+                self.pending_x = x;
                 Ok(Some(idx_u32(idx)))
             }
         }
