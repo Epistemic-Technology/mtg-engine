@@ -536,6 +536,7 @@ impl GameState {
             chosen: Chosen::None,
             couldnt: 0,
             created_tokens: SmallVec::new(),
+            counts: None,
         };
         self.eval_num(n, &ctx)
     }
@@ -550,11 +551,12 @@ impl GameState {
             Num::ThatMuch => return ctx.trigger_amount,
             other => return other.eval(ctx.x),
         };
-        let def = self
-            .objects
-            .get(ctx.source)
-            .map(|o| o.def)
-            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def));
+        let def = ctx.counts.or_else(|| {
+            self.objects
+                .get(ctx.source)
+                .map(|o| o.def)
+                .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+        });
         let pool = std::sync::Arc::clone(&self.pool);
         let Some(expr) = def.and_then(|d| pool.get(d).counts.get(i)) else {
             return 0;
@@ -2307,6 +2309,7 @@ impl GameState {
                 chosen: Chosen::None,
                 couldnt: 0,
                 created_tokens: SmallVec::new(),
+                counts: None,
             };
             let n = sc.per.saturating_mul(self.eval_num(sc.times, &ctx));
             d -= i32::try_from(n).unwrap_or(i32::MAX);
@@ -3867,6 +3870,7 @@ impl GameState {
                     chosen: Chosen::None,
                     couldnt: 0,
                     created_tokens: SmallVec::new(),
+                    counts: None,
                 };
                 self.eval_count(count, &ctx)
             }
@@ -4128,6 +4132,7 @@ impl GameState {
             chosen: Chosen::None,
             couldnt: 0,
             created_tokens: SmallVec::new(),
+            counts: None,
         };
         Some(self.eval_num(amount, &ctx))
     }
@@ -5442,6 +5447,7 @@ impl GameState {
             chosen: Chosen::None,
             couldnt: 0,
             created_tokens: SmallVec::new(),
+            counts: pool.counts_owner(a),
         };
         for e in ab.effects.iter().filter(|e| !e.adds_mana()) {
             self.apply_effect(&mut ctx, e);
@@ -5994,6 +6000,7 @@ impl GameState {
                 chosen: Chosen::None,
                 couldnt: 0,
                 created_tokens: SmallVec::new(),
+                counts: None,
             };
             let split = self.mode_splits_of(spell);
             let outer = self.begin_this_way(spell);
@@ -6372,6 +6379,8 @@ impl GameState {
                 chosen: Chosen::None,
                 couldnt: 0,
                 created_tokens: SmallVec::new(),
+                // A spliced card's counts are its own.
+                counts: Some(*d),
             };
             start += n;
             let effects = def.spell_ability().map_or(&[][..], |(_, e)| e);
@@ -7067,6 +7076,20 @@ impl GameState {
             f.clone()
         };
         if let Some(same) = g.same {
+            // "named Food Fight" in an ability Food Fight grants names the
+            // granting card, not the permanent that has the ability.
+            if let (crate::card::SameOf::Source, Some(d)) = (same.of, ctx.counts)
+                && matches!(
+                    same.what,
+                    crate::card::SameWhat::Name | crate::card::SameWhat::NotName
+                )
+            {
+                return std::borrow::Cow::Owned(g.with_same(
+                    Some(d),
+                    crate::mana::ColorSet::default(),
+                    None,
+                ));
+            }
             let of = match same.of {
                 crate::card::SameOf::Source => Some(ctx.source),
                 crate::card::SameOf::Target(n) => match ctx.targets.get(usize::from(n)) {
@@ -10975,6 +10998,7 @@ impl GameState {
                         chosen: ctx.chosen,
                         couldnt: ctx.couldnt,
                         created_tokens: std::mem::take(&mut ctx.created_tokens),
+                        counts: ctx.counts,
                     };
                     self.apply_effect(&mut second, effect);
                     ctx.created = second.created;
@@ -11261,6 +11285,10 @@ pub(super) struct EffectCtx {
     /// ("each opponent discards a card. For each opponent who can't, you
     /// draw a card"): those with too few cards in hand to discard.
     pub couldnt: u32,
+    /// The definition whose counts `Num::Count` indexes when not the
+    /// source's: an ability another card granted it (Galuf's Final Act's
+    /// "equal to its power"), or a spliced card.
+    pub counts: Option<crate::card::CardRef>,
 }
 
 /// The ways to divide `total` among `k` targets, each getting at least 1

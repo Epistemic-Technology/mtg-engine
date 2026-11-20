@@ -1483,6 +1483,7 @@ impl GameState {
             chosen: Chosen::None,
             couldnt: 0,
             created_tokens: SmallVec::new(),
+            counts: self.pool.counts_owner(sa.ability),
         };
         let outer = self.begin_this_way(id);
         // "Do this only once each turn.": its "you may" asks only until it
