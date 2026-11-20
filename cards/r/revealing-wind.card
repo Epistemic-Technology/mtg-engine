@@ -1,0 +1,6 @@
+card "Revealing Wind" {
+  oracle_id 905a6d6c-5ef8-4afa-89bb-9d85a854743f
+  cost {2}{G}
+  type Instant
+  spell: prevent all combat damage this turn; you may look at face-down each face-down attacking or blocking late creature
+}

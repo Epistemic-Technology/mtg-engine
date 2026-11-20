@@ -1,0 +1,61 @@
+# M5: pumps and grants for creatures you control (and a subtype of
+# them), written with existing syntax.
+
+scenario "Vampire creatures you control get +2/+0 and first strike; others don't" {
+  battlefield A: "Vampire Aristocrat", "Grizzly Bears", 2 "Mountain"
+  hand A: "Vampiric Fury"
+  turn 1 A: cast "Vampiric Fury"
+  run_to turn 1 postcombat_main
+  assert power "Vampire Aristocrat" 4
+  assert has "Vampire Aristocrat" first_strike
+  assert power "Grizzly Bears" 2
+}
+
+scenario "creatures you control get +2/+0 and menace for {8}" {
+  battlefield A: "Myrkul's Invoker", "Grizzly Bears", 8 "Swamp"
+  turn 1 A: activate "Myrkul's Invoker"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Myrkul's Invoker" menace
+}
+
+scenario "formidable: creatures you control gain trample with total power 8" {
+  battlefield A: "Stampeding Elk Herd", "Hill Giant"
+  start turn 3 A
+  turn 3 A: attack "Stampeding Elk Herd"
+  run_to turn 3 combat_damage
+  assert has "Hill Giant" trample
+}
+
+scenario "formidable: not with less total power" {
+  battlefield A: "Stampeding Elk Herd", "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Stampeding Elk Herd"
+  run_to turn 3 combat_damage
+  assert has not "Grizzly Bears" trample
+}
+
+scenario "protection from non-Human creatures until end of turn" {
+  battlefield A: "Grizzly Bears", "Plains", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Spare from Evil"
+  start turn 3 A
+  turn 3 A: cast "Spare from Evil"
+  turn 3 A: attack "Grizzly Bears"
+  illegal turn 3 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 3 end
+  assert life B 18
+}
+
+scenario "prevent all damage to creatures; creatures you control gain hexproof" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Blinding Fog"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: cast "Blinding Fog"
+  run_to turn 2 end
+  assert damage "Grizzly Bears" 0
+  assert has "Grizzly Bears" hexproof
+}

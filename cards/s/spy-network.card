@@ -1,0 +1,6 @@
+card "Spy Network" {
+  oracle_id 81a5893a-764c-41ea-ba81-346b3c7558a4
+  cost {U}
+  type Instant
+  spell: look at hand top and face-down of target player; look at top 4
+}

@@ -688,6 +688,24 @@ impl Compiler<'_> {
             if let Ability::Mechanic(Mechanic::Unleash) = a {
                 b = b.ability(unleash_static());
             }
+            // "As this creature enters or is turned face up, put ...
+            // counters on it": also an enters-with replacement (CR
+            // 614.1c).
+            if let Ability::AsTurnedFaceUp {
+                enters: true,
+                kind,
+                n,
+            } = a
+            {
+                b = b.ability(AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterWithCounters {
+                        kind: *kind,
+                        n: *n,
+                    },
+                    then: Vec::new(),
+                }));
+            }
             // "... and with first strike": abilities the permanent has as
             // long as it was kicked (fixed as it enters, CR 702.33c).
             if let Ability::Mechanic(Mechanic::KickedWith(_, ks)) = a
@@ -1034,6 +1052,7 @@ impl Compiler<'_> {
             StaticCond::SpellNumber(n) => StaticCondition::SpellNumber(*n),
             StaticCond::SurveilledThisTurn => StaticCondition::SurveilledThisTurn,
             StaticCond::CounterPutThisTurn => StaticCondition::CounterPutThisTurn,
+            StaticCond::FaceDownEnteredThisTurn => StaticCondition::FaceDownEnteredThisTurn,
             StaticCond::CreatureEnteredThisTurn { other } => {
                 StaticCondition::CreatureEnteredThisTurn { other: *other }
             }
@@ -1523,7 +1542,14 @@ impl Compiler<'_> {
             }
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
+            Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
+            Effect::TurnFaceUp { what } => out.push(CoreEffect::TurnFaceUp { what: r(*what) }),
+            Effect::TurnFaceDown { what } => out.push(CoreEffect::TurnFaceDown { what: r(*what) }),
+            Effect::LookAtFaceDown { what } => {
+                out.push(CoreEffect::LookAtFaceDown { what: r(*what) });
+            }
+            Effect::LookAtPlayer { who } => out.push(CoreEffect::LookAtPlayer { who: r(*who) }),
             Effect::Tap { to } => {
                 for t in to {
                     out.push(CoreEffect::Tap { to: r(*t) });
@@ -3356,6 +3382,18 @@ impl Compiler<'_> {
             }
             Ability::ExtraVote { optional } => AbilityDef::ExtraVote {
                 optional: *optional,
+            },
+            Ability::AsTurnedFaceUp { kind, n, .. } => {
+                AbilityDef::AsTurnedFaceUp { kind: *kind, n: *n }
+            }
+            Ability::MayLook {
+                top,
+                face_down,
+                opponents,
+            } => AbilityDef::MayLook {
+                top: *top,
+                face_down: *face_down,
+                opponents: *opponents,
             },
             Ability::CrewsAs {
                 saddles,

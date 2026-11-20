@@ -1,0 +1,7 @@
+card "Goblin Maskmaker" {
+  oracle_id ff4b9723-d5f1-40d2-aa35-fa3d2a6f4b5c
+  cost {R}
+  type Creature — Goblin Citizen
+  pt 1/2
+  triggered whenever this attacks: face-down spells cost {1} less this turn
+}

@@ -1,0 +1,6 @@
+card "Lens of Clarity" {
+  oracle_id 7df50107-25d8-47dc-9a13-27b257cfbf6f
+  cost {1}
+  type Artifact
+  may look top face-down
+}

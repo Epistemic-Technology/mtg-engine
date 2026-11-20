@@ -1,0 +1,7 @@
+card "Myrkul's Invoker" {
+  oracle_id 9bc9f027-8a2a-4447-8458-66ed40cb5b0d
+  cost {2}{B}
+  type Creature — Cat Rogue
+  pt 2/3
+  label "Psychic Blades" activated {8}: each creature you control gets +2/+0 and gains menace
+}

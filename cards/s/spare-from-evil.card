@@ -1,0 +1,6 @@
+card "Spare from Evil" {
+  oracle_id 557cc9a7-c8cc-4823-b108-2dfe648c789d
+  cost {1}{W}
+  type Instant
+  spell: each creature you control gains protection from non-Human creature
+}

@@ -1249,6 +1249,12 @@ pub struct TurnLog {
     pub surveilled: u8,
     /// Players who had a +1/+1 counter put on a permanent they control.
     pub counter_put: u8,
+    /// Players under whose control a face-down creature entered the
+    /// battlefield (CR 708.3).
+    pub face_down_entered: u8,
+    /// Generic mana face-down spells each player casts this turn cost less
+    /// ("face-down spells you cast this turn cost {1} less to cast").
+    pub face_down_less: [u8; 4],
     /// Creatures that entered the battlefield under each player's control.
     pub creatures_entered: [u8; 4],
     /// Nonland permanents that did (celebration).
@@ -2269,6 +2275,11 @@ impl GameState {
         if q.face_down && !self.pool.is_face_down(o.def) {
             return false;
         }
+        // "with a morph ability" (CR 702.37): a face-down permanent has no
+        // abilities (CR 708.2).
+        if q.morph && !self.pool.get(o.def).has_morph() {
+            return false;
+        }
         // "with toxic" (CR 702.164): a toxic ability among its current ones.
         if q.toxic
             && !self.characteristics(id).is_some_and(|c| {
@@ -2843,6 +2854,9 @@ impl GameState {
             }
             C::SurveilledThisTurn => self.turn_log.surveilled & (1 << you.index().min(7)) != 0,
             C::CounterPutThisTurn => self.turn_log.counter_put & (1 << you.index().min(7)) != 0,
+            C::FaceDownEnteredThisTurn => {
+                self.turn_log.face_down_entered & (1 << you.index().min(7)) != 0
+            }
             C::CreatureEnteredThisTurn { other } => {
                 let n = self.turn_log.creatures_entered[you.index().min(3)];
                 // "Another creature": the source's own entry this turn is

@@ -1,0 +1,8 @@
+card "Bubble Smuggler" {
+  oracle_id ca22fa33-5460-4d31-a9c8-4115d35b994c
+  cost {1}{U}
+  type Creature — Octopus Fish
+  pt 2/1
+  disguise {5}{U}
+  as turned face up put 4 +1/+1 counters
+}

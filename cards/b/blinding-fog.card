@@ -1,0 +1,6 @@
+card "Blinding Fog" {
+  oracle_id 50555471-a03c-4735-a6ce-6ae96e27d7c0
+  cost {2}{G}
+  type Instant
+  spell: prevent all damage to creature this turn; each creature you control gains hexproof
+}

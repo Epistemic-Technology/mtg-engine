@@ -1,0 +1,6 @@
+card "Vampiric Fury" {
+  oracle_id 1e23457f-1ed9-4597-9f73-6f5b7206f5a1
+  cost {1}{R}
+  type Instant
+  spell: each Vampire creature you control gets +2/+0 and gains first strike
+}

@@ -418,6 +418,34 @@ impl GameState {
         });
     }
 
+    /// `eval_num` for a static ability of `source`'s, outside any
+    /// resolution (an "as this is turned face up" amount).
+    pub(super) fn eval_num_of(
+        &self,
+        n: crate::card::Num,
+        source: ObjId,
+        controller: PlayerId,
+    ) -> u32 {
+        let ctx = EffectCtx {
+            source,
+            controller,
+            targets: Vec::new(),
+            division: Vec::new(),
+            legal: Vec::new(),
+            trigger_obj: None,
+            trigger_player: None,
+            trigger_amount: 0,
+            created: None,
+            revealed: Vec::new(),
+            x: 0,
+            did: true,
+            chosen: Chosen::None,
+            couldnt: 0,
+            created_tokens: SmallVec::new(),
+        };
+        self.eval_num(n, &ctx)
+    }
+
     /// A variable amount's value as an effect happens: X from the spell, or
     /// one of the source card's counts (CR 107.3 for X; "the number of
     /// ..." judged from the effect's controller).
@@ -1433,9 +1461,25 @@ impl GameState {
         options: &mut Vec<Choice>,
     ) {
         let ps = self.player(p);
-        if self.payable(p, sources, &ps.mana_pool, &three(), ps.life, None) {
+        if self.payable(
+            p,
+            sources,
+            &ps.mana_pool,
+            &self.face_down_cost(p),
+            ps.life,
+            None,
+        ) {
             options.push(Choice::CastFaceDown(id));
         }
+    }
+
+    /// CR 702.37c: a face-down spell costs {3}, less what "face-down
+    /// spells you cast this turn cost {1} less" takes off for `p`.
+    fn face_down_cost(&self, p: PlayerId) -> ManaRequirement {
+        let mut req = three();
+        let less = self.turn_log.face_down_less[p.index().min(3)];
+        req.generic = req.generic.saturating_sub(less.into());
+        req
     }
 
     #[cold]
@@ -1567,7 +1611,7 @@ impl GameState {
             (pick, None)
         };
         self.pay_other_costs(p, cost, id, sac, discard);
-        self.turn_face_up(id);
+        self.turn_face_up(id, true);
     }
 
     /// Other untapped creatures `p` controls that could crew `vehicle`
@@ -2261,9 +2305,7 @@ impl GameState {
                 def.evoke.as_ref().expect("checked").requirements(x)
             }
             // CR 702.37c: a face-down spell costs {3}.
-            _ if self.pool.is_face_down(o.def) => crate::mana::ManaCost::parse("{3}")
-                .expect("a mana cost")
-                .requirements(0),
+            _ if self.pool.is_face_down(o.def) => self.face_down_cost(o.controller),
             _ => def.mana_cost.requirements(x),
         };
         // CR 107.3: "Spend only black mana on X." X is then paid as that
@@ -8341,6 +8383,74 @@ impl GameState {
                 }
             }
             Effect::CopySpell => self.copy_spell(ctx),
+            Effect::FaceDownSpellsLess(n) => {
+                let i = ctx.controller.index().min(3);
+                let less = &mut self.turn_log.face_down_less[i];
+                *less = less.saturating_add(u8::try_from(*n).unwrap_or(u8::MAX));
+            }
+            Effect::TurnFaceUp { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let o = &self.objects[id];
+                    if !self.pool.is_face_down(o.def) {
+                        continue;
+                    }
+                    if self.pool.get(o.card).is_permanent_card() {
+                        self.turn_face_up(id, false);
+                    } else {
+                        // CR 701.40g: revealed, it stays face down.
+                        self.objects[id].revealed = u8::MAX;
+                    }
+                }
+            }
+            Effect::TurnFaceDown { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let o = &self.objects[id];
+                    // CR 708.2b, 712.16: nothing happens.
+                    if self.pool.is_face_down(o.def)
+                        || self.pool.get(o.card).layout == Layout::Transform
+                    {
+                        continue;
+                    }
+                    self.turn_face_down(id);
+                }
+            }
+            Effect::LookAtFaceDown { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t)
+                        && self.pool.is_face_down(self.objects[id].def)
+                    {
+                        self.objects[id].revealed |= 1 << ctx.controller.index().min(7);
+                    }
+                }
+            }
+            Effect::LookAtPlayer { who } => {
+                let bit = 1 << ctx.controller.index().min(7);
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let ps = self.player(p);
+                    let seen: Vec<ObjId> = ps
+                        .hand
+                        .iter()
+                        .chain(ps.library.last())
+                        .copied()
+                        .chain(
+                            self.permanents_of(p)
+                                .filter(|id| self.pool.is_face_down(self.objects[*id].def)),
+                        )
+                        .collect();
+                    for id in seen {
+                        self.objects[id].revealed |= bit;
+                    }
+                }
+            }
             Effect::Goad { what } => {
                 for t in self.recipients(ctx, *what) {
                     let Some(id) = on_battlefield(self, t) else {

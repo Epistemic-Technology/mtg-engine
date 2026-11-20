@@ -478,6 +478,7 @@ impl Decompiler<'_> {
             StaticCondition::SpellNumber(n) => StaticCond::SpellNumber(*n),
             StaticCondition::SurveilledThisTurn => StaticCond::SurveilledThisTurn,
             StaticCondition::CounterPutThisTurn => StaticCond::CounterPutThisTurn,
+            StaticCondition::FaceDownEnteredThisTurn => StaticCond::FaceDownEnteredThisTurn,
             StaticCondition::CreatureEnteredThisTurn { other } => {
                 StaticCond::CreatureEnteredThisTurn { other: *other }
             }
@@ -709,7 +710,12 @@ impl Decompiler<'_> {
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
+            CoreEffect::FaceDownSpellsLess(n) => Effect::FaceDownSpellsLess(*n),
             CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },
+            CoreEffect::TurnFaceUp { what } => Effect::TurnFaceUp { what: r(*what) },
+            CoreEffect::TurnFaceDown { what } => Effect::TurnFaceDown { what: r(*what) },
+            CoreEffect::LookAtFaceDown { what } => Effect::LookAtFaceDown { what: r(*what) },
+            CoreEffect::LookAtPlayer { who } => Effect::LookAtPlayer { who: r(*who) },
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),
@@ -1686,6 +1692,22 @@ impl Decompiler<'_> {
             },
             AbilityDef::ExtraVote { optional } => Ability::ExtraVote {
                 optional: *optional,
+            },
+            // The enters-with half of "enters or is turned face up" stays a
+            // replacement of its own here.
+            AbilityDef::AsTurnedFaceUp { kind, n } => Ability::AsTurnedFaceUp {
+                enters: false,
+                kind: *kind,
+                n: *n,
+            },
+            AbilityDef::MayLook {
+                top,
+                face_down,
+                opponents,
+            } => Ability::MayLook {
+                top: *top,
+                face_down: *face_down,
+                opponents: *opponents,
             },
             AbilityDef::CrewsAs {
                 saddles,
