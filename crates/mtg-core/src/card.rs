@@ -4135,6 +4135,9 @@ pub enum TriggerSpec {
     DealsCombatDamageToPlayer(TriggerObj),
     /// "Whenever you gain life".
     GainsLife { whose: Who },
+    /// "Whenever you gain life for the first time each turn": the life
+    /// gain event that starts the player's life gained this turn.
+    GainsLifeFirst { whose: Who },
     /// "Whenever you roll one or more dice" (CR 706): once per
     /// instruction to roll, not per die.
     RollsDice { whose: Who },
@@ -4406,7 +4409,7 @@ impl TriggerSpec {
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
             TriggerSpec::Exploits | TriggerSpec::Reflexive | TriggerSpec::State(_) => 0,
-            TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
+            TriggerSpec::GainsLife { .. } | TriggerSpec::GainsLifeFirst { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,
             TriggerSpec::CastsSpell { .. }
             | TriggerSpec::CastsFiltered { .. }

@@ -8158,6 +8158,9 @@ impl P {
         }
         if self.at_words(&["you", "gain", "life"]) {
             self.pos += 3;
+            if self.eat_words(&["first", "time", "each", "turn"]) {
+                return Ok(Trigger::GainsLifeFirst { whose: Who::You });
+            }
             return Ok(Trigger::GainsLife { whose: Who::You });
         }
         if self.at_words(&["you", "win", "a", "coin", "flip"]) {

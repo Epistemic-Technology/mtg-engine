@@ -668,6 +668,14 @@ impl GameState {
             (TriggerSpec::GainsLife { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
             }
+            // Triggers are detected as each event is emitted, so the first
+            // gain is the one whose amount is all gained this turn.
+            (TriggerSpec::GainsLifeFirst { whose }, Event::LifeChange { player, delta, .. }) => {
+                (*delta > 0
+                    && whose_ok(*whose, *player)
+                    && self.turn_log.life_gained[player.index().min(3)] == delta.unsigned_abs())
+                .then_some((None, Some(*player)))
+            }
             (TriggerSpec::BecomesAttachedTo(f), Event::Attached { obj, to }) => {
                 if *to != w.source {
                     return None;

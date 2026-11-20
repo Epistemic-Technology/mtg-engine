@@ -1746,6 +1746,11 @@ pub enum Trigger {
     GainsLife {
         whose: Who,
     },
+    /// `whenever you gain life first time each turn`: "Whenever you gain
+    /// life for the first time each turn".
+    GainsLifeFirst {
+        whose: Who,
+    },
     /// `whenever day becomes night or night becomes day` (CR 731.1a).
     DayNight,
     /// `whenever you roll dice`: "Whenever you roll one or more dice".

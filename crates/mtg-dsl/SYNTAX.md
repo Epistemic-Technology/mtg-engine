@@ -207,6 +207,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
 | `when you control no Island`, `when you control no other creature` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature." Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | |
+| `whenever you gain life first time each turn` | "Whenever you gain life for the first time each turn": the gain that starts the life you gained this turn (one of several simultaneous lifelink gains) |
 | `whenever you roll dice`, `whenever you win a coin flip` | "Whenever you roll one or more dice" (once per roll, CR 706), "Whenever you win a coin flip" (CR 705.2) |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
 | `whenever you attack`, `whenever you attack with 3 or more creatures`, `label "Battalion" triggered whenever this and at least 2 other creatures attack` | once as the controller declares attackers (CR 508.1m), if at least that many attack (battalion: this creature among them); "Whenever this creature and at least two other creatures attack" |
@@ -1191,7 +1192,8 @@ into your graveyard"; `dig 4 reveal take all land card rest graveyard`:
 your hand and the rest into your graveyard"; `take 2 instant or sorcery
 card may`: "up to two instant and/or sorcery cards", and without a
 filter `dig 4 take 2 card rest graveyard`: "Put two of those cards into
-your hand"; `take any creature card may revealing`: "You may reveal any
+your hand" (with one card left over, `dig 3 take 2 card rest graveyard`,
+"Put two of them into your hand and the other into your graveyard"); `take any creature card may revealing`: "You may reveal any
 number of creature cards from among them and put the revealed cards into
 your hand"; `take creature card and land card may`: "a creature card
 and/or a land card" (one of each); `rest bottom random`: "in a random

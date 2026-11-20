@@ -3535,9 +3535,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ));
             }
             if filter.is_none() && *take != 1 {
+                let k = count_words(Num::N(*take), "one");
+                // "Put two of them into your hand and the other into your
+                // graveyard." (Dark Bargain): one card left over.
+                if *count == Num::N(*take + 1) {
+                    return Clause::imperative(format!(
+                        "{head}. Put {k} of them into your hand and {}",
+                        rest("the other")
+                    ));
+                }
                 // "Put two of those cards into your hand and the rest into
                 // your graveyard."
-                let k = count_words(Num::N(*take), "one");
                 return Clause::imperative(format!(
                     "{head}. Put {k} of those cards into your hand and {}",
                     rest("the rest")
@@ -6396,6 +6404,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             Who::You => "whenever you gain life".to_string(),
             _ => "whenever a player gains life".to_string(),
         },
+        Trigger::GainsLifeFirst { .. } => {
+            "whenever you gain life for the first time each turn".to_string()
+        }
         Trigger::CastsSpell {
             whose,
             noncreature,

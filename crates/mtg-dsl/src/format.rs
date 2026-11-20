@@ -2948,6 +2948,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             Who::You => "whenever you gain life".to_string(),
             _ => "whenever a player gains life".to_string(),
         },
+        Trigger::GainsLifeFirst { .. } => "whenever you gain life first time each turn".to_string(),
         Trigger::CastsSpell {
             whose,
             noncreature,
