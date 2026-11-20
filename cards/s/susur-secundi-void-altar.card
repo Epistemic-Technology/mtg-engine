@@ -1,0 +1,8 @@
+card "Susur Secundi, Void Altar" {
+  oracle_id 50d6cadc-07e4-479e-90f4-e3a20f769bab
+  type Land — Planet
+  enters tapped
+  mana {B}
+  station
+  station 12: activated {1}{B}, {T}, pay 2 life, sacrifice creature, sorcery: draw count equal power of the sacrificed creature cards
+}

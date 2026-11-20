@@ -64,7 +64,8 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 114] = [
+const TEMPLATED_TAGS: [&str; 115] = [
+    "Station",
     "Start your engines!",
     "Transform",
     "Role token",
@@ -1811,6 +1812,7 @@ fn trigger_text(head: &str) -> Option<String> {
     // noun.
     let head = head
         .replace("this Vehicle", "this creature")
+        .replace("this Spacecraft", "this creature")
         .replace("this Equipment", "this artifact");
     let head = head.as_str();
     let t = match head {
@@ -2259,6 +2261,27 @@ impl Builder<'_> {
             }
             let st = self.statements.pop().unwrap_or_default();
             self.statements.push(format!("label \"{label}\" {st}"));
+            return Ok(());
+        }
+        // CR 702.184a, 721.2: "Station", then its levels: "9+ | Flying,
+        // first strike" or "2+ | <one ability>".
+        if line == "Station" {
+            self.statements.push("station".to_string());
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^(\d+)\+ \| (.+)$").unwrap().captures(line) {
+            let (n, rest) = (cap(&c, 1), cap(&c, 2));
+            if let Some(k) = keyword_list(rest) {
+                self.statements.push(format!("station {n}: {k}"));
+                return Ok(());
+            }
+            let before = self.statements.len();
+            self.line(rest)?;
+            if self.statements.len() != before + 1 {
+                return Err(Skip::Sentence(line.to_string()));
+            }
+            let st = self.statements.pop().unwrap_or_default();
+            self.statements.push(format!("station {n}: {st}"));
             return Ok(());
         }
         // CR 702.179a.

@@ -1,0 +1,9 @@
+card "Uthros Scanship" {
+  oracle_id 7b4c37dc-8cb0-4870-929e-11c2a45952a2
+  cost {3}{U}
+  type Artifact — Spacecraft
+  pt 4/4
+  triggered when this enters: draw 2 cards then discard 1 card
+  station
+  station 8: flying
+}

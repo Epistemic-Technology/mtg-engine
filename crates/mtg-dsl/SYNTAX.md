@@ -1976,7 +1976,12 @@ Spacecraft: `station` ("Station": tap another untapped creature you
 control, put charge counters equal to its power on this permanent,
 only as a sorcery, CR 702.184) and `station 4: flying` ("4+ | Flying",
 CR 721.2: with four or more charge counters it has the keywords and,
-when the card has `pt`, is an artifact creature). "this Spacecraft" is
+when the card has `pt`, is an artifact creature), and `station 2: <ability
+line>` ("2+ | Other creatures you control get +1/+1."; any static,
+activated, mana, or triggered ability, CR 721.2a: the permanent has it
+only while it has that many charge counters, and it never makes the
+permanent a creature). A Planet (a land with `station`) has no `pt` and
+never becomes a creature. "this Spacecraft" is
 the self-noun; the plural is "Spacecraft". A cost's tapped creature is
 recorded for the resolution (`ThisWay::Tapped`). Static condition:
 `attacked with Spacecraft this turn` ("you attacked with a Spacecraft

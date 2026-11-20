@@ -928,6 +928,37 @@ impl Compiler<'_> {
     }
 
     #[allow(clippy::too_many_lines)] // one arm per condition
+    /// An ability the source has only while `c` holds ("Max speed —
+    /// ...", "2+ | ..."): a static ability's or cost change's condition,
+    /// an activated ability's activation condition, a triggered
+    /// ability's condition as it triggers. A triggered ability checks it
+    /// again on resolution; neither speed nor charge counters normally
+    /// fall in between.
+    fn while_holds(
+        &mut self,
+        mut a: AbilityDef,
+        c: StaticCondition,
+        what: &str,
+    ) -> Result<AbilityDef, CompileError> {
+        match &mut a {
+            AbilityDef::Static(sa) if sa.condition.is_none() => sa.condition = Some(c),
+            AbilityDef::Activated(aa) => aa.conditions.push(c),
+            AbilityDef::Triggered(ta) if ta.condition.is_none() => {
+                let i = self.pool.intern_condition(c);
+                ta.condition = Some(mtg_core::card::Condition::Static(i));
+            }
+            AbilityDef::CostChange(cc) if cc.cond.is_none() => {
+                cc.cond = Some(self.pool.intern_condition(c));
+            }
+            _ => {
+                return self.err(format!(
+                    "{what} applies to a static, activated, triggered, or cost ability"
+                ));
+            }
+        }
+        Ok(a)
+    }
+
     fn static_cond(&mut self, c: &StaticCond) -> StaticCondition {
         match c {
             StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
@@ -3056,29 +3087,19 @@ impl Compiler<'_> {
             // have max speed, this object has [ability]": the ability's
             // own condition.
             Ability::Labeled { label, ability } if label == "Max speed" => {
-                let mut a = self.ability(ability)?;
-                match &mut a {
-                    AbilityDef::Static(sa) if sa.condition.is_none() => {
-                        sa.condition = Some(StaticCondition::MaxSpeed);
-                    }
-                    AbilityDef::Activated(aa) => aa.conditions.push(StaticCondition::MaxSpeed),
-                    // A triggered ability exists only at max speed, so it
-                    // triggers only then; speed never falls, so checking
-                    // again on resolution changes nothing.
-                    AbilityDef::Triggered(ta) if ta.condition.is_none() => {
-                        let i = self.pool.intern_condition(StaticCondition::MaxSpeed);
-                        ta.condition = Some(mtg_core::card::Condition::Static(i));
-                    }
-                    AbilityDef::CostChange(cc) if cc.cond.is_none() => {
-                        cc.cond = Some(self.pool.intern_condition(StaticCondition::MaxSpeed));
-                    }
-                    _ => {
-                        return self.err(
-                            "max speed applies to a static, activated, triggered, or cost ability",
-                        );
-                    }
-                }
-                return Ok(a);
+                let a = self.ability(ability)?;
+                return self.while_holds(a, StaticCondition::MaxSpeed, "max speed");
+            }
+            // CR 721.2a: "As long as this permanent has N or more charge
+            // counters on it, it has [ability]."
+            Ability::StationAbility { n, ability } => {
+                let a = self.ability(ability)?;
+                let c = self.static_cond(&StaticCond::SourceCounters {
+                    kind: mtg_core::card::CounterKind::Charge,
+                    n: *n,
+                    at_least: true,
+                });
+                return self.while_holds(a, c, "a station level");
             }
             Ability::Labeled { ability, .. } => return self.ability(ability),
             Ability::BlockRule(r) => AbilityDef::BlockRule(match r {

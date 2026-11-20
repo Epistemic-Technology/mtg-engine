@@ -4228,6 +4228,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
             }
         }
+        Ability::StationAbility { n, ability: inner } => {
+            let mut tmp = String::new();
+            self::ability(&mut tmp, inner, indent, groups);
+            let _ = write!(out, "{indent}station {n}: {}", &tmp[indent.len()..]);
+        }
         Ability::Labeled {
             label,
             ability: inner,

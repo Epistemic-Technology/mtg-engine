@@ -1,0 +1,9 @@
+card "Dawnsire, Sunstar Dreadnought" {
+  oracle_id afc9436b-8cad-4916-929d-ff33a37b42d5
+  cost {5}
+  type Legendary Artifact — Spacecraft
+  pt 20/20
+  station
+  station 10: triggered whenever you attack: deal 100 damage to up to 1 target creature or planeswalker
+  station 20: flying
+}

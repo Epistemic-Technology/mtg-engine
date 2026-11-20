@@ -1556,6 +1556,10 @@ impl P {
                 self.pos += 1;
                 let n = self.number()?;
                 self.expect(&Tok::Colon)?;
+                if !self.keyword_ahead() {
+                    let ability = Box::new(self.ability()?);
+                    return Ok(Ability::StationAbility { n, ability });
+                }
                 let keywords = self.keyword_list()?;
                 self.end_stmt()?;
                 Ok(Ability::StationLevel { n, keywords })

@@ -9381,6 +9381,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             format!("{me} {}.", block_rule_phrase(r, card, false))
         }
+        // CR 721.2a: "2+ | Other creatures you control get +1/+1."
+        Ability::StationAbility { n, ability } => {
+            format!("{n}+ | {}", ability_text(card, ability, lookup))
+        }
         Ability::Labeled { label, ability } => {
             let text = ability_text(card, ability, lookup);
             // A max speed dies trigger names no "this creature or
@@ -9684,8 +9688,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::AuraStays => "This effect doesn't remove this Aura.".to_string(),
         // CR 721.2: "4+ | Flying".
         Ability::StationLevel { n, keywords } => {
-            let ks: Vec<String> = keywords.iter().map(|k| capitalize(k.name())).collect();
-            format!("{n}+ | {}", ks.join(", "))
+            // "9+ | Flying, first strike": a keyword line, capitalized once.
+            let ks: Vec<&str> = keywords.iter().map(|k| k.name()).collect();
+            format!("{n}+ | {}", capitalize(&ks.join(", ")))
         }
         Ability::CrewsAs {
             saddles,

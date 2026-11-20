@@ -1,0 +1,8 @@
+card "Evendo, Waking Haven" {
+  oracle_id 83161d59-2520-4741-9328-e2a4a8b5d5bc
+  type Land — Planet
+  enters tapped
+  mana {G}
+  station
+  station 12: activated {G}, {T}: add {G} count each creature you control
+}

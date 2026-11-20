@@ -1,0 +1,9 @@
+card "Atmospheric Greenhouse" {
+  oracle_id 52c6afc6-aff1-46a8-b1ea-b183facec1ae
+  cost {4}{G}
+  type Artifact — Spacecraft
+  pt 5/4
+  triggered when this enters: put 1 +1/+1 counter on each creature you control
+  station
+  station 8: flying, trample
+}

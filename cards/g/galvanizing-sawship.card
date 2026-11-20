@@ -1,0 +1,8 @@
+card "Galvanizing Sawship" {
+  oracle_id dfe8f77a-cc26-438b-92ae-2ca7a91f813b
+  cost {5}{R}
+  type Artifact — Spacecraft
+  pt 6/5
+  station
+  station 3: flying, haste
+}

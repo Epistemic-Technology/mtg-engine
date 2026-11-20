@@ -1,0 +1,10 @@
+card "The Seriema" {
+  oracle_id a6bcec1f-f515-4e63-9e84-8eb04cc582ff
+  cost {1}{W}{W}
+  type Legendary Artifact — Spacecraft
+  pt 5/5
+  triggered when this enters: search legendary creature card reveal to hand
+  station
+  station 7: flying
+  static other tapped legendary creature you control: has indestructible
+}

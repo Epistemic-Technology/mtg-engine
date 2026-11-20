@@ -1073,6 +1073,16 @@ pub enum Ability {
         n: u32,
         keywords: Vec<Keyword>,
     },
+    /// `station 2: static other creature you control: +1/+1` (CR 721.2a):
+    /// "2+ | Other creatures you control get +1/+1.": the ability works
+    /// only while the permanent has that many charge counters (a static
+    /// ability's condition, an activated ability's activation condition;
+    /// a triggered ability triggers only then). It never makes the
+    /// permanent a creature.
+    StationAbility {
+        n: u32,
+        ability: Box<Ability>,
+    },
     /// `protection doesn't remove this`: "This effect doesn't remove this
     /// Aura.", printed after the static ability before it.
     AuraStays,
