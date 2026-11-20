@@ -1,0 +1,8 @@
+card "Case of the Crimson Pulse" {
+  oracle_id 955504bc-050a-42a2-b2e4-ab213183b2be
+  cost {2}{R}
+  type Enchantment — Case
+  triggered when this enters: discard 1 card then draw 2 cards
+  to solve hand 0 or less
+  solved triggered at beginning of your upkeep: discard hand then draw 2 cards
+}

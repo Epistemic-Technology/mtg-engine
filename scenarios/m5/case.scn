@@ -1,0 +1,53 @@
+# Cases (CR 719): "To solve — <condition>" means "At the beginning of your
+# end step, if <condition> and this Case is not solved, it becomes
+# solved" (CR 719.2a, judged as it would trigger and as it resolves);
+# "Solved — <ability>" works only once the Case is solved (CR 719.2b). A
+# Case stays solved until it leaves the battlefield.
+
+scenario "case: solved at the beginning of your end step" {
+  battlefield A: "Case of the Filched Falcon", "Mind Stone", "Sol Ring", "Bonesplitter", 3 "Island"
+  run_to turn 3 precombat_main
+  turn 3 A: activate "Case of the Filched Falcon" targeting "Bonesplitter"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Case of the Filched Falcon"
+  assert is "Bonesplitter" creature
+  assert is "Bonesplitter" Bird
+  assert has "Bonesplitter" flying
+  assert power "Bonesplitter" 4
+  assert counters "Bonesplitter" +1/+1 4
+}
+
+scenario "case: the solved ability is missing before it's solved" {
+  battlefield A: "Case of the Filched Falcon", "Mind Stone", "Sol Ring", "Bonesplitter", 3 "Island"
+  illegal turn 1 A: activate "Case of the Filched Falcon" targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Case of the Filched Falcon"
+}
+
+scenario "case: not solved unless the condition holds at the end step" {
+  battlefield A: "Case of the Filched Falcon", "Mind Stone", "Bonesplitter", 3 "Island"
+  illegal turn 3 A: activate "Case of the Filched Falcon" targeting "Bonesplitter"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Case of the Filched Falcon"
+  assert is not "Bonesplitter" creature
+}
+
+scenario "case: only at its controller's end step" {
+  battlefield B: "Case of the Filched Falcon", "Mind Stone", "Sol Ring", "Bonesplitter"
+  run_to turn 2 untap
+  assert battlefield B contains "Case of the Filched Falcon"
+  illegal turn 2 B: activate "Case of the Filched Falcon" targeting "Bonesplitter"
+  run_to turn 2 postcombat_main
+}
+
+scenario "case: a solved Case returned to the battlefield is unsolved" {
+  battlefield A: "Case of the Filched Falcon", "Mind Stone", "Sol Ring", "Bonesplitter", 5 "Island"
+  hand A: "Boomerang"
+  turn 3 A: cast "Boomerang" targeting "Case of the Filched Falcon"
+  turn 3 A: wait
+  turn 3 A: cast "Case of the Filched Falcon"
+  turn 3 A: wait
+  illegal turn 3 A: activate "Case of the Filched Falcon" targeting "Bonesplitter"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Case of the Filched Falcon"
+}

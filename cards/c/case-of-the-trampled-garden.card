@@ -1,0 +1,8 @@
+card "Case of the Trampled Garden" {
+  oracle_id 575a0dc2-206a-406a-90b3-72a92f2ea87a
+  cost {2}{G}
+  type Enchantment — Case
+  triggered when this enters: distribute 2 +1/+1 counters among 1 to 2 target creatures you control
+  to solve total power 8 or more
+  solved triggered whenever you attack: put 1 +1/+1 counter on target attacking creature; target 1 gains trample
+}

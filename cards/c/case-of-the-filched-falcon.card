@@ -1,0 +1,8 @@
+card "Case of the Filched Falcon" {
+  oracle_id 33b31fb0-71ce-408a-a256-2a5a3b085cb6
+  cost {U}
+  type Enchantment — Case
+  triggered when this enters: investigate
+  to solve you control 3 artifact
+  solved activated {2}{U}, sacrifice this: put 4 +1/+1 counters on target noncreature artifact; target 1 becomes 0/0 Bird creature with flying in addition indefinitely
+}
