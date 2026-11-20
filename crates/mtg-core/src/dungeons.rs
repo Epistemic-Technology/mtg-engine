@@ -342,15 +342,14 @@ pub fn add_dungeons(pool: &mut CardPool) {
                 who: Recipient::Target(0),
             }],
         ),
-        // CR 701.15: goaded until your next turn; with one opponent,
-        // that is attacking each combat if able.
+        // CR 701.15: "Goad target creature."
         room(
             "Arena",
             &[6, 7],
             creature.clone(),
-            until_next_turn(vec![Modification::AddKeywords(
-                crate::card::KeywordSet::NONE.with(Keyword::MustAttack),
-            )]),
+            vec![Effect::Goad {
+                what: Recipient::Target(0),
+            }],
         ),
         room("Stash", &[7], vec![], create(treasure, 1)),
         room("Archives", &[8], vec![], draw(1)),

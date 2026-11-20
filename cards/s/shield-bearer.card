@@ -1,0 +1,7 @@
+card "Shield Bearer" {
+  oracle_id 75decba6-d188-4144-8e74-58285be0fe9f
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 0/3
+  keywords banding
+}

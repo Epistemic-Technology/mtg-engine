@@ -542,6 +542,7 @@ impl GameState {
             self.valiant_watchers += d(flags.has_valiant());
             self.state_trigger_sources += d(flags.has_state_trigger());
             self.mark_sources += d(flags.has_marks());
+            self.banding_sources += d(flags.has_banding());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
@@ -560,6 +561,7 @@ impl GameState {
             self.valiant_watchers -= d(flags.has_valiant());
             self.state_trigger_sources -= d(flags.has_state_trigger());
             self.mark_sources -= d(flags.has_marks());
+            self.banding_sources -= d(flags.has_banding());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
             self.control_dirty |= flags.has_control_static();

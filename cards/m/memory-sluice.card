@@ -1,0 +1,7 @@
+card "Memory Sluice" {
+  oracle_id a30b659e-ae2b-4736-9b4f-a9805905bf75
+  cost {U/B}
+  type Sorcery
+  spell: target player mills 4 cards
+  conspire
+}

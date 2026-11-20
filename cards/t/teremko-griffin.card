@@ -1,0 +1,7 @@
+card "Teremko Griffin" {
+  oracle_id a00cb1fa-a196-4403-9008-532dbd15769e
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying, banding
+}

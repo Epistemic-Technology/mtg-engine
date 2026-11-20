@@ -1,0 +1,7 @@
+card "Mind Rake" {
+  oracle_id 1d8e0d40-ab2c-46e2-80c2-69dfdd47aefc
+  cost {2}{B}
+  type Sorcery
+  spell: target player discards 2 cards
+  overload {1}{B}
+}

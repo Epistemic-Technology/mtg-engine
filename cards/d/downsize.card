@@ -1,0 +1,7 @@
+card "Downsize" {
+  oracle_id 46537bac-b1eb-4c02-ba43-6c6b16c7729c
+  cost {U}
+  type Instant
+  spell: target creature you don't control gets -4/-0
+  overload {2}{U}
+}

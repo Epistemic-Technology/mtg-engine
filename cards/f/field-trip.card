@@ -1,0 +1,9 @@
+card "Field Trip" {
+  oracle_id 29423b70-7cb7-4617-898c-78a38eb233ad
+  cost {2}{G}
+  type Sorcery
+  spell {
+    search basic Forest card to battlefield tapped that card
+    learn
+  }
+}

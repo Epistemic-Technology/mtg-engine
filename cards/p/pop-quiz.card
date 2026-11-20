@@ -1,0 +1,9 @@
+card "Pop Quiz" {
+  oracle_id dda9ac6c-1ab2-4f77-b499-f03d587163d8
+  cost {2}{U}
+  type Instant
+  spell {
+    draw 1 card
+    learn
+  }
+}

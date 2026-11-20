@@ -1,0 +1,7 @@
+card "Benalish Hero" {
+  oracle_id 4c81cfb7-8765-4e28-ae33-4287fa9a86cc
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  keywords banding
+}

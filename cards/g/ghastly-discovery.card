@@ -1,0 +1,7 @@
+card "Ghastly Discovery" {
+  oracle_id 1ca875f0-50a7-4332-8643-c2b4bbda18b1
+  cost {2}{U}
+  type Sorcery
+  spell: draw 2 cards, then discard 1 card
+  conspire
+}

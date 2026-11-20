@@ -255,6 +255,8 @@ pub enum AltCast {
     AltCost,
     /// Cast for its bestow cost (CR 702.103a): an Aura spell.
     Bestow,
+    /// Cast for its overload cost (CR 702.96a): "each" for "target".
+    Overload,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
@@ -315,7 +317,13 @@ impl CastInfo {
     const BARGAINED: u16 = 0x200;
     /// Cast paying the second of its two additional costs ("sacrifice a
     /// creature or pay {3}", CR 601.2b).
-    const OTHER_COST: u16 = 0x400;
+    const OTHER_COST: u16 = 0x8000;
+    /// Conspired (CR 702.78a): two creatures are tapped with its costs,
+    /// and it is copied.
+    const CONSPIRED: u16 = 0x2000;
+    /// A copy of a spell (CR 707.10): not cast, and ceases to exist as it
+    /// leaves the stack (CR 704.5e).
+    const COPY: u16 = 0x4000;
     const KICKED: u16 = 0x40;
     const FLASHBACK: u16 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -389,6 +397,29 @@ impl CastInfo {
         } else {
             self.0 & !Self::BARGAINED
         };
+    }
+
+    pub const fn conspired(self) -> bool {
+        self.0 & Self::CONSPIRED != 0
+    }
+
+    pub fn set_conspired(&mut self, on: bool) {
+        self.0 = if on {
+            self.0 | Self::CONSPIRED
+        } else {
+            self.0 & !Self::CONSPIRED
+        };
+    }
+
+    pub const fn copy(self) -> bool {
+        self.0 & Self::COPY != 0
+    }
+
+    /// The cast info of a copy of a spell with this one (CR 707.10: the
+    /// choices made casting it, but not cast).
+    #[must_use]
+    pub const fn copied(self) -> CastInfo {
+        CastInfo((self.0 & !(Self::CAST_MASK | Self::CONSPIRED)) | Self::COPY)
     }
 
     pub const fn evoked(self) -> bool {
@@ -568,6 +599,8 @@ pub struct Attacker {
 #[derive(Clone, Debug, Default)]
 pub struct CombatState {
     pub attackers: Vec<Attacker>,
+    /// Attacking bands (CR 702.22c), two or more creatures each.
+    pub bands: Vec<Vec<ObjId>>,
     /// Whether a first-strike combat damage step occurred this combat (CR 510.4).
     pub had_first_strike_step: bool,
 }
@@ -575,6 +608,14 @@ pub struct CombatState {
 impl CombatState {
     pub fn attacker(&self, id: ObjId) -> Option<&Attacker> {
         self.attackers.iter().find(|a| a.id == id)
+    }
+
+    /// The other creatures in `id`'s attacking band (CR 702.22).
+    pub fn band_of(&self, id: ObjId) -> &[ObjId] {
+        self.bands
+            .iter()
+            .find(|b| b.contains(&id))
+            .map_or(&[], Vec::as_slice)
     }
 
     pub fn attacker_mut(&mut self, id: ObjId) -> Option<&mut Attacker> {
@@ -1013,6 +1054,10 @@ pub enum Flow {
     ChoosingBargain {
         spell: ObjId,
     },
+    /// Choosing whether to conspire a spell (CR 702.78a), after bargain.
+    ChoosingConspire {
+        spell: ObjId,
+    },
     /// Choosing cards to splice onto an Arcane spell (CR 702.47a), one at
     /// a time, after bargain and before X.
     ChoosingSplice {
@@ -1023,6 +1068,13 @@ pub enum Flow {
     AttackTargets {
         chosen: Vec<(ObjId, Target)>,
         remaining: Vec<ObjId>,
+    },
+    /// Attackers declared; the attacking player forms bands (CR 702.22c):
+    /// `band` is the one being formed, its leader (with banding) first;
+    /// `led` the attackers that have led one.
+    FormBands {
+        band: Vec<ObjId>,
+        led: Vec<ObjId>,
     },
     /// All players passed with an empty stack: the step ends.
     EndStep,
@@ -1233,6 +1285,11 @@ pub struct GameState {
     /// Spells with cards spliced onto them (CR 702.47a), kept off
     /// `GameObject` like `x_values`.
     pub splices: Vec<Spliced>,
+    /// Goaded creatures and who goaded them (CR 701.15a), until that
+    /// player's next turn; the creature's "attacks each combat if able"
+    /// is an ordinary until-your-next-turn effect, this list the
+    /// requirement to attack a player other than the goader (701.15b).
+    pub goads: Vec<(ObjId, PlayerId)>,
     pub turn_number: u32,
     /// Spells each player has cast this turn, and the most any one player
     /// cast last turn ("if no spells were cast last turn", werewolves).
@@ -1360,6 +1417,9 @@ pub struct GameState {
     /// becoming day as they enter (`DefFlags::MARKS`): state-based
     /// actions look for them only then.
     pub mark_sources: u32,
+    /// Permanents with banding (CR 702.22): combat looks for bands only
+    /// while there are some.
+    pub banding_sources: u32,
     /// Battlefield permanents with an attack or block condition
     /// (`DefFlags::ATTACK_RULE`): declarations check them only then.
     pub attack_rule_sources: u32,
@@ -2784,7 +2844,6 @@ impl GameState {
 
     /// `is_legal_target_for` with X taken as `x` ("with mana value X"
     /// while X is being chosen) rather than the spell's chosen X.
-    #[allow(clippy::too_many_lines)]
     pub fn is_legal_target_x(
         &self,
         caster: PlayerId,
@@ -2793,9 +2852,33 @@ impl GameState {
         source: Option<ObjId>,
         x: Option<u32>,
     ) -> bool {
+        self.spec_matches(caster, spec, target, source, x, true)
+    }
+
+    /// Whether `target` answers `spec`'s description; `targeting`: also
+    /// that it can be targeted (hexproof, shroud, protection, CR 115.5).
+    /// Without, the objects "each" means for an overloaded spell (CR
+    /// 702.96a).
+    #[allow(clippy::too_many_lines)]
+    pub fn spec_matches(
+        &self,
+        caster: PlayerId,
+        spec: crate::card::TargetSpec,
+        target: Target,
+        source: Option<ObjId>,
+        x: Option<u32>,
+        targeting: bool,
+    ) -> bool {
         use crate::card::TargetSpec;
         if let TargetSpec::UpTo(_) | TargetSpec::Many(_) = spec {
-            return self.is_legal_target_x(caster, self.pool.base_spec(spec), target, source, x);
+            return self.spec_matches(
+                caster,
+                self.pool.base_spec(spec),
+                target,
+                source,
+                x,
+                targeting,
+            );
         }
         match target {
             Target::Player(p) => {
@@ -2966,6 +3049,9 @@ impl GameState {
                     | TargetSpec::Many(_)
                     | TargetSpec::CreatureCardInYourGraveyard => false,
                 };
+                if !targeting {
+                    return type_ok;
+                }
                 let hexproof_ok = (!c.has(Keyword::Hexproof) || obj.controller == caster)
                     && !c.has(Keyword::Shroud);
                 // CR 702.16b: protection from a quality forbids targeting by
@@ -2991,6 +3077,20 @@ impl GameState {
 
 #[cfg(test)]
 mod tests {
+
+    /// Each `CastInfo` fact has its own bit: casting from hand once shared
+    /// a bit with paying the second additional cost.
+    #[test]
+    fn cast_info_facts_are_independent() {
+        let mut c = CastInfo::default();
+        c.set_cast_from(Zone::Hand);
+        assert!(!c.other_cost());
+        c.set_other_cost(true);
+        assert_eq!(c.cast_from(), Some(Zone::Hand));
+        c.set_other_cost(false);
+        assert_eq!(c.cast_from(), Some(Zone::Hand));
+    }
+
     use super::*;
 
     /// `GameObject` is cloned on every zone change and `Characteristics` on

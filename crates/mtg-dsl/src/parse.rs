@@ -163,6 +163,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["persist"], Keyword::Persist),
     (&["undying"], Keyword::Undying),
     (&["flanking"], Keyword::Flanking),
+    (&["banding"], Keyword::Banding),
     (&["convoke"], Keyword::Convoke),
     (&["improvise"], Keyword::Improvise),
     (&["cascade"], Keyword::Cascade),
@@ -1346,7 +1347,7 @@ impl P {
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "embalm" | "eternalize" | "offspring" | "bestow" | "splice"
-            | "strive"
+            | "strive" | "overload"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1368,6 +1369,7 @@ impl P {
                     "scavenge" => Mechanic::Scavenge(c),
                     "dash" => Mechanic::Dash(c),
                     "bestow" => Mechanic::Bestow(c),
+                    "overload" => Mechanic::Overload(c),
                     "splice" => Mechanic::Splice(c),
                     "embalm" => Mechanic::Embalm(c),
                     "eternalize" => Mechanic::Eternalize(c),
@@ -1391,6 +1393,11 @@ impl P {
                     "echo" => Mechanic::EchoCost(c),
                     _ => Mechanic::BuybackCost(c),
                 }))
+            }
+            "conspire" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Conspire))
             }
             "bargain" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
@@ -5448,6 +5455,9 @@ impl P {
                 let to = self.recipients()?;
                 Ok(Effect::Tap { to })
             }
+            "goad" => Ok(Effect::Goad {
+                what: self.recipient()?,
+            }),
             "untap" => {
                 let to = self.recipients()?;
                 Ok(Effect::Untap { to })
@@ -5692,6 +5702,7 @@ impl P {
                 Ok(Effect::AddMana(out))
             }
             "surveil" => Ok(Effect::Surveil(self.num()?)),
+            "learn" => Ok(Effect::Learn),
             "counter" => {
                 let to = self.recipient()?;
                 if self.eat_word("unless") {
@@ -9170,6 +9181,7 @@ impl P {
                 Ok(Mod::RemoveAllAbilities)
             }
             "control" => Ok(Mod::Control),
+            "goaded" => Ok(Mod::Goaded),
             "switch" => {
                 self.eat_word("pt");
                 Ok(Mod::SwitchPt)

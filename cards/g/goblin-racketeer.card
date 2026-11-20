@@ -1,0 +1,7 @@
+card "Goblin Racketeer" {
+  oracle_id 9336a62c-f2f9-45a8-bf69-86060aa0ce59
+  cost {3}{R}
+  type Creature — Goblin Rogue
+  pt 4/2
+  triggered whenever this attacks: you may goad target creature defending player controls
+}

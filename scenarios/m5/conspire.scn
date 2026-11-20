@@ -1,0 +1,66 @@
+# Conspire (CR 702.78): as the spell is cast, its caster may tap two
+# untapped creatures they control that share a color with it; when they
+# do, it is copied (CR 707.10), and the copy's targets may change (CR
+# 707.10c). A copy ceases to exist as it leaves the stack (CR 704.5e).
+
+scenario "conspire: Burn Trail conspired deals its damage twice" {
+  battlefield A: 4 "Mountain", "Raging Goblin", "Goblin Piker"
+  hand A: "Burn Trail"
+  turn 1 A: cast "Burn Trail" conspired targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert tapped "Raging Goblin"
+  assert tapped "Goblin Piker"
+  assert graveyard A contains 1 "Burn Trail"
+}
+
+scenario "conspire: the copy may have a new target" {
+  battlefield A: 4 "Mountain", "Raging Goblin", "Goblin Piker"
+  battlefield B: "Hill Giant"
+  hand A: "Burn Trail"
+  turn 1 A: cast "Burn Trail" conspired targeting player B
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "conspire: not conspired, one copy of the effect" {
+  battlefield A: 4 "Mountain", "Raging Goblin", "Goblin Piker"
+  hand A: "Burn Trail"
+  turn 1 A: cast "Burn Trail" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert untapped "Raging Goblin"
+}
+
+scenario "conspire: the creatures must share a color with the spell" {
+  battlefield A: 4 "Mountain", "Raging Goblin", "Grizzly Bears"
+  hand A: "Burn Trail"
+  turn 1 A: cast "Burn Trail" conspired targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert untapped "Raging Goblin"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "conspire: Ghastly Discovery conspired draws four and discards two" {
+  battlefield A: 3 "Island", "Wind Drake", "Phantom Monster"
+  hand A: "Ghastly Discovery"
+  turn 1 A: cast "Ghastly Discovery" conspired
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 3
+}
+
+scenario "conspire: the copy resolves even if the spell is countered" {
+  battlefield A: 4 "Mountain", "Raging Goblin", "Goblin Piker"
+  battlefield B: 2 "Island"
+  hand A: "Burn Trail"
+  hand B: "Counterspell"
+  turn 1 A: cast "Burn Trail" conspired targeting player B
+  turn 1 B: cast "Counterspell" targeting "Burn Trail"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains 1 "Burn Trail"
+}

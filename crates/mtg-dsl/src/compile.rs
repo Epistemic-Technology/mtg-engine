@@ -332,6 +332,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Dash(cost)) => {
                     b = b.dash(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Overload(cost)) => {
+                    b = b.overload(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Bestow(cost)) => {
                     b = b.bestow(cost.clone());
                 }
@@ -363,6 +366,9 @@ impl Compiler<'_> {
                 }
                 Ability::Mechanic(Mechanic::Bargain) => {
                     b = b.bargain();
+                }
+                Ability::Mechanic(Mechanic::Conspire) => {
+                    b = b.conspire();
                 }
                 Ability::AuraStays => {
                     b = b.aura_stays();
@@ -400,6 +406,14 @@ impl Compiler<'_> {
         }
         if let Some(n) = card.loyalty {
             b = b.loyalty(n);
+        }
+        // CR 701.15: "enchanted creature is goaded".
+        if card
+            .abilities
+            .iter()
+            .any(|a| matches!(a, Ability::Static { mods, .. } if mods.contains(&Mod::Goaded)))
+        {
+            b = b.goads();
         }
         if let Some(colors) = &card.color_indicator {
             b = b.color_indicator(colors.iter().copied());
@@ -523,9 +537,11 @@ impl Compiler<'_> {
                             | Mechanic::Disguise(_)
                             | Mechanic::Dash(_)
                             | Mechanic::Bestow(_)
+                            | Mechanic::Overload(_)
                             | Mechanic::Splice(_)
                             | Mechanic::SpliceCost(_)
                             | Mechanic::Bargain
+                            | Mechanic::Conspire
                             | Mechanic::Strive(_)
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
@@ -1329,6 +1345,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Sacrifice { what: r(*what) });
             }
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
+            Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
             Effect::Tap { to } => {
                 for t in to {
                     out.push(CoreEffect::Tap { to: r(*t) });
@@ -1586,6 +1603,20 @@ impl Compiler<'_> {
                 });
             }
             Effect::Surveil(n) => out.push(CoreEffect::Surveil { count: *n }),
+            // CR 701.48a: with no Lesson outside the game, "discard a card
+            // to draw a card", which the player may do.
+            Effect::Learn => {
+                let discard = Sentence::new(vec![Effect::Discard {
+                    count: Num::N(1),
+                    who: None,
+                }]);
+                let draw = Sentence::new(vec![Effect::DrawCards {
+                    count: Num::N(1),
+                    who: None,
+                }]);
+                out.push(CoreEffect::YouMay(self.sentences(&[discard])?));
+                out.push(CoreEffect::IfYouDo(self.sentences(&[draw])?));
+            }
             Effect::Discard { count, who } => out.push(CoreEffect::Discard {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
@@ -2358,6 +2389,10 @@ impl Compiler<'_> {
                 Modification::RemoveKeywords(KeywordSet::of(k.iter().copied()))
             }
             Mod::RemoveAllAbilities => Modification::RemoveAllAbilities,
+            // The card is marked as goading too (`Builder::goads`).
+            Mod::Goaded => Modification::AddKeywords(
+                KeywordSet::NONE.with(mtg_core::card::Keyword::MustAttack),
+            ),
             Mod::AllCreatureTypes { .. } => Modification::AllCreatureTypes,
             Mod::NoCreatureTypes => Modification::NoCreatureTypes,
             Mod::SetTypes(t) => Modification::SetTypes(TypeSet::of(t.iter().copied())),
@@ -2785,9 +2820,11 @@ impl Compiler<'_> {
                 | Mechanic::Disguise(_)
                 | Mechanic::Dash(_)
                 | Mechanic::Bestow(_)
+                | Mechanic::Overload(_)
                 | Mechanic::Splice(_)
                 | Mechanic::SpliceCost(_)
                 | Mechanic::Bargain
+                | Mechanic::Conspire
                 | Mechanic::Strive(_)
                 | Mechanic::Ascend
                 | Mechanic::StartYourEngines
@@ -3309,6 +3346,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Scavenge(_)
         | Mechanic::Dash(_)
         | Mechanic::Bestow(_)
+        | Mechanic::Overload(_)
         | Mechanic::Splice(_)
         | Mechanic::SpliceCost(_)
         | Mechanic::Embalm(_)
@@ -3317,6 +3355,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Offspring(_)
         | Mechanic::Strive(_)
         | Mechanic::Bargain
+        | Mechanic::Conspire
         | Mechanic::Ascend
         | Mechanic::StartYourEngines
         | Mechanic::BecomesDay

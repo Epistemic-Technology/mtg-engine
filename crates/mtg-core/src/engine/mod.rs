@@ -253,6 +253,7 @@ impl Engine {
                 state.valiant_watchers += u32::from(def.flags().has_valiant());
                 state.state_trigger_sources += u32::from(def.flags().has_state_trigger());
                 state.mark_sources += u32::from(def.flags().has_marks());
+                state.banding_sources += u32::from(def.flags().has_banding());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -459,6 +460,7 @@ impl GameState {
             bargains: Vec::new(),
             divisions: Vec::new(),
             splices: Vec::new(),
+            goads: Vec::new(),
             turn_number: 0,
             spells_this_turn: [0; 4],
             mana_spent_this_turn: [0; 4],
@@ -532,6 +534,7 @@ impl GameState {
             turn_static_sources: 0,
             state_trigger_sources: 0,
             mark_sources: 0,
+            banding_sources: 0,
             attack_rule_sources: 0,
             grant_sources: 0,
             eot_grants: 0,
@@ -796,6 +799,17 @@ impl GameState {
                         player,
                         kind: DecisionKind::Bargain { spell },
                         options,
+                    });
+                }
+                Flow::ChoosingConspire { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    return StepResult::Decision(Decision {
+                        player: obj.controller,
+                        kind: DecisionKind::Conspire { spell },
+                        options: vec![Choice::Accept, Choice::Decline],
                     });
                 }
                 Flow::ChoosingSplice { spell } => {
@@ -1132,6 +1146,30 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::FormBands { band, led } => {
+                    if band.is_empty() {
+                        match self.band_leader(&led) {
+                            Some(l) => {
+                                self.flow = Flow::FormBands { band: vec![l], led };
+                            }
+                            None => self.announce_attackers(),
+                        }
+                        continue;
+                    }
+                    let candidates = self.band_candidates(&band);
+                    if candidates.is_empty() {
+                        self.close_band(band, led);
+                        continue;
+                    }
+                    // `Done` first: unscripted, no band.
+                    let mut options = vec![Choice::Done];
+                    options.extend(candidates.into_iter().map(Choice::AddAttacker));
+                    return StepResult::Decision(Decision {
+                        player: self.active_player,
+                        kind: DecisionKind::FormBand { leader: band[0] },
+                        options,
+                    });
+                }
                 Flow::AttackTargets { chosen, remaining } => {
                     let Some(attacker) = remaining.first().copied() else {
                         self.finish_attackers_with(chosen);
@@ -1140,10 +1178,17 @@ impl GameState {
                     let player = self.active_player;
                     let defender = self.opponent(player);
                     let mut options = vec![Choice::AttackTarget(Target::Player(defender))];
-                    options.extend(
-                        self.planeswalkers_of(defender)
-                            .map(|pw| Choice::AttackTarget(Target::Object(pw))),
-                    );
+                    // CR 701.15b: a goaded creature attacks a player other
+                    // than those who goaded it if able; it can always
+                    // attack the defending player unless that player goaded
+                    // it, so then only that player.
+                    let goaders = self.goaders(attacker);
+                    if goaders.is_empty() || goaders.contains(&defender) {
+                        options.extend(
+                            self.planeswalkers_of(defender)
+                                .map(|pw| Choice::AttackTarget(Target::Object(pw))),
+                        );
+                    }
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::ChooseAttackTarget { attacker },
@@ -1274,7 +1319,7 @@ impl GameState {
                         self.deal_combat_damage(assigned);
                         continue;
                     };
-                    let player = self.objects[attacker].controller;
+                    let player = self.damage_assigner(attacker);
                     let options: Vec<Choice> = self
                         .damage_divisions(attacker)
                         .into_iter()
@@ -1460,6 +1505,11 @@ impl GameState {
                 let face = self.pool.get(self.objects[card].def).bestow_face;
                 self.begin_cast_as(player, card, crate::state::AltCast::Bestow, face);
             }
+            (Flow::Priority, Choice::CastOverload(card)) => {
+                // CR 702.96b: on the stack it is the spell without targets.
+                let face = self.pool.get(self.objects[card].def).overload_face;
+                self.begin_cast_as(player, card, crate::state::AltCast::Overload, face);
+            }
             (Flow::Priority, Choice::CastAlt(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::AltCost);
             }
@@ -1619,6 +1669,14 @@ impl GameState {
             (Flow::ChoosingBargain { spell }, Choice::Decline) => {
                 self.flow = self.after_bargain(spell);
             }
+            // CR 702.78a: the creatures are tapped as the costs are paid.
+            (Flow::ChoosingConspire { spell }, Choice::Accept) => {
+                self.objects[spell].cast.set_conspired(true);
+                self.flow = self.after_conspire(spell);
+            }
+            (Flow::ChoosingConspire { spell }, Choice::Decline) => {
+                self.flow = self.after_conspire(spell);
+            }
             // CR 702.47a: the card is revealed and stays in hand; the spell
             // has its effects and targets, its splice cost paid with the
             // spell's (CR 601.2f).
@@ -1744,6 +1802,11 @@ impl GameState {
                     incremental,
                 };
             }
+            (Flow::FormBands { mut band, led }, Choice::AddAttacker(id)) => {
+                band.push(id);
+                self.flow = Flow::FormBands { band, led };
+            }
+            (Flow::FormBands { band, led }, Choice::Done) => self.close_band(band, led),
             (Flow::DeclareAttackers { chosen, .. }, Choice::Done) => {
                 self.finish_attackers(chosen);
             }
@@ -1851,6 +1914,40 @@ impl GameState {
         spell
     }
 
+    /// CR 702.22c: the band being formed is finished; on to the next
+    /// leader.
+    fn close_band(&mut self, band: Vec<ObjId>, mut led: Vec<ObjId>) {
+        led.push(band[0]);
+        if band.len() >= 2
+            && let Some(c) = self.combat.as_mut()
+        {
+            c.bands.push(band);
+        }
+        self.flow = Flow::FormBands {
+            band: Vec::new(),
+            led,
+        };
+    }
+
+    /// The players who goaded `creature` (CR 701.15a): by an effect, or
+    /// by the static ability of a permanent attached to it ("enchanted
+    /// creature is goaded").
+    fn goaders(&self, creature: ObjId) -> smallvec::SmallVec<[PlayerId; 2]> {
+        let mut out: smallvec::SmallVec<[PlayerId; 2]> = self
+            .goads
+            .iter()
+            .filter(|(g, _)| *g == creature)
+            .map(|(_, by)| *by)
+            .collect();
+        for id in &self.battlefield {
+            let o = &self.objects[*id];
+            if o.attached_to == Some(creature) && self.pool.get(o.def).goads {
+                out.push(o.controller);
+            }
+        }
+        out
+    }
+
     fn after_mode(&self, spell: ObjId) -> Flow {
         // A modal triggered ability goes on to its mode's targets.
         if self.objects[spell].kind == ObjKind::Ability {
@@ -1914,6 +2011,43 @@ impl GameState {
     }
 
     fn after_bargain(&self, spell: ObjId) -> Flow {
+        // CR 702.78a: conspire, with two creatures to tap.
+        let o = &self.objects[spell];
+        if self.pool.get(o.def).conspire && self.conspirators(spell).len() >= 2 {
+            return Flow::ChoosingConspire { spell };
+        }
+        self.after_conspire(spell)
+    }
+
+    /// CR 702.78a: the untapped creatures `spell`'s caster controls that
+    /// share a color with it, the ones to tap first first (least power,
+    /// those that don't make mana last).
+    pub(super) fn conspirators(&self, spell: ObjId) -> Vec<ObjId> {
+        let Some(colors) = self.characteristics(spell).map(|c| c.colors) else {
+            return Vec::new();
+        };
+        let p = self.objects[spell].controller;
+        let mut out: Vec<(bool, i16, ObjId)> = self
+            .creatures_of(p)
+            .filter(|id| !self.objects[*id].tapped)
+            .filter_map(|id| {
+                let c = self.characteristics(id)?;
+                c.colors.intersects(colors).then(|| {
+                    let mana = self
+                        .pool
+                        .get(self.objects[id].def)
+                        .abilities
+                        .iter()
+                        .any(|a| matches!(a, crate::card::AbilityDef::TapForMana(_)));
+                    (mana, c.power, id)
+                })
+            })
+            .collect();
+        out.sort_by_key(|(mana, power, _)| (*mana, *power));
+        out.into_iter().map(|(_, _, id)| id).collect()
+    }
+
+    fn after_conspire(&self, spell: ObjId) -> Flow {
         // CR 702.47a: cards to splice onto an Arcane spell, revealed as
         // costs are announced.
         if !self.splice_candidates(spell).is_empty() {
@@ -2353,6 +2487,10 @@ impl GameState {
             let ends = Duration::UntilYourNextTurn(self.active_player);
             if self.effects.iter().any(|e| e.duration == ends) {
                 self.effects.retain(|e| e.duration != ends);
+            }
+            if !self.goads.is_empty() {
+                let p = self.active_player;
+                self.goads.retain(|(_, by)| *by != p);
             }
             // "During your turn" static abilities (CR 611.3a) change with
             // it; nothing a state-based action looks at does.

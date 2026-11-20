@@ -1,0 +1,7 @@
+card "Barkshell Blessing" {
+  oracle_id baf3d4d9-0590-4d94-8f4e-1e726194b920
+  cost {G/W}
+  type Instant
+  spell: target creature gets +2/+2
+  conspire
+}

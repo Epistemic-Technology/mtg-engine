@@ -1,0 +1,9 @@
+card "Rise of Extus" {
+  oracle_id 810f2b50-59c7-490a-8e6a-00f982cd16a0
+  cost {4}{W/B}{W/B}
+  type Sorcery
+  spell {
+    exile target creature; exile up to one target instant or sorcery card from a graveyard
+    learn
+  }
+}

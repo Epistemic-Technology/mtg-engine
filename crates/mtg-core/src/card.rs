@@ -301,6 +301,11 @@ pub enum Keyword {
     /// "Its activated abilities can't be activated unless they're mana
     /// abilities" (Realmbreaker's Grasp).
     CantActivateNonMana,
+    /// CR 702.22: attacks in a band with other creatures with banding and
+    /// up to one without; a band is blocked as a group, and its
+    /// controller divides the combat damage of creatures blocking or
+    /// blocked by one with banding.
+    Banding,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -327,6 +332,9 @@ pub enum Builtin {
     /// permanent to its owner's hand" (a dashed permanent's delayed
     /// trigger).
     DashReturn,
+    /// CR 702.78a: conspire's reflexive trigger, "When you do, copy it
+    /// and you may choose a new target for the copy."
+    Conspire,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -420,7 +428,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 63] = [
+    pub const ALL: [Keyword; 64] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -484,6 +492,7 @@ impl Keyword {
         Keyword::CantActivate,
         Keyword::CantActivateNonMana,
         Keyword::CantBecomeUntapped,
+        Keyword::Banding,
     ];
 
     /// The keyword as Oracle prints it.
@@ -537,6 +546,7 @@ impl Keyword {
             Keyword::Flanking => "flanking",
             Keyword::DoesntUntap => "doesn't untap during its controller's untap step",
             Keyword::CantBecomeUntapped => "can't become untapped",
+            Keyword::Banding => "banding",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -3328,6 +3338,16 @@ pub enum Effect {
         to: Recipient,
         parts: Vec<Modification>,
     },
+    /// Copy the source spell (CR 707.10), as it is on the stack or as it
+    /// last existed there; its controller may choose new targets for the
+    /// copy (CR 707.10c). Conspire's trigger (`Builtin::Conspire`).
+    CopySpell,
+    /// Goad (CR 701.15): until the controller's next turn, each recipient
+    /// creature attacks each combat if able and attacks a player other
+    /// than the controller if able.
+    Goad {
+        what: Recipient,
+    },
     /// "Each player loses 2 life unless they discard a card" (`unless`
     /// `None`) / "... unless they sacrifice a creature, artifact, or land
     /// of their choice": each player in turn order chooses (CR 101.4).
@@ -3670,6 +3690,7 @@ impl Effect {
                 | Effect::UnlessYou { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
+                | Effect::CopySpell
                 | Effect::Discard { .. }
                 | Effect::HandToLibrary { .. }
                 | Effect::CounterUnlessPays { .. }
@@ -5181,6 +5202,26 @@ pub struct CardDef {
     /// or creature subtypes, Aura, enchant creature).
     #[serde(skip)]
     pub bestow_face: Option<CardRef>,
+    /// Conspire (CR 702.78): as it is cast, its caster may tap two
+    /// untapped creatures they control that share a color with it; when
+    /// they do, the spell is copied.
+    #[serde(default)]
+    pub conspire: bool,
+    /// "Enchanted creature ... is goaded" (CR 701.15): the permanent's
+    /// static ability grants "attacks each combat if able"; this marks
+    /// that what it is attached to attacks a player other than the
+    /// permanent's controller if able.
+    #[serde(default)]
+    pub goads: bool,
+    /// Overload (CR 702.96): an alternative cost; an overloaded spell's
+    /// text has "each" for "target" (`overload_face`).
+    #[serde(default)]
+    pub overload: Option<Box<ManaCost>>,
+    /// Filled in by `CardPool::add` for a spell with overload: the spell
+    /// as cast overloaded, without targets (CR 702.96b). It resolves once
+    /// for each object or player the card's target spec matches.
+    #[serde(skip)]
+    pub overload_face: Option<CardRef>,
     /// Splice onto Arcane (CR 702.47): revealed from hand as an Arcane
     /// spell is cast, this cost paid on top, the card's effects (and
     /// targets) are added to that spell. Mana, or mana and a permanent
@@ -5368,6 +5409,8 @@ impl DefFlags {
     /// Ascend, start your engines!, or becoming day as it enters
     /// (`CardDef::marks`): state-based actions and entering then look.
     const MARKS: u32 = 4_194_304;
+    /// Banding (CR 702.22): combat then looks for bands.
+    const BANDING: u32 = 8_388_608;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -5468,6 +5511,10 @@ impl DefFlags {
 
     pub const fn has_marks(self) -> bool {
         self.has(DefFlags::MARKS)
+    }
+
+    pub const fn has_banding(self) -> bool {
+        self.has(DefFlags::BANDING)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -5831,7 +5878,7 @@ pub struct CardPool {
     flanking: AbilityId,
     evoke: AbilityId,
     exploit: AbilityId,
-    builtins: [AbilityId; 5],
+    builtins: [AbilityId; 6],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -5911,7 +5958,7 @@ impl CardPool {
             flanking: AbilityId(0),
             evoke: AbilityId(0),
             exploit: AbilityId(0),
-            builtins: [AbilityId(0); 5],
+            builtins: [AbilityId(0); 6],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -6028,6 +6075,14 @@ impl CardPool {
                 effects: vec![Effect::ReturnToHand {
                     what: Recipient::SameObject,
                 }],
+            }));
+        pool.builtins[Builtin::Conspire as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::Enters(TriggerObj::This),
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::CopySpell],
             }));
         pool.add_designations();
         // Named only for logs: a face-down permanent has no name.
@@ -6404,6 +6459,18 @@ impl CardPool {
             let face = bestowed_aura(&def);
             def.bestow_face = Some(self.add(face));
         }
+        // CR 702.96b: the overloaded spell has no targets (and so is
+        // not registered again).
+        if def.overload.is_some() && def.spell_ability().is_some_and(|(t, _)| !t.is_empty()) {
+            let mut face = def.clone();
+            for a in &mut face.abilities {
+                if let AbilityDef::Spell { targets, .. } = a {
+                    targets.clear();
+                }
+            }
+            face.overload_face = None;
+            def.overload_face = Some(self.add(face));
+        }
         let r = CardRef(u32::try_from(self.defs.len()).expect("card pool too large"));
         def.subtype_ids = def
             .subtypes
@@ -6522,6 +6589,7 @@ impl CardPool {
             flags.set(DefFlags::REPLACEMENTS, true);
         }
         flags.set(DefFlags::MARKS, !def.marks.is_empty());
+        flags.set(DefFlags::BANDING, def.keywords.contains(Keyword::Banding));
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
             def: r,
@@ -6677,6 +6745,10 @@ impl Builder {
             dash: None,
             bestow: None,
             bestow_face: None,
+            overload: None,
+            overload_face: None,
+            goads: false,
+            conspire: false,
             splice: None,
             alt_cost: None,
             additional_or: None,
@@ -6852,6 +6924,27 @@ impl Builder {
     #[must_use]
     pub fn bestow(mut self, cost: ManaCost) -> Self {
         self.0.bestow = Some(Box::new(cost));
+        self
+    }
+
+    /// Conspire (CR 702.78).
+    #[must_use]
+    pub fn conspire(mut self) -> Self {
+        self.0.conspire = true;
+        self
+    }
+
+    /// "Enchanted creature is goaded" (CR 701.15).
+    #[must_use]
+    pub fn goads(mut self) -> Self {
+        self.0.goads = true;
+        self
+    }
+
+    /// Overload (CR 702.96).
+    #[must_use]
+    pub fn overload(mut self, cost: ManaCost) -> Self {
+        self.0.overload = Some(Box::new(cost));
         self
     }
 

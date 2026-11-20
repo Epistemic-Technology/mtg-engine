@@ -1,0 +1,7 @@
+card "Vandalblast" {
+  oracle_id 3567c3c8-b3c7-45b7-935b-b1fdbc973720
+  cost {R}
+  type Sorcery
+  spell: destroy target artifact you don't control
+  overload {4}{R}
+}

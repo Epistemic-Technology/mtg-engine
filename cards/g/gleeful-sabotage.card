@@ -1,0 +1,7 @@
+card "Gleeful Sabotage" {
+  oracle_id 25fe48be-95c4-4011-8c60-4628fb5ecfcb
+  cost {1}{G}
+  type Sorcery
+  spell: destroy target artifact or enchantment
+  conspire
+}

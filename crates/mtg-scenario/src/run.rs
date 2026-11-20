@@ -116,6 +116,7 @@ pub fn run(pool: &Arc<CardPool>, sc: &Scenario) -> Report {
     }
 }
 
+#[allow(clippy::struct_excessive_bools)] // one flag per scripted cost choice
 struct Runner {
     engine: Engine,
     actions: Vec<ScriptedAction>,
@@ -134,6 +135,8 @@ struct Runner {
     pending_discard: Option<String>,
     /// Whether the spell being cast is scripted `kicked`.
     pending_kicked: bool,
+    /// `conspired` on the cast being made (CR 702.78a).
+    pending_conspired: bool,
     /// `other_cost` on the cast being made.
     pending_other_cost: bool,
     /// Cards still to splice onto the spell being cast (`splicing`).
@@ -148,7 +151,7 @@ struct Runner {
     /// Attackers still to be added in an incremental declaration.
     attack_queue: Option<Vec<ObjId>>,
     /// Scripted `at` targets for attackers (CR 508.1a).
-    attack_targets: Vec<(ObjId, TargetRef)>,
+    attack_targets: Vec<(ObjId, TargetRef, bool)>,
     /// Blocks still to be added in an incremental declaration.
     block_queue: Option<Vec<(ObjId, ObjId)>>,
 }
@@ -250,6 +253,7 @@ impl Runner {
             pending_sacrifice: None,
             pending_discard: None,
             pending_kicked: false,
+            pending_conspired: false,
             pending_other_cost: false,
             pending_splice: Vec::new(),
             refused_splice: Vec::new(),
@@ -450,7 +454,13 @@ impl Runner {
             DecisionKind::ChooseColor
             | DecisionKind::ChooseType
             | DecisionKind::ChooseCard
-            | DecisionKind::ChooseOption { .. } => self.choose_named(d, pos),
+            | DecisionKind::ChooseOption { .. }
+            // A copy's new targets (CR 707.10c): `choose "Hill Giant"`;
+            // unscripted, it keeps the copied ones.
+            | DecisionKind::CopyTarget { .. }
+            // An attacker joins the band being formed (CR 702.22c):
+            // `choose "Grizzly Bears"`; unscripted, no band.
+            | DecisionKind::FormBand { .. } => self.choose_named(d, pos),
             // "Buyback—Sacrifice a land.": `kicked sacrificing "Forest"`.
             DecisionKind::Buyback { .. }
                 if self.pending_kicked
@@ -469,6 +479,14 @@ impl Runner {
             }
             DecisionKind::Bargain { .. } => self.choose_bargain(d),
             DecisionKind::Splice { .. } => self.choose_splice(d),
+            DecisionKind::Conspire { .. } => {
+                let want = if std::mem::take(&mut self.pending_conspired) {
+                    Choice::Accept
+                } else {
+                    Choice::Decline
+                };
+                Ok(index_of(d, &want).unwrap_or(0))
+            }
         }
     }
 
@@ -486,12 +504,30 @@ impl Runner {
     /// What an attacker attacks: the scripted `at` target, else the player
     /// (the engine's first option).
     fn choose_attack_target(&mut self, d: &Decision, attacker: ObjId) -> Res<ChoiceId> {
-        let Some(i) = self.attack_targets.iter().position(|(a, _)| *a == attacker) else {
+        let Some(i) = self
+            .attack_targets
+            .iter()
+            .position(|(a, ..)| *a == attacker)
+        else {
             return Ok(0);
         };
-        let (_, tr) = self.attack_targets.remove(i);
+        let (_, tr, illegal) = self.attack_targets.remove(i);
         let line = self.line_of_kind(self.position(), d.player, "attack");
         let t = self.resolve_target(line, &tr)?;
+        // `illegal attack "X" at "Y"`: X attacks, but not Y.
+        if illegal {
+            if index_of(d, &Choice::AttackTarget(t)).is_some() {
+                return fail(
+                    line,
+                    format!(
+                        "{} attacking {} was legal but the scenario says it must not be",
+                        self.state().name_of(attacker),
+                        self.describe_target(t)
+                    ),
+                );
+            }
+            return Ok(0);
+        }
         index_of(d, &Choice::AttackTarget(t)).ok_or_else(|| Failure {
             line,
             message: format!(
@@ -692,7 +728,9 @@ impl Runner {
         let st = self.state();
         match c {
             // A permanent chosen as an effect resolves (bolster, populate).
-            Choice::Sacrifice(id) | Choice::Target(Target::Object(id)) => {
+            Choice::Sacrifice(id)
+            | Choice::AddAttacker(id)
+            | Choice::Target(mtg_core::state::Target::Object(id)) => {
                 Some(st.name_of(*id).to_string())
             }
             Choice::Discard { def, .. } => Some(st.pool.get(*def).name.clone()),
@@ -1052,6 +1090,7 @@ impl Runner {
                     dashed,
                     alternative,
                     bestowed,
+                    overloaded,
                     ..
                 } => {
                     let choice = if *face_down {
@@ -1062,6 +1101,8 @@ impl Runner {
                         Choice::CastDash(self.in_hand(a.line, d.player, name)?)
                     } else if *bestowed {
                         Choice::CastBestow(self.in_hand(a.line, d.player, name)?)
+                    } else if *overloaded {
+                        Choice::CastOverload(self.in_hand(a.line, d.player, name)?)
                     } else if *alternative {
                         Choice::CastAlt(self.in_hand(a.line, d.player, name)?)
                     } else if *from_graveyard {
@@ -1095,7 +1136,8 @@ impl Runner {
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
             | Choice::CastAlt(id)
-            | Choice::CastBestow(id)) = option
+            | Choice::CastBestow(id)
+            | Choice::CastOverload(id)) = option
             else {
                 unreachable!()
             };
@@ -1158,11 +1200,17 @@ impl Runner {
                         // A bestowed spell targets what it enchants; spliced
                         // cards' targets follow the spell's (CR 702.47a).
                         if let Action::Cast {
-                            bestowed, splice, ..
+                            bestowed,
+                            overloaded,
+                            splice,
+                            ..
                         } = &a.action
                         {
                             if *bestowed {
                                 needed += 1;
+                            }
+                            if *overloaded {
+                                needed = 0;
                             }
                             if !splice_refusal {
                                 let pool = &self.state().pool;
@@ -1189,6 +1237,13 @@ impl Runner {
                             &a.action,
                             Action::Cast {
                                 other_cost: true,
+                                ..
+                            }
+                        );
+                        self.pending_conspired = matches!(
+                            &a.action,
+                            Action::Cast {
+                                conspired: true,
                                 ..
                             }
                         );
@@ -1481,9 +1536,9 @@ impl Runner {
                     let used: Vec<ObjId> = legal.iter().chain(&illegal).copied().collect();
                     let id = self.creature_of(a.line, d.player, name, &used)?;
                     if let Some(tr) = at {
-                        self.attack_targets.push((id, tr.clone()));
+                        self.attack_targets.push((id, tr.clone(), a.illegal));
                     }
-                    if a.illegal {
+                    if a.illegal && at.is_none() {
                         illegal.push(id);
                     } else {
                         legal.push(id);
@@ -2348,6 +2403,9 @@ impl Runner {
             Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
             Choice::CastAlt(id) => format!("cast {} alternative", self.describe_ids(&[*id])),
             Choice::CastBestow(id) => format!("cast {} bestowed", self.describe_ids(&[*id])),
+            Choice::CastOverload(id) => {
+                format!("cast {} overloaded", self.describe_ids(&[*id]))
+            }
             Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
             Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
             Choice::TurnFaceUp(id) => {

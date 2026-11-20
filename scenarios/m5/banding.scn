@@ -1,0 +1,69 @@
+# Banding (CR 702.22): creatures with banding, and up to one without,
+# attack in a band (702.22c); a creature blocking one of a band blocks
+# them all (702.22h); the banding player divides the combat damage of
+# creatures blocking or blocked by their creatures with banding
+# (702.22j-k). Bands are formed with `choose`: the attacker that joins
+# the band led by the first attacker with banding.
+
+scenario "banding: a band is blocked as a group" {
+  battlefield A: "Benalish Hero", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Benalish Hero", "Grizzly Bears"
+  turn 1 declare_attackers A: choose "Grizzly Bears"
+  turn 1 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 combat_damage A: assign "Hill Giant" to "Grizzly Bears" 3
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Benalish Hero"
+}
+
+scenario "banding: without a band, the other attacker is unblocked" {
+  battlefield A: "Benalish Hero", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Benalish Hero", "Grizzly Bears"
+  turn 1 declare_blockers B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "banding: the defending player divides damage dealt to blockers with banding" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Benalish Hero", "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_blockers B: block "Hill Giant" with "Benalish Hero"
+  turn 1 declare_blockers B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 combat_damage B: assign "Hill Giant" to "Benalish Hero" 3
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Benalish Hero"
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "banding: at most one creature without banding in a band" {
+  battlefield A: "Benalish Hero", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Wind Drake"
+  turn 1 A: attack "Benalish Hero", "Grizzly Bears", "Hill Giant"
+  turn 1 declare_attackers A: choose "Grizzly Bears"
+  illegal turn 1 declare_attackers A: choose "Hill Giant"
+  turn 1 declare_blockers B: block "Benalish Hero" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "banding: creatures with banding and one without band together" {
+  battlefield A: "Benalish Hero", "Kjeldoran Warrior", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Benalish Hero", "Kjeldoran Warrior", "Grizzly Bears"
+  turn 1 declare_attackers A: choose "Kjeldoran Warrior"
+  turn 1 declare_attackers A: choose "Grizzly Bears"
+  turn 1 declare_blockers B: block "Benalish Hero" with "Hill Giant"
+  turn 1 combat_damage A: assign "Hill Giant" to "Benalish Hero" 3
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Benalish Hero"
+  assert battlefield A contains "Kjeldoran Warrior"
+  assert graveyard B contains "Hill Giant"
+}

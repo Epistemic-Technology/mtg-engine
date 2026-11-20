@@ -520,6 +520,18 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let overloaded = if line.peek_ident("overloaded") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
+            let conspired = if line.peek_ident("conspired") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let other_cost = if line.peek_ident("other_cost") {
                 line.pos += 1;
                 true
@@ -618,6 +630,8 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     dashed,
                     alternative,
                     bestowed,
+                    overloaded,
+                    conspired,
                     splice,
                     other_cost,
                     face_down,

@@ -1,0 +1,9 @@
+card "Cram Session" {
+  oracle_id 6e5b8bb2-9dd8-4986-9d0a-659114be5a2a
+  cost {1}{B/G}
+  type Sorcery
+  spell {
+    you gain 4 life
+    learn
+  }
+}

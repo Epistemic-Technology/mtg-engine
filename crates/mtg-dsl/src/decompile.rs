@@ -676,6 +676,7 @@ impl Decompiler<'_> {
             CoreEffect::Sacrifice { what } => Effect::Sacrifice { what: r(*what) },
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
+            CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),
@@ -1075,6 +1076,7 @@ impl Decompiler<'_> {
             CoreEffect::Manifest => Effect::Manifest,
             CoreEffect::CastExiled(_)
             | CoreEffect::SuspendTick
+            | CoreEffect::CopySpell
             | CoreEffect::Cascade
             | CoreEffect::Exploit
             | CoreEffect::EnterAttacking

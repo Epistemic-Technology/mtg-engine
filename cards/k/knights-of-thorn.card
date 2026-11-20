@@ -1,0 +1,7 @@
+card "Knights of Thorn" {
+  oracle_id 6d8e1a97-67bf-4260-888c-c10c498b98d8
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords protection from red, banding
+}

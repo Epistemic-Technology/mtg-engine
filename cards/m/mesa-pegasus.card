@@ -1,0 +1,7 @@
+card "Mesa Pegasus" {
+  oracle_id 8161f5b8-6aab-4133-ba2c-2e7b5774153e
+  cost {1}{W}
+  type Creature — Pegasus
+  pt 1/1
+  keywords flying, banding
+}

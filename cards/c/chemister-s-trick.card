@@ -1,0 +1,7 @@
+card "Chemister's Trick" {
+  oracle_id daf22b20-3d87-429c-99fe-2f3d4c6fee24
+  cost {U}{R}
+  type Instant
+  spell: target creature you don't control gets -2/-0 and attacks this turn if able
+  overload {3}{U}{R}
+}

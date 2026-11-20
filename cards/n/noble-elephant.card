@@ -1,0 +1,7 @@
+card "Noble Elephant" {
+  oracle_id 99dd6f15-855f-431f-a3c8-31f1421af88f
+  cost {3}{W}
+  type Creature — Elephant
+  pt 2/2
+  keywords trample, banding
+}

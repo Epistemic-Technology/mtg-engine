@@ -975,6 +975,7 @@ impl Fmt {
             ),
             Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
             Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
+            Effect::Goad { what } => format!("goad {}", self.recipient(*what, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
             Effect::Grant { keywords: ks, to } => {
                 let v = if matches!(
@@ -1358,6 +1359,7 @@ impl Fmt {
                 t
             }
             Effect::Surveil(n) => format!("surveil {}", num(*n)),
+            Effect::Learn => "learn".to_string(),
             Effect::Discard { count, who } => match who {
                 None => format!("discard {} {}", num(*count), cards(*count)),
                 Some(w) => {
@@ -3266,6 +3268,7 @@ fn modification(m: &Mod) -> String {
         Mod::AddKeywords(ks) => format!("has {}", keywords(ks)),
         Mod::LosesKeywords(ks) => format!("loses {}", keywords(ks)),
         Mod::RemoveAllAbilities => "loses all abilities".to_string(),
+        Mod::Goaded => "goaded".to_string(),
         Mod::AllCreatureTypes { every: true } => "add subtype every".to_string(),
         Mod::AllCreatureTypes { every: false } => "add subtype all".to_string(),
         Mod::NoCreatureTypes => "loses all creature types".to_string(),
@@ -4061,6 +4064,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Scavenge(c) => format!("scavenge {c}"),
                 crate::ast::Mechanic::Dash(c) => format!("dash {c}"),
                 crate::ast::Mechanic::Bestow(c) => format!("bestow {c}"),
+                crate::ast::Mechanic::Overload(c) => format!("overload {c}"),
                 crate::ast::Mechanic::Splice(c) => format!("splice {c}"),
                 crate::ast::Mechanic::SpliceCost(c) => format!("splice {}", cost_text(c)),
                 crate::ast::Mechanic::Embalm(c) => format!("embalm {c}"),
@@ -4069,6 +4073,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Offspring(c) => format!("offspring {c}"),
                 crate::ast::Mechanic::Strive(c) => format!("strive {c}"),
                 crate::ast::Mechanic::Bargain => "bargain".to_string(),
+                crate::ast::Mechanic::Conspire => "conspire".to_string(),
                 crate::ast::Mechanic::Saddle(n) => format!("saddle {n}"),
                 crate::ast::Mechanic::Ascend => "ascend".to_string(),
                 crate::ast::Mechanic::StartYourEngines => "start your engines".to_string(),

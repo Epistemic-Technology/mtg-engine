@@ -113,6 +113,16 @@ pub enum DecisionKind {
     /// A card in hand with splice onto Arcane to splice onto `spell` as it
     /// is cast (CR 702.47a): `Discard` options naming the cards, or `Done`.
     Splice { spell: ObjId },
+    /// Whether to conspire `spell` (CR 702.78a): `Accept` taps two
+    /// untapped creatures the caster controls that share a color with it
+    /// (the engine picks them), `Decline` doesn't.
+    Conspire { spell: ObjId },
+    /// The `index`th target of `spell`, a copy of a spell (CR 707.10c):
+    /// `Target` options, the copied target first (keep it).
+    CopyTarget { spell: ObjId, index: usize },
+    /// Which attacker joins the band `leader` leads (CR 702.22c):
+    /// `AddAttacker` options, or `Done` to close it.
+    FormBand { leader: ObjId },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -217,6 +227,8 @@ pub enum Choice {
     CastAlt(ObjId),
     /// Cast a card for its bestow cost, as an Aura spell (CR 702.103a).
     CastBestow(ObjId),
+    /// Cast a card for its overload cost (CR 702.96a).
+    CastOverload(ObjId),
     /// Suspend a card from hand (CR 702.62a), a special action.
     Suspend(ObjId),
     /// Foretell a card from hand (CR 702.143a), a special action.
@@ -323,6 +335,7 @@ impl Choice {
             Choice::CastDash(id) => format!("cast {} for its dash cost", name(id)),
             Choice::CastAlt(id) => format!("cast {} for its alternative cost", name(id)),
             Choice::CastBestow(id) => format!("cast {} for its bestow cost", name(id)),
+            Choice::CastOverload(id) => format!("cast {} for its overload cost", name(id)),
             Choice::Suspend(id) => format!("suspend {}", name(id)),
             Choice::Foretell(id) => format!("foretell {}", name(id)),
             Choice::CastFaceDown(id) => {

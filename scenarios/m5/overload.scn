@@ -1,0 +1,74 @@
+# Overload (CR 702.96): cast for the overload cost, the spell's "target"
+# reads "each" (702.96a); it has no targets, so hexproof doesn't stop it
+# (702.96b).
+
+scenario "overload: Electrickery overloaded hits each creature you don't control" {
+  battlefield A: 2 "Mountain", "Raging Goblin"
+  battlefield B: "Llanowar Elves", "Gladecover Scout", "Grizzly Bears"
+  hand A: "Electrickery"
+  turn 1 A: cast "Electrickery" overloaded
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert graveyard B contains "Gladecover Scout"
+  assert damage "Grizzly Bears" 1
+  assert battlefield A contains "Raging Goblin"
+}
+
+scenario "overload: Electrickery unoverloaded can't target hexproof" {
+  battlefield A: "Mountain"
+  battlefield B: "Gladecover Scout", "Llanowar Elves"
+  hand A: "Electrickery"
+  illegal turn 1 A: cast "Electrickery" targeting "Gladecover Scout"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Gladecover Scout"
+}
+
+scenario "overload: Electrickery for its mana cost hits only its target" {
+  battlefield A: "Mountain"
+  battlefield B: "Gladecover Scout", "Llanowar Elves", "Raging Goblin"
+  hand A: "Electrickery"
+  turn 1 A: cast "Electrickery" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert battlefield B contains "Raging Goblin"
+}
+
+scenario "overload: not offered without the overload cost" {
+  battlefield A: "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Electrickery"
+  illegal turn 1 A: cast "Electrickery" overloaded
+  run_to turn 1 postcombat_main
+}
+
+scenario "overload: Mind Rake overloaded makes each player discard two" {
+  battlefield A: 2 "Swamp"
+  hand A: "Mind Rake", "Plains", "Island", "Forest"
+  hand B: "Plains", "Island", "Forest"
+  turn 1 A: cast "Mind Rake" overloaded
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand B count 1
+}
+
+scenario "overload: Weapon Surge overloaded pumps each creature you control" {
+  battlefield A: 2 "Mountain", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Raging Goblin"
+  hand A: "Weapon Surge"
+  turn 1 A: cast "Weapon Surge" overloaded
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Hill Giant" first_strike
+  assert power "Raging Goblin" 1
+}
+
+scenario "overload: an overloaded instant is cast at instant speed" {
+  battlefield A: "Grizzly Bears", "Hill Giant"
+  battlefield B: 3 "Island", "Serra Angel"
+  hand B: "Downsize"
+  turn 1 B: cast "Downsize" overloaded
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" -2
+  assert power "Hill Giant" -1
+  assert power "Serra Angel" 4
+}

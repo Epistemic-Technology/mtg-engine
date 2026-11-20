@@ -19,7 +19,8 @@ use crate::DataDir;
 use crate::scryfall::{self, Card as ScryCard};
 
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
-const KEYWORDS: [&str; 38] = [
+const KEYWORDS: [&str; 39] = [
+    "Banding",
     "Delve",
     "Exploit",
     "Cascade",
@@ -61,7 +62,7 @@ const KEYWORDS: [&str; 38] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 87] = [
+const TEMPLATED_TAGS: [&str; 89] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -135,12 +136,14 @@ const TEMPLATED_TAGS: [&str; 87] = [
     "Scavenge",
     "Dash",
     "Bestow",
+    "Overload",
     "Splice",
     "Embalm",
     "Eternalize",
     "Backup",
     "Offspring",
     "Bargain",
+    "Conspire",
     "Saddle",
     "Fabricate",
     "Renown",
@@ -2609,7 +2612,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Embalm|Eternalize|Offspring|Bestow) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Embalm|Eternalize|Offspring|Bestow|Overload) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
@@ -2678,6 +2681,10 @@ impl Builder<'_> {
         {
             self.statements
                 .push(format!("suspend {} {}", cap(&c, 1), cap(&c, 2)));
+            return Ok(());
+        }
+        if line == "Conspire" {
+            self.statements.push("conspire".to_string());
             return Ok(());
         }
         if line == "Bargain" {

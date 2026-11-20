@@ -3998,6 +3998,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("tap or untap {o}"))
         }
+        Effect::Goad { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("goad {o}"))
+        }
         Effect::Tap { to } => {
             let o = ctx.obj_list_tap(to);
             Clause::imperative(format!("tap {o}"))
@@ -4891,6 +4895,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             })
         }
         Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
+        Effect::Learn => Clause::imperative("learn".to_string()),
         Effect::Discard { count, who } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
             match who {
@@ -7171,6 +7176,7 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             list(&parts)
         }
         Mod::RemoveAllAbilities => format!("{} all abilities", v("loses", "lose")),
+        Mod::Goaded => format!("{} goaded", v("is", "are")),
         Mod::AllCreatureTypes { every: true } => format!("{} every creature type", v("is", "are")),
         Mod::AllCreatureTypes { every: false } => format!("{} all creature types", v("is", "are")),
         Mod::NoCreatureTypes => format!("{} all creature types", v("loses", "lose")),
@@ -8833,6 +8839,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Scavenge(c) => format!("Scavenge {c}"),
             crate::ast::Mechanic::Dash(c) => format!("Dash {c}"),
             crate::ast::Mechanic::Bestow(c) => format!("Bestow {c}"),
+            crate::ast::Mechanic::Overload(c) => format!("Overload {c}"),
             crate::ast::Mechanic::Splice(c) => format!("Splice onto Arcane {c}"),
             crate::ast::Mechanic::SpliceCost(c) => {
                 format!(
@@ -8848,6 +8855,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "Strive \u{2014} This spell costs {c} more to cast for each target beyond the first."
             ),
             crate::ast::Mechanic::Bargain => "Bargain".to_string(),
+            crate::ast::Mechanic::Conspire => "Conspire".to_string(),
             crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
             crate::ast::Mechanic::Ascend => "Ascend".to_string(),
             crate::ast::Mechanic::StartYourEngines => "Start your engines!".to_string(),
@@ -9104,7 +9112,14 @@ pub fn normalize(text: &str) -> String {
         if line.is_empty() {
             continue;
         }
-        let parts: Vec<&str> = line.split(", ").collect();
+        // "Flying; banding": older keyword lines separate with semicolons
+        // (one of them had reminder text).
+        let sep = if line.contains("; ") && !line.contains(", ") {
+            "; "
+        } else {
+            ", "
+        };
+        let parts: Vec<&str> = line.split(sep).collect();
         // Keywords, or protection from a quality ("Flying, protection
         // from enchantments").
         let all_keywords = parts.iter().all(|p| {

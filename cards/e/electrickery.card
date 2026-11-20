@@ -1,0 +1,7 @@
+card "Electrickery" {
+  oracle_id 99fd4b51-1698-4168-9366-a6ea2df22361
+  cost {R}
+  type Instant
+  spell: deal 1 damage to target creature you don't control
+  overload {1}{R}
+}

@@ -1,0 +1,7 @@
+card "Icatian Phalanx" {
+  oracle_id a1160b8d-c4e4-4869-b7a5-c6a826eb1ba4
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 2/4
+  keywords banding
+}

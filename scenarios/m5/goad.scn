@@ -1,0 +1,88 @@
+# Goad (CR 701.15): until the goading player's next turn, the creature
+# attacks each combat if able (701.15b) and attacks a player other than
+# the goading player if able.
+
+scenario "goad: the goaded creature attacks on its controller's turn" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Jeering Homunculus"
+  turn 1 A: cast "Jeering Homunculus"
+  turn 1 A: trigger "Jeering Homunculus" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "goad: it ends as the goading player's next turn begins" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Jeering Homunculus"
+  turn 1 A: cast "Jeering Homunculus"
+  turn 1 A: trigger "Jeering Homunculus" targeting "Grizzly Bears"
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_blockers A: block "Grizzly Bears" with "Jeering Homunculus"
+  run_to turn 4 postcombat_main
+  assert life A 20
+}
+
+scenario "goad: without goad, not attacking is fine" {
+  battlefield B: "Grizzly Bears"
+  start turn 2 B untap
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "goad: a creature goaded by its controller attacks the other player, not a planeswalker" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: "Jace Beleren"
+  hand A: "Jeering Homunculus"
+  turn 1 A: cast "Jeering Homunculus"
+  turn 1 A: trigger "Jeering Homunculus" targeting "Grizzly Bears"
+  illegal turn 1 A: attack "Grizzly Bears" at "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Jace Beleren" loyalty 3
+}
+
+scenario "goad: a creature goaded by the defending player may attack its planeswalker" {
+  battlefield A: 2 "Island", "Jace Beleren"
+  battlefield B: "Grizzly Bears"
+  hand A: "Jeering Homunculus"
+  turn 1 A: cast "Jeering Homunculus"
+  turn 1 A: trigger "Jeering Homunculus" targeting "Grizzly Bears"
+  turn 2 B: attack "Grizzly Bears" at "Jace Beleren"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert counters "Jace Beleren" loyalty 1
+}
+
+scenario "goad: Coronation of Chaos goads up to three creatures, which can't block" {
+  battlefield A: 3 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  hand A: "Coronation of Chaos"
+  turn 1 A: cast "Coronation of Chaos" targeting B "Grizzly Bears", B "Llanowar Elves"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 declare_blockers B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 17
+}
+
+scenario "goad: an Aura's enchanted creature is goaded while attached" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shiny Impetus"
+  turn 1 A: cast "Shiny Impetus" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 16
+  assert battlefield A contains "Treasure"
+}
+
+scenario "goad: an Aura's goad on its controller's own creature: not at a planeswalker" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  battlefield B: "Jace Beleren"
+  hand A: "Predatory Impetus"
+  turn 1 A: cast "Predatory Impetus" targeting "Grizzly Bears"
+  illegal turn 1 A: attack "Grizzly Bears" at "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}

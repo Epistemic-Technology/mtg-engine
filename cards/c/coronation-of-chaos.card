@@ -1,0 +1,6 @@
+card "Coronation of Chaos" {
+  oracle_id 46f1618d-9c95-4a4b-9a20-7c378b811849
+  cost {2}{R}
+  type Sorcery
+  spell: up to three target creatures can't block; goad targets 1 to 3
+}

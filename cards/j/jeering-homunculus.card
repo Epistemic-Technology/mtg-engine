@@ -1,0 +1,7 @@
+card "Jeering Homunculus" {
+  oracle_id 146de263-fece-4a00-ab67-35dc934165d8
+  cost {1}{U}
+  type Creature — Homunculus
+  pt 0/4
+  triggered when this enters: you may goad target creature
+}

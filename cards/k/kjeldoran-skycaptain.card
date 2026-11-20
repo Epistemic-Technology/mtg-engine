@@ -1,0 +1,7 @@
+card "Kjeldoran Skycaptain" {
+  oracle_id 7160ebce-ee3f-42ac-a3f7-b55f17f2c49f
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords flying, first strike, banding
+}

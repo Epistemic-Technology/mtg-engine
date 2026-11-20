@@ -1,0 +1,7 @@
+card "Giantbaiting" {
+  oracle_id 894a220b-1372-4a76-b38f-bf0d7001af41
+  cost {2}{R/G}
+  type Sorcery
+  spell: create 1 "4/4 red and green Giant Warrior creature with haste"; delayed that token: exile it at beginning of the next end step
+  conspire
+}

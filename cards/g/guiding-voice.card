@@ -1,0 +1,9 @@
+card "Guiding Voice" {
+  oracle_id 5c7e7c9e-00d1-497e-bee7-278bbd82e234
+  cost {W}
+  type Sorcery
+  spell {
+    put 1 +1/+1 counter on target creature
+    learn
+  }
+}

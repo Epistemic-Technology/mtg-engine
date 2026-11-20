@@ -1,0 +1,7 @@
+card "Burn Trail" {
+  oracle_id 566b4dcc-b7d7-4443-b2d0-954f1fc33a11
+  cost {3}{R}
+  type Sorcery
+  spell: deal 3 damage to any target
+  conspire
+}

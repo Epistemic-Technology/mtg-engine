@@ -1111,6 +1111,8 @@ pub enum Mechanic {
     /// CR 702.103: `bestow {3}{W}`: an alternative cost; the spell is an
     /// Aura with enchant creature, a creature again once unattached.
     Bestow(ManaCost),
+    /// Overload (CR 702.96): `overload {1}{U}`.
+    Overload(ManaCost),
     /// CR 702.47: `splice {1}{R}`: splice onto Arcane; revealed from hand
     /// as an Arcane spell is cast, this paid too, its effects added.
     Splice(ManaCost),
@@ -1136,6 +1138,8 @@ pub enum Mechanic {
     /// CR 702.166: `bargain`: "You may sacrifice an artifact, enchantment,
     /// or token as you cast this spell."
     Bargain,
+    /// Conspire (CR 702.78).
+    Conspire,
     /// CR 702.131: `ascend`: the city's blessing once you control ten or
     /// more permanents (a permanent's static ability; an instant's or
     /// sorcery's first effect).
@@ -1925,6 +1929,9 @@ pub enum Mod {
     AddAbility(Box<Ability>),
     /// `loses flying`.
     LosesKeywords(Vec<Keyword>),
+    /// `goaded`: "is goaded" (CR 701.15): attacks each combat if able,
+    /// and a player other than the source's controller if able.
+    Goaded,
     RemoveAllAbilities,
     /// `add subtype every`: "is every creature type"; `add subtype all`:
     /// "is all creature types" (`every` false). Layer 4.
@@ -2195,6 +2202,10 @@ pub enum Effect {
     TapOrUntap {
         to: Recipient,
     },
+    /// `goad target creature` (CR 701.15).
+    Goad {
+        what: Recipient,
+    },
     Untap {
         to: Vec<Recipient>,
     },
@@ -2460,6 +2471,10 @@ pub enum Effect {
         basic: bool,
     },
     Surveil(Num),
+    /// `learn` (CR 701.48): there is no sideboard here, so "you may
+    /// discard a card; if you do, draw a card" (CR 701.48a's other
+    /// choice; no Lesson card is ever outside the game).
+    Learn,
     /// `who` is `None` for the imperative "discard a card".
     Discard {
         count: Num,
