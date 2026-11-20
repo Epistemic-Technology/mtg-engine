@@ -379,3 +379,27 @@ scenario "Flitting Guerrilla may exile itself to put a creature card on top" {
   assert library A count 2
   assert graveyard B count 3
 }
+
+# ----- "If you can't, ..." -----
+
+scenario "Patient Naturalist puts a milled land into your hand" {
+  battlefield A: 3 "Forest"
+  hand A: "Patient Naturalist"
+  library A: "Grizzly Bears", "Island", "Hill Giant", "Forest"
+  turn 1 A: cast "Patient Naturalist"
+  run_to turn 1 end
+  assert hand A contains "Island"
+  assert graveyard A count 2
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Patient Naturalist makes a Treasure when no land was milled" {
+  battlefield A: 3 "Forest"
+  hand A: "Patient Naturalist"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Forest"
+  turn 1 A: cast "Patient Naturalist"
+  run_to turn 1 end
+  assert hand A count 0
+  assert graveyard A count 3
+  assert battlefield A contains "Treasure"
+}

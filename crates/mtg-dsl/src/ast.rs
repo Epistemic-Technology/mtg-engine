@@ -2629,6 +2629,10 @@ pub enum Effect {
     },
     /// `if you do, ...`: only if the optional action before happened.
     IfYouDo(Vec<Sentence>),
+    /// `if you can't, ...`: only if the action before did nothing ("return
+    /// a land card from your graveyard to your hand. If you can't, draw a
+    /// card.").
+    IfYouCant(Vec<Sentence>),
     /// `otherwise, ...`: only if the conditional sentence just before (`if
     /// <condition>, ...`, `if you win, ...`) didn't happen (CR 608.2c).
     Otherwise(Vec<Sentence>),

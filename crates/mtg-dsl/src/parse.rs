@@ -3549,6 +3549,17 @@ impl P {
             self.subject = saved;
             return Ok(Effect::IfYouDo(vec![s]));
         }
+        // "If you can't, ..." after an action that may do nothing.
+        if self.at_words(&["if", "you", "can't"]) {
+            self.pos += 3;
+            if self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+            }
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfYouCant(vec![s]));
+        }
         // "Otherwise, ..." after a conditional sentence (CR 608.2c).
         if self.at_word("otherwise") && self.peek_at(1) == Some(&Tok::Comma) {
             self.pos += 2;

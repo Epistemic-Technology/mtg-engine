@@ -5261,6 +5261,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = lowercase_first(&body);
             Clause::imperative(format!("if {who} do, {}", body.trim_end_matches('.')))
         }
+        Effect::IfYouCant(inner) => {
+            let body = sentences(inner, ctx);
+            let body = lowercase_first(&body);
+            Clause::imperative(format!("if you can't, {}", body.trim_end_matches('.')))
+        }
         Effect::Pay { mana, life } => Clause::imperative(if *life > 0 {
             format!("pay {life} life")
         } else {

@@ -1770,6 +1770,14 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfYouDo(effects));
             }
+            // What happens when the choice before found nothing to act on.
+            Effect::IfYouCant(inner) => {
+                if !matches!(out.last(), Some(CoreEffect::ChooseAct { .. })) {
+                    return self.err("`if you can't` needs a choice before it");
+                }
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::Otherwise(effects));
+            }
             Effect::Otherwise(inner) => {
                 if !matches!(
                     out.last(),

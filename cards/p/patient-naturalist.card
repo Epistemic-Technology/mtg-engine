@@ -1,0 +1,7 @@
+card "Patient Naturalist" {
+  oracle_id ba7c1062-f777-4ba9-84df-ec340a9ec514
+  cost {2}{G}
+  type Creature — Human Scout
+  pt 2/3
+  triggered when this enters: mill 3 cards; put 1 land card from among milled cards into hand chosen; if you can't, create 1 "Treasure"
+}

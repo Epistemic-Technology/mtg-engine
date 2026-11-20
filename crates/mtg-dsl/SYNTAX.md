@@ -1490,6 +1490,10 @@ each blocking creature` is "Lava Storm deals 2 damage to each attacking
 creature or Lava Storm deals 2 damage to each blocking creature". `target creature gains choice of lifelink or
 indestructible` is "gains your choice of lifelink or indestructible until
 end of turn". With none possible nothing happens and `if you do` sees that.
+After a choice (`return 1 creature card from your graveyard to hand chosen`,
+`put 1 land card from among milled cards into hand chosen`), `if you can't,
+...` happens only if it found nothing to act on: "Put a land card from among
+the milled cards into your hand. If you can't, create a Treasure token."
 
 Conditions on what the resolution did "this way" (CR 608.2c), judged on
 the objects as they last existed (CR 608.2h): `if creature card was exiled

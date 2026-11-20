@@ -1594,6 +1594,7 @@ impl Fmt {
                 self.line(inner, t)
             ),
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
+            Effect::IfYouCant(inner) => format!("if you can't, {}", self.line(inner, t)),
             Effect::Otherwise(inner) => format!("otherwise, {}", self.line(inner, t)),
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
