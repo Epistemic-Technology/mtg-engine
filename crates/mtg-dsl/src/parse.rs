@@ -9119,9 +9119,16 @@ impl P {
                 };
                 return Ok(Trigger::CastsFiltered { whose, filter });
             }
-            let simple = self.at_word("spell")
+            // Repartee: "an instant or sorcery spell that targets a
+            // creature" is a filter with targets.
+            let targets_after = |p: &Self, n: usize| {
+                p.word_at(n).as_deref() == Some("that")
+                    && p.word_at(n + 1).as_deref() == Some("targets")
+            };
+            let simple = (self.at_word("spell") && !targets_after(self, 1))
                 || self.at_words(&["noncreature", "spell"])
-                || self.at_words(&["instant", "or", "sorcery", "spell"]);
+                || (self.at_words(&["instant", "or", "sorcery", "spell"])
+                    && !targets_after(self, 4));
             if !simple {
                 let mut filter = self.filter()?;
                 self.expect_word("spell")?;

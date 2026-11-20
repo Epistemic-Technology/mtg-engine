@@ -1,0 +1,8 @@
+card "Conciliator's Duelist" {
+  oracle_id d6ea0e58-7b14-425b-9135-57e149c0e47e
+  cost {W}{W}{B}{B}
+  type Creature — Kor Warlock
+  pt 4/3
+  triggered when this enters: draw 1 card; each player loses 1 life
+  label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: exile up to 1 target creature; delayed target 1: return it to battlefield at beginning of the next end step
+}

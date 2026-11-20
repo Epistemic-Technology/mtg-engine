@@ -7045,6 +7045,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             }
             let what = spells_subject(&base, ctx.card);
             let what = what.strip_suffix(" spells").unwrap_or(&what);
+            // "Instant and sorcery spells" (a cost changer's subject) is
+            // one spell here: "an instant or sorcery spell that targets a
+            // creature" (repartee).
+            let what = what.replace("nstant and sorcery", "nstant or sorcery");
+            let what = what.as_str();
             // "an artifact spell", but "a Giant spell".
             let what = if lower_spell_subject(&base) {
                 lowercase_first(what)

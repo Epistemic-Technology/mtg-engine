@@ -1,0 +1,7 @@
+card "Inkling Mascot" {
+  oracle_id 0f0959ff-4464-4738-9d79-5b06f368f144
+  cost {W}{B}
+  type Creature — Inkling Cat
+  pt 2/2
+  label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: this gains flying until end of turn; surveil 1
+}

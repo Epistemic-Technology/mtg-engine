@@ -188,7 +188,8 @@ const TEMPLATED_TAGS: [&str; 118] = [
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
 /// "Landfall — <ability>". Scryfall tags them like keywords.
-const ABILITY_WORDS: [&str; 43] = [
+const ABILITY_WORDS: [&str; 44] = [
+    "Repartee",
     "Vivid",
     // CR 702.179e: a condition, not a bare label; the DSL compiles it.
     "Max speed",
@@ -1876,6 +1877,10 @@ fn trigger_text(head: &str) -> Option<String> {
         }
         "Whenever you cast a spell" => "whenever you cast a spell",
         "Whenever a player casts a spell" => "whenever a player casts a spell",
+        // Repartee (the ability word is a label the caller keeps).
+        "Whenever you cast an instant or sorcery spell that targets a creature" => {
+            "whenever you cast instant or sorcery spell that targets creature"
+        }
         // Heroic (the ability word is a label the caller keeps).
         "Whenever you cast a spell that targets this creature" => {
             "whenever you cast a spell that targets this"

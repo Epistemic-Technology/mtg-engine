@@ -1,0 +1,8 @@
+card "Rehearsed Debater" {
+  oracle_id e30ccf07-0969-4e81-ba43-c50a2ff9c040
+  cost {2}{W}
+  type Creature — Djinn Bard
+  pt 3/3
+  keywords vigilance
+  label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: this gets +1/+1 until end of turn
+}
