@@ -1,0 +1,9 @@
+card "Buzzard-Wasp Colony" {
+  oracle_id 29fd050c-dd1d-4e1b-b3cc-f7d8d18e4dcb
+  cost {3}{B}
+  type Creature — Bird Insect
+  pt 2/2
+  keywords flying
+  triggered when this enters: you may sacrifice 1 artifact or creature chosen; if you do, draw 1 card
+  triggered whenever other creature you control dies if it had counters: put its counters on this
+}

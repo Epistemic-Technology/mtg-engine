@@ -1,0 +1,7 @@
+card "Rick Jones, Destined Sidekick" {
+  oracle_id 4bccfa67-0c6f-42a1-b8d4-0842a8230d1e
+  cost {G}
+  type Legendary Creature — Human Advisor
+  pt 0/3
+  activated {3}, {T}: mill 4 cards; you may put 1 Hero or enchantment card from among those cards into hand chosen
+}

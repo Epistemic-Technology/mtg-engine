@@ -806,7 +806,13 @@ dies this turn, manifest dread` prints "When it dies this turn, ...".
 Trigger `whenever you turn a permanent face up` (a permanent you
 control; "it" is that permanent). `return up to 2 permanent card from
 among them to hand chosen` after a mill prints "return ... from among
-them to your hand"; `impulse 2 next turn it` prints "You may play them
+them to your hand", and `put 1 Hero or enchantment card from among those
+cards into hand chosen` "... from among those cards into your hand" (Rick
+Jones). In a triggered ability, `put its counters on this` moves the
+triggering object's counters, as it last existed ("Whenever another
+creature you control dies, if it had counters on it, put its counters on
+this creature."; the condition `if it had counters` is any kind on the
+triggering object). `impulse 2 next turn it` prints "You may play them
 until the end of your next turn."
 
 An optional additional cost (CR 601.2b): `additional cost may collect
@@ -1581,8 +1587,23 @@ targeted last), `defending player`, `each creature`, `each creature you control`
 `the target 1` ("the creature": "If you control a black permanent,
 destroy the creature instead"), `controller of the creature` in a
 triggered ability ("the creature's controller": the triggering object's),
-`those creatures` (the same, mentioned again: "Creatures you control get
-+2/+1 until end of turn. Untap those creatures."), `each permanent you control`,
+`those creatures`, `those permanents`, and `them` (printed "they" as a
+subject) after a group named earlier in the ability (`each <filter>`,
+`all <filter>`, `each creature you control`): the objects that group
+denoted when its effect happened, still on the battlefield, even those
+that no longer match it (CR 608.2c): "Creatures you control get +2/+1
+until end of turn. Untap those creatures.", `gain control of all artifact
+your opponents control until end of turn; untap them; they gain haste`
+("Gain control of all artifacts your opponents control until end of turn.
+Untap them. They gain haste until end of turn.": the stolen artifacts, not
+every permanent you now control), `put 1 +1/+1 counters on each token
+creature you control; they gain trample`. As a count, `count each those
+creatures` is "for each of those creatures" (Bounding Felidar's "You gain
+1 life for each of those creatures"). Without a group before it, `those
+creatures` is an error. In a triggered ability, `+1/+1 counters on it`
+counts the triggering object's counters, as it last existed (The Ooze's
+"create a Mutagen token for each +1/+1 counter on it"); `on this` counts
+the source's. `each permanent you control`,
 `enchanted creature` / `equipped creature` / `attached` (what this Aura or
 Equipment is attached to; printed "it" after its first mention in the
 ability, or after a condition `if attached is untapped`: "tap enchanted
@@ -1642,8 +1663,12 @@ mentions refer to it by number: `target 1`, printed as "it", or
 targets of one kind (two different objects, CR 115.3); `up to 2 target
 creatures` declares optional ones (CR 601.2c), which come after an
 ability's other targets. A variable group is one target word naming any
-number of objects within bounds (CR 601.2c), the last of an ability's
-targets: `X target creature` ("X target creatures": exactly X, the spell's
+number of objects within bounds (CR 601.2c), chosen after the ability's
+other targets even when a target is written after it (`tap 1 to 2 target
+untapped creature you control; target 1 bites target creature an opponent
+controls`, Coordinated Clobbering: scenarios script the creature an
+opponent controls first; in a `choose two` pair whose first mode ends
+with a group, the second mode's targets come first): `X target creature` ("X target creatures": exactly X, the spell's
 X, which can't exceed what there is to target), `1 to 2 target creature`
 ("one or two target creatures"; `1 to 3` prints "one, two, or three"),
 `any number of target player`, and `1 to 2 targets` / `any number of
@@ -1762,6 +1787,12 @@ resolves; only the sentence just before is replaced. Three wordings:
 - `that target 1 gets +4/+4 instead if metalcraft`: "That creature gets
   +4/+4 until end of turn instead if you control three or more
   artifacts."
+
+A kicked "instead" that declares its own targets replaces the targets
+before it (CR 601.2c): `target creature you control gains
+indestructible; if kicked, instead any number of target creature you
+control gains indestructible` (Divine Resilience) has one target unkicked
+and only the group kicked.
 
 The condition is `kicked`, any static condition (`if you control 3
 creature, ...`, `... instead if hand 0 or less`), or the target as it

@@ -103,6 +103,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
         flash_cleanup: def.flash_cleanup,
         unkicked_targets: def.unkicked_targets.map(usize::from),
+        kicked_drops: def.kicked_drops.map(usize::from),
         cast_only: def.cast_only.map(|c| d.static_cond(pool.condition(c))),
         kicker: def.kicker.as_deref().cloned(),
         kicker_targets: def.kicker_targets,
@@ -600,6 +601,7 @@ impl Decompiler<'_> {
             CoreRecipient::AttachedController => Recipient::AttachedController,
             CoreRecipient::BlockingIt => Recipient::BlockingIt,
             CoreRecipient::ExiledCard => Recipient::ExiledCard,
+            CoreRecipient::ThoseObjects => Recipient::Those(crate::ast::Those::Them),
         }
     }
 
@@ -1405,6 +1407,7 @@ impl Decompiler<'_> {
                 up_to: *up_to,
                 filter: self.filter(filter),
                 among_them: false,
+                among_those: false,
                 this_way: false,
                 returns: false,
             },

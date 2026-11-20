@@ -1001,7 +1001,7 @@ pub fn targets_in<'p>(pool: &'p CardPool, o: &GameObject) -> &'p [TargetSpec] {
             .get(usize::from(o.cast.mode()))
             .map_or(&[], |m| &m.targets),
         // CR 601.2c: targets only a kicked spell has.
-        None if o.cast.kicked() => def.cast_targets(),
+        None if o.cast.kicked() => def.kicked_cast_targets(),
         None => def.unkicked_cast_targets(),
     }
 }
@@ -1164,6 +1164,9 @@ pub struct ThisWayLog {
     /// The permanents dealt damage, in order ("a creature dealt damage
     /// this way").
     pub damaged: Vec<ObjId>,
+    /// The objects the most recent group recipient denoted ("Untap
+    /// them", `Recipient::ThoseObjects`).
+    pub group: Vec<ObjId>,
 }
 
 /// A card a permanent exiled (`GameState::linked_exiles`).

@@ -49,11 +49,13 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         in_trigger: false,
         it_source: false,
         in_spell: false,
+        group_named: false,
         subject: None,
         votes: Vec::new(),
         returned: None,
         revealed: false,
         kicked_targets: None,
+        kicked_instead: None,
     };
     let mut cards = Vec::new();
     loop {
@@ -327,8 +329,6 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["each", "player"], Recipient::EachPlayer),
     (&["each", "creature"], Recipient::EachCreature),
     (&["all", "creatures"], Recipient::EachCreature),
-    (&["those", "creatures"], Recipient::EachCreatureYouControl),
-    (&["those", "permanents"], Recipient::EachPermanentYouControl),
     (&["that", "creature"], Recipient::TriggeringObject),
     (&["that", "permanent"], Recipient::TriggeringObject),
     (&["that", "Vehicle"], Recipient::TriggeringObject),
@@ -479,6 +479,9 @@ struct P {
     /// of a modal spell): `it` after a target is that target, since the
     /// spell itself can only be the "it" that deals damage.
     in_spell: bool,
+    /// A group (`each <filter>`, `creatures you control`) has been named
+    /// in this ability, for `them` and `those creatures` after it.
+    group_named: bool,
     /// The subject of the previous clause of the sentence being parsed.
     subject: Option<Recipient>,
     /// The target an earlier effect of the ability returned to its
@@ -492,6 +495,9 @@ struct P {
     /// sentence declared more (CR 601.2c: those are chosen only if the
     /// spell is kicked).
     kicked_targets: Option<usize>,
+    /// Likewise for an "if kicked, instead ..." with its own targets: how
+    /// many targets came before it (`Card::kicked_drops`).
+    kicked_instead: Option<usize>,
 }
 
 impl P {
@@ -724,6 +730,7 @@ impl P {
             flash_if: None,
             flash_cleanup: false,
             unkicked_targets: None,
+            kicked_drops: None,
             cast_only: None,
             kicker: None,
             kicker_targets: None,
@@ -1003,6 +1010,10 @@ impl P {
                 let a = self.ability()?;
                 if matches!(a, Ability::Spell { .. }) {
                     card.unkicked_targets = self.kicked_targets.take();
+                    card.kicked_drops = self.kicked_instead.take();
+                    if card.kicked_drops.is_some() {
+                        card.unkicked_targets = card.kicked_drops;
+                    }
                 }
                 card.abilities.push(a);
                 Ok(())
@@ -1173,12 +1184,14 @@ impl P {
     fn ability(&mut self) -> R<Ability> {
         self.targets.clear();
         self.kicked_targets = None;
+        self.kicked_instead = None;
         self.votes.clear();
         self.subject = None;
         self.revealed = false;
         self.in_trigger = false;
         self.it_source = false;
         self.in_spell = false;
+        self.group_named = false;
         self.returned = None;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
@@ -1841,6 +1854,7 @@ impl P {
             "spell" => {
                 self.pos += 1;
                 self.kicked_targets = None;
+                self.kicked_instead = None;
                 self.in_spell = true;
                 let mut effects = self.effects_body()?;
                 // `spell: choose one { ... }` is a modal spell: its modes
@@ -3595,6 +3609,9 @@ impl P {
         if self.at_words(&["those", "targets"]) {
             return true;
         }
+        if self.group_named && self.at_those().is_some() {
+            return true;
+        }
         if self.at_words(&["controller", "of", "that", "target"]) {
             return true;
         }
@@ -4286,6 +4303,16 @@ impl P {
                 && !matches!(e, Effect::Instead { .. })
             {
                 self.kicked_targets = Some(before);
+            }
+            // "If this spell was kicked, instead any number of target
+            // creatures you control gain indestructible": the kicked spell
+            // has these targets in place of the others.
+            if self.targets.len() > before
+                && before > 0
+                && self.kicked_instead.is_none()
+                && matches!(e, Effect::Instead { .. })
+            {
+                self.kicked_instead = Some(before);
             }
             return Ok(e);
         }
@@ -5430,6 +5457,7 @@ impl P {
             Ok(f)
         };
         let mut among_them = false;
+        let mut among_those = false;
         let mut this_way = false;
         let mut returns = false;
         let (act, filter) = match verb.as_str() {
@@ -5516,6 +5544,8 @@ impl P {
                 self.expect_words(&["from", "among"])?;
                 if self.eat_word("them") {
                     among_them = true;
+                } else if self.eat_words(&["those", "cards"]) {
+                    among_those = true;
                 } else if self.eat_words(&["milled", "this", "way", "cards"]) {
                     this_way = true;
                 } else {
@@ -5537,6 +5567,7 @@ impl P {
             up_to,
             filter,
             among_them,
+            among_those,
             this_way,
             returns,
         })
@@ -5850,8 +5881,15 @@ impl P {
             "put" if self.at_words(&["its", "counters", "on"]) => {
                 self.pos += 3;
                 let to = self.recipient()?;
+                // "put its counters on this creature" in a triggered
+                // ability: the triggering object's (Buzzard-Wasp Colony).
+                let from = if self.in_trigger && to == Recipient::Source {
+                    Recipient::TriggeringObject
+                } else {
+                    Recipient::Source
+                };
                 Ok(Effect::MoveCounters {
-                    from: Recipient::Source,
+                    from,
                     to,
                     kind: None,
                     count: None,
@@ -7186,10 +7224,23 @@ impl P {
                 return Ok(CountExpr::SourceCounters { kind, it: false });
             }
             if self.eat_word("it") {
+                // In a triggered ability `it` is the triggering object
+                // ("for each +1/+1 counter on it" of the creature that
+                // left), as a recipient is.
+                if self.in_trigger && !self.it_source && !self.in_delayed {
+                    return Ok(CountExpr::TriggerCounters(kind));
+                }
                 return Ok(CountExpr::SourceCounters { kind, it: true });
             }
         }
         self.pos = at;
+        // "for each of those creatures": a group named before.
+        if self.group_named
+            && let Some((t, n)) = self.at_those()
+        {
+            self.pos += n;
+            return Ok(CountExpr::Those(t));
+        }
         if self.eat_words(&["excess", "damage", "dealt", "this", "way"]) {
             return Ok(CountExpr::DamageThisWay { excess: true });
         }
@@ -7572,11 +7623,13 @@ impl P {
             in_trigger: self.in_trigger,
             it_source: self.it_source,
             in_spell: self.in_spell,
+            group_named: self.group_named,
             subject: None,
             votes: self.votes.clone(),
             returned: self.returned,
             revealed: self.revealed,
             kicked_targets: None,
+            kicked_instead: None,
         };
         if !probe.at_recipient() {
             return false;
@@ -7690,8 +7743,52 @@ impl P {
         Ok(vec![self.recipient()?])
     }
 
-    #[allow(clippy::too_many_lines)] // one check per recipient form
+    /// `them`, `they`, `those creatures`, `those permanents`: a group
+    /// named earlier in the ability, if here.
+    fn at_those(&self) -> Option<(crate::ast::Those, usize)> {
+        use crate::ast::Those;
+        if self.at_words(&["those", "creatures"]) {
+            Some((Those::Creatures, 2))
+        } else if self.at_words(&["those", "permanents"]) {
+            Some((Those::Permanents, 2))
+        } else if self.at_word("them")
+            || self.at_word("they") && !self.at_words(&["they", "control"])
+        {
+            Some((Those::Them, 1))
+        } else {
+            None
+        }
+    }
+
     fn recipient(&mut self) -> R<Recipient> {
+        // `them`, `those creatures`: the objects a group named earlier in
+        // the ability denoted (CR 608.2c).
+        if let Some((t, n)) = self.at_those() {
+            if self.group_named {
+                self.pos += n;
+                return Ok(Recipient::Those(t));
+            }
+            if n == 2 {
+                return self.fail(
+                    "`those creatures` needs a group (`each creature you control`) before it",
+                );
+            }
+        }
+        let r = self.recipient_inner()?;
+        if matches!(
+            r,
+            Recipient::Group(_)
+                | Recipient::EachCreature
+                | Recipient::EachCreatureYouControl
+                | Recipient::EachPermanentYouControl
+        ) {
+            self.group_named = true;
+        }
+        Ok(r)
+    }
+
+    #[allow(clippy::too_many_lines)] // one check per recipient form
+    fn recipient_inner(&mut self) -> R<Recipient> {
         // "A creature dealt damage this way can't be regenerated this turn."
         if self.eat_words(&["creature", "dealt", "damage", "this", "way"]) {
             return Ok(Recipient::DamagedThisWay);
@@ -8025,6 +8122,7 @@ impl P {
                                 | "defending"
                                 | "dealt"
                                 | "blocked"
+                                | "token"
                         )
                     ) || self.word_at(ws.len()).as_deref() == Some("or")
                         && self.word_at(ws.len() + 1).as_deref() == Some("planeswalker")
@@ -8149,11 +8247,13 @@ impl P {
                         in_trigger: false,
                         it_source: false,
                         in_spell: false,
+                        group_named: false,
                         subject: None,
                         votes: Vec::new(),
                         returned: None,
                         revealed: false,
                         kicked_targets: None,
+                        kicked_instead: None,
                     };
                     probe.keyword().is_some()
                 };
@@ -9797,6 +9897,9 @@ impl P {
         ]) {
             return Ok(Condition::TwoSpellsLastTurn);
         }
+        if self.eat_words(&["it", "had", "counters"]) {
+            return Ok(Condition::TriggerHadCounters);
+        }
         if self.eat_words(&["it", "had", "no"]) {
             let k = self.counter_kind()?;
             self.eat_word("counters");
@@ -10741,6 +10844,38 @@ card "Test Charm" {
             Ability::Modal(modes) => assert_eq!(modes.len(), 2),
             other => panic!("{other:?}"),
         }
+    }
+
+    #[test]
+    fn them_after_a_group_is_that_group() {
+        let cards = parse(
+            r#"
+card "Test Takeover" {
+  cost {R}
+  type Sorcery
+  spell: gain control of all artifact your opponents control until end of turn; untap them; they gain haste
+}
+"#,
+        )
+        .unwrap();
+        let Ability::Spell { effects, .. } = &cards[0].abilities[0] else {
+            panic!("{:?}", cards[0].abilities[0]);
+        };
+        let text = format!("{effects:?}");
+        assert_eq!(text.matches("Those(Them)").count(), 2, "{text}");
+        // Nothing named before: an error, not every creature you control.
+        assert!(
+            parse(
+                r#"
+card "Test Untap" {
+  cost {W}
+  type Instant
+  spell: untap those creatures
+}
+"#
+            )
+            .is_err()
+        );
     }
 
     #[test]

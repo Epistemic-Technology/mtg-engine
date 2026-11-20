@@ -1,0 +1,267 @@
+# "them", "they", "those creatures" after a group: the objects that group
+# denoted earlier in the resolution (CR 608.2c), not a fresh group.
+
+scenario "Broadcast Takeover: untap them is the stolen artifacts, not your lands" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Ornithopter" tapped, "Grizzly Bears" tapped
+  hand A: "Broadcast Takeover"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Broadcast Takeover"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Ornithopter"
+  assert untapped "Ornithopter"
+  assert has "Ornithopter" haste
+  # The lands that paid for it stay tapped; the creature isn't an artifact.
+  assert tapped "Grizzly Bears"
+  assert battlefield B contains "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield B contains "Ornithopter"
+}
+
+scenario "Broadcast Takeover: the Mountains it was cast with stay tapped" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Ornithopter" tapped
+  hand A: "Broadcast Takeover"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Broadcast Takeover"
+  run_to turn 1 begin_combat
+  assert tapped oldest "Mountain"
+  assert tapped newest "Mountain"
+}
+
+scenario "Broadcast Takeover: the stolen artifact attacks" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Ornithopter" tapped
+  hand A: "Broadcast Takeover"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Broadcast Takeover"
+  turn 1 A: attack "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert tapped "Ornithopter"
+}
+
+scenario "Sandstorm Salvager: they gain trample is only the creature tokens" {
+  battlefield A: "Sandstorm Salvager", "Grizzly Bears", 4 "Plains"
+  hand A: "Raise the Alarm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: wait
+  turn 1 A: activate "Sandstorm Salvager"
+  run_to turn 1 begin_combat
+  assert counters oldest "Soldier" +1/+1 1
+  assert has oldest "Soldier" trample
+  assert has newest "Soldier" trample
+  assert counters "Grizzly Bears" +1/+1 0
+  assert has not "Grizzly Bears" trample
+  assert has not "Sandstorm Salvager" trample
+}
+
+scenario "Essence of Antiquity: turned face up, creatures you control gain hexproof and untap" {
+  battlefield A: "Grizzly Bears" tapped, 6 "Plains"
+  battlefield B: "Memnite" tapped
+  hand A: "Essence of Antiquity"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Essence of Antiquity" face_down
+  turn 1 postcombat_main A: unmorph "Essence of Antiquity"
+  run_to turn 1 end
+  assert untapped "Grizzly Bears"
+  assert has "Grizzly Bears" hexproof
+  assert tapped "Memnite"
+  assert has not "Memnite" hexproof
+}
+
+scenario "Bounding Felidar: 1 life for each of those creatures" {
+  battlefield A: "Bounding Felidar", "Grizzly Bears", 2 "Memnite"
+  battlefield B: "Ornithopter"
+  turn 1 A: activate "Bounding Felidar"
+  turn 1 A: attack "Bounding Felidar"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters oldest "Memnite" +1/+1 1
+  assert counters "Bounding Felidar" +1/+1 0
+  assert counters "Ornithopter" +1/+1 0
+  assert life A 23
+}
+
+scenario "Bounding Felidar: not saddled, no counters and no life" {
+  battlefield A: "Bounding Felidar", "Grizzly Bears", 2 "Memnite"
+  turn 1 A: attack "Bounding Felidar"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+  assert life A 20
+}
+
+scenario "The Ooze: a Mutagen for each +1/+1 counter on the creature that left" {
+  battlefield A: "The Ooze", "Grizzly Bears" with 2 +1/+1, 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom Blade" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Mutagen"
+}
+
+scenario "The Ooze: a creature without counters leaving makes none" {
+  battlefield A: "The Ooze", "Grizzly Bears", 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom Blade" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A lacks "Mutagen"
+}
+
+scenario "Trystan's Command: untap them is the target player's creatures" {
+  battlefield A: 3 "Swamp", 3 "Forest", "Grizzly Bears" tapped
+  battlefield B: "Memnite" tapped, "Hill Giant"
+  hand A: "Trystan's Command"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Trystan's Command" mode 6 targeting B "Hill Giant", player B
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Hill Giant"
+  assert untapped "Memnite"
+  assert power "Memnite" 4
+  assert tapped "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Trystan's Command: one or two permanent cards back, and a destroy after it" {
+  battlefield A: 3 "Swamp", 3 "Forest"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears", "Pacifism", "Shock"
+  hand A: "Trystan's Command"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Trystan's Command" mode 4 targeting B "Hill Giant", "Grizzly Bears", "Pacifism"
+  run_to turn 1 begin_combat
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Pacifism"
+  assert graveyard A contains "Shock"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Trystan's Command: an instant isn't a permanent card" {
+  battlefield A: 3 "Swamp", 3 "Forest"
+  battlefield B: "Hill Giant"
+  graveyard A: "Shock"
+  hand A: "Trystan's Command"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Trystan's Command" mode 4 targeting B "Hill Giant", "Shock"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Shock"
+}
+
+scenario "Coordinated Clobbering: two creatures each deal damage to the opponent's creature" {
+  battlefield A: "Forest", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Coordinated Clobbering"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coordinated Clobbering" targeting B "Serra Angel", "Grizzly Bears", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Serra Angel"
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "Coordinated Clobbering: one creature" {
+  battlefield A: "Forest", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Coordinated Clobbering"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coordinated Clobbering" targeting B "Serra Angel", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert damage "Serra Angel" 3
+  assert tapped "Hill Giant"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Coordinated Clobbering: only untapped creatures you control" {
+  battlefield A: "Forest", "Grizzly Bears" tapped
+  battlefield B: "Serra Angel"
+  hand A: "Coordinated Clobbering"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Coordinated Clobbering" targeting B "Serra Angel", "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert damage "Serra Angel" 0
+}
+
+scenario "Don & Leo: exile and return them under their owners' control" {
+  battlefield A: "Don & Leo, Problem Solvers", "Ornithopter", "Grizzly Bears" with 2 +1/+1
+  start turn 1 A precombat_main
+  turn 1 end A: trigger "Don & Leo, Problem Solvers" targeting "Ornithopter", "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Ornithopter"
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Rick Jones: a Hero or enchantment card from among those cards" {
+  battlefield A: "Rick Jones, Destined Sidekick", 3 "Forest"
+  library A: "Grizzly Bears", "Pacifism", "Shock", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rick Jones, Destined Sidekick"
+  run_to turn 1 begin_combat
+  assert hand A contains "Pacifism"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Shock"
+  assert library A count 1
+}
+
+scenario "Buzzard-Wasp Colony: a dying creature's counters move to it" {
+  battlefield A: "Buzzard-Wasp Colony", "Grizzly Bears" with 2 +1/+1, 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom Blade" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert counters "Buzzard-Wasp Colony" +1/+1 2
+  assert power "Buzzard-Wasp Colony" 4
+}
+
+scenario "Buzzard-Wasp Colony: nothing from a creature without counters" {
+  battlefield A: "Buzzard-Wasp Colony" with 1 +1/+1, "Hill Giant", 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom Blade" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert counters "Buzzard-Wasp Colony" +1/+1 1
+}
+
+scenario "Meltstrider Eulogist: draws when a creature with a +1/+1 counter dies" {
+  battlefield A: "Meltstrider Eulogist", "Grizzly Bears" with 1 +1/+1, 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom Blade" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand A count 1
+}
+
+scenario "Meltstrider Eulogist: not for a creature without one" {
+  battlefield A: "Meltstrider Eulogist", "Grizzly Bears", 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom Blade" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand A count 0
+}
+
+# A variable target group before another target (CR 601.2c): the engine
+# chooses the group last, so the target after it is still chosen.
+scenario "Fiery Justice: divided damage, and the target opponent gains 5 life" {
+  battlefield A: "Mountain", "Forest", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Fiery Justice"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fiery Justice" targeting player B, B "Hill Giant", player B dividing 3, 2
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Hill Giant"
+  assert life B 23
+}
+
+# "If this spell was kicked, instead any number of target creatures ...":
+# a kicked spell has only the instead's targets (CR 601.2c).
+scenario "Divine Resilience: kicked, it targets only the creatures it protects" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Plains"
+  hand A: "Divine Resilience"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divine Resilience" kicked targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Hill Giant" indestructible
+  assert has not "Grizzly Bears" indestructible
+}

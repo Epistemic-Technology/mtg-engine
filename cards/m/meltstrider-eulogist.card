@@ -1,0 +1,7 @@
+card "Meltstrider Eulogist" {
+  oracle_id 046b60da-0a14-40b0-a36c-5328f6b8972b
+  cost {2}{G}
+  type Creature — Insect Soldier
+  pt 3/3
+  triggered whenever creature you control with +1/+1 counter dies: draw 1 card
+}

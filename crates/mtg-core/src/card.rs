@@ -1707,6 +1707,14 @@ pub enum CountExpr {
     /// Life the resolution made players lose ("You gain life equal to the
     /// life lost this way").
     LifeLostThisWay,
+    /// The objects the most recent group of this resolution denoted ("You
+    /// gain 1 life for each of those creatures"; `Recipient::ThoseObjects`).
+    ThoseObjects,
+    /// Counters of a kind on the triggering object, as it last existed
+    /// once it has left (CR 608.2h): "Whenever a creature you control with
+    /// a +1/+1 counter on it leaves the battlefield, create a Mutagen token
+    /// for each +1/+1 counter on it."
+    TriggerCounters(CounterKind),
     /// Creatures blocking the triggering object, or else the source ("for
     /// each creature blocking it"), less `beyond` ("beyond the first").
     BlockingIt { beyond: u32 },
@@ -2867,6 +2875,14 @@ pub enum Recipient {
     /// battlefield, return the exiled card ..."), still in exile; see
     /// `Effect::ExileLinked`.
     ExiledCard,
+    /// The objects the most recent group of this resolution denoted
+    /// (`Group`, `EachCreature`, `EachCreatureYouControl`,
+    /// `EachPermanentYouControl`), those still on the battlefield: "Gain
+    /// control of all artifacts your opponents control until end of turn.
+    /// Untap them.", "Put a +1/+1 counter on each creature token you
+    /// control. They gain trample". The same objects even if they no
+    /// longer match the group's filter (CR 608.2c).
+    ThoseObjects,
 }
 
 /// A number in an effect's text: a constant, or X as chosen when the spell
@@ -4993,6 +5009,10 @@ pub enum Condition {
     /// "if it had a +1/+1 counter on it" (Promising Duskmage), judged the
     /// same way.
     HadCounters(CounterKind),
+    /// "if it had counters on it" of the triggering object, any kind, as
+    /// it last existed (Buzzard-Wasp Colony's "Whenever another creature
+    /// you control dies, if it had counters on it, ...").
+    TriggerHadCounters,
     /// "if no spells were cast last turn" (werewolves).
     NoSpellsLastTurn,
     /// "if a player cast two or more spells last turn".
@@ -6028,6 +6048,13 @@ pub struct CardDef {
     /// after are declared by "If this spell was kicked, ..." and chosen
     /// only if it was (CR 601.2c, 702.33).
     pub unkicked_targets: Option<u8>,
+    /// How many of a spell's first targets a kicked spell doesn't have:
+    /// "If this spell was kicked, instead any number of target creatures
+    /// you control gain indestructible" names its own targets, which
+    /// replace the others (CR 601.2c); the kicked spell's targets are
+    /// those after, numbered from 0.
+    #[serde(default)]
+    pub kicked_drops: Option<u8>,
     /// The pool condition an `AsCast` condition of the spell judges as it
     /// is cast.
     pub cast_snapshot: Option<u16>,
@@ -6588,6 +6615,15 @@ impl CardDef {
 
     /// The targets the spell needs to be cast at all: without those only
     /// a kicked spell has (CR 601.2c).
+    /// The targets a kicked spell chooses (CR 601.2c): all of them, but
+    /// for those an "instead" replaces (`kicked_drops`).
+    pub fn kicked_cast_targets(&self) -> &[TargetSpec] {
+        match self.kicked_drops {
+            Some(n) => &self.cast_targets[usize::from(n).min(self.cast_targets.len())..],
+            None => &self.cast_targets,
+        }
+    }
+
     pub fn unkicked_cast_targets(&self) -> &[TargetSpec] {
         match self.unkicked_targets {
             Some(n) => &self.cast_targets[..usize::from(n).min(self.cast_targets.len())],
@@ -7998,6 +8034,7 @@ impl Builder {
             flash_if: None,
             flash_cleanup: false,
             unkicked_targets: None,
+            kicked_drops: None,
             cast_snapshot: None,
             cast_only: None,
             offspring: None,
@@ -8186,6 +8223,13 @@ impl Builder {
     #[must_use]
     pub fn cast_snapshot(mut self, condition: u16) -> Self {
         self.0.cast_snapshot = Some(condition);
+        self
+    }
+
+    /// A kicked spell doesn't have its first `n` targets (CR 601.2c).
+    #[must_use]
+    pub fn kicked_drops(mut self, n: u8) -> Self {
+        self.0.kicked_drops = Some(n);
         self
     }
 

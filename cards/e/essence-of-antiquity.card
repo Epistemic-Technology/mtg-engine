@@ -1,0 +1,8 @@
+card "Essence of Antiquity" {
+  oracle_id 26a7f92d-6914-466d-b7c7-9ac121dd5118
+  cost {3}{W}{W}
+  type Artifact Creature — Golem
+  pt 1/10
+  disguise {2}{W}
+  triggered when this is turned face up: each creature you control gains hexproof; untap them
+}

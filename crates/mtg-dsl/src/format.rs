@@ -286,6 +286,7 @@ impl Fmt {
             Recipient::ExiledCard => "exiled card".to_string(),
             Recipient::ThoseCards(..) => "those cards".to_string(),
             Recipient::ThoseTargets(..) => "those targets".to_string(),
+            Recipient::Those(t) => those_word(t).to_string(),
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
             Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
@@ -1118,6 +1119,7 @@ impl Fmt {
                         | Recipient::EachCreatureYouControl
                         | Recipient::EachPermanentYouControl
                         | Recipient::Group(_)
+                        | Recipient::Those(_)
                 ) {
                     "gain"
                 } else {
@@ -1838,6 +1840,7 @@ impl Fmt {
                 up_to,
                 filter: f,
                 among_them,
+                among_those,
                 this_way,
                 returns,
             } => {
@@ -1879,6 +1882,8 @@ impl Fmt {
                         "put {n} {f} {cs} from among {} into hand chosen",
                         if *among_them {
                             "them"
+                        } else if *among_those {
+                            "those cards"
                         } else if *this_way {
                             "milled this way cards"
                         } else {
@@ -2375,6 +2380,8 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             kind.name(),
             if *it { "it" } else { "this" }
         ),
+        CountExpr::TriggerCounters(kind) => format!("{} counters on it", kind.name()),
+        CountExpr::Those(t) => those_word(*t).to_string(),
     }
 }
 
@@ -4316,6 +4323,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::HadCounters(k)) => {
                     let _ = write!(head, " if it had {}", counter(*k, Num::N(1)));
                 }
+                Some(mtg_core::card::Condition::TriggerHadCounters) => {
+                    head.push_str(" if it had counters");
+                }
                 None => {}
             }
             body(out, indent, &head, effects, targets, groups);
@@ -4869,5 +4879,14 @@ pub fn player_rule_words(kind: mtg_core::card::PlayerRuleKind) -> &'static str {
     match kind {
         mtg_core::card::PlayerRuleKind::CantPlayLands => "play lands",
         mtg_core::card::PlayerRuleKind::CantCastCreatureSpells => "cast creature spells",
+    }
+}
+
+/// `them`, `those creatures`, `those permanents` (`Recipient::Those`).
+pub(crate) fn those_word(t: crate::ast::Those) -> &'static str {
+    match t {
+        crate::ast::Those::Them => "them",
+        crate::ast::Those::Creatures => "those creatures",
+        crate::ast::Those::Permanents => "those permanents",
     }
 }

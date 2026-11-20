@@ -1,0 +1,11 @@
+card "Trystan's Command" {
+  oracle_id ecc4e230-a546-4cb4-987c-87300060bbe2
+  cost {4}{B}{G}
+  type Kindred Sorcery — Elf
+  choose two {
+    mode: create token copy of target Elf you control
+    mode: return 1 to 2 target permanent card from your graveyard to hand
+    mode: destroy target creature or enchantment
+    mode: each creature target player controls gets +3/+3; untap them
+  }
+}
