@@ -1,0 +1,8 @@
+card "Grave Servitude" {
+  oracle_id 6f54e7ea-bb87-4ce0-96b6-4fc82605ed2a
+  cost {1}{B}
+  type Enchantment — Aura
+  flash with cleanup sacrifice
+  enchant creature
+  static enchanted: +3/-1, set color black
+}

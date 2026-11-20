@@ -450,6 +450,9 @@ impl Compiler<'_> {
             let c = self.static_cond(c);
             b = b.flash_if(self.pool.intern_condition(c));
         }
+        if card.flash_cleanup {
+            b = b.flash_cleanup();
+        }
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
         }

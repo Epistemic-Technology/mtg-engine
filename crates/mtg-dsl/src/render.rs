@@ -8602,6 +8602,11 @@ pub fn mode_text(card: &Card, m: &crate::ast::Mode, lookup: &dyn Lookup) -> Stri
     sentences(&m.effects, &mut ctx)
 }
 
+/// `flash with cleanup sacrifice` (Spider Climb).
+const FLASH_CLEANUP: &str = "You may cast this spell as though it had flash. If you cast it any \
+    time a sorcery couldn't have been cast, the controller of the permanent it becomes \
+    sacrifices it at the beginning of the next cleanup step.";
+
 /// The card's full Oracle text.
 pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let mut lines: Vec<String> = Vec::new();
@@ -8627,6 +8632,9 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             "This spell has flash as long as {}.",
             static_cond_text(c, card)
         ));
+    }
+    if card.flash_cleanup {
+        lines.push(FLASH_CLEANUP.to_string());
     }
     if let Some(k) = &card.kicker {
         lines.push(format!("Kicker {k}"));

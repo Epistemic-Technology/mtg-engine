@@ -311,8 +311,13 @@ impl CastInfo {
     /// bargained").
     const BARGAINED: u16 = 0x200;
     /// Cast paying the second of its two additional costs ("sacrifice a
-    /// creature or pay {3}", CR 601.2b).
-    const OTHER_COST: u16 = 0x400;
+    /// creature or pay {3}", CR 601.2b). (Not 0x400, which is
+    /// `CAST_HAND`.)
+    const OTHER_COST: u16 = 0x2000;
+    /// Cast any time a sorcery couldn't have been (CR 307.1), by a card
+    /// whose permanent is then sacrificed at the next cleanup step (Spider
+    /// Climb).
+    const INSTANT_TIMING: u16 = 0x4000;
     const KICKED: u16 = 0x40;
     const FLASHBACK: u16 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -350,6 +355,14 @@ impl CastInfo {
             _ => Self::CAST_ELSEWHERE,
         };
         self.0 = (self.0 & !Self::CAST_MASK) | bit;
+    }
+
+    pub const fn instant_timing(self) -> bool {
+        self.0 & Self::INSTANT_TIMING != 0
+    }
+
+    pub fn set_instant_timing(&mut self) {
+        self.0 |= Self::INSTANT_TIMING;
     }
 
     pub const fn offspring(self) -> bool {

@@ -1506,6 +1506,7 @@ impl GameState {
     #[inline]
     fn has_flash(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> bool {
         def.keywords.contains(Keyword::Flash)
+            || def.flash_cleanup
             || def
                 .flash_if
                 .is_some_and(|c| self.condition_now(self.pool.condition(c), p, id))

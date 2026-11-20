@@ -1830,6 +1830,9 @@ impl GameState {
     ) -> ObjId {
         self.consecutive_passes = 0;
         let from = self.objects[card].zone;
+        // CR 307.1: whether a sorcery could have been cast now.
+        let sorcery_timing =
+            player == self.active_player && self.step.is_main() && self.stack.is_empty();
         let spell = self.move_object(card, Zone::Stack, true);
         self.objects[spell].controller = player;
         self.objects[spell].alt = alt;
@@ -1840,6 +1843,9 @@ impl GameState {
         // CR 601.2a: "if you cast it from your hand".
         self.objects[spell].cast.set_cast_from(from);
         let def = self.pool.get(self.objects[spell].def);
+        if def.flash_cleanup && !sorcery_timing {
+            self.objects[spell].cast.set_instant_timing();
+        }
         self.flow = if def.modes().is_some() {
             Flow::ChoosingMode { spell }
         } else {

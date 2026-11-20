@@ -327,6 +327,10 @@ pub enum Builtin {
     /// permanent to its owner's hand" (a dashed permanent's delayed
     /// trigger).
     DashReturn,
+    /// "the controller of the permanent it becomes sacrifices it at the
+    /// beginning of the next cleanup step" (Spider Climb cast any time a
+    /// sorcery couldn't have been).
+    CleanupSacrifice,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -4970,6 +4974,11 @@ pub struct CardDef {
     /// 702.8): the pool condition under which the card may be cast as
     /// though it had flash.
     pub flash_if: Option<u16>,
+    /// "You may cast this spell as though it had flash. If you cast it any
+    /// time a sorcery couldn't have been cast, the controller of the
+    /// permanent it becomes sacrifices it at the beginning of the next
+    /// cleanup step." (Spider Climb).
+    pub flash_cleanup: bool,
     /// Offspring (CR 702.175): an optional additional cost; if paid, a 1/1
     /// token copy is created as the permanent enters.
     pub offspring: Option<Box<ManaCost>>,
@@ -5605,7 +5614,7 @@ pub struct CardPool {
     flanking: AbilityId,
     evoke: AbilityId,
     exploit: AbilityId,
-    builtins: [AbilityId; 5],
+    builtins: [AbilityId; 6],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -5685,7 +5694,7 @@ impl CardPool {
             flanking: AbilityId(0),
             evoke: AbilityId(0),
             exploit: AbilityId(0),
-            builtins: [AbilityId(0); 5],
+            builtins: [AbilityId(0); 6],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -5800,6 +5809,19 @@ impl CardPool {
                 condition: None,
                 targets: Vec::new(),
                 effects: vec![Effect::ReturnToHand {
+                    what: Recipient::SameObject,
+                }],
+            }));
+        pool.builtins[Builtin::CleanupSacrifice as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::Cleanup,
+                    whose: Who::Any,
+                },
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::Sacrifice {
                     what: Recipient::SameObject,
                 }],
             }));
@@ -6455,6 +6477,7 @@ impl Builder {
             alt_cost: None,
             additional_or: None,
             flash_if: None,
+            flash_cleanup: false,
             offspring: None,
             bargain: false,
             aura_stays: false,
@@ -6612,6 +6635,14 @@ impl Builder {
     #[must_use]
     pub fn evoke(mut self, cost: ManaCost) -> Self {
         self.0.evoke = Some(Box::new(cost));
+        self
+    }
+
+    /// "You may cast this spell as though it had flash. If you cast it
+    /// any time a sorcery couldn't have been cast, ..." (Spider Climb).
+    #[must_use]
+    pub fn flash_cleanup(mut self) -> Self {
+        self.0.flash_cleanup = true;
         self
     }
 

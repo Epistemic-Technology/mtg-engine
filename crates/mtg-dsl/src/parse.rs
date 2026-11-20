@@ -697,6 +697,7 @@ impl P {
             additional_or: None,
             alt_cost: None,
             flash_if: None,
+            flash_cleanup: false,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
@@ -873,6 +874,11 @@ impl P {
             "kicker" => {
                 self.pos += 1;
                 card.kicker = Some(self.mana_cost()?);
+                self.end_stmt()
+            }
+            "flash" if self.at_words(&["flash", "with", "cleanup", "sacrifice"]) => {
+                self.pos += 4;
+                card.flash_cleanup = true;
                 self.end_stmt()
             }
             "flash" if self.at_words(&["flash", "as", "long", "as"]) => {

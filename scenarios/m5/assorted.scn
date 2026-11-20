@@ -225,6 +225,48 @@ scenario "Mudbutton Torchrunner deals damage after it dies" {
   assert graveyard A contains "Mudbutton Torchrunner"
 }
 
+# "You may cast this spell as though it had flash. If you cast it any time
+# a sorcery couldn't have been cast, ... sacrifices it at the beginning of
+# the next cleanup step." (CR 307.1, 514.3a)
+scenario "Lightning Reflexes cast in combat is sacrificed at cleanup" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Reflexes"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Lightning Reflexes" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Lightning Reflexes"
+  assert damage "Grizzly Bears" 0
+  assert graveyard B contains "Hill Giant"
+  run_to turn 2
+  assert graveyard A contains "Lightning Reflexes"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Spider Climb cast at sorcery speed stays" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Spider Climb"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spider Climb" targeting "Grizzly Bears"
+  run_to turn 2
+  assert battlefield A contains "Spider Climb"
+  assert has "Grizzly Bears" reach
+  assert toughness "Grizzly Bears" 5
+}
+
+scenario "Parapet cast on an opponent's turn is sacrificed at that turn's cleanup" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Parapet"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Parapet"
+  run_to turn 2 end
+  assert toughness "Grizzly Bears" 3
+  run_to turn 3
+  assert graveyard A contains "Parapet"
+  assert toughness "Grizzly Bears" 2
+}
+
 scenario "Gleam of Resistance untaps attackers" {
   battlefield A: 5 "Plains", "Grizzly Bears"
   hand A: "Gleam of Resistance"

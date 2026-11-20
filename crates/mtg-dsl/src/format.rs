@@ -92,6 +92,9 @@ fn format_inner(card: &Card) -> String {
     if let Some(c) = &card.flash_if {
         let _ = writeln!(out, "  flash as long as {}", static_cond(c));
     }
+    if card.flash_cleanup {
+        let _ = writeln!(out, "  flash with cleanup sacrifice");
+    }
     if let Some(k) = &card.kicker {
         let _ = writeln!(out, "  kicker {k}");
     }

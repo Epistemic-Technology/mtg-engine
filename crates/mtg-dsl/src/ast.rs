@@ -104,6 +104,11 @@ pub struct Card {
     /// `flash as long as you control Merfolk`: "This spell has flash as
     /// long as you control a Merfolk." (CR 702.8).
     pub flash_if: Option<StaticCond>,
+    /// `flash with cleanup sacrifice`: "You may cast this spell as though
+    /// it had flash. If you cast it any time a sorcery couldn't have been
+    /// cast, the controller of the permanent it becomes sacrifices it at
+    /// the beginning of the next cleanup step."
+    pub flash_cleanup: bool,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
@@ -150,6 +155,7 @@ impl Card {
             additional_or: None,
             alt_cost: None,
             flash_if: None,
+            flash_cleanup: false,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
