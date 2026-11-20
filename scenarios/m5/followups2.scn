@@ -132,3 +132,62 @@ scenario "Graceful Reprieve: a death on a later turn doesn't return it" {
   run_to turn 3 postcombat_main
   assert graveyard A contains "Grizzly Bears"
 }
+
+# "Whenever ... this turn": a delayed trigger that triggers on each such
+# event until the turn ends (CR 603.7c).
+
+scenario "Mage Hunters' Onslaught: each creature that blocks this turn costs its controller 1 life" {
+  battlefield A: 4 "Swamp", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Savannah Lions", "Llanowar Elves", "Wind Drake"
+  hand A: "Mage Hunters' Onslaught"
+  turn 1 A: cast "Mage Hunters' Onslaught" targeting "Wind Drake"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 B: block "Grizzly Bears" with "Savannah Lions"
+  turn 1 B: block "Hill Giant" with "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Mage Hunters' Onslaught: blocks on a later turn don't trigger" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  battlefield B: "Savannah Lions", "Wind Drake"
+  hand A: "Mage Hunters' Onslaught"
+  turn 1 A: cast "Mage Hunters' Onslaught" targeting "Wind Drake"
+  turn 2 B: attack "Savannah Lions"
+  turn 2 A: block "Savannah Lions" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "Gnawing Crescendo: a nontoken creature you control dying makes a Rat" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Gnawing Crescendo", "Shock"
+  turn 1 A: cast "Gnawing Crescendo"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Rat"
+}
+
+scenario "Gnawing Crescendo: an opponent's creature dying doesn't" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  battlefield B: "Savannah Lions"
+  hand A: "Gnawing Crescendo", "Shock"
+  turn 1 A: cast "Gnawing Crescendo"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Rat"
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Gnawing Crescendo: a death on a later turn doesn't" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Gnawing Crescendo", "Shock"
+  turn 1 A: cast "Gnawing Crescendo"
+  turn 3 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A lacks "Rat"
+}

@@ -1461,6 +1461,8 @@ impl<'a> Ctx<'a> {
                 | Recipient::Targets(..)
                 | Recipient::ThoseTargets(..)
                 | Recipient::TargetAnd(..)
+                | Recipient::CreatedTokens
+                | Recipient::SameTokens
         )
     }
 
@@ -5809,6 +5811,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = body.trim_end_matches('.').to_string();
             let t = if let Some(named) = named {
                 named
+            } else if *this_turn && !crate::format::about_that_creature(trigger) {
+                format!("{} this turn", trigger_text(trigger, ctx, true))
             } else if *this_turn {
                 crate::format::this_turn_trigger(trigger).to_string()
             } else {

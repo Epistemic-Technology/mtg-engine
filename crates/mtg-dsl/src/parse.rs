@@ -5973,6 +5973,9 @@ impl P {
                     } else {
                         None
                     };
+                // "Whenever a creature blocks this turn, ...": a delayed
+                // trigger that triggers each time until the turn ends.
+                let mut turn_long = false;
                 let (trigger, effects, trigger_first) = if let Some(t) = this_turn.clone() {
                     if self.peek() == Some(&Tok::Comma) {
                         self.pos += 1;
@@ -5984,11 +5987,16 @@ impl P {
                     (t, e?, true)
                 } else if self.at_word("at") || self.at_word("when") || self.at_word("whenever") {
                     let t = self.trigger()?;
+                    turn_long = self.eat_words(&["this", "turn"]);
                     if self.peek() == Some(&Tok::Comma) {
                         self.pos += 1;
                     }
-                    let e = self.sentences_inline()?;
-                    (t, e, true)
+                    // "its controller": the triggering object's.
+                    let was_dies = self.delayed_dies;
+                    self.delayed_dies |= turn_long;
+                    let e = self.sentences_inline();
+                    self.delayed_dies = was_dies;
+                    (t, e?, true)
                 } else {
                     let e = self.delayed_effects()?;
                     let t = self.trigger()?;
@@ -6001,7 +6009,7 @@ impl P {
                     trigger,
                     effects,
                     trigger_first,
-                    this_turn: this_turn.is_some(),
+                    this_turn: this_turn.is_some() || turn_long,
                 })
             }
             "prevent" => {

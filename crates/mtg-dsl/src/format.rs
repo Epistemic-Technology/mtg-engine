@@ -1811,7 +1811,9 @@ impl Fmt {
             } => {
                 let about = self.recipient(*about, t);
                 let body = self.line(effects, t);
-                let trig = if *this_turn {
+                let trig = if *this_turn && !about_that_creature(trigger) {
+                    format!("{} this turn", trigger_text(trigger, true))
+                } else if *this_turn {
                     this_turn_trigger(trigger).to_string()
                 } else {
                     trigger_text(trigger, true)
@@ -4268,6 +4270,17 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
 
 /// A delayed trigger about its recipient that ends with the turn (CR
 /// 603.7c), as written and printed: "when that creature dies this turn".
+/// A delayed "this turn" trigger on the object it is about ("When that
+/// creature dies this turn"), rather than one that triggers on any event
+/// of its kind until the turn ends ("Whenever a creature blocks this
+/// turn").
+pub(crate) fn about_that_creature(t: &Trigger) -> bool {
+    matches!(
+        t,
+        Trigger::Dies(TriggerObj::This) | Trigger::Leaves(TriggerObj::This)
+    )
+}
+
 pub(crate) fn this_turn_trigger(t: &Trigger) -> &'static str {
     match t {
         Trigger::Leaves(_) => "when that creature leaves the battlefield this turn",

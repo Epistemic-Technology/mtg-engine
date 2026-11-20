@@ -1,0 +1,6 @@
+card "Gnawing Crescendo" {
+  oracle_id 0332f7b5-dad3-4fd0-b86c-78bd8301f59d
+  cost {2}{R}
+  type Instant
+  spell: each creature you control gets +2/+0; delayed this: whenever nontoken creature you control dies this turn, create 1 "1/1 black Rat creature that can't block"
+}
