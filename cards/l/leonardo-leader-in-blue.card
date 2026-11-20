@@ -1,0 +1,9 @@
+card "Leonardo, Leader in Blue" {
+  oracle_id 348c7e22-2179-41b8-a5d2-8dd488e7e66d
+  cost {W}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 2/1
+  sneak {3}{W}{W}
+  triggered when this enters if his sneak paid: each creature you control gets +2/+0
+  activated {1}{W}: this gains first strike
+}

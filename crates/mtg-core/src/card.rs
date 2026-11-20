@@ -2250,6 +2250,23 @@ pub enum StaticCondition {
         at_least: u8,
         that: bool,
     },
+    /// "if it wasn't cast or no mana was spent to cast it": no mana was
+    /// paid to cast the source (CR 601.2h; cast without paying its mana
+    /// cost, plotted, or not cast at all).
+    NoManaSpent,
+    /// Freerunning's condition (CR 702.173a): "a player was dealt combat
+    /// damage this turn by a creature that, at the time it dealt that
+    /// damage, was an Assassin creature or a commander under your
+    /// control" (the game has no commanders).
+    AssassinDealtCombatDamage,
+    /// "If the gift wasn't promised" (CR 702.174; a promised gift is the
+    /// kicker flag): the source wasn't kicked.
+    NotKicked,
+    /// "If this spell's sneak cost was paid", "if its sneak cost was
+    /// paid" (CR 702.190): the source was cast for its sneak cost (kept by
+    /// the permanent). The number is wording only: the pronoun for a
+    /// permanent (0 "its", 1 "his", 2 "her").
+    SneakPaid(u8),
 }
 
 /// What a "mana spent to cast" condition or count looks at (CR 601.2h).
@@ -4613,6 +4630,9 @@ pub enum TriggerSpec {
     /// "When this creature exploits a creature" (CR 702.110): queued by
     /// the exploit trigger itself, never by an event.
     Exploits,
+    /// "When this card becomes plotted" (CR 702.170): queued as the card
+    /// is plotted, from exile, never by an event.
+    BecomesPlotted,
     /// "When you cycle this card" (`this`; CR 702.29d: it triggers from
     /// the graveyard the card was discarded to), "Whenever you cycle a
     /// card", "Whenever you cycle or discard a card" (`or_discard`: once
@@ -4814,7 +4834,10 @@ impl TriggerSpec {
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
-            TriggerSpec::Exploits | TriggerSpec::Reflexive | TriggerSpec::State(_) => 0,
+            TriggerSpec::Exploits
+            | TriggerSpec::BecomesPlotted
+            | TriggerSpec::Reflexive
+            | TriggerSpec::State(_) => 0,
             TriggerSpec::GainsLife { .. } | TriggerSpec::GainsLifeFirst { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,
             TriggerSpec::CastsSpell { .. }
@@ -5340,6 +5363,10 @@ pub struct Mode {
     /// modes' targets and effects one after the other. Effects from index
     /// `.0` on see the targets from index `.1` on as their own.
     pub split: Option<(u16, u16)>,
+    /// A spree mode of three parts (CR 702.172a): where the third part
+    /// starts, as `split` for the second.
+    #[serde(default)]
+    pub split2: Option<(u16, u16)>,
     /// A named mode's name ("• Smash the Chest — Destroy target
     /// artifact."), printed before its effect; it has no rules meaning.
     pub name: Option<String>,
@@ -5741,6 +5768,12 @@ pub struct CardDef {
     /// be cast from exile on a later turn.
     #[serde(default)]
     pub warp: Option<Box<ManaCost>>,
+    /// Sneak (CR 702.190): during its controller's declare blockers step,
+    /// cast for this cost, returning an unblocked attacker they control to
+    /// its owner's hand, instead of its mana cost; the permanent enters
+    /// tapped and attacking what that creature attacked.
+    #[serde(default)]
+    pub sneak: Option<Box<ManaCost>>,
     /// Bestow (CR 702.103): an alternative cost; the spell is then an Aura
     /// with enchant creature (`bestow_face`), and the permanent becomes a
     /// creature again when it isn't attached.
@@ -5858,8 +5891,28 @@ pub struct CardDef {
     /// Foretell (CR 702.143): exiled from hand for {2}, cast later for
     /// this cost.
     pub foretell: Option<Box<ManaCost>>,
+    /// Plot (CR 702.170): exiled from hand for this cost as a special
+    /// action at sorcery speed; cast free as a sorcery on a later turn.
+    #[serde(default)]
+    pub plot: Option<Box<ManaCost>>,
     /// Suspend N—cost (CR 702.62).
     pub suspend: Option<Box<(u32, ManaCost)>>,
+    /// Gift (CR 702.174): "As an additional cost to cast this spell, you
+    /// may choose an opponent" (the game's opponent). A promised gift is
+    /// kept as the spell's kicker flag (`CastInfo::kicked`), so the
+    /// card's "if the gift was promised" sentences are its kicker
+    /// conditions. These effects give the gift (to `EachOpponent`): an
+    /// instant or sorcery applies them before its other effects as it
+    /// resolves (CR 702.174j); a permanent has them as its own triggered
+    /// ability ("When this permanent enters, if its gift cost was paid").
+    #[serde(default)]
+    pub gift: Option<Box<Vec<Effect>>>,
+    /// Spree (CR 702.172): the additional cost of each of the spell's
+    /// modes, in order. The modal ability's modes are then every nonempty
+    /// set of them, the set with bits `b` at index `b - 1` (at most three
+    /// modes: seven sets); the caster chooses one and pays its costs.
+    #[serde(default)]
+    pub spree: Vec<ManaCost>,
     /// Entwine (CR 702.42): every mode of a "choose one" spell for this
     /// cost on top.
     pub entwine: Option<Box<ManaCost>>,
@@ -6581,6 +6634,10 @@ pub struct CardPool {
     dungeons: Vec<CardRef>,
     /// The designations' built-in abilities and definitions.
     desig: DesigBuiltins,
+    /// The Assassin creature type, once a card with freerunning is
+    /// compiled (CR 702.173a): combat damage to players by Assassins is
+    /// then recorded.
+    assassin: Option<Subtype>,
 }
 
 /// The inherent triggered abilities of the monarch (CR 725.2), the
@@ -6657,6 +6714,7 @@ impl CardPool {
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
             desig: DesigBuiltins::default(),
+            assassin: None,
         };
         for c in Color::ALL {
             let id = pool.subtype(c.basic_land_type());
@@ -7036,6 +7094,9 @@ impl CardPool {
     fn spent_use(&self, def: &CardDef) -> SpentUse {
         let mut out = SpentUse::default();
         let mut want = |c: &StaticCondition| {
+            if *c == StaticCondition::NoManaSpent {
+                out.record = true;
+            }
             if let StaticCondition::ManaSpent {
                 kind,
                 at_least,
@@ -7556,6 +7617,19 @@ impl CardPool {
         id
     }
 
+    /// A card with freerunning is in the pool (CR 702.173a): record
+    /// combat damage that Assassins deal to players.
+    pub fn note_freerunning(&mut self) {
+        if self.assassin.is_none() {
+            self.assassin = Some(self.subtype("Assassin"));
+        }
+    }
+
+    /// The Assassin type, if a card with freerunning is in the pool.
+    pub fn assassin(&self) -> Option<Subtype> {
+        self.assassin
+    }
+
     pub fn subtype_lookup(&self, name: &str) -> Option<Subtype> {
         self.subtype_ids.get(name).copied()
     }
@@ -7665,6 +7739,7 @@ impl Builder {
             evoke: None,
             dash: None,
             warp: None,
+            sneak: None,
             bestow: None,
             bestow_face: None,
             overload: None,
@@ -7696,7 +7771,10 @@ impl Builder {
             cond_cost: None,
             madness: None,
             foretell: None,
+            plot: None,
             suspend: None,
+            spree: Vec::new(),
+            gift: None,
             entwine: None,
             escape: None,
             mayhem: None,
@@ -7875,6 +7953,13 @@ impl Builder {
     #[must_use]
     pub fn unkicked_targets(mut self, n: u8) -> Self {
         self.0.unkicked_targets = Some(n);
+        self
+    }
+
+    /// Sneak (CR 702.190).
+    #[must_use]
+    pub fn sneak(mut self, cost: ManaCost) -> Self {
+        self.0.sneak = Some(Box::new(cost));
         self
     }
 
@@ -8066,10 +8151,31 @@ impl Builder {
         self
     }
 
+    /// Plot (CR 702.170).
+    #[must_use]
+    pub fn plot(mut self, cost: ManaCost) -> Self {
+        self.0.plot = Some(Box::new(cost));
+        self
+    }
+
     /// Modular N's entering counters (CR 702.43).
     #[must_use]
     pub fn modular(mut self, n: u32) -> Self {
         self.0.modular = n;
+        self
+    }
+
+    /// Gift (CR 702.174): the gift's effects.
+    #[must_use]
+    pub fn gift(mut self, effects: Vec<Effect>) -> Self {
+        self.0.gift = Some(Box::new(effects));
+        self
+    }
+
+    /// Spree (CR 702.172): each mode's additional cost.
+    #[must_use]
+    pub fn spree(mut self, costs: Vec<ManaCost>) -> Self {
+        self.0.spree = costs;
         self
     }
 

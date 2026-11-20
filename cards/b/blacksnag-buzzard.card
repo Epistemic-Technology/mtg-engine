@@ -1,0 +1,9 @@
+card "Blacksnag Buzzard" {
+  oracle_id 99da512c-e222-4e5c-aa64-a276ed9ebe87
+  cost {2}{B}
+  type Creature — Bird
+  pt 2/1
+  keywords flying
+  enters with 1 +1/+1 counter if creature died this turn
+  plot {1}{B}
+}

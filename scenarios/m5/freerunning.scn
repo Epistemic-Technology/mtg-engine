@@ -1,0 +1,65 @@
+# Freerunning (CR 702.173): "You may pay [cost] rather than pay this
+# spell's mana cost if a player was dealt combat damage this turn by a
+# creature that, at the time it dealt that damage, was an Assassin
+# creature or a commander under your control." `alternative` on a cast
+# pays it.
+
+scenario "freerunning: after an Assassin's combat damage to a player" {
+  battlefield A: "Brotherhood Ambushers", 2 "Island"
+  library A: 3 "Island"
+  hand A: "Eagle Vision"
+  turn 1 A: attack "Brotherhood Ambushers"
+  turn 1 postcombat_main A: cast "Eagle Vision" alternative
+  run_to turn 1 end
+  assert life B 14
+  assert hand A count 3
+}
+
+scenario "freerunning: a non-Assassin's damage doesn't count" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Eagle Vision"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 postcombat_main A: cast "Eagle Vision" alternative
+  run_to turn 1 end
+  assert hand A contains "Eagle Vision"
+}
+
+scenario "freerunning: a blocked Assassin dealt no damage to a player" {
+  battlefield A: "Brotherhood Ambushers", 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Eagle Vision"
+  turn 1 A: attack "Brotherhood Ambushers"
+  turn 1 B: block "Brotherhood Ambushers" with "Hill Giant"
+  illegal turn 1 postcombat_main A: cast "Eagle Vision" alternative
+  run_to turn 1 end
+  assert hand A contains "Eagle Vision"
+}
+
+scenario "freerunning: only that turn" {
+  battlefield A: "Brotherhood Ambushers", 2 "Island"
+  hand A: "Eagle Vision"
+  turn 1 A: attack "Brotherhood Ambushers"
+  illegal turn 3 precombat_main A: cast "Eagle Vision" alternative
+  run_to turn 3 begin_combat
+  assert hand A contains "Eagle Vision"
+}
+
+scenario "freerunning: not before combat damage" {
+  battlefield A: "Brotherhood Ambushers", 2 "Island"
+  hand A: "Eagle Vision"
+  illegal turn 1 precombat_main A: cast "Eagle Vision" alternative
+  run_to turn 1 begin_combat
+  assert hand A contains "Eagle Vision"
+}
+
+scenario "freerunning: a creature spell for its freerunning cost" {
+  battlefield A: "Brotherhood Ambushers", 2 "Swamp"
+  library A: 3 "Island"
+  hand A: "Merciless Harlequin"
+  turn 1 A: attack "Brotherhood Ambushers"
+  turn 1 postcombat_main A: cast "Merciless Harlequin" alternative
+  run_to turn 1 end
+  assert battlefield A contains "Merciless Harlequin"
+  assert life A 19
+  assert hand A count 1
+}

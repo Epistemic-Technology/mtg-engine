@@ -1,0 +1,8 @@
+card "Rictus Robber" {
+  oracle_id 91e49e8e-575f-43c8-9263-a8568697e7f4
+  cost {3}{B}
+  type Creature — Zombie Rogue
+  pt 4/3
+  triggered when this enters if creature died this turn: create 1 "2/2 blue and black Zombie Rogue creature"
+  plot {2}{B}
+}

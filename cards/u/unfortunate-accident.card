@@ -1,0 +1,9 @@
+card "Unfortunate Accident" {
+  oracle_id 011558f3-3c23-430e-a08b-8f91238e7971
+  cost {B}
+  type Instant
+  spree {
+  mode {2}{B}: destroy target creature
+  mode {1}: create 1 "Mercenary"
+  }
+}

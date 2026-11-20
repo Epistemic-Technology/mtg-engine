@@ -479,7 +479,9 @@ impl Runner {
             }
             DecisionKind::Bargain { .. } | DecisionKind::Casualty { .. } => self.choose_bargain(d),
             DecisionKind::Splice { .. } => self.choose_splice(d),
-            DecisionKind::Conspire { .. } | DecisionKind::Teamwork { .. } => {
+            DecisionKind::Conspire { .. }
+            | DecisionKind::Teamwork { .. }
+            | DecisionKind::Gift { .. } => {
                 let want = if std::mem::take(&mut self.pending_conspired) {
                     Choice::Accept
                 } else {
@@ -985,6 +987,7 @@ impl Runner {
                 Action::TurnFaceUp(_)
                     | Action::Suspend(_)
                     | Action::Foretell(_)
+                    | Action::Plot(_)
                     | Action::Unlock(_)
             )
         });
@@ -992,6 +995,7 @@ impl Runner {
             let (Action::TurnFaceUp(name)
             | Action::Suspend(name)
             | Action::Foretell(name)
+            | Action::Plot(name)
             | Action::Unlock(name)) = &self.actions[i].action
             else {
                 unreachable!()
@@ -1000,7 +1004,8 @@ impl Runner {
             let found = d.options.iter().position(|c| match (c, action) {
                 (Choice::TurnFaceUp(id), Action::TurnFaceUp(_))
                 | (Choice::Suspend(id), Action::Suspend(_))
-                | (Choice::Foretell(id), Action::Foretell(_)) => {
+                | (Choice::Foretell(id), Action::Foretell(_))
+                | (Choice::Plot(id), Action::Plot(_)) => {
                     self.state().pool.get(self.state().objects[*id].card).name == *name
                 }
                 (Choice::Unlock { obj, door }, Action::Unlock(_)) => {
@@ -1103,6 +1108,7 @@ impl Runner {
                     evoked,
                     dashed,
                     warped,
+                    sneaked,
                     alternative,
                     bestowed,
                     overloaded,
@@ -1117,6 +1123,8 @@ impl Runner {
                         Choice::CastDash(self.in_hand(a.line, d.player, name)?)
                     } else if *warped {
                         Choice::CastWarp(self.in_hand(a.line, d.player, name)?)
+                    } else if *sneaked {
+                        Choice::CastSneak(self.in_hand(a.line, d.player, name)?)
                     } else if *bestowed {
                         Choice::CastBestow(self.in_hand(a.line, d.player, name)?)
                     } else if *overloaded {
@@ -1159,6 +1167,7 @@ impl Runner {
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
+            | Choice::CastSneak(id)
             | Choice::CastAlt(id)
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)
@@ -1903,7 +1912,10 @@ impl Runner {
             .copied()
             .find(|id| {
                 (st.objects[*id].cast.adventure()
-                    || st.objects[*id].alt == mtg_core::state::AltCast::Foretold)
+                    || matches!(
+                        st.objects[*id].alt,
+                        mtg_core::state::AltCast::Foretold | mtg_core::state::AltCast::Plotted
+                    ))
                     && st.name_of(*id) == name
             })
             .or_else(|| self.playable_in_exile(p, name, false))
@@ -2513,6 +2525,7 @@ impl Runner {
             Choice::CastEvoke(id) => format!("cast {} evoked", self.describe_ids(&[*id])),
             Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
             Choice::CastWarp(id) => format!("cast {} warped", self.describe_ids(&[*id])),
+            Choice::CastSneak(id) => format!("cast {} sneaked", self.describe_ids(&[*id])),
             Choice::CastAlt(id) => format!("cast {} alternative", self.describe_ids(&[*id])),
             Choice::CastBestow(id) => format!("cast {} bestowed", self.describe_ids(&[*id])),
             Choice::CastOverload(id) => {
@@ -2521,6 +2534,7 @@ impl Runner {
             Choice::CastAwaken(id) => format!("cast {} awakened", self.describe_ids(&[*id])),
             Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
             Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
+            Choice::Plot(id) => format!("plot {}", self.describe_ids(&[*id])),
             Choice::TurnFaceUp(id) => {
                 let card = self.state().objects[*id].card;
                 format!("turn {} face up", self.state().pool.get(card).name)

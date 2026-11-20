@@ -1,0 +1,7 @@
+card "Mind Spiral" {
+  oracle_id 03e356ae-f1e8-4730-8d2b-b9e2f32db915
+  cost {4}{U}
+  type Sorcery
+  gift tapped fish
+  spell: target player draws 3 cards; if kicked, tap target creature an opponent controls and put 1 stun counter on target 2
+}

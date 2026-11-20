@@ -1,0 +1,9 @@
+card "Scrapshooter" {
+  oracle_id 235e3231-c5e5-4696-a867-705b2c4158fe
+  cost {1}{G}{G}
+  type Creature — Raccoon Archer
+  pt 4/4
+  gift card
+  keyword reach
+  triggered when this enters if kicked: destroy target artifact or enchantment an opponent controls
+}

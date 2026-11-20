@@ -136,6 +136,9 @@ pub enum Action {
         dashed: bool,
         /// `warped`: cast for the warp cost (CR 702.185a).
         warped: bool,
+        /// `sneaked`: cast for the sneak cost (CR 702.190a), returning the
+        /// unblocked attacker named by `sacrificing`.
+        sneaked: bool,
         /// `alternative`: cast for the alternative cost the card's text
         /// offers (CR 118.9, "rather than pay this spell's mana cost").
         alternative: bool,
@@ -169,6 +172,8 @@ pub enum Action {
     Suspend(String),
     /// `foretell "X"`: foretell card X from the hand (a special action).
     Foretell(String),
+    /// `plot "X"`: plot card X from the hand (a special action).
+    Plot(String),
     /// `unlock "Door"`: unlock that locked door (half) of a Room the
     /// player controls (CR 709.5e, a special action).
     Unlock(String),
@@ -252,6 +257,7 @@ impl Action {
             Action::TurnFaceUp(_) => "unmorph",
             Action::Suspend(_) => "suspend",
             Action::Foretell(_) => "foretell",
+            Action::Plot(_) => "plot",
             Action::Unlock(_) => "unlock",
         }
     }

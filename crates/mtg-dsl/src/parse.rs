@@ -1491,9 +1491,10 @@ impl P {
                 }))
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
-            | "disguise" | "evoke" | "madness" | "mayhem" | "foretell" | "entwine" | "ninjutsu"
-            | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring" | "bestow"
-            | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate" | "encore"
+            | "disguise" | "evoke" | "madness" | "mayhem" | "foretell" | "plot" | "sneak"
+            | "entwine" | "ninjutsu" | "scavenge" | "dash" | "warp" | "embalm" | "eternalize"
+            | "offspring" | "bestow" | "splice" | "strive" | "overload" | "surge"
+            | "freerunning" | "spectacle" | "replicate" | "encore"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1509,6 +1510,8 @@ impl P {
                     "madness" => Mechanic::Madness(c),
                     "mayhem" => Mechanic::Mayhem(c),
                     "foretell" => Mechanic::Foretell(c),
+                    "plot" => Mechanic::Plot(c),
+                    "sneak" => Mechanic::Sneak(c),
                     "entwine" => Mechanic::Entwine(c),
                     "megamorph" => Mechanic::Megamorph(c),
                     "disguise" => Mechanic::Disguise(c),
@@ -1524,6 +1527,7 @@ impl P {
                     "offspring" => Mechanic::Offspring(c),
                     "strive" => Mechanic::Strive(c),
                     "surge" => Mechanic::Surge(c),
+                    "freerunning" => Mechanic::Freerunning(c),
                     "spectacle" => Mechanic::Spectacle(c),
                     "replicate" => Mechanic::Replicate(c),
                     "encore" => Mechanic::Encore(c),
@@ -1768,6 +1772,30 @@ impl P {
                     targets: std::mem::take(&mut self.targets),
                     effects,
                 })
+            }
+            "gift" => {
+                self.pos += 1;
+                let kind = if self.eat_word("card") {
+                    crate::ast::GiftKind::Card
+                } else if self.eat_word("food") {
+                    crate::ast::GiftKind::Food
+                } else if self.eat_words(&["tapped", "fish"]) {
+                    crate::ast::GiftKind::TappedFish
+                } else if self.eat_word("treasure") {
+                    crate::ast::GiftKind::Treasure
+                } else {
+                    return self.fail(
+                        "expected `card`, `food`, `tapped fish`, or `treasure` after `gift`",
+                    );
+                };
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Gift(kind)))
+            }
+            "spree" if self.peek_at(1) == Some(&Tok::LBrace) => {
+                self.pos += 1;
+                let modes = self.spree_block()?;
+                self.end_stmt()?;
+                Ok(Ability::Spree(modes))
             }
             "choose" => {
                 self.pos += 1;
@@ -2328,6 +2356,41 @@ impl P {
         Ok(modes)
     }
 
+    /// `{ mode {2}: ... mode {1}: ... }` after `spree`: each mode's cost,
+    /// then its effects.
+    fn spree_block(&mut self) -> R<Vec<(ManaCost, Mode)>> {
+        self.expect(&Tok::LBrace)?;
+        self.end_stmt()?;
+        let outer = std::mem::take(&mut self.targets);
+        let mut modes = Vec::new();
+        loop {
+            self.skip_newlines();
+            if self.peek() == Some(&Tok::RBrace) {
+                self.pos += 1;
+                break;
+            }
+            self.expect_word("mode")?;
+            let cost = self.mana_cost()?;
+            self.targets.clear();
+            self.subject = None;
+            self.revealed = false;
+            let effects = self.effects_body()?;
+            modes.push((
+                cost,
+                Mode {
+                    targets: std::mem::take(&mut self.targets),
+                    effects,
+                    name: None,
+                },
+            ));
+        }
+        self.targets = outer;
+        if !(1..=3).contains(&modes.len()) {
+            return self.fail("`spree` takes one to three modes");
+        }
+        Ok(modes)
+    }
+
     /// After `this has`: `4 or more oil counters`, `no arrowhead counters`.
     fn source_counters_cond(&mut self) -> R<StaticCond> {
         if self.eat_word("no") {
@@ -2718,6 +2781,22 @@ impl P {
         }
         if self.eat_word("beheld") {
             return Ok(StaticCond::Beheld);
+        }
+        if self.eat_words(&["no", "mana", "spent"]) {
+            return Ok(StaticCond::NoManaSpent);
+        }
+        if self.eat_words(&["not", "kicked"]) {
+            return Ok(StaticCond::NotKicked);
+        }
+        for (i, w) in ["sneak", "his", "her"].iter().enumerate() {
+            let words: &[&str] = if i == 0 {
+                &["sneak", "paid"]
+            } else {
+                &[w, "sneak", "paid"]
+            };
+            if self.eat_words(words) {
+                return Ok(StaticCond::SneakPaid(u8::try_from(i).unwrap_or(0)));
+            }
         }
         if self.eat_word("spent") {
             return self.spent_cond();
@@ -9295,6 +9374,10 @@ impl P {
                     return self.fail("only `this` exploits");
                 }
                 Ok(Trigger::Exploits)
+            }
+            "becomes" if obj == TriggerObj::This && self.at_words(&["plotted"]) => {
+                self.pos += 1;
+                Ok(Trigger::BecomesPlotted)
             }
             "is" if self.at_words(&["turned", "face", "up"]) => {
                 self.pos += 3;

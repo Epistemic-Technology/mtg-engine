@@ -1,0 +1,8 @@
+card "Merciless Harlequin" {
+  oracle_id 10e0ccdf-9a31-402a-9fbf-f501ce63fa52
+  cost {2}{B}
+  type Creature — Human Assassin
+  pt 2/1
+  freerunning {1}{B}
+  triggered when this enters: you draw 1 card, and you lose 1 life
+}

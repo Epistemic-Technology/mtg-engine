@@ -1,0 +1,8 @@
+card "Elektra, Daughter of the Hand" {
+  oracle_id b46647a1-0c91-451b-8c0b-be8fe02faee2
+  cost {2}{B}{B}
+  type Legendary Creature — Human Ninja Villain
+  pt 3/3
+  sneak {1}{B}{B}
+  triggered when this enters: destroy target creature an opponent controls with power 3 or less
+}

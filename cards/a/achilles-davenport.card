@@ -1,0 +1,9 @@
+card "Achilles Davenport" {
+  oracle_id b921a672-721e-4bd8-a10b-a6de8c13c7d8
+  cost {2}{U}{B}
+  type Legendary Creature — Human Assassin
+  pt 3/3
+  freerunning {U}{B}
+  keywords menace
+  static other Assassin you control: +1/+1
+}

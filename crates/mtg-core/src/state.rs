@@ -241,7 +241,8 @@ pub struct ExileCasts {
     /// Pending cards to be cast transformed, with the face they are cast
     /// as (CR 712.11a: a defeated Siege).
     pub transformed: Vec<(ObjId, CardRef)>,
-    /// Cards foretold this turn (CR 702.143a: castable on a later turn).
+    /// Cards foretold or plotted this turn (CR 702.143a, 702.170d:
+    /// castable on a later turn).
     pub foretold_this_turn: Vec<ObjId>,
     /// Cards exiled by impulse effects that a player may play.
     pub playable: Vec<PlayableExile>,
@@ -290,6 +291,9 @@ pub enum AltCast {
     MadnessExiled,
     /// In exile: foretold, castable on a later turn.
     Foretold,
+    /// In exile: plotted (CR 702.170a), castable free as a sorcery on a
+    /// later turn.
+    Plotted,
     /// In exile: suspended, with time counters.
     Suspended,
     /// In exile: rebounding, castable at its owner's next upkeep.
@@ -299,6 +303,9 @@ pub enum AltCast {
     Dash,
     /// Cast for its warp cost (CR 702.185a).
     Warp,
+    /// Cast for its sneak cost (CR 702.190a); kept by the permanent, which
+    /// enters tapped and attacking.
+    Sneak,
     /// Cast for the alternative cost its own text offers (CR 118.9, "rather
     /// than pay this spell's mana cost").
     AltCost,
@@ -1208,6 +1215,10 @@ pub enum Flow {
     ChoosingKicker {
         spell: ObjId,
     },
+    /// Choosing whether to promise a gift (CR 702.174a), after the kicker.
+    ChoosingGift {
+        spell: ObjId,
+    },
     /// Choosing which of a spell's two additional costs to pay
     /// ("sacrifice a creature or pay {3}", CR 601.2b), after the mode.
     ChoosingAdditional {
@@ -1543,6 +1554,10 @@ pub struct GameState {
     pub died_this_turn: Vec<(ObjId, PlayerId, Characteristics)>,
     /// Players dealt damage this turn (bloodthirst), one bit each.
     pub damaged_this_turn: u8,
+    /// Players who controlled an Assassin creature as it dealt combat
+    /// damage to a player this turn (freerunning, CR 702.173a), one bit
+    /// each; kept only with a freerunning card in the pool.
+    pub assassin_damage: u8,
     /// Players who lost life this turn ("if an opponent lost life this
     /// turn"), one bit each.
     pub lost_life_this_turn: u8,
@@ -1970,6 +1985,25 @@ impl GameState {
         let o = self.objects.get(id)?;
         let m = self.modes_of(id)?.get(usize::from(o.cast.mode()))?;
         m.split.map(|(e, t)| (usize::from(e), usize::from(t)))
+    }
+
+    /// `mode_split_of`, with a spree mode's third part too (CR
+    /// 702.172a): where each part after the first starts.
+    pub fn mode_splits_of(&self, id: ObjId) -> SmallVec<[(usize, usize); 2]> {
+        let mut out = SmallVec::new();
+        let Some(o) = self.objects.get(id) else {
+            return out;
+        };
+        let Some(m) = self
+            .modes_of(id)
+            .and_then(|ms| ms.get(usize::from(o.cast.mode())))
+        else {
+            return out;
+        };
+        for (e, t) in m.split.into_iter().chain(m.split2) {
+            out.push((usize::from(e), usize::from(t)));
+        }
+        out
     }
 
     /// Effects a stack object applies on resolution.
@@ -2702,11 +2736,13 @@ impl GameState {
             C::AttackedThisTurn => self.attacked_this_turn & (1 << you.index().min(7)) != 0,
             C::AttackedLastTurn => self.attacked_last_turn.contains(&(you, source)),
             C::CreatureDiedThisTurn => self.creatures_died_this_turn > 0,
+            C::AssassinDealtCombatDamage => self.assassin_damage & (1 << you.index().min(7)) != 0,
             C::LandEnteredThisTurn => self.lands_entered_this_turn & (1 << you.index().min(7)) != 0,
             C::ArtifactEnteredThisTurn => {
                 self.artifacts_entered_this_turn & (1 << you.index().min(7)) != 0
             }
             C::Kicked => self.objects.get(source).is_some_and(|o| o.cast.kicked()),
+            C::NotKicked => self.objects.get(source).is_some_and(|o| !o.cast.kicked()),
             C::ManaSpent {
                 kind,
                 at_least,
@@ -2714,6 +2750,14 @@ impl GameState {
             } => self.spent_on(source).count(*kind) >= u32::from(*at_least),
             // Judged by `condition_for`, which knows the triggering spell.
             C::ManaSpent { that: true, .. } => false,
+            C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
+            C::SneakPaid(_) => match self.objects.get(source) {
+                Some(o) => o.alt == AltCast::Sneak,
+                None => self
+                    .lki
+                    .get(&source)
+                    .is_some_and(|l| l.object.alt == AltCast::Sneak),
+            },
             C::Bargained => match self.objects.get(source) {
                 Some(o) if o.zone == Zone::Hand => !self.bargain_candidates(you).is_empty(),
                 Some(o) => o.cast.bargained(),

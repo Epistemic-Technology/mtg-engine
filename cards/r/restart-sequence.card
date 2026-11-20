@@ -1,0 +1,7 @@
+card "Restart Sequence" {
+  oracle_id c415bfdd-3d42-4f94-9f93-7e310becbc8b
+  cost {3}{B}
+  type Sorcery
+  freerunning {1}{B}
+  spell: return target creature card from your graveyard to battlefield
+}

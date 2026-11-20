@@ -95,7 +95,9 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::Splice { .. } => 36,
         // Teamwork shares conspire's slot (Accept taps creatures the
         // engine picks).
-        DecisionKind::Conspire { .. } | DecisionKind::Teamwork { .. } => 37,
+        DecisionKind::Conspire { .. }
+        | DecisionKind::Teamwork { .. }
+        | DecisionKind::Gift { .. } => 37,
         DecisionKind::CopyTarget { .. } => 38,
         DecisionKind::FormBand { .. } => 39,
     }
@@ -184,11 +186,12 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::TurnFaceUp(_) => 31,
         Choice::CastEvoke(_) => 32,
         Choice::Suspend(_) => 33,
-        Choice::Foretell(_) => 34,
+        // Plot shares foretell's slot (exiled from hand, cast later).
+        Choice::Foretell(_) | Choice::Plot(_) => 34,
         Choice::Subtype(_) => 35,
         Choice::Divide(_) => 36,
         // Warp shares dash's slot (an alternative cost from the hand).
-        Choice::CastDash(_) | Choice::CastWarp(_) => 37,
+        Choice::CastDash(_) | Choice::CastWarp(_) | Choice::CastSneak(_) => 37,
         // The one-hot is full (`CHOICE_KINDS`): overload counts as an
         // alternative cost.
         Choice::CastAlt(_) | Choice::CastOverload(_) | Choice::CastAwaken(_) => 38,
@@ -404,13 +407,15 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
+            | Choice::CastSneak(id)
             | Choice::CastAlt(id)
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)
             | Choice::CastAwaken(id)
             | Choice::Suspend(id)
             | Choice::Unlock { obj: id, .. }
-            | Choice::Foretell(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
+            | Choice::Foretell(id)
+            | Choice::Plot(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
             Choice::CastFaceDown(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 3.0),
             Choice::Cast(id) => {
                 let cost = state

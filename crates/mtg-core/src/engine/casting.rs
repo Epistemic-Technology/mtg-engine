@@ -163,6 +163,11 @@ impl GameState {
             {
                 options.push(Choice::CastWarp(*id));
             }
+            // CR 702.190a: cast for the sneak cost during its controller's
+            // declare blockers step, an unblocked attacker to return.
+            if def.sneak.is_some() && self.sneak_castable(p, def, *id, &sources) {
+                options.push(Choice::CastSneak(*id));
+            }
             // CR 702.103a: cast for the bestow cost, as an Aura spell.
             if let Some(face) = def.bestow_face
                 && self.bestow_castable(p, def, face, *id, sorcery_timing, &sources, &changers)
@@ -185,7 +190,7 @@ impl GameState {
             if def.morph.is_some() && sorcery_timing {
                 self.face_down_option(p, *id, &sources, &mut options);
             }
-            if def.suspend.is_some() || def.foretell.is_some() {
+            if def.suspend.is_some() || def.foretell.is_some() || def.plot.is_some() {
                 self.exile_actions(p, *id, sorcery_timing, &sources, &mut options);
             }
         }
@@ -218,6 +223,20 @@ impl GameState {
                             .as_ref()
                             .is_some_and(|e| e.foretold_this_turn.contains(id))
                         && self.exile_castable(p, *id, AltCast::Foretell)
+                    {
+                        options.push(Choice::Cast(*id));
+                    }
+                    continue;
+                }
+                // CR 702.170d: a plotted card, free, during its owner's
+                // main phase with the stack empty, on a later turn.
+                if o.alt == AltCast::Plotted {
+                    if sorcery_timing
+                        && !self
+                            .exile_casts
+                            .as_ref()
+                            .is_some_and(|e| e.foretold_this_turn.contains(id))
+                        && self.exile_castable(p, *id, AltCast::Free)
                     {
                         options.push(Choice::Cast(*id));
                     }
@@ -447,6 +466,7 @@ impl GameState {
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
+            | Choice::CastSneak(id)
             | Choice::CastAlt(id) => !(creatures && creature(id)),
             Choice::CastFaceDown(_) => !creatures,
             Choice::CastFace { card, face } => {
@@ -1559,7 +1579,21 @@ impl GameState {
         {
             return false;
         }
-        // A modal spell needs some mode to have its targets (CR 601.2b).
+        // A modal spell needs some mode to have its targets (CR 601.2b);
+        // a spree spell, one it can also pay that mode's cost for (CR
+        // 702.172a).
+        if !def.spree.is_empty()
+            && let Some(modes) = def.modes()
+        {
+            return def.spree.iter().enumerate().any(|(i, c)| {
+                let mut more = req;
+                more.add(&c.requirements(0));
+                modes
+                    .get((1 << i) - 1)
+                    .is_some_and(|m| self.targets_available(p, &m.targets, Some(id)))
+                    && self.payable(p, srcs, pool, &more, self.player(p).life, None)
+            });
+        }
         match def.modes() {
             Some(modes) => modes
                 .iter()
@@ -1756,8 +1790,9 @@ impl GameState {
         }
     }
 
-    /// Suspend (CR 702.62a: whenever the card could be cast) and foretell
-    /// (CR 702.143a: any time during its owner's turn) from the hand.
+    /// Suspend (CR 702.62a: whenever the card could be cast), foretell
+    /// (CR 702.143a: any time during its owner's turn), and plot (CR
+    /// 702.170a: at sorcery speed) from the hand.
     #[cold]
     #[inline(never)]
     fn exile_actions(
@@ -1795,6 +1830,20 @@ impl GameState {
             )
         {
             options.push(Choice::Foretell(id));
+        }
+        // CR 702.170a: plot, any time its owner could cast a sorcery.
+        if let Some(cost) = def.plot.as_deref()
+            && sorcery_timing
+            && self.payable(
+                p,
+                sources,
+                &ps.mana_pool,
+                &cost.requirements(0),
+                ps.life,
+                None,
+            )
+        {
+            options.push(Choice::Plot(id));
         }
     }
 
@@ -2144,6 +2193,46 @@ impl GameState {
             p,
             sources,
             &alt.cost.mana.requirements(0),
+            Spend::Spell(&self.printed(self.objects[id].def)),
+        ) || !self.additional_payable(p, &def.additional, id)
+        {
+            return false;
+        }
+        match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(id))),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+        }
+    }
+
+    /// CR 702.190a: whether `p` may cast `id` for its sneak cost now: any
+    /// time they could cast an instant during their declare blockers step,
+    /// with an unblocked attacker to return.
+    #[cold]
+    #[inline(never)]
+    fn sneak_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sources: &Sources,
+    ) -> bool {
+        let Some(cost) = &def.sneak else {
+            return false;
+        };
+        if self.step != crate::turn::Step::DeclareBlockers
+            || p != self.active_player
+            || def.additional.sacrifice.is_some()
+            || def.additional_or.is_some()
+            || self.unblocked_attackers(p).is_empty()
+        {
+            return false;
+        }
+        if !self.payable_for(
+            p,
+            sources,
+            &cost.requirements(0),
             Spend::Spell(&self.printed(self.objects[id].def)),
         ) || !self.additional_payable(p, &def.additional, id)
         {
@@ -2590,12 +2679,24 @@ impl GameState {
 
     /// `spell_requirements`, paying the second of two additional costs if
     /// `other` (CR 601.2b, 601.2f: the total cost includes it).
-    #[allow(clippy::too_many_lines)] // one arm per alternative cost
     pub(super) fn spell_requirements_as(
         &self,
         spell: ObjId,
         x: u32,
         other: bool,
+    ) -> ManaRequirement {
+        self.spell_requirements_mode(spell, x, other, self.objects[spell].cast.mode())
+    }
+
+    /// `spell_requirements_as` with `mode` chosen, for a spree spell's
+    /// mode costs (CR 702.172a).
+    #[allow(clippy::too_many_lines)] // one arm per alternative cost
+    fn spell_requirements_mode(
+        &self,
+        spell: ObjId,
+        x: u32,
+        other: bool,
+        mode: u8,
     ) -> ManaRequirement {
         let o = &self.objects[spell];
         let def = self.pool.get(o.def);
@@ -2623,6 +2724,9 @@ impl GameState {
             }
             (_, false) if o.alt == AltCast::Warp && def.warp.is_some() => {
                 def.warp.as_ref().expect("checked").requirements(x)
+            }
+            (_, false) if o.alt == AltCast::Sneak && def.sneak.is_some() => {
+                def.sneak.as_ref().expect("checked").requirements(x)
             }
             (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
                 def.overload.as_ref().expect("checked").requirements(x)
@@ -2687,6 +2791,15 @@ impl GameState {
             && self.mode_split_of(spell).is_some()
         {
             req.add(&e.requirements(0));
+        }
+        // CR 702.172a: the chosen spree modes' costs.
+        if !def.spree.is_empty() {
+            let bits = u32::from(mode) + 1;
+            for (i, c) in def.spree.iter().enumerate() {
+                if bits & (1 << i) != 0 {
+                    req.add(&c.requirements(0));
+                }
+            }
         }
         // "As an additional cost to cast this spell, sacrifice a creature
         // or pay {3}".
@@ -3947,6 +4060,36 @@ impl GameState {
         };
         let source = Some(o.ability.map_or(spell, |a| a.source));
         let def = self.pool.get(o.def);
+        // CR 702.172a: a spree spell's modes cost more; those the caster
+        // can pay for (all of them if none, so the cast can go on to fail
+        // at payment rather than offer nothing).
+        if !def.spree.is_empty() && o.kind == ObjKind::Card {
+            let with_targets: Vec<usize> = modes
+                .iter()
+                .enumerate()
+                .filter(|(_, m)| self.targets_available(o.controller, &m.targets, source))
+                .map(|(i, _)| i)
+                .collect();
+            let other = o.cast.other_cost();
+            let payable: Vec<Choice> = with_targets
+                .iter()
+                .filter(|i| {
+                    let req = self.spell_requirements_mode(
+                        spell,
+                        0,
+                        other,
+                        u8::try_from(**i).unwrap_or(0),
+                    );
+                    self.spell_payable(o.controller, spell, &req)
+                })
+                .map(|i| Choice::Mode(*i))
+                .collect();
+            return if payable.is_empty() {
+                with_targets.into_iter().map(Choice::Mode).collect()
+            } else {
+                payable
+            };
+        }
         modes
             .iter()
             .enumerate()
@@ -4426,6 +4569,30 @@ impl GameState {
         let c = self.characteristics(source);
         self.with_restricted(p, &sources, Spend::Ability(c.as_ref()))
             .unwrap_or(sources)
+    }
+
+    /// Exile `card` and make it plotted (CR 702.170a, 702.170c): its owner
+    /// may cast it free as a sorcery from a later turn on. The exiled card.
+    pub(super) fn plot(&mut self, card: ObjId) -> ObjId {
+        let new = self.move_object(card, Zone::Exile, true);
+        self.objects[new].alt = AltCast::Plotted;
+        let owner = self.objects[new].owner;
+        self.player_mut(owner).adventures_in_exile += 1;
+        self.exile_casts
+            .get_or_insert_with(Box::default)
+            .foretold_this_turn
+            .push(new);
+        // "When this card becomes plotted".
+        let def = self.objects[new].def;
+        let pool = std::sync::Arc::clone(&self.pool);
+        for a in &pool.get(def).ability_ids {
+            if let AbilityDef::Triggered(t) = pool.ability(*a)
+                && t.trigger == crate::card::TriggerSpec::BecomesPlotted
+            {
+                self.queue_builtin(owner, *a, new, def);
+            }
+        }
+        new
     }
 
     /// The sources `p` may tap to foretell a card (CR 702.143a): restricted
@@ -5047,7 +5214,23 @@ impl GameState {
             .alt_cost
             .as_deref()
             .filter(|_| self.objects[spell].alt == AltCast::AltCost);
-        let add_sacrifice = if alt.is_some() { None } else { sacrifice };
+        // CR 702.190a: sneak returns the chosen unblocked attacker; the
+        // permanent will attack what it was attacking.
+        let sneak = self.objects[spell].alt == AltCast::Sneak;
+        if sneak && let Some(c) = sacrifice {
+            self.ninjutsu.retain(|(s, _)| *s != spell);
+            if let Some(at) = self.combat.as_ref().and_then(|cb| cb.attacker(c)) {
+                self.ninjutsu.push((spell, at.attacking));
+            }
+            if self.objects.contains_key(c) {
+                self.move_object(c, Zone::Hand, false);
+            }
+        }
+        let add_sacrifice = if alt.is_some() || sneak {
+            None
+        } else {
+            sacrifice
+        };
         let other = self.objects[spell].cast.other_cost();
         self.pay_costs_recorded(spell, |s| {
             let chosen = match &def.additional_or {
@@ -5412,7 +5595,7 @@ impl GameState {
                 couldnt: 0,
                 created_tokens: SmallVec::new(),
             };
-            let split = self.mode_split_of(spell);
+            let split = self.mode_splits_of(spell);
             let outer = self.begin_this_way(spell);
             // "The damage can't be prevented" covers the spell's damage
             // dealt before the sentence too (CR 615.12).
@@ -5430,9 +5613,16 @@ impl GameState {
             if def.marks.has(crate::card::Marks::ASCEND) {
                 self.ascend(obj.controller);
             }
+            // CR 702.174j: a promised gift, before the spell's other
+            // effects.
+            if let Some(gift) = &def.gift
+                && obj.cast.kicked()
+            {
+                self.apply_effects(&mut ctx, gift, &[]);
+            }
             match overloaded {
                 Some(spec) => self.apply_overloaded(&mut ctx, spec, effects),
-                None => self.apply_effects(&mut ctx, effects, split),
+                None => self.apply_effects(&mut ctx, effects, &split),
             }
             if let Some(sp) = &spliced {
                 self.apply_spliced(&ctx, sp, crate::state::targets_in(&pool, &obj).len());
@@ -5449,7 +5639,11 @@ impl GameState {
         {
             if def.is_permanent_card() {
                 self.choose_copy_on_entering(spell);
-                self.put_onto_battlefield(spell, obj.controller);
+                if obj.alt == AltCast::Sneak {
+                    self.enter_sneaking(spell, obj.controller);
+                } else {
+                    self.put_onto_battlefield(spell, obj.controller);
+                }
             } else if obj.cast.adventure() {
                 self.finish_adventure(spell);
             } else if obj.cast.bought_back() && !obj.cast.flashback() {
@@ -5463,6 +5657,42 @@ impl GameState {
             {
                 self.leave_stack(spell);
             }
+        }
+    }
+
+    /// CR 702.190b: a permanent spell whose sneak cost was paid enters
+    /// tapped and attacking what the returned creature was attacking.
+    #[cold]
+    #[inline(never)]
+    fn enter_sneaking(&mut self, spell: ObjId, controller: PlayerId) {
+        let at = self
+            .ninjutsu
+            .iter()
+            .position(|(s, _)| *s == spell)
+            .map(|i| self.ninjutsu.remove(i).1);
+        let new = self.put_onto_battlefield_with(
+            spell,
+            controller,
+            super::replace::Enter {
+                tapped: true,
+                counters: None,
+                haste: false,
+                prepared: false,
+            },
+        );
+        if self
+            .objects
+            .get(new)
+            .is_some_and(|o| o.zone == Zone::Battlefield)
+        {
+            let defender = at.unwrap_or_else(|| {
+                Target::Player(
+                    self.players_in_game()
+                        .find(|q| *q != controller)
+                        .unwrap_or(controller),
+                )
+            });
+            self.enter_attacking(new, defender);
         }
     }
 
@@ -5492,7 +5722,7 @@ impl GameState {
             ctx.legal = vec![true];
             ctx.created = None;
             ctx.did = true;
-            self.apply_effects(ctx, effects, None);
+            self.apply_effects(ctx, effects, &[]);
         }
     }
 
@@ -5626,7 +5856,7 @@ impl GameState {
             };
             start += n;
             let effects = def.spell_ability().map_or(&[][..], |(_, e)| e);
-            self.apply_effects(&mut part, effects, None);
+            self.apply_effects(&mut part, effects, &[]);
         }
     }
 
@@ -9934,11 +10164,13 @@ impl GameState {
         &mut self,
         ctx: &mut EffectCtx,
         effects: &[Effect],
-        split: Option<(usize, usize)>,
+        splits: &[(usize, usize)],
     ) {
         for (i, effect) in effects.iter().enumerate() {
-            match split {
-                Some((e, t)) if i >= e => {
+            // A spree mode's third part sees the targets from its own
+            // start (CR 702.172a).
+            match splits.iter().rev().find(|(e, _)| i >= *e).copied() {
+                Some((_, t)) => {
                     let mut second = EffectCtx {
                         source: ctx.source,
                         controller: ctx.controller,

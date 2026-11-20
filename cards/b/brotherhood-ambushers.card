@@ -1,0 +1,7 @@
+card "Brotherhood Ambushers" {
+  oracle_id aea65f96-3c76-4761-9a7a-2d5c10d75ca0
+  cost {4}{B}
+  type Creature — Human Assassin
+  pt 6/3
+  freerunning {3}{B}
+}

@@ -452,6 +452,19 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Foretell(cost)) => {
                     b = b.foretell(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Plot(cost)) => {
+                    b = b.plot(cost.clone());
+                }
+                Ability::Mechanic(Mechanic::Gift(kind)) => {
+                    let effects = self.gift_effects(*kind)?;
+                    b = b.gift(effects);
+                }
+                Ability::Spree(modes) => {
+                    b = b.spree(modes.iter().map(|(c, _)| c.clone()).collect());
+                }
+                Ability::Mechanic(Mechanic::Sneak(cost)) => {
+                    b = b.sneak(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Suspend(n, cost)) => {
                     b = b.suspend(*n, cost.clone());
                 }
@@ -610,18 +623,30 @@ impl Compiler<'_> {
                 // cost if you or a teammate has cast another spell this
                 // turn." CR 702.137a: spectacle, "... rather than its mana
                 // cost if an opponent lost life this turn."
-                Ability::Mechanic(m @ (Mechanic::Surge(cost) | Mechanic::Spectacle(cost))) => {
+                // CR 702.173a: freerunning, "You may pay [cost] rather than
+                // pay this spell's mana cost if a player was dealt combat
+                // damage this turn by a creature that, at the time it dealt
+                // that damage, was an Assassin creature or a commander under
+                // your control."
+                Ability::Mechanic(
+                    m @ (Mechanic::Surge(cost)
+                    | Mechanic::Spectacle(cost)
+                    | Mechanic::Freerunning(cost)),
+                ) => {
                     if card.alt_cost.is_some() {
                         return self.err("two alternative costs of the card's own");
                     }
-                    let cond = if matches!(m, Mechanic::Surge(_)) {
-                        StaticCondition::CastThisTurn {
+                    let cond = match m {
+                        Mechanic::Surge(_) => StaticCondition::CastThisTurn {
                             filter: ObjFilter::default(),
                             at_least: 1,
                             other: true,
+                        },
+                        Mechanic::Freerunning(_) => {
+                            self.pool.note_freerunning();
+                            StaticCondition::AssassinDealtCombatDamage
                         }
-                    } else {
-                        StaticCondition::OpponentLostLifeThisTurn
+                        _ => StaticCondition::OpponentLostLifeThisTurn,
                     };
                     let condition = Some(self.pool.intern_condition(cond));
                     b = b.alt_cost(mtg_core::card::AltCost {
@@ -780,6 +805,7 @@ impl Compiler<'_> {
                         | Ability::Modal(_)
                         | Ability::ModalBoth(_)
                         | Ability::ModalTwo(_)
+                        | Ability::Spree(_)
                 )
             })
             .count();
@@ -789,6 +815,18 @@ impl Compiler<'_> {
             );
         }
         for a in &card.abilities {
+            // CR 702.174b: an instant's or sorcery's gift happens as it
+            // resolves; a permanent's is a triggered ability.
+            if matches!(unlabeled(a), Ability::Mechanic(Mechanic::Gift(_)))
+                && card.types.iter().any(|t| {
+                    matches!(
+                        t,
+                        mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery
+                    )
+                })
+            {
+                continue;
+            }
             if matches!(
                 unlabeled(a),
                 Ability::Keyword(_)
@@ -807,6 +845,8 @@ impl Compiler<'_> {
                             | Mechanic::Madness(_)
                             | Mechanic::Mayhem(_)
                             | Mechanic::Foretell(_)
+                            | Mechanic::Plot(_)
+                            | Mechanic::Sneak(_)
                             | Mechanic::Suspend(..)
                             | Mechanic::Entwine(_)
                             | Mechanic::Escape(..)
@@ -836,6 +876,7 @@ impl Compiler<'_> {
                             | Mechanic::Retrace
                             | Mechanic::JumpStart
                             | Mechanic::Surge(_)
+                            | Mechanic::Freerunning(_)
                             | Mechanic::Spectacle(_)
                     )
             ) {
@@ -1026,6 +1067,7 @@ impl Compiler<'_> {
                     .trim_end_matches('.')
                     .to_string(),
                 split: None,
+                split2: None,
                 name: m.name.clone(),
             });
         }
@@ -1037,6 +1079,7 @@ impl Compiler<'_> {
                 u16::try_from(a.effects.len()).unwrap_or(u16::MAX),
                 u16::try_from(a.targets.len()).unwrap_or(u16::MAX),
             )),
+            split2: None,
             name: None,
         };
         if two {
@@ -1093,6 +1136,81 @@ impl Compiler<'_> {
             }
         }
         Ok(a)
+    }
+
+    /// What a gift gives the chosen opponent (CR 702.174d-h); the game
+    /// has one opponent, so it is each opponent.
+    fn gift_effects(
+        &mut self,
+        kind: crate::ast::GiftKind,
+    ) -> Result<Vec<CoreEffect>, CompileError> {
+        use crate::ast::{Effect as E, GiftKind, Recipient as R};
+        let token = |name: &str, tapped: bool| E::CreateToken {
+            token: name.to_string(),
+            count: Num::N(1),
+            tapped,
+            who: Some(R::EachOpponent),
+            it_has: false,
+            attached: None,
+        };
+        let e = match kind {
+            GiftKind::Card => E::DrawCards {
+                count: Num::N(1),
+                who: Some(R::EachOpponent),
+            },
+            GiftKind::Food => token("Food", false),
+            GiftKind::TappedFish => token("1/1 blue Fish creature", true),
+            GiftKind::Treasure => token("Treasure", false),
+        };
+        self.sentences(&[Sentence::new(vec![e])])
+    }
+
+    /// A spree spell's modes (CR 702.172a): every nonempty set of the
+    /// printed modes, the set with bits `b` at index `b - 1`, each made of
+    /// its modes' targets and effects in printed order (`split`, `split2`
+    /// where the second and third begin).
+    fn spree_modes(
+        &mut self,
+        modes: &[(mtg_core::mana::ManaCost, crate::ast::Mode)],
+    ) -> Result<Vec<CoreMode>, CompileError> {
+        let singles: Vec<crate::ast::Mode> = modes.iter().map(|(_, m)| m.clone()).collect();
+        let singles = self.modes(&singles, false, false)?;
+        let n = singles.len();
+        let mut out = Vec::new();
+        for bits in 1..(1usize << n) {
+            let parts: Vec<&CoreMode> = (0..n)
+                .filter(|i| bits & (1 << i) != 0)
+                .map(|i| &singles[i])
+                .collect();
+            let mut m = CoreMode {
+                targets: Vec::new(),
+                effects: Vec::new(),
+                text: String::new(),
+                split: None,
+                split2: None,
+                name: None,
+            };
+            for (k, p) in parts.iter().enumerate() {
+                let at = (
+                    u16::try_from(m.effects.len()).unwrap_or(u16::MAX),
+                    u16::try_from(m.targets.len()).unwrap_or(u16::MAX),
+                );
+                match k {
+                    0 => {}
+                    1 => m.split = Some(at),
+                    _ => m.split2 = Some(at),
+                }
+                m.targets.extend(p.targets.iter().copied());
+                m.effects.extend(p.effects.iter().cloned());
+            }
+            m.text = parts
+                .iter()
+                .map(|p| p.text.as_str())
+                .collect::<Vec<_>>()
+                .join(" and ");
+            out.push(m);
+        }
+        Ok(out)
     }
 
     #[allow(clippy::too_many_lines)] // one arm per condition
@@ -1194,6 +1312,9 @@ impl Compiler<'_> {
             StaticCond::Bargained => StaticCondition::Bargained,
             StaticCond::Teamwork => StaticCondition::Teamwork,
             StaticCond::Beheld => StaticCondition::Beheld,
+            StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
+            StaticCond::NotKicked => StaticCondition::NotKicked,
+            StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
             StaticCond::Saddled => StaticCondition::Saddled,
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
             StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
@@ -2689,6 +2810,7 @@ impl Compiler<'_> {
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
             Trigger::TurnedFaceUp(o) => TriggerSpec::TurnedFaceUp(self.trigger_obj(o)),
             Trigger::Exploits => TriggerSpec::Exploits,
+            Trigger::BecomesPlotted => TriggerSpec::BecomesPlotted,
             Trigger::DrawsNth { whose, n, .. } => TriggerSpec::DrawsNth {
                 whose: *whose,
                 n: *n,
@@ -3059,6 +3181,7 @@ impl Compiler<'_> {
             ),
             Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true, false)?),
             Ability::ModalTwo(modes) => AbilityDef::Modal(self.modes(modes, false, true)?),
+            Ability::Spree(modes) => AbilityDef::Modal(self.spree_modes(modes)?),
             Ability::Activated { cost, .. } if cost.discard_x => {
                 return self.err("`discard X cards` is only a spell's additional cost");
             }
@@ -3347,6 +3470,8 @@ impl Compiler<'_> {
                 | Mechanic::Madness(_)
                 | Mechanic::Mayhem(_)
                 | Mechanic::Foretell(_)
+                | Mechanic::Plot(_)
+                | Mechanic::Sneak(_)
                 | Mechanic::Suspend(..)
                 | Mechanic::Entwine(_)
                 | Mechanic::Escape(..)
@@ -3647,6 +3772,15 @@ impl Compiler<'_> {
                 // CR 702.101a: "Whenever you cast a spell, you may pay
                 // {W/B}. If you do, each opponent loses 1 life and you gain
                 // life equal to the total life lost this way."
+                // CR 702.174b: "When this permanent enters, if its gift
+                // cost was paid, [effect]."
+                Mechanic::Gift(kind) => AbilityDef::Triggered(TriggeredAbility {
+                    from_graveyard: false,
+                    trigger: TriggerSpec::Enters(CoreTriggerObj::This),
+                    condition: Some(mtg_core::card::Condition::Kicked),
+                    targets: Vec::new(),
+                    effects: self.gift_effects(*kind)?,
+                }),
                 Mechanic::Extort => {
                     let Some(i) = self.extort else {
                         return self.err("extort's count is missing");
@@ -4237,6 +4371,9 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Madness(_)
         | Mechanic::Mayhem(_)
         | Mechanic::Foretell(_)
+        | Mechanic::Plot(_)
+        | Mechanic::Gift(_)
+        | Mechanic::Sneak(_)
         | Mechanic::Suspend(..)
         | Mechanic::Entwine(_)
         | Mechanic::Escape(..)
@@ -4287,6 +4424,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Enlist
         | Mechanic::JumpStart
         | Mechanic::Surge(_)
+        | Mechanic::Freerunning(_)
         | Mechanic::Spectacle(_)
         | Mechanic::Saddle(_) => unreachable!("not an expansion"),
     }

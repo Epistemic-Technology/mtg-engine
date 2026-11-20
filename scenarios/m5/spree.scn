@@ -1,0 +1,94 @@
+# Spree (CR 702.172): "Choose one or more modes. As an additional cost to
+# cast this spell, pay the costs associated with those modes." A spree
+# spell's modes are the sets of its printed modes: `mode N` is the set
+# whose bits are N (1 the first, 2 the second, 3 both, 4 the third, ...).
+
+scenario "spree: one mode, its cost paid on top" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Explosive Derailment"
+  turn 1 A: cast "Explosive Derailment" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert tapped newest "Mountain"
+  assert tapped oldest "Mountain"
+}
+
+scenario "spree: both modes, each with its own target" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant", "Ornithopter"
+  hand A: "Explosive Derailment"
+  turn 1 A: cast "Explosive Derailment" mode 3 targeting "Hill Giant", "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Ornithopter"
+}
+
+scenario "spree: both modes can't be chosen without the mana for both" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant", "Ornithopter"
+  hand A: "Explosive Derailment"
+  illegal turn 1 A: cast "Explosive Derailment" mode 3 targeting "Hill Giant", "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Ornithopter"
+}
+
+scenario "spree: not castable with mana for the base cost alone" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Explosive Derailment"
+  illegal turn 1 A: cast "Explosive Derailment" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Explosive Derailment"
+}
+
+scenario "spree: the second and third of three modes" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Honden of Seeing Winds"
+  hand A: "Requisition Raid"
+  turn 1 A: cast "Requisition Raid" mode 6 targeting "Honden of Seeing Winds", player A
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Honden of Seeing Winds"
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "spree: all three modes" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Honden of Seeing Winds", "Ornithopter"
+  hand A: "Requisition Raid"
+  turn 1 A: cast "Requisition Raid" mode 7 targeting "Ornithopter", "Honden of Seeing Winds", player A
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Honden of Seeing Winds"
+  assert graveyard B contains "Ornithopter"
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "spree: an instant's mode at instant speed" {
+  battlefield A: 4 "Island"
+  hand A: "Phantom Interference"
+  turn 2 upkeep A: cast "Phantom Interference" mode 1
+  run_to turn 2 draw
+  assert battlefield A contains "Spirit"
+}
+
+scenario "spree: Unfortunate Accident's two modes" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Unfortunate Accident"
+  turn 1 A: cast "Unfortunate Accident" mode 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Mercenary"
+}
+
+scenario "spree: Metamorphic Blast makes a 0/1 Rabbit until end of turn" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Metamorphic Blast"
+  turn 1 A: cast "Metamorphic Blast" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 0
+  assert is "Hill Giant" "Rabbit"
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 3
+}

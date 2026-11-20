@@ -1,0 +1,9 @@
+card "Stingerback Terror" {
+  oracle_id 5cc6ca73-c38f-4ef8-a2c9-4f0342eebb73
+  cost {2}{R}{R}
+  type Creature — Scorpion Dragon
+  pt 7/7
+  keywords flying, trample
+  static this: -1/-1 count each hand
+  plot {2}{R}
+}

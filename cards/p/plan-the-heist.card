@@ -1,0 +1,7 @@
+card "Plan the Heist" {
+  oracle_id a9471b33-b5b0-408a-9900-6964e5fe42da
+  cost {2}{U}{U}
+  type Sorcery
+  spell: surveil 3 if hand 0 or less; then draw 3 cards
+  plot {3}{U}
+}

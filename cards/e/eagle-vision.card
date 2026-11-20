@@ -1,0 +1,7 @@
+card "Eagle Vision" {
+  oracle_id f96f1b4c-f06a-4374-8d8f-aaa06c6108c3
+  cost {4}{U}
+  type Sorcery
+  freerunning {1}{U}
+  spell: draw 3 cards
+}

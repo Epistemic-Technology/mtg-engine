@@ -1,0 +1,9 @@
+card "Slickshot Show-Off" {
+  oracle_id 74c7a029-59aa-4511-8e4c-f8f167cda4e2
+  cost {1}{R}
+  type Creature — Bird Wizard
+  pt 1/2
+  keywords flying, haste
+  triggered whenever you cast a noncreature spell: this gets +2/+0
+  plot {1}{R}
+}

@@ -1,0 +1,9 @@
+card "Aloe Alchemist" {
+  oracle_id 97489ef7-98c3-4700-bbe6-185215d41b25
+  cost {1}{G}
+  type Creature — Plant Warlock
+  pt 3/2
+  keywords trample
+  triggered when this becomes plotted: target creature gets +3/+2 and gains trample
+  plot {1}{G}
+}

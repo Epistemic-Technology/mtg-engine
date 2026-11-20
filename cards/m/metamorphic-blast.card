@@ -1,0 +1,9 @@
+card "Metamorphic Blast" {
+  oracle_id 69c8e690-c0a2-4c4e-910d-123c9c5b922f
+  cost {U}
+  type Instant
+  spree {
+  mode {1}: until end of turn, target creature becomes white Rabbit base 0/1
+  mode {3}: target player draws 2 cards
+  }
+}

@@ -1,0 +1,7 @@
+card "New Generation's Technique" {
+  oracle_id e7ae3ee7-824f-4dcb-8f28-7de99e4d8c3e
+  cost {3}{G}
+  type Sorcery
+  sneak {2}{G}
+  spell: search up to 2 basic land card to battlefield tapped
+}

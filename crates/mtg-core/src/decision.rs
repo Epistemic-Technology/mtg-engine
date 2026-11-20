@@ -100,6 +100,9 @@ pub enum DecisionKind {
     /// Whether to cast `spell` using teamwork: `Accept` taps creatures
     /// with enough total power (the engine picks them), `Decline` doesn't.
     Teamwork { spell: ObjId },
+    /// Whether to promise an opponent a gift as `spell` is cast (CR
+    /// 702.174a): `Accept` or `Decline`.
+    Gift { spell: ObjId },
     /// Which card from the hand to put onto the battlefield (offered as
     /// `Choice::Discard` options), or `Done` for none.
     PutFromHand,
@@ -232,6 +235,9 @@ pub enum Choice {
     CastDash(ObjId),
     /// Cast a card from hand for its warp cost (CR 702.185a).
     CastWarp(ObjId),
+    /// Cast a card from hand for its sneak cost (CR 702.190a); the
+    /// unblocked attacker to return is chosen with the costs.
+    CastSneak(ObjId),
     /// Cast a card for the alternative cost its text offers (CR 118.9):
     /// "You may sacrifice a Mountain rather than pay this spell's mana
     /// cost."
@@ -246,6 +252,8 @@ pub enum Choice {
     Suspend(ObjId),
     /// Foretell a card from hand (CR 702.143a), a special action.
     Foretell(ObjId),
+    /// Plot a card from hand (CR 702.170a), a special action.
+    Plot(ObjId),
     /// Cast a card with morph or disguise face down as a 2/2 for {3}
     /// (CR 702.37c, 702.168).
     CastFaceDown(ObjId),
@@ -353,12 +361,14 @@ impl Choice {
             Choice::CastEvoke(id) => format!("cast {} for its evoke cost", name(id)),
             Choice::CastDash(id) => format!("cast {} for its dash cost", name(id)),
             Choice::CastWarp(id) => format!("cast {} for its warp cost", name(id)),
+            Choice::CastSneak(id) => format!("cast {} for its sneak cost", name(id)),
             Choice::CastAlt(id) => format!("cast {} for its alternative cost", name(id)),
             Choice::CastBestow(id) => format!("cast {} for its bestow cost", name(id)),
             Choice::CastOverload(id) => format!("cast {} for its overload cost", name(id)),
             Choice::CastAwaken(id) => format!("cast {} for its awaken cost", name(id)),
             Choice::Suspend(id) => format!("suspend {}", name(id)),
             Choice::Foretell(id) => format!("foretell {}", name(id)),
+            Choice::Plot(id) => format!("plot {}", name(id)),
             Choice::CastFaceDown(id) => {
                 let card = state
                     .objects

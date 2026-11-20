@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 122] = [
+const TEMPLATED_TAGS: [&str; 127] = [
     "Mayhem",
     "Mobilize",
     "Behold",
@@ -166,6 +166,11 @@ const TEMPLATED_TAGS: [&str; 122] = [
     "Replicate",
     "Teamwork",
     "Warp",
+    "Plot",
+    "Sneak",
+    "Spree",
+    "Gift",
+    "Freerunning",
     "Ripple",
     "Saddle",
     "Fabricate",
@@ -1654,8 +1659,13 @@ impl Templates {
                 ("you may ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("If you do, ") {
                 ("if you do, ", rest.to_string())
-            } else if let Some(rest) = sentence.strip_prefix("If this spell was kicked, ") {
+            } else if let Some(rest) = sentence
+                .strip_prefix("If this spell was kicked, ")
+                .or_else(|| sentence.strip_prefix("If the gift was promised, "))
+            {
                 ("if kicked, ", rest.to_string())
+            } else if let Some(rest) = sentence.strip_prefix("If the gift wasn't promised, ") {
+                ("if not kicked, ", rest.to_string())
             } else {
                 ("", sentence.clone())
             };
@@ -2047,6 +2057,11 @@ fn static_condition(s: &str) -> Option<String> {
         "it's attacking" | "this creature is attacking" => return Some("attacking".to_string()),
         "it's enchanted" | "this creature is enchanted" => return Some("enchanted".to_string()),
         "it's equipped" | "this creature is equipped" => return Some("equipped".to_string()),
+        "this spell's sneak cost was paid" | "its sneak cost was paid" => {
+            return Some("sneak paid".to_string());
+        }
+        "his sneak cost was paid" => return Some("his sneak paid".to_string()),
+        "her sneak cost was paid" => return Some("her sneak paid".to_string()),
         "this spell was cast using teamwork" => {
             return Some("teamwork".to_string());
         }
@@ -2798,12 +2813,26 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Freerunning) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.174: "Gift a card", "Gift a tapped Fish".
+        if let Some(c) = Regex::new(r"^Gift (a card|a Food|a tapped Fish|a Treasure)$")
+            .unwrap()
+            .captures(line)
+        {
+            let kind = match cap(&c, 1) {
+                "a card" => "card",
+                "a Food" => "food",
+                "a tapped Fish" => "tapped fish",
+                _ => "treasure",
+            };
+            self.statements.push(format!("gift {kind}"));
             return Ok(());
         }
         // CR 702.113: "Awaken 3—{5}{B}".
@@ -3195,7 +3224,10 @@ impl Builder<'_> {
                 (" if this isn't prepared", r)
             } else if let Some(r) = rest.strip_prefix("if no creatures are on the battlefield, ") {
                 (" if no creatures are on the battlefield", r)
-            } else if let Some(r) = rest.strip_prefix("if it was kicked, ") {
+            } else if let Some(r) = rest
+                .strip_prefix("if it was kicked, ")
+                .or_else(|| rest.strip_prefix("if the gift was promised, "))
+            {
                 (" if kicked", r)
             } else if let Some(r) = rest.strip_prefix("if no spells were cast last turn, ") {
                 (" if no spells were cast last turn", r)
@@ -3257,6 +3289,19 @@ impl Builder<'_> {
         let mut targets = 0;
         let effects = self.templates.effects(m, &mut targets)?;
         Ok(format!("{head}: {effects}"))
+    }
+
+    /// "Spree" with its modes and their costs (CR 702.172).
+    fn spree(&mut self, modes: &[(String, String)]) -> Result<(), Skip> {
+        let mut lines = vec!["spree {".to_string()];
+        for (cost, m) in modes {
+            let mut targets = 0;
+            let effects = self.templates.effects(m, &mut targets)?;
+            lines.push(format!("  mode {cost}: {effects}"));
+        }
+        lines.push("}".to_string());
+        self.statements.push(lines.join("\n  "));
+        Ok(())
     }
 
     /// "When this creature enters, choose one —" with its modes.
@@ -3432,6 +3477,20 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     let mut i = 0;
     while i < lines.len() {
         let line = lines[i];
+        // CR 702.172: "Spree" and its "+ {1} — ..." modes.
+        if line == "Spree" {
+            let mut modes = Vec::new();
+            i += 1;
+            while i < lines.len() && lines[i].starts_with("+ ") {
+                let Some((cost, rest)) = lines[i][2..].split_once(" — ") else {
+                    return Err(Skip::Sentence(lines[i].to_string()));
+                };
+                modes.push((cost.to_string(), rest.to_string()));
+                i += 1;
+            }
+            b.spree(&modes)?;
+            continue;
+        }
         let head = match line {
             "Choose one —" => Some("choose one"),
             "Choose one or both —" => Some("choose one or both"),

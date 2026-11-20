@@ -502,6 +502,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let sneaked = if line.peek_ident("sneaked") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let warped = if line.peek_ident("warped") {
                 line.pos += 1;
                 true
@@ -538,7 +544,10 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
-            let conspired = if line.peek_ident("conspired") || line.peek_ident("teamwork") {
+            // A promised gift is kept as the kicker flag (CR 702.174): its
+            // targets count like a kicked spell's.
+            let gift = line.peek_ident("gift");
+            let conspired = if line.peek_ident("conspired") || line.peek_ident("teamwork") || gift {
                 line.pos += 1;
                 true
             } else {
@@ -560,7 +569,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                 line.pos += 1;
                 true
             } else {
-                false
+                gift
             };
             let mode = if line.peek_ident("mode") {
                 line.pos += 1;
@@ -641,6 +650,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     evoked,
                     dashed,
                     warped,
+                    sneaked,
                     alternative,
                     bestowed,
                     overloaded,
@@ -722,6 +732,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
         "unmorph" => (Action::TurnFaceUp(line.string()?), None),
         "suspend" => (Action::Suspend(line.string()?), None),
         "foretell" => (Action::Foretell(line.string()?), None),
+        "plot" => (Action::Plot(line.string()?), Some(Step::PrecombatMain)),
         "unlock" => (Action::Unlock(line.string()?), Some(Step::PrecombatMain)),
         "wait" => (Action::Wait, Some(Step::PrecombatMain)),
         "activate" => {

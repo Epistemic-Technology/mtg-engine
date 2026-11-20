@@ -1,0 +1,7 @@
+card "Blooming Blast" {
+  oracle_id 2e5b8973-4f6e-4abe-bbbe-81fdca784997
+  cost {1}{R}
+  type Instant
+  gift treasure
+  spell: deal 2 damage to target creature; if kicked, also deal 3 damage to controller of that target 1
+}

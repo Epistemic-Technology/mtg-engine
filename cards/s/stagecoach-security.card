@@ -1,0 +1,8 @@
+card "Stagecoach Security" {
+  oracle_id 4b4589ff-d141-49a4-a0bd-1c73fc3651ef
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 4/5
+  triggered when this enters: each creature you control gets +1/+1 and gains vigilance
+  plot {3}{W}
+}

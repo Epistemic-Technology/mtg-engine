@@ -1,0 +1,8 @@
+card "Foot Ninjas" {
+  oracle_id 306652a8-9a9c-4b33-96d7-b59234d148e9
+  cost {4}{W/B}{W/B}
+  type Creature — Human Ninja
+  pt 5/5
+  sneak {3}{W/B}
+  triggered when this enters: you gains 3 life
+}

@@ -501,6 +501,7 @@ impl GameState {
             creatures_died_this_turn: 0,
             died_this_turn: Vec::new(),
             damaged_this_turn: 0,
+            assassin_damage: 0,
             lost_life_this_turn: 0,
             left_this_turn: 0,
             discarded_this_turn: 0,
@@ -871,6 +872,17 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::ChoosingGift { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    return StepResult::Decision(Decision {
+                        player: obj.controller,
+                        kind: DecisionKind::Gift { spell },
+                        options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
                 Flow::ChoosingTeamwork { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -969,6 +981,23 @@ impl GameState {
                         // an alternative cost's permanent likewise (CR
                         // 118.9).
                         let d = self.pool.get(def);
+                        // CR 702.190a: the unblocked attacker sneak returns.
+                        if sacrifice.is_none()
+                            && self.objects[spell].alt == crate::state::AltCast::Sneak
+                        {
+                            let options: Vec<Choice> = self
+                                .unblocked_attackers(caster)
+                                .into_iter()
+                                .map(Choice::Sacrifice)
+                                .collect();
+                            if !options.is_empty() {
+                                return StepResult::Decision(Decision {
+                                    player: caster,
+                                    kind: DecisionKind::ChooseSacrifice { spell },
+                                    options,
+                                });
+                            }
+                        }
                         let add = match &d.alt_cost {
                             Some(alt)
                                 if self.objects[spell].alt == crate::state::AltCast::AltCost =>
@@ -1598,6 +1627,9 @@ impl GameState {
             (Flow::Priority, Choice::CastDash(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Dash);
             }
+            (Flow::Priority, Choice::CastSneak(card)) => {
+                self.begin_cast(player, card, crate::state::AltCast::Sneak);
+            }
             (Flow::Priority, Choice::CastWarp(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Warp);
             }
@@ -1720,6 +1752,8 @@ impl GameState {
                     (Zone::Exile, crate::state::AltCast::Foretold) => {
                         crate::state::AltCast::Foretell
                     }
+                    // CR 702.170d: without paying its mana cost.
+                    (Zone::Exile, crate::state::AltCast::Plotted) => crate::state::AltCast::Free,
                     _ => crate::state::AltCast::None,
                 };
                 let spell = self.begin_cast(player, id, alt);
@@ -1758,6 +1792,16 @@ impl GameState {
                     .get_or_insert_with(Box::default)
                     .foretold_this_turn
                     .push(new);
+                self.give_priority(player);
+            }
+            (Flow::Priority, Choice::Plot(id)) => {
+                // CR 702.170a-b: a special action; the player keeps
+                // priority.
+                let def = self.pool.get(self.objects[id].def);
+                if let Some(cost) = def.plot.as_deref().cloned() {
+                    self.pay(player, &cost.requirements(0));
+                    self.plot(id);
+                }
                 self.give_priority(player);
             }
             (Flow::ChoosingMode { spell }, Choice::Mode(i)) => {
@@ -1837,6 +1881,14 @@ impl GameState {
             }
             (Flow::ChoosingCasualty { spell }, Choice::Decline) => {
                 self.flow = self.after_casualty(spell);
+            }
+            // CR 702.174k: the gift was promised (kept as the kicker flag).
+            (Flow::ChoosingGift { spell }, Choice::Accept) => {
+                self.objects[spell].cast.set_kicked(true);
+                self.flow = self.after_gift(spell);
+            }
+            (Flow::ChoosingGift { spell }, Choice::Decline) => {
+                self.flow = self.after_gift(spell);
             }
             // Teamwork: the creatures are tapped as the costs are paid.
             (Flow::ChoosingTeamwork { spell }, Choice::Accept) => {
@@ -2186,6 +2238,24 @@ impl GameState {
     }
 
     fn after_kicker(&self, spell: ObjId) -> Flow {
+        // CR 702.174a: a gift, with an opponent to promise it to and the
+        // targets only a promised gift gives (CR 702.174m).
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        if def.gift.is_some() && !o.cast.kicked() {
+            let p = o.controller;
+            let targets = def.kicker_targets.is_none_or(|_| {
+                def.spell_ability()
+                    .is_none_or(|(t, _)| self.targets_available(p, t, Some(spell)))
+            });
+            if targets && self.players_in_game().any(|q| q != p) {
+                return Flow::ChoosingGift { spell };
+            }
+        }
+        self.after_gift(spell)
+    }
+
+    fn after_gift(&self, spell: ObjId) -> Flow {
         if self.buyback_payable(spell) {
             Flow::ChoosingBuyback { spell }
         } else {
@@ -2766,6 +2836,7 @@ impl GameState {
             self.mana_spent_before_cast = [0; 4];
             self.life_lost_this_turn = [0; 4];
             self.attacked_this_turn = 0;
+            self.assassin_damage = 0;
             self.lands_entered_this_turn = 0;
             self.block_demands.clear();
             self.block_bans.clear();

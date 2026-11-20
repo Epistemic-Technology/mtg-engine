@@ -1,0 +1,7 @@
+card "Rise of the Varmints" {
+  oracle_id d981977d-acfa-432a-b1d7-1808a89a5998
+  cost {3}{G}
+  type Sorcery
+  spell: create count where graveyard creature "2/1 green Varmint creature"
+  plot {2}{G}
+}

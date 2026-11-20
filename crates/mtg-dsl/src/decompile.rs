@@ -112,7 +112,21 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             .abilities
             .iter()
             .filter(|a| **a != crate::compile::unleash_static())
-            .map(|a| d.ability(a))
+            .map(|a| match a {
+                // CR 702.172a: the single modes are the sets of one bit.
+                mtg_core::card::AbilityDef::Modal(modes) if !def.spree.is_empty() => {
+                    crate::ast::Ability::Spree(
+                        def.spree
+                            .iter()
+                            .enumerate()
+                            .filter_map(|(i, c)| {
+                                modes.get((1 << i) - 1).map(|m| (c.clone(), d.mode(m)))
+                            })
+                            .collect(),
+                    )
+                }
+                _ => d.ability(a),
+            })
             .collect(),
         except: def.copy_except.as_ref().map(|x| Except {
             subtypes: x.subtypes.clone(),
@@ -436,12 +450,18 @@ impl Decompiler<'_> {
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
             StaticCondition::OpponentLostLifeThisTurn => StaticCond::OpponentLostLifeThisTurn,
+            StaticCondition::AssassinDealtCombatDamage => {
+                unreachable!("only freerunning's alternative cost")
+            }
             StaticCondition::PermanentLeftThisTurn => StaticCond::PermanentLeftThisTurn,
             StaticCondition::Escaped => StaticCond::Escaped,
             StaticCondition::Kicked => StaticCond::Kicked,
             StaticCondition::Bargained => StaticCond::Bargained,
             StaticCondition::Teamwork => StaticCond::Teamwork,
             StaticCondition::Beheld => StaticCond::Beheld,
+            StaticCondition::NoManaSpent => StaticCond::NoManaSpent,
+            StaticCondition::NotKicked => StaticCond::NotKicked,
+            StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
             StaticCondition::Saddled => StaticCond::Saddled,
             StaticCondition::LandEnteredThisTurn => StaticCond::LandEnteredThisTurn,
@@ -1481,6 +1501,7 @@ impl Decompiler<'_> {
             TriggerSpec::TargetedByYouFirstTime => Trigger::TargetedByYouFirstTime,
             TriggerSpec::TurnedFaceUp(o) => Trigger::TurnedFaceUp(self.trigger_obj(o)),
             TriggerSpec::Exploits => Trigger::Exploits,
+            TriggerSpec::BecomesPlotted => Trigger::BecomesPlotted,
             TriggerSpec::Reflexive => {
                 unreachable!("a reflexive trigger is decompiled with its effect")
             }

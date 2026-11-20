@@ -1,0 +1,9 @@
+card "Cunning Coyote" {
+  oracle_id a38eba6a-db90-48ac-bb49-889a7fd90ce9
+  cost {1}{R}
+  type Creature — Coyote
+  pt 2/2
+  keywords haste
+  triggered when this enters: another target creature you control gets +1/+1 and gains haste
+  plot {1}{R}
+}

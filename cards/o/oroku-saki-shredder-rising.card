@@ -1,0 +1,8 @@
+card "Oroku Saki, Shredder Rising" {
+  oracle_id d14f620c-0fbd-485c-9fe4-34949e742147
+  cost {2}{B}
+  type Legendary Creature — Human Ninja
+  pt 3/1
+  sneak {1}{B}
+  triggered whenever this deals combat damage to a player: you draw 1 card and you lose 1 life
+}

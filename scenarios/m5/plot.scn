@@ -1,0 +1,140 @@
+# Plot (CR 702.170): "Any time you have priority during your main phase
+# while the stack is empty, you may exile this card from your hand and pay
+# [cost]. It becomes a plotted card." On a later turn its owner may cast it
+# from exile without paying its mana cost, as a sorcery (CR 702.170d).
+
+scenario "plot: exiled for the plot cost, cast free on a later turn" {
+  battlefield A: 4 "Island"
+  hand A: "Djinn of Fool's Fall"
+  turn 1 A: plot "Djinn of Fool's Fall"
+  run_to turn 1 end
+  assert exile A contains "Djinn of Fool's Fall"
+  assert tapped newest "Island"
+  turn 3 A: cast "Djinn of Fool's Fall"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Djinn of Fool's Fall"
+  assert untapped newest "Island"
+  assert untapped oldest "Island"
+}
+
+scenario "plot: not castable the turn it became plotted" {
+  battlefield A: 8 "Island"
+  hand A: "Djinn of Fool's Fall"
+  turn 1 A: plot "Djinn of Fool's Fall"
+  illegal turn 1 postcombat_main A: cast "Djinn of Fool's Fall"
+  run_to turn 1 end
+  assert exile A contains "Djinn of Fool's Fall"
+}
+
+scenario "plot: a plotted card is cast only as a sorcery" {
+  battlefield A: 4 "Island"
+  hand A: "Djinn of Fool's Fall"
+  turn 1 A: plot "Djinn of Fool's Fall"
+  illegal turn 2 upkeep A: cast "Djinn of Fool's Fall"
+  illegal turn 3 upkeep A: cast "Djinn of Fool's Fall"
+  run_to turn 3 draw
+  assert exile A contains "Djinn of Fool's Fall"
+}
+
+scenario "plot: only as a sorcery, and only with the cost paid" {
+  battlefield A: 4 "Island"
+  hand A: "Djinn of Fool's Fall"
+  illegal turn 1 upkeep A: plot "Djinn of Fool's Fall"
+  illegal turn 2 precombat_main A: plot "Djinn of Fool's Fall"
+  run_to turn 2 end
+  assert hand A contains "Djinn of Fool's Fall"
+}
+
+scenario "plot: three lands can't pay a {3}{U} plot cost" {
+  battlefield A: 3 "Island"
+  hand A: "Djinn of Fool's Fall"
+  illegal turn 1 A: plot "Djinn of Fool's Fall"
+  run_to turn 1 end
+  assert hand A contains "Djinn of Fool's Fall"
+}
+
+scenario "plot: the plotted creature's enters trigger happens as usual" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Stagecoach Security"
+  turn 1 A: plot "Stagecoach Security"
+  turn 3 A: cast "Stagecoach Security"
+  run_to turn 3 declare_attackers
+  assert power "Grizzly Bears" 3
+  assert untapped newest "Plains"
+}
+
+scenario "plot: Longhorn Sharpshooter's trigger as it becomes plotted" {
+  battlefield A: 4 "Mountain"
+  hand A: "Longhorn Sharpshooter"
+  turn 1 A: plot "Longhorn Sharpshooter"
+  turn 1 A: trigger "Longhorn Sharpshooter" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert exile A contains "Longhorn Sharpshooter"
+}
+
+scenario "plot: Aloe Alchemist pumps a creature as it becomes plotted" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  hand A: "Aloe Alchemist"
+  turn 1 A: plot "Aloe Alchemist"
+  turn 1 A: trigger "Aloe Alchemist" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert has "Grizzly Bears" trample
+}
+
+scenario "plot: Railway Brawler puts counters equal to the entering creature's power" {
+  battlefield A: 2 "Forest", "Railway Brawler"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert power "Grizzly Bears" 4
+}
+
+scenario "plot: Visage Bandit copies a creature you control" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Visage Bandit"
+  turn 1 A: cast "Visage Bandit"
+  turn 1 A: copy "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert is newest "Grizzly Bears" "Rogue"
+}
+
+scenario "plot: Visage Bandit can't copy an opponent's creature" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Visage Bandit"
+  turn 1 A: cast "Visage Bandit"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Visage Bandit"
+}
+
+scenario "plot: Rise of the Varmints counts creature cards in the graveyard" {
+  battlefield A: 3 "Forest"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Forest"
+  hand A: "Rise of the Varmints"
+  turn 1 A: plot "Rise of the Varmints"
+  turn 3 A: cast "Rise of the Varmints"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 2 "Varmint"
+}
+
+scenario "plot: Freestrider Commando cast free enters with counters" {
+  battlefield A: 4 "Forest"
+  hand A: "Freestrider Commando"
+  turn 1 A: plot "Freestrider Commando"
+  turn 3 A: cast "Freestrider Commando"
+  run_to turn 3 postcombat_main
+  assert counters "Freestrider Commando" +1/+1 2
+}
+
+scenario "plot: Freestrider Commando cast from hand has no counters" {
+  battlefield A: 3 "Forest"
+  hand A: "Freestrider Commando"
+  turn 1 A: cast "Freestrider Commando"
+  run_to turn 1 postcombat_main
+  assert counters "Freestrider Commando" +1/+1 0
+}

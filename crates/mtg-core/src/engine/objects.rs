@@ -345,8 +345,10 @@ impl GameState {
             // CR 702.62a: a creature cast by suspend has haste.
             alt: if old.zone == Zone::Stack
                 && to == Zone::Battlefield
-                && matches!(old.alt, AltCast::Suspend | AltCast::Escape | AltCast::Dash)
-            {
+                && matches!(
+                    old.alt,
+                    AltCast::Suspend | AltCast::Escape | AltCast::Dash | AltCast::Sneak
+                ) {
                 old.alt
             } else {
                 AltCast::None
@@ -511,7 +513,8 @@ impl GameState {
                 self.graveyard_trigger_cards += 1;
             }
         }
-        if old.zone == Zone::Exile && (old.cast.adventure() || matches!(old.alt, AltCast::Foretold))
+        if old.zone == Zone::Exile
+            && (old.cast.adventure() || matches!(old.alt, AltCast::Foretold | AltCast::Plotted))
         {
             let n = &mut self.player_mut(old.owner).adventures_in_exile;
             *n = n.saturating_sub(1);
@@ -1191,6 +1194,16 @@ impl GameState {
                     self.history_bump();
                 }
                 self.note_damage_source(source);
+                // CR 702.173a: an Assassin's combat damage enables
+                // freerunning for its controller this turn.
+                if combat
+                    && let Some(a) = self.pool.assassin()
+                    && let (Some(c), Some(ctl)) = (src.as_ref(), controller)
+                    && c.is_creature()
+                    && c.has_subtype(a)
+                {
+                    self.assassin_damage |= 1 << ctl.index().min(7);
+                }
                 self.emit(Event::Damage {
                     source,
                     target,

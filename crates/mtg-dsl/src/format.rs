@@ -2996,6 +2996,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             }
             | Trigger::TurnedFaceUp(TriggerObj::This)
             | Trigger::Exploits
+            | Trigger::BecomesPlotted
             | Trigger::BecomesTarget(TriggerObj::This)
             | Trigger::When(_)
             | Trigger::BeginningOfStep { .. }
@@ -3219,6 +3220,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::TurnedFaceUp(o) => format!("whenever {} is turned face up", trigger_obj(o)),
         Trigger::Exploits => "when this exploits a creature".to_string(),
+        Trigger::BecomesPlotted => "when this becomes plotted".to_string(),
         Trigger::DrawsNth {
             whose,
             n,
@@ -3811,6 +3813,16 @@ fn static_cond(c: &StaticCond) -> String {
             spent_cond(*kind, *at_least)
         ),
         StaticCond::Saddled => "saddled".to_string(),
+        StaticCond::NoManaSpent => "no mana spent".to_string(),
+        StaticCond::NotKicked => "not kicked".to_string(),
+        StaticCond::SneakPaid(p) => format!(
+            "{}sneak paid",
+            match p {
+                1 => "his ",
+                2 => "her ",
+                _ => "",
+            }
+        ),
         StaticCond::LandEnteredThisTurn => "land entered this turn".to_string(),
         StaticCond::ArtifactEnteredThisTurn => "artifact entered this turn".to_string(),
         StaticCond::CardsDrawnThisTurn(n) => format!("drew {n} cards this turn"),
@@ -4040,6 +4052,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
         Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
+        Ability::Spree(modes) => {
+            let _ = writeln!(out, "{indent}spree {{");
+            for (c, m) in modes {
+                body(
+                    out,
+                    &format!("{indent}  "),
+                    &format!("mode {c}"),
+                    &m.effects,
+                    &m.targets,
+                    groups,
+                );
+            }
+            let _ = writeln!(out, "{indent}}}");
+        }
         Ability::Modal(modes) | Ability::ModalBoth(modes) | Ability::ModalTwo(modes) => {
             let head = match ability {
                 Ability::ModalBoth(_) => "choose one or both",
@@ -4414,6 +4440,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Madness(c) => format!("madness {c}"),
                 crate::ast::Mechanic::Mayhem(c) => format!("mayhem {c}"),
                 crate::ast::Mechanic::Foretell(c) => format!("foretell {c}"),
+                crate::ast::Mechanic::Plot(c) => format!("plot {c}"),
+                crate::ast::Mechanic::Gift(k) => format!("gift {}", k.words()),
+                crate::ast::Mechanic::Sneak(c) => format!("sneak {c}"),
                 crate::ast::Mechanic::Suspend(n, c) => format!("suspend {n} {c}"),
                 crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),
                 crate::ast::Mechanic::Modular(n) => format!("modular {n}"),
@@ -4482,6 +4511,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Reinforce(n, c) => format!("reinforce {n} {c}"),
                 crate::ast::Mechanic::JumpStart => "jump start".to_string(),
                 crate::ast::Mechanic::Surge(c) => format!("surge {c}"),
+                crate::ast::Mechanic::Freerunning(c) => format!("freerunning {c}"),
                 crate::ast::Mechanic::Spectacle(c) => format!("spectacle {c}"),
             };
             let _ = writeln!(out, "{indent}{text}");

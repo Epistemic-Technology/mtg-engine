@@ -1,0 +1,7 @@
+card "Crumb and Get It" {
+  oracle_id 93596258-bb44-4aa3-833d-9a0ab16b5ec1
+  cost {W}
+  type Instant
+  gift food
+  spell: target creature you control gets +2/+2; if kicked, also that target 1 gains indestructible
+}

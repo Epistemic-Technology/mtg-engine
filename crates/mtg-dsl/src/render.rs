@@ -5798,7 +5798,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::IfCondition(c, inner, also) => {
             let also = *also == crate::ast::IfWording::Also;
-            let kicked = *c == StaticCond::Kicked;
+            // "If the gift was promised, Blooming Blast also deals ...": a
+            // gift names the spell again (CR 702.174).
+            let kicked = *c == StaticCond::Kicked && !has_gift(ctx.card);
             // "If this spell was kicked, those creatures also gain trample".
             let cond = if kicked {
                 format!("this {} was kicked", kicked_noun(ctx.card))
@@ -5983,12 +5985,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             use crate::ast::{InsteadCond, InsteadWording};
             // Teamwork reads like kicker: "it deals 4 damage to that
             // creature instead".
-            let kicked = matches!(
-                cond,
-                InsteadCond::Kicked | InsteadCond::Static(StaticCond::Teamwork)
-            );
+            let kicked = match cond {
+                InsteadCond::Kicked => !has_gift(ctx.card),
+                InsteadCond::Static(StaticCond::Teamwork) => true,
+                _ => false,
+            };
             let cond = match cond {
-                InsteadCond::Kicked => format!("this {} was kicked", kicked_noun(ctx.card)),
+                InsteadCond::Kicked => kicked_text(ctx.card),
                 InsteadCond::Static(c) => static_cond_text(c, ctx.card),
                 InsteadCond::ThisWay(c) => this_way_text(c, ctx.card),
                 InsteadCond::Target { n, that, filter } => {
@@ -6078,7 +6081,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 None => body,
             };
             Clause::imperative(format!(
-                "if this spell was kicked, {}",
+                "if {}, {}",
+                kicked_text(ctx.card),
                 body.trim_end_matches('.')
             ))
         }
@@ -7089,6 +7093,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!("whenever {} is turned face up", trigger_subject(o, ctx))
         }
         Trigger::Exploits => format!("when {} exploits a creature", this(ctx)),
+        // It is a card in exile, not yet a creature (CR 702.170).
+        Trigger::BecomesPlotted => {
+            ctx.source_mentioned = true;
+            "when this card becomes plotted".to_string()
+        }
         Trigger::DrawsNth {
             whose,
             n,
@@ -7198,6 +7207,12 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         }
         Condition::SourceTapped => format!("if {} is tapped", this_ref(ctx.card)),
         Condition::NoCreatures => "if no creatures are on the battlefield".to_string(),
+        // "When this Equipment enters, if the gift was promised, attach
+        // this Equipment to ...": named again after the gift.
+        Condition::Kicked if has_gift(ctx.card) => {
+            ctx.source_mentioned = false;
+            "if the gift was promised".to_string()
+        }
         Condition::Kicked => "if it was kicked".to_string(),
         Condition::HadNoCounters(k) => format!("if it had no {} counters on it", counter_name(k)),
         Condition::HadCounters(k) => format!(
@@ -8594,7 +8609,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "a permanent left the battlefield under your control this turn".to_string()
         }
         StaticCond::Escaped => "it escaped".to_string(),
+        StaticCond::Kicked if has_gift(card) => "the gift was promised".to_string(),
         StaticCond::Kicked => "it was kicked".to_string(),
+        StaticCond::NotKicked if has_gift(card) => "the gift wasn't promised".to_string(),
+        StaticCond::NotKicked => format!("this {} wasn't kicked", kicked_noun(card)),
         StaticCond::Bargained
             if card.types.iter().any(|t| {
                 matches!(
@@ -8616,6 +8634,18 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 .map_or_else(|| "a card".to_string(), |b| filter_a(&b.filter, card));
             format!("{what} was beheld")
         }
+        StaticCond::NoManaSpent => "it wasn't cast or no mana was spent to cast it".to_string(),
+        StaticCond::SneakPaid(_) if is_spell(card) => {
+            "this spell's sneak cost was paid".to_string()
+        }
+        StaticCond::SneakPaid(p) => format!(
+            "{} sneak cost was paid",
+            match p {
+                1 => "his",
+                2 => "her",
+                _ => "its",
+            }
+        ),
         StaticCond::ManaSpent {
             kind: mtg_core::card::SpentKind::Total,
             at_least,
@@ -9219,6 +9249,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             sentences(effects, &mut ctx)
         }
+        // CR 702.172b: "+" for the bullets.
+        Ability::Spree(modes) => {
+            let mut out = "Spree".to_string();
+            for (c, m) in modes {
+                let mut ctx = Ctx::new(card, lookup, &m.targets);
+                ctx.current = Some(a);
+                let _ = write!(out, "\n+ {c} — {}", sentences(&m.effects, &mut ctx));
+            }
+            out
+        }
         Ability::Modal(modes) | Ability::ModalBoth(modes) | Ability::ModalTwo(modes) => {
             let mut out = match a {
                 Ability::ModalBoth(_) => "Choose one or both —",
@@ -9645,6 +9685,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Madness(c) => format!("Madness {c}"),
             crate::ast::Mechanic::Mayhem(c) => format!("Mayhem {c}"),
             crate::ast::Mechanic::Foretell(c) => format!("Foretell {c}"),
+            crate::ast::Mechanic::Plot(c) => format!("Plot {c}"),
+            crate::ast::Mechanic::Gift(k) => format!("Gift {}", k.oracle()),
+            crate::ast::Mechanic::Sneak(c) => format!("Sneak {c}"),
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
             crate::ast::Mechanic::Modular(n) => format!("Modular {n}"),
@@ -9750,6 +9793,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Reinforce(n, c) => format!("Reinforce {n}\u{2014}{c}"),
             crate::ast::Mechanic::JumpStart => "Jump-start".to_string(),
             crate::ast::Mechanic::Surge(c) => format!("Surge {c}"),
+            crate::ast::Mechanic::Freerunning(c) => format!("Freerunning {c}"),
             crate::ast::Mechanic::Spectacle(c) => format!("Spectacle {c}"),
         },
         Ability::EntersWithIf {
@@ -9898,11 +9942,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             format!("Affinity for {}", filter_phrase(&g, card, true))
         }
         Ability::EntersAsCopy(f) => {
-            let mut s = format!(
-                "You may have {} enter as a copy of any {} on the battlefield",
-                this_ref(card),
-                filter_phrase(f, card, false)
-            );
+            // "... a copy of a creature you control" (Visage Bandit).
+            let mut s = if f.who == Some(mtg_core::card::Who::You) {
+                format!(
+                    "You may have {} enter as a copy of {}",
+                    this_ref(card),
+                    with_article(&filter_phrase(f, card, false))
+                )
+            } else {
+                format!(
+                    "You may have {} enter as a copy of any {} on the battlefield",
+                    this_ref(card),
+                    filter_phrase(f, card, false)
+                )
+            };
             let x = except_text(card, None);
             if !x.is_empty() {
                 let _ = write!(s, ", except {x}");
@@ -9951,13 +10004,19 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     if card.abilities.iter().any(bargain) {
         lines.push("Bargain".to_string());
     }
+    // "Gift a card" (CR 702.174) likewise, before an additional cost and
+    // the keywords.
+    let gift = |a: &Ability| matches!(a, Ability::Mechanic(crate::ast::Mechanic::Gift(_)));
+    for a in card.abilities.iter().filter(|a| gift(a)) {
+        lines.push(ability_text(card, a, lookup));
+    }
     let cost_line = |a: &Ability| {
-        matches!(a, Ability::TargetCost { .. } | Ability::CondCost { .. }) || bargain(a)
+        matches!(a, Ability::TargetCost { .. } | Ability::CondCost { .. }) || bargain(a) || gift(a)
     };
     for a in card
         .abilities
         .iter()
-        .filter(|a| cost_line(a) && !bargain(a))
+        .filter(|a| cost_line(a) && !bargain(a) && !gift(a))
     {
         lines.push(ability_text(card, a, lookup));
     }
@@ -10174,6 +10233,25 @@ pub fn normalize(text: &str) -> String {
 }
 
 /// "this spell" / "this creature" in "If this spell was kicked".
+/// A card with gift (CR 702.174): its kicker conditions are whether the
+/// gift was promised (the engine keeps a promised gift as the kicker
+/// flag).
+fn has_gift(card: &Card) -> bool {
+    card.abilities
+        .iter()
+        .any(|a| matches!(a, Ability::Mechanic(crate::ast::Mechanic::Gift(_))))
+}
+
+/// "this spell was kicked", or "the gift was promised" on a card with
+/// gift.
+fn kicked_text(card: &Card) -> String {
+    if has_gift(card) {
+        "the gift was promised".to_string()
+    } else {
+        format!("this {} was kicked", kicked_noun(card))
+    }
+}
+
 fn kicked_noun(card: &Card) -> String {
     if is_spell(card) {
         "spell".to_string()

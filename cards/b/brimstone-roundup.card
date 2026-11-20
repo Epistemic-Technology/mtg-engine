@@ -1,0 +1,7 @@
+card "Brimstone Roundup" {
+  oracle_id e79deeee-c14d-496d-9b0b-475a6a24274c
+  cost {1}{R}
+  type Enchantment
+  triggered whenever you cast your second spell each turn: create 1 "Mercenary"
+  plot {2}{R}
+}

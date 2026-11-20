@@ -1,0 +1,7 @@
+card "Splinter's Technique" {
+  oracle_id 532ee9c3-391c-44db-8ed5-a1d28fd7f876
+  cost {3}{B}
+  type Sorcery
+  sneak {1}{B}
+  spell: search card to hand that card
+}

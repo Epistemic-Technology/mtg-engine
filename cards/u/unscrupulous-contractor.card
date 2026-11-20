@@ -1,0 +1,8 @@
+card "Unscrupulous Contractor" {
+  oracle_id 00ff5598-2f7f-4e28-8b63-5ae1ce18f0c5
+  cost {2}{B}
+  type Creature — Human Assassin
+  pt 3/2
+  triggered when this enters: you may you sacrifice a creature; when you do, target player draws 2 cards and loses 2 life
+  plot {2}{B}
+}

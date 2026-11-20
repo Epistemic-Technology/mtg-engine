@@ -1,0 +1,9 @@
+card "Spinewoods Paladin" {
+  oracle_id d2aa9649-8394-48ca-bee6-a044e5a86b38
+  cost {4}{G}
+  type Creature — Human Knight
+  pt 5/4
+  keywords trample
+  triggered when this enters: you gains 3 life
+  plot {3}{G}
+}
