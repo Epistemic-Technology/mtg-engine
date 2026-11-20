@@ -2721,11 +2721,27 @@ impl GameState {
                 .players_in_game()
                 .filter(|p| *p != you)
                 .any(|p| count(filter, p) >= *at_least as usize),
-            C::SourceIs(filter) => self.objects.get(source).is_some_and(|o| {
-                self.characteristics_or_lki(source).is_some_and(|c| {
-                    filter.matches(source, o.controller, &c, Some(source), Some(you))
-                }) && self.status_ok(filter, source)
-            }),
+            C::SourceIs(filter) => match self.objects.get(source) {
+                Some(o) => {
+                    self.characteristics_or_lki(source).is_some_and(|c| {
+                        filter.matches(source, o.controller, &c, Some(source), Some(you))
+                    }) && self.status_ok(filter, source)
+                }
+                // "When this creature dies, if it's not a token": as it
+                // last existed (CR 603.10a, 603.4).
+                None => self.lki.get(&source).is_some_and(|l| {
+                    filter.matches(
+                        source,
+                        l.object.controller,
+                        &l.characteristics,
+                        Some(source),
+                        Some(you),
+                    ) && filter
+                        .status
+                        .token
+                        .is_none_or(|t| (l.object.kind == ObjKind::Token) == t)
+                }),
+            },
             C::AttachedIs(filter) => self
                 .objects
                 .get(source)

@@ -1,0 +1,7 @@
+card "Myr Propagator" {
+  oracle_id d071e2fc-3be8-4168-afa9-ba34edad18b9
+  cost {3}
+  type Artifact Creature — Myr
+  pt 1/1
+  activated {3}, {T}: create token copy of this creature
+}

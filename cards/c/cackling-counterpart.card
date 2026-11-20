@@ -1,0 +1,7 @@
+card "Cackling Counterpart" {
+  oracle_id 9e2adca5-f39c-4a09-bcce-8238ebac2c4a
+  cost {1}{U}{U}
+  type Instant
+  spell: create token copy of target creature you control
+  flashback {5}{U}{U}
+}

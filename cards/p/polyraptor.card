@@ -1,0 +1,7 @@
+card "Polyraptor" {
+  oracle_id e47e3a40-f51f-41ed-8e7c-06200a2abc22
+  cost {6}{G}{G}
+  type Creature — Dinosaur
+  pt 5/5
+  label "Enrage" triggered whenever this is dealt damage: create token copy of this creature
+}

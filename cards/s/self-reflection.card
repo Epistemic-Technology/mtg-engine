@@ -1,0 +1,7 @@
+card "Self-Reflection" {
+  oracle_id 5c68853e-4fb8-465e-b262-e6dbaf972533
+  cost {4}{U}{U}
+  type Sorcery
+  spell: create token copy of target creature you control
+  flashback {3}{U}
+}

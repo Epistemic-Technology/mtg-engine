@@ -1319,6 +1319,21 @@ impl Templates {
                     Some(format!("copy {what}{times}"))
                 },
             ),
+            // CR 707.2, 111.4: "Create a token that's a copy of target
+            // creature you control".
+            (
+                r(r"^[Cc]reate a token that's a copy of ([^,]+)$"),
+                |c, t| {
+                    let what = match cap(c, 1) {
+                        // "a copy of this creature" names it in full.
+                        w @ ("this creature" | "this artifact" | "this enchantment") => {
+                            w.to_string()
+                        }
+                        w => recipient(w, t)?,
+                    };
+                    Some(format!("create token copy of {what}"))
+                },
+            ),
             (r(r"^Surveil (\d+)$"), |c, _| {
                 Some(format!("surveil {}", cap(c, 1)))
             }),

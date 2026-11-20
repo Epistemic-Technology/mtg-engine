@@ -9364,7 +9364,33 @@ impl GameState {
                         .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.card))
                         .expect("a resolving spell or its last known information exists")
                 });
-                for t in self.recipients(ctx, *of) {
+                // "When this creature dies, ... create a token that's a copy
+                // of it": the copiable values it last had on the
+                // battlefield (CR 111.12, 707.2).
+                let left = match of {
+                    Recipient::Source => Some(ctx.source),
+                    Recipient::TriggeringObject => ctx.trigger_obj,
+                    _ => None,
+                }
+                .filter(|id| {
+                    self.objects
+                        .get(*id)
+                        .is_none_or(|o| o.zone != Zone::Battlefield)
+                });
+                if let Some(left) = left {
+                    if let Some(l) = self
+                        .lki
+                        .get(&left)
+                        .filter(|l| l.object.zone == Zone::Battlefield)
+                    {
+                        let (def, was) = (l.object.def, l.object.except);
+                        let new = self.create_token_copy_of(def, x.or(was), ctx.controller);
+                        ctx.created = Some(new);
+                    }
+                    return;
+                }
+                let recipients = self.recipients(ctx, *of);
+                for t in recipients {
                     if let Some(id) = on_battlefield(self, t) {
                         let new = self.create_token_copy(id, ctx.controller, x);
                         ctx.created = Some(new);

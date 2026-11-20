@@ -1,0 +1,8 @@
+card "Mist-Syndicate Naga" {
+  oracle_id 08109241-690f-4d09-ad2f-1cddab9b3c64
+  cost {2}{U}
+  type Creature — Snake Ninja
+  pt 3/1
+  ninjutsu {2}{U}
+  triggered whenever this deals combat damage to a player: create token copy of this creature
+}

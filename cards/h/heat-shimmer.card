@@ -1,0 +1,10 @@
+card "Heat Shimmer" {
+  oracle_id 5c80d39e-f3af-4d24-bca0-19f0bd0f5082
+  cost {2}{R}
+  type Sorcery
+  spell: create token copy of target creature with exceptions
+  except {
+    keywords haste
+    triggered at the beginning of the end step: exile this
+  }
+}

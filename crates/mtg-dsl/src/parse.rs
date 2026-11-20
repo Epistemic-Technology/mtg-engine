@@ -8576,6 +8576,9 @@ impl P {
                     };
                     f.not_keywords.push(k);
                 }
+                // `... you control with exceptions`: the copy's, not the
+                // filter's.
+                "with" if self.word_at(1).as_deref() == Some("exceptions") => break,
                 "with" => {
                     self.pos += 1;
                     let Some(k) = self.keyword() else {

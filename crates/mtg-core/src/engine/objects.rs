@@ -691,6 +691,18 @@ impl GameState {
             let o = &self.objects[of];
             (o.def, except.or(o.except))
         };
+        self.create_token_copy_of(def, x, controller)
+    }
+
+    /// A token copy of the definition `def` with the copy exceptions of
+    /// `x` (CR 707.2, 707.9b): what `create_token_copy` makes, also from
+    /// an object's last known information.
+    pub(super) fn create_token_copy_of(
+        &mut self,
+        def: CardRef,
+        x: Option<CardRef>,
+        controller: PlayerId,
+    ) -> ObjId {
         let id = self.new_object(def, controller, Zone::Command);
         let t = &mut self.objects[id];
         t.kind = ObjKind::Token;

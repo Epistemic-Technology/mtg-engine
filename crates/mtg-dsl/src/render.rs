@@ -2706,15 +2706,33 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
             with_article(&words.join(" "))
         ));
     }
+    // "it has haste and \"At the beginning of the end step, sacrifice
+    // this token.\"": a spell's copy is a token, which its abilities
+    // name.
+    let token;
+    let about = if is_spell(card) {
+        let mut t = card.clone();
+        t.kind = Kind::Token;
+        t.types
+            .retain(|t| !matches!(t, CardType::Instant | CardType::Sorcery));
+        token = t;
+        &token
+    } else {
+        card
+    };
+    let mut has = Vec::new();
     if !x.keywords.is_empty() {
-        parts.push(format!("it has {}", keywords_list(&x.keywords)));
+        has.push(keywords_list(&x.keywords));
     }
     for a in &x.abilities {
         if current == Some(a) {
-            parts.push("it has this ability".to_string());
+            has.push("this ability".to_string());
         } else {
-            parts.push(format!("it has \"{}\"", ability_text(card, a, &())));
+            has.push(format!("\"{}\"", ability_text(about, a, &())));
         }
+    }
+    if !has.is_empty() {
+        parts.push(format!("it has {}", list(&has)));
     }
     list(&parts)
 }
@@ -8801,6 +8819,19 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                     filter_phrase(&f, card, true)
                 )
             }
+        }
+        // "When this creature dies, if it's not a token, ...".
+        StaticCond::Is(f)
+            if *f
+                == (Filter {
+                    status: mtg_core::card::StatusQuals {
+                        token: Some(false),
+                        ..Default::default()
+                    },
+                    ..Filter::default()
+                }) =>
+        {
+            "it's not a token".to_string()
         }
         // "its power is 5 or greater".
         StaticCond::Is(f)
