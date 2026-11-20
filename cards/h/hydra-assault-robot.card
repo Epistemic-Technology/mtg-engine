@@ -1,0 +1,7 @@
+card "HYDRA Assault Robot" {
+  oracle_id a2558476-5506-4a09-93fc-b8ab33c98985
+  cost {1}{R}
+  type Artifact Creature — Robot Villain
+  pt 1/3
+  triggered whenever andor other Villain or artifact you control enters: deal 1 damage to target opponent
+}

@@ -1,0 +1,8 @@
+card "Junkblade Bruiser" {
+  oracle_id 0a2fbdd3-4940-4bbf-ae19-f6d00d7ff294
+  cost {3}{R/G}{R/G}
+  type Creature — Raccoon Berserker
+  pt 4/5
+  keywords trample
+  triggered whenever you expend 4: this gets +2/+1
+}

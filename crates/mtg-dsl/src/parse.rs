@@ -1640,6 +1640,10 @@ impl P {
                 // intervening "if" (CR 603.2, 603.4).
                 let condition = if self.eat_word("while") {
                     Some(crate::ast::TrigCond::While(self.static_cond()?))
+                } else if self.eat_words(&["during", "your", "turn"]) {
+                    // "Whenever a land enters during your turn": a trigger
+                    // condition (CR 603.2).
+                    Some(crate::ast::TrigCond::While(StaticCond::DuringYourTurn))
                 } else if self.eat_word("if") {
                     let at = self.pos;
                     if let Ok(c) = self.condition() {
@@ -2862,6 +2866,23 @@ impl P {
     fn unless_suffix(&mut self, e: Effect) -> R<Effect> {
         if !self.at_word("unless") {
             return Ok(e);
+        }
+        // `you lose 1 life unless opponent life 10 or less`: a static
+        // condition, judged as it resolves.
+        if !matches!(self.word_at(1).as_deref(), Some("you" | "they")) {
+            let at = self.pos;
+            self.pos += 1;
+            if let Ok(cond) = self.static_cond()
+                && (self.at_end()
+                    || matches!(self.peek(), Some(Tok::Semi | Tok::RBrace | Tok::Newline)))
+            {
+                return Ok(Effect::IfCondition(
+                    cond,
+                    vec![Sentence::new(vec![e])],
+                    crate::ast::IfWording::Unless,
+                ));
+            }
+            self.pos = at;
         }
         // `unless you sacrifice 1 Forest chosen`: an act, not a payment.
         if self.at_words(&["unless", "you"])
@@ -6517,7 +6538,7 @@ impl P {
                                 | "blocked"
                         )
                     ) || (self.word_at(ws.len()).as_deref() == Some("blocking")
-                        && matches!(self.word_at(ws.len() + 1).as_deref(), Some("this" | "or")))
+                        && matches!(self.word_at(ws.len() + 1).as_deref(), Some("this" | "it" | "or")))
                         // "each creature target player controls".
                         || (self.word_at(ws.len()).as_deref() == Some("target")
                             && matches!(
@@ -6662,7 +6683,7 @@ impl P {
                         | (Some("with" | "without"), Some("aura"))
                         | (Some("with"), Some("counter" | "toxic"))
                         | (Some("blocked"), Some("by"))
-                        | (Some("blocking"), Some("this" | "or"))
+                        | (Some("blocking"), Some("this" | "it" | "or"))
                 ) || comma_type
                     || (next.as_deref() == Some("or")
                         && !matches!(
@@ -6895,9 +6916,19 @@ impl P {
                     self.pos += 1;
                 }
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,
+                "andor" if consumed == 0 && !f.and_or => {
+                    f.and_or = true;
+                    self.pos += 1;
+                }
                 // "other than enchanted creature": not the source's host.
                 "other" if self.at_words(&["other", "than", "enchanted"]) => {
                     f.not_attached = true;
+                    self.pos += 3;
+                }
+                // "creature other than this creature".
+                "other" if self.at_words(&["other", "than", "this"]) => {
+                    f.relation = Relation::Other;
+                    f.other_than_this = true;
                     self.pos += 3;
                 }
                 "other" | "another" => {
@@ -7104,6 +7135,11 @@ impl P {
                     f.status.modified = true;
                     self.pos += 1;
                 }
+                // CR 708.2: "face-down creature".
+                "face-down" if !f.status.face_down => {
+                    f.status.face_down = true;
+                    self.pos += 1;
+                }
                 // "a token", "artifact token", "nontoken creature" (CR
                 // 111.1).
                 "token" | "tokens" | "nontoken" if f.status.token.is_none() => {
@@ -7115,12 +7151,15 @@ impl P {
                 "blocking" | "blocked"
                     if f.combat_with.is_none()
                         && (self.at_words(&["blocking", "this"])
+                            || self.at_words(&["blocking", "it"])
                             || self.at_words(&["blocked", "by", "this"])
                             || self.at_words(&["blocked", "by", "it"])
                             || self.at_words(&["blocking", "or", "blocked", "by", "this"])) =>
                 {
                     let (r, n) = if self.at_words(&["blocking", "this"]) {
                         (crate::ast::CombatRef::BlockingThis, 2)
+                    } else if self.at_words(&["blocking", "it"]) {
+                        (crate::ast::CombatRef::BlockingIt, 2)
                     } else if self.at_words(&["blocked", "by", "this"]) {
                         (crate::ast::CombatRef::BlockedByThis, 3)
                     } else if self.at_words(&["blocked", "by", "it"]) {
@@ -7691,6 +7730,57 @@ impl P {
                 in_a_turn,
             });
         }
+        // "you draw a card", "a player draws a card" (CR 121.2).
+        for (words, whose) in [
+            (&["you", "draw", "a", "card"][..], Who::You),
+            (&["a", "player", "draws", "a", "card"][..], Who::Any),
+            (
+                &["an", "opponent", "draws", "a", "card"][..],
+                Who::Opponents,
+            ),
+        ] {
+            if self.eat_words(words) {
+                return Ok(Trigger::Draws { whose });
+            }
+        }
+        // "a player discards a card", "you discard creature card" (CR
+        // 701.9).
+        for (words, whose) in [
+            (&["you", "discard"][..], Who::You),
+            (&["a", "player", "discards"][..], Who::Any),
+            (&["an", "opponent", "discards"][..], Who::Opponents),
+        ] {
+            if self.eat_words(words) {
+                let filter = if self.eat_words(&["a", "card"]) {
+                    Filter::default()
+                } else {
+                    let f = self.filter()?;
+                    self.expect_word("card")?;
+                    f
+                };
+                return Ok(Trigger::Discards { whose, filter });
+            }
+        }
+        // CR 700.14: "you expend 4".
+        if self.eat_words(&["you", "expend"]) {
+            let n = self.number()?;
+            return Ok(Trigger::Expends(u8::try_from(n).unwrap_or(u8::MAX)));
+        }
+        // "one or more cards leave your graveyard", "one or more creature
+        // cards leave your graveyard" (CR 603.2c).
+        if self.at_words(&["one", "or", "more"]) {
+            let before = self.pos;
+            self.pos += 3;
+            let filter = if self.at_word("cards") {
+                Filter::default()
+            } else {
+                self.filter()?
+            };
+            if self.eat_words(&["cards", "leave", "your", "graveyard"]) {
+                return Ok(Trigger::LeavesGraveyard(filter));
+            }
+            self.pos = before;
+        }
         // CR 603.2c: "one or more artifacts you control enter".
         if self.eat_words(&["one", "or", "more"]) {
             let f = self.filter()?;
@@ -7825,6 +7915,27 @@ impl P {
             });
         }
         let obj = self.trigger_obj()?;
+        // "a land card is put into your graveyard from anywhere".
+        if let TriggerObj::Filter(f) = &obj
+            && self.eat_words(&[
+                "card",
+                "is",
+                "put",
+                "into",
+                "your",
+                "graveyard",
+                "from",
+                "anywhere",
+            ])
+        {
+            return Ok(Trigger::PutIntoGraveyard(f.clone()));
+        }
+        // "a creature enters from your graveyard".
+        if let TriggerObj::Filter(f) = &obj
+            && self.eat_words(&["enters", "from", "your", "graveyard"])
+        {
+            return Ok(Trigger::EntersFromGraveyard(f.clone()));
+        }
         let first = self.trigger_verb(obj.clone(), whenever)?;
         // "this enters or dies", "this enters or attacks": one ability,
         // two events of the same object.

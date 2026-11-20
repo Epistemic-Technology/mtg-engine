@@ -172,7 +172,11 @@ impl Fmt {
                         Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
                         // "target other creature you control" would read as
                         // "target other creature" and a stray "you control".
-                        Target::Filter(f) if f.relation == Relation::Other && f.who.is_some() => {
+                        Target::Filter(f)
+                            if f.relation == Relation::Other
+                                && f.who.is_some()
+                                && !f.other_than_this =>
+                        {
                             let mut g = f.clone();
                             crate::format::relation_any(&mut g);
                             format!("another target {}", filter(&g))
@@ -1408,6 +1412,9 @@ impl Fmt {
             Effect::IfCondition(c, inner, crate::ast::IfWording::After) => {
                 format!("{} if {}", self.line(inner, t), static_cond(c))
             }
+            Effect::IfCondition(c, inner, crate::ast::IfWording::Unless) => {
+                format!("{} unless {}", self.line(inner, t), static_cond(c))
+            }
             Effect::IfCondition(c, inner, also) => format!(
                 "if {}, {}{}",
                 static_cond(c),
@@ -2033,6 +2040,13 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
 }
 
 pub fn filter(f: &Filter) -> String {
+    if f.and_or {
+        let g = Filter {
+            and_or: false,
+            ..f.clone()
+        };
+        return format!("andor {}", filter(&g));
+    }
     // "Aura or Equipment attached to target creature": after both sides.
     if f.attached_to.is_some() && f.or.is_some() {
         let base = Filter {
@@ -2092,6 +2106,7 @@ fn filter_one(f: &Filter) -> String {
         words.push("each".to_string());
     }
     match f.relation {
+        Relation::Other if f.other_than_this => {}
         Relation::Other => words.push("other".to_string()),
         Relation::This => words.push("this".to_string()),
         Relation::Any => {}
@@ -2127,6 +2142,9 @@ fn filter_one(f: &Filter) -> String {
     }
     if let Some(t) = f.tapped {
         words.push(if t { "tapped" } else { "untapped" }.to_string());
+    }
+    if f.status.face_down {
+        words.push("face-down".to_string());
     }
     if f.attacking {
         words.push("attacking".to_string());
@@ -2260,6 +2278,9 @@ fn filter_one(f: &Filter) -> String {
     if f.not_attached {
         words.push("other than enchanted".to_string());
     }
+    if f.other_than_this {
+        words.push("other than this".to_string());
+    }
     if f.no_abilities {
         words.push("with no abilities".to_string());
     }
@@ -2270,6 +2291,7 @@ fn filter_one(f: &Filter) -> String {
         words.push(
             match r {
                 crate::ast::CombatRef::BlockingThis => "blocking this",
+                crate::ast::CombatRef::BlockingIt => "blocking it",
                 crate::ast::CombatRef::BlockedByThis => "blocked by this",
                 crate::ast::CombatRef::BlockedByIt => "blocked by it",
                 crate::ast::CombatRef::BlockingOrBlockedByThis => "blocking or blocked by this",
@@ -2604,6 +2626,24 @@ pub fn cycles_text(this: bool, another: bool, or_discard: bool) -> String {
     )
 }
 
+/// "you draw", "a player draws", "an opponent draws".
+pub fn draws_words(whose: Who) -> &'static str {
+    match whose {
+        Who::You => "you draw",
+        Who::Any => "a player draws",
+        Who::Opponents => "an opponent draws",
+    }
+}
+
+/// "you discard", "a player discards", "an opponent discards".
+pub fn discards_words(whose: Who) -> &'static str {
+    match whose {
+        Who::You => "you discard",
+        Who::Any => "a player discards",
+        Who::Opponents => "an opponent discards",
+    }
+}
+
 pub fn trigger_text(t: &Trigger, next: bool) -> String {
     if let Trigger::When(inner) = t {
         return trigger_text(inner, next).replacen("whenever", "when", 1);
@@ -2816,6 +2856,32 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 if *whenever { "whenever" } else { "when" }
             )
         }
+        Trigger::Draws { whose } => format!("whenever {} a card", draws_words(*whose)),
+        Trigger::Discards { whose, filter: f } => format!(
+            "whenever {} {}",
+            discards_words(*whose),
+            if *f == Filter::default() {
+                "a card".to_string()
+            } else {
+                format!("{} card", filter(f))
+            }
+        ),
+        Trigger::LeavesGraveyard(f) => format!(
+            "whenever one or more {}cards leave your graveyard",
+            if *f == Filter::default() {
+                String::new()
+            } else {
+                format!("{} ", filter(f))
+            }
+        ),
+        Trigger::PutIntoGraveyard(f) => format!(
+            "whenever {} card is put into your graveyard from anywhere",
+            filter(f)
+        ),
+        Trigger::EntersFromGraveyard(f) => {
+            format!("whenever {} enters from your graveyard", filter(f))
+        }
+        Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::EntersBatch(f) => format!("whenever one or more {} enter", filter(f)),
         Trigger::LeavesBatch { filter: f, dies } => format!(
             "whenever one or more {} {}",
@@ -3566,6 +3632,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 trigger_text(trigger, false)
             );
             let condition = match condition {
+                Some(crate::ast::TrigCond::While(StaticCond::DuringYourTurn)) => {
+                    head.push_str(" during your turn");
+                    None
+                }
                 Some(crate::ast::TrigCond::While(c)) => {
                     let _ = write!(head, " while {}", static_cond(c));
                     None

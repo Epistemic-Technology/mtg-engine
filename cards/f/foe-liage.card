@@ -1,0 +1,7 @@
+card "Foe-liage" {
+  oracle_id 017cadd8-55ee-497a-84d4-6535173bc1eb
+  cost {3}{G}
+  type Creature — Plant Mutant
+  pt 3/3
+  triggered whenever land enters during your turn: put 1 +1/+1 counter on this
+}

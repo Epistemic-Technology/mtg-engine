@@ -1,0 +1,409 @@
+# M5: trigger variants: cards leaving your graveyard (once per batch,
+# CR 603.2c), a card put into your graveyard from anywhere, entering from
+# your graveyard, drawing and discarding (CR 121.2, 701.9), expend (CR
+# 700.14), "during your turn" and "while" trigger conditions (CR 603.2),
+# "target creature blocking it", "target creature other than this
+# creature", and an opponent's creature dying under a granted ability.
+
+scenario "leaves your graveyard: Spirit Mascot triggers once for a whole graveyard exiled" {
+  battlefield A: "Spirit Mascot"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Forest"
+  hand A: "Bojuka Bog"
+  turn 1 A: play "Bojuka Bog"
+  turn 1 A: trigger "Bojuka Bog" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A count 0
+  assert counters "Spirit Mascot" +1/+1 1
+}
+
+scenario "leaves your graveyard: an opponent's graveyard doesn't count" {
+  battlefield A: "Spirit Mascot"
+  graveyard B: "Grizzly Bears", "Hill Giant"
+  hand A: "Bojuka Bog"
+  turn 1 A: play "Bojuka Bog"
+  turn 1 A: trigger "Bojuka Bog" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 0
+  assert counters "Spirit Mascot" +1/+1 0
+}
+
+scenario "leaves your graveyard: Fuming Effigy pings as Raise Dead returns a card" {
+  battlefield A: "Fuming Effigy", "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Raise Dead"
+  turn 1 A: cast "Raise Dead" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "leaves your graveyard: Rot Farm Mortipede wants creature cards" {
+  battlefield A: "Rot Farm Mortipede", "Swamp"
+  graveyard A: "Forest"
+  hand A: "Cremate"
+  library A: "Plains", "Plains"
+  turn 1 A: cast "Cremate" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Forest"
+  assert power "Rot Farm Mortipede" 3
+  assert has not "Rot Farm Mortipede" menace
+}
+
+scenario "leaves your graveyard: Rot Farm Mortipede grows as a creature card leaves" {
+  battlefield A: "Rot Farm Mortipede", "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Raise Dead"
+  turn 1 A: cast "Raise Dead" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Rot Farm Mortipede" 4
+  assert has "Rot Farm Mortipede" menace
+  assert has "Rot Farm Mortipede" lifelink
+}
+
+scenario "leaves your graveyard: Owlin Historian grows as a flashback spell is cast" {
+  battlefield A: "Owlin Historian", 5 "Mountain"
+  graveyard A: "Firebolt"
+  turn 1 A: cast "Firebolt" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Owlin Historian" 3
+  assert toughness "Owlin Historian" 4
+  assert life B 18
+}
+
+scenario "put into your graveyard from anywhere: Skola Grovedancer gains life for a milled land" {
+  battlefield A: "Skola Grovedancer", 3 "Forest"
+  library A: "Forest", "Plains"
+  turn 1 A: activate "Skola Grovedancer"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert life A 21
+}
+
+scenario "put into your graveyard from anywhere: not for a nonland card, nor an opponent's land" {
+  battlefield A: "Skola Grovedancer", 3 "Forest"
+  battlefield B: 3 "Swamp"
+  hand B: "Mind Rot"
+  hand A: "Plains", "Island"
+  library A: "Grizzly Bears", "Plains"
+  turn 1 A: activate "Skola Grovedancer"
+  turn 2 B: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Island"
+  assert life A 22
+}
+
+scenario "discards: Confessor gains life for each card any player discards" {
+  battlefield A: "Confessor"
+  battlefield B: 3 "Swamp"
+  hand B: "Mind Rot"
+  hand A: "Plains", "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert graveyard A count 2
+  assert life A 22
+}
+
+scenario "discards: Confessor's life is optional" {
+  battlefield A: "Confessor"
+  battlefield B: 3 "Swamp"
+  hand B: "Mind Rot"
+  hand A: "Plains", "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Mind Rot" targeting player A
+  turn 2 A: decline "Confessor"
+  run_to turn 2 postcombat_main
+  assert life A 21
+}
+
+scenario "draws: Jace's Erasure mills once per card drawn" {
+  battlefield A: "Jace's Erasure", 3 "Island"
+  hand A: "Divination"
+  library B: "Forest", "Plains", "Swamp", "Mountain"
+  turn 1 A: cast "Divination"
+  turn 1 A: trigger "Jace's Erasure" targeting player B
+  turn 1 A: trigger "Jace's Erasure" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 2
+  assert hand A count 2
+}
+
+scenario "draws: an opponent's draw doesn't trigger Jace's Erasure" {
+  battlefield A: "Jace's Erasure"
+  library B: "Forest", "Plains", "Swamp", "Mountain"
+  start turn 2 B upkeep
+  run_to turn 2 postcombat_main
+  assert graveyard B count 0
+  assert hand B count 1
+}
+
+scenario "enters from your graveyard: Dredging Claw attaches to a returned creature" {
+  battlefield A: "Dredging Claw", 4 "Plains"
+  graveyard A: "Hill Giant"
+  hand A: "Resurrection"
+  turn 1 A: cast "Resurrection" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Dredging Claw" to "Hill Giant"
+  assert power "Hill Giant" 4
+  assert has "Hill Giant" menace
+}
+
+scenario "enters from your graveyard: a creature cast from the hand doesn't trigger" {
+  battlefield A: "Dredging Claw", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "expend 4: Bakersbane Duo grows as the fourth mana is spent" {
+  battlefield A: "Bakersbane Duo", 5 "Mountain"
+  hand A: "Hill Giant", "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert power "Bakersbane Duo" 3
+}
+
+scenario "expend 4: three mana spent is not enough" {
+  battlefield A: "Bakersbane Duo", 3 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Bakersbane Duo" 2
+}
+
+scenario "expend 4: only the spell that spends the fourth mana" {
+  battlefield A: "Junkblade Bruiser", 8 "Mountain"
+  hand A: "Hill Giant", "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Junkblade Bruiser" 6
+  assert toughness "Junkblade Bruiser" 6
+}
+
+scenario "expend 4: Roughshod Duo pumps a target" {
+  battlefield A: "Roughshod Duo", "Grizzly Bears", 4 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: trigger "Roughshod Duo" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" trample
+}
+
+scenario "during your turn: Foe-liage counts lands entering on its controller's turn only" {
+  battlefield A: "Foe-liage"
+  hand A: "Forest"
+  hand B: "Swamp"
+  turn 1 A: play "Forest"
+  turn 2 B: play "Swamp"
+  run_to turn 2 postcombat_main
+  assert counters "Foe-liage" +1/+1 1
+}
+
+scenario "while: Reluctant Dounguard sheds counters only while it has one" {
+  battlefield A: "Reluctant Dounguard" with 1 -1/-1, 3 "Forest"
+  hand A: "Grizzly Bears", "Llanowar Elves"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert counters "Reluctant Dounguard" -1/-1 0
+  assert power "Reluctant Dounguard" 4
+}
+
+scenario "Reluctant Dounguard enters with two -1/-1 counters" {
+  battlefield A: 3 "Plains", "Forest"
+  hand A: "Reluctant Dounguard", "Llanowar Elves"
+  turn 1 A: cast "Reluctant Dounguard"
+  turn 1 A: wait
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert counters "Reluctant Dounguard" -1/-1 1
+  assert power "Reluctant Dounguard" 3
+}
+
+scenario "target creature blocking it: Goblin Javelineer shoots its blocker" {
+  battlefield A: "Goblin Javelineer"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  turn 1 A: attack "Goblin Javelineer"
+  turn 1 B: block "Goblin Javelineer" with "Grizzly Bears"
+  illegal turn 1 A: trigger "Goblin Javelineer" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Llanowar Elves"
+}
+
+scenario "target creature other than this creature: Weed-Pruner Poplar can't shrink itself" {
+  battlefield A: "Weed-Pruner Poplar"
+  battlefield B: "Grizzly Bears"
+  start turn 3 A untap
+  illegal turn 3 upkeep A: trigger "Weed-Pruner Poplar" targeting "Weed-Pruner Poplar"
+  run_to turn 3 precombat_main
+  assert power "Grizzly Bears" 1
+  assert power "Weed-Pruner Poplar" 3
+}
+
+scenario "granted dies trigger: Eternal Thirst counts an opponent's creature only" {
+  battlefield A: "Grizzly Bears", "Llanowar Elves", "Eternal Thirst" on "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Raging Goblin"
+  hand A: "Shock", "Shock"
+  turn 1 A: cast "Shock" targeting "Raging Goblin"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has "Grizzly Bears" lifelink
+}
+
+scenario "Poisonbelly Ogre: each entering creature's controller loses 1 life" {
+  battlefield A: "Poisonbelly Ogre", "Forest"
+  battlefield B: 2 "Forest"
+  hand A: "Llanowar Elves"
+  hand B: "Grizzly Bears"
+  turn 1 A: cast "Llanowar Elves"
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert life B 19
+}
+
+scenario "one or more tokens: Cloakwood Swarmkeeper once for two Soldiers" {
+  battlefield A: "Cloakwood Swarmkeeper", 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+  assert counters "Cloakwood Swarmkeeper" +1/+1 1
+}
+
+scenario "landfall: Rabaroo Troop flies and gains a life; Skyclave Squid may attack" {
+  battlefield A: "Rabaroo Troop", "Skyclave Squid"
+  hand A: "Plains"
+  turn 1 A: play "Plains"
+  turn 1 A: attack "Skyclave Squid"
+  run_to turn 1 postcombat_main
+  assert has "Rabaroo Troop" flying
+  assert life A 21
+  assert life B 17
+}
+
+scenario "landfall: Skyclave Squid can't attack without a land entering" {
+  battlefield A: "Skyclave Squid"
+  illegal turn 1 A: attack "Skyclave Squid"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Stonebound Mentor scries as a card leaves the graveyard" {
+  battlefield A: "Stonebound Mentor", "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Raise Dead"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Raise Dead" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "face-down permanent enters, or is turned face up: Cryptid Inspector counts both" {
+  battlefield A: "Cryptid Inspector", 6 "Mountain"
+  hand A: "Atarka Efreet"
+  turn 1 A: cast "Atarka Efreet" face_down
+  turn 1 A: wait
+  turn 1 A: unmorph "Atarka Efreet"
+  turn 1 A: trigger "Atarka Efreet" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Cryptid Inspector" +1/+1 2
+  assert life B 19
+}
+
+scenario "face-down permanent enters: a creature cast face up doesn't count" {
+  battlefield A: "Cryptid Inspector", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Cryptid Inspector" +1/+1 0
+}
+
+scenario "target face-down creature: Nosy Goblin destroys a morph, not a face-up creature" {
+  battlefield A: "Nosy Goblin"
+  battlefield B: 3 "Mountain", "Grizzly Bears"
+  hand B: "Atarka Efreet"
+  turn 2 B: cast "Atarka Efreet" face_down
+  illegal turn 3 A: activate "Nosy Goblin" targeting "Grizzly Bears"
+  turn 3 A: activate "Nosy Goblin" targeting "face-down creature"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Atarka Efreet"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "and/or: HYDRA Assault Robot pings for an artifact, not for another creature" {
+  battlefield A: "HYDRA Assault Robot", 2 "Forest"
+  hand A: "Ornithopter", "Grizzly Bears"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: trigger "HYDRA Assault Robot" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "base power and toughness become: Mirkwood Meditator turns 4/2 on landfall" {
+  battlefield A: "Mirkwood Meditator"
+  hand A: "Island"
+  turn 1 A: play "Island"
+  run_to turn 1 postcombat_main
+  assert power "Mirkwood Meditator" 4
+  assert toughness "Mirkwood Meditator" 2
+}
+
+scenario "base power and toughness become: declined, Mirkwood Meditator stays 2/4" {
+  battlefield A: "Mirkwood Meditator"
+  hand A: "Island"
+  turn 1 A: play "Island"
+  turn 1 A: decline "Mirkwood Meditator"
+  run_to turn 1 postcombat_main
+  assert power "Mirkwood Meditator" 2
+}
+
+scenario "unless: Vampire Lacerator costs a life while every opponent has more than 10" {
+  battlefield A: "Vampire Lacerator"
+  start turn 3 A untap
+  run_to turn 3 precombat_main
+  assert life A 19
+}
+
+scenario "unless: no life lost once an opponent has 10 or less life" {
+  battlefield A: "Vampire Lacerator"
+  life B 10
+  start turn 3 A untap
+  run_to turn 3 precombat_main
+  assert life A 20
+}
+
+scenario "creatures blocking it: Armored Transport takes no combat damage from its blocker" {
+  battlefield A: "Armored Transport"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Armored Transport"
+  turn 1 B: block "Armored Transport" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Armored Transport"
+  assert damage "Hill Giant" 2
+}
+
+scenario "the number of attacking creatures: Strength in Numbers" {
+  battlefield A: "Grizzly Bears", "Llanowar Elves", 2 "Forest"
+  hand A: "Strength in Numbers"
+  turn 1 A: attack "Grizzly Bears", "Llanowar Elves"
+  turn 1 declare_attackers A: cast "Strength in Numbers" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}

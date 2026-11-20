@@ -1,0 +1,8 @@
+card "Rabaroo Troop" {
+  oracle_id 48252207-d345-455c-b655-c2027664e6a6
+  cost {3}{W}{W}
+  type Creature — Rabbit Kangaroo
+  pt 3/5
+  label "Landfall" triggered whenever land you control enters: this gains flying and you gain 1 life
+  plainscycling {2}
+}

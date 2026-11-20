@@ -221,6 +221,8 @@ impl Decompiler<'_> {
             that_player: f.that_player,
             that_opponent: false,
             not_attached: f.not_attached,
+            other_than_this: false,
+            and_or: false,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             alt_article: false,
             targeting: f.targeting.as_ref().map(|t| {
@@ -1310,6 +1312,15 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
                 dies: *dies,
             },
+            TriggerSpec::Draws { whose } => Trigger::Draws { whose: *whose },
+            TriggerSpec::Discards { whose, filter } => Trigger::Discards {
+                whose: *whose,
+                filter: self.filter(filter),
+            },
+            TriggerSpec::LeavesGraveyard(f) => Trigger::LeavesGraveyard(self.filter(f)),
+            TriggerSpec::PutIntoGraveyard(f) => Trigger::PutIntoGraveyard(self.filter(f)),
+            TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
+            TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),
             // "When you cast or cycle ~".

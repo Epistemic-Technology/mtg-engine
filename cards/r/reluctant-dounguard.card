@@ -1,0 +1,8 @@
+card "Reluctant Dounguard" {
+  oracle_id 162dcfa0-36e4-41cd-8322-08e810ff04d4
+  cost {2}{W}
+  type Creature — Kithkin Soldier
+  pt 4/4
+  enters with 2 -1/-1 counters
+  triggered whenever other creature you control enters while this has 1 or more -1/-1 counters: remove 1 -1/-1 counter from this
+}

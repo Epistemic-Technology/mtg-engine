@@ -1,0 +1,9 @@
+card "Owlin Historian" {
+  oracle_id e1ebb60e-fbf3-4f8f-a76f-d637ec59ffb0
+  cost {2}{W}
+  type Creature — Bird Cleric
+  pt 2/3
+  keywords flying
+  triggered when this enters: surveil 1
+  triggered whenever one or more cards leave your graveyard: this gets +1/+1
+}

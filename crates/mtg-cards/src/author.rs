@@ -1860,8 +1860,24 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever you cast your first spell each turn"
         | "Whenever you cast your second spell each turn"
         | "Whenever you cast a spell other than your first spell each turn"
-        | "Whenever you cast your first spell during each opponent's turn" => {
+        | "Whenever you cast your first spell during each opponent's turn"
+        | "Whenever you draw a card"
+        | "Whenever a player draws a card"
+        | "Whenever an opponent draws a card"
+        | "Whenever you discard a card"
+        | "Whenever a player discards a card"
+        | "Whenever an opponent discards a card"
+        | "Whenever one or more cards leave your graveyard"
+        | "Whenever one or more creature cards leave your graveyard"
+        | "Whenever you expend 4"
+        | "Whenever you expend 8" => {
             return Some(lowercase_first(head));
+        }
+        "Whenever a land card is put into your graveyard from anywhere" => {
+            "whenever land card is put into your graveyard from anywhere"
+        }
+        "Whenever a creature enters from your graveyard" => {
+            "whenever creature enters from your graveyard"
         }
         _ => {
             // "When you control no Islands" (a state trigger, CR 603.8).

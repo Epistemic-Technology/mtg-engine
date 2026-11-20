@@ -1,0 +1,7 @@
+card "Vampire Lacerator" {
+  oracle_id dc261758-0982-4b7d-9986-042c03cc8366
+  cost {B}
+  type Creature — Vampire Warrior
+  pt 2/2
+  triggered at beginning of your upkeep: you lose 1 life unless opponent life 10 or less
+}

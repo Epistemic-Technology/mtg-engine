@@ -1,0 +1,8 @@
+card "Skyclave Squid" {
+  oracle_id 301d36e7-06ff-48ed-a7e8-c7d3c72e1e2f
+  cost {1}{U}
+  type Creature — Squid
+  pt 3/2
+  keywords defender
+  label "Landfall" triggered whenever land you control enters: this can attack this turn as though it didn't have defender
+}

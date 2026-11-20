@@ -1,0 +1,7 @@
+card "Cloakwood Swarmkeeper" {
+  oracle_id 61f09fcc-11cd-4999-a43a-54488b19861d
+  cost {G}
+  type Creature — Elf Ranger
+  pt 1/1
+  label "Gathered Swarm" triggered whenever one or more token you control enter: put 1 +1/+1 counter on this
+}

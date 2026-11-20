@@ -1,0 +1,8 @@
+card "Goblin Javelineer" {
+  oracle_id e35c8206-98d0-44ab-8770-823a5ff7ab72
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  keywords haste
+  triggered whenever this becomes blocked: deal 1 damage to target creature blocking it
+}

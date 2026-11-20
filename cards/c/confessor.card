@@ -1,0 +1,7 @@
+card "Confessor" {
+  oracle_id b78973fa-a4cb-4927-8a75-6b1c963c1c0c
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  triggered whenever a player discards a card: you may you gain 1 life
+}

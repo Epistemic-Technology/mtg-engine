@@ -236,9 +236,19 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `when this enters or dies`, `whenever this enters or attacks`, `when this enters or leaves the battlefield`, `when this enters or is turned face up` | one ability with two events of the source, the subject printed once: "When this creature enters or dies" ("When this artifact enters or is put into a graveyard from the battlefield" on a noncreature), "Whenever this creature enters or attacks"; the word written (`when` / `whenever`) is the word printed ("Whenever this creature enters or dies"). A face-down permanent has no abilities, so one cast face down triggers only as it turns face up (CR 708.8) |
 | `whenever you sacrifice other permanent`, `whenever you sacrifice token`, `whenever a player sacrifices creature`, `whenever an opponent sacrifices ...`, `when this enters and when you sacrifice this` | a permanent is sacrificed (CR 701.21) by its controller, the player named: "Whenever you sacrifice another permanent", "Whenever a player sacrifices a creature", "When this artifact enters and when you sacrifice it". It triggers as the permanent is sacrificed, judged while it is still on the battlefield (so a permanent sacrificing itself sees it), whether by an effect, a cost, or a mana ability (a Treasure); a creature that dies otherwise doesn't. The sacrificed permanent is the triggering object |
 | `whenever permanent is turned face up`, `whenever this or permanent is turned face up`, `whenever Detective you control is turned face up` | "Whenever a permanent is turned face up", "Whenever this creature or another permanent is turned face up": the permanent judged as it is face up (CR 708.8) |
+| `whenever you draw a card`, `whenever a player draws a card`, `whenever an opponent draws a card` | once per card drawn (CR 121.2); the card is the triggering object |
+| `whenever a player discards a card`, `whenever you discard a card`, `whenever you discard creature card` | once per card discarded (CR 701.9), judged as it is discarded; the card is the triggering object |
+| `whenever one or more cards leave your graveyard`, `whenever one or more creature cards leave your graveyard` | once for the matching cards that leave the controller's graveyard together, however they go (returned, exiled, cast with flashback; CR 603.2c); their number is `that much` |
+| `whenever land card is put into your graveyard from anywhere` | "Whenever a land card is put into your graveyard from anywhere": a card the controller owns, matching as it is in the graveyard (milled, discarded, dying, ...) |
+| `whenever creature enters from your graveyard` | "Whenever a creature enters from your graveyard": a permanent the controller owns entering from their graveyard is "it" |
+| `whenever you expend 4` | "Whenever you expend 4" (CR 700.14): as the controller spends their fourth total mana to cast spells this turn, judged as the spell that spent it becomes cast (the mana counted as its cost's mana symbols) |
+| `whenever andor other Villain or artifact you control enters` | "Whenever another Villain and/or artifact you control enters": `andor` before a filter with an alternative prints "and/or" in a trigger's subject (wording only) |
 
 A trigger's subject prints its controller before its "with" qualities
 ("Whenever a creature you control with power 5 or greater enters").
+`you may this has base power and toughness 4/2 until end of turn` prints
+"you may have this creature's base power and toughness become 4/2 until
+end of turn".
 `you may deal 1 damage to any target` prints "you may have this creature
 deal ..." and `you may each Ally creature you control gets +1/+0` "you may
 have Ally creatures you control get +1/+0 ...".
@@ -256,7 +266,10 @@ is a trigger condition instead (CR 603.2): "Whenever this creature attacks
 while you control two or more artifacts, ..." (`triggered whenever this
 attacks while you control 2 artifact: ...`, `while saddled`, `while
 delirium`), judged only as the event happens, so the ability resolves even
-if the condition no longer holds.
+if the condition no longer holds. Any trigger takes one (`whenever other
+creature you control enters while this has 1 or more -1/-1 counters`:
+"... enters while this creature has a -1/-1 counter on it"), and `during
+your turn` is one too: "Whenever a land enters during your turn".
 
 Static conditions: `7 cards in your graveyard` ("there are seven or more
 cards in your graveyard"), `4 card types in your graveyard`, `you control 3
@@ -493,7 +506,10 @@ and `also` goes after its subject ("If you control an Equipment,
 Misthios's Fury also deals 2 damage ...", "that creature also gains
 trample"). `if you controlled target 1, draw 1 card`: "If you controlled
 that permanent, draw a card.", its controller as it last existed (CR
-608.2h). `then if <cond>, <clause>` prints "Then if ...". Conditions
+608.2h). `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
+unless opponent life 10 or less` prints "you lose 1 life unless an
+opponent has 10 or less life": the clause happens only if the condition
+doesn't hold as it resolves. Conditions
 also include `your life more than opponent` ("you have more life than an
 opponent"), `3 basic land types` ("there are three or more basic land
 types among lands you control"), `you don't control legendary creature`
@@ -672,7 +688,7 @@ oil counter`, "permanents you control with oil counters on them"), and `modified
 creature", CR 700.9: it has a counter, is equipped, or is enchanted by an
 Aura its controller controls), `attached to creature` / `attached to land`
 ("target Aura attached to a creature": what it is attached to, CR
-303.4), and `with toxic` ("each other creature you
+303.4), `face-down` ("target face-down creature", CR 708.2), and `with toxic` ("each other creature you
 control with toxic", CR 702.164: one of its abilities is toxic N, printed
 or granted; printed after the controller). As a check on a target or what
 an Aura enchants it prints "has": `if that target 1 is with toxic, draw 1
@@ -690,7 +706,8 @@ qualifiers are re-judged only when characteristics change, so they belong
 in targets, groups, and conditions.
 
 Combat relations to the source (`ObjFilter::combat_with`, CR 509.1g):
-`blocking this` ("each creature blocking this creature"), `blocked by this`
+`blocking this` ("each creature blocking this creature"), `blocking it`
+("target creature blocking it", the source named before), `blocked by this`
 ("target creature this creature is blocking"), `blocked by it` ("target
 creature it's blocking"), `blocking or blocked by this`. Judged for targets
 and an effect's groups; once the source has left the battlefield (a
@@ -1292,7 +1309,8 @@ exists), both checked as targets are chosen and again on resolution (CR
 608.2b); a triggered ability with no target that player controls is
 removed (CR 603.3d). `target creature other than enchanted` ("target
 creature other than enchanted creature"): not what the source is attached
-to. A group or count of what a target player controls declares that
+to. `target creature other than this` ("target creature other than this
+creature") is `target other creature` worded after the noun. A group or count of what a target player controls declares that
 target in its filter: `each creature target player controls gets -2/-2`
 ("Creatures target player controls get -2/-2 until end of turn"), `you
 gain count each 2 creature target player controls life`; `target opponent

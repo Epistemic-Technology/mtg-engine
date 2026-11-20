@@ -1,0 +1,8 @@
+card "Bakersbane Duo" {
+  oracle_id ecd9a0a4-1dfa-4d91-8339-062e2be4e5d9
+  cost {1}{G}
+  type Creature — Squirrel Raccoon
+  pt 2/2
+  triggered when this enters: create 1 "Food"
+  triggered whenever you expend 4: this gets +1/+1
+}

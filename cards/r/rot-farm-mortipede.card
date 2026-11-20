@@ -1,0 +1,7 @@
+card "Rot Farm Mortipede" {
+  oracle_id 1f4d3a96-bc30-4362-9c1f-40bf79f78e78
+  cost {3}{B}
+  type Creature — Insect
+  pt 3/4
+  triggered whenever one or more creature cards leave your graveyard: this gets +1/+0 and gains menace and lifelink
+}

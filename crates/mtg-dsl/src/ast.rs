@@ -594,6 +594,13 @@ pub struct Filter {
     /// `other than enchanted`: "other than enchanted creature"
     /// (`ObjFilter::not_attached`).
     pub not_attached: bool,
+    /// `other than this`: "other than this creature", the relation
+    /// `Other` worded after the noun (Weed-Pruner Poplar).
+    pub other_than_this: bool,
+    /// `andor Villain or artifact`: its alternatives joined "and/or" as a
+    /// trigger's subject ("Whenever another Villain and/or artifact you
+    /// control enters"); wording only.
+    pub and_or: bool,
 }
 
 impl Filter {
@@ -624,6 +631,8 @@ pub enum OrCard {
 pub enum CombatRef {
     /// `blocking this`: "blocking this creature".
     BlockingThis,
+    /// `blocking it`: "blocking it" (the source, named before).
+    BlockingIt,
     /// `blocked by this`: "this creature is blocking".
     BlockedByThis,
     /// `blocked by it`: "it's blocking".
@@ -1489,6 +1498,9 @@ pub enum IfWording {
     Also,
     /// "<Effect> if <condition>."
     After,
+    /// `<clause> unless <condition>`: "<Effect> unless <condition>." (the
+    /// effect happens only if the condition doesn't hold).
+    Unless,
 }
 
 /// How clauses of one sentence connect: "A and B", "A, then B".
@@ -1796,6 +1808,27 @@ pub enum Trigger {
         filter: Filter,
         dies: bool,
     },
+    /// `whenever you draw a card`, `whenever a player draws a card`,
+    /// `whenever an opponent draws a card` (once per card, CR 121.2).
+    Draws {
+        whose: Who,
+    },
+    /// `whenever a player discards a card`, `whenever you discard creature
+    /// card` (CR 701.9): the discarded card is the triggering object.
+    Discards {
+        whose: Who,
+        filter: Filter,
+    },
+    /// `whenever one or more cards leave your graveyard`, `... creature
+    /// cards leave your graveyard`: once for the cards leaving together
+    /// (CR 603.2c).
+    LeavesGraveyard(Filter),
+    /// `whenever land card is put into your graveyard from anywhere`.
+    PutIntoGraveyard(Filter),
+    /// `whenever creature enters from your graveyard`.
+    EntersFromGraveyard(Filter),
+    /// `whenever you expend 4` (CR 700.14).
+    Expends(u8),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

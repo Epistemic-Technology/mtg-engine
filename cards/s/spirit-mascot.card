@@ -1,0 +1,7 @@
+card "Spirit Mascot" {
+  oracle_id 34c572b2-dccf-43d9-a9c4-846653ad22da
+  cost {R}{W}
+  type Creature — Spirit Ox
+  pt 2/2
+  triggered whenever one or more cards leave your graveyard: put 1 +1/+1 counter on this
+}

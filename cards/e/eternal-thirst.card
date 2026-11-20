@@ -1,0 +1,7 @@
+card "Eternal Thirst" {
+  oracle_id a1b66fbf-14a3-4582-8414-53f432f96dad
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has lifelink, has ability { triggered whenever creature an opponent controls dies: put 1 +1/+1 counter on this }
+}

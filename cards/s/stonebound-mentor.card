@@ -1,0 +1,7 @@
+card "Stonebound Mentor" {
+  oracle_id 7c4b4dd4-4a80-436a-8526-5c58c1751ccd
+  cost {1}{R}{W}
+  type Creature — Spirit Advisor
+  pt 3/3
+  triggered whenever one or more cards leave your graveyard: scry 1
+}
