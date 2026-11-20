@@ -5286,6 +5286,10 @@ pub struct CardDef {
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
     pub flashback: Option<Box<Cost>>,
+    /// Retrace (CR 702.81): `flashback` is the card's mana cost and a land
+    /// card discarded, and the spell isn't exiled as it leaves the stack.
+    #[serde(default)]
+    pub retrace: bool,
     /// Event kinds any of this definition's triggers (keyword triggers
     /// included) can fire on; see `TriggerSpec::watch_mask`.
     watch_mask: u32,
@@ -6784,6 +6788,7 @@ impl Builder {
             escape: None,
             modular: 0,
             flashback: None,
+            retrace: false,
             watch_mask: 0,
             except_watch_mask: 0,
             printed: None,
@@ -7101,6 +7106,21 @@ impl Builder {
     #[must_use]
     pub fn flashback(mut self, cost: Cost) -> Self {
         self.0.flashback = Some(Box::new(cost));
+        self
+    }
+
+    /// Retrace (CR 702.81a): cast from the graveyard for its mana cost and
+    /// a land card discarded; it isn't exiled.
+    #[must_use]
+    pub fn retrace(mut self, land: ObjFilter) -> Self {
+        let mana = self.0.mana_cost.clone();
+        self.0.flashback = Some(Box::new(Cost {
+            mana,
+            discard: 1,
+            discard_filter: Some(land),
+            ..Cost::default()
+        }));
+        self.0.retrace = true;
         self
     }
 

@@ -307,6 +307,16 @@ impl GameState {
                 if fb.life > 0 && ps.life < i32::try_from(fb.life).unwrap_or(i32::MAX) {
                     continue;
                 }
+                // Jump-start, retrace: a card to discard (CR 702.133a,
+                // 702.81a).
+                if fb.discard > 0
+                    && self
+                        .discard_candidates(p, fb.discard_filter.as_ref(), *id)
+                        .len()
+                        < fb.discard as usize
+                {
+                    continue;
+                }
                 // "Flashback—Sacrifice a Mountain.", "Flashback—Tap three
                 // untapped white creatures you control."
                 if fb.sacrifice.is_some()
@@ -1953,7 +1963,7 @@ impl GameState {
         // chosen permanents are settled like an additional cost's (CR
         // 702.34a, 601.2h); such a card has no additional cost of its own.
         if let Some(fb) = def.flashback.as_deref()
-            && fb.sacrifice.is_some()
+            && (fb.sacrifice.is_some() || fb.discard > 0)
             && o.cast.flashback()
         {
             return fb;
@@ -2358,7 +2368,9 @@ impl GameState {
             self.remove_from_game(spell);
             return;
         }
-        let zone = if self.objects[spell].cast.flashback() {
+        // CR 702.81a: retrace casts from the graveyard without exiling.
+        let o = &self.objects[spell];
+        let zone = if o.cast.flashback() && !self.pool.get(o.def).retrace {
             Zone::Exile
         } else {
             Zone::Graveyard
@@ -4185,15 +4197,18 @@ impl GameState {
         } else {
             self.pay_from(caster, &req, &sources, None);
         }
+        let mut discard = discard;
         if let (Some(fb), true) = (&def.flashback, flashback) {
             // A permanent chosen for the flashback cost (`additional_of`);
-            // one to tap was tapped above.
+            // one to tap was tapped above. Likewise the card discarded for
+            // jump-start or retrace (CR 702.133a, 702.81a).
             let pick = if fb.sacrifice.is_some() {
                 sacrifice.take()
             } else {
                 None
             };
-            self.pay_other_costs(caster, fb, spell, pick, None);
+            let card = if fb.discard > 0 { discard.take() } else { None };
+            self.pay_other_costs(caster, fb, spell, pick, card);
         }
         // CR 702.47a: splice costs other than mana ("Sacrifice two
         // Mountains", "Return a blue creature you control to its owner's
@@ -4364,7 +4379,7 @@ impl GameState {
         if self.pool.get(def).uncounterable {
             return;
         }
-        let flashback = o.cast.flashback();
+        let flashback = o.cast.flashback() && !self.pool.get(def).retrace;
         self.emit(Event::Countered { spell: id, def });
         if self.objects[id].cast.copy() {
             self.remove_from_game(id);

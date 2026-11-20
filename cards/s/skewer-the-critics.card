@@ -1,0 +1,7 @@
+card "Skewer the Critics" {
+  oracle_id c43b616e-ef87-4c12-810b-a1a3260168fa
+  cost {2}{R}
+  type Sorcery
+  spectacle {R}
+  spell: deal 3 damage to any target
+}

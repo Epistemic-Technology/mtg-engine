@@ -1,0 +1,8 @@
+card "Containment Membrane" {
+  oracle_id e3bf1a95-4363-4915-8f43-b423714861ec
+  cost {2}{U}
+  type Enchantment — Aura
+  surge {U}
+  enchant creature
+  static enchanted: has doesn't untap
+}

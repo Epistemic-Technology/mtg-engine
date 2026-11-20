@@ -4090,6 +4090,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Mentor => "mentor".to_string(),
                 crate::ast::Mechanic::Riot => "riot".to_string(),
                 crate::ast::Mechanic::LivingWeapon => "living weapon".to_string(),
+                crate::ast::Mechanic::Retrace => "retrace".to_string(),
+                crate::ast::Mechanic::JumpStart => "jump start".to_string(),
+                crate::ast::Mechanic::Surge(c) => format!("surge {c}"),
+                crate::ast::Mechanic::Spectacle(c) => format!("spectacle {c}"),
             };
             let _ = writeln!(out, "{indent}{text}");
         }

@@ -62,7 +62,7 @@ const KEYWORDS: [&str; 39] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 95] = [
+const TEMPLATED_TAGS: [&str; 99] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -155,6 +155,10 @@ const TEMPLATED_TAGS: [&str; 95] = [
     "Riot",
     "Living weapon",
     "Monstrosity",
+    "Retrace",
+    "Jump-start",
+    "Surge",
+    "Spectacle",
     "Support",
     "Bolster",
     "Populate",
@@ -2621,7 +2625,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Embalm|Eternalize|Offspring|Bestow|Overload) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
@@ -2696,6 +2700,10 @@ impl Builder<'_> {
             self.statements.push("conspire".to_string());
             return Ok(());
         }
+        if line == "Jump-start" {
+            self.statements.push("jump start".to_string());
+            return Ok(());
+        }
         if line == "Living weapon" {
             self.statements.push("living weapon".to_string());
             return Ok(());
@@ -2704,7 +2712,10 @@ impl Builder<'_> {
             self.statements.push("bargain".to_string());
             return Ok(());
         }
-        if matches!(line, "Evolve" | "Unleash" | "Extort" | "Mentor" | "Riot") {
+        if matches!(
+            line,
+            "Evolve" | "Unleash" | "Extort" | "Mentor" | "Riot" | "Retrace"
+        ) {
             self.statements.push(line.to_lowercase());
             return Ok(());
         }

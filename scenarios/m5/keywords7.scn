@@ -192,3 +192,107 @@ scenario "riot: modular's counters and riot's extra one" {
   run_to turn 1 postcombat_main
   assert counters "Arcbound Slasher" +1/+1 5
 }
+
+# Retrace (CR 702.81), jump-start (702.133), surge (702.117), spectacle
+# (702.137).
+
+scenario "retrace: cast from the graveyard discarding a land, and it stays" {
+  battlefield A: 2 "Mountain"
+  graveyard A: "Flame Jab"
+  hand A: "Forest", "Plains"
+  turn 1 A: cast "Flame Jab" from graveyard discarding "Forest" targeting player B
+  turn 1 postcombat_main A: cast "Flame Jab" from graveyard discarding "Plains" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard A contains "Flame Jab"
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Plains"
+  assert hand A count 0
+}
+
+scenario "retrace: no land card in hand, no cast" {
+  battlefield A: "Mountain"
+  graveyard A: "Flame Jab"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Flame Jab" from graveyard discarding "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "jump-start: cast from the graveyard discarding a card, then exiled" {
+  battlefield A: 3 "Mountain"
+  graveyard A: "Direct Current"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Direct Current" from graveyard discarding "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert exile A contains "Direct Current"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "jump-start: an empty hand, no cast" {
+  battlefield A: 3 "Mountain"
+  graveyard A: "Direct Current"
+  illegal turn 1 A: cast "Direct Current" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "jump-start: from the hand it's an ordinary spell" {
+  battlefield A: 3 "Mountain"
+  hand A: "Direct Current", "Grizzly Bears"
+  turn 1 A: cast "Direct Current" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Direct Current"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "surge: the surge cost after another spell this turn" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt", "Boulder Salvo"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Boulder Salvo" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "surge: not without another spell first" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Boulder Salvo"
+  illegal turn 1 A: cast "Boulder Salvo" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "spectacle: the spectacle cost once an opponent lost life" {
+  battlefield A: 2 "Mountain"
+  hand A: "Lightning Bolt", "Skewer the Critics"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Skewer the Critics" alternative targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "spectacle: not before an opponent lost life" {
+  battlefield A: "Mountain"
+  hand A: "Skewer the Critics"
+  illegal turn 1 A: cast "Skewer the Critics" alternative targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "spectacle: your own life loss doesn't count" {
+  battlefield A: "Mountain", "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Skewer the Critics"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  illegal turn 1 A: cast "Skewer the Critics" alternative targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert life B 20
+}

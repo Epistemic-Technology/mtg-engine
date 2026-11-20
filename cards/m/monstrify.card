@@ -1,0 +1,7 @@
+card "Monstrify" {
+  oracle_id 0f58f791-469a-4a22-996e-4906c0914858
+  cost {3}{G}
+  type Sorcery
+  spell: target creature gets +4/+4
+  retrace
+}

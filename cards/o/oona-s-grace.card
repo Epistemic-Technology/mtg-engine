@@ -1,0 +1,7 @@
+card "Oona's Grace" {
+  oracle_id 380e9992-b5d2-4fbe-a8c3-c37220846e0a
+  cost {2}{U}
+  type Instant
+  spell: target player draws 1 card
+  retrace
+}

@@ -1179,6 +1179,18 @@ pub enum Mechanic {
     /// `living weapon` (CR 702.92): when this Equipment enters, a 0/0
     /// black Phyrexian Germ token, then attach this to it.
     LivingWeapon,
+    /// `retrace` (CR 702.81): cast from your graveyard by discarding a land
+    /// card in addition to its other costs.
+    Retrace,
+    /// `jump-start` (CR 702.133): cast from your graveyard by discarding a
+    /// card in addition to its other costs; then exiled.
+    JumpStart,
+    /// `surge {1}{R}` (CR 702.117): an alternative cost if you've cast
+    /// another spell this turn.
+    Surge(ManaCost),
+    /// `spectacle {R}` (CR 702.137): an alternative cost if an opponent
+    /// lost life this turn.
+    Spectacle(ManaCost),
 }
 
 /// A blocking restriction on this creature.

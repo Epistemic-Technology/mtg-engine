@@ -1,0 +1,7 @@
+card "Sonic Assault" {
+  oracle_id dfe9e485-c070-4efd-8c35-69d4eb3f58e4
+  cost {1}{U}{R}
+  type Instant
+  spell: tap target creature; deal 2 damage to controller of that target 1
+  jump start
+}

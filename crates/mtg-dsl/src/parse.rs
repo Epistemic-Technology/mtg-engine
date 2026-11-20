@@ -1312,6 +1312,16 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Provoke))
             }
+            "retrace" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Retrace))
+            }
+            "jump" if self.at_words(&["jump", "start"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::JumpStart))
+            }
             "riot" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -1368,7 +1378,7 @@ impl P {
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "embalm" | "eternalize" | "offspring" | "bestow" | "splice"
-            | "strive" | "overload"
+            | "strive" | "overload" | "surge" | "spectacle"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1396,6 +1406,8 @@ impl P {
                     "eternalize" => Mechanic::Eternalize(c),
                     "offspring" => Mechanic::Offspring(c),
                     "strive" => Mechanic::Strive(c),
+                    "surge" => Mechanic::Surge(c),
+                    "spectacle" => Mechanic::Spectacle(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }

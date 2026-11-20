@@ -1,0 +1,7 @@
+card "Maximize Altitude" {
+  oracle_id 70e8eba9-a106-49c5-932e-b4390edb1c98
+  cost {U}
+  type Sorcery
+  spell: target creature gets +1/+1 and gains flying
+  jump start
+}

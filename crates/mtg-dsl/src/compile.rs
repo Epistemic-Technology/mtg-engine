@@ -393,6 +393,61 @@ impl Compiler<'_> {
                     counts.push(mtg_core::card::CountExpr::SourcePower);
                     self.scavenge = u8::try_from(counts.len() - 1).ok();
                 }
+                // CR 702.133a: jump-start, "You may cast this card from your
+                // graveyard by discarding a card in addition to paying its
+                // other costs. Then exile this card." Flashback's casting
+                // and exile, for the mana cost and a discard.
+                Ability::Mechanic(Mechanic::JumpStart) => {
+                    if card.flashback.is_some() {
+                        return self.err("jump-start and flashback together");
+                    }
+                    b = b.flashback(mtg_core::card::Cost {
+                        mana: card.cost.clone(),
+                        discard: 1,
+                        ..mtg_core::card::Cost::default()
+                    });
+                }
+                // CR 702.81a: retrace, "You may cast this card from your
+                // graveyard by discarding a land card in addition to paying
+                // its other costs." (It isn't exiled.)
+                Ability::Mechanic(Mechanic::Retrace) => {
+                    if card.flashback.is_some() {
+                        return self.err("retrace and flashback together");
+                    }
+                    let land = ObjFilter {
+                        types: TypeSet::of([mtg_core::card::CardType::Land]),
+                        ..ObjFilter::default()
+                    };
+                    b = b.retrace(land);
+                }
+                // CR 702.117a: surge, "You may cast this spell for its surge
+                // cost if you or a teammate has cast another spell this
+                // turn." CR 702.137a: spectacle, "... rather than its mana
+                // cost if an opponent lost life this turn."
+                Ability::Mechanic(m @ (Mechanic::Surge(cost) | Mechanic::Spectacle(cost))) => {
+                    if card.alt_cost.is_some() {
+                        return self.err("two alternative costs of the card's own");
+                    }
+                    let cond = if matches!(m, Mechanic::Surge(_)) {
+                        StaticCondition::CastThisTurn {
+                            filter: ObjFilter::default(),
+                            at_least: 1,
+                            other: true,
+                        }
+                    } else {
+                        StaticCondition::OpponentLostLifeThisTurn
+                    };
+                    let condition = Some(self.pool.intern_condition(cond));
+                    b = b.alt_cost(mtg_core::card::AltCost {
+                        cost: mtg_core::card::Cost {
+                            mana: cost.clone(),
+                            ..mtg_core::card::Cost::default()
+                        },
+                        count: 1,
+                        condition,
+                        others_gain: 0,
+                    });
+                }
                 Ability::Mechanic(Mechanic::Extort) => {
                     // CR 702.101a: "you gain life equal to the total life
                     // lost this way".
@@ -557,6 +612,10 @@ impl Compiler<'_> {
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
                             | Mechanic::BecomesDay
+                            | Mechanic::Retrace
+                            | Mechanic::JumpStart
+                            | Mechanic::Surge(_)
+                            | Mechanic::Spectacle(_)
                     )
             ) {
                 continue;
@@ -3504,6 +3563,10 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Unleash
         | Mechanic::Extort
         | Mechanic::Riot
+        | Mechanic::Retrace
+        | Mechanic::JumpStart
+        | Mechanic::Surge(_)
+        | Mechanic::Spectacle(_)
         | Mechanic::Saddle(_) => unreachable!("not an expansion"),
     }
 }
