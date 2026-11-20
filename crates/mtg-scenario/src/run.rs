@@ -477,9 +477,9 @@ impl Runner {
                 let want = Choice::Mode(usize::from(std::mem::take(&mut self.pending_other_cost)));
                 Ok(index_of(d, &want).unwrap_or(0))
             }
-            DecisionKind::Bargain { .. } => self.choose_bargain(d),
+            DecisionKind::Bargain { .. } | DecisionKind::Casualty { .. } => self.choose_bargain(d),
             DecisionKind::Splice { .. } => self.choose_splice(d),
-            DecisionKind::Conspire { .. } => {
+            DecisionKind::Conspire { .. } | DecisionKind::Teamwork { .. } => {
                 let want = if std::mem::take(&mut self.pending_conspired) {
                     Choice::Accept
                 } else {
@@ -1102,6 +1102,7 @@ impl Runner {
                     face_down,
                     evoked,
                     dashed,
+                    warped,
                     alternative,
                     bestowed,
                     overloaded,
@@ -1113,6 +1114,8 @@ impl Runner {
                         Choice::CastEvoke(self.in_hand(a.line, d.player, name)?)
                     } else if *dashed {
                         Choice::CastDash(self.in_hand(a.line, d.player, name)?)
+                    } else if *warped {
+                        Choice::CastWarp(self.in_hand(a.line, d.player, name)?)
                     } else if *bestowed {
                         Choice::CastBestow(self.in_hand(a.line, d.player, name)?)
                     } else if *overloaded {
@@ -1149,6 +1152,7 @@ impl Runner {
             | Choice::CastFaceDown(id)
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
+            | Choice::CastWarp(id)
             | Choice::CastAlt(id)
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)) = option
@@ -2432,6 +2436,7 @@ impl Runner {
             Choice::Unlock { .. } => c.describe(self.state()),
             Choice::CastEvoke(id) => format!("cast {} evoked", self.describe_ids(&[*id])),
             Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
+            Choice::CastWarp(id) => format!("cast {} warped", self.describe_ids(&[*id])),
             Choice::CastAlt(id) => format!("cast {} alternative", self.describe_ids(&[*id])),
             Choice::CastBestow(id) => format!("cast {} bestowed", self.describe_ids(&[*id])),
             Choice::CastOverload(id) => {

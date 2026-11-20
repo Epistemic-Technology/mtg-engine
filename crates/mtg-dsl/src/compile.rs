@@ -349,6 +349,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Dash(cost)) => {
                     b = b.dash(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Warp(cost)) => {
+                    b = b.warp(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Overload(cost)) => {
                     b = b.overload(cost.clone());
                 }
@@ -386,6 +389,24 @@ impl Compiler<'_> {
                 }
                 Ability::Mechanic(Mechanic::Conspire) => {
                     b = b.conspire();
+                }
+                Ability::Mechanic(Mechanic::Casualty(n)) => {
+                    let Ok(n) = u8::try_from(*n) else {
+                        return self.err("casualty is at most 255");
+                    };
+                    b = b.casualty(n);
+                }
+                Ability::Mechanic(Mechanic::Ripple(n)) => {
+                    let Ok(n) = u8::try_from(*n) else {
+                        return self.err("ripple is at most 255");
+                    };
+                    b = b.ripple(n);
+                }
+                Ability::Mechanic(Mechanic::Teamwork(n)) => {
+                    let Ok(n) = u8::try_from(*n) else {
+                        return self.err("teamwork is at most 255");
+                    };
+                    b = b.teamwork(n);
                 }
                 Ability::AuraStays => {
                     b = b.aura_stays();
@@ -635,12 +656,16 @@ impl Compiler<'_> {
                             | Mechanic::Megamorph(_)
                             | Mechanic::Disguise(_)
                             | Mechanic::Dash(_)
+                            | Mechanic::Warp(_)
                             | Mechanic::Bestow(_)
                             | Mechanic::Overload(_)
                             | Mechanic::Splice(_)
                             | Mechanic::SpliceCost(_)
                             | Mechanic::Bargain
                             | Mechanic::Conspire
+                            | Mechanic::Casualty(_)
+                            | Mechanic::Teamwork(_)
+                            | Mechanic::Ripple(_)
                             | Mechanic::Strive(_)
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
@@ -951,6 +976,7 @@ impl Compiler<'_> {
             StaticCond::Escaped => StaticCondition::Escaped,
             StaticCond::Kicked => StaticCondition::Kicked,
             StaticCond::Bargained => StaticCondition::Bargained,
+            StaticCond::Teamwork => StaticCondition::Teamwork,
             StaticCond::Saddled => StaticCondition::Saddled,
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
             StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
@@ -2989,12 +3015,16 @@ impl Compiler<'_> {
                 | Mechanic::Megamorph(_)
                 | Mechanic::Disguise(_)
                 | Mechanic::Dash(_)
+                | Mechanic::Warp(_)
                 | Mechanic::Bestow(_)
                 | Mechanic::Overload(_)
                 | Mechanic::Splice(_)
                 | Mechanic::SpliceCost(_)
                 | Mechanic::Bargain
                 | Mechanic::Conspire
+                | Mechanic::Casualty(_)
+                | Mechanic::Teamwork(_)
+                | Mechanic::Ripple(_)
                 | Mechanic::Strive(_)
                 | Mechanic::Ascend
                 | Mechanic::StartYourEngines
@@ -3736,6 +3766,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Ninjutsu(_)
         | Mechanic::Scavenge(_)
         | Mechanic::Dash(_)
+        | Mechanic::Warp(_)
         | Mechanic::Bestow(_)
         | Mechanic::Overload(_)
         | Mechanic::Splice(_)
@@ -3747,6 +3778,9 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Strive(_)
         | Mechanic::Bargain
         | Mechanic::Conspire
+        | Mechanic::Casualty(_)
+        | Mechanic::Teamwork(_)
+        | Mechanic::Ripple(_)
         | Mechanic::Ascend
         | Mechanic::StartYourEngines
         | Mechanic::BecomesDay

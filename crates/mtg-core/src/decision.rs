@@ -91,6 +91,12 @@ pub enum DecisionKind {
     /// Whether to bargain a spell (CR 702.166a): `Sacrifice` options for
     /// the artifact, enchantment, or token, or `Decline`.
     Bargain { spell: ObjId },
+    /// Whether to pay `spell`'s casualty cost (CR 702.153a): `Sacrifice`
+    /// options for the creatures with enough power, or `Decline`.
+    Casualty { spell: ObjId },
+    /// Whether to cast `spell` using teamwork: `Accept` taps creatures
+    /// with enough total power (the engine picks them), `Decline` doesn't.
+    Teamwork { spell: ObjId },
     /// Which card from the hand to put onto the battlefield (offered as
     /// `Choice::Discard` options), or `Done` for none.
     PutFromHand,
@@ -221,6 +227,8 @@ pub enum Choice {
     CastEvoke(ObjId),
     /// Cast a card for its dash cost (CR 702.109a).
     CastDash(ObjId),
+    /// Cast a card from hand for its warp cost (CR 702.185a).
+    CastWarp(ObjId),
     /// Cast a card for the alternative cost its text offers (CR 118.9):
     /// "You may sacrifice a Mountain rather than pay this spell's mana
     /// cost."
@@ -339,6 +347,7 @@ impl Choice {
             ),
             Choice::CastEvoke(id) => format!("cast {} for its evoke cost", name(id)),
             Choice::CastDash(id) => format!("cast {} for its dash cost", name(id)),
+            Choice::CastWarp(id) => format!("cast {} for its warp cost", name(id)),
             Choice::CastAlt(id) => format!("cast {} for its alternative cost", name(id)),
             Choice::CastBestow(id) => format!("cast {} for its bestow cost", name(id)),
             Choice::CastOverload(id) => format!("cast {} for its overload cost", name(id)),

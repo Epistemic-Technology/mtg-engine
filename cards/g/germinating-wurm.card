@@ -1,0 +1,8 @@
+card "Germinating Wurm" {
+  oracle_id 8735c62d-1508-4bdc-a5d0-f7c68d892a5e
+  cost {4}{G}
+  type Creature — Plant Wurm
+  pt 5/5
+  triggered when this enters: you gains 2 life
+  warp {1}{G}
+}

@@ -1,0 +1,7 @@
+card "Heroic Teamwork" {
+  oracle_id 8025313d-048d-4a43-bc01-22398939a7e7
+  cost {2}{W}
+  type Instant
+  teamwork 3
+  spell: 1 to 2 target creature gets +2/+1 until end of turn; if teamwork, draw 1 card
+}

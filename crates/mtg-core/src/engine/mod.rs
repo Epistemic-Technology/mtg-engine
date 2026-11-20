@@ -829,6 +829,36 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::ChoosingCasualty { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    let n = self.pool.get(obj.def).casualty;
+                    let mut options: Vec<Choice> = self
+                        .casualty_candidates(player, n)
+                        .into_iter()
+                        .map(Choice::Sacrifice)
+                        .collect();
+                    options.push(Choice::Decline);
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::Casualty { spell },
+                        options,
+                    });
+                }
+                Flow::ChoosingTeamwork { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    return StepResult::Decision(Decision {
+                        player: obj.controller,
+                        kind: DecisionKind::Teamwork { spell },
+                        options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
                 Flow::ChoosingConspire { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -1545,6 +1575,9 @@ impl GameState {
             (Flow::Priority, Choice::CastDash(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Dash);
             }
+            (Flow::Priority, Choice::CastWarp(card)) => {
+                self.begin_cast(player, card, crate::state::AltCast::Warp);
+            }
             (Flow::Priority, Choice::CastBestow(card)) => {
                 // CR 702.103b: on the stack it is the Aura, enchant
                 // creature, from the start.
@@ -1736,6 +1769,24 @@ impl GameState {
             }
             (Flow::ChoosingBargain { spell }, Choice::Decline) => {
                 self.flow = self.after_bargain(spell);
+            }
+            // CR 702.153a: the sacrifice is an additional cost, paid with
+            // the others (kept with bargain's).
+            (Flow::ChoosingCasualty { spell }, Choice::Sacrifice(s)) => {
+                self.objects[spell].cast.set_casualty(true);
+                self.bargains.push((spell, s));
+                self.flow = self.after_casualty(spell);
+            }
+            (Flow::ChoosingCasualty { spell }, Choice::Decline) => {
+                self.flow = self.after_casualty(spell);
+            }
+            // Teamwork: the creatures are tapped as the costs are paid.
+            (Flow::ChoosingTeamwork { spell }, Choice::Accept) => {
+                self.objects[spell].cast.set_teamwork(true);
+                self.flow = self.after_teamwork(spell);
+            }
+            (Flow::ChoosingTeamwork { spell }, Choice::Decline) => {
+                self.flow = self.after_teamwork(spell);
             }
             // CR 702.78a: the creatures are tapped as the costs are paid.
             (Flow::ChoosingConspire { spell }, Choice::Accept) => {
@@ -2097,6 +2148,26 @@ impl GameState {
     }
 
     fn after_bargain(&self, spell: ObjId) -> Flow {
+        // CR 702.153a: casualty, with a creature to sacrifice.
+        let o = &self.objects[spell];
+        let n = self.pool.get(o.def).casualty;
+        if n > 0 && !self.casualty_candidates(o.controller, n).is_empty() {
+            return Flow::ChoosingCasualty { spell };
+        }
+        self.after_casualty(spell)
+    }
+
+    fn after_casualty(&self, spell: ObjId) -> Flow {
+        // Teamwork, with creatures to tap.
+        let o = &self.objects[spell];
+        let n = self.pool.get(o.def).teamwork;
+        if n > 0 && self.teamwork_tappers(o.controller, n).is_some() {
+            return Flow::ChoosingTeamwork { spell };
+        }
+        self.after_teamwork(spell)
+    }
+
+    fn after_teamwork(&self, spell: ObjId) -> Flow {
         // CR 702.78a: conspire, with two creatures to tap.
         let o = &self.objects[spell];
         if self.pool.get(o.def).conspire && self.conspirators(spell).len() >= 2 {
@@ -2587,8 +2658,15 @@ impl GameState {
                                 }
                                 pe.own_ends > 0
                             }
-                            crate::card::PlayUntil::YourNextEndStep
-                            | crate::card::PlayUntil::Forever => true,
+                            // CR 702.185a: a warped card, castable from
+                            // the next turn on.
+                            crate::card::PlayUntil::Forever => {
+                                if pe.own_ends == crate::state::WARP_LATER {
+                                    pe.own_ends = 0;
+                                }
+                                true
+                            }
+                            crate::card::PlayUntil::YourNextEndStep => true,
                         }
                     });
                 }

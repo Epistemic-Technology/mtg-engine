@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 101] = [
+const TEMPLATED_TAGS: [&str; 105] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -146,6 +146,10 @@ const TEMPLATED_TAGS: [&str; 101] = [
     "Offspring",
     "Bargain",
     "Conspire",
+    "Casualty",
+    "Teamwork",
+    "Warp",
+    "Ripple",
     "Saddle",
     "Fabricate",
     "Renown",
@@ -1992,6 +1996,9 @@ fn static_condition(s: &str) -> Option<String> {
         "it's attacking" | "this creature is attacking" => return Some("attacking".to_string()),
         "it's enchanted" | "this creature is enchanted" => return Some("enchanted".to_string()),
         "it's equipped" | "this creature is equipped" => return Some("equipped".to_string()),
+        "this spell was cast using teamwork" => {
+            return Some("teamwork".to_string());
+        }
         "it's bargained" | "it was bargained" | "this spell was bargained" => {
             return Some("bargained".to_string());
         }
@@ -2619,7 +2626,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife) (\d+)$",
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple) (\d+)$",
         )
         .unwrap()
         .captures(line)
@@ -2629,7 +2636,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {

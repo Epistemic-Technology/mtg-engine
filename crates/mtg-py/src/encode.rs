@@ -86,11 +86,15 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::ChooseCard => 30,
         DecisionKind::ChooseOption { .. } => 31,
         DecisionKind::Offspring { .. } => 32,
-        DecisionKind::Bargain { .. } => 33,
+        // The one-hot slots are full: casualty shares bargain's (both
+        // sacrifice a permanent as the spell is cast, or decline).
+        DecisionKind::Bargain { .. } | DecisionKind::Casualty { .. } => 33,
         DecisionKind::TopOrBottom { .. } => 34,
         DecisionKind::ChooseAdditionalCost { .. } => 35,
         DecisionKind::Splice { .. } => 36,
-        DecisionKind::Conspire { .. } => 37,
+        // Teamwork shares conspire's slot (Accept taps creatures the
+        // engine picks).
+        DecisionKind::Conspire { .. } | DecisionKind::Teamwork { .. } => 37,
         DecisionKind::CopyTarget { .. } => 38,
         DecisionKind::FormBand { .. } => 39,
     }
@@ -182,7 +186,8 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::Foretell(_) => 34,
         Choice::Subtype(_) => 35,
         Choice::Divide(_) => 36,
-        Choice::CastDash(_) => 37,
+        // Warp shares dash's slot (an alternative cost from the hand).
+        Choice::CastDash(_) | Choice::CastWarp(_) => 37,
         // The one-hot is full (`CHOICE_KINDS`): overload counts as an
         // alternative cost.
         Choice::CastAlt(_) | Choice::CastOverload(_) => 38,
@@ -397,6 +402,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::TurnFaceUp(id)
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
+            | Choice::CastWarp(id)
             | Choice::CastAlt(id)
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)

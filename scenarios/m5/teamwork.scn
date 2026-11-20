@@ -1,0 +1,59 @@
+# Teamwork N: "As an additional cost to cast this spell, you may tap any
+# number of creatures you control with total power N or more." The engine
+# picks the creatures; "if this spell was cast using teamwork" reads it.
+
+scenario "teamwork: cast using teamwork, the bigger effect and a creature tapped" {
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Helicarrier Strike"
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_blockers A: cast "Helicarrier Strike" teamwork targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "teamwork: not used, the plain effect" {
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Helicarrier Strike"
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_blockers A: cast "Helicarrier Strike" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "teamwork: too little power can't pay it" {
+  battlefield A: "Plains", "Raging Goblin"
+  battlefield B: "Hill Giant"
+  hand A: "Helicarrier Strike"
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_blockers A: cast "Helicarrier Strike" teamwork targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert untapped "Raging Goblin"
+}
+
+scenario "teamwork: several creatures together, and the controller is dealt damage" {
+  battlefield A: 4 "Mountain", "Raging Goblin", "Suntail Hawk"
+  battlefield B: "Hill Giant"
+  hand A: "Repulsor Blast"
+  turn 1 A: cast "Repulsor Blast" teamwork targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+  assert tapped "Raging Goblin"
+  assert tapped "Suntail Hawk"
+}
+
+scenario "teamwork: an extra card drawn" {
+  battlefield A: 3 "Plains", "Hill Giant"
+  library A: "Island"
+  hand A: "Heroic Teamwork"
+  turn 1 A: cast "Heroic Teamwork" teamwork targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert tapped "Hill Giant"
+  assert power "Hill Giant" 5
+}

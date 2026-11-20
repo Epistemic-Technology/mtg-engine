@@ -134,6 +134,8 @@ pub enum Action {
         evoked: bool,
         /// `dashed`: cast for the dash cost (CR 702.109).
         dashed: bool,
+        /// `warped`: cast for the warp cost (CR 702.185a).
+        warped: bool,
         /// `alternative`: cast for the alternative cost the card's text
         /// offers (CR 118.9, "rather than pay this spell's mana cost").
         alternative: bool,

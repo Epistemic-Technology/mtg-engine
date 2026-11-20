@@ -135,6 +135,19 @@ impl GameState {
             {
                 options.push(Choice::CastDash(*id));
             }
+            // CR 702.185a: cast for the warp cost instead.
+            if let Some(warp) = &def.warp
+                && (sorcery_timing || self.has_flash(p, def, *id))
+                && self.payable_for(
+                    p,
+                    &sources,
+                    &warp.requirements(0),
+                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                )
+                && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
+            {
+                options.push(Choice::CastWarp(*id));
+            }
             // CR 702.103a: cast for the bestow cost, as an Aura spell.
             if let Some(face) = def.bestow_face
                 && self.bestow_castable(p, def, face, *id, sorcery_timing, &sources, &changers)
@@ -204,7 +217,11 @@ impl GameState {
                 let Some(o) = self.objects.get(pe.card) else {
                     continue;
                 };
-                if pe.player != p || o.zone != Zone::Exile {
+                // CR 702.185a: a warped card, not until a later turn.
+                if pe.player != p
+                    || o.zone != Zone::Exile
+                    || pe.own_ends == crate::state::WARP_LATER
+                {
                     continue;
                 }
                 let def = self.pool.get(o.def);
@@ -384,6 +401,7 @@ impl GameState {
             Choice::Cast(id)
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
+            | Choice::CastWarp(id)
             | Choice::CastAlt(id) => !(creatures && creature(id)),
             Choice::CastFaceDown(_) => !creatures,
             Choice::CastFace { card, face } => {
@@ -2215,6 +2233,9 @@ impl GameState {
             (_, false) if o.alt == AltCast::Dash && def.dash.is_some() => {
                 def.dash.as_ref().expect("checked").requirements(x)
             }
+            (_, false) if o.alt == AltCast::Warp && def.warp.is_some() => {
+                def.warp.as_ref().expect("checked").requirements(x)
+            }
             (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
                 def.overload.as_ref().expect("checked").requirements(x)
             }
@@ -2471,6 +2492,45 @@ impl GameState {
         }
         rand::seq::SliceRandom::shuffle(exiled.as_mut_slice(), &mut self.rng);
         for id in exiled {
+            if self.objects.get(id).is_some_and(|o| o.zone == Zone::Exile) {
+                self.move_object(id, Zone::Library, false);
+            }
+        }
+    }
+
+    /// CR 702.60a: reveal the top N cards (set aside in exile while the
+    /// player chooses); each with the source's name may be cast without
+    /// paying its mana cost; the rest go on the bottom in their order.
+    fn ripple(&mut self, ctx: &EffectCtx) {
+        let p = ctx.controller;
+        let def = self
+            .objects
+            .get(ctx.source)
+            .map(|o| o.def)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def));
+        let Some(def) = def else {
+            return;
+        };
+        let d = self.pool.get(def);
+        let (n, name) = (d.ripple, d.name.clone());
+        let mut revealed = Vec::new();
+        for _ in 0..n {
+            let Some(top) = self.player(p).library.last().copied() else {
+                break;
+            };
+            revealed.push(self.move_object(top, Zone::Exile, true));
+        }
+        let mut rest = Vec::new();
+        for id in revealed {
+            let same = self
+                .objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Exile && self.pool.get(o.def).name == name);
+            if !(same && self.offer_exile_cast_by(id, AltCast::Free, p)) {
+                rest.push(id);
+            }
+        }
+        for id in rest {
             if self.objects.get(id).is_some_and(|o| o.zone == Zone::Exile) {
                 self.move_object(id, Zone::Library, false);
             }
@@ -4615,6 +4675,17 @@ impl GameState {
                 self.sacrifice(s);
             }
         }
+        // Teamwork taps creatures with the costs.
+        if self.objects[spell].cast.teamwork() {
+            let n = def.teamwork;
+            if let Some(cs) = self.teamwork_tappers(caster, n) {
+                for c in cs {
+                    self.tap(c);
+                }
+            } else {
+                self.objects[spell].cast.set_teamwork(false);
+            }
+        }
         // CR 702.78a: conspire taps two creatures with the costs.
         if self.objects[spell].cast.conspired() {
             let two: Vec<ObjId> = self.conspirators(spell).into_iter().take(2).collect();
@@ -4649,13 +4720,23 @@ impl GameState {
             def: def_ref,
             targets,
         });
+        // CR 702.60a: ripple triggers as the spell is cast.
+        if def.ripple > 0 {
+            let ability = self.pool.builtin(crate::card::Builtin::Ripple);
+            self.queue_builtin(caster, ability, spell, def_ref);
+        }
         // CR 702.85a: cascade triggers as the spell is cast.
         if def.keywords.contains(Keyword::Cascade) {
             let ability = self.pool.builtin(crate::card::Builtin::Cascade);
             self.queue_builtin(caster, ability, spell, def_ref);
         }
-        // CR 702.78a: "When you do, copy it".
-        if self.objects.get(spell).is_some_and(|o| o.cast.conspired()) {
+        // CR 702.78a, 702.153a: "When you do, copy it" / "copy this
+        // spell".
+        if self
+            .objects
+            .get(spell)
+            .is_some_and(|o| o.cast.conspired() || o.cast.casualty())
+        {
             let ability = self.pool.builtin(crate::card::Builtin::Conspire);
             self.queue_builtin(caster, ability, spell, def_ref);
         }
@@ -8314,6 +8395,7 @@ impl GameState {
                 }
             }
             Effect::Cascade => self.cascade(ctx, None),
+            Effect::Ripple => self.ripple(ctx),
             Effect::Discover(n) => self.cascade(ctx, Some(*n)),
             Effect::Exploit => self.exploit(ctx),
             Effect::MoveSourceCounters { to } => {
@@ -8529,6 +8611,35 @@ impl GameState {
                         self.move_object(id, Zone::Graveyard, false);
                     } else {
                         self.move_object(id, Zone::Library, false);
+                    }
+                }
+            }
+            // CR 702.185a: the warped permanent is exiled; its owner may
+            // cast it from exile on a later turn.
+            Effect::WarpExile => {
+                for t in self.recipients(ctx, crate::card::Recipient::SameObject) {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    if !self
+                        .objects
+                        .get(id)
+                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                    {
+                        continue;
+                    }
+                    let owner = self.objects[id].owner;
+                    let new = self.move_object(id, Zone::Exile, false);
+                    if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                        self.exile_casts
+                            .get_or_insert_with(Box::default)
+                            .playable
+                            .push(crate::state::PlayableExile {
+                                card: new,
+                                player: owner,
+                                until: crate::card::PlayUntil::Forever,
+                                own_ends: crate::state::WARP_LATER,
+                            });
                     }
                 }
             }

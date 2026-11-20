@@ -1,0 +1,7 @@
+card "Repulsor Blast" {
+  oracle_id 150f920c-c942-4feb-824f-79dd9b531687
+  cost {3}{R}
+  type Sorcery
+  teamwork 2
+  spell: deal 5 damage to target creature; if teamwork, also deal 2 damage to controller of that target 1
+}

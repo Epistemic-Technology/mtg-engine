@@ -1163,6 +1163,10 @@ pub enum Mechanic {
     /// CR 702.109: `dash {2}{R}`: an alternative cost; haste, and back to
     /// its owner's hand at the next end step.
     Dash(ManaCost),
+    /// CR 702.185: `warp {1}{U}`: an alternative cost from the hand; the
+    /// permanent is exiled at the next end step, and may be cast from
+    /// exile on a later turn.
+    Warp(ManaCost),
     /// CR 702.103: `bestow {3}{W}`: an alternative cost; the spell is an
     /// Aura with enchant creature, a creature again once unattached.
     Bestow(ManaCost),
@@ -1195,6 +1199,16 @@ pub enum Mechanic {
     Bargain,
     /// Conspire (CR 702.78).
     Conspire,
+    /// `casualty 2` (CR 702.153): "As you cast this spell, you may
+    /// sacrifice a creature with power N or greater. When you do, copy
+    /// this spell."
+    Casualty(u32),
+    /// `teamwork 2`: "Teamwork 2 (As an additional cost to cast this
+    /// spell, you may tap any number of creatures you control with total
+    /// power 2 or more.)"
+    Teamwork(u32),
+    /// `ripple 4` (CR 702.60).
+    Ripple(u32),
     /// CR 702.184: `station`: "Tap another untapped creature you control:
     /// Put a number of charge counters on this permanent equal to the
     /// tapped creature's power. Activate only as a sorcery."
@@ -1431,6 +1445,8 @@ pub enum StaticCond {
     /// `bargained`: "this spell was bargained" (an instant or sorcery),
     /// "it was bargained", "it's bargained" (a cost) (CR 702.166b).
     Bargained,
+    /// `teamwork`: "this spell was cast using teamwork".
+    Teamwork,
     /// `saddled`: "it's saddled"; after a trigger, `while saddled`
     /// ("Whenever this creature attacks while saddled, ...", CR 702.171b).
     Saddled,

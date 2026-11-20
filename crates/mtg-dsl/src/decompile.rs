@@ -425,6 +425,7 @@ impl Decompiler<'_> {
             StaticCondition::Escaped => StaticCond::Escaped,
             StaticCondition::Kicked => StaticCond::Kicked,
             StaticCondition::Bargained => StaticCond::Bargained,
+            StaticCondition::Teamwork => StaticCond::Teamwork,
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
             StaticCondition::Saddled => StaticCond::Saddled,
             StaticCondition::LandEnteredThisTurn => StaticCond::LandEnteredThisTurn,
@@ -1106,6 +1107,8 @@ impl Decompiler<'_> {
             CoreEffect::CastExiled(_)
             | CoreEffect::SuspendTick
             | CoreEffect::CopySpell
+            | CoreEffect::WarpExile
+            | CoreEffect::Ripple
             | CoreEffect::Cascade
             | CoreEffect::Exploit
             | CoreEffect::EnterAttacking

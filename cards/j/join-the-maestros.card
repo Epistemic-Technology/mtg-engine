@@ -1,0 +1,7 @@
+card "Join the Maestros" {
+  oracle_id 849a7ae8-2b4e-4fa5-9607-2bfc961fee40
+  cost {4}{B}
+  type Sorcery
+  casualty 2
+  spell: create 1 "4/3 black Ogre Warrior creature"
+}

@@ -1,0 +1,43 @@
+# Ripple N (CR 702.60): as the spell is cast, its caster reveals the top N
+# cards of their library; they may cast each with the same name without
+# paying its mana cost; the rest go on the bottom.
+
+scenario "ripple: a same-named card among the top four is cast free" {
+  battlefield A: 3 "Plains"
+  hand A: "Surging Sentinels"
+  library A: "Island", "Surging Sentinels", "Hill Giant", "Island", "Grizzly Bears"
+  turn 1 A: cast "Surging Sentinels"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Surging Sentinels"
+  assert library A count 4
+}
+
+scenario "ripple: the card cast also ripples, and other cards go to the bottom" {
+  battlefield A: 3 "Plains"
+  hand A: "Surging Sentinels"
+  library A: "Surging Sentinels", "Island", "Island", "Island", "Surging Sentinels", "Hill Giant"
+  turn 1 A: cast "Surging Sentinels"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Surging Sentinels"
+  assert library A count 4
+}
+
+scenario "ripple: only within the top four" {
+  battlefield A: 3 "Plains"
+  hand A: "Surging Sentinels"
+  library A: "Island", "Island", "Island", "Island", "Surging Sentinels"
+  turn 1 A: cast "Surging Sentinels"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Surging Sentinels"
+  assert library A count 5
+}
+
+scenario "ripple: a card with another name isn't cast" {
+  battlefield A: 2 "Mountain"
+  hand A: "Surging Flame"
+  library A: "Lightning Bolt", "Island", "Island", "Island"
+  turn 1 A: cast "Surging Flame" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert library A count 4
+}

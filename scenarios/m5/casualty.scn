@@ -1,0 +1,43 @@
+# Casualty N (CR 702.153): as the spell is cast, its caster may sacrifice
+# a creature with power N or greater; when they do, the spell is copied
+# (CR 707.10), and the copy's targets may change (CR 707.10c).
+
+scenario "casualty: a creature sacrificed, the spell copied" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Join the Maestros"
+  turn 1 A: cast "Join the Maestros" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Ogre Warrior"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains 1 "Join the Maestros"
+}
+
+scenario "casualty: not paid, no copy" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Join the Maestros"
+  turn 1 A: cast "Join the Maestros"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Ogre Warrior"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "casualty: a creature with too little power can't be sacrificed" {
+  battlefield A: 5 "Swamp", "Raging Goblin"
+  hand A: "Join the Maestros"
+  turn 1 A: cast "Join the Maestros" sacrificing "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Ogre Warrior"
+  assert battlefield A contains "Raging Goblin"
+}
+
+scenario "casualty: the copy may have a new target" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Raging Goblin"
+  hand A: "Light 'Em Up"
+  turn 1 A: cast "Light 'Em Up" sacrificing "Grizzly Bears" targeting "Raging Goblin"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Raging Goblin"
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}

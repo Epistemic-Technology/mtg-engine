@@ -360,6 +360,15 @@ pub enum Builtin {
     /// combat damage to a player, you may copy the encoded card and you
     /// may cast the copy without paying its mana cost."
     Cipher,
+    /// CR 702.185a: "Exile this creature at the beginning of the next end
+    /// step, then you may cast it from exile on a later turn." (a warped
+    /// permanent's delayed trigger).
+    WarpExile,
+    /// CR 702.60a: "When you cast this spell, you may reveal the top N
+    /// cards of your library. You may cast spells with the same name as
+    /// this spell from among those cards without paying their mana costs.
+    /// Put the rest on the bottom of your library."
+    Ripple,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -2056,6 +2065,8 @@ pub enum StaticCondition {
     Bargained,
     /// Its offspring cost was paid (CR 702.175a).
     OffspringPaid,
+    /// "If this spell was cast using teamwork": its teamwork cost was paid.
+    Teamwork,
     /// The source is saddled (CR 702.171b): "whenever this creature
     /// attacks while saddled".
     Saddled,
@@ -3539,6 +3550,12 @@ pub enum Effect {
     },
     /// The source's echo has been dealt with (CR 702.30a).
     ClearEcho,
+    /// Warp's delayed trigger (CR 702.185a, `Builtin::WarpExile`): exile
+    /// the permanent; its owner may cast it from exile on a later turn.
+    WarpExile,
+    /// Ripple's trigger (CR 702.60a, `Builtin::Ripple`), N from the
+    /// source's card.
+    Ripple,
     /// "Look at the top four cards of your library. You may reveal a
     /// creature card from among them and put it into your hand. Put the
     /// rest on the bottom of your library in any order." `filter` None is
@@ -3881,6 +3898,7 @@ impl Effect {
                 | Effect::CastCipherCopy
                 | Effect::SuspendTick
                 | Effect::Cascade
+                | Effect::Ripple
                 | Effect::PutInLibrary {
                     place: LibraryPlace::TopOrBottom | LibraryPlace::FromTopOrBottom(_),
                     ..
@@ -5433,6 +5451,11 @@ pub struct CardDef {
     /// Dash (CR 702.109): an alternative cost; a dashed permanent has
     /// haste and returns to its owner's hand at the next end step.
     pub dash: Option<Box<ManaCost>>,
+    /// Warp (CR 702.185): cast from the hand for this cost instead; the
+    /// permanent is exiled at the beginning of the next end step, and may
+    /// be cast from exile on a later turn.
+    #[serde(default)]
+    pub warp: Option<Box<ManaCost>>,
     /// Bestow (CR 702.103): an alternative cost; the spell is then an Aura
     /// with enchant creature (`bestow_face`), and the permanent becomes a
     /// creature again when it isn't attached.
@@ -5448,6 +5471,21 @@ pub struct CardDef {
     /// they do, the spell is copied.
     #[serde(default)]
     pub conspire: bool,
+    /// Casualty N (CR 702.153): as it is cast, its caster may sacrifice a
+    /// creature with power N or greater; when they do, the spell is
+    /// copied. 0: none.
+    #[serde(default)]
+    pub casualty: u8,
+    /// Teamwork N: "As an additional cost to cast this spell, you may tap
+    /// any number of creatures you control with total power N or more."
+    /// 0: none.
+    #[serde(default)]
+    pub teamwork: u8,
+    /// Ripple N (CR 702.60): as it is cast, its caster may reveal the top
+    /// N cards of their library and cast those with the same name free.
+    /// 0: none.
+    #[serde(default)]
+    pub ripple: u8,
     /// "Enchanted creature ... is goaded" (CR 701.15): the permanent's
     /// static ability grants "attacks each combat if able"; this marks
     /// that what it is attached to attacks a player other than the
@@ -6200,7 +6238,7 @@ pub struct CardPool {
     /// Decayed's "When this creature attacks, sacrifice it at end of
     /// combat" (CR 702.147a).
     decayed: AbilityId,
-    builtins: [AbilityId; 9],
+    builtins: [AbilityId; 11],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -6281,7 +6319,7 @@ impl CardPool {
             evoke: AbilityId(0),
             exploit: AbilityId(0),
             decayed: AbilityId(0),
-            builtins: [AbilityId(0); 9],
+            builtins: [AbilityId(0); 11],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -6431,6 +6469,25 @@ impl CardPool {
                 condition: None,
                 targets: Vec::new(),
                 effects: vec![Effect::CastCipherCopy],
+            }));
+        pool.builtins[Builtin::WarpExile as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::End,
+                    whose: Who::Any,
+                },
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::WarpExile],
+            }));
+        pool.builtins[Builtin::Ripple as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::Reflexive,
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::Ripple],
             }));
         pool.builtins[Builtin::Conspire as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
@@ -7206,12 +7263,16 @@ impl Builder {
             morph: None,
             evoke: None,
             dash: None,
+            warp: None,
             bestow: None,
             bestow_face: None,
             overload: None,
             overload_face: None,
             goads: false,
             conspire: false,
+            casualty: 0,
+            teamwork: 0,
+            ripple: 0,
             splice: None,
             alt_cost: None,
             additional_or: None,
@@ -7409,6 +7470,13 @@ impl Builder {
         self
     }
 
+    /// Warp (CR 702.185).
+    #[must_use]
+    pub fn warp(mut self, cost: ManaCost) -> Self {
+        self.0.warp = Some(Box::new(cost));
+        self
+    }
+
     /// Dash (CR 702.109).
     #[must_use]
     pub fn dash(mut self, cost: ManaCost) -> Self {
@@ -7427,6 +7495,27 @@ impl Builder {
     #[must_use]
     pub fn conspire(mut self) -> Self {
         self.0.conspire = true;
+        self
+    }
+
+    /// Casualty N (CR 702.153).
+    #[must_use]
+    pub fn casualty(mut self, n: u8) -> Self {
+        self.0.casualty = n;
+        self
+    }
+
+    /// Ripple N (CR 702.60).
+    #[must_use]
+    pub fn ripple(mut self, n: u8) -> Self {
+        self.0.ripple = n;
+        self
+    }
+
+    /// Teamwork N.
+    #[must_use]
+    pub fn teamwork(mut self, n: u8) -> Self {
+        self.0.teamwork = n;
         self
     }
 

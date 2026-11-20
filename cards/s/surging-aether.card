@@ -1,0 +1,7 @@
+card "Surging Aether" {
+  oracle_id 060b1a76-22a4-48a5-a353-4d0501367956
+  cost {3}{U}
+  type Instant
+  ripple 4
+  spell: return target permanent to hand
+}

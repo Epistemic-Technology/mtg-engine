@@ -1,0 +1,8 @@
+card "Surging Sentinels" {
+  oracle_id 0b98ae2a-56ac-485d-b064-a06e1e8d4055
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  keywords first strike
+  ripple 4
+}

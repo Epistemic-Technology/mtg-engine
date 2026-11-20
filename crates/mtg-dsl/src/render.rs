@@ -5473,8 +5473,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "Adamant — If at least three red mana was spent to cast this
             // spell, Searing Barrage deals 3 damage ...": a spell names
             // itself again after a condition ("If you control an
-            // Equipment, Misthios's Fury also deals ...").
-            if is_spell(ctx.card) {
+            // Equipment, Misthios's Fury also deals ..."); not after
+            // teamwork ("it also deals 2 damage").
+            if is_spell(ctx.card) && *c != StaticCond::Teamwork {
                 ctx.source_mentioned = false;
             }
             let body = sentences(inner, ctx);
@@ -5645,7 +5646,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             effects,
         } => {
             use crate::ast::{InsteadCond, InsteadWording};
-            let kicked = matches!(cond, InsteadCond::Kicked);
+            // Teamwork reads like kicker: "it deals 4 damage to that
+            // creature instead".
+            let kicked = matches!(
+                cond,
+                InsteadCond::Kicked | InsteadCond::Static(StaticCond::Teamwork)
+            );
             let cond = match cond {
                 InsteadCond::Kicked => format!("this {} was kicked", kicked_noun(ctx.card)),
                 InsteadCond::Static(c) => static_cond_text(c, ctx.card),
@@ -8155,6 +8161,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "this spell was bargained".to_string()
         }
         StaticCond::Bargained => "it was bargained".to_string(),
+        StaticCond::Teamwork => "this spell was cast using teamwork".to_string(),
         StaticCond::ManaSpent {
             kind: mtg_core::card::SpentKind::Total,
             at_least,
@@ -9121,6 +9128,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Ninjutsu(c) => format!("Ninjutsu {c}"),
             crate::ast::Mechanic::Scavenge(c) => format!("Scavenge {c}"),
             crate::ast::Mechanic::Dash(c) => format!("Dash {c}"),
+            crate::ast::Mechanic::Warp(c) => format!("Warp {c}"),
             crate::ast::Mechanic::Bestow(c) => format!("Bestow {c}"),
             crate::ast::Mechanic::Overload(c) => format!("Overload {c}"),
             crate::ast::Mechanic::Splice(c) => format!("Splice onto Arcane {c}"),
@@ -9139,6 +9147,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ),
             crate::ast::Mechanic::Bargain => "Bargain".to_string(),
             crate::ast::Mechanic::Conspire => "Conspire".to_string(),
+            crate::ast::Mechanic::Casualty(n) => format!("Casualty {n}"),
+            crate::ast::Mechanic::Teamwork(n) => format!("Teamwork {n}"),
+            crate::ast::Mechanic::Ripple(n) => format!("Ripple {n}"),
             crate::ast::Mechanic::Station => "Station".to_string(),
             crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
             crate::ast::Mechanic::Ascend => "Ascend".to_string(),
