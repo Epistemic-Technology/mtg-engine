@@ -9460,7 +9460,13 @@ fn restrictions_text(cost: &Cost, card: &Card) -> String {
 
 /// A static ability's text with its condition: "As long as <cond>, <text>"
 /// or "<text> as long as <cond>." ("During your turn, ..." for the turn).
-fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> String {
+fn conditional_static(
+    body: &str,
+    c: &StaticCond,
+    first: bool,
+    card: &Card,
+    subtype_first: bool,
+) -> String {
     let mut cond = static_cond_text(c, card);
     // "as long as it's enchanted" about the subject; "as long as this
     // creature is enchanted" when the subject is something else.
@@ -9490,6 +9496,10 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
         {
             // "As long as equipped creature is legendary, it has menace."
             format!("it {rest}")
+        } else if subtype_first {
+            // "..., Insects and Spiders you control get +1/+1": a subtype
+            // keeps its capital.
+            body.to_string()
         } else {
             lowercase_first(body)
         };
@@ -9828,7 +9838,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     }
                     format!("{} if {cond}.", body.strip_suffix('.').unwrap_or(&body))
                 }
-                Some(c) => conditional_static(&body, c, *cond_first, card),
+                Some(c) => {
+                    let subtype_first = filter.types.is_empty()
+                        && filter.subtypes.iter().any(|s| body.starts_with(s.as_str()));
+                    conditional_static(&body, c, *cond_first, card, subtype_first)
+                }
             }
         }
         Ability::BlockRule(r) => {

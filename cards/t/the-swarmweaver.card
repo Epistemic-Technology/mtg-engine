@@ -1,0 +1,8 @@
+card "The Swarmweaver" {
+  oracle_id 50120e90-2fdf-43c1-93e2-2230ee4e63fc
+  cost {2}{B}{G}
+  type Legendary Artifact Creature — Scarecrow
+  pt 2/3
+  triggered when this enters: create 2 "1/1 black and green Insect creature with flying"
+  label "Delirium" static as long as 4 card types in your graveyard, Insect or Spider you control: +1/+1, has deathtouch
+}
