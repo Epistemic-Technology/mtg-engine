@@ -1,0 +1,13 @@
+card "Adventurous Eater // Have a Bite" {
+  oracle_id 02125db4-4507-467a-ac0c-406de2c7d533
+  layout prepare
+  cost {2}{B}
+  type Creature — Human Warlock
+  pt 3/2
+  enters prepared
+  face "Have a Bite" {
+    cost {B}
+    type Sorcery
+    spell: put 1 +1/+1 counters on target creature; you gains 1 life
+  }
+}

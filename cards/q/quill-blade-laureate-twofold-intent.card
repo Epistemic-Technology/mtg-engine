@@ -1,0 +1,14 @@
+card "Quill-Blade Laureate // Twofold Intent" {
+  oracle_id bd9d3a70-faed-4bc6-97d8-1601b36cdb21
+  layout prepare
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  keywords double strike
+  enters prepared
+  face "Twofold Intent" {
+    cost {1}{W}
+    type Sorcery
+    spell: target creature gets +1/+0 and gains double strike
+  }
+}

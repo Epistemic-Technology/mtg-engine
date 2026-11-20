@@ -1134,9 +1134,12 @@ impl Runner {
                     } else {
                         match self.in_hand(a.line, d.player, name) {
                             Ok(id) => Choice::Cast(id),
-                            Err(e) => {
-                                Choice::Cast(self.playable_in_exile(d.player, name, true).ok_or(e)?)
-                            }
+                            Err(e) => match self.prepared_face(d.player, name) {
+                                Some(c) => c,
+                                None => Choice::Cast(
+                                    self.playable_in_exile(d.player, name, true).ok_or(e)?,
+                                ),
+                            },
                         }
                     };
                     (
@@ -1871,6 +1874,24 @@ impl Runner {
                     face: u8::try_from(i).unwrap_or(0),
                 })
         })
+    }
+
+    /// `cast "Rampant Growth"`: a copy of the prepare spell of that name
+    /// of a permanent `p` controls (CR 722.3c), offered while it is
+    /// prepared.
+    fn prepared_face(&self, p: PlayerId, name: &str) -> Option<Choice> {
+        let st = self.state();
+        st.permanents_of(p)
+            .filter(|id| {
+                let def = st.pool.get(st.objects[*id].def);
+                def.layout == mtg_core::card::Layout::Prepare
+                    && def
+                        .faces
+                        .first()
+                        .is_some_and(|f| st.pool.get(*f).name == name)
+            })
+            .max_by_key(|id| st.objects[*id].prepared())
+            .map(|id| Choice::CastFace { card: id, face: 0 })
     }
 
     /// A card of this name on an adventure in `p`'s exile (CR 715.3d).

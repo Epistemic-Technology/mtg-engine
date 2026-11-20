@@ -43,6 +43,8 @@ pub(crate) struct Enter {
     pub counters: Option<(CounterKind, u32)>,
     /// Riot's haste was chosen (CR 702.136a).
     pub haste: bool,
+    /// "This creature enters prepared." (CR 722.3a).
+    pub prepared: bool,
 }
 
 /// An event that is about to happen and may still be replaced.
@@ -1018,6 +1020,25 @@ impl GameState {
                 })
             }
             (
+                Replacement::EnterPrepared,
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => Outcome::Event(Proposed::ZoneChange {
+                obj,
+                to,
+                to_top,
+                controller,
+                enter: Enter {
+                    prepared: true,
+                    ..enter
+                },
+            }),
+            (
                 Replacement::EnterTapped,
                 Proposed::ZoneChange {
                     obj,
@@ -1121,9 +1142,9 @@ impl GameState {
                     to_top,
                     controller,
                     enter: Enter {
-                        tapped: enter.tapped,
                         counters,
                         haste,
+                        ..enter
                     },
                 })
             }
@@ -1160,11 +1181,7 @@ impl GameState {
                     to,
                     to_top,
                     controller,
-                    enter: Enter {
-                        tapped: enter.tapped,
-                        counters,
-                        haste: enter.haste,
-                    },
+                    enter: Enter { counters, ..enter },
                 })
             }
             // `applies` only offers matching pairs.
@@ -1220,6 +1237,7 @@ impl GameState {
                 && matches!(
                     c.ability.replacement,
                     crate::card::Replacement::EnterTapped
+                        | crate::card::Replacement::EnterPrepared
                         | crate::card::Replacement::EnterWithCounters { .. }
                         | crate::card::Replacement::EnterWithCountersMay { .. }
                 )

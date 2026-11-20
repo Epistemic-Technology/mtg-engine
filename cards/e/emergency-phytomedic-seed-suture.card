@@ -1,0 +1,13 @@
+card "Emergency Phytomedic // Seed Suture" {
+  oracle_id 7737ccdc-49f2-463e-8ffd-43ab98d11f45
+  layout prepare
+  cost {G/W}
+  type Creature — Dryad Cleric
+  pt 1/1
+  enters prepared
+  face "Seed Suture" {
+    cost {G/W}
+    type Sorcery
+    spell: put 1 +1/+1 counters on target creature; you gains 1 life
+  }
+}

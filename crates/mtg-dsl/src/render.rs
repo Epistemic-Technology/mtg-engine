@@ -3442,6 +3442,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "connives".to_string())
         }
+        Effect::BecomePrepared { what } => {
+            let s = ctx.subj(*what);
+            Clause::with_subject(*what, s, "becomes prepared".to_string())
+        }
         Effect::ExilePlayable {
             count,
             until,
@@ -7153,6 +7157,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::Static(_) | Condition::While(_) => unreachable!("an AST condition"),
         Condition::Evoked => "if it was evoked".to_string(),
         Condition::NotRenowned => "if it isn't renowned".to_string(),
+        Condition::NotPrepared => format!("if {} isn't prepared", ctx.source()),
         Condition::Evolves => format!(
             "if that creature has greater power or toughness than {}",
             this_ref(ctx.card)
@@ -7571,6 +7576,9 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         ),
         (Replaces::Enters, Outcome::EnterTapped) => {
             format!("{} enters tapped.", capitalize(&this_ref(ctx.card)))
+        }
+        (Replaces::Enters, Outcome::EnterPrepared) => {
+            format!("{} enters prepared.", capitalize(&this_ref(ctx.card)))
         }
         // "enters with a +1/+1 counter on it for each other creature you
         // control", "a number of +1/+1 counters on it equal to ...".

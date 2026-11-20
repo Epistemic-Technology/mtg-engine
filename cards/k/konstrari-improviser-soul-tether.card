@@ -1,0 +1,13 @@
+card "Konstrari Improviser // Soul Tether" {
+  oracle_id bad2e3b2-ad47-4e17-b35e-0fcc13e82937
+  layout prepare
+  cost {1}{R/G}
+  type Creature — Human Artificer
+  pt 2/2
+  enters prepared
+  face "Soul Tether" {
+    cost {2}{R/G}
+    type Sorcery
+    spell: create 1 "Heartwood"
+  }
+}

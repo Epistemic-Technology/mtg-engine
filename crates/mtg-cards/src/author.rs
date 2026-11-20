@@ -64,8 +64,9 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 113] = [
+const TEMPLATED_TAGS: [&str; 114] = [
     "Transform",
+    "Prepared",
     "Role token",
     "Landcycling",
     "Basic landcycling",
@@ -1197,6 +1198,10 @@ impl Templates {
                 Some(format!("incubate {}", cap(c, 1)))
             }),
             (r(r"^[Pp]opulate$"), |_, _| Some("populate".to_string())),
+            (
+                r(r"^(?:[Ii]t|[Tt]his creature|~) becomes prepared$"),
+                |_, _| Some("this becomes prepared".to_string()),
+            ),
             (r(r"^(It|This creature|~) connives$"), |_, t| {
                 (*t == 0).then(|| "this connives".to_string())
             }),
@@ -2826,6 +2831,10 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
+        if line == "This creature enters prepared." || line == "~ enters prepared." {
+            self.statements.push("enters prepared".to_string());
+            return Ok(());
+        }
         if line == "This land enters tapped."
             || line == "This creature enters tapped."
             || line == "This artifact enters tapped."
@@ -3026,6 +3035,8 @@ impl Builder<'_> {
                 .or_else(|| rest.strip_prefix("if this artifact is untapped, "))
             {
                 (" if this is untapped", r)
+            } else if let Some(r) = rest.strip_prefix("if this creature isn't prepared, ") {
+                (" if this isn't prepared", r)
             } else if let Some(r) = rest.strip_prefix("if no creatures are on the battlefield, ") {
                 (" if no creatures are on the battlefield", r)
             } else if let Some(r) = rest.strip_prefix("if it was kicked, ") {
@@ -3112,6 +3123,7 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         "adventure" if faces[1].type_line.as_deref().unwrap_or("").contains("Omen") => "omen",
         "adventure" => "adventure",
         "transform" => "transform",
+        "prepare" => "prepare",
         _ => {
             if faces
                 .iter()
@@ -3177,7 +3189,11 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
 /// Build the card file for one Scryfall record, or say why not.
 #[allow(clippy::too_many_lines)]
 pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
-    if matches!(s.layout.as_str(), "adventure" | "transform" | "split") && s.card_faces.len() == 2 {
+    if matches!(
+        s.layout.as_str(),
+        "adventure" | "transform" | "split" | "prepare"
+    ) && s.card_faces.len() == 2
+    {
         return author_faces(s, corpus);
     }
     if s.name.contains(" // ") || s.layout != "normal" {
@@ -3224,7 +3240,17 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         return Err(Skip::Keyword("energy or unusual hybrid symbol".to_string()));
     }
     let oracle = strip_reminder(s.oracle_text.as_deref().unwrap_or(""));
-    let oracle = oracle.replace(&s.name, "~");
+    let mut oracle = oracle.replace(&s.name, "~");
+    // A legendary card's text names it by its name up to the first comma
+    // (CR 201.5): "Kirol becomes prepared" for Kirol, History Buff.
+    if type_line.contains("Legendary")
+        && let Some((short, _)) = s.name.split_once(", ")
+    {
+        oracle = Regex::new(&format!(r"\b{}\b", regex::escape(short)))
+            .unwrap()
+            .replace_all(&oracle, "~")
+            .into_owned();
+    }
     let templates = Templates::new();
     let mut b = Builder {
         templates: &templates,

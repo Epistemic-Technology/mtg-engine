@@ -1,0 +1,13 @@
+card "Landscape Painter // Vibrant Idea" {
+  oracle_id 5ba7abbc-f6e8-40c2-800b-11efd10cca5b
+  layout prepare
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 2/1
+  enters prepared
+  face "Vibrant Idea" {
+    cost {4}{U}
+    type Sorcery
+    spell: draw 2 cards
+  }
+}

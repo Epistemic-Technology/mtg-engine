@@ -1,0 +1,14 @@
+card "Semester Foreseer // Peer Review" {
+  oracle_id 21b8d59f-a90d-44ff-a2e3-9f439ac3e14a
+  layout prepare
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 3/4
+  enters prepared
+  triggered when this enters: surveil 1
+  face "Peer Review" {
+    cost {2}{W/U}
+    type Sorcery
+    spell: create 1 "Cadet"; surveil 1
+  }
+}

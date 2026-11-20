@@ -178,6 +178,10 @@ impl GameState {
         if self.face_down_count > 0 {
             self.face_up_options(p, &sources, &mut options);
         }
+        // CR 722.3c: a copy of a prepared permanent's prepare spell.
+        if self.prepared_ever > 0 {
+            self.prepared_options(p, sorcery_timing, &sources, &changers, &mut options);
+        }
         // CR 709.5e: unlocking a Room's door, as a sorcery.
         if self.room_count > 0 && sorcery_timing {
             self.unlock_options(p, &sources, &mut options);
@@ -1558,6 +1562,71 @@ impl GameState {
         let less = self.turn_log.face_down_less[p.index().min(3)];
         req.generic = req.generic.saturating_sub(less.into());
         req
+    }
+
+    /// Whether `def` has a prepare spell (CR 722.2a).
+    pub(super) fn has_prepare_spell(&self, def: crate::card::CardRef) -> bool {
+        let d = self.pool.get(def);
+        d.layout == Layout::Prepare && !d.faces.is_empty()
+    }
+
+    /// The prepare spell a prepared permanent's copy has (CR 722.3c): its
+    /// copiable values' own, else (it has since become a copy of something
+    /// without one) its card's.
+    pub(super) fn prepare_spell(&self, id: ObjId) -> Option<crate::card::CardRef> {
+        let o = &self.objects[id];
+        [o.def, o.card]
+            .into_iter()
+            .find(|d| self.has_prepare_spell(*d))
+            .map(|d| self.pool.get(d).faces[0])
+    }
+
+    /// CR 722.3a: a permanent with a prepare spell that isn't prepared
+    /// becomes prepared; anything else is unchanged.
+    pub(super) fn become_prepared(&mut self, id: ObjId) {
+        let Some(id) = self.current_object(id) else {
+            return;
+        };
+        let o = &self.objects[id];
+        if o.zone != Zone::Battlefield || o.prepared() || !self.has_prepare_spell(o.def) {
+            return;
+        }
+        self.objects[id].marks |= crate::state::OBJ_PREPARED;
+        self.prepared_ever += 1;
+    }
+
+    /// CR 722.3c: the prepared permanents' controller may cast a copy of
+    /// each one's prepare spell, offered as casting that face of it.
+    #[cold]
+    #[inline(never)]
+    fn prepared_options(
+        &self,
+        p: PlayerId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+        options: &mut Vec<Choice>,
+    ) {
+        let pool = self.player(p).mana_pool;
+        for id in self.permanents_of(p) {
+            if !self.objects[id].prepared() {
+                continue;
+            }
+            let Some(face) = self.prepare_spell(id) else {
+                continue;
+            };
+            if self.castable(
+                p,
+                self.pool.get(face),
+                id,
+                sorcery_timing,
+                sources,
+                &pool,
+                changers,
+            ) {
+                options.push(Choice::CastFace { card: id, face: 0 });
+            }
+        }
     }
 
     #[cold]
@@ -6237,7 +6306,7 @@ impl GameState {
                         super::replace::Enter {
                             tapped: *tapped,
                             counters: None,
-                            haste: false,
+                            ..super::replace::Enter::default()
                         },
                     );
                     ctx.created = Some(new);
@@ -6295,7 +6364,7 @@ impl GameState {
                 super::replace::Enter {
                     tapped: false,
                     counters: Some((CounterKind::PlusOnePlusOne, counters)),
-                    haste: false,
+                    ..super::replace::Enter::default()
                 },
             );
             if self
@@ -8417,7 +8486,7 @@ impl GameState {
                         super::replace::Enter {
                             tapped: *tapped,
                             counters: *counters,
-                            haste: false,
+                            ..super::replace::Enter::default()
                         },
                     );
                     if let Some(h) = host
@@ -8932,7 +9001,7 @@ impl GameState {
                     super::replace::Enter {
                         tapped: false,
                         counters: (n > 0).then_some((CounterKind::PlusOnePlusOne, n)),
-                        haste: false,
+                        ..super::replace::Enter::default()
                     },
                 );
                 if self.objects.contains_key(new) {
@@ -8947,6 +9016,13 @@ impl GameState {
                     && o.zone == Zone::Battlefield
                 {
                     o.marks |= crate::state::OBJ_RENOWNED;
+                }
+            }
+            Effect::BecomePrepared { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.become_prepared(id);
+                    }
                 }
             }
             Effect::Monstrosity(n) => {
@@ -9224,7 +9300,7 @@ impl GameState {
                     super::replace::Enter {
                         tapped: true,
                         counters: None,
-                        haste: false,
+                        ..super::replace::Enter::default()
                     },
                 );
                 ctx.created = Some(new);
@@ -9514,8 +9590,7 @@ impl GameState {
                         ctx.controller,
                         super::replace::Enter {
                             tapped,
-                            counters: None,
-                            haste: false,
+                            ..super::replace::Enter::default()
                         },
                     )
                 }

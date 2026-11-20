@@ -125,6 +125,8 @@ pub enum Target {
 pub const OBJ_RENOWNED: u8 = 1;
 pub const OBJ_MONSTROUS: u8 = 2;
 pub const OBJ_RIOT_HASTE: u8 = 4;
+/// The prepared designation (CR 722.3a).
+pub const OBJ_PREPARED: u8 = 8;
 
 impl GameObject {
     pub const fn renowned(&self) -> bool {
@@ -137,6 +139,10 @@ impl GameObject {
 
     pub const fn riot_haste(&self) -> bool {
         self.marks & OBJ_RIOT_HASTE != 0
+    }
+
+    pub const fn prepared(&self) -> bool {
+        self.marks & OBJ_PREPARED != 0
     }
 }
 
@@ -169,9 +175,10 @@ pub struct GameObject {
     /// Came onto the battlefield since its echo was last dealt with (CR
     /// 702.30a): set as it enters, cleared by its echo trigger.
     pub echo_due: bool,
-    /// Per-object marks (`OBJ_RENOWNED`, `OBJ_MONSTROUS`, `OBJ_RIOT_HASTE`):
-    /// renowned (CR 702.112b), monstrous (CR 701.37b), and riot's haste
-    /// (CR 702.136a). One byte, so `GameObject` stays small.
+    /// Per-object marks (`OBJ_RENOWNED`, `OBJ_MONSTROUS`, `OBJ_RIOT_HASTE`,
+    /// `OBJ_PREPARED`): renowned (CR 702.112b), monstrous (CR 701.37b),
+    /// riot's haste (CR 702.136a), and prepared (CR 722.3a). One byte, so
+    /// `GameObject` stays small.
     pub marks: u8,
     /// Skips its controller's next untap step ("doesn't untap during its
     /// controller's next untap step").
@@ -1553,6 +1560,10 @@ pub struct GameState {
     /// Cards in the game with an "As this enters, choose ..." ability:
     /// with any, every way onto the battlefield may ask a question.
     pub enters_choice_cards: u32,
+    /// How many times a permanent has become prepared this game (CR
+    /// 722.3a), never decreased: with none, priority skips looking for
+    /// prepared permanents.
+    pub prepared_ever: u32,
     pub spells_last_turn: [u8; 4],
     pub active_player: PlayerId,
     pub starting_player: PlayerId,

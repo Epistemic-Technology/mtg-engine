@@ -1,0 +1,16 @@
+card "Elite Interceptor // Rejoinder" {
+  oracle_id d97de156-5a6d-4dc6-953e-d4bad63cbad2
+  layout prepare
+  cost {W}
+  type Creature — Human Wizard
+  pt 1/2
+  enters prepared
+  face "Rejoinder" {
+    cost {1}{W}
+    type Sorcery
+    spell {
+      you may tap or untap target creature
+      draw 1 card
+    }
+  }
+}

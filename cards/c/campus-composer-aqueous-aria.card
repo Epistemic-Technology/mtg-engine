@@ -1,0 +1,14 @@
+card "Campus Composer // Aqueous Aria" {
+  oracle_id 9b3155c1-c662-4ff1-80e2-4064e6233dc5
+  layout prepare
+  cost {3}{U}
+  type Creature — Merfolk Bard
+  pt 3/4
+  ward {2}
+  enters prepared
+  face "Aqueous Aria" {
+    cost {4}{U}
+    type Sorcery
+    spell: create 1 "3/3 blue and red Elemental creature with flying"
+  }
+}

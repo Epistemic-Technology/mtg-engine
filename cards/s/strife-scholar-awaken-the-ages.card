@@ -1,0 +1,14 @@
+card "Strife Scholar // Awaken the Ages" {
+  oracle_id e85c6bd2-db15-4052-88c0-3ae25414f0ca
+  layout prepare
+  cost {2}{R}
+  type Creature — Orc Sorcerer
+  pt 3/2
+  ward pay 2 life
+  enters prepared
+  face "Awaken the Ages" {
+    cost {5}{R}
+    type Sorcery
+    spell: create 2 "2/2 red and white Spirit creature"
+  }
+}

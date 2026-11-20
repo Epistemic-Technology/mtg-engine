@@ -1,0 +1,13 @@
+card "Studious First-Year // Rampant Growth" {
+  oracle_id 58b0c737-0a84-4f9a-b3b7-300c5de43874
+  layout prepare
+  cost {G}
+  type Creature — Bear Wizard
+  pt 1/1
+  enters prepared
+  face "Rampant Growth" {
+    cost {1}{G}
+    type Sorcery
+    spell: search basic land card to battlefield tapped that card
+  }
+}

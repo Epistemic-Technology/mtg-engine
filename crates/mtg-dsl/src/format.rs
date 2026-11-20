@@ -610,6 +610,9 @@ impl Fmt {
                 unreachable!("only in expansions")
             }
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
+            Effect::BecomePrepared { what } => {
+                format!("{} becomes prepared", self.recipient(*what, t))
+            }
             Effect::LookAtTop {
                 count,
                 of,
@@ -2350,6 +2353,7 @@ fn outcome(o: &Outcome) -> String {
             unreachable!("an AST ability of its own")
         }
         Outcome::EnterTapped => "tapped".to_string(),
+        Outcome::EnterPrepared => "prepared".to_string(),
         Outcome::EnterWithCounters { kind, n } => {
             format!("with {} {}", num(*n), counter(*kind, *n))
         }
@@ -4137,6 +4141,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 Some(mtg_core::card::Condition::EchoDue) => head.push_str(" if echo due"),
                 Some(mtg_core::card::Condition::NotRenowned) => head.push_str(" if not renowned"),
+                Some(mtg_core::card::Condition::NotPrepared) => {
+                    head.push_str(" if this isn't prepared");
+                }
                 Some(mtg_core::card::Condition::Evolves) => head.push_str(" if evolves"),
                 Some(mtg_core::card::Condition::Evoked) => head.push_str(" if evoked"),
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),

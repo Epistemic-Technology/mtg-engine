@@ -1,0 +1,13 @@
+card "Blazing Firesinger // Seething Song" {
+  oracle_id 1bf505a7-292e-4642-83b6-8ff41ebe5d51
+  layout prepare
+  cost {2}{R}
+  type Creature — Dwarf Bard
+  pt 2/3
+  enters prepared
+  face "Seething Song" {
+    cost {2}{R}
+    type Instant
+    spell: add {R}{R}{R}{R}{R}
+  }
+}

@@ -1,0 +1,14 @@
+card "Spellbook Seeker // Careful Study" {
+  oracle_id df5e4100-8c83-42d6-af96-1a1ec84a9210
+  layout prepare
+  cost {3}{U}
+  type Creature — Bird Wizard
+  pt 3/3
+  keywords flying
+  enters prepared
+  face "Careful Study" {
+    cost {U}
+    type Sorcery
+    spell: draw 2 cards then discard 2 cards
+  }
+}

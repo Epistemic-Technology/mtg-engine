@@ -1,0 +1,5 @@
+token "Heartwood" {
+  type Artifact — Heartwood
+  color red green
+  mana {R} or {G}
+}

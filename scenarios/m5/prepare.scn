@@ -1,0 +1,118 @@
+# M5: preparation cards (CR 722): a permanent that is prepared lets its
+# controller cast a copy of its prepare spell, which unprepares it.
+
+scenario "prepare: enters prepared, then cast a copy of its spell" {
+  battlefield A: 3 "Forest"
+  hand A: "Studious First-Year"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Studious First-Year"
+  turn 1 main2 A: cast "Rampant Growth"
+  run_to turn 1 end
+  assert battlefield A contains "Studious First-Year"
+  assert battlefield A contains 4 "Forest"
+  # The copy ceases to exist: nothing in exile or the graveyard.
+  assert exile A count 0
+  assert graveyard A count 0
+}
+
+scenario "prepare: casting the copy unprepares it, so only once" {
+  battlefield A: 5 "Forest"
+  hand A: "Studious First-Year"
+  library A: "Forest", "Forest", "Island"
+  turn 1 A: cast "Studious First-Year"
+  turn 1 main2 A: cast "Rampant Growth"
+  illegal turn 1 main2 A: cast "Rampant Growth"
+  run_to turn 1 end
+  assert battlefield A contains 6 "Forest"
+}
+
+scenario "prepare: the prepare spell can't be cast from hand" {
+  battlefield A: 2 "Forest"
+  hand A: "Studious First-Year"
+  illegal turn 1 A: cast "Rampant Growth"
+  run_to turn 1 end
+}
+
+scenario "prepare: a creature put onto the battlefield without entering prepared isn't" {
+  battlefield A: "Studious First-Year", 2 "Forest"
+  illegal turn 1 A: cast "Rampant Growth"
+  run_to turn 1 end
+}
+
+scenario "prepare: the copy has its own timing: an instant on the opponent's turn" {
+  battlefield A: 6 "Mountain"
+  hand A: "Blazing Firesinger"
+  turn 1 A: cast "Blazing Firesinger"
+  turn 2 upkeep A: cast "Seething Song"
+  illegal turn 2 draw A: cast "Seething Song"
+  run_to turn 2 main1
+  assert life A 20
+}
+
+scenario "prepare: becomes prepared when it attacks, cast the instant" {
+  battlefield A: "Encouraging Aviator", "Grizzly Bears", "Island"
+  start turn 2 A
+  turn 2 A: attack "Encouraging Aviator", "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Jump" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert has "Grizzly Bears" flying
+}
+
+scenario "prepare: a sorcery copy only as a sorcery" {
+  battlefield A: "Stingerquill Voxmancer", "Mountain"
+  start turn 2 A
+  illegal turn 2 upkeep A: cast "Vicious Verse" targeting player B
+  run_to turn 2 end
+}
+
+scenario "prepare: upkeep, if it isn't prepared, it becomes prepared" {
+  battlefield A: "Stingerquill Voxmancer", 2 "Mountain"
+  start turn 2 A
+  turn 2 A: cast "Vicious Verse" targeting player B
+  illegal turn 2 main2 A: cast "Vicious Verse" targeting player B
+  run_to turn 4 main1
+  turn 4 A: cast "Vicious Verse" targeting player B
+  run_to turn 4 end
+  assert life B 18
+}
+
+scenario "prepare: it leaves the battlefield, nothing is left of the copy" {
+  battlefield A: 2 "Forest", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Studious First-Year"
+  hand B: "Shock"
+  turn 1 A: cast "Studious First-Year"
+  turn 1 end B: cast "Shock" targeting "Studious First-Year"
+  run_to turn 3 end
+  assert graveyard A count 1
+  assert exile A count 0
+}
+
+scenario "prepare: the copy is cast: prowess triggers" {
+  battlefield A: 2 "Mountain"
+  hand A: "Pompous Battlemage"
+  turn 1 A: cast "Pompous Battlemage"
+  turn 1 main2 A: cast "Improvised Act"
+  run_to turn 1 end
+  assert power "Pompous Battlemage" 2
+}
+
+scenario "prepare: a copy with X" {
+  battlefield A: 5 "Forest"
+  hand A: "Infirmary Healer"
+  turn 1 A: cast "Infirmary Healer"
+  turn 1 main2 A: cast "Stream of Life" x 2 targeting player A
+  run_to turn 1 end
+  assert life A 22
+}
+
+scenario "prepare: a creature spell trigger makes it prepared" {
+  battlefield A: "Abigale, Poet Laureate", 2 "Forest", 2 "Plains"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Heroic Stanza" targeting "Abigale, Poet Laureate"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 main2 A: cast "Heroic Stanza" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 1
+}

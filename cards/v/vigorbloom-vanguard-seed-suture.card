@@ -1,0 +1,14 @@
+card "Vigorbloom Vanguard // Seed Suture" {
+  oracle_id bd416426-d037-45e3-9647-816bf982cbea
+  layout prepare
+  cost {1}{G/W}
+  type Creature — Troll Druid
+  pt 2/2
+  enters prepared
+  static each creature you control with +1/+1 counter: has vigilance
+  face "Seed Suture" {
+    cost {G/W}
+    type Sorcery
+    spell: put 1 +1/+1 counters on target creature; you gain 1 life
+  }
+}

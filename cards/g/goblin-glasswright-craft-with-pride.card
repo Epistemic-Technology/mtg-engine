@@ -1,0 +1,13 @@
+card "Goblin Glasswright // Craft with Pride" {
+  oracle_id 23c3de07-8aa2-48e9-848c-50b5a40bd133
+  layout prepare
+  cost {1}{R}
+  type Creature — Goblin Sorcerer
+  pt 2/2
+  enters prepared
+  face "Craft with Pride" {
+    cost {R}
+    type Sorcery
+    spell: create 1 "Treasure"
+  }
+}

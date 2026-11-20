@@ -1,0 +1,13 @@
+card "Kirol, History Buff // Pack a Punch" {
+  oracle_id df1c0d06-2109-4297-9271-8a003fc892bc
+  layout prepare
+  cost {R}{W}
+  type Legendary Creature — Vampire Cleric
+  pt 2/3
+  triggered whenever one or more cards leave your graveyard: this becomes prepared
+  face "Pack a Punch" {
+    cost {1}{R}{W}
+    type Sorcery
+    spell: mill 1 cards; put 2 +1/+1 counters on target creature; target 1 gains trample
+  }
+}

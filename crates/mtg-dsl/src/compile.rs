@@ -2180,6 +2180,9 @@ impl Compiler<'_> {
             }
             Effect::CumulativeUpkeep(c) => out.push(CoreEffect::CumulativeUpkeep(c.clone())),
             Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
+            Effect::BecomePrepared { what } => {
+                out.push(CoreEffect::BecomePrepared { what: r(*what) });
+            }
             Effect::LookAtTop { count, of, by, .. } => out.push(CoreEffect::LookAtTop {
                 count: *count,
                 who: r(of.unwrap_or(Recipient::You)),

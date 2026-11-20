@@ -511,6 +511,7 @@ impl GameState {
             graveyard_trigger_cards: 0,
             dredge_cards: 0,
             enters_choice_cards: 0,
+            prepared_ever: 0,
             spells_last_turn: [0; 4],
             active_player: starting_player,
             starting_player,
@@ -1658,6 +1659,11 @@ impl GameState {
                 }
                 self.give_priority(player);
             }
+            (Flow::Priority, Choice::CastFace { card, .. })
+                if self.objects[card].zone == Zone::Battlefield =>
+            {
+                self.cast_prepared(player, card);
+            }
             (Flow::Priority, Choice::CastFace { card, face }) => {
                 self.consecutive_passes = 0;
                 let main = self.pool.get(self.objects[card].def);
@@ -2482,6 +2488,23 @@ impl GameState {
         }
     }
 
+    /// CR 722.3c: the copy of a prepared permanent's prepare spell is
+    /// made in exile and cast from there; the permanent stops being
+    /// prepared as it is cast (CR 601.2i). The copy remembers the
+    /// permanent in `attached_to` (unused on the stack) in case the cast
+    /// is rewound.
+    fn cast_prepared(&mut self, player: PlayerId, perm: ObjId) {
+        let Some(face) = self.prepare_spell(perm) else {
+            return;
+        };
+        self.objects[perm].marks &= !crate::state::OBJ_PREPARED;
+        let copy = self.new_object(face, player, Zone::Exile);
+        self.objects[copy].cast = self.objects[copy].cast.copied();
+        self.player_mut(player).exile.push(copy);
+        let spell = self.begin_cast(player, copy, crate::state::AltCast::None);
+        self.objects[spell].attached_to = Some(perm);
+    }
+
     /// CR 726: a spell or ability that turns out to have no legal target
     /// as it is put on the stack is rewound; nothing has been paid yet.
     fn undo_cast(&mut self, spell: ObjId, is_ability: bool) {
@@ -2492,6 +2515,20 @@ impl GameState {
                 source: source.unwrap_or(spell),
                 def,
             });
+            self.remove_from_game(spell);
+        } else if o.cast.copy() {
+            // A copy cast from exile (CR 722.3c, 702.99a) goes back to
+            // being an uncast copy: none remains; a prepared permanent is
+            // prepared again.
+            if let Some(perm) = self.objects[spell].attached_to
+                && self
+                    .objects
+                    .get(perm)
+                    .is_some_and(|p| p.zone == Zone::Battlefield)
+            {
+                self.objects[perm].marks |= crate::state::OBJ_PREPARED;
+            }
+            self.x_values.retain(|(id, _)| *id != spell);
             self.remove_from_game(spell);
         } else {
             let back = if o.cast.flashback() {

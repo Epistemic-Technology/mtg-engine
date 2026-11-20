@@ -1,0 +1,14 @@
+card "Hallway Heckler // Vicious Verse" {
+  oracle_id d1af8018-35b5-4b6f-93c8-1ed6bd8c92b1
+  layout prepare
+  cost {2}{R}
+  type Creature — Elemental Sorcerer
+  pt 2/3
+  enters prepared
+  activated {T}, discard 1 card: draw 1 cards
+  face "Vicious Verse" {
+    cost {B/R}
+    type Sorcery
+    spell: deal 1 damage to target opponent
+  }
+}

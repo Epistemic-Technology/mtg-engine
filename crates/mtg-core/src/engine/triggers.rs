@@ -1435,6 +1435,7 @@ impl GameState {
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(source).is_some_and(|o| o.echo_due),
             Condition::NotRenowned => self.objects.get(source).is_some_and(|o| !o.renowned()),
+            Condition::NotPrepared => self.objects.get(source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => {
                 let this = self.characteristics_or_lki(source);
                 self.evolves(this.as_ref(), trigger_obj)
@@ -1479,6 +1480,7 @@ impl GameState {
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due),
             Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned()),
+            Condition::NotPrepared => self.objects.get(w.source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),
             Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),
             Condition::Static(i) | Condition::While(i) => {

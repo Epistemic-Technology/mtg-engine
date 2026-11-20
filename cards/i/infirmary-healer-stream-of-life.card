@@ -1,0 +1,13 @@
+card "Infirmary Healer // Stream of Life" {
+  oracle_id 4cbbdebc-b807-4d7b-92dd-312637d2a5de
+  layout prepare
+  cost {1}{G}
+  type Creature — Cat Cleric
+  pt 2/3
+  enters prepared
+  face "Stream of Life" {
+    cost {X}{G}
+    type Sorcery
+    spell: target player gains X life
+  }
+}

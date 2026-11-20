@@ -1,0 +1,14 @@
+card "Pompous Battlemage // Improvised Act" {
+  oracle_id 33e3793c-098f-4897-88f3-9f9ce9081e0f
+  layout prepare
+  cost {R}
+  type Creature — Goblin Sorcerer
+  pt 1/1
+  keywords prowess
+  enters prepared
+  face "Improvised Act" {
+    cost {R}
+    type Sorcery
+    spell: you may discard 1 cards; if you do, draw 1 cards
+  }
+}

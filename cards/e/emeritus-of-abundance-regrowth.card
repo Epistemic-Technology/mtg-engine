@@ -1,0 +1,15 @@
+card "Emeritus of Abundance // Regrowth" {
+  oracle_id e5152e8d-9f55-493d-a0fc-753cc72ee299
+  layout prepare
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 3/4
+  keywords vigilance
+  enters prepared
+  triggered whenever this attacks if you control 8 land: this becomes prepared
+  face "Regrowth" {
+    cost {1}{G}
+    type Sorcery
+    spell: return target card from your graveyard to hand
+  }
+}

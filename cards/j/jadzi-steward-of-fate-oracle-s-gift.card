@@ -1,0 +1,14 @@
+card "Jadzi, Steward of Fate // Oracle's Gift" {
+  oracle_id c63b3511-d597-4c6e-9094-eabdeaa8a394
+  layout prepare
+  cost {2}{U}
+  type Legendary Creature — Human Wizard
+  pt 2/4
+  enters prepared
+  triggered when this enters: draw 2 cards then discard 2 cards
+  face "Oracle's Gift" {
+    cost {X}{X}{U}
+    type Sorcery
+    spell: create X "0/0 green and blue Fractal creature" then put X +1/+1 counters on each Fractal you control
+  }
+}
