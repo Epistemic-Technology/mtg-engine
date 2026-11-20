@@ -1,0 +1,6 @@
+card "Prismatic Ending" {
+  oracle_id 2cb98ca9-d7bb-416b-a17e-ee5f8e4d78f2
+  cost {X}{W}
+  type Sorcery
+  label "Converge" spell: exile target nonland permanent if target 1 is with mana value colors spent or less
+}

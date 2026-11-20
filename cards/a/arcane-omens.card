@@ -1,0 +1,6 @@
+card "Arcane Omens" {
+  oracle_id 863cbd12-da20-456e-8698-06fba4d9bd5c
+  cost {4}{B}
+  type Sorcery
+  label "Converge" spell: target player discards count where colors spent cards
+}

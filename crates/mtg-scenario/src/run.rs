@@ -472,7 +472,10 @@ impl Runner {
             // `kicked` also pays buyback (an optional additional cost).
             DecisionKind::Kicker { .. }
             | DecisionKind::Buyback { .. }
-            | DecisionKind::Offspring { .. } => Ok(self.choose_kicker(d)),
+            | DecisionKind::Offspring { .. }
+            // ... and an optional additional cost ("you may collect
+            // evidence 6").
+            | DecisionKind::OptionalCost { .. } => Ok(self.choose_kicker(d)),
             DecisionKind::ChooseAdditionalCost { .. } => {
                 let want = Choice::Mode(usize::from(std::mem::take(&mut self.pending_other_cost)));
                 Ok(index_of(d, &want).unwrap_or(0))

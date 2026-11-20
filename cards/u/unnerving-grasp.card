@@ -1,0 +1,6 @@
+card "Unnerving Grasp" {
+  oracle_id 7a335332-87ff-42dc-a547-c84295dd8138
+  cost {2}{U}
+  type Sorcery
+  spell: return up to 1 target nonland permanent to its owner's hand; manifest dread
+}

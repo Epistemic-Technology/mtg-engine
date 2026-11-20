@@ -1,0 +1,9 @@
+card "Crimestopper Sprite" {
+  oracle_id 5e238e67-00f2-4656-bf69-0115e47321a5
+  cost {2}{U}
+  type Creature — Faerie Detective
+  pt 2/2
+  additional cost may collect evidence 6
+  keywords flying
+  triggered when this enters: tap target creature; if evidence collected, put 1 stun counter on target 1
+}

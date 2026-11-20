@@ -1,0 +1,9 @@
+card "Izoni, Center of the Web" {
+  oracle_id 8074afbf-190b-4a24-b939-cc559bdffe38
+  cost {4}{B}{G}
+  type Legendary Creature — Elf Detective
+  pt 5/4
+  keywords menace
+  triggered whenever this enters or attacks: you may collect evidence 4; if you do, create 2 "2/1 black and green Spider creature with reach and menace"
+  activated sacrifice 4 token: surveil 2, then draw 2 cards; you gain 2 life
+}

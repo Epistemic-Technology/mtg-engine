@@ -800,7 +800,8 @@ impl GameState {
                 whose_ok(*whose, p).then_some((Some(*obj), Some(p)))
             }
             (TriggerSpec::WinsFlip { whose }, Event::FlippedCoin { player, won: true })
-            | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. }) => {
+            | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. })
+            | (TriggerSpec::CollectsEvidence { whose }, Event::CollectedEvidence { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
             }
             // CR 122.1: "Whenever one or more +1/+1 counters are put on

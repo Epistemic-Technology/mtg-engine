@@ -1,0 +1,7 @@
+card "Gutsplitter Gang" {
+  oracle_id 322c1c8f-ef8a-4a9f-b9ce-927720bad1d6
+  cost {3}{B}
+  type Creature — Goblin Berserker
+  pt 6/6
+  triggered at beginning of your first main: you may blight 2; if you don't, you lose 3 life
+}

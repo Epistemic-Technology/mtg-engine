@@ -1,0 +1,16 @@
+card "Idol of the Deep King // Sovereign's Macuahuitl" {
+  oracle_id e7ba349e-b9c1-4373-b79f-755688138b7c
+  layout transform
+  cost {2}{R}
+  type Artifact
+  keywords flash
+  triggered when this enters: deal 2 damage to any target
+  craft with artifact {2}{R}
+  face "Sovereign's Macuahuitl" {
+    type Artifact — Equipment
+    color red
+    triggered when this enters: attach to target creature you control
+    static equipped: +2/+0
+    equip {2}
+  }
+}

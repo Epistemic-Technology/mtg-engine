@@ -1,0 +1,7 @@
+card "Sting-Slinger" {
+  oracle_id 945a4a4d-fdfd-4c39-9975-5b22d17a4e70
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 3/3
+  activated {1}{R}, {T}, blight 1: deal 2 damage to each opponent
+}

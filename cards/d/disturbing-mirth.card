@@ -1,0 +1,7 @@
+card "Disturbing Mirth" {
+  oracle_id 7010bfbb-8aea-473b-a9a5-27488de13cc5
+  cost {B}{R}
+  type Enchantment
+  triggered when this enters: you may sacrifice 1 other enchantment or creature chosen; if you do, draw 2 cards
+  triggered when you sacrifice this: manifest dread
+}

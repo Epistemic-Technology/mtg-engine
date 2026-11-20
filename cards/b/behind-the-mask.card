@@ -1,0 +1,7 @@
+card "Behind the Mask" {
+  oracle_id 85ac3efc-5e19-4661-b52f-116f57e39581
+  cost {U}
+  type Instant
+  additional cost may collect evidence 6
+  spell: until end of turn, target artifact or creature becomes artifact creature base 4/3; if evidence collected, target 1 has base power and toughness 1/1 until end of turn instead
+}

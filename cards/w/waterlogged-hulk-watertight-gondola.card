@@ -1,0 +1,16 @@
+card "Waterlogged Hulk // Watertight Gondola" {
+  oracle_id 30820f71-9fd4-453c-b377-c2e0b01c07a7
+  layout transform
+  cost {U}
+  type Artifact
+  activated {T}: mill 1 card
+  craft with Island {3}{U}
+  face "Watertight Gondola" {
+    type Artifact — Vehicle
+    pt 4/4
+    color blue
+    keywords vigilance
+    label "Descend 8" static this: has can't be blocked as long as 8 permanent cards in your graveyard
+    crew 1
+  }
+}

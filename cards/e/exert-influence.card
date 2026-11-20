@@ -1,0 +1,6 @@
+card "Exert Influence" {
+  oracle_id feb9cce1-6c3c-4e04-93ee-d646a888bc29
+  cost {4}{U}
+  type Sorcery
+  label "Converge" spell: gain control of target creature indefinitely if target 1 is with power colors spent or less
+}

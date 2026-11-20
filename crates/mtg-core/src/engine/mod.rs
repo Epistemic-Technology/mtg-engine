@@ -894,6 +894,17 @@ impl GameState {
                         options: vec![Choice::Accept, Choice::Decline],
                     });
                 }
+                Flow::ChoosingOptionalCost { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    return StepResult::Decision(Decision {
+                        player: obj.controller,
+                        kind: DecisionKind::OptionalCost { spell },
+                        options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
                 Flow::ChoosingConspire { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -1898,6 +1909,14 @@ impl GameState {
             (Flow::ChoosingTeamwork { spell }, Choice::Decline) => {
                 self.flow = self.after_teamwork(spell);
             }
+            // CR 601.2b: the optional additional cost, paid with the others.
+            (Flow::ChoosingOptionalCost { spell }, Choice::Accept) => {
+                self.objects[spell].cast.set_optional_paid(true);
+                self.flow = self.after_optional_cost(spell);
+            }
+            (Flow::ChoosingOptionalCost { spell }, Choice::Decline) => {
+                self.flow = self.after_optional_cost(spell);
+            }
             // CR 702.78a: the creatures are tapped as the costs are paid.
             (Flow::ChoosingConspire { spell }, Choice::Accept) => {
                 self.objects[spell].cast.set_conspired(true);
@@ -2313,6 +2332,18 @@ impl GameState {
     }
 
     fn after_teamwork(&self, spell: ObjId) -> Flow {
+        // "As an additional cost to cast this spell, you may collect
+        // evidence 6", when it could be paid.
+        let o = &self.objects[spell];
+        if let Some(c) = self.pool.get(o.def).optional_cost.as_deref()
+            && self.other_costs_payable(o.controller, c, spell)
+        {
+            return Flow::ChoosingOptionalCost { spell };
+        }
+        self.after_optional_cost(spell)
+    }
+
+    fn after_optional_cost(&self, spell: ObjId) -> Flow {
         // CR 702.78a: conspire, with two creatures to tap.
         let o = &self.objects[spell];
         if self.pool.get(o.def).conspire && self.conspirators(spell).len() >= 2 {

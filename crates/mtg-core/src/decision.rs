@@ -103,6 +103,10 @@ pub enum DecisionKind {
     /// Whether to promise an opponent a gift as `spell` is cast (CR
     /// 702.174a): `Accept` or `Decline`.
     Gift { spell: ObjId },
+    /// Whether to pay `spell`'s optional additional cost ("you may collect
+    /// evidence 6", "you may blight 1"): `Accept` pays it (the engine picks
+    /// the cards or creature), `Decline` doesn't.
+    OptionalCost { spell: ObjId },
     /// Which card from the hand to put onto the battlefield (offered as
     /// `Choice::Discard` options), or `Done` for none.
     PutFromHand,

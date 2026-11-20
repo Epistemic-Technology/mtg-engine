@@ -1,0 +1,8 @@
+card "Glinting Creeper" {
+  oracle_id 0e252f94-7731-45e1-bdbb-1bd11441577e
+  cost {4}{G}
+  type Creature — Plant
+  pt 0/0
+  label "Converge" enters with count each 2 colors spent +1/+1 counters
+  can't be blocked by creature with power 2 or less
+}

@@ -1,0 +1,8 @@
+card "High Perfect Morcant" {
+  oracle_id dd27c5fa-4355-4e5c-8219-b74cfe209da0
+  cost {2}{B}{G}
+  type Legendary Creature — Elf Noble
+  pt 4/4
+  triggered whenever this or Elf you control enters: each opponent blights 1
+  activated tap 3 untapped Elf you control, sorcery: proliferate
+}

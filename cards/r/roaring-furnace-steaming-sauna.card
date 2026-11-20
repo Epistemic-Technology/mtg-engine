@@ -1,0 +1,15 @@
+card "Roaring Furnace // Steaming Sauna" {
+  oracle_id d5f31713-d380-42ba-8052-4b8d9beb3958
+  layout split
+  face "Roaring Furnace" {
+    cost {1}{R}
+    type Enchantment — Room
+    triggered when you unlock this door: this deals damage equal hand to target creature an opponent controls
+  }
+  face "Steaming Sauna" {
+    cost {3}{U}{U}
+    type Enchantment — Room
+    hand size none
+    triggered at beginning of your end step: draw 1 card
+  }
+}

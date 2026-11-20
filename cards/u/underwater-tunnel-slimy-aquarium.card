@@ -1,0 +1,14 @@
+card "Underwater Tunnel // Slimy Aquarium" {
+  oracle_id 2b46394e-d337-4b1a-88e6-7fdac2ee4ac4
+  layout split
+  face "Underwater Tunnel" {
+    cost {U}
+    type Enchantment — Room
+    triggered when you unlock this door: surveil 2
+  }
+  face "Slimy Aquarium" {
+    cost {3}{U}
+    type Enchantment — Room
+    triggered when you unlock this door: manifest dread, then put 1 +1/+1 counter on manifested creature
+  }
+}

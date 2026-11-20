@@ -1,0 +1,9 @@
+card "Convenient Target" {
+  oracle_id 2f214dcf-9601-4ccb-bdac-2f9b9f6dff99
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: suspect enchanted creature
+  static enchanted: +1/+1
+  activated {2}{R}, from graveyard: return this to hand
+}

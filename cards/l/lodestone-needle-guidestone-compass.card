@@ -1,0 +1,14 @@
+card "Lodestone Needle // Guidestone Compass" {
+  oracle_id f429ca15-c578-4c1d-a604-fd5509c92dba
+  layout transform
+  cost {1}{U}
+  type Artifact
+  keywords flash
+  triggered when this enters: tap up to 1 target artifact or creature and put 2 stun counters on it
+  craft with artifact {2}{U}
+  face "Guidestone Compass" {
+    type Artifact
+    color blue
+    activated {1}, {T}, sorcery: target creature you control explores
+  }
+}

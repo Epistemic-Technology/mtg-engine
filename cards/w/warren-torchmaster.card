@@ -1,0 +1,7 @@
+card "Warren Torchmaster" {
+  oracle_id 20c3c8ab-e996-462e-a1f6-87421fc3ee55
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  triggered at beginning of your combat: you may blight 1; when you do, target creature gains haste
+}

@@ -1,0 +1,6 @@
+card "Radiant Flames" {
+  oracle_id cfc8372f-13b6-4628-84c7-066881b287f5
+  cost {2}{R}
+  type Sorcery
+  label "Converge" spell: deal count where colors spent damage to each creature
+}

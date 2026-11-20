@@ -1,0 +1,10 @@
+card "Barbed Servitor" {
+  oracle_id e3d82066-d8b9-47bf-8821-1370c506970b
+  cost {3}{B}
+  type Artifact Creature — Construct
+  pt 1/1
+  keywords indestructible
+  triggered when this enters: suspect this
+  triggered whenever this deals combat damage to a player: you draw 1 card, and you lose 1 life
+  triggered whenever this is dealt damage: target opponent loses that much life
+}

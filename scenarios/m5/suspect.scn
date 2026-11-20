@@ -1,0 +1,119 @@
+# Suspect (CR 701.60): a suspected permanent has menace and "This
+# creature can't block" for as long as it's suspected; it stops being
+# suspected when an effect says so or it leaves the battlefield.
+
+scenario "suspect: menace and can't block" {
+  battlefield A: 4 "Mountain"
+  hand A: "Person of Interest"
+  turn 1 A: cast "Person of Interest"
+  run_to turn 1 postcombat_main
+  assert has "Person of Interest" menace
+  assert battlefield A contains "Detective"
+  assert has not "Detective" menace
+}
+
+scenario "suspect: a suspected creature can't block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: 4 "Swamp"
+  hand B: "Barbed Servitor"
+  start turn 2 B
+  turn 2 B: cast "Barbed Servitor"
+  turn 3 A: attack "Grizzly Bears"
+  illegal turn 3 B: block "Grizzly Bears" with "Barbed Servitor"
+  run_to turn 3 postcombat_main
+  assert life B 18
+}
+
+scenario "suspect: put onto the battlefield, Barbed Servitor isn't suspected" {
+  battlefield B: "Barbed Servitor"
+  run_to turn 1 postcombat_main
+  assert has not "Barbed Servitor" menace
+}
+
+scenario "suspect: if it's suspected, a counter; otherwise suspect it" {
+  battlefield A: 6 "Swamp", "Repeat Offender"
+  turn 1 A: activate "Repeat Offender"
+  turn 1 A: wait
+  turn 1 A: activate "Repeat Offender"
+  run_to turn 1 postcombat_main
+  assert has "Repeat Offender" menace
+  assert counters "Repeat Offender" +1/+1 1
+}
+
+scenario "suspect: no longer suspected" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Barbed Servitor"
+  hand A: "Absolving Lammasu"
+  turn 1 A: cast "Absolving Lammasu"
+  run_to turn 1 postcombat_main
+  assert has not "Barbed Servitor" menace
+}
+
+scenario "suspect: a suspected Barbed Servitor stays suspected" {
+  battlefield A: 4 "Swamp"
+  hand A: "Barbed Servitor"
+  turn 1 A: cast "Barbed Servitor"
+  run_to turn 2 precombat_main
+  assert has "Barbed Servitor" menace
+}
+
+scenario "suspect: reanimated and suspected" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "It Doesn't Add Up"
+  turn 1 A: cast "It Doesn't Add Up" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Hill Giant" menace
+}
+
+scenario "suspect: up to one target, and counter unless paid" {
+  battlefield A: 2 "Island"
+  battlefield B: "Mountain", "Grizzly Bears"
+  hand A: "Reasonable Doubt"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Reasonable Doubt" targeting "Shock", "Grizzly Bears" in response to "Shock"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert has "Grizzly Bears" menace
+}
+
+scenario "suspect: an attack trigger if it's not suspected" {
+  battlefield A: "Rubblebelt Braggart"
+  start turn 3 A
+  turn 3 A: attack "Rubblebelt Braggart"
+  run_to turn 3 postcombat_main
+  assert has "Rubblebelt Braggart" menace
+}
+
+scenario "suspect: no suspected creature to sacrifice" {
+  battlefield A: 2 "Swamp", 3 "Mountain", "Rune-Brand Juggler", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  illegal turn 1 A: activate "Rune-Brand Juggler" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "suspect: the Juggler's sacrifice needs a suspected creature" {
+  battlefield A: 4 "Mountain", 3 "Swamp"
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Rune-Brand Juggler"
+  turn 1 A: cast "Rune-Brand Juggler"
+  turn 1 A: trigger "Rune-Brand Juggler" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Rune-Brand Juggler" sacrificing "Grizzly Bears" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "suspect: the Aura suspects enchanted creature" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  hand A: "Convenient Target"
+  turn 1 A: cast "Convenient Target" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" menace
+  assert power "Grizzly Bears" 3
+}

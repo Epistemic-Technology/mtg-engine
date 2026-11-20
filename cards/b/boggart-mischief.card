@@ -1,0 +1,7 @@
+card "Boggart Mischief" {
+  oracle_id ac65ed8c-abe8-4044-9ce5-70b1370d0e19
+  cost {2}{B}
+  type Kindred Enchantment — Goblin
+  triggered when this enters: you may blight 1; if you do, create 2 "1/1 black and red Goblin creature"
+  triggered whenever Goblin creature you control dies: each opponent loses 1 life and you gain 1 life
+}

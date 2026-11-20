@@ -1,0 +1,14 @@
+card "Unholy Annex // Ritual Chamber" {
+  oracle_id bd388ad9-a47b-4b0b-b94a-8e4343cd3de5
+  layout split
+  face "Unholy Annex" {
+    cost {2}{B}
+    type Enchantment — Room
+    triggered at beginning of your end step: draw 1 card; if you control Demon, each opponent loses 2 life and you gain 2 life; otherwise, you lose 2 life
+  }
+  face "Ritual Chamber" {
+    cost {3}{B}{B}
+    type Enchantment — Room
+    triggered when you unlock this door: create 1 "6/6 black Demon creature with flying"
+  }
+}

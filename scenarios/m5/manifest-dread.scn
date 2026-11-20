@@ -1,0 +1,131 @@
+# Manifest dread (CR 701.62): look at the top two cards of your library,
+# put one onto the battlefield face down as a 2/2 creature (manifested,
+# CR 701.34) and the other into your graveyard. `choose "X"` picks the card
+# manifested; "that creature" after it is the manifested creature.
+
+scenario "manifest dread: then attach this Equipment to that creature" {
+  battlefield A: 4 "Plains"
+  hand A: "Conductive Machete"
+  library A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Conductive Machete"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Conductive Machete" to "face-down creature"
+  assert power "face-down creature" 4
+  assert toughness "face-down creature" 3
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "manifest dread: when the pumped creature dies this turn" {
+  battlefield A: "Mountain"
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Turn Inside Out"
+  library A: "Island", "Forest"
+  start turn 3 A
+  turn 3 A: cast "Turn Inside Out" targeting "Grizzly Bears"
+  turn 3 A: attack "Grizzly Bears"
+  turn 3 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "manifest dread: at the beginning of each opponent's upkeep" {
+  battlefield A: "Abhorrent Oculus"
+  library A: "Island", "Forest", "Island", "Island"
+  start turn 2 B
+  run_to turn 2 draw
+  assert battlefield A contains "face-down creature"
+  assert graveyard A count 1
+}
+
+scenario "manifest dread: not on its controller's upkeep" {
+  battlefield A: "Abhorrent Oculus"
+  library A: "Island", "Forest", "Island", "Island"
+  run_to turn 1 draw
+  assert battlefield A lacks "face-down creature"
+}
+
+scenario "manifest dread: Abhorrent Oculus exiles six cards from the graveyard" {
+  battlefield A: 3 "Island"
+  graveyard A: 6 "Plains"
+  hand A: "Abhorrent Oculus"
+  turn 1 A: cast "Abhorrent Oculus"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Abhorrent Oculus"
+  assert exile A contains 6 "Plains"
+}
+
+scenario "manifest dread: Abhorrent Oculus can't be cast without six cards" {
+  battlefield A: 3 "Island"
+  graveyard A: 5 "Plains"
+  hand A: "Abhorrent Oculus"
+  illegal turn 1 A: cast "Abhorrent Oculus"
+  run_to turn 1 postcombat_main
+}
+
+scenario "manifest dread: survival, if this creature is tapped" {
+  battlefield A: "Defiant Survivor"
+  library A: "Island", "Forest", "Island"
+  start turn 3 A
+  turn 3 A: attack "Defiant Survivor"
+  run_to turn 3 end
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "manifest dread: turning a permanent face up puts a counter on it" {
+  battlefield A: 4 "Forest", "Island"
+  hand A: "Growing Dread"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: cast "Growing Dread"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: unmorph "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "manifest dread: a face-down permanent entering fetches a basic land" {
+  battlefield A: 4 "Forest"
+  hand A: "Threats Around Every Corner"
+  library A: "Grizzly Bears", "Island", "Forest"
+  turn 1 A: cast "Threats Around Every Corner"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+  assert battlefield A contains 5 "Forest"
+}
+
+scenario "manifest dread: then return a permanent card from the graveyard" {
+  battlefield A: 3 "Forest"
+  graveyard A: "Hill Giant"
+  hand A: "Under the Skin"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: cast "Under the Skin"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "manifest dread: sacrificing Disturbing Mirth" {
+  battlefield A: "Swamp", "Mountain", "Grizzly Bears"
+  hand A: "Disturbing Mirth"
+  library A: "Island", "Forest", "Island", "Island"
+  turn 1 A: cast "Disturbing Mirth"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 2
+}
+
+scenario "manifest dread: a mode" {
+  battlefield A: 3 "Forest"
+  hand A: "Break Down the Door"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: cast "Break Down the Door" mode 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+}

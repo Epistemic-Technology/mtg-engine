@@ -1,0 +1,14 @@
+card "Surgical Suite // Hospital Room" {
+  oracle_id 68bb76af-f933-430a-a66a-fe4a7d6be4e0
+  layout split
+  face "Surgical Suite" {
+    cost {1}{W}
+    type Enchantment — Room
+    triggered when you unlock this door: return target creature card with mana value 3 or less from your graveyard to battlefield
+  }
+  face "Hospital Room" {
+    cost {3}{W}
+    type Enchantment — Room
+    triggered whenever you attack: put 1 +1/+1 counter on target attacking creature
+  }
+}

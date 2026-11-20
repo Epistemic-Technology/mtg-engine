@@ -312,6 +312,7 @@ impl GreedyAgent {
             | DecisionKind::Casualty { .. }
             | DecisionKind::Teamwork { .. }
             | DecisionKind::Gift { .. }
+            | DecisionKind::OptionalCost { .. }
             | DecisionKind::Splice { .. }
             | DecisionKind::Conspire { .. }
             | DecisionKind::CopyTarget { .. }

@@ -1,0 +1,8 @@
+card "Rune-Brand Juggler" {
+  oracle_id 8c105948-4b8f-4615-b66a-2bbdb3f3d6dd
+  cost {B}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  triggered when this enters: suspect up to 1 target creature you control
+  activated {3}{B}{R}, sacrifice suspected creature: target creature gets -5/-5
+}

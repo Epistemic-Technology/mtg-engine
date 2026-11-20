@@ -1,0 +1,8 @@
+card "Evidence Examiner" {
+  oracle_id a3468804-26ad-4919-b030-a1906a7029e8
+  cost {G}{U}
+  type Creature — Merfolk Detective
+  pt 2/2
+  triggered at beginning of your combat: you may collect evidence 4
+  triggered whenever you collect evidence: investigate
+}

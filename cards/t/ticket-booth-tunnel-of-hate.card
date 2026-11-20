@@ -1,0 +1,14 @@
+card "Ticket Booth // Tunnel of Hate" {
+  oracle_id 4d01b62b-b924-4da5-8ff5-b2f29d7f19b2
+  layout split
+  face "Ticket Booth" {
+    cost {2}{R}
+    type Enchantment — Room
+    triggered when you unlock this door: manifest dread
+  }
+  face "Tunnel of Hate" {
+    cost {4}{R}{R}
+    type Enchantment — Room
+    triggered whenever you attack: target attacking creature gains double strike
+  }
+}

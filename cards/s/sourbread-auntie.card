@@ -1,0 +1,7 @@
+card "Sourbread Auntie" {
+  oracle_id 6b087ae1-1412-4dd9-9b96-3b45be52d386
+  cost {2}{R}{R}
+  type Creature — Goblin Warrior
+  pt 4/3
+  triggered when this enters: you may blight 2; if you do, create 2 "1/1 black and red Goblin creature"
+}

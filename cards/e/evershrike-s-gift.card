@@ -1,0 +1,8 @@
+card "Evershrike's Gift" {
+  oracle_id b5bc4adf-9105-4901-989c-63612314af5c
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+0 and has flying
+  activated {1}{W}, blight 2, from graveyard, sorcery: return this to hand
+}

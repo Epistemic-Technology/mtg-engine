@@ -1,0 +1,7 @@
+card "Caught Red-Handed" {
+  oracle_id 484b3586-c0ed-4793-a3c0-e99f265e092d
+  cost {4}{R}
+  type Instant
+  this spell can't be countered
+  spell: gain control of target creature; untap that creature; target 1 gains haste; suspect target 1
+}

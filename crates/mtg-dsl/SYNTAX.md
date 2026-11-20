@@ -162,6 +162,7 @@ to its other face as well.
 | `assist` | Assist (CR 702.132): "Another player can pay up to {N} of this spell's cost." The only other player is an opponent, who here never pays, so the line has no effect. Prints `Assist`. |
 | `dredge 3` | Dredge (CR 702.52): "If you would draw a card, you may mill N cards instead. If you do, return this card from your graveyard to your hand." Not with fewer than N cards in the library. Asked before the draw's other replacement effects (a `ChooseCard` decision: the dredge cards, or `Done` to draw). Prints `Dredge 3`. |
 | `awaken 3 {5}{B}` | Awaken (CR 702.113): an alternative cost; cast for it, the spell also puts N +1/+1 counters on target land you control (a target after its own), which becomes a 0/0 Elemental creature with haste, still a land, indefinitely (the engine derives that spell from the card). Prints `Awaken 3—{5}{B}`. |
+| `craft with artifact {2}{R}`, `craft with Cave {5}{G}` | Craft (CR 702.167): "{2}{R}, Exile this artifact, Exile another artifact you control or an artifact card from your graveyard: Return this card transformed under its owner's control. Craft only as a sorcery." on the front face of a transform card; one material matching the filter, other than the source (the engine picks one, a graveyard card first). Prints `Craft with artifact {2}{R}`. |
 | `storm` | Storm (CR 702.40): as the spell is cast, a trigger copies it once for each spell cast before it this turn by any player (CR 707.10), and the copies' controller may choose new targets for them. Prints `Storm`. |
 | `replicate {1}{R}` | Replicate (CR 702.56): an additional cost the caster may pay any number of times; as the spell is cast, it is copied once for each time, the copies' targets may change. Prints `Replicate {1}{R}`. |
 | `casualty 2` | Casualty (CR 702.153): as the spell is cast its caster may sacrifice a creature with power 2 or greater; when they do, a trigger copies the spell (CR 707.10), and the copy's controller may choose new targets for it. Prints `Casualty 2`. |
@@ -722,6 +723,61 @@ behold cost exiles is linked to the permanent the spell becomes (CR
 to hand` ("return the exiled card to its owner's hand"). The condition
 `beheld` (`if beheld, you gain 2 life`) prints "If a Dragon was beheld"
 with the card's behold filter: the behold cost was paid.
+
+Collect evidence (CR 701.59): `collect evidence 4` is an effect (the
+controller exiles cards with total mana value 4 or greater from their
+graveyard; with too little there, nothing is exiled and `if you do` after
+`you may collect evidence 4` fails) and a cost (`{T}, collect evidence 3:
+...` prints "{T}, Collect evidence 3: ..."). The engine picks the cards:
+the greatest mana values first, then it drops the smallest picks the total
+doesn't need, sparing what the spell or ability targets. Trigger `whenever
+you collect evidence`.
+
+Suspect (CR 701.60): `suspect target creature`, `suspect this`, `suspect
+enchanted creature` (a suspected permanent has menace and "This creature
+can't block" for as long as it's suspected, CR 701.60c; it stops being
+suspected as it leaves the battlefield), `all suspected creature no
+longer suspected` ("All suspected creatures are no longer suspected."),
+the filter word `suspected` ("Sacrifice a suspected creature"), and the
+conditions `suspected` / `not suspected` ("if it's not suspected"; at the
+start of an activated ability's sentence, "If this creature is suspected,
+... it"). `each opponent blights 1` (CR 701.68a): each of those players
+puts the counters on a creature of their own choice.
+
+Manifest dread: after it, `manifested creature` is the creature
+manifested, printed "that creature" ("manifest dread, then put three
++1/+1 counters on that creature"; `attach to manifested creature`:
+"attach this Equipment to that creature"). `delayed target 1: when it
+dies this turn, manifest dread` prints "When it dies this turn, ...".
+Trigger `whenever you turn a permanent face up` (a permanent you
+control; "it" is that permanent). `return up to 2 permanent card from
+among them to hand chosen` after a mill prints "return ... from among
+them to your hand"; `impulse 2 next turn it` prints "You may play them
+until the end of your next turn."
+
+An optional additional cost (CR 601.2b): `additional cost may collect
+evidence 6` ("As an additional cost to cast this spell, you may collect
+evidence 6.") or `additional cost may blight 1`, chosen as the spell is
+cast (scenarios: `kicked`), offered only when it can be paid. The
+conditions `evidence collected` ("evidence was collected") and
+`additional cost paid` ("this spell's additional cost was paid") read it,
+in a spell, an intervening "if", or `this spell costs {2} less if
+evidence collected` (printed after the cost, in its paragraph); the
+permanent a spell becomes keeps it.
+
+Converge (CR 601.2h): `colors spent` counts the colors of mana spent to
+cast the source ("this spell" on an instant or sorcery, "it" otherwise;
+`colors spent spell` and `colors spent creature` print "this spell" and
+"this creature"). A filter `with mana value colors spent or less` (or
+`with power colors spent or less`) prints "with mana value less than or
+equal to the number of colors of mana spent to cast this creature", in a
+target or a check (`exile target nonland permanent if target 1 is with
+mana value colors spent or less`: "... if its mana value is less than or
+equal to ..."). `enters with count each 2 colors spent +1/+1 counters`
+prints "two +1/+1 counters on it for each color ...". After creating
+tokens, `each of them` is those tokens ("Put X +1/+1 counters on each of
+them"). `gain control of target creature indefinitely` prints "Gain
+control of target creature." (no duration).
 
 Filters may have an alternative: `creature or Vehicle`, `land or
 nonblack creature`, `attacking or blocking creature`, `Bear, Spider, or

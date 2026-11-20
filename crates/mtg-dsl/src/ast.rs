@@ -119,6 +119,9 @@ pub struct Card {
     /// `additional cost or {3}`: the other of two additional costs, after
     /// "or" ("sacrifice a creature or pay {3}").
     pub additional_or: Option<Cost>,
+    /// `additional cost may collect evidence 6`: "As an additional cost to
+    /// cast this spell, you may collect evidence 6." (CR 601.2b).
+    pub optional_cost: Option<Cost>,
     /// `alternative cost sacrifice Mountain`: "You may sacrifice a
     /// Mountain rather than pay this spell's mana cost." (CR 118.9).
     pub alt_cost: Option<AltCost>,
@@ -186,6 +189,7 @@ impl Card {
             keywords: Vec::new(),
             additional: None,
             additional_or: None,
+            optional_cost: None,
             alt_cost: None,
             flash_if: None,
             flash_cleanup: false,
@@ -315,8 +319,10 @@ pub enum CountExpr {
     /// `colors among permanents`: "colors among permanents you control".
     ColorsAmongPermanents,
     /// `colors spent` (converge): "colors of mana spent to cast this
-    /// spell" (CR 601.2h).
-    SpentColors,
+    /// spell" (CR 601.2h). `colors spent spell` and `colors spent
+    /// creature` print "this spell" and "this creature" where the default
+    /// would be "it" (wording only).
+    SpentColors(SpentOf),
     /// `treasure spent`: "mana from a Treasure spent to cast it".
     SpentTreasure,
     /// `opponents graveyards [<filter>]`: "cards in your opponents'
@@ -515,6 +521,8 @@ pub struct Cost {
     /// `behold Kithkin`, `behold and exile Elf`, `behold 3 Elemental`,
     /// `may behold Dragon` (CR 701.69a).
     pub behold: Option<Box<Behold>>,
+    /// `collect evidence 3`: "Collect evidence 3" (CR 701.59a).
+    pub evidence: u32,
 }
 
 /// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and
@@ -562,6 +570,8 @@ pub enum CostItem {
     Blight,
     /// `behold Kithkin`.
     Behold,
+    /// `collect evidence 3`.
+    Evidence,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1283,6 +1293,11 @@ pub enum Mechanic {
     /// sorcery; for each opponent, a token copy that attacks that opponent
     /// this turn if able, with haste, sacrificed at the next end step.
     Encore(ManaCost),
+    /// CR 702.167: `craft with artifact {2}{R}`: "{2}{R}, Exile this
+    /// artifact, Exile another artifact you control or an artifact card
+    /// from your graveyard: Return this card transformed under its owner's
+    /// control. Craft only as a sorcery." One material matching the filter.
+    Craft(Filter, ManaCost),
     /// CR 702.165: `backup 1`: as it enters, N +1/+1 counters on target
     /// creature; another creature also gains the abilities written after
     /// this line until end of turn.
@@ -1475,6 +1490,9 @@ pub enum StaticCond {
     Equipped,
     /// `monstrous`: "this creature is monstrous" (CR 701.37b).
     Monstrous,
+    /// `suspected`: "it's suspected"; `not suspected`: "it's not
+    /// suspected" (CR 701.60).
+    Suspected(bool),
     /// `opponent life 10 or less`: "an opponent has 10 or less life".
     OpponentLifeAtMost(i32),
     /// `your life 30 or more`: "you have 30 or more life".
@@ -1589,6 +1607,12 @@ pub enum StaticCond {
     /// `beheld`: "a Dragon was beheld" (its behold cost was paid; the
     /// filter is the card's behold cost's).
     Beheld,
+    /// `evidence collected`: "evidence was collected" (the optional
+    /// additional cost, `additional cost may collect evidence 6`, paid).
+    EvidenceCollected,
+    /// `additional cost paid`: "this spell's additional cost was paid"
+    /// (the same condition, worded for blight).
+    AdditionalCostPaid,
     /// `saddled`: "it's saddled"; after a trigger, `while saddled`
     /// ("Whenever this creature attacks while saddled, ...", CR 702.171b).
     Saddled,
@@ -2247,6 +2271,11 @@ pub enum Trigger {
     EntersFromGraveyard(Filter),
     /// `whenever you expend 4` (CR 700.14).
     Expends(u8),
+    /// `whenever you collect evidence` (CR 701.59).
+    CollectsEvidence,
+    /// `whenever you turn a permanent face up` (CR 708.8): a permanent you
+    /// control is turned face up; it is "it".
+    YouTurnFaceUp,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -2430,6 +2459,13 @@ pub enum Recipient {
     /// (`SameTokens`, the core `SameObject`).
     CreatedTokens,
     SameTokens,
+    /// `them` after creating tokens: `those tokens` printed "them" ("Put
+    /// X +1/+1 counters on each of them").
+    CreatedThem,
+    /// `manifested creature`: the creature the resolution manifested
+    /// (manifest dread, CR 701.62), printed "that creature" ("manifest
+    /// dread, then put three +1/+1 counters on that creature").
+    Manifested,
     /// `each <filter>` / `all <filter>`: the `n`th of the card's `groups`.
     Group(u16),
     /// `random <filter>`: one of the `n`th group's permanents, picked at
@@ -2634,8 +2670,11 @@ pub enum Effect {
         keywords: Vec<Keyword>,
         to: Recipient,
     },
+    /// `gain control of target creature` (until end of turn); with
+    /// `indefinitely`, for good.
     GainControl {
         of: Recipient,
+        forever: bool,
     },
     /// `attach to <to>` (this), `attach <what> to <to>`.
     Attach {
@@ -3116,6 +3155,9 @@ pub enum Effect {
         /// `Dies(This)` / `Leaves(This)` about the recipient, and ends with
         /// the turn.
         this_turn: bool,
+        /// `when it dies this turn`: the same, printed "When it dies this
+        /// turn" (wording only).
+        it: bool,
     },
     /// A replacement or prevention effect that lasts until end of turn.
     CreateReplacement(Replacement),
@@ -3166,6 +3208,19 @@ pub enum Effect {
     Manifest,
     /// `manifest dread` (CR 701.62).
     ManifestDread,
+    /// `suspect target creature` (CR 701.60a); `<what> no longer
+    /// suspected` (`on` false): "... are no longer suspected".
+    Suspect {
+        what: Recipient,
+        on: bool,
+    },
+    /// `each opponent blights 1` (CR 701.68a).
+    BlightBy {
+        who: Recipient,
+        n: u32,
+    },
+    /// `collect evidence 4` (CR 701.59).
+    CollectEvidence(u32),
     /// `blight 2` (CR 701.68).
     Blight(u32),
     /// `adapt 2` (CR 701.46).
@@ -3453,6 +3508,9 @@ pub enum Effect {
         /// `MilledToHand` only: `from among milled this way cards`, "from
         /// among the cards milled this way".
         this_way: bool,
+        /// `MilledToHand` only: written `return ... from among them to
+        /// hand`, "return ... from among them to your hand".
+        returns: bool,
     },
     /// `sacrifice 1 artifact chosen or discard 1 card`: one of these, as
     /// the controller chooses.
@@ -3539,4 +3597,17 @@ pub enum ThisWayWording {
     You,
     /// "If the sacrificed creature was a Human": the noun.
     The(String),
+}
+
+/// How a converge count names the object it reads (`CountExpr::SpentColors`):
+/// wording only.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum SpentOf {
+    /// "this spell" on an instant or sorcery, "it" otherwise.
+    #[default]
+    Default,
+    /// "this spell".
+    Spell,
+    /// "this creature".
+    Creature,
 }

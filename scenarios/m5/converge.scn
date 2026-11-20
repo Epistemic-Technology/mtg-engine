@@ -1,0 +1,131 @@
+# Converge (CR 702.119 ability word; CR 601.2h): the number of colors of
+# mana spent to cast the spell. The engine pays with as many colors as the
+# lands allow.
+
+scenario "converge: three colors spent, three damage to each creature" {
+  battlefield A: "Mountain", "Island", "Plains"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Radiant Flames"
+  turn 1 A: cast "Radiant Flames"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 3
+}
+
+scenario "converge: one color spent, one damage" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Radiant Flames"
+  turn 1 A: cast "Radiant Flames"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "converge: two counters for each color" {
+  battlefield A: "Forest", "Island", "Swamp", "Mountain", "Plains"
+  hand A: "Glinting Creeper"
+  turn 1 A: cast "Glinting Creeper"
+  run_to turn 1 postcombat_main
+  assert counters "Glinting Creeper" +1/+1 10
+  assert power "Glinting Creeper" 10
+}
+
+scenario "converge: tokens for each color" {
+  battlefield A: "Plains", "Island", "Swamp", "Forest"
+  hand A: "Unified Front"
+  turn 1 A: cast "Unified Front"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Kor Ally"
+}
+
+scenario "converge: counters on each of the tokens and life" {
+  battlefield A: "Forest", "Island", "Swamp", 3 "Forest"
+  hand A: "Snarl Song"
+  turn 1 A: cast "Snarl Song"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Fractal"
+  assert power oldest A "Fractal" 3
+  assert power newest A "Fractal" 3
+  assert life A 23
+}
+
+scenario "converge: exile if its mana value is at most the colors spent" {
+  battlefield A: "Plains", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Prismatic Ending"
+  turn 1 A: cast "Prismatic Ending" x 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "converge: not if its mana value is greater" {
+  battlefield A: "Plains", "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Prismatic Ending"
+  turn 1 A: cast "Prismatic Ending" x 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Prismatic Ending"
+}
+
+scenario "converge: gain control if its power is at most the colors spent" {
+  battlefield A: "Island", "Plains", 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Exert Influence"
+  turn 1 A: cast "Exert Influence" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "converge: no control of a creature with greater power" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Exert Influence"
+  turn 1 A: cast "Exert Influence" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "converge: a target with mana value at most the colors spent" {
+  battlefield A: "Plains", "Island", "Swamp", 3 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Sundering Archaic"
+  turn 1 A: cast "Sundering Archaic"
+  turn 1 A: trigger "Sundering Archaic" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "converge: not a target with greater mana value" {
+  battlefield A: "Plains", "Swamp", 4 "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Sundering Archaic"
+  turn 1 A: cast "Sundering Archaic"
+  illegal turn 1 A: trigger "Sundering Archaic" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "converge: a counter for each color, removed to tap" {
+  battlefield A: "Island", "Swamp", 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Prism Array"
+  turn 1 A: cast "Prism Array"
+  turn 1 A: wait
+  turn 1 A: activate "Prism Array" ability 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert counters "Prism Array" crystal 1
+}
+
+scenario "converge: draw and lose life" {
+  battlefield A: "Swamp", "Island", "Forest"
+  hand A: "Painful Truths"
+  turn 1 A: cast "Painful Truths"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert life A 17
+}

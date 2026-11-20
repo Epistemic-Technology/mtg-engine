@@ -1124,6 +1124,12 @@ pub struct StatusQuals {
     /// chosen), filled in by the engine where X is known; elsewhere the
     /// mana value doesn't restrict.
     pub mana_value_x: bool,
+    /// Converge (CR 702.119): "with mana value less than or equal to the
+    /// number of colors of mana spent to cast this spell" (and power
+    /// likewise): `ObjFilter::mana_value`'s and `power`'s numbers are the
+    /// colors spent to cast the source, filled in by the engine where the
+    /// source is known; elsewhere they don't restrict.
+    pub spent_colors: bool,
     /// "token" (`true`, CR 111.1) or "nontoken" (`false`).
     pub token: Option<bool>,
     /// "with a +1/+1 counter on it", "with a counter on it" (CR 122.1):
@@ -1143,6 +1149,8 @@ pub struct StatusQuals {
     /// "creature with a morph ability" (CR 702.37; megamorph is morph,
     /// CR 702.37b, disguise isn't).
     pub morph: bool,
+    /// "suspected creature" (`true`, CR 701.60) or not suspected.
+    pub suspected: Option<bool>,
 }
 
 /// The kind of permanent `StatusQuals::on` asks the object to be attached
@@ -1176,12 +1184,14 @@ impl StatusQuals {
             || self.blocked_this_turn
             || self.damaged_by_source
             || self.mana_value_x
+            || self.spent_colors
             || self.counter.is_some()
             || self.modified
             || self.toxic
             || self.on.is_some()
             || self.face_down
             || self.morph
+            || self.suspected.is_some()
     }
 }
 
@@ -1999,6 +2009,9 @@ pub enum StaticCondition {
     SourceEquipped,
     /// "as long as this creature is monstrous" (CR 701.37b).
     SourceMonstrous,
+    /// "this creature is suspected" (`true`) or "it's not suspected" (CR
+    /// 701.60).
+    SourceSuspected(bool),
     /// "as long as an opponent has 10 or less life"; "as long as you have
     /// 30 or more life" (`at_least`), "you have 5 or less life".
     OpponentLifeAtMost(i32),
@@ -2099,6 +2112,11 @@ pub enum StaticCondition {
     /// "If a Dragon was beheld": the spell's behold cost was paid (CR
     /// 701.69).
     Beheld,
+    /// "If evidence was collected", "if this spell's additional cost was
+    /// paid": its optional additional cost (`CardDef::optional_cost`) was
+    /// paid. A card in hand counts as paid when the cost could be ("This
+    /// spell costs {2} less to cast if evidence was collected").
+    OptionalCostPaid,
     /// The source is saddled (CR 702.171b): "whenever this creature
     /// attacks while saddled".
     Saddled,
@@ -2419,6 +2437,8 @@ pub enum CounterKind {
     Net,
     Flood,
     Glyph,
+    Crystal,
+    Unlock,
     /// Power/toughness counters other than +1/+1 and -1/-1 (CR 122.1a):
     /// each modifies power and toughness in layer 7c, and none annihilates
     /// with another (CR 704.5q is about +1/+1 and -1/-1 only).
@@ -2457,7 +2477,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 39] = [
+    pub const NAMED: [(&'static str, CounterKind); 41] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2487,6 +2507,8 @@ impl CounterKind {
         ("net", CounterKind::Net),
         ("flood", CounterKind::Flood),
         ("glyph", CounterKind::Glyph),
+        ("crystal", CounterKind::Crystal),
+        ("unlock", CounterKind::Unlock),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
         ("trample", CounterKind::Trample),
@@ -3326,9 +3348,11 @@ pub enum Effect {
         to: Recipient,
     },
     /// "Gain control of target creature until end of turn" (layer 2,
-    /// CR 613.1b).
+    /// CR 613.1b); with `forever`, indefinitely ("Gain control of target
+    /// creature.").
     GainControl {
         of: Recipient,
+        forever: bool,
     },
     /// Sacrifice a permanent (CR 701.21): its controller puts it into its
     /// owner's graveyard; indestructible does not help.
@@ -3834,6 +3858,19 @@ pub enum Effect {
     /// Monstrosity N (CR 701.37a): if the source isn't monstrous, N +1/+1
     /// counters on it and it becomes monstrous.
     Monstrosity(Num),
+    /// Suspect (CR 701.60a): the recipient permanents become suspected
+    /// (`on`), or are no longer suspected (CR 701.60d).
+    Suspect {
+        what: Recipient,
+        on: bool,
+    },
+    /// "Each opponent blights 1", "target opponent blights 2" (CR
+    /// 701.68a): each player of the recipient puts N -1/-1 counters on a
+    /// creature they control, chosen as it resolves.
+    BlightBy {
+        who: Recipient,
+        n: u32,
+    },
     /// The recipient creature connives (CR 701.50): its controller draws
     /// and discards a card; a nonland discard puts a +1/+1 counter on it.
     Connive {
@@ -3871,6 +3908,15 @@ pub enum Effect {
     /// creature they control; without one, nothing happens and it isn't
     /// done (701.68b).
     Blight(u32),
+    /// Collect evidence N (CR 701.59a): the controller exiles cards with
+    /// total mana value N or greater from their graveyard (the engine picks
+    /// them); with too little there, nothing is exiled and it isn't done
+    /// (701.59b).
+    CollectEvidence(u32),
+    /// Craft's effect (CR 702.167a): "Return this card transformed under
+    /// its owner's control": the source's card, exiled by the cost, onto
+    /// the battlefield with its back face up (CR 712.14).
+    ReturnTransformed,
     /// Manifest dread (CR 701.62a): look at the top two cards of the
     /// controller's library, manifest one, and put the rest into their
     /// graveyard.
@@ -4065,6 +4111,7 @@ impl Effect {
                 | Effect::Dig { .. }
                 | Effect::ManifestDread
                 | Effect::Blight(_)
+                | Effect::BlightBy { .. }
                 | Effect::Connive { .. }
                 | Effect::CastExiled(_)
                 | Effect::CastCipherCopy
@@ -4542,6 +4589,8 @@ pub enum TriggerSpec {
     UnlocksDoor { door: u8 },
     /// "Whenever you fully unlock a Room" (CR 709.5i).
     FullyUnlocks { whose: Who },
+    /// "Whenever you collect evidence" (CR 701.59).
+    CollectsEvidence { whose: Who },
     /// "Whenever you gain life".
     GainsLife { whose: Who },
     /// "Whenever you gain life for the first time each turn": the life
@@ -4858,6 +4907,7 @@ impl TriggerSpec {
             TriggerSpec::UnlocksDoor { .. }
             | TriggerSpec::BecomesStage(_)
             | TriggerSpec::FullyUnlocks { .. }
+            | TriggerSpec::CollectsEvidence { .. }
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
             TriggerSpec::CountersPut { .. } | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
@@ -5018,6 +5068,14 @@ pub struct Cost {
     /// reveal a Kithkin card from your hand; "and exile it".
     #[serde(default)]
     pub behold: Option<Box<Behold>>,
+    /// "Collect evidence N" (CR 701.59a): exile cards with total mana value
+    /// N or greater from the payer's graveyard (the engine picks them).
+    pub evidence: u32,
+    /// Craft's materials (CR 702.167a): "Exile another artifact you
+    /// control or an artifact card from your graveyard": one permanent the
+    /// payer controls or card in their graveyard matching the filter,
+    /// other than the source (the engine picks, graveyard cards first).
+    pub craft: Option<Box<ObjFilter>>,
 }
 
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
@@ -5087,6 +5145,8 @@ impl Cost {
             reveal_hand: false,
             blight: 0,
             behold: None,
+            evidence: 0,
+            craft: None,
         }
     }
 
@@ -5812,6 +5872,13 @@ pub struct CardDef {
     /// 0: none.
     #[serde(default)]
     pub teamwork: u8,
+    /// "As an additional cost to cast this spell, you may collect evidence
+    /// 6." / "... you may blight 1." (CR 601.2b): an optional additional
+    /// cost without mana, chosen as the spell is cast; "if evidence was
+    /// collected" and "if this spell's additional cost was paid" read it
+    /// (`StaticCondition::OptionalCostPaid`).
+    #[serde(default)]
+    pub optional_cost: Option<Box<Cost>>,
     /// Ripple N (CR 702.60): as it is cast, its caster may reveal the top
     /// N cards of their library and cast those with the same name free.
     /// 0: none.
@@ -7093,6 +7160,7 @@ impl CardPool {
     /// sentences, and its converge and Treasure counts.
     fn spent_use(&self, def: &CardDef) -> SpentUse {
         let mut out = SpentUse::default();
+        let mut converge = false;
         let mut want = |c: &StaticCondition| {
             if *c == StaticCondition::NoManaSpent {
                 out.record = true;
@@ -7136,11 +7204,33 @@ impl CardPool {
                         cond: EffectCond::Static(i),
                         ..
                     } => want(self.condition(*i)),
+                    // Converge in a target check: "if its mana value is
+                    // less than or equal to the number of colors ...".
+                    Effect::IfTarget { filter, .. } if filter.status.spent_colors => {
+                        converge = true;
+                    }
                     _ => {}
                 }
             }
+            // Converge in a target: "target nonland permanent ... with mana
+            // value less than or equal to the number of colors ...".
+            if a.targets().iter().any(|t| {
+                matches!(self.base_spec(*t), TargetSpec::Filtered(f)
+                    if self.filter(f).status.spent_colors)
+            }) {
+                converge = true;
+            }
+        }
+        if converge {
+            out.record = true;
+            out.converge = true;
         }
         for c in &def.counts {
+            // "two +1/+1 counters on it for each color of mana spent".
+            let c = match c {
+                CountExpr::Times(_, inner) => &**inner,
+                c => c,
+            };
             match c {
                 CountExpr::SpentColors => {
                     out.record = true;
@@ -7753,6 +7843,7 @@ impl Builder {
             dredge: 0,
             replicate: None,
             teamwork: 0,
+            optional_cost: None,
             ripple: 0,
             splice: None,
             alt_cost: None,
@@ -8037,6 +8128,13 @@ impl Builder {
     #[must_use]
     pub fn teamwork(mut self, n: u8) -> Self {
         self.0.teamwork = n;
+        self
+    }
+
+    /// An optional additional cost ("you may collect evidence 6").
+    #[must_use]
+    pub fn optional_cost(mut self, c: Cost) -> Self {
+        self.0.optional_cost = Some(Box::new(c));
         self
     }
 

@@ -1,0 +1,9 @@
+card "Absolving Lammasu" {
+  oracle_id dbedd45e-f76c-4be7-ad89-ff57bed6626f
+  cost {4}{W}
+  type Creature — Lammasu
+  pt 4/3
+  keywords flying
+  triggered when this enters: all suspected creature no longer suspected
+  triggered when this dies: you gain 3 life and suspect up to 1 target creature an opponent controls
+}

@@ -560,6 +560,17 @@ fn with_article(s: &str) -> String {
 }
 
 /// "a, b, and c".
+/// Converge in a filter (`StatusQuals::spent_colors`): "less than or
+/// equal to the number of colors of mana spent to cast this spell".
+fn spent_at_most(card: &Card) -> String {
+    let it = if is_instant_or_sorcery(card) {
+        "this spell"
+    } else {
+        "this creature"
+    };
+    format!("less than or equal to the number of colors of mana spent to cast {it}")
+}
+
 fn cmp_words(c: mtg_core::card::Cmp) -> &'static str {
     match c {
         mtg_core::card::Cmp::AtMost => " or less",
@@ -980,7 +991,11 @@ impl<'a> Ctx<'a> {
     /// a +1/+1 counter on each of up to two target creatures", "... on
     /// each of them", "... on each of those creatures").
     fn each_of(&self, r: Recipient) -> &'static str {
-        if matches!(r, Recipient::Targets(..) | Recipient::ThoseTargets(..)) || self.is_many(r) {
+        if matches!(
+            r,
+            Recipient::Targets(..) | Recipient::ThoseTargets(..) | Recipient::CreatedThem
+        ) || self.is_many(r)
+        {
             "each of "
         } else {
             ""
@@ -1105,7 +1120,9 @@ impl<'a> Ctx<'a> {
             {
                 "that Vehicle".to_string()
             }
-            Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
+            Recipient::TriggeringObject | Recipient::SameThat | Recipient::Manifested => {
+                "that creature".to_string()
+            }
             Recipient::TheTriggeringObject => "the creature".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TriggeringCard => "that card".to_string(),
@@ -1143,6 +1160,7 @@ impl<'a> Ctx<'a> {
             }
             Recipient::SameObject if self.delayed_that => "that creature".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
+            Recipient::CreatedThem => "them".to_string(),
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
             }
@@ -1513,6 +1531,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::ThoseTargets(..)
                 | Recipient::TargetAnd(..)
                 | Recipient::CreatedTokens
+                | Recipient::CreatedThem
                 | Recipient::SameTokens
         )
     }
@@ -1846,6 +1865,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.face_down {
         words.push("face-down".to_string());
     }
+    if f.status.suspected == Some(true) {
+        words.push("suspected".to_string());
+    }
     if let Some(b) = f.status.blocked {
         words.push(if b { "blocked" } else { "unblocked" }.to_string());
     }
@@ -1943,11 +1965,17 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
         if let Some((cmp, n)) = v {
-            let _ = write!(s, " with {name} {n}{}", cmp_words(cmp));
+            if f.status.spent_colors && name == "power" {
+                let _ = write!(s, " with power {}", spent_at_most(card));
+            } else {
+                let _ = write!(s, " with {name} {n}{}", cmp_words(cmp));
+            }
         }
     }
     if let Some((cmp, n)) = f.mana_value {
-        if f.status.mana_value_x {
+        if f.status.spent_colors {
+            let _ = write!(s, " with mana value {}", spent_at_most(card));
+        } else if f.status.mana_value_x {
             let _ = write!(s, " with mana value X{}", cmp_words(cmp));
         } else {
             let _ = write!(s, " with mana value {n}{}", cmp_words(cmp));
@@ -2114,13 +2142,15 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     if g.or.is_none()
         && let Some((cmp, n)) = g.mana_value.take()
     {
-        let n = if g.status.mana_value_x {
-            "X".to_string()
+        mv = if g.status.spent_colors {
+            format!(" with mana value {}", spent_at_most(card))
+        } else if g.status.mana_value_x {
+            format!(" with mana value X{}", cmp_words(cmp))
         } else {
-            n.to_string()
+            format!(" with mana value {n}{}", cmp_words(cmp))
         };
         g.status.mana_value_x = false;
-        mv = format!(" with mana value {n}{}", cmp_words(cmp));
+        g.status.spent_colors = false;
     }
     let p = if g == Filter::default() {
         String::new()
@@ -2334,6 +2364,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
         CostItem::Life,
         CostItem::ExileCards,
         CostItem::Blight,
+        CostItem::Evidence,
     ];
     let order: &[CostItem] = if cost.order.is_empty() {
         &default_order
@@ -2476,6 +2507,11 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     };
                     let exile = if b.exile { " and exile it" } else { "" };
                     parts.push(format!("{may} {what}{exile}"));
+                }
+            }
+            CostItem::Evidence => {
+                if cost.evidence > 0 {
+                    parts.push(format!("Collect evidence {}", cost.evidence));
                 }
             }
         }
@@ -3009,13 +3045,14 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "creature you attacked with this turn".to_string(),
             "creatures you attacked with this turn".to_string(),
         ),
-        CountExpr::SpentColors | CountExpr::SpentTreasure => {
-            let it = if is_instant_or_sorcery(card) {
-                "this spell"
-            } else {
-                "it"
+        CountExpr::SpentColors(_) | CountExpr::SpentTreasure => {
+            let it = match c {
+                CountExpr::SpentColors(crate::ast::SpentOf::Spell) => "this spell",
+                CountExpr::SpentColors(crate::ast::SpentOf::Creature) => "this creature",
+                _ if is_instant_or_sorcery(card) => "this spell",
+                _ => "it",
             };
-            if matches!(c, CountExpr::SpentColors) {
+            if matches!(c, CountExpr::SpentColors(_)) {
                 (
                     format!("color of mana spent to cast {it}"),
                     format!("colors of mana spent to cast {it}"),
@@ -3468,9 +3505,35 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::ManifestDread => Clause::imperative("manifest dread".to_string()),
         Effect::Blight(n) => Clause::imperative(format!("blight {n}")),
+        Effect::CollectEvidence(n) => Clause::imperative(format!("collect evidence {n}")),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
         Effect::Monstrosity(n) => Clause::imperative(format!("monstrosity {}", digits(*n))),
+        Effect::Suspect { what, on: true } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("suspect {o}"))
+        }
+        Effect::Suspect { what, on: false } => {
+            // "All suspected creatures are no longer suspected."
+            let s = if matches!(what, Recipient::Group(_)) {
+                ctx.obj_all(*what)
+            } else {
+                ctx.subj(*what)
+            };
+            Clause::with_subject(
+                *what,
+                s,
+                format!("{} no longer suspected", ctx.verb(*what, "is", "are")),
+            )
+        }
+        Effect::BlightBy { who, n } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!("{} {n}", ctx.verb(*who, "blights", "blight")),
+            )
+        }
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
         Effect::Incubate(n) => Clause::imperative(format!("incubate {}", digits(*n))),
@@ -3509,7 +3572,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let what = match (one, *it) {
                 (true, true) => "it",
                 (true, false) => "that card",
-                (false, _) => "those cards",
+                // "You may play them until the end of your next turn."
+                (false, true) => "them",
+                (false, false) => "those cards",
             };
             let body = if *until == PlayUntil::Forever {
                 // "You may play them." (no duration).
@@ -4419,9 +4484,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             )
             .until_eot()
         }
-        Effect::GainControl { of } => {
+        Effect::GainControl { of, forever } => {
             let o = ctx.obj(*of);
-            Clause::imperative(format!("gain control of {o}")).until_eot()
+            let c = Clause::imperative(format!("gain control of {o}"));
+            if *forever { c } else { c.until_eot() }
         }
         Effect::Attach { what, to } if *what != Recipient::Source => {
             let w = ctx.obj(*what);
@@ -4446,8 +4512,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Attach { to, .. } => {
             let o = ctx.obj(*to);
             // After creating a token, "it" is the token: Oracle names the
-            // source again ("attach this Equipment to it").
-            let me = if *to == Recipient::CreatedObject && !is_spell(ctx.card) {
+            // source again ("attach this Equipment to it"); likewise after
+            // manifesting dread ("... to that creature").
+            let me = if matches!(*to, Recipient::CreatedObject | Recipient::Manifested)
+                && !is_spell(ctx.card)
+            {
                 this_ref(ctx.card)
             } else {
                 ctx.source()
@@ -4947,6 +5016,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             filter,
             among_them,
             this_way,
+            returns,
         } => {
             use mtg_core::card::ChooseAct;
             let one = *count == Num::N(1) && !*up_to;
@@ -5001,6 +5071,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         "return {} at random from your graveyard to your hand",
                         cards()
                     )
+                }
+                ChooseAct::MilledToHand if *returns => {
+                    format!("return {} from among them to your hand", cards())
                 }
                 ChooseAct::MilledToHand => format!(
                     "put {} from among {} into your hand",
@@ -5804,6 +5877,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "If this spell was kicked, those creatures also gain trample".
             let cond = if kicked {
                 format!("this {} was kicked", kicked_noun(ctx.card))
+            } else if matches!(c, StaticCond::Suspected(_))
+                && !is_spell(ctx.card)
+                && !ctx.source_mentioned
+            {
+                // "If this creature is suspected, put a +1/+1 counter on
+                // it.": the source named in the condition, "it" after.
+                ctx.source_mentioned = true;
+                static_cond_text(c, ctx.card).replacen(
+                    "it's",
+                    &format!("this {} is", self_noun(ctx.card)),
+                    1,
+                )
             } else {
                 static_cond_text(c, ctx.card)
             };
@@ -5927,7 +6012,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ..f.clone()
                 }) == Filter::default()
             });
+            // Converge: "if its mana value is less than or equal to the
+            // number of colors of mana spent to cast this spell".
+            let spent_only = f.status.spent_colors
+                && (Filter {
+                    mana_value: None,
+                    power: None,
+                    types: Vec::new(),
+                    status: mtg_core::card::StatusQuals::default(),
+                    ..f.clone()
+                }) == Filter::default();
             let cond = match (check.tense, has) {
+                _ if spent_only => format!(
+                    "its {} is {}",
+                    if f.power.is_some() {
+                        "power"
+                    } else {
+                        "mana value"
+                    },
+                    spent_at_most(ctx.card)
+                ),
                 _ if damaged_only => "it was dealt damage this turn".to_string(),
                 (TargetTense::Was, _) if let Some((cmp, n)) = mana_value_only => {
                     format!("its mana value was {n}{}", cmp_words(cmp))
@@ -5987,7 +6091,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // creature instead".
             let kicked = match cond {
                 InsteadCond::Kicked => !has_gift(ctx.card),
-                InsteadCond::Static(StaticCond::Teamwork) => true,
+                InsteadCond::Static(
+                    StaticCond::Teamwork
+                    | StaticCond::AdditionalCostPaid
+                    | StaticCond::EvidenceCollected,
+                ) => true,
                 _ => false,
             };
             let cond = match cond {
@@ -6199,6 +6307,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             effects,
             trigger_first,
             this_turn,
+            it,
         } => {
             // "When target creature dies this turn, ...": a target first
             // named by the delayed trigger itself.
@@ -6220,6 +6329,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = body.trim_end_matches('.').to_string();
             let t = if let Some(named) = named {
                 named
+            } else if *it {
+                crate::format::this_turn_trigger(trigger).replacen("that creature", "it", 1)
             } else if *this_turn && !crate::format::about_that_creature(trigger) {
                 format!("{} this turn", trigger_text(trigger, ctx, true))
             } else if *this_turn {
@@ -6726,6 +6837,8 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             filter_a(f, ctx.card)
         ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
+        Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
         Trigger::EntersBatch(f) => format!(
             "whenever one or more {} enter",
             controller_first(f, filter_phrase(f, ctx.card, true))
@@ -7141,7 +7254,9 @@ fn trigger_subject(o: &TriggerObj, ctx: &mut Ctx) -> String {
                 .strip_prefix("an ")
                 .or_else(|| p.strip_prefix("a "))
                 .unwrap_or(&p);
-            format!("this {} or another {p}", self_noun(ctx.card))
+            // "Whenever High Perfect Morcant or another Elf you control
+            // enters": a legendary source by name (CR 201.5).
+            format!("{} or another {p}", this_ref(ctx.card))
         }
     }
 }
@@ -7666,10 +7781,16 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             let count = &ctx.card.counts[usize::from(*i)];
             let this = capitalize(&this_ref(ctx.card));
             if count.style == crate::ast::CountStyle::Each {
+                // "enters with two +1/+1 counters on it for each color of
+                // mana spent to cast it".
+                let (n, expr) = match &count.expr {
+                    crate::ast::CountExpr::Times(n, inner) => (*n, &**inner),
+                    e => (1, e),
+                };
                 format!(
                     "{this} enters with {} on it {}.",
-                    counters(Num::N(1), *kind),
-                    count_phrase(&count.expr, ctx.card, true)
+                    counters(Num::N(n), *kind),
+                    count_phrase(expr, ctx.card, true)
                 )
             } else {
                 format!(
@@ -8646,6 +8767,8 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 _ => "its",
             }
         ),
+        StaticCond::EvidenceCollected => "evidence was collected".to_string(),
+        StaticCond::AdditionalCostPaid => "this spell's additional cost was paid".to_string(),
         StaticCond::ManaSpent {
             kind: mtg_core::card::SpentKind::Total,
             at_least,
@@ -8737,6 +8860,8 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Enchanted => "it's enchanted".to_string(),
         StaticCond::Equipped => "it's equipped".to_string(),
         StaticCond::Monstrous => "it's monstrous".to_string(),
+        StaticCond::Suspected(true) => "it's suspected".to_string(),
+        StaticCond::Suspected(false) => "it's not suspected".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("an opponent has {n} or less life"),
         StaticCond::MoreLifeThanOpponent => "you have more life than an opponent".to_string(),
         StaticCond::BasicLandTypes(n) => format!(
@@ -9047,6 +9172,7 @@ fn about_source(c: &StaticCond) -> bool {
             | StaticCond::Enchanted
             | StaticCond::Equipped
             | StaticCond::Monstrous
+            | StaticCond::Suspected(_)
             | StaticCond::Is(_)
             | StaticCond::Modified
             | StaticCond::AttackingAlone
@@ -9740,6 +9866,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             crate::ast::Mechanic::Embalm(c) => format!("Embalm {c}"),
             crate::ast::Mechanic::Encore(c) => format!("Encore {c}"),
+            crate::ast::Mechanic::Craft(f, c) => {
+                format!("Craft with {} {c}", filter_phrase(f, card, false))
+            }
             crate::ast::Mechanic::Eternalize(c) => format!("Eternalize {c}"),
             crate::ast::Mechanic::Backup(n) => format!("Backup {n}"),
             crate::ast::Mechanic::Offspring(c) => format!("Offspring {c}"),
@@ -10013,10 +10142,22 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let cost_line = |a: &Ability| {
         matches!(a, Ability::TargetCost { .. } | Ability::CondCost { .. }) || bargain(a) || gift(a)
     };
+    // "This spell costs {2} less to cast if evidence was collected." ends
+    // the optional additional cost's paragraph.
+    let after_optional = |a: &Ability| {
+        card.optional_cost.is_some()
+            && matches!(
+                a,
+                Ability::CondCost {
+                    cond: StaticCond::EvidenceCollected | StaticCond::AdditionalCostPaid,
+                    ..
+                }
+            )
+    };
     for a in card
         .abilities
         .iter()
-        .filter(|a| cost_line(a) && !bargain(a) && !gift(a))
+        .filter(|a| cost_line(a) && !bargain(a) && !gift(a) && !after_optional(a))
     {
         lines.push(ability_text(card, a, lookup));
     }
@@ -10046,6 +10187,18 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             None => c,
         };
         lines.push(format!("As an additional cost to cast this spell, {c}."));
+    }
+    // "As an additional cost to cast this spell, you may collect evidence
+    // 6." (CR 601.2b).
+    if let Some(cost) = &card.optional_cost {
+        let mut ctx = Ctx::new(card, lookup, &[]);
+        let c = additional_text(cost, &mut ctx);
+        let mut line = format!("As an additional cost to cast this spell, you may {c}.");
+        for a in card.abilities.iter().filter(|a| after_optional(a)) {
+            line.push(' ');
+            line.push_str(&ability_text(card, a, lookup));
+        }
+        lines.push(line);
     }
     // An alternative cost prints before keywords ("You may pay {1}{W} and
     // exile a creature card from your graveyard rather than pay this

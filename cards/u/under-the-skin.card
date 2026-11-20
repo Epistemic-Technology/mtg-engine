@@ -1,0 +1,9 @@
+card "Under the Skin" {
+  oracle_id 8e121178-e9e3-43a5-a174-ecbe47d759f9
+  cost {2}{G}
+  type Sorcery
+  spell {
+    manifest dread
+    you may return 1 permanent card from your graveyard to hand chosen
+  }
+}

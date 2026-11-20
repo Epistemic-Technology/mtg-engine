@@ -1,0 +1,6 @@
+card "Snarl Song" {
+  oracle_id 3b6fb13b-f126-4697-90a1-64b14ffcecd6
+  cost {5}{G}
+  type Sorcery
+  label "Converge" spell: create 2 "0/0 green and blue Fractal creature"; put count where colors spent +1/+1 counters on each of them and you gain count where colors spent life
+}

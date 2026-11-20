@@ -1,0 +1,6 @@
+card "Sweep the Skies" {
+  oracle_id 7596fe49-c9cf-4415-ac1b-156cbbf9604e
+  cost {X}{U}{U}
+  type Sorcery
+  label "Converge" spell: create count each colors spent "1/1 colorless Thopter artifact creature with flying"
+}

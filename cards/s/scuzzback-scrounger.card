@@ -1,0 +1,7 @@
+card "Scuzzback Scrounger" {
+  oracle_id af38d683-77a3-4599-ad2a-1c293ae01d45
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 3/2
+  triggered at beginning of your first main: you may blight 1; if you do, create 1 "Treasure"
+}

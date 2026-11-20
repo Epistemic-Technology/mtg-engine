@@ -1,0 +1,8 @@
+card "Conductive Machete" {
+  oracle_id 513dbf8a-a250-4fd9-a5ae-2fb9c4810ecc
+  cost {4}
+  type Artifact — Equipment
+  triggered when this enters: manifest dread, then attach to manifested creature
+  static equipped: +2/+1
+  equip {4}
+}

@@ -1,0 +1,7 @@
+card "Cinder Strike" {
+  oracle_id 54421e69-d79e-4c2e-8ce6-96994d168835
+  cost {R}
+  type Sorcery
+  additional cost may blight 1
+  spell: deal 2 damage to target creature; deal 4 damage to that target 1 instead if additional cost paid
+}

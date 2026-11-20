@@ -1,0 +1,7 @@
+card "Repeat Offender" {
+  oracle_id 4d1885d1-212e-47ae-865f-e6dc4148ddf2
+  cost {1}{B}
+  type Creature — Human Assassin
+  pt 2/1
+  activated {2}{B}: if suspected, put 1 +1/+1 counter on this; otherwise, suspect this
+}

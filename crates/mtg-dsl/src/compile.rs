@@ -732,6 +732,9 @@ impl Compiler<'_> {
             // other of two costs being nothing (CR 601.2b).
             b = b.additional_or(CoreCost::default());
         }
+        if let Some(cost) = &card.optional_cost {
+            b = b.optional_cost(self.cost(cost));
+        }
         if let Some(a) = &card.alt_cost {
             if a.cost.conditions.len() > 1 || a.cost.tap || a.cost.discard > 0 {
                 return self.err("an alternative cost is mana and one kind of permanent");
@@ -1239,6 +1242,7 @@ impl Compiler<'_> {
             StaticCond::Enchanted => StaticCondition::SourceEnchanted,
             StaticCond::Equipped => StaticCondition::SourceEquipped,
             StaticCond::Monstrous => StaticCondition::SourceMonstrous,
+            StaticCond::Suspected(b) => StaticCondition::SourceSuspected(*b),
             StaticCond::OpponentLifeAtMost(n) => StaticCondition::OpponentLifeAtMost(*n),
             StaticCond::MoreLifeThanOpponent => StaticCondition::MoreLifeThanOpponent,
             StaticCond::BasicLandTypes(n) => StaticCondition::BasicLandTypes(*n),
@@ -1315,6 +1319,9 @@ impl Compiler<'_> {
             StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
             StaticCond::NotKicked => StaticCondition::NotKicked,
             StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
+            StaticCond::EvidenceCollected | StaticCond::AdditionalCostPaid => {
+                StaticCondition::OptionalCostPaid
+            }
             StaticCond::Saddled => StaticCondition::Saddled,
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
             StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
@@ -1455,7 +1462,7 @@ impl Compiler<'_> {
             A::TargetManaValue { n, .. } => C::TargetManaValue(*n),
             A::CardManaValue => C::CardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
-            A::SpentColors => C::SpentColors,
+            A::SpentColors(_) => C::SpentColors,
             A::SpentTreasure => C::SpentTreasure,
             A::CardsInOpponentsGraveyards(f) => {
                 C::CardsInOpponentsGraveyards(f.as_ref().map(|f| self.filter(f)))
@@ -1533,6 +1540,7 @@ impl Compiler<'_> {
 
     fn cost(&mut self, c: &Cost) -> CoreCost {
         CoreCost {
+            craft: None,
             mana: c.mana.clone(),
             discard_self: c.discard_self,
             exile_self: c.exile_self,
@@ -1542,6 +1550,7 @@ impl Compiler<'_> {
             put_counters: c.put_counters,
             energy: c.energy,
             blight: c.blight,
+            evidence: c.evidence,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -1625,8 +1634,8 @@ impl Compiler<'_> {
             Recipient::SameObject | Recipient::SameThat | Recipient::SameTokens => {
                 CoreRecipient::SameObject
             }
-            Recipient::CreatedTokens => CoreRecipient::CreatedTokens,
-            Recipient::CreatedObject => CoreRecipient::CreatedObject,
+            Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
+            Recipient::Manifested | Recipient::CreatedObject => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
@@ -1646,7 +1655,27 @@ impl Compiler<'_> {
                     return self.err("an `instead` sentence needs a sentence before it");
                 };
                 let base = out.split_off(start);
-                let alt = self.sentences(&same_damage_recipients(effects, before))?;
+                let mut alt = self.sentences(&same_damage_recipients(effects, before))?;
+                // "... becomes an artifact creature with base power and
+                // toughness 4/3. If evidence was collected, it has base
+                // power and toughness 1/1 until end of turn instead.": the
+                // later text modifies only the P/T of the earlier
+                // instruction (CR 608.2c), so it still becomes one.
+                if let (
+                    [CoreEffect::Animate { pt: Some(_), .. }],
+                    [
+                        CoreEffect::SetBasePt {
+                            power, toughness, ..
+                        },
+                    ],
+                ) = (base.as_slice(), alt.as_slice())
+                {
+                    let mut modified = base[0].clone();
+                    if let CoreEffect::Animate { pt, .. } = &mut modified {
+                        *pt = Some((*power, *toughness));
+                    }
+                    alt = vec![modified];
+                }
                 let cond = match cond {
                     InsteadCond::Kicked => EffectCond::Kicked,
                     InsteadCond::Static(c) => {
@@ -1889,7 +1918,10 @@ impl Compiler<'_> {
                 keywords: KeywordSet::of(keywords.iter().copied()),
                 to: r(*to),
             }),
-            Effect::GainControl { of } => out.push(CoreEffect::GainControl { of: r(*of) }),
+            Effect::GainControl { of, forever } => out.push(CoreEffect::GainControl {
+                of: r(*of),
+                forever: *forever,
+            }),
             Effect::Attach { what, to } => out.push(CoreEffect::Attach {
                 what: r(*what),
                 to: r(*to),
@@ -2458,9 +2490,18 @@ impl Compiler<'_> {
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::ManifestDread => out.push(CoreEffect::ManifestDread),
             Effect::Blight(n) => out.push(CoreEffect::Blight(*n)),
+            Effect::CollectEvidence(n) => out.push(CoreEffect::CollectEvidence(*n)),
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
             Effect::Bolster(n) => out.push(CoreEffect::Bolster(*n)),
             Effect::Monstrosity(n) => out.push(CoreEffect::Monstrosity(*n)),
+            Effect::Suspect { what, on } => out.push(CoreEffect::Suspect {
+                what: r(*what),
+                on: *on,
+            }),
+            Effect::BlightBy { who, n } => out.push(CoreEffect::BlightBy {
+                who: r(*who),
+                n: *n,
+            }),
             Effect::Populate => out.push(CoreEffect::Populate),
             // CR 701.41a: one counter on each target.
             Effect::Support(to) => {
@@ -2876,6 +2917,13 @@ impl Compiler<'_> {
             Trigger::PutIntoGraveyard(f) => TriggerSpec::PutIntoGraveyard(self.filter(f)),
             Trigger::EntersFromGraveyard(f) => TriggerSpec::EntersFromGraveyard(self.filter(f)),
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
+            Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
+            Trigger::YouTurnFaceUp => TriggerSpec::TurnedFaceUp(self.trigger_obj(
+                &crate::ast::TriggerObj::Filter(Filter {
+                    who: Some(Who::You),
+                    ..Filter::default()
+                }),
+            )),
             Trigger::Or { first, second, .. } => {
                 TriggerSpec::Either(Box::new((self.trigger(first), self.trigger(second))))
             }
@@ -3639,6 +3687,33 @@ impl Compiler<'_> {
                         text: render::ability_text(self.card, a, self.lookup),
                     })
                 }
+                // CR 702.167a: "[Cost], Exile this artifact, Exile [the
+                // materials] from among permanents you control and/or cards
+                // in your graveyard: Return this card transformed under its
+                // owner's control. Craft only as a sorcery."
+                Mechanic::Craft(f, cost) => {
+                    let f = self.filter(f);
+                    AbilityDef::Activated(ActivatedAbility {
+                        cost: CoreCost {
+                            mana: cost.clone(),
+                            exile_this: true,
+                            craft: Some(Box::new(f)),
+                            ..CoreCost::default()
+                        },
+                        targets: Vec::new(),
+                        effects: vec![CoreEffect::ReturnTransformed],
+                        sorcery_speed: true,
+                        per_turn: 0,
+                        conditions: Vec::new(),
+                        once_ever: false,
+                        from_hand: false,
+                        cycling: false,
+                        from_graveyard: false,
+                        keyword: None,
+                        reduction: None,
+                        text: render::ability_text(self.card, a, self.lookup),
+                    })
+                }
                 Mechanic::Saddle(n) => AbilityDef::Activated(ActivatedAbility {
                     cost: CoreCost {
                         crew: *n,
@@ -4310,6 +4385,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         }),
                         trigger_first: false,
                         this_turn: false,
+                        it: false,
                     },
                 ],
                 label: None,
@@ -4396,6 +4472,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::SpliceCost(_)
         | Mechanic::Embalm(_)
         | Mechanic::Encore(_)
+        | Mechanic::Craft(..)
         | Mechanic::Eternalize(_)
         | Mechanic::Backup(_)
         | Mechanic::Offspring(_)

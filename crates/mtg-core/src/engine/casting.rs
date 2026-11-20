@@ -1847,6 +1847,50 @@ impl GameState {
         }
     }
 
+    /// Collect evidence `n` (CR 701.59a): exile cards from `p`'s graveyard
+    /// (other than `except`) with total mana value `n` or greater, the
+    /// engine picking them: the greatest mana values first, then dropping
+    /// the smallest picks the total doesn't need. Sparing what the spell or
+    /// ability being paid for targets. Whether it was done.
+    pub(super) fn collect_evidence(&mut self, p: PlayerId, n: u32, except: ObjId) -> bool {
+        if !self.evidence_payable(p, n, except) {
+            return false;
+        }
+        let mut cands = self.evidence_cards(p, except);
+        let targeted = |s: &GameState, id: ObjId| {
+            s.stack
+                .last()
+                .and_then(|t| s.objects.get(*t))
+                .is_some_and(|top| top.targets.contains(&Target::Object(id)))
+        };
+        cands.sort_by_key(|(id, mv)| (targeted(self, *id), std::cmp::Reverse(*mv)));
+        let mut picks: Vec<(ObjId, u32)> = Vec::new();
+        let mut total = 0;
+        for c in cands {
+            if total >= n {
+                break;
+            }
+            total += c.1;
+            picks.push(c);
+        }
+        // Drop picks the total doesn't need, smallest first.
+        picks.sort_by_key(|(_, mv)| *mv);
+        let mut i = 0;
+        while i < picks.len() {
+            if total - picks[i].1 >= n {
+                total -= picks[i].1;
+                picks.remove(i);
+            } else {
+                i += 1;
+            }
+        }
+        for (id, _) in picks {
+            self.move_object(id, Zone::Exile, true);
+        }
+        self.emit(Event::CollectedEvidence { player: p });
+        true
+    }
+
     /// The creature a blight cost puts its counters on (CR 701.68a): the
     /// engine picks the toughest creature `p` controls.
     fn blight_pick(&self, p: PlayerId) -> Option<ObjId> {
@@ -2279,8 +2323,8 @@ impl GameState {
         {
             return false;
         }
-        // CR 701.68b.
-        !(add.blight > 0 && self.creatures_of(p).next().is_none())
+        // CR 701.68b, 701.59b.
+        self.other_costs_payable(p, add, spell)
     }
 
     /// What `p` could behold for `b` (CR 701.69a): matching permanents
@@ -3283,8 +3327,9 @@ impl GameState {
                 if ab.cost.energy > self.player(p).energy {
                     continue;
                 }
-                // CR 701.68b: blighting needs a creature to put counters on.
-                if ab.cost.blight > 0 && self.creatures_of(p).next().is_none() {
+                // CR 701.68b: blighting needs a creature to put counters
+                // on; CR 701.59b: collecting evidence, enough mana value.
+                if !self.other_costs_payable(p, &ab.cost, id) {
                     continue;
                 }
                 if ab.cost.life > 0
@@ -4608,6 +4653,7 @@ impl GameState {
     /// The non-mana parts of a cost (CR 118.3): life, a sacrifice ("~" is
     /// `this`), a discard. The choices were made as the spell or ability was
     /// announced.
+    #[allow(clippy::too_many_lines)] // one block per cost part
     fn pay_other_costs(
         &mut self,
         p: PlayerId,
@@ -4640,6 +4686,15 @@ impl GameState {
             && let Some(c) = self.blight_pick(p)
         {
             self.add_counters(c, CounterKind::MinusOneMinusOne, cost.blight);
+        }
+        if cost.evidence > 0 {
+            self.collect_evidence(p, cost.evidence, this);
+        }
+        // CR 702.167a: craft's materials, a graveyard card first.
+        if let Some(f) = cost.craft.as_deref()
+            && let Some(m) = self.craft_candidates(p, f, this).first().copied()
+        {
+            self.move_object(m, Zone::Exile, true);
         }
         // CR 606.4: loyalty costs are counters put on or removed from the
         // planeswalker.
@@ -5308,6 +5363,18 @@ impl GameState {
                 }
             } else {
                 self.objects[spell].cast.set_teamwork(false);
+            }
+        }
+        // The optional additional cost ("you may collect evidence 6", "you
+        // may blight 1"), paid with the others.
+        if self.objects[spell].cast.optional_paid()
+            && let Some(c) = def.optional_cost.as_deref()
+        {
+            if self.other_costs_payable(caster, c, spell) {
+                let c = c.clone();
+                self.pay_other_costs(caster, &c, spell, None, None);
+            } else {
+                self.objects[spell].cast.set_optional_paid(false);
             }
         }
         // CR 702.78a: conspire taps two creatures with the costs.
@@ -7558,13 +7625,19 @@ impl GameState {
                     }
                 }
             }
-            Effect::GainControl { of } => {
+            Effect::GainControl { of, forever } => {
+                let duration = if *forever {
+                    Duration::Permanent
+                } else {
+                    Duration::UntilEndOfTurn
+                };
                 for t in self.recipients(ctx, *of) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.effect_until_end_of_turn(
+                        self.effect_on(
                             ctx,
                             id,
                             smallvec::smallvec![Modification::Control],
+                            duration,
                         );
                         self.control_effects += 1;
                     }
@@ -9473,6 +9546,36 @@ impl GameState {
                     }
                 }
             }
+            Effect::Suspect { what, on } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        // CR 701.60b: a permanent already suspected can't
+                        // become suspected again; nothing changes.
+                        if *on {
+                            self.objects[id].marks |= crate::state::OBJ_SUSPECTED;
+                        } else {
+                            self.objects[id].marks &= !crate::state::OBJ_SUSPECTED;
+                        }
+                    }
+                }
+                self.cbump();
+            }
+            Effect::BlightBy { who, n } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else { continue };
+                    let options: Vec<Choice> = self
+                        .creatures_of(p)
+                        .map(|id| Choice::Target(Target::Object(id)))
+                        .collect();
+                    if options.is_empty() {
+                        continue;
+                    }
+                    let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+                    if let Choice::Target(Target::Object(id)) = options[k] {
+                        self.add_counters(id, CounterKind::MinusOneMinusOne, *n);
+                    }
+                }
+            }
             Effect::Monstrosity(n) => {
                 // CR 701.37a: only a permanent that isn't monstrous; one
                 // that has left the battlefield does nothing.
@@ -9678,6 +9781,27 @@ impl GameState {
                     let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
                     if let Choice::Target(Target::Object(id)) = options[k] {
                         self.add_counters(id, CounterKind::MinusOneMinusOne, *n);
+                    }
+                }
+            }
+            Effect::CollectEvidence(n) => {
+                ctx.did = self.collect_evidence(ctx.controller, *n, ctx.source);
+            }
+            Effect::ReturnTransformed => {
+                // CR 702.167a, 712.14: the card exiled to pay the cost
+                // returns with its back face up, under its owner's control.
+                if let Some(id) = self.current_object(ctx.source)
+                    && self.objects[id].zone == Zone::Exile
+                {
+                    let card = self.objects[id].card;
+                    let d = self.pool.get(card);
+                    if d.layout == Layout::Transform
+                        && let Some(back) = d.faces.first().copied()
+                    {
+                        let owner = self.objects[id].owner;
+                        self.objects[id].def = back;
+                        let new = self.put_onto_battlefield(id, owner);
+                        ctx.created = Some(new);
                     }
                 }
             }
@@ -10095,6 +10219,17 @@ impl GameState {
     /// `n`th target matches, judged as it last existed if it has left
     /// (CR 608.2h).
     fn nth_target_matches(&self, ctx: &EffectCtx, n: u8, filter: &crate::card::ObjFilter) -> bool {
+        // Converge: "if its mana value is less than or equal to the number
+        // of colors of mana spent to cast this spell".
+        let filled;
+        let filter = if filter.status.spent_colors {
+            let mut g = filter.clone();
+            GameState::fill_spent_colors(&mut g, self.spent_on(ctx.source).colors());
+            filled = g;
+            &filled
+        } else {
+            filter
+        };
         let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
             return false;
         };
@@ -10147,7 +10282,8 @@ impl GameState {
         }) && (!(filter.attacking
             || filter.blocking
             || filter.tapped.is_some()
-            || filter.status.counter.is_some())
+            || filter.status.counter.is_some()
+            || filter.status.suspected.is_some())
             // "If that creature is attacking", "If that creature has a
             // +1/+1 counter on it": its state while it is still on the
             // battlefield.
