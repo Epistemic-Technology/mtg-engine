@@ -1,0 +1,9 @@
+card "Coordinated Maneuver" {
+  oracle_id 6ff39311-565e-4414-b32b-eb24c70b3090
+  cost {1}{W}
+  type Instant
+  choose one {
+    mode: deal damage equal creature you control to target creature or planeswalker
+    mode: destroy target enchantment
+  }
+}

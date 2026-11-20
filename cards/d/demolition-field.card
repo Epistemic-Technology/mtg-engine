@@ -1,0 +1,6 @@
+card "Demolition Field" {
+  oracle_id 93953926-a644-49bb-9b5a-4c8f19114c7e
+  type Land
+  mana {C}
+  activated {2}, {T}, sacrifice this: destroy target nonbasic land an opponent controls; controller of that target 1 may search basic land card to battlefield; you may search basic land card to battlefield
+}

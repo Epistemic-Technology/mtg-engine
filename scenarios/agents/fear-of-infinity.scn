@@ -1,0 +1,33 @@
+scenario "fear of infinity returns from graveyard when an enchantment enters" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Pacifism"
+  graveyard A: "Fear of Infinity"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pacifism" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand A contains "Fear of Infinity"
+  assert graveyard A lacks "Fear of Infinity"
+}
+
+scenario "fear of infinity stays when declined" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Pacifism"
+  graveyard A: "Fear of Infinity"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pacifism" targeting "Grizzly Bears"
+  turn 1 A: decline "Fear of Infinity"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Fear of Infinity"
+}
+
+scenario "fear of infinity can't block" {
+  battlefield A: "Fear of Infinity"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Fear of Infinity"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}

@@ -1,0 +1,9 @@
+card "Doctor Doom" {
+  oracle_id 9e4fa592-71f8-4c71-8c91-78e6326cd736
+  cost {4}{B}{B}
+  type Legendary Creature — Human Scientist Villain
+  pt 3/3
+  triggered when this enters: create 2 "Doombot"
+  static as long as you control artifact creature or a Plan, this: has indestructible
+  triggered at beginning of your end step: you draw 1 card and lose 1 life
+}

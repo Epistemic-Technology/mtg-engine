@@ -1,0 +1,7 @@
+card "Avengers Tower" {
+  oracle_id c5fc8e7c-a87e-4586-a13c-d30e0a3aafbf
+  type Land
+  mana {C}
+  mana any only to cast Hero spell or to activate of Hero
+  activated {4}, {T}: dig 3 take Hero card may revealing rest bottom
+}

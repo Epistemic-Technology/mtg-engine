@@ -1,0 +1,6 @@
+card "Calamitous Cave-In" {
+  oracle_id 558135b3-babc-40b6-9d9d-57ab0965ee3d
+  cost {3}{R}
+  type Sorcery
+  spell: deal count where Cave you control plus graveyard Cave damage to each creature and each planeswalker
+}

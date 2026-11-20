@@ -1,0 +1,22 @@
+scenario "raging battle mouse discounts the second spell and celebrates" {
+  battlefield A: "Raging Battle Mouse", 3 "Forest"
+  hand A: "Grizzly Bears", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 begin_combat A: trigger "Raging Battle Mouse" targeting "Raging Battle Mouse"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert power "Raging Battle Mouse" 3
+  assert toughness "Raging Battle Mouse" 2
+}
+
+scenario "raging battle mouse: first spell full price, no celebration after one permanent" {
+  battlefield A: "Raging Battle Mouse", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power "Raging Battle Mouse" 2
+}

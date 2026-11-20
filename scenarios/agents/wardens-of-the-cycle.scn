@@ -1,0 +1,17 @@
+scenario "Wardens of the Cycle gains life at end step after a creature died" {
+  battlefield A: "Wardens of the Cycle", 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert life A 22
+}
+
+scenario "Wardens of the Cycle does nothing if no creature died" {
+  battlefield A: "Wardens of the Cycle"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert life A 20
+  assert hand A count 0
+}

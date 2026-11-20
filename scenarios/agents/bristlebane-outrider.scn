@@ -1,0 +1,22 @@
+scenario "bristlebane outrider can't be blocked by power 2 or less" {
+  battlefield A: "Bristlebane Outrider"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Bristlebane Outrider"
+  illegal turn 1 B: block "Bristlebane Outrider" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "bristlebane outrider gets +2/+0 after another creature entered" {
+  battlefield A: "Bristlebane Outrider", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: attack "Bristlebane Outrider"
+  turn 1 B: block "Bristlebane Outrider" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Bristlebane Outrider" 5
+  assert graveyard B contains "Hill Giant"
+}

@@ -1,0 +1,19 @@
+scenario "scalestorm summoner makes a dinosaur with a 4-power creature" {
+  battlefield A: "Scalestorm Summoner", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Scalestorm Summoner"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Dinosaur"
+  assert power "Dinosaur" 3
+  assert toughness "Dinosaur" 1
+  assert life B 17
+}
+
+scenario "scalestorm summoner makes nothing without a 4-power creature" {
+  battlefield A: "Scalestorm Summoner", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Scalestorm Summoner"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Dinosaur"
+  assert life B 17
+}

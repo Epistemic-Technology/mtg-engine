@@ -1,0 +1,6 @@
+card "Rabid Attack" {
+  oracle_id 4db02b34-efec-437c-ab28-aa318b8879ad
+  cost {1}{B}
+  type Instant
+  spell: until end of turn, any number of target creature you control each gets +1/+0 and gains ability { triggered when this dies: draw 1 card }
+}

@@ -1,0 +1,35 @@
+scenario "Krenko sacrifices an artifact, pays R for a hasty Goblin, then pumps Goblins" {
+  battlefield A: "Krenko, Baron of Tin Street", "Ornithopter", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Krenko, Baron of Tin Street" sacrificing "Ornithopter"
+  turn 1 A: attack "Goblin"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert counters "Krenko, Baron of Tin Street" +1/+1 1
+  assert counters "Goblin" +1/+1 1
+  assert tapped "Mountain"
+  assert life B 18
+}
+
+scenario "Krenko's trigger sees an opponent's artifact die" {
+  battlefield A: "Krenko, Baron of Tin Street", 2 "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert battlefield A contains "Goblin"
+}
+
+scenario "Krenko's trigger: declining to pay makes no Goblin" {
+  battlefield A: "Krenko, Baron of Tin Street", 2 "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Ornithopter"
+  turn 1 A: decline "Krenko, Baron of Tin Street"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Goblin"
+  assert untapped newest A "Mountain"
+}

@@ -1,0 +1,26 @@
+scenario "old hob makes a hasty mutant that is destroyed at end step" {
+  battlefield A: "Old Hob, Alleycat Blues"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Mutant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Mutant"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Mutant"
+}
+
+scenario "old hob makes an attacking token indestructible so it survives" {
+  battlefield A: "Old Hob, Alleycat Blues", "Plains", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Mutant"
+  turn 1 declare_attackers A: activate "Old Hob, Alleycat Blues" targeting "Mutant"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Mutant"
+}
+
+scenario "old hob can't target a nonattacking token" {
+  battlefield A: "Old Hob, Alleycat Blues", "Plains", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 begin_combat A: activate "Old Hob, Alleycat Blues" targeting "Mutant"
+  run_to turn 1 end
+}

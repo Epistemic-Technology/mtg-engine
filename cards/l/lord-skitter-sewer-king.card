@@ -1,0 +1,8 @@
+card "Lord Skitter, Sewer King" {
+  oracle_id f5bed085-bb7a-4250-9599-b2a8a95e6b6f
+  cost {2}{B}
+  type Legendary Creature — Rat Noble
+  pt 3/3
+  triggered whenever other Rat you control enters: exile up to 1 target card from an opponent's graveyard
+  triggered at beginning of your combat: create 1 "1/1 black Rat creature that can't block"
+}

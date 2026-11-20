@@ -1,0 +1,25 @@
+scenario "vraska makes a sculpture treasure on a noncreature spell" {
+  battlefield A: "Vraska, Soul of Stone", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 18
+  assert battlefield A contains 1 "Sculpture Treasure"
+  assert is "Sculpture Treasure" creature
+  assert has "Sculpture Treasure" vigilance
+}
+
+scenario "vraska ignores creature spells; sculpture treasure taps for mana next turn" {
+  battlefield A: "Vraska, Soul of Stone", "Mountain", "Forest"
+  hand A: "Shock", "Grizzly Bears", "Hill Giant"
+  library A: "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 3 A: play "Plains"
+  turn 3 A: cast "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A lacks "Sculpture Treasure"
+  assert battlefield A contains "Vraska, Soul of Stone"
+}

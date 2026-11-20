@@ -1,0 +1,25 @@
+scenario "Jump Scare pumps, grants flying, and adds Horror enchantment" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Jump Scare"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jump Scare" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+  assert is "Grizzly Bears" enchantment
+  assert is "Grizzly Bears" creature
+  assert is "Grizzly Bears" Horror
+  assert is "Grizzly Bears" Bear
+}
+
+scenario "Jump Scare wears off at end of turn" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Jump Scare"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jump Scare" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" flying
+  assert is not "Grizzly Bears" enchantment
+}

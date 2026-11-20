@@ -1,0 +1,8 @@
+card "Manifold Mouse" {
+  oracle_id b254ca74-2a96-4590-91bc-650f407daf5d
+  cost {1}{R}
+  type Creature — Mouse Soldier
+  pt 1/2
+  offspring {2}
+  triggered at beginning of your combat step: target Mouse you control gains choice of double strike or trample
+}

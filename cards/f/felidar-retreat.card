@@ -1,0 +1,9 @@
+card "Felidar Retreat" {
+  oracle_id 16629f59-bae8-4c19-bf50-443eb0ed6856
+  cost {3}{W}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: choose one {
+    mode: create 1 "2/2 white Cat Beast creature"
+    mode: put 1 +1/+1 counter on each creature you control; those creatures gain vigilance
+  }
+}

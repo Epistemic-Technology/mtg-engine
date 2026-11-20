@@ -1,0 +1,8 @@
+card "Dwarven Mattock" {
+  oracle_id f75bb13b-41fc-4614-b35e-f456069ce9c6
+  cost {2}
+  type Artifact — Equipment
+  triggered when this enters: attach to target Dwarf you control
+  static enchanted: +2/+2, has ward {1}
+  equip {3}
+}

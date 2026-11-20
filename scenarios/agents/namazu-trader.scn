@@ -1,0 +1,28 @@
+scenario "Namazu Trader costs a life and makes a Treasure" {
+  battlefield A: 3 "Swamp", "Plains"
+  hand A: "Namazu Trader"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Namazu Trader"
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert battlefield A contains 1 "Treasure"
+}
+
+scenario "Namazu Trader sacrifices another creature to surveil 2 when it attacks" {
+  battlefield A: "Namazu Trader", "Grizzly Bears"
+  library A: "Plains", "Island", "Swamp", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Namazu Trader"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "Namazu Trader may decline the sacrifice" {
+  battlefield A: "Namazu Trader", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Namazu Trader"
+  turn 1 declare_attackers A: decline "Namazu Trader"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}

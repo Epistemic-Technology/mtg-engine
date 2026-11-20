@@ -1,0 +1,7 @@
+card "We Say Thee Nay!" {
+  oracle_id 1abe8246-d2f9-407b-8c16-83da0a6b7de3
+  cost {1}{U}
+  type Instant — Arcane
+  teamwork 2
+  spell: counter target spell unless its controller pays {2}; counter that target 1 unless its controller pays {4} instead if teamwork
+}

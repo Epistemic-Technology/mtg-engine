@@ -1,0 +1,20 @@
+scenario "Phantom Train sacrifices a creature, becomes a Spirit creature, and attacks" {
+  battlefield A: "Phantom Train", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Phantom Train" sacrificing "Grizzly Bears"
+  turn 1 A: attack "Phantom Train"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Phantom Train" +1/+1 1
+  assert is "Phantom Train" creature
+  assert is "Phantom Train" Spirit
+  assert life B 15
+  run_to turn 2 upkeep
+  assert is not "Phantom Train" creature
+}
+
+scenario "Phantom Train can't sacrifice itself" {
+  battlefield A: "Phantom Train"
+  illegal turn 1 A: activate "Phantom Train" sacrificing "Phantom Train"
+  run_to turn 1 postcombat_main
+}

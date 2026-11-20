@@ -1,0 +1,8 @@
+card "Skullsnap Nuisance" {
+  oracle_id 99348e1d-e95e-4911-aae0-8fd1a7345a82
+  cost {U}{B}
+  type Creature — Insect Skeleton
+  pt 1/4
+  keywords flying
+  label "Eerie" triggered whenever enchantment you control enters and whenever you fully unlock a Room: surveil 1
+}

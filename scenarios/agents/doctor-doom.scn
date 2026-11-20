@@ -1,0 +1,20 @@
+scenario "Doctor Doom makes two Doombots and is indestructible with them" {
+  battlefield A: 6 "Swamp"
+  hand A: "Doctor Doom"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doctor Doom"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Doombot"
+  assert has "Doctor Doom" indestructible
+  run_to turn 2 untap
+  assert life A 19
+  assert hand A count 1
+}
+
+scenario "Doctor Doom without an artifact creature is not indestructible" {
+  battlefield A: "Doctor Doom"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has not "Doctor Doom" indestructible
+}

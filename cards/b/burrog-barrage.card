@@ -1,0 +1,6 @@
+card "Burrog Barrage" {
+  oracle_id c47caa45-e7fc-414a-8a5d-59b58f1751f3
+  cost {1}{G}
+  type Instant
+  spell: target creature you control gets +1/+0 if cast another instant or sorcery spell this turn; then target 1 bites up to 1 target creature an opponent controls
+}

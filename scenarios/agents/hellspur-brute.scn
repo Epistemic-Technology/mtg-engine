@@ -1,0 +1,17 @@
+scenario "hellspur brute: two outlaws make it cost {2}{R}" {
+  battlefield A: "Agent of Kotis", "Angrath's Marauders", 3 "Mountain"
+  hand A: "Hellspur Brute"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hellspur Brute"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hellspur Brute"
+}
+
+scenario "hellspur brute: non-outlaws don't reduce it" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Mountain"
+  hand A: "Hellspur Brute"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Hellspur Brute"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hellspur Brute"
+}

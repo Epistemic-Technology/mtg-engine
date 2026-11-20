@@ -1,0 +1,10 @@
+card "Hazoret, Godseeker" {
+  oracle_id 6c5d8599-75ca-4479-a02b-1b257b7aea57
+    cost {1}{R}
+  type Legendary Creature — God
+  pt 5/3
+  keywords indestructible, haste
+  start your engines
+  activated {1}, {T}: target creature with power 2 or less can't be blocked
+  can't attack or block unless max speed
+}

@@ -1,0 +1,7 @@
+card "Group Project" {
+  oracle_id e1ce210e-2d1d-4ab4-bfb7-8e36884797fc
+  cost {1}{W}
+  type Sorcery
+  flashback tap 3 untapped creature you control
+  spell: create 1 "2/2 red and white Spirit creature"
+}

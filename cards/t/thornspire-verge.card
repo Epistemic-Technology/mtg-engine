@@ -1,0 +1,6 @@
+card "Thornspire Verge" {
+  oracle_id e861bc08-4f0b-4d22-9b85-9d20227fd5b4
+  type Land
+  mana {R}
+  activated {T}, if you control Mountain or a Forest: add {G}
+}

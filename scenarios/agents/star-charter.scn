@@ -1,0 +1,20 @@
+scenario "star charter digs for a small creature after life gain" {
+  battlefield A: "Star Charter", "Plains"
+  hand A: "Healing Salve"
+  library A: "Island", "Serra Angel", "Grizzly Bears", "Forest", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  run_to turn 2 upkeep
+  assert life A 23
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "star charter does not trigger without life change" {
+  battlefield A: "Star Charter"
+  library A: "Island", "Serra Angel", "Grizzly Bears", "Forest", "Swamp"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert hand A count 0
+  assert library A contains "Grizzly Bears"
+}

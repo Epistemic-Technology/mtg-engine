@@ -1,0 +1,20 @@
+scenario "lord skitter makes a rat that exiles a card from opponent's graveyard" {
+  battlefield A: "Lord Skitter, Sewer King"
+  graveyard B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Lord Skitter, Sewer King" targeting "Hill Giant"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Rat"
+  assert exile B contains "Hill Giant"
+  assert graveyard B lacks "Hill Giant"
+}
+
+scenario "lord skitter's rat can't block" {
+  battlefield A: "Lord Skitter, Sewer King"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Rat"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}

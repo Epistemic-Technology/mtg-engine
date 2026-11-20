@@ -1,0 +1,8 @@
+card "Bristlebane Outrider" {
+  oracle_id 48f7217e-ae11-44bd-ac42-7c8d9dd5dc36
+  cost {3}{G}
+  type Creature — Kithkin Knight
+  pt 3/5
+  can't be blocked by creature with power 2 or less
+  static as long as another creature entered this turn, this: +2/+0
+}

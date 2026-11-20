@@ -1,0 +1,12 @@
+scenario "temur monument: fetches a basic, then makes an Elephant" {
+  battlefield A: 3 "Forest", 3 "Island", 3 "Mountain"
+  hand A: "Temur Monument"
+  library A: "Plains", "Island", "Plains"
+  turn 1 A: cast "Temur Monument"
+  turn 1 A: wait
+  turn 1 A: activate "Temur Monument"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert battlefield A contains "Elephant"
+  assert graveyard A contains "Temur Monument"
+}

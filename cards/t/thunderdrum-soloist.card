@@ -1,0 +1,8 @@
+card "Thunderdrum Soloist" {
+  oracle_id 43b5794a-4ed6-471d-bc45-22fac486895d
+  cost {1}{R}
+  type Creature — Dwarf Bard
+  pt 1/3
+  keywords reach
+  label "Opus" triggered whenever you cast instant or sorcery spell: deal 1 damage to each opponent; if that spell spent 5 mana, this creature deals 3 damage to each opponent instead
+}

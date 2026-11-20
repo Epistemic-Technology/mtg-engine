@@ -1,0 +1,8 @@
+card "Old Hob, Alleycat Blues" {
+  oracle_id e88b1520-aa9a-41ee-9036-4d4bebd1a0c0
+  cost {4}{R}
+  type Legendary Creature — Cat Mutant Rebel
+  pt 4/4
+  triggered at beginning of your combat: create 1 "2/2 red Mutant creature"; that token gains haste; delayed that token: destroy it at beginning of the next end step
+  activated {1}{W}: target attacking creature token gains indestructible
+}

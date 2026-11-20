@@ -1,0 +1,13 @@
+card "Shrouded Shepherd // Cleave Shadows" {
+  oracle_id de52b262-418e-418c-b2aa-8d5a776e3a75
+  layout adventure
+  cost {1}{W}
+  type Creature — Spirit Warrior
+  pt 2/2
+  triggered when this enters: target creature you control gets +2/+2
+  face "Cleave Shadows" {
+    cost {1}{B}
+    type Sorcery — Adventure
+    spell: each creature your opponents control gets -1/-1
+  }
+}

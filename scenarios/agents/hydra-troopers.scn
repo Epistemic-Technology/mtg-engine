@@ -1,0 +1,27 @@
+scenario "HYDRA Troopers makes a tapped Villain with two creature cards in the graveyard" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "HYDRA Troopers"
+  library A: "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "HYDRA Troopers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Villain"
+  assert tapped "Villain"
+  assert has "Villain" menace
+  assert graveyard A count 2
+  assert library A count 3
+}
+
+scenario "HYDRA Troopers mills two otherwise" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "HYDRA Troopers"
+  library A: "Plains", "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "HYDRA Troopers"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Villain"
+  assert graveyard A count 3
+  assert library A count 1
+}

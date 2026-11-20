@@ -1,0 +1,26 @@
+scenario "storm reading draws four and discards two; giant taps and stuns" {
+  battlefield A: "Galvanic Giant", 7 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Galvanic Giant"
+  library A: "Forest", "Swamp", "Mountain", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Storm Reading"
+  turn 1 A: trigger "Galvanic Giant" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+  assert exile A contains "Galvanic Giant"
+  assert hand A count 2
+  assert graveyard A count 2
+}
+
+scenario "galvanic giant ignores small spells" {
+  battlefield A: "Galvanic Giant", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 begin_combat
+  assert untapped "Hill Giant"
+  assert life B 18
+}

@@ -1,0 +1,27 @@
+scenario "Withering Curse gives all creatures -2/-2" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Withering Curse"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Withering Curse"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Withering Curse destroys all creatures after you gained life" {
+  battlefield A: 3 "Swamp", 2 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Withering Curse", "Revitalize"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Revitalize"
+  turn 1 A: wait
+  turn 1 A: cast "Withering Curse"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+}

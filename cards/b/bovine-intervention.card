@@ -1,0 +1,6 @@
+card "Bovine Intervention" {
+  oracle_id 7402d98f-6d58-4ff2-a0db-9eec4417a75f
+  cost {1}{W}
+  type Instant
+  spell: destroy target artifact or creature; its controller creates 1 "2/2 white Ox creature"
+}

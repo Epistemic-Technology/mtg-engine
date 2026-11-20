@@ -1,0 +1,36 @@
+scenario "Hazoret can't attack below max speed" {
+  battlefield A: "Hazoret, Godseeker"
+  speed A: 3
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Hazoret, Godseeker"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Hazoret attacks at max speed" {
+  battlefield A: "Hazoret, Godseeker"
+  speed A: 4
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hazoret, Godseeker"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Hazoret makes a small creature unblockable" {
+  battlefield A: "Hazoret, Godseeker", "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hazoret, Godseeker" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Hazoret, Godseeker"
+}
+
+scenario "Hazoret can't target a big creature" {
+  battlefield A: "Hazoret, Godseeker", "Hill Giant", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Hazoret, Godseeker" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+}

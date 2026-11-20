@@ -1,0 +1,23 @@
+scenario "Presumed Dead pumps and the creature returns suspected when it dies" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Presumed Dead"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Presumed Dead" targeting "Grizzly Bears"
+  turn 1 begin_combat B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" menace
+  assert power "Grizzly Bears" 2
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Presumed Dead gives +2/+0" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  hand A: "Presumed Dead"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Presumed Dead" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}

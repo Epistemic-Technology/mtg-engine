@@ -1,0 +1,9 @@
+card "Fulminous Forte" {
+  oracle_id 2a29d028-d1a4-413f-9c01-d6842294420a
+  cost {2}{R}
+  type Instant
+  choose one {
+    mode: deal 1 damage to each creature or planeswalker your opponents control
+    mode: deal 5 damage to target creature or planeswalker
+  }
+}

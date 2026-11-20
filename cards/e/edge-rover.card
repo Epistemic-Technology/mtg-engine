@@ -1,0 +1,8 @@
+card "Edge Rover" {
+  oracle_id b907d375-b715-446b-8966-79959feb9f58
+  cost {G}
+  type Artifact Creature — Robot Scout
+  pt 2/2
+  keywords reach
+  triggered when this dies: each player creates 1 "Lander"
+}

@@ -1,0 +1,10 @@
+card "Wardens of the Cycle" {
+  oracle_id fa7d09aa-2ebc-4571-81da-836cd80cf554
+  cost {1}{B}{G}{G}
+  type Creature — Elf Warlock
+  pt 3/4
+  label "Morbid" triggered at beginning of your end step if creature died this turn: choose one {
+    mode: you gain 2 life
+    mode: you draw 1 card, and you lose 1 life
+  }
+}

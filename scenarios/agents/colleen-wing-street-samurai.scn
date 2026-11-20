@@ -1,0 +1,20 @@
+scenario "Colleen Wing grows when a spell targets a creature you control" {
+  battlefield A: "Colleen Wing, Street Samurai", "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Colleen Wing, Street Samurai" +1/+1 1
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Colleen Wing ignores spells targeting opponents' creatures" {
+  battlefield A: "Colleen Wing, Street Samurai", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Colleen Wing, Street Samurai" +1/+1 0
+  assert graveyard B contains "Grizzly Bears"
+}

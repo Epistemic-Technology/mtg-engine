@@ -1,0 +1,6 @@
+card "Emergency Eject" {
+  oracle_id da363da1-aecf-4d49-8e77-8dc56981a741
+    cost {2}{W}
+  type Instant
+  spell: destroy target nonland permanent; its controller creates 1 "Lander"
+}

@@ -1,0 +1,20 @@
+scenario "Balamb Garden transforms, is crewed, and draws when it attacks" {
+  battlefield A: "Balamb Garden, SeeD Academy // Balamb Garden, Airborne", "Grizzly Bears", 4 "Forest", 3 "Island"
+  start turn 1 A precombat_main
+  library A: "Island", "Island", "Island"
+  turn 1 A: activate "Balamb Garden, SeeD Academy"
+  turn 3 begin_combat A: activate "Balamb Garden, Airborne"
+  turn 3 A: attack "Balamb Garden, Airborne"
+  run_to turn 3 postcombat_main
+  assert is "Balamb Garden, Airborne" artifact
+  assert tapped "Grizzly Bears"
+  assert life B 15
+  assert hand A count 2
+}
+
+scenario "Balamb Garden can't transform without enough mana" {
+  battlefield A: "Balamb Garden, SeeD Academy // Balamb Garden, Airborne", 3 "Forest", 3 "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Balamb Garden, SeeD Academy"
+  run_to turn 1 postcombat_main
+}

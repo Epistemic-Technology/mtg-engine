@@ -1,0 +1,19 @@
+scenario "Ogre Chitterlord makes two Rats as it enters" {
+  battlefield A: 6 "Mountain"
+  hand A: "Ogre Chitterlord"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ogre Chitterlord"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Rat"
+  assert power oldest A "Rat" 1
+}
+
+scenario "Ogre Chitterlord pumps Rats once five or more are around" {
+  battlefield A: "Ogre Chitterlord", 3 "Rat"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Ogre Chitterlord"
+  run_to turn 1 declare_blockers
+  assert battlefield A contains 5 "Rat"
+  assert power oldest A "Rat" 3
+  assert power newest A "Rat" 3
+}

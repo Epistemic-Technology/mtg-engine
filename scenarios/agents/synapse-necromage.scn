@@ -1,0 +1,13 @@
+scenario "synapse necromage: dies into two Fungus tokens that can't block" {
+  battlefield A: "Synapse Necromage"
+  battlefield B: "Mountain", "Grizzly Bears"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Synapse Necromage"
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Fungus"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Synapse Necromage"
+  assert battlefield A contains 2 "Fungus"
+  assert life A 18
+}

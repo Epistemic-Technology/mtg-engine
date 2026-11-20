@@ -1,0 +1,7 @@
+card "Synapse Necromage" {
+  oracle_id f5eace41-0f53-4084-8bec-1e079c04287b
+  cost {2}{B}
+  type Creature — Fungus Wizard
+  pt 3/1
+  triggered when this dies: create 2 "1/1 black Fungus creature that can't block"
+}

@@ -1,0 +1,6 @@
+card "Defibrillating Current" {
+  oracle_id 5a96b93b-bae6-48fb-87f5-05f3ffcf7ba9
+  cost {2/R}{2/W}{2/B}
+  type Sorcery
+  spell: deal 4 damage to target creature or planeswalker and you gain 2 life
+}

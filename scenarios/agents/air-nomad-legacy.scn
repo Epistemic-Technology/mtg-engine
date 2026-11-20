@@ -1,0 +1,11 @@
+scenario "Air Nomad Legacy makes a Clue and pumps fliers only" {
+  battlefield A: "Plains", "Island", "Serra Angel", "Grizzly Bears"
+  hand A: "Air Nomad Legacy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Air Nomad Legacy"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Clue"
+  assert power "Serra Angel" 5
+  assert toughness "Serra Angel" 5
+  assert power "Grizzly Bears" 2
+}

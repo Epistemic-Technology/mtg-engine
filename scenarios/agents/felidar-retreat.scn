@@ -1,0 +1,20 @@
+scenario "Felidar Retreat landfall makes a Cat Beast" {
+  battlefield A: "Felidar Retreat"
+  hand A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: play "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Cat Beast"
+  assert power "Cat Beast" 2
+  assert is "Cat Beast" white
+}
+
+scenario "Felidar Retreat ignores opponent's lands" {
+  battlefield A: "Felidar Retreat"
+  hand B: "Plains"
+  start turn 2 B precombat_main
+  turn 2 B: play "Plains"
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Cat Beast"
+  assert battlefield B lacks "Cat Beast"
+}

@@ -1,0 +1,17 @@
+scenario "Super Intelligence draws for the enchanted creature's controller" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Super Intelligence" on "Grizzly Bears"
+  start turn 1 A untap
+  run_to turn 1 precombat_main
+  assert hand A count 1
+  assert hand B count 0
+}
+
+scenario "Super Intelligence on an opponent's creature draws for them, not you" {
+  battlefield A: "Super Intelligence" on "Hill Giant", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B untap
+  run_to turn 2 precombat_main
+  assert hand B count 2
+  assert hand A count 0
+}

@@ -1,0 +1,12 @@
+card "Lost Jitte" {
+  oracle_id a9d72f78-2ab5-4e2e-ab7b-ef875e0a0609
+    cost {1}
+  type Legendary Artifact — Equipment
+  triggered whenever equipped creature deals combat damage: put 1 charge counter on this
+  activated remove 1 charge counter from this: choose one {
+    mode: untap target land
+    mode: target creature can't block
+    mode: put 1 +1/+1 counter on equipped creature
+  }
+  equip {1}
+}

@@ -1,0 +1,20 @@
+scenario "spectacular spider-man gains flying" {
+  battlefield A: "Spectacular Spider-Man", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Spectacular Spider-Man" ability 1
+  run_to turn 1 begin_combat
+  assert has "Spectacular Spider-Man" flying
+}
+
+scenario "spectacular spider-man sacrifice protects creatures" {
+  battlefield A: "Spectacular Spider-Man", "Grizzly Bears", 2 "Plains"
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Spectacular Spider-Man" ability 2
+  illegal turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Spectacular Spider-Man"
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" indestructible
+}

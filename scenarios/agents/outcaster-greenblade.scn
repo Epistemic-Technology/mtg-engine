@@ -1,0 +1,18 @@
+scenario "Outcaster Greenblade fetches a Desert and grows with Deserts" {
+  battlefield A: 3 "Forest", "Sunscorched Desert"
+  hand A: "Outcaster Greenblade"
+  library A: "Grizzly Bears", "Survivors' Encampment", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Outcaster Greenblade"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Survivors' Encampment"
+  assert power "Outcaster Greenblade" 2
+  assert toughness "Outcaster Greenblade" 3
+}
+
+scenario "Outcaster Greenblade counts two Deserts" {
+  battlefield A: "Outcaster Greenblade", "Sunscorched Desert", "Survivors' Encampment"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Outcaster Greenblade" 3
+}

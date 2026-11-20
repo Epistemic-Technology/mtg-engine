@@ -1,0 +1,33 @@
+scenario "greasewrench goblin: exhaust discards two, draws two, gets a counter" {
+  battlefield A: "Greasewrench Goblin", 6 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  library A: "Grizzly Bears", "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Greasewrench Goblin"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Lightning Bolt"
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert hand A count 2
+  assert counters "Greasewrench Goblin" +1/+1 1
+}
+
+scenario "greasewrench goblin: discard one draws one; exhaust only once" {
+  battlefield A: "Greasewrench Goblin", 6 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  library A: "Grizzly Bears", "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Greasewrench Goblin"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose done
+  illegal turn 1 postcombat_main A: activate "Greasewrench Goblin"
+  run_to turn 1 end
+  assert graveyard A contains "Shock"
+  assert hand A contains "Lightning Bolt"
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 2
+  assert counters "Greasewrench Goblin" +1/+1 1
+}

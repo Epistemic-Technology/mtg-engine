@@ -1,0 +1,8 @@
+card "Welcome to Sweettooth" {
+  oracle_id 9760c396-fc7d-41bc-8f03-5ee359eaec00
+  cost {1}{G}
+  type Enchantment — Saga
+  triggered chapter 1: create 1 "1/1 white Human creature"
+  triggered chapter 2: create 1 "Food"
+  triggered chapter 3: put count where plus one Food you control +1/+1 counters on target creature you control
+}

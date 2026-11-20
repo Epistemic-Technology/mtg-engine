@@ -1,0 +1,21 @@
+scenario "Stroke of Midnight destroys a nonland permanent and its controller gets a Human" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Stroke of Midnight"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stroke of Midnight" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Human"
+  assert battlefield A lacks "Human"
+}
+
+scenario "Stroke of Midnight can't target a land" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Forest"
+  hand A: "Stroke of Midnight"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Stroke of Midnight" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Stroke of Midnight"
+}

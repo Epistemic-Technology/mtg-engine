@@ -1,0 +1,12 @@
+scenario "Bovine Intervention destroys and gives its controller an Ox" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Bovine Intervention"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bovine Intervention" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Ox"
+  assert battlefield A lacks "Ox"
+  assert is "Ox" white
+}

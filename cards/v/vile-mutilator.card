@@ -1,0 +1,9 @@
+card "Vile Mutilator" {
+  oracle_id 1aae80a5-079c-48f3-aad1-563931e1a031
+    cost {5}{B}{B}
+  type Creature — Demon
+  pt 6/5
+  additional cost sacrifice creature or enchantment
+  keywords flying, trample
+  triggered when this enters: each opponent sacrifices 1 nontoken enchantment then sacrifices 1 nontoken creature
+}

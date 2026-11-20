@@ -1,0 +1,7 @@
+token "1/1 colorless Sculpture Treasure artifact creature" {
+  name "Sculpture Treasure"
+  type Artifact Creature — Sculpture Treasure
+  pt 1/1
+  color
+  mana any, sacrifice this
+}

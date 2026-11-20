@@ -1,0 +1,20 @@
+scenario "night of the sweets' revenge creates a food" {
+  battlefield A: 4 "Forest"
+  hand A: "Night of the Sweets' Revenge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Night of the Sweets' Revenge"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Food"
+}
+
+scenario "night of the sweets' revenge foods tap for green and fuel the pump" {
+  battlefield A: "Night of the Sweets' Revenge", 2 "Food", "Grizzly Bears", 5 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Night of the Sweets' Revenge"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Night of the Sweets' Revenge"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert tapped oldest "Food"
+  assert tapped newest "Food"
+}

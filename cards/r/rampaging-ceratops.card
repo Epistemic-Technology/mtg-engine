@@ -1,0 +1,7 @@
+card "Rampaging Ceratops" {
+  oracle_id 91d01119-9b3e-4629-8cf0-bbca2c19a7cc
+  cost {4}{R}
+  type Creature — Dinosaur
+  pt 5/4
+  can't be blocked except by 3 or more creatures
+}

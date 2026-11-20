@@ -1,0 +1,21 @@
+scenario "Arahbo makes a Cat as it enters and pumps other Cats" {
+  battlefield A: 3 "Plains"
+  hand A: "Arahbo, the First Fang"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Arahbo, the First Fang"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Cat"
+  assert power "Cat" 2
+  assert toughness "Cat" 2
+  assert power "Arahbo, the First Fang" 2
+}
+
+scenario "Another nontoken Cat entering makes a Cat token, but the token makes none" {
+  battlefield A: "Arahbo, the First Fang", 2 "Plains"
+  hand A: "Adorned Pouncer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Adorned Pouncer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Cat"
+  assert power "Adorned Pouncer" 2
+}

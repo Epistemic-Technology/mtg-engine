@@ -1,0 +1,6 @@
+card "Lightning Helix" {
+  oracle_id 800c258a-cfc4-4a54-a667-065ea8dea69e
+  cost {R}{W}
+  type Instant
+  spell: deal 3 damage to any target and you gain 3 life
+}

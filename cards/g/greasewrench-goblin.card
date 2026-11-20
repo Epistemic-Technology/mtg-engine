@@ -1,0 +1,7 @@
+card "Greasewrench Goblin" {
+  oracle_id 952300de-766e-4ceb-bd36-e0b721bebc17
+  cost {R}
+  type Creature — Goblin Artificer
+  pt 2/1
+  exhaust {2}{R}: discard up to 2 cards chosen then draw count that many discarded this way cards; put 1 +1/+1 counter on this
+}

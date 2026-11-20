@@ -1,0 +1,25 @@
+scenario "Kraven's Last Hunt chapter I mills five and deals the greatest power to a creature" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  hand A: "Kraven's Last Hunt"
+  library A: "Forest", "Hill Giant", "Serra Angel", "Forest", "Forest", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kraven's Last Hunt"
+  turn 1 A: trigger "Kraven's Last Hunt" targeting B "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 5
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Kraven's Last Hunt chapters II and III" {
+  battlefield A: "Kraven's Last Hunt" with 1 lore, "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  start turn 1 A upkeep
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  run_to turn 3 begin_combat
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Kraven's Last Hunt"
+}

@@ -1,0 +1,31 @@
+scenario "coordinated maneuver: damage equal to the number of creatures you control" {
+  battlefield A: 2 "Grizzly Bears", "Hill Giant", "Wind Drake", 2 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Coordinated Maneuver"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coordinated Maneuver" mode 1 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert graveyard A contains "Coordinated Maneuver"
+}
+
+scenario "coordinated maneuver: two creatures deal 2, angel survives" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Coordinated Maneuver"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coordinated Maneuver" mode 1 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 2
+}
+
+scenario "coordinated maneuver: destroy target enchantment" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears", "Pacifism" on "Grizzly Bears"
+  hand A: "Coordinated Maneuver"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coordinated Maneuver" mode 2 targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Pacifism"
+}

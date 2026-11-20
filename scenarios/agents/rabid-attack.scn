@@ -1,0 +1,14 @@
+scenario "Rabid Attack pumps several creatures and draws when one dies" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Rabid Attack"
+  hand B: "Lightning Bolt"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rabid Attack" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 begin_combat B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 4
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 1
+}

@@ -1,0 +1,21 @@
+scenario "Skullsnap Nuisance surveils when an enchantment enters" {
+  battlefield A: "Skullsnap Nuisance", 2 "Plains"
+  hand A: "Builder's Talent"
+  library A: "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Builder's Talent"
+  run_to turn 1 postcombat_main
+  # Unscripted surveil keeps the card on top; it has been looked at.
+  assert known A "Island"
+  assert unknown A "Swamp"
+}
+
+scenario "Skullsnap Nuisance doesn't surveil for a creature" {
+  battlefield A: "Skullsnap Nuisance", 2 "Forest"
+  hand A: "Grizzly Bears"
+  library A: "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert unknown A "Island"
+}

@@ -1,0 +1,16 @@
+card "Emeritus of Ideation // Ancestral Recall" {
+  oracle_id 24a29be4-5bc2-469b-b2ce-2fb305c3facb
+  layout prepare
+  cost {3}{U}{U}
+  type Creature — Human Wizard
+  pt 5/5
+  keywords flying
+  ward {2}
+  enters prepared
+  triggered whenever this attacks: you may exile 8 cards from your graveyard chosen; if you do, this creature becomes prepared
+  face "Ancestral Recall" {
+    cost {U}
+    type Instant
+    spell: target player draws 3 cards
+  }
+}

@@ -1,0 +1,44 @@
+scenario "Mobile Homestead attacks and puts a land from the top onto the battlefield" {
+  battlefield A: "Mobile Homestead", "Grizzly Bears"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mobile Homestead"
+  turn 1 A: attack "Mobile Homestead"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+}
+
+scenario "Mobile Homestead leaves a nonland card on top" {
+  battlefield A: "Mobile Homestead", "Grizzly Bears"
+  library A: "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mobile Homestead"
+  turn 1 A: attack "Mobile Homestead"
+  run_to turn 1 postcombat_main
+  assert library A contains "Hill Giant"
+}
+
+scenario "Mobile Homestead has haste with a Mount" {
+  battlefield A: 2 "Plains", "Trained Arynx", "Grizzly Bears"
+  hand A: "Mobile Homestead"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mobile Homestead"
+  turn 1 A: activate "Mobile Homestead"
+  turn 1 A: attack "Mobile Homestead"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Mobile Homestead has no haste without a Mount" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Mobile Homestead"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mobile Homestead"
+  turn 1 A: activate "Mobile Homestead"
+  illegal turn 1 A: attack "Mobile Homestead"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

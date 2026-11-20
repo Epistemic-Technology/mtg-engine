@@ -1,0 +1,9 @@
+card "Tangle Tumbler" {
+  oracle_id 0d81ea20-5e7d-4eea-b0ba-fe688f27df94
+  cost {3}
+  type Artifact — Vehicle
+  pt 6/6
+  keywords vigilance
+  activated {3}, {T}: put 1 +1/+1 counter on target creature
+  activated tap 2 untapped token you control: this becomes artifact creature until end of turn
+}

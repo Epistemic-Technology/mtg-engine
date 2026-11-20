@@ -1,0 +1,8 @@
+card "Arahbo, the First Fang" {
+  oracle_id dfec65a0-6fb6-463d-aa62-e84a427db217
+  cost {2}{W}
+  type Legendary Creature — Cat Avatar
+  pt 2/2
+  static other Cat you control: +1/+1
+  triggered whenever this or nontoken Cat you control enters: create 1 "1/1 white Cat creature"
+}

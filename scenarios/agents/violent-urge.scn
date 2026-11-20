@@ -1,0 +1,23 @@
+scenario "violent urge gives +1/+0 and first strike" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Violent Urge"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: cast "Violent Urge" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert has "Grizzly Bears" first_strike
+  assert has not "Grizzly Bears" double_strike
+}
+
+scenario "violent urge with delirium gives double strike" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Violent Urge"
+  graveyard A: "Forest", "Hill Giant", "Shock", "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: cast "Violent Urge" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert has "Grizzly Bears" double_strike
+}

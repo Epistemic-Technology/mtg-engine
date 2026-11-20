@@ -1,0 +1,31 @@
+scenario "Bonehoard Dracosaur: land and nonland exiled make a Dinosaur and a Treasure" {
+  battlefield A: "Bonehoard Dracosaur", "Mountain"
+  library A: "Forest", "Lightning Bolt", "Plains", "Plains"
+  start turn 1 A untap
+  turn 1 A: play "Forest"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dinosaur"
+  assert battlefield A contains "Treasure"
+  assert battlefield A contains "Forest"
+  assert life B 17
+}
+
+scenario "Bonehoard Dracosaur: two nonland cards make only a Treasure" {
+  battlefield A: "Bonehoard Dracosaur"
+  library A: "Lightning Bolt", "Shock", "Plains"
+  start turn 1 A untap
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert battlefield A lacks "Dinosaur"
+  assert exile A contains "Shock"
+}
+
+scenario "Bonehoard Dracosaur: two lands make only a Dinosaur" {
+  battlefield A: "Bonehoard Dracosaur"
+  library A: "Forest", "Island", "Plains"
+  start turn 1 A untap
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dinosaur"
+  assert battlefield A lacks "Treasure"
+}

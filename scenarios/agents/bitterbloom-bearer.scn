@@ -1,0 +1,21 @@
+scenario "Bitterbloom Bearer drains its controller and makes a Faerie each upkeep" {
+  battlefield A: "Bitterbloom Bearer"
+  start turn 1 A untap
+  run_to turn 1 precombat_main
+  assert life A 19
+  assert battlefield A contains 1 "Faerie"
+  assert has "Faerie" flying
+  assert is "Faerie" blue
+  assert is "Faerie" black
+}
+
+scenario "Bitterbloom Bearer can be cast with flash on the opponent's turn" {
+  battlefield A: 2 "Swamp"
+  hand A: "Bitterbloom Bearer"
+  start turn 2 B precombat_main
+  turn 2 end A: cast "Bitterbloom Bearer"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Bitterbloom Bearer"
+  assert life A 19
+  assert battlefield A contains 1 "Faerie"
+}

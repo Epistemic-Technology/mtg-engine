@@ -1,0 +1,31 @@
+scenario "Vile Mutilator: sacrifice a creature, opponent sacrifices an enchantment and a creature" {
+  battlefield A: 7 "Swamp", "Grizzly Bears"
+  battlefield B: "Felidar Retreat", "Hill Giant"
+  hand A: "Vile Mutilator"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vile Mutilator" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Vile Mutilator"
+  assert graveyard B contains "Felidar Retreat"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Vile Mutilator can sacrifice an enchantment as its cost" {
+  battlefield A: 7 "Swamp", "Super Intelligence" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  hand A: "Vile Mutilator"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vile Mutilator" sacrificing "Super Intelligence"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Super Intelligence"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Vile Mutilator needs something to sacrifice" {
+  battlefield A: 7 "Swamp"
+  hand A: "Vile Mutilator"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Vile Mutilator"
+  run_to turn 1 postcombat_main
+}

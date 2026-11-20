@@ -1,0 +1,9 @@
+card "Shimmerwilds Growth" {
+  oracle_id c63402b2-1f8c-4004-82d8-48ea26bfe3fc
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant land
+  as this enters choose color
+  static enchanted: set color chosen
+  triggered whenever enchanted land is tapped for mana: add chosen
+}

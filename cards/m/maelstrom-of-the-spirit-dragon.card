@@ -1,0 +1,7 @@
+card "Maelstrom of the Spirit Dragon" {
+  oracle_id 49e9fba7-8465-4bbb-95db-73a7e149f494
+  type Land
+  mana {C}
+  mana any only to cast Dragon spell or Omen spell
+  activated {4}, {T}, sacrifice this: search Dragon card reveal to hand
+}

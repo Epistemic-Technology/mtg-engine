@@ -1,0 +1,8 @@
+card "Bonehoard Dracosaur" {
+  oracle_id 7ba550a5-81fc-42c2-8df8-ad455d938605
+  cost {3}{R}{R}
+  type Creature — Dinosaur Dragon
+  pt 5/5
+  keywords flying, first strike
+  triggered at beginning of your upkeep: impulse 2 this turn it; if you exiled land card this way, create 1 "3/1 red Dinosaur creature"; if you exiled nonland card this way, create 1 "Treasure"
+}

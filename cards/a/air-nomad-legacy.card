@@ -1,0 +1,7 @@
+card "Air Nomad Legacy" {
+  oracle_id 9e830359-ab92-4bfd-82b3-d9c67ac80cf7
+  cost {W}{U}
+  type Enchantment
+  triggered when this enters: create 1 "Clue"
+  static creature you control with flying: +1/+1
+}

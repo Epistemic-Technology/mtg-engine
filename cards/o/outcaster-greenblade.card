@@ -1,0 +1,8 @@
+card "Outcaster Greenblade" {
+  oracle_id 855a2579-8f78-46ce-a3a8-eddc808bd7b4
+  cost {2}{G}
+  type Creature — Human Mercenary
+  pt 1/2
+  triggered when this enters: search basic land card or a Desert card reveal to hand
+  static this: +1/+1 count each Desert you control
+}

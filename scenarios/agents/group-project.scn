@@ -1,0 +1,27 @@
+scenario "group project: creates a 2/2 Spirit" {
+  battlefield A: 2 "Plains"
+  hand A: "Group Project"
+  turn 1 A: cast "Group Project"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Spirit"
+  assert graveyard A contains "Group Project"
+}
+
+scenario "group project: flashback by tapping three creatures" {
+  battlefield A: 3 "Grizzly Bears"
+  graveyard A: "Group Project"
+  turn 1 A: cast "Group Project" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Spirit"
+  assert exile A contains "Group Project"
+  assert tapped oldest "Grizzly Bears"
+  assert tapped newest "Grizzly Bears"
+}
+
+scenario "group project: no flashback with two creatures" {
+  battlefield A: 2 "Grizzly Bears"
+  graveyard A: "Group Project"
+  illegal turn 1 A: cast "Group Project" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Group Project"
+}

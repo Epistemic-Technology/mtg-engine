@@ -1,0 +1,11 @@
+card "Ashling's Command" {
+  oracle_id 9651d197-a408-4665-a292-58d5471f4ffc
+  cost {3}{U}{R}
+  type Kindred Instant — Elemental
+  choose two {
+    mode: create token copy of target Elemental you control
+    mode: target player draws 2 cards
+    mode: deal 2 damage to each creature target player controls
+    mode: target player creates 2 "Treasure"
+  }
+}

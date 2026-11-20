@@ -1,0 +1,8 @@
+card "Tyvar, the Pummeler" {
+  oracle_id 5a242eab-204c-4411-860f-c0f3582a8f38
+  cost {1}{G}{G}
+  type Legendary Creature — Elf Warrior
+  pt 3/3
+  activated tap other untapped creature you control: this gains indestructible; tap this
+  activated {3}{G}{G}: each creature you control gets +1/+1 count where greatest power
+}

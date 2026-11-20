@@ -1,0 +1,7 @@
+token "0/4 white Wall creature with defender" {
+  name "Wall"
+  type Creature — Wall
+  pt 0/4
+  color white
+  keywords defender
+}

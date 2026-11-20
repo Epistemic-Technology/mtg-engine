@@ -1,0 +1,6 @@
+card "Planar Engineering" {
+  oracle_id dc48079a-b1c4-4c43-a989-418c78a264ec
+  cost {3}{G}
+  type Sorcery
+  spell: sacrifice 2 land chosen; search 4 basic land card to battlefield tapped
+}

@@ -1,0 +1,38 @@
+scenario "We Say Thee Nay! without teamwork: opponent pays {2}" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: 4 "Mountain"
+  hand A: "We Say Thee Nay!"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "We Say Thee Nay!" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert untapped "Grizzly Bears"
+}
+
+scenario "We Say Thee Nay! with teamwork: {4} is too much" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: 4 "Mountain"
+  hand A: "We Say Thee Nay!"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "We Say Thee Nay!" teamwork targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert tapped "Grizzly Bears"
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "We Say Thee Nay! with teamwork: opponent with enough mana pays {4}" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: 5 "Mountain"
+  hand A: "We Say Thee Nay!"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "We Say Thee Nay!" teamwork targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}

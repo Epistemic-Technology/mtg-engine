@@ -1,0 +1,24 @@
+scenario "Burrog Barrage after another instant pumps and bites" {
+  battlefield A: "Grizzly Bears", 2 "Forest", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock", "Burrog Barrage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Burrog Barrage" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Burrog Barrage alone gives no pump" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Burrog Barrage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Burrog Barrage" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert damage "Hill Giant" 2
+  assert battlefield B contains "Hill Giant"
+}

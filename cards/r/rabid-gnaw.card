@@ -1,0 +1,6 @@
+card "Rabid Gnaw" {
+  oracle_id 077ae62d-ed94-4365-a8b7-97fd99cff028
+  cost {1}{R}
+  type Instant
+  spell: target creature you control gets +1/+0 until end of turn; then target 1 bites target creature you don't control
+}

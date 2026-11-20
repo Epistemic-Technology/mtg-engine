@@ -1,0 +1,23 @@
+scenario "wispdrinker vampire drains when a small creature enters" {
+  battlefield A: "Wispdrinker Vampire", 2 "Forest", 4 "Mountain"
+  hand A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 begin_combat
+  assert life B 19
+  assert life A 21
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "wispdrinker vampire grants deathtouch and lifelink to small creatures" {
+  battlefield A: "Wispdrinker Vampire", "Grizzly Bears", "Hill Giant", 5 "Swamp", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Wispdrinker Vampire"
+  run_to turn 1 begin_combat
+  assert has "Grizzly Bears" deathtouch
+  assert has "Grizzly Bears" lifelink
+  assert has "Wispdrinker Vampire" lifelink
+  assert has not "Hill Giant" deathtouch
+}

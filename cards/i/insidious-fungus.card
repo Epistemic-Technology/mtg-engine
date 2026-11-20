@@ -1,0 +1,11 @@
+card "Insidious Fungus" {
+  oracle_id 0a8d0217-ff24-4177-b6be-707eb2b6b9e9
+  cost {G}
+  type Creature — Fungus
+  pt 1/2
+  activated {2}, sacrifice this: choose one {
+    mode: destroy target artifact
+    mode: destroy target enchantment
+    mode: draw 1 card; then you may put land card from hand onto battlefield tapped
+  }
+}

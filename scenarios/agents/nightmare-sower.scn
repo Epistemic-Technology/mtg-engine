@@ -1,0 +1,23 @@
+scenario "nightmare sower shrinks a creature when you cast on opponent's turn" {
+  battlefield A: "Nightmare Sower", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: trigger "Nightmare Sower" targeting "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert life B 17
+  assert counters "Grizzly Bears" -1/-1 1
+  assert power "Grizzly Bears" 1
+}
+
+scenario "nightmare sower does not trigger on your own turn" {
+  battlefield A: "Nightmare Sower", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 17
+  assert counters "Grizzly Bears" -1/-1 0
+}

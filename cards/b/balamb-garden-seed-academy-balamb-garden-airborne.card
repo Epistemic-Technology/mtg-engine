@@ -1,0 +1,15 @@
+card "Balamb Garden, SeeD Academy // Balamb Garden, Airborne" {
+  oracle_id 8b84fec5-617c-4088-8250-2ba1f1f9479a
+  layout transform
+  type Land — Town
+  enters tapped
+  mana {G} or {U}
+  activated {5}{G}{U}, {T}, reduced {1} each other Town you control: transform this
+  face "Balamb Garden, Airborne" {
+    type Legendary Artifact — Vehicle
+    pt 5/4
+    keywords flying
+    triggered whenever this attacks: draw 1 card
+    crew 1
+  }
+}

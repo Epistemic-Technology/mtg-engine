@@ -1,0 +1,21 @@
+scenario "Emergency Eject destroys and gives the controller a Lander" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Emergency Eject"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Emergency Eject" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Lander"
+  assert battlefield A lacks "Lander"
+}
+
+scenario "Emergency Eject on your own permanent gives you the Lander" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand A: "Emergency Eject"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Emergency Eject" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Lander"
+}

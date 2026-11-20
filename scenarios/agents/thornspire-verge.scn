@@ -1,0 +1,17 @@
+scenario "thornspire verge taps for green with a mountain" {
+  battlefield A: "Thornspire Verge", "Mountain"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "thornspire verge can't tap for green without a mountain or forest" {
+  battlefield A: "Thornspire Verge", "Plains"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand A contains "Grizzly Bears"
+}

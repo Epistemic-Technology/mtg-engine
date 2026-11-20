@@ -1,0 +1,30 @@
+scenario "Defibrillating Current kills a creature and gains 2 life" {
+  battlefield A: "Mountain", "Plains", "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Defibrillating Current"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Defibrillating Current" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert life A 22
+}
+
+scenario "Defibrillating Current paid with generic for its hybrid symbols" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Defibrillating Current"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Defibrillating Current" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 22
+}
+
+scenario "Defibrillating Current can't target a player" {
+  battlefield A: "Mountain", "Plains", "Swamp"
+  hand A: "Defibrillating Current"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Defibrillating Current" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

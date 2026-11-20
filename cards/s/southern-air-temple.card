@@ -1,0 +1,7 @@
+card "Southern Air Temple" {
+  oracle_id 987c1144-69f6-4441-b0a4-d23f931df81f
+  cost {3}{W}
+  type Legendary Enchantment — Shrine
+  triggered when this enters: put count where Shrine you control +1/+1 counters on each creature you control
+  triggered whenever other Shrine you control enters: put 1 +1/+1 counter on each creature you control
+}

@@ -1,0 +1,8 @@
+card "Attuned Hunter" {
+  oracle_id f652c593-e8fa-42ff-a8b4-206556b273de
+  cost {2}{G}
+  type Creature — Human Ranger
+  pt 3/3
+  keywords trample
+  triggered whenever one or more cards leave your graveyard during your turn: put 1 +1/+1 counter on this
+}

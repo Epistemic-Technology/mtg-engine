@@ -1,0 +1,21 @@
+scenario "threefold thunderhulk enters with counters and makes gnomes" {
+  battlefield A: 9 "Plains"
+  hand A: "Threefold Thunderhulk"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Threefold Thunderhulk"
+  turn 1 A: wait
+  turn 1 A: activate "Threefold Thunderhulk" sacrificing "Gnome"
+  run_to turn 1 begin_combat
+  assert counters "Threefold Thunderhulk" +1/+1 4
+  assert power "Threefold Thunderhulk" 4
+  assert battlefield A contains 2 "Gnome"
+}
+
+scenario "threefold thunderhulk makes gnomes equal to its power on attack" {
+  battlefield A: "Threefold Thunderhulk" with 5 +1/+1
+  start turn 1 A precombat_main
+  turn 1 A: attack "Threefold Thunderhulk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 5 "Gnome"
+  assert life B 15
+}

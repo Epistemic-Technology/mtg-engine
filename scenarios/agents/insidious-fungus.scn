@@ -1,0 +1,18 @@
+scenario "Insidious Fungus sacrifices to destroy an artifact" {
+  battlefield A: "Insidious Fungus", 2 "Forest"
+  battlefield B: "Rope"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Insidious Fungus"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Insidious Fungus"
+  assert graveyard B contains "Rope"
+}
+
+scenario "Insidious Fungus can't be activated without {2}" {
+  battlefield A: "Insidious Fungus", "Forest"
+  battlefield B: "Rope"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Insidious Fungus"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Insidious Fungus"
+}

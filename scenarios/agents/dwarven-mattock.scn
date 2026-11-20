@@ -1,0 +1,32 @@
+scenario "Dwarven Mattock attaches to a Dwarf as it enters" {
+  battlefield A: "Audacious Infiltrator", 2 "Plains"
+  hand A: "Dwarven Mattock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dwarven Mattock"
+  run_to turn 1 postcombat_main
+  assert attached "Dwarven Mattock" to "Audacious Infiltrator"
+  assert power "Audacious Infiltrator" 5
+  assert toughness "Audacious Infiltrator" 3
+}
+
+scenario "Dwarven Mattock's ward counters an unpaid opponent's spell" {
+  battlefield A: "Audacious Infiltrator", "Dwarven Mattock" on "Audacious Infiltrator"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Audacious Infiltrator"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Audacious Infiltrator"
+  assert graveyard B contains "Shock"
+  assert damage "Audacious Infiltrator" 0
+}
+
+scenario "Dwarven Mattock's trigger can't attach it to a non-Dwarf" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Dwarven Mattock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dwarven Mattock"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dwarven Mattock"
+  assert power "Grizzly Bears" 2
+}

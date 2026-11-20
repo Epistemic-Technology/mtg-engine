@@ -1,0 +1,20 @@
+scenario "Diversion Specialist sacrifices a creature to exile and play the top card" {
+  battlefield A: "Diversion Specialist", "Grizzly Bears", "Mountain"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Diversion Specialist" sacrificing "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Forest"
+  assert exile A count 0
+}
+
+scenario "Diversion Specialist needs another creature or enchantment" {
+  battlefield A: "Diversion Specialist", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Diversion Specialist"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Diversion Specialist"
+}

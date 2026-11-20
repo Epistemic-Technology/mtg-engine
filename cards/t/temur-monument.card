@@ -1,0 +1,7 @@
+card "Temur Monument" {
+  oracle_id 5464d5ae-5be5-4e52-b9d0-ddce48fd93b3
+  cost {2}
+  type Artifact
+  triggered when this enters: search basic Forest or basic Island or basic Mountain card reveal to hand
+  activated {3}{G}{U}{R}, {T}, sacrifice this, sorcery: create 1 "5/5 green Elephant creature"
+}

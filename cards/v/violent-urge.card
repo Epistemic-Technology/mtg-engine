@@ -1,0 +1,9 @@
+card "Violent Urge" {
+  oracle_id 0ef80a38-f464-4d1f-9e81-d4087d6ecc9b
+  cost {R}
+  type Instant
+  spell {
+    target creature gets +1/+0 and gains first strike
+    label "Delirium" if delirium, that target 1 gains double strike
+  }
+}

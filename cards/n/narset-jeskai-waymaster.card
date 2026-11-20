@@ -1,0 +1,7 @@
+card "Narset, Jeskai Waymaster" {
+  oracle_id 1a2a74b8-0689-4959-9348-02cc832194cf
+  cost {U}{R}{W}
+  type Legendary Creature — Human Monk
+  pt 3/4
+  triggered at beginning of your end step: you may discard hand; if you do, draw count equal spells cast this turn cards
+}

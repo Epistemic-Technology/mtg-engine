@@ -1,0 +1,8 @@
+card "Agent Venom" {
+  oracle_id 14c356aa-178d-4c14-a88e-fbe92ee6d89f
+  cost {2}{B}
+  type Legendary Creature — Symbiote Soldier Hero
+  pt 2/3
+  keywords flash, menace
+  triggered whenever other nontoken creature you control dies: you draw 1 card and lose 1 life
+}

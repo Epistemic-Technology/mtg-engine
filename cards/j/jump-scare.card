@@ -1,0 +1,6 @@
+card "Jump Scare" {
+  oracle_id 783aab37-3ec3-478f-a4fa-cccdfffbae18
+  cost {W}
+  type Instant
+  spell: until end of turn, target creature gets +2/+2, gains flying, and becomes Horror enchantment creature in addition
+}

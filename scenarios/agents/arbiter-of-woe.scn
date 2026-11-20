@@ -1,0 +1,14 @@
+scenario "arbiter of woe: sacrifice, opponent discards and loses, you draw and gain" {
+  battlefield A: 6 "Swamp", "Grizzly Bears"
+  hand A: "Arbiter of Woe"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Arbiter of Woe" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Arbiter of Woe"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+  assert life B 18
+  assert life A 22
+  assert hand A count 1
+}

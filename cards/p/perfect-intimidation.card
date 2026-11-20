@@ -1,0 +1,9 @@
+card "Perfect Intimidation" {
+  oracle_id da099c34-74b2-4db8-8583-09bf2c56606f
+  cost {3}{B}
+  type Sorcery
+  choose one or both {
+    mode: target opponent exiles 2 cards from hand
+    mode: remove all counters from target creature
+  }
+}

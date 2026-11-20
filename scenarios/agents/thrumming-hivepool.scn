@@ -1,0 +1,18 @@
+scenario "Thrumming Hivepool makes two hasty double-striking Slivers each upkeep" {
+  battlefield A: "Thrumming Hivepool"
+  start turn 1 A untap
+  turn 1 A: attack "Sliver", "Sliver"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Sliver"
+  assert has oldest "Sliver" double_strike
+  assert life B 16
+}
+
+scenario "Thrumming Hivepool costs less for each Sliver" {
+  battlefield A: "Thrumming Hivepool", 4 "Plains"
+  hand A: "Thrumming Hivepool"
+  start turn 1 A untap
+  turn 1 A: cast "Thrumming Hivepool"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Thrumming Hivepool"
+}

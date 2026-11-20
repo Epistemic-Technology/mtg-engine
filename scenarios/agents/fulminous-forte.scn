@@ -1,0 +1,22 @@
+scenario "Fulminous Forte mode 1 hits opposing creatures and planeswalkers" {
+  battlefield A: 3 "Mountain", "Llanowar Elves"
+  battlefield B: "Llanowar Elves", "Grizzly Bears", "Jace Beleren"
+  hand A: "Fulminous Forte"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fulminous Forte" mode 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+  assert counters "Jace Beleren" loyalty 2
+}
+
+scenario "Fulminous Forte mode 2 deals 5 to a creature" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Fulminous Forte"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fulminous Forte" mode 2 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}

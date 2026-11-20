@@ -1,0 +1,21 @@
+scenario "wilderland scrounger: ferocious attack puts a counter on each creature you control" {
+  battlefield A: "Wilderland Scrounger", "Serra Angel"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Wilderland Scrounger"
+  run_to turn 1 postcombat_main
+  assert counters "Wilderland Scrounger" +1/+1 1
+  assert counters "Serra Angel" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+  assert life B 16
+}
+
+scenario "wilderland scrounger: no power 4 creature, no counters" {
+  battlefield A: "Wilderland Scrounger", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Wilderland Scrounger"
+  run_to turn 1 postcombat_main
+  assert counters "Wilderland Scrounger" +1/+1 0
+  assert counters "Grizzly Bears" +1/+1 0
+  assert life B 17
+}

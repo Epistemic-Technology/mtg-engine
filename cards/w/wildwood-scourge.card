@@ -1,0 +1,8 @@
+card "Wildwood Scourge" {
+  oracle_id b9dec104-c636-4770-a7fc-7a3331face15
+  cost {X}{G}
+  type Creature — Hydra
+  pt 0/0
+  enters with X +1/+1 counters
+  triggered whenever one or more +1/+1 counters put on other non-Hydra creature you control: put 1 +1/+1 counter on this
+}

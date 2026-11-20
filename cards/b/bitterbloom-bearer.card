@@ -1,0 +1,8 @@
+card "Bitterbloom Bearer" {
+  oracle_id 5effb651-f9e0-4c14-8192-bd0e132b8d5d
+  cost {B}{B}
+  type Creature — Faerie Rogue
+  pt 1/1
+  keywords flash, flying
+  triggered at beginning of your upkeep: you lose 1 life and create 1 "1/1 blue and black Faerie creature with flying"
+}

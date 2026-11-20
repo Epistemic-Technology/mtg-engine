@@ -1,0 +1,7 @@
+card "Great Arashin City" {
+  oracle_id f40f374b-acaf-459d-9ccd-b0b22d1a3f28
+  type Land
+  enters tapped unless you control Forest or a Plains
+  mana {B}
+  activated {1}{B}, {T}, exile creature card from graveyard: create 1 "1/1 white Spirit creature"
+}

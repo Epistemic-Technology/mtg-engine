@@ -1,0 +1,8 @@
+card "Night of the Sweets' Revenge" {
+  oracle_id 4bcf4f12-470e-4f73-a19a-643a20084e16
+  cost {3}{G}
+  type Enchantment
+  triggered when this enters: create 1 "Food"
+  static Food you control: has ability { mana {G} }
+  activated {5}{G}{G}, sacrifice this, sorcery: each creature you control gets +1/+1 count where Food you control
+}

@@ -1,0 +1,6 @@
+card "Sunbillow Verge" {
+  oracle_id a202276b-1f1b-4277-95ee-26877a204f5e
+  type Land
+  mana {W}
+  activated {T}, if you control Mountain or a Plains: add {R}
+}

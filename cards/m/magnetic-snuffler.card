@@ -1,0 +1,8 @@
+card "Magnetic Snuffler" {
+  oracle_id 8f85088c-256d-4925-a4dd-aafcc2632282
+  cost {5}
+  type Artifact Creature — Construct
+  pt 4/4
+  triggered when this enters: return target Equipment card from your graveyard to battlefield attached to this creature
+  triggered whenever you sacrifice artifact: put 1 +1/+1 counter on this
+}

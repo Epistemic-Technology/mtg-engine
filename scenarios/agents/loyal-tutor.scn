@@ -1,0 +1,10 @@
+scenario "Loyal Tutor puts a planeswalker on top of the library" {
+  battlefield A: "Plains"
+  hand A: "Loyal Tutor"
+  library A: "Plains", "Island", "Swamp", "Jace Beleren", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Loyal Tutor"
+  run_to turn 3 precombat_main
+  assert hand A contains "Jace Beleren"
+  assert library A lacks "Jace Beleren"
+}

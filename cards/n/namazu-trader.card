@@ -1,0 +1,8 @@
+card "Namazu Trader" {
+  oracle_id 3d01c351-6dbd-4d63-9843-3aa1a3c039a6
+  cost {3}{B}
+  type Creature — Fish Citizen
+  pt 3/4
+  triggered when this enters: you lose 1 life and create 1 "Treasure"
+  triggered whenever this attacks: you may sacrifice 1 another creature or artifact chosen; if you do, surveil 2
+}

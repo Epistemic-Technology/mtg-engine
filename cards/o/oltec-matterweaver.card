@@ -1,0 +1,10 @@
+card "Oltec Matterweaver" {
+  oracle_id 3cb91696-242f-4e91-806b-61b1bb45a20c
+  cost {2}{W}
+  type Creature — Human Artificer
+  pt 2/4
+  triggered whenever you cast a creature spell: choose one {
+    mode: create 1 "1/1 colorless Gnome artifact creature"
+    mode: create token copy of target artifact token you control
+  }
+}

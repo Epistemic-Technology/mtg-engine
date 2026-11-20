@@ -1,0 +1,9 @@
+card "Gallia, the Merrymaker" {
+  oracle_id 87f39199-3e4b-44fa-8406-62019eb43c10
+  cost {1}{R}
+  type Legendary Creature — Satyr
+  pt 2/1
+  keywords haste
+  static each other creature you control with +1/+1 counter: has haste
+  activated {1}{R}, {T}: put 1 +1/+1 counter on target creature that entered this turn
+}

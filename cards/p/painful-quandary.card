@@ -1,0 +1,6 @@
+card "Painful Quandary" {
+  oracle_id c37051cc-6683-4dbb-b5ff-5c3a5bdab1df
+  cost {3}{B}{B}
+  type Enchantment
+  triggered whenever an opponent casts a spell: that player loses 5 life unless they discard 1 card
+}

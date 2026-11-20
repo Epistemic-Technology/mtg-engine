@@ -1,0 +1,8 @@
+card "Fear of Infinity" {
+  oracle_id 018327d1-a3ba-4912-9c88-f0f0c54a1750
+  cost {1}{U}{B}
+  type Enchantment Creature — Nightmare
+  pt 2/2
+  keywords flying, lifelink, can't block
+  label "Eerie" triggered from graveyard whenever enchantment you control enters and whenever you fully unlock a Room: you may return this to hand
+}

@@ -1,0 +1,24 @@
+scenario "Manifold Mouse gives a Mouse double strike at the beginning of combat" {
+  battlefield A: "Manifold Mouse"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Manifold Mouse"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Manifold Mouse can give trample instead" {
+  battlefield A: "Manifold Mouse"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: choose "2"
+  run_to turn 1 declare_attackers
+  assert has "Manifold Mouse" trample
+}
+
+scenario "Manifold Mouse with offspring makes a 1/1 token copy" {
+  battlefield A: 4 "Mountain"
+  hand A: "Manifold Mouse"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Manifold Mouse" kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Manifold Mouse"
+}

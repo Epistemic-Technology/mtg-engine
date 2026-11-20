@@ -1,0 +1,9 @@
+card "Rocketeer Boostbuggy" {
+  oracle_id 2219e636-74d0-4f82-8704-e6d66c5f7f09
+  cost {R}{G}
+  type Artifact — Vehicle
+  pt 3/2
+  triggered whenever this attacks: create 1 "Treasure"
+  exhaust {3}: this becomes artifact creature indefinitely; put 1 +1/+1 counter on this
+  crew 1
+}

@@ -1,0 +1,6 @@
+card "Spell Snare" {
+  oracle_id 38877c68-b69b-4ee1-8e8f-5137a184a8f7
+  cost {U}
+  type Instant
+  spell: counter target with mana value 2 spell
+}

@@ -1,0 +1,8 @@
+card "Heroes' Bane" {
+  oracle_id bccd722a-b610-4017-93bd-313f08448f5e
+  cost {3}{G}{G}
+  type Creature — Hydra
+  pt 0/0
+  enters with 4 +1/+1 counters
+  activated {2}{G}{G}: put count where power +1/+1 counters on this
+}

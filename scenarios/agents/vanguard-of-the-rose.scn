@@ -1,0 +1,21 @@
+scenario "vanguard of the rose: sacrifice another creature, gains indestructible and taps" {
+  battlefield A: "Vanguard of the Rose", "Grizzly Bears", 4 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Vanguard of the Rose" sacrificing "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Vanguard of the Rose"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Vanguard of the Rose"
+  assert tapped "Vanguard of the Rose"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Murder"
+}
+
+scenario "vanguard of the rose: can't sacrifice itself" {
+  battlefield A: "Vanguard of the Rose", 1 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Vanguard of the Rose"
+  run_to turn 1 postcombat_main
+  assert untapped "Vanguard of the Rose"
+}

@@ -1,0 +1,7 @@
+card "HYDRA Troopers" {
+  oracle_id 6de67fad-0d01-443d-9ae0-4126ae903069
+  cost {2}{B}
+  type Creature — Human Soldier Villain
+  pt 3/2
+  triggered when this enters: create 1 tapped "2/1 black Villain creature with menace" if 2 creature cards in your graveyard; otherwise, mill 2 cards
+}

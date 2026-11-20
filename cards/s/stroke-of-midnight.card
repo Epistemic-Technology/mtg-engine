@@ -1,0 +1,6 @@
+card "Stroke of Midnight" {
+  oracle_id 9a107e48-3d50-4941-95b1-10f2b29a4245
+  cost {2}{W}
+  type Instant
+  spell: destroy target nonland permanent; its controller creates 1 "1/1 white Human creature"
+}

@@ -1,0 +1,9 @@
+card "Cactusfolk Sureshot" {
+  oracle_id 05f15b7b-28bf-4b63-a4ca-b57712a1a66a
+  cost {2}{R}{G}
+  type Creature — Plant Mercenary
+  pt 4/4
+  keywords reach
+  ward {2}
+  triggered at beginning of your combat: each other creature you control with power 4 or greater gains trample and haste
+}

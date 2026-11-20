@@ -1,0 +1,22 @@
+scenario "Ashling's Command: draw two and burn a player's creatures" {
+  battlefield A: 3 "Island", 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Ashling's Command"
+  library A: "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ashling's Command" mode 4 targeting player A, player B
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Ashling's Command: copy an Elemental and make Treasures" {
+  battlefield A: "Air Elemental", 3 "Island", 2 "Mountain"
+  hand A: "Ashling's Command"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ashling's Command" mode 3 targeting "Air Elemental", player A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Air Elemental"
+  assert battlefield A contains 2 "Treasure"
+}

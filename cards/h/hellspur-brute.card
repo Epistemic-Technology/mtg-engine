@@ -1,0 +1,8 @@
+card "Hellspur Brute" {
+  oracle_id 81e5c62c-5aed-41e2-8bd1-610022e880bd
+  cost {4}{R}
+  type Creature — Minotaur Mercenary
+  pt 5/4
+  affinity for outlaw
+  keywords trample
+}

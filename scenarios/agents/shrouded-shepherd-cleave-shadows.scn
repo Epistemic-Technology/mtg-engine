@@ -1,0 +1,22 @@
+scenario "shrouded shepherd: enters and pumps a creature you control" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Shrouded Shepherd"
+  turn 1 A: cast "Shrouded Shepherd"
+  turn 1 A: trigger "Shrouded Shepherd" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "cleave shadows: opponents' creatures get -1/-1, then cast the creature from exile" {
+  battlefield A: 2 "Swamp", 2 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Shrouded Shepherd"
+  hand A: "Shrouded Shepherd"
+  turn 1 A: cast "Cleave Shadows"
+  turn 1 A: wait
+  turn 1 A: cast "Shrouded Shepherd"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 2
+  assert power "Grizzly Bears" 4
+  assert battlefield A contains "Shrouded Shepherd"
+}

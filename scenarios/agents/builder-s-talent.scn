@@ -1,0 +1,35 @@
+scenario "Builder's Talent makes a white Wall" {
+  battlefield A: 2 "Plains"
+  hand A: "Builder's Talent"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Builder's Talent"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wall"
+  assert is "Wall" white
+  assert toughness "Wall" 4
+}
+
+scenario "Builder's Talent level 2 puts a counter when an artifact enters" {
+  battlefield A: "Builder's Talent", "Grizzly Bears", 3 "Plains"
+  hand A: "Altar of the Brood"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Builder's Talent"
+  turn 1 A: wait
+  turn 1 A: cast "Altar of the Brood"
+  turn 1 A: trigger "Builder's Talent" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Builder's Talent level 3 returns a noncreature, nonland permanent card" {
+  battlefield A: "Builder's Talent", "Grizzly Bears", 6 "Plains"
+  graveyard A: "Altar of the Brood"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Builder's Talent"
+  turn 1 A: wait
+  turn 1 A: activate "Builder's Talent"
+  turn 1 A: trigger "Builder's Talent" targeting "Altar of the Brood"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Altar of the Brood"
+  assert counters "Grizzly Bears" +1/+1 1
+}

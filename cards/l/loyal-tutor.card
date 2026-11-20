@@ -1,0 +1,6 @@
+card "Loyal Tutor" {
+  oracle_id 7e52f151-d1f6-4fcb-9b21-1baecae27da6
+  cost {W}
+  type Instant
+  spell: search planeswalker card reveal to top that card
+}

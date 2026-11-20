@@ -1,0 +1,9 @@
+card "Spectacular Spider-Man" {
+  oracle_id eed5e0cc-8f88-4779-bf10-6a823c72df7f
+  cost {1}{W}
+  type Legendary Creature — Spider Human Hero
+  pt 3/2
+  keywords flash
+  activated {1}: this gains flying
+  activated {1}, sacrifice this: each creature you control gain hexproof, indestructible
+}

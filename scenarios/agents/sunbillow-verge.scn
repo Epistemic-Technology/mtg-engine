@@ -1,0 +1,27 @@
+scenario "Sunbillow Verge taps for red with a Plains" {
+  battlefield A: "Sunbillow Verge", "Plains"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert tapped "Sunbillow Verge"
+}
+
+scenario "Sunbillow Verge makes no red without a Mountain or Plains" {
+  battlefield A: "Sunbillow Verge", "Swamp"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Sunbillow Verge taps for white" {
+  battlefield A: "Sunbillow Verge"
+  hand A: "Savannah Lions"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Savannah Lions"
+}

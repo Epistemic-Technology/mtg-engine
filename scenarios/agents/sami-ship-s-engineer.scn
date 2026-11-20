@@ -1,0 +1,15 @@
+scenario "Sami makes a tapped Robot with two tapped creatures" {
+  battlefield A: "Sami, Ship's Engineer", "Grizzly Bears" tapped, "Hill Giant" tapped
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert battlefield A contains 1 "Robot"
+  assert tapped "Robot"
+  assert is "Robot" artifact
+}
+
+scenario "Sami makes nothing with only one tapped creature" {
+  battlefield A: "Sami, Ship's Engineer", "Grizzly Bears" tapped, "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert battlefield A lacks "Robot"
+}

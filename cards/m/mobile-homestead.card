@@ -1,0 +1,9 @@
+card "Mobile Homestead" {
+  oracle_id b71239fb-d7dc-4bac-b8aa-26b454409344
+  cost {2}
+  type Artifact — Vehicle
+  pt 3/3
+  static this: has haste as long as you control Mount
+  triggered whenever this attacks: look at top card; if it is land card, you may put it onto battlefield tapped
+  crew 2
+}

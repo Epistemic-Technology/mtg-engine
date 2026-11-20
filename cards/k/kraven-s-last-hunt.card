@@ -1,0 +1,8 @@
+card "Kraven's Last Hunt" {
+  oracle_id e74efcf2-d77f-4fb5-9027-77e462ec829e
+  cost {3}{G}
+  type Enchantment — Saga
+  triggered chapter 1: mill 5 cards; when you do, this deals damage equal greatest power graveyard creature to target creature
+  triggered chapter 2: target creature you control gets +2/+2
+  triggered chapter 3: return target creature card from your graveyard to hand
+}

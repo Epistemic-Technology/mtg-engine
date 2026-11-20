@@ -1,0 +1,28 @@
+scenario "Lost Jitte gets a charge counter on combat damage" {
+  battlefield A: "Grizzly Bears", "Lost Jitte" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Lost Jitte" charge 1
+}
+
+scenario "Lost Jitte charges on combat damage to a creature too" {
+  battlefield A: "Grizzly Bears", "Lost Jitte" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 combat_damage
+  run_to turn 1 end_combat
+  assert counters "Lost Jitte" charge 1
+}
+
+scenario "Lost Jitte removes a counter to untap a land" {
+  battlefield A: "Grizzly Bears", "Lost Jitte" on "Grizzly Bears" with 1 charge, "Forest" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Lost Jitte"
+  run_to turn 1 begin_combat
+  assert counters "Lost Jitte" charge 0
+  assert untapped "Forest"
+}

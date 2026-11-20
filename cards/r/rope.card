@@ -1,0 +1,8 @@
+card "Rope" {
+  oracle_id a3f09898-6c77-4d68-8d10-8440c75f884c
+    cost {G}
+  type Artifact — Clue Equipment
+  static enchanted: +1/+2, has reach, has ability { can't be blocked by more than one creature }
+  activated {2}, sacrifice this: draw 1 card
+  equip {3}
+}

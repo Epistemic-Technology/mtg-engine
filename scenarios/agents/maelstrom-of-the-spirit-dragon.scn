@@ -1,0 +1,29 @@
+scenario "Maelstrom of the Spirit Dragon's colored mana pays for an Omen spell" {
+  battlefield A: "Maelstrom of the Spirit Dragon", "Plains"
+  hand A: "Stormshriek Feral // Flush Out", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flush Out" discarding "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert hand A count 2
+  assert tapped "Maelstrom of the Spirit Dragon"
+}
+
+scenario "Maelstrom of the Spirit Dragon's colored mana can't cast other spells" {
+  battlefield A: "Maelstrom of the Spirit Dragon", "Plains"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Maelstrom of the Spirit Dragon tutors a Dragon" {
+  battlefield A: "Maelstrom of the Spirit Dragon", 4 "Plains"
+  library A: "Plains", "Shivan Dragon", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Maelstrom of the Spirit Dragon"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shivan Dragon"
+  assert graveyard A contains "Maelstrom of the Spirit Dragon"
+}

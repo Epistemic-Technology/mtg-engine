@@ -1,0 +1,27 @@
+scenario "Great Arashin City enters untapped with a Forest" {
+  battlefield A: "Forest"
+  hand A: "Great Arashin City"
+  start turn 1 A precombat_main
+  turn 1 A: play "Great Arashin City"
+  run_to turn 1 postcombat_main
+  assert untapped "Great Arashin City"
+}
+
+scenario "Great Arashin City enters tapped without a Forest or Plains" {
+  battlefield A: "Island"
+  hand A: "Great Arashin City"
+  start turn 1 A precombat_main
+  turn 1 A: play "Great Arashin City"
+  run_to turn 1 postcombat_main
+  assert tapped "Great Arashin City"
+}
+
+scenario "Great Arashin City exiles a creature card to make a Spirit" {
+  battlefield A: "Great Arashin City", 2 "Swamp"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Great Arashin City"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Spirit"
+  assert exile A contains "Grizzly Bears"
+}

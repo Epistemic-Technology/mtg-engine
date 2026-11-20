@@ -1,0 +1,7 @@
+card "Vanguard of the Rose" {
+  oracle_id de4678f8-a441-4e4a-a339-9b62ebfb0100
+  cost {1}{W}
+  type Creature — Vampire Knight
+  pt 3/1
+  activated {1}, sacrifice other creature or artifact: this gains indestructible; tap it
+}

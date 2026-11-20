@@ -1,0 +1,10 @@
+card "Builder's Talent" {
+  oracle_id 0b19082c-8f80-448b-9e1b-0f324a159409
+  cost {1}{W}
+  type Enchantment — Class
+  triggered when this enters: create 1 "0/4 white Wall creature with defender"
+  level 2 {W}
+  triggered whenever one or more noncreature, nonland permanent you control enter: put 1 +1/+1 counter on target creature you control
+  level 3 {4}{W}
+  triggered when this becomes level 3: return target noncreature, nonland, noninstant, nonsorcery card from your graveyard to battlefield
+}

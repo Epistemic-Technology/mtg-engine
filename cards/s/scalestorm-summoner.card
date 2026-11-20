@@ -1,0 +1,7 @@
+card "Scalestorm Summoner" {
+  oracle_id 55ede1d4-593d-433c-943a-4db12eeb5fa8
+  cost {2}{R}
+  type Creature — Human Warlock
+  pt 3/3
+  triggered whenever this attacks: create 1 "3/1 red Dinosaur creature" if you control creature with power 4 or greater
+}

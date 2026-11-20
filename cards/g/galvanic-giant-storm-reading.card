@@ -1,0 +1,13 @@
+card "Galvanic Giant // Storm Reading" {
+  oracle_id 48ab8ba0-0e85-4656-a798-ceb961fb02ce
+  layout adventure
+  cost {3}{U}
+  type Creature — Giant Wizard
+  pt 3/3
+  triggered whenever you cast with mana value 5 or greater spell: tap target creature an opponent controls and put 1 stun counter on target 1
+  face "Storm Reading" {
+    cost {5}{U}{U}
+    type Instant — Adventure
+    spell: draw 4 cards then discard 2 cards
+  }
+}

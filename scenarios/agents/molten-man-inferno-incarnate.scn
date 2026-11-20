@@ -1,0 +1,22 @@
+scenario "Molten Man fetches a Mountain and grows with Mountains" {
+  battlefield A: 3 "Mountain"
+  hand A: "Molten Man, Inferno Incarnate"
+  library A: "Forest", "Mountain", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Molten Man, Inferno Incarnate"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Mountain"
+  assert power "Molten Man, Inferno Incarnate" 4
+  assert toughness "Molten Man, Inferno Incarnate" 4
+}
+
+scenario "Molten Man leaving makes you sacrifice a land" {
+  battlefield A: "Molten Man, Inferno Incarnate", 2 "Mountain"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Molten Man, Inferno Incarnate"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Molten Man, Inferno Incarnate"
+  assert battlefield A contains 1 "Mountain"
+}

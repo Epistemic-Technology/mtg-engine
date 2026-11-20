@@ -1,0 +1,8 @@
+card "Raging Battle Mouse" {
+  oracle_id 9ffe4d90-b46c-4606-89cb-1b724104f6ea
+  cost {1}{R}
+  type Creature — Mouse
+  pt 2/1
+  static as long as spell number 2 this turn, spells you cast cost {1} less
+  label "Celebration" triggered at beginning of your combat if 2 nonland entered this turn: target creature you control gets +1/+1
+}

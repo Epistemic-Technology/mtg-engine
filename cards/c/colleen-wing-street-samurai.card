@@ -1,0 +1,7 @@
+card "Colleen Wing, Street Samurai" {
+  oracle_id 685181dd-0124-4c76-9270-f9dd17e6a221
+  cost {1}{W}
+  type Legendary Creature — Human Samurai Hero
+  pt 2/2
+  triggered whenever you cast a spell that targets creature you control: put 1 +1/+1 counter on this; scry 1
+}

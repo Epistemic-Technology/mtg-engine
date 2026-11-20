@@ -1,0 +1,8 @@
+card "Thrumming Hivepool" {
+  oracle_id 04ea21b3-084b-4746-9b49-99b6ef4f0885
+  cost {6}
+  type Artifact
+  affinity for Sliver
+  static Sliver you control: has double strike, haste
+  triggered at beginning of your upkeep: create 2 "1/1 colorless Sliver creature"
+}

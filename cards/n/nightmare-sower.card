@@ -1,0 +1,8 @@
+card "Nightmare Sower" {
+  oracle_id 4121b7d9-5fbe-40e2-a2a6-d7633f423b5f
+  cost {3}{B}
+  type Creature — Faerie Assassin
+  pt 2/3
+  keywords flying, lifelink
+  triggered whenever you cast a spell during an opponent's turn: put 1 -1/-1 counter on up to 1 target creature
+}

@@ -1,0 +1,15 @@
+scenario "Edge Rover dies and each player creates a Lander" {
+  battlefield A: "Edge Rover", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Edge Rover"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Edge Rover"
+  assert battlefield A contains "Lander"
+  assert battlefield B contains "Lander"
+}
+
+scenario "Edge Rover has reach" {
+  battlefield A: "Edge Rover"
+  assert has "Edge Rover" reach
+}

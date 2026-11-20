@@ -1,0 +1,9 @@
+card "Molten Man, Inferno Incarnate" {
+  oracle_id c6fcf3c1-0626-4d53-92c0-caa22fa61e9a
+  cost {2}{R}
+  type Legendary Creature — Elemental Villain
+  pt 0/0
+  triggered when this enters: search basic Mountain card to battlefield tapped
+  static this: +1/+1 count each Mountain you control
+  triggered when this leaves the battlefield: sacrifice 1 land chosen
+}

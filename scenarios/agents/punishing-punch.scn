@@ -1,0 +1,32 @@
+scenario "Punishing Punch deals twice the power" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Punishing Punch"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Punishing Punch" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Punishing Punch costs {2} less with two creature cards in the graveyard" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Punishing Punch"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Punishing Punch" targeting A "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Punishing Punch is full price otherwise" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears"
+  hand A: "Punishing Punch"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Punishing Punch" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Punishing Punch"
+}

@@ -1,0 +1,7 @@
+card "Sami, Ship's Engineer" {
+  oracle_id 470c16c5-b078-47f5-89b0-42991e1f7157
+  cost {2}{R}{W}
+  type Legendary Creature — Human Artificer
+  pt 2/4
+  triggered at beginning of your end step if you control 2 tapped creature: create 1 tapped "2/2 colorless Robot artifact creature"
+}

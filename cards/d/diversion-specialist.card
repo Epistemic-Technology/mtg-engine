@@ -1,0 +1,8 @@
+card "Diversion Specialist" {
+  oracle_id 7130d063-fc1b-408b-97f2-14cb6b55d9cd
+  cost {3}{R}
+  type Creature — Human Warrior
+  pt 4/3
+  keywords menace
+  activated {1}, sacrifice another creature or enchantment: impulse 1 this turn it
+}

@@ -1,0 +1,9 @@
+card "Arbiter of Woe" {
+  oracle_id 540693f3-985c-4a4a-945c-c957c5aad395
+  cost {4}{B}{B}
+  type Creature — Demon
+  pt 5/4
+  additional cost sacrifice creature
+  keywords flying
+  triggered when this enters: each opponent discards 1 card and loses 2 life; you draw 1 card and gain 2 life
+}

@@ -1,0 +1,7 @@
+card "Treacherous Greed" {
+  oracle_id 5483f787-7aca-4efe-a39a-ea29f8c07f0d
+  cost {1}{W}{B}
+  type Instant
+  additional cost sacrifice creature that dealt damage this turn
+  spell: draw 3 cards; each opponent loses 3 life and you gain 3 life
+}

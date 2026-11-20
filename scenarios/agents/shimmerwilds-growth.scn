@@ -1,0 +1,21 @@
+scenario "Shimmerwilds Growth colors the land and adds the chosen color" {
+  battlefield A: "Forest", "Island", "Plains"
+  hand A: "Shimmerwilds Growth", "Shock"
+  library A: "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shimmerwilds Growth" targeting "Plains"
+  turn 1 A: choose red
+  turn 3 A: cast "Shock" targeting player B
+  run_to turn 3 postcombat_main
+  assert attached "Shimmerwilds Growth" to "Plains"
+  assert is "Plains" red
+  assert life B 18
+}
+
+scenario "Without the Aura a Plains can't pay for Shock" {
+  battlefield A: "Plains"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+}

@@ -1,0 +1,5 @@
+token "Doombot" {
+  type Artifact Creature — Robot Villain
+  pt 3/3
+  color
+}

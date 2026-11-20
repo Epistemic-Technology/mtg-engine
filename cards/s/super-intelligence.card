@@ -1,0 +1,7 @@
+card "Super Intelligence" {
+  oracle_id d82929f2-57ad-45be-a834-984437046026
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  triggered at beginning of enchanted controller's upkeep: that player draws 1 card
+}

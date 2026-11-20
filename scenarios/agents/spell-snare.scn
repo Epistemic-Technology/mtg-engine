@@ -1,0 +1,24 @@
+scenario "spell snare counters a spell with mana value 2" {
+  battlefield A: "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Spell Snare"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Spell Snare" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+}
+
+scenario "spell snare can't target a spell with another mana value" {
+  battlefield A: "Island"
+  battlefield B: 4 "Mountain"
+  hand A: "Spell Snare"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  illegal turn 2 A: cast "Spell Snare" targeting "Hill Giant" in response to "Hill Giant"
+  run_to turn 2 begin_combat
+  assert battlefield B contains "Hill Giant"
+}

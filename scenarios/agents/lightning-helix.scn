@@ -1,0 +1,21 @@
+scenario "Lightning Helix hits a player and gains 3 life" {
+  battlefield A: "Mountain", "Plains"
+  hand A: "Lightning Helix"
+  life A 10
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Helix" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 13
+}
+
+scenario "Lightning Helix kills a creature" {
+  battlefield A: "Mountain", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Helix"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Helix" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 23
+}

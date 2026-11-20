@@ -1,0 +1,22 @@
+scenario "Emeritus of Ideation enters prepared and casts Ancestral Recall" {
+  battlefield A: 6 "Island"
+  hand A: "Emeritus of Ideation // Ancestral Recall"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Emeritus of Ideation"
+  turn 1 A: wait
+  turn 1 A: cast "Ancestral Recall" targeting player A
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}
+
+scenario "Emeritus of Ideation exiles eight graveyard cards to become prepared again" {
+  battlefield A: "Emeritus of Ideation // Ancestral Recall", "Island"
+  graveyard A: 8 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Emeritus of Ideation"
+  turn 1 postcombat_main A: cast "Ancestral Recall" targeting player A
+  run_to turn 1 end
+  assert life B 15
+  assert graveyard A count 0
+  assert hand A count 3
+}

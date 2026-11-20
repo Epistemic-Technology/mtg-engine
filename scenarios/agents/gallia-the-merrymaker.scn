@@ -1,0 +1,20 @@
+scenario "gallia counters a fresh creature which then has haste" {
+  battlefield A: "Gallia, the Merrymaker", 2 "Forest", 2 "Mountain"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Gallia, the Merrymaker" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert life B 17
+}
+
+scenario "gallia can't target a creature that entered earlier" {
+  battlefield A: "Gallia, the Merrymaker", "Hill Giant", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Gallia, the Merrymaker" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert counters "Hill Giant" +1/+1 0
+}

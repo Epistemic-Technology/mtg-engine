@@ -1,0 +1,9 @@
+card "Threefold Thunderhulk" {
+  oracle_id b8020a8b-557b-465d-865d-b59fecd7abc1
+  cost {7}
+  type Artifact Creature — Gnome
+  pt 0/0
+  enters with 3 +1/+1 counters
+  triggered whenever this enters or attacks: create count equal power "1/1 colorless Gnome artifact creature"
+  activated {2}, sacrifice other artifact: put 1 +1/+1 counter on this
+}

@@ -1,0 +1,11 @@
+scenario "Heroes' Bane enters with four counters and doubles them" {
+  battlefield A: 9 "Forest"
+  hand A: "Heroes' Bane"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Heroes' Bane"
+  turn 1 A: wait
+  turn 1 A: activate "Heroes' Bane"
+  run_to turn 1 postcombat_main
+  assert counters "Heroes' Bane" +1/+1 8
+  assert power "Heroes' Bane" 8
+}

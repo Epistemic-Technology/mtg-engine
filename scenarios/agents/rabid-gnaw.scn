@@ -1,0 +1,20 @@
+scenario "Rabid Gnaw pumps then deals damage equal to power" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Rabid Gnaw"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rabid Gnaw" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert graveyard B contains "Hill Giant"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Rabid Gnaw can't target your own creature second" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Mountain"
+  hand A: "Rabid Gnaw"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Rabid Gnaw" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Rabid Gnaw"
+}

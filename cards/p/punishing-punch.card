@@ -1,0 +1,7 @@
+card "Punishing Punch" {
+  oracle_id 454c4e8b-e417-4381-a931-6a11356ef64e
+  cost {2}{G}
+  type Instant
+  this spell costs {2} less if 2 creature cards in your graveyard
+  spell: target creature you control bites twice target creature an opponent controls
+}

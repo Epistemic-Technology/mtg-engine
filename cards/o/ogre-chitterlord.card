@@ -1,0 +1,8 @@
+card "Ogre Chitterlord" {
+  oracle_id 532cac99-e3cf-4869-a19f-cba67a2a6fd0
+  cost {4}{R}{R}
+  type Creature — Ogre Warrior
+  pt 6/5
+  keywords menace
+  triggered whenever this enters or attacks: create 2 "1/1 black Rat creature that can't block"; then if you control 5 Rat, each single Rat you control gets +2/+0
+}

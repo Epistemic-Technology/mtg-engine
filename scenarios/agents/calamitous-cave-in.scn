@@ -1,0 +1,15 @@
+scenario "calamitous cave-in counts caves on battlefield and in graveyard" {
+  battlefield A: "Promising Vein", "Promising Vein", 4 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Serra Angel"
+  graveyard A: "Promising Vein"
+  hand A: "Calamitous Cave-In"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Calamitous Cave-In"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 3
+  assert life A 20
+  assert life B 20
+}

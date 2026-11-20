@@ -1,0 +1,23 @@
+scenario "Attuned Hunter grows when a card leaves your graveyard on your turn" {
+  battlefield A: "Attuned Hunter", "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Raise Dead"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise Dead" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert counters "Attuned Hunter" +1/+1 1
+  assert power "Attuned Hunter" 4
+}
+
+scenario "Attuned Hunter ignores other graveyards" {
+  battlefield A: "Attuned Hunter"
+  battlefield B: "Swamp"
+  graveyard B: "Grizzly Bears"
+  hand B: "Raise Dead"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Raise Dead" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert counters "Attuned Hunter" +1/+1 0
+}

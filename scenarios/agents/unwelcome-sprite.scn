@@ -1,0 +1,22 @@
+scenario "Unwelcome Sprite surveils when a spell is cast on the opponent's turn" {
+  battlefield A: "Unwelcome Sprite", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Island", "Forest", "Swamp"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 end
+  assert life B 17
+  assert known A "Island"
+  assert known A "Forest"
+}
+
+scenario "Unwelcome Sprite does not trigger on its controller's own turn" {
+  battlefield A: "Unwelcome Sprite", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Island", "Forest", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert unknown A "Island"
+}

@@ -1,0 +1,22 @@
+scenario "Magnetic Snuffler returns an Equipment attached to itself" {
+  battlefield A: 5 "Island"
+  graveyard A: "Rope"
+  hand A: "Magnetic Snuffler"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magnetic Snuffler"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Rope"
+  assert attached "Rope" to "Magnetic Snuffler"
+  assert power "Magnetic Snuffler" 5
+  assert toughness "Magnetic Snuffler" 6
+}
+
+scenario "Magnetic Snuffler grows when you sacrifice an artifact" {
+  battlefield A: "Magnetic Snuffler", "Rope", 2 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rope"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Rope"
+  assert counters "Magnetic Snuffler" +1/+1 1
+  assert hand A count 1
+}

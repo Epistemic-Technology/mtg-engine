@@ -1,0 +1,21 @@
+scenario "Marketback Walker enters with X counters and grows" {
+  battlefield A: 8 "Plains"
+  hand A: "Marketback Walker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Marketback Walker" x 2
+  turn 1 A: wait
+  turn 1 A: activate "Marketback Walker"
+  run_to turn 1 postcombat_main
+  assert counters "Marketback Walker" +1/+1 3
+  assert power "Marketback Walker" 3
+}
+
+scenario "Marketback Walker draws a card for each counter when it dies" {
+  battlefield A: "Marketback Walker" with 3 +1/+1, 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Marketback Walker"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Marketback Walker"
+  assert hand A count 3
+}

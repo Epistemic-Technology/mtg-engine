@@ -1,0 +1,22 @@
+scenario "perimeter enforcer grows when another detective enters" {
+  battlefield A: "Perimeter Enforcer", 3 "Island"
+  hand A: "Projektor Inspector"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Projektor Inspector"
+  turn 1 A: decline "Projektor Inspector"
+  run_to turn 1 begin_combat
+  assert power "Perimeter Enforcer" 2
+  assert toughness "Perimeter Enforcer" 2
+}
+
+scenario "perimeter enforcer grows when a detective is turned face up" {
+  battlefield A: "Perimeter Enforcer", 8 "Swamp"
+  hand A: "Basilica Stalker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Basilica Stalker" face_down
+  turn 1 postcombat_main A: unmorph "Basilica Stalker"
+  run_to turn 1 begin_combat
+  assert power "Perimeter Enforcer" 1
+  run_to turn 1 end
+  assert power "Perimeter Enforcer" 2
+}

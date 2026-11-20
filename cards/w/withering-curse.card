@@ -1,0 +1,9 @@
+card "Withering Curse" {
+  oracle_id fddd1c39-bdf8-4aee-897c-666498cc4dd3
+  cost {1}{B}{B}
+  type Sorcery
+  spell {
+    each creature gets -2/-2
+    label "Infusion" if gained life this turn, destroy each creature instead
+  }
+}

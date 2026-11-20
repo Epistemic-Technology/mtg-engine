@@ -1,0 +1,12 @@
+scenario "mind meanderer: fights an opponent's creature as it enters" {
+  battlefield A: 3 "Forest", 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Mind Meanderer"
+  turn 1 A: cast "Mind Meanderer"
+  turn 1 A: trigger "Mind Meanderer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert damage "Mind Meanderer" 3
+  assert has "Mind Meanderer" flying
+  assert has not "Mind Meanderer" vigilance
+}

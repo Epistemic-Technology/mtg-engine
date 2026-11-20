@@ -1,0 +1,15 @@
+scenario "Planar Engineering sacrifices two lands and fetches four basics tapped" {
+  battlefield A: 4 "Forest"
+  hand A: "Planar Engineering"
+  library A: "Island", "Swamp", "Mountain", "Plains", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Planar Engineering"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains 2 "Forest"
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Swamp"
+  assert battlefield A contains "Mountain"
+  assert battlefield A contains "Plains"
+  assert tapped "Island"
+  assert library A count 1
+}

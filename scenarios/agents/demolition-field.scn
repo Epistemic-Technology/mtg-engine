@@ -1,0 +1,22 @@
+scenario "Demolition Field destroys a nonbasic land and both players fetch a basic" {
+  battlefield A: "Demolition Field", 2 "Plains"
+  battlefield B: "Tranquil Thicket"
+  library A: "Forest", "Island"
+  library B: "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Demolition Field" targeting "Tranquil Thicket"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Demolition Field"
+  assert graveyard B contains "Tranquil Thicket"
+  assert battlefield B contains "Swamp"
+  assert battlefield A contains "Forest"
+}
+
+scenario "Demolition Field can't target a basic land" {
+  battlefield A: "Demolition Field", 2 "Plains"
+  battlefield B: "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Demolition Field" targeting "Swamp"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Demolition Field"
+}

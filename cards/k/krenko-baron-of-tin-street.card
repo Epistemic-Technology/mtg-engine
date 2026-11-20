@@ -1,0 +1,9 @@
+card "Krenko, Baron of Tin Street" {
+  oracle_id 91b2520e-85b6-4e1f-88cf-a585feeb8e65
+  cost {2}{R}
+  type Legendary Creature — Goblin
+  pt 3/3
+  keywords haste
+  activated {T}, sacrifice artifact: put 1 +1/+1 counter on each Goblin you control
+  triggered whenever artifact is put into a graveyard from the battlefield: you may pay {R}; if you do, create 1 "1/1 red Goblin creature"; that token gains haste until end of turn
+}

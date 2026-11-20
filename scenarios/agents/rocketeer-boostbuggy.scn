@@ -1,0 +1,19 @@
+scenario "Rocketeer Boostbuggy makes a Treasure when it attacks" {
+  battlefield A: "Rocketeer Boostbuggy", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: activate "Rocketeer Boostbuggy"
+  turn 1 A: attack "Rocketeer Boostbuggy"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert life B 17
+}
+
+scenario "Rocketeer Boostbuggy exhaust makes it a creature with a counter" {
+  battlefield A: "Rocketeer Boostbuggy", 3 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rocketeer Boostbuggy"
+  run_to turn 3 precombat_main
+  assert is "Rocketeer Boostbuggy" creature
+  assert counters "Rocketeer Boostbuggy" +1/+1 1
+  assert power "Rocketeer Boostbuggy" 4
+}
