@@ -2407,12 +2407,10 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
     if let Some(n) = cost.loyalty {
         // A zero loyalty cost prints "0:" (Gideon Jura's "0: Until end of
         // turn, ...").
-        return if n == 0 {
-            "0".to_string()
-        } else if n > 0 {
-            format!("+{n}")
-        } else {
-            format!("−{}", -n)
+        return match n.cmp(&0) {
+            std::cmp::Ordering::Equal => "0".to_string(),
+            std::cmp::Ordering::Greater => format!("+{n}"),
+            std::cmp::Ordering::Less => format!("−{}", -n),
         };
     }
     let default_order = [

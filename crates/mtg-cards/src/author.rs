@@ -4717,6 +4717,7 @@ fn neuter_pronouns(oracle: &str) -> (String, Option<&'static str>) {
     (out.into_owned(), Some(pronoun))
 }
 
+#[allow(clippy::too_many_lines)] // one step per part of the card
 pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if matches!(
         s.layout.as_str(),
