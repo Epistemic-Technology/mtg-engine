@@ -6260,8 +6260,10 @@ impl P {
             self.pos += 2;
         }
         // "up to two other target creatures you control".
+        // "two other target permanents" (`2 another target permanent`).
         let counted = self.word_at(1).as_deref() == Some("target")
-            || up_to && self.word_at(1).as_deref() == Some("another");
+            || self.word_at(1).as_deref() == Some("another")
+                && (up_to || self.word_at(2).as_deref() == Some("target"));
         let count = match self.peek() {
             Some(Tok::Num(n)) if counted => {
                 let n = *n;
@@ -6282,7 +6284,7 @@ impl P {
         };
         if count > 1 || up_to {
             // "up to one other target permanent you control".
-            let another = up_to && self.eat_word("another");
+            let another = self.eat_word("another");
             self.expect_word("target")?;
             let mut spec = self.target_spec()?;
             if another {

@@ -1300,7 +1300,10 @@ impl<'a> Ctx<'a> {
             };
             let noun = self.plural_target_noun(fresh[0]);
             // "up to two other target creatures you control" (CR 115.3).
-            let (other, noun) = match noun.strip_prefix("other ") {
+            let (other, noun) = match noun
+                .strip_prefix("other ")
+                .or_else(|| noun.strip_prefix("another "))
+            {
                 Some(rest) => ("other ", rest.to_string()),
                 None => ("", noun),
             };

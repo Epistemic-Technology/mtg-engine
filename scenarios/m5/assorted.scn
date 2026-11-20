@@ -541,6 +541,48 @@ scenario "Spinning Darkness can't be cast free with two black cards in the grave
   assert hand A contains "Spinning Darkness"
 }
 
+scenario "Armor of Thorns can't enchant a black creature" {
+  battlefield A: 2 "Forest", "Typhoid Rats"
+  hand A: "Armor of Thorns"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Armor of Thorns" targeting "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Armor of Thorns"
+}
+
+scenario "Armor of Thorns cast on an opponent's turn is sacrificed at cleanup" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  hand A: "Armor of Thorns"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Armor of Thorns" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert power "Grizzly Bears" 4
+  run_to turn 3
+  assert graveyard A contains "Armor of Thorns"
+}
+
+scenario "Varchild's Crusader can be blocked only by Walls, then is sacrificed" {
+  battlefield A: "Varchild's Crusader"
+  battlefield B: "Wall of Wood", "Hill Giant"
+  turn 1 A: activate "Varchild's Crusader"
+  turn 1 A: attack "Varchild's Crusader"
+  illegal turn 1 B: block "Varchild's Crusader" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  run_to turn 2
+  assert graveyard A contains "Varchild's Crusader"
+}
+
+scenario "Nimbleclaw Adept untaps two other target permanents" {
+  battlefield A: "Nimbleclaw Adept", "Forest" tapped, "Grizzly Bears" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Nimbleclaw Adept" targeting "Forest", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Forest"
+  assert untapped "Grizzly Bears"
+  assert tapped "Nimbleclaw Adept"
+}
+
 scenario "Gleam of Resistance untaps attackers" {
   battlefield A: 5 "Plains", "Grizzly Bears"
   hand A: "Gleam of Resistance"

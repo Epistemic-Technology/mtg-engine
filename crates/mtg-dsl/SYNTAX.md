@@ -353,7 +353,8 @@ Counters on a group of targets: `put 1 +1/+1 counter on up to 2 target
 creature` ("put a +1/+1 counter on each of up to two target creatures";
 `1 to 2 target creature` is "one or two", `X target creature` "X",
 `up to 2 another target creature you control` "up to two other target
-creatures you control"), `... and put 1 stun counter on them` ("on each
+creatures you control"; `untap 2 another target permanent` is "Untap two
+other target permanents"), `... and put 1 stun counter on them` ("on each
 of them"), and `put 1 stun counter on those targets` ("on each of those
 creatures": every target declared so far, named by their kind).
 

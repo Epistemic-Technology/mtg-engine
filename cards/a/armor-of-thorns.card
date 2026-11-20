@@ -1,0 +1,8 @@
+card "Armor of Thorns" {
+  oracle_id 31ead5a5-aa01-4601-8d3e-267b65fce3bb
+  cost {1}{G}
+  type Enchantment — Aura
+  flash with cleanup sacrifice
+  enchant nonblack creature
+  static enchanted: +2/+2
+}
