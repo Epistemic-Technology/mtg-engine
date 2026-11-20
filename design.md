@@ -2625,3 +2625,20 @@ color choice inside any payment; a legendary token meeting the legend
 rule), both fixed with regression tests. Per-game cost rose about 2.6%
 over the two waves. Corpus 10,711 cards: 80.6% of Pauper, 36.7% of
 Modern; 4,982 scenarios pass.
+
+Status 2026-11-20, overnight: three more waves of feature agents (small
+keyword mechanics, overload / goad / conspire / banding / learn, mass and
+per-player effects, reveal-and-branch, historic / devotion / same-name,
+trigger variants, battles / Rooms / station, mana riders and blocking
+allowances; then afterlife / extort / riot / living weapon / monstrosity /
+jump-start / retrace / surge / spectacle / ingest / reinforce, counter
+costs and kicker targets, library and hand effects with skip steps,
+damage riders and excess damage, decayed / phasing / umbra armor / blight
+/ cipher / manifest dread, a second one-offs sweep with {X} in activated
+abilities; then casualty / teamwork / warp / ripple and "if you don't" /
+turn-long delayed triggers). The keyword set grew past 64 bits
+(`KeywordSet([u64; 2])`, `Characteristics` 80 bytes), `CastInfo` grew to
+32 bits after two flags shared a bit, and three object marks were packed
+into one byte to keep `GameObject` at 136. Per-game cost by instruction
+count rose about 2% over the three waves. Corpus 11,347 cards: 86.3% of
+Pauper, 38.9% of Modern; 5,578 scenarios pass.
