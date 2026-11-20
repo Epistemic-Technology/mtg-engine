@@ -2668,3 +2668,27 @@ looking at face-down creatures; entered-this-turn conditions, "that
 player may pay", second-spell cost reductions). Corpus 11,423 cards:
 87.0% of Pauper, 31.0% of Standard, 39.1% of Modern; 5,665 scenarios
 pass; per-game cost flat.
+
+Status 2026-11-20, later: the first wave under the efficiency review
+(M5 above). The template author, run over Standard and Modern for the
+first time, wrote 1,452 cards with no model. Eight feature agents then
+ran with a partition of primitives: sagas / classes / cases; the prepare
+layout and modal double-faced cards; plot / sneak / spree / gift /
+freerunning; earthbend / waterbend / firebending / double; max speed /
+station levels / empower Jace / behold / vivid / mobilize / repartee /
+mayhem; converge / collect evidence / rooms / manifest dread / suspect /
+blight / craft, with an optional additional cost; graft / vanishing /
+multikicker / sunburst / transmute / daybound / disturb / soulbond; and a
+catch-up of the template author to the card language, which wrote about
+1,100 more cards. The seven feature branches added 498 cards. Merging
+found three places where two branches had taken the same free bit (an
+object mark, and `CastInfo` flags twice); a test now fails if two
+`CastInfo` flags overlap. One primitive was still built twice: behold's
+"you may behold" and the optional additional cost for collect evidence
+and blight are separate paths. Open from the agents' reports: template
+cards written before the catch-up may read "it" as the source where the
+text means another object (the gate cannot tell); several new mechanics
+have the engine choose where the player should. Per-game throughput fell
+about 2.8% (mono-red mirror, pinned best of five). Coverage: 88.9% of
+Pauper, 46.6% of Standard, 52.5% of Modern; gate 14,479 match; 6,010
+scenarios pass.
