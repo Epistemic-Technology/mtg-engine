@@ -50,3 +50,19 @@ pass. Everything here is about reaching that at less cost.
    5%; that means the engine, not the authoring, is the limit.
 7. **Clean up.** Delete `target/` in finished worktrees before the next
    wave.
+
+## Quick cross-pool backlog (no census inputs needed)
+
+    for f in pauper standard modern; do
+      mtg-cards author --format $f --verbose > $DIR/skips-$f.txt 2>&1
+    done
+    python3 scripts/coverage/rank-skips.py $DIR    # backlog-ranked.tsv
+    python3 scripts/coverage/wave-lists.py $DIR    # wave1/<agent>.txt
+
+`rank-skips.py` ranks the template author's skip reasons by cards
+blocked across the three pools. The author reports only the first
+reason per card, so a count is an upper bound on what one feature
+unlocks. `wave-lists.py` holds the assignment of reasons to agents
+(edit the table at its top per wave) and writes one card list per
+agent, plus a catch-up list of every unassigned reason shared by three
+or more cards.
