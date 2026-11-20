@@ -1064,6 +1064,7 @@ impl Compiler<'_> {
                     n: g.n,
                     x: g.x,
                     filter: g.filter.as_ref().map(|f| self.filter(f)),
+                    top: g.top,
                 })
             }),
             reveal_hand: c.reveal_hand,

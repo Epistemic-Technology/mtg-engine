@@ -315,6 +315,7 @@ impl Decompiler<'_> {
                     n: g.n,
                     x: g.x,
                     filter: g.filter.as_ref().map(|f| self.filter(f)),
+                    top: g.top,
                 })
             }),
             order: Vec::new(),

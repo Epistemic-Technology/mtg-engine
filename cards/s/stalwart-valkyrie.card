@@ -1,0 +1,8 @@
+card "Stalwart Valkyrie" {
+  oracle_id b6b4c459-9c8b-4b95-8706-05d972b8daea
+  cost {3}{W}
+  type Creature — Angel Warrior
+  pt 3/2
+  alternative cost {1}{W}, exile creature card from graveyard
+  keywords flying
+}

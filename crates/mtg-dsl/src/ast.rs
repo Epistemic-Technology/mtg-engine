@@ -467,6 +467,9 @@ pub struct ExileCards {
     pub n: u32,
     pub x: bool,
     pub filter: Option<Filter>,
+    /// `exile top 3 black cards from graveyard`: "the top three black
+    /// cards of your graveyard".
+    pub top: bool,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]

@@ -4335,6 +4335,10 @@ pub struct GraveExile {
     pub n: u32,
     pub x: bool,
     pub filter: Option<ObjFilter>,
+    /// "the top three black cards of your graveyard": the most recent
+    /// matching cards rather than the oldest.
+    #[serde(default)]
+    pub top: bool,
 }
 
 /// "You may pay {1} and return a basic land you control to its owner's hand

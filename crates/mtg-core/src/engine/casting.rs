@@ -1541,6 +1541,12 @@ impl GameState {
         {
             return false;
         }
+        // "exile a creature card from your graveyard".
+        if let Some(g) = &alt.cost.exile_cards
+            && self.exile_candidates(p, g.filter.as_ref(), id).len() < g.n as usize
+        {
+            return false;
+        }
         // CR 119.4: life can be paid only if the life total is at least
         // the amount.
         if alt.cost.life > 0
@@ -3514,6 +3520,9 @@ impl GameState {
         // stack) targets.
         if let Some(g) = &cost.exile_cards {
             let mut cands = self.exile_candidates(p, g.filter.as_ref(), this);
+            if g.top {
+                cands.reverse();
+            }
             if let Some(top) = self.stack.last().and_then(|t| self.objects.get(*t)) {
                 cands.sort_by_key(|c| top.targets.contains(&Target::Object(*c)));
             }

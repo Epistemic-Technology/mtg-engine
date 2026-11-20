@@ -492,6 +492,55 @@ scenario "Infiltrator's Magemark pumps enchanted creatures you control" {
   assert life B 17
 }
 
+# Alternative costs that exile cards from the graveyard (CR 118.9).
+scenario "Stalwart Valkyrie cast for {1}{W} and a creature card from the graveyard" {
+  battlefield A: 2 "Plains"
+  hand A: "Stalwart Valkyrie"
+  graveyard A: "Grizzly Bears", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stalwart Valkyrie" alternative
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Stalwart Valkyrie"
+  assert exile A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Stalwart Valkyrie's alternative cost needs a creature card in the graveyard" {
+  battlefield A: 2 "Plains"
+  hand A: "Stalwart Valkyrie"
+  graveyard A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Stalwart Valkyrie" alternative
+  run_to turn 1 postcombat_main
+  assert hand A contains "Stalwart Valkyrie"
+}
+
+scenario "Spinning Darkness exiles the top three black cards of the graveyard" {
+  battlefield B: "Grizzly Bears"
+  hand A: "Spinning Darkness"
+  graveyard A: "Typhoid Rats", "Doom Blade", "Lightning Bolt", "Terror", "Vampire Bats"
+  life A 10
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spinning Darkness" alternative targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 13
+  assert graveyard A contains "Typhoid Rats"
+  assert exile A contains "Doom Blade"
+  assert exile A contains "Terror"
+  assert exile A contains "Vampire Bats"
+}
+
+scenario "Spinning Darkness can't be cast free with two black cards in the graveyard" {
+  battlefield B: "Grizzly Bears"
+  hand A: "Spinning Darkness"
+  graveyard A: "Typhoid Rats", "Lightning Bolt", "Terror"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Spinning Darkness" alternative targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Spinning Darkness"
+}
+
 scenario "Gleam of Resistance untaps attackers" {
   battlefield A: 5 "Plains", "Grizzly Bears"
   hand A: "Gleam of Resistance"

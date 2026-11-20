@@ -2062,6 +2062,30 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
             mtg_core::card::ChosenCost::Sacrifice => format!("sacrifice {what}"),
         });
     }
+    if let Some(g) = &a.cost.exile_cards {
+        let kind = g
+            .filter
+            .as_ref()
+            .map_or(String::new(), |f| card_filter_phrase(f, card) + " ");
+        parts.push(if g.top {
+            // "exile the top three black cards of your graveyard".
+            format!(
+                "exile the top {} {kind}{} of your graveyard",
+                count_words(Num::N(g.n), "one"),
+                if g.n == 1 { "card" } else { "cards" }
+            )
+        } else if g.n == 1 {
+            format!(
+                "exile {} from your graveyard",
+                with_article(&format!("{kind}card"))
+            )
+        } else {
+            format!(
+                "exile {} {kind}cards from your graveyard",
+                count_words(Num::N(g.n), "a")
+            )
+        });
+    }
     if a.cost.life > 0 {
         parts.push(format!("pay {} life", a.cost.life));
     }
@@ -8676,6 +8700,12 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         };
         lines.push(format!("As an additional cost to cast this spell, {c}."));
     }
+    // An alternative cost prints before keywords ("You may pay {1}{W} and
+    // exile a creature card from your graveyard rather than pay this
+    // spell's mana cost.\nFlying").
+    if let Some(a) = &card.alt_cost {
+        lines.push(alt_cost_line(card, a));
+    }
     let alone_pair = card.keywords.contains(&Keyword::CantAttackAlone)
         && card.keywords.contains(&Keyword::CantBlockAlone);
     for k in &card.keywords {
@@ -8690,9 +8720,6 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             continue;
         }
         lines.push(keyword_line(card, *k));
-    }
-    if let Some(a) = &card.alt_cost {
-        lines.push(alt_cost_line(card, a));
     }
     let mut i = 0;
     while i < card.abilities.len() {

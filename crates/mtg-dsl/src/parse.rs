@@ -8211,6 +8211,7 @@ impl P {
                     // graveyard`.
                     "exile" => {
                         self.pos += 1;
+                        let top = self.eat_word("top");
                         let (mut n, mut x) = (1, false);
                         if let Some(Tok::Num(k)) = self.peek() {
                             n = *k;
@@ -8227,7 +8228,8 @@ impl P {
                         };
                         self.cards_word()?;
                         self.expect_words(&["from", "graveyard"])?;
-                        cost.exile_cards = Some(Box::new(crate::ast::ExileCards { n, x, filter }));
+                        cost.exile_cards =
+                            Some(Box::new(crate::ast::ExileCards { n, x, filter, top }));
                         cost.order.push(CostItem::ExileCards);
                     }
                     "discard" => {
