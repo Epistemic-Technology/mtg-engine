@@ -2844,6 +2844,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::AddManaCombination { count, .. }
         | Effect::CreateToken { count, .. }
         | Effect::EmpowerJace { count }
+        | Effect::Dig { count, .. }
         | Effect::Earthbend { count, .. } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
@@ -3285,6 +3286,16 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 c.text =
                     c.text
                         .replacen(", then put", &format!(", where X is {phrase}, then put"), 1);
+            }
+            // "look at the top X cards of your library, where X is ...
+            // . Put two of those cards into your hand ...".
+            CountStyle::Where if matches!(e, Effect::Dig { .. }) => {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c.text.replacen(
+                    " cards of your library",
+                    &format!(" cards of your library, where X is {phrase}"),
+                    1,
+                );
             }
             CountStyle::Where => {
                 let _ = write!(

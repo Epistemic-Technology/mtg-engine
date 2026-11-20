@@ -1,0 +1,21 @@
+scenario "looks at Caves you control plus Cave cards in your graveyard" {
+  battlefield A: 6 "Island", "Captivating Cave", "Hidden Cataract"
+  graveyard A: "Hidden Volcano"
+  hand A: "Sinuous Benthisaur"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake", "Plains"
+  turn 1 A: cast "Sinuous Benthisaur"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert library A count 3
+  assert library A contains "Plains"
+}
+
+scenario "with no Caves it looks at nothing" {
+  battlefield A: 6 "Island"
+  hand A: "Sinuous Benthisaur"
+  library A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Sinuous Benthisaur"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A count 2
+}
