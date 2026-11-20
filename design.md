@@ -2108,6 +2108,11 @@ it).
   the rest Pauper uses) in the grammar and the engine; the IS-MCTS agent
   beats the greedy agent over a fixed matchup set; the benchmark harness
   published. After M5, Pauper coverage is maintenance per new set.
+- Coverage order after Pauper (revised 2026-11-20): Standard, then
+  Modern, then the full Arena card pool excluding Alchemy (digital-only
+  rebalanced cards and Alchemy sets). Arena is not a legality format in
+  the snapshot; its pool is Scryfall's `games` containing "arena" minus
+  Alchemy. Baselines at the revision: Standard 30.9%, Modern 39.0%.
 
 Status 2026-11-18, slice 1 (mana symbols and tokens) done: hybrid
 (`{R/G}`), monocolored hybrid (`{2/W}`), and Phyrexian (`{R/P}`) symbols
