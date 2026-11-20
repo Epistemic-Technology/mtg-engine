@@ -2530,6 +2530,7 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::NotNamedThis => "not named this".to_string(),
         SameRef::SameNameAs(n) => format!("with same name as target {}", n + 1),
         SameRef::SharesColorWith(n) => format!("that shares color with target {}", n + 1),
+        SameRef::LesserPower => "with lesser power".to_string(),
     }
 }
 
@@ -4082,6 +4083,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Evolve => "evolve".to_string(),
                 crate::ast::Mechanic::Renown(n) => format!("renown {n}"),
                 crate::ast::Mechanic::Unleash => "unleash".to_string(),
+                crate::ast::Mechanic::Afterlife(n) => format!("afterlife {n}"),
+                crate::ast::Mechanic::Extort => "extort".to_string(),
+                crate::ast::Mechanic::Mentor => "mentor".to_string(),
             };
             let _ = writeln!(out, "{indent}{text}");
         }
@@ -4214,6 +4218,7 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
         Ability::Mechanic(crate::ast::Mechanic::Frenzy(n)) => Some(format!("frenzy {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Absorb(n)) => Some(format!("absorb {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Provoke) => Some("provoke".to_string()),
+        Ability::Mechanic(crate::ast::Mechanic::Mentor) => Some("mentor".to_string()),
         Ability::Mechanic(crate::ast::Mechanic::Outlast(c)) => Some(format!("outlast {c}")),
         Ability::Protection(f) if *f == Filter::default() => {
             Some("protection from everything".to_string())

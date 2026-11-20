@@ -1,0 +1,8 @@
+card "Syndicate Messenger" {
+  oracle_id f5f4d78b-ed2b-471b-9ece-237fb55adc13
+  cost {3}{W}
+  type Creature — Bird
+  pt 2/3
+  keywords flying
+  afterlife 1
+}

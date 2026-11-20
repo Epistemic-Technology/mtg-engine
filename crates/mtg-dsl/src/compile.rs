@@ -88,6 +88,7 @@ pub fn add_card(
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
             scavenge: None,
+            extort: None,
             token: None,
         };
         let def = c.card()?;
@@ -110,6 +111,7 @@ pub fn add_card(
                 implied: Vec::new(),
                 implied_used: std::rc::Rc::default(),
                 scavenge: None,
+                extort: None,
                 token: None,
             };
             let def = c.card()?;
@@ -128,6 +130,7 @@ pub fn add_card(
         implied: Vec::new(),
         implied_used: std::rc::Rc::default(),
         scavenge: None,
+        extort: None,
         token,
     };
     let mut def = c.card()?;
@@ -185,6 +188,8 @@ struct Compiler<'a> {
     implied_used: std::rc::Rc<std::cell::Cell<Option<CoreChoiceKind>>>,
     /// Scavenge's count (the card's power), once added to the counts.
     scavenge: Option<u8>,
+    /// Extort's count (the life lost this way), once added to the counts.
+    extort: Option<u8>,
     /// The token embalm, eternalize, or offspring creates, compiled
     /// before the card (`derived_token`).
     token: Option<CardRef>,
@@ -387,6 +392,12 @@ impl Compiler<'_> {
                     // last existed in the graveyard.
                     counts.push(mtg_core::card::CountExpr::SourcePower);
                     self.scavenge = u8::try_from(counts.len() - 1).ok();
+                }
+                Ability::Mechanic(Mechanic::Extort) => {
+                    // CR 702.101a: "you gain life equal to the total life
+                    // lost this way".
+                    counts.push(mtg_core::card::CountExpr::LifeLostThisWay);
+                    self.extort = u8::try_from(counts.len() - 1).ok();
                 }
                 Ability::Affinity(f) => {
                     let mut f = self.filter(f);
@@ -641,6 +652,10 @@ impl Compiler<'_> {
                     SameRef::SharesColorWith(n) => Same {
                         of: target(n),
                         what: SameWhat::Color,
+                    },
+                    SameRef::LesserPower => Same {
+                        of: SameOf::Source,
+                        what: SameWhat::LesserPower,
                     },
                 }
             }),
@@ -2973,6 +2988,16 @@ impl Compiler<'_> {
                         None,
                     )
                 }
+                // CR 702.101a: "Whenever you cast a spell, you may pay
+                // {W/B}. If you do, each opponent loses 1 life and you gain
+                // life equal to the total life lost this way."
+                Mechanic::Extort => {
+                    let Some(i) = self.extort else {
+                        return self.err("extort's count is missing");
+                    };
+                    let expanded = extort(i);
+                    return self.ability(&expanded);
+                }
                 other => {
                     let expanded = expand_mechanic(other);
                     return self.ability(&expanded);
@@ -2997,6 +3022,8 @@ impl Compiler<'_> {
 
 /// The token Fabricate creates (CR 702.123a).
 const SERVO: &str = "1/1 colorless Servo artifact creature";
+/// The token afterlife creates (CR 702.135a).
+const AFTERLIFE_SPIRIT: &str = "1/1 white and black Spirit creature with flying";
 /// The token Incubate creates (CR 701.53a, 111.10i).
 const INCUBATOR: &str = "Incubator";
 
@@ -3014,6 +3041,48 @@ pub(crate) fn unleash_static() -> AbilityDef {
             at_least: true,
         }),
     })
+}
+
+/// Extort's triggered ability (CR 702.101a), `i` the card's count of the
+/// life lost this way.
+fn extort(i: u8) -> Ability {
+    use crate::ast::{Effect as E, Join};
+    let pay = E::YouMay(vec![Sentence::new(vec![E::Pay {
+        mana: mtg_core::mana::ManaCost::parse("{W/B}").expect("a mana cost"),
+        life: 0,
+    }])]);
+    let drain = Sentence {
+        effects: vec![
+            E::LoseLife {
+                amount: Num::N(1),
+                who: Recipient::EachOpponent,
+            },
+            E::GainLife {
+                amount: Num::Count(i),
+                who: Recipient::You,
+            },
+        ],
+        label: None,
+        para: false,
+        eot_first: false,
+        then_first: false,
+        joins: vec![Join::And],
+    };
+    Ability::Triggered {
+        from_graveyard: false,
+        trigger: Trigger::CastsSpell {
+            whose: Who::You,
+            noncreature: false,
+            instant_or_sorcery: false,
+            or_copy: false,
+        },
+        condition: None,
+        targets: Vec::new(),
+        effects: vec![
+            Sentence::new(vec![pay]),
+            Sentence::new(vec![E::IfYouDo(vec![drain])]),
+        ],
+    }
 }
 
 /// What a keyword ability with a parameter stands for, as an ordinary
@@ -3042,6 +3111,40 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 kind: mtg_core::card::CounterKind::PlusOnePlusOne,
                 count: Num::N(1),
                 to: Recipient::Source,
+            }),
+        },
+        // CR 702.135a: "When this creature dies, create N 1/1 white and
+        // black Spirit creature tokens with flying."
+        Mechanic::Afterlife(n) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Dies(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::CreateToken {
+                token: AFTERLIFE_SPIRIT.to_string(),
+                count: Num::N(*n),
+                tapped: false,
+                who: None,
+                it_has: false,
+                attached: None,
+            }),
+        },
+        // CR 702.134a: "Whenever this creature attacks, put a +1/+1
+        // counter on target attacking creature with lesser power."
+        Mechanic::Mentor => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Attacks(TriggerObj::This),
+            condition: None,
+            targets: vec![Target::Filter(Filter {
+                types: vec![mtg_core::card::CardType::Creature],
+                attacking: true,
+                same: Some(crate::ast::SameRef::LesserPower),
+                ..Filter::default()
+            })],
+            effects: one(E::AddCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                count: Num::N(1),
+                to: Recipient::Target(0),
             }),
         },
         Mechanic::Bushido(n) => Ability::Triggered {
@@ -3362,6 +3465,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Fabricate(_)
         | Mechanic::Renown(_)
         | Mechanic::Unleash
+        | Mechanic::Extort
         | Mechanic::Saddle(_) => unreachable!("not an expansion"),
     }
 }

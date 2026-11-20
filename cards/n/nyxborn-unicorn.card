@@ -1,0 +1,9 @@
+card "Nyxborn Unicorn" {
+  oracle_id b9304d88-a1de-4300-9425-50350969bd70
+  cost {1}{W}
+  type Enchantment Creature — Unicorn
+  pt 2/2
+  bestow {3}{W}
+  mentor
+  static enchanted: +2/+2, has mentor
+}

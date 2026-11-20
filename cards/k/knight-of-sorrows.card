@@ -1,0 +1,8 @@
+card "Knight of Sorrows" {
+  oracle_id 50f644d6-2597-4ad6-8ea8-6b09056f90c0
+  cost {4}{W}
+  type Creature — Human Knight
+  pt 3/3
+  keywords can block an additional creature each combat
+  afterlife 1
+}

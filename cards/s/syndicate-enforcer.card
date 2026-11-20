@@ -1,0 +1,7 @@
+card "Syndicate Enforcer" {
+  oracle_id 3a067b98-e775-4b44-addf-9d31716c2191
+  cost {3}{B}
+  type Creature — Human Rogue
+  pt 3/2
+  extort
+}

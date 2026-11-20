@@ -1,0 +1,8 @@
+card "Barging Sergeant" {
+  oracle_id af422a4b-087c-4753-9288-c31fb3457740
+  cost {4}{R}
+  type Creature — Minotaur Soldier
+  pt 4/2
+  keywords haste
+  mentor
+}

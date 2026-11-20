@@ -1312,6 +1312,15 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Provoke))
             }
+            "extort" | "mentor" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(if w == "extort" {
+                    Mechanic::Extort
+                } else {
+                    Mechanic::Mentor
+                }))
+            }
             "evolve" | "unleash" => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -1323,6 +1332,7 @@ impl P {
             }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
             | "saddle" | "poisonous" | "frenzy" | "absorb" | "fabricate" | "renown"
+            | "afterlife"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
@@ -1341,6 +1351,7 @@ impl P {
                     "absorb" => Mechanic::Absorb(n),
                     "fabricate" => Mechanic::Fabricate(n),
                     "renown" => Mechanic::Renown(n),
+                    "afterlife" => Mechanic::Afterlife(n),
                     _ => Mechanic::Toxic(n),
                 }))
             }
@@ -1958,6 +1969,9 @@ impl P {
         if self.eat_word("provoke") {
             return Ok(Some(Ability::Mechanic(Mechanic::Provoke)));
         }
+        if self.eat_word("mentor") {
+            return Ok(Some(Ability::Mechanic(Mechanic::Mentor)));
+        }
         if self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))) {
             self.pos += 1;
             return Ok(Some(Ability::Mechanic(Mechanic::Outlast(
@@ -1985,6 +1999,7 @@ impl P {
                 .is_some_and(|w| matches!(w.as_str(), "poisonous" | "frenzy" | "absorb"))
                 && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.at_word("provoke")
+            || self.at_word("mentor")
             || (self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
     }
 
@@ -7700,6 +7715,11 @@ impl P {
                     self.pos += 5;
                     let n = self.declared_target()?;
                     f.same = Some(SameRef::SharesColorWith(n));
+                }
+                // "with lesser power" (mentor, CR 702.134a).
+                "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {
+                    self.pos += 3;
+                    f.same = Some(SameRef::LesserPower);
                 }
                 "that" if self.at_words(&["that", "was", "dealt", "damage", "this", "turn"]) => {
                     f.damaged = true;

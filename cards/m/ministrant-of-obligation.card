@@ -1,0 +1,7 @@
+card "Ministrant of Obligation" {
+  oracle_id 0cee5539-d10b-4de2-aee8-e02f0e24ac26
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 2/1
+  afterlife 2
+}

@@ -1153,6 +1153,9 @@ pub enum SameWhat {
     NotName,
     /// Shares a color ("that shares a color with it").
     Color,
+    /// Has lesser power ("target attacking creature with lesser power",
+    /// mentor, CR 702.134a).
+    LesserPower,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1258,10 +1261,11 @@ impl ObjFilter {
 
     /// The filter with its `same` relation filled in from the object it
     /// relates to: that object's definition (`None` for an object with no
-    /// name, CR 708.2: nothing has the same name as it) and colors (sharing
-    /// a color with a colorless object is impossible, CR 105.2c).
+    /// name, CR 708.2: nothing has the same name as it), colors (sharing
+    /// a color with a colorless object is impossible, CR 105.2c), and
+    /// power (`None`: no object, so nothing has lesser power).
     #[must_use]
-    pub fn with_same(&self, def: Option<CardRef>, colors: ColorSet) -> Self {
+    pub fn with_same(&self, def: Option<CardRef>, colors: ColorSet, power: Option<i16>) -> Self {
         let mut f = self.clone();
         let Some(same) = f.same.take() else {
             return f;
@@ -1271,6 +1275,9 @@ impl ObjFilter {
             SameWhat::Name => f.named = Some((def.unwrap_or(CardRef(u32::MAX)), true)),
             SameWhat::NotName => f.named = def.map(|d| (d, false)),
             SameWhat::Color => f.colors = Some(colors),
+            SameWhat::LesserPower => {
+                f.power = Some((Cmp::AtMost, power.map_or(i16::MIN, |p| p.saturating_sub(1))));
+            }
         }
         f
     }

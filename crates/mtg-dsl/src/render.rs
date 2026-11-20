@@ -1963,6 +1963,7 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             " that {} a color with it",
             if plural_form { "share" } else { "shares" }
         ),
+        Some(SameRef::LesserPower) => " with lesser power".to_string(),
     }
 }
 
@@ -8867,6 +8868,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Evolve => "Evolve".to_string(),
             crate::ast::Mechanic::Renown(n) => format!("Renown {n}"),
             crate::ast::Mechanic::Unleash => "Unleash".to_string(),
+            crate::ast::Mechanic::Afterlife(n) => format!("Afterlife {n}"),
+            crate::ast::Mechanic::Extort => "Extort".to_string(),
+            crate::ast::Mechanic::Mentor => "Mentor".to_string(),
         },
         Ability::EntersWithIf {
             n,
@@ -9051,7 +9055,7 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             i += 1;
             continue;
         }
-        if let Some(line) = enters_tapped_with(card, i) {
+        if let Some(line) = enters_tapped_with(card, i).or_else(|| alone_abilities(card, i)) {
             lines.push(line);
             i += 2;
             continue;
@@ -9084,6 +9088,24 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         lines.push("Rebound".to_string());
     }
     lines.join("\n")
+}
+
+/// "This creature can't attack or block alone." for the `i`th and next
+/// abilities, after another ability line (Wojek Bodyguard's mentor).
+fn alone_abilities(card: &Card, i: usize) -> Option<String> {
+    matches!(
+        (card.abilities.get(i), card.abilities.get(i + 1)),
+        (
+            Some(Ability::Keyword(Keyword::CantAttackAlone)),
+            Some(Ability::Keyword(Keyword::CantBlockAlone)),
+        )
+    )
+    .then(|| {
+        format!(
+            "{} can't attack or block alone.",
+            capitalize(&this_ref(card))
+        )
+    })
 }
 
 /// Oracle text as Scryfall prints it, reduced to what the printer can

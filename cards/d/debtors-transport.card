@@ -1,0 +1,7 @@
+card "Debtors' Transport" {
+  oracle_id 72f89173-2998-45e6-94da-5b5bb9738a6b
+  cost {5}{B}
+  type Creature — Thrull
+  pt 5/3
+  afterlife 2
+}

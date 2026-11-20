@@ -1,0 +1,8 @@
+card "Tithe Drinker" {
+  oracle_id 06b1fd96-a3ad-4ebd-9ea4-b3cfb4c9c43d
+  cost {W}{B}
+  type Creature — Vampire
+  pt 2/1
+  keywords lifelink
+  extort
+}

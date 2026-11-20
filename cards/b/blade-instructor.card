@@ -1,0 +1,7 @@
+card "Blade Instructor" {
+  oracle_id 77cff683-013c-4568-8ae0-f86ef0590fe1
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/1
+  mentor
+}

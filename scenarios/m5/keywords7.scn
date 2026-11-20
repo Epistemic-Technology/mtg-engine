@@ -1,0 +1,103 @@
+# M5: keyword mechanics written as DSL lines that expand to ordinary
+# triggers, effects, and costs: afterlife (CR 702.135), extort (702.101),
+# mentor (702.134).
+
+scenario "afterlife: a Spirit when it dies" {
+  battlefield A: "Imperious Oligarch"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Imperious Oligarch"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Imperious Oligarch"
+  assert battlefield A contains 1 "Spirit"
+  assert has "Spirit" flying
+  assert is "Spirit" white
+  assert is "Spirit" black
+  assert power "Spirit" 1
+}
+
+scenario "afterlife 2: two Spirits" {
+  battlefield A: "Ministrant of Obligation"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Ministrant of Obligation"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Spirit"
+}
+
+scenario "afterlife: leaving otherwise makes nothing" {
+  battlefield A: "Imperious Oligarch"
+  battlefield B: 2 "Island"
+  hand B: "Unsummon"
+  start turn 2 B
+  turn 2 B: cast "Unsummon" targeting "Imperious Oligarch"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Imperious Oligarch"
+  assert battlefield A lacks "Spirit"
+}
+
+scenario "extort: pay {W/B} to drain each opponent for 1" {
+  battlefield A: "Syndic of Tithes", 2 "Plains"
+  hand A: "Savannah Lions"
+  turn 1 A: cast "Savannah Lions"
+  turn 1 A: accept "Syndic of Tithes"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+}
+
+scenario "extort: declined, no drain" {
+  battlefield A: "Syndic of Tithes", 2 "Plains"
+  hand A: "Savannah Lions"
+  turn 1 A: cast "Savannah Lions"
+  turn 1 A: decline "Syndic of Tithes"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+}
+
+scenario "extort: each instance triggers" {
+  battlefield A: "Syndic of Tithes", "Basilica Screecher", 3 "Swamp"
+  hand A: "Dark Ritual"
+  turn 1 A: cast "Dark Ritual"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+
+scenario "extort: an opponent's spell doesn't trigger it" {
+  battlefield A: "Syndic of Tithes", "Plains"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert life B 20
+}
+
+scenario "mentor: a counter on an attacker with lesser power" {
+  battlefield A: "Blade Instructor", "Grizzly Bears"
+  turn 1 A: attack "Blade Instructor", "Grizzly Bears"
+  turn 1 A: trigger "Blade Instructor" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert life B 14
+}
+
+scenario "mentor: equal power isn't lesser" {
+  battlefield A: "Blade Instructor", "Hill Giant"
+  turn 1 A: attack "Blade Instructor", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+  assert counters "Blade Instructor" +1/+1 0
+}
+
+scenario "mentor: a creature that isn't attacking can't be chosen" {
+  battlefield A: "Blade Instructor", "Grizzly Bears"
+  turn 1 A: attack "Blade Instructor"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+}

@@ -990,7 +990,11 @@ fn same_filled<'f>(
     let def = c.map(|c| c.def).filter(|d| {
         *d != work.state.pool.face_down(false) && *d != work.state.pool.face_down(true)
     });
-    std::borrow::Cow::Owned(f.with_same(def, c.map(|c| c.colors).unwrap_or_default()))
+    std::borrow::Cow::Owned(f.with_same(
+        def,
+        c.map(|c| c.colors).unwrap_or_default(),
+        c.map(|c| c.power),
+    ))
 }
 
 fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id: ObjId) {

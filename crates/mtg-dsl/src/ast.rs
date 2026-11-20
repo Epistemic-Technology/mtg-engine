@@ -709,6 +709,9 @@ pub enum SameRef {
     SameNameAs(usize),
     /// `that shares color with target 1`: "that shares a color with it".
     SharesColorWith(usize),
+    /// `with lesser power`: "with lesser power" (than the source's power,
+    /// as it is or last existed; mentor, CR 702.134a).
+    LesserPower,
 }
 
 /// How a filter refers to a chosen color or type, as printed after the
@@ -1160,6 +1163,16 @@ pub enum Mechanic {
     /// `unleash` (CR 702.98): may enter with a +1/+1 counter; can't block
     /// as long as it has one.
     Unleash,
+    /// `afterlife 1` (CR 702.135): when this dies, N 1/1 white and black
+    /// Spirit tokens with flying.
+    Afterlife(u32),
+    /// `extort` (CR 702.101): whenever you cast a spell, you may pay
+    /// {W/B}; if you do, each opponent loses 1 life and you gain that
+    /// much life.
+    Extort,
+    /// `mentor` (CR 702.134): whenever this attacks, a +1/+1 counter on
+    /// target attacking creature with lesser power.
+    Mentor,
 }
 
 /// A blocking restriction on this creature.

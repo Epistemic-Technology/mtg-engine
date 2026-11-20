@@ -2659,7 +2659,8 @@ impl GameState {
             .as_ref()
             .map(|c| c.def)
             .filter(|d| *d != self.pool.face_down(false) && *d != self.pool.face_down(true));
-        f.with_same(def, c.map(|c| c.colors).unwrap_or_default())
+        let power = c.as_ref().map(|c| c.power);
+        f.with_same(def, c.map(|c| c.colors).unwrap_or_default(), power)
     }
 
     /// A filter with "named ~" filled in from the source ("target
