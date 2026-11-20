@@ -1607,6 +1607,12 @@ impl GameState {
                 let face = self.pool.get(self.objects[card].def).overload_face;
                 self.begin_cast_as(player, card, crate::state::AltCast::Overload, face);
             }
+            (Flow::Priority, Choice::CastAwaken(card)) => {
+                // CR 702.113a: the spell with the land target and the
+                // awaken effects after its own.
+                let face = self.pool.get(self.objects[card].def).awaken_face;
+                self.begin_cast_as(player, card, crate::state::AltCast::Awaken, face);
+            }
             (Flow::Priority, Choice::CastAlt(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::AltCost);
             }

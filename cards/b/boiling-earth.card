@@ -1,0 +1,7 @@
+card "Boiling Earth" {
+  oracle_id fb34b671-b61a-47e2-90fa-dbe5cf6d3743
+  cost {1}{R}
+  type Sorcery
+  spell: deal 1 damage to each creature your opponents control
+  awaken 4 {6}{R}
+}

@@ -160,6 +160,12 @@ impl GameState {
             {
                 options.push(Choice::CastOverload(*id));
             }
+            // CR 702.113a: cast for the awaken cost.
+            if let Some(face) = def.awaken_face
+                && self.awaken_castable(p, def, face, *id, sorcery_timing, &sources, &changers)
+            {
+                options.push(Choice::CastAwaken(*id));
+            }
             // CR 702.37c: face down as a 2/2 creature spell for {3}.
             if def.morph.is_some() && sorcery_timing {
                 self.face_down_option(p, *id, &sources, &mut options);
@@ -1377,6 +1383,38 @@ impl GameState {
         self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
     }
 
+    /// CR 702.113a: whether `p` could cast `def` for its awaken cost now,
+    /// with a land they control to target and the spell's own targets.
+    #[cold]
+    #[inline(never)]
+    #[allow(clippy::too_many_arguments)] // the parts precomputed once per listing
+    fn awaken_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        face_ref: crate::card::CardRef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+    ) -> bool {
+        let Some((_, cost)) = &def.awaken else {
+            return false;
+        };
+        if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id)) {
+            return false;
+        }
+        let face = self.pool.get(face_ref);
+        if !self.targets_available(p, face.cast_targets(), Some(id)) {
+            return false;
+        }
+        let mut req = cost.requirements(0);
+        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
+            adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
+        }
+        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
+    }
+
     /// Whether `p` could cast `def` (the card `id`, or one of its faces)
     /// now: timing, mana, additional costs, and targets (CR 601.2).
     #[inline]
@@ -2288,6 +2326,7 @@ impl GameState {
 
     /// `spell_requirements`, paying the second of two additional costs if
     /// `other` (CR 601.2b, 601.2f: the total cost includes it).
+    #[allow(clippy::too_many_lines)] // one arm per alternative cost
     pub(super) fn spell_requirements_as(
         &self,
         spell: ObjId,
@@ -2320,6 +2359,16 @@ impl GameState {
             }
             (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
                 def.overload.as_ref().expect("checked").requirements(x)
+            }
+            // The face has no awaken of its own: the card's cost.
+            (_, false) if o.alt == AltCast::Awaken && self.pool.get(o.card).awaken.is_some() => {
+                self.pool
+                    .get(o.card)
+                    .awaken
+                    .as_ref()
+                    .expect("checked")
+                    .1
+                    .requirements(x)
             }
             (_, false) if o.alt == AltCast::AltCost && def.alt_cost.is_some() => def
                 .alt_cost

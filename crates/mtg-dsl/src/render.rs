@@ -9482,6 +9482,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Casualty(n) => format!("Casualty {n}"),
             crate::ast::Mechanic::Dredge(n) => format!("Dredge {n}"),
             crate::ast::Mechanic::Storm => "Storm".to_string(),
+            crate::ast::Mechanic::Awaken(n, c) => format!("Awaken {n}\u{2014}{c}"),
             crate::ast::Mechanic::Assist => "Assist".to_string(),
             crate::ast::Mechanic::Enlist => "Enlist".to_string(),
             crate::ast::Mechanic::Replicate(c) => format!("Replicate {c}"),

@@ -1106,6 +1106,7 @@ impl Runner {
                     alternative,
                     bestowed,
                     overloaded,
+                    awakened,
                     ..
                 } => {
                     let choice = if *face_down {
@@ -1120,6 +1121,8 @@ impl Runner {
                         Choice::CastBestow(self.in_hand(a.line, d.player, name)?)
                     } else if *overloaded {
                         Choice::CastOverload(self.in_hand(a.line, d.player, name)?)
+                    } else if *awakened {
+                        Choice::CastAwaken(self.in_hand(a.line, d.player, name)?)
                     } else if *alternative {
                         Choice::CastAlt(self.in_hand(a.line, d.player, name)?)
                     } else if *from_graveyard {
@@ -1155,7 +1158,8 @@ impl Runner {
             | Choice::CastWarp(id)
             | Choice::CastAlt(id)
             | Choice::CastBestow(id)
-            | Choice::CastOverload(id)) = option
+            | Choice::CastOverload(id)
+            | Choice::CastAwaken(id)) = option
             else {
                 unreachable!()
             };
@@ -1225,12 +1229,13 @@ impl Runner {
                         if let Action::Cast {
                             bestowed,
                             overloaded,
+                            awakened,
                             splice,
                             kicked,
                             ..
                         } = &a.action
                         {
-                            if *bestowed {
+                            if *bestowed || *awakened {
                                 needed += 1;
                             }
                             // "If this spell was kicked, return another
@@ -2487,6 +2492,7 @@ impl Runner {
             Choice::CastOverload(id) => {
                 format!("cast {} overloaded", self.describe_ids(&[*id]))
             }
+            Choice::CastAwaken(id) => format!("cast {} awakened", self.describe_ids(&[*id])),
             Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
             Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
             Choice::TurnFaceUp(id) => {

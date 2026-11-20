@@ -296,6 +296,8 @@ pub enum AltCast {
     Bestow,
     /// Cast for its overload cost (CR 702.96a): "each" for "target".
     Overload,
+    /// Cast for its awaken cost (CR 702.113a).
+    Awaken,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask

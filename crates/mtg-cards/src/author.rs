@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 112] = [
+const TEMPLATED_TAGS: [&str; 113] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -151,6 +151,7 @@ const TEMPLATED_TAGS: [&str; 112] = [
     "Casualty",
     "Dredge",
     "Storm",
+    "Awaken",
     "Assist",
     "Enlist",
     "Replicate",
@@ -2652,6 +2653,15 @@ impl Builder<'_> {
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.113: "Awaken 3—{5}{B}".
+        if let Some(c) = Regex::new(r"^Awaken (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("awaken {} {}", cap(&c, 1), cap(&c, 2)));
             return Ok(());
         }
         // CR 702.77: "Reinforce 1—{1}{R}".

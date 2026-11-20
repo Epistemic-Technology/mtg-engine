@@ -1500,6 +1500,13 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Conspire))
             }
+            "awaken" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Awaken(n, c)))
+            }
             "storm" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;

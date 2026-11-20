@@ -1,0 +1,7 @@
+card "Sheer Drop" {
+  oracle_id 7c42123d-c8e2-4571-b07d-f782e9ad1f8b
+  cost {2}{W}
+  type Sorcery
+  spell: destroy target tapped creature
+  awaken 3 {5}{W}
+}

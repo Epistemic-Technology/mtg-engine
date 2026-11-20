@@ -1,0 +1,7 @@
+card "Clutch of Currents" {
+  oracle_id 2c6658c3-8c0e-46c9-8127-bc5b77eb0dab
+  cost {U}
+  type Sorcery
+  spell: return target creature to hand
+  awaken 3 {4}{U}
+}
