@@ -1,0 +1,7 @@
+card "Azorius Arrester" {
+  oracle_id 3f2a27a1-f9cf-4dac-a248-5c6af4de3722
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  triggered when this enters: detain target creature an opponent controls
+}

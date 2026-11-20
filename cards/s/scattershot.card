@@ -1,0 +1,7 @@
+card "Scattershot" {
+  oracle_id ed3652da-0127-4c9e-9913-f20becdd0ba9
+  cost {2}{R}
+  type Instant
+  spell: deal 1 damage to target creature
+  storm
+}

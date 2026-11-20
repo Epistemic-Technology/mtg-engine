@@ -1221,6 +1221,10 @@ pub enum Mechanic {
     Embalm(ManaCost),
     /// CR 702.129: `eternalize {4}{U}{U}`: the same, a 4/4 black Zombie.
     Eternalize(ManaCost),
+    /// CR 702.141: `encore {4}{B}`: exile it from your graveyard as a
+    /// sorcery; for each opponent, a token copy that attacks that opponent
+    /// this turn if able, with haste, sacrificed at the next end step.
+    Encore(ManaCost),
     /// CR 702.165: `backup 1`: as it enters, N +1/+1 counters on target
     /// creature; another creature also gains the abilities written after
     /// this line until end of turn.
@@ -1241,6 +1245,28 @@ pub enum Mechanic {
     /// sacrifice a creature with power N or greater. When you do, copy
     /// this spell."
     Casualty(u32),
+    /// `dredge 2` (CR 702.52): "If you would draw a card, you may mill N
+    /// cards instead. If you do, return this card from your graveyard to
+    /// your hand."
+    Dredge(u32),
+    /// `storm` (CR 702.40): "When you cast this spell, copy it for each
+    /// spell cast before it this turn."
+    Storm,
+    /// `awaken 3 {5}{B}` (CR 702.113): "Awaken 3—{5}{B}", an alternative
+    /// cost; cast for it, also N +1/+1 counters on target land you
+    /// control, which becomes a 0/0 Elemental creature with haste.
+    Awaken(u32, ManaCost),
+    /// `assist` (CR 702.132): "Another player can pay up to {N} of this
+    /// spell's cost." The game's only other player is an opponent, who
+    /// here never pays: the line has no effect.
+    Assist,
+    /// `enlist` (CR 702.154): as this creature attacks, you may tap a
+    /// nonattacking creature you control without summoning sickness; it
+    /// gets +X/+0 until end of turn, X that creature's power.
+    Enlist,
+    /// `replicate {U}` (CR 702.56): an additional cost paid any number of
+    /// times; copied once for each.
+    Replicate(ManaCost),
     /// `teamwork 2`: "Teamwork 2 (As an additional cost to cast this
     /// spell, you may tap any number of creatures you control with total
     /// power 2 or more.)"
@@ -2474,6 +2500,10 @@ pub enum Effect {
     },
     /// `goad target creature` (CR 701.15).
     Goad {
+        what: Recipient,
+    },
+    /// `detain target creature an opponent controls` (CR 701.35).
+    Detain {
         what: Recipient,
     },
     Untap {

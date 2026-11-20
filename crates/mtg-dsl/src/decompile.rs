@@ -716,6 +716,11 @@ impl Decompiler<'_> {
             CoreEffect::TurnFaceDown { what } => Effect::TurnFaceDown { what: r(*what) },
             CoreEffect::LookAtFaceDown { what } => Effect::LookAtFaceDown { what: r(*what) },
             CoreEffect::LookAtPlayer { who } => Effect::LookAtPlayer { who: r(*who) },
+            CoreEffect::UntilYourNextTurn { to, parts }
+                if parts.as_slice() == [Modification::AddKeywords(KeywordSet::DETAINED)] =>
+            {
+                Effect::Detain { what: r(*to) }
+            }
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),

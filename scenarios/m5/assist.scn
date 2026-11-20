@@ -1,0 +1,20 @@
+# Assist (CR 702.132): "Another player can pay up to {N} of this spell's
+# cost." The only other player is an opponent, who here never pays: the
+# caster pays the whole cost.
+
+scenario "assist: cast for its full cost" {
+  battlefield A: 8 "Forest"
+  hand A: "Charging Binox"
+  turn 1 A: cast "Charging Binox"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Charging Binox"
+}
+
+scenario "assist: the opponent doesn't pay any of it" {
+  battlefield A: 7 "Forest"
+  battlefield B: 8 "Forest"
+  hand A: "Charging Binox"
+  illegal turn 1 A: cast "Charging Binox"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Charging Binox"
+}

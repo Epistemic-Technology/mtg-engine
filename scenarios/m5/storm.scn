@@ -1,0 +1,82 @@
+# Storm (CR 702.40): "When you cast this spell, copy it for each spell
+# cast before it this turn" (by any player); the copies may have new
+# targets (CR 707.10c). Copies aren't cast, so they aren't counted.
+#
+# Replicate (CR 702.56): an additional cost paid any number of times; as
+# the spell is cast it is copied once for each time it was paid.
+
+scenario "storm: copied once for each spell cast before it" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: 2 "Shock", "Weather the Storm"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Weather the Storm"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 29
+  assert graveyard A contains 1 "Weather the Storm"
+}
+
+scenario "storm: the first spell of the turn isn't copied" {
+  battlefield A: 2 "Forest"
+  hand A: "Weather the Storm"
+  turn 1 A: cast "Weather the Storm"
+  run_to turn 1 postcombat_main
+  assert life A 23
+}
+
+scenario "storm: the opponent's spells count" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Weather the Storm"
+  hand B: "Shock"
+  turn 1 upkeep B: cast "Shock" targeting player A
+  turn 1 A: cast "Weather the Storm"
+  run_to turn 1 postcombat_main
+  assert life A 24
+}
+
+scenario "storm: the copies may have new targets" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Raging Goblin", "Hill Giant"
+  hand A: "Shock", "Scattershot"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Scattershot" targeting "Raging Goblin"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Raging Goblin"
+  assert damage "Hill Giant" 1
+}
+
+scenario "replicate: copied once for each time the cost was paid" {
+  battlefield A: 6 "Mountain"
+  hand A: "Pyromatics"
+  turn 1 A: cast "Pyromatics" replicated 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "replicate: not paid, no copies" {
+  battlefield A: 6 "Mountain"
+  hand A: "Pyromatics"
+  turn 1 A: cast "Pyromatics" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "replicate: no more times than the mana pays for" {
+  battlefield A: 4 "Mountain"
+  hand A: "Pyromatics"
+  illegal turn 1 A: cast "Pyromatics" replicated 2 targeting player B
+  turn 1 A: cast "Pyromatics" replicated 1 targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "replicate: Train of Thought replicated draws three" {
+  battlefield A: 6 "Island"
+  hand A: "Train of Thought"
+  turn 1 A: cast "Train of Thought" replicated 2
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}

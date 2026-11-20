@@ -296,6 +296,8 @@ pub enum AltCast {
     Bestow,
     /// Cast for its overload cost (CR 702.96a): "each" for "target".
     Overload,
+    /// Cast for its awaken cost (CR 702.113a).
+    Awaken,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
@@ -375,6 +377,9 @@ impl CastInfo {
     /// Cast using teamwork: creatures with enough total power tapped with
     /// its costs (an optional additional cost, CR 601.2b).
     const TEAMWORK: u32 = 0x8_0000;
+    /// How many times its replicate cost was paid (CR 702.56a), up to 15.
+    const REPLICATE_MASK: u32 = 0xF0_0000;
+    const REPLICATE_SHIFT: u32 = 20;
     const KICKED: u32 = 0x40;
     const FLASHBACK: u32 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -476,6 +481,16 @@ impl CastInfo {
         } else {
             self.0 & !Self::TEAMWORK
         };
+    }
+
+    /// How many times its replicate cost was paid (CR 702.56a).
+    pub const fn replicated(self) -> u32 {
+        (self.0 & Self::REPLICATE_MASK) >> Self::REPLICATE_SHIFT
+    }
+
+    pub fn set_replicated(&mut self, n: u32) {
+        self.0 = (self.0 & !Self::REPLICATE_MASK)
+            | ((n.min(15) << Self::REPLICATE_SHIFT) & Self::REPLICATE_MASK);
     }
 
     pub const fn casualty(self) -> bool {
@@ -1198,6 +1213,11 @@ pub enum Flow {
     ChoosingCasualty {
         spell: ObjId,
     },
+    /// Choosing how many times to pay a spell's replicate cost (CR
+    /// 702.56a), after offspring.
+    ChoosingReplicate {
+        spell: ObjId,
+    },
     /// Choosing whether to cast a spell using teamwork, after casualty.
     ChoosingTeamwork {
         spell: ObjId,
@@ -1527,6 +1547,9 @@ pub struct GameState {
     /// Cards in graveyards with a triggered ability that works there
     /// (CR 113.6k), so trigger detection skips the graveyards without any.
     pub graveyard_trigger_cards: u32,
+    /// Cards with dredge in graveyards (CR 702.52): with any, a draw may
+    /// ask whether to dredge instead.
+    pub dredge_cards: u32,
     /// Cards in the game with an "As this enters, choose ..." ability:
     /// with any, every way onto the battlefield may ask a question.
     pub enters_choice_cards: u32,
@@ -1983,6 +2006,7 @@ impl GameState {
             // A mana-boost trigger (CR 605.1b) resolves while mana is paid
             // and may ask for a color, during any payment.
             || self.mana_trigger_sources > 0
+            || self.dredge_cards > 0
             || replacers >= 2
             || self.legendary_count >= 2
             || self.stack.iter().any(|id| {

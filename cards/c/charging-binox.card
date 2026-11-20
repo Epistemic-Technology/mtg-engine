@@ -1,0 +1,8 @@
+card "Charging Binox" {
+  oracle_id 0f10f9d1-f9f9-4356-9208-0f21f44bfb97
+  cost {7}{G}
+  type Creature — Beast
+  pt 7/5
+  assist
+  keyword trample
+}

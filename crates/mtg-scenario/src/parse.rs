@@ -532,6 +532,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let awakened = if line.peek_ident("awakened") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let conspired = if line.peek_ident("conspired") || line.peek_ident("teamwork") {
                 line.pos += 1;
                 true
@@ -566,7 +572,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 None
             };
-            let x = if line.peek_ident("x") {
+            let x = if line.peek_ident("x") || line.peek_ident("replicated") {
                 line.pos += 1;
                 Some(u32::try_from(line.count()?).unwrap_or(u32::MAX))
             } else {
@@ -638,6 +644,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     alternative,
                     bestowed,
                     overloaded,
+                    awakened,
                     conspired,
                     splice,
                     other_cost,

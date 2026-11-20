@@ -1,0 +1,8 @@
+card "Lyev Skyknight" {
+  oracle_id 191ec087-7817-4c56-b2d5-66de5c663536
+  cost {1}{W}{U}
+  type Creature — Human Knight
+  pt 3/1
+  keywords flying
+  triggered when this enters: detain target nonland permanent an opponent controls
+}

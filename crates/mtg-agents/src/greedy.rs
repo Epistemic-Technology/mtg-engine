@@ -319,9 +319,9 @@ impl GreedyAgent {
             | DecisionKind::PutFromHand => 0,
             // Keep the newest (the engine lists them oldest first).
             // The newest legend, and the largest X the mana allows.
-            DecisionKind::LegendRule | DecisionKind::ChooseX { .. } => {
-                u32::try_from(d.options.len() - 1).unwrap_or(0)
-            }
+            DecisionKind::LegendRule
+            | DecisionKind::ChooseX { .. }
+            | DecisionKind::Replicate { .. } => u32::try_from(d.options.len() - 1).unwrap_or(0),
             // Attack a planeswalker the attacker can finish; otherwise the player.
             DecisionKind::ChooseAttackTarget { attacker } => Self::best_by(d, |c| match c {
                 Choice::AttackTarget(Target::Player(_)) => 5,

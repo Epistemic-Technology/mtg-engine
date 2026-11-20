@@ -1,0 +1,7 @@
+card "Gigadrowse" {
+  oracle_id 9cc64a91-82d2-4be1-812f-531863e99801
+  cost {U}
+  type Instant
+  replicate {U}
+  spell: tap target permanent
+}

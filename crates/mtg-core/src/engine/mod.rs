@@ -509,6 +509,7 @@ impl GameState {
             exile_casts: None,
             suspended_count: 0,
             graveyard_trigger_cards: 0,
+            dredge_cards: 0,
             enters_choice_cards: 0,
             spells_last_turn: [0; 4],
             active_player: starting_player,
@@ -810,6 +811,19 @@ impl GameState {
                         player,
                         kind: DecisionKind::Offspring { spell },
                         options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
+                Flow::ChoosingReplicate { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    let options = (0..=self.replicate_max(spell)).map(Choice::X).collect();
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::Replicate { spell },
+                        options,
                     });
                 }
                 Flow::ChoosingBargain { spell } => {
@@ -1594,6 +1608,12 @@ impl GameState {
                 let face = self.pool.get(self.objects[card].def).overload_face;
                 self.begin_cast_as(player, card, crate::state::AltCast::Overload, face);
             }
+            (Flow::Priority, Choice::CastAwaken(card)) => {
+                // CR 702.113a: the spell with the land target and the
+                // awaken effects after its own.
+                let face = self.pool.get(self.objects[card].def).awaken_face;
+                self.begin_cast_as(player, card, crate::state::AltCast::Awaken, face);
+            }
             (Flow::Priority, Choice::CastAlt(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::AltCost);
             }
@@ -1763,6 +1783,11 @@ impl GameState {
             }
             (Flow::ChoosingOffspring { spell }, Choice::Decline) => {
                 self.flow = self.after_offspring(spell);
+            }
+            // CR 702.56a: the replicate cost, paid this many times.
+            (Flow::ChoosingReplicate { spell }, Choice::X(n)) => {
+                self.objects[spell].cast.set_replicated(n);
+                self.flow = self.after_replicate(spell);
             }
             // CR 702.166a: the sacrifice is an additional cost, paid with
             // the others; the spell is bargained from here on, for its
@@ -2149,6 +2174,15 @@ impl GameState {
     }
 
     fn after_offspring(&self, spell: ObjId) -> Flow {
+        // CR 702.56a: replicate, payable at least once.
+        if self.replicate_max(spell) > 0 {
+            Flow::ChoosingReplicate { spell }
+        } else {
+            self.after_replicate(spell)
+        }
+    }
+
+    fn after_replicate(&self, spell: ObjId) -> Flow {
         let o = &self.objects[spell];
         if self.pool.get(o.def).bargain
             && !o.cast.flashback()

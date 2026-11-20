@@ -160,6 +160,12 @@ impl GameState {
             {
                 options.push(Choice::CastOverload(*id));
             }
+            // CR 702.113a: cast for the awaken cost.
+            if let Some(face) = def.awaken_face
+                && self.awaken_castable(p, def, face, *id, sorcery_timing, &sources, &changers)
+            {
+                options.push(Choice::CastAwaken(*id));
+            }
             // CR 702.37c: face down as a 2/2 creature spell for {3}.
             if def.morph.is_some() && sorcery_timing {
                 self.face_down_option(p, *id, &sources, &mut options);
@@ -879,6 +885,26 @@ impl GameState {
         let any_controller =
             matches!(act, ChooseAct::Bounce | ChooseAct::Untap) && filter.who.is_none();
         match act {
+            // CR 702.154a: not attacking, and able to pay {T} (CR 302.6).
+            ChooseAct::Enlist => self
+                .battlefield
+                .iter()
+                .copied()
+                .filter(|id| {
+                    let o = &self.objects[*id];
+                    o.controller == p
+                        && !o.tapped
+                        && *id != ctx.source
+                        && !self
+                            .combat
+                            .as_ref()
+                            .is_some_and(|cb| cb.attackers.iter().any(|a| a.id == *id))
+                        && self.characteristics(*id).is_some_and(|c| {
+                            filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                                && (o.controlled_since_turn_start || c.has(Keyword::Haste))
+                        })
+                })
+                .collect(),
             ChooseAct::Tap
             | ChooseAct::Untap
             | ChooseAct::Sacrifice
@@ -1040,6 +1066,26 @@ impl GameState {
             cands.retain(|c| *c != id);
             match act {
                 ChooseAct::Tap => self.tap(id),
+                ChooseAct::Enlist => {
+                    self.tap(id);
+                    let power = self.characteristics(id).map_or(0, |c| i32::from(c.power));
+                    if self
+                        .objects
+                        .get(ctx.source)
+                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                    {
+                        let pump = Modification::ModifyPt {
+                            power,
+                            toughness: 0,
+                        };
+                        self.effect_on(
+                            ctx,
+                            ctx.source,
+                            smallvec::smallvec![pump],
+                            Duration::UntilEndOfTurn,
+                        );
+                    }
+                }
                 ChooseAct::Untap => self.untap(id),
                 ChooseAct::Sacrifice => self.sacrifice(id),
                 ChooseAct::Discard => self.discard_card(p, id),
@@ -1358,6 +1404,38 @@ impl GameState {
             return false;
         }
         let face = self.pool.get(face_ref);
+        let mut req = cost.requirements(0);
+        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
+            adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
+        }
+        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
+    }
+
+    /// CR 702.113a: whether `p` could cast `def` for its awaken cost now,
+    /// with a land they control to target and the spell's own targets.
+    #[cold]
+    #[inline(never)]
+    #[allow(clippy::too_many_arguments)] // the parts precomputed once per listing
+    fn awaken_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        face_ref: crate::card::CardRef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+    ) -> bool {
+        let Some((_, cost)) = &def.awaken else {
+            return false;
+        };
+        if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id)) {
+            return false;
+        }
+        let face = self.pool.get(face_ref);
+        if !self.targets_available(p, face.cast_targets(), Some(id)) {
+            return false;
+        }
         let mut req = cost.requirements(0);
         if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
@@ -2228,6 +2306,30 @@ impl GameState {
         self.spell_payable(o.controller, spell, &req)
     }
 
+    /// How many times `spell`'s caster could pay its replicate cost on top
+    /// of its cost (CR 702.56a), at most 15.
+    pub(super) fn replicate_max(&self, spell: ObjId) -> u32 {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let Some(c) = &def.replicate else {
+            return 0;
+        };
+        if o.cast.flashback() {
+            return 0;
+        }
+        let one = c.requirements(0);
+        let mut req = self.spell_requirements(spell, 0);
+        let mut n = 0;
+        while n < 15 {
+            req.add(&one);
+            if !self.spell_payable(o.controller, spell, &req) {
+                break;
+            }
+            n += 1;
+        }
+        n
+    }
+
     /// The mana a spell being cast costs with X fixed: its mana cost (or
     /// its flashback cost, CR 702.34a) plus its kicker if kicked.
     pub(super) fn spell_requirements(&self, spell: ObjId, x: u32) -> ManaRequirement {
@@ -2235,7 +2337,8 @@ impl GameState {
     }
 
     /// The splice costs of the cards spliced onto `spell` (CR 702.47a,
-    /// 601.2f), and strive's cost once for each target beyond the first.
+    /// 601.2f), strive's cost once for each target beyond the first, and
+    /// the replicate cost once for each time it was paid (CR 702.56a).
     fn add_splice_and_strive(
         &self,
         spell: ObjId,
@@ -2257,10 +2360,17 @@ impl GameState {
                 req.add(&s.requirements(0));
             }
         }
+        // CR 702.56a: the replicate cost, once for each time it was paid.
+        if let Some(r) = &def.replicate {
+            for _ in 0..self.objects[spell].cast.replicated() {
+                req.add(&r.requirements(0));
+            }
+        }
     }
 
     /// `spell_requirements`, paying the second of two additional costs if
     /// `other` (CR 601.2b, 601.2f: the total cost includes it).
+    #[allow(clippy::too_many_lines)] // one arm per alternative cost
     pub(super) fn spell_requirements_as(
         &self,
         spell: ObjId,
@@ -2293,6 +2403,16 @@ impl GameState {
             }
             (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
                 def.overload.as_ref().expect("checked").requirements(x)
+            }
+            // The face has no awaken of its own: the card's cost.
+            (_, false) if o.alt == AltCast::Awaken && self.pool.get(o.card).awaken.is_some() => {
+                self.pool
+                    .get(o.card)
+                    .awaken
+                    .as_ref()
+                    .expect("checked")
+                    .1
+                    .requirements(x)
             }
             (_, false) if o.alt == AltCast::AltCost && def.alt_cost.is_some() => def
                 .alt_cost
@@ -4793,14 +4913,20 @@ impl GameState {
             self.queue_builtin(caster, ability, spell, def_ref);
         }
         // CR 702.78a, 702.153a: "When you do, copy it" / "copy this
-        // spell".
-        if self
-            .objects
-            .get(spell)
-            .is_some_and(|o| o.cast.conspired() || o.cast.casualty())
-        {
+        // spell". CR 702.40a: storm copies it once for each spell cast
+        // before it this turn; CR 702.56a: replicate once for each time
+        // its cost was paid. (Each copy is its own trigger here.)
+        let mut copies = self.objects.get(spell).map_or(0, |o| {
+            usize::from(o.cast.conspired() || o.cast.casualty()) + o.cast.replicated() as usize
+        });
+        if def.storm {
+            copies += self.cast_this_turn.len().saturating_sub(1);
+        }
+        if copies > 0 {
             let ability = self.pool.builtin(crate::card::Builtin::Conspire);
-            self.queue_builtin(caster, ability, spell, def_ref);
+            for _ in 0..copies {
+                self.queue_builtin(caster, ability, spell, def_ref);
+            }
         }
         self.emit_targeted(spell);
         self.give_priority(caster);

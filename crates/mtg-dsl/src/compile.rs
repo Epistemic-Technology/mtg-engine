@@ -390,6 +390,24 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Conspire) => {
                     b = b.conspire();
                 }
+                Ability::Mechanic(Mechanic::Awaken(n, c)) => {
+                    let Ok(n) = u8::try_from(*n) else {
+                        return self.err("awaken is at most 255");
+                    };
+                    b = b.awaken(n, c.clone());
+                }
+                Ability::Mechanic(Mechanic::Storm) => {
+                    b = b.storm();
+                }
+                Ability::Mechanic(Mechanic::Replicate(c)) => {
+                    b = b.replicate(c.clone());
+                }
+                Ability::Mechanic(Mechanic::Dredge(n)) => {
+                    let Ok(n) = u8::try_from(*n) else {
+                        return self.err("dredge is at most 255");
+                    };
+                    b = b.dredge(n);
+                }
                 Ability::Mechanic(Mechanic::Casualty(n)) => {
                     let Ok(n) = u8::try_from(*n) else {
                         return self.err("casualty is at most 255");
@@ -667,6 +685,11 @@ impl Compiler<'_> {
                             | Mechanic::Bargain
                             | Mechanic::Conspire
                             | Mechanic::Casualty(_)
+                            | Mechanic::Dredge(_)
+                            | Mechanic::Storm
+                            | Mechanic::Awaken(..)
+                            | Mechanic::Assist
+                            | Mechanic::Replicate(_)
                             | Mechanic::Teamwork(_)
                             | Mechanic::Ripple(_)
                             | Mechanic::Strive(_)
@@ -1550,6 +1573,11 @@ impl Compiler<'_> {
                 out.push(CoreEffect::LookAtFaceDown { what: r(*what) });
             }
             Effect::LookAtPlayer { who } => out.push(CoreEffect::LookAtPlayer { who: r(*who) }),
+            // CR 701.35a: until the detaining player's next turn.
+            Effect::Detain { what } => out.push(CoreEffect::UntilYourNextTurn {
+                to: r(*what),
+                parts: vec![Modification::AddKeywords(KeywordSet::DETAINED)],
+            }),
             Effect::Tap { to } => {
                 for t in to {
                     out.push(CoreEffect::Tap { to: r(*t) });
@@ -3138,6 +3166,11 @@ impl Compiler<'_> {
                 | Mechanic::Bargain
                 | Mechanic::Conspire
                 | Mechanic::Casualty(_)
+                | Mechanic::Dredge(_)
+                | Mechanic::Storm
+                | Mechanic::Awaken(..)
+                | Mechanic::Assist
+                | Mechanic::Replicate(_)
                 | Mechanic::Teamwork(_)
                 | Mechanic::Ripple(_)
                 | Mechanic::Strive(_)
@@ -3328,6 +3361,81 @@ impl Compiler<'_> {
                         None,
                     )
                 }
+                // CR 702.141a: "[Cost], Exile this card from your
+                // graveyard: For each opponent, create a token copy that
+                // attacks that opponent this turn if able. They gain haste.
+                // Sacrifice them at the beginning of the next end step.
+                // Activate only as a sorcery." One token: the game has one
+                // opponent, and "attacks this turn if able" is attacking
+                // whatever it can.
+                Mechanic::Encore(cost) => {
+                    let Some(token) = self.token else {
+                        return self.err("the token is missing");
+                    };
+                    let sacrifice =
+                        self.pool
+                            .register_ability(AbilityDef::Triggered(TriggeredAbility {
+                                from_graveyard: false,
+                                trigger: TriggerSpec::BeginningOfStep {
+                                    step: mtg_core::turn::Step::End,
+                                    whose: Who::Any,
+                                },
+                                condition: None,
+                                targets: Vec::new(),
+                                effects: vec![CoreEffect::Sacrifice {
+                                    what: CoreRecipient::SameObject,
+                                }],
+                            }));
+                    self.keyword_ability(
+                        a,
+                        CoreCost {
+                            mana: cost.clone(),
+                            exile_self: true,
+                            ..CoreCost::default()
+                        },
+                        Vec::new(),
+                        vec![
+                            CoreEffect::CreateToken {
+                                token,
+                                count: Num::N(1),
+                                who: CoreRecipient::You,
+                                tapped: false,
+                                attached: None,
+                            },
+                            CoreEffect::Grant {
+                                keywords: KeywordSet::NONE
+                                    .with(mtg_core::card::Keyword::Haste)
+                                    .with(mtg_core::card::Keyword::MustAttack),
+                                to: CoreRecipient::CreatedTokens,
+                            },
+                            CoreEffect::Delayed {
+                                ability: sacrifice,
+                                about: CoreRecipient::CreatedTokens,
+                                this_turn: false,
+                            },
+                        ],
+                        None,
+                    )
+                }
+                // CR 702.154a: "As this creature attacks, you may tap up to
+                // one untapped creature you control that you didn't choose
+                // to attack with and that either has haste or has been
+                // under your control continuously since this turn began.
+                // When you do, this creature gets +X/+0 until end of turn,
+                // where X is the tapped creature's power." Approximated as
+                // an attack trigger (the choice is made as it resolves).
+                Mechanic::Enlist => AbilityDef::Triggered(TriggeredAbility {
+                    from_graveyard: false,
+                    trigger: TriggerSpec::Attacks(CoreTriggerObj::This),
+                    condition: None,
+                    targets: Vec::new(),
+                    effects: vec![CoreEffect::YouMay(vec![CoreEffect::ChooseAct {
+                        act: mtg_core::card::ChooseAct::Enlist,
+                        filter: mtg_core::card::ObjFilter::creatures(),
+                        count: Num::N(1),
+                        up_to: false,
+                    }])],
+                }),
                 // CR 702.115a: "Whenever this creature deals combat damage
                 // to a player, that player exiles the top card of their
                 // library."
@@ -3900,6 +4008,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Splice(_)
         | Mechanic::SpliceCost(_)
         | Mechanic::Embalm(_)
+        | Mechanic::Encore(_)
         | Mechanic::Eternalize(_)
         | Mechanic::Backup(_)
         | Mechanic::Offspring(_)
@@ -3907,6 +4016,11 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Bargain
         | Mechanic::Conspire
         | Mechanic::Casualty(_)
+        | Mechanic::Dredge(_)
+        | Mechanic::Storm
+        | Mechanic::Awaken(..)
+        | Mechanic::Assist
+        | Mechanic::Replicate(_)
         | Mechanic::Teamwork(_)
         | Mechanic::Ripple(_)
         | Mechanic::Ascend
@@ -3920,6 +4034,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Riot
         | Mechanic::Retrace
         | Mechanic::Ingest
+        | Mechanic::Enlist
         | Mechanic::JumpStart
         | Mechanic::Surge(_)
         | Mechanic::Spectacle(_)
@@ -3965,6 +4080,7 @@ fn link_exiles(def: &mut mtg_core::card::CardDef) {
 fn derived_token(card: &Card) -> Option<Card> {
     let (color, pt) = card.abilities.iter().find_map(|a| match a {
         Ability::Mechanic(Mechanic::Embalm(_)) => Some((Some(Color::White), None)),
+        Ability::Mechanic(Mechanic::Encore(_)) => Some((None, None)),
         Ability::Mechanic(Mechanic::Eternalize(_)) => Some((Some(Color::Black), Some((4, 4)))),
         Ability::Mechanic(Mechanic::Offspring(_)) => Some((None, Some((1, 1)))),
         _ => None,
@@ -3991,7 +4107,10 @@ fn derived_token(card: &Card) -> Option<Card> {
         !matches!(
             a,
             Ability::Mechanic(
-                Mechanic::Embalm(_) | Mechanic::Eternalize(_) | Mechanic::Offspring(_)
+                Mechanic::Embalm(_)
+                    | Mechanic::Eternalize(_)
+                    | Mechanic::Offspring(_)
+                    | Mechanic::Encore(_)
             )
         )
     });

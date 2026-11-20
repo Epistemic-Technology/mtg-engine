@@ -390,6 +390,13 @@ pub struct KeywordSet([u64; 2]);
 
 impl KeywordSet {
     pub const NONE: KeywordSet = KeywordSet([0; 2]);
+    /// Detain (CR 701.35a): "until your next turn, that permanent can't
+    /// attack or block and its activated abilities can't be activated"
+    /// (`Effect::UntilYourNextTurn` granting these).
+    pub const DETAINED: KeywordSet = KeywordSet::NONE
+        .with(Keyword::CantAttack)
+        .with(Keyword::CantBlock)
+        .with(Keyword::CantActivate);
 
     pub fn of(keywords: impl IntoIterator<Item = Keyword>) -> Self {
         keywords
@@ -4165,6 +4172,10 @@ pub enum ChooseAct {
     /// "put an instant, sorcery, or battle card from your graveyard on top
     /// of your library" (cards in your graveyard).
     GraveyardToTop,
+    /// Enlist (CR 702.154a): tap a nonattacking creature you control that
+    /// could pay a {T} cost (CR 302.6); the source gets +X/+0 until end of
+    /// turn, X that creature's power.
+    Enlist,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
@@ -5677,6 +5688,19 @@ pub struct CardDef {
     /// copied. 0: none.
     #[serde(default)]
     pub casualty: u8,
+    /// Storm (CR 702.40): "When you cast this spell, copy it for each spell
+    /// cast before it this turn."
+    #[serde(default)]
+    pub storm: bool,
+    /// Dredge N (CR 702.52): "If you would draw a card, you may mill N
+    /// cards instead. If you do, return this card from your graveyard to
+    /// your hand." 0: none.
+    #[serde(default)]
+    pub dredge: u8,
+    /// Replicate (CR 702.56): an additional cost paid any number of times;
+    /// as the spell is cast, it is copied once for each time.
+    #[serde(default)]
+    pub replicate: Option<ManaCost>,
     /// Teamwork N: "As an additional cost to cast this spell, you may tap
     /// any number of creatures you control with total power N or more."
     /// 0: none.
@@ -5702,6 +5726,16 @@ pub struct CardDef {
     /// for each object or player the card's target spec matches.
     #[serde(skip)]
     pub overload_face: Option<CardRef>,
+    /// Awaken N (CR 702.113): an alternative cost; cast for it, the spell
+    /// also puts N +1/+1 counters on target land you control, which
+    /// becomes a 0/0 Elemental creature with haste (`awaken_face`).
+    #[serde(default)]
+    pub awaken: Option<(u8, Box<ManaCost>)>,
+    /// Filled in by `CardPool::add` for a spell with awaken: the spell as
+    /// cast for its awaken cost, with the land target and the effects
+    /// after its own (CR 702.113a).
+    #[serde(skip)]
+    pub awaken_face: Option<CardRef>,
     /// Splice onto Arcane (CR 702.47): revealed from hand as an Arcane
     /// spell is cast, this cost paid on top, the card's effects (and
     /// targets) are added to that spell. Mana, or mana and a permanent
@@ -7121,6 +7155,45 @@ impl CardPool {
             face.overload_face = None;
             def.overload_face = Some(self.add(face));
         }
+        // CR 702.113a: "If you cast this spell for [cost], also put N +1/+1
+        // counters on target land you control and it becomes a 0/0
+        // Elemental creature with haste. It's still a land."
+        if let Some((n, _)) = &def.awaken {
+            let mut face = def.clone();
+            // Its cost is read from the card (`GameObject::card`).
+            face.awaken = None;
+            let mut lands = ObjFilter::default().who(Who::You);
+            lands.types = TypeSet::of([CardType::Land]);
+            let spec = TargetSpec::Filtered(self.intern_filter(lands));
+            let elemental = self.subtype("Elemental");
+            for a in &mut face.abilities {
+                if let AbilityDef::Spell {
+                    targets, effects, ..
+                } = a
+                {
+                    let i = targets.len();
+                    targets.push(spec);
+                    effects.push(Effect::AddCounters {
+                        kind: CounterKind::PlusOnePlusOne,
+                        count: Num::N(u32::from(*n)),
+                        to: Recipient::Target(i),
+                    });
+                    effects.push(Effect::Animate {
+                        to: Recipient::Target(i),
+                        types: TypeSet::of([CardType::Creature]),
+                        subtypes: SubtypeSet::from_slice(&[elemental]),
+                        pt: Some((0, 0)),
+                        colors: None,
+                        keywords: KeywordSet::NONE.with(Keyword::Haste),
+                        indefinite: true,
+                        loses_abilities: false,
+                        in_addition: false,
+                    });
+                    break;
+                }
+            }
+            def.awaken_face = Some(self.add(face));
+        }
         let r = CardRef(u32::try_from(self.defs.len()).expect("card pool too large"));
         def.subtype_ids = def
             .subtypes
@@ -7483,9 +7556,14 @@ impl Builder {
             bestow_face: None,
             overload: None,
             overload_face: None,
+            awaken: None,
+            awaken_face: None,
             goads: false,
             conspire: false,
             casualty: 0,
+            storm: false,
+            dredge: 0,
+            replicate: None,
             teamwork: 0,
             ripple: 0,
             splice: None,
@@ -7710,6 +7788,34 @@ impl Builder {
     #[must_use]
     pub fn conspire(mut self) -> Self {
         self.0.conspire = true;
+        self
+    }
+
+    /// Dredge N (CR 702.52).
+    #[must_use]
+    pub fn dredge(mut self, n: u8) -> Self {
+        self.0.dredge = n;
+        self
+    }
+
+    /// Awaken N (CR 702.113).
+    #[must_use]
+    pub fn awaken(mut self, n: u8, cost: ManaCost) -> Self {
+        self.0.awaken = Some((n, Box::new(cost)));
+        self
+    }
+
+    /// Storm (CR 702.40).
+    #[must_use]
+    pub fn storm(mut self) -> Self {
+        self.0.storm = true;
+        self
+    }
+
+    /// Replicate (CR 702.56).
+    #[must_use]
+    pub fn replicate(mut self, cost: ManaCost) -> Self {
+        self.0.replicate = Some(cost);
         self
     }
 

@@ -1,0 +1,8 @@
+card "Argivian Cavalier" {
+  oracle_id c45090bd-a589-45a0-8388-025b8e0b3487
+  cost {2}{W}
+  type Creature — Orc Knight
+  pt 2/2
+  enlist
+  triggered when this enters: create 1 "1/1 white Soldier creature"
+}

@@ -1,0 +1,8 @@
+card "Coalition Warbrute" {
+  oracle_id 84d67d87-2696-4c2f-9f10-29d5832bfbb6
+  cost {3}{R}
+  type Creature — Minotaur Berserker
+  pt 3/4
+  enlist
+  keyword trample
+}

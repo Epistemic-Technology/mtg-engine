@@ -1,0 +1,9 @@
+card "Inaction Injunction" {
+  oracle_id 6f6bb2dd-c888-43bd-b9ef-8bd451ab669b
+  cost {1}{U}
+  type Sorcery
+  spell {
+    detain target creature an opponent controls
+    draw 1 cards
+  }
+}

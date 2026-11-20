@@ -1,0 +1,8 @@
+card "Briarblade Adept" {
+  oracle_id 6680a5f7-3ac1-4550-a29a-9553ad7ae465
+  cost {4}{B}
+  type Creature — Elf Assassin
+  pt 3/4
+  triggered whenever this attacks: target creature an opponent controls gets -1/-1
+  encore {3}{B}
+}

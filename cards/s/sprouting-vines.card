@@ -1,0 +1,7 @@
+card "Sprouting Vines" {
+  oracle_id a38ad1aa-fc12-49be-b9f7-fe287597a5ca
+  cost {2}{G}
+  type Instant
+  spell: search basic land card reveal to hand that card
+  storm
+}

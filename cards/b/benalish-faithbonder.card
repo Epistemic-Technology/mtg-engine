@@ -1,0 +1,8 @@
+card "Benalish Faithbonder" {
+  oracle_id 278db664-4235-40f0-a926-3074a0e038c1
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/3
+  keywords vigilance
+  enlist
+}

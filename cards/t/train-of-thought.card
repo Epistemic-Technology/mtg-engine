@@ -1,0 +1,7 @@
+card "Train of Thought" {
+  oracle_id 90ba0366-57ff-4dc4-a290-3925548129ce
+  cost {1}{U}
+  type Sorcery
+  replicate {1}{U}
+  spell: draw 1 cards
+}

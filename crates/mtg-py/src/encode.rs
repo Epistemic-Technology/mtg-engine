@@ -67,7 +67,8 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::ChooseMode { .. } => 11,
         DecisionKind::YouMay { .. } => 12,
         DecisionKind::ChooseCopy => 13,
-        DecisionKind::ChooseX { .. } => 14,
+        // Replicate shares X's slot (a number of times to pay).
+        DecisionKind::ChooseX { .. } | DecisionKind::Replicate { .. } => 14,
         DecisionKind::ChooseSacrifice { .. } => 15,
         DecisionKind::ChooseDiscardCost { .. } => 16,
         DecisionKind::ChooseAttackTarget { .. } => 17,
@@ -190,7 +191,7 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::CastDash(_) | Choice::CastWarp(_) => 37,
         // The one-hot is full (`CHOICE_KINDS`): overload counts as an
         // alternative cost.
-        Choice::CastAlt(_) | Choice::CastOverload(_) => 38,
+        Choice::CastAlt(_) | Choice::CastOverload(_) | Choice::CastAwaken(_) => 38,
         Choice::CastBestow(_) => 39,
         Choice::Unlock { .. } => 40,
     }
@@ -406,6 +407,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::CastAlt(id)
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)
+            | Choice::CastAwaken(id)
             | Choice::Suspend(id)
             | Choice::Unlock { obj: id, .. }
             | Choice::Foretell(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),

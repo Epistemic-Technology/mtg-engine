@@ -1,0 +1,44 @@
+# Encore (CR 702.141): "[Cost], Exile this card from your graveyard: For
+# each opponent, create a token copy that attacks that opponent this turn
+# if able. They gain haste. Sacrifice them at the beginning of the next
+# end step. Activate only as a sorcery."
+
+scenario "encore: a hasty token copy attacks, then is sacrificed" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Fin-Clade Fugitives"
+  turn 1 A: activate "Fin-Clade Fugitives"
+  turn 1 A: attack "Fin-Clade Fugitives"
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert exile A contains "Fin-Clade Fugitives"
+  assert has "Fin-Clade Fugitives" haste
+  run_to turn 2 upkeep
+  assert battlefield A contains 0 "Fin-Clade Fugitives"
+}
+
+scenario "encore: the token must attack" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Fin-Clade Fugitives"
+  turn 1 A: activate "Fin-Clade Fugitives"
+  run_to turn 1 postcombat_main
+  assert life B 13
+}
+
+scenario "encore: the token's dies trigger works" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  graveyard A: "Impulsive Pilferer"
+  turn 1 A: activate "Impulsive Pilferer"
+  turn 1 A: attack "Impulsive Pilferer"
+  turn 1 B: block "Impulsive Pilferer" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+}
+
+scenario "encore: only as a sorcery, only from the graveyard" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Fin-Clade Fugitives"
+  illegal turn 1 end A: activate "Fin-Clade Fugitives"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Fin-Clade Fugitives"
+}

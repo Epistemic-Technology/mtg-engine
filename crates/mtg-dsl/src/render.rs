@@ -4305,6 +4305,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*what);
             Clause::imperative(format!("goad {o}"))
         }
+        Effect::Detain { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("detain {o}"))
+        }
         Effect::Tap { to } => {
             let o = ctx.obj_list_tap(to);
             Clause::imperative(format!("tap {o}"))
@@ -4915,7 +4919,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             };
             Clause::imperative(match act {
-                ChooseAct::Tap => format!("tap {}", permanents()),
+                ChooseAct::Tap | ChooseAct::Enlist => format!("tap {}", permanents()),
                 ChooseAct::Untap => format!("untap {}", permanents()),
                 ChooseAct::Sacrifice => format!("sacrifice {}", permanents()),
                 ChooseAct::Bounce => format!(
@@ -9574,6 +9578,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 )
             }
             crate::ast::Mechanic::Embalm(c) => format!("Embalm {c}"),
+            crate::ast::Mechanic::Encore(c) => format!("Encore {c}"),
             crate::ast::Mechanic::Eternalize(c) => format!("Eternalize {c}"),
             crate::ast::Mechanic::Backup(n) => format!("Backup {n}"),
             crate::ast::Mechanic::Offspring(c) => format!("Offspring {c}"),
@@ -9583,6 +9588,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Bargain => "Bargain".to_string(),
             crate::ast::Mechanic::Conspire => "Conspire".to_string(),
             crate::ast::Mechanic::Casualty(n) => format!("Casualty {n}"),
+            crate::ast::Mechanic::Dredge(n) => format!("Dredge {n}"),
+            crate::ast::Mechanic::Storm => "Storm".to_string(),
+            crate::ast::Mechanic::Awaken(n, c) => format!("Awaken {n}\u{2014}{c}"),
+            crate::ast::Mechanic::Assist => "Assist".to_string(),
+            crate::ast::Mechanic::Enlist => "Enlist".to_string(),
+            crate::ast::Mechanic::Replicate(c) => format!("Replicate {c}"),
             crate::ast::Mechanic::Teamwork(n) => format!("Teamwork {n}"),
             crate::ast::Mechanic::Ripple(n) => format!("Ripple {n}"),
             crate::ast::Mechanic::Station => "Station".to_string(),

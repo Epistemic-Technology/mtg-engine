@@ -1438,7 +1438,7 @@ impl P {
             }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
             | "saddle" | "poisonous" | "frenzy" | "absorb" | "fabricate" | "renown"
-            | "afterlife" | "casualty" | "teamwork" | "ripple"
+            | "afterlife" | "casualty" | "teamwork" | "ripple" | "dredge"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
@@ -1459,6 +1459,7 @@ impl P {
                     "renown" => Mechanic::Renown(n),
                     "afterlife" => Mechanic::Afterlife(n),
                     "casualty" => Mechanic::Casualty(n),
+                    "dredge" => Mechanic::Dredge(n),
                     "teamwork" => Mechanic::Teamwork(n),
                     "ripple" => Mechanic::Ripple(n),
                     _ => Mechanic::Toxic(n),
@@ -1467,7 +1468,7 @@ impl P {
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring" | "bestow"
-            | "splice" | "strive" | "overload" | "surge" | "spectacle"
+            | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate" | "encore"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1498,6 +1499,8 @@ impl P {
                     "strive" => Mechanic::Strive(c),
                     "surge" => Mechanic::Surge(c),
                     "spectacle" => Mechanic::Spectacle(c),
+                    "replicate" => Mechanic::Replicate(c),
+                    "encore" => Mechanic::Encore(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }
@@ -1521,6 +1524,28 @@ impl P {
                 self.pos += 1;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Conspire))
+            }
+            "awaken" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Awaken(n, c)))
+            }
+            "storm" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Storm))
+            }
+            "assist" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Assist))
+            }
+            "enlist" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Enlist))
             }
             "station" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
@@ -6049,6 +6074,9 @@ impl P {
                 Ok(Effect::Tap { to })
             }
             "goad" => Ok(Effect::Goad {
+                what: self.recipient()?,
+            }),
+            "detain" => Ok(Effect::Detain {
                 what: self.recipient()?,
             }),
             "untap" => {

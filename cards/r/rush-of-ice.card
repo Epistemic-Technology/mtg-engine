@@ -1,0 +1,7 @@
+card "Rush of Ice" {
+  oracle_id e9d62416-c4b1-4982-9593-174d46e975c7
+  cost {U}
+  type Sorcery
+  spell: tap target creature; target 1 doesn't untap next untap step
+  awaken 3 {4}{U}
+}

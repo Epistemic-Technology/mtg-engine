@@ -1,0 +1,59 @@
+# Awaken N (CR 702.113): an alternative cost; cast for it, the spell also
+# puts N +1/+1 counters on target land you control, which becomes a 0/0
+# Elemental creature with haste. It's still a land. `awakened` casts for
+# the awaken cost; the land is the last target.
+
+scenario "awaken: the land becomes a hasty Elemental with counters" {
+  battlefield A: 5 "Island", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Clutch of Currents"
+  turn 1 A: cast "Clutch of Currents" awakened targeting "Hill Giant", "Forest"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert is "Forest" creature
+  assert is "Forest" land
+  assert is "Forest" Elemental
+  assert has "Forest" haste
+  assert power "Forest" 3
+  assert toughness "Forest" 3
+}
+
+scenario "awaken: cast for its mana cost, no land is awakened" {
+  battlefield A: 5 "Island", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Clutch of Currents"
+  turn 1 A: cast "Clutch of Currents" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert is not "Forest" creature
+}
+
+scenario "awaken: not without the mana" {
+  battlefield A: 3 "Island", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Clutch of Currents"
+  illegal turn 1 A: cast "Clutch of Currents" awakened targeting "Hill Giant", "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Clutch of Currents"
+}
+
+scenario "awaken: a spell without targets of its own" {
+  battlefield A: 7 "Mountain", "Forest"
+  battlefield B: "Raging Goblin"
+  hand A: "Boiling Earth"
+  turn 1 A: cast "Boiling Earth" awakened targeting "Forest"
+  turn 1 A: attack "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Raging Goblin"
+  assert power "Forest" 4
+  assert life B 16
+}
+
+scenario "awaken: the land must be one you control" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Forest"
+  hand A: "Boiling Earth"
+  illegal turn 1 A: cast "Boiling Earth" awakened targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert is not "Forest" creature
+}

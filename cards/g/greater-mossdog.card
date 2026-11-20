@@ -1,0 +1,7 @@
+card "Greater Mossdog" {
+  oracle_id aedc3e69-3163-4b8d-97b2-0ad92f28a6dc
+  cost {3}{G}
+  type Creature — Plant Dog
+  pt 3/3
+  dredge 3
+}

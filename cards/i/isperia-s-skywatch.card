@@ -1,0 +1,8 @@
+card "Isperia's Skywatch" {
+  oracle_id 5101fa05-3cca-499c-8c48-198ba0f8c672
+  cost {5}{U}
+  type Creature — Vedalken Knight
+  pt 3/3
+  keywords flying
+  triggered when this enters: detain target creature an opponent controls
+}

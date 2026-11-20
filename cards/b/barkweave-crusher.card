@@ -1,0 +1,7 @@
+card "Barkweave Crusher" {
+  oracle_id cbac75c6-6006-4025-b893-8828965b5f97
+  cost {3}{G}
+  type Creature — Elemental Warrior
+  pt 2/5
+  enlist
+}

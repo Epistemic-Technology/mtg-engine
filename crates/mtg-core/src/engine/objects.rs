@@ -67,6 +67,9 @@ impl GameState {
         if zone == Zone::Graveyard && self.pool.get(def).flags().has_graveyard_trigger() {
             self.graveyard_trigger_cards += 1;
         }
+        if zone == Zone::Graveyard && self.pool.get(def).dredge > 0 {
+            self.dredge_cards += 1;
+        }
         if self.pool.get(def).flags().has_enters_choice() {
             self.enters_choice_cards += 1;
         }
@@ -464,6 +467,14 @@ impl GameState {
             }
             if to == Zone::Graveyard {
                 self.player_mut(old.owner).flashback_in_graveyard += 1;
+            }
+        }
+        if old.kind == ObjKind::Card && self.pool.get(old.card).dredge > 0 {
+            if old.zone == Zone::Graveyard {
+                self.dredge_cards = self.dredge_cards.saturating_sub(1);
+            }
+            if to == Zone::Graveyard {
+                self.dredge_cards += 1;
             }
         }
         if old.kind == ObjKind::Card && self.pool.get(old.card).flags().has_graveyard_trigger() {
@@ -898,7 +909,48 @@ impl GameState {
 
     /// Draw a card (CR 121.1), subject to replacement effects (CR 614.11).
     pub(super) fn draw(&mut self, p: PlayerId) {
+        if self.dredge_cards > 0 && self.dredge(p) {
+            return;
+        }
         self.propose(Proposed::Draw { player: p });
+    }
+
+    /// Dredge (CR 702.52a): instead of drawing, `p` may mill N cards and
+    /// return a card with dredge N from their graveyard to their hand, if
+    /// their library has at least N cards (CR 702.52b). Asked before other
+    /// replacement effects of the draw. Whether they did.
+    #[cold]
+    #[inline(never)]
+    fn dredge(&mut self, p: PlayerId) -> bool {
+        use crate::decision::{Choice, DecisionKind};
+        let library = self.player(p).library.len();
+        let mut options = vec![Choice::Done];
+        for id in &self.player(p).graveyard {
+            let o = &self.objects[*id];
+            let n = self.pool.get(o.def).dredge;
+            if n > 0 && usize::from(n) <= library {
+                options.push(Choice::Discard {
+                    card: *id,
+                    def: o.def,
+                });
+            }
+        }
+        if options.len() == 1 {
+            return false;
+        }
+        let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+        let Choice::Discard { card, def } = options[k] else {
+            return false;
+        };
+        self.mill(p, u32::from(self.pool.get(def).dredge));
+        if self
+            .objects
+            .get(card)
+            .is_some_and(|o| o.zone == Zone::Graveyard)
+        {
+            self.move_object(card, Zone::Hand, false);
+        }
+        true
     }
 
     fn draw_now(&mut self, p: PlayerId) {

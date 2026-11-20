@@ -1,0 +1,7 @@
+card "Weather the Storm" {
+  oracle_id 3a091f7b-efc9-4aaa-9da8-157ef8099a36
+  cost {1}{G}
+  type Instant
+  spell: you gain 3 life
+  storm
+}

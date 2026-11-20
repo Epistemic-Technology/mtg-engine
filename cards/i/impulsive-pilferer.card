@@ -1,0 +1,8 @@
+card "Impulsive Pilferer" {
+  oracle_id 7d9fc9e7-d80b-49c3-871c-ed25b3059ae8
+  cost {R}
+  type Creature — Goblin Pirate
+  pt 1/1
+  triggered when this dies: create 1 "Treasure"
+  encore {3}{R}
+}

@@ -145,6 +145,9 @@ pub enum Action {
         /// `overloaded`: cast for the overload cost, without targets (CR
         /// 702.96).
         overloaded: bool,
+        /// `awakened`: cast for the awaken cost (CR 702.113a); the land
+        /// it awakens is its last target.
+        awakened: bool,
         /// `conspired`: conspire the spell (CR 702.78a), tapping two
         /// creatures the engine picks.
         conspired: bool,

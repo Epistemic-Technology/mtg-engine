@@ -1,0 +1,7 @@
+card "Earthen Arms" {
+  oracle_id 2146fa14-dc6a-4e13-bed0-dda235784ee6
+  cost {1}{G}
+  type Sorcery
+  spell: put 2 +1/+1 counters on target permanent
+  awaken 4 {6}{G}
+}

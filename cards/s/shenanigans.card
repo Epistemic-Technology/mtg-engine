@@ -1,0 +1,7 @@
+card "Shenanigans" {
+  oracle_id 1d9b94af-3bfa-4257-8347-675468f0b0e5
+  cost {1}{R}
+  type Sorcery
+  spell: destroy target artifact
+  dredge 1
+}

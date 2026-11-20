@@ -1085,6 +1085,7 @@ impl Fmt {
                     self.recipient(*who, t)
                 )
             }
+            Effect::Detain { what } => format!("detain {}", self.recipient(*what, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
             Effect::Grant { keywords: ks, to } => {
                 let v = if matches!(
@@ -1788,7 +1789,7 @@ impl Fmt {
                 let f = filter(f);
                 let cs = cards(*count);
                 match act {
-                    ChooseAct::Tap => format!("tap {n} {f} chosen"),
+                    ChooseAct::Tap | ChooseAct::Enlist => format!("tap {n} {f} chosen"),
                     ChooseAct::Untap => format!("untap {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
                     ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
@@ -4402,6 +4403,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Splice(c) => format!("splice {c}"),
                 crate::ast::Mechanic::SpliceCost(c) => format!("splice {}", cost_text(c)),
                 crate::ast::Mechanic::Embalm(c) => format!("embalm {c}"),
+                crate::ast::Mechanic::Encore(c) => format!("encore {c}"),
                 crate::ast::Mechanic::Eternalize(c) => format!("eternalize {c}"),
                 crate::ast::Mechanic::Backup(n) => format!("backup {n}"),
                 crate::ast::Mechanic::Offspring(c) => format!("offspring {c}"),
@@ -4409,6 +4411,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Bargain => "bargain".to_string(),
                 crate::ast::Mechanic::Conspire => "conspire".to_string(),
                 crate::ast::Mechanic::Casualty(n) => format!("casualty {n}"),
+                crate::ast::Mechanic::Dredge(n) => format!("dredge {n}"),
+                crate::ast::Mechanic::Storm => "storm".to_string(),
+                crate::ast::Mechanic::Awaken(n, c) => format!("awaken {n} {c}"),
+                crate::ast::Mechanic::Assist => "assist".to_string(),
+                crate::ast::Mechanic::Enlist => "enlist".to_string(),
+                crate::ast::Mechanic::Replicate(c) => format!("replicate {c}"),
                 crate::ast::Mechanic::Teamwork(n) => format!("teamwork {n}"),
                 crate::ast::Mechanic::Ripple(n) => format!("ripple {n}"),
                 crate::ast::Mechanic::Station => "station".to_string(),

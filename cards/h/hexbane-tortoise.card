@@ -1,0 +1,8 @@
+card "Hexbane Tortoise" {
+  oracle_id f3b4097f-b84f-4645-81f1-018366e40eeb
+  cost {2}{G}
+  type Creature — Turtle
+  pt 3/2
+  ward {2}
+  enlist
+}
