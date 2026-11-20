@@ -5346,6 +5346,14 @@ pub enum AbilityDef {
         face_down: bool,
         opponents: bool,
     },
+    /// "As this creature is turned face up, put four +1/+1 counters on
+    /// it." (CR 708.11: applied while it is being turned face up, before
+    /// "turned face up" triggers look). "As this creature enters or is
+    /// turned face up" is this and an enters-with replacement.
+    AsTurnedFaceUp {
+        kind: CounterKind,
+        n: Num,
+    },
     /// "This creature crews Vehicles using its toughness rather than its
     /// power." (`toughness`), "... saddles Mounts and crews Vehicles as
     /// though its power were 2 greater." (`plus` 2): what it counts for
@@ -5385,6 +5393,7 @@ impl AbilityDef {
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
+            | AbilityDef::AsTurnedFaceUp { .. }
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)
@@ -5413,6 +5422,7 @@ impl AbilityDef {
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
+            | AbilityDef::AsTurnedFaceUp { .. }
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)

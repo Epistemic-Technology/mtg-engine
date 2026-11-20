@@ -131,3 +131,40 @@ scenario "face-down creature entered this turn: not for a face-up one" {
   run_to turn 2 upkeep
   assert counters "Tunnel Tipster" +1/+1 0
 }
+
+scenario "as turned face up: counters while it turns up (CR 708.11)" {
+  battlefield A: 9 "Island"
+  hand A: "Bubble Smuggler"
+  turn 1 A: cast "Bubble Smuggler" face_down
+  turn 1 postcombat_main A: unmorph "Bubble Smuggler"
+  run_to turn 1 end
+  assert counters "Bubble Smuggler" +1/+1 4
+  assert power "Bubble Smuggler" 6
+}
+
+scenario "as turned face up: not as it enters face up" {
+  battlefield A: 2 "Island"
+  hand A: "Bubble Smuggler"
+  turn 1 A: cast "Bubble Smuggler"
+  run_to turn 1 end
+  assert counters "Bubble Smuggler" +1/+1 0
+}
+
+scenario "as enters or is turned face up: X counters as it enters" {
+  battlefield A: 4 "Forest", "Plains", "Grizzly Bears", "Llanowar Elves"
+  hand A: "Crowd-Control Warden"
+  turn 1 A: cast "Crowd-Control Warden"
+  run_to turn 1 end
+  assert counters "Crowd-Control Warden" +1/+1 2
+}
+
+scenario "as enters or is turned face up: X counters as it turns up, other creatures only" {
+  battlefield A: 8 "Forest", "Grizzly Bears"
+  hand A: "Crowd-Control Warden"
+  turn 1 A: cast "Crowd-Control Warden" face_down
+  run_to turn 1 postcombat_main
+  assert counters "face-down creature" +1/+1 0
+  turn 1 postcombat_main A: unmorph "Crowd-Control Warden"
+  run_to turn 1 end
+  assert counters "Crowd-Control Warden" +1/+1 1
+}

@@ -4470,6 +4470,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
             );
         }
+        Ability::AsTurnedFaceUp { enters, kind, n } => {
+            let _ = writeln!(
+                out,
+                "{indent}as {}turned face up put {} {}",
+                if *enters { "enters or " } else { "" },
+                num(*n),
+                counter(*kind, *n)
+            );
+        }
         Ability::MayLook {
             top,
             face_down,

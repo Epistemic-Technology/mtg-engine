@@ -712,6 +712,15 @@ impl GameState {
         );
         self.count_sources(flags, legend, true);
         self.cbump();
+        // CR 708.11: "As this creature is turned face up, put ... counters
+        // on it", applied while it turns face up.
+        let pool = std::sync::Arc::clone(&self.pool);
+        for a in &pool.get(card).abilities {
+            if let crate::card::AbilityDef::AsTurnedFaceUp { kind, n } = a {
+                let n = self.eval_num_of(*n, id, self.objects[id].controller);
+                self.add_counters(id, *kind, n);
+            }
+        }
         if mega && paid {
             self.add_counters(id, CounterKind::PlusOnePlusOne, 1);
         }

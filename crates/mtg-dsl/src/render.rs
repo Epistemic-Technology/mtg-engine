@@ -9631,6 +9631,26 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             format!("You may look at {what} any time.")
         }
+        Ability::AsTurnedFaceUp { enters, kind, n } => {
+            let what = if *enters {
+                "enters or is turned face up"
+            } else {
+                "is turned face up"
+            };
+            let mut s = format!(
+                "As {} {what}, put {} on it",
+                this_ref(card),
+                counters(*n, *kind)
+            );
+            if let Num::Count(i) = n
+                && let Some(c) = card.counts.get(usize::from(*i))
+            {
+                s.push_str(", where X is ");
+                s.push_str(&count_phrase(&c.expr, card, false));
+            }
+            s.push('.');
+            s
+        }
         Ability::ExtraVote { optional: false } => {
             "While voting, you get an additional vote.".to_string()
         }

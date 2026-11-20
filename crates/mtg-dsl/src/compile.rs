@@ -688,6 +688,24 @@ impl Compiler<'_> {
             if let Ability::Mechanic(Mechanic::Unleash) = a {
                 b = b.ability(unleash_static());
             }
+            // "As this creature enters or is turned face up, put ...
+            // counters on it": also an enters-with replacement (CR
+            // 614.1c).
+            if let Ability::AsTurnedFaceUp {
+                enters: true,
+                kind,
+                n,
+            } = a
+            {
+                b = b.ability(AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterWithCounters {
+                        kind: *kind,
+                        n: *n,
+                    },
+                    then: Vec::new(),
+                }));
+            }
             // "... and with first strike": abilities the permanent has as
             // long as it was kicked (fixed as it enters, CR 702.33c).
             if let Ability::Mechanic(Mechanic::KickedWith(_, ks)) = a
@@ -3352,6 +3370,9 @@ impl Compiler<'_> {
             Ability::ExtraVote { optional } => AbilityDef::ExtraVote {
                 optional: *optional,
             },
+            Ability::AsTurnedFaceUp { kind, n, .. } => {
+                AbilityDef::AsTurnedFaceUp { kind: *kind, n: *n }
+            }
             Ability::MayLook {
                 top,
                 face_down,

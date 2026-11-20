@@ -418,6 +418,34 @@ impl GameState {
         });
     }
 
+    /// `eval_num` for a static ability of `source`'s, outside any
+    /// resolution (an "as this is turned face up" amount).
+    pub(super) fn eval_num_of(
+        &self,
+        n: crate::card::Num,
+        source: ObjId,
+        controller: PlayerId,
+    ) -> u32 {
+        let ctx = EffectCtx {
+            source,
+            controller,
+            targets: Vec::new(),
+            division: Vec::new(),
+            legal: Vec::new(),
+            trigger_obj: None,
+            trigger_player: None,
+            trigger_amount: 0,
+            created: None,
+            revealed: Vec::new(),
+            x: 0,
+            did: true,
+            chosen: Chosen::None,
+            couldnt: 0,
+            created_tokens: SmallVec::new(),
+        };
+        self.eval_num(n, &ctx)
+    }
+
     /// A variable amount's value as an effect happens: X from the spell, or
     /// one of the source card's counts (CR 107.3 for X; "the number of
     /// ..." judged from the effect's controller).

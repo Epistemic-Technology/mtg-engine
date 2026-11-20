@@ -1253,6 +1253,16 @@ impl P {
                     plus,
                 })
             }
+            "as" if self.at_words(&["as", "turned", "face", "up", "put"])
+                || self.at_words(&["as", "enters", "or", "turned", "face", "up", "put"]) =>
+            {
+                let enters = self.word_at(1).as_deref() == Some("enters");
+                self.pos += if enters { 7 } else { 5 };
+                let n = self.num()?;
+                let kind = self.counter_kind()?;
+                self.end_stmt()?;
+                Ok(Ability::AsTurnedFaceUp { enters, kind, n })
+            }
             "may" if self.word_at(1).as_deref() == Some("look") => {
                 self.pos += 2;
                 let top = self.eat_word("top");

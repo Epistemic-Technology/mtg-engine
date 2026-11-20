@@ -1,0 +1,8 @@
+card "Crowd-Control Warden" {
+  oracle_id 439e59ab-0350-4729-9352-60e697eaa78d
+  cost {3}{G}{W}
+  type Creature — Centaur Soldier
+  pt 4/4
+  as enters or turned face up put count where other creature you control +1/+1 counters
+  disguise {3}{G/W}{G/W}
+}

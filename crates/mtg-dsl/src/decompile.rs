@@ -1683,6 +1683,13 @@ impl Decompiler<'_> {
             AbilityDef::ExtraVote { optional } => Ability::ExtraVote {
                 optional: *optional,
             },
+            // The enters-with half of "enters or is turned face up" stays a
+            // replacement of its own here.
+            AbilityDef::AsTurnedFaceUp { kind, n } => Ability::AsTurnedFaceUp {
+                enters: false,
+                kind: *kind,
+                n: *n,
+            },
             AbilityDef::MayLook {
                 top,
                 face_down,

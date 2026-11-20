@@ -1047,6 +1047,16 @@ pub enum Ability {
         face_down: bool,
         opponents: bool,
     },
+    /// `as turned face up put 4 +1/+1 counters`: "As this creature is
+    /// turned face up, put four +1/+1 counters on it." (CR 708.11);
+    /// `as enters or turned face up put count where other creature you
+    /// control +1/+1 counters` (`enters`): "As this creature enters or is
+    /// turned face up, put X +1/+1 counters on it, where X is ...".
+    AsTurnedFaceUp {
+        enters: bool,
+        kind: CounterKind,
+        n: Num,
+    },
     /// `crews using toughness`: "This creature crews Vehicles using its
     /// toughness rather than its power."; `saddles and crews plus 2`:
     /// "This creature saddles Mounts and crews Vehicles as though its
