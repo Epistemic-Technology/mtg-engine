@@ -337,6 +337,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Modular(n)) => {
                     b = b.modular(*n);
                 }
+                Ability::Mechanic(Mechanic::Graft(n)) => {
+                    b = b.graft(*n);
+                }
+                Ability::Mechanic(Mechanic::Vanishing(n)) => {
+                    b = b.vanishing(*n);
+                }
                 Ability::Mechanic(Mechanic::Morph(cost)) => {
                     b = b.morph(cost.clone(), mtg_core::card::MorphKind::Morph);
                 }
@@ -3799,6 +3805,67 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             effects: one(E::YouMay(one(E::MoveSourceCounters {
                 to: Recipient::Target(0),
             }))),
+        },
+        // CR 702.58a: "Whenever another creature enters, if this permanent
+        // has a +1/+1 counter on it, you may move a +1/+1 counter from this
+        // permanent onto that creature." (The counters it enters with are
+        // the card's `graft`.)
+        Mechanic::Graft(_) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Enters(TriggerObj::Filter(Filter {
+                types: vec![mtg_core::card::CardType::Creature],
+                relation: mtg_core::card::Relation::Other,
+                ..Default::default()
+            })),
+            condition: Some(crate::ast::TrigCond::Static(StaticCond::SourceCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                n: 1,
+                at_least: true,
+            })),
+            targets: Vec::new(),
+            effects: one(E::YouMay(one(E::MoveCounters {
+                from: Recipient::Source,
+                to: Recipient::TriggeringIt,
+                kind: Some(mtg_core::card::CounterKind::PlusOnePlusOne),
+                count: Some(1),
+            }))),
+        },
+        // CR 702.63a: "At the beginning of your upkeep, if this permanent
+        // has a time counter on it, remove a time counter from it" and
+        // "When the last time counter is removed from this permanent,
+        // sacrifice it." The sacrifice is part of the upkeep trigger here
+        // rather than a trigger of its own: it happens as the last counter
+        // is removed this way (not when another effect removes it).
+        Mechanic::Vanishing(_) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::BeginningOfStep {
+                step: mtg_core::turn::Step::Upkeep,
+                whose: Who::You,
+            },
+            condition: Some(crate::ast::TrigCond::Static(StaticCond::SourceCounters {
+                kind: mtg_core::card::CounterKind::Time,
+                n: 1,
+                at_least: true,
+            })),
+            targets: Vec::new(),
+            effects: vec![
+                Sentence::new(vec![E::RemoveCounters {
+                    kind: mtg_core::card::CounterKind::Time,
+                    count: Num::N(1),
+                    to: Recipient::Source,
+                }]),
+                Sentence::new(vec![E::IfCondition(
+                    StaticCond::SourceCounters {
+                        kind: mtg_core::card::CounterKind::Time,
+                        n: 0,
+                        at_least: false,
+                    },
+                    one(E::Sacrifice {
+                        what: Recipient::Source,
+                    }),
+                    crate::ast::IfWording::Lead,
+                )]),
+            ],
         },
         // CR 702.24a.
         Mechanic::CumulativeUpkeep(cost) => Ability::Triggered {

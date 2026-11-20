@@ -1,0 +1,8 @@
+card "Cytospawn Shambler" {
+  oracle_id 514c6831-63ac-4fc0-8950-526813591710
+  cost {6}{G}
+  type Creature — Elemental Mutant
+  pt 0/0
+  graft 6
+  activated {G}: target creature with +1/+1 counter gains trample
+}

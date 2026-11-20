@@ -1178,6 +1178,17 @@ pub enum Mechanic {
     KickedWith(u32, Vec<Keyword>),
     /// CR 702.43: `modular 2`.
     Modular(u32),
+    /// CR 702.58: `graft 2`: enters with N +1/+1 counters; "Whenever
+    /// another creature enters, if this permanent has a +1/+1 counter on
+    /// it, you may move a +1/+1 counter from this permanent onto that
+    /// creature."
+    Graft(u32),
+    /// CR 702.63: `vanishing 3`: enters with N time counters; "At the
+    /// beginning of your upkeep, if this permanent has a time counter on
+    /// it, remove a time counter from it", and as the last is removed, it
+    /// is sacrificed. `vanishing` (0) has no entering counters (CR
+    /// 702.63b).
+    Vanishing(u32),
     /// CR 702.24: `cumulative upkeep {1}`.
     CumulativeUpkeep(ManaCost),
     /// CR 702.54: enters with N +1/+1 counters if an opponent was dealt

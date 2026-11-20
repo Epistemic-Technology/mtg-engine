@@ -1,0 +1,7 @@
+token "6/1 green Insect creature with shroud" {
+  name "Insect"
+  type Creature — Insect
+  pt 6/1
+  color green
+  keywords shroud
+}

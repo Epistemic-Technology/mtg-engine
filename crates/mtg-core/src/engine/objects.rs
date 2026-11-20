@@ -187,14 +187,18 @@ impl GameState {
         if d.types.contains(crate::card::CardType::Battle) && d.defense > 0 {
             counters.push((CounterKind::Defense, d.defense));
         }
-        // CR 702.43a: modular's counters.
-        if d.modular > 0 {
-            match counters
-                .iter_mut()
-                .find(|(k, _)| *k == CounterKind::PlusOnePlusOne)
-            {
-                Some((_, n)) => *n += d.modular,
-                None => counters.push((CounterKind::PlusOnePlusOne, d.modular)),
+        // CR 702.43a, 702.58a: modular's and graft's counters; CR 702.63a:
+        // vanishing's time counters.
+        for (kind, extra) in [
+            (CounterKind::PlusOnePlusOne, d.modular + d.graft),
+            (CounterKind::Time, d.vanishing),
+        ] {
+            if extra == 0 {
+                continue;
+            }
+            match counters.iter_mut().find(|(k, _)| *k == kind) {
+                Some((_, n)) => *n += extra,
+                None => counters.push((kind, extra)),
             }
         }
         counters

@@ -1,0 +1,119 @@
+# Vanishing N (CR 702.63): "This permanent enters with N time counters on
+# it", "At the beginning of your upkeep, if this permanent has a time
+# counter on it, remove a time counter from it", and "When the last time
+# counter is removed from this permanent, sacrifice it." The sacrifice
+# happens as the upkeep trigger removes the last counter.
+
+scenario "vanishing: enters with its time counters" {
+  battlefield A: 2 "Mountain"
+  hand A: "Keldon Marauders"
+  turn 1 A: cast "Keldon Marauders"
+  turn 1 A: trigger "Keldon Marauders" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Keldon Marauders" time 2
+  assert life B 19
+}
+
+scenario "vanishing: a counter each upkeep, sacrificed as the last goes" {
+  battlefield A: "Keldon Marauders" with 2 time
+  start turn 3 A
+  turn 5 upkeep A: trigger "Keldon Marauders" targeting player B
+  run_to turn 3 precombat_main
+  assert counters "Keldon Marauders" time 1
+  assert battlefield A contains "Keldon Marauders"
+  run_to turn 5 precombat_main
+  assert graveyard A contains "Keldon Marauders"
+  assert life B 19
+}
+
+scenario "vanishing: not on the opponent's upkeep" {
+  battlefield A: "Waning Wurm" with 2 time
+  start turn 2 B
+  run_to turn 2 precombat_main
+  assert counters "Waning Wurm" time 2
+}
+
+scenario "vanishing: no time counters, no trigger" {
+  battlefield A: "Waning Wurm"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Waning Wurm"
+}
+
+scenario "vanishing: dies with no time counters, the Insect comes" {
+  battlefield A: "Deadly Grub" with 1 time
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Deadly Grub"
+  assert battlefield A contains "Insect"
+  assert power "Insect" 6
+  assert has "Insect" shroud
+}
+
+scenario "vanishing: dies with time counters left, no Insect" {
+  battlefield A: "Deadly Grub" with 3 time
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Deadly Grub"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Deadly Grub"
+  assert battlefield A lacks "Insect"
+}
+
+scenario "vanishing: the Aura goes, the enchanted permanent is sacrificed" {
+  battlefield B: "Grizzly Bears"
+  battlefield A: "Reality Acid" on "Grizzly Bears" with 1 time
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Reality Acid"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "vanishing: the Aura cast enters with its counters" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Reality Acid"
+  turn 1 A: cast "Reality Acid" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Reality Acid" time 3
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "vanishing: the last counter goes, an enchantment comes" {
+  battlefield A: "Lost Auramancers" with 1 time
+  library A: "Glorious Anthem", "Forest"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Lost Auramancers"
+  assert battlefield A contains "Glorious Anthem"
+}
+
+scenario "vanishing: life as it enters and as it leaves" {
+  battlefield A: 3 "Plains"
+  hand A: "Aven Riftwatcher"
+  turn 1 A: cast "Aven Riftwatcher"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert counters "Aven Riftwatcher" time 3
+}
+
+scenario "vanishing: Riftwatcher's last counter goes, life again" {
+  battlefield A: "Aven Riftwatcher" with 1 time
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Aven Riftwatcher"
+  assert life A 22
+}
+
+scenario "vanishing: counters put back keep it around" {
+  battlefield A: "Soultether Golem" with 1 time, 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Soultether Golem" time 2
+  run_to turn 3 precombat_main
+  assert counters "Soultether Golem" time 1
+  assert battlefield A contains "Soultether Golem"
+}

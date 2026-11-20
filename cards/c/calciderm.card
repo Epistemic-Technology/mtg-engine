@@ -1,0 +1,8 @@
+card "Calciderm" {
+  oracle_id 329d53eb-d443-4376-ae5a-4be7dfb1fc91
+  cost {2}{W}{W}
+  type Creature — Beast
+  pt 5/5
+  keywords shroud
+  vanishing 4
+}

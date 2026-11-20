@@ -5795,6 +5795,14 @@ pub struct CardDef {
     /// Modular N (CR 702.43): enters with N +1/+1 counters (its dies
     /// trigger is an ordinary ability).
     pub modular: u32,
+    /// Graft N (CR 702.58a): enters with N +1/+1 counters (its trigger is
+    /// an ordinary ability).
+    #[serde(default)]
+    pub graft: u32,
+    /// Vanishing N (CR 702.63a): enters with N time counters (its upkeep
+    /// trigger is an ordinary ability).
+    #[serde(default)]
+    pub vanishing: u32,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
@@ -7587,6 +7595,8 @@ impl Builder {
             entwine: None,
             escape: None,
             modular: 0,
+            graft: 0,
+            vanishing: 0,
             flashback: None,
             retrace: false,
             watch_mask: 0,
@@ -7955,6 +7965,20 @@ impl Builder {
     #[must_use]
     pub fn modular(mut self, n: u32) -> Self {
         self.0.modular = n;
+        self
+    }
+
+    /// Graft N's entering counters (CR 702.58a).
+    #[must_use]
+    pub fn graft(mut self, n: u32) -> Self {
+        self.0.graft = n;
+        self
+    }
+
+    /// Vanishing N's entering time counters (CR 702.63a).
+    #[must_use]
+    pub fn vanishing(mut self, n: u32) -> Self {
+        self.0.vanishing = n;
         self
     }
 

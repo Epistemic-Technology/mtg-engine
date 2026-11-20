@@ -1356,6 +1356,22 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Modular(n)))
             }
+            "graft" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Graft(n)))
+            }
+            "vanishing" => {
+                self.pos += 1;
+                let n = if matches!(self.peek(), Some(Tok::Num(_))) {
+                    self.number()?
+                } else {
+                    0
+                };
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Vanishing(n)))
+            }
             "cumulative" if self.word_at(1).as_deref() == Some("upkeep") => {
                 self.pos += 2;
                 let c = self.mana_cost()?;

@@ -64,7 +64,9 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 113] = [
+const TEMPLATED_TAGS: [&str; 115] = [
+    "Graft",
+    "Vanishing",
     "Transform",
     "Role token",
     "Landcycling",
@@ -2637,13 +2639,18 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge) (\d+)$",
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Graft|Vanishing) (\d+)$",
         )
         .unwrap()
         .captures(line)
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.63b: vanishing without a number.
+        if line == "Vanishing" {
+            self.statements.push("vanishing".to_string());
             return Ok(());
         }
         if let Some(c) =

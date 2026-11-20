@@ -1,0 +1,9 @@
+card "Cytoplast Root-Kin" {
+  oracle_id c9ed4397-e7b7-469c-94e3-8fc70d88664f
+  cost {2}{G}{G}
+  type Creature — Elemental Mutant
+  pt 0/0
+  graft 4
+  triggered when this enters: put 1 +1/+1 counter on each other creature you control with +1/+1 counter
+  activated {2}: move 1 +1/+1 counter from target creature you control onto this
+}

@@ -1,0 +1,8 @@
+card "Vigean Hydropon" {
+  oracle_id 3eab4c00-a8ae-4912-bee1-68376de700a3
+  cost {1}{G}{U}
+  type Creature — Plant Mutant
+  pt 0/0
+  graft 5
+  static this: has can't attack, can't block
+}
