@@ -1,0 +1,8 @@
+card "Passenger Ferry" {
+  oracle_id e9832d58-0ee6-4641-a9fd-d34d54b3b11c
+  cost {3}
+  type Artifact — Vehicle
+  pt 4/3
+  triggered whenever this attacks: you may pay {U}; when you do, another target attacking creature can't be blocked this turn
+  crew 2
+}

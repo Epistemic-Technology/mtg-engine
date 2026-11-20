@@ -351,3 +351,64 @@ scenario "Spacecraft: no attack, no reduction" {
   illegal turn 3 main2 A: activate "Thaumaton Torpedo" targeting "Hill Giant"
   run_to turn 3 end
 }
+
+scenario "battle: return target creature or battle card; exiled instead of dying" {
+  battlefield A: 5 "Forest"
+  battlefield B: 2 "Mountain"
+  hand A: "Wildwood Escort"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  graveyard A: "Invasion of Dominaria"
+  turn 1 A: cast "Wildwood Escort"
+  turn 1 A: trigger "Wildwood Escort" targeting "Invasion of Dominaria"
+  turn 1 main2 B: cast "Lightning Bolt" targeting "Wildwood Escort"
+  turn 1 main2 B: cast "Lightning Bolt" targeting "Wildwood Escort"
+  run_to turn 1 end
+  assert hand A contains "Invasion of Dominaria"
+  assert exile A contains "Wildwood Escort"
+  assert graveyard A lacks "Wildwood Escort"
+}
+
+scenario "Room: destroy target Room" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Derelict Attic"
+  hand A: "Anthropede", "Forest"
+  turn 1 A: cast "Anthropede"
+  run_to turn 1 end
+  assert graveyard B contains "Derelict Attic // Widow's Walk"
+}
+
+scenario "Vehicle: creatures and Vehicles you control gain haste at max speed" {
+  speed A: 4
+  battlefield A: "Kickoff Celebrations", "Grizzly Bears"
+  hand A: "Clamorous Ironclad"
+  battlefield A: 4 "Mountain"
+  turn 1 A: cast "Clamorous Ironclad"
+  turn 1 A: wait
+  turn 1 A: activate "Kickoff Celebrations"
+  run_to turn 1 end
+  assert has "Clamorous Ironclad" haste
+  assert has "Grizzly Bears" haste
+}
+
+scenario "Vehicle: pay {U}, another attacker can't be blocked" {
+  battlefield A: "Passenger Ferry", "Hill Giant", "Grizzly Bears", "Island"
+  battlefield B: "Wall of Stone"
+  start turn 3 A
+  turn 3 A: activate "Passenger Ferry"
+  turn 3 A: attack "Passenger Ferry", "Hill Giant"
+  illegal turn 3 B: block "Hill Giant" with "Wall of Stone"
+  run_to turn 3 end
+}
+
+scenario "Room: a Room put onto the battlefield uncast has both doors locked" {
+  battlefield A: 3 "Plains", "Derelict Attic"
+  hand A: "Flickerwisp"
+  library A: 5 "Island"
+  turn 1 A: cast "Flickerwisp"
+  turn 1 A: trigger "Flickerwisp" targeting "Derelict Attic"
+  run_to turn 2 upkeep
+  # Returned at the end step: no door unlocked, so no unlock trigger.
+  assert life A 20
+  assert hand A count 0
+  assert battlefield A lacks "Derelict Attic"
+}

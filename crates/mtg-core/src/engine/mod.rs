@@ -212,6 +212,12 @@ impl Engine {
             }
             for perm in &ps.battlefield {
                 let id = state.new_object(perm.def, p, Zone::Battlefield);
+                // A Room set up by a half's name is that card with the
+                // half's door unlocked (CR 709.5).
+                if let Some(d) = state.pool.get(perm.def).doors.as_deref() {
+                    let root = d.root;
+                    state.objects[id].card = root;
+                }
                 let printed_loyalty = {
                     let d = state.pool.get(perm.def);
                     d.types

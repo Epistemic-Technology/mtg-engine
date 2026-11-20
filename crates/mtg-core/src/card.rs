@@ -4217,8 +4217,9 @@ impl TriggerSpec {
             } => WATCH_DISCARD,
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
-            TriggerSpec::UnlocksDoor { .. } | TriggerSpec::FullyUnlocks { .. } => WATCH_DESIG,
-            TriggerSpec::DayNight => WATCH_DESIG,
+            TriggerSpec::UnlocksDoor { .. }
+            | TriggerSpec::FullyUnlocks { .. }
+            | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
         }
     }

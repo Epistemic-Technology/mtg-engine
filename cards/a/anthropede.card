@@ -1,0 +1,8 @@
+card "Anthropede" {
+  oracle_id 452d98ae-0fa2-4cff-9e18-eecd76ddb20b
+  cost {3}{G}
+  type Creature — Insect
+  pt 3/4
+  keywords reach
+  triggered when this enters: you may discard 1 card or pay {2}; when you do, destroy target Room
+}

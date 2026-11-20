@@ -1498,7 +1498,7 @@ impl GameState {
                 let o = &self.objects[*id];
                 (o.controller == p).then_some(())?;
                 let doors = self.pool.get(o.def).doors.as_deref()?;
-                Some(doors.unlocked(o.def).iter().filter(|u| **u).count() as u32)
+                Some(u32::from(doors.unlocked(o.def)[0]) + u32::from(doors.unlocked(o.def)[1]))
             })
             .sum()
     }

@@ -8390,6 +8390,10 @@ impl P {
                 to: Affects::Target(n - 1),
             });
         }
+        // `this dies`: "If this creature would die, exile it instead."
+        if self.eat_words(&["this", "dies"]) {
+            return Ok(Replaces::Dies { to: Affects::This });
+        }
         // `creature dealt damage this way dies` (CR 608.2c).
         if self.eat_words(&["creature", "dealt", "damage", "this", "way", "dies"]) {
             return Ok(Replaces::Dies {

@@ -64,6 +64,7 @@ double-faced permanent to its other face (CR 701.27).
 | `type Legendary Creature — Goblin Shaman` | The type line: supertypes, types, then subtypes after `—` (or `-`). |
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). When it sets one of them, write the other and `*` for it: `pt */1` with `cda power ...`, `pt 2/*` with `cda toughness ...` (`*` is 0 outside the battlefield, CR 208.2a). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
+| `defense 5` | A battle's printed defense (CR 310.4): it enters with that many defense counters. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
 | `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, `undying`, `flanking`, `convoke` (CR 702.51: untapped creatures may be tapped to pay {1} or one mana of their color), and `improvise` (CR 702.126: artifacts pay {1}). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step."), `can't become untapped` (no effect or untap step untaps it, and a stun counter stays on it; granted, "Enchanted creature loses all abilities and can't become untapped."), and the blocking requirements and allowances (CR 509.1a, 509.1c) `blocks each combat if able`, `must be blocked if able`, `lure` ("All creatures able to block this creature do so."), `can block an additional creature each combat`, and `can block any number of creatures`, and `can attack as though it didn't have defender` (CR 702.3b; granted to a group, "... as though they didn't have defender"; with `can't be blocked` after it, "... and it can't be blocked") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
@@ -1569,3 +1570,67 @@ dungeons (CR 309):
 The dungeons themselves (Lost Mine of Phandelver, Dungeon of the Mad
 Mage, Tomb of Annihilation, Undercity) are data in
 `mtg_core::dungeons`, added to the built-in pool after the corpus.
+
+### Newer permanent types: battles, Rooms, Spacecraft, and Vehicles
+
+Battles (CR 310) are written like any card with `type Battle — Siege`
+and `defense 5`; a Siege is a `layout transform` card whose `face` is
+its back. It enters with defense counters, damage removes them (CR
+310.6), and at none it goes to the graveyard; a Siege's intrinsic
+trigger (no line) exiles it as its last defense counter is removed and
+offers to cast it transformed for free (CR 310.12b). Its protector is
+its controller's opponent (another battle's, its controller), so its
+controller can attack it and the opponent's creatures block for it
+(CR 310.9). "this Siege" is its self-noun; "any target" includes
+battles (CR 115.4).
+
+- Triggers: `whenever this attacks a battle`, `whenever equipped
+  creature deals combat damage to a player or battle` (the player, or
+  the battle's protector, is "that player").
+- Static condition: `attacked a battle this turn` ("it attacked a battle
+  this turn": the source).
+- Target: `target player or battle`; `target creature, planeswalker, or
+  battle` is a filter.
+- Effect: `double this power` ("double its power until end of turn",
+  CR 701.10f: +X/+0 with X its power).
+
+Rooms (CR 709.5) are `layout split` cards whose two `face`s are both
+`type Enchantment — Room`; "this Room" is the self-noun. Casting a half
+puts the Room onto the battlefield with that door unlocked; put onto the
+battlefield otherwise, both doors are locked. The engine holds a
+definition per set of unlocked doors (`CardDef::doors`), so a locked
+door's name, cost, and abilities are absent. Unlocking a locked door by
+paying its half's cost is a special action at sorcery speed (scenario
+`unlock "Door"`).
+
+- Triggers: `when you unlock this door` (on a half: as that door
+  unlocks, whether as the Room enters or later, CR 709.5h), `whenever
+  you fully unlock a Room` (CR 709.5i); eerie is `label "Eerie"
+  triggered whenever enchantment you control enters and whenever you
+  fully unlock a Room: ...`.
+- Static condition: `2 unlocked doors` ("there are two or more unlocked
+  doors among Rooms you control").
+
+Spacecraft: `station` ("Station": tap another untapped creature you
+control, put charge counters equal to its power on this permanent,
+only as a sorcery, CR 702.184) and `station 4: flying` ("4+ | Flying",
+CR 721.2: with four or more charge counters it has the keywords and,
+when the card has `pt`, is an artifact creature). "this Spacecraft" is
+the self-noun; the plural is "Spacecraft". A cost's tapped creature is
+recorded for the resolution (`ThisWay::Tapped`). Static condition:
+`attacked with Spacecraft this turn` ("you attacked with a Spacecraft
+this turn"; any filter).
+
+Vehicles (CR 702.122): `crews using toughness` ("This creature crews
+Vehicles using its toughness rather than its power."), `saddles and
+crews using toughness`, `saddles and crews plus 2` ("... saddles Mounts
+and crews Vehicles as though its power were 2 greater."): what the
+creature counts for when tapped for a crew (and, with `saddles`, a
+saddle) cost. `can't crew Vehicles` is a restriction like `can't block`
+(CR 702.122d): `static enchanted: has can't attack, can't block, can't
+crew Vehicles` prints "Enchanted creature can't attack, block, or crew
+Vehicles." In a trigger on `Vehicle you control attacks`, `that
+Vehicle` is the attacking Vehicle.
+
+`replace this dies: exile`: "If this creature would die, exile it
+instead."

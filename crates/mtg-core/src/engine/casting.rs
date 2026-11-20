@@ -1347,7 +1347,7 @@ impl GameState {
                     return None;
                 }
                 let mut n = c.power();
-                for a in c.abilities.iter() {
+                for a in &c.abilities {
                     if let crate::card::AbilityDef::CrewsAs {
                         saddles,
                         toughness,
