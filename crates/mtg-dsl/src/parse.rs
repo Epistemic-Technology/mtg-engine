@@ -51,6 +51,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         subject: None,
         votes: Vec::new(),
         returned: None,
+        revealed: false,
     };
     let mut cards = Vec::new();
     loop {
@@ -469,6 +470,10 @@ struct P {
     /// The target an earlier effect of the ability returned to its
     /// owner's hand: "that player" is then its owner.
     returned: Option<usize>,
+    /// A card revealed or looked at earlier in the ability (`reveal top
+    /// card`, `reveal until`): `it` / `that card` is that card in `if it
+    /// is`, `put it ...`.
+    revealed: bool,
 }
 
 impl P {
@@ -1091,6 +1096,7 @@ impl P {
         self.targets.clear();
         self.votes.clear();
         self.subject = None;
+        self.revealed = false;
         self.in_trigger = false;
         self.it_source = false;
         self.returned = None;
@@ -1987,6 +1993,7 @@ impl P {
             };
             self.targets.clear();
             self.subject = None;
+            self.revealed = false;
             let effects = self.effects_body()?;
             modes.push(Mode {
                 targets: std::mem::take(&mut self.targets),
@@ -3013,6 +3020,9 @@ impl P {
     /// Verbs that take the previous clause's subject when none is written
     /// ("you draw a card and lose 1 life").
     fn at_subject_verb(&self) -> bool {
+        if self.revealed && self.at_word("puts") {
+            return true;
+        }
         matches!(
             self.word_at(0).as_deref(),
             Some(
@@ -3043,6 +3053,96 @@ impl P {
                     | "reveal"
             )
         )
+    }
+
+    /// Whether the cards revealed before are named here: `it`, `that
+    /// card`, `all revealed`, `those revealed`, `the revealed`, `all other
+    /// revealed`.
+    fn at_card_words(&self) -> bool {
+        self.at_word("it")
+            || self.at_words(&["that", "card"])
+            || self.at_words(&["all", "revealed"])
+            || self.at_words(&["all", "other", "revealed"])
+            || self.at_words(&["those", "revealed"])
+            || self.at_words(&["the", "revealed"])
+    }
+
+    /// `put it into hand` (after `put`): the cards revealed before and
+    /// where they go.
+    fn put_card(&mut self, who: Option<Recipient>) -> R<Effect> {
+        use crate::ast::CardWords;
+        use mtg_core::card::CardDest;
+        let what = if self.eat_word("it") {
+            CardWords::It
+        } else if self.eat_words(&["that", "card"]) {
+            CardWords::ThatCard
+        } else if self.eat_words(&["all", "revealed"]) {
+            CardWords::AllRevealed
+        } else if self.eat_words(&["all", "other", "revealed"]) {
+            CardWords::OtherRevealed
+        } else if self.eat_words(&["those", "revealed"]) {
+            CardWords::Those
+        } else {
+            self.expect_words(&["the", "revealed"])?;
+            CardWords::TheRevealed
+        };
+        let to = if self.eat_words(&["into", "hand"]) {
+            CardDest::Hand
+        } else if self.eat_words(&["into", "graveyard"]) {
+            CardDest::Graveyard
+        } else if self.eat_words(&["onto", "battlefield"]) {
+            CardDest::Battlefield {
+                tapped: self.eat_word("tapped"),
+            }
+        } else {
+            self.expect_words(&["on", "bottom", "of", "library"])?;
+            CardDest::LibraryBottom
+        };
+        Ok(Effect::PutCard { what, to, who })
+    }
+
+    /// `if it is land card, <sentence>` / `if it isnt ...` / `if that card
+    /// is ...`: the card revealed before.
+    fn if_card(&mut self) -> R<Effect> {
+        self.pos += 1;
+        let that = !self.eat_word("it");
+        if that {
+            self.expect_words(&["that", "card"])?;
+        }
+        if !that && self.eat_words(&["shares", "creature", "type", "with", "this"]) {
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfCard {
+                filter: Filter::default(),
+                negated: false,
+                card: false,
+                that: false,
+                shares_type: true,
+                then: vec![s],
+            });
+        }
+        let negated = if self.eat_word("isnt") {
+            true
+        } else {
+            self.expect_word("is")?;
+            false
+        };
+        let filter = self.filter()?;
+        let card = self.eat_word("card");
+        self.expect(&Tok::Comma)?;
+        let saved = self.subject.take();
+        let s = self.sentence()?;
+        self.subject = saved;
+        Ok(Effect::IfCard {
+            filter,
+            negated,
+            card,
+            that,
+            shares_type: false,
+            then: vec![s],
+        })
     }
 
     /// `if target 1 was Human, ...`: "If that creature was a Human, ...",
@@ -3397,6 +3497,39 @@ impl P {
         if self.at_words(&["if", "target"]) || self.at_words(&["if", "that", "target"]) {
             return self.if_target();
         }
+        // `if you dont put it into hand, ...` after `if it is ...`.
+        if self.revealed && self.at_words(&["if", "you", "dont", "put", "it"]) {
+            use mtg_core::card::CardDest;
+            self.pos += 5;
+            let to = if self.eat_words(&["into", "hand"]) {
+                CardDest::Hand
+            } else if self.eat_words(&["into", "graveyard"]) {
+                CardDest::Graveyard
+            } else if self.eat_words(&["onto", "battlefield"]) {
+                CardDest::Battlefield { tapped: false }
+            } else {
+                self.expect_words(&["on", "bottom", "of", "library"])?;
+                CardDest::LibraryBottom
+            };
+            self.expect(&Tok::Comma)?;
+            let s = self.sentence()?;
+            return Ok(Effect::IfYouDontPut { to, then: vec![s] });
+        }
+        // `if it is land card, ...` after a card is revealed.
+        if self.revealed
+            && (self.at_words(&["if", "it"]) || self.at_words(&["if", "that", "card"]))
+            && matches!(
+                self.word_at(if self.word_at(1).as_deref() == Some("it") {
+                    2
+                } else {
+                    3
+                })
+                .as_deref(),
+                Some("is" | "isnt" | "shares")
+            )
+        {
+            return self.if_card();
+        }
         // `if you controlled target 1, ...`: "If you controlled that
         // permanent, ...", its controller as it last existed (CR 608.2h).
         if self.at_words(&["if", "you", "controlled", "target"]) {
@@ -3702,6 +3835,30 @@ impl P {
                     choice_first,
                 })
             }
+            "reveal" | "reveals" if self.at_words(&["top", "card"]) => {
+                self.pos += 2;
+                self.revealed = true;
+                Ok(Effect::RevealTop {
+                    who: Some(subject),
+                    look: false,
+                    of: false,
+                })
+            }
+            // "Then that player shuffles" (CR 701.24).
+            "shuffle" | "shuffles" if !matches!(self.peek(), Some(Tok::Word(_))) => {
+                Ok(Effect::Shuffle { who: subject })
+            }
+            "reveal" | "reveals" if self.at_word("until") => {
+                self.pos += 1;
+                self.revealed = true;
+                let filter = self.filter()?;
+                self.expect_word("card")?;
+                Ok(Effect::RevealUntil {
+                    who: Some(subject),
+                    filter,
+                })
+            }
+            "put" | "puts" if self.revealed && self.at_card_words() => self.put_card(Some(subject)),
             // "reveals a card at random from their hand".
             "reveal" | "reveals"
                 if matches!(self.peek(), Some(Tok::Num(1)))
@@ -4621,7 +4778,9 @@ impl P {
             }
             // "Choose target creature, then roll a d20.": the target
             // named before what acts on it.
-            "choose" if self.at_word("target") => Ok(Effect::ChooseTarget(self.recipient()?)),
+            "choose" if self.at_word("target") || self.at_words(&["any", "target"]) => {
+                Ok(Effect::ChooseTarget(self.recipient()?))
+            }
             // "Roll a d20." (CR 706); its results table follows on the
             // next lines (`result 1 to 9: ...`, see `effects_body`).
             "flip" => {
@@ -4692,6 +4851,57 @@ impl P {
                 Ok(Effect::Destroy { to, no_regen })
             }
             // `put 2 cards from hand on top of library`.
+            "put" if self.revealed && self.at_card_words() => self.put_card(None),
+            "reveal" if self.revealed && self.at_word("it") => {
+                self.pos += 1;
+                Ok(Effect::RevealIt)
+            }
+            "discard" if self.revealed && self.at_word("it") => {
+                self.pos += 1;
+                Ok(Effect::DiscardIt)
+            }
+            "draw"
+                if matches!(self.peek(), Some(Tok::Num(1)))
+                    && (1..5).all(|k| {
+                        self.word_at(k).as_deref() == Some(["", "card", "and", "reveal", "it"][k])
+                    }) =>
+            {
+                self.pos += 5;
+                self.revealed = true;
+                Ok(Effect::DrawReveal)
+            }
+            // "put its counters on target creature you control".
+            "put" if self.at_words(&["its", "counters", "on"]) => {
+                self.pos += 3;
+                let to = self.recipient()?;
+                Ok(Effect::MoveCounters {
+                    from: Recipient::Source,
+                    to,
+                    kind: None,
+                    count: None,
+                })
+            }
+            // "Move all counters from target creature onto another target
+            // creature" (CR 122.5).
+            "move" => {
+                let (kind, count) = if self.eat_words(&["all", "counters"]) {
+                    (None, None)
+                } else {
+                    let n = self.number()?;
+                    let k = self.counter_kind()?;
+                    (Some(k), Some(n))
+                };
+                self.expect_word("from")?;
+                let from = self.recipient()?;
+                self.expect_word("onto")?;
+                let to = self.recipient()?;
+                Ok(Effect::MoveCounters {
+                    from,
+                    to,
+                    kind,
+                    count,
+                })
+            }
             "put" if matches!(self.peek(), Some(Tok::Num(_))) && self.hand_to_library_ahead() => {
                 let count = self.num()?;
                 let bottom = self.hand_to_library_tail()?;
@@ -4889,6 +5099,17 @@ impl P {
                         _ => self.fail("`until this leaves` takes one recipient"),
                     };
                 }
+                // "Exile target card from an opponent's graveyard. If it was
+                // a creature card, that player loses 1 life.": the card's
+                // owner.
+                if let [Recipient::Target(i)] = what.as_slice()
+                    && matches!(
+                        self.targets.get(*i).map(Target::base),
+                        Some(Target::GraveyardCard { .. })
+                    )
+                {
+                    self.returned = Some(*i);
+                }
                 Ok(Effect::Exile { what })
             }
             "pay"
@@ -4982,6 +5203,36 @@ impl P {
                     top,
                     then,
                 })
+            }
+            "look" if self.at_words(&["at", "top", "card"]) => {
+                self.pos += 3;
+                self.revealed = true;
+                Ok(Effect::RevealTop {
+                    who: None,
+                    look: true,
+                    of: false,
+                })
+            }
+            "reveal" if self.at_words(&["top", "card"]) => {
+                self.pos += 2;
+                self.revealed = true;
+                let who = if self.eat_word("of") {
+                    Some(self.recipient()?)
+                } else {
+                    None
+                };
+                Ok(Effect::RevealTop {
+                    of: who.is_some(),
+                    who,
+                    look: false,
+                })
+            }
+            "reveal" if self.at_word("until") => {
+                self.pos += 1;
+                self.revealed = true;
+                let filter = self.filter()?;
+                self.expect_word("card")?;
+                Ok(Effect::RevealUntil { who: None, filter })
             }
             "look" if self.at_words(&["at", "hand", "of"]) => {
                 self.pos += 3;
@@ -5885,6 +6136,9 @@ impl P {
         if self.eat_word("andor") {
             return Ok(CountExpr::AndOr(Box::new(self.count_expr()?)));
         }
+        if self.eat_words(&["mana", "value", "of", "that", "card"]) {
+            return Ok(CountExpr::CardManaValue);
+        }
         if self.eat_words(&["mana", "value", "of"]) {
             let the_spell = self.eat_words(&["the", "spell"]);
             let that = !the_spell && self.eat_word("that");
@@ -6124,6 +6378,7 @@ impl P {
             subject: None,
             votes: self.votes.clone(),
             returned: self.returned,
+            revealed: self.revealed,
         };
         if !probe.at_recipient() {
             return false;
@@ -6637,6 +6892,7 @@ impl P {
                         subject: None,
                         votes: Vec::new(),
                         returned: None,
+                        revealed: false,
                     };
                     probe.keyword().is_some()
                 };

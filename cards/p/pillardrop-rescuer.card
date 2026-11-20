@@ -1,0 +1,8 @@
+card "Pillardrop Rescuer" {
+  oracle_id 5cf9002d-6c04-420b-8c3b-0a17f674bb09
+  cost {4}{W}
+  type Creature — Spirit Cleric
+  pt 2/2
+  keywords flying
+  triggered when this enters: return target creature card with mana value 3 or less from your graveyard to hand
+}

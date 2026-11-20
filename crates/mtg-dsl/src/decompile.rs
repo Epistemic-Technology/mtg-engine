@@ -1059,6 +1059,57 @@ impl Decompiler<'_> {
                 what: Self::recipient(*what),
             },
             CoreEffect::LookAtTop { count } => Effect::LookAtTop(*count),
+            CoreEffect::RevealTop { who, look } => Effect::RevealTop {
+                who: match r(*who) {
+                    Recipient::You => None,
+                    w => Some(w),
+                },
+                look: *look,
+                of: false,
+            },
+            CoreEffect::ShuffleLibrary { who } => Effect::Shuffle { who: r(*who) },
+            CoreEffect::MoveCounters {
+                from,
+                to,
+                kind,
+                count,
+            } => Effect::MoveCounters {
+                from: r(*from),
+                to: r(*to),
+                kind: *kind,
+                count: *count,
+            },
+            CoreEffect::RevealUntil { who, filter } => Effect::RevealUntil {
+                who: match r(*who) {
+                    Recipient::You => None,
+                    w => Some(w),
+                },
+                filter: self.filter(filter),
+            },
+            CoreEffect::IfCard {
+                filter,
+                negated,
+                shares_type,
+                then,
+            } => Effect::IfCard {
+                filter: self.filter(filter),
+                negated: *negated,
+                card: true,
+                that: false,
+                shares_type: *shares_type,
+                then: self.sentences(then),
+            },
+            CoreEffect::RevealCard => Effect::RevealIt,
+            CoreEffect::DrawReveal => Effect::DrawReveal,
+            CoreEffect::PutCard { what, to } => Effect::PutCard {
+                what: match what {
+                    mtg_core::card::CardSet::It => crate::ast::CardWords::It,
+                    mtg_core::card::CardSet::Revealed => crate::ast::CardWords::AllRevealed,
+                    mtg_core::card::CardSet::OtherRevealed => crate::ast::CardWords::OtherRevealed,
+                },
+                to: *to,
+                who: None,
+            },
             CoreEffect::ExilePlayable { count, until } => Effect::ExilePlayable {
                 count: *count,
                 until: *until,

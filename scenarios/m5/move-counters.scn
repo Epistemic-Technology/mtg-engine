@@ -1,0 +1,100 @@
+# M5: moving counters (CR 122.5): "put its counters on target creature you
+# control" from a creature that died (as it last existed, CR 608.2h),
+# "Move all counters from target creature onto another target creature",
+# and "Move a +1/+1 counter from this artifact onto target creature".
+
+scenario "put its counters: the dead creature's counters move (Spiteful Squad)" {
+  battlefield A: "Spiteful Squad" with 2 +1/+1, "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Spiteful Squad"
+  turn 2 A: trigger "Spiteful Squad" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert graveyard A contains "Spiteful Squad"
+  assert counters "Grizzly Bears" +1/+1 2
+  assert power "Grizzly Bears" 4
+}
+
+scenario "put its counters: every kind it had (Star Pupil)" {
+  battlefield A: "Star Pupil" with 1 +1/+1, "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Star Pupil"
+  turn 2 A: trigger "Star Pupil" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "put its counters: with no target, nothing (Graft Surgeon)" {
+  battlefield A: "Graft Surgeon" with 1 +1/+1
+  battlefield B: 2 "Mountain", "Hill Giant"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Graft Surgeon"
+  run_to turn 2 end
+  assert graveyard A contains "Graft Surgeon"
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "move all counters onto another creature (Fate Transfer)" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant" with 2 +1/+1
+  hand A: "Fate Transfer"
+  turn 1 A: cast "Fate Transfer" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+  assert counters "Grizzly Bears" +1/+1 2
+  assert power "Hill Giant" 3
+}
+
+scenario "move all counters: -1/-1 counters move too (Fate Transfer)" {
+  battlefield A: 2 "Island", "Grizzly Bears" with 1 -1/-1
+  battlefield B: "Hill Giant"
+  hand A: "Fate Transfer"
+  turn 1 A: cast "Fate Transfer" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" -1/-1 0
+  assert counters "Hill Giant" -1/-1 1
+  assert power "Grizzly Bears" 2
+}
+
+scenario "move all counters: the same creature can't be both targets (Fate Transfer)" {
+  battlefield A: 2 "Island", "Grizzly Bears" with 1 +1/+1
+  hand A: "Fate Transfer"
+  illegal turn 1 A: cast "Fate Transfer" targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "move a +1/+1 counter from this artifact, as a sorcery (Weapon Rack)" {
+  battlefield A: "Weapon Rack" with 3 +1/+1, "Grizzly Bears"
+  turn 1 A: activate "Weapon Rack" targeting "Grizzly Bears"
+  illegal turn 1 combat_damage A: activate "Weapon Rack" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Weapon Rack" +1/+1 2
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "if it was a creature card, that player loses 1 life (Carrion Locust)" {
+  battlefield A: 3 "Swamp"
+  hand A: "Carrion Locust"
+  graveyard B: "Grizzly Bears"
+  turn 1 A: cast "Carrion Locust"
+  turn 1 A: trigger "Carrion Locust" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "a noncreature card exiled: no life lost (Carrion Locust)" {
+  battlefield A: 3 "Swamp"
+  hand A: "Carrion Locust"
+  graveyard B: "Lightning Bolt"
+  turn 1 A: cast "Carrion Locust"
+  turn 1 A: trigger "Carrion Locust" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Lightning Bolt"
+  assert life B 20
+}

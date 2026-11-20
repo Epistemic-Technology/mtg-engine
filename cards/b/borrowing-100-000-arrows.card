@@ -1,0 +1,6 @@
+card "Borrowing 100,000 Arrows" {
+  oracle_id a3f10772-d055-419d-a535-4f094eaf437c
+  cost {2}{U}
+  type Sorcery
+  spell: draw count each tapped creature target opponent controls cards
+}

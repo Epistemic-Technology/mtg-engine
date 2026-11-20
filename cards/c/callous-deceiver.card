@@ -1,0 +1,8 @@
+card "Callous Deceiver" {
+  oracle_id e446bfa6-54b8-4dfa-98d3-023d12b7543d
+  cost {2}{U}
+  type Creature — Spirit
+  pt 1/3
+  activated {1}: look at top card
+  activated {2}, once: reveal top card; if it is land card, this gets +1/+0 and gains flying
+}

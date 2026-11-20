@@ -1,0 +1,8 @@
+card "Brutal Deceiver" {
+  oracle_id 578e0577-0ad8-4bfb-a317-9684c508770a
+  cost {2}{R}
+  type Creature — Spirit
+  pt 2/2
+  activated {1}: look at top card
+  activated {2}, once: reveal top card; if it is land card, this gets +1/+0 and gains first strike
+}

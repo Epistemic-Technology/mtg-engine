@@ -1,0 +1,6 @@
+card "Destroy the Evidence" {
+  oracle_id 79aa86f5-bee4-498c-a0cd-719c05b136b2
+  cost {4}{B}
+  type Sorcery
+  spell: destroy target land; its controller reveals until land card then puts those revealed into graveyard
+}

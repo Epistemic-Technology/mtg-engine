@@ -1,0 +1,8 @@
+card "Harsh Deceiver" {
+  oracle_id d83bf132-e67e-4af0-b236-4f7a32fa3dec
+  cost {3}{W}
+  type Creature — Spirit
+  pt 1/4
+  activated {1}: look at top card
+  activated {2}, once: reveal top card; if it is land card, untap this and this gets +1/+1
+}

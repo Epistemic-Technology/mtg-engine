@@ -1,0 +1,7 @@
+card "Illustrious Historian" {
+  oracle_id 5a131407-c217-48fc-aa15-9e3392445768
+  cost {1}{R}
+  type Creature — Human Shaman
+  pt 2/1
+  activated {5}, exile this from graveyard: create 1 tapped "3/2 red and white Spirit creature"
+}

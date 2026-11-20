@@ -557,6 +557,111 @@ impl Fmt {
             }
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
             Effect::LookAtTop(n) => format!("look at top {}", num(*n)),
+            Effect::RevealTop { who, look, of } => match (who, look, of) {
+                (None, true, _) => "look at top card".to_string(),
+                (None, false, _) => "reveal top card".to_string(),
+                (Some(w), _, true) => format!("reveal top card of {}", self.recipient(*w, t)),
+                (Some(w), _, false) => {
+                    let v = if *w == Recipient::You {
+                        "reveal"
+                    } else {
+                        "reveals"
+                    };
+                    format!("{} {v} top card", self.recipient(*w, t))
+                }
+            },
+            Effect::Shuffle { who } => format!("{} shuffles", self.recipient(*who, t)),
+            Effect::MoveCounters {
+                from,
+                to,
+                kind,
+                count,
+            } => match (kind, count) {
+                (None, None) if *from == Recipient::Source => {
+                    format!("put its counters on {}", self.recipient(*to, t))
+                }
+                (Some(k), Some(n)) => format!(
+                    "move {n} {} from {} onto {}",
+                    counter(*k, Num::N(*n)),
+                    self.recipient(*from, t),
+                    self.recipient(*to, t)
+                ),
+                _ => format!(
+                    "move all counters from {} onto {}",
+                    self.recipient(*from, t),
+                    self.recipient(*to, t)
+                ),
+            },
+            Effect::RevealUntil { who, filter: f } => match who {
+                None => format!("reveal until {} card", filter(f)),
+                Some(w) => {
+                    let v = if *w == Recipient::You {
+                        "reveal"
+                    } else {
+                        "reveals"
+                    };
+                    format!("{} {v} until {} card", self.recipient(*w, t), filter(f))
+                }
+            },
+            Effect::RevealIt => "reveal it".to_string(),
+            Effect::IfYouDontPut { to, then } => format!(
+                "if you dont put it {}, {}",
+                match to {
+                    mtg_core::card::CardDest::Hand => "into hand",
+                    mtg_core::card::CardDest::Graveyard => "into graveyard",
+                    mtg_core::card::CardDest::Battlefield { .. } => "onto battlefield",
+                    mtg_core::card::CardDest::LibraryBottom => "on bottom of library",
+                },
+                self.line(then, t)
+            ),
+            Effect::DrawReveal => "draw 1 card and reveal it".to_string(),
+            Effect::DiscardIt => "discard it".to_string(),
+            Effect::IfCard {
+                shares_type: true,
+                then,
+                ..
+            } => format!(
+                "if it shares creature type with this, {}",
+                self.line(then, t)
+            ),
+            Effect::IfCard {
+                filter: f,
+                negated,
+                card,
+                that,
+                then,
+                ..
+            } => format!(
+                "if {} {} {}{}, {}",
+                if *that { "that card" } else { "it" },
+                if *negated { "isnt" } else { "is" },
+                filter(f),
+                if *card { " card" } else { "" },
+                self.line(then, t)
+            ),
+            Effect::PutCard { what, to, who } => {
+                use crate::ast::CardWords;
+                use mtg_core::card::CardDest;
+                let w = match what {
+                    CardWords::It => "it",
+                    CardWords::ThatCard => "that card",
+                    CardWords::AllRevealed => "all revealed",
+                    CardWords::Those => "those revealed",
+                    CardWords::TheRevealed => "the revealed",
+                    CardWords::OtherRevealed => "all other revealed",
+                };
+                let d = match to {
+                    CardDest::Hand => "into hand",
+                    CardDest::Graveyard => "into graveyard",
+                    CardDest::Battlefield { tapped: false } => "onto battlefield",
+                    CardDest::Battlefield { tapped: true } => "onto battlefield tapped",
+                    CardDest::LibraryBottom => "on bottom of library",
+                };
+                match who {
+                    None => format!("put {w} {d}"),
+                    Some(r) => format!("{} puts {w} {d}", self.recipient(*r, t)),
+                }
+            }
             Effect::ExilePlayable {
                 count,
                 until,
@@ -1874,6 +1979,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::SpellsCastThisTurn { other: false } => "spells cast this turn".to_string(),
         CountExpr::SpellsCastThisTurn { other: true } => "other spells cast this turn".to_string(),
         CountExpr::SourceToughness => "toughness".to_string(),
+        CountExpr::CardManaValue => "mana value of that card".to_string(),
         CountExpr::TargetManaValue { n, that, the_spell } => format!(
             "mana value of {}target {}",
             if *the_spell {

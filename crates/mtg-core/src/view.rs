@@ -325,7 +325,9 @@ impl GameState {
     /// viewer knows (design §4.8): the opponent's hand is redrawn from
     /// their hand and library together, except the cards of it the viewer
     /// has seen revealed (CR 701.20), which stay; every library is
-    /// shuffled, and the random number generator is reseeded.
+    /// shuffled, except the cards in it the viewer has seen there
+    /// (revealed or looked at on top, scried), which keep their places;
+    /// and the random number generator is reseeded.
     /// Object identities are kept; only zones and orders change. Valid at a
     /// point where the viewer is to act.
     pub fn determinize(&mut self, viewer: PlayerId, seed: u64) {
@@ -334,13 +336,18 @@ impl GameState {
         let mut rng = rand_chacha::ChaCha8Rng::seed_from_u64(seed);
         for i in 0..self.num_players() {
             let p = PlayerId(u8::try_from(i).unwrap_or(0));
-            if p == viewer {
-                self.players[i].library.shuffle(&mut rng);
-                continue;
-            }
-            // Seen cards keep their places; the rest of the hand is
-            // redrawn into the other slots.
-            let hand = self.players[i].hand.clone();
+            let library = self.players[i].library.clone();
+            let lib_known: Vec<bool> = library
+                .iter()
+                .map(|id| Self::seen_by(&self.objects[*id], viewer))
+                .collect();
+            // Seen cards keep their places; the rest of the hand (an
+            // opponent's) and library are redrawn into the other slots.
+            let hand = if p == viewer {
+                Vec::new()
+            } else {
+                self.players[i].hand.clone()
+            };
             let known: Vec<bool> = hand
                 .iter()
                 .map(|id| Self::seen_by(&self.objects[*id], viewer))
@@ -351,26 +358,43 @@ impl GameState {
                 .filter(|(_, s)| !**s)
                 .map(|(id, _)| *id)
                 .collect();
-            let hidden = unknown.len();
-            unknown.extend(self.players[i].library.iter().copied());
+            unknown.extend(
+                library
+                    .iter()
+                    .zip(&lib_known)
+                    .filter(|(_, s)| !**s)
+                    .map(|(id, _)| *id),
+            );
             unknown.shuffle(&mut rng);
-            let library = unknown.split_off(hidden);
             let mut drawn = unknown.into_iter();
             let hand: Vec<ObjId> = hand
                 .iter()
                 .zip(&known)
                 .map(|(id, s)| if *s { *id } else { drawn.next().unwrap_or(*id) })
                 .collect();
-            for id in &hand {
+            let library: Vec<ObjId> = library
+                .iter()
+                .zip(&lib_known)
+                .map(|(id, s)| if *s { *id } else { drawn.next().unwrap_or(*id) })
+                .collect();
+            debug_assert!(drawn.next().is_none());
+            for (id, s) in hand.iter().zip(&known) {
                 self.objects[*id].zone = Zone::Hand;
+                if !*s {
+                    self.objects[*id].revealed = 0;
+                }
             }
-            for id in &library {
+            for (id, s) in library.iter().zip(&lib_known) {
                 self.objects[*id].zone = Zone::Library;
-                // A card that was revealed in the hand and is now
-                // resampled into the library is no longer known there.
-                self.objects[*id].revealed = 0;
+                // A card resampled into a slot nobody is known to have
+                // seen is not known there.
+                if !*s {
+                    self.objects[*id].revealed = 0;
+                }
             }
-            self.players[i].hand = hand;
+            if p != viewer {
+                self.players[i].hand = hand;
+            }
             self.players[i].library = library;
         }
         // The viewer can't know what later shuffles, die rolls, or random
@@ -474,5 +498,46 @@ mod tests {
             moved |= h[0] != hand[0];
         }
         assert!(moved, "unrevealed cards are resampled");
+    }
+
+    /// A card revealed on top of a library ("Reveal the top card of your
+    /// library", CR 701.20) keeps its place when a search resamples the
+    /// library, the viewer's own or the opponent's; one only its owner
+    /// looked at is resampled for the other player.
+    #[test]
+    fn determinize_keeps_revealed_library_cards() {
+        let pool = Arc::new(test_pool());
+        let forest = pool.lookup("Forest").unwrap();
+        let island = pool.lookup("Island").unwrap();
+        let mut deck = vec![forest; 10];
+        deck.extend(vec![island; 10]);
+        let cfg = GameConfig {
+            decks: vec![deck.clone(), deck],
+            starting_life: 20,
+            seed: 3,
+            logging: false,
+        };
+        let e = Engine::new(pool, &cfg);
+        let mut real = e.state().clone();
+        let theirs = real.player(PlayerId(1)).library.clone();
+        let mine = real.player(PlayerId(0)).library.clone();
+        let top = theirs.len() - 1;
+        real.objects[theirs[top]].revealed = u8::MAX;
+        real.objects[mine[mine.len() - 1]].revealed = 1;
+        // Looked at by its owner only: unknown to player 0.
+        real.objects[theirs[top - 1]].revealed = 1 << 1;
+        let mut moved = false;
+        for seed in 0..20 {
+            let mut s = real.clone();
+            s.determinize(PlayerId(0), seed);
+            let l = &s.player(PlayerId(1)).library;
+            assert_eq!(l.len(), theirs.len());
+            assert_eq!(l[top], theirs[top], "the revealed card stays on top");
+            assert_eq!(s.objects[l[top]].zone, Zone::Library);
+            let m = &s.player(PlayerId(0)).library;
+            assert_eq!(m[m.len() - 1], mine[mine.len() - 1]);
+            moved |= l[top - 1] != theirs[top - 1];
+        }
+        assert!(moved, "a card only its owner saw is resampled");
     }
 }

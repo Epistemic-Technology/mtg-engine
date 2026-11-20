@@ -1,0 +1,8 @@
+card "Star Pupil" {
+  oracle_id 37fd3a9d-74fe-4180-805a-b865e7228a77
+  cost {W}
+  type Creature — Human Wizard
+  pt 0/0
+  enters with 1 +1/+1 counter
+  triggered when this dies: put its counters on target creature you control
+}

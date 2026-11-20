@@ -1,0 +1,7 @@
+card "Fa'adiyah Seer" {
+  oracle_id 8ba2f559-f9bd-48ef-9fef-6dffe768f4ed
+  cost {1}{G}
+  type Creature — Human Shaman
+  pt 1/1
+  activated {T}: draw 1 card and reveal it; if it isnt land card, discard it
+}

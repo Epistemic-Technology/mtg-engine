@@ -1,0 +1,8 @@
+card "Carrion Locust" {
+  oracle_id 04e5ecda-9646-4bc3-addf-cca471553fbe
+  cost {2}{B}
+  type Creature — Insect Horror
+  pt 2/1
+  keywords flying
+  triggered when this enters: exile target card from an opponent's graveyard; if target 1 was creature, that player loses 1 life
+}

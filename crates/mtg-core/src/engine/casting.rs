@@ -3,9 +3,9 @@
 use smallvec::SmallVec;
 
 use crate::card::{
-    AbilityDef, AbilityId, ActivatedAbility, ActivatedKeyword, Affects, ChoiceKind, Cost,
-    CounterKind, Effect, EffectCond, Keyword, KeywordSet, Layout, Modification, PtValue, Recipient,
-    Replacement, Replaces, SacCost, SearchTo, Subtype, TargetSpec,
+    AbilityDef, AbilityId, ActivatedAbility, ActivatedKeyword, Affects, CardDest, CardSet,
+    ChoiceKind, Cost, CounterKind, Effect, EffectCond, Keyword, KeywordSet, Layout, Modification,
+    PtValue, Recipient, Replacement, Replaces, SacCost, SearchTo, Subtype, TargetSpec,
 };
 use crate::decision::{Choice, DecisionKind};
 use crate::event::Event;
@@ -436,6 +436,17 @@ impl GameState {
             CountExpr::BlockingIt { beyond } => {
                 let n = u32::try_from(self.blocking_it(ctx).len()).unwrap_or(u32::MAX);
                 return n.saturating_sub(*beyond);
+            }
+            // "that card's mana value": the card revealed this way, as it
+            // last existed once it has moved (CR 608.2h).
+            CountExpr::CardManaValue => {
+                let def = ctx.created.and_then(|id| {
+                    self.objects
+                        .get(id)
+                        .map(|o| o.def)
+                        .or_else(|| self.lki.get(&id).map(|l| l.object.def))
+                });
+                return def.map_or(0, |d| self.pool.get(d).mana_cost.mana_value());
             }
             CountExpr::TargetManaValue(n) => {
                 let Some(Target::Object(id)) = ctx.targets.get(*n) else {
@@ -1457,6 +1468,7 @@ impl GameState {
                 trigger_player: None,
                 trigger_amount: 0,
                 created: None,
+                revealed: Vec::new(),
                 x: 0,
                 did: true,
                 chosen: Chosen::None,
@@ -2472,6 +2484,7 @@ impl GameState {
                     trigger_player: None,
                     trigger_amount: 0,
                     created: None,
+                    revealed: Vec::new(),
                     x: 0,
                     did: true,
                     chosen: Chosen::None,
@@ -2688,6 +2701,7 @@ impl GameState {
             trigger_player: o.ability.and_then(|a| a.trigger_player),
             trigger_amount: o.ability.map_or(0, |a| a.trigger_amount),
             created: None,
+            revealed: Vec::new(),
             x: self.x_of(spell),
             did: true,
             chosen: Chosen::None,
@@ -2902,6 +2916,17 @@ impl GameState {
                 }
                 _ => true,
             },
+            // "Move all counters from target creature onto another target
+            // creature": the other target is a different creature too.
+            TargetSpec::OtherCreature | TargetSpec::OtherPermanent => {
+                let base = if *s == TargetSpec::OtherCreature {
+                    TargetSpec::Creature
+                } else {
+                    TargetSpec::Permanent
+                };
+                self.legal_targets(p, *s, source).len()
+                    >= specs.iter().filter(|x| **x == *s || **x == base).count()
+            }
             _ => {
                 self.legal_targets(p, *s, source).len() >= specs.iter().filter(|x| *x == s).count()
             }
@@ -3853,6 +3878,7 @@ impl GameState {
             trigger_player: None,
             trigger_amount: 0,
             created: None,
+            revealed: Vec::new(),
             x: 0,
             did: true,
             chosen: Chosen::None,
@@ -4173,6 +4199,10 @@ impl GameState {
                 count: u32::try_from(n).unwrap_or(0),
             }
         };
+        // The scrying player knows these cards where they end up.
+        for id in &top {
+            self.objects[*id].revealed |= 1 << p.index().min(7);
+        }
         let k = self.choose_mid(p, kind, options.clone());
         let down = match &options[k] {
             Choice::ScryBottom(ids) | Choice::SurveilGraveyard(ids) => ids.clone(),
@@ -4294,6 +4324,7 @@ impl GameState {
                 trigger_player: None,
                 trigger_amount: 0,
                 created: None,
+                revealed: Vec::new(),
                 x: self.x_of(spell),
                 did: true,
                 chosen: Chosen::None,
@@ -4381,6 +4412,7 @@ impl GameState {
                 trigger_player: None,
                 trigger_amount: 0,
                 created: None,
+                revealed: Vec::new(),
                 x: 0,
                 did: true,
                 chosen: Chosen::None,
@@ -7230,9 +7262,141 @@ impl GameState {
                     ctx.created = Some(id);
                 }
             }
-            // Modes resolve through the chosen mode (`effects_of`); looking
-            // at the top cards keeps their order.
-            Effect::Modes(_) | Effect::LookAtTop { .. } => {}
+            // Modes resolve through the chosen mode (`effects_of`).
+            Effect::Modes(_) => {}
+            // Looking at the top cards keeps their order; the controller
+            // knows them where they are.
+            Effect::LookAtTop { count } => {
+                let n = self.eval_num(*count, ctx) as usize;
+                let bit = 1 << ctx.controller.index().min(7);
+                let lib = self.player(ctx.controller).library.clone();
+                for id in lib.iter().rev().take(n) {
+                    self.objects[*id].revealed |= bit;
+                }
+            }
+            Effect::RevealTop { who, look } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let top = self.player(p).library.last().copied();
+                    ctx.created = top;
+                    ctx.revealed.clear();
+                    let Some(top) = top else {
+                        continue;
+                    };
+                    ctx.revealed.push(top);
+                    if *look {
+                        self.objects[top].revealed |= 1 << ctx.controller.index().min(7);
+                    } else {
+                        self.reveal_in_library(top);
+                    }
+                }
+            }
+            Effect::RevealUntil { who, filter } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    ctx.created = None;
+                    ctx.revealed.clear();
+                    // CR 701.20: from the top down; the cards stay in the
+                    // library until an instruction moves them.
+                    let lib = self.player(p).library.clone();
+                    for id in lib.iter().rev() {
+                        self.reveal_in_library(*id);
+                        ctx.revealed.push(*id);
+                        let o = &self.objects[*id];
+                        let c = self.base_characteristics(o);
+                        if filter.matches(
+                            *id,
+                            o.controller,
+                            &c,
+                            Some(ctx.source),
+                            Some(ctx.controller),
+                        ) {
+                            ctx.created = Some(*id);
+                            break;
+                        }
+                    }
+                }
+            }
+            Effect::IfCard {
+                filter,
+                negated,
+                shares_type,
+                then,
+            } => {
+                let source = self.characteristics_or_lki(ctx.source);
+                let holds = ctx
+                    .created
+                    .filter(|id| self.objects.contains_key(*id))
+                    .is_some_and(|id| {
+                        let o = &self.objects[id];
+                        let c = self
+                            .characteristics(id)
+                            .unwrap_or_else(|| self.base_characteristics(o));
+                        let shares = !*shares_type
+                            || source.as_ref().is_some_and(|s| {
+                                c.subtypes
+                                    .iter()
+                                    .any(|t| t.is_creature_type() && s.has_subtype(*t))
+                                    || s.subtypes
+                                        .iter()
+                                        .any(|t| t.is_creature_type() && c.has_subtype(*t))
+                            });
+                        (shares
+                            && filter.matches(
+                                id,
+                                o.controller,
+                                &c,
+                                Some(ctx.source),
+                                Some(ctx.controller),
+                            ))
+                            != *negated
+                    });
+                // For an "Otherwise" after it; optional actions inside set
+                // it again.
+                ctx.did = holds;
+                if holds {
+                    for e in then {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::PutCard { what, to } => self.put_card(ctx, *what, *to),
+            Effect::RevealCard => {
+                if let Some(id) = ctx.created.filter(|id| self.objects.contains_key(*id)) {
+                    if self.objects[id].zone == Zone::Hand {
+                        self.reveal_in_hand(id);
+                    } else {
+                        self.reveal_in_library(id);
+                    }
+                }
+            }
+            Effect::DrawReveal => {
+                let p = ctx.controller;
+                let before = self.player(p).hand.len();
+                self.draw(p);
+                let hand = &self.player(p).hand;
+                ctx.created = (hand.len() > before).then(|| hand[hand.len() - 1]);
+                if let Some(id) = ctx.created {
+                    self.reveal_in_hand(id);
+                }
+            }
+            Effect::MoveCounters {
+                from,
+                to,
+                kind,
+                count,
+            } => self.move_counters(ctx, *from, *to, *kind, *count),
+            Effect::ShuffleLibrary { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        self.shuffle_library(p);
+                    }
+                }
+            }
             Effect::CastExiled(kind) => {
                 let Some(card) = self
                     .current_object(ctx.source)
@@ -7652,6 +7816,8 @@ impl GameState {
             return;
         }
         self.add_counters(id, CounterKind::PlusOnePlusOne, 1);
+        // A nonland card left on top stays known there (CR 701.20).
+        self.objects[top].revealed = u8::MAX;
         let def = self.objects[top].def;
         let k = self.choose_mid(
             p,
@@ -7667,6 +7833,165 @@ impl GameState {
             self.move_object(top, Zone::Graveyard, false);
         }
         let _ = ctx;
+    }
+
+    /// `Effect::MoveCounters` (CR 122.5).
+    fn move_counters(
+        &mut self,
+        ctx: &EffectCtx,
+        from: Recipient,
+        to: Recipient,
+        kind: Option<CounterKind>,
+        count: Option<u32>,
+    ) {
+        let on_battlefield = |st: &GameState, t: Target| match t {
+            Target::Object(id) => st
+                .objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
+                .then_some(id),
+            Target::Player(_) => None,
+        };
+        let dest: Vec<ObjId> = self
+            .recipients(ctx, to)
+            .into_iter()
+            .filter_map(|t| on_battlefield(self, t))
+            .collect();
+        let src = self
+            .recipients(ctx, from)
+            .into_iter()
+            .find_map(|t| on_battlefield(self, t));
+        let counters = match src {
+            Some(id) => self.objects[id].counters.clone(),
+            // "put its counters on ...": as the source last existed.
+            None if from == Recipient::Source => match self.lki.get(&ctx.source) {
+                Some(l) => l.object.counters.clone(),
+                None => return,
+            },
+            None => return,
+        };
+        if dest.is_empty() {
+            return;
+        }
+        let mut left = count.unwrap_or(u32::MAX);
+        for (k, n) in counters {
+            if kind.is_some_and(|x| x != k) {
+                continue;
+            }
+            let m = n.min(left);
+            if m == 0 {
+                continue;
+            }
+            left -= m;
+            if let Some(id) = src {
+                self.remove_counters(id, k, m);
+            }
+            for d in &dest {
+                self.add_counters(*d, k, m);
+            }
+        }
+    }
+
+    /// Reveal a card where it is in a library (CR 701.20): every player
+    /// knows it until it moves or the library is shuffled
+    /// (`GameObject::revealed`, kept by `determinize`).
+    pub(super) fn reveal_in_library(&mut self, id: ObjId) {
+        let Some(o) = self.objects.get_mut(id) else {
+            return;
+        };
+        o.revealed = u8::MAX;
+        let def = o.def;
+        self.emit(Event::Revealed { obj: id, def });
+    }
+
+    /// `Effect::PutCard`: move the resolution's card, or its revealed
+    /// cards still in their library, to `to`.
+    fn put_card(&mut self, ctx: &mut EffectCtx, what: CardSet, to: CardDest) {
+        let cards: Vec<ObjId> = match what {
+            CardSet::It => ctx.created.into_iter().collect(),
+            CardSet::Revealed => ctx.revealed.clone(),
+            CardSet::OtherRevealed => ctx
+                .revealed
+                .iter()
+                .copied()
+                .filter(|id| Some(*id) != ctx.created)
+                .collect(),
+        };
+        let mut last = None;
+        for id in cards {
+            let Some(o) = self.objects.get(id) else {
+                continue;
+            };
+            // "it" may be a card the previous effect moved elsewhere
+            // ("Draw a card and reveal it"); revealed cards move only from
+            // their library.
+            if what != CardSet::It && o.zone != Zone::Library {
+                continue;
+            }
+            let (from, owner, seen) = (o.zone, o.owner, o.revealed);
+            let new = match to {
+                CardDest::Hand => {
+                    if from == Zone::Hand {
+                        continue;
+                    }
+                    let new = self.move_object(id, Zone::Hand, false);
+                    // What players saw of it they still know in the hand.
+                    if let Some(o) = self.objects.get_mut(new)
+                        && o.zone == Zone::Hand
+                    {
+                        o.revealed = seen;
+                    }
+                    new
+                }
+                CardDest::Graveyard => {
+                    if from == Zone::Graveyard {
+                        continue;
+                    }
+                    if from == Zone::Hand {
+                        // "If it isn't a land card, discard it" (CR 701.9).
+                        self.discard_card(owner, id);
+                        self.current_object(id).unwrap_or(id)
+                    } else {
+                        self.move_object(id, Zone::Graveyard, false)
+                    }
+                }
+                CardDest::Battlefield { tapped } => {
+                    if from == Zone::Battlefield {
+                        continue;
+                    }
+                    self.put_onto_battlefield_with(
+                        id,
+                        ctx.controller,
+                        super::replace::Enter {
+                            tapped,
+                            counters: None,
+                        },
+                    )
+                }
+                CardDest::LibraryBottom => {
+                    if from != Zone::Library {
+                        continue;
+                    }
+                    let lib = &mut self.player_mut(owner).library;
+                    lib.retain(|x| *x != id);
+                    // Each later card goes under the ones before it.
+                    lib.insert(0, id);
+                    self.bump();
+                    id
+                }
+            };
+            last = Some(new);
+        }
+        if what == CardSet::It {
+            ctx.created = last;
+        }
+        if to != CardDest::LibraryBottom {
+            ctx.revealed.retain(|id| {
+                self.objects
+                    .get(*id)
+                    .is_some_and(|o| o.zone == Zone::Library)
+            });
+        }
     }
 
     /// "If that creature was a Human" / "If it's a Human": whether the
@@ -7753,12 +8078,14 @@ impl GameState {
                         trigger_player: ctx.trigger_player,
                         trigger_amount: ctx.trigger_amount,
                         created: ctx.created,
+                        revealed: std::mem::take(&mut ctx.revealed),
                         x: ctx.x,
                         did: ctx.did,
                         chosen: ctx.chosen,
                     };
                     self.apply_effect(&mut second, effect);
                     ctx.created = second.created;
+                    ctx.revealed = second.revealed;
                     ctx.did = second.did;
                     ctx.chosen = second.chosen;
                 }
@@ -8018,6 +8345,10 @@ pub(super) struct EffectCtx {
     /// moved (a token, an exiled card), for "sacrifice it" clauses that
     /// follow (`Recipient::CreatedObject`).
     pub created: Option<ObjId>,
+    /// The cards revealed this way, in the order revealed, still in their
+    /// library ("Put all cards revealed this way into your hand",
+    /// `Effect::RevealUntil`).
+    pub revealed: Vec<ObjId>,
     /// X of the resolving spell (CR 107.3); 0 for abilities.
     pub x: u32,
     /// Whether the last optional action ("you may pay {1}") happened, for

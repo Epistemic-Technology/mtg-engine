@@ -1,0 +1,6 @@
+card "Erratic Mutation" {
+  oracle_id 26e01261-2cf1-4746-b066-c2e65e7882d7
+  cost {2}{U}
+  type Instant
+  spell: choose target creature; reveal until nonland card; that target 1 gets +1/-1 count where mana value of that card; put all revealed on bottom of library
+}

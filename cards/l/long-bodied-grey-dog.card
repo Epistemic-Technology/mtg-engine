@@ -1,0 +1,8 @@
+card "Long-Bodied Grey Dog" {
+  oracle_id 6f83da19-fd89-44ec-88f3-0c3fddfbd1b2
+  cost {3}
+  type Creature — Dog
+  pt 2/2
+  keywords flash, reach
+  triggered when this enters: create 1 tapped "Treasure"
+}

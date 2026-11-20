@@ -1,0 +1,7 @@
+card "Ink Dissolver" {
+  oracle_id a138ca33-6ea4-468e-9cfb-c908ee62c516
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 2/1
+  label "Kinship" triggered at beginning of your upkeep: you may look at top card; if it shares creature type with this, you may reveal it; if you do, each opponent mills 3 cards
+}

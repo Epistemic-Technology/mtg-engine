@@ -1,0 +1,7 @@
+card "Tethmos High Priest" {
+  oracle_id f922150c-8f79-412b-a611-59064e3e3cea
+  cost {2}{W}
+  type Creature — Cat Cleric
+  pt 2/3
+  label "Heroic" triggered whenever you cast a spell that targets this: return target creature card with mana value 2 or less from your graveyard to battlefield
+}

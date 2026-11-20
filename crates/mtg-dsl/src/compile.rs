@@ -936,6 +936,7 @@ impl Compiler<'_> {
             A::SpellsCastThisTurn { other } => C::SpellsCastThisTurn { other: *other },
             A::SourceToughness => C::SourceToughness,
             A::TargetManaValue { n, .. } => C::TargetManaValue(*n),
+            A::CardManaValue => C::CardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
             A::SpentColors => C::SpentColors,
             A::SpentTreasure => C::SpentTreasure,
@@ -1695,7 +1696,11 @@ impl Compiler<'_> {
             Effect::Otherwise(inner) => {
                 if !matches!(
                     out.last(),
-                    Some(CoreEffect::IfCondition(..) | CoreEffect::Clash { .. })
+                    Some(
+                        CoreEffect::IfCondition(..)
+                            | CoreEffect::Clash { .. }
+                            | CoreEffect::IfCard { .. }
+                    )
                 ) {
                     return self.err("`otherwise` needs a conditional sentence before it");
                 }
@@ -1804,6 +1809,68 @@ impl Compiler<'_> {
             Effect::CumulativeUpkeep(c) => out.push(CoreEffect::CumulativeUpkeep(c.clone())),
             Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
             Effect::LookAtTop(n) => out.push(CoreEffect::LookAtTop { count: *n }),
+            Effect::RevealTop { who, look, .. } => out.push(CoreEffect::RevealTop {
+                who: r(who.unwrap_or(Recipient::You)),
+                look: *look,
+            }),
+            Effect::Shuffle { who } => out.push(CoreEffect::ShuffleLibrary { who: r(*who) }),
+            Effect::MoveCounters {
+                from,
+                to,
+                kind,
+                count,
+            } => out.push(CoreEffect::MoveCounters {
+                from: r(*from),
+                to: r(*to),
+                kind: *kind,
+                count: *count,
+            }),
+            Effect::RevealUntil { who, filter } => out.push(CoreEffect::RevealUntil {
+                who: r(who.unwrap_or(Recipient::You)),
+                filter: self.filter(filter),
+            }),
+            Effect::IfCard {
+                filter,
+                negated,
+                shares_type,
+                then,
+                ..
+            } => {
+                let then = self.sentences(then)?;
+                out.push(CoreEffect::IfCard {
+                    filter: self.filter(filter),
+                    negated: *negated,
+                    shares_type: *shares_type,
+                    then,
+                });
+            }
+            Effect::RevealIt => out.push(CoreEffect::RevealCard),
+            Effect::IfYouDontPut { then, .. } => {
+                if !matches!(out.last(), Some(CoreEffect::IfCard { .. })) {
+                    return self.err("`if you dont put it` needs `if it is ...` before it");
+                }
+                let effects = self.sentences(then)?;
+                out.push(CoreEffect::Otherwise(effects));
+            }
+            Effect::DrawReveal => out.push(CoreEffect::DrawReveal),
+            Effect::DiscardIt => out.push(CoreEffect::PutCard {
+                what: mtg_core::card::CardSet::It,
+                to: mtg_core::card::CardDest::Graveyard,
+            }),
+            Effect::PutCard { what, to, .. } => {
+                use crate::ast::CardWords;
+                use mtg_core::card::CardSet;
+                out.push(CoreEffect::PutCard {
+                    what: match what {
+                        CardWords::It | CardWords::ThatCard => CardSet::It,
+                        CardWords::AllRevealed | CardWords::Those | CardWords::TheRevealed => {
+                            CardSet::Revealed
+                        }
+                        CardWords::OtherRevealed => CardSet::OtherRevealed,
+                    },
+                    to: *to,
+                });
+            }
             Effect::ExilePlayable { count, until, .. } => out.push(CoreEffect::ExilePlayable {
                 count: *count,
                 until: *until,

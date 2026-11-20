@@ -34,6 +34,23 @@ pub enum TargetTense {
     Had,
 }
 
+/// How `Effect::PutCard` names the cards it moves.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum CardWords {
+    /// `it`: "it".
+    It,
+    /// `that card`: "that card".
+    ThatCard,
+    /// `all revealed`: "all cards revealed this way".
+    AllRevealed,
+    /// `those revealed`: "those cards".
+    Those,
+    /// `the revealed`: "the revealed cards".
+    TheRevealed,
+    /// `all other revealed`: "all other cards revealed this way".
+    OtherRevealed,
+}
+
 /// How a library placement is worded (`Effect::PutInLibrary`).
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum LibraryWording {
@@ -267,6 +284,9 @@ pub enum CountExpr {
         that: bool,
         the_spell: bool,
     },
+    /// `mana value of that card`: "that card's mana value", the card
+    /// revealed before.
+    CardManaValue,
     /// `colors among permanents`: "colors among permanents you control".
     ColorsAmongPermanents,
     /// `colors spent` (converge): "colors of mana spent to cast this
@@ -2612,6 +2632,75 @@ pub enum Effect {
     /// `look at top 3`: "look at the top three cards of your library, then
     /// put them back in any order".
     LookAtTop(Num),
+    /// `reveal top card` ("reveal the top card of your library"), `look at
+    /// top card` ("look at the top card of your library"), `<who> reveals
+    /// top card` ("target player reveals the top card of their library"),
+    /// `reveal top card of <who>` ("Reveal the top card of target
+    /// opponent's library"): the card is `it` / `that card` after it.
+    RevealTop {
+        who: Option<Recipient>,
+        look: bool,
+        of: bool,
+    },
+    /// `reveal until nonland card` ("reveal cards from the top of your
+    /// library until you reveal a nonland card"), `<who> reveals until
+    /// land card` ("... until they reveal a land card"): the matching card
+    /// is `that card` after it, the revealed cards `all revealed`.
+    RevealUntil {
+        who: Option<Recipient>,
+        filter: Filter,
+    },
+    /// `put its counters on <what>` ("put its counters on target creature
+    /// you control": the source's, as it last existed), `move all counters
+    /// from <what> onto <what>`, `move 1 +1/+1 counter from this onto
+    /// <what>` (CR 122.5).
+    MoveCounters {
+        from: Recipient,
+        to: Recipient,
+        kind: Option<CounterKind>,
+        count: Option<u32>,
+    },
+    /// `<who> shuffles` ("Then that player shuffles", CR 701.24).
+    Shuffle {
+        who: Recipient,
+    },
+    /// `if it is land card, <sentence>` ("If it's a land card, ..."), `if
+    /// it isnt land card, ...` ("If it isn't a land card"), `if that card
+    /// is Goblin card, ...` ("If that card is a Goblin card"), after a
+    /// card is revealed or looked at; `card` is whether "card" is written
+    /// ("If it's a land, ...").
+    IfCard {
+        filter: Filter,
+        negated: bool,
+        card: bool,
+        that: bool,
+        /// `if it shares creature type with this, ...`: "If it shares a
+        /// creature type with this creature, ..." (kinship).
+        shares_type: bool,
+        then: Vec<Sentence>,
+    },
+    /// `if you dont put it into hand, <sentence>`: "If you don't put the
+    /// card into your hand, ..." after `if it is ...` (an "otherwise").
+    IfYouDontPut {
+        to: mtg_core::card::CardDest,
+        then: Vec<Sentence>,
+    },
+    /// `reveal it`: "reveal it", the card looked at before.
+    RevealIt,
+    /// `draw 1 card and reveal it`: "Draw a card and reveal it." (it is
+    /// `it` after).
+    DrawReveal,
+    /// `discard it`: "discard it", the card drawn and revealed before.
+    DiscardIt,
+    /// `put it into hand`, `put that card onto battlefield tapped`, `put
+    /// all revealed into hand`, `<who> puts those revealed into
+    /// graveyard`, `put the revealed on bottom of library`: the card or
+    /// cards revealed or looked at before.
+    PutCard {
+        what: CardWords,
+        to: mtg_core::card::CardDest,
+        who: Option<Recipient>,
+    },
     /// `impulse 2 next turn first`: "Exile the top two cards of your
     /// library. Until the end of your next turn, you may play those
     /// cards." `impulse 1 this turn`: "... You may play that card this

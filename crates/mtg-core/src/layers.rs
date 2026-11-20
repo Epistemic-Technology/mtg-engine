@@ -950,6 +950,7 @@ fn per_count(
         | CountExpr::Votes(_)
         | CountExpr::BlockingIt { .. }
         | CountExpr::TargetManaValue(_)
+        | CountExpr::CardManaValue
         | CountExpr::GreatestPower(_)
         | CountExpr::DifferentlyNamed(_)
         | CountExpr::Party(_)

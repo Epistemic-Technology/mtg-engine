@@ -1,0 +1,7 @@
+card "Mudbutton Clanger" {
+  oracle_id b57e13ac-12fc-4b6a-9ca4-3ffb60c6b6ad
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  label "Kinship" triggered at beginning of your upkeep: you may look at top card; if it shares creature type with this, you may reveal it; if you do, this gets +1/+1
+}

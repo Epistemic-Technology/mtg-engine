@@ -1,0 +1,6 @@
+card "Essence Flux" {
+  oracle_id 64824ae5-efab-4b55-9d3c-b9c690bad857
+  cost {U}
+  type Instant
+  spell: exile target creature you control then return that card to battlefield; if target 1 is Spirit, put 1 +1/+1 counter on it
+}

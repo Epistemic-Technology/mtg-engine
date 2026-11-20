@@ -751,6 +751,10 @@ impl GameState {
     pub(super) fn shuffle_library(&mut self, p: PlayerId) {
         let mut lib = std::mem::take(&mut self.player_mut(p).library);
         lib.shuffle(&mut self.rng);
+        // Nobody knows where a card is in a shuffled library (CR 701.24).
+        for id in &lib {
+            self.objects[*id].revealed = 0;
+        }
         self.player_mut(p).library = lib;
         self.bump();
     }

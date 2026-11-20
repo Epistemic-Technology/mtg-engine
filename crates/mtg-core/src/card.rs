@@ -1598,6 +1598,10 @@ pub enum CountExpr {
     /// The `n`th target's mana value ("where X is its mana value"), last
     /// known information once it has left (CR 608.2h).
     TargetManaValue(usize),
+    /// The mana value of the resolution's card ("that card's mana value":
+    /// a card revealed this way, `Effect::RevealTop`), last known
+    /// information once it has moved; 0 with none.
+    CardManaValue,
     /// The greatest power among battlefield permanents matching the
     /// filter ("the greatest power among creatures you control"); 0 with
     /// none.
@@ -1707,6 +1711,33 @@ pub enum CounteredTo {
     /// "put it on top of its owner's library instead of into that
     /// player's graveyard".
     LibraryTop,
+}
+
+/// Which cards an `Effect::PutCard` moves.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum CardSet {
+    /// The resolution's card ("it", "that card").
+    It,
+    /// Every card revealed this way ("all cards revealed this way").
+    Revealed,
+    /// The revealed cards but the resolution's card ("all other cards
+    /// revealed this way").
+    OtherRevealed,
+}
+
+/// Where an `Effect::PutCard` moves cards.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum CardDest {
+    /// Its owner's hand.
+    Hand,
+    /// Its owner's graveyard.
+    Graveyard,
+    /// The battlefield under the effect's controller's control (CR
+    /// 110.2a).
+    Battlefield { tapped: bool },
+    /// The bottom of its owner's library, in the order revealed ("in any
+    /// order": the engine keeps it).
+    LibraryBottom,
 }
 
 /// Where in its owner's library an object is put.
@@ -3338,6 +3369,76 @@ pub enum Effect {
     LookAtTop {
         count: Num,
     },
+    /// "Reveal the top card of your library" (CR 701.20) or, with `look`,
+    /// "look at the top card of your library": the card stays where it is
+    /// and becomes the resolution's card ("it", "that card":
+    /// `Recipient::CreatedObject`), for the `IfCard` and `PutCard` effects
+    /// after it. Each recipient player's library is looked at in turn; the
+    /// last one is the card. Every player knows a revealed card, only the
+    /// controller a looked-at one, until it moves or its library is
+    /// shuffled (`GameObject::revealed`).
+    RevealTop {
+        who: Recipient,
+        look: bool,
+    },
+    /// "Reveal cards from the top of your library until you reveal a land
+    /// card" (CR 701.20): the recipient player reveals from the top until a
+    /// card matching `filter` is revealed or the library runs out. The
+    /// revealed cards stay in the library, known to every player, and are
+    /// the resolution's revealed cards (`PutCard` with `CardSet::Revealed`);
+    /// the matching card, if any, is the resolution's card ("that card").
+    RevealUntil {
+        who: Recipient,
+        filter: ObjFilter,
+    },
+    /// Move counters from one permanent onto others (CR 122.5): "Move all
+    /// counters from target creature onto another target creature", "Move
+    /// a +1/+1 counter from this artifact onto target creature" (`kind`
+    /// None is every kind, `count` None every counter). With the source
+    /// gone from the battlefield, "put its counters on target creature you
+    /// control" puts the counters it had as it last existed (CR 608.2h).
+    /// Nothing moves if there is nowhere to put them.
+    MoveCounters {
+        from: Recipient,
+        to: Recipient,
+        kind: Option<CounterKind>,
+        count: Option<u32>,
+    },
+    /// "Then that player shuffles" (CR 701.24): each recipient player
+    /// shuffles their library.
+    ShuffleLibrary {
+        who: Recipient,
+    },
+    /// "If it's a land card, [these]" / "If it isn't ...": whether the
+    /// resolution's card (`RevealTop`, `RevealUntil`, or what the
+    /// previous effect moved) matches `filter`, judged where it is; no
+    /// card matches nothing either way. Sets the resolution's `did`, for
+    /// an "Otherwise" after it.
+    IfCard {
+        filter: ObjFilter,
+        negated: bool,
+        /// Kinship's "If it shares a creature type with this creature"
+        /// (CR 205.3m, changeling's every type included), as well as
+        /// matching `filter`.
+        #[serde(default)]
+        shares_type: bool,
+        then: Vec<Effect>,
+    },
+    /// "you may reveal it": every player knows the resolution's card
+    /// where it is (CR 701.20).
+    RevealCard,
+    /// "Draw a card and reveal it": the card drawn is revealed, and is the
+    /// resolution's card ("it") after.
+    DrawReveal,
+    /// "put it onto the battlefield", "put all cards revealed this way into
+    /// your hand", "put them on the bottom of your library in any order":
+    /// moves the resolution's card or revealed cards still in the library
+    /// they were revealed from (CR 400.7: one that has moved is a new
+    /// object). A card put into a hand keeps what players knew of it.
+    PutCard {
+        what: CardSet,
+        to: CardDest,
+    },
     /// Adapt N (CR 701.46): if the source has no +1/+1 counters, it gets
     /// N.
     Adapt(u32),
@@ -3492,6 +3593,13 @@ impl Effect {
                 | Effect::Otherwise(_)
                 | Effect::IfCondition(..)
                 | Effect::IfTarget { .. }
+                | Effect::IfCard { .. }
+                // A card put onto the battlefield is not known until it
+                // resolves: it can meet its namesake or a replacement.
+                | Effect::PutCard {
+                    to: CardDest::Battlefield { .. },
+                    ..
+                }
                 | Effect::Instead { .. }
                 | Effect::UnlessPays { .. }
                 | Effect::UnlessYou { .. }
@@ -4778,6 +4886,7 @@ impl AbilityDef {
             | Effect::Otherwise(inner)
             | Effect::IfCondition(_, inner)
             | Effect::IfTarget { then: inner, .. }
+            | Effect::IfCard { then: inner, .. }
             | Effect::IfThisWay { then: inner, .. }
             | Effect::OneOf(inner)
             | Effect::UnlessPays { effects: inner, .. } = e

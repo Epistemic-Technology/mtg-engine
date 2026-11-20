@@ -1,0 +1,8 @@
+card "Dockworker Drone" {
+  oracle_id aa704b26-729a-4d0f-b92d-56aadb1e20b9
+  cost {1}{W}
+  type Artifact Creature — Robot
+  pt 1/1
+  enters with 1 +1/+1 counter
+  triggered when this dies: put its counters on target creature you control
+}

@@ -1,0 +1,7 @@
+card "Vivien's Grizzly" {
+  oracle_id 6dbd0764-4bfe-4a58-905d-aeee70ceb798
+  cost {2}{G}
+  type Creature — Bear Spirit
+  pt 2/3
+  activated {3}{G}: look at top card; if it is creature or planeswalker card, you may reveal it and put it into hand; if you dont put it into hand, put it on bottom of library
+}
