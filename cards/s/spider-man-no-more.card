@@ -1,0 +1,7 @@
+card "Spider-Man No More" {
+  oracle_id 163f1fce-70c8-44e3-a679-f97d52cd1e9a
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: set subtype Citizen, base 1/1, has defender, loses all abilities
+}

@@ -1,0 +1,8 @@
+card "Retro-Mutation" {
+  oracle_id d8b5de6d-8654-4550-bccb-79de6cbef4d5
+  cost {2}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: set subtype Turtle, base 0/1, has can't attack, loses all abilities
+}

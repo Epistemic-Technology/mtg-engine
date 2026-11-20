@@ -8544,10 +8544,14 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
     // "has defender, and loses all other abilities": abilities it gains
     // before losing the rest are kept (`compile` applies the loss first).
     for (i, m) in mods.iter().enumerate() {
+        // "It can't attack and loses all abilities": a restriction is no
+        // ability of its own.
         if *m == Mod::RemoveAllAbilities
-            && mods[..i]
-                .iter()
-                .any(|m| matches!(m, Mod::AddKeywords(_) | Mod::AddAbility(_)))
+            && mods[..i].iter().any(|m| match m {
+                Mod::AddKeywords(ks) => !ks.iter().all(|k| matches!(k, Keyword::CantAttack)),
+                Mod::AddAbility(_) => true,
+                _ => false,
+            })
         {
             parts[i] = parts[i].replacen(" all abilities", " all other abilities", 1);
         }
@@ -8650,7 +8654,19 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
             i += 1;
         }
     }
-    let mut body = format!("{subject} {}", list(&parts));
+    // "Enchanted creature is a Turtle with base power and toughness 0/1.
+    // It can't attack and loses all abilities." (Retro-Mutation): after
+    // the new identity, what else it has and loses is a sentence of its
+    // own.
+    let split = parts.len() >= 3
+        && parts[0].contains(" with base power and toughness ")
+        && !plural_form
+        && mods.last() == Some(&Mod::RemoveAllAbilities);
+    let mut body = if split {
+        format!("{subject} {}. It {}", parts[0], parts[1..].join(" and "))
+    } else {
+        format!("{subject} {}", list(&parts))
+    };
     if let Some(clause) = activation {
         // Oracle joins it with ", and", except after "doesn't untap during
         // its controller's untap step" (Encrust).

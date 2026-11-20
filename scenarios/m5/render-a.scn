@@ -386,6 +386,33 @@ scenario "Leonardo's Technique can't return a creature card with mana value 4" {
   assert graveyard A contains "Serra Angel"
 }
 
+scenario "Retro-Mutation: a 0/1 Turtle that can't attack and has no abilities" {
+  battlefield A: 3 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Retro-Mutation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Retro-Mutation" targeting "Serra Angel"
+  illegal turn 2 B: attack "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert power "Serra Angel" 0
+  assert toughness "Serra Angel" 1
+  assert is "Serra Angel" "Turtle"
+  assert has not "Serra Angel" flying
+}
+
+scenario "Spider-Man No More: a 1/1 Citizen with defender" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Spider-Man No More"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spider-Man No More" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 1
+  assert has "Serra Angel" defender
+  assert has not "Serra Angel" flying
+  assert is "Serra Angel" "Citizen"
+}
+
 scenario "Brambleguard Captain gives its power to a creature you control" {
   battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
   start turn 1 A precombat_main
