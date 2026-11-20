@@ -1778,12 +1778,22 @@ impl Runner {
         let Action::Discard(name) = &a.action else {
             unreachable!()
         };
-        let id = self.in_hand(a.line, d.player, name)?;
+        // The card may be in another player's hand ("You choose a nonland
+        // card from it. That player discards that card.").
+        let st = self.state();
         let found = d
             .options
             .iter()
-            .position(|c| matches!(c, Choice::Discard { card, .. } if *card == id))
+            .position(|c| matches!(c, Choice::Discard { card, .. } if st.name_of(*card) == *name))
             .map(idx_u32);
+        if found.is_none()
+            && !st
+                .players
+                .iter()
+                .any(|p| p.hand.iter().any(|id| st.name_of(*id) == *name))
+        {
+            self.in_hand(a.line, d.player, name)?;
+        }
         match (a.illegal, found) {
             (true, Some(_)) => fail(
                 a.line,

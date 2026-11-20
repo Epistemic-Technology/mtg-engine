@@ -3967,7 +3967,20 @@ impl P {
                     } else {
                         self.filter()?
                     };
-                    self.expect_words(&["card", "from", "graveyard", "or", "hand"])?;
+                    self.expect_word("card")?;
+                    // "You choose a nonland card from it and exile that
+                    // card."
+                    if !self.at_word("from") {
+                        let joined = !self.eat_word("split");
+                        return Ok(Effect::DiscardChosen {
+                            who: subject,
+                            filter: (filter != Filter::default()).then_some(filter),
+                            may: false,
+                            look: false,
+                            exile: Some(joined),
+                        });
+                    }
+                    self.expect_words(&["from", "graveyard", "or", "hand"])?;
                     return Ok(Effect::ExileFromGraveyardOrHand {
                         who: subject,
                         filter,
@@ -4882,6 +4895,7 @@ impl P {
             filter,
             may,
             look,
+            exile: None,
         })
     }
 
@@ -7468,6 +7482,18 @@ impl P {
                                 && !f.subtypes.is_empty())) =>
                 {
                     f.not_types = vec![CardType::Instant, CardType::Sorcery];
+                    self.pos += 1;
+                }
+                // "a nonland permanent card".
+                "permanent"
+                    if matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                        && f.types.is_empty()
+                        && f.any_types.is_empty()
+                        && f.subtypes.is_empty()
+                        && !f.not_types.is_empty()
+                        && !f.not_types.contains(&CardType::Instant) =>
+                {
+                    f.not_types.extend([CardType::Instant, CardType::Sorcery]);
                     self.pos += 1;
                 }
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,

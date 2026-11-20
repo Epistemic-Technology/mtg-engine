@@ -1535,7 +1535,12 @@ player discards one such card or else two). `<who> reveals hand discarding
 may nonland card` ("You may choose a nonland card from it."), `look at hand
 of target player discarding may nonland card` ("look at target player's
 hand. You may choose ..."), `look at hand of target player discarding card`
-("Look at target player's hand and choose a card from it."). A sentence
+("Look at target player's hand and choose a card from it."). `<who>
+reveals hand exiling nonland card` ("Target opponent reveals their hand.
+You choose a nonland card from it and exile that card."; `exiling
+nonland card split`: "You choose a nonland card from it. Exile that
+card."). `nonland permanent card` is "a nonland permanent card" (neither
+a land, an instant nor a sorcery). A sentence
 may start `then` ("Then discard two cards unless ..."). After `return
 target permanent to hand`, `that player` is that permanent's owner:
 `return target permanent to hand; then that player discards 1 card`

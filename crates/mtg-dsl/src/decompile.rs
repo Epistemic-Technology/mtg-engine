@@ -840,11 +840,13 @@ impl Decompiler<'_> {
                 who,
                 filter,
                 optional,
+                exile,
             } => Effect::DiscardChosen {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| self.filter(f)),
                 may: *optional,
                 look: false,
+                exile: exile.then_some(true),
             },
             CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
             CoreEffect::Search {

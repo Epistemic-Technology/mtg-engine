@@ -561,13 +561,15 @@ fn card_filter_phrase(f: &Filter, card: &Card) -> String {
             card_filter_phrase(&a, card)
         );
     }
-    // "a permanent card" (CR 110.4a).
-    if f.not_types == [CardType::Instant, CardType::Sorcery]
+    // "a permanent card" (CR 110.4a); "a nonland permanent card".
+    if f.not_types.contains(&CardType::Instant)
+        && f.not_types.contains(&CardType::Sorcery)
         && f.types.is_empty()
         && f.any_types.is_empty()
     {
         let mut g = f.clone();
-        g.not_types.clear();
+        g.not_types
+            .retain(|t| !matches!(t, CardType::Instant | CardType::Sorcery));
         let p = card_filter_phrase(&g, card);
         return if p.is_empty() {
             "permanent".to_string()
@@ -4539,8 +4541,34 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::DiscardChosen {
             who,
             filter,
+            exile: Some(joined),
+            ..
+        } => {
+            let what = match filter {
+                None => "a card".to_string(),
+                Some(f) => with_article(&format!("{} card", card_filter_phrase(f, ctx.card))),
+            };
+            let exile = if *joined {
+                " and exile that card"
+            } else {
+                ". Exile that card"
+            };
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{} their hand. You choose {what} from it{exile}",
+                    ctx.verb(*who, "reveals", "reveal")
+                ),
+            )
+        }
+        Effect::DiscardChosen {
+            who,
+            filter,
             may,
             look,
+            ..
         } => {
             let what = match filter {
                 None => "a card".to_string(),

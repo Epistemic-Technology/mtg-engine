@@ -6776,6 +6776,7 @@ impl GameState {
                 who,
                 filter,
                 optional,
+                exile,
             } => {
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
@@ -6805,7 +6806,11 @@ impl GameState {
                     }
                     let k = self.choose_mid(ctx.controller, DecisionKind::Discard, options.clone());
                     if let Choice::Discard { card, .. } = options[k] {
-                        self.discard_card(p, card);
+                        if *exile {
+                            self.move_object(card, Zone::Exile, false);
+                        } else {
+                            self.discard_card(p, card);
+                        }
                     }
                 }
             }

@@ -2417,6 +2417,11 @@ pub enum Effect {
         /// `look at hand of target player discarding ...`: "Look at
         /// target player's hand" rather than "reveals their hand".
         look: bool,
+        /// `reveals hand exiling nonland card`: "You choose a nonland card
+        /// from it and exile that card." (`Some(true)`); with `split`
+        /// after it, "You choose a nonland card from it. Exile that card."
+        /// (`Some(false)`).
+        exile: Option<bool>,
     },
     /// `transform this`: "transform this creature" (CR 701.27).
     Transform {

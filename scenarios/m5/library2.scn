@@ -230,3 +230,48 @@ scenario "Put Away: declining leaves the card in the graveyard" {
   run_to turn 1 postcombat_main
   assert graveyard B contains "Hill Giant"
 }
+
+scenario "reveal, then exile the chosen nonland card (Castigate)" {
+  battlefield A: "Plains", "Swamp"
+  hand A: "Castigate"
+  hand B: "Forest", "Hill Giant", "Shock"
+  turn 1 A: cast "Castigate" targeting player B
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Shock"
+  assert graveyard B count 0
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Forest"
+}
+
+scenario "exile the chosen card: a land can't be chosen (Night Terrors)" {
+  battlefield A: 3 "Swamp"
+  hand A: "Night Terrors"
+  hand B: "Forest", "Hill Giant"
+  turn 1 A: cast "Night Terrors" targeting player B
+  illegal turn 1 precombat_main A: discard "Forest"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert hand B contains "Forest"
+}
+
+scenario "exile the chosen card, then a counter (Aggressive Negotiations)" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  hand A: "Aggressive Negotiations"
+  hand B: "Hill Giant"
+  turn 1 A: cast "Aggressive Negotiations" targeting player B, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "a nonland permanent card: not an instant (Auntie's Sentence)" {
+  battlefield A: 2 "Swamp"
+  hand A: "Auntie's Sentence"
+  hand B: "Shock", "Hill Giant"
+  turn 1 A: cast "Auntie's Sentence" mode 1 targeting player B
+  illegal turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand B contains "Shock"
+}

@@ -1560,13 +1560,18 @@ impl Compiler<'_> {
                 });
             }
             Effect::DiscardChosen {
-                who, filter, may, ..
+                who,
+                filter,
+                may,
+                exile,
+                ..
             } => {
                 let filter = filter.as_ref().map(|f| self.filter(f));
                 out.push(CoreEffect::DiscardChosen {
                     who: r(*who),
                     filter,
                     optional: *may,
+                    exile: exile.is_some(),
                 });
             }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),

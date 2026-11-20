@@ -1229,8 +1229,25 @@ impl Fmt {
             Effect::DiscardChosen {
                 who,
                 filter: f,
+                exile: Some(joined),
+                ..
+            } => {
+                let what = match f {
+                    None => "card".to_string(),
+                    Some(f) => format!("{} card", filter(f)),
+                };
+                let split = if *joined { "" } else { " split" };
+                format!(
+                    "{} reveals hand exiling {what}{split}",
+                    self.recipient(*who, t)
+                )
+            }
+            Effect::DiscardChosen {
+                who,
+                filter: f,
                 may,
                 look,
+                ..
             } => {
                 let lead = if *look {
                     format!("look at hand of {}", self.recipient(*who, t))

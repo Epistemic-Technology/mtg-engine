@@ -2933,6 +2933,10 @@ pub enum Effect {
         /// "You may choose a nonland card from it": the controller may
         /// choose none.
         optional: bool,
+        /// "You choose a nonland card from it and exile that card": the
+        /// chosen card is exiled rather than discarded.
+        #[serde(default)]
+        exile: bool,
     },
     /// "Transform this creature" (CR 701.27): a double-faced permanent
     /// turns to its other face; it stays the same object.
