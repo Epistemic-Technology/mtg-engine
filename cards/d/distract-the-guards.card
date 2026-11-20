@@ -1,0 +1,7 @@
+card "Distract the Guards" {
+  oracle_id 5b3687e5-546f-4a70-aa5c-b7db3300a3f4
+  cost {1}{W}{W}
+  type Sorcery
+  freerunning {1}{W}
+  spell: create 3 "1/1 white Human Rogue creature"
+}

@@ -1335,6 +1335,9 @@ pub enum Mechanic {
     /// `surge {1}{R}` (CR 702.117): an alternative cost if you've cast
     /// another spell this turn.
     Surge(ManaCost),
+    /// `freerunning {1}{B}` (CR 702.173): an alternative cost if an
+    /// Assassin you controlled dealt combat damage to a player this turn.
+    Freerunning(ManaCost),
     /// `spectacle {R}` (CR 702.137): an alternative cost if an opponent
     /// lost life this turn.
     Spectacle(ManaCost),

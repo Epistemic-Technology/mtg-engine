@@ -496,18 +496,30 @@ impl Compiler<'_> {
                 // cost if you or a teammate has cast another spell this
                 // turn." CR 702.137a: spectacle, "... rather than its mana
                 // cost if an opponent lost life this turn."
-                Ability::Mechanic(m @ (Mechanic::Surge(cost) | Mechanic::Spectacle(cost))) => {
+                // CR 702.173a: freerunning, "You may pay [cost] rather than
+                // pay this spell's mana cost if a player was dealt combat
+                // damage this turn by a creature that, at the time it dealt
+                // that damage, was an Assassin creature or a commander under
+                // your control."
+                Ability::Mechanic(
+                    m @ (Mechanic::Surge(cost)
+                    | Mechanic::Spectacle(cost)
+                    | Mechanic::Freerunning(cost)),
+                ) => {
                     if card.alt_cost.is_some() {
                         return self.err("two alternative costs of the card's own");
                     }
-                    let cond = if matches!(m, Mechanic::Surge(_)) {
-                        StaticCondition::CastThisTurn {
+                    let cond = match m {
+                        Mechanic::Surge(_) => StaticCondition::CastThisTurn {
                             filter: ObjFilter::default(),
                             at_least: 1,
                             other: true,
+                        },
+                        Mechanic::Freerunning(_) => {
+                            self.pool.note_freerunning();
+                            StaticCondition::AssassinDealtCombatDamage
                         }
-                    } else {
-                        StaticCondition::OpponentLostLifeThisTurn
+                        _ => StaticCondition::OpponentLostLifeThisTurn,
                     };
                     let condition = Some(self.pool.intern_condition(cond));
                     b = b.alt_cost(mtg_core::card::AltCost {
@@ -727,6 +739,7 @@ impl Compiler<'_> {
                             | Mechanic::Retrace
                             | Mechanic::JumpStart
                             | Mechanic::Surge(_)
+                            | Mechanic::Freerunning(_)
                             | Mechanic::Spectacle(_)
                     )
             ) {
@@ -4161,6 +4174,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Enlist
         | Mechanic::JumpStart
         | Mechanic::Surge(_)
+        | Mechanic::Freerunning(_)
         | Mechanic::Spectacle(_)
         | Mechanic::Saddle(_) => unreachable!("not an expansion"),
     }

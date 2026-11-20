@@ -4467,6 +4467,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Reinforce(n, c) => format!("reinforce {n} {c}"),
                 crate::ast::Mechanic::JumpStart => "jump start".to_string(),
                 crate::ast::Mechanic::Surge(c) => format!("surge {c}"),
+                crate::ast::Mechanic::Freerunning(c) => format!("freerunning {c}"),
                 crate::ast::Mechanic::Spectacle(c) => format!("spectacle {c}"),
             };
             let _ = writeln!(out, "{indent}{text}");

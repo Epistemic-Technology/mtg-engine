@@ -1534,6 +1534,10 @@ pub struct GameState {
     pub died_this_turn: Vec<(ObjId, PlayerId, Characteristics)>,
     /// Players dealt damage this turn (bloodthirst), one bit each.
     pub damaged_this_turn: u8,
+    /// Players who controlled an Assassin creature as it dealt combat
+    /// damage to a player this turn (freerunning, CR 702.173a), one bit
+    /// each; kept only with a freerunning card in the pool.
+    pub assassin_damage: u8,
     /// Players who lost life this turn ("if an opponent lost life this
     /// turn"), one bit each.
     pub lost_life_this_turn: u8,
@@ -2689,6 +2693,7 @@ impl GameState {
             C::AttackedThisTurn => self.attacked_this_turn & (1 << you.index().min(7)) != 0,
             C::AttackedLastTurn => self.attacked_last_turn.contains(&(you, source)),
             C::CreatureDiedThisTurn => self.creatures_died_this_turn > 0,
+            C::AssassinDealtCombatDamage => self.assassin_damage & (1 << you.index().min(7)) != 0,
             C::LandEnteredThisTurn => self.lands_entered_this_turn & (1 << you.index().min(7)) != 0,
             C::ArtifactEnteredThisTurn => {
                 self.artifacts_entered_this_turn & (1 << you.index().min(7)) != 0

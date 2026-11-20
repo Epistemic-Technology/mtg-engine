@@ -1151,6 +1151,16 @@ impl GameState {
                     self.history_bump();
                 }
                 self.note_damage_source(source);
+                // CR 702.173a: an Assassin's combat damage enables
+                // freerunning for its controller this turn.
+                if combat
+                    && let Some(a) = self.pool.assassin()
+                    && let (Some(c), Some(ctl)) = (src.as_ref(), controller)
+                    && c.is_creature()
+                    && c.has_subtype(a)
+                {
+                    self.assassin_damage |= 1 << ctl.index().min(7);
+                }
                 self.emit(Event::Damage {
                     source,
                     target,

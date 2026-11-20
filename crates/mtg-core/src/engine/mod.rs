@@ -500,6 +500,7 @@ impl GameState {
             creatures_died_this_turn: 0,
             died_this_turn: Vec::new(),
             damaged_this_turn: 0,
+            assassin_damage: 0,
             lost_life_this_turn: 0,
             left_this_turn: 0,
             discarded_this_turn: 0,
@@ -2764,6 +2765,7 @@ impl GameState {
             self.mana_spent_before_cast = [0; 4];
             self.life_lost_this_turn = [0; 4];
             self.attacked_this_turn = 0;
+            self.assassin_damage = 0;
             self.lands_entered_this_turn = 0;
             self.block_demands.clear();
             self.block_bans.clear();

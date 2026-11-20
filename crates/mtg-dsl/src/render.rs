@@ -9661,6 +9661,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Reinforce(n, c) => format!("Reinforce {n}\u{2014}{c}"),
             crate::ast::Mechanic::JumpStart => "Jump-start".to_string(),
             crate::ast::Mechanic::Surge(c) => format!("Surge {c}"),
+            crate::ast::Mechanic::Freerunning(c) => format!("Freerunning {c}"),
             crate::ast::Mechanic::Spectacle(c) => format!("Spectacle {c}"),
         },
         Ability::EntersWithIf {

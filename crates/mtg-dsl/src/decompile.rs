@@ -442,6 +442,9 @@ impl Decompiler<'_> {
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
             StaticCondition::OpponentLostLifeThisTurn => StaticCond::OpponentLostLifeThisTurn,
+            StaticCondition::AssassinDealtCombatDamage => {
+                unreachable!("only freerunning's alternative cost")
+            }
             StaticCondition::PermanentLeftThisTurn => StaticCond::PermanentLeftThisTurn,
             StaticCondition::Escaped => StaticCond::Escaped,
             StaticCondition::Kicked => StaticCond::Kicked,

@@ -2245,6 +2245,11 @@ pub enum StaticCondition {
     /// paid to cast the source (CR 601.2h; cast without paying its mana
     /// cost, plotted, or not cast at all).
     NoManaSpent,
+    /// Freerunning's condition (CR 702.173a): "a player was dealt combat
+    /// damage this turn by a creature that, at the time it dealt that
+    /// damage, was an Assassin creature or a commander under your
+    /// control" (the game has no commanders).
+    AssassinDealtCombatDamage,
     /// "If the gift wasn't promised" (CR 702.174; a promised gift is the
     /// kicker flag): the source wasn't kicked.
     NotKicked,
@@ -6540,6 +6545,10 @@ pub struct CardPool {
     dungeons: Vec<CardRef>,
     /// The designations' built-in abilities and definitions.
     desig: DesigBuiltins,
+    /// The Assassin creature type, once a card with freerunning is
+    /// compiled (CR 702.173a): combat damage to players by Assassins is
+    /// then recorded.
+    assassin: Option<Subtype>,
 }
 
 /// The inherent triggered abilities of the monarch (CR 725.2), the
@@ -6616,6 +6625,7 @@ impl CardPool {
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
             desig: DesigBuiltins::default(),
+            assassin: None,
         };
         for c in Color::ALL {
             let id = pool.subtype(c.basic_land_type());
@@ -7493,6 +7503,19 @@ impl CardPool {
         self.subtypes.push(name.to_string());
         self.subtype_ids.insert(name.to_string(), id);
         id
+    }
+
+    /// A card with freerunning is in the pool (CR 702.173a): record
+    /// combat damage that Assassins deal to players.
+    pub fn note_freerunning(&mut self) {
+        if self.assassin.is_none() {
+            self.assassin = Some(self.subtype("Assassin"));
+        }
+    }
+
+    /// The Assassin type, if a card with freerunning is in the pool.
+    pub fn assassin(&self) -> Option<Subtype> {
+        self.assassin
     }
 
     pub fn subtype_lookup(&self, name: &str) -> Option<Subtype> {
