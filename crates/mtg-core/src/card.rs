@@ -2155,6 +2155,10 @@ pub enum StaticCondition {
     /// "you descended this turn" (CR 700.11): a permanent card was put
     /// into your graveyard from anywhere.
     DescendedThisTurn,
+    /// "the second spell you cast each turn" (Highspire Bell-Ringer): the
+    /// spell whose cost is being determined would be your Nth this turn,
+    /// that is, you've cast exactly N - 1 spells before it.
+    SpellNumber(u32),
     /// "you've surveilled this turn" (CR 701.25).
     SurveilledThisTurn,
     /// "a +1/+1 counter was put on a permanent under your control this

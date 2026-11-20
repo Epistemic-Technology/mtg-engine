@@ -2833,6 +2833,14 @@ impl GameState {
                     || (*or_lost && self.lost_life_this_turn & bit != 0)
             }
             C::DescendedThisTurn => self.turn_log.descended & (1 << you.index().min(7)) != 0,
+            C::SpellNumber(n) => {
+                let cast = self
+                    .cast_this_turn
+                    .iter()
+                    .filter(|(p, _)| *p == you)
+                    .count();
+                cast + 1 == *n as usize
+            }
             C::SurveilledThisTurn => self.turn_log.surveilled & (1 << you.index().min(7)) != 0,
             C::CounterPutThisTurn => self.turn_log.counter_put & (1 << you.index().min(7)) != 0,
             C::CreatureEnteredThisTurn { other } => {

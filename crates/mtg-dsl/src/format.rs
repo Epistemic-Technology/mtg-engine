@@ -3828,6 +3828,7 @@ fn static_cond(c: &StaticCond) -> String {
             "gained or lost life this turn".to_string()
         }
         StaticCond::DescendedThisTurn => "descended this turn".to_string(),
+        StaticCond::SpellNumber(n) => format!("spell number {n} this turn"),
         StaticCond::SurveilledThisTurn => "surveilled this turn".to_string(),
         StaticCond::CounterPutThisTurn => "counter put this turn".to_string(),
         StaticCond::CreatureEnteredThisTurn { other } => format!(
@@ -4260,6 +4261,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let head = match cond {
                 Some(StaticCond::NotYourTurn) => "static during turns other than yours, ",
                 Some(StaticCond::DuringYourTurn) => "static during your turn, ",
+                Some(c @ StaticCond::SpellNumber(_)) => {
+                    &format!("static as long as {}, ", static_cond(c))
+                }
                 _ => "",
             };
             let subject = if *f == Filter::default() {

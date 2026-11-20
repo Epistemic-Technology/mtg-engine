@@ -597,6 +597,16 @@ fn card_filter_phrase(f: &Filter, card: &Card) -> String {
 /// sorcery spells", "Spells".
 /// A cost changer's subject: "Goblin spells and Rogue spells", "Red
 /// spells and white spells" for two alternatives.
+/// "second", "third", "4th".
+fn ordinal_word(n: u32) -> String {
+    match n {
+        1 => "first".to_string(),
+        2 => "second".to_string(),
+        3 => "third".to_string(),
+        n => format!("{n}th"),
+    }
+}
+
 fn cost_spells_subject(f: &Filter, card: &Card) -> String {
     let second = |s: String, keep_case: bool| if keep_case { s } else { lowercase_first(&s) };
     if let Some(alt) = &f.or {
@@ -645,6 +655,12 @@ fn spells_subject(f: &Filter, card: &Card) -> String {
             format!("{rest} {joined}")
         }
     };
+    // "Creature spells with flying": the keyword quality follows "spells".
+    if !f.keywords.is_empty()
+        && let Some((head, quality)) = noun.trim().split_once(" with ")
+    {
+        return capitalize(&format!("{head} spells with {quality}"));
+    }
     capitalize(&format!("{} spells", noun.trim()))
 }
 
@@ -8729,6 +8745,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             if *or_lost { "or lost " } else { "" }
         ),
         StaticCond::DescendedThisTurn => "you descended this turn".to_string(),
+        StaticCond::SpellNumber(n) => {
+            format!("it's the {} spell you cast this turn", ordinal_word(*n))
+        }
         StaticCond::SurveilledThisTurn => "you've surveilled this turn".to_string(),
         StaticCond::CounterPutThisTurn => {
             "a +1/+1 counter was put on a permanent under your control this turn".to_string()
@@ -9320,6 +9339,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 Who::Any => "",
             };
             let more = if *generic > 0 { "more" } else { "less" };
+            // "The second spell you cast each turn costs {1} less to cast."
+            if let Some(StaticCond::SpellNumber(n)) = cond
+                && *filter == Filter::default()
+            {
+                return format!(
+                    "The {} spell{whose} each turn costs {{{}}} {more} to cast.",
+                    ordinal_word(*n),
+                    generic.unsigned_abs()
+                );
+            }
             // "Creature spells you cast with mana value 6 or greater":
             // the mana value after who casts them.
             let mut f = filter.clone();

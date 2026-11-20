@@ -1555,6 +1555,10 @@ pub enum StaticCond {
     },
     /// `descended this turn`: "you descended this turn".
     DescendedThisTurn,
+    /// `spell number 2 this turn`: the spell being cast would be your
+    /// second this turn ("The second spell you cast each turn costs {1}
+    /// less to cast.").
+    SpellNumber(u32),
     /// `surveilled this turn`: "you've surveilled this turn".
     SurveilledThisTurn,
     /// `counter put this turn`: "a +1/+1 counter was put on a permanent

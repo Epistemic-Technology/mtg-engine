@@ -1,0 +1,8 @@
+card "Warden of Evos Isle" {
+  oracle_id f424b5e9-8f02-4491-a7d8-c7e088611c6a
+  cost {2}{U}
+  type Creature — Bird Wizard
+  pt 2/2
+  keyword flying
+  spells creature with flying you cast cost {1} less
+}

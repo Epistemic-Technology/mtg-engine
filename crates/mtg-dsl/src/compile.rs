@@ -1031,6 +1031,7 @@ impl Compiler<'_> {
                 StaticCondition::GainedLifeThisTurn { or_lost: *or_lost }
             }
             StaticCond::DescendedThisTurn => StaticCondition::DescendedThisTurn,
+            StaticCond::SpellNumber(n) => StaticCondition::SpellNumber(*n),
             StaticCond::SurveilledThisTurn => StaticCondition::SurveilledThisTurn,
             StaticCond::CounterPutThisTurn => StaticCondition::CounterPutThisTurn,
             StaticCond::CreatureEnteredThisTurn { other } => {

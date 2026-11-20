@@ -109,3 +109,48 @@ scenario "dig: Ancient Stirrings finds a colorless card, then the rest go to the
   assert hand A contains "Ornithopter"
   assert library A count 5
 }
+
+scenario "cost change: creature spells with flying cost {1} less" {
+  battlefield A: "Warden of Evos Isle", "Island"
+  hand A: "Storm Crow"
+  start turn 3 A
+  turn 3 A: cast "Storm Crow"
+  run_to turn 3 end
+  assert battlefield A contains "Storm Crow"
+}
+
+scenario "cost change: a creature spell without flying costs full" {
+  battlefield A: "Warden of Evos Isle", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 3 A
+  illegal turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 end
+}
+
+scenario "spell number: the second spell each turn costs {1} less" {
+  battlefield A: "Highspire Bell-Ringer", "Island"
+  hand A: "Memnite", "Storm Crow"
+  start turn 3 A
+  turn 3 A: cast "Memnite"
+  turn 3 A: cast "Storm Crow"
+  run_to turn 3 end
+  assert battlefield A contains "Storm Crow"
+}
+
+scenario "spell number: the first spell costs full" {
+  battlefield A: "Highspire Bell-Ringer", "Island"
+  hand A: "Storm Crow"
+  start turn 3 A
+  illegal turn 3 A: cast "Storm Crow"
+  run_to turn 3 end
+}
+
+scenario "spell number: the third spell costs full" {
+  battlefield A: "Highspire Bell-Ringer", "Island"
+  hand A: "Memnite", "Ornithopter", "Storm Crow"
+  start turn 3 A
+  turn 3 A: cast "Memnite"
+  turn 3 A: cast "Ornithopter"
+  illegal turn 3 A: cast "Storm Crow"
+  run_to turn 3 end
+}

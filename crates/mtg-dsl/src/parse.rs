@@ -2426,6 +2426,11 @@ impl P {
         if self.eat_words(&["descended", "this", "turn"]) {
             return Ok(StaticCond::DescendedThisTurn);
         }
+        if self.eat_words(&["spell", "number"]) {
+            let n = self.number()?;
+            self.expect_words(&["this", "turn"])?;
+            return Ok(StaticCond::SpellNumber(n));
+        }
         if self.eat_words(&["surveilled", "this", "turn"]) {
             return Ok(StaticCond::SurveilledThisTurn);
         }

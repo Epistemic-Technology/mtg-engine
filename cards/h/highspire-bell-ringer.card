@@ -1,0 +1,8 @@
+card "Highspire Bell-Ringer" {
+  oracle_id 6d2d250b-cdce-4075-8724-b52ad31664fb
+  cost {2}{U}
+  type Creature — Djinn Monk
+  pt 1/4
+  keyword flying
+  static as long as spell number 2 this turn, spells you cast cost {1} less
+}

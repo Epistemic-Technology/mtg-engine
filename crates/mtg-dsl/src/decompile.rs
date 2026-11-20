@@ -475,6 +475,7 @@ impl Decompiler<'_> {
                 StaticCond::GainedLifeThisTurn { or_lost: *or_lost }
             }
             StaticCondition::DescendedThisTurn => StaticCond::DescendedThisTurn,
+            StaticCondition::SpellNumber(n) => StaticCond::SpellNumber(*n),
             StaticCondition::SurveilledThisTurn => StaticCond::SurveilledThisTurn,
             StaticCondition::CounterPutThisTurn => StaticCond::CounterPutThisTurn,
             StaticCondition::CreatureEnteredThisTurn { other } => {
