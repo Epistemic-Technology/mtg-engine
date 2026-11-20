@@ -1,0 +1,7 @@
+card "Festival" {
+  oracle_id 8e594801-4a8d-4dcd-b328-7eb3de65cf90
+  cost {W}
+  type Instant
+  cast only during opponent upkeep
+  spell: all creature can't attack
+}

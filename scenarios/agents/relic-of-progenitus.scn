@@ -1,0 +1,27 @@
+scenario "relic of progenitus makes target player exile a card from their graveyard" {
+  battlefield A: "Relic of Progenitus"
+  graveyard B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Relic of Progenitus" ability 1 targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B lacks "Grizzly Bears"
+  assert exile B contains "Grizzly Bears"
+  assert tapped "Relic of Progenitus"
+}
+
+scenario "relic of progenitus exiles itself to exile all graveyards and draw" {
+  battlefield A: "Relic of Progenitus", "Plains"
+  graveyard A: "Shock"
+  graveyard B: "Grizzly Bears", "Hill Giant"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Relic of Progenitus" ability 2
+  run_to turn 1 postcombat_main
+  assert exile A contains "Relic of Progenitus"
+  assert exile A contains "Shock"
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert graveyard A count 0
+  assert graveyard B count 0
+  assert hand A contains "Island"
+}

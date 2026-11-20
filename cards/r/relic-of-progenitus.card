@@ -1,0 +1,7 @@
+card "Relic of Progenitus" {
+  oracle_id 6a9c3401-570c-41cb-a605-75dfa57d6ab7
+  cost {1}
+  type Artifact
+  activated {T}: target player exiles 1 card from graveyard
+  activated {1}, exile this: exile all graveyards; draw 1 card
+}

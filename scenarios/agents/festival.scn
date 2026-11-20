@@ -1,0 +1,20 @@
+scenario "festival cast in an opponent's upkeep stops their attack" {
+  battlefield A: "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Festival"
+  start turn 2 B upkeep
+  turn 2 upkeep A: cast "Festival"
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Festival"
+  assert life A 20
+}
+
+scenario "festival can't be cast in your own main phase" {
+  battlefield A: "Plains"
+  hand A: "Festival"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Festival"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Festival"
+}
