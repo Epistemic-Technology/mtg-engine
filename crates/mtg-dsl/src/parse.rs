@@ -5970,6 +5970,9 @@ impl P {
             "goad" => Ok(Effect::Goad {
                 what: self.recipient()?,
             }),
+            "detain" => Ok(Effect::Detain {
+                what: self.recipient()?,
+            }),
             "untap" => {
                 let to = self.recipients()?;
                 Ok(Effect::Untap { to })

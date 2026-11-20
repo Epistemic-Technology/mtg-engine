@@ -4241,6 +4241,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*what);
             Clause::imperative(format!("goad {o}"))
         }
+        Effect::Detain { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("detain {o}"))
+        }
         Effect::Tap { to } => {
             let o = ctx.obj_list_tap(to);
             Clause::imperative(format!("tap {o}"))

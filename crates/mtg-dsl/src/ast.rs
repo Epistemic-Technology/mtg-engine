@@ -2418,6 +2418,10 @@ pub enum Effect {
     Goad {
         what: Recipient,
     },
+    /// `detain target creature an opponent controls` (CR 701.35).
+    Detain {
+        what: Recipient,
+    },
     Untap {
         to: Vec<Recipient>,
     },

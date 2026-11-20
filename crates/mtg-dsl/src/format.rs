@@ -1068,6 +1068,7 @@ impl Fmt {
             Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
             Effect::Goad { what } => format!("goad {}", self.recipient(*what, t)),
+            Effect::Detain { what } => format!("detain {}", self.recipient(*what, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
             Effect::Grant { keywords: ks, to } => {
                 let v = if matches!(

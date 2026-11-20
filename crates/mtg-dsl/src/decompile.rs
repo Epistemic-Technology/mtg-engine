@@ -705,6 +705,11 @@ impl Decompiler<'_> {
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
             CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },
+            CoreEffect::UntilYourNextTurn { to, parts }
+                if parts.as_slice() == [Modification::AddKeywords(KeywordSet::DETAINED)] =>
+            {
+                Effect::Detain { what: r(*to) }
+            }
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),

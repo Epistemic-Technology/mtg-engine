@@ -604,6 +604,9 @@ game here, so it is "you may discard a card; if you do, draw a card".
 `goad targets 1 to 3` "Goad them."): until the controller's next turn the
 creature attacks each combat if able, and attacks a player other than the
 controller if able.
+`detain target creature an opponent controls` (CR 701.35): until the
+controller's next turn the permanent can't attack or block and its
+activated abilities can't be activated.
 `spells red or white you cast cost {1} less` prints "Red spells and white
 spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
 spells". `defending player` as a subject prints "defending player".

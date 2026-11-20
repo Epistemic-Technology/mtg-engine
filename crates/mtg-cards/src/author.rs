@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 107] = [
+const TEMPLATED_TAGS: [&str; 108] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -106,6 +106,7 @@ const TEMPLATED_TAGS: [&str; 107] = [
     "Outlast",
     "Proliferate",
     "Explore",
+    "Detain",
     "Amass",
     // Scryfall tags some regenerating cards "Heal".
     "Heal",
@@ -1338,6 +1339,9 @@ impl Templates {
             }),
             (r(r"^Return (.+?) to (?:its owner's|your) hand$"), |c, t| {
                 Some(format!("return {} to hand", recipient(cap(c, 1), t)?))
+            }),
+            (r(r"^Detain (.+)$"), |c, t| {
+                Some(format!("detain {}", recipient(cap(c, 1), t)?))
             }),
             (r(r"^(Tap|Untap) (.+)$"), |c, t| {
                 Some(format!(

@@ -1,0 +1,52 @@
+# Detain (CR 701.35): until the detaining player's next turn, the
+# permanent can't attack or block and its activated abilities can't be
+# activated.
+
+scenario "detain: a detained creature can't attack on its controller's turn" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Inaction Injunction"
+  turn 1 A: cast "Inaction Injunction" targeting "Grizzly Bears"
+  illegal turn 2 B: attack "Grizzly Bears"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert hand A count 1
+}
+
+scenario "detain: a detained creature can't block, until the detainer's next turn" {
+  battlefield A: 2 "Plains", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lyev Decree"
+  turn 1 A: cast "Lyev Decree" targeting "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 3 A: attack "Hill Giant"
+  turn 3 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 17
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "detain: a detained permanent's activated abilities can't be activated" {
+  battlefield A: "Plains", "Island", "Hill Giant"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Azorius Arrester"
+  turn 1 A: cast "Azorius Arrester"
+  turn 1 A: trigger "Azorius Arrester" targeting "Prodigal Sorcerer"
+  illegal turn 2 B: activate "Prodigal Sorcerer" targeting player A
+  turn 3 upkeep B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 3 postcombat_main
+  assert life A 19
+}
+
+scenario "detain: Lyev Decree detains up to two" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Lyev Decree"
+  turn 1 A: cast "Lyev Decree" targeting "Grizzly Bears", "Hill Giant"
+  illegal turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}

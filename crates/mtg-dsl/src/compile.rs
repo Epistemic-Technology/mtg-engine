@@ -1527,6 +1527,11 @@ impl Compiler<'_> {
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
+            // CR 701.35a: until the detaining player's next turn.
+            Effect::Detain { what } => out.push(CoreEffect::UntilYourNextTurn {
+                to: r(*what),
+                parts: vec![Modification::AddKeywords(KeywordSet::DETAINED)],
+            }),
             Effect::Tap { to } => {
                 for t in to {
                     out.push(CoreEffect::Tap { to: r(*t) });

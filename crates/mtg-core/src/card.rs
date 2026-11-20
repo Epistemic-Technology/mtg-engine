@@ -390,6 +390,13 @@ pub struct KeywordSet([u64; 2]);
 
 impl KeywordSet {
     pub const NONE: KeywordSet = KeywordSet([0; 2]);
+    /// Detain (CR 701.35a): "until your next turn, that permanent can't
+    /// attack or block and its activated abilities can't be activated"
+    /// (`Effect::UntilYourNextTurn` granting these).
+    pub const DETAINED: KeywordSet = KeywordSet::NONE
+        .with(Keyword::CantAttack)
+        .with(Keyword::CantBlock)
+        .with(Keyword::CantActivate);
 
     pub fn of(keywords: impl IntoIterator<Item = Keyword>) -> Self {
         keywords

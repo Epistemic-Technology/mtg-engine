@@ -1,0 +1,6 @@
+card "Lyev Decree" {
+  oracle_id ace64875-ca4b-45c7-8b46-29ef2f2629dd
+  cost {1}{W}
+  type Sorcery
+  spell: detain up to two target creatures your opponents control
+}
