@@ -404,6 +404,14 @@ impl Compiler<'_> {
         if let Some(n) = card.loyalty {
             b = b.loyalty(n);
         }
+        // CR 701.15: "enchanted creature is goaded".
+        if card
+            .abilities
+            .iter()
+            .any(|a| matches!(a, Ability::Static { mods, .. } if mods.contains(&Mod::Goaded)))
+        {
+            b = b.goads();
+        }
         if let Some(colors) = &card.color_indicator {
             b = b.color_indicator(colors.iter().copied());
         } else if let Some(colors) = card.abilities.iter().find_map(|a| match a {
@@ -1318,6 +1326,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Sacrifice { what: r(*what) });
             }
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
+            Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
             Effect::Tap { to } => {
                 for t in to {
                     out.push(CoreEffect::Tap { to: r(*t) });
@@ -2221,6 +2230,10 @@ impl Compiler<'_> {
                 Modification::RemoveKeywords(KeywordSet::of(k.iter().copied()))
             }
             Mod::RemoveAllAbilities => Modification::RemoveAllAbilities,
+            // The card is marked as goading too (`Builder::goads`).
+            Mod::Goaded => Modification::AddKeywords(
+                KeywordSet::NONE.with(mtg_core::card::Keyword::MustAttack),
+            ),
             Mod::AllCreatureTypes { .. } => Modification::AllCreatureTypes,
             Mod::NoCreatureTypes => Modification::NoCreatureTypes,
             Mod::SetTypes(t) => Modification::SetTypes(TypeSet::of(t.iter().copied())),

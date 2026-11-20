@@ -1,0 +1,8 @@
+card "Shiny Impetus" {
+  oracle_id aae76e5c-f5e0-4d18-b465-e6a829be908a
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, goaded
+  triggered whenever enchanted creature attacks: you create 1 "Treasure"
+}

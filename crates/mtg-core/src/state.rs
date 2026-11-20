@@ -1224,6 +1224,11 @@ pub struct GameState {
     /// Spells with cards spliced onto them (CR 702.47a), kept off
     /// `GameObject` like `x_values`.
     pub splices: Vec<Spliced>,
+    /// Goaded creatures and who goaded them (CR 701.15a), until that
+    /// player's next turn; the creature's "attacks each combat if able"
+    /// is an ordinary until-your-next-turn effect, this list the
+    /// requirement to attack a player other than the goader (701.15b).
+    pub goads: Vec<(ObjId, PlayerId)>,
     pub turn_number: u32,
     /// Spells each player has cast this turn, and the most any one player
     /// cast last turn ("if no spells were cast last turn", werewolves).

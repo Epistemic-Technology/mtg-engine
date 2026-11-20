@@ -148,7 +148,7 @@ struct Runner {
     /// Attackers still to be added in an incremental declaration.
     attack_queue: Option<Vec<ObjId>>,
     /// Scripted `at` targets for attackers (CR 508.1a).
-    attack_targets: Vec<(ObjId, TargetRef)>,
+    attack_targets: Vec<(ObjId, TargetRef, bool)>,
     /// Blocks still to be added in an incremental declaration.
     block_queue: Option<Vec<(ObjId, ObjId)>>,
 }
@@ -486,12 +486,30 @@ impl Runner {
     /// What an attacker attacks: the scripted `at` target, else the player
     /// (the engine's first option).
     fn choose_attack_target(&mut self, d: &Decision, attacker: ObjId) -> Res<ChoiceId> {
-        let Some(i) = self.attack_targets.iter().position(|(a, _)| *a == attacker) else {
+        let Some(i) = self
+            .attack_targets
+            .iter()
+            .position(|(a, ..)| *a == attacker)
+        else {
             return Ok(0);
         };
-        let (_, tr) = self.attack_targets.remove(i);
+        let (_, tr, illegal) = self.attack_targets.remove(i);
         let line = self.line_of_kind(self.position(), d.player, "attack");
         let t = self.resolve_target(line, &tr)?;
+        // `illegal attack "X" at "Y"`: X attacks, but not Y.
+        if illegal {
+            if index_of(d, &Choice::AttackTarget(t)).is_some() {
+                return fail(
+                    line,
+                    format!(
+                        "{} attacking {} was legal but the scenario says it must not be",
+                        self.state().name_of(attacker),
+                        self.describe_target(t)
+                    ),
+                );
+            }
+            return Ok(0);
+        }
         index_of(d, &Choice::AttackTarget(t)).ok_or_else(|| Failure {
             line,
             message: format!(
@@ -1488,9 +1506,9 @@ impl Runner {
                     let used: Vec<ObjId> = legal.iter().chain(&illegal).copied().collect();
                     let id = self.creature_of(a.line, d.player, name, &used)?;
                     if let Some(tr) = at {
-                        self.attack_targets.push((id, tr.clone()));
+                        self.attack_targets.push((id, tr.clone(), a.illegal));
                     }
-                    if a.illegal {
+                    if a.illegal && at.is_none() {
                         illegal.push(id);
                     } else {
                         legal.push(id);

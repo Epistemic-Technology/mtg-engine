@@ -1,0 +1,7 @@
+card "Insufferable Balladeer" {
+  oracle_id e6acafdf-e3ad-4ac2-bb26-cec37c7ca115
+  cost {1}{R}
+  type Creature — Dwarf Bard
+  pt 2/1
+  label "Vicious Mockery" triggered when this enters: target creature an opponent controls can't block; goad target 1
+}

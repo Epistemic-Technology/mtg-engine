@@ -1,0 +1,8 @@
+card "Oceanus Dragon" {
+  oracle_id bf5d44e7-9ff1-4c9a-a62e-628aa5be720d
+  cost {4}{U}{U}
+  type Creature — Dragon
+  pt 3/5
+  keyword flying
+  triggered when this enters: tap target creature an opponent controls; goad target 1
+}

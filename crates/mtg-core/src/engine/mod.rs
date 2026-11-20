@@ -459,6 +459,7 @@ impl GameState {
             bargains: Vec::new(),
             divisions: Vec::new(),
             splices: Vec::new(),
+            goads: Vec::new(),
             turn_number: 0,
             spells_this_turn: [0; 4],
             drawn_this_turn: [0; 4],
@@ -1137,10 +1138,17 @@ impl GameState {
                     let player = self.active_player;
                     let defender = self.opponent(player);
                     let mut options = vec![Choice::AttackTarget(Target::Player(defender))];
-                    options.extend(
-                        self.planeswalkers_of(defender)
-                            .map(|pw| Choice::AttackTarget(Target::Object(pw))),
-                    );
+                    // CR 701.15b: a goaded creature attacks a player other
+                    // than those who goaded it if able; it can always
+                    // attack the defending player unless that player goaded
+                    // it, so then only that player.
+                    let goaders = self.goaders(attacker);
+                    if goaders.is_empty() || goaders.contains(&defender) {
+                        options.extend(
+                            self.planeswalkers_of(defender)
+                                .map(|pw| Choice::AttackTarget(Target::Object(pw))),
+                        );
+                    }
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::ChooseAttackTarget { attacker },
@@ -1853,6 +1861,25 @@ impl GameState {
         spell
     }
 
+    /// The players who goaded `creature` (CR 701.15a): by an effect, or
+    /// by the static ability of a permanent attached to it ("enchanted
+    /// creature is goaded").
+    fn goaders(&self, creature: ObjId) -> smallvec::SmallVec<[PlayerId; 2]> {
+        let mut out: smallvec::SmallVec<[PlayerId; 2]> = self
+            .goads
+            .iter()
+            .filter(|(g, _)| *g == creature)
+            .map(|(_, by)| *by)
+            .collect();
+        for id in &self.battlefield {
+            let o = &self.objects[*id];
+            if o.attached_to == Some(creature) && self.pool.get(o.def).goads {
+                out.push(o.controller);
+            }
+        }
+        out
+    }
+
     fn after_mode(&self, spell: ObjId) -> Flow {
         // A modal triggered ability goes on to its mode's targets.
         if self.objects[spell].kind == ObjKind::Ability {
@@ -2352,6 +2379,10 @@ impl GameState {
             let ends = Duration::UntilYourNextTurn(self.active_player);
             if self.effects.iter().any(|e| e.duration == ends) {
                 self.effects.retain(|e| e.duration != ends);
+            }
+            if !self.goads.is_empty() {
+                let p = self.active_player;
+                self.goads.retain(|(_, by)| *by != p);
             }
             // "During your turn" static abilities (CR 611.3a) change with
             // it; nothing a state-based action looks at does.

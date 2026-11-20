@@ -520,6 +520,10 @@ cards in your graveyard, scry 2` ("Spell mastery — If there are two or more
 instant and/or sorcery cards in your graveyard, scry 2."). `that target
 1` prints "that creature" even after the first mention.
 `tap or untap target creature` (the controller chooses on resolution).
+`goad target creature` (CR 701.15; `goad target 1` prints "Goad it.",
+`goad targets 1 to 3` "Goad them."): until the controller's next turn the
+creature attacks each combat if able, and attacks a player other than the
+controller if able.
 `spells red or white you cast cost {1} less` prints "Red spells and white
 spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
 spells". `defending player` as a subject prints "defending player".
@@ -712,7 +716,9 @@ of CR 613: `+1/+1`, `base 1/1`,
 `has flying, trample`, `loses all abilities`, `add type creature`,
 `loses flying`, `set land Mountain`, `set land Mountain Forest Plains` ("is a
 Mountain, Forest, and Plains": all of them and no other), `add land Swamp`,
-`add subtype Saproling`, `control`
+`add subtype Saproling`, `goaded` ("is goaded", CR 701.15: attacks each
+combat if able, and a player other than the source's controller if able),
+`control`
 (you control it), `add color white`, `set color blue`, `set color chosen`,
 `has protection from chosen color`, `set land chosen` ("Enchanted land is
 the chosen type") and `add chosen type` ("is the chosen type in addition

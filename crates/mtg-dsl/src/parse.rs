@@ -5030,6 +5030,9 @@ impl P {
                 let to = self.recipients()?;
                 Ok(Effect::Tap { to })
             }
+            "goad" => Ok(Effect::Goad {
+                what: self.recipient()?,
+            }),
             "untap" => {
                 let to = self.recipients()?;
                 Ok(Effect::Untap { to })
@@ -8589,6 +8592,7 @@ impl P {
                 Ok(Mod::RemoveAllAbilities)
             }
             "control" => Ok(Mod::Control),
+            "goaded" => Ok(Mod::Goaded),
             "switch" => {
                 self.eat_word("pt");
                 Ok(Mod::SwitchPt)

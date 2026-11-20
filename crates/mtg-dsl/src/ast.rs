@@ -1844,6 +1844,9 @@ pub enum Mod {
     AddAbility(Box<Ability>),
     /// `loses flying`.
     LosesKeywords(Vec<Keyword>),
+    /// `goaded`: "is goaded" (CR 701.15): attacks each combat if able,
+    /// and a player other than the source's controller if able.
+    Goaded,
     RemoveAllAbilities,
     /// `add subtype every`: "is every creature type"; `add subtype all`:
     /// "is all creature types" (`every` false). Layer 4.
@@ -2107,6 +2110,10 @@ pub enum Effect {
     /// `tap or untap target creature`.
     TapOrUntap {
         to: Recipient,
+    },
+    /// `goad target creature` (CR 701.15).
+    Goad {
+        what: Recipient,
     },
     Untap {
         to: Vec<Recipient>,

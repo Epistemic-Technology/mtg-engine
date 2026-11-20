@@ -835,6 +835,7 @@ impl Fmt {
             ),
             Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
             Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
+            Effect::Goad { what } => format!("goad {}", self.recipient(*what, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
             Effect::Grant { keywords: ks, to } => {
                 let v = if matches!(
@@ -3022,6 +3023,7 @@ fn modification(m: &Mod) -> String {
         Mod::AddKeywords(ks) => format!("has {}", keywords(ks)),
         Mod::LosesKeywords(ks) => format!("loses {}", keywords(ks)),
         Mod::RemoveAllAbilities => "loses all abilities".to_string(),
+        Mod::Goaded => "goaded".to_string(),
         Mod::AllCreatureTypes { every: true } => "add subtype every".to_string(),
         Mod::AllCreatureTypes { every: false } => "add subtype all".to_string(),
         Mod::NoCreatureTypes => "loses all creature types".to_string(),

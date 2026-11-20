@@ -3258,6 +3258,12 @@ pub enum Effect {
         to: Recipient,
         parts: Vec<Modification>,
     },
+    /// Goad (CR 701.15): until the controller's next turn, each recipient
+    /// creature attacks each combat if able and attacks a player other
+    /// than the controller if able.
+    Goad {
+        what: Recipient,
+    },
     /// "Each player loses 2 life unless they discard a card" (`unless`
     /// `None`) / "... unless they sacrifice a creature, artifact, or land
     /// of their choice": each player in turn order chooses (CR 101.4).
@@ -4939,6 +4945,12 @@ pub struct CardDef {
     /// or creature subtypes, Aura, enchant creature).
     #[serde(skip)]
     pub bestow_face: Option<CardRef>,
+    /// "Enchanted creature ... is goaded" (CR 701.15): the permanent's
+    /// static ability grants "attacks each combat if able"; this marks
+    /// that what it is attached to attacks a player other than the
+    /// permanent's controller if able.
+    #[serde(default)]
+    pub goads: bool,
     /// Overload (CR 702.96): an alternative cost; an overloaded spell's
     /// text has "each" for "target" (`overload_face`).
     #[serde(default)]
@@ -6457,6 +6469,7 @@ impl Builder {
             bestow_face: None,
             overload: None,
             overload_face: None,
+            goads: false,
             splice: None,
             alt_cost: None,
             additional_or: None,
@@ -6632,6 +6645,13 @@ impl Builder {
     #[must_use]
     pub fn bestow(mut self, cost: ManaCost) -> Self {
         self.0.bestow = Some(Box::new(cost));
+        self
+    }
+
+    /// "Enchanted creature is goaded" (CR 701.15).
+    #[must_use]
+    pub fn goads(mut self) -> Self {
+        self.0.goads = true;
         self
     }
 

@@ -3727,6 +3727,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("tap or untap {o}"))
         }
+        Effect::Goad { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("goad {o}"))
+        }
         Effect::Tap { to } => {
             let o = ctx.obj_list_tap(to);
             Clause::imperative(format!("tap {o}"))
@@ -6793,6 +6797,7 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             list(&parts)
         }
         Mod::RemoveAllAbilities => format!("{} all abilities", v("loses", "lose")),
+        Mod::Goaded => format!("{} goaded", v("is", "are")),
         Mod::AllCreatureTypes { every: true } => format!("{} every creature type", v("is", "are")),
         Mod::AllCreatureTypes { every: false } => format!("{} all creature types", v("is", "are")),
         Mod::NoCreatureTypes => format!("{} all creature types", v("loses", "lose")),

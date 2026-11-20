@@ -7271,6 +7271,20 @@ impl GameState {
                     self.effect_on(ctx, id, parts.clone(), d);
                 }
             }
+            Effect::Goad { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let d = Duration::UntilYourNextTurn(ctx.controller);
+                    let must =
+                        Modification::AddKeywords(KeywordSet::NONE.with(Keyword::MustAttack));
+                    self.effect_on(ctx, id, smallvec::smallvec![must], d);
+                    if !self.goads.contains(&(id, ctx.controller)) {
+                        self.goads.push((id, ctx.controller));
+                    }
+                }
+            }
             Effect::PunishEach { life, unless } => self.punish_each(ctx, *life, unless.as_ref()),
             Effect::DrawCastOne { count } => self.draw_cast_one(ctx, *count),
             Effect::RevealPutCreature { count, counters } => {

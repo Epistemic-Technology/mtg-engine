@@ -1,0 +1,7 @@
+card "Predatory Impetus" {
+  oracle_id 87f22ec6-6668-4e15-b38c-fa1ac0292c6b
+  cost {4}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3, has must be blocked if able, goaded
+}

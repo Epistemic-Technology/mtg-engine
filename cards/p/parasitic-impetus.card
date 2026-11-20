@@ -1,0 +1,8 @@
+card "Parasitic Impetus" {
+  oracle_id ff3de07d-86c3-49e1-9de0-97c85301ff93
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, goaded
+  triggered whenever enchanted creature attacks: its controller loses 2 life and you gain 2 life
+}
