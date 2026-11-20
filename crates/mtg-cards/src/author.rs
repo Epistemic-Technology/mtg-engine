@@ -4653,6 +4653,59 @@ fn wording_variants(text: &str) -> Vec<String> {
 
 /// Build the card file for one Scryfall record, or say why not.
 #[allow(clippy::too_many_lines)]
+/// A legendary character's Oracle text with "he"/"she" and their other
+/// forms read as "it"/"its", and which pronoun it used (`he`, `she`).
+fn neuter_pronouns(oracle: &str) -> (String, Option<&'static str>) {
+    let he = Regex::new(r"\b(?:[Hh]e|[Hh]im|[Hh]is)\b").unwrap();
+    let she = Regex::new(r"\b(?:[Ss]he|[Hh]er)\b").unwrap();
+    let pronoun = match (he.is_match(oracle), she.is_match(oracle)) {
+        (true, false) => "he",
+        (false, true) => "she",
+        _ => return (oracle.to_string(), None),
+    };
+    let word = Regex::new(r"\b([Hh]e|[Hh]im|[Hh]is|[Ss]he|[Hh]er)\b( ?)(\w*)").unwrap();
+    let out = word.replace_all(oracle, |c: &regex::Captures| {
+        let w = &c[1];
+        let next = &c[3];
+        // "her owner's", "her power": possessive; "on her", "her to the
+        // battlefield": the object.
+        let possessive = w.eq_ignore_ascii_case("his")
+            || (w.eq_ignore_ascii_case("her")
+                && !c[2].is_empty()
+                && next.chars().next().is_some_and(char::is_lowercase)
+                && !matches!(
+                    next,
+                    "to" | "into"
+                        | "onto"
+                        | "and"
+                        | "or"
+                        | "on"
+                        | "from"
+                        | "with"
+                        | "until"
+                        | "this"
+                        | "that"
+                        | "a"
+                        | "an"
+                        | "the"
+                        | "as"
+                        | "if"
+                        | "unless"
+                        | "at"
+                        | "under"
+                        | "instead"
+                ));
+        let it = if possessive { "its" } else { "it" };
+        let it = if w.starts_with(char::is_uppercase) {
+            if possessive { "Its" } else { "It" }
+        } else {
+            it
+        };
+        format!("{it}{}{next}", &c[2])
+    });
+    (out.into_owned(), Some(pronoun))
+}
+
 pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if matches!(
         s.layout.as_str(),
@@ -4722,6 +4775,15 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         let word = Regex::new(&format!(r"\b{}\b", regex::escape(short))).unwrap();
         oracle = word.replace_all(&oracle, "~").into_owned();
     }
+    // A character's text calls it "he" or "she"; the templates read "it"
+    // and the card gets a `pronoun` line.
+    let pronoun = if type_line.contains("Legendary") {
+        let (oracle_it, pronoun) = neuter_pronouns(&oracle);
+        oracle = oracle_it;
+        pronoun
+    } else {
+        None
+    };
     let templates = Templates::new();
     let mut b = Builder {
         templates: &templates,
@@ -4822,6 +4884,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     }
     if let Some(d) = &s.defense {
         let _ = writeln!(text, "  defense {d}");
+    }
+    if let Some(p) = pronoun {
+        let _ = writeln!(text, "  pronoun {p}");
     }
     if let Some(ci) = &s.color_indicator {
         let names: Vec<&str> = ci

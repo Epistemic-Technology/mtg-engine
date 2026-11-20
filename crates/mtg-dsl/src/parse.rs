@@ -723,6 +723,7 @@ impl P {
             alt_cost: None,
             flash_if: None,
             flash_cleanup: false,
+            pronoun: None,
             unkicked_targets: None,
             cast_only: None,
             kicker: None,
@@ -938,6 +939,15 @@ impl P {
             "kicker" => {
                 self.pos += 1;
                 card.kicker = Some(self.mana_cost()?);
+                self.end_stmt()
+            }
+            "pronoun" => {
+                self.pos += 1;
+                card.pronoun = Some(match self.word()?.as_str() {
+                    "he" => crate::ast::Pronoun::He,
+                    "she" => crate::ast::Pronoun::She,
+                    w => return self.fail(format!("unknown pronoun `{w}` (he, she)")),
+                });
                 self.end_stmt()
             }
             "flash" if self.at_words(&["flash", "with", "cleanup", "sacrifice"]) => {

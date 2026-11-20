@@ -755,6 +755,26 @@ fn starts_with_name(s: &str, card: &Card) -> bool {
     s.starts_with(&card.name) || s.starts_with(short_name(card))
 }
 
+/// What a permanent's text calls it as an object after naming it: "it",
+/// or "him" or "her" for a character with a `pronoun` ("Morlun enters
+/// with X +1/+1 counters on him").
+fn it_obj(card: &Card) -> &'static str {
+    match card.pronoun {
+        Some(crate::ast::Pronoun::He) => "him",
+        Some(crate::ast::Pronoun::She) => "her",
+        None => "it",
+    }
+}
+
+/// What a character's text calls it as a subject: "it", "he", "she".
+fn it_subj(card: &Card) -> &'static str {
+    match card.pronoun {
+        Some(crate::ast::Pronoun::He) => "he",
+        Some(crate::ast::Pronoun::She) => "she",
+        None => "it",
+    }
+}
+
 /// The noun a permanent uses for itself: "this creature", "this Aura".
 pub fn self_noun(card: &Card) -> String {
     if card.kind == Kind::Token {
@@ -911,14 +931,23 @@ impl<'a> Ctx<'a> {
         }
     }
 
-    /// The source in subject position ("this creature", "Lightning Bolt",
-    /// then "it").
+    /// The source as an object ("this creature", "Lightning Bolt", then
+    /// "it", or "him" or "her" for a character with a `pronoun`).
     fn source(&mut self) -> String {
         if self.source_mentioned {
-            return "it".to_string();
+            return it_obj(self.card).to_string();
         }
         self.source_mentioned = true;
         self.source_name()
+    }
+
+    /// The source in subject position: "it", or "he" or "she" ("He fights
+    /// up to one target creature an opponent controls").
+    fn source_subj(&mut self) -> String {
+        if self.source_mentioned {
+            return it_subj(self.card).to_string();
+        }
+        self.source()
     }
 
     /// The source in full: a spell's name, "this creature", or a legendary
@@ -1362,7 +1391,7 @@ impl<'a> Ctx<'a> {
                     self.group_phrase(i, true)
                 }
             }
-            Recipient::Source => self.source(),
+            Recipient::Source => self.source_subj(),
             // "When this Aura enters, if enchanted creature has toxic, that
             // creature gains hexproof" (Maze's Mantle).
             Recipient::Attached if self.attached_by_cond => {
@@ -1708,9 +1737,10 @@ fn enters_tapped_with(card: &Card, i: usize) -> Option<String> {
     };
     (t1.is_empty() && t2.is_empty()).then(|| {
         format!(
-            "{} enters tapped with {} on it.",
+            "{} enters tapped with {} on {}.",
             capitalize(&this_ref(card)),
-            counters(*n, *kind)
+            counters(*n, *kind),
+            it_obj(card)
         )
     })
 }
@@ -3365,7 +3395,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = if *by == Recipient::SourceIt {
                 ctx.subj(*by)
             } else {
-                ctx.source()
+                ctx.source_subj()
             };
             Clause::with_subject(
                 Recipient::Source,
@@ -4266,7 +4296,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         // CR 601.2d.
         Effect::DealDamageDivided { amount, to } => {
-            let s = ctx.source();
+            let s = ctx.source_subj();
             let objs = ctx.obj(*to);
             Clause::with_subject(
                 Recipient::Source,
@@ -4691,7 +4721,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(text)
         }
         Effect::BecomeCopy { of, except } => {
-            let s = ctx.source();
+            let s = ctx.source_subj();
             let o = ctx.obj(*of);
             let mut text = format!("becomes a copy of {o}");
             if *except {
@@ -7886,22 +7916,25 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     e => (1, e),
                 };
                 format!(
-                    "{this} enters with {} on it {}.",
+                    "{this} enters with {} on {} {}.",
                     counters(Num::N(n), *kind),
+                    it_obj(ctx.card),
                     count_phrase(expr, ctx.card, true)
                 )
             } else {
                 format!(
-                    "{this} enters with a number of {} counters on it equal to {}.",
+                    "{this} enters with a number of {} counters on {} equal to {}.",
                     counter_name(*kind),
+                    it_obj(ctx.card),
                     count_phrase(&count.expr, ctx.card, false)
                 )
             }
         }
         (Replaces::Enters, Outcome::EnterWithCounters { kind, n }) => format!(
-            "{} enters with {} on it.",
+            "{} enters with {} on {}.",
             capitalize(&this_ref(ctx.card)),
-            counters(*n, *kind)
+            counters(*n, *kind),
+            it_obj(ctx.card)
         ),
         (Replaces::Dies { to }, Outcome::Instead(zone)) => {
             let who = match to {

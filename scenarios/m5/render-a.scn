@@ -38,6 +38,37 @@ scenario "Halana and Alena give another creature counters and haste" {
   assert counters "Halana and Alena, Partners" +1/+1 1
 }
 
+scenario "Abomination's power-up grows him and he fights" {
+  battlefield A: "Abomination, Terrifying Titan", 7 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Abomination, Terrifying Titan" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Abomination, Terrifying Titan" +1/+1 1
+  assert graveyard B contains "Hill Giant"
+  assert damage "Abomination, Terrifying Titan" 3
+}
+
+scenario "Abomination's power-up is activated only once" {
+  battlefield A: "Abomination, Terrifying Titan", 14 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Abomination, Terrifying Titan"
+  illegal turn 1 postcombat_main A: activate "Abomination, Terrifying Titan"
+  run_to turn 1 end
+  assert counters "Abomination, Terrifying Titan" +1/+1 1
+}
+
+scenario "Madame Masque connives as she enters" {
+  battlefield A: 5 "Swamp"
+  hand A: "Madame Masque"
+  library A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Madame Masque"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Madame Masque" +1/+1 1
+}
+
 scenario "Brambleguard Captain gives its power to a creature you control" {
   battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
   start turn 1 A precombat_main

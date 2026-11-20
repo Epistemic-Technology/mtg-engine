@@ -92,6 +92,15 @@ pub struct ManaRestriction {
     pub wording: mtg_core::card::SpendWording,
 }
 
+/// The pronoun a character's text uses for it after its name: `pronoun
+/// he` ("He fights up to one target creature", "shuffles him into their
+/// library"), `pronoun she`. Wording only.
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
+pub enum Pronoun {
+    He,
+    She,
+}
+
 /// One definition: a `card`, `token`, or `emblem` block.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Card {
@@ -133,6 +142,8 @@ pub struct Card {
     /// cast, the controller of the permanent it becomes sacrifices it at
     /// the beginning of the next cleanup step."
     pub flash_cleanup: bool,
+    /// `pronoun he`: how the text refers to the card after naming it.
+    pub pronoun: Option<Pronoun>,
     /// Derived as a spell is parsed: how many of its targets come before
     /// those an "if kicked" sentence declares (Orim's Thunder's "target
     /// creature" is chosen only if the spell is kicked, CR 601.2c).
@@ -193,6 +204,7 @@ impl Card {
             alt_cost: None,
             flash_if: None,
             flash_cleanup: false,
+            pronoun: None,
             unkicked_targets: None,
             cast_only: None,
             kicker: None,

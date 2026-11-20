@@ -112,6 +112,15 @@ fn format_inner(card: &Card) -> String {
     if card.flash_cleanup {
         let _ = writeln!(out, "  flash with cleanup sacrifice");
     }
+    match card.pronoun {
+        Some(crate::ast::Pronoun::He) => {
+            let _ = writeln!(out, "  pronoun he");
+        }
+        Some(crate::ast::Pronoun::She) => {
+            let _ = writeln!(out, "  pronoun she");
+        }
+        None => {}
+    }
     if let Some(c) = &card.cast_only {
         let c = static_cond(c);
         if c.starts_with("during") || c.starts_with("before") {
