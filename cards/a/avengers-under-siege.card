@@ -1,0 +1,8 @@
+card "Avengers: Under Siege" {
+  oracle_id d911cf65-7273-4162-a766-7d4107699dc2
+  cost {2}{B}{R}
+  type Enchantment — Saga
+  triggered chapter 1: create 2 "2/1 black Villain creature with menace"
+  triggered chapter 2: deal 2 damage to each non-Villain creature and each opponent
+  triggered chapter 3: create count each Villain you control "Treasure"
+}

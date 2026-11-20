@@ -70,14 +70,7 @@ impl GameState {
                 {
                     continue;
                 }
-                // CR 714.2c: a chapter ability triggers once for each of
-                // its chapter numbers the lore counters reach.
-                let copies = match (&t.trigger, event) {
-                    (TriggerSpec::Chapter(mask), Event::CountersAdded { n, before, .. }) => {
-                        chapters_crossed(*mask, *before, *n).count_ones()
-                    }
-                    _ => 1,
-                };
+                let copies = chapter_copies(&t.trigger, event);
                 // CR 603.2c: "one or more ... enter", once per batch.
                 let batch = matches!(
                     t.trigger,
@@ -88,21 +81,7 @@ impl GameState {
                 if batch && self.join_batch(&mut fired, ability, w.source) {
                     continue;
                 }
-                for _ in 1..copies {
-                    fired.push(PendingTrigger {
-                        controller: w.controller,
-                        ability: StackAbility {
-                            ability,
-                            source: w.source,
-                            def: w.chars.def,
-                            trigger_obj,
-                            trigger_player,
-                            trigger_amount: event_amount,
-                        },
-                        timestamp: 0,
-                    });
-                }
-                fired.push(PendingTrigger {
+                let pending = PendingTrigger {
                     controller: w.controller,
                     ability: StackAbility {
                         ability,
@@ -113,7 +92,8 @@ impl GameState {
                         trigger_amount: if batch { 1 } else { event_amount },
                     },
                     timestamp: 0,
-                });
+                };
+                fired.extend(std::iter::repeat_n(pending, copies));
             }
         }
         if matches!(event, Event::Cycled { .. }) {
@@ -1589,6 +1569,18 @@ impl GameState {
         if self.saga_count > 0 {
             self.sba_touch();
         }
+    }
+}
+
+/// How many times a triggered ability triggers on `event`: once, but a
+/// chapter ability once for each chapter number its lore counters reach
+/// (CR 714.2c).
+fn chapter_copies(trigger: &TriggerSpec, event: &Event) -> usize {
+    match (trigger, event) {
+        (TriggerSpec::Chapter(mask), Event::CountersAdded { n, before, .. }) => {
+            chapters_crossed(*mask, *before, *n).count_ones() as usize
+        }
+        _ => 1,
     }
 }
 

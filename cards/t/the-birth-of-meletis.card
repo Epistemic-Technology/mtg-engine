@@ -1,0 +1,8 @@
+card "The Birth of Meletis" {
+  oracle_id 1ae54fe7-b1d3-4c13-a8ef-f502cf3eb1a0
+  cost {1}{W}
+  type Enchantment — Saga
+  triggered chapter 1: search basic Plains card reveal to hand
+  triggered chapter 2: create 1 "0/4 colorless Wall artifact creature with defender"
+  triggered chapter 3: you gain 2 life
+}

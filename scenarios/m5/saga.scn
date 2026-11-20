@@ -83,3 +83,25 @@ scenario "saga: a Saga creature is sacrificed after its last chapter" {
   run_to turn 1 postcombat_main
   assert graveyard A contains "Summon: G.F. Ifrit"
 }
+
+scenario "saga: a chapter's delayed trigger lasts the turn" {
+  battlefield A: "Thunder of Unity" with 1 lore, 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert counters "Thunder of Unity" lore 2
+}
+
+scenario "saga: a Saga creature's chapters; the stun counter keeps its target tapped" {
+  battlefield A: "Summon: Shiva" with 1 lore
+  battlefield B: "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Summon: Shiva"
+  assert tapped "Hill Giant"
+  assert hand A count 2
+}

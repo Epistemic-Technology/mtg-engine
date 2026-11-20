@@ -68,7 +68,7 @@ pub fn compile_order(cards: &mut [Card]) {
 }
 
 /// Compile one definition into the pool.
-#[allow(clippy::implicit_hasher)]
+#[allow(clippy::implicit_hasher, clippy::too_many_lines)] // one step per kind of face
 pub fn add_card(
     pool: &mut CardPool,
     card: &Card,
@@ -185,33 +185,45 @@ pub fn add_card(
         }
     }
     if !stages.is_empty() {
-        let mut refs = vec![r];
-        for s in &stages[1..] {
-            let mut c = Compiler {
-                pool,
-                card: s,
-                lookup: by_name,
-                groups: Vec::new(),
-                many: None,
-                implied: Vec::new(),
-                implied_used: std::rc::Rc::default(),
-                scavenge: None,
-                station: None,
-                extort: None,
-                token: None,
-                cast_snapshot: None,
-            };
-            let mut d = c.card()?;
-            link_exiles(&mut d);
-            d.oracle_text = pool.get(r).oracle_text.clone();
-            let x = pool.add(d);
-            refs.push(x);
-        }
-        // Each stage registered under the card's name; the card keeps it.
-        pool.alias(&card.name, r);
-        pool.set_stages(&refs);
+        add_stages(pool, card, &stages[1..], r, by_name)?;
     }
     Ok(r)
+}
+
+/// Compile a Class's later levels or a solved Case (`stage_cards`) and
+/// link them to the card `r` (`CardDef::stages`).
+fn add_stages(
+    pool: &mut CardPool,
+    card: &Card,
+    later: &[Card],
+    r: CardRef,
+    by_name: &HashMap<&str, &Card>,
+) -> Result<(), CompileError> {
+    let mut refs = vec![r];
+    for s in later {
+        let mut c = Compiler {
+            pool,
+            card: s,
+            lookup: by_name,
+            groups: Vec::new(),
+            many: None,
+            implied: Vec::new(),
+            implied_used: std::rc::Rc::default(),
+            scavenge: None,
+            station: None,
+            extort: None,
+            token: None,
+            cast_snapshot: None,
+        };
+        let mut d = c.card()?;
+        link_exiles(&mut d);
+        d.oracle_text.clone_from(&pool.get(r).oracle_text);
+        refs.push(pool.add(d));
+    }
+    // Each stage registered under the card's name; the card keeps it.
+    pool.alias(&card.name, r);
+    pool.set_stages(&refs);
+    Ok(())
 }
 
 /// A Class's levels (CR 716) or a Case's unsolved and solved states (CR
