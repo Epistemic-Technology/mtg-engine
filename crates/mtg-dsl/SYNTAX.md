@@ -524,7 +524,8 @@ Each player named acts on their own, in turn order (CR 101.4): `each player
 returns 1 creature they control` ("Each player returns a creature they
 control to its owner's hand"), `each player may scry 1`, `then each
 opponent may scry 1` (`scries` without `may`; declining to scry leaves the
-library as keeping every card on top does), `each player may search basic
+library as keeping every card on top does; `you scry 2` prints an explicit
+"you scry 2"), `each player may search basic
 land card reveal to hand`, `each player puts 1 creature card from
 graveyard onto battlefield` ("... from their graveyard onto the
 battlefield": each chooses, then the cards enter together). `each opponent

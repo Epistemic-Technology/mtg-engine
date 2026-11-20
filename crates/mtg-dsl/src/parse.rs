@@ -4499,7 +4499,8 @@ impl P {
                     may: true,
                 })
             }
-            "scries" => {
+            // "... and you scry 2": an explicit "you".
+            "scries" | "scry" if w == "scries" || subject == Recipient::You => {
                 let count = self.num()?;
                 Ok(Effect::ScryEach {
                     who: subject,

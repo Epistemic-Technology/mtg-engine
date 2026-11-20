@@ -1,0 +1,8 @@
+card "Psychic Impetus" {
+  oracle_id 47214acc-08c4-4dcb-9a8b-09196ce41045
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, goaded
+  triggered whenever enchanted creature attacks: you scry 2
+}
