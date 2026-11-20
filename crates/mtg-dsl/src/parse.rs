@@ -1383,6 +1383,19 @@ impl P {
                     _ => Mechanic::BuybackCost(c),
                 }))
             }
+            "station" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Station))
+            }
+            "station" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                self.expect(&Tok::Colon)?;
+                let keywords = self.keyword_list()?;
+                self.end_stmt()?;
+                Ok(Ability::StationLevel { n, keywords })
+            }
             "bargain" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -2370,6 +2383,11 @@ impl P {
         }
         if self.eat_words(&["attacked", "a", "battle", "this", "turn"]) {
             return Ok(StaticCond::AttackedBattleThisTurn);
+        }
+        if self.eat_words(&["attacked", "with"]) {
+            let f = self.filter()?;
+            self.expect_words(&["this", "turn"])?;
+            return Ok(StaticCond::AttackedWith(f));
         }
         if self.eat_words(&["attacked", "last", "turn"]) {
             return Ok(StaticCond::AttackedLastTurn);

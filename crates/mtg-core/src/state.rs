@@ -896,6 +896,7 @@ impl Moved {
             ThisWay::Discarded => self.from == Zone::Hand && self.to != Zone::Hand,
             ThisWay::Milled => self.from == Zone::Library && self.to == Zone::Graveyard,
             ThisWay::PutInHand => self.to == Zone::Hand && self.from != Zone::Hand,
+            ThisWay::Tapped => self.from == Zone::Battlefield && self.to == Zone::Battlefield,
         }
     }
 }
@@ -1467,6 +1468,22 @@ impl GameState {
             self.opponent(o.controller)
         } else {
             o.controller
+        })
+    }
+
+    /// Whether a creature matching `f` attacked under `p`'s control this
+    /// turn ("if you attacked with a Spacecraft this turn"), judged as it
+    /// is or as it last existed.
+    pub fn attacked_with(&self, p: PlayerId, f: &crate::card::ObjFilter) -> bool {
+        self.attackers_this_turn.iter().any(|id| {
+            let (controller, c) = match self.objects.get(*id) {
+                Some(o) => (o.controller, self.characteristics(*id)),
+                None => match self.lki.get(id) {
+                    Some(l) => (l.object.controller, Some(l.characteristics)),
+                    None => return false,
+                },
+            };
+            controller == p && c.is_some_and(|c| f.matches(*id, controller, &c, None, Some(p)))
         })
     }
 
@@ -2202,6 +2219,7 @@ impl GameState {
         match cond {
             C::CardsInGraveyard(n) => self.player(you).graveyard.len() >= *n as usize,
             C::UnlockedDoors(n) => self.unlocked_doors(you) >= *n,
+            C::AttackedWith(f) => self.attacked_with(you, f),
             C::CardTypesInGraveyard(n) => {
                 let mut types = crate::card::TypeSet::default();
                 for g in &self.player(you).graveyard {

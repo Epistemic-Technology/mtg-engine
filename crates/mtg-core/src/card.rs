@@ -1823,6 +1823,10 @@ pub enum StaticCondition {
     /// "there are two or more unlocked doors among Rooms you control"
     /// (CR 709.5j).
     UnlockedDoors(u32),
+    /// "you attacked with a Spacecraft this turn": a creature matching
+    /// the filter (judged now, or as it last existed) attacked under your
+    /// control this turn.
+    AttackedWith(ObjFilter),
     /// "there are four or more card types among cards in your graveyard"
     /// (delirium).
     CardTypesInGraveyard(u32),
@@ -3633,6 +3637,9 @@ pub enum ThisWay {
     /// Put into a hand ("returned this way", "If you put an artifact card
     /// into your hand this way").
     PutInHand,
+    /// Tapped to pay a cost ("the tapped creature's power", station's,
+    /// CR 702.184a): recorded where it stays, on the battlefield.
+    Tapped,
 }
 
 /// "If a creature card was exiled this way", "If you discarded a card this

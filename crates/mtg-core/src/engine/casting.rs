@@ -3090,6 +3090,7 @@ impl GameState {
         }
         // "Tap two untapped Beasts you control": before the mana.
         let mut sacrifice = sacrifice;
+        let mut tapped_paid: SmallVec<[ObjId; 2]> = SmallVec::new();
         if let (true, Some(SacCost::Filter(f))) = (ab.cost.taps_chosen(), &ab.cost.sacrifice) {
             let sources = self.ability_sources(controller, sa.source);
             let n = ab.cost.chosen_count();
@@ -3106,6 +3107,7 @@ impl GameState {
                 .unwrap_or_default()
             {
                 self.tap(c);
+                tapped_paid.push(c);
             }
             sacrifice = None;
         }
@@ -3144,6 +3146,10 @@ impl GameState {
             }
         }
         self.pay_costs_recorded(obj, |s| {
+            // "the tapped creature's power" (station, CR 702.184a).
+            for c in tapped_paid {
+                s.note_tapped_for_cost(c);
+            }
             s.pay_other_costs(controller, &ab.cost, sa.source, sacrifice, discard);
         });
         self.emit(Event::Activated {
@@ -3587,7 +3593,10 @@ impl GameState {
                             crate::card::ChosenCost::Return => {
                                 self.move_object(s, Zone::Hand, false);
                             }
-                            crate::card::ChosenCost::Tap => self.tap(s),
+                            crate::card::ChosenCost::Tap => {
+                                self.tap(s);
+                                self.note_tapped_for_cost(s);
+                            }
                         }
                     }
                 }
@@ -3636,6 +3645,23 @@ impl GameState {
                 let Some(n) = next else { break };
                 self.discard_card(p, n);
             }
+        }
+    }
+
+    /// Remember a permanent tapped to pay a cost, for "the tapped
+    /// creature's power" as the ability resolves (`ThisWay::Tapped`).
+    fn note_tapped_for_cost(&mut self, id: ObjId) {
+        let Some(owner) = self.objects.get(id).map(|o| o.owner) else {
+            return;
+        };
+        if let Some(log) = &mut self.this_way {
+            log.moved.push(crate::state::Moved {
+                old: id,
+                new: id,
+                from: Zone::Battlefield,
+                to: Zone::Battlefield,
+                owner,
+            });
         }
     }
 

@@ -1,0 +1,9 @@
+card "Wurmwall Sweeper" {
+  oracle_id 320ed2ec-ef06-41fb-ac8a-72579f11544c
+  cost {2}
+  type Artifact — Spacecraft
+  pt 2/2
+  triggered when this enters: surveil 2
+  station
+  station 4: flying
+}

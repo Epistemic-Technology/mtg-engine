@@ -947,6 +947,13 @@ pub enum Ability {
         toughness: bool,
         plus: u32,
     },
+    /// `station 4: flying` (CR 721.2): "4+ | Flying": as long as it has
+    /// four or more charge counters it has the keywords, and with a P/T
+    /// box (the card's `pt`) it is a creature (CR 721.2b).
+    StationLevel {
+        n: u32,
+        keywords: Vec<Keyword>,
+    },
     /// `protection doesn't remove this`: "This effect doesn't remove this
     /// Aura.", printed after the static ability before it.
     AuraStays,
@@ -1099,6 +1106,10 @@ pub enum Mechanic {
     /// CR 702.166: `bargain`: "You may sacrifice an artifact, enchantment,
     /// or token as you cast this spell."
     Bargain,
+    /// CR 702.184: `station`: "Tap another untapped creature you control:
+    /// Put a number of charge counters on this permanent equal to the
+    /// tapped creature's power. Activate only as a sorcery."
+    Station,
     /// CR 702.131: `ascend`: the city's blessing once you control ten or
     /// more permanents (a permanent's static ability; an instant's or
     /// sorcery's first effect).
@@ -1239,6 +1250,9 @@ pub enum StaticCond {
     /// `2 unlocked doors`: "there are two or more unlocked doors among
     /// Rooms you control" (CR 709.5j).
     UnlockedDoors(u32),
+    /// `attacked with Spacecraft this turn`: "you attacked with a
+    /// Spacecraft this turn".
+    AttackedWith(Filter),
     /// `attacked a battle this turn`: "it attacked a battle this turn"
     /// (the source).
     AttackedBattleThisTurn,
@@ -2796,6 +2810,7 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
         ThisWay::Discarded => "discarded",
         ThisWay::Milled => "milled",
         ThisWay::PutInHand => "returned",
+        ThisWay::Tapped => "tapped",
     }
 }
 

@@ -88,6 +88,7 @@ pub fn add_card(
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
             scavenge: None,
+            station: None,
             token: None,
         };
         let def = c.card()?;
@@ -110,6 +111,7 @@ pub fn add_card(
                 implied: Vec::new(),
                 implied_used: std::rc::Rc::default(),
                 scavenge: None,
+                station: None,
                 token: None,
             };
             let def = c.card()?;
@@ -128,6 +130,7 @@ pub fn add_card(
         implied: Vec::new(),
         implied_used: std::rc::Rc::default(),
         scavenge: None,
+        station: None,
         token,
     };
     let mut def = c.card()?;
@@ -187,6 +190,8 @@ struct Compiler<'a> {
     implied_used: std::rc::Rc<std::cell::Cell<Option<CoreChoiceKind>>>,
     /// Scavenge's count (the card's power), once added to the counts.
     scavenge: Option<u8>,
+    /// Station's count (the tapped creature's power), likewise.
+    station: Option<u8>,
     /// The token embalm, eternalize, or offspring creates, compiled
     /// before the card (`derived_token`).
     token: Option<CardRef>,
@@ -377,6 +382,14 @@ impl Compiler<'_> {
                 }
                 Ability::Mechanic(Mechanic::BecomesDay) => {
                     b = b.marks(mtg_core::card::Marks::BECOMES_DAY);
+                }
+                Ability::Mechanic(Mechanic::Station) => {
+                    // CR 702.184a: "equal to the tapped creature's power".
+                    counts.push(mtg_core::card::CountExpr::MovedStat {
+                        verb: mtg_core::card::ThisWay::Tapped,
+                        stat: mtg_core::card::Stat::Power,
+                    });
+                    self.station = u8::try_from(counts.len() - 1).ok();
                 }
                 Ability::Mechanic(Mechanic::Scavenge(_)) => {
                     // CR 702.97a: "equal to this card's power", as the card
@@ -798,6 +811,7 @@ impl Compiler<'_> {
             ),
             StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
             StaticCond::UnlockedDoors(n) => StaticCondition::UnlockedDoors(*n),
+            StaticCond::AttackedWith(f) => StaticCondition::AttackedWith(self.filter(f)),
             StaticCond::AttackedBattleThisTurn => StaticCondition::SourceAttackedBattle,
             StaticCond::AttackedLastTurn => StaticCondition::AttackedLastTurn,
             StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
@@ -2728,6 +2742,42 @@ impl Compiler<'_> {
                     )
                 }
                 Mechanic::Backup(n) => self.backup(a, *n)?,
+                // CR 702.184a: "Tap another untapped creature you control:
+                // Put a number of charge counters on this permanent equal
+                // to the tapped creature's power. Activate only as a
+                // sorcery."
+                Mechanic::Station => {
+                    let Some(i) = self.station else {
+                        return self.err("station's count is missing");
+                    };
+                    let mut f = mtg_core::card::ObjFilter::creatures()
+                        .who(mtg_core::card::Who::You)
+                        .other();
+                    f.tapped = Some(false);
+                    AbilityDef::Activated(ActivatedAbility {
+                        cost: CoreCost {
+                            sacrifice: Some(CoreSacCost::Filter(f)),
+                            chosen: mtg_core::card::ChosenCost::Tap,
+                            ..CoreCost::default()
+                        },
+                        targets: Vec::new(),
+                        effects: vec![CoreEffect::AddCounters {
+                            kind: mtg_core::card::CounterKind::Charge,
+                            count: Num::Count(i),
+                            to: CoreRecipient::Source,
+                        }],
+                        sorcery_speed: true,
+                        per_turn: 0,
+                        conditions: Vec::new(),
+                        once_ever: false,
+                        from_hand: false,
+                        cycling: false,
+                        from_graveyard: false,
+                        keyword: None,
+                        reduction: None,
+                        text: render::ability_text(self.card, a, self.lookup),
+                    })
+                }
                 Mechanic::Saddle(n) => AbilityDef::Activated(ActivatedAbility {
                     cost: CoreCost {
                         crew: *n,
@@ -2780,6 +2830,27 @@ impl Compiler<'_> {
                 whose: *whose,
                 delta: *delta,
             },
+            // CR 721.2a-b: "As long as this permanent has N or more charge
+            // counters on it, it has [abilities] and is a creature with
+            // base power and toughness [P/T]" (the card's own P/T).
+            Ability::StationLevel { n, keywords } => {
+                let mut mods = Vec::new();
+                if self.card.pt.is_some() {
+                    mods.push(Mod::AddTypes(vec![mtg_core::card::CardType::Creature]));
+                }
+                mods.push(Mod::AddKeywords(keywords.clone()));
+                return self.ability(&Ability::Static {
+                    filter: crate::ast::Filter::this(),
+                    mods,
+                    condition: Some(StaticCond::SourceCounters {
+                        kind: mtg_core::card::CounterKind::Charge,
+                        n: *n,
+                        at_least: true,
+                    }),
+                    cond_first: false,
+                    cond_if: false,
+                });
+            }
             Ability::ExtraVote { optional } => AbilityDef::ExtraVote {
                 optional: *optional,
             },
@@ -3122,6 +3193,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Ascend
         | Mechanic::StartYourEngines
         | Mechanic::BecomesDay
+        | Mechanic::Station
         | Mechanic::Saddle(_) => unreachable!("not an expansion"),
     }
 }

@@ -3241,6 +3241,7 @@ fn static_cond(c: &StaticCond) -> String {
         ),
         StaticCond::AttackedThisTurn => "attacked this turn".to_string(),
         StaticCond::UnlockedDoors(n) => format!("{n} unlocked doors"),
+        StaticCond::AttackedWith(f) => format!("attacked with {} this turn", filter(f)),
         StaticCond::AttackedBattleThisTurn => "attacked a battle this turn".to_string(),
         StaticCond::AttackedLastTurn => "attacked last turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
@@ -3834,6 +3835,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Offspring(c) => format!("offspring {c}"),
                 crate::ast::Mechanic::Strive(c) => format!("strive {c}"),
                 crate::ast::Mechanic::Bargain => "bargain".to_string(),
+                crate::ast::Mechanic::Station => "station".to_string(),
                 crate::ast::Mechanic::Saddle(n) => format!("saddle {n}"),
                 crate::ast::Mechanic::Ascend => "ascend".to_string(),
                 crate::ast::Mechanic::StartYourEngines => "start your engines".to_string(),
@@ -3883,6 +3885,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::AuraStays => {
             let _ = writeln!(out, "{indent}protection doesn't remove this");
+        }
+        Ability::StationLevel { n, keywords } => {
+            let ks: Vec<&str> = keywords.iter().map(|k| k.name()).collect();
+            let _ = writeln!(out, "{indent}station {n}: {}", ks.join(", "));
         }
         Ability::CrewsAs {
             saddles,

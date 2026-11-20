@@ -390,6 +390,7 @@ impl Decompiler<'_> {
             }
             StaticCondition::AttackedThisTurn => StaticCond::AttackedThisTurn,
             StaticCondition::UnlockedDoors(n) => StaticCond::UnlockedDoors(*n),
+            StaticCondition::AttackedWith(f) => StaticCond::AttackedWith(self.filter(f)),
             StaticCondition::SourceAttackedBattle => StaticCond::AttackedBattleThisTurn,
             StaticCondition::AttackedLastTurn => StaticCond::AttackedLastTurn,
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,

@@ -299,3 +299,55 @@ scenario "Room: eerie lets a defender attack" {
   run_to turn 3 postcombat_main
   assert life B 17
 }
+
+scenario "Room: without eerie the defender can't attack" {
+  battlefield A: "Meat Locker", "Stalked Researcher", "Grizzly Bears"
+  start turn 3 A
+  illegal turn 3 A: attack "Stalked Researcher"
+  run_to turn 3 postcombat_main
+}
+
+scenario "station: tap another creature for charge counters equal to its power" {
+  battlefield A: "Wurmwall Sweeper", "Hill Giant"
+  turn 1 A: activate "Wurmwall Sweeper" sacrificing "Hill Giant"
+  run_to turn 1 end
+  assert counters "Wurmwall Sweeper" charge 3
+  assert tapped "Hill Giant"
+  assert is not "Wurmwall Sweeper" creature
+}
+
+scenario "station: at 4+ it is an artifact creature with flying" {
+  battlefield A: "Wurmwall Sweeper" with 3 charge, "Grizzly Bears"
+  turn 1 A: activate "Wurmwall Sweeper" sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Wurmwall Sweeper" charge 5
+  assert is "Wurmwall Sweeper" creature
+  assert has "Wurmwall Sweeper" flying
+  assert power "Wurmwall Sweeper" 2
+}
+
+scenario "station: only as a sorcery" {
+  battlefield A: "Wurmwall Sweeper", "Hill Giant"
+  start turn 2 B
+  illegal turn 2 A: activate "Wurmwall Sweeper"
+  run_to turn 2 end
+}
+
+scenario "Spacecraft: the ability costs {3} less after attacking with a Spacecraft" {
+  battlefield A: "Thaumaton Torpedo", 3 "Island", "Wurmwall Sweeper" with 4 charge
+  battlefield B: "Hill Giant"
+  start turn 3 A
+  turn 3 A: attack "Wurmwall Sweeper"
+  turn 3 main2 A: activate "Thaumaton Torpedo" targeting "Hill Giant"
+  run_to turn 3 end
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+}
+
+scenario "Spacecraft: no attack, no reduction" {
+  battlefield A: "Thaumaton Torpedo", 3 "Island", "Wurmwall Sweeper" with 4 charge
+  battlefield B: "Hill Giant"
+  start turn 3 A
+  illegal turn 3 main2 A: activate "Thaumaton Torpedo" targeting "Hill Giant"
+  run_to turn 3 end
+}

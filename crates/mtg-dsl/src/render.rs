@@ -7648,6 +7648,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         },
         StaticCond::Attacking => "it's attacking".to_string(),
         StaticCond::AttackedBattleThisTurn => "it attacked a battle this turn".to_string(),
+        StaticCond::AttackedWith(f) => {
+            format!("you attacked with {} this turn", filter_a(f, card))
+        }
         StaticCond::UnlockedDoors(n) => format!(
             "there are {} or more unlocked doors among Rooms you control",
             count_words(Num::N(*n), "one")
@@ -8536,6 +8539,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "Strive \u{2014} This spell costs {c} more to cast for each target beyond the first."
             ),
             crate::ast::Mechanic::Bargain => "Bargain".to_string(),
+            crate::ast::Mechanic::Station => "Station".to_string(),
             crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
             crate::ast::Mechanic::Ascend => "Ascend".to_string(),
             crate::ast::Mechanic::StartYourEngines => "Start your engines!".to_string(),
@@ -8596,6 +8600,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         Ability::Uncounterable => "This spell can't be countered.".to_string(),
         Ability::AuraStays => "This effect doesn't remove this Aura.".to_string(),
+        // CR 721.2: "4+ | Flying".
+        Ability::StationLevel { n, keywords } => {
+            let ks: Vec<String> = keywords.iter().map(|k| capitalize(k.name())).collect();
+            format!("{n}+ | {}", ks.join(", "))
+        }
         Ability::CrewsAs {
             saddles,
             toughness,
