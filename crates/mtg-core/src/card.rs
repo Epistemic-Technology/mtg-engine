@@ -3593,6 +3593,11 @@ pub enum Effect {
     /// no damage this resolution deals is prevented. Read before the
     /// spell's effects happen, wherever it is written among them.
     DamageUnpreventable,
+    /// "Excess damage is dealt to that creature's controller instead."
+    /// (Pigment Storm, CR 120.4a): read before the spell's effects
+    /// happen; its damage to a creature beyond lethal goes to that
+    /// creature's controller.
+    ExcessToController,
     /// "This creature assigns no combat damage this turn" (CR 510.1a):
     /// it assigns none in this turn's combat damage steps.
     AssignsNoCombatDamage {

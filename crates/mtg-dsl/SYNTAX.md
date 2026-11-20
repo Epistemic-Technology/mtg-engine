@@ -1253,7 +1253,10 @@ planeswalker would die this turn" and covers the planeswalker too, CR
 exile`: "If a creature dealt damage this way would die this turn, exile
 it instead.", one effect locked to each permanent the resolution has
 dealt damage to so far, CR 608.2c), `players can't gain life this turn`,
-`damage can't be prevented this turn`, `the damage can't be prevented`
+`damage can't be prevented this turn`, `excess damage to its controller
+instead` (after a spell's damage to a creature: "Excess damage is dealt to
+that creature's controller instead.", CR 120.4a: beyond lethal damage, as
+a second damage event), `the damage can't be prevented`
 (after a spell's damage: "The damage can't be prevented.", that spell's
 damage only, CR 615.12), and
 `delayed <what>: <effects> at beginning of the next end step` (a delayed

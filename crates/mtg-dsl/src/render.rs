@@ -5725,6 +5725,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::DamageUnpreventable => {
             Clause::imperative("the damage can't be prevented".to_string())
         }
+        Effect::ExcessToController => Clause::imperative(
+            "excess damage is dealt to that creature's controller instead".to_string(),
+        ),
         Effect::PlayerRule { who, kind } => {
             let s = ctx.subj(*who);
             Clause::with_subject(

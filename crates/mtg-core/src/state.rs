@@ -915,6 +915,8 @@ pub struct ThisWayLog {
     /// "The damage can't be prevented" (CR 615.12): this resolution's
     /// damage.
     pub unpreventable: bool,
+    /// "Excess damage is dealt to that creature's controller instead."
+    pub excess_to_controller: bool,
     /// The permanents dealt damage, in order ("a creature dealt damage
     /// this way").
     pub damaged: Vec<ObjId>,

@@ -385,3 +385,37 @@ scenario "Orbital Plunge: exactly lethal damage makes no Lander" {
   assert graveyard B contains "Colossal Dreadmaw"
   assert battlefield A lacks "Lander"
 }
+
+# ---- excess damage dealt to the controller instead ----
+
+scenario "Pigment Storm: damage beyond lethal goes to the creature's controller" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Pigment Storm"
+  turn 1 A: cast "Pigment Storm" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "Pigment Storm: damage already marked counts toward lethal" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Colossal Dreadmaw"
+  hand A: "Shock", "Pigment Storm"
+  turn 1 A: cast "Shock" targeting "Colossal Dreadmaw"
+  turn 1 A: wait
+  turn 1 A: cast "Pigment Storm" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Colossal Dreadmaw"
+  assert life B 19
+}
+
+scenario "Pigment Storm: no excess, the controller takes nothing" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Colossal Dreadmaw"
+  hand A: "Pigment Storm"
+  turn 1 A: cast "Pigment Storm" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert damage "Colossal Dreadmaw" 5
+  assert life B 20
+}

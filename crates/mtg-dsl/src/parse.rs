@@ -5948,6 +5948,12 @@ impl P {
                 self.expect_words(&["can't", "be", "prevented", "this", "turn"])?;
                 Ok(Effect::Rule(RuleKind::DamageCantBePrevented))
             }
+            // "Excess damage is dealt to that creature's controller
+            // instead." (Pigment Storm).
+            "excess" if self.at_words(&["damage", "to", "its", "controller", "instead"]) => {
+                self.pos += 5;
+                Ok(Effect::ExcessToController)
+            }
             // "The damage can't be prevented." (Pinpoint Avalanche).
             "the" if self.at_words(&["damage", "can't", "be", "prevented"]) => {
                 self.pos += 4;

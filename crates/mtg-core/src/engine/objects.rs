@@ -1113,7 +1113,12 @@ impl GameState {
     /// (1 from a source with deathtouch, CR 702.2c), its loyalty to a
     /// planeswalker; with both types the lesser, so the excess is the
     /// greatest.
-    fn lethal_left(&self, id: ObjId, c: &crate::state::Characteristics, deathtouch: bool) -> u32 {
+    pub(super) fn lethal_left(
+        &self,
+        id: ObjId,
+        c: &crate::state::Characteristics,
+        deathtouch: bool,
+    ) -> u32 {
         let o = &self.objects[id];
         let mut left = u32::MAX;
         if c.is_creature() {

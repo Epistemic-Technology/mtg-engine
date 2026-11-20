@@ -1,0 +1,6 @@
+card "Pigment Storm" {
+  oracle_id 89abdf4c-ba9d-4602-ae50-cf79c68ea08d
+  cost {3}{R}{R}
+  type Sorcery
+  spell: deal 5 damage to target creature; excess damage to its controller instead
+}

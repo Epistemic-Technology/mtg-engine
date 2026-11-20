@@ -1039,6 +1039,7 @@ impl Decompiler<'_> {
             CoreEffect::CreateReplacement(rep) => Effect::CreateReplacement(self.replacement(rep)),
             CoreEffect::Rule(k) => Effect::Rule(*k),
             CoreEffect::DamageUnpreventable => Effect::DamageUnpreventable,
+            CoreEffect::ExcessToController => Effect::ExcessToController,
             CoreEffect::PlayerRule { who, kind } => Effect::PlayerRule {
                 who: Self::recipient(*who),
                 kind: *kind,

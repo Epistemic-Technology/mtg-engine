@@ -1849,6 +1849,7 @@ impl Compiler<'_> {
             }
             Effect::Rule(k) => out.push(CoreEffect::Rule(*k)),
             Effect::DamageUnpreventable => out.push(CoreEffect::DamageUnpreventable),
+            Effect::ExcessToController => out.push(CoreEffect::ExcessToController),
             Effect::PlayerRule { who, kind } => out.push(CoreEffect::PlayerRule {
                 who: r(*who),
                 kind: *kind,

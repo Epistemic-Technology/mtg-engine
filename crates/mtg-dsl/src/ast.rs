@@ -2876,6 +2876,9 @@ pub enum Effect {
     /// `the damage can't be prevented`: "The damage can't be prevented."
     /// (this spell's damage, CR 615.12).
     DamageUnpreventable,
+    /// `excess damage to its controller instead`: "Excess damage is dealt
+    /// to that creature's controller instead." (CR 120.4a).
+    ExcessToController,
     /// `this assigns no combat damage this turn`: "This creature assigns
     /// no combat damage this turn."
     AssignsNoCombatDamage {

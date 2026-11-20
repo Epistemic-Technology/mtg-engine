@@ -1861,6 +1861,7 @@ impl Fmt {
                 "damage can't be prevented this turn".to_string()
             }
             Effect::DamageUnpreventable => "the damage can't be prevented".to_string(),
+            Effect::ExcessToController => "excess damage to its controller instead".to_string(),
             Effect::PlayerRule { who, kind } => format!(
                 "{} can't {} this turn",
                 self.recipient(*who, t),
