@@ -17,6 +17,7 @@ use crate::mana::Color;
 
 fn ability(targets: Vec<TargetSpec>, effects: Vec<Effect>) -> AbilityDef {
     AbilityDef::Triggered(TriggeredAbility {
+        limit: crate::card::TurnLimit::None,
         trigger: TriggerSpec::Reflexive,
         condition: None,
         targets,

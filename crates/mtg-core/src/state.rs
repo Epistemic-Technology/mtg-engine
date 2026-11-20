@@ -1529,6 +1529,14 @@ pub struct GameState {
     pub loyalty_activated: Vec<ObjId>,
     /// "Activate only once each turn" abilities used this turn.
     pub activated_once: Vec<(ObjId, crate::card::AbilityId)>,
+    /// Triggered abilities limited each turn (`TurnLimit`): one entry each
+    /// time one triggered (`TurnLimit::Triggers`) or its controller did
+    /// what it limits (`TurnLimit::Do`) this turn. A new object has a new
+    /// id, so it starts fresh (CR 400.7).
+    pub limited_this_turn: Vec<(ObjId, crate::card::AbilityId)>,
+    /// While a `TurnLimit::Do` ability resolves: its source and ability,
+    /// for its first "you may".
+    pub doing_once: Option<(ObjId, crate::card::AbilityId)>,
     /// "Activate only once" abilities used (exhaust, CR 702.177a;
     /// power-up, CR 702.193a): never cleared, since the object a new
     /// zone makes is a new object with a new id (CR 400.7).

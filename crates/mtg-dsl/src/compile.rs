@@ -2402,6 +2402,7 @@ impl Compiler<'_> {
                 let id = self
                     .pool
                     .register_ability(AbilityDef::Triggered(TriggeredAbility {
+                        limit: mtg_core::card::TurnLimit::None,
                         from_graveyard: false,
                         trigger: TriggerSpec::Reflexive,
                         condition: None,
@@ -2481,6 +2482,7 @@ impl Compiler<'_> {
                 let id = self
                     .pool
                     .register_ability(AbilityDef::Triggered(TriggeredAbility {
+                        limit: mtg_core::card::TurnLimit::None,
                         from_graveyard: false,
                         trigger,
                         condition: None,
@@ -3204,6 +3206,7 @@ impl Compiler<'_> {
             });
         }
         Ok(AbilityDef::Triggered(TriggeredAbility {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: TriggerSpec::Enters(CoreTriggerObj::This),
             condition: None,
@@ -3362,7 +3365,9 @@ impl Compiler<'_> {
                 targets,
                 effects,
                 from_graveyard,
+                limit,
             } => AbilityDef::Triggered(TriggeredAbility {
+                limit: *limit,
                 trigger: self.trigger(trigger),
                 condition: match condition {
                     None => None,
@@ -3394,6 +3399,7 @@ impl Compiler<'_> {
                 }])];
                 inner.extend(effects.iter().cloned());
                 return self.ability(&Ability::Triggered {
+                    limit: mtg_core::card::TurnLimit::None,
                     from_graveyard: false,
                     trigger: Trigger::Attacks(TriggerObj::This),
                     condition: None,
@@ -3624,6 +3630,7 @@ impl Compiler<'_> {
                     };
                     let cond = self.pool.intern_condition(StaticCondition::OffspringPaid);
                     AbilityDef::Triggered(TriggeredAbility {
+                        limit: mtg_core::card::TurnLimit::None,
                         from_graveyard: false,
                         trigger: TriggerSpec::Enters(CoreTriggerObj::This),
                         condition: Some(mtg_core::card::Condition::Static(cond)),
@@ -3680,6 +3687,7 @@ impl Compiler<'_> {
                         return self.err(format!("unknown token \"{SERVO}\""));
                     };
                     AbilityDef::Triggered(TriggeredAbility {
+                        limit: mtg_core::card::TurnLimit::None,
                         from_graveyard: false,
                         trigger: TriggerSpec::Enters(CoreTriggerObj::This),
                         condition: None,
@@ -3691,6 +3699,7 @@ impl Compiler<'_> {
                 // player, if it isn't renowned, put N +1/+1 counters on it
                 // and it becomes renowned."
                 Mechanic::Renown(n) => AbilityDef::Triggered(TriggeredAbility {
+                    limit: mtg_core::card::TurnLimit::None,
                     from_graveyard: false,
                     trigger: TriggerSpec::DealsCombatDamageToPlayer(CoreTriggerObj::This),
                     condition: Some(mtg_core::card::Condition::NotRenowned),
@@ -3904,6 +3913,7 @@ impl Compiler<'_> {
                     let sacrifice =
                         self.pool
                             .register_ability(AbilityDef::Triggered(TriggeredAbility {
+                                limit: mtg_core::card::TurnLimit::None,
                                 from_graveyard: false,
                                 trigger: TriggerSpec::BeginningOfStep {
                                     step: mtg_core::turn::Step::End,
@@ -3954,6 +3964,7 @@ impl Compiler<'_> {
                 // where X is the tapped creature's power." Approximated as
                 // an attack trigger (the choice is made as it resolves).
                 Mechanic::Enlist => AbilityDef::Triggered(TriggeredAbility {
+                    limit: mtg_core::card::TurnLimit::None,
                     from_graveyard: false,
                     trigger: TriggerSpec::Attacks(CoreTriggerObj::This),
                     condition: None,
@@ -3969,6 +3980,7 @@ impl Compiler<'_> {
                 // to a player, that player exiles the top card of their
                 // library."
                 Mechanic::Ingest => AbilityDef::Triggered(TriggeredAbility {
+                    limit: mtg_core::card::TurnLimit::None,
                     from_graveyard: false,
                     trigger: TriggerSpec::DealsCombatDamageToPlayer(CoreTriggerObj::This),
                     condition: None,
@@ -3983,6 +3995,7 @@ impl Compiler<'_> {
                 // CR 702.174b: "When this permanent enters, if its gift
                 // cost was paid, [effect]."
                 Mechanic::Gift(kind) => AbilityDef::Triggered(TriggeredAbility {
+                    limit: mtg_core::card::TurnLimit::None,
                     from_graveyard: false,
                     trigger: TriggerSpec::Enters(CoreTriggerObj::This),
                     condition: Some(mtg_core::card::Condition::Kicked),
@@ -4036,6 +4049,7 @@ impl Compiler<'_> {
                 let c = self.static_cond(cond);
                 let i = self.pool.intern_condition(c);
                 AbilityDef::Triggered(mtg_core::card::TriggeredAbility {
+                    limit: mtg_core::card::TurnLimit::None,
                     trigger: TriggerSpec::BeginningOfStep {
                         step: mtg_core::turn::Step::End,
                         whose: mtg_core::card::Who::You,
@@ -4123,6 +4137,7 @@ fn soulbond_trigger(triggering: bool) -> Ability {
         Trigger::Enters(TriggerObj::This)
     };
     Ability::Triggered {
+        limit: mtg_core::card::TurnLimit::None,
         from_graveyard: false,
         trigger,
         condition: None,
@@ -4173,6 +4188,7 @@ fn extort(i: u8) -> Ability {
         joins: vec![Join::And],
     };
     Ability::Triggered {
+        limit: mtg_core::card::TurnLimit::None,
         from_graveyard: false,
         trigger: Trigger::CastsSpell {
             whose: Who::You,
@@ -4201,6 +4217,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // that creature's toughness is greater than this creature's
         // toughness, put a +1/+1 counter on this creature."
         Mechanic::Evolve => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::Enters(TriggerObj::Filter(Filter {
                 types: vec![mtg_core::card::CardType::Creature],
@@ -4234,6 +4251,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // CR 702.135a: "When this creature dies, create N 1/1 white and
         // black Spirit creature tokens with flying."
         Mechanic::Afterlife(n) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::Dies(TriggerObj::This),
             condition: None,
@@ -4250,6 +4268,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // CR 702.134a: "Whenever this creature attacks, put a +1/+1
         // counter on target attacking creature with lesser power."
         Mechanic::Mentor => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::Attacks(TriggerObj::This),
             condition: None,
@@ -4268,6 +4287,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // CR 702.92a: "When this Equipment enters, create a 0/0 black
         // Phyrexian Germ creature token, then attach this Equipment to it."
         Mechanic::LivingWeapon => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::Enters(TriggerObj::This),
             condition: None,
@@ -4315,6 +4335,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             cycling: false,
         },
         Mechanic::Bushido(n) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::BlocksOrBlocked(TriggerObj::This),
             condition: None,
@@ -4328,6 +4349,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // CR 702.70a: "Whenever this creature deals combat damage to a
         // player, that player gets N poison counters."
         Mechanic::Poisonous(n) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::DealsCombatDamageToPlayer(TriggerObj::This),
             condition: None,
@@ -4340,6 +4362,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // CR 702.68a: "Whenever this creature attacks and isn't blocked,
         // it gets +N/+0 until end of turn."
         Mechanic::Frenzy(n) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::AttacksUnblocked(TriggerObj::This),
             condition: None,
@@ -4367,6 +4390,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // creature defending player controls untap and block this creature
         // this turn if able."
         Mechanic::Provoke => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::Attacks(TriggerObj::This),
             condition: None,
@@ -4389,6 +4413,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // CR 702.189a: "Whenever this creature attacks, add N {R}. Until
         // end of combat, you don't lose this mana as steps and phases end."
         Mechanic::Firebending(n) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::Attacks(TriggerObj::This),
             condition: None,
@@ -4396,6 +4421,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             effects: one(E::Firebend(*n)),
         },
         Mechanic::Afflict(n) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::BecomesBlocked(TriggerObj::This),
             condition: None,
@@ -4409,6 +4435,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // target artifact creature." (The counters it enters with are the
         // card's `modular`.)
         Mechanic::Modular(_) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::Dies(TriggerObj::This),
             condition: None,
@@ -4428,6 +4455,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // permanent onto that creature." (The counters it enters with are
         // the card's `graft`.)
         Mechanic::Graft(_) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::Enters(TriggerObj::Filter(Filter {
                 types: vec![mtg_core::card::CardType::Creature],
@@ -4454,6 +4482,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // rather than a trigger of its own: it happens as the last counter
         // is removed this way (not when another effect removes it).
         Mechanic::Vanishing(_) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::BeginningOfStep {
                 step: mtg_core::turn::Step::Upkeep,
@@ -4487,6 +4516,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         Mechanic::Soulbond => soulbond_trigger(false),
         // CR 702.24a.
         Mechanic::CumulativeUpkeep(cost) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::BeginningOfStep {
                 step: mtg_core::turn::Step::Upkeep,
@@ -4497,6 +4527,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             effects: one(E::CumulativeUpkeep(cost.clone())),
         },
         Mechanic::Soulshift(n) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::Dies(TriggerObj::This),
             condition: None,
@@ -4517,6 +4548,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             }))),
         },
         Mechanic::Ward(cost) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::TargetedByOpponent,
             condition: None,
@@ -4530,6 +4562,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         },
         // "Ward—Pay 3 life." (CR 702.21a).
         Mechanic::WardCost(cost) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             trigger: Trigger::TargetedByOpponent,
             condition: None,
             from_graveyard: false,
@@ -4551,6 +4584,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         })),
         // CR 702.30a: "Echo—Discard a card."
         Mechanic::EchoCost(cost) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::BeginningOfStep {
                 step: mtg_core::turn::Step::Upkeep,

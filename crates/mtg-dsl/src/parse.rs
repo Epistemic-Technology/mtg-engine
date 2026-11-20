@@ -1984,6 +1984,17 @@ impl P {
                 self.in_trigger = true;
                 // CR 113.6k: works only from the graveyard.
                 let from_graveyard = self.eat_words(&["from", "graveyard"]);
+                // "This ability triggers only once each turn.", "Do this
+                // only once each turn."
+                let limit = if self.eat_words(&["once", "each", "turn"]) {
+                    mtg_core::card::TurnLimit::Triggers(1)
+                } else if self.eat_words(&["twice", "each", "turn"]) {
+                    mtg_core::card::TurnLimit::Triggers(2)
+                } else if self.eat_words(&["do", "once", "each", "turn"]) {
+                    mtg_core::card::TurnLimit::Do
+                } else {
+                    mtg_core::card::TurnLimit::None
+                };
                 let when = self.at_word("when");
                 let mut trigger = self.trigger()?;
                 self.it_source = matches!(&trigger, Trigger::CastsFiltered { filter, .. }
@@ -2014,6 +2025,7 @@ impl P {
                 };
                 let effects = self.effects_body()?;
                 Ok(Ability::Triggered {
+                    limit,
                     trigger,
                     condition,
                     targets: std::mem::take(&mut self.targets),

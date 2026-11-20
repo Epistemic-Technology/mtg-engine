@@ -71,6 +71,7 @@ impl GameState {
                     continue;
                 }
                 let copies = chapter_copies(&t.trigger, event);
+                let limit = t.limit;
                 // CR 603.2c: "one or more ... enter", once per batch.
                 let batch = matches!(
                     t.trigger,
@@ -80,6 +81,15 @@ impl GameState {
                 );
                 if batch && self.join_batch(&mut fired, ability, w.source) {
                     continue;
+                }
+                // "This ability triggers only once each turn."
+                if let crate::card::TurnLimit::Triggers(n) = limit {
+                    let key = (w.source, ability);
+                    let times = self.limited_this_turn.iter().filter(|k| **k == key).count();
+                    if times >= usize::from(n) {
+                        continue;
+                    }
+                    self.limited_this_turn.push(key);
                 }
                 let pending = PendingTrigger {
                     controller: w.controller,
@@ -1359,9 +1369,9 @@ impl GameState {
     pub(super) fn resolve_ability(&mut self, id: ObjId) {
         let obj = self.objects[id].clone();
         let sa = obj.ability.expect("ability object");
-        let condition = match self.pool.ability(sa.ability) {
-            AbilityDef::Triggered(t) => t.condition,
-            AbilityDef::Activated(_) => None,
+        let (condition, limit) = match self.pool.ability(sa.ability) {
+            AbilityDef::Triggered(t) => (t.condition, t.limit),
+            AbilityDef::Activated(_) => (None, crate::card::TurnLimit::None),
             _ => unreachable!("only triggered and activated abilities use the stack"),
         };
         // A modal ability's targets and effects are its chosen mode's.
@@ -1439,7 +1449,15 @@ impl GameState {
             created_tokens: SmallVec::new(),
         };
         let outer = self.begin_this_way(id);
+        // "Do this only once each turn.": its "you may" asks only until it
+        // is done (`Effect::YouMay`).
+        let doing = if limit == crate::card::TurnLimit::Do {
+            self.doing_once.replace((sa.source, sa.ability))
+        } else {
+            self.doing_once.take()
+        };
         self.apply_effects(&mut ctx, effects, &split);
+        self.doing_once = doing;
         self.end_this_way(outer);
         if self.objects.contains_key(id) {
             self.remove_from_game(id);

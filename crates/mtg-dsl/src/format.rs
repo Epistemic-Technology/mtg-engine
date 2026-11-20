@@ -4249,13 +4249,21 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             targets,
             effects,
             from_graveyard,
+            limit,
         } => {
             let mut head = format!(
-                "triggered {}{}",
+                "triggered {}{}{}",
                 if *from_graveyard {
                     "from graveyard "
                 } else {
                     ""
+                },
+                match limit {
+                    mtg_core::card::TurnLimit::None => String::new(),
+                    mtg_core::card::TurnLimit::Triggers(1) => "once each turn ".to_string(),
+                    mtg_core::card::TurnLimit::Triggers(2) => "twice each turn ".to_string(),
+                    mtg_core::card::TurnLimit::Triggers(n) => format!("{n} times each turn "),
+                    mtg_core::card::TurnLimit::Do => "do once each turn ".to_string(),
                 },
                 trigger_text(trigger, false)
             );

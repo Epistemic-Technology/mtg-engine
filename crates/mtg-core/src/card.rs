@@ -5033,6 +5033,25 @@ pub struct TriggeredAbility {
     /// may return this card from your graveyard to your hand").
     #[serde(default)]
     pub from_graveyard: bool,
+    /// "This ability triggers only once each turn." and kin: a count kept
+    /// per object and ability, so a new object after a zone change starts
+    /// fresh (CR 400.7).
+    #[serde(default)]
+    pub limit: TurnLimit,
+}
+
+/// A triggered ability's limit each turn.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+pub enum TurnLimit {
+    #[default]
+    None,
+    /// "This ability triggers only once each turn." (1), "only twice each
+    /// turn" (2): past that many, it doesn't trigger at all this turn.
+    Triggers(u8),
+    /// "Do this only once each turn.": the ability triggers every time,
+    /// but its first "you may" is offered only until it is done once this
+    /// turn; declining doesn't count.
+    Do,
 }
 
 /// What a cost does to the permanent chosen for it.
@@ -6885,6 +6904,7 @@ impl CardPool {
         debug_assert_eq!(pool.subtype("Role"), Subtype::ROLE);
         debug_assert_eq!(pool.subtype("Aura"), Subtype::AURA);
         pool.prowess = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            limit: crate::card::TurnLimit::None,
             from_graveyard: false,
             trigger: TriggerSpec::CastsSpell {
                 whose: Who::You,
@@ -6901,6 +6921,7 @@ impl CardPool {
             }],
         }));
         pool.exalted = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            limit: crate::card::TurnLimit::None,
             from_graveyard: false,
             trigger: TriggerSpec::AttacksAlone(TriggerObj::Filter(
                 ObjFilter::creatures().who(Who::You),
@@ -6916,6 +6937,7 @@ impl CardPool {
         // CR 702.25a: "Whenever a creature without flanking blocks this
         // creature, the blocking creature gets -1/-1 until end of turn."
         pool.flanking = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            limit: crate::card::TurnLimit::None,
             from_graveyard: false,
             trigger: TriggerSpec::BlockedBy(ObjFilter {
                 not_keywords: KeywordSet::NONE.with(Keyword::Flanking),
@@ -6932,6 +6954,7 @@ impl CardPool {
         // CR 702.74a: "When this permanent enters, if its evoke cost was
         // paid, its controller sacrifices it."
         pool.evoke = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            limit: crate::card::TurnLimit::None,
             from_graveyard: false,
             trigger: TriggerSpec::Enters(TriggerObj::This),
             condition: Some(Condition::Evoked),
@@ -6941,6 +6964,7 @@ impl CardPool {
             }],
         }));
         pool.exploit = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            limit: crate::card::TurnLimit::None,
             from_graveyard: false,
             trigger: TriggerSpec::Enters(TriggerObj::This),
             condition: None,
@@ -6950,6 +6974,7 @@ impl CardPool {
         // CR 702.147a: "When this creature attacks, sacrifice it at end of
         // combat."
         let sac = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            limit: crate::card::TurnLimit::None,
             from_graveyard: false,
             trigger: TriggerSpec::BeginningOfStep {
                 step: crate::turn::Step::EndOfCombat,
@@ -6962,6 +6987,7 @@ impl CardPool {
             }],
         }));
         pool.decayed = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            limit: crate::card::TurnLimit::None,
             from_graveyard: false,
             trigger: TriggerSpec::Attacks(TriggerObj::This),
             condition: None,
@@ -6991,6 +7017,7 @@ impl CardPool {
                 TriggerSpec::Enters(TriggerObj::This)
             };
             pool.builtins[i] = pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
                 from_graveyard: false,
                 trigger,
                 condition: None,
@@ -7000,6 +7027,7 @@ impl CardPool {
         }
         pool.builtins[Builtin::DashReturn as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
                 from_graveyard: false,
                 trigger: TriggerSpec::BeginningOfStep {
                     step: crate::turn::Step::End,
@@ -7013,6 +7041,7 @@ impl CardPool {
             }));
         pool.builtins[Builtin::Cipher as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
                 from_graveyard: false,
                 trigger: TriggerSpec::Enters(TriggerObj::This),
                 condition: None,
@@ -7021,6 +7050,7 @@ impl CardPool {
             }));
         pool.builtins[Builtin::WarpExile as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
                 from_graveyard: false,
                 trigger: TriggerSpec::BeginningOfStep {
                     step: crate::turn::Step::End,
@@ -7032,6 +7062,7 @@ impl CardPool {
             }));
         pool.builtins[Builtin::Ripple as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
                 from_graveyard: false,
                 trigger: TriggerSpec::Reflexive,
                 condition: None,
@@ -7040,6 +7071,7 @@ impl CardPool {
             }));
         pool.builtins[Builtin::Conspire as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
                 from_graveyard: false,
                 trigger: TriggerSpec::Enters(TriggerObj::This),
                 condition: None,
@@ -7048,6 +7080,7 @@ impl CardPool {
             }));
         pool.builtins[Builtin::SiegeDefeated as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
                 from_graveyard: false,
                 trigger: TriggerSpec::Reflexive,
                 condition: None,
@@ -7061,6 +7094,7 @@ impl CardPool {
             }));
         pool.builtins[Builtin::EarthbendReturn as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
                 from_graveyard: false,
                 trigger: TriggerSpec::DiesOrExiled(TriggerObj::This),
                 condition: None,
@@ -7075,6 +7109,7 @@ impl CardPool {
             }));
         pool.builtins[Builtin::CleanupSacrifice as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
                 from_graveyard: false,
                 trigger: TriggerSpec::BeginningOfStep {
                     step: crate::turn::Step::Cleanup,
@@ -7095,6 +7130,7 @@ impl CardPool {
                 .build(),
         );
         let ward = AbilityDef::Triggered(TriggeredAbility {
+            limit: crate::card::TurnLimit::None,
             from_graveyard: false,
             trigger: TriggerSpec::TargetedByOpponent,
             condition: None,
@@ -7118,6 +7154,7 @@ impl CardPool {
             (CounterKind::PlusOnePlusOne, 1),
         ] {
             let id = pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
                 from_graveyard: false,
                 trigger: TriggerSpec::Dies(TriggerObj::This),
                 condition: Some(Condition::HadNoCounters(kind)),
@@ -7394,6 +7431,7 @@ impl CardPool {
     fn add_designations(&mut self) {
         let trig = |effects: Vec<Effect>| {
             AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
                 trigger: TriggerSpec::Reflexive,
                 condition: None,
                 targets: Vec::new(),
@@ -7436,6 +7474,7 @@ impl CardPool {
         // CR 603.7: "... sacrifices it at end of combat", a delayed
         // trigger about the blocking creature.
         let sac = self.register(AbilityDef::Triggered(TriggeredAbility {
+            limit: crate::card::TurnLimit::None,
             trigger: TriggerSpec::BeginningOfStep {
                 step: crate::turn::Step::EndOfCombat,
                 whose: Who::Any,

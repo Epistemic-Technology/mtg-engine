@@ -8815,6 +8815,15 @@ impl GameState {
                 }
             }
             Effect::YouMay(inner) => {
+                // "Do this only once each turn.": done already, it isn't
+                // offered (`TurnLimit::Do`).
+                let once = self.doing_once.take();
+                if let Some(key) = once
+                    && self.limited_this_turn.contains(&key)
+                {
+                    ctx.did = false;
+                    return;
+                }
                 let def = self
                     .objects
                     .get(ctx.source)
@@ -8828,6 +8837,9 @@ impl GameState {
                 );
                 ctx.did = k == 0;
                 if k == 0 {
+                    if let Some(key) = once {
+                        self.limited_this_turn.push(key);
+                    }
                     for e in inner {
                         self.apply_effect(ctx, e);
                     }

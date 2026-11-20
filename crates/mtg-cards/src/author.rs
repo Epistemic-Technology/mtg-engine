@@ -4298,6 +4298,22 @@ impl Builder<'_> {
             let Some((head, rest)) = line.split_once(", ") else {
                 return Err(Skip::Sentence(line.to_string()));
             };
+            // "This ability triggers only once each turn.", "Do this only
+            // once each turn."
+            let (rest, limit) = [
+                (
+                    " This ability triggers only once each turn.",
+                    "once each turn ",
+                ),
+                (
+                    " This ability triggers only twice each turn.",
+                    "twice each turn ",
+                ),
+                (" Do this only once each turn.", "do once each turn "),
+            ]
+            .iter()
+            .find_map(|(s, l)| Some((rest.strip_suffix(s)?, *l)))
+            .unwrap_or((rest, ""));
             // "Whenever this creature attacks while saddled" (CR 702.171b).
             let (head, saddled) = match head.strip_suffix(" while saddled") {
                 Some(h) => (h, true),
@@ -4355,8 +4371,9 @@ impl Builder<'_> {
             } else {
                 ""
             };
-            self.statements
-                .push(format!("triggered {zone}{trigger}{condition}: {effects}"));
+            self.statements.push(format!(
+                "triggered {zone}{limit}{trigger}{condition}: {effects}"
+            ));
             return Ok(());
         }
         if self.is_spell {

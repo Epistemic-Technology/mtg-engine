@@ -1754,6 +1754,7 @@ impl Decompiler<'_> {
         match a {
             AbilityDef::TapForMana(m) => Ability::Mana(vec![*m]),
             AbilityDef::ManaTrigger { what, effects } => Ability::Triggered {
+                limit: mtg_core::card::TurnLimit::None,
                 trigger: Trigger::TappedForMana(TriggerObj::Filter(self.filter(what))),
                 condition: None,
                 targets: Vec::new(),
@@ -1968,6 +1969,7 @@ impl Decompiler<'_> {
                 crate::ast::Mechanic::Unleash
             }),
             AbilityDef::Triggered(t) => Ability::Triggered {
+                limit: t.limit,
                 trigger: self.trigger(&t.trigger),
                 condition: t.condition.map(|c| match c {
                     mtg_core::card::Condition::Static(i) => {
