@@ -1,0 +1,10 @@
+card "Seedling Charm" {
+  oracle_id b8d66cd6-15db-41ff-bae3-60f1aad3ea23
+  cost {G}
+  type Instant
+  choose one {
+    mode: return target Aura attached to creature to hand
+    mode: regenerate target green creature
+    mode: target creature gains trample
+  }
+}

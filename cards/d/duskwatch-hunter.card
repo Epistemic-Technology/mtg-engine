@@ -1,0 +1,8 @@
+card "Duskwatch Hunter" {
+  oracle_id 6283e5ca-9924-478b-89a5-36924accb9aa
+  cost {2}{B/G}
+  type Creature — Wolf
+  pt 3/1
+  can't be blocked by token
+  triggered when this enters: put 1 +1/+1 counter on target creature
+}

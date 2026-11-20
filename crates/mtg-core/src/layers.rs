@@ -359,6 +359,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         }
         StaticCondition::YourTurn => state.active_player == you,
         StaticCondition::SourceAttackedBattle => state.battle_attackers_this_turn.contains(&source),
+        StaticCondition::NotYourTurn => state.active_player != you,
         StaticCondition::SourceAttacking => state
             .combat
             .as_ref()
@@ -968,6 +969,7 @@ fn per_count(
         | CountExpr::SpentTreasure
         | CountExpr::DiedThisTurn(_)
         | CountExpr::TriggerStat(_)
+        | CountExpr::AttachedStat(_)
         | CountExpr::MovedStat { .. }
         | CountExpr::TargetHand(_)
         | CountExpr::GreatestToughness(_)

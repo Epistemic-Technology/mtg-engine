@@ -1,0 +1,8 @@
+card "Spider Climb" {
+  oracle_id 2636aafa-83f9-4b72-b729-04e1c3aa0eec
+  cost {G}
+  type Enchantment — Aura
+  flash with cleanup sacrifice
+  enchant creature
+  static enchanted: +0/+3, has reach
+}

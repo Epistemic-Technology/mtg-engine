@@ -1,0 +1,7 @@
+card "Parapet" {
+  oracle_id 4e73634a-9df8-4c36-b1d2-f366eae902fc
+  cost {1}{W}
+  type Enchantment
+  flash with cleanup sacrifice
+  static creature you control: +0/+1
+}

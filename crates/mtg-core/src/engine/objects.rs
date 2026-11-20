@@ -371,8 +371,18 @@ impl GameState {
         }
         // CR 702.109a: a dashed permanent returns to its owner's hand at
         // the beginning of the next end step.
-        if to == Zone::Battlefield && old.zone == Zone::Stack && old.alt == AltCast::Dash {
-            let ability = self.pool.builtin(crate::card::Builtin::DashReturn);
+        // Spider Climb cast any time a sorcery couldn't have been: its
+        // permanent is sacrificed at the beginning of the next cleanup step.
+        let cleanup = old.cast.instant_timing();
+        if to == Zone::Battlefield
+            && old.zone == Zone::Stack
+            && (old.alt == AltCast::Dash || cleanup)
+        {
+            let ability = self.pool.builtin(if cleanup {
+                crate::card::Builtin::CleanupSacrifice
+            } else {
+                crate::card::Builtin::DashReturn
+            });
             self.delayed_triggers.push(crate::state::DelayedTrigger {
                 controller,
                 ability: crate::state::StackAbility {

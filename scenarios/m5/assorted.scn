@@ -1,0 +1,658 @@
+# Assorted spell effects: untapping chosen lands and "those creatures",
+# "if it's not your turn", blocking creatures with shadow or landwalk,
+# blocking several creatures, and "except by three or more creatures".
+
+scenario "Snap returns a creature and untaps up to two lands" {
+  battlefield A: "Island", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Snap"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Snap" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert untapped "Island"
+  assert untapped "Mountain"
+  assert graveyard A contains "Snap"
+}
+
+scenario "Snap untaps no more than two lands" {
+  battlefield A: "Island", "Mountain", "Forest" tapped
+  battlefield B: "Hill Giant"
+  hand A: "Snap"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Snap" targeting "Hill Giant"
+  turn 1 A: choose "Forest"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert untapped "Forest"
+  assert untapped "Island"
+  assert tapped "Mountain"
+}
+
+scenario "Rewind counters a spell and untaps lands" {
+  battlefield A: 2 "Island", "Mountain", "Forest"
+  battlefield B: "Mountain"
+  hand A: "Rewind"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Rewind" targeting "Shock"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Shock"
+  assert untapped A "Mountain"
+  assert untapped "Forest"
+}
+
+scenario "Unwind can't counter a creature spell" {
+  battlefield A: 3 "Island"
+  battlefield B: 4 "Mountain"
+  hand A: "Unwind"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  illegal turn 2 A: cast "Unwind" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "War Flare pumps and untaps those creatures" {
+  battlefield A: 2 "Mountain", 2 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "War Flare"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 declare_blockers A: cast "War Flare"
+  run_to turn 1 postcombat_main
+  assert life B 11
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+  assert power "Grizzly Bears" 4
+  assert toughness "Hill Giant" 4
+}
+
+scenario "Zealous Display untaps those creatures on an opponent's turn" {
+  battlefield A: 3 "Plains", "Grizzly Bears" tapped
+  hand A: "Zealous Display"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Zealous Display"
+  run_to turn 2 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Zealous Display doesn't untap on its controller's turn" {
+  battlefield A: 3 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Zealous Display"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Zealous Display"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Triceraton Regenta untaps up to one other target creature" {
+  battlefield A: "Triceraton Regenta", "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Triceraton Regenta", "Grizzly Bears"
+  turn 1 A: trigger "Triceraton Regenta" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert untapped "Triceraton Regenta"
+  assert life B 16
+}
+
+scenario "Heartwood Dryad blocks a creature with shadow" {
+  battlefield A: "Dauthi Jackal"
+  battlefield B: "Heartwood Dryad"
+  turn 1 A: attack "Dauthi Jackal"
+  turn 1 B: block "Dauthi Jackal" with "Heartwood Dryad"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Dauthi Jackal"
+}
+
+scenario "Heartwood Dryad still blocks a creature without shadow" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Heartwood Dryad"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Heartwood Dryad"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "a creature without the allowance can't block shadow" {
+  battlefield A: "Dauthi Jackal"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Dauthi Jackal"
+  illegal turn 1 B: block "Dauthi Jackal" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Aetherflame Wall blocks shadow" {
+  battlefield A: "Dauthi Jackal"
+  battlefield B: "Aetherflame Wall"
+  turn 1 A: attack "Dauthi Jackal"
+  turn 1 B: block "Dauthi Jackal" with "Aetherflame Wall"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Aether Web lets enchanted creature block shadow and flying" {
+  battlefield A: "Dauthi Jackal"
+  battlefield B: "Grizzly Bears", "Aether Web" on "Grizzly Bears"
+  turn 1 A: attack "Dauthi Jackal"
+  turn 1 B: block "Dauthi Jackal" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Dauthi Jackal"
+}
+
+scenario "Street Savvy blocks a landwalker" {
+  battlefield A: "Anaconda"
+  battlefield B: "Swamp", "Grizzly Bears", "Street Savvy" on "Grizzly Bears"
+  turn 1 A: attack "Anaconda"
+  turn 1 B: block "Anaconda" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "without Street Savvy swampwalk can't be blocked" {
+  battlefield A: "Anaconda"
+  battlefield B: "Swamp", "Grizzly Bears"
+  turn 1 A: attack "Anaconda"
+  illegal turn 1 B: block "Anaconda" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Watcher in the Web blocks three attackers" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", "Hill Giant"
+  battlefield B: "Watcher in the Web"
+  turn 1 A: attack "Grizzly Bears", "Savannah Lions", "Hill Giant"
+  turn 1 B: block "Grizzly Bears" with "Watcher in the Web"
+  turn 1 B: block "Savannah Lions" with "Watcher in the Web"
+  turn 1 B: block "Hill Giant" with "Watcher in the Web"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Vanguard's Shield lets equipped creature block two attackers" {
+  battlefield A: "Grizzly Bears", "Savannah Lions"
+  battlefield B: "Hill Giant", "Vanguard's Shield", 3 "Plains"
+  start turn 1 B precombat_main
+  turn 1 B: activate "Vanguard's Shield" targeting "Hill Giant"
+  turn 2 A: attack "Grizzly Bears", "Savannah Lions"
+  turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  turn 2 B: block "Savannah Lions" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert toughness "Hill Giant" 6
+}
+
+scenario "Troll of Khazad-dum can't be blocked by two creatures" {
+  battlefield A: "Troll of Khazad-dûm"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Troll of Khazad-dûm"
+  illegal turn 1 B: block "Troll of Khazad-dûm" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "Troll of Khazad-dum is blocked by three creatures" {
+  battlefield A: "Troll of Khazad-dûm"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Savannah Lions"
+  turn 1 A: attack "Troll of Khazad-dûm"
+  turn 1 B: block "Troll of Khazad-dûm" with "Grizzly Bears"
+  turn 1 B: block "Troll of Khazad-dûm" with "Hill Giant"
+  turn 1 B: block "Troll of Khazad-dûm" with "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Troll of Khazad-dûm"
+}
+
+# CR 608.2h: a creature that "deals" damage after it died is the source
+# as it last existed.
+scenario "Mudbutton Torchrunner deals damage after it dies" {
+  battlefield A: "Mudbutton Torchrunner"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Mudbutton Torchrunner"
+  turn 2 A: trigger "Mudbutton Torchrunner" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Mudbutton Torchrunner"
+}
+
+# "You may cast this spell as though it had flash. If you cast it any time
+# a sorcery couldn't have been cast, ... sacrifices it at the beginning of
+# the next cleanup step." (CR 307.1, 514.3a)
+scenario "Lightning Reflexes cast in combat is sacrificed at cleanup" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Reflexes"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Lightning Reflexes" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Lightning Reflexes"
+  assert damage "Grizzly Bears" 0
+  assert graveyard B contains "Hill Giant"
+  run_to turn 2
+  assert graveyard A contains "Lightning Reflexes"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Spider Climb cast at sorcery speed stays" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Spider Climb"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spider Climb" targeting "Grizzly Bears"
+  run_to turn 2
+  assert battlefield A contains "Spider Climb"
+  assert has "Grizzly Bears" reach
+  assert toughness "Grizzly Bears" 5
+}
+
+scenario "Parapet cast on an opponent's turn is sacrificed at that turn's cleanup" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Parapet"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Parapet"
+  run_to turn 2 end
+  assert toughness "Grizzly Bears" 3
+  run_to turn 3
+  assert graveyard A contains "Parapet"
+  assert toughness "Grizzly Bears" 2
+}
+
+# Damage sources other than the resolving ability's source object, and
+# sources that have left the battlefield (CR 608.2h).
+scenario "kicked Orim's Thunder deals the destroyed permanent's mana value" {
+  battlefield A: 3 "Plains", "Mountain"
+  battlefield B: "Icy Manipulator", "Hill Giant"
+  hand A: "Orim's Thunder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Orim's Thunder" kicked targeting "Icy Manipulator", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Icy Manipulator"
+  assert graveyard B contains "Hill Giant"
+}
+
+# CR 601.2c: "target creature" is chosen only if the spell is kicked.
+scenario "unkicked Orim's Thunder needs no creature to target" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Icy Manipulator"
+  hand A: "Orim's Thunder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Orim's Thunder" targeting "Icy Manipulator"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Icy Manipulator"
+}
+
+scenario "Inferno Fist deals damage after it is sacrificed" {
+  battlefield A: "Mountain", "Grizzly Bears", "Inferno Fist" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Inferno Fist" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Inferno Fist"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Dizzying Gaze: enchanted creature deals the damage" {
+  battlefield A: "Mountain", "Grizzly Bears", "Dizzying Gaze" on "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dizzying Gaze" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert damage "Serra Angel" 1
+}
+
+scenario "Dizzying Gaze targets only creatures with flying" {
+  battlefield A: "Mountain", "Grizzly Bears", "Dizzying Gaze" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Dizzying Gaze" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 0
+}
+
+scenario "Falkenrath Perforator deals 1 damage to defending player as it attacks" {
+  battlefield A: "Falkenrath Perforator"
+  turn 1 A: attack "Falkenrath Perforator"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+# Conditions judged as the spell was cast: "If you cast this spell during
+# your main phase", "if you controlled a Mount as you cast this spell".
+scenario "Might of Old Krosa cast in a main phase gives +4/+4" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Might of Old Krosa"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Might of Old Krosa" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 6
+}
+
+scenario "Might of Old Krosa cast in combat gives +2/+2" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Might of Old Krosa"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Might of Old Krosa" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert life B 16
+}
+
+scenario "Might of Old Krosa on an opponent's main phase gives +2/+2" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Might of Old Krosa"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Might of Old Krosa" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Summary Judgment deals 5 damage in its caster's main phase" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Serra Angel" tapped
+  hand A: "Summary Judgment"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Summary Judgment" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Summary Judgment deals 3 damage otherwise" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Serra Angel" tapped
+  hand A: "Summary Judgment"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Summary Judgment" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert damage "Serra Angel" 3
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Steer Clear deals 4 damage with a Mount" {
+  battlefield A: "Plains", "Alacrian Jaguar"
+  battlefield B: "Serra Angel"
+  hand A: "Steer Clear"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Serra Angel"
+  turn 2 declare_attackers A: cast "Steer Clear" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Steer Clear deals 2 damage without a Mount" {
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Steer Clear"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Serra Angel"
+  turn 2 declare_attackers A: cast "Steer Clear" targeting "Serra Angel"
+  run_to turn 2 end
+  assert damage "Serra Angel" 2
+}
+
+scenario "Creature Bond: the Aura deals the creature's toughness to its controller" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant", "Creature Bond" on "Hill Giant"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Creature Bond"
+  assert life B 17
+}
+
+scenario "Casting of Bones draws three and discards one when enchanted creature dies" {
+  battlefield A: "Mountain", "Grizzly Bears", "Casting of Bones" on "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  library A: "Forest", "Island", "Swamp", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  # Unscripted, the first card drawn is the one discarded.
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Forest"
+  assert hand A contains "Island"
+  assert hand A contains "Swamp"
+}
+
+scenario "Dark Temper destroys the creature instead with a black permanent" {
+  battlefield A: 3 "Mountain", "Typhoid Rats"
+  battlefield B: "Serra Angel"
+  hand A: "Dark Temper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dark Temper" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Dark Temper deals 2 damage without a black permanent" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Dark Temper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dark Temper" targeting "Serra Angel"
+  run_to turn 1 end
+  assert damage "Serra Angel" 2
+}
+
+scenario "Unblinking Observer's mana casts an instant" {
+  battlefield A: "Unblinking Observer"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Opt"
+}
+
+scenario "Unblinking Observer's mana can't cast a creature" {
+  battlefield A: "Unblinking Observer", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Temple Thief can't be blocked by enchanted creatures" {
+  battlefield A: "Temple Thief"
+  battlefield B: "Hill Giant", "Holy Strength" on "Hill Giant"
+  turn 1 A: attack "Temple Thief"
+  illegal turn 1 B: block "Temple Thief" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Temple Thief can be blocked by an unenchanted creature" {
+  battlefield A: "Temple Thief"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Temple Thief"
+  turn 1 B: block "Temple Thief" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Infiltrator's Magemark pumps enchanted creatures you control" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", "Infiltrator's Magemark" on "Grizzly Bears", "Holy Strength" on "Savannah Lions"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Savannah Lions" 4
+  assert life B 17
+}
+
+# Alternative costs that exile cards from the graveyard (CR 118.9).
+scenario "Stalwart Valkyrie cast for {1}{W} and a creature card from the graveyard" {
+  battlefield A: 2 "Plains"
+  hand A: "Stalwart Valkyrie"
+  graveyard A: "Grizzly Bears", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stalwart Valkyrie" alternative
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Stalwart Valkyrie"
+  assert exile A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Stalwart Valkyrie's alternative cost needs a creature card in the graveyard" {
+  battlefield A: 2 "Plains"
+  hand A: "Stalwart Valkyrie"
+  graveyard A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Stalwart Valkyrie" alternative
+  run_to turn 1 postcombat_main
+  assert hand A contains "Stalwart Valkyrie"
+}
+
+scenario "Spinning Darkness exiles the top three black cards of the graveyard" {
+  battlefield B: "Grizzly Bears"
+  hand A: "Spinning Darkness"
+  graveyard A: "Typhoid Rats", "Doom Blade", "Lightning Bolt", "Terror", "Vampire Bats"
+  life A 10
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spinning Darkness" alternative targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 13
+  assert graveyard A contains "Typhoid Rats"
+  assert exile A contains "Doom Blade"
+  assert exile A contains "Terror"
+  assert exile A contains "Vampire Bats"
+}
+
+scenario "Spinning Darkness can't be cast free with two black cards in the graveyard" {
+  battlefield B: "Grizzly Bears"
+  hand A: "Spinning Darkness"
+  graveyard A: "Typhoid Rats", "Lightning Bolt", "Terror"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Spinning Darkness" alternative targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Spinning Darkness"
+}
+
+scenario "Armor of Thorns can't enchant a black creature" {
+  battlefield A: 2 "Forest", "Typhoid Rats"
+  hand A: "Armor of Thorns"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Armor of Thorns" targeting "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Armor of Thorns"
+}
+
+scenario "Armor of Thorns cast on an opponent's turn is sacrificed at cleanup" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  hand A: "Armor of Thorns"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Armor of Thorns" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert power "Grizzly Bears" 4
+  run_to turn 3
+  assert graveyard A contains "Armor of Thorns"
+}
+
+scenario "Varchild's Crusader can be blocked only by Walls, then is sacrificed" {
+  battlefield A: "Varchild's Crusader"
+  battlefield B: "Wall of Wood", "Hill Giant"
+  turn 1 A: activate "Varchild's Crusader"
+  turn 1 A: attack "Varchild's Crusader"
+  illegal turn 1 B: block "Varchild's Crusader" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  run_to turn 2
+  assert graveyard A contains "Varchild's Crusader"
+}
+
+scenario "Nimbleclaw Adept untaps two other target permanents" {
+  battlefield A: "Nimbleclaw Adept", "Forest" tapped, "Grizzly Bears" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Nimbleclaw Adept" targeting "Forest", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Forest"
+  assert untapped "Grizzly Bears"
+  assert tapped "Nimbleclaw Adept"
+}
+
+scenario "Dreamspoiler Witches triggers on a spell cast during an opponent's turn" {
+  battlefield A: "Dreamspoiler Witches", "Island"
+  battlefield B: "Savannah Lions"
+  hand A: "Opt"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Opt"
+  turn 2 A: trigger "Dreamspoiler Witches" targeting "Savannah Lions"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Savannah Lions"
+}
+
+scenario "Dreamspoiler Witches doesn't trigger on its controller's turn" {
+  battlefield A: "Dreamspoiler Witches", "Island"
+  battlefield B: "Savannah Lions"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Savannah Lions"
+}
+
+scenario "Bind the Monster taps the creature, which deals its power to the caster" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Bind the Monster"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bind the Monster" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert tapped "Hill Giant"
+}
+
+scenario "Gleam of Resistance untaps attackers" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Gleam of Resistance"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Gleam of Resistance"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert untapped "Grizzly Bears"
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "Act of Heroism untaps a creature that then blocks two attackers" {
+  battlefield A: "Grizzly Bears", "Savannah Lions"
+  battlefield B: "Hill Giant" tapped, 2 "Plains"
+  hand B: "Act of Heroism"
+  turn 1 B: cast "Act of Heroism" targeting "Hill Giant"
+  turn 1 A: attack "Grizzly Bears", "Savannah Lions"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 B: block "Savannah Lions" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Leafkin Druid adds two mana with four creatures" {
+  battlefield A: "Leafkin Druid", "Grizzly Bears", "Savannah Lions", "Hill Giant"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+}
+
+scenario "Leafkin Druid adds one mana with fewer creatures" {
+  battlefield A: "Leafkin Druid", "Savannah Lions"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}

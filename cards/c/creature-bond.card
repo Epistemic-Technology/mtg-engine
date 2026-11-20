@@ -1,0 +1,7 @@
+card "Creature Bond" {
+  oracle_id 70492e32-ba4d-4314-b016-892fb15f7a23
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted dies: this deals damage equal toughness of that creature to controller of the creature
+}

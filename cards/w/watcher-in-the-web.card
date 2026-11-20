@@ -1,0 +1,8 @@
+card "Watcher in the Web" {
+  oracle_id 232a4128-133e-446d-9f1c-dd3875094473
+  cost {4}{G}
+  type Creature — Spider
+  pt 2/5
+  keywords reach
+  can block an additional 7 creatures each combat
+}

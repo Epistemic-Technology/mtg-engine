@@ -1,0 +1,7 @@
+card "Heartwood Dryad" {
+  oracle_id 976968c5-7ef4-4451-86ff-03a011bbcca7
+  cost {1}{G}
+  type Creature — Dryad
+  pt 2/1
+  can block shadow as though had shadow
+}

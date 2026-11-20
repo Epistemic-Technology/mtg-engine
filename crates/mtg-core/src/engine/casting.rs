@@ -108,7 +108,7 @@ impl GameState {
                     &ev.requirements(0),
                     Spend::Spell(&self.printed(self.objects[*id].def)),
                 )
-                && self.targets_available(p, def.cast_targets(), Some(*id))
+                && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
             {
                 options.push(Choice::CastEvoke(*id));
             }
@@ -125,7 +125,7 @@ impl GameState {
                     &dash.requirements(0),
                     Spend::Spell(&self.printed(self.objects[*id].def)),
                 )
-                && self.targets_available(p, def.cast_targets(), Some(*id))
+                && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
             {
                 options.push(Choice::CastDash(*id));
             }
@@ -333,7 +333,7 @@ impl GameState {
                     Some(modes) => modes
                         .iter()
                         .any(|m| self.targets_available(p, &m.targets, Some(*id))),
-                    None => self.targets_available(p, def.cast_targets(), Some(*id)),
+                    None => self.targets_available(p, def.unkicked_cast_targets(), Some(*id)),
                 };
                 if targets_ok {
                     options.push(Choice::Cast(*id));
@@ -674,6 +674,13 @@ impl GameState {
             CountExpr::TriggerStat(stat) => {
                 return ctx.trigger_obj.map_or(0, |id| self.stat_value(id, *stat));
             }
+            CountExpr::AttachedStat(stat) => {
+                return self
+                    .objects
+                    .get(ctx.source)
+                    .and_then(|o| o.attached_to)
+                    .map_or(0, |id| self.stat_value(id, *stat));
+            }
             // CR 608.2h: the moved object as it last existed.
             CountExpr::MovedStat { verb, stat } => {
                 return self.this_way.as_ref().map_or(0, |log| {
@@ -807,9 +814,11 @@ impl GameState {
         // "return an enchantment to its owner's hand": with no controller
         // named, any permanent (Drake Familiar); a sacrifice or tap is of
         // the player's own (CR 701.21a).
-        let any_controller = act == ChooseAct::Bounce && filter.who.is_none();
+        let any_controller =
+            matches!(act, ChooseAct::Bounce | ChooseAct::Untap) && filter.who.is_none();
         match act {
             ChooseAct::Tap
+            | ChooseAct::Untap
             | ChooseAct::Sacrifice
             | ChooseAct::Bounce
             | ChooseAct::AttachToTarget(_) => self
@@ -819,6 +828,7 @@ impl GameState {
                 .filter(|id| any_controller || self.objects[*id].controller == p)
                 .filter(|id| {
                     (act != ChooseAct::Tap || !self.objects[*id].tapped)
+                        && (act != ChooseAct::Untap || self.objects[*id].tapped)
                         && self
                             .characteristics(*id)
                             .is_some_and(|c| filter.matches(*id, p, &c, Some(ctx.source), Some(p)))
@@ -968,6 +978,7 @@ impl GameState {
             cands.retain(|c| *c != id);
             match act {
                 ChooseAct::Tap => self.tap(id),
+                ChooseAct::Untap => self.untap(id),
                 ChooseAct::Sacrifice => self.sacrifice(id),
                 ChooseAct::Discard => self.discard_card(p, id),
                 ChooseAct::HandToBottom => {
@@ -1260,7 +1271,7 @@ impl GameState {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
         }
         self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
-            && self.targets_available(p, face.cast_targets(), Some(id))
+            && self.targets_available(p, face.unkicked_cast_targets(), Some(id))
     }
 
     /// Whether `p` could cast the card `id` for its overload cost now
@@ -1370,7 +1381,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
-            None => self.targets_available(p, def.cast_targets(), Some(id)),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
         }
     }
 
@@ -1756,6 +1767,7 @@ impl GameState {
     #[inline]
     fn has_flash(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> bool {
         def.keywords.contains(Keyword::Flash)
+            || def.flash_cleanup
             || def
                 .flash_if
                 .is_some_and(|c| self.condition_now(self.pool.condition(c), p, id))
@@ -1790,6 +1802,12 @@ impl GameState {
         {
             return false;
         }
+        // "exile a creature card from your graveyard".
+        if let Some(g) = &alt.cost.exile_cards
+            && self.exile_candidates(p, g.filter.as_ref(), id).len() < g.n as usize
+        {
+            return false;
+        }
         // CR 119.4: life can be paid only if the life total is at least
         // the amount.
         if alt.cost.life > 0
@@ -1810,7 +1828,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
-            None => self.targets_available(p, def.cast_targets(), Some(id)),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
         }
     }
 
@@ -2273,7 +2291,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
-            None => self.targets_available(p, def.cast_targets(), Some(card)),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
         }
     }
 
@@ -2300,7 +2318,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
-            None => self.targets_available(p, def.cast_targets(), Some(card)),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
         };
         // CR 601.2h: casting it without paying its mana cost still pays its
         // additional costs (Improvised Club's sacrifice).
@@ -3821,6 +3839,9 @@ impl GameState {
         // stack) targets.
         if let Some(g) = &cost.exile_cards {
             let mut cands = self.exile_candidates(p, g.filter.as_ref(), this);
+            if g.top {
+                cands.reverse();
+            }
             if let Some(top) = self.stack.last().and_then(|t| self.objects.get(*t)) {
                 cands.sort_by_key(|c| top.targets.contains(&Target::Object(*c)));
             }
@@ -6291,11 +6312,27 @@ impl GameState {
                 }
             }
             Effect::DamageFrom { source, amount, to } => {
+                // CR 608.2h: a source that has left the battlefield still
+                // deals the damage, as it last existed there ("When this
+                // creature dies, it deals 1 damage to target player").
+                let left = match source {
+                    Recipient::TriggeringObject => ctx.trigger_obj,
+                    _ => None,
+                };
                 let Some(x) = self
                     .recipients(ctx, *source)
                     .first()
                     .copied()
                     .and_then(|t| on_battlefield(self, t))
+                    .or_else(|| {
+                        left.filter(|o| {
+                            self.lki.contains_key(o)
+                                && self
+                                    .objects
+                                    .get(*o)
+                                    .is_none_or(|x| x.zone != Zone::Battlefield)
+                        })
+                    })
                 else {
                     return;
                 };

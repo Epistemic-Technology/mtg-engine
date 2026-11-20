@@ -103,6 +103,9 @@ fn format_inner(card: &Card) -> String {
     if let Some(c) = &card.flash_if {
         let _ = writeln!(out, "  flash as long as {}", static_cond(c));
     }
+    if card.flash_cleanup {
+        let _ = writeln!(out, "  flash with cleanup sacrifice");
+    }
     if let Some(k) = &card.kicker {
         let _ = writeln!(out, "  kicker {k}");
     }
@@ -221,6 +224,10 @@ impl Fmt {
                 self.mentioned[i] = true;
                 format!("that target {}", i + 1)
             }
+            Recipient::TheTarget(i) => {
+                self.mentioned[i] = true;
+                format!("the target {}", i + 1)
+            }
             // "up to 2 target creature": declares them together.
             Recipient::Targets(a, n) if self.mentioned[a] => {
                 format!("targets {} to {}", a + 1, a + n)
@@ -246,6 +253,7 @@ impl Fmt {
             Recipient::TriggeringController { that: true } => {
                 "controller of that creature".to_string()
             }
+            Recipient::TheTriggeringController => "controller of the creature".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
             Recipient::DefendingPlayerWord => "that defending player".to_string(),
@@ -1603,6 +1611,7 @@ impl Fmt {
                 let cs = cards(*count);
                 match act {
                     ChooseAct::Tap => format!("tap {n} {f} chosen"),
+                    ChooseAct::Untap => format!("untap {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
                     ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
                     ChooseAct::Discard if unfiltered => format!("discard {n} {cs} chosen"),
@@ -2084,6 +2093,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::GreatestPowerInGraveyard(f) => {
             format!("greatest power graveyard {}", card_filter(f))
         }
+        CountExpr::AttachedStat(stat) => format!("{} of attached", stat_word(*stat)),
         CountExpr::TriggerStat { stat, that } => format!(
             "{} of {}",
             stat_word(*stat),
@@ -2798,6 +2808,7 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
         SpellOrdinal::FirstOnOpponentsTurn => {
             format!("{who} {their} first spell during each opponent's turn")
         }
+        SpellOrdinal::OnOpponentsTurn => format!("{who} a spell during an opponent's turn"),
     }
 }
 
@@ -3159,7 +3170,8 @@ fn cost_text(c: &Cost) -> String {
                     };
                     let what = g.filter.as_ref().map_or(String::new(), |f| filter(f) + " ");
                     let cards = if g.x || g.n > 1 { "cards" } else { "card" };
-                    parts.push(format!("exile {n}{what}{cards} from graveyard"));
+                    let top = if g.top { "top " } else { "" };
+                    parts.push(format!("exile {top}{n}{what}{cards} from graveyard"));
                 }
             }
             CostItem::FromGraveyard => parts.push("from graveyard".to_string()),
@@ -3421,6 +3433,9 @@ fn static_cond(c: &StaticCond) -> String {
             at_least,
         } => format!("you control {at_least} {}", filter(fl)),
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "your turn".to_string(),
+        StaticCond::NotYourTurn => "not your turn".to_string(),
+        StaticCond::CastDuringMain => "cast during main phase".to_string(),
+        StaticCond::ControlledAsCast(f) => format!("controlled {} as cast", filter(f)),
         StaticCond::Attacking => "attacking".to_string(),
         StaticCond::Enchanted => "enchanted".to_string(),
         StaticCond::Equipped => "equipped".to_string(),
@@ -3630,6 +3645,7 @@ fn static_cond(c: &StaticCond) -> String {
                 T::YourTurnBeforeAttackers => "during your turn before attackers",
                 T::DeclareBlockers => "during declare blockers",
                 T::EndOfCombat => "during end of combat",
+                T::YourMain => "during your main phase",
             }
             .to_string()
         }
@@ -3664,6 +3680,8 @@ fn restricted_mana(m: Mana, r: &crate::ast::ManaRestriction) -> String {
     let spells = spells.map(|s| {
         if r.foretell {
             format!("foretell or {s}")
+        } else if r.disturb {
+            format!("pay disturb or {s}")
         } else {
             s
         }
@@ -3965,6 +3983,21 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 crate::ast::BlockRule::BlocksOnly(f) => format!("can block only {}", filter(f)),
                 crate::ast::BlockRule::CantBlock(f) => format!("can't block {}", filter(f)),
+                crate::ast::BlockRule::MinBlockers(n) => {
+                    format!("can't be blocked except by {n} or more creatures")
+                }
+                crate::ast::BlockRule::BlocksShadow { had: true } => {
+                    "can block shadow as though had shadow".to_string()
+                }
+                crate::ast::BlockRule::BlocksShadow { had: false } => {
+                    "can block shadow as though didn't have shadow".to_string()
+                }
+                crate::ast::BlockRule::BlocksLandwalk => {
+                    "can block landwalk as though didn't have".to_string()
+                }
+                crate::ast::BlockRule::BlocksAdditional(n) => {
+                    format!("can block an additional {n} creatures each combat")
+                }
             };
             let _ = writeln!(out, "{indent}{text}");
         }

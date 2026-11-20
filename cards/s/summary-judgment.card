@@ -1,0 +1,9 @@
+card "Summary Judgment" {
+  oracle_id ae198ce9-097b-4204-b599-12bdb36f5195
+  cost {1}{W}
+  type Instant
+  spell {
+    deal 3 damage to target tapped creature
+    label "Addendum" if cast during main phase, it deals 5 damage instead
+  }
+}

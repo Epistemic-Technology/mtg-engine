@@ -1,0 +1,8 @@
+card "Triceraton Regenta" {
+  oracle_id 2650d2d5-576e-4b9a-95ac-0f5307f1580f
+  cost {2}{W}
+  type Creature — Dinosaur Noble
+  pt 2/3
+  keywords vigilance
+  triggered whenever this attacks: untap up to 1 another target creature
+}

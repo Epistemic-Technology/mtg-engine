@@ -1,0 +1,9 @@
+card "Aetherflame Wall" {
+  oracle_id 6bb24767-687e-4ff6-b7ac-3bf969f4dfeb
+  cost {1}{R}
+  type Creature — Wall
+  pt 0/4
+  keywords defender
+  can block shadow as though didn't have shadow
+  activated {R}: this gets +1/+0
+}

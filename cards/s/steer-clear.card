@@ -1,0 +1,6 @@
+card "Steer Clear" {
+  oracle_id 2c22af49-c6ef-4de6-bb84-6b3e99879148
+  cost {W}
+  type Instant
+  spell: deal 2 damage to target attacking or blocking creature; deal 4 damage to that target 1 instead if controlled Mount as cast
+}

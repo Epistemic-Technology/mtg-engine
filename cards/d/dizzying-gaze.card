@@ -1,0 +1,7 @@
+card "Dizzying Gaze" {
+  oracle_id e04f46d9-43e7-45ef-b59c-1810f30bec72
+  cost {R}
+  type Enchantment — Aura
+  enchant creature you control
+  activated {R}: enchanted creature deals 1 damage to target creature with flying
+}

@@ -87,6 +87,8 @@ pub struct ManaRestriction {
     pub ability_source: Option<Filter>,
     /// `only to foretell or cast ...`: "foretell a card from your hand".
     pub foretell: bool,
+    /// `only to pay disturb or cast ...`: "pay a disturb cost".
+    pub disturb: bool,
     pub wording: mtg_core::card::SpendWording,
 }
 
@@ -123,6 +125,15 @@ pub struct Card {
     /// `flash as long as you control Merfolk`: "This spell has flash as
     /// long as you control a Merfolk." (CR 702.8).
     pub flash_if: Option<StaticCond>,
+    /// `flash with cleanup sacrifice`: "You may cast this spell as though
+    /// it had flash. If you cast it any time a sorcery couldn't have been
+    /// cast, the controller of the permanent it becomes sacrifices it at
+    /// the beginning of the next cleanup step."
+    pub flash_cleanup: bool,
+    /// Derived as a spell is parsed: how many of its targets come before
+    /// those an "if kicked" sentence declares (Orim's Thunder's "target
+    /// creature" is chosen only if the spell is kicked, CR 601.2c).
+    pub unkicked_targets: Option<usize>,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
@@ -170,6 +181,8 @@ impl Card {
             additional_or: None,
             alt_cost: None,
             flash_if: None,
+            flash_cleanup: false,
+            unkicked_targets: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
@@ -320,6 +333,9 @@ pub enum CountExpr {
         stat: mtg_core::card::Stat,
         that: bool,
     },
+    /// `power of attached`: what the source enchants or equips, "its
+    /// power".
+    AttachedStat(mtg_core::card::Stat),
     /// `toughness of the sacrificed creature` ("the sacrificed creature's
     /// toughness"), `mana value of the sacrificed permanent`, `toughness
     /// of that sacrificed creature` ("that creature's toughness" after
@@ -489,6 +505,9 @@ pub struct ExileCards {
     pub n: u32,
     pub x: bool,
     pub filter: Option<Filter>,
+    /// `exile top 3 black cards from graveyard`: "the top three black
+    /// cards of your graveyard".
+    pub top: bool,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -1196,6 +1215,19 @@ pub enum BlockRule {
     /// `can't be blocked by creature with lesser power`: "Creatures with
     /// power less than this creature's power can't block it."
     NotByLesserPower,
+    /// `can't be blocked except by 3 or more creatures`.
+    MinBlockers(u8),
+    /// `can block shadow as though had shadow` ("can block creatures with
+    /// shadow as though it had shadow"), `... as though didn't have
+    /// shadow` ("... as though they didn't have shadow").
+    BlocksShadow {
+        had: bool,
+    },
+    /// `can block landwalk as though didn't have`: "can block creatures
+    /// with landwalk abilities as though they didn't have those abilities".
+    BlocksLandwalk,
+    /// `can block an additional 7 creatures each combat`.
+    BlocksAdditional(u8),
 }
 
 /// How a graveyard-card condition is worded.
@@ -1232,6 +1264,14 @@ pub enum StaticCond {
     /// `your turn`: "it's your turn"; `static during your turn, ...`
     /// prints "During your turn, ..." instead.
     YourTurn,
+    /// `not your turn`: "it's not your turn".
+    NotYourTurn,
+    /// `cast during main phase`: "you cast this spell during your main
+    /// phase" (judged as it was cast).
+    CastDuringMain,
+    /// `controlled Mount as cast`: "you controlled a Mount as you cast this
+    /// spell".
+    ControlledAsCast(Filter),
     /// Written `static during your turn, <filter>: ...`.
     DuringYourTurn,
     /// `attacking`, `enchanted`, `equipped`: "it's attacking" (the source).
@@ -2030,6 +2070,12 @@ pub enum Recipient {
     ThatOwner(usize),
     /// `controller of the target 1`: "the creature's controller".
     TheControllerOf(usize),
+    /// `the target 1`: the `n`th target, "the creature" (Dark Temper's
+    /// "destroy the creature instead").
+    TheTarget(usize),
+    /// `controller of the creature` in a triggered ability: the triggering
+    /// object's controller, "the creature's controller" (Creature Bond).
+    TheTriggeringController,
     /// The `n`th target again, printed as "that creature" (Act of
     /// Treason's "Untap that creature").
     ThatTarget(usize),

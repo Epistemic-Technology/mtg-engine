@@ -1,0 +1,8 @@
+card "Aether Web" {
+  oracle_id 97e7778f-971c-4425-8f6d-f4ff3fae000f
+  cost {1}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +1/+1, has reach, has ability { can block shadow as though didn't have shadow }
+}

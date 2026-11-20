@@ -1,0 +1,6 @@
+card "Snap" {
+  oracle_id ac914d98-221e-426c-8a50-342896b15f9e
+  cost {1}{U}
+  type Instant
+  spell: return target creature to hand; untap up to 2 land chosen
+}

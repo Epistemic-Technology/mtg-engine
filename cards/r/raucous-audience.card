@@ -1,0 +1,7 @@
+card "Raucous Audience" {
+  oracle_id 5be6f245-31cf-4294-ace0-ca6ce3463fed
+  cost {1}{G}
+  type Creature — Human Citizen
+  pt 2/1
+  activated {T}: add {G}; if you control creature with power 4 or greater, add {G}{G} instead
+}

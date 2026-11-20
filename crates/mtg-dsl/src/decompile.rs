@@ -100,6 +100,8 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             }
         }),
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
+        flash_cleanup: def.flash_cleanup,
+        unkicked_targets: def.unkicked_targets.map(usize::from),
         kicker: def.kicker.as_deref().cloned(),
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
@@ -324,6 +326,7 @@ impl Decompiler<'_> {
                     n: g.n,
                     x: g.x,
                     filter: g.filter.as_ref().map(|f| self.filter(f)),
+                    top: g.top,
                 })
             }),
             order: Vec::new(),
@@ -350,6 +353,13 @@ impl Decompiler<'_> {
                 at_least: *at_least,
             },
             StaticCondition::YourTurn => StaticCond::YourTurn,
+            StaticCondition::NotYourTurn => StaticCond::NotYourTurn,
+            StaticCondition::AsCast(inner) => match &**inner {
+                StaticCondition::YouControl { filter, .. } => {
+                    StaticCond::ControlledAsCast(self.filter(filter))
+                }
+                _ => StaticCond::CastDuringMain,
+            },
             StaticCondition::SourceAttacking => StaticCond::Attacking,
             StaticCondition::SourceEnchanted => StaticCond::Enchanted,
             StaticCondition::SourceEquipped => StaticCond::Equipped,
@@ -1620,6 +1630,7 @@ impl Decompiler<'_> {
                     abilities: restriction.abilities,
                     ability_source: restriction.ability_source.as_ref().map(|f| self.filter(f)),
                     foretell: restriction.foretell,
+                    disturb: restriction.disturb,
                     wording: restriction.wording,
                 },
             },
@@ -1638,6 +1649,14 @@ impl Decompiler<'_> {
                 }
                 mtg_core::card::BlockRule::CantBlock(f) => {
                     crate::ast::BlockRule::CantBlock(self.filter(f))
+                }
+                mtg_core::card::BlockRule::MinBlockers(n) => crate::ast::BlockRule::MinBlockers(*n),
+                mtg_core::card::BlockRule::BlocksShadow { had } => {
+                    crate::ast::BlockRule::BlocksShadow { had: *had }
+                }
+                mtg_core::card::BlockRule::BlocksLandwalk => crate::ast::BlockRule::BlocksLandwalk,
+                mtg_core::card::BlockRule::BlocksAdditional(n) => {
+                    crate::ast::BlockRule::BlocksAdditional(*n)
                 }
             }),
             AbilityDef::Enchant(t) => Ability::Enchant(self.target(*t)),

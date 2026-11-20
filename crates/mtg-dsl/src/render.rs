@@ -480,6 +480,8 @@ fn restricted_mana_text(card: &Card, m: Mana, r: &crate::ast::ManaRestriction) -
         let s = format!("cast {}", a_spell(f, card));
         if r.foretell {
             format!("foretell a card from your hand or {s}")
+        } else if r.disturb {
+            format!("pay a disturb cost or {s}")
         } else {
             s
         }
@@ -1007,6 +1009,10 @@ impl<'a> Ctx<'a> {
                 self.target_mentioned[i] = true;
                 format!("that {}", self.target_noun[i])
             }
+            Recipient::TheTarget(i) => {
+                self.target_mentioned[i] = true;
+                format!("the {}", self.target_noun[i])
+            }
             Recipient::You => "you".to_string(),
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::EachOtherPlayer => "each other player".to_string(),
@@ -1060,14 +1066,20 @@ impl<'a> Ctx<'a> {
             }
             Recipient::ThatControllerOf(i) => format!("that {}'s controller", self.target_noun[i]),
             Recipient::TheControllerOf(i) => format!("the {}'s controller", self.target_noun[i]),
+            Recipient::TheTriggeringController => "the creature's controller".to_string(),
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::DefendingPlayer => "the player or planeswalker it's attacking".to_string(),
             Recipient::DefendingPlayerWord => "defending player".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
             Recipient::EachPlayer => "each player".to_string(),
+            // "Creatures you control get +2/+1 until end of turn. Untap
+            // those creatures."
             Recipient::EachCreatureYouControl => {
-                self.groups_mentioned.insert(r);
-                "each creature you control".to_string()
+                if self.groups_mentioned.insert(r) {
+                    "each creature you control".to_string()
+                } else {
+                    "those creatures".to_string()
+                }
             }
             Recipient::EachPermanentYouControl => {
                 self.groups_mentioned.insert(r);
@@ -1343,7 +1355,10 @@ impl<'a> Ctx<'a> {
             };
             let noun = self.plural_target_noun(fresh[0]);
             // "up to two other target creatures you control" (CR 115.3).
-            let (other, noun) = match noun.strip_prefix("other ") {
+            let (other, noun) = match noun
+                .strip_prefix("other ")
+                .or_else(|| noun.strip_prefix("another "))
+            {
                 Some(rest) => ("other ", rest.to_string()),
                 None => ("", noun),
             };
@@ -2126,6 +2141,30 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
             mtg_core::card::ChosenCost::Sacrifice => format!("sacrifice {what}"),
         });
     }
+    if let Some(g) = &a.cost.exile_cards {
+        let kind = g
+            .filter
+            .as_ref()
+            .map_or(String::new(), |f| card_filter_phrase(f, card) + " ");
+        parts.push(if g.top {
+            // "exile the top three black cards of your graveyard".
+            format!(
+                "exile the top {} {kind}{} of your graveyard",
+                count_words(Num::N(g.n), "one"),
+                if g.n == 1 { "card" } else { "cards" }
+            )
+        } else if g.n == 1 {
+            format!(
+                "exile {} from your graveyard",
+                with_article(&format!("{kind}card"))
+            )
+        } else {
+            format!(
+                "exile {} {kind}cards from your graveyard",
+                count_words(Num::N(g.n), "a")
+            )
+        });
+    }
     if a.cost.life > 0 {
         parts.push(format!("pay {} life", a.cost.life));
     }
@@ -2866,6 +2905,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             let whose = if *that { "that creature's" } else { "its" };
             return format!("{whose} {}", stat_word(*stat));
         }
+        CountExpr::AttachedStat(stat) => return format!("its {}", stat_word(*stat)),
         // "the sacrificed creature's toughness", "that creature's
         // toughness".
         CountExpr::MovedStat {
@@ -3115,8 +3155,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
 fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
     match e {
         // "it deals 4 damage instead": to what the sentence before named.
-        Effect::DealDamage { amount, to, .. } if to.is_empty() => {
-            let s = ctx.source();
+        Effect::DealDamage { amount, to, by } if to.is_empty() => {
+            // "Addendum — If you cast this spell during your main phase,
+            // it deals 5 damage instead."
+            let s = if *by == Recipient::SourceIt {
+                ctx.subj(*by)
+            } else {
+                ctx.source()
+            };
             Clause::with_subject(
                 Recipient::Source,
                 s,
@@ -4607,6 +4653,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(match act {
                 ChooseAct::Tap => format!("tap {}", permanents()),
+                ChooseAct::Untap => format!("untap {}", permanents()),
                 ChooseAct::Sacrifice => format!("sacrifice {}", permanents()),
                 ChooseAct::Bounce => format!(
                     "return {} to {} owner's hand",
@@ -7714,6 +7761,12 @@ fn block_rule_phrase(r: &crate::ast::BlockRule, card: &Card, this_turn: bool) ->
     };
     let turn = if this_turn { " this turn" } else { "" };
     match r {
+        // "can't be blocked by enchanted creatures or enchantment
+        // creatures", "by Knights or Walls" (but colors "and/or").
+        BlockRule::NotBy(f) if f.or.is_some() && f.colors.is_none() => format!(
+            "can't be blocked by {}{turn}",
+            filter_phrase(f, card, true).replacen(" and ", " or ", 1)
+        ),
         BlockRule::NotBy(f) => format!("can't be blocked by {}{turn}", pl(f)),
         BlockRule::OnlyBy(f) => format!("can't be blocked{turn} except by {}", pl(f)),
         BlockRule::AtMostOne => format!("can't be blocked by more than one creature{turn}"),
@@ -7725,6 +7778,30 @@ fn block_rule_phrase(r: &crate::ast::BlockRule, card: &Card, this_turn: bool) ->
         ),
         BlockRule::BlocksOnly(f) => format!("can block only {}{turn}", pl(f)),
         BlockRule::CantBlock(f) => format!("can't block {}{turn}", pl(f)),
+        BlockRule::MinBlockers(n) => format!(
+            "can't be blocked{turn} except by {} or more creatures",
+            count_words(Num::N(u32::from(*n)), "one")
+        ),
+        BlockRule::BlocksShadow { had } => format!(
+            "can block creatures with shadow as though {}{turn}",
+            if *had {
+                "it had shadow"
+            } else {
+                "they didn't have shadow"
+            }
+        ),
+        BlockRule::BlocksLandwalk => format!(
+            "can block creatures with landwalk abilities as though they didn't have those abilities{turn}"
+        ),
+        BlockRule::BlocksAdditional(n) => format!(
+            "can block an additional {} creatures {}",
+            count_words(Num::N(u32::from(*n)), "one"),
+            if this_turn {
+                "this turn"
+            } else {
+                "each combat"
+            }
+        ),
     }
 }
 
@@ -7841,6 +7918,12 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("you control {what}")
         }
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
+        StaticCond::NotYourTurn => "it's not your turn".to_string(),
+        StaticCond::CastDuringMain => "you cast this spell during your main phase".to_string(),
+        StaticCond::ControlledAsCast(f) => format!(
+            "you controlled {} as you cast this spell",
+            filter_a(f, card)
+        ),
         StaticCond::AnyPlayerLifeAtMost(n) => format!("a player has {n} or less life"),
         StaticCond::SourceCountersThere { kind, n } => format!(
             "there are {} or more {} counters on this {}",
@@ -8301,6 +8384,7 @@ fn turn_time_text(t: mtg_core::card::TurnTime) -> &'static str {
         T::YourTurnBeforeAttackers => "during your turn, before attackers are declared",
         T::DeclareBlockers => "during the declare blockers step",
         T::EndOfCombat => "during the end of combat step",
+        T::YourMain => "during your main phase",
     }
 }
 
@@ -9086,6 +9170,11 @@ pub fn mode_text(card: &Card, m: &crate::ast::Mode, lookup: &dyn Lookup) -> Stri
     sentences(&m.effects, &mut ctx)
 }
 
+/// `flash with cleanup sacrifice` (Spider Climb).
+const FLASH_CLEANUP: &str = "You may cast this spell as though it had flash. If you cast it any \
+    time a sorcery couldn't have been cast, the controller of the permanent it becomes \
+    sacrifices it at the beginning of the next cleanup step.";
+
 /// The card's full Oracle text.
 pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let mut lines: Vec<String> = Vec::new();
@@ -9112,6 +9201,9 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             static_cond_text(c, card)
         ));
     }
+    if card.flash_cleanup {
+        lines.push(FLASH_CLEANUP.to_string());
+    }
     if let Some(k) = &card.kicker {
         lines.push(format!("Kicker {k}"));
     }
@@ -9127,6 +9219,12 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         };
         lines.push(format!("As an additional cost to cast this spell, {c}."));
     }
+    // An alternative cost prints before keywords ("You may pay {1}{W} and
+    // exile a creature card from your graveyard rather than pay this
+    // spell's mana cost.\nFlying").
+    if let Some(a) = &card.alt_cost {
+        lines.push(alt_cost_line(card, a));
+    }
     let alone_pair = card.keywords.contains(&Keyword::CantAttackAlone)
         && card.keywords.contains(&Keyword::CantBlockAlone);
     for k in &card.keywords {
@@ -9141,9 +9239,6 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             continue;
         }
         lines.push(keyword_line(card, *k));
-    }
-    if let Some(a) = &card.alt_cost {
-        lines.push(alt_cost_line(card, a));
     }
     let mut i = 0;
     while i < card.abilities.len() {

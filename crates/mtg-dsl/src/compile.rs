@@ -90,6 +90,7 @@ pub fn add_card(
             scavenge: None,
             station: None,
             token: None,
+            cast_snapshot: None,
         };
         let def = c.card()?;
         let r = pool.add(def);
@@ -113,6 +114,7 @@ pub fn add_card(
                 scavenge: None,
                 station: None,
                 token: None,
+                cast_snapshot: None,
             };
             let def = c.card()?;
             let r = pool.add(def);
@@ -132,6 +134,7 @@ pub fn add_card(
         scavenge: None,
         station: None,
         token,
+        cast_snapshot: None,
     };
     let mut def = c.card()?;
     link_exiles(&mut def);
@@ -195,6 +198,8 @@ struct Compiler<'a> {
     /// The token embalm, eternalize, or offspring creates, compiled
     /// before the card (`derived_token`).
     token: Option<CardRef>,
+    /// The condition a spell's `AsCast` condition judges as it is cast.
+    cast_snapshot: Option<StaticCondition>,
 }
 
 impl Compiler<'_> {
@@ -483,6 +488,12 @@ impl Compiler<'_> {
             let c = self.static_cond(c);
             b = b.flash_if(self.pool.intern_condition(c));
         }
+        if card.flash_cleanup {
+            b = b.flash_cleanup();
+        }
+        if let Some(n) = card.unkicked_targets {
+            b = b.unkicked_targets(u8::try_from(n).unwrap_or(u8::MAX));
+        }
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
         }
@@ -599,6 +610,9 @@ impl Compiler<'_> {
                 keywords: KeywordSet::of(x.keywords.iter().copied()),
                 abilities,
             });
+        }
+        if let Some(c) = self.cast_snapshot.take() {
+            b = b.cast_snapshot(self.pool.intern_condition(c));
         }
         Ok(b.build())
     }
@@ -776,6 +790,18 @@ impl Compiler<'_> {
                 at_least: *at_least,
             },
             StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
+            StaticCond::NotYourTurn => StaticCondition::NotYourTurn,
+            StaticCond::CastDuringMain | StaticCond::ControlledAsCast(_) => {
+                let inner = match c {
+                    StaticCond::ControlledAsCast(f) => StaticCondition::YouControl {
+                        filter: self.filter(f).who(Who::You),
+                        at_least: 1,
+                    },
+                    _ => StaticCondition::During(mtg_core::card::TurnTime::YourMain),
+                };
+                self.cast_snapshot = Some(inner.clone());
+                StaticCondition::AsCast(Box::new(inner))
+            }
             StaticCond::Attacking => StaticCondition::SourceAttacking,
             StaticCond::Enchanted => StaticCondition::SourceEnchanted,
             StaticCond::Equipped => StaticCondition::SourceEquipped,
@@ -995,6 +1021,7 @@ impl Compiler<'_> {
             A::DiedThisTurn(f) => C::DiedThisTurn(self.filter(f)),
             A::GreatestPowerInGraveyard(f) => C::GreatestPowerInGraveyard(self.filter(f)),
             A::TriggerStat { stat, .. } => C::TriggerStat(*stat),
+            A::AttachedStat(stat) => C::AttachedStat(*stat),
             A::MovedStat { verb, stat, .. } => C::MovedStat {
                 verb: *verb,
                 stat: *stat,
@@ -1086,6 +1113,7 @@ impl Compiler<'_> {
                     n: g.n,
                     x: g.x,
                     filter: g.filter.as_ref().map(|f| self.filter(f)),
+                    top: g.top,
                 })
             }),
             reveal_hand: c.reveal_hand,
@@ -1105,7 +1133,9 @@ impl Compiler<'_> {
             Recipient::Target(i) if Some(i) == many => {
                 CoreRecipient::Targets(u8::try_from(i).unwrap_or(u8::MAX), u8::MAX)
             }
-            Recipient::Target(i) | Recipient::ThatTarget(i) => CoreRecipient::Target(i),
+            Recipient::Target(i) | Recipient::ThatTarget(i) | Recipient::TheTarget(i) => {
+                CoreRecipient::Target(i)
+            }
             Recipient::Targets(a, n)
             | Recipient::ThoseCards(a, n)
             | Recipient::ThoseTargets(a, n) => CoreRecipient::Targets(
@@ -1118,7 +1148,9 @@ impl Compiler<'_> {
                 CoreRecipient::Source
             }
             Recipient::TriggeringCard => CoreRecipient::TriggeringCard,
-            Recipient::TriggeringController { .. } => CoreRecipient::TriggeringController,
+            Recipient::TriggeringController { .. } | Recipient::TheTriggeringController => {
+                CoreRecipient::TriggeringController
+            }
             Recipient::TriggeringObject | Recipient::TriggeringIt => {
                 CoreRecipient::TriggeringObject
             }
@@ -1241,7 +1273,8 @@ impl Compiler<'_> {
             Effect::DealDamage {
                 amount,
                 to,
-                by: by @ (Recipient::TriggeringIt | Recipient::TriggeringObject),
+                by:
+                    by @ (Recipient::TriggeringIt | Recipient::TriggeringObject | Recipient::Attached),
             } => {
                 for t in to {
                     out.push(CoreEffect::DamageFrom {
@@ -2568,6 +2601,7 @@ impl Compiler<'_> {
                     abilities: restriction.abilities,
                     ability_source: restriction.ability_source.as_ref().map(|f| self.filter(f)),
                     foretell: restriction.foretell,
+                    disturb: restriction.disturb,
                     wording: restriction.wording,
                 },
             },
@@ -2803,6 +2837,14 @@ impl Compiler<'_> {
                 }
                 crate::ast::BlockRule::CantBlock(f) => {
                     mtg_core::card::BlockRule::CantBlock(self.filter(f))
+                }
+                crate::ast::BlockRule::MinBlockers(n) => mtg_core::card::BlockRule::MinBlockers(*n),
+                crate::ast::BlockRule::BlocksShadow { had } => {
+                    mtg_core::card::BlockRule::BlocksShadow { had: *had }
+                }
+                crate::ast::BlockRule::BlocksLandwalk => mtg_core::card::BlockRule::BlocksLandwalk,
+                crate::ast::BlockRule::BlocksAdditional(n) => {
+                    mtg_core::card::BlockRule::BlocksAdditional(*n)
                 }
             }),
             Ability::EntersAsCopy(f) => AbilityDef::EntersAsCopy(self.filter(f)),

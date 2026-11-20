@@ -1,0 +1,8 @@
+card "Troll of Khazad-dûm" {
+  oracle_id 222fd9fc-7af4-4269-bbb9-cd7b8ac029bd
+  cost {5}{B}
+  type Creature — Troll
+  pt 6/5
+  can't be blocked except by 3 or more creatures
+  swampcycling {1}
+}

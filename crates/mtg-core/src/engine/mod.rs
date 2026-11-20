@@ -1296,8 +1296,8 @@ impl GameState {
                                 .iter()
                                 .copied()
                                 .filter(|(_, a)| {
-                                    chosen.iter().filter(|(_, a2)| a2 == a).count() >= 2
-                                        || !self.has_menace(*a)
+                                    chosen.iter().filter(|(_, a2)| a2 == a).count()
+                                        >= self.min_blockers(*a)
                                 })
                                 .collect();
                             self.finish_blocks(fixed);
@@ -1940,6 +1940,9 @@ impl GameState {
     ) -> ObjId {
         self.consecutive_passes = 0;
         let from = self.objects[card].zone;
+        // CR 307.1: whether a sorcery could have been cast now.
+        let sorcery_timing =
+            player == self.active_player && self.step.is_main() && self.stack.is_empty();
         let spell = self.move_object(card, Zone::Stack, true);
         self.objects[spell].controller = player;
         self.objects[spell].alt = alt;
@@ -1950,6 +1953,15 @@ impl GameState {
         // CR 601.2a: "if you cast it from your hand".
         self.objects[spell].cast.set_cast_from(from);
         let def = self.pool.get(self.objects[spell].def);
+        if def.flash_cleanup && !sorcery_timing {
+            self.objects[spell].cast.set_instant_timing();
+        }
+        // "If you cast this spell during your main phase": judged now.
+        if let Some(c) = def.cast_snapshot
+            && self.condition_now(self.pool.condition(c), player, spell)
+        {
+            self.objects[spell].cast.set_as_cast();
+        }
         self.flow = if def.modes().is_some() {
             Flow::ChoosingMode { spell }
         } else {
@@ -2131,7 +2143,7 @@ impl GameState {
                 req.add(&cost.mana.requirements(0));
                 self.spell_payable(p, spell, &req)
                     && self.additional_payable(p, cost, spell)
-                    && self.targets_available(p, def.cast_targets(), Some(spell))
+                    && self.targets_available(p, def.unkicked_cast_targets(), Some(spell))
             })
             .collect()
     }

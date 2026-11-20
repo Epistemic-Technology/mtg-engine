@@ -1,0 +1,7 @@
+card "Falkenrath Perforator" {
+  oracle_id 6e991808-fea4-46a8-9e87-7b5917f33ce8
+  cost {1}{R}
+  type Creature — Vampire
+  pt 2/1
+  triggered whenever this attacks: deal 1 damage to that defending player
+}

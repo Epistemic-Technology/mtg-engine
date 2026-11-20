@@ -1,0 +1,7 @@
+card "Nimbleclaw Adept" {
+  oracle_id 32e5a4ac-69c7-4de0-8b9f-dd86682f2ffd
+  cost {3}{U}
+  type Creature — Dragon Wizard
+  pt 2/3
+  label "Bigby's Hand" activated {T}, sorcery, once: untap 2 another target permanent
+}

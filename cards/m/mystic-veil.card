@@ -1,0 +1,8 @@
+card "Mystic Veil" {
+  oracle_id 43c88fcd-aac9-4741-8fd6-31ac81c5bb6f
+  cost {1}{U}
+  type Enchantment — Aura
+  flash with cleanup sacrifice
+  enchant creature
+  static enchanted: has shroud
+}

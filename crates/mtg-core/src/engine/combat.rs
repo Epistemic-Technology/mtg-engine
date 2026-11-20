@@ -172,8 +172,12 @@ impl GameState {
         }
         if a.keywords.intersects(crate::card::KeywordSet::EVASION) || b.has(Keyword::Shadow) {
             let artifact = b.types.contains(crate::card::CardType::Artifact);
-            // CR 702.28b: shadow blocks and is blocked only by shadow.
-            if a.has(Keyword::Shadow) != b.has(Keyword::Shadow) {
+            // CR 702.28b: shadow blocks and is blocked only by shadow,
+            // unless the blocker may block it as though it had shadow.
+            if a.has(Keyword::Shadow) != b.has(Keyword::Shadow)
+                && !(a.has(Keyword::Shadow)
+                    && self.has_block_rule(&b, |r| matches!(r, BlockRule::BlocksShadow { .. })))
+            {
                 return false;
             }
             // CR 702.36b
@@ -195,7 +199,9 @@ impl GameState {
         }
         // CR 702.14b: landwalk makes the attacker unblockable while the
         // defending player controls a land of that basic type.
-        if a.keywords.intersects(crate::card::KeywordSet::LANDWALK) {
+        if a.keywords.intersects(crate::card::KeywordSet::LANDWALK)
+            && !self.has_block_rule(&b, |r| *r == BlockRule::BlocksLandwalk)
+        {
             let defender = self.objects[blocker].controller;
             for c in crate::mana::Color::ALL {
                 if a.has(Keyword::landwalk_for(c)) && self.controls_basic_type(defender, c) {
@@ -258,6 +264,14 @@ impl GameState {
         true
     }
 
+    /// Whether `c` has a `BlockRule` ability matching `f`.
+    fn has_block_rule(&self, c: &Characteristics, f: impl Fn(&BlockRule) -> bool) -> bool {
+        c.abilities.iter().any(|id| match self.pool.ability(*id) {
+            AbilityDef::BlockRule(r) => f(r),
+            _ => false,
+        })
+    }
+
     /// "can't be blocked by more than one creature".
     pub(super) fn at_most_one_blocker(&self, attacker: ObjId) -> bool {
         self.characteristics(attacker).is_some_and(|c| {
@@ -275,8 +289,22 @@ impl GameState {
     pub(super) fn block_capacity(&self, blocker: ObjId) -> usize {
         match self.characteristics(blocker) {
             Some(c) if c.has(Keyword::BlockAny) => usize::MAX,
-            Some(c) if c.has(Keyword::BlockAdditional) => 2,
-            _ => 1,
+            Some(c) => {
+                let mut n = if c.has(Keyword::BlockAdditional) {
+                    2
+                } else {
+                    1
+                };
+                for id in &c.abilities {
+                    if let AbilityDef::BlockRule(BlockRule::BlocksAdditional(k)) =
+                        self.pool.ability(*id)
+                    {
+                        n = n.max(1 + *k as usize);
+                    }
+                }
+                n
+            }
+            None => 1,
         }
     }
 
@@ -336,9 +364,20 @@ impl GameState {
         })
     }
 
-    pub(super) fn has_menace(&self, attacker: ObjId) -> bool {
-        self.characteristics(attacker)
-            .is_some_and(|c| c.has(Keyword::Menace))
+    /// The fewest creatures that may block `attacker`, if any do: two
+    /// with menace (CR 702.110b), N with "can't be blocked except by N or
+    /// more creatures" (CR 509.1b), else one.
+    pub(super) fn min_blockers(&self, attacker: ObjId) -> usize {
+        let Some(c) = self.characteristics(attacker) else {
+            return 1;
+        };
+        let mut n = if c.has(Keyword::Menace) { 2 } else { 1 };
+        for id in &c.abilities {
+            if let AbilityDef::BlockRule(BlockRule::MinBlockers(k)) = self.pool.ability(*id) {
+                n = n.max(*k as usize);
+            }
+        }
+        n
     }
 
     /// Menace (CR 702.110b): an attacker is blocked by zero or at least two.
@@ -359,7 +398,7 @@ impl GameState {
         };
         combat.attackers.iter().all(|a| {
             let n = blocks.iter().filter(|(_, x)| *x == a.id).count();
-            (!self.has_menace(a.id) || n != 1) && (n <= 1 || !self.at_most_one_blocker(a.id))
+            (n == 0 || n >= self.min_blockers(a.id)) && (n <= 1 || !self.at_most_one_blocker(a.id))
         })
     }
 
@@ -393,12 +432,13 @@ impl GameState {
             .as_ref()
             .map(|c| c.attackers.iter().map(|a| a.id).collect())
             .unwrap_or_default();
-        // Each menace attacker with exactly one blocker needs a distinct free
-        // blocker able to block it. Small numbers; check greedily.
+        // Each menace attacker with too few blockers needs distinct free
+        // blockers able to block it. Small numbers; check greedily.
         let mut used = Vec::new();
         for a in attackers {
             let n = blocks.iter().filter(|(_, x)| *x == a).count();
-            if self.has_menace(a) && n == 1 {
+            let min = if n == 0 { 0 } else { self.min_blockers(a) };
+            for _ in n..min {
                 let Some(i) = free
                     .iter()
                     .find(|i| !used.contains(*i) && can_block[**i].contains(&a))

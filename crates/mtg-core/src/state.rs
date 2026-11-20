@@ -307,43 +307,49 @@ impl SpentMana {
 /// A spell's chosen mode (CR 700.2, the low six bits) and cast flags:
 /// kicked (CR 702.33c; kept by the permanent it becomes, for "if it was
 /// kicked") and cast with flashback (CR 702.34a; exiled as it leaves the
-/// stack). Two bytes, so `GameObject` stays small.
+/// stack). Four bytes; `GameObject` stays within its size bound.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
-pub struct CastInfo(u16);
+pub struct CastInfo(u32);
 
 impl CastInfo {
     /// Cast with its offspring cost paid (CR 702.175a); kept by the
     /// permanent, for its trigger.
-    const OFFSPRING: u16 = 0x100;
+    const OFFSPRING: u32 = 0x100;
     /// Bargained (CR 702.166b); kept by the permanent ("if it was
     /// bargained").
-    const BARGAINED: u16 = 0x200;
+    const BARGAINED: u32 = 0x200;
     /// Cast paying the second of its two additional costs ("sacrifice a
     /// creature or pay {3}", CR 601.2b).
-    const OTHER_COST: u16 = 0x8000;
+    const OTHER_COST: u32 = 0x8000;
     /// Conspired (CR 702.78a): two creatures are tapped with its costs,
     /// and it is copied.
-    const CONSPIRED: u16 = 0x2000;
+    const CONSPIRED: u32 = 0x2000;
     /// A copy of a spell (CR 707.10): not cast, and ceases to exist as it
     /// leaves the stack (CR 704.5e).
-    const COPY: u16 = 0x4000;
-    const KICKED: u16 = 0x40;
-    const FLASHBACK: u16 = 0x80;
+    const COPY: u32 = 0x4000;
+    /// Cast any time a sorcery couldn't have been (CR 307.1), by a card
+    /// whose permanent is then sacrificed at the next cleanup step (Spider
+    /// Climb).
+    const INSTANT_TIMING: u32 = 0x1_0000;
+    /// The definition's `cast_snapshot` condition held as it was cast.
+    const AS_CAST: u32 = 0x2_0000;
+    const KICKED: u32 = 0x40;
+    const FLASHBACK: u32 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
     /// exile.
-    const ADVENTURE: u16 = 0x20;
+    const ADVENTURE: u32 = 0x20;
     /// Cast with its buyback cost paid (CR 702.27): to its owner's hand as
     /// it resolves.
-    const BUYBACK: u16 = 0x10;
+    const BUYBACK: u32 = 0x10;
     /// Cast for its evoke cost (CR 702.74); kept by the permanent.
-    const EVOKED: u16 = 0x08;
-    const MODE: u16 = 0x07;
+    const EVOKED: u32 = 0x08;
+    const MODE: u32 = 0x07;
     /// Cast at all, and from where (CR 601.2a); kept by the permanent ("if
     /// you cast it from your hand").
-    const CAST_MASK: u16 = 0x1C00;
-    const CAST_HAND: u16 = 0x0400;
-    const CAST_GRAVEYARD: u16 = 0x0800;
-    const CAST_ELSEWHERE: u16 = 0x1000;
+    const CAST_MASK: u32 = 0x1C00;
+    const CAST_HAND: u32 = 0x0400;
+    const CAST_GRAVEYARD: u32 = 0x0800;
+    const CAST_ELSEWHERE: u32 = 0x1000;
 
     /// The zone the spell was cast from, `None` if it wasn't cast (a copy,
     /// a permanent put onto the battlefield); exile and the library read
@@ -364,6 +370,22 @@ impl CastInfo {
             _ => Self::CAST_ELSEWHERE,
         };
         self.0 = (self.0 & !Self::CAST_MASK) | bit;
+    }
+
+    pub const fn as_cast(self) -> bool {
+        self.0 & Self::AS_CAST != 0
+    }
+
+    pub fn set_as_cast(&mut self) {
+        self.0 |= Self::AS_CAST;
+    }
+
+    pub const fn instant_timing(self) -> bool {
+        self.0 & Self::INSTANT_TIMING != 0
+    }
+
+    pub fn set_instant_timing(&mut self) {
+        self.0 |= Self::INSTANT_TIMING;
     }
 
     pub const fn offspring(self) -> bool {
@@ -454,7 +476,7 @@ impl CastInfo {
     }
 
     pub fn set_mode(&mut self, mode: u8) {
-        self.0 = (self.0 & !Self::MODE) | (u16::from(mode) & Self::MODE);
+        self.0 = (self.0 & !Self::MODE) | (u32::from(mode) & Self::MODE);
     }
 
     pub const fn kicked(self) -> bool {
@@ -765,7 +787,9 @@ pub fn targets_in<'p>(pool: &'p CardPool, o: &GameObject) -> &'p [TargetSpec] {
         Some(modes) => modes
             .get(usize::from(o.cast.mode()))
             .map_or(&[], |m| &m.targets),
-        None => def.cast_targets(),
+        // CR 601.2c: targets only a kicked spell has.
+        None if o.cast.kicked() => def.cast_targets(),
+        None => def.unkicked_cast_targets(),
     }
 }
 
@@ -2331,6 +2355,7 @@ impl GameState {
                 .filter(|p| *p != you)
                 .any(|p| count(filter, p) == 0),
             C::Or(a, b) => self.condition_now(a, you, source) || self.condition_now(b, you, source),
+            C::AsCast(_) => self.objects.get(source).is_some_and(|o| o.cast.as_cast()),
             C::DefenderControls { filter, at_least } => self
                 .players_in_game()
                 .filter(|p| *p != you)
@@ -2349,6 +2374,7 @@ impl GameState {
             }
             C::YourTurn => self.active_player == you,
             C::SourceAttackedBattle => self.battle_attackers_this_turn.contains(&source),
+            C::NotYourTurn => self.active_player != you,
             C::SourceAttacking => self
                 .combat
                 .as_ref()

@@ -1,0 +1,7 @@
+card "Spinning Darkness" {
+  oracle_id 69eeee95-cc69-41d1-833b-8895ef72df82
+  cost {4}{B}{B}
+  type Instant
+  alternative cost exile top 3 black cards from graveyard
+  spell: deal 3 damage to target nonblack creature; you gain 3 life
+}

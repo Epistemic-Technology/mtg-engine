@@ -1,0 +1,8 @@
+card "Lightning Reflexes" {
+  oracle_id 2b0c82f1-078a-4e8b-8e43-407f5c5d8549
+  cost {1}{R}
+  type Enchantment — Aura
+  flash with cleanup sacrifice
+  enchant creature
+  static enchanted: +1/+0, has first strike
+}

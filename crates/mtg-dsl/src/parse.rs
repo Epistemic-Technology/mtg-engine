@@ -52,6 +52,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         votes: Vec::new(),
         returned: None,
         revealed: false,
+        kicked_targets: None,
     };
     let mut cards = Vec::new();
     loop {
@@ -478,6 +479,10 @@ struct P {
     /// card`, `reveal until`): `it` / `that card` is that card in `if it
     /// is`, `put it ...`.
     revealed: bool,
+    /// In a spell, how many targets were declared before an "if kicked"
+    /// sentence declared more (CR 601.2c: those are chosen only if the
+    /// spell is kicked).
+    kicked_targets: Option<usize>,
 }
 
 impl P {
@@ -707,6 +712,8 @@ impl P {
             additional_or: None,
             alt_cost: None,
             flash_if: None,
+            flash_cleanup: false,
+            unkicked_targets: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
@@ -911,6 +918,11 @@ impl P {
                 card.kicker = Some(self.mana_cost()?);
                 self.end_stmt()
             }
+            "flash" if self.at_words(&["flash", "with", "cleanup", "sacrifice"]) => {
+                self.pos += 4;
+                card.flash_cleanup = true;
+                self.end_stmt()
+            }
             "flash" if self.at_words(&["flash", "as", "long", "as"]) => {
                 self.pos += 4;
                 card.flash_if = Some(self.static_cond()?);
@@ -961,6 +973,9 @@ impl P {
             }
             _ => {
                 let a = self.ability()?;
+                if matches!(a, Ability::Spell { .. }) {
+                    card.unkicked_targets = self.kicked_targets.take();
+                }
                 card.abilities.push(a);
                 Ok(())
             }
@@ -1055,6 +1070,7 @@ impl P {
                 abilities: true,
                 ability_source: None,
                 foretell: false,
+                disturb: false,
                 wording: SpendWording::CantCast,
             });
         }
@@ -1078,12 +1094,14 @@ impl P {
                 abilities: true,
                 ability_source,
                 foretell: false,
+                disturb: false,
                 wording,
             });
         }
         // "foretell a card from your hand or cast an instant or sorcery
         // spell" (CR 702.143a).
         let foretell = self.eat_words(&["foretell", "or"]);
+        let disturb = self.eat_words(&["pay", "disturb", "or"]);
         self.expect_word("cast")?;
         let mut f = self.filter()?;
         self.expect_word("spell")?;
@@ -1108,6 +1126,7 @@ impl P {
             abilities,
             ability_source,
             foretell,
+            disturb,
             wording,
         })
     }
@@ -1607,6 +1626,7 @@ impl P {
             }
             "spell" => {
                 self.pos += 1;
+                self.kicked_targets = None;
                 let effects = self.effects_body()?;
                 Ok(Ability::Spell {
                     targets: std::mem::take(&mut self.targets),
@@ -1879,8 +1899,24 @@ impl P {
             "can't" | "can" => {
                 self.pos += 1;
                 let rule = if w == "can" {
-                    self.expect_words(&["block", "only"])?;
-                    BlockRule::BlocksOnly(self.filter()?)
+                    self.expect_word("block")?;
+                    if self.eat_words(&["shadow", "as", "though"]) {
+                        let had = self.eat_word("had");
+                        if !had {
+                            self.expect_words(&["didn't", "have"])?;
+                        }
+                        self.expect_word("shadow")?;
+                        BlockRule::BlocksShadow { had }
+                    } else if self.eat_words(&["landwalk", "as", "though", "didn't", "have"]) {
+                        BlockRule::BlocksLandwalk
+                    } else if self.eat_words(&["an", "additional"]) {
+                        let n = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+                        self.expect_words(&["creatures", "each", "combat"])?;
+                        BlockRule::BlocksAdditional(n)
+                    } else {
+                        self.expect_word("only")?;
+                        BlockRule::BlocksOnly(self.filter()?)
+                    }
                 } else if self.eat_word("block") {
                     BlockRule::CantBlock(self.filter()?)
                 } else {
@@ -1890,7 +1926,16 @@ impl P {
                     } else if self.eat_words(&["by", "creature", "with", "lesser", "power"]) {
                         BlockRule::NotByLesserPower
                     } else if self.eat_words(&["except", "by"]) {
-                        BlockRule::OnlyBy(self.filter()?)
+                        // "except by three or more creatures".
+                        if matches!(self.peek(), Some(Tok::Num(_)))
+                            && self.word_at(1).as_deref() == Some("or")
+                        {
+                            let n = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+                            self.expect_words(&["or", "more", "creatures"])?;
+                            BlockRule::MinBlockers(n)
+                        } else {
+                            BlockRule::OnlyBy(self.filter()?)
+                        }
                     } else {
                         self.expect_word("by")?;
                         BlockRule::NotBy(self.filter()?)
@@ -2183,6 +2228,17 @@ impl P {
         }
         if self.eat_words(&["your", "turn"]) {
             return Ok(StaticCond::YourTurn);
+        }
+        if self.eat_words(&["not", "your", "turn"]) {
+            return Ok(StaticCond::NotYourTurn);
+        }
+        if self.eat_words(&["cast", "during", "main", "phase"]) {
+            return Ok(StaticCond::CastDuringMain);
+        }
+        if self.eat_word("controlled") {
+            let f = self.filter()?;
+            self.expect_words(&["as", "cast"])?;
+            return Ok(StaticCond::ControlledAsCast(f));
         }
         // "there is a land card in your graveyard", "there's a Lesson card
         // in your graveyard".
@@ -2708,6 +2764,8 @@ impl P {
             StaticCond::During(T::DeclareBlockers)
         } else if self.eat_words(&["end", "of", "combat"]) {
             StaticCond::During(T::EndOfCombat)
+        } else if self.eat_words(&["your", "main", "phase"]) {
+            StaticCond::During(T::YourMain)
         } else if self.eat_words(&["your", "turn", "before", "attackers"]) {
             StaticCond::During(T::YourTurnBeforeAttackers)
         } else if self.eat_words(&["your", "turn"]) && !matches!(self.peek(), Some(Tok::Comma)) {
@@ -3707,6 +3765,7 @@ impl P {
             if self.peek() == Some(&Tok::Comma) {
                 self.pos += 1;
             }
+            let before = self.targets.len();
             let inner = if self.peek() == Some(&Tok::LBrace) {
                 self.effects_body()?
             } else {
@@ -3715,6 +3774,9 @@ impl P {
                     Err(s) => vec![s],
                 }
             };
+            if self.targets.len() > before && self.kicked_targets.is_none() {
+                self.kicked_targets = Some(before);
+            }
             return Ok(Effect::IfKicked(inner));
         }
         if self.at_words(&["this", "turn"]) {
@@ -3776,6 +3838,7 @@ impl P {
                         | Recipient::SourceIt
                         | Recipient::TriggeringIt
                         | Recipient::TriggeringObject
+                        | Recipient::Attached
                 ) =>
             {
                 self.pos -= 1;
@@ -4716,8 +4779,9 @@ impl P {
     /// before the clause ends or another verb starts. `return N <filter>
     /// chosen` alone is `ReturnChosen`.
     fn chosen_act_ahead(&self) -> bool {
-        const VERBS: [&str; 10] = [
+        const VERBS: [&str; 11] = [
             "tap",
+            "untap",
             "sacrifice",
             "discard",
             "exile",
@@ -4731,7 +4795,7 @@ impl P {
         let Some(verb) = self.word_at(0) else {
             return false;
         };
-        if !VERBS[..7].contains(&verb.as_str()) {
+        if !VERBS[..8].contains(&verb.as_str()) {
             return false;
         }
         let mut hand = false;
@@ -4781,6 +4845,7 @@ impl P {
         let mut this_way = false;
         let (act, filter) = match verb.as_str() {
             "tap" => (ChooseAct::Tap, self.filter()?),
+            "untap" => (ChooseAct::Untap, self.filter()?),
             "sacrifice" => (ChooseAct::Sacrifice, self.filter()?),
             "discard" => (ChooseAct::Discard, card_filter(self)?),
             // `attach 1 Equipment you control to target 1 chosen`.
@@ -6246,6 +6311,10 @@ impl P {
             return None;
         };
         let at = |k: usize| self.word_at(len + k);
+        if at(0).as_deref() == Some("attached") {
+            self.pos += len + 1;
+            return Some(CountExpr::AttachedStat(stat));
+        }
         if self.in_trigger && at(0).as_deref() == Some("it") {
             self.pos += len + 1;
             return Some(CountExpr::TriggerStat { stat, that: false });
@@ -6676,6 +6745,7 @@ impl P {
             votes: self.votes.clone(),
             returned: self.returned,
             revealed: self.revealed,
+            kicked_targets: None,
         };
         if !probe.at_recipient() {
             return false;
@@ -6746,8 +6816,10 @@ impl P {
             self.pos += 2;
         }
         // "up to two other target creatures you control".
+        // "two other target permanents" (`2 another target permanent`).
         let counted = self.word_at(1).as_deref() == Some("target")
-            || up_to && self.word_at(1).as_deref() == Some("another");
+            || self.word_at(1).as_deref() == Some("another")
+                && (up_to || self.word_at(2).as_deref() == Some("target"));
         let count = match self.peek() {
             Some(Tok::Num(n)) if counted => {
                 let n = *n;
@@ -6768,7 +6840,7 @@ impl P {
         };
         if count > 1 || up_to {
             // "up to one other target permanent you control".
-            let another = up_to && self.eat_word("another");
+            let another = self.eat_word("another");
             self.expect_word("target")?;
             let mut spec = self.target_spec()?;
             if another {
@@ -6912,6 +6984,9 @@ impl P {
         if self.in_trigger && self.eat_words(&["controller", "of", "that", "creature"]) {
             return Ok(Recipient::TriggeringController { that: true });
         }
+        if self.in_trigger && self.eat_words(&["controller", "of", "the", "creature"]) {
+            return Ok(Recipient::TheTriggeringController);
+        }
         if self.eat_words(&["those", "cards"]) {
             if self.targets.is_empty() {
                 return self.fail("`those cards` needs targets declared before it");
@@ -6949,6 +7024,17 @@ impl P {
                 return self.fail(format!("target {n} has not been declared"));
             }
             return Ok(Recipient::ThatTarget(n - 1));
+        }
+        if self.at_words(&["the", "target"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
+            self.pos += 2;
+            let Some(Tok::Num(n)) = self.next() else {
+                return self.fail("expected a target number after `the target`");
+            };
+            let n = n as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(Recipient::TheTarget(n - 1));
         }
         if !self.targets.is_empty() {
             let last = self.targets.len() - 1;
@@ -7209,6 +7295,7 @@ impl P {
                         votes: Vec::new(),
                         returned: None,
                         revealed: false,
+                        kicked_targets: None,
                     };
                     probe.keyword().is_some()
                 };
@@ -8141,6 +8228,9 @@ impl P {
     /// cast` / `an opponent casts`.
     fn spell_ordinal(&mut self) -> R<Option<mtg_core::card::SpellOrdinal>> {
         use mtg_core::card::SpellOrdinal;
+        if self.eat_words(&["a", "spell", "during", "an", "opponent's", "turn"]) {
+            return Ok(Some(SpellOrdinal::OnOpponentsTurn));
+        }
         if self.eat_words(&["a", "spell", "other", "than"]) {
             if !(self.eat_word("your") || self.eat_word("their")) {
                 return self.unexpected("`your` or `their`");
@@ -8831,6 +8921,7 @@ impl P {
                     // graveyard`.
                     "exile" => {
                         self.pos += 1;
+                        let top = self.eat_word("top");
                         let (mut n, mut x) = (1, false);
                         if let Some(Tok::Num(k)) = self.peek() {
                             n = *k;
@@ -8847,7 +8938,8 @@ impl P {
                         };
                         self.cards_word()?;
                         self.expect_words(&["from", "graveyard"])?;
-                        cost.exile_cards = Some(Box::new(crate::ast::ExileCards { n, x, filter }));
+                        cost.exile_cards =
+                            Some(Box::new(crate::ast::ExileCards { n, x, filter, top }));
                         cost.order.push(CostItem::ExileCards);
                     }
                     "discard" => {

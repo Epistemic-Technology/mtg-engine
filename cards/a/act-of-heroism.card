@@ -1,0 +1,6 @@
+card "Act of Heroism" {
+  oracle_id 25edb501-11b5-4617-8a65-2eb4869cccd5
+  cost {1}{W}
+  type Instant
+  spell: untap target creature; target 1 gets +2/+2 and can block an additional creature
+}

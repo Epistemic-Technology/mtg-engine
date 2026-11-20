@@ -1,0 +1,7 @@
+card "Rhonas's Stalwart" {
+  oracle_id 8c95230b-7a4a-4293-ab5f-2070d951082b
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 2/2
+  exert: this gets +1/+1 and gains ability { can't be blocked by creature with power 2 or less }
+}

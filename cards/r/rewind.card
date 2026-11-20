@@ -1,0 +1,6 @@
+card "Rewind" {
+  oracle_id bb27bfdf-fe8d-45bd-ad62-8118dce06eda
+  cost {2}{U}{U}
+  type Instant
+  spell: counter target spell; untap up to 4 land chosen
+}

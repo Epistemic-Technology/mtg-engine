@@ -1,0 +1,8 @@
+card "Wall of Diffusion" {
+  oracle_id ae42f803-f4ac-45f3-9ce7-227a59096f19
+  cost {1}{R}
+  type Creature — Wall
+  pt 0/5
+  keywords defender
+  can block shadow as though had shadow
+}

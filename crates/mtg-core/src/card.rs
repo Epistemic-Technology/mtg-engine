@@ -342,6 +342,10 @@ pub enum Builtin {
     /// from this permanent, exile it, then you may cast it transformed
     /// without paying its mana cost."
     SiegeDefeated,
+    /// "the controller of the permanent it becomes sacrifices it at the
+    /// beginning of the next cleanup step" (Spider Climb cast any time a
+    /// sorcery couldn't have been).
+    CleanupSacrifice,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -1684,6 +1688,9 @@ pub enum CountExpr {
     /// dies, its controller loses life equal to its toughness"), as it
     /// last existed once it has left (CR 608.2h).
     TriggerStat(Stat),
+    /// A characteristic of what the source is attached to ("It deals
+    /// damage to you equal to its power" of enchanted creature).
+    AttachedStat(Stat),
     /// A characteristic of the first object the resolution, or its costs,
     /// moved `verb`'s way ("life equal to the sacrificed creature's
     /// toughness", "sacrifices a creature, then gains life equal to that
@@ -1822,6 +1829,18 @@ pub enum BlockRule {
     /// "Creatures with power less than this creature's power can't block
     /// it." (judged as blockers are declared, CR 509.1b).
     NotByLesserPower,
+    /// "can't be blocked except by three or more creatures" (CR 509.1b,
+    /// like menace's two).
+    MinBlockers(u8),
+    /// "can block creatures with shadow as though it had shadow" (`had`)
+    /// or "... as though they didn't have shadow" (CR 702.28b): shadow
+    /// doesn't stop it blocking.
+    BlocksShadow { had: bool },
+    /// "can block creatures with landwalk abilities as though they didn't
+    /// have those abilities" (CR 702.14b).
+    BlocksLandwalk,
+    /// "can block an additional seven creatures each combat" (CR 509.1a).
+    BlocksAdditional(u8),
 }
 
 /// How long cards exiled by an impulse effect stay playable.
@@ -1889,6 +1908,8 @@ pub enum StaticCondition {
     /// "it's your turn" ("during your turn"). The turn change bumps the
     /// characteristics cache.
     YourTurn,
+    /// "it's not your turn" (Zealous Display).
+    NotYourTurn,
     /// "as long as it's attacking" (the source).
     SourceAttacking,
     /// "as long as it attacked a battle this turn" (the source, CR
@@ -2013,6 +2034,11 @@ pub enum StaticCondition {
     /// Either holds ("you control a Desert or there is a Desert card in
     /// your graveyard").
     Or(Box<StaticCondition>, Box<StaticCondition>),
+    /// The condition as the spell was cast ("If you cast this spell during
+    /// your main phase", "if you controlled a Mount as you cast this
+    /// spell"): judged then and remembered by the spell (the definition's
+    /// `cast_snapshot`).
+    AsCast(Box<StaticCondition>),
     /// "an opponent has eight or more cards in their graveyard".
     OpponentGraveyard(u32),
     /// "there are five or more mana values among cards in your graveyard".
@@ -2181,6 +2207,8 @@ pub enum TurnTime {
     DeclareBlockers,
     /// "during the end of combat step".
     EndOfCombat,
+    /// "during your main phase" (CR 505.1).
+    YourMain,
 }
 
 impl TurnTime {
@@ -2198,6 +2226,7 @@ impl TurnTime {
         );
         match self {
             TurnTime::YourUpkeep => step == Step::Upkeep && active == you,
+            TurnTime::YourMain => step.is_main() && active == you,
             TurnTime::OpponentUpkeep => step == Step::Upkeep && active != you,
             TurnTime::Combat => matches!(
                 step,
@@ -3861,6 +3890,9 @@ pub enum ChooseAct {
     Tap,
     /// "sacrifice a creature" (permanents you control).
     Sacrifice,
+    /// "untap up to two lands" (tapped permanents; anyone's unless the
+    /// filter names a controller).
+    Untap,
     /// "return up to two lands you control to their owner's hand".
     Bounce,
     /// "discard a creature card" (cards in your hand).
@@ -4347,6 +4379,9 @@ pub enum SpellOrdinal {
     NotFirst,
     /// "your first spell during each opponent's turn".
     FirstOnOpponentsTurn,
+    /// "a spell during an opponent's turn": any spell cast on another
+    /// player's turn.
+    OnOpponentsTurn,
 }
 
 impl SpellOrdinal {
@@ -4358,6 +4393,7 @@ impl SpellOrdinal {
             SpellOrdinal::Second => n == 2,
             SpellOrdinal::NotFirst => n >= 2,
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
+            SpellOrdinal::OnOpponentsTurn => !own_turn,
         }
     }
 }
@@ -4608,6 +4644,10 @@ pub struct GraveExile {
     pub n: u32,
     pub x: bool,
     pub filter: Option<ObjFilter>,
+    /// "the top three black cards of your graveyard": the most recent
+    /// matching cards rather than the oldest.
+    #[serde(default)]
+    pub top: bool,
 }
 
 /// "You may pay {1} and return a basic land you control to its owner's hand
@@ -4720,6 +4760,11 @@ pub struct ManaRestriction {
     /// sorcery spell."
     #[serde(default)]
     pub foretell: bool,
+    /// "Spend this mana only to pay a disturb cost or cast an instant or
+    /// sorcery spell." Disturb (CR 702.146) isn't implemented, so this is
+    /// the wording only.
+    #[serde(default)]
+    pub disturb: bool,
     /// How the sentence reads; `CantCast` also turns `spells` around.
     pub wording: SpendWording,
 }
@@ -5317,6 +5362,18 @@ pub struct CardDef {
     /// 702.8): the pool condition under which the card may be cast as
     /// though it had flash.
     pub flash_if: Option<u16>,
+    /// "You may cast this spell as though it had flash. If you cast it any
+    /// time a sorcery couldn't have been cast, the controller of the
+    /// permanent it becomes sacrifices it at the beginning of the next
+    /// cleanup step." (Spider Climb).
+    pub flash_cleanup: bool,
+    /// How many of a spell's targets it has unless it was kicked: those
+    /// after are declared by "If this spell was kicked, ..." and chosen
+    /// only if it was (CR 601.2c, 702.33).
+    pub unkicked_targets: Option<u8>,
+    /// The pool condition an `AsCast` condition of the spell judges as it
+    /// is cast.
+    pub cast_snapshot: Option<u16>,
     /// Offspring (CR 702.175): an optional additional cost; if paid, a 1/1
     /// token copy is created as the permanent enters.
     pub offspring: Option<Box<ManaCost>>,
@@ -5814,6 +5871,15 @@ impl CardDef {
         &self.cast_targets
     }
 
+    /// The targets the spell needs to be cast at all: without those only
+    /// a kicked spell has (CR 601.2c).
+    pub fn unkicked_cast_targets(&self) -> &[TargetSpec] {
+        match self.unkicked_targets {
+            Some(n) => &self.cast_targets[..usize::from(n).min(self.cast_targets.len())],
+            None => &self.cast_targets,
+        }
+    }
+
     /// Whether the card does something from its owner's graveyard
     /// (flashback, unearth): such cards are counted per player
     /// (`flashback_in_graveyard`) so listing options skips the graveyard
@@ -6006,7 +6072,7 @@ pub struct CardPool {
     flanking: AbilityId,
     evoke: AbilityId,
     exploit: AbilityId,
-    builtins: [AbilityId; 7],
+    builtins: [AbilityId; 8],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -6086,7 +6152,7 @@ impl CardPool {
             flanking: AbilityId(0),
             evoke: AbilityId(0),
             exploit: AbilityId(0),
-            builtins: [AbilityId(0); 7],
+            builtins: [AbilityId(0); 8],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -6224,6 +6290,19 @@ impl CardPool {
                     },
                     Effect::CastExiled(ExileCast::Transformed),
                 ],
+            }));
+        pool.builtins[Builtin::CleanupSacrifice as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::Cleanup,
+                    whose: Who::Any,
+                },
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::Sacrifice {
+                    what: Recipient::SameObject,
+                }],
             }));
         pool.add_designations();
         // Named only for logs: a face-down permanent has no name.
@@ -6974,6 +7053,9 @@ impl Builder {
             alt_cost: None,
             additional_or: None,
             flash_if: None,
+            flash_cleanup: false,
+            unkicked_targets: None,
+            cast_snapshot: None,
             offspring: None,
             bargain: false,
             aura_stays: false,
@@ -7137,6 +7219,28 @@ impl Builder {
     #[must_use]
     pub fn evoke(mut self, cost: ManaCost) -> Self {
         self.0.evoke = Some(Box::new(cost));
+        self
+    }
+
+    /// "You may cast this spell as though it had flash. If you cast it
+    /// any time a sorcery couldn't have been cast, ..." (Spider Climb).
+    #[must_use]
+    pub fn flash_cleanup(mut self) -> Self {
+        self.0.flash_cleanup = true;
+        self
+    }
+
+    /// The condition judged as the spell is cast (`AsCast`).
+    #[must_use]
+    pub fn cast_snapshot(mut self, condition: u16) -> Self {
+        self.0.cast_snapshot = Some(condition);
+        self
+    }
+
+    /// Targets declared after this many only if kicked (CR 601.2c).
+    #[must_use]
+    pub fn unkicked_targets(mut self, n: u8) -> Self {
+        self.0.unkicked_targets = Some(n);
         self
     }
 

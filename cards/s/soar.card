@@ -1,0 +1,8 @@
+card "Soar" {
+  oracle_id acee6f4f-8b66-495d-bb0e-71c339e7dc49
+  cost {1}{U}
+  type Enchantment — Aura
+  flash with cleanup sacrifice
+  enchant creature
+  static enchanted: +0/+1, has flying
+}
