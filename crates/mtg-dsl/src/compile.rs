@@ -1043,6 +1043,7 @@ impl Compiler<'_> {
             mana: c.mana.clone(),
             discard_self: c.discard_self,
             exile_self: c.exile_self,
+            exile_this: c.exile_this,
             crew: c.crew,
             remove_counters: c.remove_counters,
             energy: c.energy,
@@ -1621,11 +1622,31 @@ impl Compiler<'_> {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
             }),
-            Effect::HandToLibrary { count, who, bottom } => {
+            Effect::HandToLibrary {
+                count,
+                who,
+                bottom,
+                shuffle,
+            } => {
                 out.push(CoreEffect::HandToLibrary {
                     count: *count,
                     who: who.map_or(CoreRecipient::You, r),
                     bottom: *bottom,
+                    shuffle: *shuffle,
+                });
+            }
+            Effect::ShuffleZone {
+                who,
+                of,
+                hand,
+                filter,
+                ..
+            } => {
+                let filter = filter.as_ref().map(|f| self.filter(f));
+                out.push(CoreEffect::ShuffleIntoLibrary {
+                    who: who.or(*of).map_or(CoreRecipient::You, r),
+                    hand: *hand,
+                    filter,
                 });
             }
             Effect::Fight { a, b } => out.push(CoreEffect::Fight { a: r(*a), b: r(*b) }),

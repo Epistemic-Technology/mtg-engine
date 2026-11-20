@@ -158,7 +158,8 @@ card` (a filter: discard one matching card, printed "Discard a creature
 card"), `discard X cards` (a spell's additional cost: "As an additional
 cost to cast this spell, discard X cards."; X is announced as the spell
 is cast, at most the other cards in hand, CR 601.2b), `discard this`, `exile this from graveyard` ("Exile this card from
-your graveyard"; the ability is activated from the graveyard), `return
+your graveyard"; the ability is activated from the graveyard), `exile
+this` ("Exile this artifact": the permanent exiles itself), `return
 land you control` ("Return a land you control to its owner's hand";
 `return this`: "Return this enchantment to its owner's hand") and
 `tap untapped creature you control` ("Tap an untapped creature you
@@ -1016,7 +1017,20 @@ graveyard"), `put <what> on top of library` / `on bottom of
 library` / `into library 2 from top` ("Put target creature into its
 owner's library second from the top"; fewer cards, the bottom, CR 401.7),
 `shuffle <what> into library` ("Shuffle enchanted creature into its
-owner's library"), and with the owner as subject, who makes any choice:
+owner's library"; `you may shuffle up to 1 target card from your
+graveyard into library`: "You may shuffle up to one target card from
+your graveyard into your library"), `shuffle graveyard into library`
+("Shuffle your graveyard into your library"; `target player shuffles
+graveyard into library`: "Target player shuffles their graveyard into
+their library"), `shuffle all creature card from graveyard of target
+player into library` ("Shuffle all creature cards from target player's
+graveyard into that player's library"), `shuffle cards from hand into
+library` ("shuffle the cards from your hand into your library"; `then
+draw count that many shuffled this way cards`: "then draw that many
+cards"), `shuffle 1 card from hand into library` ("shuffle a card from
+your hand into your library", the player's choice); the library is
+shuffled even when no card moved (CR 701.24), `you may shuffle` ("You
+may shuffle.": your library), and with the owner as subject, who makes any choice:
 `owner puts target creature on top or bottom of library` ("Target
 creature's owner puts it on their choice of the top or bottom of their
 library"), `owner of target nonland permanent puts it into library 2
@@ -1489,7 +1503,7 @@ is destroyed this way"), `if land card is discarded this way, ...`, `if
 Saproling was sacrificed this way, ...`, `if you discarded card this way,
 ...` (cards you owned), `if you put Town card into hand this way, ...`.
 Verbs: `exiled`, `sacrificed`, `destroyed`, `discarded`, `milled`,
-`returned` (put into a hand). What a spell's or ability's costs sacrificed
+`returned` (put into a hand), `shuffled` (put into a library). What a spell's or ability's costs sacrificed
 or discarded counts too (CR 601.2h, 602.2b): `if the sacrificed creature was
 Human, ...`, `if the sacrificed permanent was artifact, ...`, `if the
 discarded card wasn't land card, ...`, and as an "instead": `if the

@@ -1,0 +1,7 @@
+card "Pondering Mage" {
+  oracle_id 3f278970-201d-4a93-b038-cc7218f2ac57
+  cost {3}{U}{U}
+  type Creature — Human Wizard
+  pt 3/4
+  triggered when this enters: look at top 3; you may shuffle; draw 1 card
+}

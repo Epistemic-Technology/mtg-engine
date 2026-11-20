@@ -92,3 +92,141 @@ scenario "look at the top card of target opponent's library: not your own (Sahee
   run_to turn 1 postcombat_main
   assert battlefield A contains "Saheeli's Silverwing"
 }
+
+scenario "you may shuffle: declined, the looked-at cards stay known (Ponder)" {
+  battlefield A: "Island"
+  hand A: "Ponder"
+  library A: "Forest", "Plains", "Swamp", "Mountain"
+  turn 1 A: cast "Ponder"
+  turn 1 A: decline "Ponder"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert known A "Plains"
+  assert known A "Swamp"
+  assert unknown A "Mountain"
+}
+
+scenario "you may shuffle: a shuffle forgets them (Ponder)" {
+  battlefield A: "Island"
+  hand A: "Ponder"
+  library A: "Forest", "Plains", "Swamp", "Mountain"
+  turn 1 A: cast "Ponder"
+  turn 1 A: accept "Ponder"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert library A count 3
+  assert unknown A "Plains"
+  assert unknown A "Swamp"
+}
+
+scenario "a shuffle forgets what was looked at (Orcish Spy, Clear the Mind)" {
+  battlefield A: "Orcish Spy", 3 "Island"
+  hand A: "Clear the Mind"
+  library A: "Forest"
+  library B: "Hill Giant", "Mountain"
+  graveyard B: "Shock"
+  turn 1 A: activate "Orcish Spy" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Clear the Mind" targeting player B
+  run_to turn 1 postcombat_main
+  assert unknown A "Hill Giant"
+  assert library B contains "Shock"
+  assert graveyard B count 0
+  assert hand A contains "Forest"
+}
+
+scenario "shuffle your graveyard into your library, exiling the artifact (Feldon's Cane)" {
+  battlefield A: "Feldon's Cane"
+  graveyard A: "Grizzly Bears", "Shock"
+  library A: "Forest"
+  turn 1 A: activate "Feldon's Cane"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Feldon's Cane"
+  assert graveyard A count 0
+  assert library A count 3
+}
+
+scenario "exile this as a cost: only once (Feldon's Cane)" {
+  battlefield A: "Feldon's Cane"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: activate "Feldon's Cane"
+  run_to turn 1 postcombat_main
+  illegal turn 1 A: activate "Feldon's Cane"
+  assert exile A contains "Feldon's Cane"
+}
+
+scenario "shuffle only the creature cards from target player's graveyard (Repopulate)" {
+  battlefield A: 2 "Forest"
+  hand A: "Repopulate"
+  graveyard B: "Hill Giant", "Shock", "Grizzly Bears"
+  library B: "Mountain"
+  turn 1 A: cast "Repopulate" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Shock"
+  assert graveyard B count 1
+  assert library B contains "Hill Giant"
+  assert library B contains "Grizzly Bears"
+  assert library B count 3
+}
+
+scenario "shuffle your hand into your library, then draw that many (Whirlpool Rider)" {
+  battlefield A: 2 "Island"
+  hand A: "Whirlpool Rider", "Hill Giant", "Shock"
+  library A: "Forest", "Plains", "Swamp"
+  turn 1 A: cast "Whirlpool Rider"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert library A count 3
+  assert battlefield A contains "Whirlpool Rider"
+}
+
+scenario "shuffle your empty hand: nothing to draw (Whirlpool Rider)" {
+  battlefield A: 2 "Island"
+  hand A: "Whirlpool Rider"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Whirlpool Rider"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A count 2
+}
+
+scenario "draw two, then shuffle a card from your hand into your library (See Beyond)" {
+  battlefield A: 2 "Island"
+  hand A: "See Beyond"
+  library A: "Forest", "Plains", "Swamp"
+  turn 1 A: cast "See Beyond"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert hand A count 1
+  assert library A contains "Forest"
+  assert library A count 2
+}
+
+scenario "counter, then you may shuffle a card from your graveyard into your library (Put Away)" {
+  battlefield A: 2 "Mountain"
+  battlefield B: 4 "Island"
+  hand A: "Shock"
+  hand B: "Put Away"
+  graveyard B: "Hill Giant"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 B: cast "Put Away" targeting "Shock", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Shock"
+  assert library B contains "Hill Giant"
+  assert graveyard B contains "Put Away"
+}
+
+scenario "Put Away: declining leaves the card in the graveyard" {
+  battlefield A: 2 "Mountain"
+  battlefield B: 4 "Island"
+  hand A: "Shock"
+  hand B: "Put Away"
+  graveyard B: "Hill Giant"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 B: cast "Put Away" targeting "Shock", "Hill Giant"
+  turn 1 B: decline "Put Away"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

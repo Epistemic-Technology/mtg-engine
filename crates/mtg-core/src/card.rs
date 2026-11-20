@@ -2980,11 +2980,27 @@ pub enum Effect {
     /// "put two cards from your hand on top of your library in any
     /// order": each recipient player chooses `count` cards from their hand
     /// one at a time, each put on top of (or under) the ones before, so
-    /// the order is theirs (CR 401.4).
+    /// the order is theirs (CR 401.4). With `shuffle`, the library is
+    /// shuffled afterwards ("shuffle a card from your hand into your
+    /// library", CR 701.24).
     HandToLibrary {
         count: Num,
         who: Recipient,
         bottom: bool,
+        shuffle: bool,
+    },
+    /// "Shuffle your graveyard into your library", "Target player shuffles
+    /// their graveyard into their library", "Shuffle all creature cards
+    /// from target player's graveyard into that player's library",
+    /// "shuffle the cards from your hand into your library": each
+    /// recipient player's cards in that zone (from the hand with `hand`,
+    /// else the graveyard), all or those matching `filter`, go into their
+    /// library, which is then shuffled (CR 701.24), even with no card
+    /// moved. "Shuffled this way" counts them (`ThisWay::Shuffled`).
+    ShuffleIntoLibrary {
+        who: Recipient,
+        hand: bool,
+        filter: Option<ObjFilter>,
     },
     /// `a` fights `b` (CR 701.12): each deals damage equal to its power to
     /// the other.
@@ -3698,6 +3714,7 @@ impl Effect {
                 | Effect::CopySpell
                 | Effect::Discard { .. }
                 | Effect::HandToLibrary { .. }
+                | Effect::ShuffleIntoLibrary { .. }
                 | Effect::CounterUnlessPays { .. }
                 | Effect::Search { .. }
                 | Effect::AddMana(_)
@@ -3805,6 +3822,9 @@ pub enum ThisWay {
     /// Put into a hand ("returned this way", "If you put an artifact card
     /// into your hand this way").
     PutInHand,
+    /// Put into a library from another zone ("shuffle the cards from your
+    /// hand into your library, then draw that many cards").
+    Shuffled,
 }
 
 /// "If a creature card was exiled this way", "If you discarded a card this
@@ -4500,6 +4520,10 @@ pub struct Cost {
     /// "Exile this card from your graveyard" (an ability activated from
     /// the graveyard).
     pub exile_self: bool,
+    /// "Exile this artifact": the permanent exiles itself from the
+    /// battlefield as the cost is paid (CR 602.2b).
+    #[serde(default)]
+    pub exile_this: bool,
     /// Crew N (CR 702.122): tap any number of other untapped creatures you
     /// control with total power N or more.
     pub crew: u32,
@@ -4581,6 +4605,7 @@ impl Cost {
             mana: ManaCost::parse(mana).unwrap_or_else(|e| panic!("{mana}: {e}")),
             discard_self: false,
             exile_self: false,
+            exile_this: false,
             crew: 0,
             remove_counters: None,
             energy: 0,

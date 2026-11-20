@@ -313,6 +313,7 @@ impl Decompiler<'_> {
             sorcery: false,
             from_graveyard: false,
             exile_self: c.exile_self,
+            exile_this: c.exile_this,
             crew: c.crew,
             remove_counters: c.remove_counters,
             energy: c.energy,
@@ -869,10 +870,23 @@ impl Decompiler<'_> {
                 count: *count,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
             },
-            CoreEffect::HandToLibrary { count, who, bottom } => Effect::HandToLibrary {
+            CoreEffect::HandToLibrary {
+                count,
+                who,
+                bottom,
+                shuffle,
+            } => Effect::HandToLibrary {
                 count: *count,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
                 bottom: *bottom,
+                shuffle: *shuffle,
+            },
+            CoreEffect::ShuffleIntoLibrary { who, hand, filter } => Effect::ShuffleZone {
+                who: (*who != CoreRecipient::You).then(|| r(*who)),
+                of: None,
+                hand: *hand,
+                filter: filter.as_ref().map(|f| self.filter(f)),
+                cards: *hand && filter.is_none(),
             },
             CoreEffect::Fight { a, b } => Effect::Fight { a: r(*a), b: r(*b) },
             CoreEffect::DamageFrom { source, amount, to } => Effect::DealDamage {

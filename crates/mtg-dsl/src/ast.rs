@@ -437,6 +437,8 @@ pub struct Cost {
     /// `exile this from graveyard`: "Exile this card from your graveyard"
     /// (activated from the graveyard).
     pub exile_self: bool,
+    /// `exile this`: "Exile this artifact" (from the battlefield).
+    pub exile_this: bool,
     /// Crew's cost (from its expansion).
     pub crew: u32,
     /// `pay 2 energy`: "Pay {E}{E}".
@@ -2484,11 +2486,29 @@ pub enum Effect {
     /// hand on the bottom of your library"; `target opponent puts 1 card
     /// from hand on top of library`: "Target opponent puts a card from
     /// their hand on top of their library". Two or more on top print "in
-    /// any order". `who` is `None` for the imperative.
+    /// any order". `who` is `None` for the imperative. With `shuffle`,
+    /// `shuffle 1 card from hand into library`: "shuffle a card from your
+    /// hand into your library".
     HandToLibrary {
         count: Num,
         who: Option<Recipient>,
         bottom: bool,
+        shuffle: bool,
+    },
+    /// `shuffle graveyard into library` ("Shuffle your graveyard into your
+    /// library"), `target player shuffles graveyard into library` ("Target
+    /// player shuffles their graveyard into their library"), `shuffle all
+    /// creature card from graveyard of target player into library`
+    /// ("Shuffle all creature cards from target player's graveyard into
+    /// that player's library"), `shuffle cards from hand into library`
+    /// ("shuffle the cards from your hand into your library"). `who` is the
+    /// subject, `of` the player whose zone it is in the imperative.
+    ShuffleZone {
+        who: Option<Recipient>,
+        of: Option<Recipient>,
+        hand: bool,
+        filter: Option<Filter>,
+        cards: bool,
     },
     Fight {
         a: Recipient,
@@ -2990,6 +3010,7 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
         ThisWay::Discarded => "discarded",
         ThisWay::Milled => "milled",
         ThisWay::PutInHand => "returned",
+        ThisWay::Shuffled => "shuffled",
     }
 }
 
@@ -3003,6 +3024,7 @@ pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
         ThisWay::Discarded,
         ThisWay::Milled,
         ThisWay::PutInHand,
+        ThisWay::Shuffled,
     ]
     .into_iter()
     .find(|v| this_way_word(*v) == w)

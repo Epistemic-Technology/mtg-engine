@@ -1,0 +1,9 @@
+card "Clear the Mind" {
+  oracle_id 141c33be-7a25-4981-b62c-efee8e8ec91d
+  cost {2}{U}
+  type Sorcery
+  spell {
+    target player shuffles graveyard into library
+    draw 1 card
+  }
+}

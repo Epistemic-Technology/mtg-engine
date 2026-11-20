@@ -1,0 +1,7 @@
+card "Repopulate" {
+  oracle_id 3a225d39-c1f8-4ab0-98ec-dad63bf268db
+  cost {1}{G}
+  type Instant
+  spell: shuffle all creature card from graveyard of target player into library
+  cycling {2}
+}

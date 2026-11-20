@@ -3251,7 +3251,9 @@ impl GameState {
                 self.move_object(s, Zone::Hand, false);
             }
         }
-        if ab.cost.exile_self && self.objects[sa.source].zone == Zone::Graveyard {
+        if ab.cost.exile_self && self.objects[sa.source].zone == Zone::Graveyard
+            || ab.cost.exile_this && self.objects[sa.source].zone == Zone::Battlefield
+        {
             self.move_object(sa.source, Zone::Exile, false);
         }
         let mut cycled = None;
@@ -6104,7 +6106,12 @@ impl GameState {
                     self.discard_n(p, n);
                 }
             }
-            Effect::HandToLibrary { count, who, bottom } => {
+            Effect::HandToLibrary {
+                count,
+                who,
+                bottom,
+                shuffle,
+            } => {
                 let place = if *bottom {
                     crate::card::LibraryPlace::Bottom
                 } else {
@@ -6136,6 +6143,37 @@ impl GameState {
                             self.put_in_library(card, place);
                         }
                     }
+                    if *shuffle {
+                        self.shuffle_library(p);
+                    }
+                }
+            }
+            Effect::ShuffleIntoLibrary { who, hand, filter } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let zone = if *hand {
+                        &self.player(p).hand
+                    } else {
+                        &self.player(p).graveyard
+                    };
+                    let cards: Vec<ObjId> = zone
+                        .iter()
+                        .copied()
+                        .filter(|id| {
+                            filter.as_ref().is_none_or(|f| {
+                                let o = &self.objects[*id];
+                                let c = self.base_characteristics(o);
+                                f.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                            })
+                        })
+                        .collect();
+                    for c in cards {
+                        self.move_object(c, Zone::Library, true);
+                    }
+                    // CR 701.24: shuffled even if nothing moved.
+                    self.shuffle_library(p);
                 }
             }
             Effect::Fight { a, b } => {
@@ -7731,7 +7769,14 @@ impl GameState {
                     let Target::Player(p) = t else {
                         continue;
                     };
-                    let top: Vec<_> = self.player(p).library.iter().rev().take(n).copied().collect();
+                    let top: Vec<_> = self
+                        .player(p)
+                        .library
+                        .iter()
+                        .rev()
+                        .take(n)
+                        .copied()
+                        .collect();
                     for id in top {
                         self.objects[id].revealed |= bits;
                     }

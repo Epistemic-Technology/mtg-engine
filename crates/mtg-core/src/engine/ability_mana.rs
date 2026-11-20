@@ -429,6 +429,7 @@ impl GameState {
             || ab.keyword.is_some()
             || cost.discard_self
             || cost.exile_self
+            || cost.exile_this
             || cost.crew > 0
             || cost
                 .remove_counters

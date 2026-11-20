@@ -1,0 +1,9 @@
+card "Omen" {
+  oracle_id 9b8c44a0-82ef-4beb-a762-c2a2a21380f3
+  cost {1}{U}
+  type Sorcery
+  spell {
+    look at top 3; you may shuffle
+    draw 1 card
+  }
+}

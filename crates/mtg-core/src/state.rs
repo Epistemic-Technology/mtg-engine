@@ -941,6 +941,7 @@ impl Moved {
             ThisWay::Discarded => self.from == Zone::Hand && self.to != Zone::Hand,
             ThisWay::Milled => self.from == Zone::Library && self.to == Zone::Graveyard,
             ThisWay::PutInHand => self.to == Zone::Hand && self.from != Zone::Hand,
+            ThisWay::Shuffled => self.to == Zone::Library && self.from != Zone::Library,
         }
     }
 }

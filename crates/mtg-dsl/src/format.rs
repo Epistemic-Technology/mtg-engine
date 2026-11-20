@@ -1398,7 +1398,58 @@ impl Fmt {
                     )
                 }
             },
-            Effect::HandToLibrary { count, who, bottom } => {
+            Effect::HandToLibrary {
+                count,
+                who,
+                shuffle: true,
+                ..
+            } => {
+                let rest = format!("{} {} from hand into library", num(*count), cards(*count));
+                match who {
+                    None => format!("shuffle {rest}"),
+                    Some(w) => {
+                        let v = if *w == Recipient::You {
+                            "shuffle"
+                        } else {
+                            "shuffles"
+                        };
+                        format!("{} {v} {rest}", self.recipient(*w, t))
+                    }
+                }
+            }
+            Effect::ShuffleZone {
+                who,
+                of,
+                hand,
+                filter: fl,
+                cards,
+            } => {
+                let mut s = match who {
+                    None => "shuffle".to_string(),
+                    Some(w) => {
+                        let v = if *w == Recipient::You {
+                            "shuffle"
+                        } else {
+                            "shuffles"
+                        };
+                        format!("{} {v}", self.recipient(*w, t))
+                    }
+                };
+                if let Some(fl) = fl {
+                    s.push_str(&format!(" all {} card from", filter(fl)));
+                } else if *cards {
+                    s.push_str(" cards from");
+                }
+                s.push_str(if *hand { " hand" } else { " graveyard" });
+                if let Some(o) = of {
+                    s.push_str(&format!(" of {}", self.recipient(*o, t)));
+                }
+                s.push_str(" into library");
+                s
+            }
+            Effect::HandToLibrary {
+                count, who, bottom, ..
+            } => {
                 let rest = format!(
                     "{} {} from hand on {} of library",
                     num(*count),
@@ -3152,6 +3203,8 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Exile => {
                 if c.exile_self {
                     parts.push("exile this from graveyard".to_string());
+                } else if c.exile_this {
+                    parts.push("exile this".to_string());
                 }
             }
             CostItem::ExileCards => {

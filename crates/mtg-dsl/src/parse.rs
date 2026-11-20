@@ -4073,7 +4073,11 @@ impl P {
                     count,
                     who: (explicit || subject != Recipient::You).then_some(subject),
                     bottom,
+                    shuffle: false,
                 })
+            }
+            "shuffle" | "shuffles" if self.shuffle_zone_ahead() => {
+                self.shuffle_zone((explicit || subject != Recipient::You).then_some(subject))
             }
             // "Each player puts a creature card from their graveyard onto
             // the battlefield."
@@ -4889,6 +4893,66 @@ impl P {
             && self.word_at(4).as_deref() == Some("on")
     }
 
+    /// After `shuffle` / `shuffles`: `graveyard into`, `hand into`, `cards
+    /// from hand`, `all <filter> card from graveyard`, `1 card from hand
+    /// into`.
+    fn shuffle_zone_ahead(&self) -> bool {
+        let w = |k: usize| self.word_at(k);
+        let zone = |k: usize| matches!(w(k).as_deref(), Some("graveyard" | "hand"));
+        (zone(0) && w(1).as_deref() == Some("into"))
+            || (w(0).as_deref() == Some("cards") && w(1).as_deref() == Some("from") && zone(2))
+            || (w(0).as_deref() == Some("all")
+                && (1..7).any(|k| w(k).as_deref() == Some("from") && zone(k + 1)))
+            || (matches!(self.peek(), Some(Tok::Num(_)))
+                && matches!(w(1).as_deref(), Some("card" | "cards"))
+                && w(2).as_deref() == Some("from")
+                && w(3).as_deref() == Some("hand")
+                && w(4).as_deref() == Some("into"))
+    }
+
+    /// The rest of a `shuffle_zone_ahead` sentence.
+    fn shuffle_zone(&mut self, who: Option<Recipient>) -> R<Effect> {
+        if matches!(self.peek(), Some(Tok::Num(_))) {
+            let count = self.num()?;
+            self.cards_word()?;
+            self.expect_words(&["from", "hand", "into", "library"])?;
+            return Ok(Effect::HandToLibrary {
+                count,
+                who,
+                bottom: false,
+                shuffle: true,
+            });
+        }
+        let mut filter = None;
+        let mut cards = false;
+        if self.eat_word("all") {
+            filter = Some(self.filter()?);
+            self.expect_word("card")?;
+            self.expect_word("from")?;
+        } else if self.eat_word("cards") {
+            self.expect_word("from")?;
+            cards = true;
+        }
+        let hand = match self.word()?.as_str() {
+            "hand" => true,
+            "graveyard" => false,
+            _ => return self.unexpected("`hand` or `graveyard`"),
+        };
+        let of = if self.eat_word("of") {
+            Some(self.recipient()?)
+        } else {
+            None
+        };
+        self.expect_words(&["into", "library"])?;
+        Ok(Effect::ShuffleZone {
+            who,
+            of,
+            hand,
+            filter,
+            cards,
+        })
+    }
+
     /// `cards from hand on top of library` / `on bottom of library`
     /// after the count: whether it's the bottom.
     fn hand_to_library_tail(&mut self) -> R<bool> {
@@ -5080,8 +5144,10 @@ impl P {
                     count,
                     who: None,
                     bottom,
+                    shuffle: false,
                 })
             }
+            "shuffle" if self.shuffle_zone_ahead() => self.shuffle_zone(None),
             "put"
                 if (0..8).any(|k| {
                     self.word_at(k).as_deref() == Some("from")
@@ -5123,6 +5189,10 @@ impl P {
                     wording: LibraryWording::Put,
                 })
             }
+            // "You may shuffle." (CR 701.24): your library.
+            "shuffle" if !matches!(self.peek(), Some(Tok::Word(_))) => Ok(Effect::Shuffle {
+                who: Recipient::You,
+            }),
             "shuffle" if !self.at_word("library") && !self.at_word("your") => {
                 let what = self.recipient()?;
                 let place = self.library_place(true)?;
@@ -8745,6 +8815,12 @@ impl P {
                     "exile" if self.at_words(&["exile", "this", "from", "graveyard"]) => {
                         self.pos += 4;
                         cost.exile_self = true;
+                        cost.order.push(CostItem::Exile);
+                    }
+                    // "Exile this artifact" (CR 602.2b).
+                    "exile" if self.at_words(&["exile", "this"]) => {
+                        self.pos += 2;
+                        cost.exile_this = true;
                         cost.order.push(CostItem::Exile);
                     }
                     // `exile 2 cards from graveyard`, `exile creature card

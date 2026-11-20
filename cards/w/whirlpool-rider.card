@@ -1,0 +1,7 @@
+card "Whirlpool Rider" {
+  oracle_id 13a3f2c1-0454-4661-a462-542254f8360d
+  cost {1}{U}
+  type Creature — Merfolk
+  pt 1/1
+  triggered when this enters: shuffle cards from hand into library then draw count that many shuffled this way cards
+}
