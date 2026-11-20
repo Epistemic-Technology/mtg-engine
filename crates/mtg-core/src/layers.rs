@@ -334,6 +334,21 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::CardsInGraveyard(n) => state.player(you).graveyard.len() >= *n as usize,
         StaticCondition::UnlockedDoors(n) => state.unlocked_doors(you) >= *n,
         StaticCondition::AttackedWith(f) => state.attacked_with(you, f),
+        // Permanents still on the battlefield are judged with the
+        // characteristics worked out so far, the rest as they last existed.
+        StaticCondition::EnteredWith { filter, .. } => {
+            state.entered_this_turn.iter().any(|&(controller, id)| {
+                let c = match work.get(id) {
+                    Some(c) => Some(*c),
+                    None if state.objects.get(id).is_some() => None,
+                    None => state.lki.get(&id).map(|l| l.characteristics),
+                };
+                controller == you
+                    && c.is_some_and(|c| {
+                        filter.matches(id, controller, &c, Some(source), Some(you))
+                    })
+            })
+        }
         StaticCondition::CardTypesInGraveyard(n) => {
             let mut types = crate::card::TypeSet::default();
             for g in &state.player(you).graveyard {

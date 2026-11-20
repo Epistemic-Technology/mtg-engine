@@ -8519,6 +8519,20 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::AttackedWith(f) => {
             format!("you attacked with {} this turn", filter_a(f, card))
         }
+        StaticCond::EnteredWith {
+            filter: f,
+            had: false,
+        } => format!(
+            "{} entered the battlefield under your control this turn",
+            filter_a(f, card)
+        ),
+        StaticCond::EnteredWith {
+            filter: f,
+            had: true,
+        } => format!(
+            "you had {} enter the battlefield under your control this turn",
+            filter_a(f, card)
+        ),
         StaticCond::UnlockedDoors(n) => format!(
             "there are {} or more unlocked doors among Rooms you control",
             count_words(Num::N(*n), "one")

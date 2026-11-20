@@ -1948,6 +1948,15 @@ pub enum StaticCondition {
     /// the filter (judged now, or as it last existed) attacked under your
     /// control this turn.
     AttackedWith(ObjFilter),
+    /// "another Knight entered the battlefield under your control this
+    /// turn": a permanent matching the filter (judged now, or as it last
+    /// existed; `Relation::Other` excludes the source) entered under your
+    /// control this turn. `had` prints "you had another creature enter the
+    /// battlefield under your control this turn".
+    EnteredWith {
+        filter: ObjFilter,
+        had: bool,
+    },
     /// "there are four or more card types among cards in your graveyard"
     /// (delirium).
     CardTypesInGraveyard(u32),

@@ -3719,6 +3719,18 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::AttackedThisTurn => "attacked this turn".to_string(),
         StaticCond::UnlockedDoors(n) => format!("{n} unlocked doors"),
         StaticCond::AttackedWith(f) => format!("attacked with {} this turn", filter(f)),
+        StaticCond::EnteredWith {
+            filter: f,
+            had: false,
+        } => {
+            format!("entered {} this turn", filter(f))
+        }
+        StaticCond::EnteredWith {
+            filter: f,
+            had: true,
+        } => {
+            format!("had {} enter this turn", filter(f))
+        }
         StaticCond::AttackedBattleThisTurn => "attacked a battle this turn".to_string(),
         StaticCond::AttackedLastTurn => "attacked last turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),

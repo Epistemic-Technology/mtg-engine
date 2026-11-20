@@ -414,6 +414,7 @@ impl GameState {
             self.count_sources(old_flags, self.pool.get(old.def).is_legendary(), false);
         }
         if to == Zone::Battlefield {
+            self.entered_this_turn.push((controller, new));
             if characteristics_is_land {
                 // Landfall: "you had a land enter the battlefield under
                 // your control this turn".

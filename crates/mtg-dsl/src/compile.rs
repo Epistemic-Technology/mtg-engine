@@ -970,6 +970,10 @@ impl Compiler<'_> {
             StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
             StaticCond::UnlockedDoors(n) => StaticCondition::UnlockedDoors(*n),
             StaticCond::AttackedWith(f) => StaticCondition::AttackedWith(self.filter(f)),
+            StaticCond::EnteredWith { filter, had } => StaticCondition::EnteredWith {
+                filter: self.filter(filter),
+                had: *had,
+            },
             StaticCond::AttackedBattleThisTurn => StaticCondition::SourceAttackedBattle,
             StaticCond::AttackedLastTurn => StaticCondition::AttackedLastTurn,
             StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,

@@ -1408,6 +1408,10 @@ pub struct GameState {
     /// Sources that dealt damage this turn ("that dealt damage this
     /// turn"), each once.
     pub dealt_damage_this_turn: Vec<ObjId>,
+    /// Permanents that entered the battlefield this turn, with the player
+    /// they entered under the control of ("another Knight entered the
+    /// battlefield under your control this turn").
+    pub entered_this_turn: Vec<(PlayerId, ObjId)>,
     /// (source, creature) pairs: the source dealt damage to the creature
     /// this turn ("a creature dealt damage by this creature this turn"),
     /// each once.
@@ -1715,6 +1719,21 @@ impl GameState {
                 },
             };
             controller == p && c.is_some_and(|c| f.matches(*id, controller, &c, None, Some(p)))
+        })
+    }
+
+    /// Whether a permanent matching `f` entered the battlefield under
+    /// `p`'s control this turn, judged as it is or as it last existed
+    /// ("another Knight entered the battlefield under your control this
+    /// turn"; `Relation::Other` in `f` excludes `source`).
+    pub fn entered_with(&self, p: PlayerId, f: &crate::card::ObjFilter, source: ObjId) -> bool {
+        self.entered_this_turn.iter().any(|&(controller, id)| {
+            let c = match self.objects.get(id) {
+                Some(_) => self.characteristics(id),
+                None => self.lki.get(&id).map(|l| l.characteristics),
+            };
+            controller == p
+                && c.is_some_and(|c| f.matches(id, controller, &c, Some(source), Some(p)))
         })
     }
 
@@ -2520,6 +2539,7 @@ impl GameState {
             C::CardsInGraveyard(n) => self.player(you).graveyard.len() >= *n as usize,
             C::UnlockedDoors(n) => self.unlocked_doors(you) >= *n,
             C::AttackedWith(f) => self.attacked_with(you, f),
+            C::EnteredWith { filter, .. } => self.entered_with(you, filter, source),
             C::CardTypesInGraveyard(n) => {
                 let mut types = crate::card::TypeSet::default();
                 for g in &self.player(you).graveyard {

@@ -1,0 +1,9 @@
+card "Flying Drone" {
+  oracle_id 541f7525-a9a4-493d-b724-354ae6d37de5
+  cost {1}{U}
+  type Artifact Creature — Robot Scout
+  pt 1/2
+  keyword flying
+  keyword vigilance
+  activated {1}{U}, {T}, reduced {1}{U} if entered another creature with flying this turn: draw 1 cards then discard 1 cards
+}

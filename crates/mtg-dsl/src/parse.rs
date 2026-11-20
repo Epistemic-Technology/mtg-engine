@@ -2589,6 +2589,17 @@ impl P {
             self.expect_words(&["this", "turn"])?;
             return Ok(StaticCond::AttackedWith(f));
         }
+        if self.eat_word("entered") {
+            let filter = self.filter()?;
+            self.expect_words(&["this", "turn"])?;
+            return Ok(StaticCond::EnteredWith { filter, had: false });
+        }
+        if self.word_at(0).as_deref() == Some("had") && self.word_at(1).as_deref() != Some("no") {
+            self.pos += 1;
+            let filter = self.filter()?;
+            self.expect_words(&["enter", "this", "turn"])?;
+            return Ok(StaticCond::EnteredWith { filter, had: true });
+        }
         if self.eat_words(&["attacked", "last", "turn"]) {
             return Ok(StaticCond::AttackedLastTurn);
         }

@@ -1,0 +1,79 @@
+# A third sweep of one-off phrasings.
+
+scenario "entered with: another Knight entering gives first strike" {
+  battlefield A: "Swordsworn Cavalier", 2 "Plains"
+  hand A: "Knight of Glory"
+  start turn 3 A
+  turn 3 A: cast "Knight of Glory"
+  run_to turn 3 postcombat_main
+  assert has "Swordsworn Cavalier" first_strike
+}
+
+scenario "entered with: the Knight still counts after it leaves" {
+  battlefield A: "Swordsworn Cavalier", 2 "Plains", "Mountain"
+  hand A: "Knight of Glory", "Shock"
+  start turn 3 A
+  turn 3 A: cast "Knight of Glory"
+  turn 3 main2 A: cast "Shock" targeting "Knight of Glory"
+  run_to turn 3 end
+  assert graveyard A contains "Knight of Glory"
+  assert has "Swordsworn Cavalier" first_strike
+}
+
+scenario "entered with: a non-Knight or the Cavalier itself doesn't count" {
+  battlefield A: 4 "Plains"
+  hand A: "Swordsworn Cavalier", "Memnite"
+  start turn 3 A
+  turn 3 A: cast "Swordsworn Cavalier"
+  turn 3 A: cast "Memnite"
+  run_to turn 3 postcombat_main
+  assert has not "Swordsworn Cavalier" first_strike
+}
+
+scenario "entered with: first strike ends with the turn" {
+  battlefield A: "Swordsworn Cavalier", 2 "Plains"
+  hand A: "Knight of Glory"
+  start turn 3 A
+  turn 3 A: cast "Knight of Glory"
+  run_to turn 4 upkeep
+  assert has not "Swordsworn Cavalier" first_strike
+}
+
+scenario "had another creature enter: trample and indestructible" {
+  battlefield A: "Bellowing Elk"
+  hand A: "Memnite"
+  start turn 3 A
+  turn 3 A: cast "Memnite"
+  run_to turn 3 postcombat_main
+  assert has "Bellowing Elk" trample
+  assert has "Bellowing Elk" indestructible
+}
+
+scenario "had another creature enter: the Elk's own entry doesn't count" {
+  battlefield A: 4 "Forest"
+  hand A: "Bellowing Elk"
+  start turn 3 A
+  turn 3 A: cast "Bellowing Elk"
+  run_to turn 3 postcombat_main
+  assert has not "Bellowing Elk" trample
+}
+
+scenario "entered with flying: the loot costs {1}{U} less" {
+  battlefield A: "Flying Drone"
+  hand A: "Ornithopter", "Memnite"
+  library A: "Island", "Island"
+  start turn 3 A
+  turn 3 A: cast "Ornithopter"
+  turn 3 A: activate "Flying Drone"
+  run_to turn 3 end
+  assert tapped "Flying Drone"
+}
+
+scenario "entered with flying: a creature without flying doesn't reduce" {
+  battlefield A: "Flying Drone"
+  hand A: "Memnite"
+  start turn 3 A
+  turn 3 A: cast "Memnite"
+  illegal turn 3 A: activate "Flying Drone"
+  run_to turn 3 end
+}

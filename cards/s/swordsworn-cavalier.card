@@ -1,0 +1,7 @@
+card "Swordsworn Cavalier" {
+  oracle_id 18aa69d5-9611-49fe-8aa4-7b91d5980dbc
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 3/1
+  static this: has first strike as long as entered another Knight this turn
+}

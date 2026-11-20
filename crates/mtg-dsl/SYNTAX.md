@@ -347,7 +347,12 @@ graveyard from anywhere), `surveilled this turn` ("you've surveilled this
 turn"), `counter put this turn` ("a +1/+1 counter was put on a permanent
 under your control this turn"), `another creature entered this turn`
 ("another creature entered the battlefield under your control this
-turn"; `creature entered this turn` without "another"), `2 nonland
+turn"; `creature entered this turn` without "another"), `entered
+another Knight this turn` ("another Knight entered the battlefield under
+your control this turn": any filter, judged as the permanent is or as it
+last existed, so one that has since left still counts; `had another
+creature enter this turn` prints "you had another creature enter the
+battlefield under your control this turn"), `2 nonland
 entered this turn` (celebration: "two or more nonland permanents entered
 the battlefield under your control this turn"), `artifact or creature to
 graveyard this turn` ("an artifact or creature was put into a graveyard

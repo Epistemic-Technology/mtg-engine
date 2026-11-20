@@ -1,0 +1,7 @@
+card "Bellowing Elk" {
+  oracle_id d17a1109-3a7f-4a39-b602-155da819235f
+  cost {3}{G}
+  type Creature — Elk
+  pt 4/2
+  static as long as had another creature enter this turn, this: has trample, indestructible
+}

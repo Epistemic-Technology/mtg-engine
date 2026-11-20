@@ -1442,6 +1442,15 @@ pub enum StaticCond {
     /// `attacked with Spacecraft this turn`: "you attacked with a
     /// Spacecraft this turn".
     AttackedWith(Filter),
+    /// `entered another Knight this turn`: "another Knight entered the
+    /// battlefield under your control this turn" (judged as it is or as it
+    /// last existed); `had another creature enter this turn`: "you had
+    /// another creature enter the battlefield under your control this
+    /// turn".
+    EnteredWith {
+        filter: Filter,
+        had: bool,
+    },
     /// `attacked a battle this turn`: "it attacked a battle this turn"
     /// (the source).
     AttackedBattleThisTurn,

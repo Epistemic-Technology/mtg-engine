@@ -471,6 +471,7 @@ impl GameState {
             attacked_last_turn: Vec::new(),
             blockers_this_turn: Vec::new(),
             dealt_damage_this_turn: Vec::new(),
+            entered_this_turn: Vec::new(),
             damaged_by_this_turn: Vec::new(),
             saddled: Vec::new(),
             phased_out: Vec::new(),
@@ -2645,6 +2646,7 @@ impl GameState {
             self.blockers_this_turn.clear();
             self.targeted_by_controller.clear();
             self.dealt_damage_this_turn.clear();
+            self.entered_this_turn.clear();
             self.damaged_by_this_turn.clear();
             self.saddled.clear();
             self.turn_started_at = self.next_timestamp;
