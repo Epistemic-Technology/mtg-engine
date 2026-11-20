@@ -1,0 +1,13 @@
+card "Tangled Florahedron // Tangled Vale" {
+  oracle_id 53542c79-a62a-4d6a-97db-5296e9c68302
+  layout modal_dfc
+  cost {1}{G}
+  type Creature — Elemental
+  pt 1/1
+  mana {G}
+  face "Tangled Vale" {
+    type Land
+    enters tapped
+    mana {G}
+  }
+}

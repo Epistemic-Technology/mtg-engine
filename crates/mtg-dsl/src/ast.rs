@@ -3083,6 +3083,11 @@ pub enum Effect {
     },
     /// Cumulative upkeep's payment (internal).
     CumulativeUpkeep(ManaCost),
+    /// `this becomes prepared`: "this creature becomes prepared" (CR
+    /// 722.3a).
+    BecomePrepared {
+        what: Recipient,
+    },
     /// `this connives` (CR 701.50).
     Connive {
         what: Recipient,

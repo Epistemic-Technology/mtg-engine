@@ -1,0 +1,13 @@
+card "Harmonized Trio // Brainstorm" {
+  oracle_id f6036065-7196-44d4-8a27-2199f0e1a03c
+  layout prepare
+  cost {U}
+  type Creature — Merfolk Bard Wizard
+  pt 1/1
+  activated {T}, tap 2 untapped creature you control: this becomes prepared
+  face "Brainstorm" {
+    cost {U}
+    type Instant
+    spell: draw 3 cards then put 2 cards from hand on top of library
+  }
+}

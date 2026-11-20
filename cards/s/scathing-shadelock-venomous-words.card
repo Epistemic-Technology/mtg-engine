@@ -1,0 +1,13 @@
+card "Scathing Shadelock // Venomous Words" {
+  oracle_id 2796c3d9-9e56-40f2-8398-7a131c4657ff
+  layout prepare
+  cost {4}{B}
+  type Creature — Snake Warlock
+  pt 4/6
+  triggered at beginning of your first main: this becomes prepared
+  face "Venomous Words" {
+    cost {B}
+    type Sorcery
+    spell: target creature you control gets +2/+0 and gains deathtouch
+  }
+}

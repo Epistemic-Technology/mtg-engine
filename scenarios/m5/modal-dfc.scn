@@ -1,0 +1,122 @@
+# M5: modal double-faced cards (CR 712.3): either face may be played or
+# cast from the hand; the back face's characteristics apply only while it
+# is face up.
+
+scenario "mdfc: play the back face as a land" {
+  hand A: "Clearwater Pathway"
+  turn 1 A: play "Murkwater Pathway"
+  run_to turn 1 end
+  assert battlefield A contains "Murkwater Pathway"
+  assert battlefield A lacks "Clearwater Pathway"
+  assert is "Murkwater Pathway" land
+}
+
+scenario "mdfc: or the front face" {
+  hand A: "Clearwater Pathway"
+  turn 1 A: play "Clearwater Pathway"
+  run_to turn 1 end
+  assert battlefield A contains "Clearwater Pathway"
+  assert battlefield A lacks "Murkwater Pathway"
+}
+
+scenario "mdfc: the back face is a land play" {
+  hand A: "Clearwater Pathway", "Island"
+  turn 1 A: play "Island"
+  illegal turn 1 main2 A: play "Murkwater Pathway"
+  run_to turn 1 end
+  assert hand A contains "Clearwater Pathway"
+}
+
+scenario "mdfc: back face land: pay 3 life or it enters tapped" {
+  hand A: "Pinnacle Monk"
+  turn 1 A: play "Mystic Peak"
+  run_to turn 1 end
+  assert life A 17
+  assert untapped "Mystic Peak"
+}
+
+scenario "mdfc: decline to pay, it enters tapped" {
+  hand A: "Pinnacle Monk"
+  turn 1 A: play "Mystic Peak"
+  turn 1 A: decline "Mystic Peak"
+  run_to turn 1 end
+  assert life A 20
+  assert tapped "Mystic Peak"
+}
+
+scenario "mdfc: cast the front face; in the graveyard it is the front" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Kazandu Mammoth"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Kazandu Mammoth"
+  turn 1 end B: cast "Lightning Bolt" targeting "Kazandu Mammoth"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Kazandu Mammoth"
+}
+
+scenario "mdfc: the back face enters tapped and triggers landfall" {
+  battlefield A: "Kazandu Mammoth"
+  hand A: "Kazandu Mammoth"
+  turn 1 A: play "Kazandu Valley"
+  run_to turn 1 declare_attackers
+  assert tapped "Kazandu Valley"
+  assert power "Kazandu Mammoth" 5
+}
+
+scenario "mdfc: a sorcery front face, cast from the hand" {
+  battlefield A: 3 "Forest"
+  graveyard A: "Grizzly Bears"
+  hand A: "Bala Ged Recovery"
+  turn 1 A: cast "Bala Ged Recovery" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Bala Ged Recovery"
+}
+
+scenario "mdfc: a land face can't be cast, only played" {
+  battlefield A: 3 "Forest"
+  hand A: "Bala Ged Recovery"
+  turn 1 A: play "Bala Ged Sanctuary"
+  run_to turn 1 end
+  assert battlefield A contains "Bala Ged Sanctuary"
+  assert hand A count 0
+}
+
+scenario "mdfc: a modal double-faced creature transforms to its back face" {
+  battlefield A: "Monica Rambeau", 2 "Mountain", 3 "Plains"
+  turn 1 A: activate "Monica Rambeau"
+  run_to turn 1 end
+  assert battlefield A contains "Photon, Living Light"
+  assert has "Photon, Living Light" hexproof
+  assert power "Photon, Living Light" 4
+}
+
+scenario "mdfc: cast the back face from the hand; it resolves face up" {
+  battlefield A: 2 "Mountain", 3 "Plains"
+  hand A: "Monica Rambeau"
+  turn 1 A: cast "Photon, Living Light"
+  run_to turn 1 end
+  assert battlefield A contains "Photon, Living Light"
+  assert battlefield A lacks "Monica Rambeau"
+  assert has "Photon, Living Light" hexproof
+}
+
+scenario "mdfc: the back face is cast with its own cost" {
+  battlefield A: 3 "Plains"
+  hand A: "Monica Rambeau"
+  illegal turn 1 A: cast "Photon, Living Light"
+  run_to turn 1 end
+}
+
+scenario "mdfc: a back-face permanent is its front face in the graveyard" {
+  battlefield A: "Monica Rambeau", 2 "Mountain", 3 "Plains"
+  battlefield B: "Serra Angel"
+  start turn 2 A
+  turn 2 A: activate "Monica Rambeau"
+  turn 2 A: attack "Photon, Living Light"
+  turn 2 B: block "Photon, Living Light" with "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Monica Rambeau"
+  assert graveyard A lacks "Photon, Living Light"
+}

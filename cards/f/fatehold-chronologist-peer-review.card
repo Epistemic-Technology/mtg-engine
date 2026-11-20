@@ -1,0 +1,14 @@
+card "Fatehold Chronologist // Peer Review" {
+  oracle_id 1063822f-47d3-42e9-8a21-f62b12609fe1
+  layout prepare
+  cost {1}{W/U}
+  type Creature — Bird Wizard
+  pt 1/2
+  keywords flying
+  enters prepared
+  face "Peer Review" {
+    cost {2}{W/U}
+    type Sorcery
+    spell: create 1 "Cadet"; surveil 1
+  }
+}

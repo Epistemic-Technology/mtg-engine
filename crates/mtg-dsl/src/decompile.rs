@@ -1174,6 +1174,7 @@ impl Decompiler<'_> {
                 to: Self::recipient(*to),
             },
             CoreEffect::CumulativeUpkeep(c) => Effect::CumulativeUpkeep(c.clone()),
+            CoreEffect::BecomePrepared { what } => Effect::BecomePrepared { what: r(*what) },
             CoreEffect::Connive { what } => Effect::Connive {
                 what: Self::recipient(*what),
             },

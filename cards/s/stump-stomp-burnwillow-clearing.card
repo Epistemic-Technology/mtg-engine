@@ -1,0 +1,12 @@
+card "Stump Stomp // Burnwillow Clearing" {
+  oracle_id eb7b1284-0b2c-4b6a-a389-b2b932838083
+  layout modal_dfc
+  cost {1}{R/G}
+  type Sorcery
+  spell: target creature you control bites target creature or planeswalker you don't control
+  face "Burnwillow Clearing" {
+    type Land
+    enters tapped
+    mana {R} or {G}
+  }
+}

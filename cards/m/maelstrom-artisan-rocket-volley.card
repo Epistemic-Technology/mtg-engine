@@ -1,0 +1,14 @@
+card "Maelstrom Artisan // Rocket Volley" {
+  oracle_id 03931270-504a-4b0b-af3f-918bf124ea07
+  layout prepare
+  cost {1}{R}{R}
+  type Creature — Minotaur Sorcerer
+  pt 3/2
+  keywords haste
+  enters prepared
+  face "Rocket Volley" {
+    cost {1}{R}
+    type Sorcery
+    spell: destroy target nonbasic land
+  }
+}

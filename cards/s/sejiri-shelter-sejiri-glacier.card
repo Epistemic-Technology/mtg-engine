@@ -1,0 +1,12 @@
+card "Sejiri Shelter // Sejiri Glacier" {
+  oracle_id d54e4e37-042b-44a5-918d-757308545d4d
+  layout modal_dfc
+  cost {1}{W}
+  type Instant
+  spell: target creature you control gains protection from color of choice
+  face "Sejiri Glacier" {
+    type Land
+    enters tapped
+    mana {W}
+  }
+}

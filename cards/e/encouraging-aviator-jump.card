@@ -1,0 +1,14 @@
+card "Encouraging Aviator // Jump" {
+  oracle_id d6accaed-ff35-4324-b31b-35e6837bc079
+  layout prepare
+  cost {2}{U}
+  type Creature — Bird Wizard
+  pt 2/3
+  keywords flying
+  triggered whenever this attacks: this becomes prepared
+  face "Jump" {
+    cost {U}
+    type Instant
+    spell: target creature gains flying
+  }
+}

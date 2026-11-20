@@ -1,0 +1,14 @@
+card "Blossom-Blessed Angel // Seed Suture" {
+  oracle_id cd61c26b-8d3c-4730-92f2-0d94d961bafd
+  layout prepare
+  cost {3}{W}
+  type Creature — Angel Cleric
+  pt 2/4
+  keywords flying, vigilance
+  enters prepared
+  face "Seed Suture" {
+    cost {G/W}
+    type Sorcery
+    spell: put 1 +1/+1 counters on target creature; you gains 1 life
+  }
+}

@@ -1864,8 +1864,12 @@ pub enum LibraryPlace {
 }
 
 /// A card's physical layout (CR 709 split, 712 double-faced, 715
-/// adventurer). `Omen` is an adventurer whose spell is shuffled into its
-/// owner's library as it resolves instead of exiled.
+/// adventurer, 722 preparation). `ModalDfc`'s face is its back face (CR
+/// 712.3), which may be cast or played instead of the front (CR 712.11b,
+/// 712.12). `Omen` is an adventurer whose spell is
+/// shuffled into its owner's library as it resolves instead of exiled.
+/// `Prepare`'s face is its prepare spell (CR 722.2a): never cast itself,
+/// only copies of it while the permanent is prepared (CR 722.3).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
 pub enum Layout {
     #[default]
@@ -1874,6 +1878,8 @@ pub enum Layout {
     Omen,
     Transform,
     Split,
+    Prepare,
+    ModalDfc,
 }
 
 /// A restriction on how this creature blocks or is blocked.
@@ -3792,6 +3798,11 @@ pub enum Effect {
     /// The source becomes renowned (CR 702.112a, b), if it is still on the
     /// battlefield.
     BecomeRenowned,
+    /// The recipient permanent becomes prepared (CR 722.3a): only one with
+    /// a prepare spell, and only if it isn't already.
+    BecomePrepared {
+        what: Recipient,
+    },
     /// Monstrosity N (CR 701.37a): if the source isn't monstrous, N +1/+1
     /// counters on it and it becomes monstrous.
     Monstrosity(Num),
@@ -4330,6 +4341,11 @@ pub enum Replacement {
     WinGame,
     /// Enters tapped.
     EnterTapped,
+    /// "This creature enters prepared." (CR 722.3a).
+    EnterPrepared,
+    /// "As this land enters, you may pay 3 life. If you don't, it enters
+    /// tapped." (CR 614.12, 119.4): its controller is asked as it enters.
+    EnterTappedUnlessPay(u32),
     /// Enters tapped unless the pool's `n`th condition holds for its
     /// controller ("unless you control a planeswalker", CR 614.1d).
     EnterTappedUnless(u16),
@@ -4837,6 +4853,8 @@ pub enum Condition {
     EchoDue,
     /// "if it isn't renowned" (renown, CR 702.112a).
     NotRenowned,
+    /// "if this creature isn't prepared" (CR 722.3a).
+    NotPrepared,
     /// Evolve (CR 702.100a): the triggering creature's power is greater
     /// than the source's, or its toughness is greater than the source's.
     Evolves,
@@ -5495,7 +5513,8 @@ impl AbilityDef {
             self,
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: Replacement::EnterWithCountersMay { .. }
-                    | Replacement::EnterWithCounterChoice { .. },
+                    | Replacement::EnterWithCounterChoice { .. }
+                    | Replacement::EnterTappedUnlessPay(_),
                 ..
             })
         )

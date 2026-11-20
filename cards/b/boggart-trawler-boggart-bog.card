@@ -1,0 +1,13 @@
+card "Boggart Trawler // Boggart Bog" {
+  oracle_id 727f3201-1cfc-4ab2-9dfe-be4f7251f42f
+  layout modal_dfc
+  cost {2}{B}
+  type Creature — Goblin
+  pt 3/1
+  triggered when this enters: exile graveyard of target player
+  face "Boggart Bog" {
+    type Land
+    enters tapped unless pay 3 life
+    mana {B}
+  }
+}

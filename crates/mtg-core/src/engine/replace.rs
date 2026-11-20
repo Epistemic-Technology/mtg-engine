@@ -43,6 +43,8 @@ pub(crate) struct Enter {
     pub counters: Option<(CounterKind, u32)>,
     /// Riot's haste was chosen (CR 702.136a).
     pub haste: bool,
+    /// "This creature enters prepared." (CR 722.3a).
+    pub prepared: bool,
 }
 
 /// An event that is about to happen and may still be replaced.
@@ -1018,6 +1020,57 @@ impl GameState {
                 })
             }
             (
+                Replacement::EnterTappedUnlessPay(life),
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => {
+                // CR 119.4: only a player with that much life can pay it.
+                let def = self.objects[obj].def;
+                let paid = self.player(controller).life >= i32::try_from(life).unwrap_or(i32::MAX)
+                    && self.choose_mid(
+                        controller,
+                        DecisionKind::YouMay { def },
+                        vec![Choice::Accept, Choice::Decline],
+                    ) == 0;
+                if paid {
+                    self.change_life(controller, -i32::try_from(life).unwrap_or(i32::MAX));
+                }
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter: Enter {
+                        tapped: enter.tapped || !paid,
+                        ..enter
+                    },
+                })
+            }
+            (
+                Replacement::EnterPrepared,
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => Outcome::Event(Proposed::ZoneChange {
+                obj,
+                to,
+                to_top,
+                controller,
+                enter: Enter {
+                    prepared: true,
+                    ..enter
+                },
+            }),
+            (
                 Replacement::EnterTapped,
                 Proposed::ZoneChange {
                     obj,
@@ -1121,9 +1174,9 @@ impl GameState {
                     to_top,
                     controller,
                     enter: Enter {
-                        tapped: enter.tapped,
                         counters,
                         haste,
+                        ..enter
                     },
                 })
             }
@@ -1160,11 +1213,7 @@ impl GameState {
                     to,
                     to_top,
                     controller,
-                    enter: Enter {
-                        tapped: enter.tapped,
-                        counters,
-                        haste: enter.haste,
-                    },
+                    enter: Enter { counters, ..enter },
                 })
             }
             // `applies` only offers matching pairs.
@@ -1220,6 +1269,7 @@ impl GameState {
                 && matches!(
                     c.ability.replacement,
                     crate::card::Replacement::EnterTapped
+                        | crate::card::Replacement::EnterPrepared
                         | crate::card::Replacement::EnterWithCounters { .. }
                         | crate::card::Replacement::EnterWithCountersMay { .. }
                 )

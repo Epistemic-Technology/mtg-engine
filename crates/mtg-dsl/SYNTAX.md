@@ -44,7 +44,8 @@ ability prints its abilities after the sentence ("... token. It has
 
 A split card, adventurer, omen, or double-faced card is one block named as
 Scryfall names it (`card "Curious Pair // Treats to Share"`) with a
-`layout` line (`adventure`, `omen`, `transform`, `split`) and a `face
+`layout` line (`adventure`, `omen`, `transform`, `split`, `prepare`,
+`modal_dfc`) and a `face
 "Name" { ... }` block per other face, holding that face's header and
 ability lines. The block's own lines are the front face (a split card's
 block has none: both halves are faces). The gate compares each face with
@@ -53,7 +54,19 @@ adventure or omen is cast from the hand as its spell face (CR 715.3) and
 goes on an adventure in exile as it resolves (an omen is shuffled into
 the library instead), whence the creature may be cast; a split card's
 halves are cast separately (CR 709.3); `transform this` turns a
-double-faced permanent to its other face (CR 701.27).
+double-faced permanent to its other face (CR 701.27). A preparation card
+(`layout prepare`, CR 722) has its prepare spell as its face: never cast
+itself, but while the permanent is prepared (`enters prepared`, "This
+creature enters prepared."; the effect `this becomes prepared`, "this
+creature becomes prepared", CR 722.3a; the trigger condition `if this
+isn't prepared`) its controller may cast a copy of the spell, with the
+spell's timing and costs, which unprepares it (CR 722.3c). The copy ceases
+to exist as it leaves the stack. A modal double-faced card (`layout
+modal_dfc`, CR 712.3) has its back face as its face: from the hand (or
+wherever it may be played) either face may be cast, or played if it is a
+land (CR 712.11b, 712.12), and the permanent has the face it was cast or
+played as; anywhere else it is its front face. `transform this` turns it
+to its other face as well.
 
 ## Header
 
@@ -93,6 +106,7 @@ double-faced permanent to its other face (CR 701.27).
 | `spell: <effects>` | What an instant or sorcery does on resolution. |
 | `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. `choose one or both { ... }` takes two modes, either or both ("Choose one or both —"). As a triggered ability's effect (`triggered when this enters: choose one { ... }`) the mode is chosen as the ability goes on the stack (CR 603.3c), each mode with its own targets. `choose two { ... }` (three or four unnamed modes) chooses two different modes (CR 700.2d; "Choose two —"). A named mode, `mode "Smash the Chest": destroy target artifact`, prints its name first ("• Smash the Chest — Destroy target artifact."); the name has no rules meaning. |
 | `enters tapped unless you control planeswalker`, `enters tapped unless player life 13 or less` | "This land enters tapped unless ..." with a static condition (CR 614.1d). |
+| `enters tapped unless pay 3 life` | "As this land enters, you may pay 3 life. If you don't, it enters tapped." (CR 614.12; only with that much life, CR 119.4). |
 | `can't attack unless defending player controls Island`, `can't block unless you control other Goblin`, `can't attack or block unless ...` | Attack and block restrictions with a condition (CR 508.1c, 509.1c). Conditions only these use: `defending player poisoned` ("defending player is poisoned"), `on battlefield Mountain` / `on battlefield 5 Island` ("there is a Mountain on the battlefield", "there are five or more Islands on the battlefield"), `you control more creatures than defending player` (or `attacking player`), and, judged on the whole declaration, `at least 2 other creatures attack` (or `block`) and `black or green creature also attacks` ("a black or green creature also attacks"): a creature whose condition the declared attackers (blockers) don't meet can't be among them. `opponent damaged this turn` prints "an opponent has been dealt damage this turn" here. `can't attack if defending player controls untapped land` (`if`: the restriction applies while the condition holds: "This creature can't attack if ..."); `can't attack if creature also attacks` prints "can only attack alone" (granted: "Enchanted creature ... can only attack alone."). `attacked last turn` ("it attacked during your last turn": the source was declared as an attacker during its controller's most recent turn) also works in `static this: has doesn't untap if attacked last turn`. `defending player controls no Glimmer creature` prints "controls no Glimmer creatures". A condition's alternative written with its own article (`you control Knight or a Soldier`) prints it ("a Knight or a Soldier"). |
 | `activated <cost>: <effects>` | An activated ability (CR 602). With {X} in its cost (`activated {X}, sacrifice this: destroy target artifact with mana value X`), X is announced as it is activated, before targets (CR 602.2b, 601.2b), only as high as can be paid and some target fits; the effects read it. A mana ability's X is not asked. |
 | `boast {1}{W}: <effects>`, `exhaust {3}: <effects>`, `power-up {5}{R}: <effects>` | An activated ability after a keyword, printed "Boast — {1}{W}: ..." (the keyword's rules are reminder text). Boast (CR 702.142): only if this creature was declared as an attacker this turn, and only once each turn. Exhaust (CR 702.177) and power-up (CR 702.193): only once for the object (a new object after a zone change may again, CR 400.7); a power-up ability of a permanent that entered this turn costs its mana cost less (colored mana reduces that color, any excess generic; CR 118.7). |
@@ -100,7 +114,7 @@ double-faced permanent to its other face (CR 701.27).
 | `equip {1}`, `equip Knight {1}`, `equip {0}, once` | Equip (CR 702.6): "Equip {1}"; with a creature type, only onto a creature of that type you control ("Equip Knight {1}", CR 702.6c); `once` prints "Equip {0}. Activate only once each turn." |
 | `triggered <trigger> [if <condition>]: <effects>` | A triggered ability (CR 603). |
 | `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger). |
-| `enters tapped` / `enters with 2 +1/+1 counters` | How this permanent enters (CR 614.1c). `enters with 2 +1/+1 counters if creature died this turn` (any static condition, judged as it enters) prints "This creature enters with two +1/+1 counters on it if a creature died this turn."; `enters with count equal graveyard creature +1/+1 counters` prints "... enters with a number of +1/+1 counters on it equal to the number of creature cards in your graveyard" (counted as it enters). Both, in that order, print as one sentence: "This land enters tapped with two depletion counters on it." (the order they apply in changes nothing, so it isn't asked). |
+| `enters tapped` / `enters with 2 +1/+1 counters` / `enters prepared` | How this permanent enters (CR 614.1c; prepared, CR 722.3a). `enters with 2 +1/+1 counters if creature died this turn` (any static condition, judged as it enters) prints "This creature enters with two +1/+1 counters on it if a creature died this turn."; `enters with count equal graveyard creature +1/+1 counters` prints "... enters with a number of +1/+1 counters on it equal to the number of creature cards in your graveyard" (counted as it enters). Both, in that order, print as one sentence: "This land enters tapped with two depletion counters on it." (the order they apply in changes nothing, so it isn't asked). |
 | `static <filter>: <modifications>` | A static ability generating a continuous effect (CR 604, 611.3). `static each creature you control with +1/+1 counter: has trample` prints the subject one at a time: "Each creature you control with a +1/+1 counter on it has trample." |
 | `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last; `static this: has can't be blocked if cast historic spell this turn` prints "if" ("This creature can't be blocked if ..."). `static during your turn, this: has first strike` prints "During your turn, ..."; `static during turns other than yours, this: +0/+2` prints "During turns other than yours, ..." (it isn't the controller's turn). |
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
@@ -293,7 +307,7 @@ any static condition below (`if you control artifact`, `if attacked this
 turn`),
 `if no spells were cast last turn`, `if a player cast two or more spells
 last turn`, `if this is damaged` ("if this creature was dealt damage this
-turn", damage still marked on it). After an attack or block trigger, `while <static condition>`
+turn", damage still marked on it), `if this isn't prepared` (CR 722.3a). After an attack or block trigger, `while <static condition>`
 is a trigger condition instead (CR 603.2): "Whenever this creature attacks
 while you control two or more artifacts, ..." (`triggered whenever this
 attacks while you control 2 artifact: ...`, `while saddled`, `while
@@ -1301,7 +1315,7 @@ creatures; in a triggered ability, other target creatures, as support on a
 permanent means), `populate` (CR 701.36: a token copy of a creature token
 you control, chosen), `incubate 3` (CR 701.53: the token "Incubator", a
 transforming token whose back face is the 0/0 Phyrexian artifact creature,
-entering with three +1/+1 counters), `<what> connives` (CR 701.50), `dig 4 take creature
+entering with three +1/+1 counters), `<what> connives` (CR 701.50), `<what> becomes prepared` (CR 722.3a), `dig 4 take creature
 card may revealing rest bottom` ("Look at the top four cards of your
 library. You may reveal a creature card from among them and put it into
 your hand. Put the rest on the bottom of your library in any order."; `dig

@@ -762,9 +762,11 @@ impl P {
                     "omen" => mtg_core::card::Layout::Omen,
                     "transform" => mtg_core::card::Layout::Transform,
                     "split" => mtg_core::card::Layout::Split,
+                    "prepare" => mtg_core::card::Layout::Prepare,
+                    "modal_dfc" => mtg_core::card::Layout::ModalDfc,
                     w => {
                         return self.fail(format!(
-                            "unknown layout `{w}` (adventure, omen, transform, split)"
+                            "unknown layout `{w}` (adventure, omen, transform, split, prepare, modal_dfc)"
                         ));
                     }
                 };
@@ -1916,6 +1918,19 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::EntersAsCopy(f))
             }
+            // "As this land enters, you may pay 3 life. If you don't, it
+            // enters tapped."
+            "enters" if self.at_words(&["enters", "tapped", "unless", "pay"]) => {
+                self.pos += 4;
+                let n = self.number()?;
+                self.expect_word("life")?;
+                self.end_stmt()?;
+                Ok(Ability::Replacement(Replacement {
+                    event: Replaces::Enters,
+                    outcome: Outcome::EnterTappedUnlessPay(n),
+                    then: Vec::new(),
+                }))
+            }
             "enters" if self.at_words(&["enters", "tapped", "unless"]) => {
                 self.pos += 3;
                 let c = self.static_cond()?;
@@ -2984,12 +2999,15 @@ impl P {
         if self.eat_word("tapped") {
             return Ok(Outcome::EnterTapped);
         }
+        if self.eat_word("prepared") {
+            return Ok(Outcome::EnterPrepared);
+        }
         if self.eat_word("with") {
             let n = self.num()?;
             let kind = self.counter_kind()?;
             return Ok(Outcome::EnterWithCounters { kind, n });
         }
-        self.unexpected("`tapped` or `with N counters`")
+        self.unexpected("`tapped`, `prepared`, or `with N counters`")
     }
 
     /// `: effects` on one line, or `{` effect lines `}`.
@@ -4852,6 +4870,10 @@ impl P {
                 Ok(Effect::PhaseOut { what: subject })
             }
             "connives" => Ok(Effect::Connive { what: subject }),
+            "becomes" if self.at_word("prepared") => {
+                self.pos += 1;
+                Ok(Effect::BecomePrepared { what: subject })
+            }
             "skips" | "skip" if self.at_word("next") => {
                 use mtg_core::card::SkipWhat;
                 self.pos += 1;
@@ -9408,6 +9430,9 @@ impl P {
         }
         if self.eat_words(&["not", "renowned"]) {
             return Ok(Condition::NotRenowned);
+        }
+        if self.eat_words(&["this", "isn't", "prepared"]) {
+            return Ok(Condition::NotPrepared);
         }
         if self.eat_word("evolves") {
             return Ok(Condition::Evolves);

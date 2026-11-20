@@ -1,0 +1,14 @@
+card "Sanar, Unfinished Genius // Wild Idea" {
+  oracle_id a8c44bd9-6470-47d7-934f-77c76a44a984
+  layout prepare
+  cost {U}{R}
+  type Legendary Creature — Goblin Sorcerer
+  pt 0/4
+  enters prepared
+  activated {T}, if cast instant or sorcery spell this turn: create 1 "Treasure"
+  face "Wild Idea" {
+    cost {3}{U}{R}
+    type Sorcery
+    spell: search instant or sorcery card reveal to hand
+  }
+}

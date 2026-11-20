@@ -305,6 +305,12 @@ impl GameState {
         } else {
             Chosen::None
         };
+        // CR 722.3a: "enters prepared", only a permanent with a prepare
+        // spell.
+        let prepared = enter.prepared && to == Zone::Battlefield && self.has_prepare_spell(def);
+        if prepared {
+            self.prepared_ever += 1;
+        }
         let new = self.objects.insert(GameObject {
             def,
             card: old.card,
@@ -322,8 +328,15 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: to == Zone::Battlefield,
-            marks: if enter.haste && to == Zone::Battlefield {
-                crate::state::OBJ_RIOT_HASTE
+            marks: if to == Zone::Battlefield {
+                let mut m = 0;
+                if enter.haste {
+                    m |= crate::state::OBJ_RIOT_HASTE;
+                }
+                if prepared {
+                    m |= crate::state::OBJ_PREPARED;
+                }
+                m
             } else {
                 0
             },
@@ -675,8 +688,7 @@ impl GameState {
             controller,
             Enter {
                 tapped,
-                counters: None,
-                haste: false,
+                ..Enter::default()
             },
         )
     }

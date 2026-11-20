@@ -1,0 +1,13 @@
+card "Spiritcall Enthusiast // Scrollboost" {
+  oracle_id c77ddcac-ce54-4348-bde2-5d9caf3d5b04
+  layout prepare
+  cost {2}{W}
+  type Creature — Cat Cleric
+  pt 3/3
+  triggered whenever one or more token you control enter: this becomes prepared
+  face "Scrollboost" {
+    cost {1}{W}
+    type Sorcery
+    spell: 1 to 2 target creature each get +2/+2
+  }
+}

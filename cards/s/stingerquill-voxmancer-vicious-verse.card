@@ -1,0 +1,13 @@
+card "Stingerquill Voxmancer // Vicious Verse" {
+  oracle_id e8f755f7-ec93-4d2e-bffc-c719984fa13d
+  layout prepare
+  cost {B/R}
+  type Creature — Goblin Sorcerer
+  pt 1/2
+  triggered at beginning of your upkeep if this isn't prepared: this becomes prepared
+  face "Vicious Verse" {
+    cost {B/R}
+    type Sorcery
+    spell: deal 1 damage to target opponent
+  }
+}

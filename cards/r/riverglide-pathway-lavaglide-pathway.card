@@ -1,0 +1,10 @@
+card "Riverglide Pathway // Lavaglide Pathway" {
+  oracle_id 4924b3a4-a218-4783-8a4d-82361fdecc78
+  layout modal_dfc
+  type Land
+  mana {U}
+  face "Lavaglide Pathway" {
+    type Land
+    mana {R}
+  }
+}

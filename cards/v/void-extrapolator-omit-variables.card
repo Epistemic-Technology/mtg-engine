@@ -1,0 +1,14 @@
+card "Void Extrapolator // Omit Variables" {
+  oracle_id 517f84b5-cf99-410d-96ea-910740231dac
+  layout prepare
+  cost {1}{B}
+  type Creature — Aetherborn Warlock
+  pt 2/2
+  enters prepared
+  label "Threshold" static this: +1/+1 as long as 7 cards in your graveyard
+  face "Omit Variables" {
+    cost {U/B}
+    type Sorcery
+    spell: mill 3 cards
+  }
+}

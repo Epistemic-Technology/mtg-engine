@@ -1,0 +1,10 @@
+card "Clearwater Pathway // Murkwater Pathway" {
+  oracle_id 144119bc-7fd1-45c5-9e29-f742e7c255ac
+  layout modal_dfc
+  type Land
+  mana {U}
+  face "Murkwater Pathway" {
+    type Land
+    mana {B}
+  }
+}

@@ -1,0 +1,14 @@
+card "Theorix Metamage // Omit Variables" {
+  oracle_id 92a0aa44-0ef7-4e6f-8288-7c33067c5fd1
+  layout prepare
+  cost {2}{U/B}
+  type Creature — Shade Wizard
+  pt 2/3
+  enters prepared
+  label "Threshold" static this: +1/+0, has flying as long as 7 cards in your graveyard
+  face "Omit Variables" {
+    cost {U/B}
+    type Sorcery
+    spell: mill 3 cards
+  }
+}

@@ -1,0 +1,10 @@
+card "Branchloft Pathway // Boulderloft Pathway" {
+  oracle_id 7c304547-a4b1-46c9-baed-16d2bfbe16eb
+  layout modal_dfc
+  type Land
+  mana {G}
+  face "Boulderloft Pathway" {
+    type Land
+    mana {W}
+  }
+}

@@ -1,0 +1,14 @@
+card "Lluwen, Exchange Student // Pest Friend" {
+  oracle_id cb125cd4-c7c2-415d-b802-bdcfc2454403
+  layout prepare
+  cost {2}{B}{G}
+  type Legendary Creature — Elf Druid
+  pt 3/4
+  enters prepared
+  activated exile creature card from graveyard, sorcery: this becomes prepared
+  face "Pest Friend" {
+    cost {B/G}
+    type Sorcery
+    spell: create 1 "1/1 black and green Pest creature that gains life when attacking"
+  }
+}

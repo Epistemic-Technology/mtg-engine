@@ -1,0 +1,10 @@
+card "Darkbore Pathway // Slitherbore Pathway" {
+  oracle_id 868e6e68-4367-4073-a864-235d5961ae56
+  layout modal_dfc
+  type Land
+  mana {B}
+  face "Slitherbore Pathway" {
+    type Land
+    mana {G}
+  }
+}

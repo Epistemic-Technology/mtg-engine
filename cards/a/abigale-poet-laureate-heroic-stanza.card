@@ -1,0 +1,14 @@
+card "Abigale, Poet Laureate // Heroic Stanza" {
+  oracle_id 2f5f46ed-b8aa-4864-bd20-17281d4632bf
+  layout prepare
+  cost {1}{W}{B}
+  type Legendary Creature — Bird Bard
+  pt 2/3
+  keywords flying
+  triggered whenever you cast creature spell: this becomes prepared
+  face "Heroic Stanza" {
+    cost {1}{W/B}
+    type Sorcery
+    spell: put 1 +1/+1 counters on target creature
+  }
+}

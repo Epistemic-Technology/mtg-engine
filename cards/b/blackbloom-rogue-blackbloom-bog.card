@@ -1,0 +1,14 @@
+card "Blackbloom Rogue // Blackbloom Bog" {
+  oracle_id 34320ebf-da97-44a4-bbeb-a9da06548289
+  layout modal_dfc
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 2/3
+  keywords menace
+  static this: +3/+0 as long as opponent graveyard 8 or more
+  face "Blackbloom Bog" {
+    type Land
+    enters tapped
+    mana {B}
+  }
+}

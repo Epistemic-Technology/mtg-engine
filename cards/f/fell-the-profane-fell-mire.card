@@ -1,0 +1,12 @@
+card "Fell the Profane // Fell Mire" {
+  oracle_id 053a69d8-2b5e-4f14-8b02-ca405891dc4a
+  layout modal_dfc
+  cost {2}{B}{B}
+  type Instant
+  spell: destroy target creature or planeswalker
+  face "Fell Mire" {
+    type Land
+    enters tapped unless pay 3 life
+    mana {B}
+  }
+}

@@ -1,0 +1,10 @@
+card "Needleverge Pathway // Pillarverge Pathway" {
+  oracle_id a9b8d020-4d72-4934-8942-df29ef19fc1d
+  layout modal_dfc
+  type Land
+  mana {R}
+  face "Pillarverge Pathway" {
+    type Land
+    mana {W}
+  }
+}

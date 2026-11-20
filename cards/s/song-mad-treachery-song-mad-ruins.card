@@ -1,0 +1,12 @@
+card "Song-Mad Treachery // Song-Mad Ruins" {
+  oracle_id 81b61770-2ed5-4a50-84d0-97790002fc5a
+  layout modal_dfc
+  cost {3}{R}{R}
+  type Sorcery
+  spell: gain control of target creature; untap that creature; target 1 gains haste
+  face "Song-Mad Ruins" {
+    type Land
+    enters tapped
+    mana {R}
+  }
+}

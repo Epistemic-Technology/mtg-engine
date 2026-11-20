@@ -1,0 +1,12 @@
+card "Ondu Inversion // Ondu Skyruins" {
+  oracle_id 15fc4e74-300e-4c2d-8ed7-004553b2f7c2
+  layout modal_dfc
+  cost {6}{W}{W}
+  type Sorcery
+  spell: destroy each nonland permanent
+  face "Ondu Skyruins" {
+    type Land
+    enters tapped
+    mana {W}
+  }
+}
