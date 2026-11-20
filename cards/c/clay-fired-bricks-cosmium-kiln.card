@@ -1,0 +1,14 @@
+card "Clay-Fired Bricks // Cosmium Kiln" {
+  oracle_id 90e1bcef-53af-4c08-b713-bf10dfcbd577
+  layout transform
+  cost {1}{W}
+  type Artifact
+  triggered when this enters: search basic Plains card reveal to hand; you gain 2 life
+  craft with artifact {5}{W}{W}
+  face "Cosmium Kiln" {
+    type Artifact
+    color white
+    triggered when this enters: create 2 "1/1 colorless Gnome artifact creature"
+    static creature you control: +1/+1
+  }
+}

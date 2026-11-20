@@ -3868,6 +3868,10 @@ pub enum Effect {
     /// them); with too little there, nothing is exiled and it isn't done
     /// (701.59b).
     CollectEvidence(u32),
+    /// Craft's effect (CR 702.167a): "Return this card transformed under
+    /// its owner's control": the source's card, exiled by the cost, onto
+    /// the battlefield with its back face up (CR 712.14).
+    ReturnTransformed,
     /// Manifest dread (CR 701.62a): look at the top two cards of the
     /// controller's library, manifest one, and put the rest into their
     /// graveyard.
@@ -4991,6 +4995,11 @@ pub struct Cost {
     /// "Collect evidence N" (CR 701.59a): exile cards with total mana value
     /// N or greater from the payer's graveyard (the engine picks them).
     pub evidence: u32,
+    /// Craft's materials (CR 702.167a): "Exile another artifact you
+    /// control or an artifact card from your graveyard": one permanent the
+    /// payer controls or card in their graveyard matching the filter,
+    /// other than the source (the engine picks, graveyard cards first).
+    pub craft: Option<Box<ObjFilter>>,
 }
 
 /// A cost that exiles cards from its payer's graveyard: `n` of them (X,
@@ -5048,6 +5057,7 @@ impl Cost {
             reveal_hand: false,
             blight: 0,
             evidence: 0,
+            craft: None,
         }
     }
 

@@ -1235,6 +1235,11 @@ pub enum Mechanic {
     /// sorcery; for each opponent, a token copy that attacks that opponent
     /// this turn if able, with haste, sacrificed at the next end step.
     Encore(ManaCost),
+    /// CR 702.167: `craft with artifact {2}{R}`: "{2}{R}, Exile this
+    /// artifact, Exile another artifact you control or an artifact card
+    /// from your graveyard: Return this card transformed under its owner's
+    /// control. Craft only as a sorcery." One material matching the filter.
+    Craft(Filter, ManaCost),
     /// CR 702.165: `backup 1`: as it enters, N +1/+1 counters on target
     /// creature; another creature also gains the abilities written after
     /// this line until end of turn.

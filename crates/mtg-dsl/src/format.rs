@@ -4457,6 +4457,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::SpliceCost(c) => format!("splice {}", cost_text(c)),
                 crate::ast::Mechanic::Embalm(c) => format!("embalm {c}"),
                 crate::ast::Mechanic::Encore(c) => format!("encore {c}"),
+                crate::ast::Mechanic::Craft(f, c) => format!("craft with {} {c}", filter(f)),
                 crate::ast::Mechanic::Eternalize(c) => format!("eternalize {c}"),
                 crate::ast::Mechanic::Backup(n) => format!("backup {n}"),
                 crate::ast::Mechanic::Offspring(c) => format!("offspring {c}"),

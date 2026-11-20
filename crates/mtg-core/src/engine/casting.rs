@@ -4263,6 +4263,12 @@ impl GameState {
         if cost.evidence > 0 {
             self.collect_evidence(p, cost.evidence, this);
         }
+        // CR 702.167a: craft's materials, a graveyard card first.
+        if let Some(f) = cost.craft.as_deref()
+            && let Some(m) = self.craft_candidates(p, f, this).first().copied()
+        {
+            self.move_object(m, Zone::Exile, true);
+        }
         // CR 606.4: loyalty costs are counters put on or removed from the
         // planeswalker.
         if cost.loyalty > 0 {
@@ -9255,6 +9261,24 @@ impl GameState {
             }
             Effect::CollectEvidence(n) => {
                 ctx.did = self.collect_evidence(ctx.controller, *n, ctx.source);
+            }
+            Effect::ReturnTransformed => {
+                // CR 702.167a, 712.14: the card exiled to pay the cost
+                // returns with its back face up, under its owner's control.
+                if let Some(id) = self.current_object(ctx.source)
+                    && self.objects[id].zone == Zone::Exile
+                {
+                    let card = self.objects[id].card;
+                    let d = self.pool.get(card);
+                    if d.layout == Layout::Transform
+                        && let Some(back) = d.faces.first().copied()
+                    {
+                        let owner = self.objects[id].owner;
+                        self.objects[id].def = back;
+                        let new = self.put_onto_battlefield(id, owner);
+                        ctx.created = Some(new);
+                    }
+                }
             }
             Effect::ManifestDread => {
                 // CR 701.62a: look at the top two, manifest one, the rest

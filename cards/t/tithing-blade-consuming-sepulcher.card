@@ -1,0 +1,13 @@
+card "Tithing Blade // Consuming Sepulcher" {
+  oracle_id 883a4180-9ede-4249-a4b8-3a29c998fb63
+  layout transform
+  cost {1}{B}
+  type Artifact
+  triggered when this enters: each opponent sacrifices 1 creature
+  craft with creature {4}{B}
+  face "Consuming Sepulcher" {
+    type Artifact
+    color black
+    triggered at beginning of your upkeep: each opponent loses 1 life and you gain 1 life
+  }
+}

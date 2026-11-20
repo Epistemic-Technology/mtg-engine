@@ -1530,6 +1530,14 @@ impl P {
                     _ => Mechanic::BuybackCost(c),
                 }))
             }
+            // CR 702.167: `craft with artifact {2}{R}`.
+            "craft" if self.word_at(1).as_deref() == Some("with") => {
+                self.pos += 2;
+                let f = self.filter()?;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Craft(f, c)))
+            }
             "conspire" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;

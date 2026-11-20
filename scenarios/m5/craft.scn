@@ -1,0 +1,67 @@
+# Craft with [materials] [cost] (CR 702.167): "[cost], Exile this
+# artifact, Exile [the materials] from among other permanents you control
+# and/or cards in your graveyard: Return this card transformed under its
+# owner's control. Craft only as a sorcery." The engine picks the
+# material, a graveyard card first.
+
+scenario "craft: an artifact card from the graveyard, returned transformed" {
+  battlefield A: 3 "Plains", "Oteclan Landmark"
+  graveyard A: "Ornithopter"
+  turn 1 A: activate "Oteclan Landmark"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Oteclan Levitator"
+  assert has "Oteclan Levitator" flying
+  assert power "Oteclan Levitator" 1
+  assert exile A contains "Ornithopter"
+}
+
+scenario "craft: another artifact you control" {
+  battlefield A: 3 "Plains", "Oteclan Landmark", "Ornithopter"
+  turn 1 A: activate "Oteclan Landmark"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Oteclan Levitator"
+  assert exile A contains "Ornithopter"
+}
+
+scenario "craft: the artifact itself isn't a material" {
+  battlefield A: 3 "Plains", "Oteclan Landmark"
+  illegal turn 1 A: activate "Oteclan Landmark"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Oteclan Landmark"
+}
+
+scenario "craft: only as a sorcery" {
+  battlefield A: 3 "Plains", "Oteclan Landmark"
+  graveyard A: "Ornithopter"
+  start turn 2 B
+  illegal turn 2 A: activate "Oteclan Landmark"
+  run_to turn 2 end
+  assert battlefield A contains "Oteclan Landmark"
+}
+
+scenario "craft: with creature, from the graveyard" {
+  battlefield A: 5 "Swamp", "Tithing Blade"
+  graveyard A: "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: activate "Tithing Blade"
+  run_to turn 3 end
+  assert battlefield A contains "Consuming Sepulcher"
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "craft: the back face's upkeep trigger" {
+  battlefield A: "Consuming Sepulcher"
+  start turn 3 A
+  run_to turn 3 draw
+  assert life A 21
+  assert life B 19
+}
+
+scenario "craft: with Island, a land you control" {
+  battlefield A: 4 "Island", "Waterlogged Hulk"
+  turn 1 A: activate "Waterlogged Hulk" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Watertight Gondola"
+  assert exile A contains "Island"
+  assert battlefield A contains 3 "Island"
+}

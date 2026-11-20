@@ -1,0 +1,14 @@
+card "Inverted Iceberg // Iceberg Titan" {
+  oracle_id 3feedc63-173e-4713-8e96-8f1c9576055f
+  layout transform
+  cost {1}{U}
+  type Artifact
+  triggered when this enters: mill 1 card, then draw 1 card
+  craft with artifact {4}{U}{U}
+  face "Iceberg Titan" {
+    type Artifact Creature — Golem
+    pt 6/6
+    color blue
+    triggered whenever this attacks: you may tap or untap target artifact or creature
+  }
+}

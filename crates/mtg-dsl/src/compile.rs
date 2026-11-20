@@ -1250,6 +1250,7 @@ impl Compiler<'_> {
 
     fn cost(&mut self, c: &Cost) -> CoreCost {
         CoreCost {
+            craft: None,
             mana: c.mana.clone(),
             discard_self: c.discard_self,
             exile_self: c.exile_self,
@@ -3366,6 +3367,33 @@ impl Compiler<'_> {
                         text: render::ability_text(self.card, a, self.lookup),
                     })
                 }
+                // CR 702.167a: "[Cost], Exile this artifact, Exile [the
+                // materials] from among permanents you control and/or cards
+                // in your graveyard: Return this card transformed under its
+                // owner's control. Craft only as a sorcery."
+                Mechanic::Craft(f, cost) => {
+                    let f = self.filter(f);
+                    AbilityDef::Activated(ActivatedAbility {
+                        cost: CoreCost {
+                            mana: cost.clone(),
+                            exile_this: true,
+                            craft: Some(Box::new(f)),
+                            ..CoreCost::default()
+                        },
+                        targets: Vec::new(),
+                        effects: vec![CoreEffect::ReturnTransformed],
+                        sorcery_speed: true,
+                        per_turn: 0,
+                        conditions: Vec::new(),
+                        once_ever: false,
+                        from_hand: false,
+                        cycling: false,
+                        from_graveyard: false,
+                        keyword: None,
+                        reduction: None,
+                        text: render::ability_text(self.card, a, self.lookup),
+                    })
+                }
                 Mechanic::Saddle(n) => AbilityDef::Activated(ActivatedAbility {
                     cost: CoreCost {
                         crew: *n,
@@ -4058,6 +4086,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::SpliceCost(_)
         | Mechanic::Embalm(_)
         | Mechanic::Encore(_)
+        | Mechanic::Craft(..)
         | Mechanic::Eternalize(_)
         | Mechanic::Backup(_)
         | Mechanic::Offspring(_)

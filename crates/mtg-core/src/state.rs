@@ -2567,6 +2567,39 @@ impl GameState {
     pub fn other_costs_payable(&self, p: PlayerId, c: &crate::card::Cost, except: ObjId) -> bool {
         !(c.blight > 0 && self.creatures_of(p).next().is_none())
             && self.evidence_payable(p, c.evidence, except)
+            && c.craft
+                .as_deref()
+                .is_none_or(|f| !self.craft_candidates(p, f, except).is_empty())
+    }
+
+    /// What craft may exile (CR 702.167a): cards in `p`'s graveyard, then
+    /// permanents `p` controls, matching `f`, other than `except`.
+    pub fn craft_candidates(
+        &self,
+        p: PlayerId,
+        f: &crate::card::ObjFilter,
+        except: ObjId,
+    ) -> Vec<ObjId> {
+        let mut out: Vec<ObjId> = self
+            .player(p)
+            .graveyard
+            .iter()
+            .copied()
+            .filter(|id| *id != except)
+            .filter(|id| {
+                let o = &self.objects[*id];
+                let c = self.base_characteristics(o);
+                f.matches(*id, o.owner, &c, Some(except), Some(p))
+            })
+            .collect();
+        out.extend(self.battlefield.iter().copied().filter(|id| {
+            *id != except
+                && self.objects[*id].controller == p
+                && self
+                    .characteristics(*id)
+                    .is_some_and(|c| f.matches(*id, p, &c, Some(except), Some(p)))
+        }));
+        out
     }
 
     pub fn spent_on(&self, id: ObjId) -> SpentMana {

@@ -1,0 +1,16 @@
+card "Spring-Loaded Sawblades // Bladewheel Chariot" {
+  oracle_id fa1ed9fa-5f77-4f7d-bab0-47c719cdc5bc
+  layout transform
+  cost {1}{W}
+  type Artifact
+  keywords flash
+  triggered when this enters: deal 5 damage to target tapped creature an opponent controls
+  craft with artifact {3}{W}
+  face "Bladewheel Chariot" {
+    type Artifact — Vehicle
+    pt 5/5
+    color white
+    activated tap 2 other untapped artifact you control: this becomes artifact creature until end of turn
+    crew 1
+  }
+}

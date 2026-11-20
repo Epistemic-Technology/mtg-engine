@@ -1,0 +1,15 @@
+card "Oteclan Landmark // Oteclan Levitator" {
+  oracle_id 2420828e-b886-42d3-81ba-8ee81b6e1eb8
+  layout transform
+  cost {W}
+  type Artifact
+  triggered when this enters: scry 2
+  craft with artifact {2}{W}
+  face "Oteclan Levitator" {
+    type Artifact Creature — Golem
+    pt 1/4
+    color white
+    keywords flying
+    triggered whenever this attacks: target attacking creature without flying gains flying
+  }
+}
