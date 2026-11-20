@@ -7855,6 +7855,25 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             let _ = write!(s, " is dealt to {dest} instead.");
             s
         }
+        // `replace damage permanent you control of chosen type would deal:
+        // double`: "Double all damage that sources you control of the
+        // chosen type would deal." (Collective Inferno), "Double all damage
+        // equipped creature would deal."
+        (
+            Replaces::Damage {
+                from: Some(f),
+                to: Affects::Any,
+                combat: None,
+                wording: DamageWording::WouldDeal,
+            },
+            Outcome::Double,
+        ) => match f {
+            Affects::Objects(g) => {
+                let p = filter_phrase(g, ctx.card, true).replacen("permanents", "sources", 1);
+                format!("Double all damage that {p} would deal.")
+            }
+            other => format!("Double all damage {} would deal.", affects_to(other, ctx)),
+        },
         (
             Replaces::Damage {
                 from, to, combat, ..

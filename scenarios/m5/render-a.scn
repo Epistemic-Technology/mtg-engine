@@ -487,6 +487,17 @@ scenario "Living History pumps an attacker after a card left your graveyard" {
   assert power "Grizzly Bears" 4
 }
 
+scenario "Collective Inferno doubles damage from sources of the chosen type" {
+  battlefield A: 5 "Mountain", "Grizzly Bears", "Hill Giant"
+  hand A: "Collective Inferno"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Collective Inferno"
+  turn 1 A: choose Bear
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 13
+}
+
 scenario "Brambleguard Captain gives its power to a creature you control" {
   battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
   start turn 1 A precombat_main

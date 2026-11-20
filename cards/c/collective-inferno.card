@@ -1,0 +1,8 @@
+card "Collective Inferno" {
+  oracle_id 649e4969-71d4-434f-85b0-205ec2c6b24f
+  cost {3}{R}{R}
+  type Enchantment
+  keywords convoke
+  as this enters choose creature type
+  replace damage permanent you control of chosen type would deal: double
+}

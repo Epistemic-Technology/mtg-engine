@@ -710,7 +710,7 @@ outcome `double` (`replace damage from permanent you control to any:
 double`) prints "If a source you control would deal damage to a
 permanent or player, it deals double that damage to that permanent or
 player instead." (a filter without a card type names a source;
-`replace damage to you: double` "... to you instead.").
+`replace damage to you: double` "... to you instead."; `replace damage permanent you control of chosen type would deal: double` is the newer "Double all damage that sources you control of the chosen type would deal.").
 `spells red or white you cast cost {1} less` prints "Red spells and white
 spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
 spells". `defending player` as a subject prints "defending player".
