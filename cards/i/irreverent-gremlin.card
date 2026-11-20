@@ -1,0 +1,8 @@
+card "Irreverent Gremlin" {
+  oracle_id 44594004-52e7-4ce6-8eb0-61f72fd9c73b
+  cost {1}{R}
+  type Creature — Gremlin
+  pt 2/2
+  keywords menace
+  triggered do once each turn whenever other creature you control with power 2 or less enters: you may discard 1 card; if you do, draw 1 card
+}

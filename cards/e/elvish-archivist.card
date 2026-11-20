@@ -1,0 +1,8 @@
+card "Elvish Archivist" {
+  oracle_id d7035db0-4bde-4ba3-9028-dd14191c8126
+  cost {1}{G}
+  type Creature — Elf Artificer
+  pt 0/1
+  triggered once each turn whenever one or more artifact you control enter: put 2 +1/+1 counters on this
+  triggered once each turn whenever one or more enchantment you control enter: draw 1 card
+}

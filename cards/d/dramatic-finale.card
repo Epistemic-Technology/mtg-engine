@@ -1,0 +1,7 @@
+card "Dramatic Finale" {
+  oracle_id e0155236-13c5-4e01-b4de-b8fa4af846d8
+  cost {W/B}{W/B}{W/B}{W/B}
+  type Enchantment
+  static creature token you control: +1/+1
+  triggered once each turn whenever one or more nontoken creature you control die: create 1 "2/1 white and black Inkling creature with flying"
+}

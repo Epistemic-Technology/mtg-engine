@@ -1,0 +1,6 @@
+card "Tocasia's Welcome" {
+  oracle_id 25c983e0-a8c9-4784-91a4-8fe04c6df882
+  cost {2}{W}
+  type Enchantment
+  triggered once each turn whenever one or more creature you control with mana value 3 or less enter: draw 1 card
+}

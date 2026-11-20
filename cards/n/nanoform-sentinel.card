@@ -1,0 +1,7 @@
+card "Nanoform Sentinel" {
+  oracle_id 07155470-c5ab-41ae-ade3-bdc06d357379
+  cost {2}{U}
+  type Artifact Creature — Robot
+  pt 3/2
+  triggered once each turn whenever this becomes tapped: untap another target permanent
+}

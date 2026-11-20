@@ -1,0 +1,8 @@
+card "Elvish Warmaster" {
+  oracle_id bda83ef4-e345-495d-878c-4da171f997ba
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 2/2
+  triggered once each turn whenever one or more other Elf you control enter: create 1 "1/1 green Elf Warrior creature"
+  activated {5}{G}{G}: each Elf you control gets +2/+2 and gains deathtouch until end of turn
+}

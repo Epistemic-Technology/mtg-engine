@@ -1,0 +1,7 @@
+card "Dionus, Elvish Archdruid" {
+  oracle_id d5e5cf55-eb9e-4f01-9056-791215411b27
+  cost {3}{G}
+  type Legendary Creature — Elf Druid
+  pt 3/3
+  static Elf you control: has ability { triggered once each turn whenever this becomes tapped during your turn: untap it and put 1 +1/+1 counter on it }
+}

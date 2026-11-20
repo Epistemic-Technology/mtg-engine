@@ -1,0 +1,7 @@
+card "Tolls of War" {
+  oracle_id 5d1d9914-3ef2-45c5-b1cb-cb85d2f7394c
+  cost {W}{B}
+  type Enchantment
+  triggered when this enters: create 1 "Clue"
+  triggered once each turn whenever you sacrifice permanent during your turn: create 1 "1/1 white Ally creature"
+}

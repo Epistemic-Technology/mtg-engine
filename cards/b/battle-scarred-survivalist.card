@@ -1,0 +1,8 @@
+card "Battle-Scarred Survivalist" {
+  oracle_id 0e0e15d9-bd29-495a-9975-d1bd2ebb4bff
+  cost {1}{B}
+  type Creature — Klingon Scout
+  pt 1/1
+  keywords menace
+  triggered once each turn whenever other creature dies: put 1 +1/+1 counters on this
+}

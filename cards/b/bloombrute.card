@@ -1,0 +1,8 @@
+card "Bloombrute" {
+  oracle_id b7040175-7411-43a8-9b46-dba1d7c2135d
+  cost {2}{G}{W}
+  type Creature — Plant Elemental
+  pt 4/4
+  triggered once each turn whenever you gain life: draw 1 cards
+  activated {4}{G}{W}: target creature gains trample, lifelink
+}

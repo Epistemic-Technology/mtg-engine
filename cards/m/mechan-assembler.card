@@ -1,0 +1,7 @@
+card "Mechan Assembler" {
+  oracle_id 2c2ef1ed-2f93-48c5-bf86-e46318599aeb
+  cost {4}{U}
+  type Artifact Creature — Robot Artificer
+  pt 4/4
+  triggered once each turn whenever other artifact you control enters: create 1 "2/2 colorless Robot artifact creature"
+}

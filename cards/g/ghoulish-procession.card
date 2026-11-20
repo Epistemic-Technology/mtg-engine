@@ -1,0 +1,6 @@
+card "Ghoulish Procession" {
+  oracle_id 39e20898-cf01-48dc-8972-7ac500c3fa79
+  cost {1}{B}
+  type Enchantment
+  triggered once each turn whenever one or more nontoken creature die: create 1 "2/2 black Zombie creature with decayed"
+}
