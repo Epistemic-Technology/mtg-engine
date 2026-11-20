@@ -3363,6 +3363,25 @@ impl Compiler<'_> {
                         None,
                     )
                 }
+                // CR 702.154a: "As this creature attacks, you may tap up to
+                // one untapped creature you control that you didn't choose
+                // to attack with and that either has haste or has been
+                // under your control continuously since this turn began.
+                // When you do, this creature gets +X/+0 until end of turn,
+                // where X is the tapped creature's power." Approximated as
+                // an attack trigger (the choice is made as it resolves).
+                Mechanic::Enlist => AbilityDef::Triggered(TriggeredAbility {
+                    from_graveyard: false,
+                    trigger: TriggerSpec::Attacks(CoreTriggerObj::This),
+                    condition: None,
+                    targets: Vec::new(),
+                    effects: vec![CoreEffect::YouMay(vec![CoreEffect::ChooseAct {
+                        act: mtg_core::card::ChooseAct::Enlist,
+                        filter: mtg_core::card::ObjFilter::creatures(),
+                        count: Num::N(1),
+                        up_to: false,
+                    }])],
+                }),
                 // CR 702.115a: "Whenever this creature deals combat damage
                 // to a player, that player exiles the top card of their
                 // library."
@@ -3947,6 +3966,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Riot
         | Mechanic::Retrace
         | Mechanic::Ingest
+        | Mechanic::Enlist
         | Mechanic::JumpStart
         | Mechanic::Surge(_)
         | Mechanic::Spectacle(_)

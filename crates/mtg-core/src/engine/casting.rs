@@ -851,6 +851,26 @@ impl GameState {
         let any_controller =
             matches!(act, ChooseAct::Bounce | ChooseAct::Untap) && filter.who.is_none();
         match act {
+            // CR 702.154a: not attacking, and able to pay {T} (CR 302.6).
+            ChooseAct::Enlist => self
+                .battlefield
+                .iter()
+                .copied()
+                .filter(|id| {
+                    let o = &self.objects[*id];
+                    o.controller == p
+                        && !o.tapped
+                        && *id != ctx.source
+                        && !self
+                            .combat
+                            .as_ref()
+                            .is_some_and(|cb| cb.attackers.iter().any(|a| a.id == *id))
+                        && self.characteristics(*id).is_some_and(|c| {
+                            filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                                && (o.controlled_since_turn_start || c.has(Keyword::Haste))
+                        })
+                })
+                .collect(),
             ChooseAct::Tap
             | ChooseAct::Untap
             | ChooseAct::Sacrifice
@@ -1012,6 +1032,26 @@ impl GameState {
             cands.retain(|c| *c != id);
             match act {
                 ChooseAct::Tap => self.tap(id),
+                ChooseAct::Enlist => {
+                    self.tap(id);
+                    let power = self.characteristics(id).map_or(0, |c| i32::from(c.power));
+                    if self
+                        .objects
+                        .get(ctx.source)
+                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                    {
+                        let pump = Modification::ModifyPt {
+                            power,
+                            toughness: 0,
+                        };
+                        self.effect_on(
+                            ctx,
+                            ctx.source,
+                            smallvec::smallvec![pump],
+                            Duration::UntilEndOfTurn,
+                        );
+                    }
+                }
                 ChooseAct::Untap => self.untap(id),
                 ChooseAct::Sacrifice => self.sacrifice(id),
                 ChooseAct::Discard => self.discard_card(p, id),

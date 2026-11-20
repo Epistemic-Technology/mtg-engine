@@ -1768,7 +1768,7 @@ impl Fmt {
                 let f = filter(f);
                 let cs = cards(*count);
                 match act {
-                    ChooseAct::Tap => format!("tap {n} {f} chosen"),
+                    ChooseAct::Tap | ChooseAct::Enlist => format!("tap {n} {f} chosen"),
                     ChooseAct::Untap => format!("untap {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
                     ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
@@ -4368,6 +4368,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Casualty(n) => format!("casualty {n}"),
                 crate::ast::Mechanic::Storm => "storm".to_string(),
                 crate::ast::Mechanic::Assist => "assist".to_string(),
+                crate::ast::Mechanic::Enlist => "enlist".to_string(),
                 crate::ast::Mechanic::Replicate(c) => format!("replicate {c}"),
                 crate::ast::Mechanic::Teamwork(n) => format!("teamwork {n}"),
                 crate::ast::Mechanic::Ripple(n) => format!("ripple {n}"),

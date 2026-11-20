@@ -1,0 +1,51 @@
+# Enlist (CR 702.154): as the creature attacks, its controller may tap a
+# nonattacking creature they control that has haste or has been under
+# their control since the turn began; the attacker gets +X/+0 until end
+# of turn, X that creature's power. (Here an attack trigger.)
+
+scenario "enlist: tap a creature, add its power" {
+  battlefield A: "Barkweave Crusher", "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Barkweave Crusher"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert tapped "Hill Giant"
+  assert power "Barkweave Crusher" 5
+}
+
+scenario "enlist: declined, nothing tapped" {
+  battlefield A: "Barkweave Crusher", "Hill Giant"
+  turn 1 A: attack "Barkweave Crusher"
+  turn 1 A: decline "Barkweave Crusher"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Hill Giant"
+}
+
+scenario "enlist: an attacking creature can't be enlisted" {
+  battlefield A: "Barkweave Crusher", "Serra Angel"
+  turn 1 A: attack "Barkweave Crusher", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert untapped "Serra Angel"
+}
+
+scenario "enlist: a summoning-sick creature can't be enlisted" {
+  battlefield A: "Barkweave Crusher", 4 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: attack "Barkweave Crusher"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Hill Giant"
+}
+
+scenario "enlist: a hasty creature that just arrived can be" {
+  battlefield A: "Barkweave Crusher", "Mountain"
+  hand A: "Raging Goblin"
+  turn 1 A: cast "Raging Goblin"
+  turn 1 A: attack "Barkweave Crusher"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert tapped "Raging Goblin"
+}

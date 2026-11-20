@@ -1,0 +1,8 @@
+card "Yavimaya Steelcrusher" {
+  oracle_id ad181ee7-756f-4002-9009-023ea6172991
+  cost {1}{R}
+  type Creature — Ape Warrior
+  pt 2/2
+  enlist
+  activated {1}, sacrifice this: destroy target artifact
+}

@@ -4116,6 +4116,10 @@ pub enum ChooseAct {
     /// "put an instant, sorcery, or battle card from your graveyard on top
     /// of your library" (cards in your graveyard).
     GraveyardToTop,
+    /// Enlist (CR 702.154a): tap a nonattacking creature you control that
+    /// could pay a {T} cost (CR 302.6); the source gets +X/+0 until end of
+    /// turn, X that creature's power.
+    Enlist,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,

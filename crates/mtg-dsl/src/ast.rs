@@ -1232,6 +1232,10 @@ pub enum Mechanic {
     /// spell's cost." The game's only other player is an opponent, who
     /// here never pays: the line has no effect.
     Assist,
+    /// `enlist` (CR 702.154): as this creature attacks, you may tap a
+    /// nonattacking creature you control without summoning sickness; it
+    /// gets +X/+0 until end of turn, X that creature's power.
+    Enlist,
     /// `replicate {U}` (CR 702.56): an additional cost paid any number of
     /// times; copied once for each.
     Replicate(ManaCost),

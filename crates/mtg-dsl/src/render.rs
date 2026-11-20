@@ -4855,7 +4855,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             };
             Clause::imperative(match act {
-                ChooseAct::Tap => format!("tap {}", permanents()),
+                ChooseAct::Tap | ChooseAct::Enlist => format!("tap {}", permanents()),
                 ChooseAct::Untap => format!("untap {}", permanents()),
                 ChooseAct::Sacrifice => format!("sacrifice {}", permanents()),
                 ChooseAct::Bounce => format!(
@@ -9482,6 +9482,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Casualty(n) => format!("Casualty {n}"),
             crate::ast::Mechanic::Storm => "Storm".to_string(),
             crate::ast::Mechanic::Assist => "Assist".to_string(),
+            crate::ast::Mechanic::Enlist => "Enlist".to_string(),
             crate::ast::Mechanic::Replicate(c) => format!("Replicate {c}"),
             crate::ast::Mechanic::Teamwork(n) => format!("Teamwork {n}"),
             crate::ast::Mechanic::Ripple(n) => format!("Ripple {n}"),
