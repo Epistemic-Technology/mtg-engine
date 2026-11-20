@@ -703,6 +703,7 @@ impl P {
             additional_or: None,
             alt_cost: None,
             flash_if: None,
+            cast_only: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
@@ -905,6 +906,12 @@ impl P {
             "flash" if self.at_words(&["flash", "as", "long", "as"]) => {
                 self.pos += 4;
                 card.flash_if = Some(self.static_cond()?);
+                self.end_stmt()
+            }
+            "cast" if self.at_words(&["cast", "only"]) => {
+                self.pos += 2;
+                self.eat_word("if");
+                card.cast_only = Some(self.static_cond()?);
                 self.end_stmt()
             }
             "flashback" => {
@@ -2644,12 +2651,20 @@ impl P {
             StaticCond::During(T::YourUpkeep)
         } else if self.eat_words(&["opponent", "upkeep"]) {
             StaticCond::During(T::OpponentUpkeep)
+        } else if self.eat_words(&["combat", "before", "blockers"]) {
+            StaticCond::During(T::BeforeBlockers)
+        } else if self.eat_words(&["combat", "after", "blockers"]) {
+            StaticCond::During(T::AfterBlockers)
         } else if self.eat_word("combat") {
             StaticCond::During(T::Combat)
         } else if self.eat_words(&["declare", "blockers"]) {
             StaticCond::During(T::DeclareBlockers)
         } else if self.eat_words(&["end", "of", "combat"]) {
             StaticCond::During(T::EndOfCombat)
+        } else if self.eat_words(&["declare", "attackers", "if", "attacked"]) {
+            StaticCond::During(T::AttackedThisStep)
+        } else if self.eat_words(&["declare", "attackers"]) {
+            StaticCond::During(T::DeclareAttackers)
         } else if self.eat_words(&["your", "turn", "before", "attackers"]) {
             StaticCond::During(T::YourTurnBeforeAttackers)
         } else if self.eat_words(&["your", "turn"]) && !matches!(self.peek(), Some(Tok::Comma)) {

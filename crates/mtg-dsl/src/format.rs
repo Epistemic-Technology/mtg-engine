@@ -100,6 +100,14 @@ fn format_inner(card: &Card) -> String {
     if let Some(c) = &card.flash_if {
         let _ = writeln!(out, "  flash as long as {}", static_cond(c));
     }
+    if let Some(c) = &card.cast_only {
+        let c = static_cond(c);
+        if c.starts_with("during") || c.starts_with("before") {
+            let _ = writeln!(out, "  cast only {c}");
+        } else {
+            let _ = writeln!(out, "  cast only if {c}");
+        }
+    }
     if let Some(k) = &card.kicker {
         let _ = writeln!(out, "  kicker {k}");
     }
@@ -3620,6 +3628,10 @@ fn static_cond(c: &StaticCond) -> String {
                 T::YourTurnBeforeAttackers => "during your turn before attackers",
                 T::DeclareBlockers => "during declare blockers",
                 T::EndOfCombat => "during end of combat",
+                T::DeclareAttackers => "during declare attackers",
+                T::BeforeBlockers => "during combat before blockers",
+                T::AfterBlockers => "during combat after blockers",
+                T::AttackedThisStep => "during declare attackers if attacked",
             }
             .to_string()
         }

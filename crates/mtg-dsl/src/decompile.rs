@@ -99,6 +99,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             }
         }),
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
+        cast_only: def.cast_only.map(|c| d.static_cond(pool.condition(c))),
         kicker: def.kicker.as_deref().cloned(),
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),

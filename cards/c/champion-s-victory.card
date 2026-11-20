@@ -1,0 +1,7 @@
+card "Champion's Victory" {
+  oracle_id 8df38d95-1707-4f83-9d64-41f0be2a3b3b
+  cost {U}
+  type Instant
+  cast only during declare attackers if attacked
+  spell: return target attacking creature to hand
+}

@@ -76,6 +76,12 @@ impl GameState {
                 }
                 continue;
             }
+            // "Cast this spell only during combat" (CR 601.3).
+            if let Some(c) = def.cast_only
+                && !self.condition_now(self.pool.condition(c), p, *id)
+            {
+                continue;
+            }
             // CR 715.3, 709.3: an adventurer's spell or a split card's
             // half is cast as that face.
             if !def.faces.is_empty()

@@ -1,0 +1,10 @@
+card "Gorilla War Cry" {
+  oracle_id 60a7f61c-41ad-4dce-b556-a99bf38c3d73
+  cost {1}{R}
+  type Instant
+  cast only during combat before blockers
+  spell {
+    each creature gain menace
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

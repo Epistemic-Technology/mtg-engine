@@ -1,0 +1,7 @@
+card "Defiant Stand" {
+  oracle_id 05e61628-cdae-4664-b866-be438fb3a6ba
+  cost {1}{W}
+  type Instant
+  cast only during declare attackers if attacked
+  spell: target creature gets +1/+3; untap that target 1
+}

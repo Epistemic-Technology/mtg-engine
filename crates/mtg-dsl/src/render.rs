@@ -8245,6 +8245,12 @@ fn turn_time_text(t: mtg_core::card::TurnTime) -> &'static str {
         T::YourTurnBeforeAttackers => "during your turn, before attackers are declared",
         T::DeclareBlockers => "during the declare blockers step",
         T::EndOfCombat => "during the end of combat step",
+        T::DeclareAttackers => "during the declare attackers step",
+        T::BeforeBlockers => "during combat before blockers are declared",
+        T::AfterBlockers => "during combat after blockers are declared",
+        T::AttackedThisStep => {
+            "during the declare attackers step and only if you've been attacked this step"
+        }
     }
 }
 
@@ -9007,6 +9013,17 @@ pub fn mode_text(card: &Card, m: &crate::ast::Mode, lookup: &dyn Lookup) -> Stri
     sentences(&m.effects, &mut ctx)
 }
 
+/// "Cast this spell only during combat.", "Cast this spell only if you
+/// control a creature." (CR 601.3).
+fn cast_only_text(card: &Card) -> Option<String> {
+    let when = match card.cast_only.as_ref()? {
+        StaticCond::During(t) => turn_time_text(*t).to_string(),
+        StaticCond::DuringYourTurn => "during your turn".to_string(),
+        c => format!("if {}", static_cond_text(c, card)),
+    };
+    Some(format!("Cast this spell only {when}."))
+}
+
 /// The card's full Oracle text.
 pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let mut lines: Vec<String> = Vec::new();
@@ -9033,6 +9050,8 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             static_cond_text(c, card)
         ));
     }
+    // "Cast this spell only during combat." (CR 601.3), first.
+    lines.splice(0..0, cast_only_text(card));
     if let Some(k) = &card.kicker {
         lines.push(format!("Kicker {k}"));
     }

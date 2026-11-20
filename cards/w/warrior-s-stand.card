@@ -1,0 +1,7 @@
+card "Warrior's Stand" {
+  oracle_id 1f08072d-7dec-4f0d-b465-dda62eb17630
+  cost {1}{W}
+  type Instant
+  cast only during declare attackers if attacked
+  spell: each creature you control gets +2/+2
+}

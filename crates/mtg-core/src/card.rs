@@ -2155,6 +2155,15 @@ pub enum TurnTime {
     DeclareBlockers,
     /// "during the end of combat step".
     EndOfCombat,
+    /// "during the declare attackers step".
+    DeclareAttackers,
+    /// "during combat before blockers are declared".
+    BeforeBlockers,
+    /// "during combat after blockers are declared".
+    AfterBlockers,
+    /// "during the declare attackers step and only if you've been attacked
+    /// this step": a creature attacks you (judged by the game state).
+    AttackedThisStep,
 }
 
 impl TurnTime {
@@ -2186,6 +2195,19 @@ impl TurnTime {
             TurnTime::YourTurnBeforeAttackers => before && active == you,
             TurnTime::DeclareBlockers => step == Step::DeclareBlockers,
             TurnTime::EndOfCombat => step == Step::EndOfCombat,
+            TurnTime::DeclareAttackers | TurnTime::AttackedThisStep => {
+                step == Step::DeclareAttackers
+            }
+            TurnTime::BeforeBlockers => {
+                matches!(step, Step::BeginningOfCombat | Step::DeclareAttackers)
+            }
+            TurnTime::AfterBlockers => matches!(
+                step,
+                Step::DeclareBlockers
+                    | Step::FirstStrikeDamage
+                    | Step::CombatDamage
+                    | Step::EndOfCombat
+            ),
         }
     }
 }
@@ -5241,6 +5263,10 @@ pub struct CardDef {
     /// 702.8): the pool condition under which the card may be cast as
     /// though it had flash.
     pub flash_if: Option<u16>,
+    /// "Cast this spell only during combat." / "... only if you control a
+    /// creature." (CR 601.3): the pool condition the caster must meet to
+    /// cast the card.
+    pub cast_only: Option<u16>,
     /// Offspring (CR 702.175): an optional additional cost; if paid, a 1/1
     /// token copy is created as the permanent enters.
     pub offspring: Option<Box<ManaCost>>,
@@ -6758,6 +6784,7 @@ impl Builder {
             alt_cost: None,
             additional_or: None,
             flash_if: None,
+            cast_only: None,
             offspring: None,
             bargain: false,
             aura_stays: false,
@@ -6964,6 +6991,13 @@ impl Builder {
     #[must_use]
     pub fn flash_if(mut self, condition: u16) -> Self {
         self.0.flash_if = Some(condition);
+        self
+    }
+
+    /// "Cast this spell only ..." (CR 601.3).
+    #[must_use]
+    pub fn cast_only(mut self, condition: u16) -> Self {
+        self.0.cast_only = Some(condition);
         self
     }
 

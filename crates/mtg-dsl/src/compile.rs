@@ -465,6 +465,10 @@ impl Compiler<'_> {
             let c = self.static_cond(c);
             b = b.flash_if(self.pool.intern_condition(c));
         }
+        if let Some(c) = &card.cast_only {
+            let c = self.static_cond(c);
+            b = b.cast_only(self.pool.intern_condition(c));
+        }
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
         }

@@ -121,6 +121,9 @@ pub struct Card {
     /// `flash as long as you control Merfolk`: "This spell has flash as
     /// long as you control a Merfolk." (CR 702.8).
     pub flash_if: Option<StaticCond>,
+    /// `cast only during combat`, `cast only if you control creature`:
+    /// "Cast this spell only during combat." (CR 601.3).
+    pub cast_only: Option<StaticCond>,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
@@ -167,6 +170,7 @@ impl Card {
             additional_or: None,
             alt_cost: None,
             flash_if: None,
+            cast_only: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),

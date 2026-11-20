@@ -2577,6 +2577,14 @@ impl GameState {
             C::CompletedDungeon => self.desig.completed(you) > 0,
             C::CityBlessing => self.desig.blessed(you),
             C::MaxSpeed => self.desig.speed(you) >= 4,
+            C::During(crate::card::TurnTime::AttackedThisStep) => {
+                self.step == crate::turn::Step::DeclareAttackers
+                    && self.combat.as_ref().is_some_and(|c| {
+                        c.attackers
+                            .iter()
+                            .any(|a| a.attacking == Target::Player(you))
+                    })
+            }
             C::During(t) => t.now(self.step, self.active_player, you),
             _ => false,
         }

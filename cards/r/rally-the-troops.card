@@ -1,0 +1,7 @@
+card "Rally the Troops" {
+  oracle_id 555927b3-bbc8-48b7-9a04-e8ebaabccf3e
+  cost {W}
+  type Instant
+  cast only during declare attackers if attacked
+  spell: untap all creature you control
+}
