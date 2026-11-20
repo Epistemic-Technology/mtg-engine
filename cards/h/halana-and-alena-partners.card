@@ -1,0 +1,8 @@
+card "Halana and Alena, Partners" {
+  oracle_id b347be2d-9aa1-42a9-b652-8fb032832f09
+  cost {2}{R}{G}
+  type Legendary Creature — Human Ranger
+  pt 2/3
+  keywords reach, first strike
+  triggered at beginning of your combat: put count where power +1/+1 counters on another target creature you control; that target 1 gains haste
+}

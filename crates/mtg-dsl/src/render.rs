@@ -130,6 +130,7 @@ fn pluralize(word: &str) -> String {
         "Wolf" => return "Wolves".to_string(),
         "Werewolf" => return "Werewolves".to_string(),
         "Sphinx" => return "Sphinxes".to_string(),
+        "Hero" => return "Heroes".to_string(),
         "Fox" => return "Foxes".to_string(),
         "Ox" => return "Oxen".to_string(),
         "Mouse" => return "Mice".to_string(),
@@ -3220,6 +3221,14 @@ fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
                 1,
             )
         }
+        // "its power" only once the source is named in the sentence;
+        // otherwise "where X is this creature's power", "... Captain
+        // America's toughness".
+        CountExpr::SourcePower | CountExpr::SourceToughness
+            if !each && !ctx.source_mentioned && !ctx.in_delayed =>
+        {
+            phrase.replacen("its", &format!("{}'s", ctx.source_name()), 1)
+        }
         _ => phrase,
     }
 }
@@ -3420,7 +3429,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         x_sign(*power, *toughness),
                         x_sign(*toughness, *power)
                     ),
-                    format!(", where X is {}", count_phrase(&c.expr, ctx.card, false)),
+                    {
+                        // Another creature getting +X/+X: the source is
+                        // named, "where X is Captain America's toughness".
+                        let mention = ctx.source_mentioned;
+                        if !matches!(to, Recipient::Source | Recipient::SourceNamed) {
+                            ctx.source_mentioned = false;
+                        }
+                        let phrase = count_phrase_in(&c.expr, ctx, false);
+                        ctx.source_mentioned = mention;
+                        format!(", where X is {phrase}")
+                    },
                 ),
                 None => (
                     format!(

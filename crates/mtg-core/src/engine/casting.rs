@@ -7213,9 +7213,13 @@ impl GameState {
                 }
             }
             Effect::AddCounters { kind, count, to } => {
+                // CR 608.2h: the number is determined once, before any
+                // counter is put ("put X +1/+1 counters on each creature
+                // you control, where X is this creature's power").
+                let n = self.eval_num(*count, ctx);
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.add_counters(id, *kind, self.eval_num(*count, ctx));
+                        self.add_counters(id, *kind, n);
                     }
                 }
             }
