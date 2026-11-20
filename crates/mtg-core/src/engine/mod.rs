@@ -796,6 +796,17 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::ChoosingConspire { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    return StepResult::Decision(Decision {
+                        player: obj.controller,
+                        kind: DecisionKind::Conspire { spell },
+                        options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
                 Flow::ChoosingSplice { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -1629,6 +1640,14 @@ impl GameState {
             (Flow::ChoosingBargain { spell }, Choice::Decline) => {
                 self.flow = self.after_bargain(spell);
             }
+            // CR 702.78a: the creatures are tapped as the costs are paid.
+            (Flow::ChoosingConspire { spell }, Choice::Accept) => {
+                self.objects[spell].cast.set_conspired(true);
+                self.flow = self.after_conspire(spell);
+            }
+            (Flow::ChoosingConspire { spell }, Choice::Decline) => {
+                self.flow = self.after_conspire(spell);
+            }
             // CR 702.47a: the card is revealed and stays in hand; the spell
             // has its effects and targets, its splice cost paid with the
             // spell's (CR 601.2f).
@@ -1943,6 +1962,43 @@ impl GameState {
     }
 
     fn after_bargain(&self, spell: ObjId) -> Flow {
+        // CR 702.78a: conspire, with two creatures to tap.
+        let o = &self.objects[spell];
+        if self.pool.get(o.def).conspire && self.conspirators(spell).len() >= 2 {
+            return Flow::ChoosingConspire { spell };
+        }
+        self.after_conspire(spell)
+    }
+
+    /// CR 702.78a: the untapped creatures `spell`'s caster controls that
+    /// share a color with it, the ones to tap first first (least power,
+    /// those that don't make mana last).
+    pub(super) fn conspirators(&self, spell: ObjId) -> Vec<ObjId> {
+        let Some(colors) = self.characteristics(spell).map(|c| c.colors) else {
+            return Vec::new();
+        };
+        let p = self.objects[spell].controller;
+        let mut out: Vec<(bool, i16, ObjId)> = self
+            .creatures_of(p)
+            .filter(|id| !self.objects[*id].tapped)
+            .filter_map(|id| {
+                let c = self.characteristics(id)?;
+                c.colors.intersects(colors).then(|| {
+                    let mana = self
+                        .pool
+                        .get(self.objects[id].def)
+                        .abilities
+                        .iter()
+                        .any(|a| matches!(a, crate::card::AbilityDef::TapForMana(_)));
+                    (mana, c.power, id)
+                })
+            })
+            .collect();
+        out.sort_by_key(|(mana, power, _)| (*mana, *power));
+        out.into_iter().map(|(_, _, id)| id).collect()
+    }
+
+    fn after_conspire(&self, spell: ObjId) -> Flow {
         // CR 702.47a: cards to splice onto an Arcane spell, revealed as
         // costs are announced.
         if !self.splice_candidates(spell).is_empty() {

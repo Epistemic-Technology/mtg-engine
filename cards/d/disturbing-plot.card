@@ -1,0 +1,7 @@
+card "Disturbing Plot" {
+  oracle_id 3efecb6c-7c21-4b3b-9612-e3916f91c680
+  cost {1}{B}
+  type Sorcery
+  spell: return target creature card from a graveyard to hand
+  conspire
+}

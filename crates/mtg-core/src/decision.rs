@@ -113,6 +113,13 @@ pub enum DecisionKind {
     /// A card in hand with splice onto Arcane to splice onto `spell` as it
     /// is cast (CR 702.47a): `Discard` options naming the cards, or `Done`.
     Splice { spell: ObjId },
+    /// Whether to conspire `spell` (CR 702.78a): `Accept` taps two
+    /// untapped creatures the caster controls that share a color with it
+    /// (the engine picks them), `Decline` doesn't.
+    Conspire { spell: ObjId },
+    /// The `index`th target of `spell`, a copy of a spell (CR 707.10c):
+    /// `Target` options, the copied target first (keep it).
+    CopyTarget { spell: ObjId, index: usize },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

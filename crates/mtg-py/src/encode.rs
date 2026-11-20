@@ -90,10 +90,12 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::TopOrBottom { .. } => 34,
         DecisionKind::ChooseAdditionalCost { .. } => 35,
         DecisionKind::Splice { .. } => 36,
+        DecisionKind::Conspire { .. } => 37,
+        DecisionKind::CopyTarget { .. } => 38,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 37] = [
+pub const DECISION_KIND_NAMES: [&str; 39] = [
     "mulligan",
     "bottom",
     "priority",
@@ -131,6 +133,8 @@ pub const DECISION_KIND_NAMES: [&str; 37] = [
     "top_or_bottom",
     "additional_cost",
     "splice",
+    "conspire",
+    "copy_target",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {

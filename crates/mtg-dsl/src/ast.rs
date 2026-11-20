@@ -1089,6 +1089,8 @@ pub enum Mechanic {
     /// CR 702.166: `bargain`: "You may sacrifice an artifact, enchantment,
     /// or token as you cast this spell."
     Bargain,
+    /// Conspire (CR 702.78).
+    Conspire,
     /// CR 702.131: `ascend`: the city's blessing once you control ten or
     /// more permanents (a permanent's static ability; an instant's or
     /// sorcery's first effect).

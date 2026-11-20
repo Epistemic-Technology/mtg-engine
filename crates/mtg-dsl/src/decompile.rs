@@ -1044,6 +1044,7 @@ impl Decompiler<'_> {
             CoreEffect::Manifest => Effect::Manifest,
             CoreEffect::CastExiled(_)
             | CoreEffect::SuspendTick
+            | CoreEffect::CopySpell
             | CoreEffect::Cascade
             | CoreEffect::Exploit
             | CoreEffect::EnterAttacking

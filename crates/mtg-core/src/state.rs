@@ -315,6 +315,12 @@ impl CastInfo {
     /// Cast paying the second of its two additional costs ("sacrifice a
     /// creature or pay {3}", CR 601.2b).
     const OTHER_COST: u16 = 0x400;
+    /// Conspired (CR 702.78a): two creatures are tapped with its costs,
+    /// and it is copied.
+    const CONSPIRED: u16 = 0x2000;
+    /// A copy of a spell (CR 707.10): not cast, and ceases to exist as it
+    /// leaves the stack (CR 704.5e).
+    const COPY: u16 = 0x4000;
     const KICKED: u16 = 0x40;
     const FLASHBACK: u16 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -388,6 +394,29 @@ impl CastInfo {
         } else {
             self.0 & !Self::BARGAINED
         };
+    }
+
+    pub const fn conspired(self) -> bool {
+        self.0 & Self::CONSPIRED != 0
+    }
+
+    pub fn set_conspired(&mut self, on: bool) {
+        self.0 = if on {
+            self.0 | Self::CONSPIRED
+        } else {
+            self.0 & !Self::CONSPIRED
+        };
+    }
+
+    pub const fn copy(self) -> bool {
+        self.0 & Self::COPY != 0
+    }
+
+    /// The cast info of a copy of a spell with this one (CR 707.10: the
+    /// choices made casting it, but not cast).
+    #[must_use]
+    pub const fn copied(self) -> CastInfo {
+        CastInfo((self.0 & !(Self::CAST_MASK | Self::CONSPIRED)) | Self::COPY)
     }
 
     pub const fn evoked(self) -> bool {
@@ -1002,6 +1031,10 @@ pub enum Flow {
     /// Choosing whether to bargain a spell, and what to sacrifice (CR
     /// 702.166a), after offspring and before X.
     ChoosingBargain {
+        spell: ObjId,
+    },
+    /// Choosing whether to conspire a spell (CR 702.78a), after bargain.
+    ChoosingConspire {
         spell: ObjId,
     },
     /// Choosing cards to splice onto an Arcane spell (CR 702.47a), one at

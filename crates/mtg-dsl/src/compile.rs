@@ -367,6 +367,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Bargain) => {
                     b = b.bargain();
                 }
+                Ability::Mechanic(Mechanic::Conspire) => {
+                    b = b.conspire();
+                }
                 Ability::AuraStays => {
                     b = b.aura_stays();
                 }
@@ -537,6 +540,7 @@ impl Compiler<'_> {
                             | Mechanic::Splice(_)
                             | Mechanic::SpliceCost(_)
                             | Mechanic::Bargain
+                            | Mechanic::Conspire
                             | Mechanic::Strive(_)
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
@@ -2664,6 +2668,7 @@ impl Compiler<'_> {
                 | Mechanic::Splice(_)
                 | Mechanic::SpliceCost(_)
                 | Mechanic::Bargain
+                | Mechanic::Conspire
                 | Mechanic::Strive(_)
                 | Mechanic::Ascend
                 | Mechanic::StartYourEngines
@@ -3110,6 +3115,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Offspring(_)
         | Mechanic::Strive(_)
         | Mechanic::Bargain
+        | Mechanic::Conspire
         | Mechanic::Ascend
         | Mechanic::StartYourEngines
         | Mechanic::BecomesDay

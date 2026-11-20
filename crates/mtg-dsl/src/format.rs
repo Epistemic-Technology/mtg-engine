@@ -3822,6 +3822,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Offspring(c) => format!("offspring {c}"),
                 crate::ast::Mechanic::Strive(c) => format!("strive {c}"),
                 crate::ast::Mechanic::Bargain => "bargain".to_string(),
+                crate::ast::Mechanic::Conspire => "conspire".to_string(),
                 crate::ast::Mechanic::Saddle(n) => format!("saddle {n}"),
                 crate::ast::Mechanic::Ascend => "ascend".to_string(),
                 crate::ast::Mechanic::StartYourEngines => "start your engines".to_string(),

@@ -2203,6 +2203,11 @@ impl GameState {
     /// CR 702.34a: a spell cast with flashback is exiled instead of going
     /// anywhere else as it leaves the stack.
     pub(super) fn leave_stack(&mut self, spell: ObjId) {
+        // CR 704.5e: a copy of a spell ceases to exist off the stack.
+        if self.objects[spell].cast.copy() {
+            self.remove_from_game(spell);
+            return;
+        }
         let zone = if self.objects[spell].cast.flashback() {
             Zone::Exile
         } else {
@@ -4102,6 +4107,17 @@ impl GameState {
                 self.sacrifice(s);
             }
         }
+        // CR 702.78a: conspire taps two creatures with the costs.
+        if self.objects[spell].cast.conspired() {
+            let two: Vec<ObjId> = self.conspirators(spell).into_iter().take(2).collect();
+            if two.len() == 2 {
+                for c in two {
+                    self.tap(c);
+                }
+            } else {
+                self.objects[spell].cast.set_conspired(false);
+            }
+        }
         let n = &mut self.spells_this_turn[caster.index().min(3)];
         *n = n.saturating_add(1);
         self.cast_this_turn.push((caster, def_ref));
@@ -4125,6 +4141,11 @@ impl GameState {
         // CR 702.85a: cascade triggers as the spell is cast.
         if def.keywords.contains(Keyword::Cascade) {
             let ability = self.pool.builtin(crate::card::Builtin::Cascade);
+            self.queue_builtin(caster, ability, spell, def_ref);
+        }
+        // CR 702.78a: "When you do, copy it".
+        if self.objects.get(spell).is_some_and(|o| o.cast.conspired()) {
+            let ability = self.pool.builtin(crate::card::Builtin::Conspire);
             self.queue_builtin(caster, ability, spell, def_ref);
         }
         self.emit_targeted(spell);
@@ -4160,6 +4181,10 @@ impl GameState {
         }
         let flashback = o.cast.flashback();
         self.emit(Event::Countered { spell: id, def });
+        if self.objects[id].cast.copy() {
+            self.remove_from_game(id);
+            return;
+        }
         match dest {
             CounteredTo::Exile if !flashback => {
                 self.move_object(id, Zone::Exile, true);
@@ -4408,6 +4433,80 @@ impl GameState {
             ctx.did = true;
             self.apply_effects(ctx, effects, None);
         }
+    }
+
+    /// CR 707.10: a copy of the source spell on the stack (as it last
+    /// existed there if it has left), controlled by the ability's
+    /// controller, with the spell's choices: mode, X, targets, division,
+    /// how it was cast (overloaded). Its controller may change each target
+    /// to another legal one (CR 707.10c).
+    #[cold]
+    #[inline(never)]
+    fn copy_spell(&mut self, ctx: &EffectCtx) {
+        let orig = match self.objects.get(ctx.source) {
+            Some(o) if o.zone == Zone::Stack && o.kind == ObjKind::Card => o.clone(),
+            Some(_) => return,
+            None => match self.lki.get(&ctx.source) {
+                Some(l) if l.object.zone == Zone::Stack && l.object.kind == ObjKind::Card => {
+                    l.object.clone()
+                }
+                _ => return,
+            },
+        };
+        let copy = self.new_object(orig.def, ctx.controller, Zone::Stack);
+        self.stack.push(copy);
+        {
+            let o = &mut self.objects[copy];
+            o.card = orig.card;
+            o.except = orig.except.clone();
+            o.controller = ctx.controller;
+            o.cast = orig.cast.copied();
+            o.alt = if orig.alt == AltCast::Overload {
+                AltCast::Overload
+            } else {
+                AltCast::None
+            };
+            o.targets = orig.targets.clone();
+        }
+        if let Some(x) = self.x_chosen(ctx.source) {
+            self.x_values.push((copy, x));
+        }
+        if let Some(d) = self.divisions.iter().find(|(s, _)| *s == ctx.source) {
+            let d = d.1.clone();
+            self.divisions.push((copy, d));
+        }
+        self.cbump();
+        // CR 707.10c: new targets, each still a legal one for its spec.
+        let specs: Vec<TargetSpec> =
+            crate::state::targets_in(&self.pool, &self.objects[copy]).to_vec();
+        for i in 0..self.objects[copy].targets.len() {
+            let Some(spec) = crate::card::spec_for(&specs, i) else {
+                break;
+            };
+            let current = self.objects[copy].targets[i];
+            let mut options = vec![Choice::Target(current)];
+            options.extend(
+                self.legal_targets(ctx.controller, spec, Some(copy))
+                    .into_iter()
+                    .filter(|t| *t != current && !self.objects[copy].targets.contains(t))
+                    .map(Choice::Target),
+            );
+            if options.len() < 2 {
+                continue;
+            }
+            let k = self.choose_mid(
+                ctx.controller,
+                DecisionKind::CopyTarget {
+                    spell: copy,
+                    index: i,
+                },
+                options.clone(),
+            );
+            if let Some(Choice::Target(t)) = options.get(k) {
+                self.objects[copy].targets[i] = *t;
+            }
+        }
+        self.emit_targeted(copy);
     }
 
     /// The parts of `spell`'s splice costs other than mana (CR 702.47a).
@@ -7271,6 +7370,7 @@ impl GameState {
                     self.effect_on(ctx, id, parts.clone(), d);
                 }
             }
+            Effect::CopySpell => self.copy_spell(ctx),
             Effect::Goad { what } => {
                 for t in self.recipients(ctx, *what) {
                     let Some(id) = on_battlefield(self, t) else {

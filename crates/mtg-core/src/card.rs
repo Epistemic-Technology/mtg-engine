@@ -327,6 +327,9 @@ pub enum Builtin {
     /// permanent to its owner's hand" (a dashed permanent's delayed
     /// trigger).
     DashReturn,
+    /// CR 702.78a: conspire's reflexive trigger, "When you do, copy it
+    /// and you may choose a new target for the copy."
+    Conspire,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -3258,6 +3261,10 @@ pub enum Effect {
         to: Recipient,
         parts: Vec<Modification>,
     },
+    /// Copy the source spell (CR 707.10), as it is on the stack or as it
+    /// last existed there; its controller may choose new targets for the
+    /// copy (CR 707.10c). Conspire's trigger (`Builtin::Conspire`).
+    CopySpell,
     /// Goad (CR 701.15): until the controller's next turn, each recipient
     /// creature attacks each combat if able and attacks a player other
     /// than the controller if able.
@@ -3503,6 +3510,7 @@ impl Effect {
                 | Effect::UnlessYou { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
+                | Effect::CopySpell
                 | Effect::Discard { .. }
                 | Effect::HandToLibrary { .. }
                 | Effect::CounterUnlessPays { .. }
@@ -4945,6 +4953,11 @@ pub struct CardDef {
     /// or creature subtypes, Aura, enchant creature).
     #[serde(skip)]
     pub bestow_face: Option<CardRef>,
+    /// Conspire (CR 702.78): as it is cast, its caster may tap two
+    /// untapped creatures they control that share a color with it; when
+    /// they do, the spell is copied.
+    #[serde(default)]
+    pub conspire: bool,
     /// "Enchanted creature ... is goaded" (CR 701.15): the permanent's
     /// static ability grants "attacks each combat if able"; this marks
     /// that what it is attached to attacks a player other than the
@@ -5609,7 +5622,7 @@ pub struct CardPool {
     flanking: AbilityId,
     evoke: AbilityId,
     exploit: AbilityId,
-    builtins: [AbilityId; 5],
+    builtins: [AbilityId; 6],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -5689,7 +5702,7 @@ impl CardPool {
             flanking: AbilityId(0),
             evoke: AbilityId(0),
             exploit: AbilityId(0),
-            builtins: [AbilityId(0); 5],
+            builtins: [AbilityId(0); 6],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -5806,6 +5819,14 @@ impl CardPool {
                 effects: vec![Effect::ReturnToHand {
                     what: Recipient::SameObject,
                 }],
+            }));
+        pool.builtins[Builtin::Conspire as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::Enters(TriggerObj::This),
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::CopySpell],
             }));
         pool.add_designations();
         // Named only for logs: a face-down permanent has no name.
@@ -6470,6 +6491,7 @@ impl Builder {
             overload: None,
             overload_face: None,
             goads: false,
+            conspire: false,
             splice: None,
             alt_cost: None,
             additional_or: None,
@@ -6645,6 +6667,13 @@ impl Builder {
     #[must_use]
     pub fn bestow(mut self, cost: ManaCost) -> Self {
         self.0.bestow = Some(Box::new(cost));
+        self
+    }
+
+    /// Conspire (CR 702.78).
+    #[must_use]
+    pub fn conspire(mut self) -> Self {
+        self.0.conspire = true;
         self
     }
 

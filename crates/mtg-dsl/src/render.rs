@@ -8461,6 +8461,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "Strive \u{2014} This spell costs {c} more to cast for each target beyond the first."
             ),
             crate::ast::Mechanic::Bargain => "Bargain".to_string(),
+            crate::ast::Mechanic::Conspire => "Conspire".to_string(),
             crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
             crate::ast::Mechanic::Ascend => "Ascend".to_string(),
             crate::ast::Mechanic::StartYourEngines => "Start your engines!".to_string(),

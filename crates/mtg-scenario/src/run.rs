@@ -134,6 +134,8 @@ struct Runner {
     pending_discard: Option<String>,
     /// Whether the spell being cast is scripted `kicked`.
     pending_kicked: bool,
+    /// `conspired` on the cast being made (CR 702.78a).
+    pending_conspired: bool,
     /// `other_cost` on the cast being made.
     pending_other_cost: bool,
     /// Cards still to splice onto the spell being cast (`splicing`).
@@ -250,6 +252,7 @@ impl Runner {
             pending_sacrifice: None,
             pending_discard: None,
             pending_kicked: false,
+            pending_conspired: false,
             pending_other_cost: false,
             pending_splice: Vec::new(),
             refused_splice: Vec::new(),
@@ -469,6 +472,17 @@ impl Runner {
             }
             DecisionKind::Bargain { .. } => self.choose_bargain(d),
             DecisionKind::Splice { .. } => self.choose_splice(d),
+            DecisionKind::Conspire { .. } => {
+                let want = if std::mem::take(&mut self.pending_conspired) {
+                    Choice::Accept
+                } else {
+                    Choice::Decline
+                };
+                Ok(index_of(d, &want).unwrap_or(0))
+            }
+            // A copy's new targets (CR 707.10c): `choose "Hill Giant"`;
+            // unscripted, it keeps the copied ones.
+            DecisionKind::CopyTarget { .. } => self.choose_named(d, pos),
         }
     }
 
@@ -709,7 +723,9 @@ impl Runner {
     fn choice_name(&self, c: &Choice) -> Option<String> {
         let st = self.state();
         match c {
-            Choice::Sacrifice(id) => Some(st.name_of(*id).to_string()),
+            Choice::Sacrifice(id) | Choice::Target(mtg_core::state::Target::Object(id)) => {
+                Some(st.name_of(*id).to_string())
+            }
             Choice::Discard { def, .. } => Some(st.pool.get(*def).name.clone()),
             Choice::Mode(i) => Some((i + 1).to_string()),
             _ => None,
@@ -1214,6 +1230,13 @@ impl Runner {
                             &a.action,
                             Action::Cast {
                                 other_cost: true,
+                                ..
+                            }
+                        );
+                        self.pending_conspired = matches!(
+                            &a.action,
+                            Action::Cast {
+                                conspired: true,
                                 ..
                             }
                         );

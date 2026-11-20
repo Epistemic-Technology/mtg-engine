@@ -310,6 +310,8 @@ impl GreedyAgent {
             | DecisionKind::Offspring { .. }
             | DecisionKind::Bargain { .. }
             | DecisionKind::Splice { .. }
+            | DecisionKind::Conspire { .. }
+            | DecisionKind::CopyTarget { .. }
             | DecisionKind::ChooseAdditionalCost { .. }
             | DecisionKind::PutFromHand => 0,
             // Keep the newest (the engine lists them oldest first).

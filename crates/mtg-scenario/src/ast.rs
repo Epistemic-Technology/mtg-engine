@@ -143,6 +143,9 @@ pub enum Action {
         /// `overloaded`: cast for the overload cost, without targets (CR
         /// 702.96).
         overloaded: bool,
+        /// `conspired`: conspire the spell (CR 702.78a), tapping two
+        /// creatures the engine picks.
+        conspired: bool,
         /// `splicing "X", "Y"`: cards in hand spliced onto the Arcane
         /// spell (CR 702.47a), in order; their targets follow the spell's.
         splice: Vec<String>,
