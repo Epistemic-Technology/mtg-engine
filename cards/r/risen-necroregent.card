@@ -1,0 +1,8 @@
+card "Risen Necroregent" {
+  oracle_id 527cc22f-b471-4a84-93a8-be56193a9723
+  cost {4}{B}
+  type Creature — Zombie Cat Knight
+  pt 5/4
+  start your engines
+  label "Max speed" triggered at beginning of your end step: create 1 "2/2 black Zombie creature"
+}

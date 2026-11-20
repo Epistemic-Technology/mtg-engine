@@ -1,0 +1,9 @@
+card "Endrider Spikespitter" {
+  oracle_id 817f3b8b-4399-4c28-9453-7f57df4a7360
+  cost {3}{R}
+  type Creature — Human Mercenary
+  pt 3/4
+  keywords reach
+  start your engines
+  label "Max speed" triggered at beginning of your upkeep: impulse 1 this turn
+}

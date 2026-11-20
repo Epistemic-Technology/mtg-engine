@@ -1911,10 +1911,14 @@ dungeons (CR 309):
   one, at most once each turn, when an opponent loses life during your
   turn, to at most 4), `becomes day as this enters` ("If it's neither day
   nor night, it becomes day as this creature enters.").
-- `label "Max speed" <static or activated ability>`: "Max speed — ..."
-  (CR 702.179e): the ability works only while its controller's speed is
-  4 (a static ability's condition, an activated ability's activation
-  condition, graveyard and mana abilities included).
+- `label "Max speed" <static, activated, or triggered ability>`, `label
+  "Max speed" spells you cast cost {1} less`: "Max speed — ..." (CR
+  702.179e): the ability works only while its controller's speed is 4 (a
+  static ability's or cost reduction's condition, an activated ability's
+  activation condition, graveyard and mana abilities included; a
+  triggered ability triggers only at max speed). A dies trigger under it
+  prints "Whenever a creature you control dies" without "this creature or
+  another".
 - Trigger: `whenever day becomes night or night becomes day` (CR 731.1a;
   not the first time it becomes day).
 - `impulse 2 forever`: "Exile the top two cards of your library. You may

@@ -1,0 +1,8 @@
+card "Perilous Snare" {
+  oracle_id cff7499a-44b0-4a2a-b96c-ed2cafb1a90d
+  cost {2}{W}
+  type Artifact
+  start your engines
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+  label "Max speed" activated {T}, sorcery: put 1 +1/+1 counter on target creature or Vehicle you control
+}

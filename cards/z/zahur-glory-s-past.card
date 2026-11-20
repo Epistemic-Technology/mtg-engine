@@ -1,0 +1,9 @@
+card "Zahur, Glory's Past" {
+  oracle_id fb82cd81-0e71-43ab-88f9-b1fa158f5138
+  cost {W}{B}
+  type Legendary Creature — Zombie Cat Warrior
+  pt 3/2
+  start your engines
+  activated sacrifice another creature, once: surveil 1
+  label "Max speed" triggered whenever nontoken creature you control dies: create 1 tapped "2/2 black Zombie creature"
+}

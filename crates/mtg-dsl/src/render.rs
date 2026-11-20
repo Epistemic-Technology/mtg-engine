@@ -9382,7 +9382,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             format!("{me} {}.", block_rule_phrase(r, card, false))
         }
         Ability::Labeled { label, ability } => {
-            format!("{label} — {}", ability_text(card, ability, lookup))
+            let text = ability_text(card, ability, lookup);
+            // A max speed dies trigger names no "this creature or
+            // another" (Embalmed Ascendant, Zahur): "Whenever a creature
+            // you control dies".
+            if label == "Max speed"
+                && let Some(rest) =
+                    text.strip_prefix(&format!("Whenever {} or another ", this_ref(card)))
+            {
+                return format!("{label} — Whenever {}", with_article(rest));
+            }
+            format!("{label} — {text}")
         }
         Ability::CostChange {
             filter,

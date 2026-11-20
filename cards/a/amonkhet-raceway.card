@@ -1,0 +1,7 @@
+card "Amonkhet Raceway" {
+  oracle_id fe174586-d36b-40f6-babd-1f98e76eec22
+  type Land
+  start your engines
+  mana {C}
+  label "Max speed" activated {T}: target creature gains haste
+}

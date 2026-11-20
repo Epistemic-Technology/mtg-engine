@@ -1,0 +1,10 @@
+card "Burnout Bashtronaut" {
+  oracle_id 1b122fbb-c2e1-42d1-bfc5-fcacacdfa0bc
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  keywords menace
+  start your engines
+  activated {2}: this gets +1/+0
+  label "Max speed" static this: has double strike
+}

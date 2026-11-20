@@ -1,0 +1,9 @@
+card "Nesting Bot" {
+  oracle_id 7ffb8c2e-1737-4df3-b310-384a5000bfa5
+  cost {W}
+  type Artifact Creature — Robot
+  pt 1/1
+  start your engines
+  triggered when this dies: create 1 "1/1 colorless Servo artifact creature"
+  label "Max speed" static this: +1/+0
+}

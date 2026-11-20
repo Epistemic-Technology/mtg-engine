@@ -1,0 +1,8 @@
+card "Racers' Scoreboard" {
+  oracle_id 54c2b3b3-e247-4146-8045-d49480b795f2
+  cost {4}
+  type Artifact
+  start your engines
+  triggered when this enters: draw 2 cards then discard 1 card
+  label "Max speed" spells you cast cost {1} less
+}

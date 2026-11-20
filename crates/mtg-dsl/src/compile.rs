@@ -3062,7 +3062,21 @@ impl Compiler<'_> {
                         sa.condition = Some(StaticCondition::MaxSpeed);
                     }
                     AbilityDef::Activated(aa) => aa.conditions.push(StaticCondition::MaxSpeed),
-                    _ => return self.err("max speed applies to a static or activated ability"),
+                    // A triggered ability exists only at max speed, so it
+                    // triggers only then; speed never falls, so checking
+                    // again on resolution changes nothing.
+                    AbilityDef::Triggered(ta) if ta.condition.is_none() => {
+                        let i = self.pool.intern_condition(StaticCondition::MaxSpeed);
+                        ta.condition = Some(mtg_core::card::Condition::Static(i));
+                    }
+                    AbilityDef::CostChange(cc) if cc.cond.is_none() => {
+                        cc.cond = Some(self.pool.intern_condition(StaticCondition::MaxSpeed));
+                    }
+                    _ => {
+                        return self.err(
+                            "max speed applies to a static, activated, triggered, or cost ability",
+                        );
+                    }
                 }
                 return Ok(a);
             }

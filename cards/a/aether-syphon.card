@@ -1,0 +1,8 @@
+card "Aether Syphon" {
+  oracle_id d8956775-fda8-475d-9e8a-b61196a958ea
+  cost {1}{U}{U}
+  type Artifact
+  start your engines
+  activated {2}, {T}: draw 1 card
+  label "Max speed" triggered whenever you draw a card: each opponent mills 2 cards
+}

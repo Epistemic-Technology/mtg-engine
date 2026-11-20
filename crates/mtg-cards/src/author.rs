@@ -64,7 +64,8 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 113] = [
+const TEMPLATED_TAGS: [&str; 114] = [
+    "Start your engines!",
     "Transform",
     "Role token",
     "Landcycling",
@@ -183,7 +184,9 @@ const TEMPLATED_TAGS: [&str; 113] = [
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
 /// "Landfall — <ability>". Scryfall tags them like keywords.
-const ABILITY_WORDS: [&str; 41] = [
+const ABILITY_WORDS: [&str; 42] = [
+    // CR 702.179e: a condition, not a bare label; the DSL compiles it.
+    "Max speed",
     "Landfall",
     "Threshold",
     "Metalcraft",
@@ -2256,6 +2259,11 @@ impl Builder<'_> {
             }
             let st = self.statements.pop().unwrap_or_default();
             self.statements.push(format!("label \"{label}\" {st}"));
+            return Ok(());
+        }
+        // CR 702.179a.
+        if line == "Start your engines!" {
+            self.statements.push("start your engines".to_string());
             return Ok(());
         }
         if let Some(st) = conditional_static(line) {
