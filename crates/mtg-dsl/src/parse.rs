@@ -5866,6 +5866,25 @@ impl P {
                     count,
                 })
             }
+            // `put +1/+1 counters equal <expr> on <what>`: "put a number
+            // of +1/+1 counters equal to ... on <what>", the amount before
+            // the recipient.
+            "put"
+                if matches!(self.peek(), Some(Tok::Pt { signed: true, .. } | Tok::Word(_)))
+                    && self.word_at(1).as_deref() == Some("counters")
+                    && self.word_at(2).as_deref() == Some("equal") =>
+            {
+                let kind = self.counter_kind()?;
+                self.expect_word("equal")?;
+                let expr = self.count_expr()?;
+                let count = self.push_count(crate::ast::Count {
+                    expr,
+                    style: crate::ast::CountStyle::EqualBefore,
+                })?;
+                self.expect_word("on")?;
+                let to = self.recipient()?;
+                Ok(Effect::AddCounters { kind, count, to })
+            }
             "put" if matches!(self.peek(), Some(Tok::Num(_))) && self.hand_to_library_ahead() => {
                 let count = self.num()?;
                 let bottom = self.hand_to_library_tail()?;

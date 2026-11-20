@@ -1012,6 +1012,12 @@ impl Fmt {
                     )
                 }
             },
+            Effect::AddCounters { kind, count, to } if equal_before(*count).is_some() => format!(
+                "put {} equal {} on {}",
+                counter(*kind, *count),
+                equal_before(*count).unwrap_or_default(),
+                self.recipient(*to, t)
+            ),
             Effect::AddCounters { kind, count, to } => format!(
                 "put {} {} on {}",
                 num(*count),

@@ -1,0 +1,7 @@
+card "Reverent Hunter" {
+  oracle_id 7b4502bc-9ece-4fd2-978d-bcfdb9358475
+  cost {2}{G}
+  type Creature — Human Archer
+  pt 1/1
+  triggered when this enters: put count equal devotion green +1/+1 counters on it
+}

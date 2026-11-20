@@ -3240,6 +3240,16 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
         };
         match count.style {
             // "deals damage equal to that creature's power to ...".
+            // "put a number of +1/+1 counters equal to that creature's
+            // power on this creature".
+            CountStyle::EqualBefore if matches!(e, Effect::AddCounters { .. }) => {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c.text.replacen("put X ", "put a number of ", 1).replacen(
+                    " counters on ",
+                    &format!(" counters equal to {phrase} on "),
+                    1,
+                );
+            }
             CountStyle::EqualBefore => {
                 let phrase = count_phrase_in(&count.expr, ctx, false);
                 c.text = c
@@ -3274,8 +3284,9 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             CountStyle::Equal => {
                 // "Create a number of 1/1 red Goblin creature tokens equal
-                // to ...".
-                c.text = if matches!(e, Effect::CreateToken { .. }) {
+                // to ...", "put a number of +1/+1 counters on it equal to
+                // ...".
+                c.text = if matches!(e, Effect::CreateToken { .. } | Effect::AddCounters { .. }) {
                     c.text.replacen("X ", "a number of ", 1)
                 } else {
                     c.text.replacen("X ", "", 1)

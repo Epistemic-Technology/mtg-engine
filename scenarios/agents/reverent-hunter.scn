@@ -1,0 +1,16 @@
+scenario "enters with counters equal to devotion to green, itself included" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Reverent Hunter"
+  turn 1 A: cast "Reverent Hunter"
+  run_to turn 1 postcombat_main
+  assert counters "Reverent Hunter" +1/+1 2
+  assert power "Reverent Hunter" 3
+}
+
+scenario "alone, only its own green symbol counts" {
+  battlefield A: 3 "Forest", "Hill Giant"
+  hand A: "Reverent Hunter"
+  turn 1 A: cast "Reverent Hunter"
+  run_to turn 1 postcombat_main
+  assert counters "Reverent Hunter" +1/+1 1
+}

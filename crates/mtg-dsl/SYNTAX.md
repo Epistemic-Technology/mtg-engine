@@ -1228,6 +1228,10 @@ power to", each creature dealing its own damage. `deal damage equal <expr>
 to <what>` puts the amount before the recipient ("deals damage equal to
 that creature's power to the creature's controller", where `deal count
 equal ... damage to <what>` prints "deals damage to <what> equal to ...").
+Counters likewise: `put count equal <expr> +1/+1 counters on <what>` prints
+"put a number of +1/+1 counters on <what> equal to ...", and `put +1/+1
+counters equal <expr> on <what>` puts the amount first: "put a number of
++1/+1 counters equal to its power on up to one target creature".
 
 Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `destroy <what> [without regeneration [joined]]` (`joined`: "destroy
