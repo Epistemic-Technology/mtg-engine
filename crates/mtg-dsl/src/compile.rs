@@ -1046,6 +1046,7 @@ impl Compiler<'_> {
             crew: c.crew,
             remove_counters: c.remove_counters,
             energy: c.energy,
+            blight: c.blight,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -1764,6 +1765,11 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfYouDo(effects));
             }
+            // What runs when the optional action didn't happen.
+            Effect::IfYouDont(inner) => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::Otherwise(effects));
+            }
             Effect::Otherwise(inner) => {
                 if !matches!(
                     out.last(),
@@ -1878,6 +1884,7 @@ impl Compiler<'_> {
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::ManifestDread => out.push(CoreEffect::ManifestDread),
+            Effect::Blight(n) => out.push(CoreEffect::Blight(*n)),
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
             Effect::Bolster(n) => out.push(CoreEffect::Bolster(*n)),
             Effect::Populate => out.push(CoreEffect::Populate),

@@ -477,6 +477,8 @@ pub struct Cost {
     pub order: Vec<CostItem>,
     /// `reveal hand`: "reveal your hand" (an alternative cost).
     pub reveal_hand: bool,
+    /// `blight 1`: "Blight 1" (CR 701.68a).
+    pub blight: u32,
 }
 
 /// A cost exiling cards from the graveyard: `n` (or X) cards matching
@@ -505,6 +507,8 @@ pub enum CostItem {
     Life,
     /// `reveal hand`: "reveal your hand".
     RevealHand,
+    /// `blight 1`.
+    Blight,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -2613,6 +2617,9 @@ pub enum Effect {
     },
     /// `if you do, ...`: only if the optional action before happened.
     IfYouDo(Vec<Sentence>),
+    /// `if you don't, ...`: only if it didn't ("You may pay {2}. If you
+    /// don't, blight 2.").
+    IfYouDont(Vec<Sentence>),
     /// `otherwise, ...`: only if the conditional sentence just before (`if
     /// <condition>, ...`, `if you win, ...`) didn't happen (CR 608.2c).
     Otherwise(Vec<Sentence>),
@@ -2701,6 +2708,8 @@ pub enum Effect {
     Manifest,
     /// `manifest dread` (CR 701.62).
     ManifestDread,
+    /// `blight 2` (CR 701.68).
+    Blight(u32),
     /// `adapt 2` (CR 701.46).
     Adapt(u32),
     /// `bolster 2` (CR 701.39).

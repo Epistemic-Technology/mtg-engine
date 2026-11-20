@@ -3536,6 +3536,14 @@ impl P {
             self.subject = saved;
             return Ok(Effect::IfYouDo(vec![s]));
         }
+        // "If you don't, ...": after an optional action that didn't happen.
+        if self.at_words(&["if", "you", "don't"]) && self.peek_at(3) == Some(&Tok::Comma) {
+            self.pos += 4;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfYouDont(vec![s]));
+        }
         // "Otherwise, ..." after a conditional sentence (CR 608.2c).
         if self.at_word("otherwise") && self.peek_at(1) == Some(&Tok::Comma) {
             self.pos += 2;
@@ -5428,6 +5436,7 @@ impl P {
                 Ok(Effect::LookAtTop(self.num()?))
             }
             "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
+            "blight" => Ok(Effect::Blight(self.count()?)),
             "manifest" => {
                 self.eat_words(&["the", "top", "card", "of", "your", "library"]);
                 Ok(Effect::Manifest)
@@ -8810,6 +8819,11 @@ impl P {
                             self.expect_word("life")?;
                             cost.order.push(CostItem::Life);
                         }
+                    }
+                    "blight" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                        self.pos += 1;
+                        cost.blight = self.count()?;
+                        cost.order.push(CostItem::Blight);
                     }
                     "reveal" if self.word_at(1).as_deref() == Some("hand") => {
                         self.pos += 2;

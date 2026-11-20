@@ -2172,6 +2172,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
         CostItem::Discard,
         CostItem::Life,
         CostItem::ExileCards,
+        CostItem::Blight,
     ];
     let order: &[CostItem] = if cost.order.is_empty() {
         &default_order
@@ -2275,6 +2276,11 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             }
             CostItem::RevealHand => parts.push("Reveal your hand".to_string()),
             CostItem::Energy => parts.push(format!("Pay {}", energy(cost.energy))),
+            CostItem::Blight => {
+                if cost.blight > 0 {
+                    parts.push(format!("Blight {}", cost.blight));
+                }
+            }
         }
     }
     parts.join(", ")
@@ -3244,6 +3250,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::ManifestDread => Clause::imperative("manifest dread".to_string()),
+        Effect::Blight(n) => Clause::imperative(format!("blight {n}")),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
@@ -5215,6 +5222,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 lowercase_first(&body)
             };
             Clause::imperative(format!("otherwise, {}", body.trim_end_matches('.')))
+        }
+        Effect::IfYouDont(inner) => {
+            let body = lowercase_first(&sentences(inner, ctx));
+            Clause::imperative(format!("if you don't, {}", body.trim_end_matches('.')))
         }
         Effect::IfYouDo(inner) => {
             // "Counter target spell unless its controller pays {2}. If they

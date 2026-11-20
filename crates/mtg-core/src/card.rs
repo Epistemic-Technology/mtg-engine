@@ -3572,6 +3572,10 @@ pub enum Effect {
     /// Manifest (CR 701.34): the top card of the controller's library
     /// onto the battlefield face down as a 2/2 creature.
     Manifest,
+    /// Blight N (CR 701.68a): the controller puts N -1/-1 counters on a
+    /// creature they control; without one, nothing happens and it isn't
+    /// done (701.68b).
+    Blight(u32),
     /// Manifest dread (CR 701.62a): look at the top two cards of the
     /// controller's library, manifest one, and put the rest into their
     /// graveyard.
@@ -3733,6 +3737,7 @@ impl Effect {
                 | Effect::PutFromHand { .. }
                 | Effect::Dig { .. }
                 | Effect::ManifestDread
+                | Effect::Blight(_)
                 | Effect::Connive { .. }
                 | Effect::CastExiled(_)
                 | Effect::SuspendTick
@@ -4568,6 +4573,10 @@ pub struct Cost {
     /// every card left in the payer's hand becomes known.
     #[serde(default)]
     pub reveal_hand: bool,
+    /// "Blight N" (CR 701.68a): put N -1/-1 counters on a creature the
+    /// payer controls (the engine picks the toughest).
+    #[serde(default)]
+    pub blight: u32,
 }
 
 /// A cost that exiles cards from its payer's graveyard: `n` of them (X,
@@ -4617,6 +4626,7 @@ impl Cost {
             count: 0,
             exile_cards: None,
             reveal_hand: false,
+            blight: 0,
         }
     }
 

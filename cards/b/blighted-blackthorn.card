@@ -1,0 +1,7 @@
+card "Blighted Blackthorn" {
+  oracle_id a294968e-9a7f-4d66-bde0-e775ae5f8197
+  cost {4}{B}
+  type Creature — Treefolk Warlock
+  pt 3/7
+  triggered whenever this enters or attacks: you may blight 2; if you do, you draw 1 card and lose 1 life
+}

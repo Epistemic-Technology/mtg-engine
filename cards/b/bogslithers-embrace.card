@@ -1,0 +1,8 @@
+card "Bogslither's Embrace" {
+  oracle_id 21695c70-f746-4d77-b6d3-e2713a5c929e
+  cost {1}{B}
+  type Sorcery
+  additional cost blight 1
+  additional cost or {3}
+  spell: exile target creature
+}

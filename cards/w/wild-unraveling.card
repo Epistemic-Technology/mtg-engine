@@ -1,0 +1,8 @@
+card "Wild Unraveling" {
+  oracle_id dd1a4219-437b-494f-ae0e-1d3181ffcd63
+  cost {U}{U}
+  type Instant
+  additional cost blight 2
+  additional cost or {1}
+  spell: counter target spell
+}

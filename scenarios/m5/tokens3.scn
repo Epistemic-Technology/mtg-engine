@@ -216,3 +216,89 @@ scenario "phasing: Teferi's Curse gives an opponent's creature phasing" {
   assert battlefield B contains "Hill Giant"
   assert attached "Teferi's Curse" to "Hill Giant"
 }
+
+# ---- blight ----
+
+scenario "blight: Bogslither's Embrace blights 1 as its additional cost" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Bogslither's Embrace"
+  turn 1 A: cast "Bogslither's Embrace" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert counters "Grizzly Bears" -1/-1 1
+}
+
+scenario "blight: with no creature, Bogslither's Embrace needs its other cost" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Bogslither's Embrace"
+  illegal turn 1 A: cast "Bogslither's Embrace" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "blight: Bogslither's Embrace may pay {3} instead" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Bogslither's Embrace"
+  turn 1 A: cast "Bogslither's Embrace" other_cost targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+}
+
+scenario "blight: Gristle Glutton's cost puts a -1/-1 counter on a creature" {
+  battlefield A: "Gristle Glutton"
+  hand A: "Forest"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gristle Glutton"
+  run_to turn 1 postcombat_main
+  assert counters "Gristle Glutton" -1/-1 1
+  assert hand A contains "Island"
+  assert graveyard A contains "Forest"
+}
+
+scenario "blight: Chaos Spewer's controller pays {2}" {
+  battlefield A: 5 "Swamp"
+  hand A: "Chaos Spewer"
+  turn 1 A: cast "Chaos Spewer"
+  run_to turn 1 postcombat_main
+  assert counters "Chaos Spewer" -1/-1 0
+}
+
+scenario "blight: Chaos Spewer's controller doesn't pay and blights 2" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Chaos Spewer"
+  turn 1 A: cast "Chaos Spewer"
+  turn 1 A: decline "Chaos Spewer"
+  turn 1 A: choose "Chaos Spewer"
+  run_to turn 1 postcombat_main
+  assert counters "Chaos Spewer" -1/-1 2
+  assert power "Chaos Spewer" 3
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "blight: Blighted Blackthorn blights a creature of your choice, draws, and loses 1 life" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Blighted Blackthorn"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blighted Blackthorn"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Island"
+  assert life A 19
+}
+
+scenario "blight: Spiral into Solitude's activation exiles the enchanted creature" {
+  battlefield B: "Hill Giant"
+  battlefield A: 2 "Plains", "Grizzly Bears", "Spiral into Solitude" on "Hill Giant"
+  turn 1 A: activate "Spiral into Solitude"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert counters "Grizzly Bears" -1/-1 1
+  assert graveyard A contains "Spiral into Solitude"
+}
+

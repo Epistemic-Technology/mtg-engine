@@ -605,6 +605,15 @@ or reach`.
 Energy (CR 107.14): `you get 2 energy` ("you get {E}{E}"), `pay 2
 energy` inside `may` and as a cost ("Pay {E}{E}").
 
+Blight (CR 701.68): `blight 2` is an effect ("blight 2": the controller
+puts two -1/-1 counters on a creature they control, chosen as it
+resolves; with none, nothing happens and `if you do` after `you may
+blight 2` fails, 701.68b) and a cost (`{T}, blight 1: ...` prints "{T},
+Blight 1: ..."; `additional cost blight 1` with `additional cost or {3}`
+prints "As an additional cost to cast this spell, blight 1 or pay {3}.").
+As a cost the engine puts the counters on the toughest creature its payer
+controls, and it can't be paid without a creature.
+
 Filters may have an alternative: `creature or Vehicle`, `land or
 nonblack creature`, `attacking or blocking creature`, `Bear, Spider, or
 Wolf you control`. A spell target may say what the spell targets:
@@ -1143,7 +1152,8 @@ targets this` ("that targets this
 creature"),
 `you may <clause>`, `pay {2}` / `pay 2 life` (after `you may`), `if you do,
 <clause>` (only if the optional action before it happened: "You may pay
-{2}. If you do, draw a card."), `when you do, <clause>` (a reflexive
+{2}. If you do, draw a card."), `if you don't, <clause>` (only if it
+didn't: "You may pay {2}. If you don't, blight 2."), `when you do, <clause>` (a reflexive
 triggered ability, CR 603.12: it triggers only if the optional action
 before it happened, and its targets are its own, chosen as it goes on the
 stack: `you may pay {2}{R}; when you do, this deals 3 damage to any

@@ -1,0 +1,7 @@
+card "Gristle Glutton" {
+  oracle_id b7163800-41fc-410a-9650-50ae90842170
+  cost {1}{R}
+  type Creature — Goblin Scout
+  pt 1/3
+  activated {T}, blight 1: discard 1 card; if you do, draw 1 card
+}

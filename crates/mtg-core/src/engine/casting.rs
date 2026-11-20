@@ -1444,6 +1444,13 @@ impl GameState {
         }
     }
 
+    /// The creature a blight cost puts its counters on (CR 701.68a): the
+    /// engine picks the toughest creature `p` controls.
+    fn blight_pick(&self, p: PlayerId) -> Option<ObjId> {
+        self.creatures_of(p)
+            .max_by_key(|id| self.characteristics(*id).map_or(0, |c| c.toughness))
+    }
+
     /// What turning the face-down permanent `id` face up costs: its morph
     /// or disguise cost, or a manifested creature card's mana cost (CR
     /// 701.34a); `None` if it isn't face down or can't be turned up.
@@ -1771,6 +1778,10 @@ impl GameState {
             && !g.x
             && self.exile_candidates(p, g.filter.as_ref(), spell).len() < g.n as usize
         {
+            return false;
+        }
+        // CR 701.68b.
+        if add.blight > 0 && self.creatures_of(p).next().is_none() {
             return false;
         }
         true
@@ -2459,6 +2470,10 @@ impl GameState {
                     continue;
                 }
                 if ab.cost.energy > self.player(p).energy {
+                    continue;
+                }
+                // CR 701.68b: blighting needs a creature to put counters on.
+                if ab.cost.blight > 0 && self.creatures_of(p).next().is_none() {
                     continue;
                 }
                 if ab.cost.life > 0
@@ -3677,6 +3692,11 @@ impl GameState {
         if cost.energy > 0 {
             let e = &mut self.player_mut(p).energy;
             *e = e.saturating_sub(cost.energy);
+        }
+        if cost.blight > 0
+            && let Some(c) = self.blight_pick(p)
+        {
+            self.add_counters(c, CounterKind::MinusOneMinusOne, cost.blight);
         }
         // CR 606.4: loyalty costs are counters put on or removed from the
         // planeswalker.
@@ -8128,6 +8148,22 @@ impl GameState {
                     self.objects[top].def = self.pool.face_down(false);
                     let new = self.put_onto_battlefield(top, p);
                     ctx.created = Some(new);
+                }
+            }
+            Effect::Blight(n) => {
+                // CR 701.68: a creature of the controller's choice.
+                let p = ctx.controller;
+                let options: Vec<Choice> = self
+                    .creatures_of(p)
+                    .map(|id| Choice::Target(Target::Object(id)))
+                    .collect();
+                if options.is_empty() {
+                    ctx.did = false;
+                } else {
+                    let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+                    if let Choice::Target(Target::Object(id)) = options[k] {
+                        self.add_counters(id, CounterKind::MinusOneMinusOne, *n);
+                    }
                 }
             }
             Effect::ManifestDread => {

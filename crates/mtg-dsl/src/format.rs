@@ -569,6 +569,7 @@ impl Fmt {
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
             Effect::ManifestDread => "manifest dread".to_string(),
+            Effect::Blight(n) => format!("blight {n}"),
             Effect::Adapt(n) => format!("adapt {n}"),
             Effect::Bolster(n) => format!("bolster {}", num(*n)),
             Effect::Support(to) => format!("support {}", to.len()),
@@ -1582,6 +1583,7 @@ impl Fmt {
                 self.line(inner, t)
             ),
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
+            Effect::IfYouDont(inner) => format!("if you don't, {}", self.line(inner, t)),
             Effect::Otherwise(inner) => format!("otherwise, {}", self.line(inner, t)),
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
@@ -3087,6 +3089,7 @@ fn cost_text(c: &Cost) -> String {
         CostItem::Discard,
         CostItem::Life,
         CostItem::ExileCards,
+        CostItem::Blight,
     ];
     let order: &[CostItem] = if c.order.is_empty() {
         &default_order
@@ -3173,6 +3176,11 @@ fn cost_text(c: &Cost) -> String {
             }
             CostItem::RevealHand => parts.push("reveal hand".to_string()),
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
+            CostItem::Blight => {
+                if c.blight > 0 {
+                    parts.push(format!("blight {}", c.blight));
+                }
+            }
         }
     }
     if c.restrict.is_empty() {
