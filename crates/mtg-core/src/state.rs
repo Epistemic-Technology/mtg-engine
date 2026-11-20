@@ -1314,6 +1314,8 @@ pub struct GameState {
     pub block_bans: Vec<(ObjId, ObjId)>,
     /// Permanents that can't be regenerated this turn (CR 701.15).
     pub no_regen: Vec<ObjId>,
+    /// Creatures that assign no combat damage this turn (CR 510.1a).
+    pub no_combat_damage: Vec<ObjId>,
     /// Players who had a land enter under their control this turn
     /// (landfall), one bit each.
     pub lands_entered_this_turn: u8,

@@ -829,6 +829,12 @@ impl Fmt {
             Effect::CantBeRegenerated { to } => {
                 format!("{} can't be regenerated", self.recipient(*to, t))
             }
+            Effect::AssignsNoCombatDamage { to } => {
+                format!(
+                    "{} assigns no combat damage this turn",
+                    self.recipient(*to, t)
+                )
+            }
             Effect::SkipNextUntap { to, steps } => format!(
                 "{} doesn't untap next untap step{}",
                 self.recipient(*to, t),
@@ -2704,9 +2710,17 @@ pub fn block_pair_verb(blocks: bool, blocked: bool) -> &'static str {
 }
 
 /// `whenever this blocks a creature with flying`.
-fn block_pair_text(obj: &TriggerObj, other: &Filter, blocks: bool, blocked: bool) -> String {
+fn block_pair_text(
+    obj: &TriggerObj,
+    other: &Filter,
+    blocks: bool,
+    blocked: bool,
+    any: bool,
+) -> String {
     let f = filter(other);
-    let a = if f.starts_with(['a', 'e', 'i', 'o', 'u']) {
+    let a = if any {
+        "one or more"
+    } else if f.starts_with(['a', 'e', 'i', 'o', 'u']) {
         "an"
     } else {
         "a"
@@ -2905,7 +2919,8 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             other,
             blocks,
             blocked,
-        } => block_pair_text(obj, other, *blocks, *blocked),
+            any,
+        } => block_pair_text(obj, other, *blocks, *blocked, *any),
         Trigger::AttacksOrBlocks(o) => format!("whenever {} attacks or blocks", trigger_obj(o)),
         Trigger::Leaves(o) => format!("whenever {} leaves the battlefield", trigger_obj(o)),
         Trigger::DealsCombatDamageToPlayer(o) => {

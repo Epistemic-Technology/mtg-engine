@@ -471,6 +471,7 @@ impl GameState {
             block_demands: Vec::new(),
             block_bans: Vec::new(),
             no_regen: Vec::new(),
+            no_combat_damage: Vec::new(),
             lands_entered_this_turn: 0,
             artifacts_entered_this_turn: 0,
             creatures_died_this_turn: 0,
@@ -2446,6 +2447,7 @@ impl GameState {
             self.block_demands.clear();
             self.block_bans.clear();
             self.no_regen.clear();
+            self.no_combat_damage.clear();
             self.artifacts_entered_this_turn = 0;
             self.creatures_died_this_turn = 0;
             self.died_this_turn.clear();

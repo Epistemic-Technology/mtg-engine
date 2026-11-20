@@ -3589,6 +3589,11 @@ pub enum Effect {
     CantBeRegenerated {
         to: Recipient,
     },
+    /// "This creature assigns no combat damage this turn" (CR 510.1a):
+    /// it assigns none in this turn's combat damage steps.
+    AssignsNoCombatDamage {
+        to: Recipient,
+    },
     /// "Target creature blocks this creature this turn if able" (CR
     /// 509.1c): a blocking requirement on `blocker` for one attacker.
     BlocksIfAble {
@@ -4163,6 +4168,10 @@ pub enum TriggerSpec {
         other: ObjFilter,
         blocks: bool,
         blocked: bool,
+        /// "blocks or becomes blocked by one or more Orcs": once for the
+        /// declaration, on the first matching pair, not once per pair.
+        #[serde(default)]
+        any: bool,
     },
     /// Ward (CR 702.21a): "Whenever this permanent becomes the target of a
     /// spell or ability an opponent controls"; the spell or ability is the

@@ -4354,6 +4354,12 @@ impl P {
                 self.expect_words(&["this", "turn"])?;
                 Ok(Effect::PlayerRule { who: subject, kind })
             }
+            // "This creature assigns no combat damage this turn" (CR
+            // 510.1a).
+            "assigns" if self.at_words(&["no", "combat", "damage", "this", "turn"]) => {
+                self.pos += 5;
+                Ok(Effect::AssignsNoCombatDamage { to: subject })
+            }
             "can't" => {
                 let keywords = if self.eat_word("block") {
                     vec![Keyword::CantBlock]
@@ -8025,8 +8031,9 @@ impl P {
     /// The rest of `blocks a creature`, `becomes blocked by a creature`:
     /// the other creature of the pair.
     fn block_pair(&mut self, obj: TriggerObj, blocks: bool, blocked: bool) -> R<Trigger> {
-        if !(self.eat_word("a") || self.eat_word("an")) {
-            return self.unexpected("`a` or `an`");
+        let any = self.eat_words(&["one", "or", "more"]);
+        if !(any || self.eat_word("a") || self.eat_word("an")) {
+            return self.unexpected("`a`, `an`, or `one or more`");
         }
         let other = Box::new(self.filter()?);
         Ok(Trigger::BlockPair {
@@ -8034,6 +8041,7 @@ impl P {
             other,
             blocks,
             blocked,
+            any,
         })
     }
 

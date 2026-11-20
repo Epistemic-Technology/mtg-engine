@@ -212,7 +212,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `whenever you attack`, `whenever you attack with 3 or more creatures`, `label "Battalion" triggered whenever this and at least 2 other creatures attack` | once as the controller declares attackers (CR 508.1m), if at least that many attack (battalion: this creature among them); "Whenever this creature and at least two other creatures attack" |
 | `whenever this attacks and isn't blocked` | as blockers are declared, for an attacking creature no creature blocks (CR 509.1h) |
 | `whenever this becomes blocked`, `whenever this blocks or becomes blocked` | |
-| `whenever this blocks a creature with flying`, `whenever this becomes blocked by a creature`, `whenever this blocks or becomes blocked by a nonblack creature` | once for each attacker it blocks (CR 509.3b) or each creature blocking it (CR 509.3d); the other creature, which must match the filter, is "that creature"; `a creature with Equipment` prints "an equipped creature", `a creature that was dealt damage this turn` "... that has been dealt damage this turn" |
+| `whenever this blocks a creature with flying`, `whenever this becomes blocked by a creature`, `whenever this blocks or becomes blocked by a nonblack creature` | once for each attacker it blocks (CR 509.3b) or each creature blocking it (CR 509.3d); the other creature, which must match the filter, is "that creature"; `a creature with Equipment` prints "an equipped creature", `a creature that was dealt damage this turn` "... that has been dealt damage this turn". `... by one or more blue or black creature` ("by one or more blue and/or black creatures", CR 509.3c, 509.3e) triggers once, on the first matching pair, and "it" is the blocking or blocked creature itself (`whenever equipped creature becomes blocked by one or more colorless creature: it gains deathtouch until end of turn`) |
 | `at end of combat` | as the end of combat step begins (CR 511.2); also a delayed trigger: `delayed that creature: destroy that creature at end of combat` |
 | `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell`, `whenever a player casts a spell` | |
 | `label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: ...` | "Magecraft — Whenever you cast or copy an instant or sorcery spell, ..." (a copy would trigger it too, CR 707.10; nothing copies spells yet) |
@@ -647,6 +647,11 @@ effect is created, among permanents and spells on the stack, CR
 target. A filter that isn't of creatures prints as sources:
 `from artifact` is "by artifact sources". A static prevention with no
 effects after it prints "Prevent all damage that would be dealt to ...";
+a static `prevent next 1` prevents 1 of every damage event (CR 615.1) and
+prints "If a source would deal damage to a Cleric creature you control,
+prevent 1 of that damage." (`replace damage to Cleric creature you
+control: prevent next 1`; `from artifact to you` prints "If an artifact
+would deal damage to you, ...");
 with them (Phantom Tiger), "If damage would be dealt to ..., prevent that
 damage.".
 
@@ -975,6 +980,9 @@ turn"), `<what> attacks if able` ("attacks this turn if able", CR 508.1d;
 creature blocks this creature this turn if able": a requirement on that
 blocker for that attacker only, CR 509.1c), `<what> can't block <what>`
 ("Target creature can't block this creature this turn", CR 509.1b),
+`<what> assigns no combat damage this turn` ("If you do, this creature
+assigns no combat damage this turn.", CR 510.1a: it assigns none in this
+turn's combat damage steps; write `this creature` to name it again),
 `<what> can't be regenerated` ("That creature can't be regenerated this
 turn": no regeneration shield replaces its destruction this turn, CR
 701.15), `<what> can attack as though it

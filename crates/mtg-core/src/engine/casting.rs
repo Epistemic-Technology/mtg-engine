@@ -6390,6 +6390,13 @@ impl GameState {
                     }
                 }
             }
+            Effect::AssignsNoCombatDamage { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.no_combat_damage.push(id);
+                    }
+                }
+            }
             Effect::CantBlockThis { blocker, attacker } => {
                 let attackers: SmallVec<[ObjId; 2]> = self
                     .recipients(ctx, *attacker)

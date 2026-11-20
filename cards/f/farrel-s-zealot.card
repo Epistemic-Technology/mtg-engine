@@ -1,0 +1,7 @@
+card "Farrel's Zealot" {
+  oracle_id 0d063c0e-66bc-4a9c-98aa-a381b9cea120
+  cost {1}{W}{W}
+  type Creature — Human
+  pt 2/2
+  triggered whenever this attacks and isn't blocked: you may deal 3 damage to target creature; if you do, this creature assigns no combat damage this turn
+}

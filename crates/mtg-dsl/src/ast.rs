@@ -1724,6 +1724,8 @@ pub enum Trigger {
         other: Box<Filter>,
         blocks: bool,
         blocked: bool,
+        /// `... by one or more Orc`: once, not once per pair.
+        any: bool,
     },
     /// `whenever this attacks or blocks`.
     AttacksOrBlocks(TriggerObj),
@@ -2864,6 +2866,11 @@ pub enum Effect {
     /// `that creature can't be regenerated`: "That creature can't be
     /// regenerated this turn."
     CantBeRegenerated {
+        to: Recipient,
+    },
+    /// `this assigns no combat damage this turn`: "This creature assigns
+    /// no combat damage this turn."
+    AssignsNoCombatDamage {
         to: Recipient,
     },
     /// `target creature blocks this if able`: "Target creature blocks this

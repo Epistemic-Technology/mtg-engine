@@ -2025,6 +2025,9 @@ impl Compiler<'_> {
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });
             }
+            Effect::AssignsNoCombatDamage { to } => {
+                out.push(CoreEffect::AssignsNoCombatDamage { to: r(*to) });
+            }
             Effect::BlocksIfAble { blocker, attacker } => out.push(CoreEffect::BlocksIfAble {
                 blocker: r(*blocker),
                 attacker: r(*attacker),
@@ -2158,11 +2161,13 @@ impl Compiler<'_> {
                 other,
                 blocks,
                 blocked,
+                any,
             } => TriggerSpec::BlockPair {
                 what: self.trigger_obj(obj),
                 other: self.filter(other),
                 blocks: *blocks,
                 blocked: *blocked,
+                any: *any,
             },
             Trigger::DealsCombatDamageToPlayer(o) | Trigger::DealsCombatDamageToDefending(o) => {
                 TriggerSpec::DealsCombatDamageToPlayer(self.trigger_obj(o))

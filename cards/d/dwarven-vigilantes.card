@@ -1,0 +1,7 @@
+card "Dwarven Vigilantes" {
+  oracle_id b49baf80-237c-41ee-8a22-2b6a68a313e7
+  cost {2}{R}
+  type Creature — Dwarf
+  pt 2/2
+  triggered whenever this attacks and isn't blocked: you may this bites target creature; if you do, this creature assigns no combat damage this turn
+}

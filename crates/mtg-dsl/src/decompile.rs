@@ -1198,6 +1198,9 @@ impl Decompiler<'_> {
             CoreEffect::CantBeRegenerated { to } => Effect::CantBeRegenerated {
                 to: Self::recipient(*to),
             },
+            CoreEffect::AssignsNoCombatDamage { to } => Effect::AssignsNoCombatDamage {
+                to: Self::recipient(*to),
+            },
             CoreEffect::SkipNextUntap { to } => Effect::SkipNextUntap {
                 to: Self::recipient(*to),
                 steps: false,
@@ -1324,11 +1327,13 @@ impl Decompiler<'_> {
                 other,
                 blocks,
                 blocked,
+                any,
             } => Trigger::BlockPair {
                 obj: self.trigger_obj(what),
                 other: Box::new(self.filter(other)),
                 blocks: *blocks,
                 blocked: *blocked,
+                any: *any,
             },
             TriggerSpec::DealsCombatDamageToPlayer(o) => {
                 Trigger::DealsCombatDamageToPlayer(self.trigger_obj(o))

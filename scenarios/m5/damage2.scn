@@ -171,3 +171,135 @@ scenario "Evolution Witness: adapting returns a permanent card" {
   run_to turn 1 postcombat_main
   assert hand A contains "Grizzly Bears"
 }
+
+# ---- attacks and isn't blocked: assigns no combat damage ----
+
+scenario "Ophidian: drawing a card means it assigns no combat damage" {
+  battlefield A: "Ophidian"
+  library A: "Forest", "Forest"
+  turn 1 A: attack "Ophidian"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life B 20
+}
+
+scenario "Ophidian: declining the draw, it deals its combat damage" {
+  battlefield A: "Ophidian"
+  library A: "Forest", "Forest"
+  turn 1 A: attack "Ophidian"
+  turn 1 declare_blockers A: decline "Ophidian"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert life B 19
+}
+
+scenario "Ophidian: only this turn; it deals damage again next turn" {
+  battlefield A: "Ophidian"
+  library A: "Forest", "Forest", "Forest"
+  turn 1 A: attack "Ophidian"
+  turn 3 A: attack "Ophidian"
+  turn 3 declare_blockers A: decline "Ophidian"
+  run_to turn 3 postcombat_main
+  assert life B 19
+}
+
+scenario "Dwarven Vigilantes: it deals damage equal to its power to a creature instead of the player" {
+  battlefield A: "Dwarven Vigilantes"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Dwarven Vigilantes"
+  turn 1 declare_blockers A: trigger "Dwarven Vigilantes" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Zealot il-Vec: 1 damage to a creature, its combat damage prevented" {
+  battlefield A: "Zealot il-Vec"
+  battlefield B: "Llanowar Elves"
+  turn 1 A: attack "Zealot il-Vec"
+  turn 1 declare_blockers A: trigger "Zealot il-Vec" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert life B 20
+}
+
+scenario "Goblin Vandal: paying {R} destroys an artifact and it assigns no combat damage" {
+  battlefield A: "Goblin Vandal", "Mountain"
+  battlefield B: "Ornithopter"
+  turn 1 A: attack "Goblin Vandal"
+  turn 1 declare_blockers A: trigger "Goblin Vandal" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert life B 20
+}
+
+# ---- blocks or becomes blocked by one or more ----
+
+scenario "Amphibious Kavu: two black blockers pump it once" {
+  battlefield A: "Amphibious Kavu"
+  battlefield B: "Walking Corpse", "Scathe Zombies"
+  turn 1 A: attack "Amphibious Kavu"
+  turn 1 B: block "Amphibious Kavu" with "Walking Corpse"
+  turn 1 B: block "Amphibious Kavu" with "Scathe Zombies"
+  run_to turn 1 combat_damage
+  assert power "Amphibious Kavu" 5
+  assert toughness "Amphibious Kavu" 5
+}
+
+scenario "Amphibious Kavu: a green blocker doesn't pump it" {
+  battlefield A: "Amphibious Kavu"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Amphibious Kavu"
+  turn 1 B: block "Amphibious Kavu" with "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Amphibious Kavu" 2
+}
+
+scenario "Hedron Blade: blocked by a colorless creature, the equipped creature gains deathtouch" {
+  battlefield A: "Grizzly Bears", "Hedron Blade" on "Grizzly Bears"
+  battlefield B: "Ornithopter", "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Ornithopter"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 combat_damage
+  assert has "Grizzly Bears" deathtouch
+  assert has not "Ornithopter" deathtouch
+}
+
+# ---- prevent 1 of that damage ----
+
+scenario "Daunting Defender: 1 of each damage to a Cleric you control is prevented" {
+  battlefield A: "Daunting Defender", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Daunting Defender"
+  turn 2 B: wait
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert damage "Daunting Defender" 1
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Sphere of Purity: an artifact deals 1 less damage to you, other sources don't" {
+  battlefield A: "Sphere of Purity"
+  battlefield B: "Rod of Ruin", 4 "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Rod of Ruin" targeting player A
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+# ---- that many ----
+
+scenario "Crosstown Courier: the damaged player mills that many cards" {
+  battlefield A: "Crosstown Courier"
+  library B: "Forest", "Forest", "Forest", "Forest"
+  turn 1 A: attack "Crosstown Courier"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert library B count 2
+}

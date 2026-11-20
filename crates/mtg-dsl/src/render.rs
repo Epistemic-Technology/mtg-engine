@@ -3654,6 +3654,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*to);
             Clause::with_subject(*to, s, "can't be regenerated this turn".to_string())
         }
+        Effect::AssignsNoCombatDamage { to } => {
+            let s = ctx.subj(*to);
+            Clause::with_subject(*to, s, "assigns no combat damage this turn".to_string())
+        }
         Effect::SkipNextUntap { to, steps } => {
             let s = match *to {
                 // "Tap up to two target creatures. Those creatures don't
@@ -6323,17 +6327,30 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             other,
             blocks,
             blocked,
+            any,
         } => {
-            let s = format!(
-                "whenever {} {} {}",
-                trigger_subject(obj, ctx),
-                crate::format::block_pair_verb(*blocks, *blocked),
+            let who = if *any {
+                // "by one or more blue and/or black creatures" (CR
+                // 509.3c).
+                let p = filter_phrase(other, ctx.card, true);
+                let p = if other.colors.as_ref().is_some_and(|c| c.len() == 2) {
+                    p.replacen(" or ", " and/or ", 1)
+                } else {
+                    p
+                };
+                format!("one or more {p}")
+            } else {
                 // "by a creature that has been dealt damage this turn"
                 // (Giant Shark).
                 filter_a(other, ctx.card).replace(
                     " that was dealt damage this turn",
-                    " that has been dealt damage this turn"
+                    " that has been dealt damage this turn",
                 )
+            };
+            let s = format!(
+                "whenever {} {} {who}",
+                trigger_subject(obj, ctx),
+                crate::format::block_pair_verb(*blocks, *blocked),
             );
             // With another creature named, Oracle names the source again
             // ("..., this creature deals 1 damage to that creature").
@@ -6740,10 +6757,14 @@ fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
                     format!("Prevent all {kind} that would be dealt{to}{turn}.")
                 }
                 (Some(f), DamageWording::WouldDeal) => {
+                    // "prevent all combat damage this creature would deal
+                    // this turn" (Zealot il-Vec), but a static's "Prevent
+                    // all damage that this creature would deal to ...".
                     let that = if matches!(
                         f,
                         Affects::Target(_) | Affects::ThatTarget(_) | Affects::Chosen(_)
-                    ) {
+                    ) || (this_turn && matches!(f, Affects::This))
+                    {
                         ""
                     } else {
                         "that "
@@ -6780,6 +6801,31 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             if this_turn || r.then.is_empty() =>
         {
             prevent_all_text(&r.event, ctx, this_turn)
+        }
+        // A static ability prevents that much of every damage event (CR
+        // 615.1): "If a source would deal damage to a Cleric creature you
+        // control, prevent 1 of that damage." (Daunting Defender), "If an
+        // artifact would deal damage to you, ..." (Sphere of Purity).
+        (
+            Replaces::Damage {
+                from,
+                to,
+                combat: None,
+                ..
+            },
+            Outcome::PreventNext(n),
+        ) if !this_turn && r.then.is_empty() => {
+            let n = digits(*n);
+            let by = match from {
+                Some(Affects::Objects(f)) => filter_a(f, ctx.card),
+                Some(f) => damage_source(f, ctx),
+                None => "a source".to_string(),
+            };
+            let to = match to {
+                Affects::Objects(f) => filter_a(f, ctx.card),
+                other => affects_to(other, ctx),
+            };
+            format!("If {by} would deal damage to {to}, prevent {n} of that damage.")
         }
         (
             Replaces::Damage {

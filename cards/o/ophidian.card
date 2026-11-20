@@ -1,0 +1,7 @@
+card "Ophidian" {
+  oracle_id 953bdefa-4639-4524-af5c-5055d1289f40
+  cost {2}{U}
+  type Creature — Snake
+  pt 1/3
+  triggered whenever this attacks and isn't blocked: you may draw 1 cards; if you do, this creature assigns no combat damage this turn
+}

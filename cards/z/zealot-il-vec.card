@@ -1,0 +1,8 @@
+card "Zealot il-Vec" {
+  oracle_id 4107d0e3-608b-4024-b433-40c5d8b63549
+  cost {2}{W}
+  type Creature — Human Rebel
+  pt 1/1
+  keywords shadow
+  triggered whenever this attacks and isn't blocked: you may deal 1 damage to target creature; if you do, prevent all combat damage this would deal this turn
+}
