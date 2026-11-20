@@ -1020,7 +1020,10 @@ damage to any target.\""), written as its own ability line (`activated
 {T}: deal 1 damage to any target`), where `this` is the object that has
 it; "this permanent" when the group names only a subtype (`static all
 Sliver: has ability { activated {2}: regenerate this }` prints "All
-Slivers have \"{2}: Regenerate this permanent.\""). A granted loyalty
+Slivers have \"{2}: Regenerate this permanent.\""); "this land", "this
+enchantment", "this artifact" when the group is only lands, enchantments,
+or artifacts (`static artifact you control: has ability { activated {2},
+sacrifice this: ... }`: "Sacrifice this artifact"). A granted loyalty
 ability brackets its cost (`static planeswalker you control: has ability
 { loyalty -4: ... }`: "Planeswalkers you control have \"[−4]: ...\"").
 A token a quoted ability creates prints its full description. A replacement or

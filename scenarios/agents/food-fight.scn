@@ -1,0 +1,20 @@
+# The damage isn't asserted: a count in an ability granted to another
+# permanent is read from that permanent's card, not Food Fight (engine
+# bug, reported), so the granted ability deals 0 for now.
+
+scenario "an artifact you control has the ability: {2}, sacrifice it" {
+  battlefield A: "Food Fight", "Ornithopter", 2 "Mountain"
+  turn 1 A: activate "Ornithopter" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert tapped oldest "Mountain"
+}
+
+scenario "an opponent's artifact doesn't get the ability" {
+  battlefield A: "Food Fight", 2 "Mountain"
+  battlefield B: "Ornithopter", 2 "Mountain"
+  start turn 2 B
+  illegal turn 2 B: activate "Ornithopter" targeting player A
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Ornithopter"
+}

@@ -1,0 +1,6 @@
+card "Food Fight" {
+  oracle_id 00571e7f-4e40-4a07-a529-34580e942338
+  cost {1}{R}
+  type Enchantment
+  static artifact you control: has ability { activated {2}, sacrifice this: deal count equal plus 1 permanent named this you control damage to any target }
+}

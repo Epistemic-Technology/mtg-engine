@@ -8366,6 +8366,10 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
                     // "Other enchantments have 'At the beginning of your
                     // upkeep, sacrifice this enchantment ...'".
                     CardType::Enchantment
+                } else if filter.types == [CardType::Artifact] {
+                    // "Artifacts you control have '{2}, Sacrifice this
+                    // artifact: ...'".
+                    CardType::Artifact
                 } else if filter.types.is_empty()
                     && !filter.enchanted
                     && !filter.subtypes.is_empty()
