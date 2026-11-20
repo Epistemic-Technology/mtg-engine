@@ -9481,6 +9481,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Conspire => "Conspire".to_string(),
             crate::ast::Mechanic::Casualty(n) => format!("Casualty {n}"),
             crate::ast::Mechanic::Storm => "Storm".to_string(),
+            crate::ast::Mechanic::Assist => "Assist".to_string(),
             crate::ast::Mechanic::Replicate(c) => format!("Replicate {c}"),
             crate::ast::Mechanic::Teamwork(n) => format!("Teamwork {n}"),
             crate::ast::Mechanic::Ripple(n) => format!("Ripple {n}"),

@@ -1228,6 +1228,10 @@ pub enum Mechanic {
     /// `storm` (CR 702.40): "When you cast this spell, copy it for each
     /// spell cast before it this turn."
     Storm,
+    /// `assist` (CR 702.132): "Another player can pay up to {N} of this
+    /// spell's cost." The game's only other player is an opponent, who
+    /// here never pays: the line has no effect.
+    Assist,
     /// `replicate {U}` (CR 702.56): an additional cost paid any number of
     /// times; copied once for each.
     Replicate(ManaCost),

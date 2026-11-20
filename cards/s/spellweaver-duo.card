@@ -1,0 +1,8 @@
+card "Spellweaver Duo" {
+  oracle_id 1fd4204f-f627-4919-9d48-79b172f4560e
+  cost {6}{U}
+  type Creature — Human Wizard
+  pt 4/4
+  assist
+  triggered when this enters: you may return target tapped creature to hand
+}

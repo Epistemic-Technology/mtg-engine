@@ -1,0 +1,9 @@
+card "Skystreamer" {
+  oracle_id aaf6d66b-67b1-43f1-a8bf-db83644f7d04
+  cost {4}{W}
+  type Creature — Griffin
+  pt 3/2
+  assist
+  keyword flying
+  triggered when this enters: target player gains 4 life
+}

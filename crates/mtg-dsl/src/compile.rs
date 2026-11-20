@@ -674,6 +674,7 @@ impl Compiler<'_> {
                             | Mechanic::Conspire
                             | Mechanic::Casualty(_)
                             | Mechanic::Storm
+                            | Mechanic::Assist
                             | Mechanic::Replicate(_)
                             | Mechanic::Teamwork(_)
                             | Mechanic::Ripple(_)
@@ -3114,6 +3115,7 @@ impl Compiler<'_> {
                 | Mechanic::Conspire
                 | Mechanic::Casualty(_)
                 | Mechanic::Storm
+                | Mechanic::Assist
                 | Mechanic::Replicate(_)
                 | Mechanic::Teamwork(_)
                 | Mechanic::Ripple(_)
@@ -3930,6 +3932,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Conspire
         | Mechanic::Casualty(_)
         | Mechanic::Storm
+        | Mechanic::Assist
         | Mechanic::Replicate(_)
         | Mechanic::Teamwork(_)
         | Mechanic::Ripple(_)

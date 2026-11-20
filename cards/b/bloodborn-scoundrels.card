@@ -1,0 +1,8 @@
+card "Bloodborn Scoundrels" {
+  oracle_id 37c1de8d-30d6-4b08-9368-279cf66d3e85
+  cost {5}{B}
+  type Creature — Vampire Rogue
+  pt 4/4
+  assist
+  triggered when this enters: target opponent loses 2 life and you gains 2 life
+}

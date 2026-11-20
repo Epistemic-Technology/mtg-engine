@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 109] = [
+const TEMPLATED_TAGS: [&str; 110] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -150,6 +150,7 @@ const TEMPLATED_TAGS: [&str; 109] = [
     "Conspire",
     "Casualty",
     "Storm",
+    "Assist",
     "Replicate",
     "Teamwork",
     "Warp",
@@ -2727,8 +2728,8 @@ impl Builder<'_> {
             self.statements.push("conspire".to_string());
             return Ok(());
         }
-        if line == "Storm" {
-            self.statements.push("storm".to_string());
+        if line == "Storm" || line == "Assist" {
+            self.statements.push(line.to_lowercase());
             return Ok(());
         }
         if line == "Jump-start" {
