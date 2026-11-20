@@ -253,3 +253,15 @@ scenario "Fiery Justice: divided damage, and the target opponent gains 5 life" {
   assert graveyard B contains "Hill Giant"
   assert life B 23
 }
+
+# "If this spell was kicked, instead any number of target creatures ...":
+# a kicked spell has only the instead's targets (CR 601.2c).
+scenario "Divine Resilience: kicked, it targets only the creatures it protects" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Plains"
+  hand A: "Divine Resilience"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divine Resilience" kicked targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Hill Giant" indestructible
+  assert has not "Grizzly Bears" indestructible
+}

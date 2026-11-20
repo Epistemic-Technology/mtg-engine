@@ -55,6 +55,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         returned: None,
         revealed: false,
         kicked_targets: None,
+        kicked_instead: None,
     };
     let mut cards = Vec::new();
     loop {
@@ -494,6 +495,9 @@ struct P {
     /// sentence declared more (CR 601.2c: those are chosen only if the
     /// spell is kicked).
     kicked_targets: Option<usize>,
+    /// Likewise for an "if kicked, instead ..." with its own targets: how
+    /// many targets came before it (`Card::kicked_drops`).
+    kicked_instead: Option<usize>,
 }
 
 impl P {
@@ -726,6 +730,7 @@ impl P {
             flash_if: None,
             flash_cleanup: false,
             unkicked_targets: None,
+            kicked_drops: None,
             cast_only: None,
             kicker: None,
             kicker_targets: None,
@@ -1005,6 +1010,10 @@ impl P {
                 let a = self.ability()?;
                 if matches!(a, Ability::Spell { .. }) {
                     card.unkicked_targets = self.kicked_targets.take();
+                    card.kicked_drops = self.kicked_instead.take();
+                    if card.kicked_drops.is_some() {
+                        card.unkicked_targets = card.kicked_drops;
+                    }
                 }
                 card.abilities.push(a);
                 Ok(())
@@ -1175,6 +1184,7 @@ impl P {
     fn ability(&mut self) -> R<Ability> {
         self.targets.clear();
         self.kicked_targets = None;
+        self.kicked_instead = None;
         self.votes.clear();
         self.subject = None;
         self.revealed = false;
@@ -1844,6 +1854,7 @@ impl P {
             "spell" => {
                 self.pos += 1;
                 self.kicked_targets = None;
+                self.kicked_instead = None;
                 self.in_spell = true;
                 let mut effects = self.effects_body()?;
                 // `spell: choose one { ... }` is a modal spell: its modes
@@ -4280,6 +4291,16 @@ impl P {
                 && !matches!(e, Effect::Instead { .. })
             {
                 self.kicked_targets = Some(before);
+            }
+            // "If this spell was kicked, instead any number of target
+            // creatures you control gain indestructible": the kicked spell
+            // has these targets in place of the others.
+            if self.targets.len() > before
+                && before > 0
+                && self.kicked_instead.is_none()
+                && matches!(e, Effect::Instead { .. })
+            {
+                self.kicked_instead = Some(before);
             }
             return Ok(e);
         }
@@ -7596,6 +7617,7 @@ impl P {
             returned: self.returned,
             revealed: self.revealed,
             kicked_targets: None,
+            kicked_instead: None,
         };
         if !probe.at_recipient() {
             return false;
@@ -8088,6 +8110,7 @@ impl P {
                                 | "defending"
                                 | "dealt"
                                 | "blocked"
+                                | "token"
                         )
                     ) || self.word_at(ws.len()).as_deref() == Some("or")
                         && self.word_at(ws.len() + 1).as_deref() == Some("planeswalker")
@@ -8218,6 +8241,7 @@ impl P {
                         returned: None,
                         revealed: false,
                         kicked_targets: None,
+                        kicked_instead: None,
                     };
                     probe.keyword().is_some()
                 };

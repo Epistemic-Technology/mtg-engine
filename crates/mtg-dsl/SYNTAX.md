@@ -1776,6 +1776,12 @@ resolves; only the sentence just before is replaced. Three wordings:
   +4/+4 until end of turn instead if you control three or more
   artifacts."
 
+A kicked "instead" that declares its own targets replaces the targets
+before it (CR 601.2c): `target creature you control gains
+indestructible; if kicked, instead any number of target creature you
+control gains indestructible` (Divine Resilience) has one target unkicked
+and only the group kicked.
+
 The condition is `kicked`, any static condition (`if you control 3
 creature, ...`, `... instead if hand 0 or less`), or the target as it
 resolves: `if target 1 is Human, ...` ("If it's a Human, ..."), `if that

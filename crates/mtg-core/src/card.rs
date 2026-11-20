@@ -6029,6 +6029,13 @@ pub struct CardDef {
     /// after are declared by "If this spell was kicked, ..." and chosen
     /// only if it was (CR 601.2c, 702.33).
     pub unkicked_targets: Option<u8>,
+    /// How many of a spell's first targets a kicked spell doesn't have:
+    /// "If this spell was kicked, instead any number of target creatures
+    /// you control gain indestructible" names its own targets, which
+    /// replace the others (CR 601.2c); the kicked spell's targets are
+    /// those after, numbered from 0.
+    #[serde(default)]
+    pub kicked_drops: Option<u8>,
     /// The pool condition an `AsCast` condition of the spell judges as it
     /// is cast.
     pub cast_snapshot: Option<u16>,
@@ -6589,6 +6596,15 @@ impl CardDef {
 
     /// The targets the spell needs to be cast at all: without those only
     /// a kicked spell has (CR 601.2c).
+    /// The targets a kicked spell chooses (CR 601.2c): all of them, but
+    /// for those an "instead" replaces (`kicked_drops`).
+    pub fn kicked_cast_targets(&self) -> &[TargetSpec] {
+        match self.kicked_drops {
+            Some(n) => &self.cast_targets[usize::from(n).min(self.cast_targets.len())..],
+            None => &self.cast_targets,
+        }
+    }
+
     pub fn unkicked_cast_targets(&self) -> &[TargetSpec] {
         match self.unkicked_targets {
             Some(n) => &self.cast_targets[..usize::from(n).min(self.cast_targets.len())],
@@ -7979,6 +7995,7 @@ impl Builder {
             flash_if: None,
             flash_cleanup: false,
             unkicked_targets: None,
+            kicked_drops: None,
             cast_snapshot: None,
             cast_only: None,
             offspring: None,
@@ -8167,6 +8184,13 @@ impl Builder {
     #[must_use]
     pub fn cast_snapshot(mut self, condition: u16) -> Self {
         self.0.cast_snapshot = Some(condition);
+        self
+    }
+
+    /// A kicked spell doesn't have its first `n` targets (CR 601.2c).
+    #[must_use]
+    pub fn kicked_drops(mut self, n: u8) -> Self {
+        self.0.kicked_drops = Some(n);
         self
     }
 

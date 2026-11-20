@@ -94,7 +94,7 @@ pub fn add_card(
             lookup: by_name,
             groups: Vec::new(),
             many: None,
-            tmap: None,
+            tmap: TargetMap::default(),
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
             scavenge: None,
@@ -121,7 +121,7 @@ pub fn add_card(
                 lookup: by_name,
                 groups: Vec::new(),
                 many: None,
-                tmap: None,
+                tmap: TargetMap::default(),
                 implied: Vec::new(),
                 implied_used: std::rc::Rc::default(),
                 scavenge: None,
@@ -148,7 +148,7 @@ pub fn add_card(
         lookup: by_name,
         groups: Vec::new(),
         many: None,
-        tmap: None,
+        tmap: TargetMap::default(),
         implied: Vec::new(),
         implied_used: std::rc::Rc::default(),
         scavenge: None,
@@ -226,7 +226,7 @@ fn add_stages(
             lookup: by_name,
             groups: Vec::new(),
             many: None,
-            tmap: None,
+            tmap: TargetMap::default(),
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
             scavenge: None,
@@ -321,11 +321,8 @@ struct Compiler<'a> {
     /// The index of the variable target group (CR 601.2c) of the ability
     /// being compiled, whose targets run to the end of the list.
     many: Option<usize>,
-    /// The variable group's index and the number of targets, when it isn't
-    /// the last target: the engine takes a variable group's targets to the
-    /// end of the list, so it is compiled last and the targets after it
-    /// move up one (`target_index`).
-    tmap: Option<(usize, usize)>,
+    /// How the targets as written map to the engine's (`target_index`).
+    tmap: TargetMap,
     /// Per group, the choice its filter implies ("of the color of your
     /// choice"), made as the effect using it resolves.
     implied: Vec<Option<CoreChoiceKind>>,
@@ -803,6 +800,9 @@ impl Compiler<'_> {
         }
         if let Some(n) = card.unkicked_targets {
             b = b.unkicked_targets(u8::try_from(n).unwrap_or(u8::MAX));
+        }
+        if let Some(n) = card.kicked_drops {
+            b = b.kicked_drops(u8::try_from(n).unwrap_or(u8::MAX));
         }
         if let Some(c) = &card.cast_only {
             let c = self.static_cond(c);
@@ -1615,12 +1615,15 @@ impl Compiler<'_> {
         // "Tap one or two target untapped creatures you control. They each
         // deal damage ... to target creature an opponent controls.": the
         // group goes last (CR 601.2c names no order among target words).
-        self.tmap = self
-            .many
-            .filter(|m| m + 1 < ts.len())
-            .map(|m| (m, ts.len()));
+        self.tmap = TargetMap {
+            group: self
+                .many
+                .filter(|m| m + 1 < ts.len())
+                .map(|m| (m, ts.len())),
+            shift: 0,
+        };
         let mut specs: Vec<TargetSpec> = ts.iter().map(|t| self.target(t)).collect();
-        if let Some((m, _)) = self.tmap {
+        if let Some((m, _)) = self.tmap.group {
             let g = specs.remove(m);
             specs.push(g);
         }
@@ -1677,7 +1680,7 @@ impl Compiler<'_> {
     fn recipient(
         groups: &[u16],
         many: Option<usize>,
-        tmap: Option<(usize, usize)>,
+        tmap: TargetMap,
         r: Recipient,
     ) -> CoreRecipient {
         let ti = |i: usize| target_index(tmap, i);
@@ -1754,7 +1757,24 @@ impl Compiler<'_> {
                     return self.err("an `instead` sentence needs a sentence before it");
                 };
                 let base = out.split_off(start);
-                let mut alt = self.sentences(&same_damage_recipients(effects, before))?;
+                // A kicked spell's own targets replace the others (CR
+                // 601.2c): numbered from 0 among the kicked spell's.
+                let drops = matches!(
+                    s.effects.as_slice(),
+                    [Effect::Instead {
+                        cond: crate::ast::InsteadCond::Kicked,
+                        ..
+                    }]
+                )
+                .then_some(self.card.kicked_drops)
+                .flatten();
+                let outer = self.tmap.shift;
+                if let Some(n) = drops {
+                    self.tmap.shift = n;
+                }
+                let alt = self.sentences(&same_damage_recipients(effects, before));
+                self.tmap.shift = outer;
+                let mut alt = alt?;
                 // "... becomes an artifact creature with base power and
                 // toughness 4/3. If evidence was collected, it has base
                 // power and toughness 1/1 until end of turn instead.": the
@@ -3300,7 +3320,7 @@ impl Compiler<'_> {
     #[allow(clippy::too_many_lines)] // one arm per ability kind
     fn ability(&mut self, a: &Ability) -> Result<AbilityDef, CompileError> {
         self.many = None;
-        self.tmap = None;
+        self.tmap = TargetMap::default();
         Ok(match a {
             Ability::Keyword(_) => return self.err("a keyword is not an ability definition"),
             Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
@@ -4950,12 +4970,25 @@ fn historic(f: &Filter) -> Option<Filter> {
     Some(artifact)
 }
 
-/// The engine's index of the ability's `i`th target, with a variable
-/// group that isn't last moved to the end (`Compiler::tmap`).
-fn target_index(tmap: Option<(usize, usize)>, i: usize) -> usize {
-    match tmap {
+/// How the ability's targets as written map to the engine's.
+#[derive(Copy, Clone, Default)]
+struct TargetMap {
+    /// The variable group's index and the number of targets, when it
+    /// isn't the last target: the engine takes a variable group's targets
+    /// to the end of the list, so it is compiled last and the targets
+    /// after it move up one.
+    group: Option<(usize, usize)>,
+    /// Inside a kicked spell's "instead" with its own targets: how many
+    /// targets the kicked spell doesn't have (`CardDef::kicked_drops`).
+    shift: usize,
+}
+
+/// The engine's index of the ability's `i`th target (`TargetMap`).
+fn target_index(tmap: TargetMap, i: usize) -> usize {
+    let i = match tmap.group {
         Some((m, n)) if i == m => n - 1,
         Some((m, _)) if i > m => i - 1,
         _ => i,
-    }
+    };
+    i.saturating_sub(tmap.shift)
 }

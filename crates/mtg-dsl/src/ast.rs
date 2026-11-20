@@ -137,6 +137,10 @@ pub struct Card {
     /// those an "if kicked" sentence declares (Orim's Thunder's "target
     /// creature" is chosen only if the spell is kicked, CR 601.2c).
     pub unkicked_targets: Option<usize>,
+    /// Derived likewise: how many targets come before those an "if kicked,
+    /// instead ..." sentence declares, which a kicked spell has in their
+    /// place (Divine Resilience, CR 601.2c).
+    pub kicked_drops: Option<usize>,
     /// `cast only during combat`, `cast only if you control creature`:
     /// "Cast this spell only during combat." (CR 601.3).
     pub cast_only: Option<StaticCond>,
@@ -194,6 +198,7 @@ impl Card {
             flash_if: None,
             flash_cleanup: false,
             unkicked_targets: None,
+            kicked_drops: None,
             cast_only: None,
             kicker: None,
             kicker_targets: None,

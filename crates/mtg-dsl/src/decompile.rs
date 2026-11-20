@@ -103,6 +103,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
         flash_cleanup: def.flash_cleanup,
         unkicked_targets: def.unkicked_targets.map(usize::from),
+        kicked_drops: def.kicked_drops.map(usize::from),
         cast_only: def.cast_only.map(|c| d.static_cond(pool.condition(c))),
         kicker: def.kicker.as_deref().cloned(),
         kicker_targets: def.kicker_targets,

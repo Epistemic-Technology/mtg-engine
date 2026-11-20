@@ -2274,7 +2274,12 @@ impl GameState {
             let p = self.objects[spell].controller;
             def.spell_ability()
                 .is_none_or(|(t, _)| self.targets_available(p, t, Some(spell)))
-        });
+        }) && (def.kicked_drops.is_none()
+            || self.targets_available(
+                self.objects[spell].controller,
+                def.kicked_cast_targets(),
+                Some(spell),
+            ));
         if kicked_targets && self.kicker_payable(spell) {
             Flow::ChoosingKicker { spell }
         } else if self.multikicker_max(spell) > 0 {

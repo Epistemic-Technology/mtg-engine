@@ -1119,6 +1119,7 @@ impl Fmt {
                         | Recipient::EachCreatureYouControl
                         | Recipient::EachPermanentYouControl
                         | Recipient::Group(_)
+                        | Recipient::Those(_)
                 ) {
                     "gain"
                 } else {
