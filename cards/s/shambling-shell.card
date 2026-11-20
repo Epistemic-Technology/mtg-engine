@@ -1,0 +1,8 @@
+card "Shambling Shell" {
+  oracle_id 9c50f6b1-8850-4b08-a994-3ccc17f25b83
+  cost {1}{B}{G}
+  type Creature — Plant Zombie
+  pt 3/1
+  activated sacrifice this: put 1 +1/+1 counters on target creature
+  dredge 3
+}

@@ -5610,6 +5610,11 @@ pub struct CardDef {
     /// cast before it this turn."
     #[serde(default)]
     pub storm: bool,
+    /// Dredge N (CR 702.52): "If you would draw a card, you may mill N
+    /// cards instead. If you do, return this card from your graveyard to
+    /// your hand." 0: none.
+    #[serde(default)]
+    pub dredge: u8,
     /// Replicate (CR 702.56): an additional cost paid any number of times;
     /// as the spell is cast, it is copied once for each time.
     #[serde(default)]
@@ -7415,6 +7420,7 @@ impl Builder {
             conspire: false,
             casualty: 0,
             storm: false,
+            dredge: 0,
             replicate: None,
             teamwork: 0,
             ripple: 0,
@@ -7640,6 +7646,13 @@ impl Builder {
     #[must_use]
     pub fn conspire(mut self) -> Self {
         self.0.conspire = true;
+        self
+    }
+
+    /// Dredge N (CR 702.52).
+    #[must_use]
+    pub fn dredge(mut self, n: u8) -> Self {
+        self.0.dredge = n;
         self
     }
 

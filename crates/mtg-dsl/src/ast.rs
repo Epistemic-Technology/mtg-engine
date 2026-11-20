@@ -1225,6 +1225,10 @@ pub enum Mechanic {
     /// sacrifice a creature with power N or greater. When you do, copy
     /// this spell."
     Casualty(u32),
+    /// `dredge 2` (CR 702.52): "If you would draw a card, you may mill N
+    /// cards instead. If you do, return this card from your graveyard to
+    /// your hand."
+    Dredge(u32),
     /// `storm` (CR 702.40): "When you cast this spell, copy it for each
     /// spell cast before it this turn."
     Storm,

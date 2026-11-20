@@ -1,0 +1,62 @@
+# Dredge N (CR 702.52): "If you would draw a card, you may mill N cards
+# instead. If you do, return this card from your graveyard to your hand."
+# Not with fewer than N cards in the library (CR 702.52b). `choose "X"`
+# dredges X as the draw happens (a draw-step draw is answered in the
+# upkeep, the step whose passing leads to it); unscripted, the card is
+# drawn.
+
+scenario "dredge: mill instead of drawing, the card returns to hand" {
+  graveyard A: "Greater Mossdog"
+  library A: "Forest", "Island", "Swamp", "Plains"
+  start turn 3 A
+  turn 3 upkeep A: choose "Greater Mossdog"
+  run_to turn 3 precombat_main
+  assert hand A contains "Greater Mossdog"
+  assert hand A count 1
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Swamp"
+  assert graveyard A count 3
+}
+
+scenario "dredge: declined, the card is drawn" {
+  graveyard A: "Greater Mossdog"
+  library A: "Forest", "Island", "Swamp", "Plains"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert hand A contains "Forest"
+  assert graveyard A contains "Greater Mossdog"
+}
+
+scenario "dredge: not with fewer cards in the library than N" {
+  graveyard A: "Shambling Shell", "Shenanigans"
+  library A: "Forest", "Island"
+  start turn 3 A
+  illegal turn 3 upkeep A: choose "Shambling Shell"
+  run_to turn 3 precombat_main
+  assert hand A contains "Forest"
+  assert graveyard A contains "Shambling Shell"
+}
+
+scenario "dredge: a smaller dredge still can" {
+  graveyard A: "Shambling Shell", "Shenanigans"
+  library A: "Forest", "Island"
+  start turn 3 A
+  turn 3 upkeep A: choose "Shenanigans"
+  run_to turn 3 precombat_main
+  assert hand A contains "Shenanigans"
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Shambling Shell"
+}
+
+scenario "dredge: a draw from an effect may be replaced too" {
+  battlefield A: 2 "Island"
+  hand A: "Train of Thought"
+  graveyard A: "Stinkweed Imp"
+  library A: "Forest", "Island", "Swamp", "Plains", "Mountain", "Forest"
+  turn 1 A: cast "Train of Thought"
+  turn 1 A: choose "Stinkweed Imp"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Stinkweed Imp"
+  assert graveyard A count 6
+}

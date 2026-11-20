@@ -4366,6 +4366,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Bargain => "bargain".to_string(),
                 crate::ast::Mechanic::Conspire => "conspire".to_string(),
                 crate::ast::Mechanic::Casualty(n) => format!("casualty {n}"),
+                crate::ast::Mechanic::Dredge(n) => format!("dredge {n}"),
                 crate::ast::Mechanic::Storm => "storm".to_string(),
                 crate::ast::Mechanic::Assist => "assist".to_string(),
                 crate::ast::Mechanic::Enlist => "enlist".to_string(),

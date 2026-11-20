@@ -1,0 +1,8 @@
+card "Moldervine Cloak" {
+  oracle_id dd106f2d-5ede-43f0-928a-1ab392b90854
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3
+  dredge 2
+}

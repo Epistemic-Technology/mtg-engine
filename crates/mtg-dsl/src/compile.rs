@@ -396,6 +396,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Replicate(c)) => {
                     b = b.replicate(c.clone());
                 }
+                Ability::Mechanic(Mechanic::Dredge(n)) => {
+                    let Ok(n) = u8::try_from(*n) else {
+                        return self.err("dredge is at most 255");
+                    };
+                    b = b.dredge(n);
+                }
                 Ability::Mechanic(Mechanic::Casualty(n)) => {
                     let Ok(n) = u8::try_from(*n) else {
                         return self.err("casualty is at most 255");
@@ -673,6 +679,7 @@ impl Compiler<'_> {
                             | Mechanic::Bargain
                             | Mechanic::Conspire
                             | Mechanic::Casualty(_)
+                            | Mechanic::Dredge(_)
                             | Mechanic::Storm
                             | Mechanic::Assist
                             | Mechanic::Replicate(_)
@@ -3114,6 +3121,7 @@ impl Compiler<'_> {
                 | Mechanic::Bargain
                 | Mechanic::Conspire
                 | Mechanic::Casualty(_)
+                | Mechanic::Dredge(_)
                 | Mechanic::Storm
                 | Mechanic::Assist
                 | Mechanic::Replicate(_)
@@ -3950,6 +3958,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Bargain
         | Mechanic::Conspire
         | Mechanic::Casualty(_)
+        | Mechanic::Dredge(_)
         | Mechanic::Storm
         | Mechanic::Assist
         | Mechanic::Replicate(_)

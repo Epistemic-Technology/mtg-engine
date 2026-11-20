@@ -1,0 +1,9 @@
+card "Stinkweed Imp" {
+  oracle_id e005bc76-4985-4ec6-b9f6-cf6d0d9f5df4
+  cost {2}{B}
+  type Creature — Imp
+  pt 1/2
+  keywords flying
+  triggered whenever this deals combat damage to creature: destroy that creature
+  dredge 5
+}

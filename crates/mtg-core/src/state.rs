@@ -1535,6 +1535,9 @@ pub struct GameState {
     /// Cards in graveyards with a triggered ability that works there
     /// (CR 113.6k), so trigger detection skips the graveyards without any.
     pub graveyard_trigger_cards: u32,
+    /// Cards with dredge in graveyards (CR 702.52): with any, a draw may
+    /// ask whether to dredge instead.
+    pub dredge_cards: u32,
     /// Cards in the game with an "As this enters, choose ..." ability:
     /// with any, every way onto the battlefield may ask a question.
     pub enters_choice_cards: u32,
@@ -1976,6 +1979,7 @@ impl GameState {
             // A mana-boost trigger (CR 605.1b) resolves while mana is paid
             // and may ask for a color, during any payment.
             || self.mana_trigger_sources > 0
+            || self.dredge_cards > 0
             || replacers >= 2
             || self.legendary_count >= 2
             || self.stack.iter().any(|id| {
