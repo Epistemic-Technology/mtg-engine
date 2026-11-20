@@ -4230,6 +4230,7 @@ impl GameState {
     /// The non-mana parts of a cost (CR 118.3): life, a sacrifice ("~" is
     /// `this`), a discard. The choices were made as the spell or ability was
     /// announced.
+    #[allow(clippy::too_many_lines)] // one block per cost part
     fn pay_other_costs(
         &mut self,
         p: PlayerId,

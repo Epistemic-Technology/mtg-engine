@@ -1099,7 +1099,9 @@ impl<'a> Ctx<'a> {
             {
                 "that Vehicle".to_string()
             }
-            Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
+            Recipient::TriggeringObject | Recipient::SameThat | Recipient::Manifested => {
+                "that creature".to_string()
+            }
             Recipient::TheTriggeringObject => "the creature".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TriggeringCard => "that card".to_string(),
@@ -1138,7 +1140,6 @@ impl<'a> Ctx<'a> {
             Recipient::SameObject if self.delayed_that => "that creature".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "them".to_string(),
-            Recipient::Manifested => "that creature".to_string(),
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
             }

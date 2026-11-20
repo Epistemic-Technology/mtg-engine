@@ -8944,10 +8944,6 @@ impl P {
             {
                 self.eat_word("next");
                 Who::Any
-            } else if self.eat_words(&["each", "opponent's"])
-                || self.eat_words(&["an", "opponent's"])
-            {
-                Who::Opponents
             } else {
                 return self.unexpected("`your`, `each`, or `the`");
             };

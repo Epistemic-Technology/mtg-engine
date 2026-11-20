@@ -2239,6 +2239,7 @@ impl GameState {
     }
 
     /// The qualifiers of `StatusQuals` for `id` (`status_ok`).
+    #[allow(clippy::too_many_lines)] // one check per qualifier
     fn status_quals_ok(&self, q: crate::card::StatusQuals, id: ObjId, o: &GameObject) -> bool {
         if let Some(b) = q.blocked {
             // CR 509.1h: blocked or unblocked only once blockers are

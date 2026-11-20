@@ -1338,8 +1338,7 @@ impl Compiler<'_> {
                 CoreRecipient::SameObject
             }
             Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
-            Recipient::Manifested => CoreRecipient::CreatedObject,
-            Recipient::CreatedObject => CoreRecipient::CreatedObject,
+            Recipient::Manifested | Recipient::CreatedObject => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
