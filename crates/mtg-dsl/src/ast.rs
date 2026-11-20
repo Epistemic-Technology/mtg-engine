@@ -907,6 +907,9 @@ pub enum Ability {
     ModalBoth(Vec<Mode>),
     /// `choose two { mode: ... }` (CR 700.2): two different modes.
     ModalTwo(Vec<Mode>),
+    /// `spree { mode {2}: ... mode {1}: ... }` (CR 702.172): one or more
+    /// modes, each with an additional cost (at most three).
+    Spree(Vec<(ManaCost, Mode)>),
     Activated {
         cost: Cost,
         targets: Vec<Target>,

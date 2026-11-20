@@ -1,0 +1,9 @@
+card "Explosive Derailment" {
+  oracle_id b23dc81d-01bb-4bf0-9932-5d32a6b22cf7
+  cost {R}
+  type Instant
+  spree {
+    mode {2}: deal 4 damage to target creature
+    mode {2}: destroy target artifact
+  }
+}

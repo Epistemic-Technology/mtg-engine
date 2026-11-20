@@ -1736,6 +1736,12 @@ impl P {
                     effects,
                 })
             }
+            "spree" if self.peek_at(1) == Some(&Tok::LBrace) => {
+                self.pos += 1;
+                let modes = self.spree_block()?;
+                self.end_stmt()?;
+                Ok(Ability::Spree(modes))
+            }
             "choose" => {
                 self.pos += 1;
                 if self.eat_word("two") {
@@ -2279,6 +2285,41 @@ impl P {
             });
         }
         self.targets = outer;
+        Ok(modes)
+    }
+
+    /// `{ mode {2}: ... mode {1}: ... }` after `spree`: each mode's cost,
+    /// then its effects.
+    fn spree_block(&mut self) -> R<Vec<(ManaCost, Mode)>> {
+        self.expect(&Tok::LBrace)?;
+        self.end_stmt()?;
+        let outer = std::mem::take(&mut self.targets);
+        let mut modes = Vec::new();
+        loop {
+            self.skip_newlines();
+            if self.peek() == Some(&Tok::RBrace) {
+                self.pos += 1;
+                break;
+            }
+            self.expect_word("mode")?;
+            let cost = self.mana_cost()?;
+            self.targets.clear();
+            self.subject = None;
+            self.revealed = false;
+            let effects = self.effects_body()?;
+            modes.push((
+                cost,
+                Mode {
+                    targets: std::mem::take(&mut self.targets),
+                    effects,
+                    name: None,
+                },
+            ));
+        }
+        self.targets = outer;
+        if !(1..=3).contains(&modes.len()) {
+            return self.fail("`spree` takes one to three modes");
+        }
         Ok(modes)
     }
 

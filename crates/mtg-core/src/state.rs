@@ -1948,6 +1948,25 @@ impl GameState {
         m.split.map(|(e, t)| (usize::from(e), usize::from(t)))
     }
 
+    /// `mode_split_of`, with a spree mode's third part too (CR
+    /// 702.172a): where each part after the first starts.
+    pub fn mode_splits_of(&self, id: ObjId) -> SmallVec<[(usize, usize); 2]> {
+        let mut out = SmallVec::new();
+        let Some(o) = self.objects.get(id) else {
+            return out;
+        };
+        let Some(m) = self
+            .modes_of(id)
+            .and_then(|ms| ms.get(usize::from(o.cast.mode())))
+        else {
+            return out;
+        };
+        for (e, t) in m.split.into_iter().chain(m.split2) {
+            out.push((usize::from(e), usize::from(t)));
+        }
+        out
+    }
+
     /// Effects a stack object applies on resolution.
     pub fn effects_of(&self, id: ObjId) -> &[crate::card::Effect] {
         self.objects

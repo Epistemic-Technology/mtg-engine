@@ -5289,6 +5289,10 @@ pub struct Mode {
     /// modes' targets and effects one after the other. Effects from index
     /// `.0` on see the targets from index `.1` on as their own.
     pub split: Option<(u16, u16)>,
+    /// A spree mode of three parts (CR 702.172a): where the third part
+    /// starts, as `split` for the second.
+    #[serde(default)]
+    pub split2: Option<(u16, u16)>,
     /// A named mode's name ("• Smash the Chest — Destroy target
     /// artifact."), printed before its effect; it has no rules meaning.
     pub name: Option<String>,
@@ -5812,6 +5816,12 @@ pub struct CardDef {
     pub plot: Option<Box<ManaCost>>,
     /// Suspend N—cost (CR 702.62).
     pub suspend: Option<Box<(u32, ManaCost)>>,
+    /// Spree (CR 702.172): the additional cost of each of the spell's
+    /// modes, in order. The modal ability's modes are then every nonempty
+    /// set of them, the set with bits `b` at index `b - 1` (at most three
+    /// modes: seven sets); the caster chooses one and pays its costs.
+    #[serde(default)]
+    pub spree: Vec<ManaCost>,
     /// Entwine (CR 702.42): every mode of a "choose one" spell for this
     /// cost on top.
     pub entwine: Option<Box<ManaCost>>,
@@ -7614,6 +7624,7 @@ impl Builder {
             foretell: None,
             plot: None,
             suspend: None,
+            spree: Vec::new(),
             entwine: None,
             escape: None,
             modular: 0,
@@ -7999,6 +8010,13 @@ impl Builder {
     #[must_use]
     pub fn modular(mut self, n: u32) -> Self {
         self.0.modular = n;
+        self
+    }
+
+    /// Spree (CR 702.172): each mode's additional cost.
+    #[must_use]
+    pub fn spree(mut self, costs: Vec<ManaCost>) -> Self {
+        self.0.spree = costs;
         self
     }
 

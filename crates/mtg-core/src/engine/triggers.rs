@@ -1338,7 +1338,7 @@ impl GameState {
         let pool = std::sync::Arc::clone(&self.pool);
         let targets = crate::state::targets_in(&pool, &obj);
         let effects = crate::state::effects_in(&pool, &obj);
-        let split = self.mode_split_of(id);
+        let split = self.mode_splits_of(id);
         if let Some(cond) = condition
             && !self.condition_holds(cond, sa.source, sa.trigger_obj)
         {
@@ -1409,7 +1409,7 @@ impl GameState {
             created_tokens: SmallVec::new(),
         };
         let outer = self.begin_this_way(id);
-        self.apply_effects(&mut ctx, effects, split);
+        self.apply_effects(&mut ctx, effects, &split);
         self.end_this_way(outer);
         if self.objects.contains_key(id) {
             self.remove_from_game(id);

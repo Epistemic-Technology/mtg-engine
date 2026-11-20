@@ -328,6 +328,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Plot(cost)) => {
                     b = b.plot(cost.clone());
                 }
+                Ability::Spree(modes) => {
+                    b = b.spree(modes.iter().map(|(c, _)| c.clone()).collect());
+                }
                 Ability::Mechanic(Mechanic::Sneak(cost)) => {
                     b = b.sneak(cost.clone());
                 }
@@ -650,6 +653,7 @@ impl Compiler<'_> {
                         | Ability::Modal(_)
                         | Ability::ModalBoth(_)
                         | Ability::ModalTwo(_)
+                        | Ability::Spree(_)
                 )
             })
             .count();
@@ -897,6 +901,7 @@ impl Compiler<'_> {
                     .trim_end_matches('.')
                     .to_string(),
                 split: None,
+                split2: None,
                 name: m.name.clone(),
             });
         }
@@ -908,6 +913,7 @@ impl Compiler<'_> {
                 u16::try_from(a.effects.len()).unwrap_or(u16::MAX),
                 u16::try_from(a.targets.len()).unwrap_or(u16::MAX),
             )),
+            split2: None,
             name: None,
         };
         if two {
@@ -931,6 +937,54 @@ impl Compiler<'_> {
             };
             let both = pair(a, b);
             out.push(both);
+        }
+        Ok(out)
+    }
+
+    /// A spree spell's modes (CR 702.172a): every nonempty set of the
+    /// printed modes, the set with bits `b` at index `b - 1`, each made of
+    /// its modes' targets and effects in printed order (`split`, `split2`
+    /// where the second and third begin).
+    fn spree_modes(
+        &mut self,
+        modes: &[(mtg_core::mana::ManaCost, crate::ast::Mode)],
+    ) -> Result<Vec<CoreMode>, CompileError> {
+        let singles: Vec<crate::ast::Mode> = modes.iter().map(|(_, m)| m.clone()).collect();
+        let singles = self.modes(&singles, false, false)?;
+        let n = singles.len();
+        let mut out = Vec::new();
+        for bits in 1..(1usize << n) {
+            let parts: Vec<&CoreMode> = (0..n)
+                .filter(|i| bits & (1 << i) != 0)
+                .map(|i| &singles[i])
+                .collect();
+            let mut m = CoreMode {
+                targets: Vec::new(),
+                effects: Vec::new(),
+                text: String::new(),
+                split: None,
+                split2: None,
+                name: None,
+            };
+            for (k, p) in parts.iter().enumerate() {
+                let at = (
+                    u16::try_from(m.effects.len()).unwrap_or(u16::MAX),
+                    u16::try_from(m.targets.len()).unwrap_or(u16::MAX),
+                );
+                match k {
+                    0 => {}
+                    1 => m.split = Some(at),
+                    _ => m.split2 = Some(at),
+                }
+                m.targets.extend(p.targets.iter().copied());
+                m.effects.extend(p.effects.iter().cloned());
+            }
+            m.text = parts
+                .iter()
+                .map(|p| p.text.as_str())
+                .collect::<Vec<_>>()
+                .join(" and ");
+            out.push(m);
         }
         Ok(out)
     }
@@ -2879,6 +2933,7 @@ impl Compiler<'_> {
             ),
             Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true, false)?),
             Ability::ModalTwo(modes) => AbilityDef::Modal(self.modes(modes, false, true)?),
+            Ability::Spree(modes) => AbilityDef::Modal(self.spree_modes(modes)?),
             Ability::Activated { cost, .. } if cost.discard_x => {
                 return self.err("`discard X cards` is only a spell's additional cost");
             }

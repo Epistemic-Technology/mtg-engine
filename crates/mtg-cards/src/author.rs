@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 115] = [
+const TEMPLATED_TAGS: [&str; 116] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -159,6 +159,7 @@ const TEMPLATED_TAGS: [&str; 115] = [
     "Warp",
     "Plot",
     "Sneak",
+    "Spree",
     "Ripple",
     "Saddle",
     "Fabricate",
@@ -3099,6 +3100,19 @@ impl Builder<'_> {
         Ok(format!("{head}: {effects}"))
     }
 
+    /// "Spree" with its modes and their costs (CR 702.172).
+    fn spree(&mut self, modes: &[(String, String)]) -> Result<(), Skip> {
+        let mut lines = vec!["spree {".to_string()];
+        for (cost, m) in modes {
+            let mut targets = 0;
+            let effects = self.templates.effects(m, &mut targets)?;
+            lines.push(format!("  mode {cost}: {effects}"));
+        }
+        lines.push("}".to_string());
+        self.statements.push(lines.join("\n  "));
+        Ok(())
+    }
+
     /// "When this creature enters, choose one —" with its modes.
     fn modal_trigger(&mut self, trigger: &str, modes: &[String]) -> Result<(), Skip> {
         let mut lines = vec![format!("triggered {trigger}: choose one {{")];
@@ -3248,6 +3262,20 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     let mut i = 0;
     while i < lines.len() {
         let line = lines[i];
+        // CR 702.172: "Spree" and its "+ {1} — ..." modes.
+        if line == "Spree" {
+            let mut modes = Vec::new();
+            i += 1;
+            while i < lines.len() && lines[i].starts_with("+ ") {
+                let Some((cost, rest)) = lines[i][2..].split_once(" — ") else {
+                    return Err(Skip::Sentence(lines[i].to_string()));
+                };
+                modes.push((cost.to_string(), rest.to_string()));
+                i += 1;
+            }
+            b.spree(&modes)?;
+            continue;
+        }
         let head = match line {
             "Choose one —" => Some("choose one"),
             "Choose one or both —" => Some("choose one or both"),

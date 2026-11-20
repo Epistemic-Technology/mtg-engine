@@ -1,0 +1,10 @@
+card "Requisition Raid" {
+  oracle_id 09669283-eb14-46a2-b37a-51d7a52da891
+  cost {W}
+  type Sorcery
+  spree {
+    mode {1}: destroy target artifact
+    mode {1}: destroy target enchantment
+    mode {1}: put 1 +1/+1 counters on each creature target player controls
+  }
+}

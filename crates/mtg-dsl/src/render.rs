@@ -9151,6 +9151,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             sentences(effects, &mut ctx)
         }
+        // CR 702.172b: "+" for the bullets.
+        Ability::Spree(modes) => {
+            let mut out = "Spree".to_string();
+            for (c, m) in modes {
+                let mut ctx = Ctx::new(card, lookup, &m.targets);
+                ctx.current = Some(a);
+                let _ = write!(out, "\n+ {c} — {}", sentences(&m.effects, &mut ctx));
+            }
+            out
+        }
         Ability::Modal(modes) | Ability::ModalBoth(modes) | Ability::ModalTwo(modes) => {
             let mut out = match a {
                 Ability::ModalBoth(_) => "Choose one or both —",

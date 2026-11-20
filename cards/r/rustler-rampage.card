@@ -1,0 +1,9 @@
+card "Rustler Rampage" {
+  oracle_id ef0c0f28-e1ee-42a1-9878-95a0ceb0a9fa
+  cost {W}
+  type Instant
+  spree {
+    mode {1}: untap each creature target player controls
+    mode {1}: target creature gains double strike
+  }
+}

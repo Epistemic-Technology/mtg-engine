@@ -112,7 +112,21 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             .abilities
             .iter()
             .filter(|a| **a != crate::compile::unleash_static())
-            .map(|a| d.ability(a))
+            .map(|a| match a {
+                // CR 702.172a: the single modes are the sets of one bit.
+                mtg_core::card::AbilityDef::Modal(modes) if !def.spree.is_empty() => {
+                    crate::ast::Ability::Spree(
+                        def.spree
+                            .iter()
+                            .enumerate()
+                            .filter_map(|(i, c)| {
+                                modes.get((1 << i) - 1).map(|m| (c.clone(), d.mode(m)))
+                            })
+                            .collect(),
+                    )
+                }
+                _ => d.ability(a),
+            })
             .collect(),
         except: def.copy_except.as_ref().map(|x| Except {
             subtypes: x.subtypes.clone(),

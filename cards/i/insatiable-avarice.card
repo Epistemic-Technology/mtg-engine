@@ -1,0 +1,9 @@
+card "Insatiable Avarice" {
+  oracle_id ad3e705f-da57-4eff-84d7-2072522de988
+  cost {B}
+  type Sorcery
+  spree {
+    mode {2}: search card to top that card
+    mode {B}{B}: target player draws three cards and loses 3 life
+  }
+}

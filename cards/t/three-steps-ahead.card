@@ -1,0 +1,10 @@
+card "Three Steps Ahead" {
+  oracle_id 282dfeaa-6243-4f92-838a-5cb54fa85184
+  cost {U}
+  type Instant
+  spree {
+  mode {1}{U}: counter target spell
+  mode {3}: create token copy of target artifact or creature you control
+  mode {2}: draw 2 cards then discard 1 card
+  }
+}

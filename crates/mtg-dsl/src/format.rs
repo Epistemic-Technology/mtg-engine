@@ -4017,6 +4017,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
         Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
+        Ability::Spree(modes) => {
+            let _ = writeln!(out, "{indent}spree {{");
+            for (c, m) in modes {
+                body(
+                    out,
+                    &format!("{indent}  "),
+                    &format!("mode {c}"),
+                    &m.effects,
+                    &m.targets,
+                    groups,
+                );
+            }
+            let _ = writeln!(out, "{indent}}}");
+        }
         Ability::Modal(modes) | Ability::ModalBoth(modes) | Ability::ModalTwo(modes) => {
             let head = match ability {
                 Ability::ModalBoth(_) => "choose one or both",

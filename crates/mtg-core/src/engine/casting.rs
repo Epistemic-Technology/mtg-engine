@@ -1540,7 +1540,21 @@ impl GameState {
         {
             return false;
         }
-        // A modal spell needs some mode to have its targets (CR 601.2b).
+        // A modal spell needs some mode to have its targets (CR 601.2b);
+        // a spree spell, one it can also pay that mode's cost for (CR
+        // 702.172a).
+        if !def.spree.is_empty()
+            && let Some(modes) = def.modes()
+        {
+            return def.spree.iter().enumerate().any(|(i, c)| {
+                let mut more = req;
+                more.add(&c.requirements(0));
+                modes
+                    .get((1 << i) - 1)
+                    .is_some_and(|m| self.targets_available(p, &m.targets, Some(id)))
+                    && self.payable(p, srcs, pool, &more, self.player(p).life, None)
+            });
+        }
         match def.modes() {
             Some(modes) => modes
                 .iter()
@@ -2445,12 +2459,24 @@ impl GameState {
 
     /// `spell_requirements`, paying the second of two additional costs if
     /// `other` (CR 601.2b, 601.2f: the total cost includes it).
-    #[allow(clippy::too_many_lines)] // one arm per alternative cost
     pub(super) fn spell_requirements_as(
         &self,
         spell: ObjId,
         x: u32,
         other: bool,
+    ) -> ManaRequirement {
+        self.spell_requirements_mode(spell, x, other, self.objects[spell].cast.mode())
+    }
+
+    /// `spell_requirements_as` with `mode` chosen, for a spree spell's
+    /// mode costs (CR 702.172a).
+    #[allow(clippy::too_many_lines)] // one arm per alternative cost
+    fn spell_requirements_mode(
+        &self,
+        spell: ObjId,
+        x: u32,
+        other: bool,
+        mode: u8,
     ) -> ManaRequirement {
         let o = &self.objects[spell];
         let def = self.pool.get(o.def);
@@ -2542,6 +2568,15 @@ impl GameState {
             && self.mode_split_of(spell).is_some()
         {
             req.add(&e.requirements(0));
+        }
+        // CR 702.172a: the chosen spree modes' costs.
+        if !def.spree.is_empty() {
+            let bits = u32::from(mode) + 1;
+            for (i, c) in def.spree.iter().enumerate() {
+                if bits & (1 << i) != 0 {
+                    req.add(&c.requirements(0));
+                }
+            }
         }
         // "As an additional cost to cast this spell, sacrifice a creature
         // or pay {3}".
@@ -3769,6 +3804,36 @@ impl GameState {
         };
         let source = Some(o.ability.map_or(spell, |a| a.source));
         let def = self.pool.get(o.def);
+        // CR 702.172a: a spree spell's modes cost more; those the caster
+        // can pay for (all of them if none, so the cast can go on to fail
+        // at payment rather than offer nothing).
+        if !def.spree.is_empty() && o.kind == ObjKind::Card {
+            let with_targets: Vec<usize> = modes
+                .iter()
+                .enumerate()
+                .filter(|(_, m)| self.targets_available(o.controller, &m.targets, source))
+                .map(|(i, _)| i)
+                .collect();
+            let other = o.cast.other_cost();
+            let payable: Vec<Choice> = with_targets
+                .iter()
+                .filter(|i| {
+                    let req = self.spell_requirements_mode(
+                        spell,
+                        0,
+                        other,
+                        u8::try_from(**i).unwrap_or(0),
+                    );
+                    self.spell_payable(o.controller, spell, &req)
+                })
+                .map(|i| Choice::Mode(*i))
+                .collect();
+            return if payable.is_empty() {
+                with_targets.into_iter().map(Choice::Mode).collect()
+            } else {
+                payable
+            };
+        }
         modes
             .iter()
             .enumerate()
@@ -5271,7 +5336,7 @@ impl GameState {
                 couldnt: 0,
                 created_tokens: SmallVec::new(),
             };
-            let split = self.mode_split_of(spell);
+            let split = self.mode_splits_of(spell);
             let outer = self.begin_this_way(spell);
             // "The damage can't be prevented" covers the spell's damage
             // dealt before the sentence too (CR 615.12).
@@ -5291,7 +5356,7 @@ impl GameState {
             }
             match overloaded {
                 Some(spec) => self.apply_overloaded(&mut ctx, spec, effects),
-                None => self.apply_effects(&mut ctx, effects, split),
+                None => self.apply_effects(&mut ctx, effects, &split),
             }
             if let Some(sp) = &spliced {
                 self.apply_spliced(&ctx, sp, crate::state::targets_in(&pool, &obj).len());
@@ -5390,7 +5455,7 @@ impl GameState {
             ctx.legal = vec![true];
             ctx.created = None;
             ctx.did = true;
-            self.apply_effects(ctx, effects, None);
+            self.apply_effects(ctx, effects, &[]);
         }
     }
 
@@ -5524,7 +5589,7 @@ impl GameState {
             };
             start += n;
             let effects = def.spell_ability().map_or(&[][..], |(_, e)| e);
-            self.apply_effects(&mut part, effects, None);
+            self.apply_effects(&mut part, effects, &[]);
         }
     }
 
@@ -9775,11 +9840,13 @@ impl GameState {
         &mut self,
         ctx: &mut EffectCtx,
         effects: &[Effect],
-        split: Option<(usize, usize)>,
+        splits: &[(usize, usize)],
     ) {
         for (i, effect) in effects.iter().enumerate() {
-            match split {
-                Some((e, t)) if i >= e => {
+            // A spree mode's third part sees the targets from its own
+            // start (CR 702.172a).
+            match splits.iter().rev().find(|(e, _)| i >= *e).copied() {
+                Some((_, t)) => {
                     let mut second = EffectCtx {
                         source: ctx.source,
                         controller: ctx.controller,
