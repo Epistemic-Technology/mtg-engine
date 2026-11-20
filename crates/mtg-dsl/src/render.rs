@@ -2214,6 +2214,23 @@ fn choice_noun(k: &ChoiceKind) -> String {
 /// A filter as a kind of card, with an article: "a creature card", "a
 /// nonblack card".
 fn card_filter_a(f: &Filter, card: &Card) -> String {
+    // `Mount creature or a Plains card`: "a Mount creature card or a
+    // Plains card", each alternative its own noun.
+    if let Some(alt) = &f.or
+        && alt.or.is_none()
+        && f.alt_article
+    {
+        let base = Filter {
+            or: None,
+            alt_article: false,
+            ..f.clone()
+        };
+        return format!(
+            "{} or {}",
+            card_filter_a(&base, card),
+            card_filter_a(alt, card)
+        );
+    }
     // "a permanent card", "a Rebel permanent card" (CR 110.4a).
     if f.or.is_none() && f.not_types == [CardType::Instant, CardType::Sorcery] {
         return with_article(&format!("{} card", card_filter_phrase(f, card)));
