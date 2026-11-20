@@ -1,0 +1,7 @@
+card "Breezekeeper" {
+  oracle_id 138439ad-76c6-4d75-8025-e68b94f68fa3
+  cost {3}{U}
+  type Creature — Djinn
+  pt 4/4
+  keywords flying, phasing
+}

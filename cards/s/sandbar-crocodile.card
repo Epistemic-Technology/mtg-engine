@@ -1,0 +1,7 @@
+card "Sandbar Crocodile" {
+  oracle_id e11926bf-ca14-4e1e-aca5-9ffedb91868c
+  cost {4}{U}
+  type Creature — Crocodile
+  pt 6/5
+  keywords phasing
+}

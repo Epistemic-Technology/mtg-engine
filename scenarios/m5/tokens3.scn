@@ -142,3 +142,77 @@ scenario "umbra armor: the creature is still sacrificed" {
   run_to turn 1 postcombat_main
   assert graveyard A contains "Grizzly Bears"
 }
+
+# ---- phasing ----
+
+scenario "phasing: Teferi's Drake phases out, then in a turn later" {
+  battlefield A: "Teferi's Drake"
+  run_to turn 1 precombat_main
+  assert battlefield A lacks "Teferi's Drake"
+  run_to turn 2 precombat_main
+  assert battlefield A lacks "Teferi's Drake"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Teferi's Drake"
+  run_to turn 5 precombat_main
+  assert battlefield A lacks "Teferi's Drake"
+}
+
+scenario "phasing: a phased-out creature isn't destroyed with the others" {
+  battlefield A: "Tolarian Drake", "Grizzly Bears"
+  battlefield B: 4 "Plains"
+  hand B: "Day of Judgment"
+  turn 2 B: cast "Day of Judgment"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Tolarian Drake"
+}
+
+scenario "phasing: Reality Ripple's creature phases in at its controller's untap step, untapped" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Reality Ripple"
+  turn 1 A: cast "Reality Ripple" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Hill Giant"
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Hill Giant"
+  assert untapped "Hill Giant"
+}
+
+scenario "phasing: an Aura phases out with its creature and back in attached" {
+  battlefield A: 2 "Island", "Grizzly Bears", "Vanishing" on "Grizzly Bears"
+  turn 1 A: activate "Vanishing"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Grizzly Bears"
+  assert battlefield A lacks "Vanishing"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert attached "Vanishing" to "Grizzly Bears"
+}
+
+scenario "phasing: a creature that phases out leaves combat" {
+  battlefield A: 2 "Island", "Grizzly Bears", "Vanishing" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: activate "Vanishing"
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Grizzly Bears"
+  assert damage "Hill Giant" 0
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "phasing: Teferi's Curse gives an opponent's creature phasing" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Teferi's Curse"
+  turn 1 A: cast "Teferi's Curse" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert battlefield A lacks "Teferi's Curse"
+  run_to turn 4 precombat_main
+  assert battlefield B contains "Hill Giant"
+  assert attached "Teferi's Curse" to "Hill Giant"
+}

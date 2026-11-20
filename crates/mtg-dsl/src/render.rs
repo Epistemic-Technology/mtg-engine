@@ -3740,6 +3740,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "explores".to_string())
         }
+        Effect::PhaseOut { what } => {
+            let s = ctx.subj(*what);
+            Clause::with_subject(*what, s, "phases out".to_string())
+        }
         Effect::Amass { kind, count } => {
             ctx.amassed = true;
             Clause::imperative(format!("amass {kind} {}", digits(*count)))

@@ -454,6 +454,7 @@ impl GameState {
             dealt_damage_this_turn: Vec::new(),
             damaged_by_this_turn: Vec::new(),
             saddled: Vec::new(),
+            phased_out: Vec::new(),
             turn_started_at: 0,
             x_values: Vec::new(),
             ninjutsu: Vec::new(),
@@ -2163,19 +2164,37 @@ impl GameState {
                 if self.desig.day_night != crate::state::DayNight::Neither {
                     self.day_night_check();
                 }
+                // CR 502.1, 702.26a: phasing, before the active player
+                // untaps.
+                let phased_in = if self.phased_out.is_empty() {
+                    smallvec::SmallVec::new()
+                } else {
+                    self.phase_in_all(active)
+                };
                 // CR 502.3: untap all permanents of the active player.
                 let perms: Vec<ObjId> = self.permanents_of(active).collect();
+                let mut phasing: smallvec::SmallVec<[ObjId; 2]> = smallvec::SmallVec::new();
                 for id in perms {
+                    let (phases, doesnt_untap) =
+                        self.characteristics(id).map_or((false, false), |c| {
+                            (c.has(Keyword::Phasing), c.has(Keyword::DoesntUntap))
+                        });
+                    // Those with phasing phase out instead of untapping,
+                    // all at once with those phasing in (which don't phase
+                    // out again).
+                    if phases && !phased_in.contains(&id) {
+                        phasing.push(id);
+                        continue;
+                    }
                     let o = &mut self.objects[id];
                     o.controlled_since_turn_start = true;
-                    if std::mem::take(&mut o.skip_untap)
-                        || self
-                            .characteristics(id)
-                            .is_some_and(|c| c.has(Keyword::DoesntUntap))
-                    {
+                    if std::mem::take(&mut o.skip_untap) || doesnt_untap {
                         continue;
                     }
                     self.untap(id);
+                }
+                for id in phasing {
+                    self.phase_out(id, false);
                 }
                 self.player_mut(active).lands_played_this_turn = 0;
                 self.flow = Flow::EndStep;

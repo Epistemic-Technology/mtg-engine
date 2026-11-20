@@ -3393,6 +3393,11 @@ pub enum Effect {
     Explore {
         what: Recipient,
     },
+    /// "Target creature phases out" (CR 702.26b): it phases in before its
+    /// controller untaps during their next untap step.
+    PhaseOut {
+        what: Recipient,
+    },
     /// Amass N (CR 701.47): put N +1/+1 counters on an Army the
     /// controller controls, creating `token` (a 0/0 Army) first if they
     /// control none.

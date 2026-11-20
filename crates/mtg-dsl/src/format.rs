@@ -564,6 +564,7 @@ impl Fmt {
             Effect::Venture { undercity: false } => "venture".to_string(),
             Effect::Venture { undercity: true } => "venture into undercity".to_string(),
             Effect::Explore { what } => format!("{} explores", self.recipient(*what, t)),
+            Effect::PhaseOut { what } => format!("{} phases out", self.recipient(*what, t)),
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),

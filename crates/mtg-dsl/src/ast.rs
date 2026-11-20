@@ -2685,6 +2685,10 @@ pub enum Effect {
     Explore {
         what: Recipient,
     },
+    /// `target creature phases out` (CR 702.26).
+    PhaseOut {
+        what: Recipient,
+    },
     /// `amass Zombies 2` (CR 701.47): the token is "0/0 black <kind> Army
     /// creature".
     Amass {

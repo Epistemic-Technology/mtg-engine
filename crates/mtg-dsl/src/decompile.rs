@@ -1068,6 +1068,9 @@ impl Decompiler<'_> {
             CoreEffect::Explore { what } => Effect::Explore {
                 what: Self::recipient(*what),
             },
+            CoreEffect::PhaseOut { what } => Effect::PhaseOut {
+                what: Self::recipient(*what),
+            },
             CoreEffect::Amass { count, token } => Effect::Amass {
                 kind: format!("{}s", self.pool.get(*token).name.trim_end_matches(" Army")),
                 count: *count,

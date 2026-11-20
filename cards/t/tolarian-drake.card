@@ -1,0 +1,7 @@
+card "Tolarian Drake" {
+  oracle_id d999f2a3-5cb4-4f12-a79a-c5db0a300620
+  cost {2}{U}
+  type Creature — Drake
+  pt 2/4
+  keywords flying, phasing
+}

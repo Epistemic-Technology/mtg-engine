@@ -7685,6 +7685,13 @@ impl GameState {
             Effect::RevealPutCreature { count, counters } => {
                 self.reveal_put_creature(ctx, *count, *counters);
             }
+            Effect::PhaseOut { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.phase_out(id, false);
+                    }
+                }
+            }
             Effect::Explore { what } => {
                 for t in self.recipients(ctx, *what) {
                     if let Target::Object(id) = t {

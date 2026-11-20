@@ -1863,6 +1863,7 @@ impl Compiler<'_> {
                 undercity: *undercity,
             }),
             Effect::Explore { what } => out.push(CoreEffect::Explore { what: r(*what) }),
+            Effect::PhaseOut { what } => out.push(CoreEffect::PhaseOut { what: r(*what) }),
             Effect::Amass { kind, count } => {
                 // "Amass Zombies 2": a Zombie Army token.
                 let key = format!("0/0 black {} Army creature", kind.trim_end_matches('s'));

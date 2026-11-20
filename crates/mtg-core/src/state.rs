@@ -30,6 +30,10 @@ pub enum Zone {
     Stack,
     Exile,
     Command,
+    /// Not a zone: a phased-out permanent (CR 702.26b), still on the
+    /// battlefield by the rules but treated as though it doesn't exist. It
+    /// keeps its object id and is kept out of `GameState::battlefield`.
+    PhasedOut,
 }
 
 impl Zone {
@@ -37,7 +41,12 @@ impl Zone {
     pub const fn is_public(self) -> bool {
         matches!(
             self,
-            Zone::Battlefield | Zone::Graveyard | Zone::Stack | Zone::Exile | Zone::Command
+            Zone::Battlefield
+                | Zone::Graveyard
+                | Zone::Stack
+                | Zone::Exile
+                | Zone::Command
+                | Zone::PhasedOut
         )
     }
 }
@@ -579,11 +588,23 @@ impl PlayerState {
             Zone::Hand => &mut self.hand,
             Zone::Graveyard => &mut self.graveyard,
             Zone::Exile => &mut self.exile,
-            Zone::Battlefield | Zone::Stack | Zone::Command => {
+            Zone::Battlefield | Zone::Stack | Zone::Command | Zone::PhasedOut => {
                 unreachable!("{zone:?} is not a per-player zone")
             }
         }
     }
+}
+
+/// A phased-out permanent (CR 702.26b).
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub struct PhasedOut {
+    pub id: ObjId,
+    /// The player it phased out under: it phases in during their untap
+    /// step (CR 702.26a).
+    pub controller: PlayerId,
+    /// It phased out with the permanent it's attached to and phases in
+    /// with it (CR 702.26g).
+    pub indirect: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -1261,6 +1282,9 @@ pub struct GameState {
     /// this turn ("a creature dealt damage by this creature this turn"),
     /// each once.
     pub damaged_by_this_turn: Vec<(ObjId, ObjId)>,
+    /// Phased-out permanents (CR 702.26), with the player they phased out
+    /// under and whether they phased out with what they're attached to.
+    pub phased_out: Vec<PhasedOut>,
     /// Mounts saddled this turn (CR 702.171b: until end of turn, or until
     /// it leaves the battlefield, which makes it a new object).
     pub saddled: Vec<ObjId>,

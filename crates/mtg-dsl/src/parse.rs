@@ -4395,6 +4395,10 @@ impl P {
                 })
             }
             "explores" => Ok(Effect::Explore { what: subject }),
+            "phases" => {
+                self.expect_word("out")?;
+                Ok(Effect::PhaseOut { what: subject })
+            }
             "connives" => Ok(Effect::Connive { what: subject }),
             "doesn't" => {
                 self.expect_words(&["untap", "next", "untap"])?;

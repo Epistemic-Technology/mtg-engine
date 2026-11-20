@@ -201,7 +201,7 @@ impl Runner {
                         Zone::Graveyard => ps.graveyard.push(def),
                         Zone::Exile => ps.exile.push(def),
                         Zone::Library => ps.library.push(def),
-                        Zone::Stack | Zone::Command => {
+                        Zone::Stack | Zone::Command | Zone::PhasedOut => {
                             return fail(z.line, "cannot set up the stack or command zone");
                         }
                     }
@@ -2507,7 +2507,7 @@ impl ZoneFree for mtg_core::state::PlayerState {
             Zone::Graveyard => &self.graveyard,
             Zone::Exile => &self.exile,
             Zone::Library => &self.library,
-            Zone::Battlefield | Zone::Stack | Zone::Command => &[],
+            Zone::Battlefield | Zone::Stack | Zone::Command | Zone::PhasedOut => &[],
         }
     }
 }
