@@ -1326,6 +1326,10 @@ pub enum Mechanic {
     /// `afterlife 1` (CR 702.135): when this dies, N 1/1 white and black
     /// Spirit tokens with flying.
     Afterlife(u32),
+    /// `mobilize 2`, `mobilize count where graveyard creature` (CR
+    /// 702.181): whenever this attacks, N tapped and attacking 1/1 red
+    /// Warrior tokens, sacrificed at the beginning of the next end step.
+    Mobilize(Num),
     /// `extort` (CR 702.101): whenever you cast a spell, you may pay
     /// {W/B}; if you do, each opponent loses 1 life and you gain that
     /// much life.
@@ -3061,6 +3065,8 @@ pub enum Effect {
         kind: String,
         count: Num,
     },
+    /// Mobilize's expansion only: the tokens just created are attacking.
+    CreatedAttack,
     /// `empower jace 3`: "Empower Jace 3." (needs the token "Jace
     /// planeswalker").
     EmpowerJace {

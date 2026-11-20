@@ -1,0 +1,8 @@
+card "Stadium Headliner" {
+  oracle_id d8cfa20a-343e-4661-9f5a-a8265f6917a8
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  mobilize 1
+  activated {1}{R}, sacrifice this: deal damage equal creature you control to target creature
+}

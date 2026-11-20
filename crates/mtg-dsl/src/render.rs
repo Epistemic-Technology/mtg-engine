@@ -4035,6 +4035,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ctx.amassed = true;
             Clause::imperative(format!("amass {kind} {}", digits(*count)))
         }
+        Effect::CreatedAttack => Clause::imperative(String::new()),
         Effect::EmpowerJace { count } => {
             Clause::imperative(format!("empower Jace {}", digits(*count)))
         }
@@ -9668,6 +9669,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Renown(n) => format!("Renown {n}"),
             crate::ast::Mechanic::Unleash => "Unleash".to_string(),
             crate::ast::Mechanic::Afterlife(n) => format!("Afterlife {n}"),
+            // "Mobilize X, where X is the number of creature cards in your
+            // graveyard."
+            crate::ast::Mechanic::Mobilize(Num::Count(i)) => {
+                card.counts.get(usize::from(*i)).map_or_else(
+                    || "Mobilize X".to_string(),
+                    |c| {
+                        format!(
+                            "Mobilize X, where X is {}.",
+                            count_phrase(&c.expr, card, false)
+                        )
+                    },
+                )
+            }
+            crate::ast::Mechanic::Mobilize(n) => format!("Mobilize {}", digits(*n)),
             crate::ast::Mechanic::Extort => "Extort".to_string(),
             crate::ast::Mechanic::Mentor => "Mentor".to_string(),
             crate::ast::Mechanic::Riot => "Riot".to_string(),

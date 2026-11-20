@@ -42,6 +42,12 @@ pub fn compile_all(cards: &[Card]) -> Result<CardPool, CompileError> {
     Ok(pool)
 }
 
+/// Mobilize's triggered ability, its count and its tokens' attacking
+/// filled in by `expand_mechanic`.
+const MOBILIZE: &str = "card \"Mobilize\" {
+  triggered whenever this attacks: create 1 tapped \"1/1 red Warrior creature\"; delayed those tokens: sacrifice those tokens at beginning of the next end step
+}";
+
 /// The token Empower Jace creates.
 pub const JACE_TOKEN: &str = "Jace planeswalker";
 
@@ -2198,6 +2204,7 @@ impl Compiler<'_> {
                     token,
                 });
             }
+            Effect::CreatedAttack => out.push(CoreEffect::CreatedAttack),
             Effect::EmpowerJace { count } => {
                 let Some(token) = self.pool.lookup(JACE_TOKEN) else {
                     return self.err(format!("unknown token \"{JACE_TOKEN}\""));
@@ -3681,6 +3688,20 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 to: Recipient::Source,
             }),
         },
+        // CR 702.181a: "Whenever this creature attacks, create N tapped
+        // and attacking 1/1 red Warrior creature tokens. Sacrifice them at
+        // the beginning of the next end step."
+        Mechanic::Mobilize(n) => {
+            let mut cards = crate::parse(MOBILIZE).expect("mobilize's expansion parses");
+            let mut a = cards.remove(0).abilities.remove(0);
+            if let Ability::Triggered { effects, .. } = &mut a {
+                if let Some(E::CreateToken { count, .. }) = effects[0].effects.first_mut() {
+                    *count = *n;
+                }
+                effects.insert(1, Sentence::new(vec![E::CreatedAttack]));
+            }
+            a
+        }
         // CR 702.135a: "When this creature dies, create N 1/1 white and
         // black Spirit creature tokens with flying."
         Mechanic::Afterlife(n) => Ability::Triggered {

@@ -3954,6 +3954,11 @@ pub enum Effect {
     /// owner's hand, onto the battlefield tapped and attacking the player or
     /// planeswalker the returned creature was attacking.
     EnterAttacking,
+    /// Mobilize's tokens (CR 702.181a): the tokens the resolution just
+    /// created are attacking ("create two tapped and attacking ...
+    /// tokens", CR 508.4: never declared as attackers), what the source
+    /// is attacking, or else an opponent.
+    CreatedAttack,
     /// Saddle's effect (CR 702.171a): the source becomes saddled until end
     /// of turn.
     BecomeSaddled,

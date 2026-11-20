@@ -1,0 +1,8 @@
+card "Reigning Victor" {
+  oracle_id b8c5e481-371c-4999-bb2c-347a2aa33171
+  cost {2/R}{2/W}{2/B}
+  type Creature — Orc Warrior
+  pt 3/3
+  mobilize 1
+  triggered when this enters: target creature gets +1/+0 and gains indestructible
+}

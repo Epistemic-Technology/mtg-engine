@@ -64,7 +64,8 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 117] = [
+const TEMPLATED_TAGS: [&str; 118] = [
+    "Mobilize",
     "Behold",
     "Empower Jace",
     "Station",
@@ -2282,6 +2283,20 @@ impl Builder<'_> {
         }
         // CR 702.184a, 721.2: "Station", then its levels: "9+ | Flying,
         // first strike" or "2+ | <one ability>".
+        // CR 702.181a: "Mobilize 2", "Mobilize X, where X is the number
+        // of creature cards in your graveyard."
+        if let Some(c) = Regex::new(r"^Mobilize (\d+)$").unwrap().captures(line) {
+            self.statements.push(format!("mobilize {}", cap(&c, 1)));
+            return Ok(());
+        }
+        if let Some(rest) = line
+            .strip_prefix("Mobilize X, where X is the number of ")
+            .and_then(|r| r.strip_suffix('.'))
+        {
+            let n = count_expr(rest).ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            self.statements.push(format!("mobilize count where {n}"));
+            return Ok(());
+        }
         if line == "Station" {
             self.statements.push("station".to_string());
             return Ok(());

@@ -1163,6 +1163,7 @@ impl Decompiler<'_> {
             | CoreEffect::Cascade
             | CoreEffect::Exploit
             | CoreEffect::EnterAttacking
+            | CoreEffect::CreatedAttack
             | CoreEffect::BecomeSaddled => {
                 unreachable!("built-in abilities only")
             }

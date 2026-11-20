@@ -1,0 +1,8 @@
+card "Avenger of the Fallen" {
+  oracle_id 158d0272-a850-4399-8afa-d0caa143c3cb
+  cost {2}{B}
+  type Creature — Human Warrior
+  pt 2/4
+  keywords deathtouch
+  mobilize count where graveyard creature
+}

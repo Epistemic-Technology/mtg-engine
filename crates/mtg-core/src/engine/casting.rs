@@ -9308,6 +9308,29 @@ impl GameState {
                     self.bump();
                 }
             }
+            Effect::CreatedAttack => {
+                let defender = self
+                    .combat
+                    .as_ref()
+                    .and_then(|c| c.attacker(ctx.source))
+                    .map(|a| a.attacking)
+                    .or_else(|| {
+                        self.players_in_game()
+                            .find(|q| *q != ctx.controller)
+                            .map(Target::Player)
+                    });
+                if let Some(d) = defender {
+                    for id in ctx.created_tokens.clone() {
+                        if self
+                            .objects
+                            .get(id)
+                            .is_some_and(|o| o.zone == Zone::Battlefield)
+                        {
+                            self.enter_attacking(id, d);
+                        }
+                    }
+                }
+            }
             Effect::EnterAttacking => {
                 let at = self
                     .ninjutsu
