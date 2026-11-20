@@ -949,7 +949,6 @@ impl Compiler<'_> {
         Ok(out)
     }
 
-    #[allow(clippy::too_many_lines)] // one arm per condition
     /// An ability the source has only while `c` holds ("Max speed —
     /// ...", "2+ | ..."): a static ability's or cost change's condition,
     /// an activated ability's activation condition, a triggered
@@ -981,6 +980,7 @@ impl Compiler<'_> {
         Ok(a)
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per condition
     fn static_cond(&mut self, c: &StaticCond) -> StaticCondition {
         match c {
             StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),

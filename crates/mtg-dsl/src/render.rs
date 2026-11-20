@@ -4035,11 +4035,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ctx.amassed = true;
             Clause::imperative(format!("amass {kind} {}", digits(*count)))
         }
-        Effect::CreatedAttack => Clause::imperative(String::new()),
         Effect::EmpowerJace { count } => {
             Clause::imperative(format!("empower Jace {}", digits(*count)))
         }
-        Effect::ClearEcho => Clause::imperative(String::new()),
+        Effect::CreatedAttack | Effect::ClearEcho => Clause::imperative(String::new()),
         Effect::AddEnergy { count, who } => {
             let s = ctx.subj(*who);
             let n = match count {
