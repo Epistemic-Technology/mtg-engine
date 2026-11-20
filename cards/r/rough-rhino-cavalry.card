@@ -1,0 +1,8 @@
+card "Rough Rhino Cavalry" {
+  oracle_id 3ac94b28-4b0a-4121-99b9-9cd7dff7948c
+  cost {4}{R}
+  type Creature — Human Mercenary
+  pt 5/5
+  firebending 2
+  exhaust {8}: put 2 +1/+1 counters on this; it gains trample
+}

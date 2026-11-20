@@ -1115,6 +1115,9 @@ pub enum Mechanic {
     Soulshift(u32),
     /// CR 702.130: becomes blocked, defending player loses N life.
     Afflict(u32),
+    /// CR 702.189: `firebending 2`, `firebending count where power`:
+    /// whenever it attacks, add N {R} that lasts until end of combat.
+    Firebending(Num),
     /// CR 702.70: combat damage to a player gives that player N poison
     /// counters.
     Poisonous(u32),
@@ -3049,6 +3052,9 @@ pub enum Effect {
     Bolster(Num),
     /// `monstrosity 3` (CR 701.37): "Monstrosity 3."
     Monstrosity(Num),
+    /// Firebending's effect (CR 702.189a), from its expansion: "add N {R}
+    /// that lasts until end of combat".
+    Firebend(Num),
     /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay
     /// the mana, artifacts and creatures tapped to help.
     Waterbend(ManaCost),

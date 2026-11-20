@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 115] = [
+const TEMPLATED_TAGS: [&str; 116] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -181,6 +181,7 @@ const TEMPLATED_TAGS: [&str; 115] = [
     "Incubate",
     "Earthbend",
     "Waterbend",
+    "Firebending",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -2657,13 +2658,27 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge) (\d+)$",
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending) (\d+)$",
         )
         .unwrap()
         .captures(line)
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.189a: "Firebending X, where X is the number of ...".
+        if let Some(c) = Regex::new(r"^Firebending X, where X is the number of (.+)\.$")
+            .unwrap()
+            .captures(line)
+        {
+            let x = count_expr(cap(&c, 1)).ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            self.statements.push(format!("firebending count where {x}"));
+            return Ok(());
+        }
+        if line == "Firebending X, where X is this creature's power." {
+            self.statements
+                .push("firebending count where power".to_string());
             return Ok(());
         }
         if let Some(c) =

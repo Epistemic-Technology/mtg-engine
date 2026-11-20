@@ -2156,6 +2156,7 @@ impl Compiler<'_> {
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
             Effect::Bolster(n) => out.push(CoreEffect::Bolster(*n)),
             Effect::Monstrosity(n) => out.push(CoreEffect::Monstrosity(*n)),
+            Effect::Firebend(n) => out.push(CoreEffect::Firebend(*n)),
             Effect::Earthbend { count, to } => out.push(CoreEffect::Earthbend {
                 count: *count,
                 to: r(*to),
@@ -3777,6 +3778,15 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     attacker: Recipient::Source,
                 },
             ])])),
+        },
+        // CR 702.189a: "Whenever this creature attacks, add N {R}. Until
+        // end of combat, you don't lose this mana as steps and phases end."
+        Mechanic::Firebending(n) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Attacks(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::Firebend(*n)),
         },
         Mechanic::Afflict(n) => Ability::Triggered {
             from_graveyard: false,

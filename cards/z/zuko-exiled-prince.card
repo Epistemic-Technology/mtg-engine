@@ -1,0 +1,8 @@
+card "Zuko, Exiled Prince" {
+  oracle_id 3231ce2e-d4f8-44fc-872d-aeafa59aed4b
+  cost {3}{R}
+  type Legendary Creature — Human Noble
+  pt 4/3
+  firebending 3
+  activated {3}: impulse 1 this turn
+}

@@ -3430,6 +3430,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
         Effect::Monstrosity(n) => Clause::imperative(format!("monstrosity {}", digits(*n))),
+        Effect::Firebend(n) => Clause::imperative(format!(
+            "add {} {{R}}. Until end of combat, you don't lose this mana as steps and phases end",
+            digits(*n)
+        )),
         Effect::Earthbend { count, .. } => {
             Clause::imperative(format!("earthbend {}", digits(*count)))
         }
@@ -9496,6 +9500,19 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Bushido(n) => format!("Bushido {n}"),
             crate::ast::Mechanic::Soulshift(n) => format!("Soulshift {n}"),
             crate::ast::Mechanic::Afflict(n) => format!("Afflict {n}"),
+            // "Firebending X, where X is this creature's power."
+            crate::ast::Mechanic::Firebending(amount) => match amount {
+                Num::Count(idx) => {
+                    let phrase = match card.counts.get(usize::from(*idx)).map(|c| &c.expr) {
+                        Some(crate::ast::CountExpr::SourcePower) | None => {
+                            format!("{}'s power", this_ref(card))
+                        }
+                        Some(expr) => count_phrase(expr, card, false),
+                    };
+                    format!("Firebending X, where X is {phrase}.")
+                }
+                _ => format!("Firebending {}", digits(*amount)),
+            },
             crate::ast::Mechanic::Poisonous(n) => format!("Poisonous {n}"),
             crate::ast::Mechanic::Frenzy(n) => format!("Frenzy {n}"),
             crate::ast::Mechanic::Absorb(n) => format!("Absorb {n}"),

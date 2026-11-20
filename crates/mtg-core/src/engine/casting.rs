@@ -9027,6 +9027,13 @@ impl GameState {
                     o.marks |= crate::state::OBJ_RENOWNED;
                 }
             }
+            Effect::Firebend(n) => {
+                let n = self.eval_num(*n, ctx);
+                let ps = self.player_mut(ctx.controller);
+                ps.mana_pool.colored[crate::mana::Color::Red as usize] += n;
+                ps.combat_mana += n;
+                self.bump();
+            }
             Effect::Earthbend { count, to } => {
                 // CR 701.66a: the land becomes a 0/0 creature with haste
                 // in addition to its other types, gets N +1/+1 counters,

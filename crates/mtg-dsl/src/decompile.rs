@@ -1161,6 +1161,7 @@ impl Decompiler<'_> {
             CoreEffect::Adapt(n) => Effect::Adapt(*n),
             CoreEffect::Bolster(n) => Effect::Bolster(*n),
             CoreEffect::Monstrosity(n) => Effect::Monstrosity(*n),
+            CoreEffect::Firebend(n) => Effect::Firebend(*n),
             CoreEffect::Earthbend { count, to } => Effect::Earthbend {
                 count: *count,
                 to: r(*to),

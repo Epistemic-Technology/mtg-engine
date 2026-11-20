@@ -1,0 +1,8 @@
+card "Fire Sages" {
+  oracle_id 08d1940a-ddc6-4b6d-b6c9-9d2aa470b906
+  cost {1}{R}
+  type Creature — Human Cleric
+  pt 2/2
+  firebending 1
+  activated {1}{R}{R}: put 1 +1/+1 counter on this
+}

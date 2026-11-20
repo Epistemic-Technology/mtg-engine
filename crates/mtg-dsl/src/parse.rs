@@ -1427,6 +1427,12 @@ impl P {
                     Mechanic::Mentor
                 }))
             }
+            "firebending" => {
+                self.pos += 1;
+                let n = self.num()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Firebending(n)))
+            }
             "evolve" | "unleash" => {
                 self.pos += 1;
                 self.end_stmt()?;

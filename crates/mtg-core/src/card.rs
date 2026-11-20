@@ -3770,6 +3770,9 @@ pub enum Effect {
     /// control with the least toughness among creatures they control and
     /// puts N +1/+1 counters on it.
     Bolster(Num),
+    /// Firebending's effect (CR 702.189a): "add N {R}. Until end of
+    /// combat, you don't lose this mana as steps and phases end."
+    Firebend(Num),
     /// "unless you waterbend {2}" (CR 701.67a): pay this generic mana,
     /// each {1} by mana or by tapping an untapped artifact or creature the
     /// controller controls; inside "you may" or "unless", like `Pay`.

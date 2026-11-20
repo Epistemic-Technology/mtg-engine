@@ -538,6 +538,7 @@ impl GameState {
                     skip_draw: 0,
                     skip_combat: 0,
                     skip_combat_this_turn: 0,
+                    combat_mana: 0,
                 })
                 .collect(),
             objects: SlotMap::with_key(),
@@ -2614,8 +2615,25 @@ impl GameState {
     /// next step or turn begins.
     #[allow(clippy::too_many_lines)] // one line per turn record
     fn end_step(&mut self) {
+        // CR 702.189a: firebending's mana lasts until end of combat.
+        let combat = matches!(
+            self.step,
+            Step::BeginningOfCombat
+                | Step::DeclareAttackers
+                | Step::DeclareBlockers
+                | Step::FirstStrikeDamage
+                | Step::CombatDamage
+        );
         for p in &mut self.players {
+            let keep = if combat {
+                p.combat_mana
+                    .min(p.mana_pool.colored[crate::mana::Color::Red as usize])
+            } else {
+                0
+            };
             p.mana_pool.empty();
+            p.combat_mana = keep;
+            p.mana_pool.colored[crate::mana::Color::Red as usize] = keep;
         }
         if self.step == Step::EndOfCombat && self.combat.take().is_some() {
             // Filters on attacking and blocking creatures see the change.
