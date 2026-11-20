@@ -1390,6 +1390,7 @@ impl Decompiler<'_> {
             CoreEffect::PutFromHand { filter, tapped } => Effect::PutFromHand {
                 filter: self.filter(filter),
                 tapped: *tapped,
+                also: None,
             },
             CoreEffect::IfThisWay { cond, then } => {
                 Effect::IfThisWay(self.this_way_cond(cond), self.sentences(then))

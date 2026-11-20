@@ -4189,11 +4189,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("switch {o}'s power and toughness")).until_eot()
         }
-        Effect::PutFromHand { filter, tapped } => {
-            let what = if *filter == Filter::default() {
-                "a card".to_string()
-            } else {
-                with_article(&format!("{} card", card_filter_phrase(filter, ctx.card)))
+        Effect::PutFromHand {
+            filter,
+            tapped,
+            also,
+        } => {
+            let one = |f: &Filter| {
+                if *f == Filter::default() {
+                    "a card".to_string()
+                } else {
+                    with_article(&format!("{} card", card_filter_phrase(f, ctx.card)))
+                }
+            };
+            // "a creature card and/or a land card".
+            let what = match also {
+                Some(g) => format!("{} and/or {}", one(filter), one(g)),
+                None => one(filter),
             };
             Clause::imperative(format!(
                 "put {what} from your hand onto the battlefield{}",

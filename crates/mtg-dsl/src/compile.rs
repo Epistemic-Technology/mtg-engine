@@ -2755,10 +2755,20 @@ impl Compiler<'_> {
                     to: r(*to),
                 });
             }
-            Effect::PutFromHand { filter, tapped } => out.push(CoreEffect::PutFromHand {
-                filter: self.filter(filter),
-                tapped: *tapped,
-            }),
+            // "a creature card and/or a land card": a choice of each in
+            // turn, either declined.
+            Effect::PutFromHand {
+                filter,
+                tapped,
+                also,
+            } => {
+                for f in std::iter::once(filter).chain(also) {
+                    out.push(CoreEffect::PutFromHand {
+                        filter: self.filter(f),
+                        tapped: *tapped,
+                    });
+                }
+            }
             Effect::IfThisWay(c, inner) => {
                 let then = self.sentences(inner)?;
                 let cond = self.this_way_cond(c);

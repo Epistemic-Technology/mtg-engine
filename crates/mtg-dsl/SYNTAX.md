@@ -1488,7 +1488,9 @@ them back in any order": the looker knows the cards where they are),
 owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of
 turn"), `put land card from hand onto battlefield [tapped]` ("put a land
-card from your hand onto the battlefield"), `<what> doesn't untap next
+card from your hand onto the battlefield"; `put creature card and land
+card from hand onto battlefield`: "put a creature card and/or a land card
+from your hand onto the battlefield", a choice of each in turn), `<what> doesn't untap next
 untap step` ("It doesn't untap during its controller's next untap
 step."; a group of targets named again, `targets 1 to 2 doesn't untap
 next untap step`, is "Those creatures don't untap during their

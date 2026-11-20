@@ -3568,10 +3568,13 @@ pub enum Effect {
         to: Recipient,
         all: bool,
     },
-    /// `put land card from hand onto battlefield [tapped]`.
+    /// `put land card from hand onto battlefield [tapped]`; `put creature
+    /// card and land card from hand onto battlefield`: "a creature card
+    /// and/or a land card", one of each (or neither).
     PutFromHand {
         filter: Filter,
         tapped: bool,
+        also: Option<Filter>,
     },
     /// `each opponent gets 1 poison counter`.
     AddPoison {

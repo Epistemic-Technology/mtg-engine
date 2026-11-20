@@ -946,9 +946,15 @@ impl Fmt {
                 self.recipient(*to, t),
                 if *steps { "s" } else { "" }
             ),
-            Effect::PutFromHand { filter: f, tapped } => format!(
-                "put {} card from hand onto battlefield{}",
+            Effect::PutFromHand {
+                filter: f,
+                tapped,
+                also,
+            } => format!(
+                "put {} card{} from hand onto battlefield{}",
                 filter(f),
+                also.as_ref()
+                    .map_or_else(String::new, |g| format!(" and {} card", filter(g))),
                 if *tapped { " tapped" } else { "" }
             ),
             Effect::AddEnergy { count, who } => {

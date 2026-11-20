@@ -5960,9 +5960,21 @@ impl P {
                 } else {
                     self.filter()?
                 };
-                self.expect_words(&["card", "from", "hand", "onto", "battlefield"])?;
+                self.expect_word("card")?;
+                let also = if self.eat_word("and") {
+                    let f = self.filter()?;
+                    self.expect_word("card")?;
+                    Some(f)
+                } else {
+                    None
+                };
+                self.expect_words(&["from", "hand", "onto", "battlefield"])?;
                 let tapped = self.eat_word("tapped");
-                Ok(Effect::PutFromHand { filter, tapped })
+                Ok(Effect::PutFromHand {
+                    filter,
+                    tapped,
+                    also,
+                })
             }
             "put"
                 if !matches!(self.peek(), Some(Tok::Num(_)))
