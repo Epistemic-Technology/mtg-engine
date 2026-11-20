@@ -1,0 +1,9 @@
+card "S.H.I.E.L.D. Helicarrier" {
+  oracle_id 0f2335bf-6a13-4483-997a-fd19d30c4d48
+  cost {4}
+  type Artifact — Vehicle
+  pt 4/5
+  keywords flying
+  triggered when this enters: create 2 "1/1 white Soldier creature"
+  crew 6
+}

@@ -1,0 +1,7 @@
+card "Lookout's Dispersal" {
+  oracle_id e2e44d46-9df4-46f8-acf7-5581b2257620
+  cost {2}{U}
+  type Instant
+  this spell costs {1} less if you control Pirate
+  spell: counter target spell unless its controller pays {4}
+}

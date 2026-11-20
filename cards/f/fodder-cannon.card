@@ -1,0 +1,6 @@
+card "Fodder Cannon" {
+  oracle_id aaf171bd-a4bb-4ce4-836a-da193c94f42e
+  cost {4}
+  type Artifact
+  activated {4}, {T}, sacrifice creature: deal 4 damage to target creature
+}

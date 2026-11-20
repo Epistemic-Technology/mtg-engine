@@ -1,0 +1,7 @@
+card "Master Transmuter" {
+  oracle_id da46786e-28df-4638-ab3d-121011d2f150
+  cost {3}{U}
+  type Artifact Creature — Human Artificer
+  pt 1/2
+  activated {U}, {T}, return artifact you control: you may put artifact card from hand onto battlefield
+}

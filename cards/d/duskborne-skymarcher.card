@@ -1,0 +1,8 @@
+card "Duskborne Skymarcher" {
+  oracle_id f7ff0046-8365-4ea4-9872-583d140f7b3f
+  cost {W}
+  type Creature — Vampire Cleric
+  pt 1/1
+  keywords flying
+  activated {W}, {T}: target attacking Vampire gets +1/+1
+}

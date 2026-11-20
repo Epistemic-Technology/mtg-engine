@@ -1,0 +1,9 @@
+card "Ethersworn Sphinx" {
+  oracle_id 71366469-04ea-4526-bf24-7abc02fdc5ab
+  cost {7}{W}{U}
+  type Artifact Creature — Sphinx
+  pt 4/4
+  affinity for artifact
+  keyword flying
+  keyword cascade
+}

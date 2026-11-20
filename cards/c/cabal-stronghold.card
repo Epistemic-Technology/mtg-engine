@@ -1,0 +1,6 @@
+card "Cabal Stronghold" {
+  oracle_id 066cd584-773c-4623-be53-8f6feda5a26a
+  type Land
+  mana {C}
+  activated {3}, {T}: add {B} count each basic Swamp you control
+}

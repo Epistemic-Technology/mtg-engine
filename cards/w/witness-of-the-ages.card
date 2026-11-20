@@ -1,0 +1,7 @@
+card "Witness of the Ages" {
+  oracle_id afeb9de8-7030-4797-a9c8-5a99de3c410f
+  cost {6}
+  type Artifact Creature — Golem
+  pt 4/4
+  morph {5}
+}

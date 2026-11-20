@@ -1,0 +1,6 @@
+card "Crumbling Necropolis" {
+  oracle_id 7190debf-708b-4f41-9714-0d0a5bd5a74e
+  type Land
+  enters tapped
+  mana {U} or {B} or {R}
+}

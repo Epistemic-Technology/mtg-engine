@@ -1,0 +1,14 @@
+card "Tempest Hart // Scan the Clouds" {
+  oracle_id 5005df36-a100-492d-89b9-e221793cfb56
+  layout adventure
+  cost {3}{G}
+  type Creature — Elemental Elk
+  pt 3/4
+  keywords trample
+  triggered whenever you cast with mana value 5 or greater spell: put 1 +1/+1 counters on this
+  face "Scan the Clouds" {
+    cost {1}{U}
+    type Instant — Adventure
+    spell: draw 2 cards then discard 2 cards
+  }
+}

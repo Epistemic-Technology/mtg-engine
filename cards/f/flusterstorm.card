@@ -1,0 +1,7 @@
+card "Flusterstorm" {
+  oracle_id 86bf58f2-7f25-4e10-b797-25e0e8e67769
+  cost {U}
+  type Instant
+  spell: counter target instant or sorcery spell unless its controller pays {1}
+  storm
+}

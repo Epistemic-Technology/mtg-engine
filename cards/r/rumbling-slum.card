@@ -1,0 +1,7 @@
+card "Rumbling Slum" {
+  oracle_id 77275fc5-5f70-4d7f-938e-f32b5c19c532
+  cost {1}{R}{G}{G}
+  type Creature — Elemental
+  pt 5/5
+  triggered at beginning of your upkeep: deal 1 damage to each player
+}

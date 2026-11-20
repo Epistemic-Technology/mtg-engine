@@ -1,0 +1,6 @@
+card "Cutthroat Maneuver" {
+  oracle_id 28a24aeb-1ede-4331-adae-6b2dfcd3e4da
+  cost {3}{B}
+  type Instant
+  spell: up to two target creatures each gets +1/+1 and gains lifelink
+}

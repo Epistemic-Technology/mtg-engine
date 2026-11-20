@@ -1,0 +1,8 @@
+card "Vanguard of Brimaz" {
+  oracle_id 4a4f6e85-df16-49a4-8fc6-149a28c2cb42
+  cost {W}{W}
+  type Creature — Cat Soldier
+  pt 2/2
+  keywords vigilance
+  label "Heroic" triggered whenever you cast a spell that targets this: create 1 "1/1 white Cat Soldier creature with vigilance"
+}

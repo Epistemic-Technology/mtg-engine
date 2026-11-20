@@ -1,0 +1,7 @@
+card "Tempest Caller" {
+  oracle_id b6ec5a5c-144d-4ac3-bd05-2dc360c670fd
+  cost {2}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 2/3
+  triggered when this enters: tap each creature target opponent controls
+}

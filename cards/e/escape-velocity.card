@@ -1,0 +1,8 @@
+card "Escape Velocity" {
+  oracle_id 2db4c197-982b-4c23-88e7-6ddf17378bb4
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+0, has haste
+  escape {1}{R} exile 2
+}

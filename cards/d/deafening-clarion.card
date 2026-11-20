@@ -1,0 +1,9 @@
+card "Deafening Clarion" {
+  oracle_id c9bbebbd-9f2d-499c-adb1-8d3170c3fd0d
+  cost {1}{R}{W}
+  type Sorcery
+  choose one or both {
+    mode: deal 3 damage to each creature
+    mode: each creature you control gains lifelink
+  }
+}

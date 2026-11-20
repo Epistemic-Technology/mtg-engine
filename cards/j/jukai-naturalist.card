@@ -1,0 +1,8 @@
+card "Jukai Naturalist" {
+  oracle_id c4d1a78f-0cca-4042-862c-8f322ee25d50
+  cost {G}{W}
+  type Enchantment Creature — Human Monk
+  pt 2/2
+  keywords lifelink
+  spells enchantment you cast cost {1} less
+}

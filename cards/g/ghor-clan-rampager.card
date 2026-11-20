@@ -1,0 +1,8 @@
+card "Ghor-Clan Rampager" {
+  oracle_id ec7a9e7f-742b-4344-983e-73372c6a1760
+  cost {2}{R}{G}
+  type Creature — Beast
+  pt 4/4
+  keywords trample
+  label "Bloodrush" activated {R}{G}, discard this: target attacking creature gets +4/+4 and gains trample
+}

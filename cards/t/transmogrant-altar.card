@@ -1,0 +1,7 @@
+card "Transmogrant Altar" {
+  oracle_id 239fea8d-c49d-40bc-96e1-b84d328a0e1e
+  cost {3}
+  type Artifact
+  activated {B}, {T}, sacrifice creature: add {C}{C}{C}
+  activated {2}, {T}, sacrifice creature, sorcery: create 1 "3/3 colorless Zombie artifact creature"
+}

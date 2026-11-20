@@ -1,0 +1,7 @@
+card "Dragonmaster Outcast" {
+  oracle_id b6fb79c3-cd32-4045-8177-e52841eea65b
+  cost {R}
+  type Creature — Human Shaman
+  pt 1/1
+  triggered at beginning of your upkeep if you control 6 land: create 1 "5/5 red Dragon creature with flying"
+}

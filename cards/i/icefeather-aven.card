@@ -1,0 +1,9 @@
+card "Icefeather Aven" {
+  oracle_id 9fb901db-1ff7-4a8d-8233-fe7e3dee7fd1
+  cost {G}{U}
+  type Creature — Bird Shaman
+  pt 2/2
+  keywords flying
+  morph {1}{G}{U}
+  triggered when this is turned face up: you may return another target creature to hand
+}

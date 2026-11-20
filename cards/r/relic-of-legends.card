@@ -1,0 +1,7 @@
+card "Relic of Legends" {
+  oracle_id 4d9554de-c005-41ab-a941-39328ebff9de
+  cost {3}
+  type Artifact
+  mana any
+  activated tap untapped legendary creature you control: add any
+}

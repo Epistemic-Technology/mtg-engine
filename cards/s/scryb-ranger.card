@@ -1,0 +1,8 @@
+card "Scryb Ranger" {
+  oracle_id d1961110-575b-4a1b-9cee-db0e1f0fdbc1
+  cost {1}{G}
+  type Creature — Faerie Ranger
+  pt 1/1
+  keywords flash, flying, protection from blue
+  activated return Forest you control, once: untap target creature
+}

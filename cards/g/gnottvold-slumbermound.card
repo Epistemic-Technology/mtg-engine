@@ -1,0 +1,7 @@
+card "Gnottvold Slumbermound" {
+  oracle_id 2e413d18-2c55-49be-9e49-54d170c978a2
+  type Land
+  enters tapped
+  mana {R}
+  activated {3}{R}{G}{G}, {T}, sacrifice this: destroy target land; create 1 "4/4 green Troll Warrior creature with trample"
+}

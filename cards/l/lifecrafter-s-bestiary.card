@@ -1,0 +1,7 @@
+card "Lifecrafter's Bestiary" {
+  oracle_id 5f2a3797-28aa-4c7a-ba2b-fd243a1747fd
+  cost {3}
+  type Artifact
+  triggered at beginning of your upkeep: scry 1
+  triggered whenever you cast creature spell: you may pay {G}; if you do, draw 1 cards
+}

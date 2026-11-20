@@ -1,0 +1,7 @@
+card "Lazotep Chancellor" {
+  oracle_id c3e67b8f-1c91-4a2f-b924-35bbaff4bab9
+  cost {U}{B}
+  type Creature — Zombie Wizard
+  pt 1/3
+  triggered whenever you discard a card: you may pay {1}; if you do, amass Zombies 2
+}

@@ -1,0 +1,9 @@
+card "Fight as One" {
+  oracle_id 16f93781-6740-40c7-a727-7911beac4e74
+  cost {W}
+  type Instant
+  choose one or both {
+    mode: target Human creature you control gets +1/+1 and gains indestructible
+    mode: target non-Human creature you control gets +1/+1 and gains indestructible
+  }
+}

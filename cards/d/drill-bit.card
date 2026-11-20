@@ -1,0 +1,7 @@
+card "Drill Bit" {
+  oracle_id 0dbd6e47-a8b4-4268-ba44-8924cd4963a6
+  cost {2}{B}
+  type Sorcery
+  spectacle {B}
+  spell: target player reveals hand discarding nonland card
+}

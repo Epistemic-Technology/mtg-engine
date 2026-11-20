@@ -1,0 +1,9 @@
+card "Psychotrope Thallid" {
+  oracle_id 384c61f2-17ed-4c7a-8722-e0a05e9dcaf9
+  cost {2}{G}
+  type Creature — Fungus
+  pt 1/1
+  triggered at beginning of your upkeep: put 1 spore counters on this
+  activated remove 3 spore counters from this: create 1 "1/1 green Saproling creature"
+  activated {1}, sacrifice Saproling: draw 1 cards
+}

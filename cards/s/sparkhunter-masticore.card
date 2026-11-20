@@ -1,0 +1,10 @@
+card "Sparkhunter Masticore" {
+  oracle_id 1306c72f-fc6b-470b-a95e-0364e0e30ac7
+  cost {3}
+  type Artifact Creature — Masticore
+  pt 3/4
+  additional cost discard 1 card
+  protection from planeswalker
+  activated {1}: deal 1 damage to target planeswalker
+  activated {3}: this gains indestructible
+}

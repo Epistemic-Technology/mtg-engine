@@ -1,0 +1,8 @@
+card "Soldier of the Pantheon" {
+  oracle_id a97f3131-586b-440f-a646-50d65e12e13f
+  cost {W}
+  type Creature — Human Soldier
+  pt 2/1
+  protection from multicolored
+  triggered whenever an opponent casts multicolored spell: you gains 1 life
+}

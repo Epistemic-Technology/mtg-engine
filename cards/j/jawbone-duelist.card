@@ -1,0 +1,8 @@
+card "Jawbone Duelist" {
+  oracle_id 14af3ec5-d90a-4560-a70a-8645765f1253
+  cost {1}{W}
+  type Creature — Phyrexian Soldier
+  pt 1/1
+  keywords double strike
+  toxic 1
+}

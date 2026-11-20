@@ -1,0 +1,8 @@
+card "Poison-Blade Mentor" {
+  oracle_id 60a3345c-3234-4f4b-baab-df12dad6b44b
+  cost {1}{B}
+  type Creature — Human Assassin
+  pt 2/1
+  keywords deathtouch
+  triggered whenever this attacks: another target Assassin you control gains deathtouch
+}

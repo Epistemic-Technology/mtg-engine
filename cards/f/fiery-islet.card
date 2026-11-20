@@ -1,0 +1,6 @@
+card "Fiery Islet" {
+  oracle_id 026f4a4b-eedd-44e1-9d37-ca4fb8d6db98
+  type Land
+  activated {T}, pay 1 life: add {U} or {R}
+  activated {1}, {T}, sacrifice this: draw 1 cards
+}

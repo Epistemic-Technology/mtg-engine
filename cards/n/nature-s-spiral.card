@@ -1,0 +1,6 @@
+card "Nature's Spiral" {
+  oracle_id 565922d6-8152-411f-8d4d-dc7c8523a49b
+  cost {1}{G}
+  type Sorcery
+  spell: return target permanent card from your graveyard to hand
+}

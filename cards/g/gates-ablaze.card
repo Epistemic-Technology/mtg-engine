@@ -1,0 +1,6 @@
+card "Gates Ablaze" {
+  oracle_id 3b97bf8e-d5c4-4eae-a453-73456e0461a1
+  cost {2}{R}
+  type Sorcery
+  spell: deal count where Gate you control damage to each creature
+}

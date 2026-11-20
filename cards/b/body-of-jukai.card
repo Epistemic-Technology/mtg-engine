@@ -1,0 +1,8 @@
+card "Body of Jukai" {
+  oracle_id 90d33e75-17bd-4fc9-82f5-eff254135df5
+  cost {7}{G}{G}
+  type Creature — Spirit
+  pt 8/5
+  keywords trample
+  soulshift 8
+}

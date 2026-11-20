@@ -1,0 +1,7 @@
+card "Phyrexian Crusader" {
+  oracle_id 91760bdf-a82a-4f3d-b925-3bc81ffbd41f
+  cost {1}{B}{B}
+  type Creature — Phyrexian Zombie Knight
+  pt 2/2
+  keywords first strike, protection from red, protection from white, infect
+}

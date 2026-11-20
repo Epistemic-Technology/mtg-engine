@@ -1,0 +1,8 @@
+card "Freejam Regent" {
+  oracle_id 87a72c3d-e787-4dd8-b934-4fff4573af6c
+  cost {4}{R}{R}
+  type Creature — Cat Dragon
+  pt 4/4
+  keywords improvise, flying
+  activated {1}{R}: this gets +2/+0
+}

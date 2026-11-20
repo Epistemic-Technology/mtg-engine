@@ -1,0 +1,8 @@
+card "Silklash Spider" {
+  oracle_id 2d0c73da-ed8c-44fc-abd9-7c344b1f890d
+  cost {3}{G}{G}
+  type Creature — Spider
+  pt 2/7
+  keywords reach
+  activated {X}{G}{G}: deal X damage to each creature with flying
+}

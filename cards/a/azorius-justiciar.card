@@ -1,0 +1,7 @@
+card "Azorius Justiciar" {
+  oracle_id cba0eae3-73ea-4ea9-87bf-1015e490da90
+  cost {2}{W}{W}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: detain up to two target creatures your opponents control
+}

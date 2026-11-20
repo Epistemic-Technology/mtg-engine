@@ -1,0 +1,9 @@
+card "Energy Chamber" {
+  oracle_id c0880a44-27d5-4e21-915c-678ee46fa3d9
+  cost {2}
+  type Artifact
+  triggered at beginning of your upkeep: choose one {
+    mode: put 1 +1/+1 counters on target artifact creature
+    mode: put 1 charge counters on target noncreature artifact
+  }
+}

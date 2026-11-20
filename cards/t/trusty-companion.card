@@ -1,0 +1,7 @@
+card "Trusty Companion" {
+  oracle_id bd8c633c-ba99-47ac-a1d1-9e15aa948933
+  cost {1}{W}
+  type Creature — Hyena
+  pt 3/2
+  keywords vigilance, can't attack alone
+}

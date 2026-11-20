@@ -1,0 +1,6 @@
+card "Psychic Corrosion" {
+  oracle_id 328b42f1-d679-4f9c-80e3-38fe3b965d10
+  cost {2}{U}
+  type Enchantment
+  triggered whenever you draw a card: each opponent mills 2 cards
+}

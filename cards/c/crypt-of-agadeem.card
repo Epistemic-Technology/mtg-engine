@@ -1,0 +1,7 @@
+card "Crypt of Agadeem" {
+  oracle_id 4fe8af73-c84a-44bd-9739-ee5c8b027874
+  type Land
+  enters tapped
+  mana {B}
+  activated {2}, {T}: add {B} count each graveyard black creature
+}

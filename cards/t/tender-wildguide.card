@@ -1,0 +1,9 @@
+card "Tender Wildguide" {
+  oracle_id 74868bc0-6081-4f46-a2c6-9521cd5465aa
+  cost {1}{G}
+  type Creature — Possum Druid
+  pt 2/2
+  offspring {2}
+  mana any
+  activated {T}: put 1 +1/+1 counters on this
+}

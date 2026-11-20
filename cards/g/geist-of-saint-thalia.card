@@ -1,0 +1,8 @@
+card "Geist of Saint Thalia" {
+  oracle_id ef32a4a9-14e2-4738-b4c2-53ce5e1d2a53
+  cost {1}{U}
+  type Legendary Creature — Spirit Cleric
+  pt 1/2
+  keywords flying
+  spells noncreature you cast cost {1} less
+}

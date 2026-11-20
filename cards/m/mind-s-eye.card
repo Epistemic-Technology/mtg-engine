@@ -1,0 +1,6 @@
+card "Mind's Eye" {
+  oracle_id 63fd2a57-7a47-4e07-947c-f4e9da7ee538
+  cost {5}
+  type Artifact
+  triggered whenever an opponent draws a card: you may pay {1}; if you do, draw 1 cards
+}

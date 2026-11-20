@@ -1,0 +1,8 @@
+card "Famished Paladin" {
+  oracle_id f80df9c4-f682-4a70-81fe-03c7c5c256e1
+  cost {1}{W}
+  type Creature — Vampire Knight
+  pt 3/3
+  keywords doesn't untap
+  triggered whenever you gain life: untap this
+}

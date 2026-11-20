@@ -1,0 +1,7 @@
+card "Paladin en-Vec" {
+  oracle_id fd8722e1-9c41-4037-ab7e-47e2aa9858a0
+  cost {1}{W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike, protection from black, protection from red
+}

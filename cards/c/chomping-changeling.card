@@ -1,0 +1,8 @@
+card "Chomping Changeling" {
+  oracle_id d740dbd9-8e90-4121-8d53-c6ddf5178d58
+  cost {2}{G}
+  type Creature — Shapeshifter
+  pt 1/2
+  keywords changeling
+  triggered when this enters: destroy up to one target artifact or enchantment
+}

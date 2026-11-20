@@ -1,0 +1,8 @@
+card "Undercity Troll" {
+  oracle_id b7851b17-faa2-4767-9716-86997b882690
+  cost {1}{G}
+  type Creature — Troll
+  pt 2/2
+  renown 1
+  activated {2}{G}: regenerate this
+}

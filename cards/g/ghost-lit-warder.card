@@ -1,0 +1,8 @@
+card "Ghost-Lit Warder" {
+  oracle_id cf1a4b18-62fa-46f3-baeb-c0f699c9cdde
+  cost {1}{U}
+  type Creature — Spirit
+  pt 1/1
+  activated {3}{U}, {T}: counter target spell unless its controller pays {2}
+  label "Channel" activated {3}{U}, discard this: counter target spell unless its controller pays {4}
+}

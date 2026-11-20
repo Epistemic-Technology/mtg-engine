@@ -1,0 +1,6 @@
+card "Seer's Sundial" {
+  oracle_id 9929d7ba-cdc5-4099-a0ee-3a15073336f3
+  cost {4}
+  type Artifact
+  label "Landfall" triggered whenever land you control enters: you may pay {2}; if you do, draw 1 cards
+}

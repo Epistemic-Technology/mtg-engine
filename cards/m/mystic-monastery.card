@@ -1,0 +1,6 @@
+card "Mystic Monastery" {
+  oracle_id 834b8f71-9a45-42ae-9e99-e749fa6fb45e
+  type Land
+  enters tapped
+  mana {U} or {R} or {W}
+}

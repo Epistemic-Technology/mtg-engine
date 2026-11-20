@@ -1,0 +1,9 @@
+card "Furnace Hellkite" {
+  oracle_id 647980b2-088c-43a4-bdc4-5865f03a4fc4
+  cost {5}{R}{R}
+  type Artifact Creature — Dragon
+  pt 5/5
+  affinity for artifact
+  keyword flying
+  activated {R}: this gets +1/+0
+}

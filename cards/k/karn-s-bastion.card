@@ -1,0 +1,6 @@
+card "Karn's Bastion" {
+  oracle_id 9fb8cd81-403a-4988-8f1c-b8eccf8abd9c
+  type Land
+  mana {C}
+  activated {4}, {T}: proliferate
+}

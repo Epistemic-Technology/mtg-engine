@@ -1,0 +1,7 @@
+card "Siegehorn Ceratops" {
+  oracle_id f7730e2e-aa62-40e7-836d-e6ddb6893816
+  cost {G}{W}
+  type Creature — Dinosaur
+  pt 2/2
+  label "Enrage" triggered whenever this is dealt damage: put 2 +1/+1 counters on this
+}

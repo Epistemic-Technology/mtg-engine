@@ -1,0 +1,6 @@
+card "Restore with Empathy" {
+  oracle_id cb1e697f-6689-4f0b-8725-61d51432b8dd
+  cost {2}{G}
+  type Instant
+  spell: return target permanent card from your graveyard to hand; you gains 4 life
+}

@@ -1,0 +1,8 @@
+card "Servant of the Conduit" {
+  oracle_id df1a8846-b4da-4e9b-8cf3-ee687e4c606b
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 2/2
+  triggered when this enters: you get 2 energy
+  activated {T}, pay 1 energy: add any
+}

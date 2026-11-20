@@ -1,0 +1,8 @@
+card "Witch Hunter" {
+  oracle_id 5fc1f04a-2c39-4b3a-b62e-6e30c3d8a583
+  cost {2}{W}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {T}: deal 1 damage to target player or planeswalker
+  activated {1}{W}{W}, {T}: return target creature an opponent controls to hand
+}

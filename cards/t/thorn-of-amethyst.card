@@ -1,0 +1,6 @@
+card "Thorn of Amethyst" {
+  oracle_id 0c6c5336-9233-4ab1-9d55-79f20be7ea57
+  cost {2}
+  type Artifact
+  spells noncreature cost {1} more
+}

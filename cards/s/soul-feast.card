@@ -1,0 +1,6 @@
+card "Soul Feast" {
+  oracle_id 8186fd80-015f-470c-9e1c-cbf45764a057
+  cost {3}{B}{B}
+  type Sorcery
+  spell: target player loses 4 life and you gains 4 life
+}

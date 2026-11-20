@@ -1,0 +1,7 @@
+card "Baku Altar" {
+  oracle_id 8443b8c2-d0ab-4fb1-ad35-7e5e4cb345b6
+  cost {2}
+  type Artifact
+  triggered whenever you cast Spirit or Arcane spell: you may put 1 ki counters on this
+  activated {2}, {T}, remove 1 ki counters from this: create 1 "1/1 colorless Spirit creature"
+}

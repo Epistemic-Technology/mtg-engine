@@ -1,0 +1,7 @@
+card "Rhonas's Monument" {
+  oracle_id b9a7c722-6b24-4383-ac6e-2a30f7834269
+  cost {3}
+  type Legendary Artifact
+  spells green creature you cast cost {1} less
+  triggered whenever you cast creature spell: target creature you control gets +2/+2 and gains trample
+}

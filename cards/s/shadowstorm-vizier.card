@@ -1,0 +1,8 @@
+card "Shadowstorm Vizier" {
+  oracle_id b3e5b559-660c-4e14-9209-29efc07d3563
+  cost {U}{B}
+  type Creature — Human Cleric
+  pt 1/3
+  keywords flying
+  triggered whenever you cycle or discard a card: this gets +1/+1
+}

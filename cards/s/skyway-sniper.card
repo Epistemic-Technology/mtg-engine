@@ -1,0 +1,8 @@
+card "Skyway Sniper" {
+  oracle_id 8d907825-25f9-4b25-9fac-e0a207ed1797
+  cost {G}
+  type Creature — Elf Archer
+  pt 1/2
+  keywords reach
+  activated {2}{G}: deal 1 damage to target creature with flying
+}

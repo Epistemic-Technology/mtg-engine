@@ -1,0 +1,7 @@
+card "Gloryscale Viashino" {
+  oracle_id d94a6e12-0197-4125-9a8c-431e42edb1da
+  cost {1}{R}{G}{W}
+  type Creature — Lizard Soldier
+  pt 3/3
+  triggered whenever you cast multicolored spell: this gets +3/+3
+}

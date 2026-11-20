@@ -1,0 +1,8 @@
+card "Honored Hydra" {
+  oracle_id db63d999-97a6-4a62-83bd-e0677e6f8956
+  cost {5}{G}
+  type Creature — Snake Hydra
+  pt 6/6
+  keywords trample
+  embalm {3}{G}
+}

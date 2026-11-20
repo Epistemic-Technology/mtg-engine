@@ -1,0 +1,7 @@
+card "Sky Weaver" {
+  oracle_id 25933e8b-fa48-4152-9eae-388aef10ad37
+  cost {1}{U}
+  type Creature — Metathran Wizard
+  pt 2/1
+  activated {2}: target white or black creature gains flying
+}

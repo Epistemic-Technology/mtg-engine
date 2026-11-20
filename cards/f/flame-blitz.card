@@ -1,0 +1,7 @@
+card "Flame Blitz" {
+  oracle_id 817eb91a-e3b4-40c3-9a6e-e4d0387e0f4f
+  cost {R}
+  type Enchantment
+  triggered at beginning of your end step: deal 5 damage to each planeswalker
+  cycling {2}
+}

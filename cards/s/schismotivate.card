@@ -1,0 +1,6 @@
+card "Schismotivate" {
+  oracle_id d7081ec5-0070-4bc1-97c4-544ac08581ee
+  cost {1}{U}{R}
+  type Instant
+  spell: target creature gets +4/+0; another target creature gets -4/-0
+}

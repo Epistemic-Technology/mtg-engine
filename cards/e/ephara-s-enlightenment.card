@@ -1,0 +1,9 @@
+card "Ephara's Enlightenment" {
+  oracle_id da848568-1c66-4ce1-87f0-a35c317f2c61
+  cost {1}{W}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: put 1 +1/+1 counters on enchanted creature
+  static enchanted: has flying
+  triggered whenever creature you control enters: you may return this to hand
+}

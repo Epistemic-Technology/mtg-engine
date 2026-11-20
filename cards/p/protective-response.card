@@ -1,0 +1,7 @@
+card "Protective Response" {
+  oracle_id c840b89b-81be-4644-8bb5-35d14b1bc620
+  cost {2}{W}
+  type Instant
+  keywords convoke
+  spell: destroy target attacking or blocking creature
+}

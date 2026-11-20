@@ -1,0 +1,9 @@
+card "Stonecoil Serpent" {
+  oracle_id 78124cd1-2658-43f3-a339-0755d84154d2
+  cost {X}
+  type Artifact Creature — Snake
+  pt 0/0
+  keywords reach, trample
+  protection from multicolored
+  enters with X +1/+1 counters
+}

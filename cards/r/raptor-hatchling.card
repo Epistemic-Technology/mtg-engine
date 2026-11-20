@@ -1,0 +1,7 @@
+card "Raptor Hatchling" {
+  oracle_id 91638137-06ba-4b21-b088-28d2b4d1d8da
+  cost {1}{R}
+  type Creature — Dinosaur
+  pt 1/1
+  label "Enrage" triggered whenever this is dealt damage: create 1 "3/3 green Dinosaur creature with trample"
+}

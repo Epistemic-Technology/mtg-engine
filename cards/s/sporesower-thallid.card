@@ -1,0 +1,8 @@
+card "Sporesower Thallid" {
+  oracle_id dd840d84-bc4a-4420-b8ac-99093a5aa253
+  cost {2}{G}{G}
+  type Creature — Fungus
+  pt 4/4
+  triggered at beginning of your upkeep: put 1 spore counters on each Fungus you control
+  activated remove 3 spore counters from this: create 1 "1/1 green Saproling creature"
+}

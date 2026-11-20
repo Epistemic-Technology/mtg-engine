@@ -1,0 +1,9 @@
+card "Utopia Mycon" {
+  oracle_id 492dafd8-0393-4151-845c-d9ca10bda03e
+  cost {G}
+  type Creature — Fungus
+  pt 0/2
+  triggered at beginning of your upkeep: put 1 spore counters on this
+  activated remove 3 spore counters from this: create 1 "1/1 green Saproling creature"
+  activated sacrifice Saproling: add any
+}

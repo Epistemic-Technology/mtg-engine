@@ -1,0 +1,6 @@
+card "Mortify" {
+  oracle_id faa01ed1-ccfa-4e58-951f-cd81f9068027
+  cost {1}{W}{B}
+  type Instant
+  spell: destroy target creature or enchantment
+}

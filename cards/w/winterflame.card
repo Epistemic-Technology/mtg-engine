@@ -1,0 +1,9 @@
+card "Winterflame" {
+  oracle_id 8d3a0b81-1895-47a8-87a3-3e4093cbd951
+  cost {1}{U}{R}
+  type Instant
+  choose one or both {
+    mode: tap target creature
+    mode: deal 2 damage to target creature
+  }
+}

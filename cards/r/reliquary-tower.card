@@ -1,0 +1,6 @@
+card "Reliquary Tower" {
+  oracle_id c23e5b80-08d2-4e24-9908-fe2aa4f30f6f
+  type Land
+  hand size none
+  mana {C}
+}

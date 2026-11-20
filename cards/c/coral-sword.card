@@ -1,0 +1,9 @@
+card "Coral Sword" {
+  oracle_id d4f0dd14-bc2a-4c6d-bfd5-bc5838ab18a5
+  cost {R}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; that creature gains first strike
+  static enchanted: +1/+0
+  equip {1}
+}

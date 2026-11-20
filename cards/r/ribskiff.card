@@ -1,0 +1,9 @@
+card "Ribskiff" {
+  oracle_id 8f761657-7127-4552-a200-532e063e2419
+  cost {4}
+  type Artifact — Vehicle
+  pt 4/4
+  toxic 2
+  triggered when this enters: draw 1 cards
+  crew 3
+}

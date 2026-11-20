@@ -1,0 +1,12 @@
+card "Vantress Transmuter // Croaking Curse" {
+  oracle_id 89ae3475-9063-4700-a7bd-47d5dcd43a3b
+  layout adventure
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 3/4
+  face "Croaking Curse" {
+    cost {1}{U}
+    type Sorcery — Adventure
+    spell: tap target creature; create 1 "Cursed Role" attached to target 1
+  }
+}

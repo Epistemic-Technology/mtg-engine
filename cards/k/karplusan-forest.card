@@ -1,0 +1,6 @@
+card "Karplusan Forest" {
+  oracle_id bd912666-f37f-4767-af6f-9e6d0fcccacf
+  type Land
+  mana {C}
+  activated {T}: add {R} or {G}; deal 1 damage to you
+}

@@ -1,0 +1,7 @@
+card "Vanquish the Horde" {
+  oracle_id a332e80a-dc51-4dc6-bc85-e114a1c6fdb8
+  cost {6}{W}{W}
+  type Sorcery
+  this spell costs {1} less count each creature on battlefield
+  spell: destroy all creatures
+}

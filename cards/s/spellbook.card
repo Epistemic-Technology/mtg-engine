@@ -1,0 +1,6 @@
+card "Spellbook" {
+  oracle_id 83133f51-bfbd-4db5-9be0-f660e3b66435
+  cost {0}
+  type Artifact — Book
+  hand size none
+}

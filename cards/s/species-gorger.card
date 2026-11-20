@@ -1,0 +1,7 @@
+card "Species Gorger" {
+  oracle_id 0e741c79-5ea4-457d-a7d3-b11154459246
+  cost {3}{G}{U}
+  type Creature — Frog Beast
+  pt 6/6
+  triggered at beginning of your upkeep: return 1 creature you control chosen
+}

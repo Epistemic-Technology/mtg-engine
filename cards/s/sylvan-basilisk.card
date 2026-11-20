@@ -1,0 +1,7 @@
+card "Sylvan Basilisk" {
+  oracle_id 4f348e7a-fe13-4621-bd88-5d2fb5b597f2
+  cost {3}{G}{G}
+  type Creature — Basilisk
+  pt 2/4
+  triggered whenever this becomes blocked by a creature: destroy that creature
+}

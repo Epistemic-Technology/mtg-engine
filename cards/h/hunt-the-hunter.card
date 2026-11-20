@@ -1,0 +1,6 @@
+card "Hunt the Hunter" {
+  oracle_id 00afc724-be09-4e92-a50c-88011bd10ccd
+  cost {G}
+  type Sorcery
+  spell: target green creature you control gets +2/+2; target 1 fights target green creature an opponent controls
+}

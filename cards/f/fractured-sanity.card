@@ -1,0 +1,8 @@
+card "Fractured Sanity" {
+  oracle_id cf32524e-0df9-4af8-9371-84feeb0a86c6
+  cost {U}{U}{U}
+  type Sorcery
+  spell: each opponent mills 14 cards
+  cycling {1}{U}
+  triggered when you cycle this: each opponent mills 4 cards
+}

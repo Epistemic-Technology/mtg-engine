@@ -1,0 +1,6 @@
+card "Honden of Infinite Rage" {
+  oracle_id 0cb76b04-d9c3-46fc-a3f2-5f0cb0d91761
+  cost {2}{R}
+  type Legendary Enchantment — Shrine
+  triggered at beginning of your upkeep: deal count equal Shrine you control damage to any target
+}

@@ -1,0 +1,7 @@
+card "Mannichi, the Fevered Dream" {
+  oracle_id 3aafbf63-35c0-4f62-9281-a4d460e8d6f3
+  cost {2}{R}
+  type Legendary Creature — Spirit
+  pt 1/2
+  activated {1}{R}: switch pt of each creature
+}

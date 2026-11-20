@@ -1,0 +1,7 @@
+card "Cooperation" {
+  oracle_id 19f7a0f2-aa3f-4253-be44-b08056918a26
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has banding
+}

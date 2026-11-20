@@ -1,0 +1,7 @@
+card "Murasa Ranger" {
+  oracle_id 84ba3598-a2d2-46d4-b73c-ab139cac37c4
+  cost {3}{G}
+  type Creature — Human Warrior Ranger
+  pt 3/3
+  label "Landfall" triggered whenever land you control enters: you may pay {3}{G}; if you do, put 2 +1/+1 counters on this
+}

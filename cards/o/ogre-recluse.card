@@ -1,0 +1,7 @@
+card "Ogre Recluse" {
+  oracle_id 17ff0155-0006-464a-a65f-b8e1b9aeba0b
+  cost {3}{R}
+  type Creature — Ogre Warrior
+  pt 5/4
+  triggered whenever a player casts a spell: tap this
+}

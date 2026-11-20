@@ -1,0 +1,14 @@
+card "Thrash // Threat" {
+  oracle_id 342d20ca-178d-433e-9630-6fed33a8d0bc
+  layout split
+  face "Thrash" {
+    cost {R/G}{R/G}
+    type Instant
+    spell: target creature you control bites target creature or planeswalker you don't control
+  }
+  face "Threat" {
+    cost {2}{R}{G}
+    type Sorcery
+    spell: create 1 "4/4 red and green Beast creature with trample"
+  }
+}

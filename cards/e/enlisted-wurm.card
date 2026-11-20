@@ -1,0 +1,7 @@
+card "Enlisted Wurm" {
+  oracle_id 69191459-36ca-4e71-b4bb-0270c4cdaee9
+  cost {4}{G}{W}
+  type Creature — Wurm
+  pt 5/5
+  keywords cascade
+}

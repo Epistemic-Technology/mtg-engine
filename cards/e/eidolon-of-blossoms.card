@@ -1,0 +1,7 @@
+card "Eidolon of Blossoms" {
+  oracle_id 77ccbea1-70af-4194-adad-39a904221c75
+  cost {2}{G}{G}
+  type Enchantment Creature — Spirit
+  pt 2/2
+  label "Constellation" triggered whenever this or enchantment you control enters: draw 1 cards
+}

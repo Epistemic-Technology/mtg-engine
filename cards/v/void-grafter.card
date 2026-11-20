@@ -1,0 +1,8 @@
+card "Void Grafter" {
+  oracle_id 01d202b9-1ac6-484c-a208-a8bc69bccdb2
+  cost {1}{G}{U}
+  type Creature — Eldrazi Drone
+  pt 2/4
+  keywords devoid, flash
+  triggered when this enters: another target creature you control gains hexproof
+}

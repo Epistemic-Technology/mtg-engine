@@ -1,0 +1,7 @@
+card "Joiner Adept" {
+  oracle_id 139b098c-d4be-4dca-9bde-9eb8ea97c7bf
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 2/1
+  static land you control: has ability { mana any }
+}

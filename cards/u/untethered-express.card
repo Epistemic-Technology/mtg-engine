@@ -1,0 +1,9 @@
+card "Untethered Express" {
+  oracle_id 652f049d-770e-4bd7-b65f-fe56e618366a
+  cost {4}
+  type Artifact — Vehicle
+  pt 4/4
+  keywords trample
+  triggered whenever this attacks: put 1 +1/+1 counters on this
+  crew 1
+}

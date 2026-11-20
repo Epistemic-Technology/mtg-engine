@@ -1,0 +1,9 @@
+card "Reinforced Ronin" {
+  oracle_id 5e891927-b6cb-40ae-8270-0e72820fd7f5
+  cost {R}
+  type Artifact Creature — Human Samurai
+  pt 2/2
+  keywords haste
+  triggered at beginning of your end step: return this to hand
+  label "Channel" activated {1}{R}, discard this: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Slobad, Goblin Tinkerer" {
+  oracle_id 1f2d6cf4-b8f4-440f-ac08-ca47ada868ac
+  cost {1}{R}
+  type Legendary Creature — Goblin Artificer
+  pt 1/2
+  activated sacrifice artifact: target artifact gains indestructible
+}

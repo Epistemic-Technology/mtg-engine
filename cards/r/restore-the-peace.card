@@ -1,0 +1,6 @@
+card "Restore the Peace" {
+  oracle_id aeca0661-8b71-4085-81e9-bb0884fc9831
+  cost {1}{W}{U}
+  type Instant
+  spell: return each creature that dealt damage this turn to hand
+}

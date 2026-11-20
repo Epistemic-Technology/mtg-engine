@@ -1,0 +1,16 @@
+card "Daybreak Ranger // Nightfall Predator" {
+  oracle_id 280624aa-5f9a-48fd-85ea-815c96c747b3
+  layout transform
+  cost {2}{G}
+  type Creature — Human Archer Ranger Werewolf
+  pt 2/2
+  activated {T}: deal 2 damage to target creature with flying
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Nightfall Predator" {
+    type Creature — Werewolf
+    pt 4/4
+    color green
+    activated {R}, {T}: this fights target creature
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

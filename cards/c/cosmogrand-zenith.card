@@ -1,0 +1,10 @@
+card "Cosmogrand Zenith" {
+  oracle_id e2cd65f6-7cbc-497c-bdc9-698ff17da31e
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/4
+  triggered whenever you cast your second spell each turn: choose one {
+    mode: create 2 "1/1 white Human Soldier creature"
+    mode: put 1 +1/+1 counters on each creature you control
+  }
+}

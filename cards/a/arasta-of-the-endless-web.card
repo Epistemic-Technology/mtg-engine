@@ -1,0 +1,8 @@
+card "Arasta of the Endless Web" {
+  oracle_id 695eea46-1535-48c5-bbb6-0b8379e77bfc
+  cost {2}{G}{G}
+  type Legendary Enchantment Creature — Spider
+  pt 3/5
+  keywords reach
+  triggered whenever an opponent casts instant or sorcery spell: create 1 "1/2 green Spider creature with reach"
+}

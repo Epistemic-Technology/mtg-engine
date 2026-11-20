@@ -1,0 +1,7 @@
+card "Scatter to the Winds" {
+  oracle_id 13d600e6-86b4-4813-8f34-75f23717f433
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell
+  awaken 3 {4}{U}{U}
+}

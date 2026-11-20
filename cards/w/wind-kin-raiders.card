@@ -1,0 +1,7 @@
+card "Wind-Kin Raiders" {
+  oracle_id 74dcff4f-c126-4bbb-b6f0-3f3315bc95fe
+  cost {4}{U}{U}
+  type Creature — Human Artificer
+  pt 4/3
+  keywords improvise, flying
+}

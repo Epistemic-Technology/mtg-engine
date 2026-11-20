@@ -1,0 +1,8 @@
+card "Thorn Mammoth" {
+  oracle_id d7337b13-5459-434a-aa56-e1547b875594
+  cost {5}{G}{G}
+  type Creature — Elephant
+  pt 6/6
+  keywords trample
+  triggered whenever this or creature you control enters: this fights up to one target creature you don't control
+}

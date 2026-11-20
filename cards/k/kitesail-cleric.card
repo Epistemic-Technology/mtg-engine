@@ -1,0 +1,9 @@
+card "Kitesail Cleric" {
+  oracle_id 0b9bb0d7-4139-46b6-a058-2f79be64aef2
+  cost {W}
+  type Creature — Kor Cleric
+  pt 1/1
+  kicker {2}{W}
+  keyword flying
+  triggered when this enters if kicked: tap up to two target creatures
+}

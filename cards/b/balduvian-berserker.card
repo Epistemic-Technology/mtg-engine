@@ -1,0 +1,8 @@
+card "Balduvian Berserker" {
+  oracle_id 3a7b1d1c-1724-4208-943b-650a5d773653
+  cost {2}{R}
+  type Creature — Kor Berserker
+  pt 1/3
+  enlist
+  triggered when this dies: this bites any target
+}

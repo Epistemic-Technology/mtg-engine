@@ -1,0 +1,9 @@
+card "Strixhaven Skycoach" {
+  oracle_id e286a191-39d4-4073-b844-11d2aba911b4
+  cost {3}
+  type Artifact — Vehicle
+  pt 3/2
+  keywords flying
+  triggered when this enters: you may search basic land card reveal to hand
+  crew 2
+}

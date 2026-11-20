@@ -1,0 +1,8 @@
+card "Bramblesnap" {
+  oracle_id 312ce96b-6abe-4f72-a205-9b27c885a5fe
+  cost {1}{G}
+  type Creature — Elemental
+  pt 1/1
+  keywords trample
+  activated tap untapped creature you control: this gets +1/+1
+}

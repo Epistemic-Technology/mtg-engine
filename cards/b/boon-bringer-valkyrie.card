@@ -1,0 +1,8 @@
+card "Boon-Bringer Valkyrie" {
+  oracle_id 8652d88f-edca-4235-b942-6e7467608de8
+  cost {3}{W}{W}
+  type Creature — Angel Warrior
+  pt 4/4
+  backup 1
+  keyword flying, first strike, lifelink
+}

@@ -1,0 +1,13 @@
+card "Mystic Skull // Mystic Monstrosity" {
+  oracle_id 1a7e367e-1d8d-463d-a35f-4bad44a5ebea
+  layout transform
+  cost {2}
+  type Artifact
+  activated {1}, {T}: add any
+  activated {5}, {T}: transform this
+  face "Mystic Monstrosity" {
+    type Artifact Creature — Construct
+    pt 5/6
+    static land you control: has ability { mana any }
+  }
+}

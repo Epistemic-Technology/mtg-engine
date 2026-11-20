@@ -1,0 +1,7 @@
+card "Castle Vantress" {
+  oracle_id cdf41cf4-4e77-453d-be5b-0abbbd358934
+  type Land
+  enters tapped unless you control Island
+  mana {U}
+  activated {2}{U}{U}, {T}: scry 2
+}

@@ -1,0 +1,8 @@
+card "Vertigo Spawn" {
+  oracle_id c1b8cfe9-e8fc-4321-94ce-86ab1f1ae2d0
+  cost {1}{U}
+  type Creature — Illusion
+  pt 0/3
+  keywords defender
+  triggered whenever this blocks a creature: tap that creature; that creature doesn't untap next untap step
+}

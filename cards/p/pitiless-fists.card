@@ -1,0 +1,8 @@
+card "Pitiless Fists" {
+  oracle_id 0d46a97a-b1d6-4bf3-b3ba-a5cdfd4c8bf5
+  cost {3}{G}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered when this enters: enchanted creature fights up to one target creature an opponent controls
+  static enchanted: +2/+2
+}

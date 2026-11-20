@@ -1,0 +1,8 @@
+card "Second Wind" {
+  oracle_id 1d8569c1-0b10-40a7-9a87-38571a782dd9
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  activated {T}: tap enchanted creature
+  activated {T}: untap enchanted creature
+}

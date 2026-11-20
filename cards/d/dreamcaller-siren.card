@@ -1,0 +1,9 @@
+card "Dreamcaller Siren" {
+  oracle_id 8ed7791d-6d75-4cd7-9428-c731f623b241
+  cost {2}{U}{U}
+  type Creature — Siren Pirate
+  pt 3/3
+  keywords flash, flying
+  can block only creature with flying
+  triggered when this enters if you control other Pirate: tap up to two target nonland permanents
+}

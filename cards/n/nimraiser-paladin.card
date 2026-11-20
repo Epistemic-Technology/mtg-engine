@@ -1,0 +1,8 @@
+card "Nimraiser Paladin" {
+  oracle_id c9daff24-1af8-4133-bff1-e0e4d1042db4
+  cost {4}{B}
+  type Creature — Phyrexian Knight
+  pt 4/4
+  toxic 2
+  triggered when this enters: return target creature card with mana value 3 or less from your graveyard to hand
+}

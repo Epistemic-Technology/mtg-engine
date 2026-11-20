@@ -1,0 +1,9 @@
+card "Grand Arbiter Augustin IV" {
+  oracle_id 1f8d4d5f-e82f-45f3-823e-1bb6b536eb18
+  cost {2}{W}{U}
+  type Legendary Creature — Human Advisor
+  pt 2/3
+  spells white you cast cost {1} less
+  spells blue you cast cost {1} less
+  spells your opponents cast cost {1} more
+}

@@ -1,0 +1,7 @@
+card "Leering Emblem" {
+  oracle_id a5cfd1e4-cd14-454a-9734-b5f6952d6a50
+  cost {2}
+  type Artifact — Equipment
+  triggered whenever you cast a spell: equipped creature gets +2/+2
+  equip {2}
+}

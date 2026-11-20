@@ -1,0 +1,7 @@
+card "Planar Outburst" {
+  oracle_id ff0d05b9-0c9c-4217-abd2-7e7757a0c4c9
+  cost {3}{W}{W}
+  type Sorcery
+  spell: destroy each nonland creature
+  awaken 4 {5}{W}{W}{W}
+}

@@ -1,0 +1,8 @@
+card "Forerunner of Slaughter" {
+  oracle_id 1c3b5d50-6b5c-49a3-b64b-5bee51d22725
+  cost {B}{R}
+  type Creature — Eldrazi Drone
+  pt 3/2
+  keywords devoid
+  activated {1}: target colorless creature gains haste
+}

@@ -1,0 +1,9 @@
+card "Bitter Chill" {
+  oracle_id be0dcad2-8e84-4e9f-b69c-837b40b8fb83
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+  triggered when this dies: you may pay {1}; if you do, scry 1 then draw 1 cards
+}

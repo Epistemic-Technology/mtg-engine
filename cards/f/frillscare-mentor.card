@@ -1,0 +1,8 @@
+card "Frillscare Mentor" {
+  oracle_id 3c9d217e-d7f8-43df-9bb6-58d29f93e2c4
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 3/2
+  triggered when this enters: put 1 menace counters on target non-Human creature you control
+  activated {2}{R}, {T}: put 1 +1/+1 counters on each creature you control with menace
+}

@@ -1,0 +1,7 @@
+card "Street Sweeper" {
+  oracle_id 613d1a33-9fe5-48db-8277-955a055a787e
+  cost {6}
+  type Artifact Creature — Construct
+  pt 4/6
+  triggered whenever this attacks: destroy each Aura attached to target land
+}

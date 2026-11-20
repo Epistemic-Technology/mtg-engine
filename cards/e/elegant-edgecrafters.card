@@ -1,0 +1,8 @@
+card "Elegant Edgecrafters" {
+  oracle_id eeb3d282-97df-4df2-8bea-9432e21b6d62
+  cost {4}{G}{G}
+  type Creature — Elf Artificer
+  pt 3/4
+  can't be blocked by creature with power 2 or less
+  fabricate 2
+}

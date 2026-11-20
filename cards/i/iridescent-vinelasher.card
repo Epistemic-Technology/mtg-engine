@@ -1,0 +1,8 @@
+card "Iridescent Vinelasher" {
+  oracle_id 4f8c4927-46c2-4c18-b5af-c6288dbaff6d
+  cost {B}
+  type Creature — Lizard Assassin
+  pt 1/2
+  offspring {2}
+  label "Landfall" triggered whenever land you control enters: deal 1 damage to target opponent
+}

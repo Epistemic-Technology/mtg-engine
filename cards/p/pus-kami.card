@@ -1,0 +1,8 @@
+card "Pus Kami" {
+  oracle_id 9b2471d4-2821-4220-becc-94bebfdc456f
+  cost {5}{B}{B}
+  type Creature — Spirit
+  pt 3/3
+  activated {B}, sacrifice this: destroy target nonblack creature
+  soulshift 6
+}

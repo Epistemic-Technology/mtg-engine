@@ -1,0 +1,9 @@
+card "Nylea's Emissary" {
+  oracle_id ec30e221-ffc8-4867-ba9c-f39712b3aa93
+  cost {3}{G}
+  type Enchantment Creature — Cat
+  pt 3/3
+  bestow {5}{G}
+  keyword trample
+  static enchanted: +3/+3, has trample
+}

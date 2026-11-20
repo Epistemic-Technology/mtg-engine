@@ -1,0 +1,9 @@
+card "Shielded Aether Thief" {
+  oracle_id 514df71a-138f-460f-a03c-bd1af8e146e2
+  cost {1}{U}
+  type Creature — Vedalken Rogue
+  pt 0/4
+  keywords flash
+  triggered whenever this blocks: you get 1 energy
+  activated {T}, pay 3 energy: draw 1 cards
+}

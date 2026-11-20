@@ -1,0 +1,7 @@
+card "Inner-Chamber Guard" {
+  oracle_id ea5e8920-1343-4335-b516-6db43c3bfeb0
+  cost {1}{W}
+  type Creature — Human Samurai
+  pt 0/2
+  bushido 2
+}

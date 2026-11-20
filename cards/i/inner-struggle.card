@@ -1,0 +1,6 @@
+card "Inner Struggle" {
+  oracle_id c993ebf8-972f-41c7-9870-d7f8aa9a69d9
+  cost {3}{R}
+  type Instant
+  spell: target creature bites itself
+}

@@ -1,0 +1,9 @@
+card "Crush Contraband" {
+  oracle_id ecbc234d-e1d3-4bcc-81d4-fffc2c7ea16a
+  cost {3}{W}
+  type Instant
+  choose one or both {
+    mode: exile target artifact
+    mode: exile target enchantment
+  }
+}

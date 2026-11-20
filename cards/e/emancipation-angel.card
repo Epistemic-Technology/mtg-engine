@@ -1,0 +1,8 @@
+card "Emancipation Angel" {
+  oracle_id 3834d3b0-9b66-465a-a8dc-22875a819fd9
+  cost {1}{W}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  triggered when this enters: return 1 permanent you control chosen
+}

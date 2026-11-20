@@ -1,0 +1,7 @@
+card "Contagion Clasp" {
+  oracle_id 43f2d81e-aa01-4fa9-9046-6a27a05dbd2d
+  cost {2}
+  type Artifact
+  triggered when this enters: put 1 -1/-1 counters on target creature
+  activated {4}, {T}: proliferate
+}

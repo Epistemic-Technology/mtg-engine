@@ -1,0 +1,8 @@
+card "Ashnod's Harvester" {
+  oracle_id 9ea87566-43da-4ebd-a904-ae8b8830c3a2
+  cost {2}
+  type Artifact Creature — Construct
+  pt 3/1
+  triggered whenever this attacks: exile target card from a graveyard
+  unearth {1}{B}
+}

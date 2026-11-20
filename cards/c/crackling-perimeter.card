@@ -1,0 +1,6 @@
+card "Crackling Perimeter" {
+  oracle_id 413e880a-bdc8-41bc-923a-566b08e68d0b
+  cost {1}{R}
+  type Enchantment
+  activated tap untapped Gate you control: deal 1 damage to each opponent
+}

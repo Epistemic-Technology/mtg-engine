@@ -1,0 +1,6 @@
+card "Seaside Citadel" {
+  oracle_id 2ae77795-6a80-498b-bf69-6fd612f601e4
+  type Land
+  enters tapped
+  mana {G} or {W} or {U}
+}

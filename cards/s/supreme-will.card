@@ -1,0 +1,9 @@
+card "Supreme Will" {
+  oracle_id 75325029-e6f1-44af-88b2-53cc2b7233c0
+  cost {2}{U}
+  type Instant
+  choose one {
+    mode: counter target spell unless its controller pays {3}
+    mode: dig 4 take card rest bottom
+  }
+}

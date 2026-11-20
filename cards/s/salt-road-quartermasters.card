@@ -1,0 +1,8 @@
+card "Salt Road Quartermasters" {
+  oracle_id 9398fbb4-a2b9-4ae4-9e0f-2553eb570501
+  cost {2}{G}
+  type Creature — Human Soldier
+  pt 1/1
+  enters with 2 +1/+1 counters
+  activated {2}{G}, remove 1 +1/+1 counters from this: put 1 +1/+1 counters on target creature
+}

@@ -1,0 +1,9 @@
+card "Untamed Kavu" {
+  oracle_id ce585b28-f22f-41ba-8858-aebc0164922d
+  cost {1}{G}
+  type Creature — Kavu
+  pt 2/2
+  kicker {3}
+  keyword vigilance, trample
+  kicked with 3 +1/+1 counters
+}

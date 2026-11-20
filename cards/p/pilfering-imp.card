@@ -1,0 +1,8 @@
+card "Pilfering Imp" {
+  oracle_id 61017a67-653c-4f75-9ec3-22d2149340a8
+  cost {B}
+  type Creature — Imp
+  pt 1/1
+  keywords flying
+  activated {1}{B}, {T}, sacrifice this, sorcery: target opponent reveals hand discarding nonland card
+}

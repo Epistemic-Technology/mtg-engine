@@ -1,0 +1,7 @@
+card "Stun Sniper" {
+  oracle_id f5bdf226-7a83-469b-bc49-87af388d9020
+  cost {R}{W}
+  type Creature — Human Archer
+  pt 1/1
+  activated {1}, {T}: deal 1 damage to target creature; tap that creature
+}

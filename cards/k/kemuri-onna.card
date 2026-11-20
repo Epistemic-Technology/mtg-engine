@@ -1,0 +1,8 @@
+card "Kemuri-Onna" {
+  oracle_id 54db986e-cf8a-4d2c-8ce9-13da11b11464
+  cost {4}{B}
+  type Creature — Spirit
+  pt 3/3
+  triggered when this enters: target player discards 1 cards
+  triggered whenever you cast Spirit or Arcane spell: you may return this to hand
+}

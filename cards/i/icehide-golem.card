@@ -1,0 +1,6 @@
+card "Icehide Golem" {
+  oracle_id 29b925e9-1e98-471c-9b23-e0372ac86485
+  cost {S}
+  type Snow Artifact Creature — Golem
+  pt 2/2
+}

@@ -1,0 +1,6 @@
+card "Get Lost" {
+  oracle_id 522dd417-364b-44ab-8ca9-fb55db5f26a6
+  cost {1}{W}
+  type Instant
+  spell: destroy target creature, enchantment, or planeswalker; its controller creates 2 "Map"
+}

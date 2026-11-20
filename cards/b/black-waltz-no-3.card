@@ -1,0 +1,8 @@
+card "Black Waltz No. 3" {
+  oracle_id 9c84c681-40c1-4ff3-86e6-48b4ab7491e5
+  cost {2}{B}{R}
+  type Legendary Creature — Wizard
+  pt 2/2
+  keywords flying, deathtouch
+  triggered whenever you cast a noncreature spell: deal 2 damage to each opponent
+}

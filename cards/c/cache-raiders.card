@@ -1,0 +1,7 @@
+card "Cache Raiders" {
+  oracle_id 57947037-91b2-4058-be22-158d3257317e
+  cost {3}{U}{U}
+  type Creature — Merfolk Rogue
+  pt 4/4
+  triggered at beginning of your upkeep: return 1 permanent you control chosen
+}

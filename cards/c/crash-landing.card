@@ -1,0 +1,6 @@
+card "Crash Landing" {
+  oracle_id 5d36e5ee-1e23-48fe-ad13-081cc153342b
+  cost {2}{G}
+  type Instant
+  spell: target creature with flying loses flying; deal count equal Forest you control damage to that creature
+}

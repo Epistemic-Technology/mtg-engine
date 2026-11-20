@@ -1,0 +1,13 @@
+card "Dread Linnorm // Scale Deflection" {
+  oracle_id 1bf04a2a-7f96-412c-9d91-034bef26e1b6
+  layout adventure
+  cost {6}{G}
+  type Creature — Snake Dragon
+  pt 7/6
+  can't be blocked by creature with power 3 or less
+  face "Scale Deflection" {
+    cost {3}{G}
+    type Instant — Adventure
+    spell: put 2 +1/+1 counters on target creature and untap it; target 1 gains hexproof
+  }
+}

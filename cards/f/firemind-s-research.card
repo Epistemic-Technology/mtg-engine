@@ -1,0 +1,8 @@
+card "Firemind's Research" {
+  oracle_id edac6c23-cff5-4ee2-9227-756b1dc6ab0c
+  cost {U}{R}
+  type Enchantment
+  triggered whenever you cast an instant or sorcery spell: put 1 charge counters on this
+  activated {1}{U}, remove 2 charge counters from this: draw 1 cards
+  activated {1}{R}, remove 5 charge counters from this: deal 5 damage to any target
+}

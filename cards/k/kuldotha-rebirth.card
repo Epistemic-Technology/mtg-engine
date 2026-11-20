@@ -1,0 +1,7 @@
+card "Kuldotha Rebirth" {
+  oracle_id f3e28778-0149-4dbd-badb-ba5aeacacd76
+  cost {R}
+  type Sorcery
+  additional cost sacrifice artifact
+  spell: create 3 "1/1 red Goblin creature"
+}

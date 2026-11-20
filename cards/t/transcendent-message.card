@@ -1,0 +1,7 @@
+card "Transcendent Message" {
+  oracle_id 1f7f7765-aeb9-4e47-a6b9-ce823bb29e33
+  cost {X}{U}{U}{U}{U}
+  type Instant
+  keywords convoke
+  spell: draw X cards
+}

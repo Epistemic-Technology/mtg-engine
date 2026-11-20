@@ -1,0 +1,7 @@
+card "Fable of Wolf and Owl" {
+  oracle_id 24fe8bc3-7e3a-435b-a232-7f80787aba1f
+  cost {3}{G/U}{G/U}{G/U}
+  type Enchantment
+  triggered whenever you cast green spell: you may create 1 "2/2 green Wolf creature"
+  triggered whenever you cast blue spell: you may create 1 "1/1 blue Bird creature with flying"
+}

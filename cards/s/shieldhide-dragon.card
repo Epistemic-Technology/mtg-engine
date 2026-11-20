@@ -1,0 +1,9 @@
+card "Shieldhide Dragon" {
+  oracle_id 4f5fee21-bf29-4873-baf4-04911c309d81
+  cost {5}{W}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying, lifelink
+  megamorph {5}{W}{W}
+  triggered when this is turned face up: put 1 +1/+1 counters on each other Dragon creature you control
+}

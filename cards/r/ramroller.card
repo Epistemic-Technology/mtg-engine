@@ -1,0 +1,8 @@
+card "Ramroller" {
+  oracle_id d670d937-aaa7-4a96-9c6a-916ff7a6b935
+  cost {3}
+  type Artifact Creature — Juggernaut
+  pt 2/3
+  keywords attacks each combat if able
+  static this: +2/+0 as long as you control other artifact
+}

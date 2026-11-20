@@ -1,0 +1,9 @@
+card "Soul of Zendikar" {
+  oracle_id 87217160-0687-4482-b9a3-91bad8527675
+  cost {4}{G}{G}
+  type Creature — Avatar
+  pt 6/6
+  keywords reach
+  activated {3}{G}{G}: create 1 "3/3 green Beast creature"
+  activated {3}{G}{G}, exile this from graveyard: create 1 "3/3 green Beast creature"
+}

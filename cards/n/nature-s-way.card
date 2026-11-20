@@ -1,0 +1,6 @@
+card "Nature's Way" {
+  oracle_id 8c04663a-1023-49a5-a0b9-78f24a72fb1e
+  cost {1}{G}
+  type Sorcery
+  spell: target creature you control gains vigilance, trample; target 1 bites target creature you don't control
+}

@@ -1,0 +1,6 @@
+card "Thoughtweft Gambit" {
+  oracle_id ddf8d3d2-b0f9-43bc-9c9e-cb08fdedcc72
+  cost {4}{W/U}{W/U}
+  type Instant
+  spell: tap each creature your opponents control and untap all creature you control
+}

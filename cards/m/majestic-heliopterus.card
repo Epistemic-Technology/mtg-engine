@@ -1,0 +1,8 @@
+card "Majestic Heliopterus" {
+  oracle_id d3b49970-46b7-441b-bff8-8403d982b8a7
+  cost {3}{W}
+  type Creature — Dinosaur
+  pt 2/2
+  keywords flying
+  triggered whenever this attacks: another target Dinosaur you control gains flying
+}

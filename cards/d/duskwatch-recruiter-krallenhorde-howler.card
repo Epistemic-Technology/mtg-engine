@@ -1,0 +1,16 @@
+card "Duskwatch Recruiter // Krallenhorde Howler" {
+  oracle_id 87c43776-dd98-4e12-9b95-82d2b8f4f1ab
+  layout transform
+  cost {1}{G}
+  type Creature — Human Warrior Werewolf
+  pt 2/2
+  activated {2}{G}: dig 3 take creature card may revealing rest bottom
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Krallenhorde Howler" {
+    type Creature — Werewolf
+    pt 3/3
+    color green
+    spells creature you cast cost {1} less
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

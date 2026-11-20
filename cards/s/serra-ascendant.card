@@ -1,0 +1,8 @@
+card "Serra Ascendant" {
+  oracle_id 27ad3e00-6ffb-48f7-8469-8868d066d1e2
+  cost {W}
+  type Creature — Human Monk
+  pt 1/1
+  keywords lifelink
+  static as long as your life 30 or more, this: +5/+5, has flying
+}

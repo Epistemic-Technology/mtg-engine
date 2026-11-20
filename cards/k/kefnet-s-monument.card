@@ -1,0 +1,7 @@
+card "Kefnet's Monument" {
+  oracle_id b6294891-79e6-4f2a-a82d-6cffce968356
+  cost {3}
+  type Legendary Artifact
+  spells blue creature you cast cost {1} less
+  triggered whenever you cast creature spell: target creature an opponent controls doesn't untap next untap step
+}

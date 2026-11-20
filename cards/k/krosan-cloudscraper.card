@@ -1,0 +1,8 @@
+card "Krosan Cloudscraper" {
+  oracle_id a0ff742b-f709-43ac-84d2-dc00c723bad6
+  cost {7}{G}{G}{G}
+  type Creature — Beast Mutant
+  pt 13/13
+  triggered at beginning of your upkeep: sacrifice this unless you pay {G}{G}
+  morph {7}{G}{G}
+}

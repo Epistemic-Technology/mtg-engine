@@ -1,0 +1,6 @@
+card "Proctor's Gaze" {
+  oracle_id a7fe7621-9bb1-4d0d-8b50-c179c685d79d
+  cost {2}{G}{U}
+  type Instant
+  spell: return up to one target nonland permanent to hand; search basic land card to battlefield tapped
+}

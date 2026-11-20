@@ -1,0 +1,7 @@
+card "Pyroclastic Elemental" {
+  oracle_id 1f37e3a6-ce3a-472f-ac45-0d9b23a31a11
+  cost {3}{R}{R}
+  type Creature — Elemental
+  pt 5/4
+  activated {1}{R}{R}: deal 1 damage to target player
+}

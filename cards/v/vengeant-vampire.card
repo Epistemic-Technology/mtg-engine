@@ -1,0 +1,8 @@
+card "Vengeant Vampire" {
+  oracle_id e9f4d669-d915-4984-bd3c-12202c366e9b
+  cost {4}{B}{B}
+  type Creature — Vampire
+  pt 4/4
+  keywords lifelink
+  triggered when this dies: destroy target creature an opponent controls and you gain 4 life
+}

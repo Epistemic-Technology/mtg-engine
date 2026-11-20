@@ -1,0 +1,7 @@
+card "Pyrohemia" {
+  oracle_id 9ac57a10-3402-4656-9079-f713884cde35
+  cost {2}{R}{R}
+  type Enchantment
+  triggered at beginning of each end step if no creatures are on the battlefield: sacrifice this
+  activated {R}: deal 1 damage to each creature and each player
+}

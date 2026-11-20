@@ -1,0 +1,7 @@
+card "Devour in Flames" {
+  oracle_id ea1fc580-a640-4f49-8f29-405c2830eca8
+  cost {2}{R}
+  type Sorcery
+  additional cost return land you control
+  spell: deal 5 damage to target creature or planeswalker
+}

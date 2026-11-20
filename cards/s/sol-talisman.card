@@ -1,0 +1,6 @@
+card "Sol Talisman" {
+  oracle_id 867f0cdf-cf75-40f0-bf1e-ccb92e55e9a3
+  type Artifact
+  suspend 3 {1}
+  activated {T}: add {C}{C}
+}

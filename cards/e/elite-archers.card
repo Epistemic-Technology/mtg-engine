@@ -1,0 +1,7 @@
+card "Elite Archers" {
+  oracle_id 2230ec18-4dcf-435e-b495-1905cb94e8b8
+  cost {5}{W}
+  type Creature — Human Soldier Archer
+  pt 3/3
+  activated {T}: deal 3 damage to target attacking or blocking creature
+}

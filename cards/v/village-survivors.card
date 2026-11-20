@@ -1,0 +1,8 @@
+card "Village Survivors" {
+  oracle_id c26dd36f-a81a-4d97-9be2-d350e93da79e
+  cost {4}{G}
+  type Creature — Human
+  pt 4/5
+  keywords vigilance
+  label "Fateful hour" static as long as your life 5 or less, other creature you control: has vigilance
+}

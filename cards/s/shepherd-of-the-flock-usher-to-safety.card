@@ -1,0 +1,12 @@
+card "Shepherd of the Flock // Usher to Safety" {
+  oracle_id 6d611800-5b0e-40ca-82a2-5b294a1ebf6d
+  layout adventure
+  cost {1}{W}
+  type Creature — Human Peasant
+  pt 3/1
+  face "Usher to Safety" {
+    cost {W}
+    type Instant — Adventure
+    spell: return target permanent you control to hand
+  }
+}

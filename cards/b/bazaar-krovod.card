@@ -1,0 +1,7 @@
+card "Bazaar Krovod" {
+  oracle_id 1de561c7-4ff4-4eb9-8cbe-a29f568e786a
+  cost {4}{W}
+  type Creature — Beast
+  pt 2/5
+  triggered whenever this attacks: another target attacking creature gets +0/+2; untap that creature
+}

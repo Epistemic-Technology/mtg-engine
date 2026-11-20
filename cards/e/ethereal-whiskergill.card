@@ -1,0 +1,8 @@
+card "Ethereal Whiskergill" {
+  oracle_id 3d3e6dc0-2aed-4afa-bfa9-59d04ade9bee
+  cost {3}{U}
+  type Creature — Elemental
+  pt 4/3
+  keywords flying
+  can't attack unless defending player controls Island
+}

@@ -1,0 +1,10 @@
+card "Jeskai Charm" {
+  oracle_id 2a9a05b4-1910-4f97-a0fe-0f57017f6df0
+  cost {U}{R}{W}
+  type Instant
+  choose one {
+    mode: put target creature on top of library
+    mode: deal 4 damage to target opponent or planeswalker
+    mode: each creature you control gets +1/+1 and gains lifelink
+  }
+}

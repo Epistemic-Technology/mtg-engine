@@ -1,0 +1,7 @@
+card "Daily Regimen" {
+  oracle_id 3a869ec0-c3ea-49a8-8586-d7e54e62a734
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  activated {1}{W}: put 1 +1/+1 counters on enchanted creature
+}

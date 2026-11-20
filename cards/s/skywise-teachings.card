@@ -1,0 +1,6 @@
+card "Skywise Teachings" {
+  oracle_id 95a5e444-39f6-4f42-a83f-befa76350bc1
+  cost {3}{U}
+  type Enchantment
+  triggered whenever you cast a noncreature spell: you may pay {1}{U}; if you do, create 1 "2/2 blue Djinn Monk creature with flying"
+}

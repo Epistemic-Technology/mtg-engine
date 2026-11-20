@@ -1,0 +1,7 @@
+card "Bloodsky Berserker" {
+  oracle_id ed04f170-a4d9-4151-b4ae-1200d523dc6b
+  cost {1}{B}
+  type Creature — Human Berserker
+  pt 1/1
+  triggered whenever you cast your second spell each turn: put 2 +1/+1 counters on this; this gains menace
+}

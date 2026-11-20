@@ -1,0 +1,6 @@
+card "Eyes of the Watcher" {
+  oracle_id 350b3c1c-b37e-4279-9b49-0fb93c5e7e33
+  cost {2}{U}
+  type Enchantment
+  triggered whenever you cast an instant or sorcery spell: you may pay {1}; if you do, scry 2
+}

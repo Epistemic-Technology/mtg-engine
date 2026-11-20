@@ -1,0 +1,6 @@
+card "Primeval Light" {
+  oracle_id b416d7ac-ec56-40e2-ba3d-bcecd1b73175
+  cost {3}{G}
+  type Sorcery
+  spell: destroy each enchantment target player controls
+}

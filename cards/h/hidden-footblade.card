@@ -1,0 +1,9 @@
+card "Hidden Footblade" {
+  oracle_id daed1b38-510b-4698-95c3-05c09f5fabe9
+  cost {R}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; that creature gains first strike
+  static enchanted: +1/+0, has haste
+  equip {2}
+}

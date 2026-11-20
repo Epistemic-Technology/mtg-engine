@@ -1,0 +1,8 @@
+card "Phyrexian Vatmother" {
+  oracle_id e9162478-0b10-422a-a11c-7b39b00f026e
+  cost {2}{B}{B}
+  type Creature — Phyrexian Horror
+  pt 4/5
+  keywords infect
+  triggered at beginning of your upkeep: you gets 1 poison counters
+}

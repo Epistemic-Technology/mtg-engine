@@ -1,0 +1,9 @@
+card "Squelch" {
+  oracle_id b8fe20ee-d52d-4494-acf4-202808a2a22d
+  cost {1}{U}
+  type Instant
+  spell {
+    counter target activated ability
+    draw 1 cards
+  }
+}

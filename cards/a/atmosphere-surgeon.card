@@ -1,0 +1,8 @@
+card "Atmosphere Surgeon" {
+  oracle_id af22ed78-7054-4f5c-84ab-2a274c3d47fb
+  cost {1}{U}
+  type Creature — Phyrexian Wizard
+  pt 2/1
+  triggered whenever you cast a noncreature spell: put 1 oil counters on this
+  activated remove 1 oil counters from this, sorcery: target creature gains flying
+}

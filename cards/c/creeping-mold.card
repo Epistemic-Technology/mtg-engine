@@ -1,0 +1,6 @@
+card "Creeping Mold" {
+  oracle_id 59180e94-ccdf-4d9f-9a4a-fe55497d0d63
+  cost {2}{G}{G}
+  type Sorcery
+  spell: destroy target artifact, enchantment, or land
+}

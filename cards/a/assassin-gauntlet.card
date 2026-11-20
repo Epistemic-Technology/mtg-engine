@@ -1,0 +1,8 @@
+card "Assassin Gauntlet" {
+  oracle_id 85d06533-3c0b-46a8-8fdb-379db9ae7e2e
+  cost {2}{U}
+  type Artifact — Equipment
+  triggered when this enters: attach to up to one target creature you control; tap each creature target opponent controls
+  static enchanted: +1/+1, has ability { triggered whenever this deals combat damage to a player: draw 1 cards then discard 1 cards }
+  equip {2}
+}

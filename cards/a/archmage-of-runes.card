@@ -1,0 +1,8 @@
+card "Archmage of Runes" {
+  oracle_id 28045b32-4c1a-40e5-a15d-524d0f8fe6ec
+  cost {3}{U}{U}
+  type Creature — Giant Wizard
+  pt 3/6
+  spells instant or sorcery you cast cost {1} less
+  triggered whenever you cast an instant or sorcery spell: draw 1 cards
+}

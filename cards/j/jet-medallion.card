@@ -1,0 +1,6 @@
+card "Jet Medallion" {
+  oracle_id bccb06f1-8839-4104-9ffa-c79a817f8378
+  cost {2}
+  type Artifact
+  spells black you cast cost {1} less
+}

@@ -1,0 +1,7 @@
+card "Vedalken Heretic" {
+  oracle_id 001c6369-df13-427d-89df-718d5c09f382
+  cost {G}{U}
+  type Creature — Vedalken Rogue
+  pt 1/1
+  triggered whenever this deals damage to opponent: you may draw 1 cards
+}

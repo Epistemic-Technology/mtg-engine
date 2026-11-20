@@ -1,0 +1,7 @@
+card "Spawning Pit" {
+  oracle_id ea7b0704-7715-4f8a-b32f-d2d2f3b36054
+  cost {2}
+  type Artifact
+  activated sacrifice creature: put 1 charge counters on this
+  activated {1}, remove 2 charge counters from this: create 1 "2/2 colorless Spawn artifact creature"
+}

@@ -1,0 +1,6 @@
+card "Glimpse the Future" {
+  oracle_id ff5a2bcf-efd0-4bdb-af52-21a93447c54c
+  cost {2}{U}
+  type Sorcery
+  spell: dig 3 take card rest graveyard
+}

@@ -1,0 +1,8 @@
+card "Tectonic Fiend" {
+  oracle_id ead1bcc4-6bf7-4ace-b705-e3095e6a716c
+  cost {4}{R}{R}
+  type Creature — Elemental
+  pt 7/7
+  echo {4}{R}{R}
+  keyword attacks each combat if able
+}

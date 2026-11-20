@@ -1,0 +1,7 @@
+card "Might Weaver" {
+  oracle_id c2cfbc1a-ae73-409c-b73a-5c8625365905
+  cost {1}{G}
+  type Creature — Human Wizard
+  pt 2/1
+  activated {2}: target red or white creature gains trample
+}

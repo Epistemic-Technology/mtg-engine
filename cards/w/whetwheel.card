@@ -1,0 +1,7 @@
+card "Whetwheel" {
+  oracle_id c5b0cd1c-6f9b-4b48-9430-af78731e1a45
+  cost {4}
+  type Artifact
+  activated {X}{X}, {T}: target player mills X cards
+  morph {3}
+}

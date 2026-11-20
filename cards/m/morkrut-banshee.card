@@ -1,0 +1,7 @@
+card "Morkrut Banshee" {
+  oracle_id e2fe1847-4003-41c5-a64b-03afd888b81e
+  cost {3}{B}{B}
+  type Creature — Spirit
+  pt 4/4
+  label "Morbid" triggered when this enters if creature died this turn: target creature gets -4/-4
+}

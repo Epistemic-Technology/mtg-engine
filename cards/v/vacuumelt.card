@@ -1,0 +1,7 @@
+card "Vacuumelt" {
+  oracle_id eb421a1b-147f-422b-bb8d-483a182a4096
+  cost {2}{U}
+  type Sorcery
+  replicate {2}{U}
+  spell: return target creature to hand
+}

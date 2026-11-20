@@ -1,0 +1,7 @@
+card "Fearsome Goblin Pair" {
+  oracle_id edbd3d4e-78a2-4c03-936d-dcb24cf7c87c
+  cost {2}{B/R}
+  type Creature — Goblin Soldier
+  pt 1/1
+  triggered when this dies: amass Goblins 4
+}

@@ -1,0 +1,9 @@
+card "Exit Specialist" {
+  oracle_id 79d2efb2-145d-4377-a4e2-832ff2cb5677
+  cost {1}{U}
+  type Creature — Human Detective
+  pt 2/1
+  can't be blocked by creature with power 3 or greater
+  disguise {1}{U}
+  triggered when this is turned face up: return another target creature to hand
+}

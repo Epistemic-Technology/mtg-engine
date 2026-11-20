@@ -1,0 +1,8 @@
+card "Mardu Shadowspear" {
+  oracle_id b6e972ae-cc2d-4c7e-9f49-c0616dc82064
+  cost {B}
+  type Creature — Human Warrior
+  pt 1/1
+  triggered whenever this attacks: each opponent loses 1 life
+  dash {1}{B}
+}

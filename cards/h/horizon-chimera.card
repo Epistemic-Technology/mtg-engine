@@ -1,0 +1,8 @@
+card "Horizon Chimera" {
+  oracle_id a1ed77f9-51ac-4cca-a9ce-d3874f3948ad
+  cost {2}{G}{U}
+  type Creature — Chimera
+  pt 3/2
+  keywords flash, flying, trample
+  triggered whenever you draw a card: you gains 1 life
+}

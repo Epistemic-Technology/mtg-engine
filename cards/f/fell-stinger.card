@@ -1,0 +1,8 @@
+card "Fell Stinger" {
+  oracle_id 18dd694f-e239-4603-85fd-b34b028ff6a4
+  cost {2}{B}
+  type Creature — Zombie Scorpion
+  pt 3/2
+  keywords deathtouch, exploit
+  triggered when this exploits a creature: target player draws two cards and loses 2 life
+}

@@ -1,0 +1,8 @@
+card "Tenacious Tomeseeker" {
+  oracle_id b07bf08b-d9ec-429f-be6d-a7afa27c60c4
+  cost {2}{U}
+  type Creature — Human Knight
+  pt 3/2
+  bargain
+  triggered when this enters if bargained: return target instant or sorcery card from your graveyard to hand
+}

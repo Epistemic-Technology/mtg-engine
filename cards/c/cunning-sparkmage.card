@@ -1,0 +1,8 @@
+card "Cunning Sparkmage" {
+  oracle_id ab4a25d8-e1d0-454e-9d06-f7960a0352bc
+  cost {2}{R}
+  type Creature — Human Shaman
+  pt 0/1
+  keywords haste
+  activated {T}: deal 1 damage to any target
+}

@@ -1,0 +1,6 @@
+card "Barrage of Expendables" {
+  oracle_id da7600f6-5d4c-46bf-936a-9e0f0d508e19
+  cost {R}
+  type Enchantment
+  activated {R}, sacrifice creature: deal 1 damage to any target
+}

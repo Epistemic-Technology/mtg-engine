@@ -1,0 +1,7 @@
+card "Undead Slayer" {
+  oracle_id 08fc069e-7fdd-4726-aa08-a96bbd2bcaa3
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  activated {W}, {T}: exile target Skeleton, Vampire, or Zombie
+}

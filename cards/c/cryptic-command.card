@@ -1,0 +1,11 @@
+card "Cryptic Command" {
+  oracle_id a3e51a35-09df-4189-b131-08a21e6a557d
+  cost {1}{U}{U}{U}
+  type Instant
+  choose two {
+    mode: counter target spell
+    mode: return target permanent to hand
+    mode: tap each creature your opponents control
+    mode: draw 1 cards
+  }
+}

@@ -1,0 +1,8 @@
+card "Glint-Nest Crane" {
+  oracle_id 1983478a-cedb-4053-adab-ac5f1a163296
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/3
+  keywords flying
+  triggered when this enters: dig 4 take artifact card may revealing rest bottom
+}

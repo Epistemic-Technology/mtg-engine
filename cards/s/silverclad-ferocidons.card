@@ -1,0 +1,7 @@
+card "Silverclad Ferocidons" {
+  oracle_id b3aa5889-0d98-4a8c-a8b1-ada1e9b169e1
+  cost {5}{R}{R}
+  type Creature — Dinosaur
+  pt 8/5
+  label "Enrage" triggered whenever this is dealt damage: each opponent sacrifices 1 permanent
+}

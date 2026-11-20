@@ -1,0 +1,6 @@
+card "Chalk Outline" {
+  oracle_id af335eb3-f60a-44b3-a1ed-1e165f3e3605
+  cost {3}{G}
+  type Enchantment
+  triggered whenever one or more creature cards leave your graveyard: create 1 "2/2 white and blue Detective creature" then investigate
+}

@@ -1,0 +1,8 @@
+card "Air Response Unit" {
+  oracle_id 18a22d9f-81bc-4ed5-bd83-e3f8ec5e38c8
+  cost {2}{W}
+  type Artifact — Vehicle
+  pt 3/3
+  keywords flying, vigilance
+  crew 1
+}

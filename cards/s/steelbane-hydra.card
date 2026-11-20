@@ -1,0 +1,8 @@
+card "Steelbane Hydra" {
+  oracle_id e38e3723-05f5-4a51-8364-1cda19f9cc49
+  cost {X}{G}{G}
+  type Creature — Turtle Hydra
+  pt 0/0
+  enters with X +1/+1 counters
+  activated {2}{G}, remove 1 +1/+1 counters from this: destroy target artifact or enchantment
+}

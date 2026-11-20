@@ -1,0 +1,6 @@
+card "Pearl Medallion" {
+  oracle_id 19015380-1332-4960-8cc6-0732009525a2
+  cost {2}
+  type Artifact
+  spells white you cast cost {1} less
+}

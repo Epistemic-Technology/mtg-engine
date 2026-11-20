@@ -1,0 +1,6 @@
+card "Crystal Rod" {
+  oracle_id e68bc048-1009-46a5-97d6-ec77a18067da
+  cost {1}
+  type Artifact
+  triggered whenever a player casts blue spell: you may pay {1}; if you do, you gains 1 life
+}

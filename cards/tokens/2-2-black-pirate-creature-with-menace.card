@@ -1,0 +1,7 @@
+token "2/2 black Pirate creature with menace" {
+  name "Pirate"
+  type Creature — Pirate
+  pt 2/2
+  color black
+  keywords menace
+}

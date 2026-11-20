@@ -1,0 +1,7 @@
+card "Malevolent Whispers" {
+  oracle_id b7ff27b6-7591-44b9-86b9-ee12f795ec25
+  cost {3}{R}
+  type Sorcery
+  spell: gain control of target creature; untap that creature; target 1 gets +2/+0 and gains haste
+  madness {3}{R}
+}

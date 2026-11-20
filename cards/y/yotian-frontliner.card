@@ -1,0 +1,8 @@
+card "Yotian Frontliner" {
+  oracle_id cd39e485-71ba-40cb-8608-f5a0dfb7ef5f
+  cost {1}
+  type Artifact Creature — Soldier
+  pt 1/1
+  triggered whenever this attacks: another target creature you control gets +1/+1
+  unearth {W}
+}

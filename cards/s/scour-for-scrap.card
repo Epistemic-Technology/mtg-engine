@@ -1,0 +1,9 @@
+card "Scour for Scrap" {
+  oracle_id da422b3e-1092-47ad-97d6-a7a3ef060a53
+  cost {3}{U}
+  type Instant
+  choose one or both {
+    mode: search artifact card reveal to hand
+    mode: return target artifact card from your graveyard to hand
+  }
+}

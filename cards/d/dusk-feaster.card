@@ -1,0 +1,8 @@
+card "Dusk Feaster" {
+  oracle_id 3d56d82b-03a6-41cf-9833-c4efd8be6ea7
+  cost {5}{B}{B}
+  type Creature — Vampire
+  pt 4/5
+  label "Delirium" this spell costs {2} less if 4 card types in your graveyard
+  keyword flying
+}

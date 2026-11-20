@@ -1,0 +1,8 @@
+card "Duskrider Peregrine" {
+  oracle_id 2fdde5f7-a235-43a4-88a5-2faaf5900bd6
+  cost {5}{W}
+  type Creature — Bird
+  pt 3/3
+  keywords flying, protection from black
+  suspend 3 {1}{W}
+}

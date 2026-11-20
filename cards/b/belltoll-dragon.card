@@ -1,0 +1,9 @@
+card "Belltoll Dragon" {
+  oracle_id d0e529e3-0f77-4a55-ba35-46591f48d960
+  cost {5}{U}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying, hexproof
+  megamorph {5}{U}{U}
+  triggered when this is turned face up: put 1 +1/+1 counters on each other Dragon creature you control
+}

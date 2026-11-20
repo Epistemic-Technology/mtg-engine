@@ -1,0 +1,7 @@
+card "Armament Corps" {
+  oracle_id 3b93427c-5b40-4119-96ae-7dce3ca2bbb9
+  cost {2}{W}{B}{G}
+  type Creature — Human Soldier
+  pt 4/4
+  triggered when this enters: distribute 2 +1/+1 counters among 1 to 2 target creatures you control
+}

@@ -1,0 +1,6 @@
+card "Molten Vortex" {
+  oracle_id da5ee877-143e-4f53-ad20-1bc527a8fff8
+  cost {R}
+  type Enchantment
+  activated {R}, discard land card: deal 2 damage to any target
+}

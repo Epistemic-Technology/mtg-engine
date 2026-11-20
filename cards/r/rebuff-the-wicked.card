@@ -1,0 +1,6 @@
+card "Rebuff the Wicked" {
+  oracle_id f5822e53-ddec-4c77-bcf4-091e35c1e731
+  cost {W}
+  type Instant
+  spell: counter target spell that targets a permanent you control
+}

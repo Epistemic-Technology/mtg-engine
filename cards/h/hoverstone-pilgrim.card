@@ -1,0 +1,9 @@
+card "Hoverstone Pilgrim" {
+  oracle_id 64399663-2c1e-447e-a3ed-c49ebd9f2231
+  cost {5}
+  type Artifact Creature — Golem
+  pt 2/5
+  keywords flying
+  ward {2}
+  activated {2}: put target card from a graveyard on bottom of library
+}

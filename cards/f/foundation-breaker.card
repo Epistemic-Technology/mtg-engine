@@ -1,0 +1,8 @@
+card "Foundation Breaker" {
+  oracle_id 8b7a3613-f1bd-4262-9b11-b631167c2c2d
+  cost {3}{G}
+  type Creature — Elemental
+  pt 2/2
+  triggered when this enters: you may destroy target artifact or enchantment
+  evoke {1}{G}
+}

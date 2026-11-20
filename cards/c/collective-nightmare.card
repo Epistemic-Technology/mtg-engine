@@ -1,0 +1,7 @@
+card "Collective Nightmare" {
+  oracle_id fa7b7db2-c830-405c-a5e6-e5431d573ed3
+  cost {2}{B}
+  type Instant
+  keywords convoke
+  spell: target creature gets -3/-3
+}

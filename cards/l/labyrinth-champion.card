@@ -1,0 +1,7 @@
+card "Labyrinth Champion" {
+  oracle_id e1a22f41-0543-4e85-8fb8-93c018b461aa
+  cost {3}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  label "Heroic" triggered whenever you cast a spell that targets this: deal 2 damage to any target
+}

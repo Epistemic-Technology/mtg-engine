@@ -1,0 +1,7 @@
+card "Fallowsage" {
+  oracle_id b9d018ff-de27-4bf6-9cc6-9d9a46db3eb9
+  cost {3}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  triggered whenever this becomes tapped: you may draw 1 cards
+}

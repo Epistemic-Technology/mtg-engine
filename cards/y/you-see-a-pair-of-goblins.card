@@ -1,0 +1,9 @@
+card "You See a Pair of Goblins" {
+  oracle_id 77d016e3-f652-4827-b49a-8044f6d2d45b
+  cost {2}{R}
+  type Instant
+  choose one {
+    mode "Charge Them": each creature you control gets +2/+0
+    mode "Befriend Them": create 2 "1/1 red Goblin creature"
+  }
+}

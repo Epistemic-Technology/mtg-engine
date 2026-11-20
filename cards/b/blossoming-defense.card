@@ -1,0 +1,6 @@
+card "Blossoming Defense" {
+  oracle_id 5a851367-1c4a-4cc9-a9c3-3d2775986b4c
+  cost {G}
+  type Instant
+  spell: target creature you control gets +2/+2 and gains hexproof
+}

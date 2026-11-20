@@ -1,0 +1,7 @@
+card "Tendo Ice Bridge" {
+  oracle_id 9e006a4b-8dde-4416-8cb4-8401562d0fd5
+  type Land
+  enters with 1 charge counters
+  mana {C}
+  activated {T}, remove 1 charge counters from this: add any
+}

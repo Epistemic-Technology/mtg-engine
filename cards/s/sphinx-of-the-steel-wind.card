@@ -1,0 +1,7 @@
+card "Sphinx of the Steel Wind" {
+  oracle_id 1c96772b-463c-4655-836b-cf6e9dc6319f
+  cost {5}{W}{U}{B}
+  type Artifact Creature — Sphinx
+  pt 6/6
+  keywords flying, first strike, vigilance, lifelink, protection from red, protection from green
+}

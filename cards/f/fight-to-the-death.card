@@ -1,0 +1,6 @@
+card "Fight to the Death" {
+  oracle_id 7f885ffc-7245-4f00-a903-6e088007c635
+  cost {R}{W}
+  type Instant
+  spell: destroy each blocking creature and all blocked creature
+}

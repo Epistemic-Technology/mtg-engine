@@ -1,0 +1,7 @@
+card "Thunderous Snapper" {
+  oracle_id f826ac35-7dde-414c-94ec-0bdfe04327b4
+  cost {G/U}{G/U}{G/U}{G/U}
+  type Creature — Turtle Hydra
+  pt 4/4
+  triggered whenever you cast with mana value 5 or greater spell: draw 1 cards
+}

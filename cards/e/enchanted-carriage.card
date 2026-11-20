@@ -1,0 +1,8 @@
+card "Enchanted Carriage" {
+  oracle_id 4f4a3c9e-80c4-4fa1-940d-2c57065901a3
+  cost {5}
+  type Artifact — Vehicle
+  pt 4/4
+  triggered when this enters: create 2 "1/1 white Mouse creature"
+  crew 2
+}

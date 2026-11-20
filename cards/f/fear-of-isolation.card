@@ -1,0 +1,8 @@
+card "Fear of Isolation" {
+  oracle_id 0ee28549-5909-4372-8376-34010b7b6654
+  cost {1}{U}
+  type Enchantment Creature — Nightmare
+  pt 2/3
+  keywords flying
+  additional cost return permanent you control
+}

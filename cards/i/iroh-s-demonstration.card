@@ -1,0 +1,9 @@
+card "Iroh's Demonstration" {
+  oracle_id 8dd2e73a-d1b4-4d26-857f-9eb8e384c8ff
+  cost {1}{R}
+  type Sorcery — Lesson
+  choose one {
+    mode: deal 1 damage to each creature your opponents control
+    mode: deal 4 damage to target creature
+  }
+}

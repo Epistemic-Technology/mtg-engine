@@ -1,0 +1,8 @@
+card "Resolute Watchdog" {
+  oracle_id ca2aee09-398d-4eaa-acbb-98663216185b
+  cost {W}
+  type Creature — Dog
+  pt 1/3
+  keywords defender
+  activated {1}, sacrifice this: target creature you control gains indestructible
+}

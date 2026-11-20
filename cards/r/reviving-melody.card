@@ -1,0 +1,9 @@
+card "Reviving Melody" {
+  oracle_id 4834e6f2-1544-4e58-9092-ecc136cc0dee
+  cost {2}{G}
+  type Sorcery
+  choose one or both {
+    mode: return target creature card from your graveyard to hand
+    mode: return target enchantment card from your graveyard to hand
+  }
+}

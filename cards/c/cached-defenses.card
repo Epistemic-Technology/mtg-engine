@@ -1,0 +1,6 @@
+card "Cached Defenses" {
+  oracle_id 0e564f52-94fb-4c44-926f-0eebedc7d4c0
+  cost {2}{G}
+  type Sorcery
+  spell: bolster 3
+}

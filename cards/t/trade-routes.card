@@ -1,0 +1,7 @@
+card "Trade Routes" {
+  oracle_id 120fa67e-e5e0-4c23-9a78-d6171d357aee
+  cost {1}{U}
+  type Enchantment
+  activated {1}: return target land you control to hand
+  activated {1}, discard land card: draw 1 cards
+}

@@ -1,0 +1,8 @@
+card "Eternal Taskmaster" {
+  oracle_id a7c000a8-1864-4bb2-80fa-a61d74dbd966
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/3
+  enters tapped
+  triggered whenever this attacks: you may pay {2}{B}; if you do, return target creature card from your graveyard to hand
+}

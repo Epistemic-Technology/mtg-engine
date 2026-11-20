@@ -1,0 +1,8 @@
+card "Force of Nature" {
+  oracle_id e3c4c27d-f263-4c69-a4fe-2928136ff68b
+  cost {2}{G}{G}{G}{G}
+  type Creature — Elemental
+  pt 8/8
+  keywords trample
+  triggered at beginning of your upkeep: deal 8 damage to you unless you pay {G}{G}{G}{G}
+}

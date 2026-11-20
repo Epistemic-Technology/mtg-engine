@@ -1,0 +1,9 @@
+card "Titanoth Rex" {
+  oracle_id 8656a32b-eb95-402b-9daf-0b6d876b4b13
+  cost {7}{G}{G}
+  type Creature — Dinosaur Beast
+  pt 11/11
+  keywords trample
+  cycling {1}{G}
+  triggered when you cycle this: put 1 trample counters on target creature you control
+}

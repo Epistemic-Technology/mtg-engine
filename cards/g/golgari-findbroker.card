@@ -1,0 +1,7 @@
+card "Golgari Findbroker" {
+  oracle_id e5456b35-d7a9-4717-90df-c6c46f1ec437
+  cost {B}{B}{G}{G}
+  type Creature — Elf Shaman
+  pt 3/4
+  triggered when this enters: return target permanent card from your graveyard to hand
+}

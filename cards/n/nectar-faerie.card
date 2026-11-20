@@ -1,0 +1,8 @@
+card "Nectar Faerie" {
+  oracle_id 6d0a2e5f-af10-4754-81d7-b7afa6282d7d
+  cost {1}{B}
+  type Creature — Faerie Wizard
+  pt 1/1
+  keywords flying
+  activated {B}, {T}: target Faerie or Elf gains lifelink
+}

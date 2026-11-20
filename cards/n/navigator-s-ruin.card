@@ -1,0 +1,6 @@
+card "Navigator's Ruin" {
+  oracle_id cd830c46-3444-488d-ae5b-0a2533158a13
+  cost {2}{U}
+  type Enchantment
+  label "Raid" triggered at beginning of your end step if attacked this turn: target opponent mills 4 cards
+}

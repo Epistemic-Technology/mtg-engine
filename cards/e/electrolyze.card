@@ -1,0 +1,9 @@
+card "Electrolyze" {
+  oracle_id 07b222d7-24f2-4994-9004-ff6672ebe161
+  cost {1}{U}{R}
+  type Instant
+  spell {
+    deal 2 damage divided among 1 to 2 targets
+    draw 1 cards
+  }
+}

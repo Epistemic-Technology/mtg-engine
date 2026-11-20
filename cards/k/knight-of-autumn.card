@@ -1,0 +1,11 @@
+card "Knight of Autumn" {
+  oracle_id c4212ba4-8c43-40ca-aa36-b3b535659fa8
+  cost {1}{G}{W}
+  type Creature — Dryad Knight
+  pt 2/1
+  triggered when this enters: choose one {
+    mode: put 2 +1/+1 counters on this
+    mode: destroy target artifact or enchantment
+    mode: you gains 4 life
+  }
+}

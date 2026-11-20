@@ -1,0 +1,8 @@
+card "Slag Strider" {
+  oracle_id 2b154d55-37dd-4e5f-aa99-d4bc547cdec0
+  cost {5}{R}{R}
+  type Creature — Elemental
+  pt 3/3
+  affinity for artifact
+  activated {1}, sacrifice artifact: deal 1 damage to any target
+}

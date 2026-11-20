@@ -1,0 +1,8 @@
+card "Soulsworn Spirit" {
+  oracle_id e67e3cf1-6da9-4b52-a945-47bf54f69ffa
+  cost {3}{U}
+  type Creature — Spirit
+  pt 2/1
+  keywords can't be blocked
+  triggered when this enters: detain target creature an opponent controls
+}

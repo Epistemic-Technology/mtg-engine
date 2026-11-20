@@ -1,0 +1,8 @@
+card "Numai Outcast" {
+  oracle_id 0319a50f-cbcd-45ab-9630-9e9f1498d23d
+  cost {3}{B}
+  type Creature — Human Samurai
+  pt 1/1
+  bushido 2
+  activated {B}, pay 5 life: regenerate this
+}

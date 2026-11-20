@@ -1,0 +1,8 @@
+card "Golgari Decoy" {
+  oracle_id 9fb2eb66-d33b-40e8-9d0d-06d73650a9ac
+  cost {3}{G}
+  type Creature — Elf Rogue
+  pt 2/2
+  keywords lure
+  scavenge {3}{G}{G}
+}

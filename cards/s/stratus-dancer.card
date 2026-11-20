@@ -1,0 +1,9 @@
+card "Stratus Dancer" {
+  oracle_id 5b6a821c-51e4-44dc-8353-f4d10eab7fcb
+  cost {1}{U}
+  type Creature — Djinn Monk
+  pt 2/1
+  keywords flying
+  megamorph {1}{U}
+  triggered when this is turned face up: counter target instant or sorcery spell
+}

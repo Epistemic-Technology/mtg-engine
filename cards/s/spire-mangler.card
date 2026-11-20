@@ -1,0 +1,8 @@
+card "Spire Mangler" {
+  oracle_id 6416dae0-0d40-4d88-b30b-e1a0c8380e78
+  cost {2}{B}
+  type Creature — Insect
+  pt 2/1
+  keywords flash, flying
+  triggered when this enters: target creature you control with flying gets +2/+0
+}

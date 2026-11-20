@@ -1,0 +1,8 @@
+card "Bomat Bazaar Barge" {
+  oracle_id c46a7dc0-88d7-4fbe-8d63-a40688bb5861
+  cost {4}
+  type Artifact — Vehicle
+  pt 5/5
+  triggered when this enters: draw 1 cards
+  crew 3
+}

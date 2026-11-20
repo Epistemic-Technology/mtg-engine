@@ -1,0 +1,6 @@
+card "Goblin Bombardment" {
+  oracle_id edad60c6-80de-4033-af1b-a703ac332983
+  cost {1}{R}
+  type Enchantment
+  activated sacrifice creature: deal 1 damage to any target
+}

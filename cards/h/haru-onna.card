@@ -1,0 +1,8 @@
+card "Haru-Onna" {
+  oracle_id fead5048-3ce5-46d9-9c04-0a52f1554030
+  cost {3}{G}
+  type Creature — Spirit
+  pt 2/1
+  triggered when this enters: draw 1 cards
+  triggered whenever you cast Spirit or Arcane spell: you may return this to hand
+}

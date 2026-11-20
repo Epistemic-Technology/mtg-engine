@@ -1,0 +1,8 @@
+card "Nikko-Onna" {
+  oracle_id f5cf3f74-e497-46d0-acfb-3b57ee27a314
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/2
+  triggered when this enters: destroy target enchantment
+  triggered whenever you cast Spirit or Arcane spell: you may return this to hand
+}

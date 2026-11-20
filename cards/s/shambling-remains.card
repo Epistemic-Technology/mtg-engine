@@ -1,0 +1,8 @@
+card "Shambling Remains" {
+  oracle_id 5a29fe9f-89bf-405e-acf6-1b56435cb9ee
+  cost {1}{B}{R}
+  type Creature — Zombie Horror
+  pt 4/3
+  keywords can't block
+  unearth {B}{R}
+}

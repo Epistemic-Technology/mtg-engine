@@ -1,0 +1,8 @@
+card "Subjugator Angel" {
+  oracle_id 88b1e06c-5899-4e83-8204-e2c32c0c6aff
+  cost {4}{W}{W}
+  type Creature — Angel
+  pt 4/3
+  keywords flying
+  triggered when this enters: tap each creature your opponents control
+}

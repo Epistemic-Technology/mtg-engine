@@ -1,0 +1,7 @@
+card "Warleader's Call" {
+  oracle_id a751c07b-fc21-4854-96e7-f71abf4e86c9
+  cost {1}{R}{W}
+  type Enchantment
+  static creature you control: +1/+1
+  triggered whenever creature you control enters: deal 1 damage to each opponent
+}

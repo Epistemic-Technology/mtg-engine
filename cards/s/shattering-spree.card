@@ -1,0 +1,7 @@
+card "Shattering Spree" {
+  oracle_id fe725b27-49ef-41bc-91f9-9cd9871ad863
+  cost {R}
+  type Sorcery
+  replicate {R}
+  spell: destroy target artifact
+}

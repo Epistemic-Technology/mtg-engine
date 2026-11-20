@@ -1,0 +1,8 @@
+card "Duergar Hedge-Mage" {
+  oracle_id ecb2fd58-b880-4d9e-93cb-c4d2b28233c9
+  cost {2}{R/W}
+  type Creature — Dwarf Shaman
+  pt 2/2
+  triggered when this enters if you control 2 Mountain: you may destroy target artifact
+  triggered when this enters if you control 2 Plain: you may destroy target enchantment
+}

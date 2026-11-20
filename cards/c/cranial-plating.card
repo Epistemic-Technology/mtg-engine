@@ -1,0 +1,8 @@
+card "Cranial Plating" {
+  oracle_id 75564721-e4e9-463a-b49e-f0c7cd6f53a7
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+0 count each artifact you control
+  activated {B}{B}: attach to target creature you control
+  equip {1}
+}

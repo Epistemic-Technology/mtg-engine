@@ -1,0 +1,8 @@
+card "Emissary of Sunrise" {
+  oracle_id e2155e61-f389-4b1d-9598-9a79cbccaaa2
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 2/1
+  keywords first strike
+  triggered when this enters: this explores
+}

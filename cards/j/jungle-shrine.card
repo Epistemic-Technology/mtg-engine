@@ -1,0 +1,6 @@
+card "Jungle Shrine" {
+  oracle_id 2e69537c-c898-4e13-a72d-ce3957a90304
+  type Land
+  enters tapped
+  mana {R} or {G} or {W}
+}

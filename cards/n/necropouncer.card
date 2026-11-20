@@ -1,0 +1,8 @@
+card "Necropouncer" {
+  oracle_id 9e33b295-fab8-42c7-be43-baf9c17d063f
+  cost {6}
+  type Artifact — Equipment
+  living weapon
+  static enchanted: +3/+1, has haste
+  equip {2}
+}

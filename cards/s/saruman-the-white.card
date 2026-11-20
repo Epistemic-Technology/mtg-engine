@@ -1,0 +1,8 @@
+card "Saruman the White" {
+  oracle_id 8ba24644-8dff-4f1e-a96a-7361baf46b5a
+  cost {4}{U}
+  type Legendary Creature — Avatar Wizard
+  pt 4/4
+  ward {2}
+  triggered whenever you cast your second spell each turn: amass Orcs 2
+}

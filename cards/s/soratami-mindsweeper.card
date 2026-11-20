@@ -1,0 +1,8 @@
+card "Soratami Mindsweeper" {
+  oracle_id 2ef6f4d6-f755-4402-8339-2a9b6c86f96c
+  cost {3}{U}
+  type Creature — Moonfolk Wizard
+  pt 1/4
+  keywords flying
+  activated {2}, return land you control: target player mills 2 cards
+}

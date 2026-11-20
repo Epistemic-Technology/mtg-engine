@@ -1,0 +1,8 @@
+card "Ignoble Hierarch" {
+  oracle_id c8de43a3-ebd3-4000-b343-a6ffed11d34d
+  cost {G}
+  type Creature — Goblin Shaman
+  pt 0/1
+  keywords exalted
+  mana {B} or {R} or {G}
+}

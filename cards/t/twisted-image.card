@@ -1,0 +1,9 @@
+card "Twisted Image" {
+  oracle_id 4a40cee1-fc09-4f97-aef8-440778d8c0ca
+  cost {U}
+  type Instant
+  spell {
+    switch pt of target creature
+    draw 1 cards
+  }
+}

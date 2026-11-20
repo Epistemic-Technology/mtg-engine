@@ -1,0 +1,8 @@
+card "Yuki-Onna" {
+  oracle_id 8f867a2c-f17b-4608-bca7-5b49d1387bc7
+  cost {3}{R}
+  type Creature — Spirit
+  pt 3/1
+  triggered when this enters: destroy target artifact
+  triggered whenever you cast Spirit or Arcane spell: you may return this to hand
+}

@@ -1,0 +1,6 @@
+card "Nine-Ringed Bo" {
+  oracle_id f5dc3dbd-7eab-40f3-afe2-1e88a0c00538
+  cost {3}
+  type Artifact
+  activated {T}: deal 1 damage to target Spirit creature; this turn, replace target 1 dies: exile
+}

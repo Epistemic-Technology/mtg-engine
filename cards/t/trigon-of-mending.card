@@ -1,0 +1,8 @@
+card "Trigon of Mending" {
+  oracle_id 17b1c870-ef94-49af-8f9b-a8765f1b54db
+  cost {2}
+  type Artifact
+  enters with 3 charge counters
+  activated {W}{W}, {T}: put 1 charge counters on this
+  activated {2}, {T}, remove 1 charge counters from this: target player gains 3 life
+}

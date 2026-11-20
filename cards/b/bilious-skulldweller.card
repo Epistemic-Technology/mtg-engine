@@ -1,0 +1,8 @@
+card "Bilious Skulldweller" {
+  oracle_id 83bf5610-a798-4508-88d2-c60d96f60d23
+  cost {B}
+  type Creature — Phyrexian Insect
+  pt 1/1
+  keywords deathtouch
+  toxic 1
+}

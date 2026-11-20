@@ -1,0 +1,9 @@
+card "Glistening Oil" {
+  oracle_id 645a4dee-a4e0-4850-a781-522aa718827f
+  cost {B}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has infect
+  triggered at beginning of your upkeep: put 1 -1/-1 counters on enchanted creature
+  triggered when this dies: return this to hand
+}

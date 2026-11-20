@@ -1,0 +1,8 @@
+card "Herald of Kozilek" {
+  oracle_id e1890cbc-b15b-44bc-b1c0-ca3d9fd6028a
+  cost {1}{U}{R}
+  type Creature — Eldrazi Drone
+  pt 2/4
+  keywords devoid
+  spells colorless you cast cost {1} less
+}

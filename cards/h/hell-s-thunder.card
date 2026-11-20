@@ -1,0 +1,9 @@
+card "Hell's Thunder" {
+  oracle_id 5aad3485-47c1-4d87-b340-61d7003cd786
+  cost {1}{R}{R}
+  type Creature — Elemental
+  pt 4/4
+  keywords flying, haste
+  triggered at beginning of each end step: sacrifice this
+  unearth {4}{R}
+}

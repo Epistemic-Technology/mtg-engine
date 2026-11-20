@@ -1,0 +1,7 @@
+card "Chatterstorm" {
+  oracle_id 7e6c7b57-bd6a-4ac8-bcab-c3a879f479c2
+  cost {1}{G}
+  type Sorcery
+  spell: create 1 "1/1 green Squirrel creature"
+  storm
+}

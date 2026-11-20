@@ -1,0 +1,7 @@
+card "Hazoret's Monument" {
+  oracle_id f02a4cbf-f0bb-4bc7-99c2-6afa1b41ebb8
+  cost {3}
+  type Legendary Artifact
+  spells red creature you cast cost {1} less
+  triggered whenever you cast creature spell: you may discard 1 cards; if you do, draw 1 cards
+}

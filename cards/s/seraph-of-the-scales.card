@@ -1,0 +1,10 @@
+card "Seraph of the Scales" {
+  oracle_id 4a3acbf7-0699-4d7c-b4fa-aa15c7cde189
+  cost {2}{W}{B}
+  type Creature — Angel
+  pt 4/3
+  keywords flying
+  activated {W}: this gains vigilance
+  activated {B}: this gains deathtouch
+  afterlife 2
+}

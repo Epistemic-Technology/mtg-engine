@@ -1,0 +1,8 @@
+card "Firespitter Whelp" {
+  oracle_id 1cad92ce-55c8-4b78-8d8c-56645ef8e6ee
+  cost {2}{R}
+  type Creature — Dragon
+  pt 2/2
+  keywords flying
+  triggered whenever you cast noncreature or Dragon spell: deal 1 damage to each opponent
+}

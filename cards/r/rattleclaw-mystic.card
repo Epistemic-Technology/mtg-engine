@@ -1,0 +1,9 @@
+card "Rattleclaw Mystic" {
+  oracle_id 84c9d8b8-8dd9-41fc-a2b6-af1ffb9090f9
+  cost {1}{G}
+  type Creature — Human Shaman
+  pt 2/1
+  mana {G} or {U} or {R}
+  morph {2}
+  triggered when this is turned face up: add {G}{U}{R}
+}

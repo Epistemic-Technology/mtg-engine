@@ -1,0 +1,7 @@
+card "Talisman of Curiosity" {
+  oracle_id 8c34b089-aad1-476e-958a-3077bf1bbb51
+  cost {2}
+  type Artifact
+  mana {C}
+  activated {T}: add {G} or {U}; deal 1 damage to you
+}

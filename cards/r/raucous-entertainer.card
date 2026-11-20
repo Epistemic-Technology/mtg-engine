@@ -1,0 +1,7 @@
+card "Raucous Entertainer" {
+  oracle_id 534e74f6-52f4-4824-9178-cce5e4bcbcc2
+  cost {1}{G}
+  type Creature — Plant Bard
+  pt 2/2
+  activated {1}, {T}: put 1 +1/+1 counters on each creature you control that entered this turn
+}

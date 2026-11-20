@@ -1,0 +1,6 @@
+card "Underground River" {
+  oracle_id 857febd9-cdd7-4f8e-a852-d88084b0cfbc
+  type Land
+  mana {C}
+  activated {T}: add {U} or {B}; deal 1 damage to you
+}

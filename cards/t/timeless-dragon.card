@@ -1,0 +1,9 @@
+card "Timeless Dragon" {
+  oracle_id a5ae93e9-0385-47fd-9d8f-306e9a6b7fe6
+  cost {3}{W}{W}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying
+  plainscycling {2}
+  eternalize {2}{W}{W}
+}

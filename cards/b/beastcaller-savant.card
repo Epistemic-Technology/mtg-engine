@@ -1,0 +1,8 @@
+card "Beastcaller Savant" {
+  oracle_id e28227eb-b3b5-42fa-b597-1fefd2a70186
+  cost {1}{G}
+  type Creature — Elf Shaman Ally
+  pt 1/1
+  keywords haste
+  mana any only to cast creature spell
+}

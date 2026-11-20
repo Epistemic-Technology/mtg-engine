@@ -1,0 +1,6 @@
+card "Sulfurous Springs" {
+  oracle_id f5c38c01-4a40-469f-91a0-7479daf4e8e7
+  type Land
+  mana {C}
+  activated {T}: add {B} or {R}; deal 1 damage to you
+}

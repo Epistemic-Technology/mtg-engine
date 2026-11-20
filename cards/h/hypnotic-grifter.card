@@ -1,0 +1,7 @@
+card "Hypnotic Grifter" {
+  oracle_id 5df80355-b12a-4989-94e5-1e0fa27350e8
+  cost {U}
+  type Creature — Human Rogue
+  pt 1/2
+  activated {3}: this connives
+}

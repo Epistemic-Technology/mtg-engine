@@ -1,0 +1,12 @@
+card "Besotted Knight // Betroth the Beast" {
+  oracle_id c7b6d2cd-9105-404b-88f0-a67037fb2120
+  layout adventure
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 3/3
+  face "Betroth the Beast" {
+    cost {W}
+    type Sorcery — Adventure
+    spell: create 1 "Royal Role" attached to target creature you control
+  }
+}

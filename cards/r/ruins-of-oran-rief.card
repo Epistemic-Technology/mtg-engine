@@ -1,0 +1,7 @@
+card "Ruins of Oran-Rief" {
+  oracle_id 7140f396-1bfa-4b28-ba28-fa15eba74652
+  type Land
+  enters tapped
+  mana {C}
+  activated {T}: put 1 +1/+1 counters on target colorless creature that entered this turn
+}

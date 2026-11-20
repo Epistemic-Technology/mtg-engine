@@ -1,0 +1,9 @@
+card "Goblin Ruinblaster" {
+  oracle_id d99fa026-6347-450a-9011-1fd79070a55c
+  cost {2}{R}
+  type Creature — Goblin Shaman
+  pt 2/1
+  kicker {R}
+  keyword haste
+  triggered when this enters if kicked: destroy target nonbasic land
+}

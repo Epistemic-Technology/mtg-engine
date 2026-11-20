@@ -1,0 +1,7 @@
+card "Aether Hub" {
+  oracle_id 61c89b11-65c9-4fda-bbcd-d84de25df801
+  type Land
+  triggered when this enters: you get 1 energy
+  mana {C}
+  activated {T}, pay 1 energy: add any
+}

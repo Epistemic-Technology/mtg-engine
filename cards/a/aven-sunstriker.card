@@ -1,0 +1,8 @@
+card "Aven Sunstriker" {
+  oracle_id 60b0fd7c-a4cc-4a41-8455-debcfeccff81
+  cost {1}{W}{W}
+  type Creature — Bird Warrior
+  pt 1/1
+  keywords flying, double strike
+  megamorph {4}{W}
+}

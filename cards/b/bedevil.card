@@ -1,0 +1,6 @@
+card "Bedevil" {
+  oracle_id bceecc64-96f1-4e7b-8904-0aef90377764
+  cost {B}{B}{R}
+  type Instant
+  spell: destroy target artifact, creature, or planeswalker
+}

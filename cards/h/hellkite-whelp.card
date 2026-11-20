@@ -1,0 +1,8 @@
+card "Hellkite Whelp" {
+  oracle_id a9b1dd4a-2eaf-4448-a767-da705d3ec32b
+  cost {4}{R}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying
+  triggered whenever this attacks: deal 1 damage to target creature defending player controls
+}

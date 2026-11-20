@@ -1,0 +1,7 @@
+card "Screaming Shield" {
+  oracle_id 9c0aba12-4460-4150-b74f-93f5f8006cf5
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +0/+3, has ability { activated {2}, {T}: target player mills 3 cards }
+  equip {3}
+}

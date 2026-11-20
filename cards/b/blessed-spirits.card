@@ -1,0 +1,8 @@
+card "Blessed Spirits" {
+  oracle_id 5fb899c1-3a2f-4b5e-a82d-fece51bdf786
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/2
+  keywords flying
+  triggered whenever you cast enchantment spell: put 1 +1/+1 counters on this
+}

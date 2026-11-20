@@ -1,0 +1,8 @@
+card "Trigon of Thought" {
+  oracle_id 8a179d68-c9e6-4f46-99bf-11b2a2708990
+  cost {5}
+  type Artifact
+  enters with 3 charge counters
+  activated {U}{U}, {T}: put 1 charge counters on this
+  activated {2}, {T}, remove 1 charge counters from this: draw 1 cards
+}

@@ -1,0 +1,9 @@
+card "Mage-Ring Responder" {
+  oracle_id 1d84fb81-2de5-4be1-9638-9ae28e3d867a
+  cost {7}
+  type Artifact Creature — Golem
+  pt 7/7
+  keywords doesn't untap
+  activated {7}: untap this
+  triggered whenever this attacks: deal 7 damage to target creature defending player controls
+}

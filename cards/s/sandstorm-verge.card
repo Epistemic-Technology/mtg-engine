@@ -1,0 +1,6 @@
+card "Sandstorm Verge" {
+  oracle_id de417a82-8f03-4d7e-aee7-48f7d7eba61a
+  type Land — Desert
+  mana {C}
+  activated {3}, {T}, sorcery: target creature can't block
+}

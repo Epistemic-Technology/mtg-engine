@@ -1,0 +1,8 @@
+card "Extruder" {
+  oracle_id 93cc6425-a13b-4b32-bb8f-fdc9bfa0ef9b
+  cost {4}
+  type Artifact Creature — Juggernaut
+  pt 4/3
+  echo {4}
+  activated sacrifice artifact: put 1 +1/+1 counters on target creature
+}

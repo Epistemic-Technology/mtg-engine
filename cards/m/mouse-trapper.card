@@ -1,0 +1,8 @@
+card "Mouse Trapper" {
+  oracle_id 5b0a4530-6e19-41a2-9ea6-e4c8cf85b6c4
+  cost {2}{W}
+  type Creature — Mouse Soldier
+  pt 3/2
+  keywords flash
+  label "Valiant" triggered whenever this becomes targeted by you first time each turn: tap target creature an opponent controls
+}

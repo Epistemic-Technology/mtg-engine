@@ -1,0 +1,7 @@
+card "Shefet Dunes" {
+  oracle_id 8305715e-f711-47d6-8efe-d0efe4ced418
+  type Land — Desert
+  mana {C}
+  activated {T}, pay 1 life: add {W}
+  activated {2}{W}{W}, {T}, sacrifice Desert, sorcery: each creature you control gets +1/+1
+}

@@ -1,0 +1,8 @@
+card "Greenwarden of Murasa" {
+  oracle_id 2facb1b3-4522-4610-a0ab-29ac53ca7fcd
+  cost {4}{G}{G}
+  type Creature — Elemental
+  pt 5/4
+  triggered when this enters: you may return target card from your graveyard to hand
+  triggered when this dies: you may exile this; if you do, return target card from your graveyard to hand
+}

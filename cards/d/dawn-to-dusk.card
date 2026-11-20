@@ -1,0 +1,9 @@
+card "Dawn to Dusk" {
+  oracle_id c7a98058-b40d-4d74-9b97-6f04adf3c684
+  cost {2}{W}{W}
+  type Sorcery
+  choose one or both {
+    mode: return target enchantment card from your graveyard to hand
+    mode: destroy target enchantment
+  }
+}

@@ -1,0 +1,8 @@
+card "Fallaji Vanguard" {
+  oracle_id e60b23ba-2258-4da1-b873-452ee215846b
+  cost {2}{R}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  keywords first strike
+  triggered whenever this or creature you control enters: target creature gets +2/+0
+}

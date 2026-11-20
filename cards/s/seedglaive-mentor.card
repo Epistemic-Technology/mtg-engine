@@ -1,0 +1,8 @@
+card "Seedglaive Mentor" {
+  oracle_id f50bbe5e-a839-40e1-ba79-1e96f91bd218
+  cost {1}{R}{W}
+  type Creature — Mouse Soldier
+  pt 3/2
+  keywords vigilance, haste
+  label "Valiant" triggered whenever this becomes targeted by you first time each turn: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,6 @@
+card "Rites of Reaping" {
+  oracle_id ed1a1c04-1b2b-4616-abb2-8bd19c47b589
+  cost {4}{B}{G}
+  type Sorcery
+  spell: target creature gets +3/+3; another target creature gets -3/-3
+}

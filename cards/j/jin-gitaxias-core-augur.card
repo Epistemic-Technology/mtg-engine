@@ -1,0 +1,9 @@
+card "Jin-Gitaxias, Core Augur" {
+  oracle_id eb23aed0-c450-4e57-96f2-2866dceca004
+  cost {8}{U}{U}
+  type Legendary Creature — Phyrexian Praetor
+  pt 5/4
+  keywords flash
+  triggered at beginning of your end step: draw 7 cards
+  hand size opponents -7
+}

@@ -1,0 +1,16 @@
+card "Kessig Forgemaster // Flameheart Werewolf" {
+  oracle_id b0d66546-c6a3-4052-b86e-98c3c2ab44b3
+  layout transform
+  cost {1}{R}
+  type Creature — Human Shaman Werewolf
+  pt 2/1
+  triggered whenever this blocks or becomes blocked by a creature: deal 1 damage to that creature
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Flameheart Werewolf" {
+    type Creature — Werewolf
+    pt 3/2
+    color red
+    triggered whenever this blocks or becomes blocked by a creature: deal 2 damage to that creature
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

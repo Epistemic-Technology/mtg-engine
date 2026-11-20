@@ -1,0 +1,6 @@
+card "Drannith Ruins" {
+  oracle_id d1f10cca-8dfa-4ea5-b227-4446cd8514a8
+  type Land
+  mana {C}
+  activated {2}, {T}: put 2 +1/+1 counters on target non-Human creature that entered this turn
+}

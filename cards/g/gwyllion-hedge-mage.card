@@ -1,0 +1,8 @@
+card "Gwyllion Hedge-Mage" {
+  oracle_id b89b285d-62d3-4013-b881-23f0f236337d
+  cost {2}{W/B}
+  type Creature — Hag Wizard
+  pt 2/2
+  triggered when this enters if you control 2 Plain: you may create 1 "1/1 white Kithkin Soldier creature"
+  triggered when this enters if you control 2 Swamp: you may put 1 -1/-1 counters on target creature
+}

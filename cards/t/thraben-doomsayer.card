@@ -1,0 +1,8 @@
+card "Thraben Doomsayer" {
+  oracle_id e05e70cd-7af3-428e-82e3-73418914d727
+  cost {1}{W}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  activated {T}: create 1 "1/1 white Human creature"
+  label "Fateful hour" static as long as your life 5 or less, other creature you control: +2/+2
+}

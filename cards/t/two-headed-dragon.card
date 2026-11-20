@@ -1,0 +1,8 @@
+card "Two-Headed Dragon" {
+  oracle_id a4fa3052-d1ec-4442-a832-15ba36c500ee
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying, menace, can block an additional creature each combat
+  activated {1}{R}: this gets +2/+0
+}

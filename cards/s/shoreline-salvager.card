@@ -1,0 +1,7 @@
+card "Shoreline Salvager" {
+  oracle_id 02c08d0b-0d76-4533-a7e9-d40c7c4b3450
+  cost {3}{B}
+  type Creature — Surrakar
+  pt 3/3
+  triggered whenever this deals combat damage to a player if you control Island: you may draw 1 cards
+}

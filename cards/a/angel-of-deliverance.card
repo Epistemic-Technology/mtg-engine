@@ -1,0 +1,8 @@
+card "Angel of Deliverance" {
+  oracle_id f888f3ba-8316-4c10-bf97-873731f7d364
+  cost {6}{W}{W}
+  type Creature — Angel
+  pt 6/6
+  keywords flying
+  label "Delirium" triggered whenever this deals damage if 4 card types in your graveyard: exile target creature an opponent controls
+}

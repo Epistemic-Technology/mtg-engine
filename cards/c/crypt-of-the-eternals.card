@@ -1,0 +1,7 @@
+card "Crypt of the Eternals" {
+  oracle_id cc78776b-822b-4f11-8982-0805a25a9d36
+  type Land
+  triggered when this enters: you gains 1 life
+  mana {C}
+  activated {1}, {T}: add {U} or {B} or {R}
+}

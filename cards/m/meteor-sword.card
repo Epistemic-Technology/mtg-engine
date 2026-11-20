@@ -1,0 +1,8 @@
+card "Meteor Sword" {
+  oracle_id 181965fb-e685-4b1f-9bd6-3a33bed933b2
+  cost {7}
+  type Artifact — Equipment
+  triggered when this enters: destroy target permanent
+  static enchanted: +3/+3
+  equip {3}
+}

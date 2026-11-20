@@ -1,0 +1,8 @@
+card "Scrawling Crawler" {
+  oracle_id 1d60c80d-9a95-4051-bbf7-02ca51ee1be2
+  cost {3}
+  type Artifact Creature — Phyrexian Construct
+  pt 3/2
+  triggered at beginning of your upkeep: each player draws 1 cards
+  triggered whenever an opponent draws a card: that player loses 1 life
+}

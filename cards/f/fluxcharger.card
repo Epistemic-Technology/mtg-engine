@@ -1,0 +1,8 @@
+card "Fluxcharger" {
+  oracle_id 99bba323-b5a4-4ff3-8ad1-2a19ed119069
+  cost {2}{U}{R}
+  type Creature — Weird
+  pt 1/5
+  keywords flying
+  triggered whenever you cast an instant or sorcery spell: you may switch pt of this
+}

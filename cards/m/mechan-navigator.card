@@ -1,0 +1,7 @@
+card "Mechan Navigator" {
+  oracle_id fa72c607-7eb4-41b7-9af1-f3d6c69abf09
+  cost {1}{U}
+  type Artifact Creature — Robot Pilot
+  pt 2/1
+  triggered whenever this becomes tapped: draw 1 cards then discard 1 cards
+}

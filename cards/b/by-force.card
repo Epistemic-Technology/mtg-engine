@@ -1,0 +1,6 @@
+card "By Force" {
+  oracle_id 7ce950fb-e065-45d3-aeff-f8c475460754
+  cost {X}{R}
+  type Sorcery
+  spell: destroy X target artifacts
+}

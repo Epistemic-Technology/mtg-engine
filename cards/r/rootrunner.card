@@ -1,0 +1,8 @@
+card "Rootrunner" {
+  oracle_id 9c83c32e-798e-40aa-9bb6-6ef5500d273b
+  cost {2}{G}{G}
+  type Creature — Spirit
+  pt 3/3
+  activated {G}{G}, sacrifice this: put target land on top of library
+  soulshift 3
+}

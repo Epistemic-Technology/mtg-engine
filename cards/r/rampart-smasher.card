@@ -1,0 +1,7 @@
+card "Rampart Smasher" {
+  oracle_id 5ece1778-fb19-40d5-8bcc-f23033e1d5c0
+  cost {R/G}{R/G}{R/G}{R/G}
+  type Creature — Giant
+  pt 5/5
+  can't be blocked by Knight or Wall
+}

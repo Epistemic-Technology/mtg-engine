@@ -1,0 +1,7 @@
+card "Empty the Warrens" {
+  oracle_id 3a59c882-8bb8-49ba-862f-125020dd5bec
+  cost {3}{R}
+  type Sorcery
+  spell: create 2 "1/1 red Goblin creature"
+  storm
+}

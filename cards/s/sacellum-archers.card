@@ -1,0 +1,7 @@
+card "Sacellum Archers" {
+  oracle_id 3b9117a1-cd2d-4478-beda-1049e0b0f8eb
+  cost {2}{G}
+  type Creature — Elf Archer
+  pt 2/3
+  activated {R}{W}, {T}: deal 2 damage to target attacking or blocking creature
+}

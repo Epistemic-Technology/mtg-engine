@@ -1,0 +1,8 @@
+card "Ghost-Lit Nourisher" {
+  oracle_id acaed013-2e74-47e3-a687-084388b37a7b
+  cost {2}{G}
+  type Creature — Spirit
+  pt 2/1
+  activated {2}{G}, {T}: target creature gets +2/+2
+  label "Channel" activated {3}{G}, discard this: target creature gets +4/+4
+}

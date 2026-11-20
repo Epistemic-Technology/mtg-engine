@@ -1,0 +1,7 @@
+card "Spreading Insurrection" {
+  oracle_id bc59977f-b3a7-4bc1-9f20-0a1e36d418ae
+  cost {4}{R}
+  type Sorcery
+  spell: gain control of target creature you don't control; untap that creature; target 1 gains haste
+  storm
+}

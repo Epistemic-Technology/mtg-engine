@@ -1,0 +1,9 @@
+card "Void Beckoner" {
+  oracle_id 7185e345-d8a1-4dd3-a071-f90f265634b4
+  cost {6}{B}{B}
+  type Creature — Nightmare Horror
+  pt 8/8
+  keywords deathtouch
+  cycling {2}{B}
+  triggered when you cycle this: put 1 deathtouch counters on target creature you control
+}

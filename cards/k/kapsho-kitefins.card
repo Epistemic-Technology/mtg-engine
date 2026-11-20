@@ -1,0 +1,8 @@
+card "Kapsho Kitefins" {
+  oracle_id b9b205db-068e-44c7-9169-5d8f13d4b73a
+  cost {4}{U}{U}
+  type Creature — Fish
+  pt 3/3
+  keywords flying
+  triggered whenever this or creature you control enters: tap target creature an opponent controls
+}

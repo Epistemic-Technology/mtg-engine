@@ -1,0 +1,7 @@
+card "Elvish Regrower" {
+  oracle_id adac526d-1a85-431a-a302-0a4b8f4a0c44
+  cost {2}{G}{G}
+  type Creature — Elf Druid
+  pt 4/3
+  triggered when this enters: return target permanent card from your graveyard to hand
+}

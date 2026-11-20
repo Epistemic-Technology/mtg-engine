@@ -1,0 +1,7 @@
+card "Enraged Giant" {
+  oracle_id dbf4e56e-57dd-4f41-95a9-8b9b096274ec
+  cost {5}{R}
+  type Creature — Giant
+  pt 4/4
+  keywords improvise, trample, haste
+}

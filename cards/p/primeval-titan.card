@@ -1,0 +1,8 @@
+card "Primeval Titan" {
+  oracle_id ae83ef2c-960f-4c5b-97cc-52465c687c18
+  cost {4}{G}{G}
+  type Creature — Giant
+  pt 6/6
+  keywords trample
+  triggered whenever this enters or attacks: you may search up to 2 land card to battlefield tapped
+}

@@ -1,0 +1,7 @@
+card "Pestered Wellguard" {
+  oracle_id b0dbfd40-ecc5-493b-976b-bc3f62137fcf
+  cost {3}{U}
+  type Creature — Merfolk Soldier
+  pt 3/2
+  triggered whenever this becomes tapped: create 1 "1/1 blue and black Faerie creature with flying"
+}

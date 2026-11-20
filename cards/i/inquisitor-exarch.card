@@ -1,0 +1,10 @@
+card "Inquisitor Exarch" {
+  oracle_id 7deae378-9291-487e-9f0b-1deaf37218a8
+  cost {W}{W}
+  type Creature — Phyrexian Cleric
+  pt 2/2
+  triggered when this enters: choose one {
+    mode: you gains 2 life
+    mode: target opponent loses 2 life
+  }
+}

@@ -1,0 +1,8 @@
+card "Spring-Leaf Avenger" {
+  oracle_id 19797dd6-6f48-47bc-a9ac-84d4acad3fa5
+  cost {3}{G}{G}
+  type Creature — Insect Ninja
+  pt 6/5
+  ninjutsu {3}{G}
+  triggered whenever this deals combat damage to a player: return target permanent card from your graveyard to hand
+}

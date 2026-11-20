@@ -1,0 +1,7 @@
+card "Lunar Mystic" {
+  oracle_id 9652f79c-3060-4e9c-9623-0ebe4ab4094c
+  cost {2}{U}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered whenever you cast instant spell: you may pay {1}; if you do, draw 1 cards
+}

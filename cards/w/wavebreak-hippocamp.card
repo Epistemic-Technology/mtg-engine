@@ -1,0 +1,7 @@
+card "Wavebreak Hippocamp" {
+  oracle_id 3405c8a9-a8d6-4b45-9b64-94141076603b
+  cost {2}{U}
+  type Enchantment Creature — Horse Fish
+  pt 2/2
+  triggered whenever you cast your first spell during each opponent's turn: draw 1 cards
+}

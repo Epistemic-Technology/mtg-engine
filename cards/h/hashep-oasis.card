@@ -1,0 +1,7 @@
+card "Hashep Oasis" {
+  oracle_id eab70fff-6a9f-4f9f-89a2-b6910c199e46
+  type Land — Desert
+  mana {C}
+  activated {T}, pay 1 life: add {G}
+  activated {1}{G}{G}, {T}, sacrifice Desert, sorcery: target creature gets +3/+3
+}

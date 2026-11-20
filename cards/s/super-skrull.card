@@ -1,0 +1,11 @@
+card "Super-Skrull" {
+  oracle_id 4644013f-c96a-450e-a7bc-ddfa7a563050
+  cost {1}{B}{B}{B}
+  type Legendary Creature — Skrull Shapeshifter Villain
+  pt 4/5
+  keywords flying
+  activated {2}{W}: create 1 "0/4 colorless Wall creature with defender"
+  activated {3}{G}: this gets +4/+4
+  activated {4}{R}: deal 4 damage to target creature
+  activated {5}{U}: target player draws 4 cards
+}

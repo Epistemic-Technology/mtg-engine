@@ -1,0 +1,7 @@
+card "Teferi's Tutelage" {
+  oracle_id c6b94e03-61c0-4077-b3da-a70795e97278
+  cost {2}{U}
+  type Enchantment
+  triggered when this enters: draw 1 cards then discard 1 cards
+  triggered whenever you draw a card: target opponent mills 2 cards
+}

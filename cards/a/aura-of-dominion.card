@@ -1,0 +1,7 @@
+card "Aura of Dominion" {
+  oracle_id d2f0a918-4435-4d43-811d-2da659086ef5
+  cost {U}{U}
+  type Enchantment — Aura
+  enchant creature
+  activated {1}, tap untapped creature you control: untap enchanted creature
+}

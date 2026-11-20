@@ -1,0 +1,8 @@
+card "Siren Reaver" {
+  oracle_id bc1c9ca8-2f00-4761-bd85-1329287ae7ac
+  cost {3}{U}
+  type Creature — Siren Pirate
+  pt 3/2
+  label "Raid" this spell costs {1} less if attacked this turn
+  keyword flying
+}

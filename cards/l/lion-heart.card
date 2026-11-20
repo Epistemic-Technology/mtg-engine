@@ -1,0 +1,8 @@
+card "Lion Heart" {
+  oracle_id bd4151cc-743a-40f0-9e51-1f67555d9ab3
+  cost {4}
+  type Artifact — Equipment
+  triggered when this enters: deal 2 damage to any target
+  static enchanted: +2/+1
+  equip {2}
+}

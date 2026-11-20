@@ -1,0 +1,6 @@
+card "Impractical Joke" {
+  oracle_id c8da73ed-2834-4094-8723-a4ad75660290
+  cost {R}
+  type Sorcery
+  spell: damage can't be prevented this turn; deal 3 damage to up to one target creature or planeswalker
+}

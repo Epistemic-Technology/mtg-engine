@@ -1,0 +1,7 @@
+card "Rockcaster Platoon" {
+  oracle_id 3bc82914-1524-4d57-8b38-9788867a4046
+  cost {5}{W}{W}
+  type Creature — Rhino Soldier
+  pt 5/7
+  activated {4}{G}: deal 2 damage to each creature with flying and each player
+}

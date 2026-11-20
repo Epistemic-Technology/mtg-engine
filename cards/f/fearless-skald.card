@@ -1,0 +1,8 @@
+card "Fearless Skald" {
+  oracle_id f055a941-8b83-464e-a57f-8f188dc69aaa
+  cost {4}{R}
+  type Creature — Dwarf Berserker
+  pt 3/2
+  backup 1
+  keyword double strike
+}

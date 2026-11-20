@@ -1,0 +1,9 @@
+card "Phyrexian Missionary" {
+  oracle_id be04f54f-59fa-4f0a-b8b5-790d568932b6
+  cost {1}{W}
+  type Creature — Phyrexian Human Cleric
+  pt 2/3
+  kicker {1}{B}
+  keyword lifelink
+  triggered when this enters if kicked: return target creature card from your graveyard to hand
+}

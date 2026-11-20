@@ -1,0 +1,9 @@
+card "Heavyweight Demolisher" {
+  oracle_id fe71ada0-ac86-4035-9b6b-4c24ae65034c
+  cost {7}
+  type Artifact Creature — Construct
+  pt 8/6
+  keywords menace
+  triggered at beginning of your upkeep: tap this unless you pay {3}
+  unearth {6}{R}{R}
+}

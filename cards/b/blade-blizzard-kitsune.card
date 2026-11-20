@@ -1,0 +1,8 @@
+card "Blade-Blizzard Kitsune" {
+  oracle_id 84fb1c2f-cf1b-4166-834f-a887aa182d09
+  cost {2}{W}
+  type Creature — Fox Ninja
+  pt 2/2
+  ninjutsu {3}{W}
+  keyword double strike
+}

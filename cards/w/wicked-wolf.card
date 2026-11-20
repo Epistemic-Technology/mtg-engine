@@ -1,0 +1,8 @@
+card "Wicked Wolf" {
+  oracle_id 19cede61-1982-47d1-9e0e-49ac6de00798
+  cost {2}{G}{G}
+  type Creature — Wolf
+  pt 3/3
+  triggered when this enters: this fights up to one target creature you don't control
+  activated sacrifice Food: put 1 +1/+1 counters on this; this gains indestructible; tap this
+}

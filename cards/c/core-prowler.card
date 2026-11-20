@@ -1,0 +1,8 @@
+card "Core Prowler" {
+  oracle_id 0ad44727-41c3-471c-b038-1bf43c5f296a
+  cost {4}
+  type Artifact Creature — Phyrexian Horror
+  pt 2/2
+  keywords infect
+  triggered when this dies: proliferate
+}

@@ -1,0 +1,7 @@
+card "Corpse Traders" {
+  oracle_id e94297af-1236-4c9a-860f-2ee6a0d12e5e
+  cost {3}{B}
+  type Creature — Human Rogue
+  pt 3/3
+  activated {2}{B}, sacrifice creature, sorcery: target opponent reveals hand discarding card
+}

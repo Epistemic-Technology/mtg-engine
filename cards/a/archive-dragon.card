@@ -1,0 +1,9 @@
+card "Archive Dragon" {
+  oracle_id cddbd819-4895-4712-b44b-d6b51f3d8646
+  cost {4}{U}{U}
+  type Creature — Dragon Wizard
+  pt 4/6
+  keywords flying
+  ward {2}
+  triggered when this enters: scry 2
+}

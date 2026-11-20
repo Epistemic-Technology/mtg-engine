@@ -1,0 +1,8 @@
+card "Dusk Legion Dreadnought" {
+  oracle_id 7278f382-8249-4981-9d87-47cef7dc13dd
+  cost {5}
+  type Artifact — Vehicle
+  pt 4/6
+  keywords vigilance
+  crew 2
+}

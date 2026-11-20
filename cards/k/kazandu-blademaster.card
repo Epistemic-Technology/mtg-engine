@@ -1,0 +1,8 @@
+card "Kazandu Blademaster" {
+  oracle_id 133f5d30-d883-493e-93a1-cf9583db460b
+  cost {W}{W}
+  type Creature — Human Soldier Ally
+  pt 1/1
+  keywords first strike, vigilance
+  triggered whenever this or Ally you control enters: you may put 1 +1/+1 counters on this
+}

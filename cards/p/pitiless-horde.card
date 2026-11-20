@@ -1,0 +1,8 @@
+card "Pitiless Horde" {
+  oracle_id d5726b60-60f6-4481-bc76-759fbb55bb49
+  cost {2}{B}
+  type Creature — Orc Berserker
+  pt 5/3
+  triggered at beginning of your upkeep: you loses 2 life
+  dash {2}{B}{B}
+}

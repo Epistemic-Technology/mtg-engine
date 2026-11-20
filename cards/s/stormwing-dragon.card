@@ -1,0 +1,9 @@
+card "Stormwing Dragon" {
+  oracle_id 10796fe6-edf8-427b-986c-e7666a72ec8d
+  cost {5}{R}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying, first strike
+  megamorph {5}{R}{R}
+  triggered when this is turned face up: put 1 +1/+1 counters on each other Dragon creature you control
+}

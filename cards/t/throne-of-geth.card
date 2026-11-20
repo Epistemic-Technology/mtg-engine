@@ -1,0 +1,6 @@
+card "Throne of Geth" {
+  oracle_id 5a5f39ab-21b4-415f-aa1f-d8fad420d372
+  cost {2}
+  type Artifact
+  activated {T}, sacrifice artifact: proliferate
+}

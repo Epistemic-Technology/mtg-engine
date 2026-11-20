@@ -1,0 +1,13 @@
+card "Fang Dragon // Forktail Sweep" {
+  oracle_id c075637a-e94c-4b8d-8a9e-20ee3dfa8fe7
+  layout adventure
+  cost {5}{R}{R}
+  type Creature — Dragon
+  pt 6/3
+  keywords flying
+  face "Forktail Sweep" {
+    cost {1}{R}
+    type Sorcery — Adventure
+    spell: deal 1 damage to each creature you don't control
+  }
+}

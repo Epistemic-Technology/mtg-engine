@@ -1,0 +1,8 @@
+card "Ramosian Greatsword" {
+  oracle_id 8c53a177-c8c8-4b9f-a221-f205da67daa5
+  cost {4}{R}
+  type Artifact — Equipment
+  keywords convoke
+  static enchanted: +3/+1, has trample
+  equip {2}
+}

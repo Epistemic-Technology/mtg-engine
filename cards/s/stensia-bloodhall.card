@@ -1,0 +1,6 @@
+card "Stensia Bloodhall" {
+  oracle_id 8220c5fa-28dc-40d0-a38a-d8eefc2795d6
+  type Land
+  mana {C}
+  activated {3}{B}{R}, {T}: deal 2 damage to target player or planeswalker
+}

@@ -1,0 +1,7 @@
+card "Racecourse Fury" {
+  oracle_id b7093835-0f84-4ea4-b228-2e39bd2642ab
+  cost {R}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: has ability { activated {T}: target creature gains haste }
+}

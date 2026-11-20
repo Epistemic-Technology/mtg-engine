@@ -1,0 +1,6 @@
+card "Harrowing Journey" {
+  oracle_id 70f3d545-d114-485d-8d8b-4a93b2393c41
+  cost {4}{B}
+  type Sorcery
+  spell: target player draws three cards and loses 3 life
+}

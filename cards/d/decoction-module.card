@@ -1,0 +1,7 @@
+card "Decoction Module" {
+  oracle_id 1daba4f6-2a7d-426a-97d1-0298a7100c45
+  cost {2}
+  type Artifact
+  triggered whenever creature you control enters: you get 1 energy
+  activated {4}, {T}: return target creature you control to hand
+}

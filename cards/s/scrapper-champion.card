@@ -1,0 +1,9 @@
+card "Scrapper Champion" {
+  oracle_id 4fa99dc1-c2d2-4b21-8511-e3d86626609d
+  cost {3}{R}
+  type Creature — Human Artificer
+  pt 2/2
+  keywords double strike
+  triggered when this enters: you get 2 energy
+  triggered whenever this attacks: you may pay 2 energy; if you do, put 1 +1/+1 counters on this
+}

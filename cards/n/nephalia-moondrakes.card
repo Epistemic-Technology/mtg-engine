@@ -1,0 +1,9 @@
+card "Nephalia Moondrakes" {
+  oracle_id 95649140-7978-4684-a1f1-af771e1d345a
+  cost {5}{U}{U}
+  type Creature — Drake
+  pt 5/5
+  keywords flying
+  triggered when this enters: target creature gains flying
+  activated {4}{U}{U}, exile this from graveyard: each creature you control gains flying
+}

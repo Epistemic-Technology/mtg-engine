@@ -1,0 +1,7 @@
+card "Drooling Groodion" {
+  oracle_id b027a80b-30cf-4e7b-8902-efd584e0edf7
+  cost {3}{B}{B}{G}
+  type Creature — Beast
+  pt 4/3
+  activated {2}{B}{G}, sacrifice creature: target creature gets +2/+2; another target creature gets -2/-2
+}

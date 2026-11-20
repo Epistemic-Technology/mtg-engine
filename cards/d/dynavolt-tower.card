@@ -1,0 +1,7 @@
+card "Dynavolt Tower" {
+  oracle_id 59f56dd9-cc82-4f0d-a522-0d8ed274fa40
+  cost {3}
+  type Artifact
+  triggered whenever you cast an instant or sorcery spell: you get 2 energy
+  activated {T}, pay 5 energy: deal 3 damage to any target
+}

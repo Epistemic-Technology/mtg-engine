@@ -1,0 +1,7 @@
+card "Worthy Knight" {
+  oracle_id 37733e29-3ade-4bfd-89c9-efd13b548a53
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 2/2
+  triggered whenever you cast Knight spell: create 1 "1/1 white Human creature"
+}

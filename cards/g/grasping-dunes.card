@@ -1,0 +1,6 @@
+card "Grasping Dunes" {
+  oracle_id 47d16c11-3033-44f3-9a12-2daf3453cc5b
+  type Land — Desert
+  mana {C}
+  activated {1}, {T}, sacrifice this, sorcery: put 1 -1/-1 counters on target creature
+}

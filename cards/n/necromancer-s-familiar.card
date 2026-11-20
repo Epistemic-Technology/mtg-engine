@@ -1,0 +1,9 @@
+card "Necromancer's Familiar" {
+  oracle_id ce8833ea-5f58-4ab9-b33d-8972f2215574
+  cost {3}{B}
+  type Creature — Bird Spirit
+  pt 3/1
+  keywords flying
+  label "Hellbent" static this: has lifelink as long as hand 0 or less
+  activated {B}, discard 1 card: this gains indestructible; tap this
+}

@@ -1,0 +1,7 @@
+card "Cudgel Troll" {
+  oracle_id c2f86723-4765-4dac-a9f6-9cfa543613b2
+  cost {2}{G}{G}
+  type Creature — Troll
+  pt 4/3
+  activated {G}: regenerate this
+}

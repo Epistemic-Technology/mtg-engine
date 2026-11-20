@@ -1,0 +1,8 @@
+card "Stir the Sands" {
+  oracle_id 52fa7e9b-36d9-409c-8981-6f8dfd8bb031
+  cost {4}{B}{B}
+  type Sorcery
+  spell: create 3 "2/2 black Zombie creature"
+  cycling {3}{B}
+  triggered when you cycle this: create 1 "2/2 black Zombie creature"
+}

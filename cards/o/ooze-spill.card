@@ -1,0 +1,6 @@
+card "Ooze Spill" {
+  oracle_id c1c5f9da-1396-4406-b803-b64f66b8e49d
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell; create 1 "Mutagen"
+}

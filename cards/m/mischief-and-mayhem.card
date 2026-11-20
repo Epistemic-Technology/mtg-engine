@@ -1,0 +1,6 @@
+card "Mischief and Mayhem" {
+  oracle_id 831273d4-ced3-4659-b1f6-d5a0aeed3421
+  cost {4}{G}
+  type Sorcery
+  spell: up to two target creatures each gets +4/+4
+}

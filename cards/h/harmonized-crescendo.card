@@ -1,0 +1,7 @@
+card "Harmonized Crescendo" {
+  oracle_id b93cd38a-1d0c-40e6-aaf1-621a2c88bf46
+  cost {4}{U}{U}
+  type Instant
+  keywords convoke
+  spell: choose creature type; draw count each permanent you control of that type cards
+}

@@ -1,0 +1,7 @@
+card "Rakdos Cackler" {
+  oracle_id 763a2d27-52a8-43d9-b649-0f6c0cf87a07
+  cost {B/R}
+  type Creature — Devil
+  pt 1/1
+  unleash
+}

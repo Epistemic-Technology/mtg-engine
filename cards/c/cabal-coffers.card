@@ -1,0 +1,5 @@
+card "Cabal Coffers" {
+  oracle_id 7358e164-5704-4e78-9b21-6a9bf2a968ce
+  type Land
+  activated {2}, {T}: add {B} count each Swamp you control
+}

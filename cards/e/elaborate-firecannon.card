@@ -1,0 +1,8 @@
+card "Elaborate Firecannon" {
+  oracle_id 6e61ae7b-f2e8-421c-870b-a48c08d07503
+  cost {2}
+  type Artifact
+  keywords doesn't untap
+  activated {4}, {T}: deal 2 damage to any target
+  triggered at beginning of your upkeep: you may discard 1 cards; if you do, untap this
+}

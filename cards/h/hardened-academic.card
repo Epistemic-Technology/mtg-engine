@@ -1,0 +1,9 @@
+card "Hardened Academic" {
+  oracle_id 921252df-6679-4f70-ae26-d4956c90b7df
+  cost {R}{W}
+  type Creature — Bird Cleric
+  pt 2/1
+  keywords flying, haste
+  activated discard 1 card: this gains lifelink
+  triggered whenever one or more cards leave your graveyard: put 1 +1/+1 counters on target creature you control
+}

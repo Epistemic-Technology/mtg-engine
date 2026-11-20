@@ -1,0 +1,7 @@
+card "Raugrin Crystal" {
+  oracle_id ae4a8470-4517-42c7-a7f6-ef7635e10fe5
+  cost {3}
+  type Artifact
+  mana {U} or {R} or {W}
+  cycling {2}
+}

@@ -1,0 +1,8 @@
+card "Thorn Lieutenant" {
+  oracle_id 2b761ce6-4fb1-4f22-b51c-d9f25f62b39a
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 2/3
+  triggered whenever this becomes targeted by opponent: create 1 "1/1 green Elf Warrior creature"
+  activated {5}{G}: this gets +4/+4
+}

@@ -1,0 +1,10 @@
+card "One Dozen Eyes" {
+  oracle_id b1fbf818-6699-4f05-9a91-19aa296526bf
+  cost {5}{G}
+  type Sorcery
+  choose one {
+    mode: create 1 "5/5 green Beast creature"
+    mode: create 5 "1/1 green Insect creature"
+  }
+  entwine {G}{G}{G}
+}

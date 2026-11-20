@@ -1,0 +1,7 @@
+card "Pheres-Band Brawler" {
+  oracle_id 01499544-6850-49f0-a66e-113df19c4340
+  cost {4}{G}{G}
+  type Creature — Centaur Warrior
+  pt 4/4
+  triggered when this enters: this fights up to one target creature you don't control
+}

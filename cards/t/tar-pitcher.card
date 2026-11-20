@@ -1,0 +1,7 @@
+card "Tar Pitcher" {
+  oracle_id e6991ab8-36f7-40c4-ad37-06e847d92664
+  cost {3}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  activated {T}, sacrifice Goblin: deal 2 damage to any target
+}

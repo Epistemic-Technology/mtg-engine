@@ -1,0 +1,6 @@
+card "In Garruk's Wake" {
+  oracle_id a6899b94-427d-4851-a474-4087e0a0918a
+  cost {7}{B}{B}
+  type Sorcery
+  spell: destroy each creature you don't control and all planeswalker you don't control
+}

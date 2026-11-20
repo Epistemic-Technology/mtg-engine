@@ -1,0 +1,7 @@
+card "Darkblast" {
+  oracle_id 64446130-46d0-4129-a718-ed6a04218100
+  cost {B}
+  type Instant
+  spell: target creature gets -1/-1
+  dredge 3
+}

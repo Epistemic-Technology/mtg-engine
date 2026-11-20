@@ -1,0 +1,8 @@
+card "Nearheath Chaplain" {
+  oracle_id 16c587db-d07b-47ab-8b03-c3b2cc7144f5
+  cost {3}{W}
+  type Creature — Human Cleric
+  pt 3/1
+  keywords lifelink
+  activated {2}{W}, exile this from graveyard, sorcery: create 2 "1/1 white Spirit creature with flying"
+}

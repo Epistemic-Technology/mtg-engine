@@ -1,0 +1,7 @@
+card "Mindspring Merfolk" {
+  oracle_id 35142b01-4b8d-4335-a943-a3172fa04573
+  cost {U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  exhaust {X}{U}{U}, {T}: draw X cards; put 1 +1/+1 counters on each Merfolk creature you control
+}

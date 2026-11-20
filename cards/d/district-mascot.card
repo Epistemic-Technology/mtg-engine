@@ -1,0 +1,10 @@
+card "District Mascot" {
+  oracle_id 5fa7cf3a-2a4d-4dd7-890b-49c497570b16
+  cost {G}
+  type Creature — Dog Mount
+  pt 0/0
+  enters with 1 +1/+1 counters
+  activated {1}{G}, remove 2 +1/+1 counters from this: destroy target artifact
+  triggered whenever this attacks while saddled: put 1 +1/+1 counters on this
+  saddle 1
+}

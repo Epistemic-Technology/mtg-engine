@@ -1,0 +1,7 @@
+card "Druids' Repository" {
+  oracle_id cbbc530f-e51b-423e-b219-23bb580fd834
+  cost {1}{G}{G}
+  type Enchantment
+  triggered whenever creature you control attacks: put 1 charge counters on this
+  activated remove 1 charge counters from this: add any
+}

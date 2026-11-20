@@ -1,0 +1,6 @@
+card "Ivory Cup" {
+  oracle_id 8e2017c3-057d-4e30-bd60-f486fddbc6ca
+  cost {1}
+  type Artifact
+  triggered whenever a player casts white spell: you may pay {1}; if you do, you gains 1 life
+}

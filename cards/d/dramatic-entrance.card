@@ -1,0 +1,6 @@
+card "Dramatic Entrance" {
+  oracle_id dda8bf18-9396-45e6-829c-8691f49f7290
+  cost {3}{G}{G}
+  type Instant
+  spell: you may put green creature card from hand onto battlefield
+}

@@ -1,0 +1,7 @@
+card "Disappearing Act" {
+  oracle_id 20393369-fdee-45ea-8584-451f38b1c002
+  cost {1}{U}{U}
+  type Instant
+  additional cost return permanent you control
+  spell: counter target spell
+}

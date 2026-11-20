@@ -1,0 +1,7 @@
+card "Ally Encampment" {
+  oracle_id 9d293b69-12b7-4b50-a0a7-c4f493dee30b
+  type Land
+  mana {C}
+  mana any only to cast Ally spell
+  activated {1}, {T}, sacrifice this: return target Ally you control to hand
+}

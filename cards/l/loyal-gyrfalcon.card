@@ -1,0 +1,8 @@
+card "Loyal Gyrfalcon" {
+  oracle_id f693cf76-0919-4b89-92de-e619be006abb
+  cost {3}{W}
+  type Creature — Bird
+  pt 3/3
+  keywords defender, flying
+  triggered whenever you cast white spell: this loses defender
+}

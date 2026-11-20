@@ -1,0 +1,7 @@
+card "Glory-Bound Initiate" {
+  oracle_id b5582be1-6c2f-4052-80da-bf8f1913567b
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 3/1
+  exert: this gets +1/+3 and gains lifelink
+}

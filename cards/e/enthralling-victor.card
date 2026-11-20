@@ -1,0 +1,7 @@
+card "Enthralling Victor" {
+  oracle_id fa58591b-240f-4527-8308-7b87263e784f
+  cost {3}{R}
+  type Creature — Human Warrior
+  pt 3/2
+  triggered when this enters: gain control of target creature an opponent controls with power 2 or less; untap that creature; target 1 gains haste
+}

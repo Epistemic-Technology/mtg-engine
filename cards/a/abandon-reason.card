@@ -1,0 +1,7 @@
+card "Abandon Reason" {
+  oracle_id fa43793d-a215-4a64-a09c-ed9799f745a4
+  cost {2}{R}
+  type Instant
+  spell: up to two target creatures each gets +1/+0 and gains first strike
+  madness {1}{R}
+}

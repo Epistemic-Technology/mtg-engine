@@ -1,0 +1,6 @@
+card "Audience with Trostani" {
+  oracle_id cbbb5c0c-e953-410d-88c6-8fedb719e94c
+  cost {2}{G}
+  type Sorcery
+  spell: create 1 "0/1 green Plant creature" then draw count equal differently named creature tokens you control cards
+}

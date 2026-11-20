@@ -1,0 +1,7 @@
+card "Ramunap Ruins" {
+  oracle_id d0d35864-1edc-4af1-9b89-3d7e94908011
+  type Land — Desert
+  mana {C}
+  activated {T}, pay 1 life: add {R}
+  activated {2}{R}{R}, {T}, sacrifice Desert: deal 2 damage to each opponent
+}

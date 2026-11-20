@@ -1,0 +1,7 @@
+card "Aquatic Incursion" {
+  oracle_id e4212b05-d397-49fb-af8b-9e52a60e6d1e
+  cost {3}{U}
+  type Enchantment
+  triggered when this enters: create 2 "1/1 blue Merfolk creature with hexproof"
+  activated {3}{U}: target Merfolk can't be blocked
+}

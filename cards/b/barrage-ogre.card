@@ -1,0 +1,7 @@
+card "Barrage Ogre" {
+  oracle_id d556c71e-ce16-4229-880b-744790f93797
+  cost {3}{R}{R}
+  type Creature — Ogre Warrior
+  pt 3/3
+  activated {T}, sacrifice artifact: deal 2 damage to any target
+}

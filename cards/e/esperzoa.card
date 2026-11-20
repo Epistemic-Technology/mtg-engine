@@ -1,0 +1,8 @@
+card "Esperzoa" {
+  oracle_id c9a188f9-2e65-4a66-826f-0150f25730af
+  cost {2}{U}
+  type Artifact Creature — Jellyfish
+  pt 4/3
+  keywords flying
+  triggered at beginning of your upkeep: return 1 artifact you control chosen
+}

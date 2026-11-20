@@ -1,0 +1,7 @@
+card "Memorial to Genius" {
+  oracle_id 81763d7d-3897-4be9-bbf6-f6f5dee366ff
+  type Land
+  enters tapped
+  mana {U}
+  activated {4}{U}, {T}, sacrifice this: draw 2 cards
+}

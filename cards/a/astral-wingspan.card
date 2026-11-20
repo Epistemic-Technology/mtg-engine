@@ -1,0 +1,9 @@
+card "Astral Wingspan" {
+  oracle_id a054b6ed-f6ca-4436-a433-89771ffdd2d6
+  cost {4}{U}
+  type Enchantment — Aura
+  keywords convoke
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: +2/+2, has flying
+}

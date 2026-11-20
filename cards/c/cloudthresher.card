@@ -1,0 +1,9 @@
+card "Cloudthresher" {
+  oracle_id ab0e2aa0-1ddd-4a4c-b7cd-4063caaa8bcd
+  cost {2}{G}{G}{G}{G}
+  type Creature — Elemental
+  pt 7/7
+  keywords flash, reach
+  triggered when this enters: deal 2 damage to each creature with flying and each player
+  evoke {2}{G}{G}
+}

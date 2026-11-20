@@ -1,0 +1,7 @@
+card "Arms Dealer" {
+  oracle_id 8ebc4198-7317-4ffb-b8b8-14733c2077ff
+  cost {2}{R}
+  type Creature — Goblin Rogue
+  pt 1/1
+  activated {1}{R}, sacrifice Goblin: deal 4 damage to target creature
+}

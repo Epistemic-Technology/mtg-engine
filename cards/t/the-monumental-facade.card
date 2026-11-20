@@ -1,0 +1,7 @@
+card "The Monumental Facade" {
+  oracle_id 63e8d282-d038-4a8c-a0cb-f51ddf87d8ea
+  type Land — Sphere
+  enters with 2 oil counters
+  mana {C}
+  activated {T}, remove 1 oil counters from this, sorcery: put 1 oil counters on target artifact or creature you control
+}

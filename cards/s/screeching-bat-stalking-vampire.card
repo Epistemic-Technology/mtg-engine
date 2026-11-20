@@ -1,0 +1,15 @@
+card "Screeching Bat // Stalking Vampire" {
+  oracle_id 209de43d-0cdd-4075-9f41-88e3d2ff90df
+  layout transform
+  cost {2}{B}
+  type Creature — Bat
+  pt 2/2
+  keywords flying
+  triggered at beginning of your upkeep: you may pay {2}{B}{B}; if you do, transform this
+  face "Stalking Vampire" {
+    type Creature — Vampire
+    pt 5/5
+    color black
+    triggered at beginning of your upkeep: you may pay {2}{B}{B}; if you do, transform this
+  }
+}

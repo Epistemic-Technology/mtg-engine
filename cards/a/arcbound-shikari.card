@@ -1,0 +1,9 @@
+card "Arcbound Shikari" {
+  oracle_id acb8d6a0-4bbd-4a42-bcac-3656367cc051
+  cost {1}{R}{W}
+  type Artifact Creature — Cat Soldier
+  pt 0/0
+  keywords first strike
+  triggered when this enters: put 1 +1/+1 counters on each other artifact creature you control
+  modular 2
+}

@@ -1,0 +1,6 @@
+card "Searing Meditation" {
+  oracle_id a6342d2c-06e3-4443-9276-b49f4a06a4da
+  cost {1}{R}{W}
+  type Enchantment
+  triggered whenever you gain life: you may pay {2}; if you do, deal 2 damage to any target
+}

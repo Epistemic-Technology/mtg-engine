@@ -1,0 +1,7 @@
+card "Raiders' Wake" {
+  oracle_id d5fd3060-358c-4a5b-aee9-1afcf6c506ba
+  cost {3}{B}
+  type Enchantment
+  triggered whenever an opponent discards a card: that player loses 2 life
+  label "Raid" triggered at beginning of your end step if attacked this turn: target opponent discards 1 cards
+}

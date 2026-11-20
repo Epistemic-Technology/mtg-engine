@@ -1,0 +1,7 @@
+card "Nissa's Expedition" {
+  oracle_id 653010bc-45af-427e-a294-e0cc28d31821
+  cost {4}{G}
+  type Sorcery
+  keywords convoke
+  spell: search up to 2 basic land card to battlefield tapped
+}

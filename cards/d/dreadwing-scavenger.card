@@ -1,0 +1,9 @@
+card "Dreadwing Scavenger" {
+  oracle_id bbfd0de0-3558-4833-bae4-8efae44b7fff
+  cost {1}{U}{B}
+  type Creature — Nightmare Bird
+  pt 2/2
+  keywords flying
+  triggered whenever this enters or attacks: draw 1 cards then discard 1 cards
+  label "Threshold" static this: +1/+1, has deathtouch as long as 7 cards in your graveyard
+}

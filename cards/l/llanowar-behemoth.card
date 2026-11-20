@@ -1,0 +1,7 @@
+card "Llanowar Behemoth" {
+  oracle_id 4364bef8-f7ec-487c-9b64-b55c4afb864e
+  cost {3}{G}{G}
+  type Creature — Elemental
+  pt 4/4
+  activated tap untapped creature you control: this gets +1/+1
+}

@@ -1,0 +1,8 @@
+card "Venomous Brutalizer" {
+  oracle_id 766c3528-2c5c-4e92-aa85-b1e0e115d491
+  cost {2}{G}{G}
+  type Creature — Phyrexian Knight
+  pt 4/4
+  toxic 3
+  triggered when this enters: you may pay {1}{G}; if you do, proliferate
+}

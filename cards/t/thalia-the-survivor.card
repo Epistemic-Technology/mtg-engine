@@ -1,0 +1,8 @@
+card "Thalia, the Survivor" {
+  oracle_id 55ef129e-698e-424f-be3c-3fbba6c2cc3e
+  cost {3}{W}
+  type Legendary Creature — Human Soldier
+  pt 3/4
+  keywords lifelink
+  spells noncreature your opponents cast cost {1} more
+}

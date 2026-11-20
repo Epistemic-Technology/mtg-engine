@@ -1,0 +1,8 @@
+card "Trusted Advisor" {
+  oracle_id 430e4e74-33ee-49f2-aef5-6d09079c5eb7
+  cost {U}
+  type Creature — Human Advisor
+  pt 1/2
+  hand size +2
+  triggered at beginning of your upkeep: return 1 blue creature you control chosen
+}

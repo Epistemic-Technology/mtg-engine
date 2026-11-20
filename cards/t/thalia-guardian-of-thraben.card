@@ -1,0 +1,8 @@
+card "Thalia, Guardian of Thraben" {
+  oracle_id 9b7f1d05-707c-4ed3-9f0e-8ced1232c2ee
+  cost {1}{W}
+  type Legendary Creature — Human Soldier
+  pt 2/1
+  keywords first strike
+  spells noncreature cost {1} more
+}

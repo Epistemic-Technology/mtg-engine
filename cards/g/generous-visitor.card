@@ -1,0 +1,7 @@
+card "Generous Visitor" {
+  oracle_id 0629747e-8dd8-4150-95ee-9d860264ccb0
+  cost {G}
+  type Creature — Spirit
+  pt 1/1
+  triggered whenever you cast enchantment spell: put 1 +1/+1 counters on target creature
+}

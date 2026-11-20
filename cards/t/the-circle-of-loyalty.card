@@ -1,0 +1,9 @@
+card "The Circle of Loyalty" {
+  oracle_id fd1b4523-2399-4771-89bf-1d65f5d67056
+  cost {4}{W}{W}
+  type Legendary Artifact
+  affinity for Knight
+  static creature you control: +1/+1
+  triggered whenever you cast legendary spell: create 1 "2/2 white Knight creature with vigilance"
+  activated {3}{W}, {T}: create 1 "2/2 white Knight creature with vigilance"
+}

@@ -1,0 +1,6 @@
+card "Emerald Medallion" {
+  oracle_id d683024d-8fe7-4509-851b-7655fadc1de7
+  cost {2}
+  type Artifact
+  spells green you cast cost {1} less
+}

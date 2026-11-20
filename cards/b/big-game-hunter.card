@@ -1,0 +1,8 @@
+card "Big Game Hunter" {
+  oracle_id ab55834f-c935-4773-89c6-bec9712284eb
+  cost {1}{B}{B}
+  type Creature — Human Rebel Assassin
+  pt 1/1
+  triggered when this enters: destroy target creature with power 4 or greater without regeneration
+  madness {B}
+}

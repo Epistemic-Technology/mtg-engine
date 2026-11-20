@@ -1,0 +1,6 @@
+card "Infectious Bite" {
+  oracle_id 7b740cd6-e07d-4273-8a7f-e084bdaf0f1c
+  cost {1}{G}
+  type Instant
+  spell: target creature you control bites target creature you don't control; each opponent gets 1 poison counters
+}

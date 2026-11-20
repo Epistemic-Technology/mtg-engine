@@ -1,0 +1,8 @@
+card "Skarrgan Skybreaker" {
+  oracle_id 0a45d8d4-2a5e-4b5b-b430-fc2fd5fd82c0
+  cost {4}{R}{R}{G}
+  type Creature — Giant Shaman
+  pt 3/3
+  bloodthirst 3
+  activated {1}, sacrifice this: this bites any target
+}

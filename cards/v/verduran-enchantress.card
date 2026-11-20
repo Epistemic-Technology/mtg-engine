@@ -1,0 +1,7 @@
+card "Verduran Enchantress" {
+  oracle_id cd98a31b-cc7e-43f9-982e-109ad9850908
+  cost {1}{G}{G}
+  type Creature — Human Druid
+  pt 0/2
+  triggered whenever you cast enchantment spell: you may draw 1 cards
+}

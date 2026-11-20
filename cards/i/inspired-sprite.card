@@ -1,0 +1,9 @@
+card "Inspired Sprite" {
+  oracle_id c3700173-d23a-4b73-b710-72aae82f0dfd
+  cost {3}{U}
+  type Creature — Faerie Wizard
+  pt 2/2
+  keywords flash, flying
+  triggered whenever you cast Wizard spell: you may untap this
+  activated {T}: draw 1 cards then discard 1 cards
+}

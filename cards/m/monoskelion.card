@@ -1,0 +1,8 @@
+card "Monoskelion" {
+  oracle_id c16d79d9-c159-421f-90a2-13313a1de5f6
+  cost {2}
+  type Artifact Creature — Construct
+  pt 1/1
+  enters with 1 +1/+1 counters
+  activated {1}, remove 1 +1/+1 counters from this: deal 1 damage to any target
+}

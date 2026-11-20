@@ -1,0 +1,9 @@
+card "Old Fat Spider" {
+  oracle_id 8790f842-e842-4bed-adf4-5b3cc5fd68a9
+  cost {4}{G}{G}
+  type Creature — Spider
+  pt 6/7
+  keywords reach
+  can't be blocked by creature with power 2 or less
+  triggered whenever this becomes targeted by opponent: draw 1 cards
+}

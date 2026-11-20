@@ -1,0 +1,7 @@
+card "Ulvenwald Tracker" {
+  oracle_id 63a37c08-7e38-4fe2-9a71-cc4604c4f831
+  cost {G}
+  type Creature — Human Shaman
+  pt 1/1
+  activated {1}{G}, {T}: target creature you control fights another target creature
+}

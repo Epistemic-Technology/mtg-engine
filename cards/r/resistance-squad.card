@@ -1,0 +1,7 @@
+card "Resistance Squad" {
+  oracle_id a16eeef9-e03c-4ebb-b986-325252a9491f
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  triggered when this enters if you control other Human: draw 1 cards
+}

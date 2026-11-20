@@ -1,0 +1,8 @@
+card "Greenbelt Guardian" {
+  oracle_id 2d8aa053-289d-40d9-baa7-9bd1c5b8e957
+  cost {1}{G}
+  type Creature — Elf Ranger
+  pt 2/2
+  activated {G}: target creature gains trample
+  exhaust {3}{G}: put 3 +1/+1 counters on this
+}

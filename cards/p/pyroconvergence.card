@@ -1,0 +1,6 @@
+card "Pyroconvergence" {
+  oracle_id 8da5c156-3688-4d6e-b5c4-95c082d1b426
+  cost {4}{R}
+  type Enchantment
+  triggered whenever you cast multicolored spell: deal 2 damage to any target
+}

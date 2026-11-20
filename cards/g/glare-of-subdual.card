@@ -1,0 +1,6 @@
+card "Glare of Subdual" {
+  oracle_id bcfc112e-0482-4616-8ca9-32338a37fa82
+  cost {2}{G}{W}
+  type Enchantment
+  activated tap untapped creature you control: tap target artifact or creature
+}

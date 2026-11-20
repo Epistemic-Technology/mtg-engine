@@ -1,0 +1,7 @@
+card "Flux Channeler" {
+  oracle_id 83874e60-291b-47a7-ba9f-69437fa7e3c7
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered whenever you cast a noncreature spell: proliferate
+}

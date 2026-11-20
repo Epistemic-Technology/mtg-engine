@@ -1,0 +1,8 @@
+card "Arcbound Ravager" {
+  oracle_id 62e7e7b1-9887-4d15-b0e5-a8ddc711bd88
+  cost {2}
+  type Artifact Creature — Beast
+  pt 0/0
+  activated sacrifice artifact: put 1 +1/+1 counters on this
+  modular 1
+}

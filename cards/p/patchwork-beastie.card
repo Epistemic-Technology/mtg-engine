@@ -1,0 +1,8 @@
+card "Patchwork Beastie" {
+  oracle_id 6cf995e9-115a-4659-bace-9fbe75898b48
+  cost {G}
+  type Artifact Creature — Beast
+  pt 3/3
+  label "Delirium" can't attack or block unless 4 card types in your graveyard
+  triggered at beginning of your upkeep: you may mill 1 cards
+}

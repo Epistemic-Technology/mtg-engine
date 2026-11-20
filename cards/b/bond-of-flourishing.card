@@ -1,0 +1,6 @@
+card "Bond of Flourishing" {
+  oracle_id e9c9e730-3b73-48e3-845b-1b7f2d16050c
+  cost {1}{G}
+  type Sorcery
+  spell: dig 3 take permanent card may revealing rest bottom; you gains 3 life
+}

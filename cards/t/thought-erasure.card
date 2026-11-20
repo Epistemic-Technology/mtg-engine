@@ -1,0 +1,9 @@
+card "Thought Erasure" {
+  oracle_id 4bae4e34-fcf4-4aee-8da2-5b3ee41a595a
+  cost {U}{B}
+  type Sorcery
+  spell {
+    target opponent reveals hand discarding nonland card
+    surveil 1
+  }
+}

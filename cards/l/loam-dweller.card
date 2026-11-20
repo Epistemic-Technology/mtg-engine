@@ -1,0 +1,7 @@
+card "Loam Dweller" {
+  oracle_id a61f7653-4c55-472f-b37c-617b94d0fecd
+  cost {1}{G}
+  type Creature — Spirit
+  pt 2/2
+  triggered whenever you cast Spirit or Arcane spell: you may put land card from hand onto battlefield tapped
+}

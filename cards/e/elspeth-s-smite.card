@@ -1,0 +1,6 @@
+card "Elspeth's Smite" {
+  oracle_id 3f404fe4-4335-4dcc-ba90-78246c4b880b
+  cost {W}
+  type Instant
+  spell: deal 3 damage to target attacking or blocking creature; this turn, replace target 1 dies: exile
+}

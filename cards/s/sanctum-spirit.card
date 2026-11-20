@@ -1,0 +1,8 @@
+card "Sanctum Spirit" {
+  oracle_id 1e640846-8f50-4a94-b7aa-f228124290d3
+  cost {3}{W}
+  type Creature — Spirit
+  pt 3/2
+  keywords lifelink
+  activated discard historic card: this gains indestructible
+}

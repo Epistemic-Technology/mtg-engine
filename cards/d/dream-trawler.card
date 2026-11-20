@@ -1,0 +1,10 @@
+card "Dream Trawler" {
+  oracle_id 661b2159-4040-4a44-b182-46085416ebd9
+  cost {2}{W}{W}{U}{U}
+  type Creature — Sphinx
+  pt 3/5
+  keywords flying, lifelink
+  triggered whenever you draw a card: this gets +1/+0
+  triggered whenever this attacks: draw 1 cards
+  activated discard 1 card: this gains hexproof; tap this
+}

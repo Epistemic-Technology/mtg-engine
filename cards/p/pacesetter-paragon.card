@@ -1,0 +1,7 @@
+card "Pacesetter Paragon" {
+  oracle_id 1acb289f-fb7f-4d83-aaef-4e7b9462c593
+  cost {2}{R}
+  type Creature — Human Pilot
+  pt 2/3
+  exhaust {2}{R}: put 1 +1/+1 counters on this; this gains double strike
+}

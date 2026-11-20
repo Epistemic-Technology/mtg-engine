@@ -1,0 +1,8 @@
+card "Skarrg Goliath" {
+  oracle_id 72350461-8231-4737-a57f-f20fb5d179a3
+  cost {6}{G}{G}
+  type Creature — Beast
+  pt 9/9
+  keywords trample
+  label "Bloodrush" activated {5}{G}{G}, discard this: target attacking creature gets +9/+9 and gains trample
+}

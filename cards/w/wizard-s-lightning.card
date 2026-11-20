@@ -1,0 +1,7 @@
+card "Wizard's Lightning" {
+  oracle_id 2bd81743-84c8-43ec-86f5-68230036827b
+  cost {2}{R}
+  type Instant
+  this spell costs {2} less if you control Wizard
+  spell: deal 3 damage to any target
+}

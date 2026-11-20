@@ -1,0 +1,8 @@
+card "Viral Drake" {
+  oracle_id 3b1647d1-9aec-454f-a215-e28633cb7a2d
+  cost {3}{U}
+  type Creature — Phyrexian Drake
+  pt 1/4
+  keywords flying, infect
+  activated {3}{U}: proliferate
+}

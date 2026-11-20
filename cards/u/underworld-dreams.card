@@ -1,0 +1,6 @@
+card "Underworld Dreams" {
+  oracle_id 967cf377-ae26-464d-85ac-8448b5a911f7
+  cost {B}{B}{B}
+  type Enchantment
+  triggered whenever an opponent draws a card: deal 1 damage to that player
+}

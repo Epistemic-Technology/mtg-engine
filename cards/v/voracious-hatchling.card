@@ -1,0 +1,10 @@
+card "Voracious Hatchling" {
+  oracle_id eab5eb29-bed6-456b-8929-5b9b820aa5a3
+  cost {3}{W/B}
+  type Creature — Elemental
+  pt 6/6
+  keywords lifelink
+  enters with 4 -1/-1 counters
+  triggered whenever you cast white spell: remove 1 -1/-1 counters from this
+  triggered whenever you cast black spell: remove 1 -1/-1 counters from this
+}

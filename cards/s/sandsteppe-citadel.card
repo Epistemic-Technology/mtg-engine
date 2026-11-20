@@ -1,0 +1,6 @@
+card "Sandsteppe Citadel" {
+  oracle_id 544dbabd-cbfc-40da-a5ba-2fea9cddb453
+  type Land
+  enters tapped
+  mana {W} or {B} or {G}
+}

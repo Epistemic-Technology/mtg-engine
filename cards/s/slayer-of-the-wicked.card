@@ -1,0 +1,7 @@
+card "Slayer of the Wicked" {
+  oracle_id d93299d4-3aaf-48fb-8227-26203963c8b9
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  triggered when this enters: you may destroy target Vampire, Werewolf, or Zombie
+}

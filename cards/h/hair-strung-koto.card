@@ -1,0 +1,6 @@
+card "Hair-Strung Koto" {
+  oracle_id f7944c30-d226-4cb9-931d-6e9f2fe5cb42
+  cost {6}
+  type Artifact
+  activated tap untapped creature you control: target player mills 1 cards
+}

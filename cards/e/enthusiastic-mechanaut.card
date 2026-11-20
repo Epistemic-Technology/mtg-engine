@@ -1,0 +1,8 @@
+card "Enthusiastic Mechanaut" {
+  oracle_id c9722086-23e8-43dc-8a8c-541ff6962318
+  cost {U}{R}
+  type Artifact Creature — Goblin Artificer
+  pt 2/2
+  keywords flying
+  spells artifact you cast cost {1} less
+}

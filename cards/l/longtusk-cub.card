@@ -1,0 +1,8 @@
+card "Longtusk Cub" {
+  oracle_id d2e78392-096a-4bd0-be19-9c54dfb8451f
+  cost {1}{G}
+  type Creature — Cat
+  pt 2/2
+  triggered whenever this deals combat damage to a player: you get 2 energy
+  activated pay 2 energy: put 1 +1/+1 counters on this
+}

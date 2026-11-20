@@ -1,0 +1,7 @@
+card "Magmatic Insight" {
+  oracle_id 6a9031b6-3f4d-4a36-90e1-ac77b8518cee
+  cost {R}
+  type Sorcery
+  additional cost discard land card
+  spell: draw 2 cards
+}

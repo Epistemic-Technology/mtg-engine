@@ -1,0 +1,7 @@
+card "Veteran Cathar" {
+  oracle_id 1eb89059-b691-431d-bcda-ab8aa14c67c8
+  cost {1}{G}
+  type Creature — Human Soldier
+  pt 2/2
+  activated {3}{W}: target Human gains double strike
+}

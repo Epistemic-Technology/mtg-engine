@@ -1,0 +1,7 @@
+card "Hammerfist Giant" {
+  oracle_id ce916c92-350c-4546-882b-555dc450413d
+  cost {4}{R}{R}
+  type Creature — Giant Warrior
+  pt 5/4
+  activated {T}: deal 4 damage to each creature without flying and each player
+}

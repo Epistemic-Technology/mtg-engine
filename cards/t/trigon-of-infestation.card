@@ -1,0 +1,8 @@
+card "Trigon of Infestation" {
+  oracle_id 6af2b898-7ba0-4641-8234-5171397cf602
+  cost {4}
+  type Artifact
+  enters with 3 charge counters
+  activated {G}{G}, {T}: put 1 charge counters on this
+  activated {2}, {T}, remove 1 charge counters from this: create 1 "1/1 green Phyrexian Insect creature with infect"
+}

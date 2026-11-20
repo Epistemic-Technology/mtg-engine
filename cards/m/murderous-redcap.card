@@ -1,0 +1,8 @@
+card "Murderous Redcap" {
+  oracle_id a498bc70-36e7-4454-bc44-906893df38b8
+  cost {2}{B/R}{B/R}
+  type Creature — Goblin Assassin
+  pt 2/2
+  triggered when this enters: this bites any target
+  keyword persist
+}

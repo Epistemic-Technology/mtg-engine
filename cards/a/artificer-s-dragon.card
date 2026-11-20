@@ -1,0 +1,9 @@
+card "Artificer's Dragon" {
+  oracle_id 4284ff9f-4085-4874-abc7-95467cb759a5
+  cost {6}
+  type Artifact Creature — Dragon
+  pt 4/4
+  keywords flying
+  activated {R}: each artifact creature you control gets +1/+0
+  unearth {3}{R}{R}
+}

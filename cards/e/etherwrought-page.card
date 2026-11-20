@@ -1,0 +1,10 @@
+card "Etherwrought Page" {
+  oracle_id f1c87913-9374-41d7-ae70-444d427290b4
+  cost {1}{W}{U}{B}
+  type Artifact
+  triggered at beginning of your upkeep: choose one {
+    mode: you gains 2 life
+    mode: surveil 1
+    mode: each opponent loses 1 life
+  }
+}

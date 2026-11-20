@@ -1,0 +1,8 @@
+card "Biorganic Carapace" {
+  oracle_id 7d27c583-469c-42d7-a547-8c65654e9d95
+  cost {2}{W}{U}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static enchanted: +2/+2, has ability { triggered whenever this deals combat damage to a player: draw count each modified creature you control cards }
+  equip {2}
+}

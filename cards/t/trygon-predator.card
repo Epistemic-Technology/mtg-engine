@@ -1,0 +1,8 @@
+card "Trygon Predator" {
+  oracle_id c744b5f4-fbcf-48b8-9d60-5e9c6ac297e0
+  cost {1}{G}{U}
+  type Creature — Beast
+  pt 2/3
+  keywords flying
+  triggered whenever this deals combat damage to a player: you may destroy target artifact or enchantment that player controls
+}

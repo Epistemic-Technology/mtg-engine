@@ -1,0 +1,6 @@
+card "Grove of the Burnwillows" {
+  oracle_id d33c3fbb-8306-4c2d-b0dd-88f12639da94
+  type Land
+  mana {C}
+  activated {T}: add {R} or {G}; each opponent gains 1 life
+}

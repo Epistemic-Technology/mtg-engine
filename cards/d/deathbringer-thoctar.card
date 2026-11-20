@@ -1,0 +1,8 @@
+card "Deathbringer Thoctar" {
+  oracle_id 2500a811-2435-4915-ac83-9bfe2887621a
+  cost {4}{B}{R}
+  type Creature — Zombie Beast
+  pt 3/3
+  triggered whenever other creature dies: you may put 1 +1/+1 counters on this
+  activated remove 1 +1/+1 counters from this: deal 1 damage to any target
+}

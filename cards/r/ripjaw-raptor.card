@@ -1,0 +1,7 @@
+card "Ripjaw Raptor" {
+  oracle_id 80bb9ce4-1f3c-42ca-b75f-9a6b2f42073b
+  cost {2}{G}{G}
+  type Creature — Dinosaur
+  pt 4/5
+  label "Enrage" triggered whenever this is dealt damage: draw 1 cards
+}

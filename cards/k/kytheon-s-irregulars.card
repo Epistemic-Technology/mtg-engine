@@ -1,0 +1,8 @@
+card "Kytheon's Irregulars" {
+  oracle_id ccfddb1a-1b7f-44f9-89c4-1907e27e1c4a
+  cost {2}{W}{W}
+  type Creature — Human Soldier
+  pt 4/3
+  renown 1
+  activated {W}{W}: tap target creature
+}

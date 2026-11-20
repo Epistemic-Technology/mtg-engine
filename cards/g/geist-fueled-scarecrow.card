@@ -1,0 +1,7 @@
+card "Geist-Fueled Scarecrow" {
+  oracle_id b925c4ed-8767-46b8-a423-a5f094557d94
+  cost {4}
+  type Artifact Creature — Scarecrow
+  pt 4/4
+  spells creature you cast cost {1} more
+}

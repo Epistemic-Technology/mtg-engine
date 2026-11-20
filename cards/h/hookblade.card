@@ -1,0 +1,9 @@
+card "Hookblade" {
+  oracle_id 8df6c4e2-8b62-4c64-a1d2-f17ae9d02bac
+  cost {1}{W}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static enchanted: +1/+0
+  static during your turn, enchanted: has flying
+  equip {2}
+}

@@ -1,0 +1,11 @@
+card "Arbalest Engineers" {
+  oracle_id 06bea0b2-1d0f-4d64-a13e-723d08042e83
+  cost {1}{R}{G}
+  type Creature — Human Artificer
+  pt 2/2
+  triggered when this enters: choose one {
+    mode: deal 1 damage to any target
+    mode: put 1 +1/+1 counters on target creature; target 1 gains trample, haste
+    mode: create 1 tapped "Powerstone"
+  }
+}

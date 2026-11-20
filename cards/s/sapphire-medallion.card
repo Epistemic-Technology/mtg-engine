@@ -1,0 +1,6 @@
+card "Sapphire Medallion" {
+  oracle_id f1ef5698-14bd-42bf-aae5-2870699e4186
+  cost {2}
+  type Artifact
+  spells blue you cast cost {1} less
+}

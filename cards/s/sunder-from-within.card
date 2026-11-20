@@ -1,0 +1,6 @@
+card "Sunder from Within" {
+  oracle_id 09f75f28-09b9-4a6e-a1b0-671208d274d3
+  cost {2}{R}{R}
+  type Sorcery — Arcane
+  spell: destroy target artifact or land
+}

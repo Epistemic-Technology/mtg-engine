@@ -1,0 +1,7 @@
+card "Imperial Lancer" {
+  oracle_id c0018eb9-6aae-4188-8f36-ab5fc69f5903
+  cost {W}
+  type Creature — Human Knight
+  pt 1/1
+  static this: has double strike as long as you control Dinosaur
+}

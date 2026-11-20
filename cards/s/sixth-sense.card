@@ -1,0 +1,7 @@
+card "Sixth Sense" {
+  oracle_id 25d35e3e-ece8-4c94-9dbc-d076a52fca0d
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { triggered whenever this deals combat damage to a player: you may draw 1 cards }
+}

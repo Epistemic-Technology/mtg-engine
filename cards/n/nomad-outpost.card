@@ -1,0 +1,6 @@
+card "Nomad Outpost" {
+  oracle_id 4619de7e-3d6e-4c6b-8e6e-e24db324839d
+  type Land
+  enters tapped
+  mana {R} or {W} or {B}
+}

@@ -1,0 +1,7 @@
+card "Illicit Shipment" {
+  oracle_id 81d62f0a-b2ba-4e87-9003-e5472bd1101f
+  cost {3}{B}{B}
+  type Sorcery
+  casualty 3
+  spell: search card to hand
+}

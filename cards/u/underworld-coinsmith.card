@@ -1,0 +1,8 @@
+card "Underworld Coinsmith" {
+  oracle_id ae06e0e5-8a42-4d1f-a629-94152e5f1fe6
+  cost {W}{B}
+  type Enchantment Creature — Human Cleric
+  pt 2/2
+  label "Constellation" triggered whenever this or enchantment you control enters: you gains 1 life
+  activated {W}{B}, pay 1 life: each opponent loses 1 life
+}

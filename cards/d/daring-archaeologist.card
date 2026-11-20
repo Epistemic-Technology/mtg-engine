@@ -1,0 +1,8 @@
+card "Daring Archaeologist" {
+  oracle_id b9d89f7c-a362-48dc-a335-f0e556e83f35
+  cost {3}{W}
+  type Creature — Human Artificer
+  pt 3/3
+  triggered when this enters: you may return target artifact card from your graveyard to hand
+  triggered whenever you cast historic spell: put 1 +1/+1 counters on this
+}

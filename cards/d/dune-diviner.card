@@ -1,0 +1,7 @@
+card "Dune Diviner" {
+  oracle_id 4bf308fc-a54e-4fba-b0fd-3bedb4db3b18
+  cost {2}{G}
+  type Creature — Snake Cleric
+  pt 2/3
+  activated {1}, tap untapped Desert you control: you gains 1 life
+}

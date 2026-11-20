@@ -1,0 +1,7 @@
+card "Mirran Crusader" {
+  oracle_id fe69d9bd-2a60-4b33-a0d8-1ca18c2b6705
+  cost {1}{W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords double strike, protection from black, protection from green
+}

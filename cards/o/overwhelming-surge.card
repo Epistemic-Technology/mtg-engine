@@ -1,0 +1,9 @@
+card "Overwhelming Surge" {
+  oracle_id bc8a37f1-c36b-4d0f-82da-4558ff712565
+  cost {2}{R}
+  type Instant
+  choose one or both {
+    mode: deal 3 damage to target creature
+    mode: destroy target noncreature artifact
+  }
+}

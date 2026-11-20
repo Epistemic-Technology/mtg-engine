@@ -1,0 +1,8 @@
+card "Synod Artificer" {
+  oracle_id b93383ea-0206-43c4-908e-f424ef4523c3
+  cost {2}{U}
+  type Creature — Vedalken Artificer
+  pt 1/2
+  activated {X}, {T}: tap X target noncreature artifacts
+  activated {X}, {T}: untap X target noncreature artifacts
+}

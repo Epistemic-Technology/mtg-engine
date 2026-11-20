@@ -1,0 +1,7 @@
+card "Mizzium Mortars" {
+  oracle_id 48ddba1e-2ad7-463f-9307-d2379a800e51
+  cost {1}{R}
+  type Sorcery
+  spell: deal 4 damage to target creature you don't control
+  overload {3}{R}{R}{R}
+}

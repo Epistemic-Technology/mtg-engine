@@ -1,0 +1,9 @@
+card "Confounding Riddle" {
+  oracle_id 3df49c4d-a285-4826-824e-b742b0deed3a
+  cost {2}{U}
+  type Instant
+  choose one {
+    mode: dig 4 take card rest graveyard
+    mode: counter target spell unless its controller pays {4}
+  }
+}

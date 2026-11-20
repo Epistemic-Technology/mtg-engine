@@ -1,0 +1,8 @@
+card "Crimson Muckwader" {
+  oracle_id 2b34f341-42bc-408a-85cc-b2d8797612b8
+  cost {1}{R}
+  type Creature — Lizard
+  pt 2/1
+  static this: +1/+1 as long as you control Swamp
+  activated {2}{B}: regenerate this
+}

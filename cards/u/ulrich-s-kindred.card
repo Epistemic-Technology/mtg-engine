@@ -1,0 +1,8 @@
+card "Ulrich's Kindred" {
+  oracle_id 41fd1557-8dba-4bbf-9954-5c4f4f541812
+  cost {2}{R}
+  type Creature — Wolf
+  pt 3/2
+  keywords trample
+  activated {3}{G}: target attacking Wolf or Werewolf gains indestructible
+}

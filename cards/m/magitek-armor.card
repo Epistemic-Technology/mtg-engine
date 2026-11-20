@@ -1,0 +1,8 @@
+card "Magitek Armor" {
+  oracle_id 0e9d8e12-b9da-4452-a758-5caffd8a752e
+  cost {3}{W}
+  type Artifact — Vehicle
+  pt 4/4
+  triggered when this enters: create 1 "1/1 colorless Hero creature"
+  crew 1
+}

@@ -1,0 +1,6 @@
+card "Weaponize the Monsters" {
+  oracle_id fa2154fb-6756-4cf8-85a6-68264fb7a0b2
+  cost {R}
+  type Enchantment
+  activated {2}, sacrifice creature: deal 2 damage to any target
+}

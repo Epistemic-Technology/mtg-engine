@@ -1,0 +1,8 @@
+card "Needlebug" {
+  oracle_id 2d5fba80-c84f-4f84-84e4-9c797ac244fc
+  cost {4}
+  type Artifact Creature — Insect
+  pt 2/2
+  keywords flash
+  protection from artifact
+}

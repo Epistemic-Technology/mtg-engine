@@ -1,0 +1,5 @@
+card "Pillar of the Paruns" {
+  oracle_id 677b8ce7-f922-4ee3-b311-f199da9b352b
+  type Land
+  mana any only to cast multicolored spell
+}

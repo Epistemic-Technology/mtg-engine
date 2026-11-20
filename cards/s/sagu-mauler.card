@@ -1,0 +1,8 @@
+card "Sagu Mauler" {
+  oracle_id 8d877ee9-1751-48a1-9f2f-02897dae153b
+  cost {4}{G}{U}
+  type Creature — Beast
+  pt 6/6
+  keywords trample, hexproof
+  morph {3}{G}{U}
+}

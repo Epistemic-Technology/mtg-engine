@@ -1,0 +1,7 @@
+card "Battlewise Hoplite" {
+  oracle_id 416de3dd-c15d-4596-9386-5cac53302724
+  cost {W}{U}
+  type Creature — Human Soldier
+  pt 2/2
+  label "Heroic" triggered whenever you cast a spell that targets this: put 1 +1/+1 counters on this then scry 1
+}

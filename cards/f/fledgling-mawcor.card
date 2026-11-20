@@ -1,0 +1,9 @@
+card "Fledgling Mawcor" {
+  oracle_id 195f4bda-a5b9-4ac7-aa32-9ae5e5b0d374
+  cost {3}{U}
+  type Creature — Beast
+  pt 2/2
+  keywords flying
+  activated {T}: deal 1 damage to any target
+  morph {U}{U}
+}

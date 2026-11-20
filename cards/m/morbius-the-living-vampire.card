@@ -1,0 +1,8 @@
+card "Morbius the Living Vampire" {
+  oracle_id 1a947e4d-8a14-45f1-bb80-760a317b1ed0
+  cost {2}{U}{B}
+  type Legendary Creature — Vampire Scientist Villain
+  pt 3/1
+  keywords flying, vigilance, lifelink
+  activated {U}{B}, exile this from graveyard: dig 3 take card rest bottom
+}

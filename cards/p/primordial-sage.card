@@ -1,0 +1,7 @@
+card "Primordial Sage" {
+  oracle_id 499f1e1e-d96e-481f-a5d9-eb38da927cd7
+  cost {4}{G}{G}
+  type Creature — Spirit
+  pt 4/5
+  triggered whenever you cast creature spell: you may draw 1 cards
+}

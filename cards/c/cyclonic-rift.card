@@ -1,0 +1,7 @@
+card "Cyclonic Rift" {
+  oracle_id d75b9c82-1b49-4c3e-a1b5-aeef57d6644b
+  cost {1}{U}
+  type Instant
+  spell: return target nonland permanent you don't control to hand
+  overload {6}{U}
+}

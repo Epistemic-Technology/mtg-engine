@@ -1,0 +1,6 @@
+card "Revelsong Horn" {
+  oracle_id d80d87f5-af9e-404b-88e3-7a4b419dc32c
+  cost {2}
+  type Artifact
+  activated {1}, {T}, tap untapped creature you control: target creature gets +1/+1
+}

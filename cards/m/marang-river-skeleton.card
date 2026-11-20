@@ -1,0 +1,8 @@
+card "Marang River Skeleton" {
+  oracle_id 0cfbbb26-9e1c-4b79-8b32-dcc05739f5ea
+  cost {1}{B}
+  type Creature — Skeleton
+  pt 1/1
+  activated {B}: regenerate this
+  megamorph {3}{B}
+}

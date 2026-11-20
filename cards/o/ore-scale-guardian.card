@@ -1,0 +1,8 @@
+card "Ore-Scale Guardian" {
+  oracle_id c4224ae5-4807-45cb-bd4b-70f2c0d9d9f4
+  cost {5}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  this spell costs {1} less count each graveyard land
+  keyword flying, haste
+}

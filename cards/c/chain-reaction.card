@@ -1,0 +1,6 @@
+card "Chain Reaction" {
+  oracle_id 086b2564-9114-4ba2-94fd-b490f98f38a7
+  cost {2}{R}{R}
+  type Sorcery
+  spell: deal count where creature on battlefield damage to each creature
+}

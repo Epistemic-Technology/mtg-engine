@@ -1,0 +1,7 @@
+card "Talisman of Indulgence" {
+  oracle_id 1d9aeaaa-66f6-41cb-9bac-162d6fd8662c
+  cost {2}
+  type Artifact
+  mana {C}
+  activated {T}: add {B} or {R}; deal 1 damage to you
+}

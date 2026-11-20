@@ -1,0 +1,6 @@
+token "3/1 red Elemental Shaman creature" {
+  name "Elemental Shaman"
+  type Creature — Elemental Shaman
+  pt 3/1
+  color red
+}

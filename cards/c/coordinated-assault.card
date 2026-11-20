@@ -1,0 +1,6 @@
+card "Coordinated Assault" {
+  oracle_id ba14843d-6b7f-4e3d-b5ba-fc573fa8bf50
+  cost {R}
+  type Instant
+  spell: up to two target creatures each gets +1/+0 and gains first strike
+}

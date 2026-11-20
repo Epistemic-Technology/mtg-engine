@@ -1,0 +1,11 @@
+card "Bejeweled Warg" {
+  oracle_id 051ff7e0-dd00-4467-8796-a5d1c21934ed
+  cost {1}{G}
+  type Creature — Wolf
+  pt 3/2
+  keywords trample
+  triggered whenever this deals combat damage to a player: choose one {
+    mode: put 1 +1/+1 counters on target Wolf you control
+    mode: create 1 "Treasure"
+  }
+}

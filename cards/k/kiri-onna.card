@@ -1,0 +1,8 @@
+card "Kiri-Onna" {
+  oracle_id e09661d4-858b-43a8-b6a4-ba76f7a69777
+  cost {4}{U}
+  type Creature — Spirit
+  pt 2/2
+  triggered when this enters: return target creature to hand
+  triggered whenever you cast Spirit or Arcane spell: you may return this to hand
+}

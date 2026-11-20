@@ -1,0 +1,6 @@
+card "Kiku's Shadow" {
+  oracle_id ce1678a1-441a-4303-a83a-d7d138b366fd
+  cost {B}{B}
+  type Sorcery
+  spell: target creature bites itself
+}

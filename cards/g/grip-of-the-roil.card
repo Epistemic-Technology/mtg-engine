@@ -1,0 +1,10 @@
+card "Grip of the Roil" {
+  oracle_id c3c87292-2fc8-4759-b7b6-18a8b539b5d1
+  cost {2}{U}
+  type Instant
+  surge {1}{U}
+  spell {
+    tap target creature; target 1 doesn't untap next untap step
+    draw 1 cards
+  }
+}

@@ -1,0 +1,6 @@
+card "Psychic Drain" {
+  oracle_id ac5427d7-9af9-4f94-a8c3-da019ec0b5c5
+  cost {X}{U}{B}
+  type Sorcery
+  spell: target player mills X cards and you gains X life
+}

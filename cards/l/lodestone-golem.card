@@ -1,0 +1,7 @@
+card "Lodestone Golem" {
+  oracle_id a698c9f5-325a-49f6-8902-eef09f4260c5
+  cost {4}
+  type Artifact Creature — Golem
+  pt 5/3
+  spells nonartifact cost {1} more
+}

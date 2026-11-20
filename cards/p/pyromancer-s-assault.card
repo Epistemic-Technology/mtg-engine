@@ -1,0 +1,6 @@
+card "Pyromancer's Assault" {
+  oracle_id 87038d1b-0fa9-4604-b119-1de56db30144
+  cost {3}{R}
+  type Enchantment
+  triggered whenever you cast your second spell each turn: deal 2 damage to any target
+}

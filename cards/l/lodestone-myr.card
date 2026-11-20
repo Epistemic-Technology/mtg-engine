@@ -1,0 +1,8 @@
+card "Lodestone Myr" {
+  oracle_id 7635fb35-7ac8-4e61-8a52-6b0c14cd88b8
+  cost {4}
+  type Artifact Creature — Myr
+  pt 2/2
+  keywords trample
+  activated tap untapped artifact you control: this gets +1/+1
+}

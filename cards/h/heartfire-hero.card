@@ -1,0 +1,8 @@
+card "Heartfire Hero" {
+  oracle_id 49e1e202-37bf-46ed-93d1-1adb13726039
+  cost {R}
+  type Creature — Mouse Soldier
+  pt 1/1
+  label "Valiant" triggered whenever this becomes targeted by you first time each turn: put 1 +1/+1 counters on this
+  triggered when this dies: this bites each opponent
+}

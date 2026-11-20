@@ -1,0 +1,7 @@
+card "Leonin Iconoclast" {
+  oracle_id 14d14ded-8831-47ad-ad90-f6f242cccf03
+  cost {3}{W}
+  type Creature — Cat Monk
+  pt 3/2
+  label "Heroic" triggered whenever you cast a spell that targets this: destroy target enchantment creature an opponent controls
+}

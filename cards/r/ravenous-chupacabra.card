@@ -1,0 +1,7 @@
+card "Ravenous Chupacabra" {
+  oracle_id 7b459306-149b-4f43-abc1-2dd70c748c0e
+  cost {2}{B}{B}
+  type Creature — Beast Horror
+  pt 2/2
+  triggered when this enters: destroy target creature an opponent controls
+}

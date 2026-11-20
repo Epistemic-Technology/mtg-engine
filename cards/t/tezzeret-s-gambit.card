@@ -1,0 +1,6 @@
+card "Tezzeret's Gambit" {
+  oracle_id b33d2b77-f068-4fdc-a1a8-0353a35e3973
+  cost {3}{U/P}
+  type Sorcery
+  spell: draw 2 cards then proliferate
+}

@@ -1,0 +1,8 @@
+card "Ominous Sphinx" {
+  oracle_id 2cb968c4-5b50-4242-8db7-dd1fa9ce4948
+  cost {3}{U}{U}
+  type Creature — Sphinx
+  pt 4/4
+  keywords flying
+  triggered whenever you cycle or discard a card: target creature an opponent controls gets -2/-0
+}

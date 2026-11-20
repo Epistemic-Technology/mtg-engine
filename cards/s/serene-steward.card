@@ -1,0 +1,7 @@
+card "Serene Steward" {
+  oracle_id 559463f8-396f-40e0-9515-a1be6397ca31
+  cost {1}{W}
+  type Creature — Human Cleric Ally
+  pt 2/2
+  triggered whenever you gain life: you may pay {W}; if you do, put 1 +1/+1 counters on target creature
+}

@@ -1,0 +1,8 @@
+card "Simian Simulacrum" {
+  oracle_id 77eb44ca-53e9-4924-b19f-31732f14ef14
+  cost {3}
+  type Artifact Creature — Ape
+  pt 2/1
+  triggered when this enters: put 2 +1/+1 counters on target creature you control
+  unearth {2}{G}{G}
+}

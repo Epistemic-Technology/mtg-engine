@@ -1,0 +1,8 @@
+card "Stampeding Wildebeests" {
+  oracle_id c270c770-91ed-4540-b281-c4b60b943b34
+  cost {2}{G}{G}
+  type Creature — Antelope Beast
+  pt 5/4
+  keywords trample
+  triggered at beginning of your upkeep: return 1 green creature you control chosen
+}

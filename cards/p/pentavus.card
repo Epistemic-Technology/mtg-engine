@@ -1,0 +1,9 @@
+card "Pentavus" {
+  oracle_id 1c0d4f28-2494-45b0-acb8-921fee602c01
+  cost {7}
+  type Artifact Creature — Construct
+  pt 0/0
+  enters with 5 +1/+1 counters
+  activated {1}, remove 1 +1/+1 counters from this: create 1 "1/1 colorless Pentavite artifact creature with flying"
+  activated {1}, sacrifice Pentavite: put 1 +1/+1 counters on this
+}

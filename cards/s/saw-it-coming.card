@@ -1,0 +1,7 @@
+card "Saw It Coming" {
+  oracle_id 90edaf33-d0ab-47e0-8f6a-6fba38286e6e
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell
+  foretell {1}{U}
+}

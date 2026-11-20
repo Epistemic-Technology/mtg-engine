@@ -1,0 +1,7 @@
+card "Ogre Siegebreaker" {
+  oracle_id 1432db6a-9466-48f6-9011-60728c437608
+  cost {2}{B}{R}
+  type Creature — Ogre Berserker
+  pt 4/3
+  activated {2}{B}{R}: destroy target creature that was dealt damage this turn
+}

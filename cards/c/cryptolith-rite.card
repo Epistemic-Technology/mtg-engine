@@ -1,0 +1,6 @@
+card "Cryptolith Rite" {
+  oracle_id 043f869d-b11c-4c0d-9591-2bf0df7bde55
+  cost {1}{G}
+  type Enchantment
+  static creature you control: has ability { mana any }
+}

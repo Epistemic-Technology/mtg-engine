@@ -1,0 +1,8 @@
+card "Minister of Inquiries" {
+  oracle_id 99894900-771f-4fca-bebf-9f23ec4654c2
+  cost {U}
+  type Creature — Vedalken Advisor
+  pt 1/2
+  triggered when this enters: you get 2 energy
+  activated {T}, pay 1 energy: target player mills 3 cards
+}

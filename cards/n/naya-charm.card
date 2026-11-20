@@ -1,0 +1,10 @@
+card "Naya Charm" {
+  oracle_id 20cc0f3e-de69-4e5f-88b3-ae7e6c6b5996
+  cost {R}{G}{W}
+  type Instant
+  choose one {
+    mode: deal 3 damage to target creature
+    mode: return target card from a graveyard to hand
+    mode: tap each creature target player controls
+  }
+}

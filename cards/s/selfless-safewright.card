@@ -1,0 +1,8 @@
+card "Selfless Safewright" {
+  oracle_id ce19b337-9266-471d-bec3-49eb7f0e62ac
+  cost {3}{G}{G}
+  type Creature — Elf Warrior
+  pt 4/2
+  keywords flash, convoke
+  triggered when this enters: choose creature type; each other permanent you control of that type gains hexproof, indestructible
+}

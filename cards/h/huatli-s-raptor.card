@@ -1,0 +1,8 @@
+card "Huatli's Raptor" {
+  oracle_id 999ece12-0f1f-4b20-a600-b7f1a584bbb4
+  cost {G}{W}
+  type Creature — Dinosaur
+  pt 2/3
+  keywords vigilance
+  triggered when this enters: proliferate
+}

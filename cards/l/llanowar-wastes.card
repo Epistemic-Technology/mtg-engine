@@ -1,0 +1,6 @@
+card "Llanowar Wastes" {
+  oracle_id 32116127-cf96-4a1b-8896-a1ebc087b597
+  type Land
+  mana {C}
+  activated {T}: add {B} or {G}; deal 1 damage to you
+}

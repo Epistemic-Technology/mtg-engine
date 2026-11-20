@@ -1,0 +1,7 @@
+card "Renegade Wheelsmith" {
+  oracle_id d3caee32-25b7-4ef7-9f9a-e31d08720086
+  cost {1}{R}{W}
+  type Creature — Dwarf Pilot
+  pt 3/2
+  triggered whenever this becomes tapped: target creature can't block
+}

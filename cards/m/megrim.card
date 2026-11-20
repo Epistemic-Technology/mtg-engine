@@ -1,0 +1,6 @@
+card "Megrim" {
+  oracle_id 633ad9e2-9f55-4a1c-9248-661ad4b0e1dc
+  cost {2}{B}
+  type Enchantment
+  triggered whenever an opponent discards a card: deal 2 damage to that player
+}

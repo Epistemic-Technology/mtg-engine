@@ -1,0 +1,8 @@
+card "Spyglass Siren" {
+  oracle_id 4ec9d9eb-14e2-47ea-88a2-d2394e363784
+  cost {U}
+  type Creature — Siren Pirate
+  pt 1/1
+  keywords flying
+  triggered when this enters: create 1 "Map"
+}

@@ -1,0 +1,7 @@
+card "Talisman of Progress" {
+  oracle_id 00e35322-1a9a-41e3-9ce1-359c8eaa3bc7
+  cost {2}
+  type Artifact
+  mana {C}
+  activated {T}: add {W} or {U}; deal 1 damage to you
+}

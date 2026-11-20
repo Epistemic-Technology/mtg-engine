@@ -1,0 +1,8 @@
+card "Celestial Ancient" {
+  oracle_id 41797e0c-94bb-42a1-81ed-ed8c6af79e80
+  cost {3}{W}{W}
+  type Creature — Elemental
+  pt 3/3
+  keywords flying
+  triggered whenever you cast enchantment spell: put 1 +1/+1 counters on each creature you control
+}

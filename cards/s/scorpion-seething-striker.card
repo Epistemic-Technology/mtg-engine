@@ -1,0 +1,8 @@
+card "Scorpion, Seething Striker" {
+  oracle_id c357230a-afde-4c2a-b390-9f6928599236
+  cost {3}{B}
+  type Legendary Creature — Scorpion Human Villain
+  pt 3/3
+  keywords deathtouch
+  triggered at beginning of your end step if creature died this turn: target creature you control connives
+}

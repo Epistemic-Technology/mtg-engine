@@ -1,0 +1,6 @@
+card "Time Wipe" {
+  oracle_id 36c78a5f-0148-4596-a346-f8e35037b694
+  cost {2}{W}{W}{U}
+  type Sorcery
+  spell: return 1 creature you control chosen then destroy all creatures
+}

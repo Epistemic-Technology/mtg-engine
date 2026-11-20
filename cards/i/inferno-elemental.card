@@ -1,0 +1,7 @@
+card "Inferno Elemental" {
+  oracle_id 287cb63c-d52d-4871-83d1-792a41ae7adc
+  cost {4}{R}{R}
+  type Creature — Elemental
+  pt 4/4
+  triggered whenever this blocks or becomes blocked by a creature: deal 3 damage to that creature
+}

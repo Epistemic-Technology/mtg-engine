@@ -1,0 +1,8 @@
+card "Markov Warlord" {
+  oracle_id 2279005d-5434-49ce-b16a-212759c5775a
+  cost {5}{R}
+  type Creature — Vampire Warrior
+  pt 4/4
+  keywords haste
+  triggered when this enters: up to two target creatures can't block
+}

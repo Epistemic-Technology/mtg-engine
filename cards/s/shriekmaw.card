@@ -1,0 +1,9 @@
+card "Shriekmaw" {
+  oracle_id 717bbb9d-0a5b-4979-a24b-9d54aac7657a
+  cost {4}{B}
+  type Creature — Elemental
+  pt 3/2
+  keywords fear
+  triggered when this enters: destroy target nonartifact, nonblack creature
+  evoke {1}{B}
+}

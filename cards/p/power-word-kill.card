@@ -1,0 +1,6 @@
+card "Power Word Kill" {
+  oracle_id ea935885-acbc-450d-a3ad-f80c09e12ce7
+  cost {1}{B}
+  type Instant
+  spell: destroy target non-Angel, non-Demon, non-Devil, non-Dragon creature
+}

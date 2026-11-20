@@ -1,0 +1,8 @@
+card "Merciless Eternal" {
+  oracle_id 55c419e9-43f2-4d2d-8c13-057a48d47b53
+  cost {2}{B}
+  type Creature — Zombie Cleric
+  pt 2/2
+  afflict 2
+  activated {2}{B}, discard 1 card: this gets +2/+2
+}

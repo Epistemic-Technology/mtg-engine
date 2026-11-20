@@ -1,0 +1,8 @@
+card "Herald of the Pantheon" {
+  oracle_id 9ef24a79-fade-4c38-b63c-22983206b4ad
+  cost {1}{G}
+  type Creature — Centaur Shaman
+  pt 2/2
+  spells enchantment you cast cost {1} less
+  triggered whenever you cast enchantment spell: you gains 1 life
+}

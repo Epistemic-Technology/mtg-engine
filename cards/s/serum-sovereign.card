@@ -1,0 +1,9 @@
+card "Serum Sovereign" {
+  oracle_id d52ecb32-26ed-484b-b1a7-ee47b66f0f94
+  cost {4}{U}
+  type Creature — Phyrexian Sphinx
+  pt 4/4
+  keywords flying
+  triggered whenever you cast a noncreature spell: put 1 oil counters on this
+  activated {U}, remove 1 oil counters from this: draw 1 cards then scry 2
+}

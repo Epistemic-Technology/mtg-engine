@@ -1,0 +1,8 @@
+card "Throat Slitter" {
+  oracle_id 56f782b7-d46c-4aa1-ae16-66d6401c72ae
+  cost {4}{B}
+  type Creature — Rat Ninja
+  pt 2/2
+  ninjutsu {2}{B}
+  triggered whenever this deals combat damage to a player: destroy target nonblack creature that player controls
+}

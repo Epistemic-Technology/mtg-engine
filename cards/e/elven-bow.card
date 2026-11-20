@@ -1,0 +1,8 @@
+card "Elven Bow" {
+  oracle_id 43daed96-2216-4f17-82ce-3eccd5d69936
+  cost {G}
+  type Artifact — Equipment
+  triggered when this enters: you may pay {2}; if you do, create 1 "1/1 green Elf Warrior creature" then attach to that token
+  static enchanted: +1/+2, has reach
+  equip {3}
+}

@@ -1,0 +1,9 @@
+card "Sedraxis Specter" {
+  oracle_id eccc1230-df5a-44a0-859b-9e1e0d176dff
+  cost {U}{B}{R}
+  type Creature — Specter
+  pt 3/2
+  keywords flying
+  triggered whenever this deals combat damage to a player: that player discards 1 cards
+  unearth {1}{B}
+}

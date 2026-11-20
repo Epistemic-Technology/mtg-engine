@@ -1,0 +1,6 @@
+card "Novijen, Heart of Progress" {
+  oracle_id b3b5137d-0225-4dba-9231-d235ab0f137c
+  type Land
+  mana {C}
+  activated {G}{U}, {T}: put 1 +1/+1 counters on each creature that entered this turn
+}

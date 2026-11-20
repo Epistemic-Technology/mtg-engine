@@ -1,0 +1,6 @@
+card "Yavimaya Coast" {
+  oracle_id 40b36bc6-c185-4bda-99e7-0118953c2c97
+  type Land
+  mana {C}
+  activated {T}: add {G} or {U}; deal 1 damage to you
+}

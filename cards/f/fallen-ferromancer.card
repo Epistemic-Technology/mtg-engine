@@ -1,0 +1,8 @@
+card "Fallen Ferromancer" {
+  oracle_id 22446354-e5c3-4f19-9731-79a4562639d1
+  cost {3}{R}
+  type Creature — Phyrexian Human Shaman
+  pt 1/1
+  keywords infect
+  activated {1}{R}, {T}: deal 1 damage to any target
+}

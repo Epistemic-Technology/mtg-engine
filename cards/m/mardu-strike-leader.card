@@ -1,0 +1,8 @@
+card "Mardu Strike Leader" {
+  oracle_id 9be8e04f-f87f-4477-93f3-c546e9b346f0
+  cost {2}{B}
+  type Creature — Human Warrior
+  pt 3/2
+  triggered whenever this attacks: create 1 "2/1 black Warrior creature"
+  dash {3}{B}
+}

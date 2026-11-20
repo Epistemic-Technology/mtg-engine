@@ -1,0 +1,9 @@
+card "Pirate Ship" {
+  oracle_id c6b3f924-806d-47d3-b044-72b48470196c
+  cost {4}{U}
+  type Creature — Human Pirate
+  pt 4/3
+  can't attack unless defending player controls Island
+  activated {T}: deal 1 damage to any target
+  triggered when you control no Island: sacrifice this
+}

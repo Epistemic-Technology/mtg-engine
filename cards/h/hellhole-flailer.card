@@ -1,0 +1,8 @@
+card "Hellhole Flailer" {
+  oracle_id e13c1703-1184-4a8c-9310-f11e4e673597
+  cost {1}{B}{R}
+  type Creature — Ogre Warrior
+  pt 3/2
+  unleash
+  activated {2}{B}{R}, sacrifice this: this bites target player or planeswalker
+}

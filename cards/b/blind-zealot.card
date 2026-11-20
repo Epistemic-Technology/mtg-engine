@@ -1,0 +1,8 @@
+card "Blind Zealot" {
+  oracle_id 30c7e304-ecfe-44c1-88d1-f507df63c080
+  cost {1}{B}{B}
+  type Creature — Phyrexian Human Cleric
+  pt 2/2
+  keywords intimidate
+  triggered whenever this deals combat damage to a player: you may sacrifice this; if you do, destroy target creature that player controls
+}

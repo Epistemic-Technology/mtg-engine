@@ -1,0 +1,8 @@
+card "Gudul Lurker" {
+  oracle_id bde976c6-afed-44bb-8e3d-4103289dff5e
+  cost {U}
+  type Creature — Salamander
+  pt 1/1
+  keywords can't be blocked
+  megamorph {U}
+}

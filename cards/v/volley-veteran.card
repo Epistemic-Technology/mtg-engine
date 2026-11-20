@@ -1,0 +1,7 @@
+card "Volley Veteran" {
+  oracle_id bf4268e6-170a-445b-b215-718f7494ae28
+  cost {3}{R}
+  type Creature — Goblin Warrior
+  pt 4/2
+  triggered when this enters: deal count equal Goblin you control damage to target creature an opponent controls
+}

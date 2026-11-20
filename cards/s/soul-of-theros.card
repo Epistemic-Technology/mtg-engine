@@ -1,0 +1,9 @@
+card "Soul of Theros" {
+  oracle_id d820b920-191c-43e3-ba6a-4cdceab1c06d
+  cost {4}{W}{W}
+  type Creature — Avatar
+  pt 6/6
+  keywords vigilance
+  activated {4}{W}{W}: each creature you control gets +2/+2 and gains first strike, lifelink
+  activated {4}{W}{W}, exile this from graveyard: each creature you control gets +2/+2 and gains first strike, lifelink
+}

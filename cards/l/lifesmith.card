@@ -1,0 +1,7 @@
+card "Lifesmith" {
+  oracle_id 95f5c0ac-8835-4b31-863b-84f5273aac50
+  cost {1}{G}
+  type Creature — Human Artificer
+  pt 2/1
+  triggered whenever you cast artifact spell: you may pay {1}; if you do, you gains 3 life
+}

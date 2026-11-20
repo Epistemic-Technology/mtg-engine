@@ -1,0 +1,7 @@
+card "Blinkmoth Infusion" {
+  oracle_id 8788f555-8c18-4842-9716-385afae2b9a4
+  cost {12}{U}{U}
+  type Instant
+  affinity for artifact
+  spell: untap each artifact
+}

@@ -1,0 +1,9 @@
+card "Fae Flight" {
+  oracle_id d3912c82-37f8-456e-ba49-65c7f5b39d13
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: enchanted creature gains hexproof
+  static enchanted: +1/+0, has flying
+}

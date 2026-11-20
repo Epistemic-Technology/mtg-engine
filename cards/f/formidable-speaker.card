@@ -1,0 +1,8 @@
+card "Formidable Speaker" {
+  oracle_id 5bd06f9e-9a42-455d-ad26-24bc04e51c7c
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 2/4
+  triggered when this enters: you may discard 1 cards; if you do, search creature card reveal to hand
+  activated {1}, {T}: untap another target permanent
+}

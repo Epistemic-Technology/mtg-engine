@@ -1,0 +1,7 @@
+card "Riddlesmith" {
+  oracle_id e3b9c9e3-5a35-4dd2-ab17-d1b6a140b185
+  cost {1}{U}
+  type Creature — Human Artificer
+  pt 2/1
+  triggered whenever you cast artifact spell: you may draw 1 cards; if you do, discard 1 cards
+}

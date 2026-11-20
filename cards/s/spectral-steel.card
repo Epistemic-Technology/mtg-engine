@@ -1,0 +1,8 @@
+card "Spectral Steel" {
+  oracle_id 95f74c0d-3f89-4944-997e-1bdc408bae71
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  activated {1}{W}, exile this from graveyard: return another target Aura or Equipment card from your graveyard to hand
+}

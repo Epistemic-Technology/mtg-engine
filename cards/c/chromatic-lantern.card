@@ -1,0 +1,7 @@
+card "Chromatic Lantern" {
+  oracle_id 539f5396-d99a-417d-a84c-dff7930b5900
+  cost {3}
+  type Artifact
+  static land you control: has ability { mana any }
+  mana any
+}

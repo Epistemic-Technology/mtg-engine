@@ -1,0 +1,14 @@
+card "Status // Statue" {
+  oracle_id df7d4964-35a2-42f7-a4f5-05122f78cbba
+  layout split
+  face "Status" {
+    cost {B/G}
+    type Instant
+    spell: target creature gets +1/+1 and gains deathtouch
+  }
+  face "Statue" {
+    cost {2}{B}{G}
+    type Instant
+    spell: destroy target artifact, creature, or enchantment
+  }
+}

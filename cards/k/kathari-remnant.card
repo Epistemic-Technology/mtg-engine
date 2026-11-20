@@ -1,0 +1,9 @@
+card "Kathari Remnant" {
+  oracle_id bbf07946-33d0-48fe-85af-022e9b0b834c
+  cost {2}{U}{B}
+  type Creature — Bird Skeleton
+  pt 0/1
+  keywords flying
+  activated {B}: regenerate this
+  keyword cascade
+}

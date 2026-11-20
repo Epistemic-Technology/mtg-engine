@@ -1,0 +1,7 @@
+card "Void Squall" {
+  oracle_id e8ca5c7e-7d8a-4e86-91ee-2d3576f9fd5d
+  cost {4}{U}
+  type Sorcery
+  keywords rebound
+  spell: return target nonland permanent to hand
+}

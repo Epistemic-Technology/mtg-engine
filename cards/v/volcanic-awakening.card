@@ -1,0 +1,7 @@
+card "Volcanic Awakening" {
+  oracle_id 2145329d-49df-4f4a-b7d7-3cc2f64639d3
+  cost {4}{R}{R}
+  type Sorcery
+  spell: destroy target land
+  storm
+}

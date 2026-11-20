@@ -1,0 +1,6 @@
+card "Frontier Bivouac" {
+  oracle_id e4cf6c2f-0f1e-4980-9ef9-e4eabcae42a9
+  type Land
+  enters tapped
+  mana {G} or {U} or {R}
+}

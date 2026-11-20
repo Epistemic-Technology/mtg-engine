@@ -1,0 +1,7 @@
+card "Curious Inquiry" {
+  oracle_id 52fe8101-82af-4aed-a395-54e7b7639bd2
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has ability { triggered whenever this deals combat damage to a player: investigate }
+}

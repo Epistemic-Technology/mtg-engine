@@ -1,0 +1,7 @@
+card "Champion of Rhonas" {
+  oracle_id 517502e4-4588-4327-b2c0-451f4531fecc
+  cost {3}{G}
+  type Creature — Jackal Warrior
+  pt 3/3
+  exert: you may put creature card from hand onto battlefield
+}

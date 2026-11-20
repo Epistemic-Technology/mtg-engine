@@ -1,0 +1,8 @@
+card "Seht's Tiger" {
+  oracle_id 7d71a78d-fda8-424d-b343-b901a0df3acf
+  cost {2}{W}{W}
+  type Creature — Cat
+  pt 3/3
+  keywords flash
+  triggered when this enters: you gains protection from color of choice
+}

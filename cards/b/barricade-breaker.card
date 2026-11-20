@@ -1,0 +1,7 @@
+card "Barricade Breaker" {
+  oracle_id 93491d5c-8579-42ed-a700-e5c6f4238dea
+  cost {7}
+  type Artifact Creature — Juggernaut
+  pt 7/5
+  keywords improvise, attacks each combat if able
+}

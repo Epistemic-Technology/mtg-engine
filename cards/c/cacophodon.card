@@ -1,0 +1,7 @@
+card "Cacophodon" {
+  oracle_id 8bd6dea2-2fdd-482f-9fe8-6f3eeed13872
+  cost {3}{G}
+  type Creature — Dinosaur
+  pt 2/5
+  label "Enrage" triggered whenever this is dealt damage: untap target permanent
+}

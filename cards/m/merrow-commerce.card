@@ -1,0 +1,6 @@
+card "Merrow Commerce" {
+  oracle_id a931b609-1486-447b-9479-61a45d64f2ef
+  cost {1}{U}
+  type Kindred Enchantment — Merfolk
+  triggered at beginning of your end step: untap each Merfolk you control
+}

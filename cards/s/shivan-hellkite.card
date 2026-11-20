@@ -1,0 +1,8 @@
+card "Shivan Hellkite" {
+  oracle_id 069be6a0-9545-4fdc-ad40-957fe307db7a
+  cost {5}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying
+  activated {1}{R}: deal 1 damage to any target
+}

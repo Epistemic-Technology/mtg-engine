@@ -1,0 +1,7 @@
+card "Settlement Blacksmith" {
+  oracle_id f98d0f8a-c8b5-4fb8-b598-e70ffab3c0ff
+  cost {2}{W}
+  type Creature — Human Artificer
+  pt 3/3
+  triggered when this enters if you control Equipment: draw 1 cards
+}

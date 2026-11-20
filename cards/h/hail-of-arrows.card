@@ -1,0 +1,6 @@
+card "Hail of Arrows" {
+  oracle_id 37429f88-e29b-4b1b-90fd-23a04d703c0a
+  cost {X}{W}
+  type Instant
+  spell: deal X damage divided among any number of target attacking creatures
+}

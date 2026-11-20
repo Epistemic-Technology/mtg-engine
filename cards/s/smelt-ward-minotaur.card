@@ -1,0 +1,7 @@
+card "Smelt-Ward Minotaur" {
+  oracle_id ee25680a-d01a-4ddb-908b-27a9bea0ceae
+  cost {2}{R}
+  type Creature — Minotaur Warrior
+  pt 2/3
+  triggered whenever you cast an instant or sorcery spell: target creature an opponent controls can't block
+}

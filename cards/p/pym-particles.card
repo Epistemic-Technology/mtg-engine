@@ -1,0 +1,9 @@
+card "Pym Particles" {
+  oracle_id 636b44dc-f7e4-42d2-abf6-ae49432b6052
+  cost {U}
+  type Sorcery
+  spell {
+    target creature gains vigilance until end of turn and can't be blocked
+    draw 1 cards
+  }
+}

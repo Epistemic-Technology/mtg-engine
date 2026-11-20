@@ -1,0 +1,6 @@
+card "Shattered Dreams" {
+  oracle_id 91c2f488-2b49-4499-8d5d-c1aff73a4b57
+  cost {B}
+  type Sorcery
+  spell: target opponent reveals hand discarding artifact card
+}

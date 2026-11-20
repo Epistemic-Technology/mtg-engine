@@ -1,0 +1,7 @@
+card "Underworld Connections" {
+  oracle_id 39c10798-9dfc-47a2-9da3-b4038509aebe
+  cost {1}{B}{B}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: has ability { activated {T}, pay 1 life: draw 1 cards }
+}

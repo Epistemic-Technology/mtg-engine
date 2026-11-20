@@ -1,0 +1,8 @@
+card "Psychic Symbiont" {
+  oracle_id 34439fb2-0272-4624-aa4c-9ea439b60489
+  cost {4}{U}{B}
+  type Creature — Nightmare Horror
+  pt 3/3
+  keywords flying
+  triggered when this enters: target opponent discards a card and you draws 1 cards
+}

@@ -1,0 +1,7 @@
+card "Phalanx Leader" {
+  oracle_id 857db7e0-254a-4920-a71d-9bab6555342f
+  cost {W}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  label "Heroic" triggered whenever you cast a spell that targets this: put 1 +1/+1 counters on each creature you control
+}

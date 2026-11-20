@@ -1,0 +1,10 @@
+card "Rover Blades" {
+  oracle_id 0394846e-bc27-4d67-988e-b08a389690de
+  cost {3}
+  type Artifact — Equipment Vehicle
+  pt 2/2
+  keywords double strike
+  static enchanted: has double strike
+  equip {4}
+  crew 2
+}

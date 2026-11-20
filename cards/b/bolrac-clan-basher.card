@@ -1,0 +1,8 @@
+card "Bolrac-Clan Basher" {
+  oracle_id c23617c9-53f9-4063-8241-b504e9b80cbe
+  cost {4}{R}{R}
+  type Creature — Cyclops Warrior
+  pt 3/2
+  keywords double strike, trample
+  disguise {3}{R}{R}
+}

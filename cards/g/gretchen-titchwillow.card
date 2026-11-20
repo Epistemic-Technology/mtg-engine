@@ -1,0 +1,7 @@
+card "Gretchen Titchwillow" {
+  oracle_id cedeea30-b580-4ea7-bbc3-7358fed8ae61
+  cost {G}{U}
+  type Legendary Creature — Halfling Druid
+  pt 0/4
+  activated {2}{G}{U}: draw 1 cards; you may put land card from hand onto battlefield
+}

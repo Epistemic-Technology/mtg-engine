@@ -1,0 +1,7 @@
+card "Evermind" {
+  oracle_id 14e23074-95b8-4477-b981-6231c19bacdc
+  type Instant — Arcane
+  color blue
+  spell: draw 1 cards
+  splice {1}{U}
+}

@@ -1,0 +1,7 @@
+card "Squirrel Nest" {
+  oracle_id 2d584333-b25e-4291-a2c9-80c6d9f8732a
+  cost {1}{G}{G}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: has ability { activated {T}: create 1 "1/1 green Squirrel creature" }
+}

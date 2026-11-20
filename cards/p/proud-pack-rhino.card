@@ -1,0 +1,10 @@
+card "Proud Pack-Rhino" {
+  oracle_id 292cd535-916e-486e-b0cc-ecdb9477287d
+  cost {2}{W}
+  type Creature — Rhino
+  pt 3/3
+  triggered when this enters: choose one {
+    mode: put 1 shield counters on target permanent
+    mode: proliferate
+  }
+}

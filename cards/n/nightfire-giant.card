@@ -1,0 +1,8 @@
+card "Nightfire Giant" {
+  oracle_id 2f351af6-0c94-4881-b91a-0211645c43c8
+  cost {4}{B}
+  type Creature — Zombie Giant
+  pt 4/3
+  static this: +1/+1 as long as you control Mountain
+  activated {4}{R}: deal 2 damage to any target
+}

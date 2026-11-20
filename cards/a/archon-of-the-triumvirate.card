@@ -1,0 +1,8 @@
+card "Archon of the Triumvirate" {
+  oracle_id 27ecb717-6251-4066-b57e-7070e9e44bbf
+  cost {5}{W}{U}
+  type Creature — Archon
+  pt 4/5
+  keywords flying
+  triggered whenever this attacks: detain up to two target nonland permanents your opponents control
+}

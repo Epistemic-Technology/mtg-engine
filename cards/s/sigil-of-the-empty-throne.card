@@ -1,0 +1,6 @@
+card "Sigil of the Empty Throne" {
+  oracle_id 3b9b5b22-5a7d-4e37-a870-ca0f0efa4f36
+  cost {3}{W}{W}
+  type Enchantment
+  triggered whenever you cast enchantment spell: create 1 "4/4 white Angel creature with flying"
+}

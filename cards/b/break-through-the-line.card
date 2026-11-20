@@ -1,0 +1,6 @@
+card "Break Through the Line" {
+  oracle_id 555c571e-ccfc-4a8e-8a40-7b1eab0fbbef
+  cost {1}{R}
+  type Enchantment
+  activated {R}: target creature with power 2 or less gains haste until end of turn and can't be blocked
+}

@@ -1,0 +1,8 @@
+card "Kami of Lunacy" {
+  oracle_id 5c848e4a-f0f7-4659-b7b1-f468efba9563
+  cost {4}{B}{B}
+  type Creature — Spirit
+  pt 4/1
+  keywords flying
+  soulshift 5
+}

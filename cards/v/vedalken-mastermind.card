@@ -1,0 +1,7 @@
+card "Vedalken Mastermind" {
+  oracle_id 1ba85537-6dc2-459e-8850-619b41c0a881
+  cost {U}{U}
+  type Creature — Vedalken Wizard
+  pt 1/2
+  activated {U}, {T}: return target permanent you control to hand
+}

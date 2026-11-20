@@ -1,0 +1,7 @@
+card "Mardu Heart-Piercer" {
+  oracle_id e4b15cba-9cd7-422d-9ca6-39243bf67dca
+  cost {3}{R}
+  type Creature — Human Archer
+  pt 2/3
+  label "Raid" triggered when this enters if attacked this turn: deal 2 damage to any target
+}

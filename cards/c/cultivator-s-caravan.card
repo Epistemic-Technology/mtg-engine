@@ -1,0 +1,8 @@
+card "Cultivator's Caravan" {
+  oracle_id c1eb530c-dd36-40ae-8617-6bb6969565e1
+  cost {3}
+  type Artifact — Vehicle
+  pt 5/5
+  mana any
+  crew 3
+}

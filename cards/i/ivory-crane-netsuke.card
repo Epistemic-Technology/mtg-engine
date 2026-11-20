@@ -1,0 +1,6 @@
+card "Ivory Crane Netsuke" {
+  oracle_id ab151429-0890-4231-a3a7-34e8455dac70
+  cost {2}
+  type Artifact
+  triggered at beginning of your upkeep if hand 7 or more: you gains 4 life
+}

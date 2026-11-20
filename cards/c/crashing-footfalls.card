@@ -1,0 +1,7 @@
+card "Crashing Footfalls" {
+  oracle_id 2b166d97-c2c1-4642-b151-9bb1ad32e362
+  type Sorcery
+  color green
+  suspend 4 {G}
+  spell: create 2 "4/4 green Rhino creature with trample"
+}

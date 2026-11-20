@@ -1,0 +1,7 @@
+card "Call the Skybreaker" {
+  oracle_id a7213bef-0e9c-44e1-97cb-d1da0ef370bf
+  cost {5}{U/R}{U/R}
+  type Sorcery
+  spell: create 1 "5/5 blue and red Elemental creature with flying"
+  retrace
+}

@@ -1,0 +1,7 @@
+card "Dire Wolves" {
+  oracle_id 7d72a2f4-cce6-4a2b-9507-0ee1c3e1e4ae
+  cost {2}{G}
+  type Creature — Wolf
+  pt 2/2
+  static this: has banding as long as you control Plains
+}

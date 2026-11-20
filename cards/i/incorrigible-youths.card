@@ -1,0 +1,8 @@
+card "Incorrigible Youths" {
+  oracle_id 9c239027-c5cb-43c6-b4f3-93c269a1d853
+  cost {3}{R}{R}
+  type Creature — Vampire
+  pt 4/3
+  keywords haste
+  madness {2}{R}
+}

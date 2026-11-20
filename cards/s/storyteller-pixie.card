@@ -1,0 +1,8 @@
+card "Storyteller Pixie" {
+  oracle_id 51bb6d3b-be6a-435d-8a80-0c0f0161892d
+  cost {3}{U}
+  type Creature — Faerie Wizard
+  pt 3/3
+  keywords flying
+  triggered whenever you cast Adventure spell: draw 1 cards
+}

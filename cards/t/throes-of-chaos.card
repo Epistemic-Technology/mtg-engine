@@ -1,0 +1,7 @@
+card "Throes of Chaos" {
+  oracle_id e3444fcf-70ed-4d6e-aea9-030af15cad56
+  cost {3}{R}
+  type Sorcery
+  keywords cascade
+  retrace
+}

@@ -1,0 +1,6 @@
+card "Bleeding Edge" {
+  oracle_id 308e551a-6d60-4a28-9e22-1181995ca068
+  cost {1}{B}{B}
+  type Sorcery
+  spell: up to one target creature gets -2/-2; amass Zombies 2
+}

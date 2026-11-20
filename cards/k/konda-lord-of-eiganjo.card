@@ -1,0 +1,8 @@
+card "Konda, Lord of Eiganjo" {
+  oracle_id efea2342-bb24-472a-acfb-1b9e012af91b
+  cost {5}{W}{W}
+  type Legendary Creature — Human Samurai
+  pt 3/3
+  keywords vigilance, indestructible
+  bushido 5
+}

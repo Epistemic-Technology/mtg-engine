@@ -1,0 +1,8 @@
+card "Kami of the Palace Fields" {
+  oracle_id e8d44867-9519-41f2-aa0f-4079444aeef9
+  cost {5}{W}
+  type Creature — Spirit
+  pt 3/2
+  keywords flying, first strike
+  soulshift 5
+}

@@ -1,0 +1,9 @@
+card "Lesser Masticore" {
+  oracle_id a6a257bd-ee19-4246-b997-5288e6fa41e1
+  cost {2}
+  type Artifact Creature — Masticore
+  pt 2/2
+  additional cost discard 1 card
+  activated {4}: deal 1 damage to target creature
+  keyword persist
+}

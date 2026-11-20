@@ -1,0 +1,9 @@
+card "Ethersworn Adjudicator" {
+  oracle_id ca2a7669-4932-4a78-8a6c-8558b7c05ba5
+  cost {4}{U}
+  type Artifact Creature — Vedalken Knight
+  pt 4/4
+  keywords flying
+  activated {1}{W}{B}, {T}: destroy target creature or enchantment
+  activated {2}{U}: untap this
+}
