@@ -1,0 +1,31 @@
+scenario "power counts noncreature, nonland cards in your graveyard" {
+  battlefield A: "Dragonfly Swarm"
+  graveyard A: "Lightning Bolt", "Divination", "Grizzly Bears", "Forest"
+  run_to turn 1 precombat_main
+  assert power "Dragonfly Swarm" 2
+  assert toughness "Dragonfly Swarm" 3
+}
+
+scenario "dies with a Lesson card in your graveyard: draw a card" {
+  battlefield B: 2 "Mountain"
+  battlefield A: "Dragonfly Swarm"
+  graveyard A: "Start from Scratch"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Dragonfly Swarm"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Dragonfly Swarm"
+  assert hand A count 1
+}
+
+scenario "dies without a Lesson card: no draw" {
+  battlefield B: 2 "Mountain"
+  battlefield A: "Dragonfly Swarm"
+  graveyard A: "Divination"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Dragonfly Swarm"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Dragonfly Swarm"
+  assert hand A count 0
+}

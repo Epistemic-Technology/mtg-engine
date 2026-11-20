@@ -1014,7 +1014,9 @@ layer 7a, counting any count a static ability can: "~'s power and
 toughness are each equal to ..."; the count is judged from its controller
 as the layer applies), `cda power count Rat you control` ("~'s power is
 equal to the number of Rats you control"; the toughness is printed, `pt
-*/1`), `cda toughness domain` ("~'s toughness is equal to ..."), and `has ability { <ability line> }`: a quoted ability
+*/1`), `cda toughness domain` ("~'s toughness is equal to ..."; `cda noun power
+...` names the card's noun instead, "This creature's power is equal to
+...", "This Vehicle's power", where Oracle does), and `has ability { <ability line> }`: a quoted ability
 granted in layer 6 ("Enchanted creature has \"{T}: This creature deals 1
 damage to any target.\""), written as its own ability line (`activated
 {T}: deal 1 damage to any target`), where `this` is the object that has

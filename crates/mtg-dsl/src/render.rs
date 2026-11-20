@@ -8191,10 +8191,13 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         count,
         sets,
         plus_toughness,
+        noun,
     }) = mods.iter().find(|m| matches!(m, Mod::CdaPt { .. }))
     {
         let owner = if card.kind == Kind::Token {
             "This token's".to_string()
+        } else if *noun {
+            format!("{}'s", capitalize(&this_ref(card)))
         } else {
             format!("{}'s", short_name(card))
         };

@@ -3146,6 +3146,7 @@ impl Compiler<'_> {
                 count,
                 sets,
                 plus_toughness,
+                noun: _,
             } => Modification::CdaPt {
                 count: self.count_expr(count),
                 sets: *sets,

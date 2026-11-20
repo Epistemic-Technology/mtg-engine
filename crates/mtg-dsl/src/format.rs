@@ -3705,6 +3705,7 @@ fn modification(m: &Mod) -> String {
             count,
             sets,
             plus_toughness,
+            noun,
         } => {
             use crate::ast::CountExpr;
             let c = match count {
@@ -3719,6 +3720,11 @@ fn modification(m: &Mod) -> String {
                 mtg_core::card::CdaSets::Both => "pt",
                 mtg_core::card::CdaSets::Power => "power",
                 mtg_core::card::CdaSets::Toughness => "toughness",
+            };
+            let what = if *noun {
+                format!("noun {what}")
+            } else {
+                what.to_string()
             };
             if *plus_toughness == 0 {
                 format!("cda {what} {c}")

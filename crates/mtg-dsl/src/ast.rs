@@ -2413,6 +2413,10 @@ pub enum Mod {
         count: CountExpr,
         sets: mtg_core::card::CdaSets,
         plus_toughness: i32,
+        /// `cda noun power ...`: "This creature's power is equal to ..."
+        /// where Oracle names the card's noun rather than the card
+        /// (wording only).
+        noun: bool,
     },
 }
 

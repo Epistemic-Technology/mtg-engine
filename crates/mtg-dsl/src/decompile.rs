@@ -1746,6 +1746,7 @@ impl Decompiler<'_> {
                 count: self.cda_count(count),
                 sets: *sets,
                 plus_toughness: *plus_toughness,
+                noun: false,
             },
         }
     }

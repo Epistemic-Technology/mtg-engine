@@ -10568,6 +10568,7 @@ impl P {
                 }
             }
             "cda" => {
+                let noun = self.eat_word("noun");
                 let what = self.word()?;
                 match what.as_str() {
                     "color" | "colors" => {
@@ -10622,6 +10623,7 @@ impl P {
                             count,
                             sets,
                             plus_toughness,
+                            noun,
                         })
                     }
                     _ => self.fail(format!("unknown `cda {what}`")),
