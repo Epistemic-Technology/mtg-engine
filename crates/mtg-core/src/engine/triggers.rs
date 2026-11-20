@@ -678,6 +678,20 @@ impl GameState {
                 on_battlefield(what, *source)?;
                 Some((Some(*source), self.protector(*b)))
             }
+            // CR 709.5h: this door, as it enters or later.
+            (TriggerSpec::UnlocksDoor { door }, Event::Unlocked { obj, door: d, .. }) => {
+                (*obj == w.source && d == door).then_some((Some(*obj), Some(w.controller)))
+            }
+            // CR 709.5i.
+            (
+                TriggerSpec::FullyUnlocks { whose },
+                Event::Unlocked {
+                    obj, fully: true, ..
+                },
+            ) => {
+                let p = self.objects.get(*obj)?.controller;
+                whose_ok(*whose, p).then_some((Some(*obj), Some(p)))
+            }
             (
                 TriggerSpec::AttacksBattle(what),
                 Event::Attack {

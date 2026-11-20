@@ -2705,6 +2705,8 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             )
         }
         Trigger::AttacksBattle(o) => format!("whenever {} attacks a battle", trigger_obj(o)),
+        Trigger::UnlocksDoor => "when you unlock this door".to_string(),
+        Trigger::FullyUnlocks => "whenever you fully unlock a Room".to_string(),
         Trigger::DealsCombatDamageToDefending(o) => {
             format!(
                 "whenever {} deals combat damage to defending player",
@@ -3238,6 +3240,7 @@ fn static_cond(c: &StaticCond) -> String {
             if *attacking { "attacking" } else { "defending" }
         ),
         StaticCond::AttackedThisTurn => "attacked this turn".to_string(),
+        StaticCond::UnlockedDoors(n) => format!("{n} unlocked doors"),
         StaticCond::AttackedBattleThisTurn => "attacked a battle this turn".to_string(),
         StaticCond::AttackedLastTurn => "attacked last turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),

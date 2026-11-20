@@ -264,6 +264,7 @@ impl Engine {
                 state.valiant_watchers += u32::from(def.flags().has_valiant());
                 state.state_trigger_sources += u32::from(def.flags().has_state_trigger());
                 state.mark_sources += u32::from(def.flags().has_marks());
+                state.room_count += u32::from(def.flags().has_room());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -546,6 +547,7 @@ impl GameState {
             eot_grants: 0,
             undone_cast: None,
             face_down_count: 0,
+            room_count: 0,
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
             this_way: None,
@@ -1493,6 +1495,21 @@ impl GameState {
                 self.objects[spell].def = self.pool.face_down(ward);
                 self.cbump();
                 self.flow = self.after_mode(spell);
+            }
+            (Flow::Priority, Choice::Unlock { obj, door }) => {
+                // CR 709.5e: a special action; the player keeps priority.
+                let half = self
+                    .pool
+                    .get(self.objects[obj].def)
+                    .doors
+                    .as_deref()
+                    .map(|d| d.half(door));
+                if let Some(half) = half {
+                    let req = self.pool.get(half).mana_cost.requirements(0);
+                    self.pay(player, &req);
+                    self.unlock(obj, door);
+                }
+                self.give_priority(player);
             }
             (Flow::Priority, Choice::TurnFaceUp(id)) => {
                 // CR 116.2b: a special action; the player keeps priority.

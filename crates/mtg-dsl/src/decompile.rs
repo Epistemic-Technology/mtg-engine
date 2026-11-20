@@ -389,6 +389,7 @@ impl Decompiler<'_> {
                 }
             }
             StaticCondition::AttackedThisTurn => StaticCond::AttackedThisTurn,
+            StaticCondition::UnlockedDoors(n) => StaticCond::UnlockedDoors(*n),
             StaticCondition::SourceAttackedBattle => StaticCond::AttackedBattleThisTurn,
             StaticCondition::AttackedLastTurn => StaticCond::AttackedLastTurn,
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
@@ -1217,6 +1218,8 @@ impl Decompiler<'_> {
             TriggerSpec::State(i) => Trigger::State(self.static_cond(self.pool.condition(*i))),
             TriggerSpec::Attacks(o) => Trigger::Attacks(self.trigger_obj(o)),
             TriggerSpec::AttacksBattle(o) => Trigger::AttacksBattle(self.trigger_obj(o)),
+            TriggerSpec::UnlocksDoor { .. } => Trigger::UnlocksDoor,
+            TriggerSpec::FullyUnlocks { .. } => Trigger::FullyUnlocks,
             TriggerSpec::DealsCombatDamageToPlayerOrBattle(o) => {
                 Trigger::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
             }

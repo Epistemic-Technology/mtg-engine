@@ -273,7 +273,12 @@ impl GameState {
             .retain(|e| !matches!(&e.affected, Affected::Objects(set) if set.is_empty()));
         let timestamp = self.tick();
         let (def, except) = if to == Zone::Battlefield {
-            (old.def, old.except)
+            // CR 709.5d: a Room that wasn't cast as a half enters with
+            // neither door unlocked.
+            match self.pool.get(old.def).doors.as_deref() {
+                Some(d) if d.root == old.def => (d.none, old.except),
+                _ => (old.def, old.except),
+            }
         } else {
             (old.card, None)
         };
@@ -492,6 +497,22 @@ impl GameState {
             from: old.zone,
             to,
         });
+        // CR 709.5h: a Room entering with a door unlocked (its half was
+        // cast) unlocks that door as it enters.
+        if to == Zone::Battlefield
+            && let Some(doors) = self.pool.get(def).doors.as_deref()
+        {
+            let unlocked = doors.unlocked(def);
+            for door in 0..2u8 {
+                if unlocked[usize::from(door)] {
+                    self.emit(Event::Unlocked {
+                        obj: new,
+                        door,
+                        fully: unlocked == [true, true],
+                    });
+                }
+            }
+        }
         if old.zone == Zone::Battlefield && !self.linked_exiles.is_empty() {
             self.return_exiled_until(id);
         }
@@ -545,6 +566,7 @@ impl GameState {
             self.valiant_watchers += d(flags.has_valiant());
             self.state_trigger_sources += d(flags.has_state_trigger());
             self.mark_sources += d(flags.has_marks());
+            self.room_count += d(flags.has_room());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
@@ -563,6 +585,7 @@ impl GameState {
             self.valiant_watchers -= d(flags.has_valiant());
             self.state_trigger_sources -= d(flags.has_state_trigger());
             self.mark_sources -= d(flags.has_marks());
+            self.room_count -= d(flags.has_room());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
             self.control_dirty |= flags.has_control_static();
@@ -1259,6 +1282,33 @@ impl GameState {
             let controller = self.objects[id].controller;
             self.queue_builtin(controller, ability, id, c.def);
         }
+    }
+
+    /// Unlock a Room's door (CR 709.5e-f): the permanent takes the
+    /// definition of its new set of unlocked doors.
+    pub(super) fn unlock(&mut self, id: ObjId, door: u8) {
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        let Some(doors) = self.pool.get(o.def).doors.as_deref().copied() else {
+            return;
+        };
+        let mut unlocked = doors.unlocked(o.def);
+        if unlocked[usize::from(door)] {
+            return;
+        }
+        unlocked[usize::from(door)] = true;
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, false, false);
+        self.objects[id].def = doors.def_for(unlocked);
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, false, true);
+        self.cbump();
+        self.emit(Event::Unlocked {
+            obj: id,
+            door,
+            fully: unlocked == [true, true],
+        });
     }
 
     /// Destroy a permanent (CR 701.7), unless it is indestructible (CR

@@ -1236,6 +1236,9 @@ pub enum StaticCond {
     YouControlEach(Vec<Filter>),
     /// `attacked this turn` (raid): "you attacked this turn".
     AttackedThisTurn,
+    /// `2 unlocked doors`: "there are two or more unlocked doors among
+    /// Rooms you control" (CR 709.5j).
+    UnlockedDoors(u32),
     /// `attacked a battle this turn`: "it attacked a battle this turn"
     /// (the source).
     AttackedBattleThisTurn,
@@ -1684,6 +1687,10 @@ pub enum Trigger {
     DealsCombatDamageToPlayerOrBattle(TriggerObj),
     /// `whenever this attacks a battle` (CR 310.5).
     AttacksBattle(TriggerObj),
+    /// `when you unlock this door` (CR 709.5h).
+    UnlocksDoor,
+    /// `whenever you fully unlock a Room` (CR 709.5i).
+    FullyUnlocks,
     /// `deals combat damage to defending player`: the same trigger, worded
     /// with "defending player" (combat damage to a player is dealt to the
     /// defending player, CR 510.1).

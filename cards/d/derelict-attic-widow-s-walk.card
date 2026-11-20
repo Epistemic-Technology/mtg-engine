@@ -1,0 +1,14 @@
+card "Derelict Attic // Widow's Walk" {
+  oracle_id 993b7b94-ed06-422d-9c7e-52a74ce9d045
+  layout split
+  face "Derelict Attic" {
+    cost {2}{B}
+    type Enchantment — Room
+    triggered when you unlock this door: you draw 2 cards, and you lose 2 life
+  }
+  face "Widow's Walk" {
+    cost {3}{B}
+    type Enchantment — Room
+    triggered whenever creature you control attacks alone: it gets +1/+0 and gains deathtouch
+  }
+}

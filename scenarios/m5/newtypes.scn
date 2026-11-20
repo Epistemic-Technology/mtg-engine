@@ -215,3 +215,87 @@ scenario "Vehicle: a +1/+1 counter on target creature or Vehicle you control" {
   run_to turn 1 end
   assert counters "Adventurer's Airship" +1/+1 1
 }
+
+scenario "Room: cast a half; that door unlocks as it enters" {
+  battlefield A: 3 "Swamp"
+  hand A: "Derelict Attic // Widow's Walk"
+  library A: 3 "Island"
+  turn 1 A: cast "Derelict Attic"
+  run_to turn 1 end
+  assert battlefield A contains "Derelict Attic"
+  assert hand A count 2
+  assert life A 18
+}
+
+scenario "Room: unlock the other door as a sorcery by paying its cost" {
+  battlefield A: 4 "Swamp", "Derelict Attic", "Balemurk Leech"
+  turn 1 A: unlock "Widow's Walk"
+  run_to turn 1 end
+  assert battlefield A contains "Derelict Attic // Widow's Walk"
+  # Eerie: fully unlocking a Room.
+  assert life B 19
+  # Unlocking Widow's Walk doesn't unlock Derelict Attic again.
+  assert life A 20
+}
+
+scenario "Room: a locked door can't be unlocked without its mana" {
+  battlefield A: 3 "Swamp", "Derelict Attic"
+  illegal turn 1 A: unlock "Widow's Walk"
+  run_to turn 1 end
+}
+
+scenario "Room: a locked door's abilities don't work" {
+  battlefield A: "Derelict Attic", "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 declare_blockers
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Room: an unlocked door's abilities work" {
+  battlefield A: "Widow's Walk", "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 declare_blockers
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" deathtouch
+}
+
+scenario "Room: unlocking a door triggers its own unlock ability" {
+  battlefield A: 5 "Mountain", "Shattered Yard"
+  battlefield B: "Hill Giant"
+  turn 1 A: unlock "Glassworks"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Room: casting a half is an enchantment entering (eerie)" {
+  battlefield A: 3 "Swamp", "Balemurk Leech"
+  hand A: "Derelict Attic // Widow's Walk"
+  library A: 3 "Island"
+  turn 1 A: cast "Derelict Attic"
+  run_to turn 1 end
+  assert life B 19
+}
+
+scenario "Room: two unlocked doors among Rooms you control" {
+  battlefield A: "Derelict Attic", "Glassworks", "Rampaging Soulrager"
+  run_to turn 1 end
+  assert power "Rampaging Soulrager" 4
+}
+
+scenario "Room: one unlocked door isn't two" {
+  battlefield A: "Derelict Attic", "Rampaging Soulrager"
+  run_to turn 1 end
+  assert power "Rampaging Soulrager" 1
+}
+
+scenario "Room: eerie lets a defender attack" {
+  battlefield A: 5 "Island", "Meat Locker", "Stalked Researcher"
+  library A: 5 "Island"
+  start turn 3 A
+  turn 3 A: unlock "Drowned Diner"
+  turn 3 A: attack "Stalked Researcher"
+  run_to turn 3 postcombat_main
+  assert life B 17
+}

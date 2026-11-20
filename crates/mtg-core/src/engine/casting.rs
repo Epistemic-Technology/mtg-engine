@@ -147,6 +147,10 @@ impl GameState {
         if self.face_down_count > 0 {
             self.face_up_options(p, &sources, &mut options);
         }
+        // CR 709.5e: unlocking a Room's door, as a sorcery.
+        if self.room_count > 0 && sorcery_timing {
+            self.unlock_options(p, &sources, &mut options);
+        }
         // CR 715.3d: a card on an adventure may be cast from exile (its
         // main face).
         if ps.adventures_in_exile > 0 {
@@ -1195,6 +1199,35 @@ impl GameState {
         let ps = self.player(p);
         if self.payable(p, sources, &ps.mana_pool, &three(), ps.life, None) {
             options.push(Choice::CastFaceDown(id));
+        }
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn unlock_options(&self, p: PlayerId, sources: &Sources, options: &mut Vec<Choice>) {
+        let ps = self.player(p);
+        for id in self.permanents_of(p) {
+            let def = self.objects[id].def;
+            let Some(doors) = self.pool.get(def).doors.as_deref() else {
+                continue;
+            };
+            let unlocked = doors.unlocked(def);
+            for door in 0..2u8 {
+                if unlocked[usize::from(door)] {
+                    continue;
+                }
+                let cost = &self.pool.get(doors.half(door)).mana_cost;
+                if self.payable(
+                    p,
+                    sources,
+                    &ps.mana_pool,
+                    &cost.requirements(0),
+                    ps.life,
+                    None,
+                ) {
+                    options.push(Choice::Unlock { obj: id, door });
+                }
+            }
         }
     }
 

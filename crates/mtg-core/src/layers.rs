@@ -331,6 +331,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
     let you = work.controller_of(source);
     match cond {
         StaticCondition::CardsInGraveyard(n) => state.player(you).graveyard.len() >= *n as usize,
+        StaticCondition::UnlockedDoors(n) => state.unlocked_doors(you) >= *n,
         StaticCondition::CardTypesInGraveyard(n) => {
             let mut types = crate::card::TypeSet::default();
             for g in &state.player(you).graveyard {

@@ -155,6 +155,8 @@ pub fn add_card(
     let r = pool.add(def);
     if !faces.is_empty() {
         pool.alias(&card.name, r);
+        // CR 709.5: a Room's locked and unlocked states.
+        pool.add_room_doors(r);
         // A double-faced card's back face turns back into the front.
         if card.layout == mtg_core::card::Layout::Transform {
             pool.set_faces(faces[0], mtg_core::card::Layout::Transform, vec![r]);
@@ -795,6 +797,7 @@ impl Compiler<'_> {
                     .collect(),
             ),
             StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
+            StaticCond::UnlockedDoors(n) => StaticCondition::UnlockedDoors(*n),
             StaticCond::AttackedBattleThisTurn => StaticCondition::SourceAttackedBattle,
             StaticCond::AttackedLastTurn => StaticCondition::AttackedLastTurn,
             StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
@@ -1989,6 +1992,8 @@ impl Compiler<'_> {
             Trigger::AttachedStep(step) => TriggerSpec::AttachedControllersStep(*step),
             Trigger::Attacks(o) => TriggerSpec::Attacks(self.trigger_obj(o)),
             Trigger::AttacksBattle(o) => TriggerSpec::AttacksBattle(self.trigger_obj(o)),
+            Trigger::UnlocksDoor => TriggerSpec::UnlocksDoor { door: 0 },
+            Trigger::FullyUnlocks => TriggerSpec::FullyUnlocks { whose: Who::You },
             Trigger::DealsCombatDamageToPlayerOrBattle(o) => {
                 TriggerSpec::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
             }

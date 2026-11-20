@@ -1820,6 +1820,9 @@ pub struct StaticAbility {
 pub enum StaticCondition {
     /// "seven or more cards are in your graveyard" (threshold).
     CardsInGraveyard(u32),
+    /// "there are two or more unlocked doors among Rooms you control"
+    /// (CR 709.5j).
+    UnlockedDoors(u32),
     /// "there are four or more card types among cards in your graveyard"
     /// (delirium).
     CardTypesInGraveyard(u32),
@@ -3946,6 +3949,12 @@ pub enum TriggerSpec {
     DealsCombatDamageToPlayerOrBattle(TriggerObj),
     /// "Whenever this creature attacks a battle" (CR 310.5, 508.1).
     AttacksBattle(TriggerObj),
+    /// "When you unlock this door" (CR 709.5h): the door of the Room
+    /// whose half has this ability (0 left, 1 right, set by
+    /// `CardPool::add_room_doors`) is unlocked, as it enters or later.
+    UnlocksDoor { door: u8 },
+    /// "Whenever you fully unlock a Room" (CR 709.5i).
+    FullyUnlocks { whose: Who },
     /// "Whenever you gain life".
     GainsLife { whose: Who },
     /// "Whenever you roll one or more dice" (CR 706): once per
@@ -4201,6 +4210,7 @@ impl TriggerSpec {
             } => WATCH_DISCARD,
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
+            TriggerSpec::UnlocksDoor { .. } | TriggerSpec::FullyUnlocks { .. } => WATCH_DESIG,
             TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
         }
@@ -4922,6 +4932,11 @@ pub struct CardDef {
     /// other card.
     #[serde(default)]
     pub rooms: Vec<Room>,
+    /// A Room's definitions, one per unlock state (CR 709.5): set by
+    /// `CardPool::add_room_doors` on the split card, its halves, and the
+    /// fully locked and fully unlocked states.
+    #[serde(default)]
+    pub doors: Option<Box<RoomDoors>>,
     /// Ascend, start your engines!, and becoming day as it enters
     /// (`Marks`).
     #[serde(default)]
@@ -5118,6 +5133,47 @@ impl Marks {
     }
 }
 
+/// A Room permanent's definitions (CR 709.5): a permanent with a shared
+/// type line has the name, mana cost, and rules text of its unlocked
+/// halves only, so each set of unlocked doors is a definition of its own:
+/// the left half alone, the right half alone, both (`both`: the names,
+/// costs, and abilities of the two), or neither (`none`: the shared type
+/// line only). `root` is the split card itself.
+#[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct RoomDoors {
+    pub root: CardRef,
+    pub left: CardRef,
+    pub right: CardRef,
+    pub both: CardRef,
+    pub none: CardRef,
+}
+
+impl RoomDoors {
+    /// Which doors (left, right) a permanent with definition `def` has
+    /// unlocked (CR 709.5c).
+    pub fn unlocked(&self, def: CardRef) -> [bool; 2] {
+        [
+            def == self.left || def == self.both,
+            def == self.right || def == self.both,
+        ]
+    }
+
+    /// The definition for a set of unlocked doors.
+    pub fn def_for(&self, unlocked: [bool; 2]) -> CardRef {
+        match unlocked {
+            [true, true] => self.both,
+            [true, false] => self.left,
+            [false, true] => self.right,
+            [false, false] => self.none,
+        }
+    }
+
+    /// A door's half (CR 709.5j).
+    pub fn half(&self, door: u8) -> CardRef {
+        if door == 0 { self.left } else { self.right }
+    }
+}
+
 /// Precomputed facts about a definition (see `CardDef::has_triggers` and
 /// friends).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
@@ -5181,6 +5237,8 @@ impl DefFlags {
     /// Ascend, start your engines!, or becoming day as it enters
     /// (`CardDef::marks`): state-based actions and entering then look.
     const MARKS: u32 = 4_194_304;
+    /// A Room (`CardDef::doors`): priority then offers its locked doors.
+    const ROOM: u32 = 8_388_608;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -5281,6 +5339,10 @@ impl DefFlags {
 
     pub const fn has_marks(self) -> bool {
         self.has(DefFlags::MARKS)
+    }
+
+    pub const fn has_room(self) -> bool {
+        self.has(DefFlags::ROOM)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -6386,6 +6448,83 @@ impl CardPool {
         d.faces = faces;
     }
 
+    /// A split card whose halves are permanents (a Room, CR 709.5): adds
+    /// the definitions of its fully locked and fully unlocked states and
+    /// links all five (`CardDef::doors`). Each half's "When you unlock
+    /// this door" learns which door it is. Nothing for other cards.
+    pub fn add_room_doors(&mut self, root: CardRef) {
+        let d = self.get(root);
+        let (&[left, right], Layout::Split) = (d.faces.as_slice(), d.layout) else {
+            return;
+        };
+        if !self.get(left).types.is_permanent_type() {
+            return;
+        }
+        let root_name = d.name.clone();
+        for (half, door) in [(left, 0u8), (right, 1u8)] {
+            for id in self
+                .get(half)
+                .ability_ids
+                .iter()
+                .copied()
+                .collect::<Vec<_>>()
+            {
+                if let AbilityDef::Triggered(t) = &mut self.abilities[id.0 as usize]
+                    && let TriggerSpec::UnlocksDoor { door: d } = &mut t.trigger
+                {
+                    *d = door;
+                }
+            }
+        }
+        let (l, r) = (self.get(left).clone(), self.get(right).clone());
+        // Both unlocked: both names, costs, and rules texts (CR 709.5).
+        let mut both = l.clone();
+        both.name.clone_from(&root_name);
+        both.mana_cost =
+            ManaCost::parse(&format!("{}{}", l.mana_cost, r.mana_cost)).unwrap_or_default();
+        both.abilities.extend(r.abilities.iter().cloned());
+        both.keywords = l.keywords.union(r.keywords);
+        both.oracle_text = format!("{}\n{}", l.oracle_text, r.oracle_text);
+        // Neither: the shared type line only.
+        let mut none = l.clone();
+        none.name = String::new();
+        none.mana_cost = ManaCost::default();
+        none.abilities.clear();
+        none.keywords = KeywordSet::NONE;
+        none.oracle_text = String::new();
+        let keep = self.by_name.clone();
+        let both = self.add(both);
+        let none = self.add(none);
+        self.by_name = keep;
+        // The halves' abilities themselves, so a door's triggers are the
+        // ones its half registered.
+        let ids: AbilitySet = l
+            .ability_ids
+            .iter()
+            .chain(r.ability_ids.iter())
+            .copied()
+            .collect();
+        let b = &mut self.defs[both.0 as usize];
+        b.ability_ids = ids;
+        if let Some(p) = &mut b.printed {
+            p.abilities = ids;
+        }
+        let doors = RoomDoors {
+            root,
+            left,
+            right,
+            both,
+            none,
+        };
+        for x in [root, left, right, both, none] {
+            let d = &mut self.defs[x.0 as usize];
+            d.doors = Some(Box::new(doors));
+            if x != root {
+                d.flags.set(DefFlags::ROOM, true);
+            }
+        }
+    }
+
     /// Intern a subtype name.
     pub fn subtype(&mut self, name: &str) -> Subtype {
         if let Some(id) = self.subtype_ids.get(name) {
@@ -6487,6 +6626,7 @@ impl Builder {
             loyalty: 0,
             defense: 0,
             rooms: Vec::new(),
+            doors: None,
             marks: Marks::NONE,
             copy_except: None,
             subtype_ids: SubtypeSet::new(),

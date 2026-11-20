@@ -1,0 +1,14 @@
+card "Meat Locker // Drowned Diner" {
+  oracle_id 897eef47-3e99-4a5f-8a3e-ddb06bc95e9a
+  layout split
+  face "Meat Locker" {
+    cost {2}{U}
+    type Enchantment — Room
+    triggered when you unlock this door: tap up to 1 target creature and put 2 stun counters on it
+  }
+  face "Drowned Diner" {
+    cost {3}{U}{U}
+    type Enchantment — Room
+    triggered when you unlock this door: draw 3 cards then discard 1 card
+  }
+}

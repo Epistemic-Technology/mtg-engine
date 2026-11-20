@@ -1358,6 +1358,9 @@ pub struct GameState {
     /// Face-down permanents on the battlefield, so listing options skips
     /// the turn-face-up check without any.
     pub face_down_count: u32,
+    /// Room permanents on the battlefield (CR 709.5): priority looks for
+    /// locked doors to unlock only when there are any.
+    pub room_count: u32,
     /// A cast just undone (CR 726) and the state version then: it is not
     /// offered again until something changes, so an agent can't loop on it.
     pub undone_cast: Option<(ObjId, u64)>,
@@ -1465,6 +1468,22 @@ impl GameState {
         } else {
             o.controller
         })
+    }
+
+    /// Unlocked doors among Rooms `p` controls (CR 709.5j).
+    pub fn unlocked_doors(&self, p: PlayerId) -> u32 {
+        if self.room_count == 0 {
+            return 0;
+        }
+        self.battlefield
+            .iter()
+            .filter_map(|id| {
+                let o = &self.objects[*id];
+                (o.controller == p).then_some(())?;
+                let doors = self.pool.get(o.def).doors.as_deref()?;
+                Some(doors.unlocked(o.def).iter().filter(|u| **u).count() as u32)
+            })
+            .sum()
     }
 
     pub fn obj(&self, id: ObjId) -> Option<&GameObject> {
@@ -2182,6 +2201,7 @@ impl GameState {
         };
         match cond {
             C::CardsInGraveyard(n) => self.player(you).graveyard.len() >= *n as usize,
+            C::UnlockedDoors(n) => self.unlocked_doors(you) >= *n,
             C::CardTypesInGraveyard(n) => {
                 let mut types = crate::card::TypeSet::default();
                 for g in &self.player(you).graveyard {

@@ -6031,6 +6031,8 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 trigger_subject(o, ctx)
             )
         }
+        Trigger::UnlocksDoor => "when you unlock this door".to_string(),
+        Trigger::FullyUnlocks => "whenever you fully unlock a Room".to_string(),
         Trigger::AttacksBattle(TriggerObj::This) => {
             format!("whenever {} attacks a battle", this(ctx))
         }
@@ -7646,6 +7648,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         },
         StaticCond::Attacking => "it's attacking".to_string(),
         StaticCond::AttackedBattleThisTurn => "it attacked a battle this turn".to_string(),
+        StaticCond::UnlockedDoors(n) => format!(
+            "there are {} or more unlocked doors among Rooms you control",
+            count_words(Num::N(*n), "one")
+        ),
         StaticCond::Enchanted => "it's enchanted".to_string(),
         StaticCond::Equipped => "it's equipped".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("an opponent has {n} or less life"),

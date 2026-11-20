@@ -227,6 +227,12 @@ pub enum Choice {
     /// Turn a face-down permanent face up for its morph (or disguise, or
     /// manifested creature card's mana) cost: a special action (CR 116.2b).
     TurnFaceUp(ObjId),
+    /// Unlock a locked door of a Room permanent by paying its half's mana
+    /// cost (CR 709.5e), a special action; `door` 0 is the left half.
+    Unlock {
+        obj: ObjId,
+        door: u8,
+    },
     /// A spell's division of damage or counters (CR 601.2d): the amount
     /// for each target of its variable group, in the order chosen; each at
     /// least 1.
@@ -338,6 +344,14 @@ impl Choice {
                     .get(*id)
                     .map_or("?", |o| state.pool.get(o.card).name.as_str());
                 format!("turn {card} face up")
+            }
+            Choice::Unlock { obj, door } => {
+                let half = state
+                    .objects
+                    .get(*obj)
+                    .and_then(|o| state.pool.get(o.def).doors.as_deref())
+                    .map_or("?", |d| state.pool.get(d.half(*door)).name.as_str());
+                format!("unlock {half}")
             }
             Choice::Color(c) => format!("{c:?}").to_lowercase(),
             Choice::Subtype(s) => state.pool.subtype_name(*s).to_string(),

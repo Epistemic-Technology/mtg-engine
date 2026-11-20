@@ -2360,6 +2360,14 @@ impl P {
         if self.eat_words(&["attacked", "this", "turn"]) {
             return Ok(StaticCond::AttackedThisTurn);
         }
+        if matches!(self.peek(), Some(Tok::Num(_)))
+            && self.word_at(1).as_deref() == Some("unlocked")
+            && self.word_at(2).as_deref() == Some("doors")
+        {
+            let n = self.number()?;
+            self.pos += 2;
+            return Ok(StaticCond::UnlockedDoors(n));
+        }
         if self.eat_words(&["attacked", "a", "battle", "this", "turn"]) {
             return Ok(StaticCond::AttackedBattleThisTurn);
         }
@@ -7670,6 +7678,12 @@ impl P {
         if self.at_words(&["you", "gain", "life"]) {
             self.pos += 3;
             return Ok(Trigger::GainsLife { whose: Who::You });
+        }
+        if self.eat_words(&["you", "unlock", "this", "door"]) {
+            return Ok(Trigger::UnlocksDoor);
+        }
+        if self.eat_words(&["you", "fully", "unlock", "a", "Room"]) {
+            return Ok(Trigger::FullyUnlocks);
         }
         if self.at_words(&["you", "win", "a", "coin", "flip"]) {
             self.pos += 5;

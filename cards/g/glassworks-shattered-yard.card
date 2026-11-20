@@ -1,0 +1,14 @@
+card "Glassworks // Shattered Yard" {
+  oracle_id 4122720b-cad9-4ebb-b458-be71411c21e3
+  layout split
+  face "Glassworks" {
+    cost {2}{R}
+    type Enchantment — Room
+    triggered when you unlock this door: this deals 4 damage to target creature an opponent controls
+  }
+  face "Shattered Yard" {
+    cost {4}{R}
+    type Enchantment — Room
+    triggered at beginning of your end step: this deals 1 damage to each opponent
+  }
+}

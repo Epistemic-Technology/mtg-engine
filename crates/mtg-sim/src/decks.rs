@@ -69,9 +69,11 @@ pub fn random_deck(pool: &CardPool, seed: u64) -> Vec<CardRef> {
     let castable: Vec<CardRef> = pool
         .iter()
         .filter(|(r, _)| !faces.contains(r))
-        .filter(|(_, d)| {
+        .filter(|(r, d)| {
             let basic = d.is_land() && d.supertypes.contains(mtg_core::card::Supertype::Basic);
-            !(d.token || d.emblem || !d.rooms.is_empty() || basic)
+            // A Room's locked and unlocked states are the card's too.
+            let room_state = d.doors.as_ref().is_some_and(|x| x.root != *r);
+            !(d.token || d.emblem || !d.rooms.is_empty() || basic || room_state)
                 && d.mana_cost.colors().iter().all(|c| colors.contains(&c))
         })
         .map(|(r, _)| r)
