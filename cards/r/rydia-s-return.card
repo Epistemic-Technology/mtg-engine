@@ -1,0 +1,9 @@
+card "Rydia's Return" {
+  oracle_id 0d007479-c5e8-4aa1-b53e-fa962783deee
+  cost {3}{G}{G}
+  type Sorcery
+  choose one {
+    mode: each creature you control gets +3/+3
+    mode: return up to two target permanent card from your graveyard to hand
+  }
+}

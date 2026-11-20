@@ -1,0 +1,8 @@
+card "Gruul Beastmaster" {
+  oracle_id 924771b2-8566-4bdf-b089-85c3257b9900
+  cost {3}{G}
+  type Creature — Human Shaman
+  pt 2/2
+  riot
+  triggered whenever this attacks: another target creature you control gets +1/+0 count where power
+}

@@ -1,0 +1,13 @@
+card "Invasion of Shandalar // Leyline Surge" {
+  oracle_id b5fe62f0-d914-4789-afd3-3831dcdbed7b
+  layout transform
+  cost {3}{G}{G}
+  type Battle — Siege
+  defense 4
+  triggered when this enters: return up to three target permanent card from your graveyard to hand
+  face "Leyline Surge" {
+    type Enchantment
+    color green
+    triggered at beginning of your upkeep: you may put permanent card from hand onto battlefield
+  }
+}

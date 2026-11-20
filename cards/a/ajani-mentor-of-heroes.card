@@ -1,0 +1,9 @@
+card "Ajani, Mentor of Heroes" {
+  oracle_id a612bd38-069f-4bdc-9aa6-c172435e3841
+  cost {3}{G}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 4
+  loyalty +1: distribute 3 +1/+1 counters among 1 to 3 target creatures you control
+  loyalty +1: dig 4 take Aura, creature, or planeswalker card may revealing rest bottom
+  loyalty -8: you gains 100 life
+}

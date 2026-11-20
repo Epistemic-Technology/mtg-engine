@@ -1,0 +1,6 @@
+card "Vivid Revival" {
+  oracle_id b5d856a3-0305-4c3b-b447-99570d6e8195
+  cost {4}{G}
+  type Sorcery
+  spell: return up to three target multicolored card from your graveyard to hand; exile this
+}

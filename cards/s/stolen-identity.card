@@ -1,0 +1,7 @@
+card "Stolen Identity" {
+  oracle_id 30b533a3-afc3-4500-a8f0-54e84301988f
+  cost {4}{U}{U}
+  type Sorcery
+  keywords cipher
+  spell: create token copy of target artifact or creature
+}

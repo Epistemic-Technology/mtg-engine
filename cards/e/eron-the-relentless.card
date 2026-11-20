@@ -1,0 +1,9 @@
+card "Eron the Relentless" {
+  oracle_id cabcc2b7-0cdb-4ec2-b6a3-47644335abff
+  cost {3}{R}{R}
+  type Legendary Creature — Human Rogue
+  pt 5/2
+  short_name "Eron"
+  keywords haste
+  activated {R}{R}{R}: regenerate this
+}

@@ -1,0 +1,9 @@
+card "Tivadar of Thorn" {
+  oracle_id c2c09308-988b-4d71-83c8-e2a2dc19a0d9
+  cost {1}{W}{W}
+  type Legendary Creature — Human Knight
+  pt 2/2
+  short_name "Tivadar"
+  keywords first strike, protection from red
+  triggered when this enters: destroy target Goblin
+}

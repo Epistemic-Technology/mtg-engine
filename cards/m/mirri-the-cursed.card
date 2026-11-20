@@ -1,0 +1,9 @@
+card "Mirri the Cursed" {
+  oracle_id 19d6a20b-4641-4c79-ae70-ed1ad5085472
+  cost {2}{B}{B}
+  type Legendary Creature — Vampire Cat
+  pt 3/2
+  short_name "Mirri"
+  keywords flying, first strike, haste
+  triggered whenever this deals combat damage to creature: put 1 +1/+1 counters on this creature
+}

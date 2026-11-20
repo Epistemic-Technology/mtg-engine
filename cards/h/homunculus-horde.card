@@ -1,0 +1,7 @@
+card "Homunculus Horde" {
+  oracle_id b3c69bf4-880f-4198-a67c-87d23d9c3d41
+  cost {3}{U}
+  type Creature — Homunculus
+  pt 2/2
+  triggered whenever you draw your second card each turn: create token copy of this creature
+}

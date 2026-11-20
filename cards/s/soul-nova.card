@@ -1,0 +1,6 @@
+card "Soul Nova" {
+  oracle_id 30dc2a1a-c17e-4e95-9dd8-d0e9be1dcd77
+  cost {3}{W}{W}
+  type Instant
+  spell: exile target attacking creature and all Equipment attached to it
+}

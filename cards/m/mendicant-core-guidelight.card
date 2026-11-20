@@ -1,0 +1,9 @@
+card "Mendicant Core, Guidelight" {
+  oracle_id b20d74a4-0e08-4779-972a-499f1a2be15a
+  cost {W}{U}
+  type Legendary Artifact Creature — Robot
+  pt */3
+  static this: cda power count artifact you control
+  start your engines
+  label "Max speed" triggered whenever you cast artifact spell: you may pay {1}; if you do, copy it
+}

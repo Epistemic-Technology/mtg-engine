@@ -1,0 +1,9 @@
+card "Crossbones, Malicious Mercenary" {
+  oracle_id ac950d10-e373-42d3-907b-ee56e45a2084
+  cost {3}{B}
+  type Legendary Creature — Human Mercenary Villain
+  pt 3/3
+  pronoun he
+  keywords deathtouch
+  triggered once each turn whenever other Villain you control enters: put 1 +1/+1 counters on this; deal 2 damage to each opponent
+}

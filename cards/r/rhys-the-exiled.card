@@ -1,0 +1,9 @@
+card "Rhys the Exiled" {
+  oracle_id 7613c50b-4568-4340-b64a-ab427aaffd51
+  cost {2}{G}
+  type Legendary Creature — Elf Warrior
+  pt 3/2
+  short_name "Rhys"
+  triggered whenever this attacks: you gain count each Elf you control life
+  activated {B}, sacrifice Elf: regenerate this
+}

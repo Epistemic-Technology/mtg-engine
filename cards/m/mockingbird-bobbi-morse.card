@@ -1,0 +1,8 @@
+card "Mockingbird, Bobbi Morse" {
+  oracle_id d34affa9-3629-49e1-b1e4-4742aff6eafc
+  cost {3}{W}
+  type Legendary Creature — Human Hero
+  pt 3/3
+  pronoun she
+  triggered whenever this is dealt damage: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Auriok Bladewarden" {
+  oracle_id 2884e332-707c-4a97-adc1-e1317a513ff4
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {T}: target creature gets +1/+1 count where power
+}

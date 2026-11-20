@@ -1,0 +1,8 @@
+card "Rabble-Rouser" {
+  oracle_id 1d591c00-7086-4337-bdb8-a5f35568f04e
+  cost {3}{R}
+  type Creature — Goblin Shaman
+  pt 1/1
+  bloodthirst 1
+  activated {R}, {T}: each attacking creature gets +1/+0 count where power
+}

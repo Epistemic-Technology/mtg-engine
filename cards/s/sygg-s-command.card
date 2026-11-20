@@ -1,0 +1,11 @@
+card "Sygg's Command" {
+  oracle_id 7fe5baab-b182-4cd9-bea5-912ce9b1464a
+  cost {1}{W}{U}
+  type Kindred Sorcery — Merfolk
+  choose two {
+    mode: create token copy of target Merfolk you control
+    mode: each creature target player controls gains lifelink
+    mode: target player draws 1 cards
+    mode: tap target creature; put 1 stun counters on target 1
+  }
+}

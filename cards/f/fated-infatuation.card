@@ -1,0 +1,6 @@
+card "Fated Infatuation" {
+  oracle_id ae771e78-1d29-4b8c-8511-9da196a78dcf
+  cost {U}{U}{U}
+  type Instant
+  spell: create token copy of target creature you control; if your turn, scry 2
+}

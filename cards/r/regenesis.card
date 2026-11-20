@@ -1,0 +1,6 @@
+card "Regenesis" {
+  oracle_id 14bc2a2e-a445-4785-9c88-b9ad169c39bc
+  cost {3}{G}{G}
+  type Instant
+  spell: return up to two target permanent card from your graveyard to hand
+}

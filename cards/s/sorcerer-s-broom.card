@@ -1,0 +1,7 @@
+card "Sorcerer's Broom" {
+  oracle_id e73efb04-30ac-4484-b11b-e98f0353b9b6
+  cost {2}
+  type Artifact Creature — Spirit
+  pt 2/1
+  triggered whenever you sacrifice other permanent: you may pay {3}; if you do, create token copy of this creature
+}

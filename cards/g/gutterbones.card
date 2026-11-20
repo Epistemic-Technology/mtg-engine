@@ -1,0 +1,8 @@
+card "Gutterbones" {
+  oracle_id 76ae3779-c821-4cd3-8d0f-8c42d1206ce4
+  cost {B}
+  type Creature — Skeleton Warrior
+  pt 2/1
+  enters tapped
+  activated {1}{B}, during your turn, if opponent lost life this turn, from graveyard: return this to hand
+}

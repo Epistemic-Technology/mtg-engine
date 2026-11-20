@@ -1,0 +1,9 @@
+card "Esika's Chariot" {
+  oracle_id 8e7b079d-9ede-421c-bd2b-f9a5126a8e6f
+  cost {3}{G}
+  type Legendary Artifact — Vehicle
+  pt 4/4
+  triggered when this enters: create 2 "2/2 green Cat creature"
+  triggered whenever this attacks: create token copy of target token you control
+  crew 4
+}

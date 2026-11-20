@@ -1,0 +1,7 @@
+card "Pack Rat" {
+  oracle_id 5632c2df-71e6-41b7-b8f5-c683812cc0e2
+  cost {1}{B}
+  type Creature — Rat
+  static this: cda pt count Rat you control
+  activated {2}{B}, discard 1 card: create token copy of this creature
+}
