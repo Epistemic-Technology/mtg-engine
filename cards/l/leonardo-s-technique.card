@@ -1,0 +1,7 @@
+card "Leonardo's Technique" {
+  oracle_id e98c2af9-1393-487d-b8e9-f49a67bb7296
+  cost {3}{W}
+  type Sorcery
+  sneak {1}{W}
+  spell: return 1 to 2 target creature card each with mana value 3 or less from your graveyard to battlefield
+}

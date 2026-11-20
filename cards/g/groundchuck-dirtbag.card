@@ -1,0 +1,8 @@
+card "Groundchuck & Dirtbag" {
+  oracle_id da344e46-6bdf-4032-8590-bac850d5713d
+  cost {4}{G}{G}
+  type Legendary Creature — Ox Mole Mutant
+  pt 8/8
+  keywords trample
+  triggered whenever land you control is tapped for mana: add {G}
+}

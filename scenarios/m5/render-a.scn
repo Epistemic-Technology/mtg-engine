@@ -347,6 +347,45 @@ scenario "Ancestor Dragon: no attack, no life" {
   assert life A 20
 }
 
+scenario "Groundchuck & Dirtbag: each land you tap adds an extra {G}" {
+  battlefield A: "Groundchuck & Dirtbag", 2 "Forest"
+  hand A: "Centaur Courser"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Centaur Courser"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Centaur Courser"
+}
+
+scenario "Groundchuck & Dirtbag: one land is not enough for three mana" {
+  battlefield A: "Groundchuck & Dirtbag", "Forest"
+  hand A: "Centaur Courser"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Centaur Courser"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Centaur Courser"
+}
+
+scenario "Leonardo's Technique returns two small creature cards" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Grizzly Bears", "Centaur Courser"
+  hand A: "Leonardo's Technique"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Leonardo's Technique" targeting "Grizzly Bears", "Centaur Courser"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Centaur Courser"
+}
+
+scenario "Leonardo's Technique can't return a creature card with mana value 4" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Grizzly Bears", "Serra Angel"
+  hand A: "Leonardo's Technique"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Leonardo's Technique" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+}
+
 scenario "Brambleguard Captain gives its power to a creature you control" {
   battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
   start turn 1 A precombat_main

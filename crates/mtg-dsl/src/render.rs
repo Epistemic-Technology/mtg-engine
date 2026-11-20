@@ -1524,14 +1524,21 @@ impl<'a> Ctx<'a> {
                 };
                 let mut filter = filter.clone();
                 filter.that_player = None;
+                let each = std::mem::take(&mut filter.each);
                 let filter = &filter;
                 if *filter == Filter::default() {
                     format!("cards from {whose}")
                 } else {
-                    format!(
-                        "{} cards from {whose}",
-                        filter_phrase(filter, self.card, false)
-                    )
+                    let p = filter_phrase(filter, self.card, false);
+                    // "creature cards with mana value 2 or less", "...
+                    // cards each with mana value 3 or less".
+                    match p.split_once(" with ") {
+                        Some((kind, quality)) => format!(
+                            "{kind} cards {}with {quality} from {whose}",
+                            if each { "each " } else { "" }
+                        ),
+                        None => format!("{p} cards from {whose}"),
+                    }
                 }
             }
         }
@@ -7306,6 +7313,17 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             trigger_filter_a(f, ctx.card),
             this_ref(ctx.card)
         ),
+        // "Whenever you tap a land for mana" (a permanent you control).
+        Trigger::TappedForMana(TriggerObj::Filter(f))
+            if f.who == Some(Who::You) && f.relation == Relation::Any =>
+        {
+            let mut g = f.clone();
+            g.who = None;
+            format!(
+                "whenever you tap {} for mana",
+                trigger_filter_a(&g, ctx.card)
+            )
+        }
         Trigger::TappedForMana(o) => {
             format!("whenever {} is tapped for mana", trigger_subject(o, ctx))
         }
@@ -9812,6 +9830,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             // controller (CR 605.1b): "its controller adds an additional
             // {G}".
             match (trigger, text.strip_prefix("add ")) {
+                // "Whenever you tap a land for mana, add {G}." (you are its
+                // controller).
+                (Trigger::TappedForMana(TriggerObj::Filter(f)), Some(_))
+                    if f.who == Some(Who::You) && f.relation == Relation::Any =>
+                {
+                    out.push_str(&text);
+                }
                 (Trigger::TappedForMana(_), Some(rest)) => {
                     out.push_str("its controller adds an additional ");
                     out.push_str(rest);

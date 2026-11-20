@@ -2496,7 +2496,9 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         };
         g.status.mana_value_x = false;
         g.status.spent_colors = false;
-        mv = format!(" with mana value {n}{}", cmp_suffix(cmp));
+        let each = if g.each { " each" } else { "" };
+        g.each = false;
+        mv = format!("{each} with mana value {n}{}", cmp_suffix(cmp));
     }
     if g == Filter::default() {
         format!("target card{named}{mv} from {whose}")

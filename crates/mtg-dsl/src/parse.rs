@@ -8216,7 +8216,7 @@ impl P {
                     || (matches!(next.as_deref(), Some("spell" | "spells"))
                         && !ws.ends_with(&["spell"]))
                     || (matches!(next.as_deref(), Some("card" | "cards"))
-                        && matches!(after.as_deref(), Some("from" | "with")))
+                        && matches!(after.as_deref(), Some("from" | "with" | "each")))
                     // "target permanent not named ~".
                     || (matches!(next.as_deref(), Some("named" | "not"))
                         && matches!(after.as_deref(), Some("named" | "this")));
@@ -8265,10 +8265,22 @@ impl P {
         }
         // "creature card with mana value X or less from your graveyard":
         // the mana value after the noun.
-        let mv_after =
-            !named && f.mana_value.is_none() && self.at_words(&["card", "with", "mana", "value"]);
+        // `card each with mana value 3 or less`: "one or two target
+        // creature cards each with mana value 3 or less".
+        let each = !named
+            && f.mana_value.is_none()
+            && self.at_words(&["card", "each", "with", "mana", "value"]);
+        if each {
+            self.pos += 2;
+            f.each = true;
+        }
+        let mv_after = !named
+            && f.mana_value.is_none()
+            && (each || self.at_words(&["card", "with", "mana", "value"]));
         if mv_after {
-            self.pos += 1;
+            if !each {
+                self.pos += 1;
+            }
             let g = self.filter()?;
             f.mana_value = g.mana_value;
             f.status.mana_value_x = g.status.mana_value_x;
