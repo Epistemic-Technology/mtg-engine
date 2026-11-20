@@ -1,0 +1,9 @@
+card "Larval Scoutlander" {
+  oracle_id b3f3d55c-a3f6-441b-a380-60c0734dc514
+  cost {2}{G}
+  type Artifact — Spacecraft
+  pt 3/3
+  triggered when this enters: you may sacrifice 1 land or Lander chosen; if you do, search up to 2 basic land card to battlefield tapped
+  station
+  station 7: flying
+}

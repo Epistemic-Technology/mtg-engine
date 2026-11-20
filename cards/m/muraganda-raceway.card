@@ -1,0 +1,7 @@
+card "Muraganda Raceway" {
+  oracle_id b5fa5651-d714-44d6-867b-be0e3224b7ed
+  type Land
+  start your engines
+  mana {C}
+  label "Max speed" activated {T}: add {C}{C}
+}

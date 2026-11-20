@@ -1,0 +1,8 @@
+card "Swarm, Being of Bees" {
+  oracle_id 10c8cf3b-2530-49e7-b38e-95cdaae8a6e7
+  cost {2}{B}
+  type Legendary Creature — Insect Villain
+  pt 2/2
+  keywords flash, flying
+  mayhem {B}
+}

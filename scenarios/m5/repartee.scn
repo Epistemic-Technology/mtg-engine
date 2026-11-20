@@ -1,0 +1,51 @@
+# Repartee (an ability word): "Whenever you cast an instant or sorcery
+# spell that targets a creature, ..." (the spell's targets as it is cast).
+
+scenario "Repartee: an instant targeting a creature triggers it" {
+  battlefield A: "Lecturing Scornmage", "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Lecturing Scornmage" +1/+1 1
+}
+
+scenario "Repartee: an instant targeting a player doesn't" {
+  battlefield A: "Lecturing Scornmage", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Lecturing Scornmage" +1/+1 0
+}
+
+scenario "Repartee: a creature spell doesn't" {
+  battlefield A: "Lecturing Scornmage", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Lecturing Scornmage" +1/+1 0
+}
+
+scenario "Repartee: an opponent's creature counts too" {
+  battlefield A: "Melancholic Poet", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert life B 19
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Repartee: the trigger resolves even if the spell is gone" {
+  battlefield A: "Informed Inkwright", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Inkling"
+}

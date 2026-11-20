@@ -1,0 +1,7 @@
+card "Piercing Exhale" {
+  oracle_id ea96fe35-88ed-432b-a495-08e787d23d0b
+  cost {1}{G}
+  type Instant
+  additional cost may behold Dragon
+  spell: target creature you control bites target creature or planeswalker; if beheld, surveil 2
+}

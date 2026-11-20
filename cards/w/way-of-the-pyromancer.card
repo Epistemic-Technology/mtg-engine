@@ -1,0 +1,7 @@
+card "Way of the Pyromancer" {
+  oracle_id 68d3f547-674a-4d8a-b02f-01bc2f161916
+  cost {1}{R}
+  type Legendary Enchantment
+  triggered when this enters: empower jace 2
+  static planeswalker you control: has ability { loyalty +1: add {R} }
+}

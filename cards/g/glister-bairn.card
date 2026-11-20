@@ -1,0 +1,7 @@
+card "Glister Bairn" {
+  oracle_id 6a7229a8-1634-4278-ab50-0ec2b51edac1
+  cost {2}{G/U}{G/U}{G/U}
+  type Creature — Ouphe
+  pt 1/4
+  label "Vivid" triggered at beginning of your combat: another target creature you control gets +1/+1 count where colors among permanents
+}

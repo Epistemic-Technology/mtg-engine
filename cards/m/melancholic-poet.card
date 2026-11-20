@@ -1,0 +1,7 @@
+card "Melancholic Poet" {
+  oracle_id 37731c49-1238-4e0e-8993-204e36c1f4ee
+  cost {1}{B}
+  type Creature — Elf Bard
+  pt 2/2
+  label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: each opponent loses 1 life and you gain 1 life
+}

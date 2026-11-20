@@ -1,0 +1,9 @@
+card "Sledge-Class Seedship" {
+  oracle_id bcd086ce-de5c-4b34-92a1-ece22055e479
+  cost {2}{G}
+  type Artifact — Spacecraft
+  pt 4/5
+  station
+  station 7: flying
+  triggered whenever this attacks: you may put creature card from hand onto battlefield
+}

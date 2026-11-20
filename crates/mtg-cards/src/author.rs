@@ -64,7 +64,13 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 116] = [
+const TEMPLATED_TAGS: [&str; 122] = [
+    "Mayhem",
+    "Mobilize",
+    "Behold",
+    "Empower Jace",
+    "Station",
+    "Start your engines!",
     "Transform",
     "To solve",
     "Solved",
@@ -186,7 +192,11 @@ const TEMPLATED_TAGS: [&str; 116] = [
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
 /// "Landfall — <ability>". Scryfall tags them like keywords.
-const ABILITY_WORDS: [&str; 41] = [
+const ABILITY_WORDS: [&str; 44] = [
+    "Repartee",
+    "Vivid",
+    // CR 702.179e: a condition, not a bare label; the DSL compiles it.
+    "Max speed",
     "Landfall",
     "Threshold",
     "Metalcraft",
@@ -525,6 +535,10 @@ fn count_expr(s: &str) -> Option<String> {
             return Some("domain".to_string());
         }
         "cards in your hand" | "card in your hand" => return Some("hand".to_string()),
+        // Vivid.
+        "colors among permanents you control" | "color among permanents you control" => {
+            return Some("colors among permanents".to_string());
+        }
         "cards in your graveyard" | "card in your graveyard" => {
             return Some("graveyard".to_string());
         }
@@ -1263,6 +1277,15 @@ impl Templates {
                     ))
                 },
             ),
+            // CR 607.2a: what this permanent's behold cost exiled.
+            (
+                r(r"^[Rr]eturn the exiled card to its owner's hand$"),
+                |_, _| Some("return exiled card to hand".to_string()),
+            ),
+            // "Empower Jace 2." (its reminder text already gone).
+            (r(r"^[Ee]mpower Jace (\w+)$"), |c, _| {
+                Some(format!("empower jace {}", number(cap(c, 1))?))
+            }),
             (r(r"^Amass (\w+) (\w+)$"), |c, _| {
                 Some(format!("amass {} {}", cap(c, 1), number(cap(c, 2))?))
             }),
@@ -1815,6 +1838,7 @@ fn trigger_text(head: &str) -> Option<String> {
     // noun.
     let head = head
         .replace("this Vehicle", "this creature")
+        .replace("this Spacecraft", "this creature")
         .replace("this Equipment", "this artifact");
     let head = head.as_str();
     // CR 716.2c: "When this Class becomes level 2".
@@ -1865,6 +1889,10 @@ fn trigger_text(head: &str) -> Option<String> {
         }
         "Whenever you cast a spell" => "whenever you cast a spell",
         "Whenever a player casts a spell" => "whenever a player casts a spell",
+        // Repartee (the ability word is a label the caller keeps).
+        "Whenever you cast an instant or sorcery spell that targets a creature" => {
+            "whenever you cast instant or sorcery spell that targets creature"
+        }
         // Heroic (the ability word is a label the caller keeps).
         "Whenever you cast a spell that targets this creature" => {
             "whenever you cast a spell that targets this"
@@ -1897,6 +1925,7 @@ fn trigger_text(head: &str) -> Option<String> {
         }
         "Whenever this creature enters or dies" => "whenever this enters or dies",
         "Whenever this creature enters or attacks" => "whenever this enters or attacks",
+        "When this creature leaves the battlefield" => "when this leaves the battlefield",
         "When this creature enters or leaves the battlefield"
         | "When this artifact enters or leaves the battlefield" => {
             "when this enters or leaves the battlefield"
@@ -2323,6 +2352,46 @@ impl Builder<'_> {
             self.statements.push(format!("label \"{label}\" {st}"));
             return Ok(());
         }
+        // CR 702.184a, 721.2: "Station", then its levels: "9+ | Flying,
+        // first strike" or "2+ | <one ability>".
+        // CR 702.181a: "Mobilize 2", "Mobilize X, where X is the number
+        // of creature cards in your graveyard."
+        if let Some(c) = Regex::new(r"^Mobilize (\d+)$").unwrap().captures(line) {
+            self.statements.push(format!("mobilize {}", cap(&c, 1)));
+            return Ok(());
+        }
+        if let Some(rest) = line
+            .strip_prefix("Mobilize X, where X is the number of ")
+            .and_then(|r| r.strip_suffix('.'))
+        {
+            let n = count_expr(rest).ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            self.statements.push(format!("mobilize count where {n}"));
+            return Ok(());
+        }
+        if line == "Station" {
+            self.statements.push("station".to_string());
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^(\d+)\+ \| (.+)$").unwrap().captures(line) {
+            let (n, rest) = (cap(&c, 1), cap(&c, 2));
+            if let Some(k) = keyword_list(rest) {
+                self.statements.push(format!("station {n}: {k}"));
+                return Ok(());
+            }
+            let before = self.statements.len();
+            self.line(rest)?;
+            if self.statements.len() != before + 1 {
+                return Err(Skip::Sentence(line.to_string()));
+            }
+            let st = self.statements.pop().unwrap_or_default();
+            self.statements.push(format!("station {n}: {st}"));
+            return Ok(());
+        }
+        // CR 702.179a.
+        if line == "Start your engines!" {
+            self.statements.push("start your engines".to_string());
+            return Ok(());
+        }
         if let Some(st) = conditional_static(line) {
             self.statements.push(st);
             return Ok(());
@@ -2543,6 +2612,23 @@ impl Builder<'_> {
         }
         if let Some(rest) = line.strip_prefix("As an additional cost to cast this spell, ") {
             let rest = rest.trim_end_matches('.');
+            // CR 701.69a: "behold a Kithkin or pay {2}", "behold an Elf
+            // and exile it", "you may behold a Dragon".
+            if let Some(c) = Regex::new(
+                r"^(you may )?behold (?:a|an) ([A-Z][a-z]+)( and exile it)?(?: or pay ((?:\{[0-9WUBRGC]+\})+))?$",
+            )
+            .unwrap()
+            .captures(rest)
+            {
+                let may = if cap(&c, 1).is_empty() { "" } else { "may " };
+                let exile = if cap(&c, 3).is_empty() { "" } else { "and exile " };
+                let mut cost = format!("{may}behold {exile}{}", cap(&c, 2));
+                if !cap(&c, 4).is_empty() {
+                    let _ = write!(cost, "\n  additional cost or {}", cap(&c, 4));
+                }
+                self.additional = Some(cost);
+                return Ok(());
+            }
             let cost = match rest {
                 "sacrifice a creature" => "sacrifice creature".to_string(),
                 "discard a card" => "discard 1 card".to_string(),
@@ -2712,7 +2798,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {

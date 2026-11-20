@@ -1,0 +1,9 @@
+card "Embalmed Ascendant" {
+  oracle_id 2f4d7988-3f5b-45d7-9838-02897d7180be
+  cost {1}{W}{B}
+  type Creature — Zombie
+  pt 1/2
+  start your engines
+  triggered when this enters: create 1 "2/2 black Zombie creature"
+  label "Max speed" triggered whenever creature you control dies: each opponent loses 1 life and you gain 1 life
+}

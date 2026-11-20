@@ -1,0 +1,9 @@
+card "Lumen-Class Frigate" {
+  oracle_id 3aa0cda4-fb2d-4fd4-84f6-482089a85547
+  cost {1}{W}
+  type Artifact — Spacecraft
+  pt 3/5
+  station
+  station 2: static other creature you control: +1/+1
+  station 12: flying, lifelink
+}

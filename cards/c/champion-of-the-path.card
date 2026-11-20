@@ -1,0 +1,9 @@
+card "Champion of the Path" {
+  oracle_id b326ccd5-8ad2-441c-9d73-82ee6390dd36
+  cost {3}{R}
+  type Creature — Elemental Sorcerer
+  pt 7/3
+  additional cost behold and exile Elemental
+  triggered whenever other Elemental you control enters: it bites each opponent
+  triggered when this leaves the battlefield: return exiled card to hand
+}

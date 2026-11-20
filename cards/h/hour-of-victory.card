@@ -1,0 +1,8 @@
+card "Hour of Victory" {
+  oracle_id eb100b3b-bc3f-48f3-8f28-bb2d80225ea9
+  cost {2}{B}
+  type Enchantment
+  start your engines
+  triggered when this enters: create 1 "2/2 black Zombie creature"
+  label "Max speed" activated {1}{B}, sacrifice this, sorcery: search card to hand
+}

@@ -1,0 +1,73 @@
+# Mayhem {cost}: "You may cast this card from your graveyard for {cost}
+# if you discarded it this turn. Timing rules still apply."
+
+scenario "Mayhem: cast a card discarded this turn from the graveyard" {
+  battlefield A: 4 "Mountain"
+  hand A: "Tormenting Voice", "Electro's Bolt"
+  battlefield B: "Hill Giant"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tormenting Voice" discarding "Electro's Bolt"
+  turn 1 postcombat_main A: cast "Electro's Bolt" from graveyard targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Electro's Bolt"
+}
+
+scenario "Mayhem: not on a later turn" {
+  battlefield A: 4 "Mountain"
+  hand A: "Tormenting Voice", "Electro's Bolt"
+  battlefield B: "Hill Giant"
+  library A: "Forest", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tormenting Voice" discarding "Electro's Bolt"
+  illegal turn 3 A: cast "Electro's Bolt" from graveyard targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Mayhem: a card put into the graveyard another way can't be cast" {
+  battlefield A: 4 "Mountain"
+  graveyard A: "Electro's Bolt"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Electro's Bolt" from graveyard targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Mayhem: timing rules still apply" {
+  battlefield A: 3 "Mountain"
+  hand A: "Raging Goblinoids"
+  battlefield B: 3 "Swamp"
+  hand B: "Mind Rot"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Mind Rot" targeting player A
+  illegal turn 2 postcombat_main A: cast "Raging Goblinoids" from graveyard
+  run_to turn 2 end
+  assert graveyard A contains "Raging Goblinoids"
+}
+
+scenario "Mayhem: discarded on an opponent's turn, not castable on your next turn" {
+  battlefield A: 3 "Mountain"
+  hand A: "Raging Goblinoids"
+  battlefield B: 3 "Swamp"
+  hand B: "Mind Rot"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Mind Rot" targeting player A
+  illegal turn 3 A: cast "Raging Goblinoids" from graveyard
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Raging Goblinoids"
+}
+
+scenario "Mayhem: a flash creature in response, on another player's turn" {
+  battlefield A: "Swamp"
+  hand A: "Swarm, Being of Bees"
+  battlefield B: 3 "Swamp"
+  hand B: "Mind Rot"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Mind Rot" targeting player A
+  turn 2 postcombat_main A: cast "Swarm, Being of Bees" from graveyard
+  run_to turn 2 end
+  assert battlefield A contains "Swarm, Being of Bees"
+}

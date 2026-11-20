@@ -1,0 +1,9 @@
+card "Fell Gravship" {
+  oracle_id 1a82be68-3b74-4dfc-9068-3abea61db709
+  cost {2}{B}
+  type Artifact — Spacecraft
+  pt 3/2
+  triggered when this enters: mill 3 cards then return 1 creature or Spacecraft card from your graveyard to hand chosen
+  station
+  station 8: flying, lifelink
+}

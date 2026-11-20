@@ -1,0 +1,6 @@
+card "Graduation Day" {
+  oracle_id 40e0665d-57b8-4c19-9fb8-b3155d7bbb94
+  cost {W}
+  type Enchantment
+  label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: put 1 +1/+1 counter on target creature you control
+}

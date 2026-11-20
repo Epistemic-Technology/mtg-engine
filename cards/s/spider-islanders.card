@@ -1,0 +1,7 @@
+card "Spider-Islanders" {
+  oracle_id 2d1a15dc-3123-4425-b036-a3b5a83fcdf8
+  cost {3}{R}
+  type Creature — Spider Horror Citizen
+  pt 4/3
+  mayhem {1}{R}
+}

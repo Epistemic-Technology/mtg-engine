@@ -2096,6 +2096,9 @@ pub enum StaticCondition {
     OffspringPaid,
     /// "If this spell was cast using teamwork": its teamwork cost was paid.
     Teamwork,
+    /// "If a Dragon was beheld": the spell's behold cost was paid (CR
+    /// 701.69).
+    Beheld,
     /// The source is saddled (CR 702.171b): "whenever this creature
     /// attacks while saddled".
     Saddled,
@@ -3650,6 +3653,14 @@ pub enum Effect {
         count: Num,
         token: CardRef,
     },
+    /// Empower Jace N: put N loyalty counters on a Jace planeswalker
+    /// token the controller controls, creating `token` (the blue Jace
+    /// with 0 loyalty, "[−1]: Surveil 1" and "[−3]: Draw a card.") first
+    /// if they control none. A nontoken Jace doesn't count.
+    EmpowerJace {
+        count: Num,
+        token: CardRef,
+    },
     /// The source's echo has been dealt with (CR 702.30a).
     ClearEcho,
     /// Warp's delayed trigger (CR 702.185a, `Builtin::WarpExile`): exile
@@ -3960,6 +3971,11 @@ pub enum Effect {
     /// owner's hand, onto the battlefield tapped and attacking the player or
     /// planeswalker the returned creature was attacking.
     EnterAttacking,
+    /// Mobilize's tokens (CR 702.181a): the tokens the resolution just
+    /// created are attacking ("create two tapped and attacking ...
+    /// tokens", CR 508.4: never declared as attackers), what the source
+    /// is attacking, or else an opponent.
+    CreatedAttack,
     /// Saddle's effect (CR 702.171a): the source becomes saddled until end
     /// of turn.
     BecomeSaddled,
@@ -4975,6 +4991,22 @@ pub struct Cost {
     /// payer controls (the engine picks the toughest).
     #[serde(default)]
     pub blight: u32,
+    /// "Behold a Kithkin" (CR 701.69a): choose a Kithkin you control or
+    /// reveal a Kithkin card from your hand; "and exile it".
+    #[serde(default)]
+    pub behold: Option<Box<Behold>>,
+}
+
+/// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
+/// permanent the payer controls or a card revealed from their hand; with
+/// `exile`, "behold a Kithkin and exile it", they are exiled, linked to
+/// the spell's permanent ("return the exiled card to its owner's hand",
+/// CR 607.2a).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct Behold {
+    pub filter: ObjFilter,
+    pub n: u32,
+    pub exile: bool,
 }
 
 /// A cost that exiles cards from its payer's graveyard: `n` of them (X,
@@ -5031,6 +5063,7 @@ impl Cost {
             exile_cards: None,
             reveal_hand: false,
             blight: 0,
+            behold: None,
         }
     }
 
@@ -5832,6 +5865,10 @@ pub struct CardDef {
     pub entwine: Option<Box<ManaCost>>,
     /// Escape—cost, exile N other cards from your graveyard (CR 702.138).
     pub escape: Option<Box<(ManaCost, u32)>>,
+    /// Mayhem—cost: cast from the graveyard for this cost if its owner
+    /// discarded it this turn.
+    #[serde(default)]
+    pub mayhem: Option<Box<ManaCost>>,
     /// Modular N (CR 702.43): enters with N +1/+1 counters (its dies
     /// trigger is an ordinary ability).
     pub modular: u32,
@@ -6336,6 +6373,7 @@ impl CardDef {
     pub fn graveyard_active(&self) -> bool {
         self.flashback.is_some()
             || self.escape.is_some()
+            || self.mayhem.is_some()
             || self
                 .abilities
                 .iter()
@@ -7661,6 +7699,7 @@ impl Builder {
             suspend: None,
             entwine: None,
             escape: None,
+            mayhem: None,
             modular: 0,
             flashback: None,
             retrace: false,
@@ -8038,6 +8077,14 @@ impl Builder {
     #[must_use]
     pub fn entwine(mut self, cost: ManaCost) -> Self {
         self.0.entwine = Some(Box::new(cost));
+        self
+    }
+
+    /// Mayhem: cast from the graveyard for `cost` the turn it was
+    /// discarded.
+    #[must_use]
+    pub fn mayhem(mut self, cost: ManaCost) -> Self {
+        self.0.mayhem = Some(Box::new(cost));
         self
     }
 

@@ -1,0 +1,8 @@
+card "Countersculpt" {
+  oracle_id fc3353e9-fe24-4ca7-bff8-9da767f2903a
+  cost {U}{U}
+  type Instant
+  additional cost behold Jace
+  additional cost or {1}
+  spell: counter target spell; empower jace 1
+}

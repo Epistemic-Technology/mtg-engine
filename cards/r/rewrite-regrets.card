@@ -1,0 +1,9 @@
+card "Rewrite Regrets" {
+  oracle_id 42565432-3a17-4274-87fc-016ab900e313
+  cost {3}{B}
+  type Sorcery
+  spell {
+  return target creature or planeswalker card with mana value 6 or less from your graveyard to battlefield
+  empower jace 2
+  }
+}

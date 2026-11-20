@@ -1,0 +1,8 @@
+card "Shinestriker" {
+  oracle_id 1b94ee87-a2f4-47f1-9fc7-4a167cad1b3b
+  cost {4}{U}{U}
+  type Creature — Elemental
+  pt 3/3
+  keywords flying
+  label "Vivid" triggered when this enters: draw count equal colors among permanents cards
+}

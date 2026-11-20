@@ -1,0 +1,93 @@
+# Max speed (CR 702.179e) on triggered abilities and cost reductions:
+# "Max speed — [ability]" means "As long as you have max speed, this
+# object has [ability]."
+
+scenario "Max speed: Risen Necroregent's end step trigger makes a Zombie" {
+  speed A: 4
+  battlefield A: "Risen Necroregent"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Zombie"
+}
+
+scenario "Below max speed: no end step trigger" {
+  speed A: 3
+  battlefield A: "Risen Necroregent"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Zombie"
+}
+
+scenario "Max speed: Embalmed Ascendant drains when a creature dies" {
+  speed A: 4
+  battlefield A: "Embalmed Ascendant", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Below max speed: Embalmed Ascendant doesn't drain" {
+  speed A: 2
+  battlefield A: "Embalmed Ascendant", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+}
+
+scenario "Speed reaches 4 and Embalmed Ascendant's trigger starts" {
+  speed A: 3
+  battlefield A: "Embalmed Ascendant", "Grizzly Bears", 2 "Mountain"
+  hand A: "Lightning Bolt", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 begin_combat A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert speed A 4
+  assert life B 16
+}
+
+scenario "Max speed: Racers' Scoreboard makes spells cost {1} less" {
+  speed A: 4
+  battlefield A: "Racers' Scoreboard", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Below max speed: no reduction" {
+  speed A: 3
+  battlefield A: "Racers' Scoreboard", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Max speed: Pride of the Road gives double strike at the beginning of combat" {
+  speed A: 4
+  battlefield A: "Pride of the Road", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Pride of the Road" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Max speed: Zahur makes a tapped Zombie when a nontoken creature dies" {
+  speed A: 4
+  battlefield A: "Zahur, Glory's Past", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Zahur, Glory's Past" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Zombie"
+  assert tapped "Zombie"
+}

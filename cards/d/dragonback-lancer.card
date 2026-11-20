@@ -1,0 +1,8 @@
+card "Dragonback Lancer" {
+  oracle_id 7875c063-19c3-4e6e-81d8-1a378a4e16e5
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  keywords flying
+  mobilize 1
+}

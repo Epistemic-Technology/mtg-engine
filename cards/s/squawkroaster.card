@@ -1,0 +1,8 @@
+card "Squawkroaster" {
+  oracle_id 6b79404b-2fae-41fb-994c-d4cd895e8f09
+  cost {3}{R}
+  type Creature — Elemental
+  pt */4
+  keywords double strike
+  label "Vivid" static this: cda power colors among permanents
+}

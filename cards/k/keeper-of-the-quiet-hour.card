@@ -1,0 +1,7 @@
+card "Keeper of the Quiet Hour" {
+  oracle_id ecdfee75-15fd-41ea-89d4-4bfc1fa4d032
+  cost {3}
+  type Artifact Creature — Chimera
+  pt 3/2
+  triggered when this enters: empower jace 2
+}

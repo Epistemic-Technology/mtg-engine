@@ -1,0 +1,56 @@
+# Mobilize N (CR 702.181a): "Whenever this creature attacks, create N
+# tapped and attacking 1/1 red Warrior creature tokens. Sacrifice them at
+# the beginning of the next end step."
+
+scenario "Mobilize 1: a tapped attacking Warrior that deals damage" {
+  battlefield A: "Dragonback Lancer"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dragonback Lancer"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains 1 "Warrior"
+  assert tapped "Warrior"
+}
+
+scenario "Mobilize: the Warriors are sacrificed at the next end step" {
+  battlefield A: "Dalkovan Packbeasts"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dalkovan Packbeasts"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains 3 "Warrior"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Warrior"
+}
+
+scenario "Mobilize: the Warriors can be blocked" {
+  battlefield A: "Shock Brigade"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Shock Brigade"
+  turn 1 B: block "Warrior" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard A lacks "Warrior"
+  assert battlefield A lacks "Warrior"
+}
+
+scenario "Mobilize X: X is the creature cards in your graveyard" {
+  battlefield A: "Avenger of the Fallen"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Avenger of the Fallen"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Bone-Cairn Butcher: attacking tokens have deathtouch" {
+  battlefield A: "Bone-Cairn Butcher"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Bone-Cairn Butcher"
+  turn 1 B: block "Warrior" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 15
+}

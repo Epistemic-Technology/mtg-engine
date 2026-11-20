@@ -1,0 +1,9 @@
+card "No Admittance" {
+  oracle_id d53ae01b-87e1-48e1-9fc3-23a734ce6622
+  cost {1}{R}
+  type Sorcery
+  spell {
+  deal 3 damage to any target
+  empower jace 1
+  }
+}

@@ -1,0 +1,8 @@
+card "Ultimate Green Goblin" {
+  oracle_id b5b43d01-fce6-4a00-9c19-7a7e2a09d833
+  cost {1}{B/R}{B/R}
+  type Legendary Creature — Goblin Villain
+  pt 5/4
+  triggered at beginning of your upkeep: discard 1 card then create 1 "Treasure"
+  mayhem {2}{B/R}
+}

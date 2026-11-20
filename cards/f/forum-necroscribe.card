@@ -1,0 +1,8 @@
+card "Forum Necroscribe" {
+  oracle_id 50c97054-77c9-4446-9a41-e4f8877b887d
+  cost {5}{B}
+  type Creature — Troll Warlock
+  pt 5/4
+  ward discard 1 card
+  label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: return target creature card from your graveyard to battlefield
+}

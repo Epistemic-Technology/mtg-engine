@@ -1,0 +1,9 @@
+card "Gastal Thrillseeker" {
+  oracle_id d185ad9f-c7fc-41f0-b852-4fe2cde0a8ae
+  cost {B}{R}
+  type Creature — Lizard Berserker
+  pt 2/3
+  start your engines
+  triggered when this enters: deal 1 damage to target opponent and you gain 1 life
+  label "Max speed" static this: has deathtouch, haste
+}

@@ -1491,7 +1491,7 @@ impl P {
                 }))
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
-            | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
+            | "disguise" | "evoke" | "madness" | "mayhem" | "foretell" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring" | "bestow"
             | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate" | "encore"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
@@ -1507,6 +1507,7 @@ impl P {
                     "morph" => Mechanic::Morph(c),
                     "evoke" => Mechanic::Evoke(c),
                     "madness" => Mechanic::Madness(c),
+                    "mayhem" => Mechanic::Mayhem(c),
                     "foretell" => Mechanic::Foretell(c),
                     "entwine" => Mechanic::Entwine(c),
                     "megamorph" => Mechanic::Megamorph(c),
@@ -1572,6 +1573,12 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Enlist))
             }
+            "mobilize" => {
+                self.pos += 1;
+                let n = self.num()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Mobilize(n)))
+            }
             "station" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -1581,6 +1588,10 @@ impl P {
                 self.pos += 1;
                 let n = self.number()?;
                 self.expect(&Tok::Colon)?;
+                if !self.keyword_ahead() {
+                    let ability = Box::new(self.ability()?);
+                    return Ok(Ability::StationAbility { n, ability });
+                }
                 let keywords = self.keyword_list()?;
                 self.end_stmt()?;
                 Ok(Ability::StationLevel { n, keywords })
@@ -2704,6 +2715,9 @@ impl P {
         }
         if self.eat_word("teamwork") {
             return Ok(StaticCond::Teamwork);
+        }
+        if self.eat_word("beheld") {
+            return Ok(StaticCond::Beheld);
         }
         if self.eat_word("spent") {
             return self.spent_cond();
@@ -6089,6 +6103,11 @@ impl P {
                 Ok(Effect::SwitchPt { to })
             }
 
+            "empower" => {
+                self.expect_words(&["jace"])?;
+                let count = self.num()?;
+                Ok(Effect::EmpowerJace { count })
+            }
             "amass" => {
                 let kind = self.word()?;
                 let count = self.num()?;
@@ -9169,9 +9188,16 @@ impl P {
                 };
                 return Ok(Trigger::CastsFiltered { whose, filter });
             }
-            let simple = self.at_word("spell")
+            // Repartee: "an instant or sorcery spell that targets a
+            // creature" is a filter with targets.
+            let targets_after = |p: &Self, n: usize| {
+                p.word_at(n).as_deref() == Some("that")
+                    && p.word_at(n + 1).as_deref() == Some("targets")
+            };
+            let simple = (self.at_word("spell") && !targets_after(self, 1))
                 || self.at_words(&["noncreature", "spell"])
-                || self.at_words(&["instant", "or", "sorcery", "spell"]);
+                || (self.at_words(&["instant", "or", "sorcery", "spell"])
+                    && !targets_after(self, 4));
             if !simple {
                 let mut filter = self.filter()?;
                 self.expect_word("spell")?;
@@ -9668,6 +9694,27 @@ impl P {
                             self.expect_word("life")?;
                             cost.order.push(CostItem::Life);
                         }
+                    }
+                    "behold" | "may"
+                        if self.word_at(0).as_deref() == Some("behold")
+                            || self.word_at(1).as_deref() == Some("behold") =>
+                    {
+                        let optional = self.eat_word("may");
+                        self.pos += 1;
+                        let exile = self.eat_words(&["and", "exile"]);
+                        let n = if matches!(self.peek(), Some(Tok::Num(_))) {
+                            self.count()?
+                        } else {
+                            1
+                        };
+                        let filter = self.filter()?;
+                        cost.behold = Some(Box::new(crate::ast::Behold {
+                            filter,
+                            n,
+                            exile,
+                            optional,
+                        }));
+                        cost.order.push(CostItem::Behold);
                     }
                     "blight" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                         self.pos += 1;

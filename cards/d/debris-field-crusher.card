@@ -1,0 +1,10 @@
+card "Debris Field Crusher" {
+  oracle_id db0894e1-2644-48d4-8de4-8cc43e940bc1
+  cost {4}{R}
+  type Artifact — Spacecraft
+  pt 1/5
+  triggered when this enters: deal 3 damage to any target
+  station
+  station 8: flying
+  activated {1}{R}: this gets +2/+0
+}

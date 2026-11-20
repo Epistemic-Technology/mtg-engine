@@ -1,0 +1,7 @@
+card "Repurposed Enforcer" {
+  oracle_id b775a404-ec0a-47ff-bb9d-eae2273d945b
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  triggered whenever this attacks: empower jace count where creature you control
+}

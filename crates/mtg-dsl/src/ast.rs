@@ -512,6 +512,20 @@ pub struct Cost {
     pub reveal_hand: bool,
     /// `blight 1`: "Blight 1" (CR 701.68a).
     pub blight: u32,
+    /// `behold Kithkin`, `behold and exile Elf`, `behold 3 Elemental`,
+    /// `may behold Dragon` (CR 701.69a).
+    pub behold: Option<Box<Behold>>,
+}
+
+/// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and
+/// exile it"; `may` (a spell's additional cost): "you may behold a
+/// Dragon", an optional additional cost.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct Behold {
+    pub filter: Filter,
+    pub n: u32,
+    pub exile: bool,
+    pub optional: bool,
 }
 
 /// A cost exiling cards from the graveyard: `n` (or X) cards matching
@@ -546,6 +560,8 @@ pub enum CostItem {
     RevealHand,
     /// `blight 1`.
     Blight,
+    /// `behold Kithkin`.
+    Behold,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1089,6 +1105,16 @@ pub enum Ability {
     /// `solved <ability>`: "Solved — <ability>" (CR 719.2b), an ability
     /// the Case has only once solved.
     Solved(Box<Ability>),
+    /// `station 2: static other creature you control: +1/+1` (CR 721.2a):
+    /// "2+ | Other creatures you control get +1/+1.": the ability works
+    /// only while the permanent has that many charge counters (a static
+    /// ability's condition, an activated ability's activation condition;
+    /// a triggered ability triggers only then). It never makes the
+    /// permanent a creature.
+    StationAbility {
+        n: u32,
+        ability: Box<Ability>,
+    },
     /// `protection doesn't remove this`: "This effect doesn't remove this
     /// Aura.", printed after the static ability before it.
     AuraStays,
@@ -1173,6 +1199,9 @@ pub enum Mechanic {
     Evoke(ManaCost),
     /// CR 702.35: cast for this cost as it's discarded.
     Madness(ManaCost),
+    /// `mayhem {B}`: "Mayhem {B}": cast from the graveyard for this cost
+    /// the turn it was discarded.
+    Mayhem(ManaCost),
     /// CR 702.143: exiled for {2} on its owner's turn, cast later for this.
     Foretell(ManaCost),
     /// CR 702.62: `suspend 4 {1}{U}`.
@@ -1316,6 +1345,10 @@ pub enum Mechanic {
     /// `afterlife 1` (CR 702.135): when this dies, N 1/1 white and black
     /// Spirit tokens with flying.
     Afterlife(u32),
+    /// `mobilize 2`, `mobilize count where graveyard creature` (CR
+    /// 702.181): whenever this attacks, N tapped and attacking 1/1 red
+    /// Warrior tokens, sacrificed at the beginning of the next end step.
+    Mobilize(Num),
     /// `extort` (CR 702.101): whenever you cast a spell, you may pay
     /// {W/B}; if you do, each opponent loses 1 life and you gain that
     /// much life.
@@ -1537,6 +1570,9 @@ pub enum StaticCond {
     Bargained,
     /// `teamwork`: "this spell was cast using teamwork".
     Teamwork,
+    /// `beheld`: "a Dragon was beheld" (its behold cost was paid; the
+    /// filter is the card's behold cost's).
+    Beheld,
     /// `saddled`: "it's saddled"; after a trigger, `while saddled`
     /// ("Whenever this creature attacks while saddled, ...", CR 702.171b).
     Saddled,
@@ -3051,6 +3087,13 @@ pub enum Effect {
     /// creature".
     Amass {
         kind: String,
+        count: Num,
+    },
+    /// Mobilize's expansion only: the tokens just created are attacking.
+    CreatedAttack,
+    /// `empower jace 3`: "Empower Jace 3." (needs the token "Jace
+    /// planeswalker").
+    EmpowerJace {
         count: Num,
     },
     /// Echo's bookkeeping (from its expansion).

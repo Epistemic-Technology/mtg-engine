@@ -1,0 +1,9 @@
+card "Nightblade Brigade" {
+  oracle_id 36d04190-7ce3-431a-b18e-3a1895ec6fc7
+  cost {2}{B}
+  type Creature — Goblin Soldier
+  pt 1/3
+  keywords deathtouch
+  mobilize 1
+  triggered when this enters: surveil 1
+}

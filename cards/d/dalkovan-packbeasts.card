@@ -1,0 +1,8 @@
+card "Dalkovan Packbeasts" {
+  oracle_id cdd1a043-bd47-4197-be26-e2f7d3f1d209
+  cost {2}{W}
+  type Creature — Ox
+  pt 0/4
+  keywords vigilance
+  mobilize 3
+}

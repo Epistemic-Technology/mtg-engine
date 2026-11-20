@@ -1,0 +1,8 @@
+card "Venerated Stormsinger" {
+  oracle_id 4aff2f31-619f-406e-b2c9-a2c733c04bc4
+  cost {3}{B}
+  type Creature — Orc Cleric
+  pt 3/3
+  mobilize 1
+  triggered whenever creature you control dies: each opponent loses 1 life and you gain 1 life
+}

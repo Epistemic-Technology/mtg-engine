@@ -1,0 +1,8 @@
+card "Snooping Page" {
+  oracle_id f07c07d7-00f1-44a5-b51f-0a22cc51fd2b
+  cost {1}{W}{B}
+  type Creature — Human Cleric
+  pt 2/3
+  label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: this can't be blocked this turn
+  triggered whenever this deals combat damage to a player: you draw 1 card and lose 1 life
+}

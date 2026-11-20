@@ -283,6 +283,9 @@ pub enum AltCast {
     /// Cast from the graveyard with escape (CR 702.138); kept by the
     /// permanent ("escapes with").
     Escape,
+    /// Cast from the graveyard for its mayhem cost, the turn it was
+    /// discarded.
+    Mayhem,
     /// In exile: discarded with madness, waiting for its trigger.
     MadnessExiled,
     /// In exile: foretold, castable on a later turn.
@@ -387,6 +390,8 @@ impl CastInfo {
     /// How many times its replicate cost was paid (CR 702.56a), up to 15.
     const REPLICATE_MASK: u32 = 0xF0_0000;
     const REPLICATE_SHIFT: u32 = 20;
+    /// Its behold cost was paid ("If a Dragon was beheld", CR 701.69).
+    const BEHELD: u32 = 0x100_0000;
     const KICKED: u32 = 0x40;
     const FLASHBACK: u32 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -566,6 +571,14 @@ impl CastInfo {
 
     pub fn set_mode(&mut self, mode: u8) {
         self.0 = (self.0 & !Self::MODE) | (u32::from(mode) & Self::MODE);
+    }
+
+    pub const fn beheld(self) -> bool {
+        self.0 & Self::BEHELD != 0
+    }
+
+    pub fn set_beheld(&mut self) {
+        self.0 |= Self::BEHELD;
     }
 
     pub const fn kicked(self) -> bool {
@@ -1538,6 +1551,9 @@ pub struct GameState {
     pub left_this_turn: u8,
     /// Players who discarded a card this turn, one bit each.
     pub discarded_this_turn: u8,
+    /// Cards with mayhem discarded this turn, as the graveyard objects
+    /// they became (castable for their mayhem cost until the turn ends).
+    pub mayhem_discarded: Vec<ObjId>,
     /// The spells cast this turn, by caster ("if you've cast a noncreature
     /// spell this turn"); inline, so copying the state rarely allocates.
     pub cast_this_turn: SmallVec<[(PlayerId, crate::card::CardRef); 4]>,
@@ -2707,6 +2723,7 @@ impl GameState {
                     .is_some_and(|l| l.object.cast.bargained()),
             },
             C::Saddled => self.saddled.contains(&source),
+            C::Beheld => self.objects.get(source).is_some_and(|o| o.cast.beheld()),
             C::Teamwork => match self.objects.get(source) {
                 Some(o) => o.cast.teamwork(),
                 None => self

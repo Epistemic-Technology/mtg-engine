@@ -378,6 +378,15 @@ impl GameState {
         if let Some(l) = self.lki.get_mut(&id) {
             l.moved_to = Some(new);
         }
+        // CR 607.2a: what the spell's costs exiled ("behold a Kithkin and
+        // exile it") is linked to the permanent it becomes.
+        if !self.linked_exiles.is_empty() && old.zone == Zone::Stack && to == Zone::Battlefield {
+            for l in &mut self.linked_exiles {
+                if l.source == id {
+                    l.source = new;
+                }
+            }
+        }
         // CR 601.2h: the permanent a spell becomes remembers the mana
         // spent to cast it ("if {B} was spent to cast it").
         if !self.spent_mana.is_empty()
@@ -1407,7 +1416,16 @@ impl GameState {
             }
             return;
         }
-        self.move_object(card, Zone::Graveyard, true);
+        let mayhem = self.pool.get(self.objects[card].def).mayhem.is_some();
+        let new = self.move_object(card, Zone::Graveyard, true);
+        if mayhem
+            && self
+                .objects
+                .get(new)
+                .is_some_and(|o| o.zone == Zone::Graveyard)
+        {
+            self.mayhem_discarded.push(new);
+        }
     }
 
     /// Puts one of the pool's built-in triggered abilities (madness,

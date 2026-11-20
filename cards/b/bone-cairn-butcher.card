@@ -1,0 +1,8 @@
+card "Bone-Cairn Butcher" {
+  oracle_id 449db6bf-d766-4d09-a7bd-9c45b3d4c4c3
+  cost {1}{R}{W}{B}
+  type Creature — Demon
+  pt 4/4
+  mobilize 2
+  static attacking token you control: has deathtouch
+}

@@ -1,0 +1,8 @@
+card "Caustic Exhale" {
+  oracle_id c4023e1f-26e3-4225-98d0-3d33f6654616
+  cost {B}
+  type Instant
+  additional cost behold Dragon
+  additional cost or {1}
+  spell: target creature gets -3/-3
+}

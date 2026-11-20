@@ -1,0 +1,8 @@
+card "Inkshape Demonstrator" {
+  oracle_id 4993651f-f161-4007-b485-a0c66a02f91b
+  cost {3}{W}
+  type Creature — Elephant Cleric
+  pt 3/4
+  ward {2}
+  label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: this gets +1/+0 and gains lifelink until end of turn
+}

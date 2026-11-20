@@ -1,0 +1,8 @@
+token "Jace planeswalker" {
+  name "Jace"
+  type Planeswalker — Jace
+  color blue
+  loyalty 0
+  loyalty -1: surveil 1
+  loyalty -3: draw 1 card
+}

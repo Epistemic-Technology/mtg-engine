@@ -494,6 +494,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             .is_some_and(|o| o.cast.bargained()),
         StaticCondition::Saddled => state.saddled.contains(&source),
         StaticCondition::Teamwork => state.objects.get(source).is_some_and(|o| o.cast.teamwork()),
+        StaticCondition::Beheld => state.objects.get(source).is_some_and(|o| o.cast.beheld()),
         StaticCondition::OffspringPaid => state
             .objects
             .get(source)
@@ -888,6 +889,19 @@ fn per_count(
             }
             seen.iter().count()
         }
+        // Vivid: "the number of colors among permanents you control"
+        // (Squawkroaster's power).
+        CountExpr::ColorsAmongPermanents => {
+            let mut seen = crate::mana::ColorSet::default();
+            for id in &work.ids {
+                if work.on_battlefield(*id) && work.controller_of(*id) == you {
+                    for col in work.chars[work.index[id]].colors.iter() {
+                        seen = seen.with(col);
+                    }
+                }
+            }
+            seen.iter().count()
+        }
         CountExpr::CardsInGraveyard(f)
         | CountExpr::CardsInAllGraveyards(f)
         | CountExpr::CardsInOpponentsGraveyards(f) => {
@@ -1001,8 +1015,7 @@ fn per_count(
         | CountExpr::TargetHand(_)
         | CountExpr::GreatestToughness(_)
         | CountExpr::LifeLostThisTurn
-        | CountExpr::DamageThisWay { .. }
-        | CountExpr::ColorsAmongPermanents => 0,
+        | CountExpr::DamageThisWay { .. } => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)
 }

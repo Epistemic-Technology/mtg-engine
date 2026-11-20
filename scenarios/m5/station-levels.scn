@@ -1,0 +1,78 @@
+# Station levels with abilities (CR 721.2a): "N+ | [ability]" means the
+# permanent has the ability as long as it has N or more charge counters.
+# Only the level with keywords makes a Spacecraft with a P/T box a
+# creature (CR 721.2b).
+
+scenario "Station 2+: Lumen-Class Frigate pumps other creatures but isn't a creature" {
+  battlefield A: "Lumen-Class Frigate" with 2 charge, "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert is not "Lumen-Class Frigate" creature
+}
+
+scenario "Station 2+: one charge counter is not enough" {
+  battlefield A: "Lumen-Class Frigate" with 1 charge, "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Station 12+: Lumen-Class Frigate is a flying, lifelink creature" {
+  battlefield A: "Lumen-Class Frigate" with 12 charge
+  run_to turn 1 precombat_main
+  assert is "Lumen-Class Frigate" creature
+  assert has "Lumen-Class Frigate" flying
+  assert has "Lumen-Class Frigate" lifelink
+}
+
+scenario "Stationing reaches the level" {
+  battlefield A: "Lumen-Class Frigate" with 1 charge, "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Lumen-Class Frigate" sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Lumen-Class Frigate" charge 4
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Station 10+: Dawnsire deals 100 damage whenever you attack" {
+  battlefield A: "Dawnsire, Sunstar Dreadnought" with 10 charge, "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Dawnsire, Sunstar Dreadnought" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Below station 10: Dawnsire doesn't trigger" {
+  battlefield A: "Dawnsire, Sunstar Dreadnought" with 9 charge, "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Station 12+: Evendo's mana ability" {
+  battlefield A: "Evendo, Waking Haven" with 12 charge, "Forest", 3 "Grizzly Bears"
+  hand A: "Centaur Courser"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Centaur Courser"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Centaur Courser"
+}
+
+scenario "Below station 12: no Evendo mana ability" {
+  battlefield A: "Evendo, Waking Haven" with 11 charge, "Forest", 3 "Grizzly Bears"
+  hand A: "Centaur Courser"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Centaur Courser"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Centaur Courser"
+}
+
+scenario "A Planet with station is never a creature" {
+  battlefield A: "Uthros, Titanic Godcore" with 20 charge
+  run_to turn 1 precombat_main
+  assert is not "Uthros, Titanic Godcore" creature
+}

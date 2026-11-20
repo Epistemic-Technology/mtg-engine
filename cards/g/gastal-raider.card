@@ -1,0 +1,9 @@
+card "Gastal Raider" {
+  oracle_id 26c09127-8225-4ba2-9f97-f5558b1c41b5
+  cost {2}{B}
+  type Creature — Vampire Rogue
+  pt 2/1
+  start your engines
+  triggered when this enters: target opponent reveals hand discarding instant or sorcery card
+  label "Max speed" static this: +1/+1, has menace
+}

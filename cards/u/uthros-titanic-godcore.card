@@ -1,0 +1,8 @@
+card "Uthros, Titanic Godcore" {
+  oracle_id df08ac72-010f-42f8-beb3-6d645c638e1e
+  type Land — Planet
+  enters tapped
+  mana {U}
+  station
+  station 12: activated {U}, {T}: add {U} count each artifact you control
+}

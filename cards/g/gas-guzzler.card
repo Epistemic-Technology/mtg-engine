@@ -1,0 +1,9 @@
+card "Gas Guzzler" {
+  oracle_id 7c98626b-ba97-4d1e-9be7-291480ae8d22
+  cost {B}
+  type Creature — Vampire Rogue
+  pt 2/1
+  start your engines
+  enters tapped
+  label "Max speed" activated {B}, sacrifice another creature or Vehicle: draw 1 card
+}

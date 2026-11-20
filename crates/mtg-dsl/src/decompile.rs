@@ -342,6 +342,14 @@ impl Decompiler<'_> {
             restrict: Vec::new(),
             reduce: None,
             reveal_hand: c.reveal_hand,
+            behold: c.behold.as_ref().map(|b| {
+                Box::new(crate::ast::Behold {
+                    filter: self.filter(&b.filter),
+                    n: b.n,
+                    exile: b.exile,
+                    optional: false,
+                })
+            }),
         }
     }
 
@@ -433,6 +441,7 @@ impl Decompiler<'_> {
             StaticCondition::Kicked => StaticCond::Kicked,
             StaticCondition::Bargained => StaticCond::Bargained,
             StaticCondition::Teamwork => StaticCond::Teamwork,
+            StaticCondition::Beheld => StaticCond::Beheld,
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
             StaticCondition::Saddled => StaticCond::Saddled,
             StaticCondition::LandEnteredThisTurn => StaticCond::LandEnteredThisTurn,
@@ -1144,6 +1153,7 @@ impl Decompiler<'_> {
                 kind: format!("{}s", self.pool.get(*token).name.trim_end_matches(" Army")),
                 count: *count,
             },
+            CoreEffect::EmpowerJace { count, .. } => Effect::EmpowerJace { count: *count },
             CoreEffect::ClearEcho => Effect::ClearEcho,
             CoreEffect::Manifest => Effect::Manifest,
             CoreEffect::ManifestDread => Effect::ManifestDread,
@@ -1156,6 +1166,7 @@ impl Decompiler<'_> {
             | CoreEffect::Cascade
             | CoreEffect::Exploit
             | CoreEffect::EnterAttacking
+            | CoreEffect::CreatedAttack
             | CoreEffect::BecomeSaddled => {
                 unreachable!("built-in abilities only")
             }

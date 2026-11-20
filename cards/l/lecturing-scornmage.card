@@ -1,0 +1,7 @@
+card "Lecturing Scornmage" {
+  oracle_id 29c23fd7-0ac4-46af-8ecd-92b726575252
+  cost {B}
+  type Creature — Human Warlock
+  pt 1/1
+  label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: put 1 +1/+1 counter on this
+}

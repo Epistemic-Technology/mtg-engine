@@ -351,7 +351,9 @@ impl GameState {
                     }
                 }
                 if def.flashback.is_none() {
-                    if def.escape.is_some() && self.escape_castable(p, *id, sorcery_timing) {
+                    if (def.escape.is_some() && self.escape_castable(p, *id, sorcery_timing))
+                        || (def.mayhem.is_some() && self.mayhem_castable(p, *id, sorcery_timing))
+                    {
                         options.push(Choice::Cast(*id));
                     }
                     continue;
@@ -2183,8 +2185,82 @@ impl GameState {
         {
             return false;
         }
+        if let Some(b) = &add.behold
+            && self.behold_candidates(p, b, spell).len() < b.n as usize
+        {
+            return false;
+        }
         // CR 701.68b.
         !(add.blight > 0 && self.creatures_of(p).next().is_none())
+    }
+
+    /// What `p` could behold for `b` (CR 701.69a): matching permanents
+    /// they control, then matching cards in their hand, never `this` (the
+    /// spell being cast). For "and exile it" the hand comes first: the
+    /// engine picks, and keeping its permanents is usually better.
+    pub(super) fn behold_candidates(
+        &self,
+        p: PlayerId,
+        b: &crate::card::Behold,
+        this: ObjId,
+    ) -> SmallVec<[ObjId; 4]> {
+        let mut board: SmallVec<[ObjId; 4]> = self
+            .permanents_of(p)
+            .filter(|s| {
+                *s != this
+                    && self.characteristics(*s).is_some_and(|c| {
+                        b.filter
+                            .matches(*s, self.objects[*s].controller, &c, Some(this), Some(p))
+                    })
+            })
+            .collect();
+        let hand = self.player(p).hand.iter().copied().filter(|h| {
+            *h != this
+                && self
+                    .characteristics(*h)
+                    .is_some_and(|c| b.filter.matches_characteristics(&c))
+        });
+        if b.exile {
+            let mut out: SmallVec<[ObjId; 4]> = hand.collect();
+            out.extend(board);
+            out
+        } else {
+            board.extend(hand);
+            board
+        }
+    }
+
+    /// Pay a behold cost (CR 701.69a): choose the permanents or reveal
+    /// the cards; "and exile it" exiles them, linked to `this` (CR
+    /// 607.2a).
+    #[cold]
+    fn pay_behold(&mut self, p: PlayerId, b: &crate::card::Behold, this: ObjId) {
+        let picks: SmallVec<[ObjId; 4]> = self
+            .behold_candidates(p, b, this)
+            .into_iter()
+            .take(b.n as usize)
+            .collect();
+        if picks.len() < b.n as usize {
+            return;
+        }
+        for id in picks {
+            if self.objects[id].zone == Zone::Hand {
+                self.reveal_in_hand(id);
+            }
+            if b.exile {
+                let new = self.move_object(id, Zone::Exile, true);
+                if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                    self.linked_exiles.push(crate::state::LinkedExile {
+                        source: this,
+                        card: new,
+                        until: false,
+                    });
+                }
+            }
+        }
+        if let Some(o) = self.objects.get_mut(this) {
+            o.cast.set_beheld();
+        }
     }
 
     /// Whether either of a spell's additional costs ("sacrifice a creature
@@ -2536,6 +2612,9 @@ impl GameState {
             (_, false) if o.alt == AltCast::Escape && def.escape.is_some() => {
                 def.escape.as_ref().expect("checked").0.requirements(x)
             }
+            (_, false) if o.alt == AltCast::Mayhem && def.mayhem.is_some() => {
+                def.mayhem.as_ref().expect("checked").requirements(x)
+            }
             (_, false) if o.alt == AltCast::Bestow && def.bestow.is_some() => {
                 def.bestow.as_ref().expect("checked").requirements(x)
             }
@@ -2635,6 +2714,39 @@ impl GameState {
             adjust_generic(&mut req, tc.0);
         }
         req
+    }
+
+    /// Mayhem: a card its owner discarded this turn, in their graveyard,
+    /// castable for its mayhem cost; timing rules still apply. A land
+    /// isn't cast.
+    #[cold]
+    #[inline(never)]
+    fn mayhem_castable(&self, p: PlayerId, card: ObjId, sorcery_timing: bool) -> bool {
+        let def = self.pool.get(self.objects[card].def);
+        let Some(cost) = def.mayhem.as_deref() else {
+            return false;
+        };
+        if def.is_land() || !self.mayhem_discarded.contains(&card) {
+            return false;
+        }
+        let instant = def.is_instant() || self.has_flash(p, def, card);
+        if !(instant || sorcery_timing) {
+            return false;
+        }
+        let mut req = cost.requirements(0);
+        adjust_generic(
+            &mut req,
+            self.cost_delta(p, def, card, &self.cost_changers()),
+        );
+        if !self.spell_payable(p, card, &req) {
+            return false;
+        }
+        match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(card))),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
+        }
     }
 
     /// CR 702.138a: a card with escape in the graveyard, castable for its
@@ -4353,6 +4465,9 @@ impl GameState {
         if cost.energy > 0 {
             let e = &mut self.player_mut(p).energy;
             *e = e.saturating_sub(cost.energy);
+        }
+        if let Some(b) = &cost.behold {
+            self.pay_behold(p, b, this);
         }
         if cost.blight > 0
             && let Some(c) = self.blight_pick(p)
@@ -6612,8 +6727,12 @@ impl GameState {
                     // "return Psychic Miasma to its owner's hand": the
                     // resolving spell itself, from the stack (it then
                     // doesn't go to the graveyard, CR 608.2n).
+                    // "return the exiled card to its owner's hand" (CR
+                    // 607.2a): a linked card, from exile.
                     let in_zone = self.objects.get(id).is_some_and(|o| {
                         matches!(o.zone, Zone::Battlefield | Zone::Graveyard)
+                            || (o.zone == Zone::Exile
+                                && *what == crate::card::Recipient::ExiledCard)
                             || (o.zone == Zone::Stack
                                 && id == ctx.source
                                 && o.kind != ObjKind::Ability)
@@ -8779,6 +8898,28 @@ impl GameState {
                     ctx.created = Some(id);
                 }
             }
+            Effect::EmpowerJace { count, token } => {
+                let n = self.eval_num(*count, ctx);
+                let p = ctx.controller;
+                let jace = self.pool.subtype_lookup("Jace");
+                let mut target = jace.and_then(|j| {
+                    self.permanents_of(p).find(|id| {
+                        self.objects[*id].kind == ObjKind::Token
+                            && self
+                                .characteristics(*id)
+                                .is_some_and(|c| c.is_planeswalker() && c.has_subtype(j))
+                    })
+                });
+                if target.is_none() {
+                    let new = self.create_token(*token, p);
+                    if self.objects.contains_key(new) {
+                        target = Some(new);
+                    }
+                }
+                if let Some(id) = target {
+                    self.add_counters(id, CounterKind::Loyalty, n);
+                }
+            }
             // Modes resolve through the chosen mode (`effects_of`).
             Effect::Modes(_) => {}
             // Looking at the top cards keeps their order; the controller
@@ -9356,6 +9497,29 @@ impl GameState {
                 {
                     self.saddled.push(id);
                     self.bump();
+                }
+            }
+            Effect::CreatedAttack => {
+                let defender = self
+                    .combat
+                    .as_ref()
+                    .and_then(|c| c.attacker(ctx.source))
+                    .map(|a| a.attacking)
+                    .or_else(|| {
+                        self.players_in_game()
+                            .find(|q| *q != ctx.controller)
+                            .map(Target::Player)
+                    });
+                if let Some(d) = defender {
+                    for id in ctx.created_tokens.clone() {
+                        if self
+                            .objects
+                            .get(id)
+                            .is_some_and(|o| o.zone == Zone::Battlefield)
+                        {
+                            self.enter_attacking(id, d);
+                        }
+                    }
                 }
             }
             Effect::EnterAttacking => {

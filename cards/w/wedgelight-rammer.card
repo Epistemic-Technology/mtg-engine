@@ -1,0 +1,9 @@
+card "Wedgelight Rammer" {
+  oracle_id 03259ab0-caa8-4620-b070-127e2c712252
+  cost {3}{W}
+  type Artifact — Spacecraft
+  pt 3/4
+  triggered when this enters: create 1 "2/2 colorless Robot artifact creature"
+  station
+  station 9: flying, first strike
+}

@@ -1,0 +1,9 @@
+card "Pride of the Road" {
+  oracle_id 2af236b0-6b30-4ddc-8735-864d2ffad68e
+  cost {3}{W}
+  type Creature — Zombie Cat Warrior
+  pt 2/5
+  keywords vigilance
+  start your engines
+  label "Max speed" triggered at beginning of your combat: target creature or Vehicle you control gains double strike
+}

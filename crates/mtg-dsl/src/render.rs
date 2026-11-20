@@ -2456,6 +2456,28 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     parts.push(format!("Blight {}", cost.blight));
                 }
             }
+            // CR 701.69a: "behold a Kithkin and exile it", "you may behold
+            // a Dragon", "Behold three Elementals".
+            CostItem::Behold => {
+                if let Some(b) = &cost.behold {
+                    let what = if b.n == 1 {
+                        filter_a(&b.filter, ctx.card)
+                    } else {
+                        format!(
+                            "{} {}",
+                            count_words(Num::N(b.n), "one"),
+                            filter_phrase(&b.filter, ctx.card, true)
+                        )
+                    };
+                    let may = if b.optional {
+                        "you may behold"
+                    } else {
+                        "Behold"
+                    };
+                    let exile = if b.exile { " and exile it" } else { "" };
+                    parts.push(format!("{may} {what}{exile}"));
+                }
+            }
         }
     }
     parts.join(", ")
@@ -2745,7 +2767,8 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::DistributeCounters { count, .. }
         | Effect::AddManaTimes { count, .. }
         | Effect::AddManaCombination { count, .. }
-        | Effect::CreateToken { count, .. } => vec![*count],
+        | Effect::CreateToken { count, .. }
+        | Effect::EmpowerJace { count } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
         Effect::Scry(n)
@@ -4037,7 +4060,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ctx.amassed = true;
             Clause::imperative(format!("amass {kind} {}", digits(*count)))
         }
-        Effect::ClearEcho => Clause::imperative(String::new()),
+        Effect::EmpowerJace { count } => {
+            Clause::imperative(format!("empower Jace {}", digits(*count)))
+        }
+        Effect::CreatedAttack | Effect::ClearEcho => Clause::imperative(String::new()),
         Effect::AddEnergy { count, who } => {
             let s = ctx.subj(*who);
             let n = match count {
@@ -6387,6 +6413,7 @@ fn lowercase_first(s: &str) -> String {
             first,
             "Target"
                 | "Reveal"
+                | "Draw"
                 | "This"
                 | "That"
                 | "These"
@@ -7044,6 +7071,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             }
             let what = spells_subject(&base, ctx.card);
             let what = what.strip_suffix(" spells").unwrap_or(&what);
+            // "Instant and sorcery spells" (a cost changer's subject) is
+            // one spell here: "an instant or sorcery spell that targets a
+            // creature" (repartee).
+            let what = what.replace("nstant and sorcery", "nstant or sorcery");
+            let what = what.as_str();
             // "an artifact spell", but "a Giant spell".
             let what = if lower_spell_subject(&base) {
                 lowercase_first(what)
@@ -7882,7 +7914,7 @@ pub(crate) fn also_subtypes(filter: &Filter, mods: &[Mod]) -> Option<Vec<String>
 }
 
 #[allow(clippy::too_many_lines)] // one case per kind of static
-fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
+fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) -> String {
     // Characteristic-defining abilities name the card.
     if let Some(Mod::CdaPt {
         count,
@@ -8073,13 +8105,13 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
                     return format!(
                         "{} {}",
                         if plural_form { "have" } else { "has" },
-                        quoted_as(a, card, &[], &())
+                        quoted_as(a, card, &[], lookup)
                     );
                 } else {
                     CardType::Creature
                 };
                 let have = if plural_form { "have" } else { "has" };
-                return format!("{have} {}", quoted(a, card, noun, &()));
+                return format!("{have} {}", quoted(a, card, noun, lookup));
             }
             // "gets +1/+1 and all creatures able to block it do so" (Gift
             // of the Deity).
@@ -8386,7 +8418,16 @@ fn quoted_as(a: &Ability, card: &Card, types: &[CardType], lookup: &dyn Lookup) 
     holder.types = types.to_vec();
     holder.groups.clone_from(&card.groups);
     holder.counts.clone_from(&card.counts);
-    format!("\"{}\"", ability_text(&holder, a, lookup))
+    let text = ability_text(&holder, a, lookup);
+    // A quoted loyalty ability brackets its cost: "[−4]: ..." (CR 606.4
+    // prints the bare symbol only on a planeswalker's own text).
+    if let Ability::Activated { cost, .. } = a
+        && cost.loyalty.is_some()
+        && let Some((c, rest)) = text.split_once(": ")
+    {
+        return format!("\"[{c}]: {rest}\"");
+    }
+    format!("\"{text}\"")
 }
 
 /// "seven or more cards are in your graveyard", "you control an Island".
@@ -8566,6 +8607,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         }
         StaticCond::Bargained => "it was bargained".to_string(),
         StaticCond::Teamwork => "this spell was cast using teamwork".to_string(),
+        // "If a Dragon was beheld": the card's behold cost's filter.
+        StaticCond::Beheld => {
+            let what = card
+                .additional
+                .as_ref()
+                .and_then(|c| c.behold.as_ref())
+                .map_or_else(|| "a card".to_string(), |b| filter_a(&b.filter, card));
+            format!("{what} was beheld")
+        }
         StaticCond::ManaSpent {
             kind: mtg_core::card::SpentKind::Total,
             at_least,
@@ -9364,7 +9414,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             cond_first,
             cond_if,
         } => {
-            let mut body = static_text(filter, mods, card);
+            let mut body = static_text(filter, mods, card, lookup);
             // "This creature doesn't untap during your untap step if ..."
             // (Goblin Rock Sled).
             if filter.relation == Relation::This {
@@ -9424,9 +9474,22 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             format!("{me} {}.", block_rule_phrase(r, card, false))
         }
+        // CR 721.2a: "2+ | Other creatures you control get +1/+1."
+        Ability::StationAbility { n, ability } => {
+            format!("{n}+ | {}", ability_text(card, ability, lookup))
+        }
         // "I — Wark — Create ...": a chapter's name follows its numerals.
         Ability::Labeled { label, ability } => {
             let text = ability_text(card, ability, lookup);
+            // A max speed dies trigger names no "this creature or
+            // another" (Embalmed Ascendant, Zahur): "Whenever a creature
+            // you control dies".
+            if label == "Max speed"
+                && let Some(rest) =
+                    text.strip_prefix(&format!("Whenever {} or another ", this_ref(card)))
+            {
+                return format!("{label} — Whenever {}", with_article(rest));
+            }
             match (ability.as_ref(), text.split_once(" — ")) {
                 (
                     Ability::Triggered {
@@ -9580,6 +9643,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Morph(c) => format!("Morph {c}"),
             crate::ast::Mechanic::Evoke(c) => format!("Evoke {c}"),
             crate::ast::Mechanic::Madness(c) => format!("Madness {c}"),
+            crate::ast::Mechanic::Mayhem(c) => format!("Mayhem {c}"),
             crate::ast::Mechanic::Foretell(c) => format!("Foretell {c}"),
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
@@ -9663,6 +9727,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Renown(n) => format!("Renown {n}"),
             crate::ast::Mechanic::Unleash => "Unleash".to_string(),
             crate::ast::Mechanic::Afterlife(n) => format!("Afterlife {n}"),
+            // "Mobilize X, where X is the number of creature cards in your
+            // graveyard."
+            crate::ast::Mechanic::Mobilize(Num::Count(i)) => {
+                card.counts.get(usize::from(*i)).map_or_else(
+                    || "Mobilize X".to_string(),
+                    |c| {
+                        format!(
+                            "Mobilize X, where X is {}.",
+                            count_phrase(&c.expr, card, false)
+                        )
+                    },
+                )
+            }
+            crate::ast::Mechanic::Mobilize(n) => format!("Mobilize {}", digits(*n)),
             crate::ast::Mechanic::Extort => "Extort".to_string(),
             crate::ast::Mechanic::Mentor => "Mentor".to_string(),
             crate::ast::Mechanic::Riot => "Riot".to_string(),
@@ -9728,8 +9806,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::AuraStays => "This effect doesn't remove this Aura.".to_string(),
         // CR 721.2: "4+ | Flying".
         Ability::StationLevel { n, keywords } => {
-            let ks: Vec<String> = keywords.iter().map(|k| capitalize(k.name())).collect();
-            format!("{n}+ | {}", ks.join(", "))
+            // "9+ | Flying, first strike": a keyword line, capitalized once.
+            let ks: Vec<&str> = keywords.iter().map(|k| k.name()).collect();
+            format!("{n}+ | {}", capitalize(&ks.join(", ")))
         }
         // CR 716.2a, 719.2.
         Ability::ClassLevel { level, cost } => format!("{cost}: Level {level}"),

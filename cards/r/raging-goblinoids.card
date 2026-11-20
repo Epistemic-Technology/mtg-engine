@@ -1,0 +1,8 @@
+card "Raging Goblinoids" {
+  oracle_id c807b53f-2917-41a0-812c-57240b623365
+  cost {4}{R}
+  type Creature — Goblin Berserker Villain
+  pt 5/4
+  keywords haste
+  mayhem {2}{R}
+}

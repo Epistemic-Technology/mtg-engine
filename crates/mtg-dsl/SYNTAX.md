@@ -127,9 +127,11 @@ to its other face as well.
 | `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything`, `protection from creature your opponents control` | Protection from a quality other than a color (CR 702.16); colors are keywords. A controller in the quality is judged from the protected object's controller ("protection from creatures your opponents control": its own creatures still may block and target it). Consecutive protections print as one line, "Protection from Spirits and from Arcane" (the gate splits such a line into one protection each, CR 702.16g); in a list of granted keywords, "has protection from green and from blue". |
 | `fabricate 1`, `renown 1`, `evolve`, `unleash` | Fabricate (CR 702.123): when it enters, you may put N +1/+1 counters on it; if you don't (or it has left the battlefield), you create N "1/1 colorless Servo artifact creature" tokens. Renown (CR 702.112): when it deals combat damage to a player, if it isn't renowned, N +1/+1 counters and it becomes renowned (a designation that lasts until it leaves the battlefield). Evolve (CR 702.100): whenever a creature you control enters, if that creature has greater power or greater toughness (judged as it triggers and as it resolves, the entering creature by last known information if it has left), a +1/+1 counter on this. Unleash (CR 702.98): you may have it enter with a +1/+1 counter; it can't block as long as it has a +1/+1 counter. |
 | `afterlife 1`, `extort`, `mentor` | Afterlife (CR 702.135): when it dies, N "1/1 white and black Spirit creature with flying" tokens. Extort (CR 702.101): whenever you cast a spell, you may pay {W/B}; if you do, each opponent loses 1 life and you gain the life lost this way. Mentor (CR 702.134): whenever it attacks, a +1/+1 counter on target attacking creature `with lesser power` (a filter word: power less than the source's, as it is or last existed); `has mentor` grants it. |
+| `mobilize 2`, `mobilize count where graveyard creature` | Mobilize (CR 702.181): whenever it attacks, N "1/1 red Warrior creature" tokens enter tapped and attacking what it attacks (never declared as attackers, CR 508.4), sacrificed at the beginning of the next end step. Prints "Mobilize 2", or "Mobilize X, where X is the number of creature cards in your graveyard." with a count. |
 | `riot`, `living weapon`, `activated {5}{R}: monstrosity 3`, `static as long as monstrous, this: has flying` | Riot (CR 702.136): as it enters, its controller may have it enter with an additional +1/+1 counter; if they don't, it has haste for as long as it is that object (scenarios: `accept`/`decline`). Living weapon (CR 702.92): when this Equipment enters, a "0/0 black Phyrexian Germ creature" token, then attach this to it. Monstrosity N (CR 701.37), an effect, `X` allowed: if the source isn't monstrous, N +1/+1 counters on it and it becomes monstrous (a designation kept until it leaves the battlefield); `monstrous` is the condition "this creature is monstrous". |
 | `ingest`, `reinforce 1 {1}{R}` | Ingest (CR 702.115): whenever it deals combat damage to a player, that player exiles the top card of their library. Reinforce N—cost (CR 702.77): "{cost}, Discard this card: Put N +1/+1 counters on target creature." (activated from the hand). |
 | `retrace`, `jump start`, `surge {1}{R}`, `spectacle {R}` | Retrace (CR 702.81): the card may be cast from your graveyard for its mana cost and a land card discarded (scenarios: `from graveyard discarding "Forest"`); it isn't exiled. Jump-start (CR 702.133): the same with any card discarded, exiled as it leaves the stack (flashback's casting, for the mana cost and a discard). Surge (CR 702.117) and spectacle (CR 702.137): the card's alternative cost (`alternative` in scenarios), offered if you've cast another spell this turn, or if an opponent lost life this turn. Printed "Retrace", "Jump-start", "Surge {1}{R}", "Spectacle {R}" where written. |
+| `mayhem {1}{R}` | Mayhem: a card its owner discarded this turn may be cast from their graveyard for this cost (scenarios: `from graveyard`), timing rules still applying; the discarded card is remembered as the graveyard object it became, until the turn ends. Prints `Mayhem {1}{R}` in place. The land form ("You may play this card from your graveyard ...") is not supported. |
 | `poisonous 1`, `frenzy 1`, `absorb 1`, `provoke` | Poisonous (CR 702.70): combat damage to a player gives them N poison counters. Frenzy (CR 702.68): attacks and isn't blocked, +N/+0 until end of turn. Absorb (CR 702.64): prevent N of each damage dealt to it (a static `prevent next N` prevents N of every event, not a shield). Provoke (CR 702.39): attacks, you may have target creature defending player controls untap and block it if able. All four, and `outlast {2}`, may be granted bare: `static all Sliver creature: has poisonous 1` ("All Sliver creatures have poisonous 1."). |
 | `modular 2`, `cumulative upkeep {1}`, `exert: this gets +2/+2` | Modular (CR 702.43): enters with N +1/+1 counters; as it dies, they may move to target artifact creature. Cumulative upkeep (CR 702.24): each upkeep an age counter, then pay the cost per counter or sacrifice it. Exert (CR 701.43): as it attacks, its controller may exert it (it doesn't untap during their next untap step) for the effects. The keyword `delve` (CR 702.66) lets graveyard cards pay {1} each. |
 | `entwine {2}`, `escape {3}{B} exile 3`, `escapes with 2 +1/+1 counters` | Entwine (CR 702.42): a `choose one` spell may choose every mode for this cost on top. Escape (CR 702.138): cast from the graveyard for this cost, exiling N other cards from it (the oldest); a permanent cast this way keeps that, for `escapes with`. The keyword `exploit` (CR 702.110) sacrifices a creature as it enters, if its controller wants, and `triggered when this exploits a creature:` abilities follow. `discover 4` (CR 701.57) is an effect. |
@@ -256,6 +258,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell`, `whenever a player casts a spell` | |
 | `label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: ...` | "Magecraft — Whenever you cast or copy an instant or sorcery spell, ..." (a copy would trigger it too, CR 707.10; nothing copies spells yet) |
 | `label "Heroic" triggered whenever you cast a spell that targets this: ...` | "Heroic — Whenever you cast a spell that targets this creature, ..." (any spell filter: `whenever you cast red spell that targets this`): the spell's targets as it is cast (CR 601.2c), so copies and abilities don't trigger it. The spell is the triggering object, but `it` in the effects is this creature, as Oracle has it ("put a +1/+1 counter on it"). |
+| `label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: ...` | "Repartee — Whenever you cast an instant or sorcery spell that targets a creature, ...": any creature among the spell's targets as it is cast (CR 601.2c). |
 | `label "Valiant" triggered whenever this becomes targeted by you first time each turn: ...` | "Valiant — Whenever this creature becomes the target of a spell or ability you control for the first time each turn, ...": once a turn, the first time its controller's spell or ability targets it. |
 | `when this becomes targeted` | becomes the target of a spell or ability |
 | `whenever this becomes targeted` | "Whenever this creature becomes the target of a spell or ability" (`when` prints "When") |
@@ -701,6 +704,21 @@ prints "As an additional cost to cast this spell, blight 1 or pay {3}.").
 As a cost the engine puts the counters on the toughest creature its payer
 controls, and it can't be paid without a creature.
 
+Behold (CR 701.69a) is a cost: `additional cost behold Kithkin` with
+`additional cost or {2}` prints "As an additional cost to cast this
+spell, behold a Kithkin or pay {2}."; `behold and exile Elf` "behold an
+Elf and exile it"; `behold 3 Elemental` "Behold three Elementals"; `may
+behold Dragon` (a spell's additional cost) "you may behold a Dragon", an
+optional additional cost (scenarios decline it with `other_cost`). The
+payer chooses a matching permanent they control or reveals a matching
+card from their hand, never the spell itself; the engine picks, a
+permanent first, or with `and exile` a card in hand first. What a spell's
+behold cost exiles is linked to the permanent the spell becomes (CR
+607.2a): `triggered when this leaves the battlefield: return exiled card
+to hand` ("return the exiled card to its owner's hand"). The condition
+`beheld` (`if beheld, you gain 2 life`) prints "If a Dragon was beheld"
+with the card's behold filter: the behold cost was paid.
+
 Filters may have an alternative: `creature or Vehicle`, `land or
 nonblack creature`, `attacking or blocking creature`, `Bear, Spider, or
 Wolf you control`. A spell target may say what the spell targets:
@@ -900,7 +918,10 @@ damage to any target.\""), written as its own ability line (`activated
 {T}: deal 1 damage to any target`), where `this` is the object that has
 it; "this permanent" when the group names only a subtype (`static all
 Sliver: has ability { activated {2}: regenerate this }` prints "All
-Slivers have \"{2}: Regenerate this permanent.\""). A replacement or
+Slivers have \"{2}: Regenerate this permanent.\""). A granted loyalty
+ability brackets its cost (`static planeswalker you control: has ability
+{ loyalty -4: ... }`: "Planeswalkers you control have \"[−4]: ...\"").
+A token a quoted ability creates prints its full description. A replacement or
 prevention ability may be granted (absorb). `has protection from
 multicolored`, `has protection from artifact` grant protection from a
 quality (CR 702.16); as an effect, `target creature gains protection from
@@ -1040,7 +1061,8 @@ you control", the same count), `greatest power`
 drawn this turn"), `spells cast this turn`, `other spells cast this turn`
 ("the number of other spells you've cast this turn": not the resolving
 spell itself), `colors among permanents` ("colors among permanents
-you control"), `colors spent` (converge: "the number of colors of mana
+you control"; vivid, `label "Vivid"`; also a characteristic-defining
+power, `static this: cda power colors among permanents`), `colors spent` (converge: "the number of colors of mana
 spent to cast this spell"), `treasure spent` ("for each mana from a
 Treasure spent to cast it"), `opponents graveyards [<filter>]` ("creature cards in your
 opponents' graveyards"), `opponents attacked` ("opponents you're
@@ -1368,7 +1390,12 @@ explores` (CR 701.44), `<what> phases out` (CR 702.26: treated as though
 it doesn't exist, with what's attached to it, until it phases in as its
 controller's next untap step begins; `keywords phasing` phases a
 permanent out at every other such step), `amass Zombies 2` (CR 701.47; needs the token
-"0/0 black Zombie Army creature"), `<who> gets 1 poison counters`, `add {G}
+"0/0 black Zombie Army creature"), `empower jace 2` / `empower jace count
+where creature you control` ("Empower Jace 2.", "Empower Jace X, where X
+is ...": N loyalty counters on a Jace planeswalker token you control,
+the token "Jace planeswalker" (blue, 0 loyalty, "[−1]: Surveil 1",
+"[−3]: Draw a card.") created first if you control none; a nontoken
+Jace doesn't count), `<who> gets 1 poison counters`, `add {G}
 count each Elf on battlefield` ("Add {G} for each Elf on the
 battlefield."), `if kicked, <clause>` ("If this spell was kicked, ..."
 for a spell with `kicker`; `if kicked, also <clause>` puts "also" after
@@ -1925,10 +1952,14 @@ dungeons (CR 309):
   one, at most once each turn, when an opponent loses life during your
   turn, to at most 4), `becomes day as this enters` ("If it's neither day
   nor night, it becomes day as this creature enters.").
-- `label "Max speed" <static or activated ability>`: "Max speed — ..."
-  (CR 702.179e): the ability works only while its controller's speed is
-  4 (a static ability's condition, an activated ability's activation
-  condition, graveyard and mana abilities included).
+- `label "Max speed" <static, activated, or triggered ability>`, `label
+  "Max speed" spells you cast cost {1} less`: "Max speed — ..." (CR
+  702.179e): the ability works only while its controller's speed is 4 (a
+  static ability's or cost reduction's condition, an activated ability's
+  activation condition, graveyard and mana abilities included; a
+  triggered ability triggers only at max speed). A dies trigger under it
+  prints "Whenever a creature you control dies" without "this creature or
+  another".
 - Trigger: `whenever day becomes night or night becomes day` (CR 731.1a;
   not the first time it becomes day).
 - `impulse 2 forever`: "Exile the top two cards of your library. You may
@@ -2023,7 +2054,12 @@ Spacecraft: `station` ("Station": tap another untapped creature you
 control, put charge counters equal to its power on this permanent,
 only as a sorcery, CR 702.184) and `station 4: flying` ("4+ | Flying",
 CR 721.2: with four or more charge counters it has the keywords and,
-when the card has `pt`, is an artifact creature). "this Spacecraft" is
+when the card has `pt`, is an artifact creature), and `station 2: <ability
+line>` ("2+ | Other creatures you control get +1/+1."; any static,
+activated, mana, or triggered ability, CR 721.2a: the permanent has it
+only while it has that many charge counters, and it never makes the
+permanent a creature). A Planet (a land with `station`) has no `pt` and
+never becomes a creature. "this Spacecraft" is
 the self-noun; the plural is "Spacecraft". A cost's tapped creature is
 recorded for the resolution (`ThisWay::Tapped`). Static condition:
 `attacked with Spacecraft this turn` ("you attacked with a Spacecraft

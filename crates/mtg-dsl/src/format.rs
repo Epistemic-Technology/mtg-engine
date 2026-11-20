@@ -598,6 +598,8 @@ impl Fmt {
             Effect::Explore { what } => format!("{} explores", self.recipient(*what, t)),
             Effect::PhaseOut { what } => format!("{} phases out", self.recipient(*what, t)),
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
+            Effect::EmpowerJace { count } => format!("empower jace {}", num(*count)),
+            Effect::CreatedAttack => String::new(),
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
             Effect::ManifestDread => "manifest dread".to_string(),
@@ -3449,6 +3451,23 @@ fn cost_text(c: &Cost) -> String {
                     parts.push(format!("blight {}", c.blight));
                 }
             }
+            CostItem::Behold => {
+                if let Some(b) = &c.behold {
+                    let mut s = String::new();
+                    if b.optional {
+                        s.push_str("may ");
+                    }
+                    s.push_str("behold ");
+                    if b.exile {
+                        s.push_str("and exile ");
+                    }
+                    if b.n != 1 {
+                        let _ = write!(s, "{} ", b.n);
+                    }
+                    s.push_str(&filter(&b.filter));
+                    parts.push(s);
+                }
+            }
         }
     }
     if c.restrict.is_empty() {
@@ -3781,6 +3800,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Kicked => "kicked".to_string(),
         StaticCond::Bargained => "bargained".to_string(),
         StaticCond::Teamwork => "teamwork".to_string(),
+        StaticCond::Beheld => "beheld".to_string(),
         StaticCond::ManaSpent {
             kind,
             at_least,
@@ -4245,6 +4265,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
             }
         }
+        Ability::StationAbility { n, ability: inner } => {
+            let mut tmp = String::new();
+            self::ability(&mut tmp, inner, indent, groups);
+            let _ = write!(out, "{indent}station {n}: {}", &tmp[indent.len()..]);
+        }
         Ability::Labeled {
             label,
             ability: inner,
@@ -4387,6 +4412,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Morph(c) => format!("morph {c}"),
                 crate::ast::Mechanic::Evoke(c) => format!("evoke {c}"),
                 crate::ast::Mechanic::Madness(c) => format!("madness {c}"),
+                crate::ast::Mechanic::Mayhem(c) => format!("mayhem {c}"),
                 crate::ast::Mechanic::Foretell(c) => format!("foretell {c}"),
                 crate::ast::Mechanic::Suspend(n, c) => format!("suspend {n} {c}"),
                 crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),
@@ -4446,6 +4472,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Renown(n) => format!("renown {n}"),
                 crate::ast::Mechanic::Unleash => "unleash".to_string(),
                 crate::ast::Mechanic::Afterlife(n) => format!("afterlife {n}"),
+                crate::ast::Mechanic::Mobilize(n) => format!("mobilize {}", num(*n)),
                 crate::ast::Mechanic::Extort => "extort".to_string(),
                 crate::ast::Mechanic::Mentor => "mentor".to_string(),
                 crate::ast::Mechanic::Riot => "riot".to_string(),

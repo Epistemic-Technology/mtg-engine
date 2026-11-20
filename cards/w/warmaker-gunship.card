@@ -1,0 +1,9 @@
+card "Warmaker Gunship" {
+  oracle_id c947171b-ed9e-4b83-af45-bd595a8d84ee
+  cost {2}{R}
+  type Artifact — Spacecraft
+  pt 4/3
+  triggered when this enters: deal damage equal artifact you control to target creature an opponent controls
+  station
+  station 6: flying
+}

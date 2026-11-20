@@ -42,6 +42,15 @@ pub fn compile_all(cards: &[Card]) -> Result<CardPool, CompileError> {
     Ok(pool)
 }
 
+/// Mobilize's triggered ability, its count and its tokens' attacking
+/// filled in by `expand_mechanic`.
+const MOBILIZE: &str = "card \"Mobilize\" {
+  triggered whenever this attacks: create 1 tapped \"1/1 red Warrior creature\"; delayed those tokens: sacrifice those tokens at beginning of the next end step
+}";
+
+/// The token Empower Jace creates.
+pub const JACE_TOKEN: &str = "Jace planeswalker";
+
 /// Sort definitions into compile order: tokens, then emblems, then cards,
 /// each group by name.
 pub fn compile_order(cards: &mut [Card]) {
@@ -437,6 +446,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Madness(cost)) => {
                     b = b.madness(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Mayhem(cost)) => {
+                    b = b.mayhem(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Foretell(cost)) => {
                     b = b.foretell(cost.clone());
                 }
@@ -685,6 +697,15 @@ impl Compiler<'_> {
         }
         if let Some(cost) = &card.additional_or {
             b = b.additional_or(self.cost(cost));
+        } else if card
+            .additional
+            .as_ref()
+            .and_then(|c| c.behold.as_ref())
+            .is_some_and(|b| b.optional)
+        {
+            // "you may behold a Dragon": an optional additional cost, the
+            // other of two costs being nothing (CR 601.2b).
+            b = b.additional_or(CoreCost::default());
         }
         if let Some(a) = &card.alt_cost {
             if a.cost.conditions.len() > 1 || a.cost.tap || a.cost.discard > 0 {
@@ -784,6 +805,7 @@ impl Compiler<'_> {
                             | Mechanic::MorphCost(_)
                             | Mechanic::Evoke(_)
                             | Mechanic::Madness(_)
+                            | Mechanic::Mayhem(_)
                             | Mechanic::Foretell(_)
                             | Mechanic::Suspend(..)
                             | Mechanic::Entwine(_)
@@ -1042,6 +1064,37 @@ impl Compiler<'_> {
         Ok(out)
     }
 
+    /// An ability the source has only while `c` holds ("Max speed —
+    /// ...", "2+ | ..."): a static ability's or cost change's condition,
+    /// an activated ability's activation condition, a triggered
+    /// ability's condition as it triggers. A triggered ability checks it
+    /// again on resolution; neither speed nor charge counters normally
+    /// fall in between.
+    fn while_holds(
+        &mut self,
+        mut a: AbilityDef,
+        c: StaticCondition,
+        what: &str,
+    ) -> Result<AbilityDef, CompileError> {
+        match &mut a {
+            AbilityDef::Static(sa) if sa.condition.is_none() => sa.condition = Some(c),
+            AbilityDef::Activated(aa) => aa.conditions.push(c),
+            AbilityDef::Triggered(ta) if ta.condition.is_none() => {
+                let i = self.pool.intern_condition(c);
+                ta.condition = Some(mtg_core::card::Condition::Static(i));
+            }
+            AbilityDef::CostChange(cc) if cc.cond.is_none() => {
+                cc.cond = Some(self.pool.intern_condition(c));
+            }
+            _ => {
+                return self.err(format!(
+                    "{what} applies to a static, activated, triggered, or cost ability"
+                ));
+            }
+        }
+        Ok(a)
+    }
+
     #[allow(clippy::too_many_lines)] // one arm per condition
     fn static_cond(&mut self, c: &StaticCond) -> StaticCondition {
         match c {
@@ -1140,6 +1193,7 @@ impl Compiler<'_> {
             StaticCond::Kicked => StaticCondition::Kicked,
             StaticCond::Bargained => StaticCondition::Bargained,
             StaticCond::Teamwork => StaticCondition::Teamwork,
+            StaticCond::Beheld => StaticCondition::Beheld,
             StaticCond::Saddled => StaticCondition::Saddled,
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
             StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
@@ -1390,6 +1444,13 @@ impl Compiler<'_> {
                 })
             }),
             reveal_hand: c.reveal_hand,
+            behold: c.behold.as_ref().map(|b| {
+                Box::new(mtg_core::card::Behold {
+                    filter: self.filter(&b.filter),
+                    n: b.n,
+                    exile: b.exile,
+                })
+            }),
         }
     }
 
@@ -2258,6 +2319,16 @@ impl Compiler<'_> {
                     return self.err(format!("unknown token \"{key}\""));
                 };
                 out.push(CoreEffect::Amass {
+                    count: *count,
+                    token,
+                });
+            }
+            Effect::CreatedAttack => out.push(CoreEffect::CreatedAttack),
+            Effect::EmpowerJace { count } => {
+                let Some(token) = self.pool.lookup(JACE_TOKEN) else {
+                    return self.err(format!("unknown token \"{JACE_TOKEN}\""));
+                };
+                out.push(CoreEffect::EmpowerJace {
                     count: *count,
                     token,
                 });
@@ -3176,15 +3247,19 @@ impl Compiler<'_> {
             // have max speed, this object has [ability]": the ability's
             // own condition.
             Ability::Labeled { label, ability } if label == "Max speed" => {
-                let mut a = self.ability(ability)?;
-                match &mut a {
-                    AbilityDef::Static(sa) if sa.condition.is_none() => {
-                        sa.condition = Some(StaticCondition::MaxSpeed);
-                    }
-                    AbilityDef::Activated(aa) => aa.conditions.push(StaticCondition::MaxSpeed),
-                    _ => return self.err("max speed applies to a static or activated ability"),
-                }
-                return Ok(a);
+                let a = self.ability(ability)?;
+                return self.while_holds(a, StaticCondition::MaxSpeed, "max speed");
+            }
+            // CR 721.2a: "As long as this permanent has N or more charge
+            // counters on it, it has [ability]."
+            Ability::StationAbility { n, ability } => {
+                let a = self.ability(ability)?;
+                let c = self.static_cond(&StaticCond::SourceCounters {
+                    kind: mtg_core::card::CounterKind::Charge,
+                    n: *n,
+                    at_least: true,
+                });
+                return self.while_holds(a, c, "a station level");
             }
             Ability::Labeled { ability, .. } => return self.ability(ability),
             Ability::BlockRule(r) => AbilityDef::BlockRule(match r {
@@ -3270,6 +3345,7 @@ impl Compiler<'_> {
                 | Mechanic::MorphCost(_)
                 | Mechanic::Evoke(_)
                 | Mechanic::Madness(_)
+                | Mechanic::Mayhem(_)
                 | Mechanic::Foretell(_)
                 | Mechanic::Suspend(..)
                 | Mechanic::Entwine(_)
@@ -3776,6 +3852,20 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 to: Recipient::Source,
             }),
         },
+        // CR 702.181a: "Whenever this creature attacks, create N tapped
+        // and attacking 1/1 red Warrior creature tokens. Sacrifice them at
+        // the beginning of the next end step."
+        Mechanic::Mobilize(n) => {
+            let mut cards = crate::parse(MOBILIZE).expect("mobilize's expansion parses");
+            let mut a = cards.remove(0).abilities.remove(0);
+            if let Ability::Triggered { effects, .. } = &mut a {
+                if let Some(E::CreateToken { count, .. }) = effects[0].effects.first_mut() {
+                    *count = *n;
+                }
+                effects.insert(1, Sentence::new(vec![E::CreatedAttack]));
+            }
+            a
+        }
         // CR 702.135a: "When this creature dies, create N 1/1 white and
         // black Spirit creature tokens with flying."
         Mechanic::Afterlife(n) => Ability::Triggered {
@@ -4145,6 +4235,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Bloodthirst(_)
         | Mechanic::Evoke(_)
         | Mechanic::Madness(_)
+        | Mechanic::Mayhem(_)
         | Mechanic::Foretell(_)
         | Mechanic::Suspend(..)
         | Mechanic::Entwine(_)
