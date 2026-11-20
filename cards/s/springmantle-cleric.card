@@ -1,0 +1,7 @@
+card "Springmantle Cleric" {
+  oracle_id 83865eee-709a-4a34-94f1-9b818f31323f
+  cost {4}{G}
+  type Creature — Elf Cleric
+  pt 2/3
+  enters with count each colors spent +1/+1 counters
+}

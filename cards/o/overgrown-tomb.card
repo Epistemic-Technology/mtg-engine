@@ -1,0 +1,5 @@
+card "Overgrown Tomb" {
+  oracle_id 975ec9a3-6f20-4177-8211-82526e092538
+  type Land — Swamp Forest
+  enters tapped unless pay 2 life
+}

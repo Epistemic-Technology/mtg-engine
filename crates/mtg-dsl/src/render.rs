@@ -2816,8 +2816,8 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::AddManaTimes { count, .. }
         | Effect::AddManaCombination { count, .. }
         | Effect::CreateToken { count, .. }
-        | Effect::EmpowerJace { count } => vec![*count],
-        Effect::Earthbend { count, .. } => vec![*count],
+        | Effect::EmpowerJace { count }
+        | Effect::Earthbend { count, .. } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
         Effect::Scry(n)

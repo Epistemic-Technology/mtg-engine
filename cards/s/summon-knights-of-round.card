@@ -1,0 +1,9 @@
+card "Summon: Knights of Round" {
+  oracle_id 73122880-d7f4-422f-a336-18773bcb7bfe
+  cost {6}{W}{W}
+  type Enchantment Creature — Saga Knight
+  pt 3/3
+  triggered chapter 1, 2, 3, 4: create 3 "2/2 white Knight creature"
+  label "Ultimate End" triggered chapter 5: each other creature you control gets +2/+2; put 1 indestructible counters on each of them
+  keyword indestructible
+}

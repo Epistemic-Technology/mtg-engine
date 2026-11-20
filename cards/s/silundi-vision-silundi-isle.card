@@ -1,0 +1,12 @@
+card "Silundi Vision // Silundi Isle" {
+  oracle_id b0182ca0-f353-4012-9121-6f4ac9f7a046
+  layout modal_dfc
+  cost {2}{U}
+  type Instant
+  spell: dig 6 take instant or sorcery card may revealing rest bottom random
+  face "Silundi Isle" {
+    type Land
+    enters tapped
+    mana {U}
+  }
+}

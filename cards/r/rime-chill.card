@@ -1,0 +1,10 @@
+card "Rime Chill" {
+  oracle_id bad84deb-3f2c-46fd-9dcb-4e3ba9732769
+  cost {6}{U}
+  type Instant
+  label "Vivid" this spell costs {1} less count each colors among permanents
+  spell {
+    tap up to two target creatures; put 1 stun counters on each of them
+    draw 1 cards
+  }
+}

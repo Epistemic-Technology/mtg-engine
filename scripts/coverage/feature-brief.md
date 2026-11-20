@@ -34,8 +34,14 @@ the diff of one recent feature commit close to yours (`git log --oneline
 `Effect::BecomeColor`, `Trigger::Leaves`, or `CardDef::target_cost`.
 Cite rules (CR numbers) in comments the way the code does.
 
-Your worktree lacks the gitignored `data/` directory: symlink it from
-the main checkout before running anything that reads the snapshot.
+Your worktree's `data/` holds only the tracked files (`cr/`,
+`sources.lock`): symlink the gitignored subdirectories (`games`,
+`mtgjson`, `scryfall`, `xmage`) from the main checkout's `data/` into it
+before running anything that reads the snapshot.
+
+Keep scratch files in a directory of your own (`mktemp -d`); a shared
+scratch directory is written by every agent, and same-named files
+overwrite each other.
 
 Other agents are working in parallel. Your instructions list what each
 of them is building. If you find you need a primitive on that list, do

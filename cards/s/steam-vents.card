@@ -1,0 +1,5 @@
+card "Steam Vents" {
+  oracle_id 17039058-822d-409f-938c-b727a366ba63
+  type Land — Island Mountain
+  enters tapped unless pay 2 life
+}

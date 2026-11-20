@@ -1,0 +1,8 @@
+card "Mindsparker" {
+  oracle_id 54866c25-b332-46c8-a2c5-1a71b702ddc0
+  cost {1}{R}{R}
+  type Creature — Elemental
+  pt 3/2
+  keywords first strike
+  triggered whenever an opponent casts white or blue instant or sorcery spell: deal 2 damage to that player
+}

@@ -1,0 +1,7 @@
+card "Leafdrake Roost" {
+  oracle_id b5ff42a1-1ac4-472b-8479-5e3749845305
+  cost {3}{G}{U}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: has ability { activated {G}{U}, {T}: create 1 "2/2 green and blue Drake creature with flying" }
+}

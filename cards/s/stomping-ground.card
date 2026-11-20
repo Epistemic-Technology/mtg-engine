@@ -1,0 +1,5 @@
+card "Stomping Ground" {
+  oracle_id 16052b52-ade1-406f-a06b-ce7ea607fb63
+  type Land — Mountain Forest
+  enters tapped unless pay 2 life
+}

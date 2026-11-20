@@ -1,0 +1,5 @@
+card "Breeding Pool" {
+  oracle_id 20283c4a-f1f0-42f0-bc08-6da87474426b
+  type Land — Forest Island
+  enters tapped unless pay 2 life
+}

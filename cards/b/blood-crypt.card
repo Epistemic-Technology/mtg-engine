@@ -1,0 +1,5 @@
+card "Blood Crypt" {
+  oracle_id 43985bbc-a0f6-4812-984e-392bc8562633
+  type Land — Swamp Mountain
+  enters tapped unless pay 2 life
+}

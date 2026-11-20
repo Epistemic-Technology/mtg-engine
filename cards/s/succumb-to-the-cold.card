@@ -1,0 +1,6 @@
+card "Succumb to the Cold" {
+  oracle_id 73992788-8084-459c-8375-9ccc8579c5d7
+  cost {2}{U}
+  type Instant
+  spell: tap 1 to 2 target creatures an opponent controls; put 1 stun counters on each of them
+}

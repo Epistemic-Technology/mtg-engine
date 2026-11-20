@@ -1,0 +1,7 @@
+card "Mabel, Valley Hero" {
+  oracle_id ab56f7cf-9538-45b5-a657-1e2ebef1e92b
+  cost {1}{R}{W}
+  type Legendary Creature — Mouse Soldier
+  pt 1/2
+  triggered whenever this or creature you control enters: put 1 +1/+1 counters on target creature that entered this turn
+}

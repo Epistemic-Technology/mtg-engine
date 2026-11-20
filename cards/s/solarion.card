@@ -1,0 +1,8 @@
+card "Solarion" {
+  oracle_id 4022e540-8fa0-4eee-bcf1-df5046289f2b
+  cost {7}
+  type Artifact Creature — Construct
+  pt 0/0
+  sunburst
+  activated {T}: double the number of +1/+1 counters on this
+}

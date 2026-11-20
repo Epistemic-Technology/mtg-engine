@@ -1,0 +1,8 @@
+card "Lavacore Elemental" {
+  oracle_id 70b6fde2-f759-4478-926c-b5601b7d903b
+  cost {2}{R}
+  type Creature — Elemental
+  pt 5/3
+  vanishing 1
+  triggered whenever creature you control deals combat damage to a player: put 1 time counters on this
+}

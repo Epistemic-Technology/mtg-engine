@@ -1,0 +1,5 @@
+card "Sacred Foundry" {
+  oracle_id 45181cb8-2090-4471-ba90-e5a8f04d525f
+  type Land — Mountain Plains
+  enters tapped unless pay 2 life
+}

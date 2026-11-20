@@ -1,0 +1,7 @@
+card "Roar of Endless Song" {
+  oracle_id a3570093-3c16-42e7-a83d-2ff611a891b5
+  cost {2}{G}{U}{R}
+  type Enchantment — Saga
+  triggered chapter 1, 2: create 1 "5/5 green Elephant creature"
+  triggered chapter 3: double the power and toughness of each creature you control
+}

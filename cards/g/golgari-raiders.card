@@ -1,0 +1,8 @@
+card "Golgari Raiders" {
+  oracle_id abd12238-ea9d-4124-8229-3a479b8464d7
+  cost {3}{G}
+  type Creature — Elf Warrior
+  pt 0/0
+  keywords haste
+  label "Undergrowth" enters with count each graveyard creature +1/+1 counters
+}

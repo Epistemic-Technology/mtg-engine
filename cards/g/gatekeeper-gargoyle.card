@@ -1,0 +1,8 @@
+card "Gatekeeper Gargoyle" {
+  oracle_id a175de44-3a7e-4165-8f9a-8173c0df13d6
+  cost {6}
+  type Artifact Creature — Gargoyle
+  pt 3/3
+  keywords flying
+  enters with count each Gate you control +1/+1 counters
+}

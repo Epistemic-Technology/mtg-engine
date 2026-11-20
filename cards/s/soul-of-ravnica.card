@@ -1,0 +1,9 @@
+card "Soul of Ravnica" {
+  oracle_id eb014442-5935-4333-8078-ee4896dce653
+  cost {4}{U}{U}
+  type Creature — Avatar
+  pt 6/6
+  keywords flying
+  activated {5}{U}{U}: draw count each colors among permanents cards
+  activated {5}{U}{U}, exile this from graveyard: draw count each colors among permanents cards
+}

@@ -1,0 +1,12 @@
+card "Sundering Eruption // Volcanic Fissure" {
+  oracle_id c95309e9-5c2f-4518-b2fd-825d3d0a4ae0
+  layout modal_dfc
+  cost {2}{R}
+  type Sorcery
+  spell: destroy target land; its controller may search basic land card to battlefield tapped; each creature without flying can't block
+  face "Volcanic Fissure" {
+    type Land
+    enters tapped unless pay 3 life
+    mana {R}
+  }
+}

@@ -1,0 +1,9 @@
+card "Suncrusher" {
+  oracle_id 4e81ead0-df8b-4d9d-b1cb-d1d9dc503d4c
+  cost {9}
+  type Artifact Creature — Construct
+  pt 3/3
+  sunburst
+  activated {4}, {T}, remove 1 +1/+1 counters from this: destroy target creature
+  activated {2}, remove 1 +1/+1 counters from this: return this creature to hand
+}

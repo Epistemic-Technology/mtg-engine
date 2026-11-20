@@ -1,0 +1,19 @@
+card "Avabruck Caretaker // Hollowhenge Huntmaster" {
+  oracle_id 730be0d6-2612-44d6-9d36-e1fc6510c6bd
+  layout transform
+  cost {4}{G}{G}
+  type Creature — Human Werewolf
+  pt 4/4
+  keywords hexproof
+  triggered at beginning of your combat: put 2 +1/+1 counters on another target creature you control
+  daybound
+  face "Hollowhenge Huntmaster" {
+    type Creature — Werewolf
+    pt 6/6
+    color green
+    keywords hexproof
+    static other permanent you control: has hexproof
+    triggered at beginning of your combat: put 2 +1/+1 counters on each creature you control
+    nightbound
+  }
+}

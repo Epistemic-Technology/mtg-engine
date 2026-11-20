@@ -1,0 +1,5 @@
+card "Godless Shrine" {
+  oracle_id 73864fcc-1bde-4bc0-831e-2b93e546e417
+  type Land — Plains Swamp
+  enters tapped unless pay 2 life
+}

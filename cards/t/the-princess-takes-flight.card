@@ -1,0 +1,8 @@
+card "The Princess Takes Flight" {
+  oracle_id 70d52457-1867-482c-ba7a-1f7dacc4514f
+  cost {2}{W}
+  type Enchantment — Saga
+  triggered chapter 1: exile up to one target creature
+  triggered chapter 2: target creature you control gets +2/+2 and gains flying
+  triggered chapter 3: return exiled card to battlefield
+}

@@ -1,0 +1,6 @@
+card "Homesickness" {
+  oracle_id ee57fba8-e68b-4c52-8de7-9b9873d84506
+  cost {4}{U}{U}
+  type Instant
+  spell: target player draws 2 cards; tap up to two target creatures; put 1 stun counters on each of them
+}

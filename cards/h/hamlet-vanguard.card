@@ -1,0 +1,8 @@
+card "Hamlet Vanguard" {
+  oracle_id fa0bff4f-af97-4733-b9d3-a0bc9ef1e2ca
+  cost {2}{G}
+  type Creature — Human Warrior
+  pt 1/1
+  ward {2}
+  enters with count each 2 other nontoken Human you control +1/+1 counters
+}

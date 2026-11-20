@@ -1,0 +1,16 @@
+card "Reckless Stormseeker // Storm-Charged Slasher" {
+  oracle_id ea5fd21a-c23a-49ee-aab8-0a9618d65c11
+  layout transform
+  cost {2}{R}
+  type Creature — Human Werewolf
+  pt 2/3
+  triggered at beginning of your combat: target creature you control gets +1/+0 and gains haste
+  daybound
+  face "Storm-Charged Slasher" {
+    type Creature — Werewolf
+    pt 3/4
+    color red
+    triggered at beginning of your combat: target creature you control gets +2/+0 and gains trample, haste
+    nightbound
+  }
+}

@@ -1,0 +1,9 @@
+card "Flametongue Yearling" {
+  oracle_id 8181f131-626b-4f9a-812c-9fddaae58025
+  cost {R}{R}
+  type Creature — Kavu
+  pt 2/1
+  multikicker {2}
+  enters with count each times kicked +1/+1 counters
+  triggered when this enters: this bites target creature
+}
