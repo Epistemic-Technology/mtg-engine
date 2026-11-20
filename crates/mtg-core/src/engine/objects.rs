@@ -234,6 +234,13 @@ impl GameState {
         controller: PlayerId,
         enter: Enter,
     ) -> ObjId {
+        // "If this would be put into a graveyard from anywhere, exile it
+        // instead." (a disturbed card's back face, CR 702.146).
+        let to = if to == Zone::Graveyard && self.pool.get(self.objects[id].def).graveyard_exile {
+            Zone::Exile
+        } else {
+            to
+        };
         let characteristics = self
             .characteristics(id)
             .expect("moving an object that exists");

@@ -1,0 +1,16 @@
+card "Lantern Bearer // Lanterns' Lift" {
+  oracle_id 67a025eb-6e65-435c-becb-b51085175292
+  layout transform
+  cost {U}
+  type Creature — Spirit
+  pt 1/1
+  keywords flying
+  disturb {2}{U}
+  face "Lanterns' Lift" {
+    type Enchantment — Aura
+    color blue
+    enchant creature
+    static enchanted: +1/+1, has flying
+    exiled instead of graveyard
+  }
+}

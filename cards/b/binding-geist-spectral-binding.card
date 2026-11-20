@@ -1,0 +1,16 @@
+card "Binding Geist // Spectral Binding" {
+  oracle_id 5e1bd17d-3825-45c0-9e7c-6887b7e2cb5c
+  layout transform
+  cost {2}{U}
+  type Creature — Spirit
+  pt 3/1
+  triggered whenever this attacks: target creature an opponent controls gets -2/-0
+  disturb {1}{U}
+  face "Spectral Binding" {
+    type Enchantment — Aura
+    color blue
+    enchant creature
+    static enchanted: -2/-0
+    exiled instead of graveyard
+  }
+}

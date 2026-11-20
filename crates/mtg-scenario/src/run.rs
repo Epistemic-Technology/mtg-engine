@@ -1109,6 +1109,7 @@ impl Runner {
                     bestowed,
                     overloaded,
                     awakened,
+                    disturbed,
                     ..
                 } => {
                     let choice = if *face_down {
@@ -1125,6 +1126,8 @@ impl Runner {
                         Choice::CastOverload(self.in_hand(a.line, d.player, name)?)
                     } else if *awakened {
                         Choice::CastAwaken(self.in_hand(a.line, d.player, name)?)
+                    } else if *disturbed {
+                        Choice::CastDisturb(self.in_graveyard(a.line, d.player, name)?)
                     } else if *alternative {
                         Choice::CastAlt(self.in_hand(a.line, d.player, name)?)
                     } else if *from_graveyard {
@@ -1161,7 +1164,8 @@ impl Runner {
             | Choice::CastAlt(id)
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)
-            | Choice::CastAwaken(id)) = option
+            | Choice::CastAwaken(id)
+            | Choice::CastDisturb(id)) = option
             else {
                 unreachable!()
             };
@@ -1219,6 +1223,22 @@ impl Runner {
                 (false, Some(idx)) => {
                     self.fired[i] = true;
                     if let Some(targets) = targets {
+                        // A disturbed spell is its back face (CR 712.8c).
+                        let back;
+                        let name = if matches!(
+                            &a.action,
+                            Action::Cast {
+                                disturbed: true,
+                                ..
+                            }
+                        ) && let Some(f) =
+                            self.state().def_of(id).and_then(|d| d.faces.first())
+                        {
+                            back = self.state().pool.get(*f).name.clone();
+                            back.as_str()
+                        } else {
+                            name
+                        };
                         let ((mut needed, optional, variable), pending_mode) = self.cast_needs(
                             a.line,
                             id,
@@ -2500,6 +2520,7 @@ impl Runner {
                 format!("cast {} overloaded", self.describe_ids(&[*id]))
             }
             Choice::CastAwaken(id) => format!("cast {} awakened", self.describe_ids(&[*id])),
+            Choice::CastDisturb(id) => format!("cast {} disturbed", self.describe_ids(&[*id])),
             Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
             Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
             Choice::TurnFaceUp(id) => {

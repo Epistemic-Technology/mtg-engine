@@ -413,6 +413,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Multikicker(c)) => {
                     b = b.multikicker(c.clone());
                 }
+                Ability::Mechanic(Mechanic::Disturb(c)) => {
+                    b = b.disturb(c.clone());
+                }
+                Ability::Mechanic(Mechanic::GraveyardExile) => {
+                    b = b.graveyard_exile();
+                }
                 Ability::Mechanic(Mechanic::Replicate(c)) => {
                     b = b.replicate(c.clone());
                 }
@@ -716,6 +722,8 @@ impl Compiler<'_> {
                             | Mechanic::Assist
                             | Mechanic::Replicate(_)
                             | Mechanic::Multikicker(_)
+                            | Mechanic::Disturb(_)
+                            | Mechanic::GraveyardExile
                             | Mechanic::Teamwork(_)
                             | Mechanic::Ripple(_)
                             | Mechanic::Strive(_)
@@ -3201,6 +3209,8 @@ impl Compiler<'_> {
                 | Mechanic::Assist
                 | Mechanic::Replicate(_)
                 | Mechanic::Multikicker(_)
+                | Mechanic::Disturb(_)
+                | Mechanic::GraveyardExile
                 | Mechanic::Teamwork(_)
                 | Mechanic::Ripple(_)
                 | Mechanic::Strive(_)
@@ -4181,6 +4191,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Assist
         | Mechanic::Replicate(_)
         | Mechanic::Multikicker(_)
+        | Mechanic::Disturb(_)
+        | Mechanic::GraveyardExile
         | Mechanic::Teamwork(_)
         | Mechanic::Ripple(_)
         | Mechanic::Ascend

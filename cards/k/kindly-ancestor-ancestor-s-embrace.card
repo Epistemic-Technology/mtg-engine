@@ -1,0 +1,16 @@
+card "Kindly Ancestor // Ancestor's Embrace" {
+  oracle_id ee049bf3-b31c-4dcc-996f-bb076848432b
+  layout transform
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/3
+  keywords lifelink
+  disturb {1}{W}
+  face "Ancestor's Embrace" {
+    type Enchantment — Aura
+    color white
+    enchant creature
+    static enchanted: has lifelink
+    exiled instead of graveyard
+  }
+}

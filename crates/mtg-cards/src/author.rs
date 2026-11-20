@@ -64,7 +64,8 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 120] = [
+const TEMPLATED_TAGS: [&str; 121] = [
+    "Disturb",
     "Daybound",
     "Nightbound",
     "Transmute",
@@ -2653,6 +2654,12 @@ impl Builder<'_> {
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
             return Ok(());
         }
+        // A disturb card's back face (CR 702.146).
+        if line == "If ~ would be put into a graveyard from anywhere, exile it instead." {
+            self.statements
+                .push("exiled instead of graveyard".to_string());
+            return Ok(());
+        }
         // CR 702.145.
         if line == "Daybound" || line == "Nightbound" {
             self.statements.push(line.to_lowercase());
@@ -2669,7 +2676,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Multikicker|Transmute) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Multikicker|Transmute|Disturb) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {

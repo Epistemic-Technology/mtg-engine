@@ -538,6 +538,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let disturbed = if line.peek_ident("disturbed") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let conspired = if line.peek_ident("conspired") || line.peek_ident("teamwork") {
                 line.pos += 1;
                 true
@@ -648,6 +654,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     bestowed,
                     overloaded,
                     awakened,
+                    disturbed,
                     conspired,
                     splice,
                     other_cost,

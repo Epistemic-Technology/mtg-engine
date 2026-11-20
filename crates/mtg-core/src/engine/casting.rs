@@ -316,6 +316,12 @@ impl GameState {
                         }
                     }
                 }
+                // CR 702.146a: cast transformed for the disturb cost.
+                if def.disturb.is_some()
+                    && self.disturb_castable(p, def, *id, sorcery_timing, &sources, &changers)
+                {
+                    options.push(Choice::CastDisturb(*id));
+                }
                 if def.flashback.is_none() {
                     if def.escape.is_some() && self.escape_castable(p, *id, sorcery_timing) {
                         options.push(Choice::Cast(*id));
@@ -1451,6 +1457,37 @@ impl GameState {
         self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
     }
 
+    /// CR 702.146a: whether `p` could cast `def` (the card `id`, in their
+    /// graveyard) transformed for its disturb cost now: the back face's
+    /// timing and targets.
+    #[cold]
+    #[inline(never)]
+    fn disturb_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+    ) -> bool {
+        let (Some(cost), Some(face_ref)) = (&def.disturb, def.faces.first().copied()) else {
+            return false;
+        };
+        let face = self.pool.get(face_ref);
+        if !(sorcery_timing || face.is_instant() || self.has_flash(p, face, id)) {
+            return false;
+        }
+        if !self.targets_available(p, face.cast_targets(), Some(id)) {
+            return false;
+        }
+        let mut req = cost.requirements(0);
+        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
+            adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
+        }
+        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
+    }
+
     /// Whether `p` could cast `def` (the card `id`, or one of its faces)
     /// now: timing, mana, additional costs, and targets (CR 601.2).
     #[inline]
@@ -2471,6 +2508,15 @@ impl GameState {
                     .as_ref()
                     .expect("checked")
                     .1
+                    .requirements(x)
+            }
+            // The back face has no disturb of its own: the card's cost.
+            (_, false) if o.alt == AltCast::Disturb && self.pool.get(o.card).disturb.is_some() => {
+                self.pool
+                    .get(o.card)
+                    .disturb
+                    .as_ref()
+                    .expect("checked")
                     .requirements(x)
             }
             (_, false) if o.alt == AltCast::AltCost && def.alt_cost.is_some() => def

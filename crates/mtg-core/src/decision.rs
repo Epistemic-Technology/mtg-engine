@@ -245,6 +245,9 @@ pub enum Choice {
     CastOverload(ObjId),
     /// Cast a card for its awaken cost (CR 702.113a).
     CastAwaken(ObjId),
+    /// Cast a card transformed from the graveyard for its disturb cost
+    /// (CR 702.146a).
+    CastDisturb(ObjId),
     /// Suspend a card from hand (CR 702.62a), a special action.
     Suspend(ObjId),
     /// Foretell a card from hand (CR 702.143a), a special action.
@@ -360,6 +363,7 @@ impl Choice {
             Choice::CastBestow(id) => format!("cast {} for its bestow cost", name(id)),
             Choice::CastOverload(id) => format!("cast {} for its overload cost", name(id)),
             Choice::CastAwaken(id) => format!("cast {} for its awaken cost", name(id)),
+            Choice::CastDisturb(id) => format!("cast {} for its disturb cost", name(id)),
             Choice::Suspend(id) => format!("suspend {}", name(id)),
             Choice::Foretell(id) => format!("foretell {}", name(id)),
             Choice::CastFaceDown(id) => {

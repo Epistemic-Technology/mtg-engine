@@ -5700,6 +5700,14 @@ pub struct CardDef {
     /// your hand." 0: none.
     #[serde(default)]
     pub dredge: u8,
+    /// Disturb (CR 702.146): on a transforming card's front face, the card
+    /// may be cast transformed from its owner's graveyard for this cost.
+    #[serde(default)]
+    pub disturb: Option<Box<ManaCost>>,
+    /// "If this would be put into a graveyard from anywhere, exile it
+    /// instead." (a disturb card's back face, CR 614.1a).
+    #[serde(default)]
+    pub graveyard_exile: bool,
     /// Multikicker (CR 702.33c): a kicker cost paid any number of times.
     #[serde(default)]
     pub multikicker: Option<Box<ManaCost>>,
@@ -6303,6 +6311,7 @@ impl CardDef {
     /// otherwise.
     pub fn graveyard_active(&self) -> bool {
         self.flashback.is_some()
+            || self.disturb.is_some()
             || self.escape.is_some()
             || self
                 .abilities
@@ -7584,6 +7593,8 @@ impl Builder {
             dredge: 0,
             replicate: None,
             multikicker: None,
+            disturb: None,
+            graveyard_exile: false,
             teamwork: 0,
             ripple: 0,
             splice: None,
@@ -7831,6 +7842,21 @@ impl Builder {
     #[must_use]
     pub fn storm(mut self) -> Self {
         self.0.storm = true;
+        self
+    }
+
+    /// Disturb (CR 702.146).
+    #[must_use]
+    pub fn disturb(mut self, cost: ManaCost) -> Self {
+        self.0.disturb = Some(Box::new(cost));
+        self
+    }
+
+    /// "If this would be put into a graveyard from anywhere, exile it
+    /// instead."
+    #[must_use]
+    pub fn graveyard_exile(mut self) -> Self {
+        self.0.graveyard_exile = true;
         self
     }
 

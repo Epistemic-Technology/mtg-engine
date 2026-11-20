@@ -1490,7 +1490,7 @@ impl P {
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring" | "bestow"
             | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate" | "encore"
-            | "multikicker" | "transmute"
+            | "multikicker" | "transmute" | "disturb"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1525,6 +1525,7 @@ impl P {
                     "encore" => Mechanic::Encore(c),
                     "multikicker" => Mechanic::Multikicker(c),
                     "transmute" => Mechanic::Transmute(c),
+                    "disturb" => Mechanic::Disturb(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }
@@ -1598,6 +1599,11 @@ impl P {
                 self.pos += 3;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::StartYourEngines))
+            }
+            "exiled" if self.at_words(&["exiled", "instead", "of", "graveyard"]) => {
+                self.pos += 4;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::GraveyardExile))
             }
             "daybound" | "nightbound" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;

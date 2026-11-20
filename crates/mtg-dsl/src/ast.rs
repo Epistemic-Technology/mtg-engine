@@ -1283,6 +1283,13 @@ pub enum Mechanic {
     /// `multikicker {1}{G}` (CR 702.33c): a kicker cost paid any number of
     /// times as the spell is cast.
     Multikicker(ManaCost),
+    /// `disturb {1}{U}` (CR 702.146): "You may cast this card transformed
+    /// from your graveyard by paying [cost] rather than its mana cost."
+    Disturb(ManaCost),
+    /// `exiled instead of graveyard`: "If [this] would be put into a
+    /// graveyard from anywhere, exile it instead." (a disturb card's back
+    /// face).
+    GraveyardExile,
     /// `transmute {1}{B}{B}` (CR 702.53): "{1}{B}{B}, Discard this card:
     /// Search your library for a card with the same mana value as the
     /// discarded card, reveal it, put it into your hand, then shuffle.

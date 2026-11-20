@@ -298,6 +298,9 @@ pub enum AltCast {
     Overload,
     /// Cast for its awaken cost (CR 702.113a).
     Awaken,
+    /// Cast transformed from the graveyard for its disturb cost (CR
+    /// 702.146a): the spell is the back face.
+    Disturb,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask

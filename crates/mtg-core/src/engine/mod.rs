@@ -1627,6 +1627,12 @@ impl GameState {
                 let face = self.pool.get(self.objects[card].def).awaken_face;
                 self.begin_cast_as(player, card, crate::state::AltCast::Awaken, face);
             }
+            (Flow::Priority, Choice::CastDisturb(card)) => {
+                // CR 702.146a, 712.8c: cast transformed, the back face's
+                // characteristics on the stack.
+                let face = self.pool.get(self.objects[card].def).faces.first().copied();
+                self.begin_cast_as(player, card, crate::state::AltCast::Disturb, face);
+            }
             (Flow::Priority, Choice::CastAlt(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::AltCost);
             }

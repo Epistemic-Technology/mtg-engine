@@ -194,7 +194,10 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::CastDash(_) | Choice::CastWarp(_) => 37,
         // The one-hot is full (`CHOICE_KINDS`): overload counts as an
         // alternative cost.
-        Choice::CastAlt(_) | Choice::CastOverload(_) | Choice::CastAwaken(_) => 38,
+        Choice::CastAlt(_)
+        | Choice::CastOverload(_)
+        | Choice::CastAwaken(_)
+        | Choice::CastDisturb(_) => 38,
         Choice::CastBestow(_) => 39,
         Choice::Unlock { .. } => 40,
     }
@@ -411,6 +414,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)
             | Choice::CastAwaken(id)
+            | Choice::CastDisturb(id)
             | Choice::Suspend(id)
             | Choice::Unlock { obj: id, .. }
             | Choice::Foretell(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
