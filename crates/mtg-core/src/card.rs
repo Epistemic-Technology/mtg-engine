@@ -301,6 +301,9 @@ pub enum Keyword {
     /// "Its activated abilities can't be activated unless they're mana
     /// abilities" (Realmbreaker's Grasp).
     CantActivateNonMana,
+    /// "can't crew Vehicles" (CR 702.122d): it can't be tapped to pay a
+    /// crew cost. The last bit of `KeywordSet`.
+    CantCrew,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -427,7 +430,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 63] = [
+    pub const ALL: [Keyword; 64] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -491,6 +494,7 @@ impl Keyword {
         Keyword::CantActivate,
         Keyword::CantActivateNonMana,
         Keyword::CantBecomeUntapped,
+        Keyword::CantCrew,
     ];
 
     /// The keyword as Oracle prints it.
@@ -561,6 +565,7 @@ impl Keyword {
             Keyword::CantActivateNonMana => {
                 "its activated abilities can't be activated unless they're mana abilities"
             }
+            Keyword::CantCrew => "can't crew Vehicles",
         }
     }
 
@@ -4585,6 +4590,11 @@ impl ActivatedKeyword {
 }
 
 impl ActivatedAbility {
+    /// Saddle's ability (CR 702.171a), whose cost is a crew-like tap.
+    pub fn saddles(&self) -> bool {
+        self.effects.contains(&Effect::BecomeSaddled)
+    }
+
     /// CR 605.1a: no targets, not a loyalty ability, and it could add
     /// mana; it may do other things too ("Add {G}{G}. If there are no
     /// depletion counters on this land, sacrifice it.").
@@ -4735,6 +4745,16 @@ pub enum AbilityDef {
     ExtraVote {
         optional: bool,
     },
+    /// "This creature crews Vehicles using its toughness rather than its
+    /// power." (`toughness`), "... saddles Mounts and crews Vehicles as
+    /// though its power were 2 greater." (`plus` 2): what it counts for
+    /// when tapped to pay a crew cost (CR 702.122a), and with `saddles` a
+    /// saddle cost too (CR 702.171a).
+    CrewsAs {
+        saddles: bool,
+        toughness: bool,
+        plus: u32,
+    },
     Activated(ActivatedAbility),
     Static(StaticAbility),
     Triggered(TriggeredAbility),
@@ -4763,6 +4783,7 @@ impl AbilityDef {
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
+            | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
@@ -4789,6 +4810,7 @@ impl AbilityDef {
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
+            | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)

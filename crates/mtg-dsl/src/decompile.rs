@@ -1492,6 +1492,15 @@ impl Decompiler<'_> {
             AbilityDef::ExtraVote { optional } => Ability::ExtraVote {
                 optional: *optional,
             },
+            AbilityDef::CrewsAs {
+                saddles,
+                toughness,
+                plus,
+            } => Ability::CrewsAs {
+                saddles: *saddles,
+                toughness: *toughness,
+                plus: *plus,
+            },
             AbilityDef::CostChange(c) => Ability::CostChange {
                 filter: self.filter(&c.spells),
                 whose: c.whose,

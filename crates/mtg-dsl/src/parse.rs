@@ -105,6 +105,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
         Keyword::CantActivateNonMana,
     ),
     (&["can't", "activate"], Keyword::CantActivate),
+    (&["can't", "crew", "Vehicles"], Keyword::CantCrew),
     (
         &["can't", "become", "untapped"],
         Keyword::CantBecomeUntapped,
@@ -323,6 +324,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["those", "permanents"], Recipient::EachPermanentYouControl),
     (&["that", "creature"], Recipient::TriggeringObject),
     (&["that", "permanent"], Recipient::TriggeringObject),
+    (&["that", "Vehicle"], Recipient::TriggeringObject),
     (&["that", "object"], Recipient::TriggeringObject),
     (&["that", "player"], Recipient::TriggeringPlayer),
     (
@@ -1200,6 +1202,26 @@ impl P {
                 };
                 self.end_stmt()?;
                 Ok(Ability::Protection(filter))
+            }
+            "crews" | "saddles"
+                if self.at_words(&["crews", "using"])
+                    || self.at_words(&["crews", "plus"])
+                    || self.at_words(&["saddles", "and", "crews"]) =>
+            {
+                let saddles = self.eat_words(&["saddles", "and"]);
+                self.expect_word("crews")?;
+                let (toughness, plus) = if self.eat_words(&["using", "toughness"]) {
+                    (true, 0)
+                } else {
+                    self.expect_word("plus")?;
+                    (false, self.number()?)
+                };
+                self.end_stmt()?;
+                Ok(Ability::CrewsAs {
+                    saddles,
+                    toughness,
+                    plus,
+                })
             }
             "extra" if self.word_at(1).as_deref() == Some("vote") => {
                 self.pos += 2;

@@ -254,6 +254,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::AttackDespiteDefender
             | Keyword::CantActivate
             | Keyword::CantActivateNonMana
+            | Keyword::CantCrew
     )
 }
 
@@ -294,7 +295,12 @@ fn lure_sentence(what: &str, this_turn: bool) -> String {
 /// "can't attack or block", "can't block", ...
 fn restriction_phrase(ks: &[Keyword]) -> String {
     let mut parts = Vec::new();
-    if ks.contains(&Keyword::CantAttack) && ks.contains(&Keyword::CantBlock) {
+    if ks.contains(&Keyword::CantAttack)
+        && ks.contains(&Keyword::CantBlock)
+        && ks.contains(&Keyword::CantCrew)
+    {
+        parts.push("can't attack, block, or crew Vehicles".to_string());
+    } else if ks.contains(&Keyword::CantAttack) && ks.contains(&Keyword::CantBlock) {
         parts.push("can't attack or block".to_string());
     } else {
         for k in ks {
@@ -1023,6 +1029,14 @@ impl<'a> Ctx<'a> {
                 if matches!(self.trigger, Some(Trigger::AttachedStep(_))) =>
             {
                 format!("that {}", enchanted_noun(self.card))
+            }
+            // "Whenever a Vehicle you control attacks, that Vehicle gains
+            // first strike".
+            Recipient::TriggeringObject
+                if matches!(self.trigger, Some(Trigger::Attacks(TriggerObj::Filter(f)))
+                    if f.subtypes.iter().any(|s| s == "Vehicle")) =>
+            {
+                "that Vehicle".to_string()
             }
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
@@ -3362,6 +3376,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             for m in modes {
                 let mut inner = Ctx::new(ctx.card, ctx.lookup, &m.targets);
                 inner.current = ctx.current;
+                inner.trigger = ctx.trigger;
                 out.push_str("\n• ");
                 push_mode_name(&mut out, m);
                 out.push_str(&sentences(&m.effects, &mut inner));
@@ -7268,8 +7283,18 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
         // its controller's untap step" (Encrust).
         let untap_only =
             matches!(mods, [Mod::AddKeywords(ks)] if ks.as_slice() == [Keyword::DoesntUntap]);
-        body.push_str(if untap_only { " and " } else { ", and " });
-        body.push_str(clause);
+        // After "can't attack, block, or crew Vehicles" it is a sentence
+        // of its own (Intercessor's Arrest).
+        let crew = mods
+            .iter()
+            .any(|m| matches!(m, Mod::AddKeywords(ks) if ks.contains(&Keyword::CantCrew)));
+        if crew {
+            body.push_str(". ");
+            body.push_str(&capitalize(clause));
+        } else {
+            body.push_str(if untap_only { " and " } else { ", and " });
+            body.push_str(clause);
+        }
     }
     if body.ends_with(".\"") {
         body
@@ -8565,6 +8590,23 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         Ability::Uncounterable => "This spell can't be countered.".to_string(),
         Ability::AuraStays => "This effect doesn't remove this Aura.".to_string(),
+        Ability::CrewsAs {
+            saddles,
+            toughness,
+            plus,
+        } => {
+            let verb = if *saddles {
+                "saddles Mounts and crews Vehicles"
+            } else {
+                "crews Vehicles"
+            };
+            let how = if *toughness {
+                "using its toughness rather than its power".to_string()
+            } else {
+                format!("as though its power were {plus} greater")
+            };
+            format!("This {} {verb} {how}.", self_noun(card))
+        }
         Ability::ExtraVote { optional: false } => {
             "While voting, you get an additional vote.".to_string()
         }

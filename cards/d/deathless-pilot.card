@@ -1,0 +1,8 @@
+card "Deathless Pilot" {
+  oracle_id 31284a0b-9bd5-4186-bd27-6b16a3597e27
+  cost {1}{B}
+  type Creature — Zombie Pilot
+  pt 2/2
+  saddles and crews plus 2
+  activated {3}{B}, from graveyard: return this to hand
+}

@@ -3881,6 +3881,22 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::AuraStays => {
             let _ = writeln!(out, "{indent}protection doesn't remove this");
         }
+        Ability::CrewsAs {
+            saddles,
+            toughness,
+            plus,
+        } => {
+            let _ = writeln!(
+                out,
+                "{indent}{}crews {}",
+                if *saddles { "saddles and " } else { "" },
+                if *toughness {
+                    "using toughness".to_string()
+                } else {
+                    format!("plus {plus}")
+                }
+            );
+        }
         Ability::ExtraVote { optional } => {
             let _ = writeln!(
                 out,

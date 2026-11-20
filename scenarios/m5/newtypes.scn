@@ -138,3 +138,80 @@ scenario "Spacecraft: destroy target creature or Spacecraft" {
   run_to turn 1 end
   assert graveyard B contains "Grizzly Bears"
 }
+
+scenario "crew: a creature that crews using its toughness" {
+  battlefield A: "Clamorous Ironclad", "Giant Ox"
+  turn 1 A: activate "Clamorous Ironclad"
+  run_to turn 1 end
+  assert is "Clamorous Ironclad" creature
+  assert tapped "Giant Ox"
+}
+
+scenario "crew: Giant Ox's toughness doesn't saddle" {
+  battlefield A: "Trained Arynx", "Giant Ox"
+  illegal turn 1 A: activate "Trained Arynx"
+  run_to turn 1 end
+}
+
+scenario "crew: crews as though its power were 2 greater" {
+  battlefield A: "Clamorous Ironclad", "Dynamite Diver"
+  turn 1 A: activate "Clamorous Ironclad"
+  run_to turn 1 end
+  assert is "Clamorous Ironclad" creature
+  assert tapped "Dynamite Diver"
+}
+
+scenario "crew: saddles as though its power were 2 greater" {
+  battlefield A: "Trained Arynx", "Deathless Pilot"
+  turn 1 A: activate "Trained Arynx"
+  run_to turn 1 end
+  assert tapped "Deathless Pilot"
+}
+
+scenario "crew: without the bonus, not enough power" {
+  battlefield A: "Clamorous Ironclad", "Grizzly Bears"
+  illegal turn 1 A: activate "Clamorous Ironclad"
+  run_to turn 1 end
+}
+
+scenario "crew: an enchanted creature can't crew Vehicles" {
+  battlefield A: "Adventurer's Airship", "Grizzly Bears", "Revoke Privileges" on "Grizzly Bears"
+  illegal turn 1 A: activate "Adventurer's Airship"
+  run_to turn 1 end
+}
+
+scenario "crew: an arrested permanent can't crew" {
+  battlefield A: "Adventurer's Airship", "Hill Giant", "Intercessor's Arrest" on "Hill Giant"
+  illegal turn 1 A: activate "Adventurer's Airship"
+  run_to turn 1 end
+}
+
+scenario "crew: a Vehicle attacks, so the Fox Pilot gives it first strike" {
+  battlefield A: "Adventurer's Airship", "Grizzly Bears", "Kitsune Ace"
+  library A: 3 "Island"
+  start turn 3 A
+  turn 3 A: activate "Adventurer's Airship"
+  turn 3 A: attack "Adventurer's Airship"
+  run_to turn 3 declare_blockers
+  assert has "Adventurer's Airship" first_strike
+}
+
+scenario "crew: a Vehicle attacking exiles the creature under the Aura" {
+  battlefield A: "Adventurer's Airship", "Grizzly Bears", "Caught in the Brights" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  library A: 3 "Island"
+  start turn 3 A
+  turn 3 A: activate "Adventurer's Airship"
+  turn 3 A: attack "Adventurer's Airship"
+  run_to turn 3 declare_blockers
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Vehicle: a +1/+1 counter on target creature or Vehicle you control" {
+  battlefield A: 3 "Forest", "Plains", "Adventurer's Airship"
+  hand A: "Grafted Growth"
+  turn 1 A: cast "Grafted Growth" targeting "Plains"
+  turn 1 A: trigger "Grafted Growth" targeting "Adventurer's Airship"
+  run_to turn 1 end
+  assert counters "Adventurer's Airship" +1/+1 1
+}

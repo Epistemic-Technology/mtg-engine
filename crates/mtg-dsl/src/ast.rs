@@ -938,6 +938,15 @@ pub enum Ability {
     ExtraVote {
         optional: bool,
     },
+    /// `crews using toughness`: "This creature crews Vehicles using its
+    /// toughness rather than its power."; `saddles and crews plus 2`:
+    /// "This creature saddles Mounts and crews Vehicles as though its
+    /// power were 2 greater." (CR 702.122a, 702.171a).
+    CrewsAs {
+        saddles: bool,
+        toughness: bool,
+        plus: u32,
+    },
     /// `protection doesn't remove this`: "This effect doesn't remove this
     /// Aura.", printed after the static ability before it.
     AuraStays,

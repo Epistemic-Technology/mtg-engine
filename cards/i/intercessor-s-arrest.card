@@ -1,0 +1,7 @@
+card "Intercessor's Arrest" {
+  oracle_id d75357f4-d439-48ff-8fd7-52a02f07cc81
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant permanent
+  static enchanted: has can't attack, can't block, can't crew Vehicles, can't activate except mana
+}

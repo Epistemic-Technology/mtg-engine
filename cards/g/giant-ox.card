@@ -1,0 +1,7 @@
+card "Giant Ox" {
+  oracle_id b42bdf54-9055-405c-87e6-0912dbe2bd68
+  cost {1}{W}
+  type Creature — Ox
+  pt 0/6
+  crews using toughness
+}

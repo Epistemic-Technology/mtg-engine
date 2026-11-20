@@ -1294,22 +1294,48 @@ impl GameState {
         self.turn_face_up(id);
     }
 
-    /// Other untapped creatures `p` controls that could crew `vehicle`,
-    /// with their power (CR 702.122a; summoning sickness doesn't matter).
-    fn crew_candidates(&self, p: PlayerId, vehicle: ObjId) -> SmallVec<[(ObjId, u32); 4]> {
+    /// Other untapped creatures `p` controls that could crew `vehicle`
+    /// (or saddle it, with `saddle`), with the power each counts for (CR
+    /// 702.122a, 702.171a; summoning sickness doesn't matter). One that
+    /// can't crew Vehicles can't pay a crew cost (CR 702.122d); one that
+    /// crews using its toughness, or as though its power were greater,
+    /// counts that instead.
+    fn crew_candidates(
+        &self,
+        p: PlayerId,
+        vehicle: ObjId,
+        saddle: bool,
+    ) -> SmallVec<[(ObjId, u32); 4]> {
         self.creatures_of(p)
             .filter(|id| *id != vehicle && !self.objects[*id].tapped)
-            .map(|id| {
-                let power = self
-                    .characteristics(id)
-                    .map_or(0, |c| u32::try_from(c.power().max(0)).unwrap_or(0));
-                (id, power)
+            .filter_map(|id| {
+                let c = self.characteristics(id)?;
+                if !saddle && c.has(Keyword::CantCrew) {
+                    return None;
+                }
+                let mut n = c.power();
+                for a in c.abilities.iter() {
+                    if let crate::card::AbilityDef::CrewsAs {
+                        saddles,
+                        toughness,
+                        plus,
+                    } = self.pool.ability(*a)
+                        && (*saddles || !saddle)
+                    {
+                        if *toughness {
+                            n = c.toughness();
+                        } else {
+                            n = n.saturating_add(i32::try_from(*plus).unwrap_or(0));
+                        }
+                    }
+                }
+                Some((id, u32::try_from(n.max(0)).unwrap_or(0)))
             })
             .collect()
     }
 
-    fn crew_power(&self, p: PlayerId, vehicle: ObjId) -> u32 {
-        self.crew_candidates(p, vehicle)
+    fn crew_power(&self, p: PlayerId, vehicle: ObjId, saddle: bool) -> u32 {
+        self.crew_candidates(p, vehicle, saddle)
             .iter()
             .map(|(_, n)| n)
             .sum()
@@ -1317,8 +1343,14 @@ impl GameState {
 
     /// The creatures that crew: the weakest one strong enough alone, or
     /// else the strongest until the power suffices.
-    fn crew_choice(&self, p: PlayerId, vehicle: ObjId, need: u32) -> SmallVec<[ObjId; 4]> {
-        let mut c = self.crew_candidates(p, vehicle);
+    fn crew_choice(
+        &self,
+        p: PlayerId,
+        vehicle: ObjId,
+        need: u32,
+        saddle: bool,
+    ) -> SmallVec<[ObjId; 4]> {
+        let mut c = self.crew_candidates(p, vehicle, saddle);
         if let Some((id, _)) = c.iter().filter(|(_, n)| *n >= need).min_by_key(|(_, n)| *n) {
             return smallvec::smallvec![*id];
         }
@@ -2282,7 +2314,7 @@ impl GameState {
                 if !self.targets_available(p, &ab.targets, Some(id)) {
                     continue;
                 }
-                if ab.cost.crew > 0 && self.crew_power(p, id) < ab.cost.crew {
+                if ab.cost.crew > 0 && self.crew_power(p, id, ab.saddles()) < ab.cost.crew {
                     continue;
                 }
                 if let Some((k, n)) = ab.cost.remove_counters
@@ -3048,7 +3080,7 @@ impl GameState {
         let req = self.activation_mana(sa.source, ab);
         self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.cost.crew > 0 {
-            for c in self.crew_choice(controller, sa.source, ab.cost.crew) {
+            for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
                 self.tap(c);
             }
         }

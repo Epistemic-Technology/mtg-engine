@@ -1,0 +1,7 @@
+card "Revoke Privileges" {
+  oracle_id 60b2f991-47ef-4da3-ba61-0692695ea098
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block, can't crew Vehicles
+}

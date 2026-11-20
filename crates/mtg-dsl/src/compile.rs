@@ -2778,6 +2778,15 @@ impl Compiler<'_> {
             Ability::ExtraVote { optional } => AbilityDef::ExtraVote {
                 optional: *optional,
             },
+            Ability::CrewsAs {
+                saddles,
+                toughness,
+                plus,
+            } => AbilityDef::CrewsAs {
+                saddles: *saddles,
+                toughness: *toughness,
+                plus: *plus,
+            },
             Ability::SelfCost { .. }
             | Ability::TargetCost { .. }
             | Ability::CondCost { .. }

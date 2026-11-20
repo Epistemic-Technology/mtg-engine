@@ -1,0 +1,8 @@
+card "Grafted Growth" {
+  oracle_id c4525b1c-5c3d-494e-b660-ba5a5a28f621
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: put 1 +1/+1 counter on target creature or Vehicle you control
+  static enchanted land: has ability { activated {T}: add any 2 }
+}
