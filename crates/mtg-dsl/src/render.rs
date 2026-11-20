@@ -4347,6 +4347,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             tapped,
             under_you,
             attached,
+            put,
         } => {
             let o = match what {
                 Recipient::SameObject | Recipient::CreatedObject => "that card".to_string(),
@@ -4354,17 +4355,34 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             // A card from your own graveyard is yours: Oracle drops "under
             // its owner's control".
-            let yours = matches!(what, Recipient::Target(i) if matches!(
+            let yours = matches!(what, Recipient::Target(i) | Recipient::ThatTarget(i) if matches!(
                 ctx.targets[*i].base(),
                 Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
                     | Target::GraveyardCard { who: Who::You, .. }
             ));
+            // A card from another player's graveyard isn't "returned":
+            // "put target creature card from a graveyard onto the
+            // battlefield under your control".
+            let others = *under_you
+                && matches!(what, Recipient::Target(i) if matches!(
+                    ctx.targets[*i].base(),
+                    Target::GraveyardCard { who: Who::Any | Who::Opponents, .. }
+                ) || matches!(
+                    ctx.targets[*i].base(),
+                    Target::GraveyardCard { filter, .. } if filter.that_player.is_some()
+                ));
             let tapped = if *tapped { " tapped" } else { "" };
             // Activated from the graveyard: "Return this card from your
             // graveyard to the battlefield tapped."
             let from_graveyard = *what == Recipient::Source && works_from_graveyard(ctx.current);
             let mut text = if from_graveyard {
                 format!("return this card from your graveyard to the battlefield{tapped}")
+            } else if others || (*put && *under_you) {
+                format!("put {o} onto the battlefield{tapped} under your control")
+            } else if *put && yours {
+                format!("put {o} onto the battlefield{tapped}")
+            } else if *put {
+                format!("put {o} onto the battlefield{tapped} under its owner's control")
             } else if *under_you {
                 format!("return {o} to the battlefield{tapped} under your control")
             } else if yours {

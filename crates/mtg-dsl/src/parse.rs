@@ -5702,6 +5702,38 @@ impl P {
         self.eat_words(&["until", "end", "of", "turn"]);
     }
 
+    /// After `return <what> to` or `put <what> onto`: `battlefield
+    /// [tapped] [under your control] [with 1 +1/+1 counter] [attached to
+    /// <what>]`.
+    fn to_battlefield_tail(&mut self, what: Recipient, put: bool) -> R<Effect> {
+        self.eat_word("the");
+        self.expect_word("battlefield")?;
+        let tapped = self.eat_word("tapped");
+        self.eat_words(&["under", "its", "owner's", "control"]);
+        let under_you = self.eat_words(&["under", "your", "control"]);
+        let counters = if self.eat_word("with") {
+            let n = self.count()?;
+            let kind = self.counter_kind()?;
+            self.eat_words(&["on", "it"]);
+            Some((kind, n))
+        } else {
+            None
+        };
+        let attached = if self.eat_words(&["attached", "to"]) {
+            Some(self.recipient()?)
+        } else {
+            None
+        };
+        Ok(Effect::ReturnToBattlefield {
+            what,
+            counters,
+            tapped,
+            under_you,
+            attached,
+            put,
+        })
+    }
+
     #[allow(clippy::too_many_lines)]
     fn verb_first(&mut self) -> R<Effect> {
         if self.chosen_act_ahead() {
@@ -5896,6 +5928,22 @@ impl P {
                 })
             }
             "shuffle" if self.shuffle_zone_ahead() => self.shuffle_zone(None),
+            // `put that target 1 onto battlefield tapped`: "put that card
+            // onto the battlefield tapped" (`return ... to battlefield`
+            // otherwise).
+            "put"
+                if (0..5).any(|k| {
+                    self.word_at(k).as_deref() == Some("onto")
+                        && self.word_at(k + 1).as_deref() == Some("battlefield")
+                }) && !(0..8).any(|k| {
+                    self.word_at(k).as_deref() == Some("from")
+                        && self.word_at(k + 1).as_deref() == Some("hand")
+                }) =>
+            {
+                let what = self.recipient()?;
+                self.expect_word("onto")?;
+                self.to_battlefield_tail(what, true)
+            }
             "put"
                 if (0..8).any(|k| {
                     self.word_at(k).as_deref() == Some("from")
@@ -6054,31 +6102,7 @@ impl P {
                 if all.len() > 1 {
                     return self.fail("only one recipient returns to the battlefield");
                 }
-                self.eat_word("the");
-                self.expect_word("battlefield")?;
-                let tapped = self.eat_word("tapped");
-                self.eat_words(&["under", "its", "owner's", "control"]);
-                let under_you = self.eat_words(&["under", "your", "control"]);
-                let counters = if self.eat_word("with") {
-                    let n = self.count()?;
-                    let kind = self.counter_kind()?;
-                    self.eat_words(&["on", "it"]);
-                    Some((kind, n))
-                } else {
-                    None
-                };
-                let attached = if self.eat_words(&["attached", "to"]) {
-                    Some(self.recipient()?)
-                } else {
-                    None
-                };
-                Ok(Effect::ReturnToBattlefield {
-                    what,
-                    counters,
-                    tapped,
-                    under_you,
-                    attached,
-                })
+                self.to_battlefield_tail(what, false)
             }
             "regenerate" => {
                 let to = self.recipient()?;

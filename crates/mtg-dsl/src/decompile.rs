@@ -731,6 +731,7 @@ impl Decompiler<'_> {
                 tapped: *tapped,
                 under_you: *under_you,
                 attached: attached.map(r),
+                put: false,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {

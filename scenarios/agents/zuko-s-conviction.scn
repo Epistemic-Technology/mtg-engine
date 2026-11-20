@@ -1,0 +1,28 @@
+scenario "unkicked: the creature card returns to hand" {
+  battlefield A: "Swamp"
+  hand A: "Zuko's Conviction"
+  graveyard A: "Hill Giant"
+  turn 1 A: cast "Zuko's Conviction" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "kicked: the creature card enters tapped instead" {
+  battlefield A: 5 "Swamp"
+  hand A: "Zuko's Conviction"
+  graveyard A: "Hill Giant"
+  turn 1 A: cast "Zuko's Conviction" kicked targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Hill Giant"
+  assert hand A lacks "Hill Giant"
+}
+
+scenario "only a creature card can be the target" {
+  battlefield A: "Swamp"
+  hand A: "Zuko's Conviction"
+  graveyard A: "Forest"
+  illegal turn 1 A: cast "Zuko's Conviction" targeting "Forest"
+  run_to turn 1 postcombat_main
+}

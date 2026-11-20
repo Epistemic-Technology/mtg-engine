@@ -1,0 +1,7 @@
+card "Zuko's Conviction" {
+  oracle_id f034e8a3-82f7-4c70-93ea-0bf2688f66e1
+  cost {B}
+  type Instant
+  kicker {4}
+  spell: return target creature card from your graveyard to hand; if kicked, instead put that target 1 onto battlefield tapped
+}

@@ -1113,7 +1113,12 @@ controller draws a card"); `controller of that creature` prints "that
 creature's controller" ("that land's controller" for an Aura that
 enchants a land). `return triggering card to battlefield tapped under
 your control` takes `tapped` and `under your control` (else "under its
-owner's control"). `it deals 1 damage to each opponent` makes the
+owner's control"). A target card from a graveyard that isn't yours (`target
+creature card from a graveyard`, `... from an opponent's graveyard`)
+returned `under your control` prints "put ... onto the battlefield under
+your control"; `put that target 1 onto battlefield tapped` is the same
+effect worded "put that card onto the battlefield tapped" (Zuko's
+Conviction). `it deals 1 damage to each opponent` makes the
 triggering creature the damage's source (CR 120.3: Hawkeye's Bow), and
 `that defending player` prints "defending player" where `defending
 player` as an object prints "the player or planeswalker it's attacking".

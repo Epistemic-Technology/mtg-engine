@@ -1063,8 +1063,13 @@ impl Fmt {
                 tapped,
                 under_you,
                 attached,
+                put,
             } => {
-                let mut s = format!("return {} to battlefield", self.recipient(*what, t));
+                let mut s = if *put {
+                    format!("put {} onto battlefield", self.recipient(*what, t))
+                } else {
+                    format!("return {} to battlefield", self.recipient(*what, t))
+                };
                 if *tapped {
                     s.push_str(" tapped");
                 }

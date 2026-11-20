@@ -1913,6 +1913,7 @@ impl Compiler<'_> {
                 tapped,
                 under_you,
                 attached,
+                put: _,
             } => {
                 out.push(CoreEffect::ReturnToBattlefield {
                     what: r(*what),
@@ -4596,6 +4597,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         tapped: false,
                         under_you: false,
                         attached: None,
+                        put: false,
                     },
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],

@@ -2644,6 +2644,9 @@ pub enum Effect {
         tapped: bool,
         under_you: bool,
         attached: Option<Recipient>,
+        /// `put that target 1 onto battlefield`: "put that card onto the
+        /// battlefield" (wording only).
+        put: bool,
     },
     Regenerate {
         to: Recipient,
