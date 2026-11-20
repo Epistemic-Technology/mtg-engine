@@ -8007,6 +8007,10 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::SameThat);
         }
+        if self.in_delayed && self.at_words(&["that", "token"]) {
+            self.pos += 2;
+            return Ok(Recipient::SameToken);
+        }
         // In a spell or an activated ability there is no triggering object:
         // "that creature" is the target named before.
         if !self.in_trigger

@@ -1,0 +1,18 @@
+scenario "an instant makes a token copy, exiled at the next end step" {
+  battlefield A: "Stormsplitter", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Stormsplitter"
+  assert life B 17
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Stormsplitter"
+}
+
+scenario "a creature spell makes no copy" {
+  battlefield A: "Stormsplitter", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Stormsplitter"
+}

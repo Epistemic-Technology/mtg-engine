@@ -1129,6 +1129,7 @@ impl<'a> Ctx<'a> {
                 "that creature".to_string()
             }
             Recipient::TheTriggeringObject => "the creature".to_string(),
+            Recipient::SameToken => "that token".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TriggeringCard => "that card".to_string(),
             Recipient::TriggeringController { that: true } => {

@@ -1679,7 +1679,10 @@ impl Compiler<'_> {
             Recipient::EachPlayer => CoreRecipient::EachPlayer,
             Recipient::EachCreatureYouControl => CoreRecipient::EachCreatureYouControl,
             Recipient::EachPermanentYouControl => CoreRecipient::EachPermanentYouControl,
-            Recipient::SameObject | Recipient::SameThat | Recipient::SameTokens => {
+            Recipient::SameObject
+            | Recipient::SameThat
+            | Recipient::SameToken
+            | Recipient::SameTokens => {
                 CoreRecipient::SameObject
             }
             Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,

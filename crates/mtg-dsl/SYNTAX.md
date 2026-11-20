@@ -1570,7 +1570,9 @@ its owner's control."; `triggering card` is the card it became). After
 (those still on the battlefield), and `delayed those tokens: sacrifice
 those tokens at beginning of the next end step` is one delayed trigger
 about each ("Sacrifice those tokens at the beginning of the next end
-step."). `delayed this: whenever <trigger> this turn, <effects>` triggers on
+step."). In `delayed that token: ...`, `it` prints "it" and `that token`
+"that token" ("Exile that token at the beginning of the next end
+step."); both are the token. `delayed this: whenever <trigger> this turn, <effects>` triggers on
 every such event until the turn ends (CR 603.7c), as its controller's
 ability: "Whenever a creature blocks this turn, its controller loses 1
 life." (`its controller` is the triggering object's), "Whenever a

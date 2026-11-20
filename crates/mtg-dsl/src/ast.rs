@@ -2513,6 +2513,10 @@ pub enum Recipient {
     /// `that creature` inside a delayed trigger about a target: the object
     /// the trigger is about (`SameObject`), printed "that creature".
     SameThat,
+    /// `that token` inside a delayed trigger about a created token: that
+    /// token (`SameObject`), printed "that token" ("Exile that token at
+    /// the beginning of the next end step").
+    SameToken,
     CreatedObject,
     /// `those tokens`: every token the last token-creating sentence
     /// created; inside a delayed trigger about them, each in turn

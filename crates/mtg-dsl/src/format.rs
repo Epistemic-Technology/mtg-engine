@@ -292,7 +292,7 @@ impl Fmt {
             Recipient::SameObject | Recipient::TriggeringIt | Recipient::SourceIt => {
                 "it".to_string()
             }
-            Recipient::CreatedObject => "that token".to_string(),
+            Recipient::CreatedObject | Recipient::SameToken => "that token".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "each of them".to_string(),
             Recipient::Manifested => "manifested creature".to_string(),
