@@ -209,6 +209,10 @@ impl Fmt {
                 self.mentioned[i] = true;
                 format!("that target {}", i + 1)
             }
+            Recipient::TheTarget(i) => {
+                self.mentioned[i] = true;
+                format!("the target {}", i + 1)
+            }
             // "up to 2 target creature": declares them together.
             Recipient::Targets(a, n) if self.mentioned[a] => {
                 format!("targets {} to {}", a + 1, a + n)
@@ -234,6 +238,7 @@ impl Fmt {
             Recipient::TriggeringController { that: true } => {
                 "controller of that creature".to_string()
             }
+            Recipient::TheTriggeringController => "controller of the creature".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
             Recipient::DefendingPlayerWord => "that defending player".to_string(),
@@ -3406,6 +3411,8 @@ fn restricted_mana(m: Mana, r: &crate::ast::ManaRestriction) -> String {
     let spells = spells.map(|s| {
         if r.foretell {
             format!("foretell or {s}")
+        } else if r.disturb {
+            format!("pay disturb or {s}")
         } else {
             s
         }

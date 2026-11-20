@@ -4442,6 +4442,11 @@ pub struct ManaRestriction {
     /// sorcery spell."
     #[serde(default)]
     pub foretell: bool,
+    /// "Spend this mana only to pay a disturb cost or cast an instant or
+    /// sorcery spell." Disturb (CR 702.146) isn't implemented, so this is
+    /// the wording only.
+    #[serde(default)]
+    pub disturb: bool,
     /// How the sentence reads; `CantCast` also turns `spells` around.
     pub wording: SpendWording,
 }

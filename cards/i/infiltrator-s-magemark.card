@@ -1,0 +1,7 @@
+card "Infiltrator's Magemark" {
+  oracle_id df82b67f-f685-4278-a108-f3689a3a121b
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static creature you control with aura late: +1/+1, has ability { can't be blocked except by creature with defender }
+}

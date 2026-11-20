@@ -1034,6 +1034,7 @@ impl P {
                 abilities: true,
                 ability_source: None,
                 foretell: false,
+                disturb: false,
                 wording: SpendWording::CantCast,
             });
         }
@@ -1057,12 +1058,14 @@ impl P {
                 abilities: true,
                 ability_source,
                 foretell: false,
+                disturb: false,
                 wording,
             });
         }
         // "foretell a card from your hand or cast an instant or sorcery
         // spell" (CR 702.143a).
         let foretell = self.eat_words(&["foretell", "or"]);
+        let disturb = self.eat_words(&["pay", "disturb", "or"]);
         self.expect_word("cast")?;
         let mut f = self.filter()?;
         self.expect_word("spell")?;
@@ -1087,6 +1090,7 @@ impl P {
             abilities,
             ability_source,
             foretell,
+            disturb,
             wording,
         })
     }
@@ -6407,6 +6411,9 @@ impl P {
         if self.in_trigger && self.eat_words(&["controller", "of", "that", "creature"]) {
             return Ok(Recipient::TriggeringController { that: true });
         }
+        if self.in_trigger && self.eat_words(&["controller", "of", "the", "creature"]) {
+            return Ok(Recipient::TheTriggeringController);
+        }
         if self.eat_words(&["those", "cards"]) {
             if self.targets.is_empty() {
                 return self.fail("`those cards` needs targets declared before it");
@@ -6444,6 +6451,17 @@ impl P {
                 return self.fail(format!("target {n} has not been declared"));
             }
             return Ok(Recipient::ThatTarget(n - 1));
+        }
+        if self.at_words(&["the", "target"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
+            self.pos += 2;
+            let Some(Tok::Num(n)) = self.next() else {
+                return self.fail("expected a target number after `the target`");
+            };
+            let n = n as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(Recipient::TheTarget(n - 1));
         }
         if !self.targets.is_empty() {
             let last = self.targets.len() - 1;

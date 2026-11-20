@@ -1,0 +1,7 @@
+card "Temple Thief" {
+  oracle_id 493ecd11-e980-42da-a79e-cddd9a94cc7a
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 2/2
+  can't be blocked by creature with aura or enchantment creature
+}

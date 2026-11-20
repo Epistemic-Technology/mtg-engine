@@ -70,6 +70,8 @@ pub struct ManaRestriction {
     pub ability_source: Option<Filter>,
     /// `only to foretell or cast ...`: "foretell a card from your hand".
     pub foretell: bool,
+    /// `only to pay disturb or cast ...`: "pay a disturb cost".
+    pub disturb: bool,
     pub wording: mtg_core::card::SpendWording,
 }
 
@@ -1932,6 +1934,12 @@ pub enum Recipient {
     ThatOwner(usize),
     /// `controller of the target 1`: "the creature's controller".
     TheControllerOf(usize),
+    /// `the target 1`: the `n`th target, "the creature" (Dark Temper's
+    /// "destroy the creature instead").
+    TheTarget(usize),
+    /// `controller of the creature` in a triggered ability: the triggering
+    /// object's controller, "the creature's controller" (Creature Bond).
+    TheTriggeringController,
     /// The `n`th target again, printed as "that creature" (Act of
     /// Treason's "Untap that creature").
     ThatTarget(usize),

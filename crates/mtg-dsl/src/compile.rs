@@ -1079,7 +1079,9 @@ impl Compiler<'_> {
             Recipient::Target(i) if Some(i) == many => {
                 CoreRecipient::Targets(u8::try_from(i).unwrap_or(u8::MAX), u8::MAX)
             }
-            Recipient::Target(i) | Recipient::ThatTarget(i) => CoreRecipient::Target(i),
+            Recipient::Target(i) | Recipient::ThatTarget(i) | Recipient::TheTarget(i) => {
+                CoreRecipient::Target(i)
+            }
             Recipient::Targets(a, n)
             | Recipient::ThoseCards(a, n)
             | Recipient::ThoseTargets(a, n) => CoreRecipient::Targets(
@@ -1092,7 +1094,9 @@ impl Compiler<'_> {
                 CoreRecipient::Source
             }
             Recipient::TriggeringCard => CoreRecipient::TriggeringCard,
-            Recipient::TriggeringController { .. } => CoreRecipient::TriggeringController,
+            Recipient::TriggeringController { .. } | Recipient::TheTriggeringController => {
+                CoreRecipient::TriggeringController
+            }
             Recipient::TriggeringObject | Recipient::TriggeringIt => {
                 CoreRecipient::TriggeringObject
             }
@@ -2386,6 +2390,7 @@ impl Compiler<'_> {
                     abilities: restriction.abilities,
                     ability_source: restriction.ability_source.as_ref().map(|f| self.filter(f)),
                     foretell: restriction.foretell,
+                    disturb: restriction.disturb,
                     wording: restriction.wording,
                 },
             },

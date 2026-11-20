@@ -468,6 +468,8 @@ fn restricted_mana_text(card: &Card, m: Mana, r: &crate::ast::ManaRestriction) -
         let s = format!("cast {}", a_spell(f, card));
         if r.foretell {
             format!("foretell a card from your hand or {s}")
+        } else if r.disturb {
+            format!("pay a disturb cost or {s}")
         } else {
             s
         }
@@ -975,6 +977,10 @@ impl<'a> Ctx<'a> {
                 self.target_mentioned[i] = true;
                 format!("that {}", self.target_noun[i])
             }
+            Recipient::TheTarget(i) => {
+                self.target_mentioned[i] = true;
+                format!("the {}", self.target_noun[i])
+            }
             Recipient::You => "you".to_string(),
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::EachOtherPlayer => "each other player".to_string(),
@@ -1020,6 +1026,7 @@ impl<'a> Ctx<'a> {
             }
             Recipient::ThatControllerOf(i) => format!("that {}'s controller", self.target_noun[i]),
             Recipient::TheControllerOf(i) => format!("the {}'s controller", self.target_noun[i]),
+            Recipient::TheTriggeringController => "the creature's controller".to_string(),
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::DefendingPlayer => "the player or planeswalker it's attacking".to_string(),
             Recipient::DefendingPlayerWord => "defending player".to_string(),
@@ -7263,6 +7270,12 @@ fn block_rule_phrase(r: &crate::ast::BlockRule, card: &Card, this_turn: bool) ->
     };
     let turn = if this_turn { " this turn" } else { "" };
     match r {
+        // "can't be blocked by enchanted creatures or enchantment
+        // creatures", "by Knights or Walls" (but colors "and/or").
+        BlockRule::NotBy(f) if f.or.is_some() && f.colors.is_none() => format!(
+            "can't be blocked by {}{turn}",
+            filter_phrase(f, card, true).replacen(" and ", " or ", 1)
+        ),
         BlockRule::NotBy(f) => format!("can't be blocked by {}{turn}", pl(f)),
         BlockRule::OnlyBy(f) => format!("can't be blocked{turn} except by {}", pl(f)),
         BlockRule::AtMostOne => format!("can't be blocked by more than one creature{turn}"),

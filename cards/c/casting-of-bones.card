@@ -1,0 +1,7 @@
+card "Casting of Bones" {
+  oracle_id 5a747256-4215-4334-98ab-0c2e4ed92e47
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted dies: draw 3 cards then discard 1 of them
+}

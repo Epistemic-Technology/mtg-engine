@@ -1508,6 +1508,7 @@ impl Decompiler<'_> {
                     abilities: restriction.abilities,
                     ability_source: restriction.ability_source.as_ref().map(|f| self.filter(f)),
                     foretell: restriction.foretell,
+                    disturb: restriction.disturb,
                     wording: restriction.wording,
                 },
             },

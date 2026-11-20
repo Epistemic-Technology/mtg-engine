@@ -399,6 +399,99 @@ scenario "Steer Clear deals 2 damage without a Mount" {
   assert damage "Serra Angel" 2
 }
 
+scenario "Creature Bond: the Aura deals the creature's toughness to its controller" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant", "Creature Bond" on "Hill Giant"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Creature Bond"
+  assert life B 17
+}
+
+scenario "Casting of Bones draws three and discards one when enchanted creature dies" {
+  battlefield A: "Mountain", "Grizzly Bears", "Casting of Bones" on "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  library A: "Forest", "Island", "Swamp", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  # Unscripted, the first card drawn is the one discarded.
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Forest"
+  assert hand A contains "Island"
+  assert hand A contains "Swamp"
+}
+
+scenario "Dark Temper destroys the creature instead with a black permanent" {
+  battlefield A: 3 "Mountain", "Typhoid Rats"
+  battlefield B: "Serra Angel"
+  hand A: "Dark Temper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dark Temper" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Dark Temper deals 2 damage without a black permanent" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Dark Temper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dark Temper" targeting "Serra Angel"
+  run_to turn 1 end
+  assert damage "Serra Angel" 2
+}
+
+scenario "Unblinking Observer's mana casts an instant" {
+  battlefield A: "Unblinking Observer"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Opt"
+}
+
+scenario "Unblinking Observer's mana can't cast a creature" {
+  battlefield A: "Unblinking Observer", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Temple Thief can't be blocked by enchanted creatures" {
+  battlefield A: "Temple Thief"
+  battlefield B: "Hill Giant", "Holy Strength" on "Hill Giant"
+  turn 1 A: attack "Temple Thief"
+  illegal turn 1 B: block "Temple Thief" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Temple Thief can be blocked by an unenchanted creature" {
+  battlefield A: "Temple Thief"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Temple Thief"
+  turn 1 B: block "Temple Thief" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Infiltrator's Magemark pumps enchanted creatures you control" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", "Infiltrator's Magemark" on "Grizzly Bears", "Holy Strength" on "Savannah Lions"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Savannah Lions" 4
+  assert life B 17
+}
+
 scenario "Gleam of Resistance untaps attackers" {
   battlefield A: 5 "Plains", "Grizzly Bears"
   hand A: "Gleam of Resistance"
