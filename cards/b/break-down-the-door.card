@@ -1,0 +1,10 @@
+card "Break Down the Door" {
+  oracle_id a11d8372-87fb-40a2-b638-314c6a5af03b
+  cost {2}{G}
+  type Instant
+  choose one {
+    mode: exile target artifact
+    mode: exile target enchantment
+    mode: manifest dread
+  }
+}

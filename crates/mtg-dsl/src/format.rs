@@ -292,6 +292,7 @@ impl Fmt {
             Recipient::CreatedObject => "that token".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "each of them".to_string(),
+            Recipient::Manifested => "manifested creature".to_string(),
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.
             // `all` prints with the filter.
@@ -607,6 +608,11 @@ impl Fmt {
             Effect::Adapt(n) => format!("adapt {n}"),
             Effect::Bolster(n) => format!("bolster {}", num(*n)),
             Effect::Monstrosity(n) => format!("monstrosity {}", num(*n)),
+            Effect::Suspect { what, on: true } => format!("suspect {}", self.recipient(*what, t)),
+            Effect::Suspect { what, on: false } => {
+                format!("{} no longer suspected", self.recipient(*what, t))
+            }
+            Effect::BlightBy { who, n } => format!("{} blights {n}", self.recipient(*who, t)),
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
             Effect::Incubate(n) => format!("incubate {}", num(*n)),
@@ -1794,6 +1800,7 @@ impl Fmt {
                 filter: f,
                 among_them,
                 this_way,
+                returns,
             } => {
                 use mtg_core::card::ChooseAct;
                 let n = format!("{}{}", if *up_to { "up to " } else { "" }, num(*count));
@@ -1825,6 +1832,9 @@ impl Fmt {
                     }
                     ChooseAct::ReturnRandomFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand at random")
+                    }
+                    ChooseAct::MilledToHand if *returns => {
+                        format!("return {n} {f} {cs} from among them to hand chosen")
                     }
                     ChooseAct::MilledToHand => format!(
                         "put {n} {f} {cs} from among {} into hand chosen",
@@ -1986,10 +1996,13 @@ impl Fmt {
                 effects,
                 trigger_first,
                 this_turn,
+                it,
             } => {
                 let about = self.recipient(*about, t);
                 let body = self.line(effects, t);
-                let trig = if *this_turn && !about_that_creature(trigger) {
+                let trig = if *it {
+                    this_turn_trigger(trigger).replacen("that creature", "it", 1)
+                } else if *this_turn && !about_that_creature(trigger) {
                     format!("{} this turn", trigger_text(trigger, true))
                 } else if *this_turn {
                     this_turn_trigger(trigger).to_string()
@@ -2540,6 +2553,9 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.status.face_down {
         words.push("face-down".to_string());
+    }
+    if f.status.suspected == Some(true) {
+        words.push("suspected".to_string());
     }
     if f.attacking {
         words.push(if f.attacking_late {
@@ -3335,6 +3351,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
         Trigger::EntersBatch(f) => format!("whenever one or more {} enter", filter(f)),
         Trigger::LeavesBatch { filter: f, dies } => format!(
             "whenever one or more {} {}",
@@ -3709,6 +3726,8 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Enchanted => "enchanted".to_string(),
         StaticCond::Equipped => "equipped".to_string(),
         StaticCond::Monstrous => "monstrous".to_string(),
+        StaticCond::Suspected(true) => "suspected".to_string(),
+        StaticCond::Suspected(false) => "not suspected".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("opponent life {n} or less"),
         StaticCond::MoreLifeThanOpponent => "your life more than opponent".to_string(),
         StaticCond::BasicLandTypes(n) => format!("{n} basic land types"),

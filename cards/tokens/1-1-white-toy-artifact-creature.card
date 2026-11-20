@@ -1,0 +1,6 @@
+token "1/1 white Toy artifact creature" {
+  name "Toy"
+  type Artifact Creature — Toy
+  pt 1/1
+  color white
+}

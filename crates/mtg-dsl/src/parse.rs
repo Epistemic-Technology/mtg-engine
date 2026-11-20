@@ -339,6 +339,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     ),
     (&["defending", "player"], Recipient::DefendingPlayer),
     (&["that", "token"], Recipient::CreatedObject),
+    (&["manifested", "creature"], Recipient::Manifested),
     // "attach this Equipment to the amassed Army": amass's Army (CR
     // 701.47a), created or not.
     (&["amassed", "Army"], Recipient::CreatedObject),
@@ -2829,6 +2830,12 @@ impl P {
         if self.eat_word("monstrous") {
             return Ok(StaticCond::Monstrous);
         }
+        if self.eat_word("suspected") {
+            return Ok(StaticCond::Suspected(true));
+        }
+        if self.eat_words(&["not", "suspected"]) {
+            return Ok(StaticCond::Suspected(false));
+        }
         if self.eat_words(&["opponent", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
             self.expect_words(&["or", "less"])?;
@@ -4479,6 +4486,17 @@ impl P {
                     who: (explicit || subject != Recipient::You).then_some(subject),
                 })
             }
+            // "Each opponent blights 1" (CR 701.68a).
+            "blights" => Ok(Effect::BlightBy {
+                who: subject,
+                n: self.number()?,
+            }),
+            // "All suspected creatures are no longer suspected." (CR
+            // 701.60d).
+            "no" if self.eat_words(&["longer", "suspected"]) => Ok(Effect::Suspect {
+                what: subject,
+                on: false,
+            }),
             "put" | "puts"
                 if matches!(self.peek(), Some(Tok::Num(_))) && self.hand_to_library_ahead() =>
             {
@@ -5187,6 +5205,7 @@ impl P {
         };
         let mut among_them = false;
         let mut this_way = false;
+        let mut returns = false;
         let (act, filter) = match verb.as_str() {
             "tap" => (ChooseAct::Tap, self.filter()?),
             "untap" => (ChooseAct::Untap, self.filter()?),
@@ -5214,8 +5233,16 @@ impl P {
                     self.filter()?
                 };
                 if self.eat_word("card") || self.eat_word("cards") {
-                    self.expect_words(&["from", "your", "graveyard", "to", "hand"])?;
-                    (ChooseAct::ReturnFromGraveyard, f)
+                    if self.eat_words(&["from", "among", "them", "to", "hand"]) {
+                        // "return up to two permanent cards from among them
+                        // to your hand" after a mill.
+                        among_them = true;
+                        returns = true;
+                        (ChooseAct::MilledToHand, f)
+                    } else {
+                        self.expect_words(&["from", "your", "graveyard", "to", "hand"])?;
+                        (ChooseAct::ReturnFromGraveyard, f)
+                    }
                 } else {
                     self.expect_words(&["to", "hand"])?;
                     (ChooseAct::Bounce, f)
@@ -5285,6 +5312,7 @@ impl P {
             filter,
             among_them,
             this_way,
+            returns,
         })
     }
 
@@ -5868,6 +5896,11 @@ impl P {
             "adapt" => Ok(Effect::Adapt(self.count()?)),
             "bolster" => Ok(Effect::Bolster(self.num()?)),
             "monstrosity" => Ok(Effect::Monstrosity(self.num()?)),
+            // CR 701.60a.
+            "suspect" => Ok(Effect::Suspect {
+                what: self.recipient()?,
+                on: true,
+            }),
             "populate" => Ok(Effect::Populate),
             "incubate" => Ok(Effect::Incubate(self.num()?)),
             // CR 701.41a: "up to N other target creatures" on a permanent
@@ -6428,9 +6461,15 @@ impl P {
                 self.in_delayed = true;
                 self.delayed_that = about == Recipient::TriggeringObject;
                 // "When that creature dies this turn, ..." (CR 603.7c).
+                let mut it = false;
                 let this_turn =
                     if self.at_words(&["when", "that", "creature", "dies", "this", "turn"]) {
                         self.pos += 6;
+                        Some(Trigger::Dies(TriggerObj::This))
+                    } else if self.at_words(&["when", "it", "dies", "this", "turn"]) {
+                        // "When it dies this turn, manifest dread."
+                        self.pos += 5;
+                        it = true;
                         Some(Trigger::Dies(TriggerObj::This))
                     } else if self.at_words(&[
                         "when",
@@ -6484,6 +6523,7 @@ impl P {
                     effects,
                     trigger_first,
                     this_turn: this_turn.is_some() || turn_long,
+                    it,
                 })
             }
             "prevent" => {
@@ -8360,6 +8400,11 @@ impl P {
                     f.status.face_down = true;
                     self.pos += 1;
                 }
+                // CR 701.60: "suspected creature".
+                "suspected" if f.status.suspected.is_none() => {
+                    f.status.suspected = Some(true);
+                    self.pos += 1;
+                }
                 // "a token", "artifact token", "nontoken creature" (CR
                 // 111.1).
                 "token" | "tokens" | "nontoken" if f.status.token.is_none() => {
@@ -8880,6 +8925,10 @@ impl P {
             }
             let whose = if self.eat_word("your") {
                 Who::You
+            } else if self.eat_words(&["each", "opponent's"])
+                || self.eat_words(&["an", "opponent's"])
+            {
+                Who::Opponents
             } else if self.eat_words(&["each", "player's"])
                 || self.eat_word("each")
                 || self.eat_word("the")
@@ -9025,6 +9074,9 @@ impl P {
         }
         if self.eat_words(&["you", "collect", "evidence"]) {
             return Ok(Trigger::CollectsEvidence);
+        }
+        if self.eat_words(&["you", "turn", "a", "permanent", "face", "up"]) {
+            return Ok(Trigger::YouTurnFaceUp);
         }
         // CR 700.14: "you expend 4".
         if self.eat_words(&["you", "expend"]) {

@@ -1149,6 +1149,8 @@ pub struct StatusQuals {
     /// "creature with a morph ability" (CR 702.37; megamorph is morph,
     /// CR 702.37b, disguise isn't).
     pub morph: bool,
+    /// "suspected creature" (`true`, CR 701.60) or not suspected.
+    pub suspected: Option<bool>,
 }
 
 /// The kind of permanent `StatusQuals::on` asks the object to be attached
@@ -1189,6 +1191,7 @@ impl StatusQuals {
             || self.on.is_some()
             || self.face_down
             || self.morph
+            || self.suspected.is_some()
     }
 }
 
@@ -2000,6 +2003,9 @@ pub enum StaticCondition {
     SourceEquipped,
     /// "as long as this creature is monstrous" (CR 701.37b).
     SourceMonstrous,
+    /// "this creature is suspected" (`true`) or "it's not suspected" (CR
+    /// 701.60).
+    SourceSuspected(bool),
     /// "as long as an opponent has 10 or less life"; "as long as you have
     /// 30 or more life" (`at_least`), "you have 5 or less life".
     OpponentLifeAtMost(i32),
@@ -3807,6 +3813,19 @@ pub enum Effect {
     /// Monstrosity N (CR 701.37a): if the source isn't monstrous, N +1/+1
     /// counters on it and it becomes monstrous.
     Monstrosity(Num),
+    /// Suspect (CR 701.60a): the recipient permanents become suspected
+    /// (`on`), or are no longer suspected (CR 701.60d).
+    Suspect {
+        what: Recipient,
+        on: bool,
+    },
+    /// "Each opponent blights 1", "target opponent blights 2" (CR
+    /// 701.68a): each player of the recipient puts N -1/-1 counters on a
+    /// creature they control, chosen as it resolves.
+    BlightBy {
+        who: Recipient,
+        n: u32,
+    },
     /// The recipient creature connives (CR 701.50): its controller draws
     /// and discards a card; a nonland discard puts a +1/+1 counter on it.
     Connive {

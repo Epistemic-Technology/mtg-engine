@@ -1,0 +1,8 @@
+card "Killer's Mask" {
+  oracle_id 93a04ce0-9b8e-4d69-82bf-d4c89a9856a9
+  cost {2}{B}
+  type Artifact — Equipment
+  triggered when this enters: manifest dread, then attach to manifested creature
+  static equipped: has menace
+  equip {2}
+}

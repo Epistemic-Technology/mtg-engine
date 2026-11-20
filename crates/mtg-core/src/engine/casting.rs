@@ -9015,6 +9015,36 @@ impl GameState {
                     o.marks |= crate::state::OBJ_RENOWNED;
                 }
             }
+            Effect::Suspect { what, on } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        // CR 701.60b: a permanent already suspected can't
+                        // become suspected again; nothing changes.
+                        if *on {
+                            self.objects[id].marks |= crate::state::OBJ_SUSPECTED;
+                        } else {
+                            self.objects[id].marks &= !crate::state::OBJ_SUSPECTED;
+                        }
+                    }
+                }
+                self.cbump();
+            }
+            Effect::BlightBy { who, n } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else { continue };
+                    let options: Vec<Choice> = self
+                        .creatures_of(p)
+                        .map(|id| Choice::Target(Target::Object(id)))
+                        .collect();
+                    if options.is_empty() {
+                        continue;
+                    }
+                    let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+                    if let Choice::Target(Target::Object(id)) = options[k] {
+                        self.add_counters(id, CounterKind::MinusOneMinusOne, *n);
+                    }
+                }
+            }
             Effect::Monstrosity(n) => {
                 // CR 701.37a: only a permanent that isn't monstrous; one
                 // that has left the battlefield does nothing.
@@ -9681,7 +9711,8 @@ impl GameState {
         }) && (!(filter.attacking
             || filter.blocking
             || filter.tapped.is_some()
-            || filter.status.counter.is_some())
+            || filter.status.counter.is_some()
+            || filter.status.suspected.is_some())
             // "If that creature is attacking", "If that creature has a
             // +1/+1 counter on it": its state while it is still on the
             // battlefield.

@@ -1,0 +1,14 @@
+card "Moldering Gym // Weight Room" {
+  oracle_id 34d0d070-fcaf-410e-a002-012cbe104fb7
+  layout split
+  face "Moldering Gym" {
+    cost {2}{G}
+    type Enchantment — Room
+    triggered when you unlock this door: search basic land card to battlefield tapped
+  }
+  face "Weight Room" {
+    cost {5}{G}
+    type Enchantment — Room
+    triggered when you unlock this door: manifest dread, then put 3 +1/+1 counters on manifested creature
+  }
+}

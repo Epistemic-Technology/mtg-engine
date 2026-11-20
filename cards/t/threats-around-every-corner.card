@@ -1,0 +1,7 @@
+card "Threats Around Every Corner" {
+  oracle_id 5c104ac8-738a-4a9d-a68b-5706018d2061
+  cost {3}{G}
+  type Enchantment
+  triggered when this enters: manifest dread
+  triggered whenever face-down permanent you control enters: search basic land card to battlefield tapped
+}

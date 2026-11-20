@@ -125,6 +125,9 @@ pub enum Target {
 pub const OBJ_RENOWNED: u8 = 1;
 pub const OBJ_MONSTROUS: u8 = 2;
 pub const OBJ_RIOT_HASTE: u8 = 4;
+/// Suspected (CR 701.60): it has menace and "can't block" for as long as
+/// it is suspected.
+pub const OBJ_SUSPECTED: u8 = 8;
 
 impl GameObject {
     pub const fn renowned(&self) -> bool {
@@ -137,6 +140,10 @@ impl GameObject {
 
     pub const fn riot_haste(&self) -> bool {
         self.marks & OBJ_RIOT_HASTE != 0
+    }
+
+    pub const fn suspected(&self) -> bool {
+        self.marks & OBJ_SUSPECTED != 0
     }
 }
 
@@ -2321,6 +2328,12 @@ impl GameState {
         if q.face_down && !self.pool.is_face_down(o.def) {
             return false;
         }
+        // CR 701.60: "suspected creature".
+        if q.suspected
+            .is_some_and(|s| s != (o.zone == Zone::Battlefield && o.suspected()))
+        {
+            return false;
+        }
         // "with a morph ability" (CR 702.37): a face-down permanent has no
         // abilities (CR 708.2).
         if q.morph && !self.pool.get(o.def).has_morph() {
@@ -2681,6 +2694,9 @@ impl GameState {
                 .as_ref()
                 .is_some_and(|c| c.attackers.iter().any(|a| a.id == source)),
             C::SourceMonstrous => self.objects.get(source).is_some_and(GameObject::monstrous),
+            C::SourceSuspected(want) => {
+                self.objects.get(source).is_some_and(GameObject::suspected) == *want
+            }
             C::SourceEnchanted | C::SourceEquipped => {
                 let want = if *cond == C::SourceEnchanted {
                     crate::card::Subtype::AURA

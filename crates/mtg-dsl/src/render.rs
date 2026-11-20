@@ -1138,6 +1138,7 @@ impl<'a> Ctx<'a> {
             Recipient::SameObject if self.delayed_that => "that creature".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "them".to_string(),
+            Recipient::Manifested => "that creature".to_string(),
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
             }
@@ -1841,6 +1842,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.face_down {
         words.push("face-down".to_string());
+    }
+    if f.status.suspected == Some(true) {
+        words.push("suspected".to_string());
     }
     if let Some(b) = f.status.blocked {
         words.push(if b { "blocked" } else { "unblocked" }.to_string());
@@ -3460,6 +3464,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
         Effect::Monstrosity(n) => Clause::imperative(format!("monstrosity {}", digits(*n))),
+        Effect::Suspect { what, on: true } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("suspect {o}"))
+        }
+        Effect::Suspect { what, on: false } => {
+            let s = ctx.subj(*what);
+            Clause::with_subject(
+                *what,
+                s,
+                format!("{} no longer suspected", ctx.verb(*what, "is", "are")),
+            )
+        }
+        Effect::BlightBy { who, n } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!("{} {n}", ctx.verb(*who, "blights", "blight")),
+            )
+        }
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
         Effect::Incubate(n) => Clause::imperative(format!("incubate {}", digits(*n))),
@@ -3494,7 +3518,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let what = match (one, *it) {
                 (true, true) => "it",
                 (true, false) => "that card",
-                (false, _) => "those cards",
+                // "You may play them until the end of your next turn."
+                (false, true) => "them",
+                (false, false) => "those cards",
             };
             let body = if *until == PlayUntil::Forever {
                 // "You may play them." (no duration).
@@ -4429,8 +4455,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Attach { to, .. } => {
             let o = ctx.obj(*to);
             // After creating a token, "it" is the token: Oracle names the
-            // source again ("attach this Equipment to it").
-            let me = if *to == Recipient::CreatedObject && !is_spell(ctx.card) {
+            // source again ("attach this Equipment to it"); likewise after
+            // manifesting dread ("... to that creature").
+            let me = if matches!(*to, Recipient::CreatedObject | Recipient::Manifested)
+                && !is_spell(ctx.card)
+            {
                 this_ref(ctx.card)
             } else {
                 ctx.source()
@@ -4930,6 +4959,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             filter,
             among_them,
             this_way,
+            returns,
         } => {
             use mtg_core::card::ChooseAct;
             let one = *count == Num::N(1) && !*up_to;
@@ -4984,6 +5014,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         "return {} at random from your graveyard to your hand",
                         cards()
                     )
+                }
+                ChooseAct::MilledToHand if *returns => {
+                    format!("return {} from among them to your hand", cards())
                 }
                 ChooseAct::MilledToHand => format!(
                     "put {} from among {} into your hand",
@@ -6197,6 +6230,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             effects,
             trigger_first,
             this_turn,
+            it,
         } => {
             // "When target creature dies this turn, ...": a target first
             // named by the delayed trigger itself.
@@ -6218,6 +6252,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = body.trim_end_matches('.').to_string();
             let t = if let Some(named) = named {
                 named
+            } else if *it {
+                crate::format::this_turn_trigger(trigger).replacen("that creature", "it", 1)
             } else if *this_turn && !crate::format::about_that_creature(trigger) {
                 format!("{} this turn", trigger_text(trigger, ctx, true))
             } else if *this_turn {
@@ -6724,6 +6760,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
         Trigger::EntersBatch(f) => format!(
             "whenever one or more {} enter",
             controller_first(f, filter_phrase(f, ctx.card, true))
@@ -8684,6 +8721,8 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Enchanted => "it's enchanted".to_string(),
         StaticCond::Equipped => "it's equipped".to_string(),
         StaticCond::Monstrous => "it's monstrous".to_string(),
+        StaticCond::Suspected(true) => "it's suspected".to_string(),
+        StaticCond::Suspected(false) => "it's not suspected".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("an opponent has {n} or less life"),
         StaticCond::MoreLifeThanOpponent => "you have more life than an opponent".to_string(),
         StaticCond::BasicLandTypes(n) => format!(
@@ -8994,6 +9033,7 @@ fn about_source(c: &StaticCond) -> bool {
             | StaticCond::Enchanted
             | StaticCond::Equipped
             | StaticCond::Monstrous
+            | StaticCond::Suspected(_)
             | StaticCond::Is(_)
             | StaticCond::Modified
             | StaticCond::AttackingAlone

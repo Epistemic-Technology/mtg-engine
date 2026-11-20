@@ -1,0 +1,14 @@
+card "Grand Entryway // Elegant Rotunda" {
+  oracle_id f7574379-d10e-4bbf-b0b1-13feee753d8b
+  layout split
+  face "Grand Entryway" {
+    cost {1}{W}
+    type Enchantment — Room
+    triggered when you unlock this door: create 1 "1/1 white Glimmer enchantment creature"
+  }
+  face "Elegant Rotunda" {
+    cost {2}{W}
+    type Enchantment — Room
+    triggered when you unlock this door: put 1 +1/+1 counter on up to 2 target creature
+  }
+}

@@ -1,0 +1,8 @@
+card "Growing Dread" {
+  oracle_id aa1d8bfa-729a-4e10-8069-57a1d4f4392b
+  cost {G}{U}
+  type Enchantment
+  keywords flash
+  triggered when this enters: manifest dread
+  triggered whenever you turn a permanent face up: put 1 +1/+1 counter on it
+}

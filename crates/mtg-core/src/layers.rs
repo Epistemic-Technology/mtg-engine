@@ -157,6 +157,7 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
         o.counters.is_empty()
             && o.except.is_none()
             && !o.riot_haste()
+            && !o.suspected()
             && !matches!(
                 o.alt,
                 crate::state::AltCast::Suspend | crate::state::AltCast::Dash
@@ -390,6 +391,13 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             .objects
             .get(source)
             .is_some_and(super::state::GameObject::monstrous),
+        StaticCondition::SourceSuspected(want) => {
+            state
+                .objects
+                .get(source)
+                .is_some_and(super::state::GameObject::suspected)
+                == *want
+        }
         StaticCondition::SourceEnchanted | StaticCondition::SourceEquipped => {
             let want = if *cond == StaticCondition::SourceEnchanted {
                 crate::card::Subtype::AURA
@@ -1160,6 +1168,14 @@ fn apply_counters(work: &mut Work<'_>, layer: Layer) {
                 )
             {
                 work.chars[i].keywords = work.chars[i].keywords.with(crate::card::Keyword::Haste);
+            }
+            // CR 701.60c: a suspected creature has menace and "This
+            // creature can't block."
+            if o.suspected() {
+                work.chars[i].keywords = work.chars[i]
+                    .keywords
+                    .with(crate::card::Keyword::Menace)
+                    .with(crate::card::Keyword::CantBlock);
             }
         }
         return;

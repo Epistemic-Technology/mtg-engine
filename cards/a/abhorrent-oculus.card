@@ -1,0 +1,9 @@
+card "Abhorrent Oculus" {
+  oracle_id b1a0e129-27f0-4a09-b00d-497e18777306
+  cost {2}{U}
+  type Creature — Eye
+  pt 5/5
+  additional cost exile 6 cards from graveyard
+  keywords flying
+  triggered at beginning of each opponent's upkeep: manifest dread
+}

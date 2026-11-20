@@ -1420,6 +1420,9 @@ pub enum StaticCond {
     Equipped,
     /// `monstrous`: "this creature is monstrous" (CR 701.37b).
     Monstrous,
+    /// `suspected`: "it's suspected"; `not suspected`: "it's not
+    /// suspected" (CR 701.60).
+    Suspected(bool),
     /// `opponent life 10 or less`: "an opponent has 10 or less life".
     OpponentLifeAtMost(i32),
     /// `your life 30 or more`: "you have 30 or more life".
@@ -2144,6 +2147,9 @@ pub enum Trigger {
     Expends(u8),
     /// `whenever you collect evidence` (CR 701.59).
     CollectsEvidence,
+    /// `whenever you turn a permanent face up` (CR 708.8): a permanent you
+    /// control is turned face up; it is "it".
+    YouTurnFaceUp,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -2330,6 +2336,10 @@ pub enum Recipient {
     /// `them` after creating tokens: `those tokens` printed "them" ("Put
     /// X +1/+1 counters on each of them").
     CreatedThem,
+    /// `manifested creature`: the creature the resolution manifested
+    /// (manifest dread, CR 701.62), printed "that creature" ("manifest
+    /// dread, then put three +1/+1 counters on that creature").
+    Manifested,
     /// `each <filter>` / `all <filter>`: the `n`th of the card's `groups`.
     Group(u16),
     /// `random <filter>`: one of the `n`th group's permanents, picked at
@@ -3019,6 +3029,9 @@ pub enum Effect {
         /// `Dies(This)` / `Leaves(This)` about the recipient, and ends with
         /// the turn.
         this_turn: bool,
+        /// `when it dies this turn`: the same, printed "When it dies this
+        /// turn" (wording only).
+        it: bool,
     },
     /// A replacement or prevention effect that lasts until end of turn.
     CreateReplacement(Replacement),
@@ -3062,6 +3075,17 @@ pub enum Effect {
     Manifest,
     /// `manifest dread` (CR 701.62).
     ManifestDread,
+    /// `suspect target creature` (CR 701.60a); `<what> no longer
+    /// suspected` (`on` false): "... are no longer suspected".
+    Suspect {
+        what: Recipient,
+        on: bool,
+    },
+    /// `each opponent blights 1` (CR 701.68a).
+    BlightBy {
+        who: Recipient,
+        n: u32,
+    },
     /// `collect evidence 4` (CR 701.59).
     CollectEvidence(u32),
     /// `blight 2` (CR 701.68).
@@ -3346,6 +3370,9 @@ pub enum Effect {
         /// `MilledToHand` only: `from among milled this way cards`, "from
         /// among the cards milled this way".
         this_way: bool,
+        /// `MilledToHand` only: written `return ... from among them to
+        /// hand`, "return ... from among them to your hand".
+        returns: bool,
     },
     /// `sacrifice 1 artifact chosen or discard 1 card`: one of these, as
     /// the controller chooses.

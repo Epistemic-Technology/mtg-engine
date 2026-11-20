@@ -956,6 +956,7 @@ impl Compiler<'_> {
             StaticCond::Enchanted => StaticCondition::SourceEnchanted,
             StaticCond::Equipped => StaticCondition::SourceEquipped,
             StaticCond::Monstrous => StaticCondition::SourceMonstrous,
+            StaticCond::Suspected(b) => StaticCondition::SourceSuspected(*b),
             StaticCond::OpponentLifeAtMost(n) => StaticCondition::OpponentLifeAtMost(*n),
             StaticCond::MoreLifeThanOpponent => StaticCondition::MoreLifeThanOpponent,
             StaticCond::BasicLandTypes(n) => StaticCondition::BasicLandTypes(*n),
@@ -1336,6 +1337,7 @@ impl Compiler<'_> {
                 CoreRecipient::SameObject
             }
             Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
+            Recipient::Manifested => CoreRecipient::CreatedObject,
             Recipient::CreatedObject => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
@@ -2185,6 +2187,14 @@ impl Compiler<'_> {
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
             Effect::Bolster(n) => out.push(CoreEffect::Bolster(*n)),
             Effect::Monstrosity(n) => out.push(CoreEffect::Monstrosity(*n)),
+            Effect::Suspect { what, on } => out.push(CoreEffect::Suspect {
+                what: r(*what),
+                on: *on,
+            }),
+            Effect::BlightBy { who, n } => out.push(CoreEffect::BlightBy {
+                who: r(*who),
+                n: *n,
+            }),
             Effect::Populate => out.push(CoreEffect::Populate),
             // CR 701.41a: one counter on each target.
             Effect::Support(to) => {
@@ -2595,6 +2605,12 @@ impl Compiler<'_> {
             Trigger::EntersFromGraveyard(f) => TriggerSpec::EntersFromGraveyard(self.filter(f)),
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
+            Trigger::YouTurnFaceUp => TriggerSpec::TurnedFaceUp(self.trigger_obj(
+                &crate::ast::TriggerObj::Filter(Filter {
+                    who: Some(Who::You),
+                    ..Filter::default()
+                }),
+            )),
             Trigger::Or { first, second, .. } => {
                 TriggerSpec::Either(Box::new((self.trigger(first), self.trigger(second))))
             }
@@ -3959,6 +3975,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         }),
                         trigger_first: false,
                         this_turn: false,
+                        it: false,
                     },
                 ],
                 label: None,

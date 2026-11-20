@@ -1,0 +1,8 @@
+card "Cursed Windbreaker" {
+  oracle_id 8a265910-2e10-4e97-88ab-c0cb1a712eb8
+  cost {2}{U}
+  type Artifact — Equipment
+  triggered when this enters: manifest dread, then attach to manifested creature
+  static equipped: has flying
+  equip {3}
+}

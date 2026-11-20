@@ -373,6 +373,7 @@ impl Decompiler<'_> {
             StaticCondition::SourceEnchanted => StaticCond::Enchanted,
             StaticCondition::SourceEquipped => StaticCond::Equipped,
             StaticCondition::SourceMonstrous => StaticCond::Monstrous,
+            StaticCondition::SourceSuspected(b) => StaticCond::Suspected(*b),
             StaticCondition::OpponentLifeAtMost(n) => StaticCond::OpponentLifeAtMost(*n),
             StaticCondition::MoreLifeThanOpponent => StaticCond::MoreLifeThanOpponent,
             StaticCondition::BasicLandTypes(n) => StaticCond::BasicLandTypes(*n),
@@ -1102,6 +1103,7 @@ impl Decompiler<'_> {
                     effects: self.sentences(&t.effects),
                     trigger_first: *this_turn,
                     this_turn: *this_turn,
+                    it: false,
                 }
             }
             CoreEffect::CreateReplacement(rep) => Effect::CreateReplacement(self.replacement(rep)),
@@ -1166,6 +1168,14 @@ impl Decompiler<'_> {
             CoreEffect::Adapt(n) => Effect::Adapt(*n),
             CoreEffect::Bolster(n) => Effect::Bolster(*n),
             CoreEffect::Monstrosity(n) => Effect::Monstrosity(*n),
+            CoreEffect::Suspect { what, on } => Effect::Suspect {
+                what: r(*what),
+                on: *on,
+            },
+            CoreEffect::BlightBy { who, n } => Effect::BlightBy {
+                who: r(*who),
+                n: *n,
+            },
             CoreEffect::Populate => Effect::Populate,
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
             CoreEffect::Fabricate { .. }
@@ -1339,6 +1349,7 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
                 among_them: false,
                 this_way: false,
+                returns: false,
             },
             CoreEffect::OneOf(options) => {
                 // "gains your choice of lifelink or indestructible".

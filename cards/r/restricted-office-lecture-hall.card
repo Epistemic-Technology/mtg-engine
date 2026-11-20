@@ -1,0 +1,14 @@
+card "Restricted Office // Lecture Hall" {
+  oracle_id b36286fa-4007-4276-af9c-d8f0da9e94d1
+  layout split
+  face "Restricted Office" {
+    cost {2}{W}{W}
+    type Enchantment — Room
+    triggered when you unlock this door: destroy each creature with power 3 or greater
+  }
+  face "Lecture Hall" {
+    cost {5}{U}{U}
+    type Enchantment — Room
+    static other permanent you control: has hexproof
+  }
+}
