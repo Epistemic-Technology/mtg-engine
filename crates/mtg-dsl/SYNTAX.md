@@ -225,7 +225,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `whenever you cast artifact spell`, `whenever a player casts Goblin spell`, `whenever an opponent casts multicolored spell` | a cast trigger with any filter |
 | `whenever this becomes targeted by opponent` | "... becomes the target of a spell or ability an opponent controls" (ward's trigger) |
 | `whenever you cast with mana value 4 or greater spell` | "Whenever you cast a spell with mana value 4 or greater" (a filter's "with" qualities print after "spell"; likewise `counter target with mana value 4 or less spell`) |
-| `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn` | the spell's place among those its caster cast this turn |
+| `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn`, `whenever you cast a spell during an opponent's turn` | the spell's place among those its caster cast this turn (or only that it was cast on another player's turn) |
 | `when you cycle this` | "When you cycle this card" (CR 702.29d): triggers from the card itself as its cycling ability is activated, so it resolves before the draw; the card is "it" ("it deals 6 damage to any target") |
 | `whenever you cycle a card`, `whenever you cycle another card`, `whenever you cycle or discard a card` | cycling a card (CR 702.29); `or discard` triggers once per card discarded, cycling included |
 | `whenever this or Ally you control enters`, `whenever this or creature you control with power 4 or greater dies` | "Whenever this creature or another Ally you control enters"; the filter includes the source, and Oracle names the source again ("this creature") |
@@ -1445,7 +1445,10 @@ creatures you control"), `life you lost this turn` ("the life you've lost
 this turn"), and `<expr> plus <expr>` ("the number of creatures on the
 battlefield plus the number of artifacts on the battlefield"). `toughness
 of that target 1` names a graveyard card target "that card's" and a
-target of several permanent types "that permanent's".
+target of several permanent types "that permanent's". `power of attached` is
+what the source enchants or equips ("tap enchanted creature; enchanted
+creature deals count equal power of attached damage to you": "Tap
+enchanted creature. It deals damage to you equal to its power.").
 
 Discards: `discard hand` ("Discard your hand"), `discard all cards in hand`
 ("Discard all the cards in your hand"), `<who> discards all Trap card`

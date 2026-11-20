@@ -2814,6 +2814,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             let whose = if *that { "that creature's" } else { "its" };
             return format!("{whose} {}", stat_word(*stat));
         }
+        CountExpr::AttachedStat(stat) => return format!("its {}", stat_word(*stat)),
         // "the sacrificed creature's toughness", "that creature's
         // toughness".
         CountExpr::MovedStat {

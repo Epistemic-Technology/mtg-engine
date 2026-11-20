@@ -583,6 +583,38 @@ scenario "Nimbleclaw Adept untaps two other target permanents" {
   assert tapped "Nimbleclaw Adept"
 }
 
+scenario "Dreamspoiler Witches triggers on a spell cast during an opponent's turn" {
+  battlefield A: "Dreamspoiler Witches", "Island"
+  battlefield B: "Savannah Lions"
+  hand A: "Opt"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Opt"
+  turn 2 A: trigger "Dreamspoiler Witches" targeting "Savannah Lions"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Savannah Lions"
+}
+
+scenario "Dreamspoiler Witches doesn't trigger on its controller's turn" {
+  battlefield A: "Dreamspoiler Witches", "Island"
+  battlefield B: "Savannah Lions"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Savannah Lions"
+}
+
+scenario "Bind the Monster taps the creature, which deals its power to the caster" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Bind the Monster"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bind the Monster" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert tapped "Hill Giant"
+}
+
 scenario "Gleam of Resistance untaps attackers" {
   battlefield A: 5 "Plains", "Grizzly Bears"
   hand A: "Gleam of Resistance"

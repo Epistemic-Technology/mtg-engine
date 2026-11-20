@@ -964,6 +964,7 @@ fn per_count(
         | CountExpr::SpentTreasure
         | CountExpr::DiedThisTurn(_)
         | CountExpr::TriggerStat(_)
+        | CountExpr::AttachedStat(_)
         | CountExpr::MovedStat { .. }
         | CountExpr::TargetHand(_)
         | CountExpr::GreatestToughness(_)

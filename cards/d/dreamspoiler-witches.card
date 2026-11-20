@@ -1,0 +1,8 @@
+card "Dreamspoiler Witches" {
+  oracle_id 822eb600-cfaf-4ea1-a016-0c1f0cfa6436
+  cost {3}{B}
+  type Creature — Faerie Wizard
+  pt 2/2
+  keywords flying
+  triggered whenever you cast a spell during an opponent's turn: you may target creature gets -1/-1
+}

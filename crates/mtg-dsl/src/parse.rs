@@ -5787,6 +5787,10 @@ impl P {
             return None;
         };
         let at = |k: usize| self.word_at(len + k);
+        if at(0).as_deref() == Some("attached") {
+            self.pos += len + 1;
+            return Some(CountExpr::AttachedStat(stat));
+        }
         if self.in_trigger && at(0).as_deref() == Some("it") {
             self.pos += len + 1;
             return Some(CountExpr::TriggerStat { stat, that: false });
@@ -7614,6 +7618,9 @@ impl P {
     /// cast` / `an opponent casts`.
     fn spell_ordinal(&mut self) -> R<Option<mtg_core::card::SpellOrdinal>> {
         use mtg_core::card::SpellOrdinal;
+        if self.eat_words(&["a", "spell", "during", "an", "opponent's", "turn"]) {
+            return Ok(Some(SpellOrdinal::OnOpponentsTurn));
+        }
         if self.eat_words(&["a", "spell", "other", "than"]) {
             if !(self.eat_word("your") || self.eat_word("their")) {
                 return self.unexpected("`your` or `their`");

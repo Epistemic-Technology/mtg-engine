@@ -605,6 +605,13 @@ impl GameState {
             CountExpr::TriggerStat(stat) => {
                 return ctx.trigger_obj.map_or(0, |id| self.stat_value(id, *stat));
             }
+            CountExpr::AttachedStat(stat) => {
+                return self
+                    .objects
+                    .get(ctx.source)
+                    .and_then(|o| o.attached_to)
+                    .map_or(0, |id| self.stat_value(id, *stat));
+            }
             // CR 608.2h: the moved object as it last existed.
             CountExpr::MovedStat { verb, stat } => {
                 return self.this_way.as_ref().map_or(0, |log| {

@@ -310,6 +310,9 @@ pub enum CountExpr {
         stat: mtg_core::card::Stat,
         that: bool,
     },
+    /// `power of attached`: what the source enchants or equips, "its
+    /// power".
+    AttachedStat(mtg_core::card::Stat),
     /// `toughness of the sacrificed creature` ("the sacrificed creature's
     /// toughness"), `mana value of the sacrificed permanent`, `toughness
     /// of that sacrificed creature` ("that creature's toughness" after

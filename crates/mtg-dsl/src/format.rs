@@ -1908,6 +1908,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::GreatestPowerInGraveyard(f) => {
             format!("greatest power graveyard {}", card_filter(f))
         }
+        CountExpr::AttachedStat(stat) => format!("{} of attached", stat_word(*stat)),
         CountExpr::TriggerStat { stat, that } => format!(
             "{} of {}",
             stat_word(*stat),
@@ -2598,6 +2599,7 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
         SpellOrdinal::FirstOnOpponentsTurn => {
             format!("{who} {their} first spell during each opponent's turn")
         }
+        SpellOrdinal::OnOpponentsTurn => format!("{who} a spell during an opponent's turn"),
     }
 }
 

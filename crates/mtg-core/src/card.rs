@@ -1655,6 +1655,9 @@ pub enum CountExpr {
     /// dies, its controller loses life equal to its toughness"), as it
     /// last existed once it has left (CR 608.2h).
     TriggerStat(Stat),
+    /// A characteristic of what the source is attached to ("It deals
+    /// damage to you equal to its power" of enchanted creature).
+    AttachedStat(Stat),
     /// A characteristic of the first object the resolution, or its costs,
     /// moved `verb`'s way ("life equal to the sacrificed creature's
     /// toughness", "sacrifices a creature, then gains life equal to that
@@ -4088,6 +4091,9 @@ pub enum SpellOrdinal {
     NotFirst,
     /// "your first spell during each opponent's turn".
     FirstOnOpponentsTurn,
+    /// "a spell during an opponent's turn": any spell cast on another
+    /// player's turn.
+    OnOpponentsTurn,
 }
 
 impl SpellOrdinal {
@@ -4099,6 +4105,7 @@ impl SpellOrdinal {
             SpellOrdinal::Second => n == 2,
             SpellOrdinal::NotFirst => n >= 2,
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
+            SpellOrdinal::OnOpponentsTurn => !own_turn,
         }
     }
 }

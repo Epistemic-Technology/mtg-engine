@@ -974,6 +974,7 @@ impl Compiler<'_> {
             A::DiedThisTurn(f) => C::DiedThisTurn(self.filter(f)),
             A::GreatestPowerInGraveyard(f) => C::GreatestPowerInGraveyard(self.filter(f)),
             A::TriggerStat { stat, .. } => C::TriggerStat(*stat),
+            A::AttachedStat(stat) => C::AttachedStat(*stat),
             A::MovedStat { verb, stat, .. } => C::MovedStat {
                 verb: *verb,
                 stat: *stat,
