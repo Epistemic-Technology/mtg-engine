@@ -98,6 +98,7 @@ pub fn add_card(
             implied_used: std::rc::Rc::default(),
             scavenge: None,
             station: None,
+            sunburst: None,
             extort: None,
             token: None,
             cast_snapshot: None,
@@ -123,6 +124,7 @@ pub fn add_card(
                 implied_used: std::rc::Rc::default(),
                 scavenge: None,
                 station: None,
+                sunburst: None,
                 extort: None,
                 token: None,
                 cast_snapshot: None,
@@ -148,6 +150,7 @@ pub fn add_card(
         implied_used: std::rc::Rc::default(),
         scavenge: None,
         station: None,
+        sunburst: None,
         extort: None,
         token,
         cast_snapshot: None,
@@ -227,6 +230,7 @@ fn add_stages(
             extort: None,
             token: None,
             cast_snapshot: None,
+            sunburst: None,
         };
         let mut d = c.card()?;
         link_exiles(&mut d);
@@ -322,6 +326,8 @@ struct Compiler<'a> {
     scavenge: Option<u8>,
     /// Station's count (the tapped creature's power), likewise.
     station: Option<u8>,
+    /// Sunburst's count (colors of mana spent), in `counts`.
+    sunburst: Option<u8>,
     /// Extort's count (the life lost this way), once added to the counts.
     extort: Option<u8>,
     /// The token embalm, eternalize, or offspring creates, compiled
@@ -477,6 +483,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Modular(n)) => {
                     b = b.modular(*n);
                 }
+                Ability::Mechanic(Mechanic::Graft(n)) => {
+                    b = b.graft(*n);
+                }
+                Ability::Mechanic(Mechanic::Vanishing(n)) => {
+                    b = b.vanishing(*n);
+                }
                 Ability::Mechanic(Mechanic::Morph(cost)) => {
                     b = b.morph(cost.clone(), mtg_core::card::MorphKind::Morph);
                 }
@@ -539,6 +551,15 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Storm) => {
                     b = b.storm();
                 }
+                Ability::Mechanic(Mechanic::Multikicker(c)) => {
+                    b = b.multikicker(c.clone());
+                }
+                Ability::Mechanic(Mechanic::Disturb(c)) => {
+                    b = b.disturb(c.clone());
+                }
+                Ability::Mechanic(Mechanic::GraveyardExile) => {
+                    b = b.graveyard_exile();
+                }
                 Ability::Mechanic(Mechanic::Replicate(c)) => {
                     b = b.replicate(c.clone());
                 }
@@ -578,6 +599,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::BecomesDay) => {
                     b = b.marks(mtg_core::card::Marks::BECOMES_DAY);
                 }
+                Ability::Mechanic(Mechanic::Daybound) => {
+                    b = b.marks(mtg_core::card::Marks::DAYBOUND);
+                }
+                Ability::Mechanic(Mechanic::Nightbound) => {
+                    b = b.marks(mtg_core::card::Marks::NIGHTBOUND);
+                }
                 Ability::Mechanic(Mechanic::Station) => {
                     // CR 702.184a: "equal to the tapped creature's power".
                     counts.push(mtg_core::card::CountExpr::MovedStat {
@@ -585,6 +612,11 @@ impl Compiler<'_> {
                         stat: mtg_core::card::Stat::Power,
                     });
                     self.station = u8::try_from(counts.len() - 1).ok();
+                }
+                Ability::Mechanic(Mechanic::Sunburst) => {
+                    // CR 702.44a: "for each color of mana spent to cast it".
+                    counts.push(mtg_core::card::CountExpr::SpentColors);
+                    self.sunburst = u8::try_from(counts.len() - 1).ok();
                 }
                 Ability::Mechanic(Mechanic::Scavenge(_)) => {
                     // CR 702.97a: "equal to this card's power", as the card
@@ -870,12 +902,17 @@ impl Compiler<'_> {
                             | Mechanic::Awaken(..)
                             | Mechanic::Assist
                             | Mechanic::Replicate(_)
+                            | Mechanic::Multikicker(_)
+                            | Mechanic::Disturb(_)
+                            | Mechanic::GraveyardExile
                             | Mechanic::Teamwork(_)
                             | Mechanic::Ripple(_)
                             | Mechanic::Strive(_)
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
                             | Mechanic::BecomesDay
+                            | Mechanic::Daybound
+                            | Mechanic::Nightbound
                             | Mechanic::Retrace
                             | Mechanic::JumpStart
                             | Mechanic::Surge(_)
@@ -891,6 +928,13 @@ impl Compiler<'_> {
             // can't block as long as it has a +1/+1 counter on it."
             if let Ability::Mechanic(Mechanic::Unleash) = a {
                 b = b.ability(unleash_static());
+            }
+            // CR 702.95a: soulbond's second trigger, "Whenever another
+            // creature you control enters, ... you may pair that creature
+            // with this creature".
+            if let Ability::Mechanic(Mechanic::Soulbond) = a {
+                let second = soulbond_trigger(true);
+                b = b.ability(self.ability(&second)?);
             }
             // "As this creature enters or is turned face up, put ...
             // counters on it": also an enters-with replacement (CR
@@ -945,6 +989,7 @@ impl Compiler<'_> {
         names.iter().map(|s| self.pool.subtype(s)).collect()
     }
 
+    #[allow(clippy::too_many_lines)] // one line per filter field
     fn filter(&mut self, f: &Filter) -> ObjFilter {
         // "an outlaw" (CR 700.12): one alternative per creature type.
         if let Some(i) = f.subtypes.iter().position(|s| s == crate::ast::OUTLAW) {
@@ -1006,6 +1051,7 @@ impl Compiler<'_> {
             }),
             named: None,
             enchanted: f.enchanted,
+            paired: f.paired.is_some(),
             no_abilities: f.no_abilities,
             any_types: TypeSet::of(f.any_types.iter().copied()),
             power: f.power,
@@ -1463,6 +1509,7 @@ impl Compiler<'_> {
             A::CardManaValue => C::CardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
             A::SpentColors(_) => C::SpentColors,
+            A::TimesKicked => C::TimesKicked,
             A::SpentTreasure => C::SpentTreasure,
             A::CardsInOpponentsGraveyards(f) => {
                 C::CardsInOpponentsGraveyards(f.as_ref().map(|f| self.filter(f)))
@@ -2533,6 +2580,11 @@ impl Compiler<'_> {
                 });
             }
             Effect::Discover(n) => out.push(CoreEffect::Discover(*n)),
+            Effect::Soulbond { triggering } => {
+                out.push(CoreEffect::Soulbond {
+                    triggering: *triggering,
+                });
+            }
             Effect::MoveSourceCounters { to } => {
                 out.push(CoreEffect::MoveSourceCounters { to: r(*to) });
             }
@@ -3550,12 +3602,17 @@ impl Compiler<'_> {
                 | Mechanic::Awaken(..)
                 | Mechanic::Assist
                 | Mechanic::Replicate(_)
+                | Mechanic::Multikicker(_)
+                | Mechanic::Disturb(_)
+                | Mechanic::GraveyardExile
                 | Mechanic::Teamwork(_)
                 | Mechanic::Ripple(_)
                 | Mechanic::Strive(_)
                 | Mechanic::Ascend
                 | Mechanic::StartYourEngines
-                | Mechanic::BecomesDay => {
+                | Mechanic::BecomesDay
+                | Mechanic::Daybound
+                | Mechanic::Nightbound => {
                     return self.err("a cost of the card, not an ability");
                 }
                 // CR 702.175a: "When this permanent enters, if its
@@ -3665,6 +3722,72 @@ impl Compiler<'_> {
                 // Put a number of charge counters on this permanent equal
                 // to the tapped creature's power. Activate only as a
                 // sorcery."
+                // CR 702.44a: "If this object is entering as a creature,
+                // ignoring any type-changing effects that would affect it,
+                // it enters with a +1/+1 counter on it for each color of
+                // mana spent to cast it. Otherwise, it enters with a charge
+                // counter on it for each color of mana spent to cast it."
+                // The printed card decides which (CR 702.44a's "ignoring
+                // type-changing effects"); a permanent not cast spent no
+                // mana (CR 702.44b).
+                // CR 702.53a: "[Cost], Discard this card: Search your
+                // library for a card with the same mana value as the
+                // discarded card, reveal that card, and put it into your
+                // hand. Then shuffle your library. Activate only as a
+                // sorcery." The discarded card's mana value is the
+                // printed card's.
+                Mechanic::Transmute(cost) => {
+                    let mv = u8::try_from(self.card.cost.mana_value()).unwrap_or(u8::MAX);
+                    let ability = Ability::Activated {
+                        cost: Cost {
+                            mana: cost.clone(),
+                            discard_self: true,
+                            sorcery: true,
+                            restrict: vec![crate::ast::Restrict::Sorcery],
+                            ..Cost::default()
+                        },
+                        targets: Vec::new(),
+                        effects: vec![Sentence::new(vec![Effect::Search {
+                            filter: Filter {
+                                mana_value: Some((mtg_core::card::Cmp::Exactly, mv)),
+                                ..Filter::default()
+                            },
+                            count: Num::N(1),
+                            up_to: false,
+                            to: mtg_core::card::SearchTo::Hand,
+                            reveal: true,
+                            that_card: false,
+                            or_card: crate::ast::OrCard::No,
+                            who: None,
+                            may: false,
+                        }])],
+                        equip: false,
+                        cycling: false,
+                    };
+                    return self.ability(&ability);
+                }
+                Mechanic::Sunburst => {
+                    let Some(i) = self.sunburst else {
+                        return self.err("sunburst's count is missing");
+                    };
+                    let kind = if self
+                        .card
+                        .types
+                        .contains(&mtg_core::card::CardType::Creature)
+                    {
+                        mtg_core::card::CounterKind::PlusOnePlusOne
+                    } else {
+                        mtg_core::card::CounterKind::Charge
+                    };
+                    AbilityDef::Replacement(ReplacementAbility {
+                        replaces: mtg_core::card::Replaces::Enters,
+                        replacement: mtg_core::card::Replacement::EnterWithCounters {
+                            kind,
+                            n: Num::Count(i),
+                        },
+                        then: Vec::new(),
+                    })
+                }
                 Mechanic::Station => {
                     let Some(i) = self.station else {
                         return self.err("station's count is missing");
@@ -3985,6 +4108,29 @@ const GERM: &str = "0/0 black Phyrexian Germ creature";
 /// The token Incubate creates (CR 701.53a, 111.10i).
 const INCUBATOR: &str = "Incubator";
 
+/// Soulbond's two triggers (CR 702.95a): as this creature enters
+/// (`triggering` false: pair it with a creature chosen), and as another
+/// creature its controller controls enters (pair it with that one).
+fn soulbond_trigger(triggering: bool) -> Ability {
+    let trigger = if triggering {
+        Trigger::Enters(TriggerObj::Filter(Filter {
+            types: vec![mtg_core::card::CardType::Creature],
+            who: Some(Who::You),
+            relation: mtg_core::card::Relation::Other,
+            ..Default::default()
+        }))
+    } else {
+        Trigger::Enters(TriggerObj::This)
+    };
+    Ability::Triggered {
+        from_graveyard: false,
+        trigger,
+        condition: None,
+        targets: Vec::new(),
+        effects: vec![Sentence::new(vec![Effect::Soulbond { triggering }])],
+    }
+}
+
 /// Unleash's "This permanent can't block as long as it has a +1/+1 counter
 /// on it." (CR 702.98a).
 pub(crate) fn unleash_static() -> AbilityDef {
@@ -4277,6 +4423,68 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 to: Recipient::Target(0),
             }))),
         },
+        // CR 702.58a: "Whenever another creature enters, if this permanent
+        // has a +1/+1 counter on it, you may move a +1/+1 counter from this
+        // permanent onto that creature." (The counters it enters with are
+        // the card's `graft`.)
+        Mechanic::Graft(_) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Enters(TriggerObj::Filter(Filter {
+                types: vec![mtg_core::card::CardType::Creature],
+                relation: mtg_core::card::Relation::Other,
+                ..Default::default()
+            })),
+            condition: Some(crate::ast::TrigCond::Static(StaticCond::SourceCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                n: 1,
+                at_least: true,
+            })),
+            targets: Vec::new(),
+            effects: one(E::YouMay(one(E::MoveCounters {
+                from: Recipient::Source,
+                to: Recipient::TriggeringIt,
+                kind: Some(mtg_core::card::CounterKind::PlusOnePlusOne),
+                count: Some(1),
+            }))),
+        },
+        // CR 702.63a: "At the beginning of your upkeep, if this permanent
+        // has a time counter on it, remove a time counter from it" and
+        // "When the last time counter is removed from this permanent,
+        // sacrifice it." The sacrifice is part of the upkeep trigger here
+        // rather than a trigger of its own: it happens as the last counter
+        // is removed this way (not when another effect removes it).
+        Mechanic::Vanishing(_) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::BeginningOfStep {
+                step: mtg_core::turn::Step::Upkeep,
+                whose: Who::You,
+            },
+            condition: Some(crate::ast::TrigCond::Static(StaticCond::SourceCounters {
+                kind: mtg_core::card::CounterKind::Time,
+                n: 1,
+                at_least: true,
+            })),
+            targets: Vec::new(),
+            effects: vec![
+                Sentence::new(vec![E::RemoveCounters {
+                    kind: mtg_core::card::CounterKind::Time,
+                    count: Num::N(1),
+                    to: Recipient::Source,
+                }]),
+                Sentence::new(vec![E::IfCondition(
+                    StaticCond::SourceCounters {
+                        kind: mtg_core::card::CounterKind::Time,
+                        n: 0,
+                        at_least: false,
+                    },
+                    one(E::Sacrifice {
+                        what: Recipient::Source,
+                    }),
+                    crate::ast::IfWording::Lead,
+                )]),
+            ],
+        },
+        Mechanic::Soulbond => soulbond_trigger(false),
         // CR 702.24a.
         Mechanic::CumulativeUpkeep(cost) => Ability::Triggered {
             from_graveyard: false,
@@ -4504,15 +4712,22 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Awaken(..)
         | Mechanic::Assist
         | Mechanic::Replicate(_)
+        | Mechanic::Multikicker(_)
+        | Mechanic::Disturb(_)
+        | Mechanic::GraveyardExile
         | Mechanic::Teamwork(_)
         | Mechanic::Ripple(_)
         | Mechanic::Ascend
         | Mechanic::StartYourEngines
         | Mechanic::BecomesDay
+        | Mechanic::Daybound
+        | Mechanic::Nightbound
         | Mechanic::Fabricate(_)
         | Mechanic::Renown(_)
         | Mechanic::Unleash
         | Mechanic::Station
+        | Mechanic::Transmute(_)
+        | Mechanic::Sunburst
         | Mechanic::Extort
         | Mechanic::Riot
         | Mechanic::Retrace

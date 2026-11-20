@@ -323,6 +323,8 @@ pub enum CountExpr {
     /// creature` print "this spell" and "this creature" where the default
     /// would be "it" (wording only).
     SpentColors(SpentOf),
+    /// `times kicked`: "time(s) it was kicked" (multikicker, CR 702.33d).
+    TimesKicked,
     /// `treasure spent`: "mana from a Treasure spent to cast it".
     SpentTreasure,
     /// `opponents graveyards [<filter>]`: "cards in your opponents'
@@ -623,6 +625,10 @@ pub struct Filter {
     pub not_keywords: Vec<Keyword>,
     pub relation: Relation,
     pub enchanted: bool,
+    /// `paired` (`paired named`): "as long as this creature (~) is paired
+    /// with another creature, both creatures ..." (soulbond, CR 702.95b);
+    /// `Some(true)` names the card.
+    pub paired: Option<bool>,
     pub no_abilities: bool,
     /// `who` is `Opponents`, written and printed "you don't control".
     pub dont_control: bool,
@@ -1252,6 +1258,17 @@ pub enum Mechanic {
     KickedWith(u32, Vec<Keyword>),
     /// CR 702.43: `modular 2`.
     Modular(u32),
+    /// CR 702.58: `graft 2`: enters with N +1/+1 counters; "Whenever
+    /// another creature enters, if this permanent has a +1/+1 counter on
+    /// it, you may move a +1/+1 counter from this permanent onto that
+    /// creature."
+    Graft(u32),
+    /// CR 702.63: `vanishing 3`: enters with N time counters; "At the
+    /// beginning of your upkeep, if this permanent has a time counter on
+    /// it, remove a time counter from it", and as the last is removed, it
+    /// is sacrificed. `vanishing` (0) has no entering counters (CR
+    /// 702.63b).
+    Vanishing(u32),
     /// CR 702.24: `cumulative upkeep {1}`.
     CumulativeUpkeep(ManaCost),
     /// CR 702.54: enters with N +1/+1 counters if an opponent was dealt
@@ -1346,6 +1363,28 @@ pub enum Mechanic {
     /// `replicate {U}` (CR 702.56): an additional cost paid any number of
     /// times; copied once for each.
     Replicate(ManaCost),
+    /// `multikicker {1}{G}` (CR 702.33c): a kicker cost paid any number of
+    /// times as the spell is cast.
+    Multikicker(ManaCost),
+    /// `soulbond` (CR 702.95): pairing as this creature or another
+    /// creature its controller controls enters.
+    Soulbond,
+    /// `disturb {1}{U}` (CR 702.146): "You may cast this card transformed
+    /// from your graveyard by paying [cost] rather than its mana cost."
+    Disturb(ManaCost),
+    /// `exiled instead of graveyard`: "If [this] would be put into a
+    /// graveyard from anywhere, exile it instead." (a disturb card's back
+    /// face).
+    GraveyardExile,
+    /// `transmute {1}{B}{B}` (CR 702.53): "{1}{B}{B}, Discard this card:
+    /// Search your library for a card with the same mana value as the
+    /// discarded card, reveal it, put it into your hand, then shuffle.
+    /// Activate only as a sorcery."
+    Transmute(ManaCost),
+    /// `sunburst` (CR 702.44): enters with a +1/+1 counter (a creature
+    /// card) or a charge counter (any other) for each color of mana spent
+    /// to cast it.
+    Sunburst,
     /// `teamwork 2`: "Teamwork 2 (As an additional cost to cast this
     /// spell, you may tap any number of creatures you control with total
     /// power 2 or more.)"
@@ -1366,6 +1405,13 @@ pub enum Mechanic {
     /// `becomes day as this enters`: "If it's neither day nor night, it
     /// becomes day as this creature enters." (CR 731.1).
     BecomesDay,
+    /// `daybound` (CR 702.145b), on a transforming card's front face: it
+    /// becomes day if it's neither, it enters transformed at night, it
+    /// transforms as it becomes night, and nothing else transforms it.
+    Daybound,
+    /// `nightbound` (CR 702.145e), on the back face: it transforms as it
+    /// becomes day.
+    Nightbound,
     /// `fabricate 1` (CR 702.123): when this enters, N +1/+1 counters on
     /// it or N 1/1 Servos.
     Fabricate(u32),
@@ -3273,6 +3319,10 @@ pub enum Effect {
     /// `discover 4` (CR 701.57).
     Discover(u32),
     /// Modular's "put its +1/+1 counters on [recipient]" (internal).
+    /// Soulbond's pairing (internal; CR 702.95a).
+    Soulbond {
+        triggering: bool,
+    },
     MoveSourceCounters {
         to: Recipient,
     },

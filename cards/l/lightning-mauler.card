@@ -1,0 +1,8 @@
+card "Lightning Mauler" {
+  oracle_id 6c5664b1-fbb5-477e-80fd-cf2285014a10
+  cost {1}{R}
+  type Creature — Human Berserker
+  pt 2/1
+  soulbond
+  static paired: has haste
+}

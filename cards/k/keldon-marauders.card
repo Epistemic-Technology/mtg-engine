@@ -1,0 +1,8 @@
+card "Keldon Marauders" {
+  oracle_id e05b850f-24cd-42b9-bc4f-0f05f9aea679
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 3/3
+  vanishing 2
+  triggered when this enters or leaves the battlefield: deal 1 damage to target player or planeswalker
+}

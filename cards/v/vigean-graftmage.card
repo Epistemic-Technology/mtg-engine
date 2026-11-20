@@ -1,0 +1,8 @@
+card "Vigean Graftmage" {
+  oracle_id 4c209165-a159-4cd7-8e99-1e533d3a22a6
+  cost {2}{U}
+  type Creature — Vedalken Wizard Mutant
+  pt 0/0
+  graft 2
+  activated {1}{U}: untap target creature with +1/+1 counter
+}

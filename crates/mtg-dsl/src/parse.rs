@@ -1391,6 +1391,32 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Modular(n)))
             }
+            "soulbond" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Soulbond))
+            }
+            "sunburst" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Sunburst))
+            }
+            "graft" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Graft(n)))
+            }
+            "vanishing" => {
+                self.pos += 1;
+                let n = if matches!(self.peek(), Some(Tok::Num(_))) {
+                    self.number()?
+                } else {
+                    0
+                };
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Vanishing(n)))
+            }
             "cumulative" if self.word_at(1).as_deref() == Some("upkeep") => {
                 self.pos += 2;
                 let c = self.mana_cost()?;
@@ -1510,7 +1536,8 @@ impl P {
             | "disguise" | "evoke" | "madness" | "mayhem" | "foretell" | "plot" | "sneak"
             | "entwine" | "ninjutsu" | "scavenge" | "dash" | "warp" | "embalm" | "eternalize"
             | "offspring" | "bestow" | "splice" | "strive" | "overload" | "surge"
-            | "freerunning" | "spectacle" | "replicate" | "encore"
+            | "freerunning" | "spectacle" | "replicate" | "encore" | "multikicker"
+            | "transmute" | "disturb"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1547,6 +1574,9 @@ impl P {
                     "spectacle" => Mechanic::Spectacle(c),
                     "replicate" => Mechanic::Replicate(c),
                     "encore" => Mechanic::Encore(c),
+                    "multikicker" => Mechanic::Multikicker(c),
+                    "transmute" => Mechanic::Transmute(c),
+                    "disturb" => Mechanic::Disturb(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }
@@ -1638,6 +1668,20 @@ impl P {
                 self.pos += 3;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::StartYourEngines))
+            }
+            "exiled" if self.at_words(&["exiled", "instead", "of", "graveyard"]) => {
+                self.pos += 4;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::GraveyardExile))
+            }
+            "daybound" | "nightbound" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(if w == "daybound" {
+                    Mechanic::Daybound
+                } else {
+                    Mechanic::Nightbound
+                }))
             }
             "becomes" if self.at_words(&["becomes", "day", "as", "this", "enters"]) => {
                 self.pos += 5;
@@ -7248,6 +7292,9 @@ impl P {
             };
             return Ok(CountExpr::SpentColors(of));
         }
+        if self.eat_words(&["times", "kicked"]) {
+            return Ok(CountExpr::TimesKicked);
+        }
         if self.eat_words(&["treasure", "spent"]) {
             return Ok(CountExpr::SpentTreasure);
         }
@@ -8402,6 +8449,10 @@ impl P {
                 "enchanted" | "equipped" => {
                     f.enchanted = true;
                     self.pos += 1;
+                }
+                "paired" if f.paired.is_none() => {
+                    self.pos += 1;
+                    f.paired = Some(self.eat_word("named"));
                 }
                 "nonbasic" => {
                     f.not_supertypes.push(Supertype::Basic);

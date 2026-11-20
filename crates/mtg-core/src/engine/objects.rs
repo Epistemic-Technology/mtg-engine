@@ -160,6 +160,23 @@ impl GameState {
         .unwrap_or(id)
     }
 
+    /// CR 702.145b: "If it is night and this permanent is represented by a
+    /// double-faced card, it enters transformed." The definition a
+    /// permanent enters as.
+    fn daybound_entering(&self, def: CardRef) -> CardRef {
+        if self.desig.day_night != crate::state::DayNight::Night || self.mark_sources == 0 {
+            return def;
+        }
+        let d = self.pool.get(def);
+        if d.marks.has(crate::card::Marks::DAYBOUND)
+            && d.layout == crate::card::Layout::Transform
+            && let Some(back) = d.faces.first()
+        {
+            return *back;
+        }
+        def
+    }
+
     /// Counters a permanent enters the battlefield with: those the event
     /// says ("with a +1/+1 counter"), and a planeswalker's printed loyalty
     /// (CR 306.5b). Nothing off the battlefield.
@@ -191,14 +208,18 @@ impl GameState {
         if d.final_chapter > 0 {
             counters.push((CounterKind::Lore, 1));
         }
-        // CR 702.43a: modular's counters.
-        if d.modular > 0 {
-            match counters
-                .iter_mut()
-                .find(|(k, _)| *k == CounterKind::PlusOnePlusOne)
-            {
-                Some((_, n)) => *n += d.modular,
-                None => counters.push((CounterKind::PlusOnePlusOne, d.modular)),
+        // CR 702.43a, 702.58a: modular's and graft's counters; CR 702.63a:
+        // vanishing's time counters.
+        for (kind, extra) in [
+            (CounterKind::PlusOnePlusOne, d.modular + d.graft),
+            (CounterKind::Time, d.vanishing),
+        ] {
+            if extra == 0 {
+                continue;
+            }
+            match counters.iter_mut().find(|(k, _)| *k == kind) {
+                Some((_, n)) => *n += extra,
+                None => counters.push((kind, extra)),
             }
         }
         counters
@@ -217,6 +238,13 @@ impl GameState {
         controller: PlayerId,
         enter: Enter,
     ) -> ObjId {
+        // "If this would be put into a graveyard from anywhere, exile it
+        // instead." (a disturbed card's back face, CR 702.146).
+        let to = if to == Zone::Graveyard && self.pool.get(self.objects[id].def).graveyard_exile {
+            Zone::Exile
+        } else {
+            to
+        };
         let characteristics = self
             .characteristics(id)
             .expect("moving an object that exists");
@@ -289,7 +317,7 @@ impl GameState {
             // neither door unlocked.
             match self.pool.get(old.def).doors.as_deref() {
                 Some(d) if d.root == old.def => (d.none, old.except),
-                _ => (old.def, old.except),
+                _ => (self.daybound_entering(old.def), old.except),
             }
         } else {
             (old.card, None)

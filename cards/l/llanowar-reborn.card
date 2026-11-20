@@ -1,0 +1,7 @@
+card "Llanowar Reborn" {
+  oracle_id 92acb789-0e42-465c-ac16-40fefec48805
+  type Land
+  enters tapped
+  mana {G}
+  graft 1
+}

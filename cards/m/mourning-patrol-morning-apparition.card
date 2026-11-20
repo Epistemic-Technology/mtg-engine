@@ -1,0 +1,16 @@
+card "Mourning Patrol // Morning Apparition" {
+  oracle_id 600db821-4210-4996-a3f7-e05a143e50c2
+  layout transform
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  keywords vigilance
+  disturb {3}{W}
+  face "Morning Apparition" {
+    type Creature — Spirit Soldier
+    pt 2/1
+    color white
+    keywords flying, vigilance
+    exiled instead of graveyard
+  }
+}

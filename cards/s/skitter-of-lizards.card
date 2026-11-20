@@ -1,0 +1,9 @@
+card "Skitter of Lizards" {
+  oracle_id 14646c85-12ad-4b99-a2af-e4a790e034ef
+  cost {R}
+  type Creature — Lizard
+  pt 1/1
+  multikicker {1}{R}
+  keyword haste
+  enters with count each times kicked +1/+1 counters
+}

@@ -321,6 +321,9 @@ pub enum AltCast {
     Overload,
     /// Cast for its awaken cost (CR 702.113a).
     Awaken,
+    /// Cast transformed from the graveyard for its disturb cost (CR
+    /// 702.146a): the spell is the back face.
+    Disturb,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
@@ -376,7 +379,8 @@ impl CastInfo {
     /// Every flag and field, for the test that no two share a bit
     /// (parallel branches have twice picked the same free bit).
     #[cfg(test)]
-    const ALL: [u32; 19] = [
+    const ALL: [u32; 20] = [
+        Self::KICKS_MASK,
         Self::OFFSPRING,
         Self::BARGAINED,
         Self::OTHER_COST,
@@ -427,12 +431,16 @@ impl CastInfo {
     const TEAMWORK: u32 = 0x8_0000;
     /// Its optional additional cost (`CardDef::optional_cost`) paid; kept
     /// by the permanent ("if evidence was collected").
-    const OPTIONAL_PAID: u32 = 0x100_0000;
+    const OPTIONAL_PAID: u32 = 0x1000_0000;
     /// How many times its replicate cost was paid (CR 702.56a), up to 15.
     const REPLICATE_MASK: u32 = 0xF0_0000;
     const REPLICATE_SHIFT: u32 = 20;
     /// Its behold cost was paid ("If a Dragon was beheld", CR 701.69).
-    const BEHELD: u32 = 0x200_0000;
+    const BEHELD: u32 = 0x2000_0000;
+    /// How many times its multikicker cost was paid (CR 702.33c), up to
+    /// 15; kept by the permanent ("for each time it was kicked").
+    const KICKS_MASK: u32 = 0x0F00_0000;
+    const KICKS_SHIFT: u32 = 24;
     const KICKED: u32 = 0x40;
     const FLASHBACK: u32 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -558,6 +566,19 @@ impl CastInfo {
             | ((n.min(15) << Self::REPLICATE_SHIFT) & Self::REPLICATE_MASK);
     }
 
+    /// How many times it was kicked with its multikicker (CR 702.33d).
+    pub const fn kicks(self) -> u32 {
+        (self.0 & Self::KICKS_MASK) >> Self::KICKS_SHIFT
+    }
+
+    /// Kicked `n` times with its multikicker; kicked at all if `n > 0`
+    /// (CR 702.33d).
+    pub fn set_kicks(&mut self, n: u32) {
+        self.0 =
+            (self.0 & !Self::KICKS_MASK) | ((n.min(15) << Self::KICKS_SHIFT) & Self::KICKS_MASK);
+        self.set_kicked(n > 0);
+    }
+
     pub const fn casualty(self) -> bool {
         self.0 & Self::CASUALTY != 0
     }
@@ -676,6 +697,7 @@ impl CastInfo {
         CastInfo(
             self.0
                 & (Self::KICKED
+                    | Self::KICKS_MASK
                     | Self::EVOKED
                     | Self::OFFSPRING
                     | Self::BARGAINED
@@ -1295,6 +1317,11 @@ pub enum Flow {
     ChoosingCasualty {
         spell: ObjId,
     },
+    /// Choosing how many times to pay a spell's multikicker cost (CR
+    /// 702.33c), where a kicker is chosen.
+    ChoosingMultikicker {
+        spell: ObjId,
+    },
     /// Choosing how many times to pay a spell's replicate cost (CR
     /// 702.56a), after offspring.
     ChoosingReplicate {
@@ -1557,6 +1584,8 @@ pub struct GameState {
     /// among their targets (CR 601.2d), in target order from the variable
     /// group's first target; kept off `GameObject` like `x_values`.
     pub divisions: Vec<(ObjId, Vec<u32>)>,
+    /// Creatures paired by soulbond (CR 702.95b), each pair once.
+    pub pairs: Vec<(ObjId, ObjId)>,
     /// Spells with cards spliced onto them (CR 702.47a), kept off
     /// `GameObject` like `x_values`.
     pub splices: Vec<Spliced>,
@@ -3374,6 +3403,19 @@ impl GameState {
             .iter()
             .copied()
             .filter(move |id| self.objects[*id].controller == p)
+    }
+
+    /// The creature `id` is paired with (CR 702.95b).
+    pub fn partner(&self, id: ObjId) -> Option<ObjId> {
+        self.pairs.iter().find_map(|&(a, b)| {
+            if a == id {
+                Some(b)
+            } else if b == id {
+                Some(a)
+            } else {
+                None
+            }
+        })
     }
 
     pub fn creatures_of(&self, p: PlayerId) -> impl Iterator<Item = ObjId> + '_ {

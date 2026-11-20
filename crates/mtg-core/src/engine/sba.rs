@@ -9,6 +9,36 @@ use crate::ids::{ObjId, PlayerId};
 use crate::state::{Flow, GameResult, GameState, Lookback, LossReason, Zone};
 
 impl GameState {
+    /// CR 702.95e: unpair creatures no longer both creatures on the
+    /// battlefield under one controller. Whether any pair broke.
+    #[cold]
+    #[inline(never)]
+    fn unpair(&mut self) -> bool {
+        let before = self.pairs.len();
+        // Judged with the pairs still in place (the characteristics
+        // depend on them).
+        let kept: Vec<(ObjId, ObjId)> = self
+            .pairs
+            .iter()
+            .copied()
+            .filter(|&(a, b)| {
+                let ok = |id: ObjId| {
+                    self.objects
+                        .get(id)
+                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                        && self.characteristics(id).is_some_and(|c| c.is_creature())
+                };
+                ok(a) && ok(b) && self.objects[a].controller == self.objects[b].controller
+            })
+            .collect();
+        self.pairs = kept;
+        if self.pairs.len() == before {
+            return false;
+        }
+        self.cbump();
+        true
+    }
+
     // ----- state-based actions and game end ------------------------------------------
 
     /// CR 704.3: perform all applicable state-based actions simultaneously,
@@ -238,6 +268,11 @@ impl GameState {
             self.lookback = None;
             // 704.5s (CR 714.4): a Saga past its final chapter.
             if self.saga_count > 0 && self.saga_sba() {
+                acted = true;
+            }
+            // CR 702.95e: a pair breaks when either leaves the battlefield,
+            // stops being a creature, or changes controller.
+            if !self.pairs.is_empty() && self.unpair() {
                 acted = true;
             }
             // 702.131b, 702.179a: ascend and start your engines!.

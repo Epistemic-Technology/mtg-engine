@@ -1,0 +1,101 @@
+# Disturb (CR 702.146): "You may cast this card transformed from your
+# graveyard by paying [cost] rather than its mana cost." The spell is the
+# back face (CR 712.8c) and enters with it up (702.146b). The back face's
+# "If [it] would be put into a graveyard from anywhere, exile it instead."
+# `disturbed` casts it so.
+
+scenario "disturb: cast from the graveyard, it enters transformed" {
+  battlefield A: 2 "Island"
+  graveyard A: "Baithook Angler // Hook-Haunt Drifter"
+  turn 1 A: cast "Baithook Angler" disturbed
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hook-Haunt Drifter"
+  assert has "Hook-Haunt Drifter" flying
+  assert power "Hook-Haunt Drifter" 1
+  assert toughness "Hook-Haunt Drifter" 2
+  assert is "Hook-Haunt Drifter" blue
+  assert graveyard A count 0
+}
+
+scenario "disturb: not without the disturb cost" {
+  battlefield A: "Island"
+  graveyard A: "Baithook Angler // Hook-Haunt Drifter"
+  illegal turn 1 A: cast "Baithook Angler" disturbed
+  run_to turn 1 postcombat_main
+  assert graveyard A count 1
+}
+
+scenario "disturb: not from the hand" {
+  battlefield A: 2 "Island"
+  hand A: "Baithook Angler // Hook-Haunt Drifter"
+  turn 1 A: cast "Baithook Angler"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Baithook Angler"
+  assert power "Baithook Angler" 2
+}
+
+scenario "disturb: only as a sorcery" {
+  battlefield A: 2 "Island"
+  graveyard A: "Baithook Angler // Hook-Haunt Drifter"
+  start turn 2 B
+  illegal turn 2 A: cast "Baithook Angler" disturbed
+  run_to turn 2 end
+  assert graveyard A count 1
+}
+
+scenario "disturb: the back face dies, it is exiled instead" {
+  battlefield A: 2 "Island"
+  battlefield B: "Mountain"
+  graveyard A: "Baithook Angler // Hook-Haunt Drifter"
+  hand B: "Shock"
+  turn 1 A: cast "Baithook Angler" disturbed
+  turn 2 B: cast "Shock" targeting "Hook-Haunt Drifter"
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Hook-Haunt Drifter"
+  assert graveyard A count 0
+  assert exile A count 1
+}
+
+scenario "disturb: the front face dies into the graveyard" {
+  battlefield A: "Baithook Angler // Hook-Haunt Drifter"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Baithook Angler"
+  run_to turn 2 postcombat_main
+  assert graveyard A count 1
+}
+
+scenario "disturb: an Aura back face enchants a creature" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  graveyard A: "Drogskol Infantry // Drogskol Armaments"
+  turn 1 A: cast "Drogskol Infantry" disturbed targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Drogskol Armaments" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+}
+
+scenario "disturb: the Aura goes to exile when its creature dies" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  graveyard A: "Drogskol Infantry // Drogskol Armaments"
+  hand B: "Murder"
+  turn 1 A: cast "Drogskol Infantry" disturbed targeting "Grizzly Bears"
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A count 1
+  assert exile A count 1
+}
+
+scenario "disturb: countered, the spell is exiled" {
+  battlefield A: 4 "Plains"
+  battlefield B: 2 "Island"
+  graveyard A: "Mourning Patrol // Morning Apparition"
+  hand B: "Counterspell"
+  turn 1 A: cast "Mourning Patrol" disturbed
+  turn 1 B: cast "Counterspell" targeting "Morning Apparition"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 0
+  assert exile A count 1
+}

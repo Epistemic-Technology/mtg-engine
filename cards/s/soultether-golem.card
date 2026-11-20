@@ -1,0 +1,8 @@
+card "Soultether Golem" {
+  oracle_id 0544de10-b409-469b-ae96-b88e9452f26f
+  cost {2}
+  type Artifact Creature — Golem
+  pt 3/3
+  vanishing 1
+  triggered whenever other creature you control enters: put 1 time counters on this
+}

@@ -1,0 +1,16 @@
+card "Distracting Geist // Clever Distraction" {
+  oracle_id 2fcd5779-7234-49e3-b3c5-ebc07db74462
+  layout transform
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/1
+  triggered whenever this attacks: tap target creature defending player controls
+  disturb {4}{W}
+  face "Clever Distraction" {
+    type Enchantment — Aura
+    color white
+    enchant creature
+    static enchanted: has ability { triggered whenever this attacks: tap target creature defending player controls }
+    exiled instead of graveyard
+  }
+}

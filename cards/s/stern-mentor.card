@@ -1,0 +1,8 @@
+card "Stern Mentor" {
+  oracle_id 6dab0e1a-f39a-4113-9d13-b067cfefbdb3
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  soulbond
+  static paired: has ability { activated {T}: target player mills 2 cards }
+}

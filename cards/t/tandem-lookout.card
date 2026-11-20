@@ -1,0 +1,8 @@
+card "Tandem Lookout" {
+  oracle_id 1576f031-57ca-4894-b461-8ea57b6cefdc
+  cost {2}{U}
+  type Creature — Human Scout
+  pt 2/1
+  soulbond
+  static paired named: has ability { triggered whenever this deals damage to an opponent: draw 1 card }
+}

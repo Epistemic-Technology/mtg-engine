@@ -1,0 +1,16 @@
+card "Spellrune Painter // Spellrune Howler" {
+  oracle_id 4ff8c359-430f-434e-ac1e-822abdc28360
+  layout transform
+  cost {2}{R}
+  type Creature — Human Shaman Werewolf
+  pt 2/3
+  triggered whenever you cast an instant or sorcery spell: this gets +1/+1
+  daybound
+  face "Spellrune Howler" {
+    type Creature — Werewolf
+    pt 3/4
+    color red
+    triggered whenever you cast an instant or sorcery spell: this gets +2/+2
+    nightbound
+  }
+}

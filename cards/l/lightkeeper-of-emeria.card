@@ -1,0 +1,9 @@
+card "Lightkeeper of Emeria" {
+  oracle_id 7f31aa43-cf75-4488-b47f-e16e923a2d01
+  cost {3}{W}
+  type Creature — Angel
+  pt 2/4
+  multikicker {W}
+  keyword flying
+  triggered when this enters: you gain count each 2 times kicked life
+}

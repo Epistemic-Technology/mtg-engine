@@ -195,6 +195,7 @@ impl Decompiler<'_> {
                 .collect(),
             relation: f.relation,
             enchanted: f.enchanted,
+            paired: f.paired.then_some(false),
             no_abilities: f.no_abilities,
             dont_control: false,
             your_opponents: false,
@@ -1236,6 +1237,9 @@ impl Decompiler<'_> {
                 unreachable!("decompiled as a keyword line")
             }
             CoreEffect::Discover(n) => Effect::Discover(*n),
+            CoreEffect::Soulbond { triggering } => Effect::Soulbond {
+                triggering: *triggering,
+            },
             CoreEffect::MoveSourceCounters { to } => Effect::MoveSourceCounters {
                 to: Self::recipient(*to),
             },

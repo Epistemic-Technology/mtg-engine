@@ -1,0 +1,8 @@
+card "Helium Squirter" {
+  oracle_id a65ba9bd-1bc6-41c1-a2a4-04b97a5e9541
+  cost {4}{U}
+  type Creature — Beast Mutant
+  pt 0/0
+  graft 3
+  activated {1}: target creature with +1/+1 counter gains flying
+}

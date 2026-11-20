@@ -1,0 +1,8 @@
+card "Aquastrand Spider" {
+  oracle_id cea79fa0-2a76-41f3-846f-4d1a6ff5f629
+  cost {1}{G}
+  type Creature — Spider Mutant
+  pt 0/0
+  graft 2
+  activated {G}: target creature with +1/+1 counter gains reach
+}

@@ -1,0 +1,8 @@
+card "Everflowing Chalice" {
+  oracle_id 0a79237e-0811-4a8a-bd4d-db3ca91bff22
+  cost {0}
+  type Artifact
+  multikicker {2}
+  enters with count each times kicked charge counters
+  activated {T}: add {C} count each charge counter on this
+}

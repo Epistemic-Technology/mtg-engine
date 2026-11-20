@@ -1,0 +1,7 @@
+card "Simic Initiate" {
+  oracle_id c7c37369-47f8-4027-a016-a2055307dd24
+  cost {G}
+  type Creature — Human Mutant
+  pt 0/0
+  graft 1
+}

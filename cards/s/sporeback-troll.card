@@ -1,0 +1,8 @@
+card "Sporeback Troll" {
+  oracle_id 339bddf5-a8fb-46d3-877e-b0441ca8a597
+  cost {3}{G}
+  type Creature — Troll Mutant
+  pt 0/0
+  graft 2
+  activated {1}{G}: regenerate target creature with +1/+1 counter
+}

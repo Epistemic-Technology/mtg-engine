@@ -151,6 +151,9 @@ pub enum Action {
         /// `awakened`: cast for the awaken cost (CR 702.113a); the land
         /// it awakens is its last target.
         awakened: bool,
+        /// `disturbed`: cast transformed from the graveyard for the
+        /// disturb cost (CR 702.146a).
+        disturbed: bool,
         /// `conspired`: conspire the spell (CR 702.78a), tapping two
         /// creatures the engine picks.
         conspired: bool,

@@ -94,6 +94,9 @@ pub enum DecisionKind {
     /// Whether to pay `spell`'s casualty cost (CR 702.153a): `Sacrifice`
     /// options for the creatures with enough power, or `Decline`.
     Casualty { spell: ObjId },
+    /// How many times to pay `spell`'s multikicker cost (CR 702.33c): `X`
+    /// options from 0.
+    Multikicker { spell: ObjId },
     /// How many times to pay `spell`'s replicate cost (CR 702.56a): `X`
     /// options from 0.
     Replicate { spell: ObjId },
@@ -252,6 +255,9 @@ pub enum Choice {
     CastOverload(ObjId),
     /// Cast a card for its awaken cost (CR 702.113a).
     CastAwaken(ObjId),
+    /// Cast a card transformed from the graveyard for its disturb cost
+    /// (CR 702.146a).
+    CastDisturb(ObjId),
     /// Suspend a card from hand (CR 702.62a), a special action.
     Suspend(ObjId),
     /// Foretell a card from hand (CR 702.143a), a special action.
@@ -370,6 +376,7 @@ impl Choice {
             Choice::CastBestow(id) => format!("cast {} for its bestow cost", name(id)),
             Choice::CastOverload(id) => format!("cast {} for its overload cost", name(id)),
             Choice::CastAwaken(id) => format!("cast {} for its awaken cost", name(id)),
+            Choice::CastDisturb(id) => format!("cast {} for its disturb cost", name(id)),
             Choice::Suspend(id) => format!("suspend {}", name(id)),
             Choice::Foretell(id) => format!("foretell {}", name(id)),
             Choice::Plot(id) => format!("plot {}", name(id)),

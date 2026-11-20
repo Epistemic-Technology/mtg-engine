@@ -1,0 +1,8 @@
+card "Reality Acid" {
+  oracle_id 232c297d-71b6-429f-99df-39a11dbcea40
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant permanent
+  vanishing 3
+  triggered when this leaves the battlefield: controller of enchanted sacrifices attached
+}

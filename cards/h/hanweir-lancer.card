@@ -1,0 +1,8 @@
+card "Hanweir Lancer" {
+  oracle_id 5fa9de04-6b70-4162-9ffb-6334277a4f30
+  cost {2}{R}
+  type Creature — Human Knight
+  pt 2/2
+  soulbond
+  static paired: has first strike
+}

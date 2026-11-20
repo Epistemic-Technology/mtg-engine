@@ -1,0 +1,16 @@
+card "Harvesttide Infiltrator // Harvesttide Assailant" {
+  oracle_id 8669f2e1-3e98-4fa5-ba4f-a0860b92c609
+  layout transform
+  cost {2}{R}
+  type Creature — Human Werewolf
+  pt 3/2
+  keywords trample
+  daybound
+  face "Harvesttide Assailant" {
+    type Creature — Werewolf
+    pt 4/4
+    color red
+    keywords trample
+    nightbound
+  }
+}

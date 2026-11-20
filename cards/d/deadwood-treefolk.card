@@ -1,0 +1,8 @@
+card "Deadwood Treefolk" {
+  oracle_id b7efcb42-aa52-4d13-8c7c-b2db2dd51afd
+  cost {5}{G}
+  type Creature — Treefolk
+  pt 3/6
+  vanishing 3
+  triggered when this enters or leaves the battlefield: return another target creature card from your graveyard to hand
+}

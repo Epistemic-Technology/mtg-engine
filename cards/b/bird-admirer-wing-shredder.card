@@ -1,0 +1,16 @@
+card "Bird Admirer // Wing Shredder" {
+  oracle_id 58bd02ae-2676-4c9c-b24e-2bd51be8bde7
+  layout transform
+  cost {2}{G}
+  type Creature — Human Archer Werewolf
+  pt 1/4
+  keywords reach
+  daybound
+  face "Wing Shredder" {
+    type Creature — Werewolf
+    pt 3/5
+    color green
+    keywords reach
+    nightbound
+  }
+}

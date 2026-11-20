@@ -1,0 +1,7 @@
+card "Muddle the Mixture" {
+  oracle_id 0826cf7d-7ccc-459b-a92f-29dc169628f8
+  cost {U}{U}
+  type Instant
+  spell: counter target instant or sorcery spell
+  transmute {1}{U}{U}
+}

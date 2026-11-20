@@ -1,0 +1,16 @@
+card "Covert Cutpurse // Covetous Geist" {
+  oracle_id 5d0b8dc6-f4b6-4650-805d-4240d4a4ab82
+  layout transform
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 2/1
+  triggered when this enters: destroy target creature you don't control that was dealt damage this turn
+  disturb {4}{B}
+  face "Covetous Geist" {
+    type Creature — Spirit Rogue
+    pt 2/2
+    color black
+    keywords flying, deathtouch
+    exiled instead of graveyard
+  }
+}

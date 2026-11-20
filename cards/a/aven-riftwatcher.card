@@ -1,0 +1,9 @@
+card "Aven Riftwatcher" {
+  oracle_id a4d22abe-87c5-4f6b-ad14-4a7935883169
+  cost {2}{W}
+  type Creature — Bird Rebel Soldier
+  pt 2/3
+  keywords flying
+  vanishing 3
+  triggered when this enters or leaves the battlefield: you gains 2 life
+}

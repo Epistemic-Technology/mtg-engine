@@ -1,0 +1,8 @@
+card "Wolfir Silverheart" {
+  oracle_id dccf9497-cc7b-42df-9b46-f5ffea0c7474
+  cost {3}{G}{G}
+  type Creature — Wolf Warrior
+  pt 4/4
+  soulbond
+  static paired: +4/+4
+}

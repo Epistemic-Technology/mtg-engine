@@ -482,6 +482,7 @@ impl GameState {
             ninjutsu: Vec::new(),
             bargains: Vec::new(),
             divisions: Vec::new(),
+            pairs: Vec::new(),
             splices: Vec::new(),
             goads: Vec::new(),
             turn_number: 0,
@@ -817,6 +818,19 @@ impl GameState {
                         player,
                         kind: DecisionKind::Offspring { spell },
                         options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
+                Flow::ChoosingMultikicker { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    let options = (0..=self.multikicker_max(spell)).map(Choice::X).collect();
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::Multikicker { spell },
+                        options,
                     });
                 }
                 Flow::ChoosingReplicate { spell } => {
@@ -1662,6 +1676,12 @@ impl GameState {
                 let face = self.pool.get(self.objects[card].def).awaken_face;
                 self.begin_cast_as(player, card, crate::state::AltCast::Awaken, face);
             }
+            (Flow::Priority, Choice::CastDisturb(card)) => {
+                // CR 702.146a, 712.8c: cast transformed, the back face's
+                // characteristics on the stack.
+                let face = self.pool.get(self.objects[card].def).faces.first().copied();
+                self.begin_cast_as(player, card, crate::state::AltCast::Disturb, face);
+            }
             (Flow::Priority, Choice::CastAlt(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::AltCost);
             }
@@ -1869,6 +1889,11 @@ impl GameState {
                 self.flow = self.after_offspring(spell);
             }
             // CR 702.56a: the replicate cost, paid this many times.
+            // CR 702.33c: the multikicker cost, paid this many times.
+            (Flow::ChoosingMultikicker { spell }, Choice::X(n)) => {
+                self.objects[spell].cast.set_kicks(n);
+                self.flow = self.after_kicker(spell);
+            }
             (Flow::ChoosingReplicate { spell }, Choice::X(n)) => {
                 self.objects[spell].cast.set_replicated(n);
                 self.flow = self.after_replicate(spell);
@@ -2252,6 +2277,9 @@ impl GameState {
         });
         if kicked_targets && self.kicker_payable(spell) {
             Flow::ChoosingKicker { spell }
+        } else if self.multikicker_max(spell) > 0 {
+            // CR 702.33c: multikicker, payable at least once.
+            Flow::ChoosingMultikicker { spell }
         } else {
             self.after_kicker(spell)
         }

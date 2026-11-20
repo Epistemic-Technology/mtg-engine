@@ -1,0 +1,69 @@
+# Sunburst (CR 702.44): "If this object is entering as a creature, ...,
+# it enters with a +1/+1 counter on it for each color of mana spent to
+# cast it. Otherwise, it enters with a charge counter on it for each color
+# of mana spent to cast it." Only a resolving spell gets them (CR
+# 702.44b).
+
+scenario "sunburst: a creature, three colors, three +1/+1 counters" {
+  battlefield A: "Plains", "Island", "Swamp"
+  hand A: "Suntouched Myr"
+  turn 1 A: cast "Suntouched Myr"
+  run_to turn 1 postcombat_main
+  assert counters "Suntouched Myr" +1/+1 3
+  assert power "Suntouched Myr" 3
+}
+
+scenario "sunburst: one color many times counts once" {
+  battlefield A: 3 "Plains"
+  hand A: "Suntouched Myr"
+  turn 1 A: cast "Suntouched Myr"
+  run_to turn 1 postcombat_main
+  assert counters "Suntouched Myr" +1/+1 1
+}
+
+scenario "sunburst: colorless mana gives nothing, the 0/0 dies" {
+  battlefield A: 3 "Wastes"
+  hand A: "Suntouched Myr"
+  turn 1 A: cast "Suntouched Myr"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Suntouched Myr"
+}
+
+scenario "sunburst: a noncreature gets charge counters" {
+  battlefield A: "Mountain", "Forest"
+  hand A: "Pentad Prism"
+  turn 1 A: cast "Pentad Prism"
+  run_to turn 1 postcombat_main
+  assert counters "Pentad Prism" charge 2
+  assert counters "Pentad Prism" +1/+1 0
+}
+
+scenario "sunburst: not cast, no counters" {
+  battlefield A: "Pentad Prism"
+  run_to turn 1 postcombat_main
+  assert counters "Pentad Prism" charge 0
+}
+
+scenario "sunburst: the charge counters deal the damage" {
+  battlefield A: "Heliophial" with 3 charge, 2 "Wastes"
+  turn 1 A: activate "Heliophial" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Heliophial"
+}
+
+scenario "sunburst: the Equipment gives +X/+X" {
+  battlefield A: "Opaline Bracers" with 2 charge, "Grizzly Bears", 2 "Wastes"
+  turn 1 A: activate "Opaline Bracers" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "sunburst: a charge counter for a +1/+1" {
+  battlefield A: "Baton of Courage" with 2 charge, "Grizzly Bears"
+  turn 1 A: activate "Baton of Courage" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert counters "Baton of Courage" charge 1
+}

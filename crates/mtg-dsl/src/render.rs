@@ -3058,6 +3058,18 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "creature you attacked with this turn".to_string(),
             "creatures you attacked with this turn".to_string(),
         ),
+        // "for each time it was kicked" (CR 702.33d).
+        CountExpr::TimesKicked => {
+            let it = if is_instant_or_sorcery(card) {
+                "this spell"
+            } else {
+                "it"
+            };
+            (
+                format!("time {it} was kicked"),
+                format!("times {it} was kicked"),
+            )
+        }
         CountExpr::SpentColors(_) | CountExpr::SpentTreasure => {
             let it = match c {
                 CountExpr::SpentColors(crate::ast::SpentOf::Spell) => "this spell",
@@ -3558,6 +3570,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Populate => Clause::imperative("populate".to_string()),
         Effect::Incubate(n) => Clause::imperative(format!("incubate {}", digits(*n))),
         Effect::Discover(n) => Clause::imperative(format!("discover {n}")),
+        Effect::Soulbond { .. } => Clause::imperative("pair them".to_string()),
         Effect::MoveSourceCounters { to } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("put its +1/+1 counters on {o}"))
@@ -8117,6 +8130,28 @@ pub(crate) fn also_subtypes(filter: &Filter, mods: &[Mod]) -> Option<Vec<String>
 
 #[allow(clippy::too_many_lines)] // one case per kind of static
 fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) -> String {
+    // Soulbond (CR 702.95b): "As long as this creature is paired with
+    // another creature, both creatures have flying." / "each of those
+    // creatures gets +1/+1." / "each of those creatures has "..."."
+    if let Some(named) = filter.paired {
+        let mut f = filter.clone();
+        f.paired = None;
+        f.relation = Relation::This;
+        let this = capitalize(&this_ref(card));
+        let body = static_text(&f, mods, card, lookup);
+        let rest = body.strip_prefix(&format!("{this} ")).unwrap_or(&body);
+        let keywords = mods.iter().all(|m| matches!(m, Mod::AddKeywords(_)));
+        let tail = match rest.strip_prefix("has ") {
+            Some(r) if keywords => format!("both creatures have {r}"),
+            _ => format!("each of those creatures {rest}"),
+        };
+        let who = if named {
+            short_name(card).to_string()
+        } else {
+            this_ref(card)
+        };
+        return format!("As long as {who} is paired with another creature, {tail}");
+    }
     // Characteristic-defining abilities name the card.
     if let Some(Mod::CdaPt {
         count,
@@ -9896,6 +9931,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
             crate::ast::Mechanic::Modular(n) => format!("Modular {n}"),
+            crate::ast::Mechanic::Graft(n) => format!("Graft {n}"),
+            crate::ast::Mechanic::Sunburst => "Sunburst".to_string(),
+            crate::ast::Mechanic::Vanishing(0) => "Vanishing".to_string(),
+            crate::ast::Mechanic::Vanishing(n) => format!("Vanishing {n}"),
             crate::ast::Mechanic::CumulativeUpkeep(c) => format!("Cumulative upkeep {c}"),
             crate::ast::Mechanic::Escape(c, n) => format!(
                 "Escape\u{2014}{c}, Exile {} other cards from your graveyard.",
@@ -9963,6 +10002,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Assist => "Assist".to_string(),
             crate::ast::Mechanic::Enlist => "Enlist".to_string(),
             crate::ast::Mechanic::Replicate(c) => format!("Replicate {c}"),
+            crate::ast::Mechanic::Multikicker(c) => format!("Multikicker {c}"),
+            crate::ast::Mechanic::Transmute(c) => format!("Transmute {c}"),
+            crate::ast::Mechanic::Soulbond => "Soulbond".to_string(),
+            crate::ast::Mechanic::Disturb(c) => format!("Disturb {c}"),
+            crate::ast::Mechanic::GraveyardExile => format!(
+                "If {} would be put into a graveyard from anywhere, exile it instead.",
+                card.name
+            ),
             crate::ast::Mechanic::Teamwork(n) => format!("Teamwork {n}"),
             crate::ast::Mechanic::Ripple(n) => format!("Ripple {n}"),
             crate::ast::Mechanic::Station => "Station".to_string(),
@@ -9973,6 +10020,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "If it's neither day nor night, it becomes day as {} enters.",
                 this_ref(card)
             ),
+            crate::ast::Mechanic::Daybound => "Daybound".to_string(),
+            crate::ast::Mechanic::Nightbound => "Nightbound".to_string(),
             crate::ast::Mechanic::Fabricate(n) => format!("Fabricate {n}"),
             crate::ast::Mechanic::Evolve => "Evolve".to_string(),
             crate::ast::Mechanic::Renown(n) => format!("Renown {n}"),

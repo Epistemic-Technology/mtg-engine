@@ -1,0 +1,8 @@
+card "Ethereal Usher" {
+  oracle_id 3ad6e495-d0e6-4b07-8f91-fe057e173975
+  cost {5}{U}
+  type Creature — Spirit
+  pt 2/3
+  activated {U}, {T}: target creature can't be blocked
+  transmute {1}{U}{U}
+}

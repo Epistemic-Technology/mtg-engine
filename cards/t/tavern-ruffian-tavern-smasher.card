@@ -1,0 +1,14 @@
+card "Tavern Ruffian // Tavern Smasher" {
+  oracle_id 73a3b9a1-37a0-469a-9557-8c118a1ee78f
+  layout transform
+  cost {3}{R}
+  type Creature — Human Warrior Werewolf
+  pt 2/5
+  daybound
+  face "Tavern Smasher" {
+    type Creature — Werewolf
+    pt 6/5
+    color red
+    nightbound
+  }
+}

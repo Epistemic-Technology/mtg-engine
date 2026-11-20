@@ -1,0 +1,17 @@
+card "Child of the Pack // Savage Packmate" {
+  oracle_id a9c5b155-7c09-4100-9679-8fca2b5e9222
+  layout transform
+  cost {2}{R}{G}
+  type Creature — Human Werewolf
+  pt 2/5
+  activated {2}{R}{G}: create 1 "2/2 green Wolf creature"
+  daybound
+  face "Savage Packmate" {
+    type Creature — Werewolf
+    pt 5/5
+    color green red
+    keywords trample
+    static other creature you control: +1/+0
+    nightbound
+  }
+}

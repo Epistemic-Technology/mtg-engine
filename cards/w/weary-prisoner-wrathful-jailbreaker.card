@@ -1,0 +1,16 @@
+card "Weary Prisoner // Wrathful Jailbreaker" {
+  oracle_id bdcf0af3-3976-400d-a8b7-15e959e2b255
+  layout transform
+  cost {3}{R}
+  type Creature — Human Werewolf
+  pt 2/6
+  keywords defender
+  daybound
+  face "Wrathful Jailbreaker" {
+    type Creature — Werewolf
+    pt 6/6
+    color red
+    keywords attacks each combat if able
+    nightbound
+  }
+}

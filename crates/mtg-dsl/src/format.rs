@@ -624,7 +624,9 @@ impl Fmt {
             Effect::Populate => "populate".to_string(),
             Effect::Incubate(n) => format!("incubate {}", num(*n)),
             Effect::Discover(n) => format!("discover {n}"),
-            Effect::MoveSourceCounters { .. } | Effect::CumulativeUpkeep(_) => {
+            Effect::MoveSourceCounters { .. }
+            | Effect::CumulativeUpkeep(_)
+            | Effect::Soulbond { .. } => {
                 unreachable!("only in expansions")
             }
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
@@ -2331,6 +2333,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             crate::ast::SpentOf::Spell => "colors spent spell".to_string(),
             crate::ast::SpentOf::Creature => "colors spent creature".to_string(),
         },
+        CountExpr::TimesKicked => "times kicked".to_string(),
         CountExpr::SpentTreasure => "treasure spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
         CountExpr::CardsInOpponentsGraveyards(Some(f)) => {
@@ -2561,6 +2564,11 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.enchanted {
         words.push("enchanted".to_string());
+    }
+    match f.paired {
+        Some(true) => words.push("paired named".to_string()),
+        Some(false) => words.push("paired".to_string()),
+        None => {}
     }
     for s in &f.supertypes {
         words.push(format!("{s:?}").to_lowercase());
@@ -4532,6 +4540,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Suspend(n, c) => format!("suspend {n} {c}"),
                 crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),
                 crate::ast::Mechanic::Modular(n) => format!("modular {n}"),
+                crate::ast::Mechanic::Graft(n) => format!("graft {n}"),
+                crate::ast::Mechanic::Sunburst => "sunburst".to_string(),
+                crate::ast::Mechanic::Vanishing(0) => "vanishing".to_string(),
+                crate::ast::Mechanic::Vanishing(n) => format!("vanishing {n}"),
                 crate::ast::Mechanic::CumulativeUpkeep(c) => format!("cumulative upkeep {c}"),
                 crate::ast::Mechanic::Escape(c, n) => format!("escape {c} exile {n}"),
                 crate::ast::Mechanic::EscapesWith(n) => {
@@ -4576,6 +4588,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Assist => "assist".to_string(),
                 crate::ast::Mechanic::Enlist => "enlist".to_string(),
                 crate::ast::Mechanic::Replicate(c) => format!("replicate {c}"),
+                crate::ast::Mechanic::Multikicker(c) => format!("multikicker {c}"),
+                crate::ast::Mechanic::Transmute(c) => format!("transmute {c}"),
+                crate::ast::Mechanic::Soulbond => "soulbond".to_string(),
+                crate::ast::Mechanic::Disturb(c) => format!("disturb {c}"),
+                crate::ast::Mechanic::GraveyardExile => "exiled instead of graveyard".to_string(),
                 crate::ast::Mechanic::Teamwork(n) => format!("teamwork {n}"),
                 crate::ast::Mechanic::Ripple(n) => format!("ripple {n}"),
                 crate::ast::Mechanic::Station => "station".to_string(),
@@ -4583,6 +4600,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Ascend => "ascend".to_string(),
                 crate::ast::Mechanic::StartYourEngines => "start your engines".to_string(),
                 crate::ast::Mechanic::BecomesDay => "becomes day as this enters".to_string(),
+                crate::ast::Mechanic::Daybound => "daybound".to_string(),
+                crate::ast::Mechanic::Nightbound => "nightbound".to_string(),
                 crate::ast::Mechanic::Fabricate(n) => format!("fabricate {n}"),
                 crate::ast::Mechanic::Evolve => "evolve".to_string(),
                 crate::ast::Mechanic::Renown(n) => format!("renown {n}"),

@@ -1,0 +1,9 @@
+card "Apex Hawks" {
+  oracle_id c025d558-aae8-4146-923b-a98035025a42
+  cost {2}{W}
+  type Creature — Bird
+  pt 2/2
+  multikicker {1}{W}
+  keyword flying
+  enters with count each times kicked +1/+1 counters
+}

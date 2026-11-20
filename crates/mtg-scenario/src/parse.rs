@@ -544,6 +544,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let disturbed = if line.peek_ident("disturbed") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             // A promised gift is kept as the kicker flag (CR 702.174): its
             // targets count like a kicked spell's.
             let gift = line.peek_ident("gift");
@@ -581,7 +587,10 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 None
             };
-            let x = if line.peek_ident("x") || line.peek_ident("replicated") {
+            let x = if line.peek_ident("x")
+                || line.peek_ident("replicated")
+                || line.peek_ident("multikicked")
+            {
                 line.pos += 1;
                 Some(u32::try_from(line.count()?).unwrap_or(u32::MAX))
             } else {
@@ -655,6 +664,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     bestowed,
                     overloaded,
                     awakened,
+                    disturbed,
                     conspired,
                     splice,
                     other_cost,

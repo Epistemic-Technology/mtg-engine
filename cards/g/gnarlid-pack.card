@@ -1,0 +1,8 @@
+card "Gnarlid Pack" {
+  oracle_id be6e835c-822e-45ff-a992-249d4d9781dc
+  cost {1}{G}
+  type Creature — Beast
+  pt 2/2
+  multikicker {1}{G}
+  enters with count each times kicked +1/+1 counters
+}

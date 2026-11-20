@@ -1,0 +1,8 @@
+card "Spectral Gateguards" {
+  oracle_id 334f7cd5-6c7b-4592-b564-8a0edac4a1b4
+  cost {4}{W}
+  type Creature — Spirit Soldier
+  pt 2/5
+  soulbond
+  static paired: has vigilance
+}

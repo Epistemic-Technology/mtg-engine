@@ -1,0 +1,17 @@
+card "Overwhelmed Archivist // Archive Haunt" {
+  oracle_id 13c90d78-cfb1-4d40-a35e-1fd170450b45
+  layout transform
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 3/2
+  triggered when this enters: draw 1 cards then discard 1 cards
+  disturb {3}{U}
+  face "Archive Haunt" {
+    type Creature — Spirit Wizard
+    pt 2/1
+    color blue
+    keywords flying
+    triggered whenever this attacks: draw 1 cards then discard 1 cards
+    exiled instead of graveyard
+  }
+}

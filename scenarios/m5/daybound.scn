@@ -1,0 +1,76 @@
+# Daybound and nightbound (CR 702.145): with a daybound permanent on the
+# battlefield it becomes day if it's neither (702.145d); as it becomes
+# night a daybound permanent transforms (702.145c), and as it becomes day
+# a nightbound one transforms back (702.145f); at night a daybound card
+# enters transformed (702.145b). Day becomes night after a turn whose
+# active player cast no spells, night becomes day after one with two or
+# more (CR 731.2).
+
+scenario "daybound: it becomes day as it enters" {
+  battlefield A: 3 "Forest"
+  hand A: "Bird Admirer // Wing Shredder"
+  turn 1 A: cast "Bird Admirer"
+  run_to turn 1 postcombat_main
+  assert daynight day
+  assert battlefield A contains "Bird Admirer"
+  assert power "Bird Admirer" 1
+}
+
+scenario "daybound: on the battlefield, it becomes day" {
+  battlefield A: "Bird Admirer // Wing Shredder"
+  run_to turn 1 precombat_main
+  assert daynight day
+}
+
+scenario "daybound: night comes, it transforms" {
+  battlefield A: "Bird Admirer // Wing Shredder"
+  run_to turn 2 upkeep
+  assert daynight night
+  assert battlefield A contains "Wing Shredder"
+  assert power "Wing Shredder" 3
+  assert has "Wing Shredder" reach
+}
+
+scenario "daybound: a turn with a spell keeps it day" {
+  battlefield A: "Bird Admirer // Wing Shredder", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert daynight day
+  assert battlefield A contains "Bird Admirer"
+}
+
+scenario "nightbound: two spells bring day, it transforms back" {
+  battlefield A: "Fearful Villager // Fearsome Werewolf"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Shock"
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 upkeep
+  assert battlefield A contains "Fearsome Werewolf"
+  run_to turn 3 upkeep
+  assert daynight day
+  assert battlefield A contains "Fearful Villager"
+  assert power "Fearful Villager" 2
+}
+
+scenario "daybound: cast at night, it enters transformed" {
+  battlefield A: "Bird Admirer // Wing Shredder", 3 "Mountain"
+  hand A: "Fearful Villager // Fearsome Werewolf"
+  turn 3 A: cast "Fearful Villager"
+  run_to turn 3 postcombat_main
+  assert daynight night
+  assert battlefield A contains "Fearsome Werewolf"
+  assert battlefield A lacks "Fearful Villager"
+  assert power "Fearsome Werewolf" 4
+}
+
+scenario "daybound: another effect can't transform it" {
+  battlefield A: "Bird Admirer // Wing Shredder", 2 "Forest"
+  hand A: "Waxing Moon"
+  turn 1 A: cast "Waxing Moon" targeting "Bird Admirer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bird Admirer"
+  assert has "Bird Admirer" trample
+}

@@ -1,0 +1,16 @@
+card "Galedrifter // Waildrifter" {
+  oracle_id ba88575a-4b9a-40cd-abbc-4539912c9455
+  layout transform
+  cost {3}{U}
+  type Creature — Hippogriff
+  pt 3/2
+  keywords flying
+  disturb {4}{U}
+  face "Waildrifter" {
+    type Creature — Hippogriff Spirit
+    pt 2/2
+    color blue
+    keywords flying
+    exiled instead of graveyard
+  }
+}

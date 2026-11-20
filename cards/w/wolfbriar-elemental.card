@@ -1,0 +1,8 @@
+card "Wolfbriar Elemental" {
+  oracle_id 2f8872fe-84dc-4cda-a253-e7503a5c96a3
+  cost {2}{G}{G}
+  type Creature — Elemental
+  pt 4/4
+  multikicker {G}
+  triggered when this enters: create count each times kicked "2/2 green Wolf creature"
+}

@@ -1,0 +1,7 @@
+card "Clearwater Goblet" {
+  oracle_id ffecd3e8-aa28-41a1-8154-a54ae3ce8016
+  cost {5}
+  type Artifact
+  sunburst
+  triggered at beginning of your upkeep step: you may you gain count equal charge counters on this life
+}

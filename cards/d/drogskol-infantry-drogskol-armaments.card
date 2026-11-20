@@ -1,0 +1,15 @@
+card "Drogskol Infantry // Drogskol Armaments" {
+  oracle_id 389bcb9f-4e66-4704-9968-a1c1574ec2c8
+  layout transform
+  cost {1}{W}
+  type Creature — Spirit Soldier
+  pt 2/2
+  disturb {3}{W}
+  face "Drogskol Armaments" {
+    type Enchantment — Aura
+    color white
+    enchant creature
+    static enchanted: +2/+2
+    exiled instead of graveyard
+  }
+}

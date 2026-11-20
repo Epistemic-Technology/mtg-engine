@@ -1,0 +1,8 @@
+card "Wingcrafter" {
+  oracle_id 55d1f44f-8554-49e7-b36f-92682926e6d0
+  cost {U}
+  type Creature — Human Wizard
+  pt 1/1
+  soulbond
+  static paired: has flying
+}

@@ -1,0 +1,16 @@
+card "Fearful Villager // Fearsome Werewolf" {
+  oracle_id 5fd09dbc-8bcd-4fe0-91b5-b00e721fa7eb
+  layout transform
+  cost {2}{R}
+  type Creature — Human Werewolf
+  pt 2/3
+  keywords menace
+  daybound
+  face "Fearsome Werewolf" {
+    type Creature — Werewolf
+    pt 4/3
+    color red
+    keywords menace
+    nightbound
+  }
+}

@@ -1,0 +1,8 @@
+card "Silverblade Paladin" {
+  oracle_id ded0316f-5eed-4a80-91ad-ca236fd16f01
+  cost {1}{W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  soulbond
+  static paired: has double strike
+}

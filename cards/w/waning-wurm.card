@@ -1,0 +1,7 @@
+card "Waning Wurm" {
+  oracle_id 4921a314-fce7-4f3c-8546-6cf520a2c104
+  cost {3}{B}
+  type Creature — Zombie Wurm
+  pt 7/6
+  vanishing 2
+}

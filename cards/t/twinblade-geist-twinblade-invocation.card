@@ -1,0 +1,16 @@
+card "Twinblade Geist // Twinblade Invocation" {
+  oracle_id 4db96d32-b4c2-44e9-a73f-aca7dad279b6
+  layout transform
+  cost {1}{W}
+  type Creature — Spirit Warrior
+  pt 1/1
+  keywords double strike
+  disturb {2}{W}
+  face "Twinblade Invocation" {
+    type Enchantment — Aura
+    color white
+    enchant creature
+    static enchanted: has double strike
+    exiled instead of graveyard
+  }
+}

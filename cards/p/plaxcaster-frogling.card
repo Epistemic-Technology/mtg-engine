@@ -1,0 +1,8 @@
+card "Plaxcaster Frogling" {
+  oracle_id 8c1ea1a5-5966-4d14-8361-ffc6a8d1bd79
+  cost {1}{G}{U}
+  type Creature — Frog Mutant
+  pt 0/0
+  graft 3
+  activated {2}: target creature with +1/+1 counter gains shroud
+}

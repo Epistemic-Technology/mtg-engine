@@ -997,6 +997,11 @@ pub struct ObjFilter {
     pub relation: Relation,
     /// Only the object the source is attached to ("enchanted creature").
     pub enchanted: bool,
+    /// Only the source and the creature it's paired with, while paired
+    /// (soulbond, CR 702.95b: "both creatures", "each of those
+    /// creatures").
+    #[serde(default)]
+    pub paired: bool,
     /// Only objects with no abilities.
     pub no_abilities: bool,
     /// Must have at least one of these types ("artifact or enchantment").
@@ -1747,6 +1752,9 @@ pub enum CountExpr {
     /// Converge: the number of colors of mana spent to cast the source
     /// (CR 601.2h).
     SpentColors,
+    /// "for each time it was kicked": how many times the source's
+    /// multikicker cost was paid (CR 702.33d).
+    TimesKicked,
     /// The mana from Treasures spent to cast the source ("for each mana
     /// from a Treasure spent to cast it").
     SpentTreasure,
@@ -3933,6 +3941,13 @@ pub enum Effect {
     MoveSourceCounters {
         to: Recipient,
     },
+    /// Soulbond's pairing (CR 702.95a): the source and an unpaired
+    /// creature its controller controls, chosen (or, with `triggering`,
+    /// the creature that entered), become paired if both are unpaired
+    /// creatures that player controls (702.95c); a "may".
+    Soulbond {
+        triggering: bool,
+    },
     /// Cumulative upkeep (CR 702.24a): an age counter on the source, then
     /// sacrifice it unless its controller pays the cost once per age
     /// counter.
@@ -4164,6 +4179,7 @@ impl Effect {
                 | Effect::Discover(_)
                 | Effect::Exploit
                 | Effect::CumulativeUpkeep(_)
+                | Effect::Soulbond { .. }
                 | Effect::TapOrUntap { .. }
                 | Effect::OfChoice { .. }
                 | Effect::Choose(_)
@@ -5913,6 +5929,17 @@ pub struct CardDef {
     /// your hand." 0: none.
     #[serde(default)]
     pub dredge: u8,
+    /// Disturb (CR 702.146): on a transforming card's front face, the card
+    /// may be cast transformed from its owner's graveyard for this cost.
+    #[serde(default)]
+    pub disturb: Option<Box<ManaCost>>,
+    /// "If this would be put into a graveyard from anywhere, exile it
+    /// instead." (a disturb card's back face, CR 614.1a).
+    #[serde(default)]
+    pub graveyard_exile: bool,
+    /// Multikicker (CR 702.33c): a kicker cost paid any number of times.
+    #[serde(default)]
+    pub multikicker: Option<Box<ManaCost>>,
     /// Replicate (CR 702.56): an additional cost paid any number of times;
     /// as the spell is cast, it is copied once for each time.
     #[serde(default)]
@@ -6042,6 +6069,14 @@ pub struct CardDef {
     /// Modular N (CR 702.43): enters with N +1/+1 counters (its dies
     /// trigger is an ordinary ability).
     pub modular: u32,
+    /// Graft N (CR 702.58a): enters with N +1/+1 counters (its trigger is
+    /// an ordinary ability).
+    #[serde(default)]
+    pub graft: u32,
+    /// Vanishing N (CR 702.63a): enters with N time counters (its upkeep
+    /// trigger is an ordinary ability).
+    #[serde(default)]
+    pub vanishing: u32,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
@@ -6111,8 +6146,9 @@ pub struct Room {
 }
 
 /// Abilities that act on a player's designations as the game goes:
-/// ascend (CR 702.131b), start your engines! (CR 702.179a), and "If it's
-/// neither day nor night, it becomes day as this creature enters."
+/// ascend (CR 702.131b), start your engines! (CR 702.179a), "If it's
+/// neither day nor night, it becomes day as this creature enters.", and
+/// daybound and nightbound (CR 702.145).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
 pub struct Marks(pub u8);
 
@@ -6121,6 +6157,10 @@ impl Marks {
     pub const ASCEND: Marks = Marks(1);
     pub const ENGINES: Marks = Marks(2);
     pub const BECOMES_DAY: Marks = Marks(4);
+    /// Daybound (CR 702.145b): on a transforming card's front face.
+    pub const DAYBOUND: Marks = Marks(8);
+    /// Nightbound (CR 702.145e): on its back face.
+    pub const NIGHTBOUND: Marks = Marks(16);
 
     pub const fn has(self, m: Marks) -> bool {
         self.0 & m.0 != 0
@@ -6542,6 +6582,7 @@ impl CardDef {
     /// otherwise.
     pub fn graveyard_active(&self) -> bool {
         self.flashback.is_some()
+            || self.disturb.is_some()
             || self.escape.is_some()
             || self.mayhem.is_some()
             || self
@@ -7906,6 +7947,9 @@ impl Builder {
             storm: false,
             dredge: 0,
             replicate: None,
+            multikicker: None,
+            disturb: None,
+            graveyard_exile: false,
             teamwork: 0,
             optional_cost: None,
             ripple: 0,
@@ -7934,6 +7978,8 @@ impl Builder {
             escape: None,
             mayhem: None,
             modular: 0,
+            graft: 0,
+            vanishing: 0,
             flashback: None,
             retrace: false,
             watch_mask: 0,
@@ -8167,6 +8213,28 @@ impl Builder {
         self
     }
 
+    /// Disturb (CR 702.146).
+    #[must_use]
+    pub fn disturb(mut self, cost: ManaCost) -> Self {
+        self.0.disturb = Some(Box::new(cost));
+        self
+    }
+
+    /// "If this would be put into a graveyard from anywhere, exile it
+    /// instead."
+    #[must_use]
+    pub fn graveyard_exile(mut self) -> Self {
+        self.0.graveyard_exile = true;
+        self
+    }
+
+    /// Multikicker (CR 702.33c).
+    #[must_use]
+    pub fn multikicker(mut self, cost: ManaCost) -> Self {
+        self.0.multikicker = Some(Box::new(cost));
+        self
+    }
+
     /// Replicate (CR 702.56).
     #[must_use]
     pub fn replicate(mut self, cost: ManaCost) -> Self {
@@ -8338,6 +8406,20 @@ impl Builder {
     #[must_use]
     pub fn spree(mut self, costs: Vec<ManaCost>) -> Self {
         self.0.spree = costs;
+        self
+    }
+
+    /// Graft N's entering counters (CR 702.58a).
+    #[must_use]
+    pub fn graft(mut self, n: u32) -> Self {
+        self.0.graft = n;
+        self
+    }
+
+    /// Vanishing N's entering time counters (CR 702.63a).
+    #[must_use]
+    pub fn vanishing(mut self, n: u32) -> Self {
+        self.0.vanishing = n;
         self
     }
 

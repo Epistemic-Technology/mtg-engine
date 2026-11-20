@@ -1,0 +1,9 @@
+card "Dimir House Guard" {
+  oracle_id 35c027cd-f754-4e41-9242-8a9d0481171c
+  cost {3}{B}
+  type Creature — Skeleton
+  pt 2/3
+  keywords fear
+  activated sacrifice creature: regenerate this
+  transmute {1}{B}{B}
+}

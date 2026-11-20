@@ -1,0 +1,7 @@
+card "Dizzy Spell" {
+  oracle_id 7de04284-dcaa-4b63-a734-fcfe2698f83c
+  cost {U}
+  type Instant
+  spell: target creature gets -3/-0
+  transmute {1}{U}{U}
+}

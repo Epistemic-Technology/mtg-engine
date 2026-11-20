@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 136] = [
+const TEMPLATED_TAGS: [&str; 145] = [
     "Mayhem",
     "Mobilize",
     "Behold",
@@ -76,6 +76,15 @@ const TEMPLATED_TAGS: [&str; 136] = [
     "Collect evidence",
     "Blight",
     "Manifest dread",
+    "Soulbond",
+    "Disturb",
+    "Daybound",
+    "Nightbound",
+    "Transmute",
+    "Sunburst",
+    "Multikicker",
+    "Graft",
+    "Vanishing",
     "Transform",
     "To solve",
     "Solved",
@@ -2932,7 +2941,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending) (\d+)$",
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife|Casualty|Teamwork|Ripple|Dredge|Firebending|Graft|Vanishing) (\d+)$",
         )
         .unwrap()
         .captures(line)
@@ -2955,8 +2964,56 @@ impl Builder<'_> {
                 .push("firebending count where power".to_string());
             return Ok(());
         }
+        // A disturb card's back face (CR 702.146).
+        if line == "If ~ would be put into a graveyard from anywhere, exile it instead." {
+            self.statements
+                .push("exiled instead of graveyard".to_string());
+            return Ok(());
+        }
+        // CR 702.145.
+        if line == "Daybound" || line == "Nightbound" {
+            self.statements.push(line.to_lowercase());
+            return Ok(());
+        }
+        // CR 702.95a.
+        if line == "Soulbond" {
+            self.statements.push("soulbond".to_string());
+            return Ok(());
+        }
+        // Soulbond (CR 702.95b): "As long as this creature is paired with
+        // another creature, both creatures have flying.", "... each of
+        // those creatures gets +1/+1.", authored as an Aura's static
+        // ability and given the paired subject.
+        if let Some(c) = Regex::new(
+            r"^As long as (this creature|~) is paired with another creature, (?:both creatures have|each of those creatures (has|gets)) (.+)$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let verb = c.get(2).map_or("has", |m| m.as_str());
+            let inner = format!("Enchanted creature {verb} {}", cap(&c, 3));
+            let made = self
+                .quoted(&inner)
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            let rest = made
+                .strip_prefix("static enchanted: ")
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            let named = if cap(&c, 1) == "~" { " named" } else { "" };
+            self.statements.push(format!("static paired{named}: {rest}"));
+            return Ok(());
+        }
+        // CR 702.44a.
+        if line == "Sunburst" {
+            self.statements.push("sunburst".to_string());
+            return Ok(());
+        }
+        // CR 702.63b: vanishing without a number.
+        if line == "Vanishing" {
+            self.statements.push("vanishing".to_string());
+            return Ok(());
+        }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Freerunning) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Freerunning|Multikicker|Transmute|Disturb) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
@@ -3190,6 +3247,20 @@ impl Builder<'_> {
             let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(line.to_string()))?;
             self.statements
                 .push(format!("enters with {n} {} counters", cap(&c, 2)));
+            return Ok(());
+        }
+        // Multikicker (CR 702.33d): "This creature enters with a +1/+1
+        // counter on it for each time it was kicked."
+        if let Some(c) = Regex::new(
+            r"^This (?:creature|artifact|enchantment) enters with an? (\+1/\+1|charge) counter on it for each time it was kicked\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            self.statements.push(format!(
+                "enters with count each times kicked {} counters",
+                cap(&c, 1)
+            ));
             return Ok(());
         }
         // "This creature enters with a +1/+1 counter on it for each color

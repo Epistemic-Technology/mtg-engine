@@ -1,0 +1,8 @@
+card "Etched Oracle" {
+  oracle_id 7ecfa47e-1165-46a6-884c-290b1c14d020
+  cost {4}
+  type Artifact Creature — Wizard
+  pt 0/0
+  sunburst
+  activated {1}, remove 4 +1/+1 counters from this: target player draws 3 cards
+}

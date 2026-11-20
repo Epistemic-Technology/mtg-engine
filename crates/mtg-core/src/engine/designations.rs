@@ -253,16 +253,32 @@ impl GameState {
     /// the city's blessing and a speed of 1.
     pub(super) fn designation_sba(&mut self) -> bool {
         let mut acted = false;
-        let marked: SmallVec<[(PlayerId, Marks); 4]> = self
+        let marked: SmallVec<[(ObjId, PlayerId, Marks); 4]> = self
             .battlefield
             .iter()
             .filter_map(|id| {
                 let o = &self.objects[*id];
                 let m = self.pool.get(o.def).marks;
-                (!m.is_empty()).then_some((o.controller, m))
+                (!m.is_empty()).then_some((*id, o.controller, m))
             })
             .collect();
-        for (p, m) in marked {
+        for (id, p, m) in marked {
+            // CR 702.145c-d, f-g: with a daybound permanent, it becomes
+            // day if it's neither; at night it transforms. With a
+            // nightbound one, it becomes night if it's neither (there is
+            // no daybound permanent, or it would be day); by day it
+            // transforms.
+            if m.has(Marks::DAYBOUND) || m.has(Marks::NIGHTBOUND) {
+                let day = m.has(Marks::DAYBOUND);
+                if self.desig.day_night == DayNight::Neither {
+                    self.set_day_night(day);
+                    acted = true;
+                }
+                let wrong = if day { DayNight::Night } else { DayNight::Day };
+                if self.desig.day_night == wrong && self.transform_now(id) {
+                    acted = true;
+                }
+            }
             if m.has(Marks::ENGINES) && self.desig.speed(p) == 0 {
                 self.set_speed(p, 1);
                 acted = true;

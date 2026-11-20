@@ -1,0 +1,8 @@
+card "Trusted Forcemage" {
+  oracle_id 663ef3c9-f897-4875-b029-82ee6672db00
+  cost {2}{G}
+  type Creature — Human Shaman
+  pt 2/2
+  soulbond
+  static paired: +1/+1
+}

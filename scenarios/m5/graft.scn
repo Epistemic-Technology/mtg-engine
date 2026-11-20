@@ -1,0 +1,107 @@
+# Graft N (CR 702.58): "This permanent enters with N +1/+1 counters on
+# it" and "Whenever another creature enters, if this permanent has a +1/+1
+# counter on it, you may move a +1/+1 counter from this permanent onto
+# that creature." `accept`/`decline` answers the "you may"; unscripted,
+# yes.
+
+scenario "graft: enters with its counters" {
+  battlefield A: 2 "Forest"
+  hand A: "Aquastrand Spider"
+  turn 1 A: cast "Aquastrand Spider"
+  run_to turn 1 postcombat_main
+  assert counters "Aquastrand Spider" +1/+1 2
+  assert power "Aquastrand Spider" 2
+}
+
+scenario "graft: a counter moves onto a creature that enters" {
+  battlefield A: "Aquastrand Spider" with 2 +1/+1, 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Aquastrand Spider" +1/+1 1
+  assert power "Grizzly Bears" 3
+}
+
+scenario "graft: declined, nothing moves" {
+  battlefield A: "Aquastrand Spider" with 2 +1/+1, 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: decline "Aquastrand Spider"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+  assert counters "Aquastrand Spider" +1/+1 2
+}
+
+scenario "graft: onto an opponent's creature too" {
+  battlefield A: "Aquastrand Spider" with 2 +1/+1
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters B "Grizzly Bears" +1/+1 1
+  assert counters "Aquastrand Spider" +1/+1 1
+}
+
+scenario "graft: its last counter moves and it dies" {
+  battlefield A: "Simic Initiate" with 1 +1/+1, 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert graveyard A contains "Simic Initiate"
+}
+
+scenario "graft: no counter left, no trigger" {
+  battlefield A: "Llanowar Reborn", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "graft: a land with graft gives its counter" {
+  battlefield A: "Llanowar Reborn" with 1 +1/+1, 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Llanowar Reborn" +1/+1 0
+}
+
+scenario "graft: only a creature with a counter can be untapped" {
+  battlefield A: "Vigean Graftmage" with 2 +1/+1, 2 "Island", "Grizzly Bears" tapped, "Hill Giant" tapped with 1 +1/+1
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Vigean Graftmage" targeting "Grizzly Bears"
+  turn 1 A: activate "Vigean Graftmage" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "graft: a creature with a +1/+1 counter can regenerate" {
+  battlefield A: "Sporeback Troll" with 2 +1/+1, 2 "Forest", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: activate "Sporeback Troll" targeting "Sporeback Troll"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Sporeback Troll"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sporeback Troll"
+  assert tapped "Sporeback Troll"
+}
+
+scenario "graft: Root-Kin pulls a counter back" {
+  battlefield A: "Cytoplast Root-Kin" with 3 +1/+1, "Grizzly Bears" with 1 +1/+1, 2 "Forest"
+  turn 1 A: activate "Cytoplast Root-Kin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Cytoplast Root-Kin" +1/+1 4
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "graft: shroud for a creature with a counter" {
+  battlefield A: "Plaxcaster Frogling" with 3 +1/+1, 2 "Island"
+  turn 1 A: activate "Plaxcaster Frogling" targeting "Plaxcaster Frogling"
+  run_to turn 1 postcombat_main
+  assert has "Plaxcaster Frogling" shroud
+}

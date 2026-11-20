@@ -1,0 +1,15 @@
+card "Baithook Angler // Hook-Haunt Drifter" {
+  oracle_id c6bb4b41-8dae-429a-b928-ae9d39c74711
+  layout transform
+  cost {1}{U}
+  type Creature — Human Peasant
+  pt 2/1
+  disturb {1}{U}
+  face "Hook-Haunt Drifter" {
+    type Creature — Spirit
+    pt 1/2
+    color blue
+    keywords flying
+    exiled instead of graveyard
+  }
+}

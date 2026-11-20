@@ -1,0 +1,17 @@
+card "Outland Liberator // Frenzied Trapbreaker" {
+  oracle_id 9545f126-062f-4410-a362-e16255a128d6
+  layout transform
+  cost {1}{G}
+  type Creature — Human Werewolf
+  pt 2/2
+  activated {1}, sacrifice this: destroy target artifact or enchantment
+  daybound
+  face "Frenzied Trapbreaker" {
+    type Creature — Werewolf
+    pt 3/3
+    color green
+    activated {1}, sacrifice this: destroy target artifact or enchantment
+    triggered whenever this attacks: destroy target artifact or enchantment defending player controls
+    nightbound
+  }
+}

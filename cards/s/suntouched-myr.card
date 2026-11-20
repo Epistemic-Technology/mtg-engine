@@ -1,0 +1,7 @@
+card "Suntouched Myr" {
+  oracle_id 75d4f61a-8276-43ad-99e6-0d756a597e4b
+  cost {3}
+  type Artifact Creature — Myr
+  pt 0/0
+  sunburst
+}

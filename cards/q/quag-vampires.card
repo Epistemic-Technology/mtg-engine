@@ -1,0 +1,9 @@
+card "Quag Vampires" {
+  oracle_id 1d28ed9a-cc4e-48d9-a1a6-7504fc6cc56d
+  cost {B}
+  type Creature — Vampire Rogue
+  pt 1/1
+  multikicker {1}{B}
+  keyword swampwalk
+  enters with count each times kicked +1/+1 counters
+}

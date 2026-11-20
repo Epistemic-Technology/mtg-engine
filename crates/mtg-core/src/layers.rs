@@ -80,6 +80,16 @@ impl Work<'_> {
         source: Option<ObjId>,
         controller: Option<PlayerId>,
     ) -> SmallVec<[ObjId; 4]> {
+        // Soulbond (CR 702.95b): the source and its partner, if paired.
+        if filter.paired {
+            return source
+                .and_then(|s| Some((s, self.state.partner(s)?)))
+                .filter(|(s, t)| self.on_battlefield(*s) && self.on_battlefield(*t))
+                .map(|(s, t)| [s, t])
+                .into_iter()
+                .flatten()
+                .collect();
+        }
         if filter.enchanted {
             return source
                 .and_then(|s| self.state.objects.get(s))
@@ -1019,6 +1029,7 @@ fn per_count(
         | CountExpr::OpponentsAttacked
         | CountExpr::AttackedWithThisTurn
         | CountExpr::SpentColors
+        | CountExpr::TimesKicked
         | CountExpr::SpentTreasure
         | CountExpr::DiedThisTurn(_)
         | CountExpr::TriggerStat(_)

@@ -1,0 +1,15 @@
+card "Beloved Beggar // Generous Soul" {
+  oracle_id 74c9cc13-c03f-4322-82af-b7bce1f2a0d8
+  layout transform
+  cost {1}{W}
+  type Creature — Human Peasant
+  pt 0/4
+  disturb {4}{W}{W}
+  face "Generous Soul" {
+    type Creature — Spirit
+    pt 4/4
+    color white
+    keywords flying, vigilance
+    exiled instead of graveyard
+  }
+}

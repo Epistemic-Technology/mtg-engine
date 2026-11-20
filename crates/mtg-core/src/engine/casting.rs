@@ -30,13 +30,15 @@ impl GameState {
         let changers = self.cost_changers();
         for id in &ps.hand {
             let def = self.pool.get(self.objects[*id].def);
-            // Abilities activated from the hand (cycling, CR 702.29) are
-            // instant speed and cost mana, or life ("Cycling—Pay 2 life.",
-            // CR 119.4).
+            // Abilities activated from the hand (cycling, CR 702.29) cost
+            // mana, or life ("Cycling—Pay 2 life.", CR 119.4); instant
+            // speed unless "Activate only as a sorcery" (transmute, CR
+            // 702.53a).
             if self.flags_of(&self.objects[*id]).has_activated() {
                 for a in &def.ability_ids {
                     if let AbilityDef::Activated(ab) = self.pool.ability(*a)
                         && ab.from_hand
+                        && (!ab.sorcery_speed || sorcery_timing)
                         && self.activation_allowed(ab, *a, p, *id)
                         && (ab.cost.life == 0
                             || ps.life >= i32::try_from(ab.cost.life).unwrap_or(i32::MAX))
@@ -369,6 +371,12 @@ impl GameState {
                         }
                     }
                 }
+                // CR 702.146a: cast transformed for the disturb cost.
+                if def.disturb.is_some()
+                    && self.disturb_castable(p, def, *id, sorcery_timing, &sources, &changers)
+                {
+                    options.push(Choice::CastDisturb(*id));
+                }
                 if def.flashback.is_none() {
                     if (def.escape.is_some() && self.escape_castable(p, *id, sorcery_timing))
                         || (def.mayhem.is_some() && self.mayhem_castable(p, *id, sorcery_timing))
@@ -561,6 +569,12 @@ impl GameState {
                     .count()
             }
             CountExpr::SpentColors => self.spent_on(ctx.source).colors() as usize,
+            CountExpr::TimesKicked => self
+                .objects
+                .get(ctx.source)
+                .map(|o| o.cast)
+                .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.cast))
+                .map_or(0, |c| c.kicks() as usize),
             CountExpr::SpentTreasure => {
                 self.spent_on(ctx.source)
                     .count(crate::card::SpentKind::Treasure) as usize
@@ -1500,6 +1514,37 @@ impl GameState {
             return false;
         }
         let face = self.pool.get(face_ref);
+        if !self.targets_available(p, face.cast_targets(), Some(id)) {
+            return false;
+        }
+        let mut req = cost.requirements(0);
+        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
+            adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
+        }
+        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
+    }
+
+    /// CR 702.146a: whether `p` could cast `def` (the card `id`, in their
+    /// graveyard) transformed for its disturb cost now: the back face's
+    /// timing and targets.
+    #[cold]
+    #[inline(never)]
+    fn disturb_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+    ) -> bool {
+        let (Some(cost), Some(face_ref)) = (&def.disturb, def.faces.first().copied()) else {
+            return false;
+        };
+        let face = self.pool.get(face_ref);
+        if !(sorcery_timing || face.is_instant() || self.has_flash(p, face, id)) {
+            return false;
+        }
         if !self.targets_available(p, face.cast_targets(), Some(id)) {
             return false;
         }
@@ -2700,6 +2745,101 @@ impl GameState {
         self.spell_payable(o.controller, spell, &req)
     }
 
+    /// Soulbond's pairing (CR 702.95a, c): the source with a creature
+    /// chosen from the unpaired creatures its controller controls, or
+    /// with the creature that entered; either may be declined.
+    #[cold]
+    #[inline(never)]
+    fn soulbond(&mut self, ctx: &EffectCtx, triggering: bool) {
+        let p = ctx.controller;
+        let eligible = |s: &Self, id: ObjId| {
+            s.objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Battlefield && o.controller == p)
+                && s.characteristics(id).is_some_and(|c| c.is_creature())
+                && s.partner(id).is_none()
+        };
+        let Some(src) = self
+            .current_object(ctx.source)
+            .filter(|s| eligible(self, *s))
+        else {
+            return;
+        };
+        let candidates: Vec<ObjId> = if triggering {
+            ctx.trigger_obj
+                .and_then(|t| self.current_object(t))
+                .filter(|t| *t != src && eligible(self, *t))
+                .into_iter()
+                .collect()
+        } else {
+            self.creatures_of(p)
+                .filter(|c| *c != src && eligible(self, *c))
+                .collect()
+        };
+        if candidates.is_empty() {
+            return;
+        }
+        let mut options: Vec<Choice> = candidates.iter().map(|c| Choice::Sacrifice(*c)).collect();
+        options.push(Choice::Decline);
+        let k = self.choose_mid(p, DecisionKind::ChooseCard, options);
+        if let Some(other) = candidates.get(k) {
+            self.pairs.push((src, *other));
+            self.cbump();
+        }
+    }
+
+    /// Transform a double-faced permanent to its other face (CR 701.27);
+    /// it stays the same object. Whether it did.
+    pub(super) fn transform_now(&mut self, id: ObjId) -> bool {
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        if o.zone != Zone::Battlefield {
+            return false;
+        }
+        let d = self.pool.get(o.def);
+        // CR 712.3: a modal double-faced card may transform too.
+        if !matches!(d.layout, Layout::Transform | Layout::ModalDfc) {
+            return false;
+        }
+        let Some(other) = d.faces.first().copied() else {
+            return false;
+        };
+        let legendary = d.is_legendary();
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, legendary, false);
+        self.objects[id].def = other;
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, self.pool.get(other).is_legendary(), true);
+        self.emit(Event::Transformed { obj: id });
+        self.cbump();
+        true
+    }
+
+    /// How many times `spell`'s caster could pay its multikicker cost on
+    /// top of its cost (CR 702.33c), at most 15.
+    pub(super) fn multikicker_max(&self, spell: ObjId) -> u32 {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let Some(c) = &def.multikicker else {
+            return 0;
+        };
+        if o.cast.flashback() {
+            return 0;
+        }
+        let one = c.requirements(0);
+        let mut req = self.spell_requirements(spell, 0);
+        let mut n = 0;
+        while n < 15 {
+            req.add(&one);
+            if !self.spell_payable(o.controller, spell, &req) {
+                break;
+            }
+            n += 1;
+        }
+        n
+    }
+
     /// How many times `spell`'s caster could pay its replicate cost on top
     /// of its cost (CR 702.56a), at most 15.
     pub(super) fn replicate_max(&self, spell: ObjId) -> u32 {
@@ -2826,6 +2966,15 @@ impl GameState {
                     .1
                     .requirements(x)
             }
+            // The back face has no disturb of its own: the card's cost.
+            (_, false) if o.alt == AltCast::Disturb && self.pool.get(o.card).disturb.is_some() => {
+                self.pool
+                    .get(o.card)
+                    .disturb
+                    .as_ref()
+                    .expect("checked")
+                    .requirements(x)
+            }
             (_, false) if o.alt == AltCast::AltCost && def.alt_cost.is_some() => def
                 .alt_cost
                 .as_ref()
@@ -2859,6 +3008,12 @@ impl GameState {
             && let Some(k) = &def.kicker
         {
             req.add(&k.requirements(0));
+        }
+        // CR 702.33c: the multikicker cost, once for each time it was paid.
+        if let Some(k) = &def.multikicker {
+            for _ in 0..o.cast.kicks() {
+                req.add(&k.requirements(0));
+            }
         }
         if o.cast.bought_back()
             && let Some(b) = &def.buyback
@@ -7261,28 +7416,15 @@ impl GameState {
                     let Target::Object(id) = t else {
                         continue;
                     };
-                    let Some(o) = self.objects.get(id) else {
-                        continue;
-                    };
-                    if o.zone != Zone::Battlefield {
-                        continue;
-                    }
-                    // CR 712.3: a modal double-faced card may transform too.
-                    let d = self.pool.get(o.def);
-                    if !matches!(d.layout, Layout::Transform | Layout::ModalDfc) {
+                    // CR 702.145b, e: a daybound or nightbound permanent
+                    // transforms only by those abilities.
+                    if self.objects.get(id).is_some_and(|o| {
+                        let m = self.pool.get(o.def).marks;
+                        m.has(crate::card::Marks::DAYBOUND) || m.has(crate::card::Marks::NIGHTBOUND)
+                    }) {
                         continue;
                     }
-                    let Some(other) = d.faces.first().copied() else {
-                        continue;
-                    };
-                    let legendary = d.is_legendary();
-                    let flags = self.flags_of(&self.objects[id]);
-                    self.count_sources(flags, legendary, false);
-                    self.objects[id].def = other;
-                    let flags = self.flags_of(&self.objects[id]);
-                    self.count_sources(flags, self.pool.get(other).is_legendary(), true);
-                    self.emit(Event::Transformed { obj: id });
-                    self.cbump();
+                    self.transform_now(id);
                 }
             }
             Effect::AddMana(mana) => {
@@ -9550,6 +9692,7 @@ impl GameState {
                     }
                 }
             }
+            Effect::Soulbond { triggering } => self.soulbond(ctx, *triggering),
             Effect::CumulativeUpkeep(cost) => {
                 let Some(id) = self
                     .current_object(ctx.source)
