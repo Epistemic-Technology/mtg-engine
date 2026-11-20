@@ -1,0 +1,7 @@
+card "Water Tribe Rallier" {
+  oracle_id 64acb083-a0a3-46ec-9c93-b2ac36878703
+  cost {1}{W}
+  type Creature — Human Soldier Ally
+  pt 2/2
+  activated waterbend {5}: dig 4 take creature with power 3 or less card may revealing rest bottom random
+}

@@ -1252,6 +1252,7 @@ impl Compiler<'_> {
             put_counters: c.put_counters,
             energy: c.energy,
             blight: c.blight,
+            waterbend: c.waterbend,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -2051,6 +2052,7 @@ impl Compiler<'_> {
             Effect::Instead { .. } => {
                 return self.err("`instead` is a sentence of its own, after the one it replaces");
             }
+            Effect::Waterbend(cost) => out.push(CoreEffect::Waterbend(cost.clone())),
             Effect::Pay { mana, life } => out.push(CoreEffect::Pay {
                 mana: mana.clone(),
                 life: *life,

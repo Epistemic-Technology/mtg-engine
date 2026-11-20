@@ -1,0 +1,10 @@
+card "Benevolent River Spirit" {
+  oracle_id 12d91743-1ccb-4f2b-b2a9-1c2b34f7c8eb
+  cost {U}{U}
+  type Creature — Spirit
+  pt 4/5
+  additional cost waterbend {5}
+  keywords flying
+  ward {2}
+  triggered when this enters: scry 2
+}

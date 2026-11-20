@@ -1920,6 +1920,7 @@ impl Fmt {
                 }
             }
             Effect::Pay { mana, life } => format!("pay {}", pay_amount(mana, *life)),
+            Effect::Waterbend(mana) => format!("waterbend {mana}"),
             Effect::UnlessYou { act, effect } => {
                 let inner = self.effect(effect, t);
                 let act = self.effect(act, t);
@@ -3344,7 +3345,9 @@ fn cost_text(c: &Cost) -> String {
         match item {
             CostItem::Mana => {
                 let mana = c.mana.to_string();
-                if !mana.is_empty() {
+                if c.waterbend {
+                    parts.push(format!("waterbend {mana}"));
+                } else if !mana.is_empty() {
                     parts.push(mana);
                 }
             }

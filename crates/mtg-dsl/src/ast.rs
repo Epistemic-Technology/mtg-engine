@@ -512,6 +512,9 @@ pub struct Cost {
     pub reveal_hand: bool,
     /// `blight 1`: "Blight 1" (CR 701.68a).
     pub blight: u32,
+    /// `waterbend {3}`: "Waterbend {3}" (CR 701.67a): the mana's generic
+    /// part may be paid by tapping artifacts and creatures.
+    pub waterbend: bool,
 }
 
 /// A cost exiling cards from the graveyard: `n` (or X) cards matching
@@ -3046,6 +3049,9 @@ pub enum Effect {
     Bolster(Num),
     /// `monstrosity 3` (CR 701.37): "Monstrosity 3."
     Monstrosity(Num),
+    /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay
+    /// the mana, artifacts and creatures tapped to help.
+    Waterbend(ManaCost),
     /// `earthbend 2` (CR 701.66): "Earthbend 2." `to` is the implicit
     /// "target land you control" the parser declares.
     Earthbend {

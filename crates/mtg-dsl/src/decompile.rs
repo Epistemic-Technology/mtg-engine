@@ -326,6 +326,7 @@ impl Decompiler<'_> {
             put_counters: c.put_counters,
             energy: c.energy,
             blight: c.blight,
+            waterbend: c.waterbend,
             chosen: c.chosen,
             count: c.count,
             exile_cards: c.exile_cards.as_ref().map(|g| {
@@ -1041,6 +1042,7 @@ impl Decompiler<'_> {
                     effects: self.sentences(&t.effects),
                 }
             }
+            CoreEffect::Waterbend(mana) => Effect::Waterbend(mana.clone()),
             CoreEffect::Pay { mana, life } => Effect::Pay {
                 mana: mana.clone(),
                 life: *life,

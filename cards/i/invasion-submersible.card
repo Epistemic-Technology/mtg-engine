@@ -1,0 +1,8 @@
+card "Invasion Submersible" {
+  oracle_id 97369152-3b85-4cf1-aeb9-b3a8f1c37611
+  cost {2}{U}
+  type Artifact — Vehicle
+  pt 0/0
+  triggered when this enters: return up to 1 another target nonland permanent to hand
+  exhaust waterbend {3}: this becomes artifact creature indefinitely; put 3 +1/+1 counters on this
+}

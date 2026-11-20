@@ -1,0 +1,8 @@
+card "North Pole Patrol" {
+  oracle_id a1230e78-0bfa-489e-a1b9-3c227bceb6fb
+  cost {2}{U}
+  type Creature — Human Soldier Ally
+  pt 2/3
+  activated {T}: untap another target permanent you control
+  activated waterbend {3}, {T}: tap target creature an opponent controls
+}

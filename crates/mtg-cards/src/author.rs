@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 114] = [
+const TEMPLATED_TAGS: [&str; 115] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -180,6 +180,7 @@ const TEMPLATED_TAGS: [&str; 114] = [
     "Populate",
     "Incubate",
     "Earthbend",
+    "Waterbend",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -1584,7 +1585,7 @@ impl Templates {
             return Ok(out);
         }
         let unless = Regex::new(
-            r"^(.+) unless (you pay|they pay|its controller pays|that player pays) ((?:\{[0-9WUBRGC]+\})+|\d+ life)$",
+            r"^(.+) unless (you pay|you waterbend|they pay|its controller pays|that player pays) ((?:\{[0-9WUBRGC]+\})+|\d+ life)$",
         )
         .unwrap();
         // "Look at the top four cards of your library. You may reveal a
@@ -1769,6 +1770,12 @@ fn cost_text(s: &str) -> Option<String> {
                 return None;
             }
             format!("sacrifice {rest}")
+        } else if let Some(mana) = part
+            .strip_prefix("Waterbend ")
+            .filter(|m| symbols.is_match(m) && !m.contains('T'))
+        {
+            // CR 701.67a.
+            format!("waterbend {mana}")
         } else if part == "Discard a card" {
             "discard 1 card".to_string()
         } else if part == "Discard this card" {

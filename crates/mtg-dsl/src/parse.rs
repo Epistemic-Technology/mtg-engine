@@ -6047,6 +6047,7 @@ impl P {
             }
             "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
             "blight" => Ok(Effect::Blight(self.count()?)),
+            "waterbend" => Ok(Effect::Waterbend(self.mana_cost()?)),
             "manifest" => {
                 self.eat_words(&["the", "top", "card", "of", "your", "library"]);
                 Ok(Effect::Manifest)
@@ -9611,6 +9612,18 @@ impl P {
                             self.expect_word("life")?;
                             cost.order.push(CostItem::Life);
                         }
+                    }
+                    // CR 701.67a: `waterbend {3}`, the mana that follows.
+                    "waterbend" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+                        self.pos += 1;
+                        cost.waterbend = true;
+                        while let Some(Tok::Sym(s)) = self.peek() {
+                            mana.push('{');
+                            mana.push_str(s);
+                            mana.push('}');
+                            self.pos += 1;
+                        }
+                        cost.order.push(CostItem::Mana);
                     }
                     "blight" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                         self.pos += 1;

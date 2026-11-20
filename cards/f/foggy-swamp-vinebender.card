@@ -1,0 +1,8 @@
+card "Foggy Swamp Vinebender" {
+  oracle_id 82fefb82-a436-488d-8ecd-594686117e34
+  cost {3}{G}
+  type Creature — Human Plant Ally
+  pt 4/3
+  can't be blocked by creature with power 2 or less
+  activated waterbend {5}, during your turn: put 1 +1/+1 counter on this
+}

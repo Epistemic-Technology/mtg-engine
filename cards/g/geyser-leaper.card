@@ -1,0 +1,8 @@
+card "Geyser Leaper" {
+  oracle_id dfdcb451-a597-46fe-893c-49e6dbda5f71
+  cost {4}{U}
+  type Creature — Human Warrior Ally
+  pt 4/3
+  keywords flying
+  activated waterbend {4}: draw 1 card then discard 1 card
+}

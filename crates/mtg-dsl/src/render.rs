@@ -2324,7 +2324,9 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
         match item {
             CostItem::Mana => {
                 let mana = cost.mana.to_string();
-                if !mana.is_empty() {
+                if cost.waterbend {
+                    parts.push(format!("Waterbend {mana}"));
+                } else if !mana.is_empty() {
                     parts.push(mana);
                 }
             }
@@ -5679,6 +5681,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = lowercase_first(&body);
             Clause::imperative(format!("if {who}, {}", body.trim_end_matches('.')))
         }
+        Effect::Waterbend(mana) => Clause::imperative(format!("waterbend {mana}")),
         Effect::Pay { mana, life } => Clause::imperative(if *life > 0 {
             format!("pay {life} life")
         } else {
@@ -10009,11 +10012,22 @@ pub fn normalize(text: &str) -> String {
                     && !cost.contains(' ')
             })
         };
+        // "Flying, ward {2}", "Trample, firebending 4, haste": a keyword
+        // with a cost or number among plain ones.
+        let with_param = |p: &str| {
+            p.split_once(' ').is_some_and(|(w, rest)| {
+                matches!(w.to_ascii_lowercase().as_str(), "ward" | "firebending")
+                    && (rest.starts_with('{') && !rest.contains(' ')
+                        || rest == "X"
+                        || rest.chars().all(|c| c.is_ascii_digit()))
+            })
+        };
         let all_keywords = parts.iter().all(|p| {
             Keyword::ALL
                 .iter()
                 .any(|k| keyword_name(*k).eq_ignore_ascii_case(p))
                 || p.to_ascii_lowercase().starts_with("protection from ")
+                || with_param(p)
         }) || parts.iter().all(|p| typecycling(p));
         // "Protection from Spirits and from Arcane": one protection
         // ability per quality (CR 702.16g), so one line each.

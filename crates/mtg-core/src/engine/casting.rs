@@ -1217,6 +1217,14 @@ impl GameState {
     /// choice needs something to choose; anything else can be done.
     fn can_do(&self, ctx: &EffectCtx, e: &Effect) -> bool {
         match e {
+            Effect::Waterbend(mana) => {
+                let p = ctx.controller;
+                let req = mana.requirements(0);
+                let mut sources = self.mana_sources(p);
+                sources.extend(self.waterbend_sources(p, req.generic, None));
+                let ps = self.player(p);
+                self.payable(p, &sources, &ps.mana_pool, &req, ps.life, None)
+            }
             Effect::ChooseAct {
                 act,
                 filter,
@@ -1494,7 +1502,7 @@ impl GameState {
         {
             adjust_generic(&mut req, tc.0);
         }
-        let helped = Keyword::helps_pay(def.keywords);
+        let helped = Keyword::helps_pay(def.keywords) || def.additional.waterbend;
         let restricted = match (self.restricted_mana_sources, &def.printed) {
             (0, _) | (_, None) => None,
             (_, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c)),
@@ -1784,6 +1792,12 @@ impl GameState {
                 out.push((*id, Mana::Colorless));
             }
         }
+        // CR 701.67b: an additional waterbend cost's artifacts and
+        // creatures pay only its own generic mana.
+        if def.additional.waterbend {
+            let n = def.additional.mana.requirements(0).generic;
+            out.extend(self.waterbend_sources(p, n, None));
+        }
         if !convoke && !improvise {
             return out;
         }
@@ -1810,6 +1824,33 @@ impl GameState {
         out
     }
 
+    /// CR 701.67a: the untapped artifacts and creatures `p` controls that
+    /// may each be tapped to pay {1} of a waterbend cost, at most `cap` of
+    /// them, `exclude` (a source tapping for its own {T}) left out. After
+    /// mana sources, so they are used last.
+    pub(super) fn waterbend_sources(
+        &self,
+        p: PlayerId,
+        cap: u32,
+        exclude: Option<ObjId>,
+    ) -> Sources {
+        let mut out = Sources::new();
+        for id in self.permanents_of(p) {
+            if out.len() >= cap as usize {
+                break;
+            }
+            if self.objects[id].tapped || Some(id) == exclude {
+                continue;
+            }
+            if self.characteristics(id).is_some_and(|c| {
+                c.is_creature() || c.types.contains(crate::card::CardType::Artifact)
+            }) {
+                out.push((id, Mana::Colorless));
+            }
+        }
+        out
+    }
+
     /// The sources that may pay for the spell `spell` being cast.
     fn spell_sources(&self, spell: ObjId) -> Sources {
         let o = &self.objects[spell];
@@ -1821,7 +1862,7 @@ impl GameState {
             s = all;
         }
         let def = self.pool.get(o.def);
-        if Keyword::helps_pay(def.keywords) {
+        if Keyword::helps_pay(def.keywords) || def.additional.waterbend {
             s.extend(self.helper_sources(o.controller, def));
         }
         s
@@ -2890,6 +2931,19 @@ impl GameState {
                     continue;
                 }
                 let req = self.activation_mana(id, ab);
+                // CR 701.67a: artifacts and creatures help pay a waterbend
+                // cost.
+                let bent: Sources;
+                let sources = if ab.cost.waterbend {
+                    bent = sources
+                        .iter()
+                        .copied()
+                        .chain(self.waterbend_sources(p, req.generic, ab.cost.tap.then_some(id)))
+                        .collect();
+                    &bent
+                } else {
+                    sources
+                };
                 // A source tapped as a cost cannot also tap for mana.
                 let payable = if ab.cost.tap {
                     let rest: Sources = sources.iter().filter(|(s, _)| *s != id).copied().collect();
@@ -3285,7 +3339,14 @@ impl GameState {
                     _ => None,
                 });
         let sources = match ability {
-            Some((source, _)) => self.ability_sources(caster, source),
+            Some((source, a)) => {
+                let mut s = self.ability_sources(caster, source);
+                if a.cost.waterbend {
+                    let own = a.cost.tap.then_some(source);
+                    s.extend(self.waterbend_sources(caster, u32::MAX, own));
+                }
+                s
+            }
             None => self.spell_sources(spell),
         };
         let exclude = ability.map(|(source, _)| source);
@@ -3750,8 +3811,12 @@ impl GameState {
             }
             sacrifice = None;
         }
-        let sources = self.ability_sources(controller, sa.source);
+        let mut sources = self.ability_sources(controller, sa.source);
         let req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
+        // CR 701.67a: a {T} source is tapped already, so it doesn't help.
+        if ab.cost.waterbend {
+            sources.extend(self.waterbend_sources(controller, req.generic, None));
+        }
         self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
@@ -8102,6 +8167,19 @@ impl GameState {
                     }
                 }
                 ctx.controller = you;
+            }
+            // CR 701.67a: pay it, tapping artifacts and creatures for
+            // generic mana where mana runs short.
+            Effect::Waterbend(mana) => {
+                if self.can_do(ctx, effect) {
+                    let p = ctx.controller;
+                    let req = mana.requirements(0);
+                    let mut sources = self.mana_sources(p);
+                    sources.extend(self.waterbend_sources(p, req.generic, None));
+                    self.pay_from(p, &req, &sources, None);
+                } else {
+                    ctx.did = false;
+                }
             }
             Effect::Pay { mana, life } => {
                 let p = ctx.controller;

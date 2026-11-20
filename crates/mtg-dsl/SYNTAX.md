@@ -217,6 +217,15 @@ less to activate if you've drawn three or more cards this turn.") take
 mana off the ability's cost as it is activated (CR 601.2f by way of
 602.2b), printed after the effect and before the restrictions. An ability whose cost
 includes `discard this` is activated from the hand (cycling, channel).
+`waterbend {3}` (CR 701.67) is generic mana, printed "Waterbend {3}", of
+which each {1} may be paid by tapping an untapped artifact or creature its
+payer controls (the engine taps them after its mana sources; the source of
+an ability with {T} doesn't help). As a spell's additional cost
+(`additional cost waterbend {5}`: "As an additional cost to cast this
+spell, waterbend {5}."), only that cost's own generic mana may be paid
+this way (CR 701.67b). As an effect, `discard 1 card unless you waterbend
+{2}` ("Then discard a card unless you waterbend {2}."): the controller
+may pay it the same way (`accept`/`decline` in scenarios).
 
 ### Triggers
 

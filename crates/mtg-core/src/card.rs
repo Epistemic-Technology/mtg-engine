@@ -3770,6 +3770,10 @@ pub enum Effect {
     /// control with the least toughness among creatures they control and
     /// puts N +1/+1 counters on it.
     Bolster(Num),
+    /// "unless you waterbend {2}" (CR 701.67a): pay this generic mana,
+    /// each {1} by mana or by tapping an untapped artifact or creature the
+    /// controller controls; inside "you may" or "unless", like `Pay`.
+    Waterbend(ManaCost),
     /// Earthbend N (CR 701.66a): the target land the controller controls
     /// becomes a 0/0 creature with haste in addition to its other types
     /// (indefinitely), gets N +1/+1 counters, and a delayed trigger
@@ -4960,6 +4964,11 @@ pub struct Cost {
     /// payer controls (the engine picks the toughest).
     #[serde(default)]
     pub blight: u32,
+    /// "Waterbend {5}" (CR 701.67a): the generic mana of `mana` may be
+    /// paid, {1} each, by tapping untapped artifacts and creatures the
+    /// payer controls. Every waterbend cost is generic mana only.
+    #[serde(default)]
+    pub waterbend: bool,
 }
 
 /// A cost that exiles cards from its payer's graveyard: `n` of them (X,
@@ -5016,6 +5025,7 @@ impl Cost {
             exile_cards: None,
             reveal_hand: false,
             blight: 0,
+            waterbend: false,
         }
     }
 
