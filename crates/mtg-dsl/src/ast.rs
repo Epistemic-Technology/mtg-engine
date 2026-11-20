@@ -2026,6 +2026,9 @@ pub enum Recipient {
     /// named in full even after a mention ("..., you may sacrifice it. If
     /// you do, this creature deals 3 damage to that player.").
     SourceNamed,
+    /// `this card`: the source printed "this card" (its card in a
+    /// graveyard: "When this creature dies, ... Exile this card.").
+    SourceCard,
     /// `it` in a spell or an activated ability: the source as "it" even at
     /// its first mention ("If this spell was kicked, it deals 2 damage").
     SourceIt,
@@ -2767,6 +2770,9 @@ pub enum Effect {
         /// `take card may top`: "You may put one of those cards back on
         /// top of your library" (it stays there; the rest go).
         top: bool,
+        /// `reword`, wording only: "two of them" for "two of those cards",
+        /// and "one of those cards" for "one of them".
+        reword: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
     /// put them back in any order".

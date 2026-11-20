@@ -993,6 +993,10 @@ impl<'a> Ctx<'a> {
                 self.source_mentioned = true;
                 "it".to_string()
             }
+            Recipient::SourceCard => {
+                self.source_mentioned = true;
+                "this card".to_string()
+            }
             // "When enchanted creature is dealt damage, destroy it."
             Recipient::TriggeringObject if self.trigger_is_enchanted() => "it".to_string(),
             // "Whenever enchanted creature deals damage to a creature,
@@ -3483,6 +3487,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             random,
             then,
             top,
+            reword,
         } => {
             let n = count_words(*count, "one");
             let head = if *reveal_top {
@@ -3544,8 +3549,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // "Put two of those cards into your hand and the rest into
                 // your graveyard."
                 let k = count_words(Num::N(*take), "one");
+                let those = if *reword { "them" } else { "those cards" };
                 return Clause::imperative(format!(
-                    "{head}. Put {k} of those cards into your hand and {}",
+                    "{head}. Put {k} of {those} into your hand and {}",
                     rest("the rest")
                 ));
             }
@@ -3581,7 +3587,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     rest("the rest")
                 ),
                 (None, _, _) => format!(
-                    "Put one of them into your hand and {}",
+                    "Put one of {} into your hand and {}",
+                    if *reword { "those cards" } else { "them" },
                     rest(if two { "the other" } else { "the rest" })
                 ),
             };

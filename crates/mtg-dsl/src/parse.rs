@@ -5379,6 +5379,7 @@ impl P {
                     false
                 };
                 let random = !rest_graveyard && self.eat_word("random");
+                let reword = self.eat_word("reword");
                 Ok(Effect::Dig {
                     count,
                     filter,
@@ -5392,6 +5393,7 @@ impl P {
                     random,
                     top,
                     then,
+                    reword,
                 })
             }
             "look" if self.at_words(&["at", "top", "card"]) => {
@@ -6791,6 +6793,11 @@ impl P {
             // In a spell or an activated ability, `it` is the source,
             // printed "it" ("If this spell was kicked, it deals 2 damage").
             return Ok(Recipient::SourceIt);
+        }
+        // `this card`: the source's card ("Exile this card.").
+        if self.at_words(&["this", "card"]) {
+            self.pos += 2;
+            return Ok(Recipient::SourceCard);
         }
         // `this creature`: the source named in full even after a mention.
         if self.at_word("this")

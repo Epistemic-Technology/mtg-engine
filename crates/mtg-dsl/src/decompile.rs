@@ -1183,6 +1183,7 @@ impl Decompiler<'_> {
                 random: *random,
                 then: false,
                 top: *top,
+                reword: false,
             },
             CoreEffect::Modes(modes) => Effect::Modes(modes.iter().map(|m| self.mode(m)).collect()),
             CoreEffect::GrantAbility { ability, to } => Effect::GrantAbility {

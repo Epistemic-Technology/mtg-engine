@@ -1,0 +1,6 @@
+card "Blood Price" {
+  oracle_id 93c6554f-096d-4556-81ca-e87e29265887
+  cost {3}{B}
+  type Sorcery
+  spell: dig 4 take 2 card rest bottom reword; you lose 2 life
+}

@@ -246,6 +246,7 @@ impl Fmt {
             Recipient::EachOtherPlayer => "each other player".to_string(),
             Recipient::Source => "this".to_string(),
             Recipient::SourceNamed => NOUN.with(|n| format!("this {}", n.borrow())),
+            Recipient::SourceCard => "this card".to_string(),
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
             Recipient::TriggeringCard => "triggering card".to_string(),
             Recipient::TriggeringController { that: true } => {
@@ -728,6 +729,7 @@ impl Fmt {
                 random,
                 then,
                 top,
+                reword,
             } => {
                 let mut s = format!("dig {}", num(*count));
                 if *then {
@@ -770,6 +772,9 @@ impl Fmt {
                 });
                 if *random {
                     s.push_str(" random");
+                }
+                if *reword {
+                    s.push_str(" reword");
                 }
                 s
             }
@@ -2334,6 +2339,10 @@ fn filter_one(f: &Filter) -> String {
         } else {
             "attacking".to_string()
         });
+        // "attacking equipped creature": written where it prints.
+        if f.status.equipped && f.equipped_late {
+            words.push("with Equipment late".to_string());
+        }
     }
     if f.blocking {
         words.push("blocking".to_string());
@@ -2396,7 +2405,7 @@ fn filter_one(f: &Filter) -> String {
             .to_string(),
         );
     }
-    if f.status.equipped {
+    if f.status.equipped && !(f.equipped_late && f.attacking) {
         words.push(if f.equipped_late {
             "with Equipment late".to_string()
         } else {

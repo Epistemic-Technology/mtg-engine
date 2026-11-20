@@ -313,3 +313,69 @@ scenario "Gorilla War Cry is cast before blockers and draws next upkeep" {
   assert life B 17
   assert hand A count 1
 }
+
+# ----- wording: "two of them", "one of those cards", "this card" -----
+
+scenario "Bitter Revelation puts two cards into hand and two into the graveyard" {
+  battlefield A: 4 "Swamp"
+  hand A: "Bitter Revelation"
+  library A: 4 "Island", "Forest"
+  turn 1 A: cast "Bitter Revelation"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 3
+  assert library A count 1
+  assert life A 18
+}
+
+scenario "Blood Price puts the rest on the bottom" {
+  battlefield A: 4 "Swamp"
+  hand A: "Blood Price"
+  library A: 4 "Island", "Forest"
+  turn 1 A: cast "Blood Price"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 1
+  assert library A count 3
+  assert life A 18
+}
+
+scenario "Orazca Puzzle-Door puts one card into hand and the other into the graveyard" {
+  battlefield A: "Orazca Puzzle-Door", "Island"
+  library A: 2 "Island", "Forest"
+  turn 1 A: activate "Orazca Puzzle-Door"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A count 2
+  assert library A count 1
+}
+
+scenario "Cyclopean Giant makes a land a Swamp and exiles itself" {
+  start turn 2 B
+  battlefield A: "Cyclopean Giant"
+  battlefield B: "Forest", "Mountain"
+  hand B: "Lightning Bolt"
+  turn 2 B: cast "Lightning Bolt" targeting "Cyclopean Giant"
+  turn 2 A: trigger "Cyclopean Giant" targeting "Forest"
+  run_to turn 2 end
+  assert exile A contains "Cyclopean Giant"
+  assert is "Forest" swamp
+  assert is not "Forest" forest
+}
+
+scenario "Flitting Guerrilla may exile itself to put a creature card on top" {
+  start turn 2 B
+  battlefield A: "Flitting Guerrilla"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  graveyard A: "Hill Giant"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 2 B: cast "Lightning Bolt" targeting "Flitting Guerrilla"
+  turn 2 A: accept "Flitting Guerrilla"
+  turn 2 A: trigger "Flitting Guerrilla" targeting "Hill Giant"
+  run_to turn 2 end
+  assert exile A contains "Flitting Guerrilla"
+  assert library A count 2
+  assert graveyard B count 3
+}

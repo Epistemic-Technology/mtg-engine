@@ -1,0 +1,8 @@
+card "Flitting Guerrilla" {
+  oracle_id 24dbddad-998b-4755-b356-4c8aca3592b1
+  cost {2}{B}
+  type Creature — Faerie Rogue
+  pt 2/2
+  keywords flying
+  triggered when this dies: each player mills 2 cards; then you may exile this card; when you do, put target creature or battle card from your graveyard on top of library
+}

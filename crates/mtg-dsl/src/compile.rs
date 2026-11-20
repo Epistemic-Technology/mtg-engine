@@ -1097,9 +1097,10 @@ impl Compiler<'_> {
             ),
             Recipient::You => CoreRecipient::You,
             Recipient::EachOpponent | Recipient::EachOtherPlayer => CoreRecipient::EachOpponent,
-            Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt => {
-                CoreRecipient::Source
-            }
+            Recipient::Source
+            | Recipient::SourceNamed
+            | Recipient::SourceCard
+            | Recipient::SourceIt => CoreRecipient::Source,
             Recipient::TriggeringCard => CoreRecipient::TriggeringCard,
             Recipient::TriggeringController { .. } => CoreRecipient::TriggeringController,
             Recipient::TriggeringObject | Recipient::TriggeringIt => {

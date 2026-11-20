@@ -1,0 +1,7 @@
+card "Cyclopean Giant" {
+  oracle_id d02427fa-3ef0-484f-acad-63a1d5218727
+  cost {2}{B}{B}
+  type Creature — Zombie Giant
+  pt 4/2
+  triggered when this dies: target land becomes Swamp indefinitely; exile this card
+}

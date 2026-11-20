@@ -1191,7 +1191,8 @@ your hand"; `take any creature card may revealing`: "You may reveal any
 number of creature cards from among them and put the revealed cards into
 your hand"; `take creature card and land card may`: "a creature card
 and/or a land card" (one of each); `rest bottom random`: "in a random
-order"; `dig 3 then take card rest graveyard`: "look at the top three
+order"; a final `reword` (wording only) prints "two of them" for "two of
+those cards" and "one of those cards" for "one of them"; `dig 3 then take card rest graveyard`: "look at the top three
 cards of your library, then put one of them into your hand and the rest
 into your graveyard"; `dig 3 take card may top rest graveyard`: "You may
 put one of those cards back on top of your library. Put the rest into
@@ -1293,7 +1294,9 @@ turn."). Alternatives in the plural join with "and": `each Ninja or Rogue
 you control gains menace` prints "Ninjas and Rogues you control gain
 menace".
 
-How the source names itself (CR 201.5): `this` prints "this creature" (the
+How the source names itself (CR 201.5): `this card` prints "this card" (the
+source's card, as a dies trigger exiles it from the graveyard: "Exile this
+card."). `this` prints "this creature" (the
 card's own noun: "this land", "this Aura", "this Equipment"), or a spell's
 name, at its first mention in an ability and "it" after. A legendary
 permanent uses its name instead of "this creature", up to the first comma
