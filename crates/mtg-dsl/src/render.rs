@@ -4203,9 +4203,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if *tapped { " tapped" } else { "" }
             ))
         }
-        Effect::Explore { what } => {
+        Effect::Explore { what, twice } => {
             let s = ctx.subj(*what);
-            Clause::with_subject(*what, s, "explores".to_string())
+            let text = if *twice {
+                "explores, then it explores again"
+            } else {
+                "explores"
+            };
+            Clause::with_subject(*what, s, text.to_string())
         }
         Effect::PhaseOut { what } => {
             let s = ctx.subj(*what);
@@ -4400,6 +4405,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
                     | Target::GraveyardCard { who: Who::You, .. }
             ));
+            // On the battlefield the returned creature card is "that
+            // creature" ("That creature explores, then it explores again").
+            if let Recipient::Target(i) = what {
+                let creature = match ctx.targets[*i].base() {
+                    Target::Spec(TargetSpec::CreatureCardInYourGraveyard) => true,
+                    Target::GraveyardCard { filter, .. } => filter.types == [CardType::Creature],
+                    _ => false,
+                };
+                if creature {
+                    ctx.target_noun[*i] = "creature".to_string();
+                }
+            }
             let tapped = if *tapped { " tapped" } else { "" };
             // Activated from the graveyard: "Return this card from your
             // graveyard to the battlefield tapped."

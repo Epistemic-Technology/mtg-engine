@@ -1490,7 +1490,7 @@ second "gains" is dropped: "gains deathtouch and \"When this creature
 dies, ...\""), `proliferate` (CR
 701.27; the engine makes the usual choices: your permanents' +1/+1 and
 loyalty counters, opponents' -1/-1 counters and poison), `<what>
-explores` (CR 701.44), `<what> phases out` (CR 702.26: treated as though
+explores` (CR 701.44; `<what> explores twice` prints "explores, then it explores again"; a creature card returned from a graveyard is "that creature" afterwards), `<what> phases out` (CR 702.26: treated as though
 it doesn't exist, with what's attached to it, until it phases in as its
 controller's next untap step begins; `keywords phasing` phases a
 permanent out at every other such step), `amass Zombies 2` (CR 701.47; needs the token

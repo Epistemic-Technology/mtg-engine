@@ -2515,7 +2515,12 @@ impl Compiler<'_> {
             Effect::Venture { undercity } => out.push(CoreEffect::Venture {
                 undercity: *undercity,
             }),
-            Effect::Explore { what } => out.push(CoreEffect::Explore { what: r(*what) }),
+            Effect::Explore { what, twice } => {
+                out.push(CoreEffect::Explore { what: r(*what) });
+                if *twice {
+                    out.push(CoreEffect::Explore { what: r(*what) });
+                }
+            }
             Effect::PhaseOut { what } => out.push(CoreEffect::PhaseOut { what: r(*what) }),
             Effect::Amass { kind, count } => {
                 // "Amass Zombies 2": a Zombie Army token.

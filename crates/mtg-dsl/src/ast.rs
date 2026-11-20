@@ -3265,9 +3265,11 @@ pub enum Effect {
     Venture {
         undercity: bool,
     },
-    /// `this explores` (CR 701.44).
+    /// `this explores` (CR 701.44); `explores twice`: "explores, then it
+    /// explores again".
     Explore {
         what: Recipient,
+        twice: bool,
     },
     /// `target creature phases out` (CR 702.26).
     PhaseOut {

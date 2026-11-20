@@ -1489,6 +1489,10 @@ impl Templates {
             (r(r"^(It|This creature|~) explores$"), |_, t| {
                 (*t == 0).then(|| "this explores".to_string())
             }),
+            (
+                r(r"^(It|it|This creature|~) explores, then it explores again$"),
+                |_, t| (*t == 0).then(|| "this explores twice".to_string()),
+            ),
             (r(r"^(.+) gets? (a|\w+) poison counters?$"), |c, t| {
                 Some(format!(
                     "{} gets {} poison counters",
@@ -2190,6 +2194,7 @@ impl Templates {
             let clauses: Vec<&str> = if body.contains("earch your library")
                 || body.contains("earch their library")
                 || body == "Discard all the cards in your hand, then draw that many cards"
+                || body.ends_with("explores, then it explores again")
             {
                 vec![body.as_str()]
             } else {

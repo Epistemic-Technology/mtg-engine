@@ -202,6 +202,61 @@ scenario "Wisecrack on a creature that isn't attacking deals no damage to its co
   assert life A 20
 }
 
+scenario "Jadelight Ranger explores twice: two lands to hand" {
+  battlefield A: 3 "Forest"
+  hand A: "Jadelight Ranger"
+  library A: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jadelight Ranger"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains "Island"
+  assert counters "Jadelight Ranger" +1/+1 0
+}
+
+scenario "Jadelight Ranger explores twice: two nonland cards make two counters" {
+  battlefield A: 3 "Forest"
+  hand A: "Jadelight Ranger"
+  library A: "Grizzly Bears", "Hill Giant", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jadelight Ranger"
+  run_to turn 1 postcombat_main
+  assert counters "Jadelight Ranger" +1/+1 2
+}
+
+scenario "Over the Edge: target creature explores twice" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Over the Edge"
+  library A: "Hill Giant", "Forest", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Over the Edge" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert hand A contains "Forest"
+}
+
+scenario "Over the Edge destroys an artifact" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Over the Edge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Over the Edge" mode 1 targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+}
+
+scenario "Defossilize returns a creature, which explores twice" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Defossilize"
+  library A: "Grizzly Bears", "Grizzly Bears", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Defossilize" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" +1/+1 2
+}
+
 scenario "Brambleguard Captain gives its power to a creature you control" {
   battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
   start turn 1 A precombat_main

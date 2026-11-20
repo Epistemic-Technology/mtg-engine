@@ -1,0 +1,7 @@
+card "Jadelight Ranger" {
+  oracle_id 0b5d174c-7d4d-4c31-a582-8169d3bc932a
+  cost {1}{G}{G}
+  type Creature — Merfolk Scout Ranger
+  pt 2/1
+  triggered when this enters: this explores twice
+}

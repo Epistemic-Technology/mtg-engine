@@ -5088,7 +5088,10 @@ impl P {
                     who: subject,
                 })
             }
-            "explores" => Ok(Effect::Explore { what: subject }),
+            "explores" => Ok(Effect::Explore {
+                what: subject,
+                twice: self.eat_word("twice"),
+            }),
             "phases" => {
                 self.expect_word("out")?;
                 Ok(Effect::PhaseOut { what: subject })

@@ -612,7 +612,11 @@ impl Fmt {
             Effect::TakeInitiative => "take initiative".to_string(),
             Effect::Venture { undercity: false } => "venture".to_string(),
             Effect::Venture { undercity: true } => "venture into undercity".to_string(),
-            Effect::Explore { what } => format!("{} explores", self.recipient(*what, t)),
+            Effect::Explore { what, twice } => format!(
+                "{} explores{}",
+                self.recipient(*what, t),
+                if *twice { " twice" } else { "" }
+            ),
             Effect::PhaseOut { what } => format!("{} phases out", self.recipient(*what, t)),
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
             Effect::EmpowerJace { count } => format!("empower jace {}", num(*count)),

@@ -1178,6 +1178,7 @@ impl Decompiler<'_> {
             CoreEffect::Ascend => unreachable!("ascend is decompiled as a keyword line"),
             CoreEffect::Explore { what } => Effect::Explore {
                 what: Self::recipient(*what),
+                twice: false,
             },
             CoreEffect::PhaseOut { what } => Effect::PhaseOut {
                 what: Self::recipient(*what),
