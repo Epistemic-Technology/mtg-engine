@@ -1708,6 +1708,9 @@ pub enum StaticCond {
     /// `you control Desert or there is Desert card in your graveyard`:
     /// either holds.
     Or(Box<StaticCond>, Box<StaticCond>),
+    /// `if this is that entered this turn or if you control basic land`
+    /// (an activation condition): either holds, printed "... or if ...".
+    OrIf(Box<StaticCond>, Box<StaticCond>),
     /// `opponent graveyard 8 or more`: "an opponent has eight or more
     /// cards in their graveyard".
     OpponentGraveyard(u32),

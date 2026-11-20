@@ -9142,6 +9142,11 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             static_cond_text(a, card),
             static_cond_text(b, card)
         ),
+        StaticCond::OrIf(a, b) => format!(
+            "{} or if {}",
+            static_cond_text(a, card),
+            static_cond_text(b, card)
+        ),
         StaticCond::OpponentGraveyard(n) => {
             format!("an opponent has {} cards in their graveyard", or_more(*n))
         }
@@ -9438,8 +9443,16 @@ fn restrictions_text(cost: &Cost, card: &Card) -> String {
                         StaticCond::Is(f) if !f.types.is_empty() => "permanent".to_string(),
                         _ => self_noun(card),
                     };
-                    if about_source(c) {
+                    let about = match c {
+                        StaticCond::Or(a, b) | StaticCond::OrIf(a, b) => {
+                            about_source(a) || about_source(b)
+                        }
+                        c => about_source(c),
+                    };
+                    if about {
                         t = t.replace("it's", &format!("this {noun} is"));
+                        // "Activate only if this land entered this turn".
+                        t = t.replace("it entered", &format!("this {noun} entered"));
                     }
                     if *c == StaticCond::BeingBlocked {
                         t = t.replace("blocking it", &format!("blocking this {noun}"));

@@ -231,7 +231,9 @@ life`, `sorcery` (printed "Activate only as a sorcery."), `once` (activate
 only once each turn). `none` for a free ability. Activation restrictions
 (CR 602.5b): `if <static condition>` ("Activate only if there are seven or
 more cards in your graveyard"; `if blocked` prints "only if this creature is
-blocked", `if this is creature` "only if this permanent is a creature"),
+blocked", `if this is creature` "only if this permanent is a creature";
+`if this is that entered this turn or if you control basic land`: "only
+if this land entered this turn or if you control a basic land", either),
 `during your upkeep`, `during opponent upkeep` ("during an opponent's
 upkeep"), `during your turn`, `during combat`, `before attackers` ("before
 attackers are declared"), `during your turn before attackers` ("during your

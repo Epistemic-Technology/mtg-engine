@@ -1,0 +1,6 @@
+card "Dark Fortress" {
+  oracle_id 40760bfa-a423-487c-ba29-043b2d00c736
+  type Land
+  mana {C}
+  activated {T}, if this is that entered this turn or if you control basic land: add {B} or {R}
+}

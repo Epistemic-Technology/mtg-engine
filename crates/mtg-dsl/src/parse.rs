@@ -10053,7 +10053,14 @@ impl P {
                     "if" | "during" | "before" => {
                         let c = if w.eq_ignore_ascii_case("if") {
                             self.pos += 1;
-                            self.static_cond()?
+                            let c = self.static_cond()?;
+                            // "Activate only if this land entered this turn
+                            // or if you control a basic land."
+                            if self.eat_words(&["or", "if"]) {
+                                StaticCond::OrIf(Box::new(c), Box::new(self.static_cond()?))
+                            } else {
+                                c
+                            }
                         } else {
                             match self.turn_time() {
                                 Some(c) => c,

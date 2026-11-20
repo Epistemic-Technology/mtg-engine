@@ -3978,6 +3978,7 @@ fn static_cond(c: &StaticCond) -> String {
             }
         }
         StaticCond::Or(a, b) => format!("{} or {}", static_cond(a), static_cond(b)),
+        StaticCond::OrIf(a, b) => format!("{} or if {}", static_cond(a), static_cond(b)),
         StaticCond::OpponentGraveyard(n) => format!("opponent graveyard {n} or more"),
         StaticCond::ManaValuesInGraveyard(n) => format!("{n} mana values in your graveyard"),
         StaticCond::OpponentControls {

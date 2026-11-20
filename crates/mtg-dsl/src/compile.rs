@@ -1383,7 +1383,7 @@ impl Compiler<'_> {
                 filter: self.filter(filter),
                 at_least: *at_least,
             },
-            StaticCond::Or(a, b) => {
+            StaticCond::Or(a, b) | StaticCond::OrIf(a, b) => {
                 StaticCondition::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
             StaticCond::OpponentGraveyard(n) => StaticCondition::OpponentGraveyard(*n),
