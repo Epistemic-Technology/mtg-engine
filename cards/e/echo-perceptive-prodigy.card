@@ -1,0 +1,8 @@
+card "Echo, Perceptive Prodigy" {
+  oracle_id 1091c83a-a4b9-457f-a69a-9a44a7e10759
+  cost {2}{U}
+  type Legendary Creature — Human Hero
+  pt 1/4
+  keywords vigilance
+  activated {1}, {T}: copy target activated or triggered ability you control from a creature source new targets
+}

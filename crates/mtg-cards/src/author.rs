@@ -1299,7 +1299,7 @@ impl Templates {
             // the copy" is the next sentence, joined in `effects`).
             (
                 r(
-                    r"^[Cc]opy (target .+ spell(?: you control)?|that spell|it|this spell)( twice| X times)?$",
+                    r"^[Cc]opy (target .+ (?:spell|ability)(?: you control)?(?: from an? \w+ source)?|that spell|it|this spell)( twice| X times)?$",
                 ),
                 |c, t| {
                     let what = match cap(c, 1) {

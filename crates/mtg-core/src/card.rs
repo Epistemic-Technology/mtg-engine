@@ -2651,12 +2651,15 @@ pub enum TargetSpec {
     /// "target activated or triggered ability", "target activated ability
     /// from an artifact source" (`source`: the ability's source has that
     /// card type, as it last existed if it has left). Mana abilities never
-    /// use the stack, so are never targeted (CR 605.3b).
+    /// use the stack, so are never targeted (CR 605.3b). `yours`: "...
+    /// you control".
     OnStack {
         spells: bool,
         activated: bool,
         triggered: bool,
         source: Option<CardType>,
+        #[serde(default)]
+        yours: bool,
     },
     /// "target opponent".
     Opponent,

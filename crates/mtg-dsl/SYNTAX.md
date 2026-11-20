@@ -1188,7 +1188,12 @@ targets, and with `new targets` its controller may change them (CR
 the card's `except` block to the copy, "except the copy isn't
 legendary". A copy of a permanent spell becomes a token as it resolves,
 CR 608.3f; a copy of a spell that has left the stack is made from it as
-it last existed), `emblem "Name"`,
+it last existed). Abilities on the stack are copied the same way (CR
+707.10, 707.10b: the copy has the same source and isn't activated): `copy
+target triggered ability you control new targets`, `copy target
+activated or triggered ability you control [from a creature source | from
+an artifact source]` (targets "you control" only the ability's
+controller's), `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
 `scry 2`, `surveil 1`, `investigate` (create a Clue token; `investigate
 twice`; `target player investigates`: that player creates it), `<who>

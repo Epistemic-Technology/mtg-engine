@@ -3302,9 +3302,10 @@ impl GameState {
                     activated,
                     triggered,
                     source: source_type,
+                    yours,
                 } = spec
                 {
-                    if obj.zone != Zone::Stack {
+                    if obj.zone != Zone::Stack || (yours && obj.controller != caster) {
                         return false;
                     }
                     let Some(sa) = obj.ability else {

@@ -1581,6 +1581,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         activated,
         triggered,
         source,
+        yours,
     } = s
     {
         let kinds = match (activated, triggered) {
@@ -1594,7 +1595,9 @@ pub fn target_phrase(s: TargetSpec) -> String {
             let t = format!("{t:?}").to_lowercase();
             format!(" from {}", with_article(&format!("{t} source")))
         });
-        return format!("target {kinds}{from}");
+        // "target triggered ability you control from a creature source".
+        let yours = if yours { " you control" } else { "" };
+        return format!("target {kinds}{yours}{from}");
     }
     match s {
         TargetSpec::OnStack { .. } => unreachable!("above"),

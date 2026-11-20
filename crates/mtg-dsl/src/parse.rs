@@ -224,12 +224,75 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
         TargetSpec::ArtifactOrCreature,
     ),
     (
+        &[
+            "activated",
+            "or",
+            "triggered",
+            "ability",
+            "you",
+            "control",
+            "from",
+            "a",
+            "creature",
+            "source",
+        ],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: true,
+            triggered: true,
+            source: Some(CardType::Creature),
+            yours: true,
+        },
+    ),
+    (
+        &[
+            "activated",
+            "or",
+            "triggered",
+            "ability",
+            "you",
+            "control",
+            "from",
+            "an",
+            "artifact",
+            "source",
+        ],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: true,
+            triggered: true,
+            source: Some(CardType::Artifact),
+            yours: true,
+        },
+    ),
+    (
+        &["activated", "or", "triggered", "ability", "you", "control"],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: true,
+            triggered: true,
+            source: None,
+            yours: true,
+        },
+    ),
+    (
+        &["triggered", "ability", "you", "control"],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: false,
+            triggered: true,
+            source: None,
+            yours: true,
+        },
+    ),
+    (
         &["spell", "or", "ability"],
         TargetSpec::OnStack {
             spells: true,
             activated: true,
             triggered: true,
             source: None,
+            yours: false,
         },
     ),
     (
@@ -239,6 +302,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             activated: true,
             triggered: true,
             source: None,
+            yours: false,
         },
     ),
     (
@@ -248,6 +312,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             activated: true,
             triggered: false,
             source: Some(CardType::Artifact),
+            yours: false,
         },
     ),
     (
@@ -257,6 +322,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             activated: true,
             triggered: false,
             source: None,
+            yours: false,
         },
     ),
     (
@@ -266,6 +332,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
             activated: false,
             triggered: true,
             source: None,
+            yours: false,
         },
     ),
     (&["noncreature", "spell"], TargetSpec::NoncreatureSpell),
@@ -2968,7 +3035,11 @@ impl P {
             StaticCond::During(T::DeclareAttackers)
         } else if self.eat_words(&["your", "turn", "before", "attackers"]) {
             StaticCond::During(T::YourTurnBeforeAttackers)
-        } else if self.eat_words(&["your", "turn"]) && !matches!(self.peek(), Some(Tok::Comma)) {
+        } else if self.eat_words(&["your", "turn"])
+            && (!matches!(self.peek(), Some(Tok::Comma))
+                // `during your turn, once:` (an activation restriction).
+                || matches!(self.word_at(1).as_deref(), Some("once" | "sorcery")))
+        {
             StaticCond::DuringYourTurn
         } else {
             self.pos = save;

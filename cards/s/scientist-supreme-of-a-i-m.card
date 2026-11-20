@@ -1,0 +1,7 @@
+card "Scientist Supreme of A.I.M." {
+  oracle_id c09c424b-6aba-4190-9f55-f0307d746386
+  cost {U}{B}
+  type Legendary Creature — Human Scientist Villain
+  pt 2/2
+  activated pay 2 life, during your turn, once: copy target activated or triggered ability you control from an artifact source new targets
+}

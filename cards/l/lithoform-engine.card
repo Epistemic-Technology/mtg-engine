@@ -1,0 +1,8 @@
+card "Lithoform Engine" {
+  oracle_id 0bf299da-1854-4153-baea-3cee2eb01ee8
+  cost {4}
+  type Legendary Artifact
+  activated {2}, {T}: copy target activated or triggered ability you control new targets
+  activated {3}, {T}: copy target instant or sorcery spell you control new targets
+  activated {4}, {T}: copy target noninstant nonsorcery spell you control
+}

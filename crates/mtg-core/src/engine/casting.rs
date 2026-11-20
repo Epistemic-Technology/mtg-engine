@@ -5333,6 +5333,68 @@ impl GameState {
         }
     }
 
+    /// CR 707.10, 707.10b: a copy of the ability object `orig` on the
+    /// stack, with its source, mode, X, and targets, controlled by
+    /// `controller` (who may choose new targets with `new_targets`). A
+    /// copy of an activated ability isn't activated.
+    #[cold]
+    #[inline(never)]
+    fn copy_ability_object(&mut self, of: ObjId, controller: PlayerId, new_targets: bool) -> ObjId {
+        let orig = self.objects[of].clone();
+        let timestamp = self.tick();
+        let copy = self.objects.insert(crate::state::GameObject {
+            controller,
+            owner: controller,
+            timestamp,
+            ..orig
+        });
+        self.stack.push(copy);
+        if let Some(x) = self.x_chosen(of) {
+            self.x_values.push((copy, x));
+        }
+        self.cbump();
+        if new_targets {
+            let source = orig.ability.map_or(copy, |sa| sa.source);
+            self.choose_copy_targets(copy, controller, source);
+        }
+        self.emit_targeted(copy);
+        copy
+    }
+
+    /// CR 707.10c: the copy's controller may change each of its targets to
+    /// another one legal for its spec (judged from `source`), or keep it.
+    fn choose_copy_targets(&mut self, copy: ObjId, controller: PlayerId, source: ObjId) {
+        let specs: Vec<TargetSpec> =
+            crate::state::targets_in(&self.pool, &self.objects[copy]).to_vec();
+        for i in 0..self.objects[copy].targets.len() {
+            let Some(spec) = crate::card::spec_for(&specs, i) else {
+                break;
+            };
+            let current = self.objects[copy].targets[i];
+            let mut options = vec![Choice::Target(current)];
+            options.extend(
+                self.legal_targets(controller, spec, Some(source))
+                    .into_iter()
+                    .filter(|t| *t != current && !self.objects[copy].targets.contains(t))
+                    .map(Choice::Target),
+            );
+            if options.len() < 2 {
+                continue;
+            }
+            let k = self.choose_mid(
+                controller,
+                DecisionKind::CopyTarget {
+                    spell: copy,
+                    index: i,
+                },
+                options.clone(),
+            );
+            if let Some(Choice::Target(t)) = options.get(k) {
+                self.objects[copy].targets[i] = *t;
+            }
+        }
+    }
+
     /// CR 707.10: a copy of the spell `of` on the stack (as it last
     /// existed there if it has left), controlled by `controller`, with the
     /// spell's choices: mode, X, targets, division, how it was cast
@@ -5349,6 +5411,12 @@ impl GameState {
         except: Option<crate::card::CardRef>,
     ) -> Option<ObjId> {
         let orig = match self.objects.get(of) {
+            // CR 707.10: an activated or triggered ability on the stack is
+            // copied the same way ("Copy target triggered ability you
+            // control"); the copy has the same source (CR 707.10b).
+            Some(o) if o.zone == Zone::Stack && o.kind == ObjKind::Ability => {
+                return Some(self.copy_ability_object(of, controller, new_targets));
+            }
             Some(o) if o.zone == Zone::Stack && o.kind == ObjKind::Card => o.clone(),
             Some(_) => return None,
             None => match self.lki.get(&of) {
@@ -5381,38 +5449,8 @@ impl GameState {
             self.divisions.push((copy, d));
         }
         self.cbump();
-        // CR 707.10c: new targets, each still a legal one for its spec.
-        let specs: Vec<TargetSpec> = if new_targets {
-            crate::state::targets_in(&self.pool, &self.objects[copy]).to_vec()
-        } else {
-            Vec::new()
-        };
-        for i in 0..self.objects[copy].targets.len() {
-            let Some(spec) = crate::card::spec_for(&specs, i) else {
-                break;
-            };
-            let current = self.objects[copy].targets[i];
-            let mut options = vec![Choice::Target(current)];
-            options.extend(
-                self.legal_targets(controller, spec, Some(copy))
-                    .into_iter()
-                    .filter(|t| *t != current && !self.objects[copy].targets.contains(t))
-                    .map(Choice::Target),
-            );
-            if options.len() < 2 {
-                continue;
-            }
-            let k = self.choose_mid(
-                controller,
-                DecisionKind::CopyTarget {
-                    spell: copy,
-                    index: i,
-                },
-                options.clone(),
-            );
-            if let Some(Choice::Target(t)) = options.get(k) {
-                self.objects[copy].targets[i] = *t;
-            }
+        if new_targets {
+            self.choose_copy_targets(copy, controller, copy);
         }
         let def = self.objects[copy].def;
         self.emit(Event::SpellCopied {
