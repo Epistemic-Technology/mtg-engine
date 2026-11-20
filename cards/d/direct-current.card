@@ -1,0 +1,7 @@
+card "Direct Current" {
+  oracle_id 54e34440-c890-4a07-83c6-63a2f7a65639
+  cost {1}{R}{R}
+  type Sorcery
+  spell: deal 2 damage to any target
+  jump start
+}

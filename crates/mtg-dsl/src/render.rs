@@ -2014,6 +2014,7 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             " that {} a color with it",
             if plural_form { "share" } else { "shares" }
         ),
+        Some(SameRef::LesserPower) => " with lesser power".to_string(),
     }
 }
 
@@ -3327,6 +3328,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
+        Effect::Monstrosity(n) => Clause::imperative(format!("monstrosity {}", digits(*n))),
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
         Effect::Incubate(n) => Clause::imperative(format!("incubate {}", digits(*n))),
@@ -8127,6 +8129,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         ),
         StaticCond::Enchanted => "it's enchanted".to_string(),
         StaticCond::Equipped => "it's equipped".to_string(),
+        StaticCond::Monstrous => "it's monstrous".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("an opponent has {n} or less life"),
         StaticCond::MoreLifeThanOpponent => "you have more life than an opponent".to_string(),
         StaticCond::BasicLandTypes(n) => format!(
@@ -8424,6 +8427,7 @@ fn about_source(c: &StaticCond) -> bool {
         StaticCond::Attacking
             | StaticCond::Enchanted
             | StaticCond::Equipped
+            | StaticCond::Monstrous
             | StaticCond::Is(_)
             | StaticCond::Modified
             | StaticCond::AttackingAlone
@@ -9039,6 +9043,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Evolve => "Evolve".to_string(),
             crate::ast::Mechanic::Renown(n) => format!("Renown {n}"),
             crate::ast::Mechanic::Unleash => "Unleash".to_string(),
+            crate::ast::Mechanic::Afterlife(n) => format!("Afterlife {n}"),
+            crate::ast::Mechanic::Extort => "Extort".to_string(),
+            crate::ast::Mechanic::Mentor => "Mentor".to_string(),
+            crate::ast::Mechanic::Riot => "Riot".to_string(),
+            crate::ast::Mechanic::LivingWeapon => "Living weapon".to_string(),
+            crate::ast::Mechanic::Retrace => "Retrace".to_string(),
+            crate::ast::Mechanic::Ingest => "Ingest".to_string(),
+            crate::ast::Mechanic::Reinforce(n, c) => format!("Reinforce {n}\u{2014}{c}"),
+            crate::ast::Mechanic::JumpStart => "Jump-start".to_string(),
+            crate::ast::Mechanic::Surge(c) => format!("Surge {c}"),
+            crate::ast::Mechanic::Spectacle(c) => format!("Spectacle {c}"),
         },
         Ability::EntersWithIf {
             n,
@@ -9256,7 +9271,7 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             i += 1;
             continue;
         }
-        if let Some(line) = enters_tapped_with(card, i) {
+        if let Some(line) = enters_tapped_with(card, i).or_else(|| alone_abilities(card, i)) {
             lines.push(line);
             i += 2;
             continue;
@@ -9289,6 +9304,24 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         lines.push("Rebound".to_string());
     }
     lines.join("\n")
+}
+
+/// "This creature can't attack or block alone." for the `i`th and next
+/// abilities, after another ability line (Wojek Bodyguard's mentor).
+fn alone_abilities(card: &Card, i: usize) -> Option<String> {
+    matches!(
+        (card.abilities.get(i), card.abilities.get(i + 1)),
+        (
+            Some(Ability::Keyword(Keyword::CantAttackAlone)),
+            Some(Ability::Keyword(Keyword::CantBlockAlone)),
+        )
+    )
+    .then(|| {
+        format!(
+            "{} can't attack or block alone.",
+            capitalize(&this_ref(card))
+        )
+    })
 }
 
 /// Oracle text as Scryfall prints it, reduced to what the printer can

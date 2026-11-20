@@ -89,6 +89,7 @@ pub fn add_card(
             implied_used: std::rc::Rc::default(),
             scavenge: None,
             station: None,
+            extort: None,
             token: None,
             cast_snapshot: None,
         };
@@ -113,6 +114,7 @@ pub fn add_card(
                 implied_used: std::rc::Rc::default(),
                 scavenge: None,
                 station: None,
+                extort: None,
                 token: None,
                 cast_snapshot: None,
             };
@@ -133,6 +135,7 @@ pub fn add_card(
         implied_used: std::rc::Rc::default(),
         scavenge: None,
         station: None,
+        extort: None,
         token,
         cast_snapshot: None,
     };
@@ -195,6 +198,8 @@ struct Compiler<'a> {
     scavenge: Option<u8>,
     /// Station's count (the tapped creature's power), likewise.
     station: Option<u8>,
+    /// Extort's count (the life lost this way), once added to the counts.
+    extort: Option<u8>,
     /// The token embalm, eternalize, or offspring creates, compiled
     /// before the card (`derived_token`).
     token: Option<CardRef>,
@@ -408,6 +413,67 @@ impl Compiler<'_> {
                     counts.push(mtg_core::card::CountExpr::SourcePower);
                     self.scavenge = u8::try_from(counts.len() - 1).ok();
                 }
+                // CR 702.133a: jump-start, "You may cast this card from your
+                // graveyard by discarding a card in addition to paying its
+                // other costs. Then exile this card." Flashback's casting
+                // and exile, for the mana cost and a discard.
+                Ability::Mechanic(Mechanic::JumpStart) => {
+                    if card.flashback.is_some() {
+                        return self.err("jump-start and flashback together");
+                    }
+                    b = b.flashback(mtg_core::card::Cost {
+                        mana: card.cost.clone(),
+                        discard: 1,
+                        ..mtg_core::card::Cost::default()
+                    });
+                }
+                // CR 702.81a: retrace, "You may cast this card from your
+                // graveyard by discarding a land card in addition to paying
+                // its other costs." (It isn't exiled.)
+                Ability::Mechanic(Mechanic::Retrace) => {
+                    if card.flashback.is_some() {
+                        return self.err("retrace and flashback together");
+                    }
+                    let land = ObjFilter {
+                        types: TypeSet::of([mtg_core::card::CardType::Land]),
+                        ..ObjFilter::default()
+                    };
+                    b = b.retrace(land);
+                }
+                // CR 702.117a: surge, "You may cast this spell for its surge
+                // cost if you or a teammate has cast another spell this
+                // turn." CR 702.137a: spectacle, "... rather than its mana
+                // cost if an opponent lost life this turn."
+                Ability::Mechanic(m @ (Mechanic::Surge(cost) | Mechanic::Spectacle(cost))) => {
+                    if card.alt_cost.is_some() {
+                        return self.err("two alternative costs of the card's own");
+                    }
+                    let cond = if matches!(m, Mechanic::Surge(_)) {
+                        StaticCondition::CastThisTurn {
+                            filter: ObjFilter::default(),
+                            at_least: 1,
+                            other: true,
+                        }
+                    } else {
+                        StaticCondition::OpponentLostLifeThisTurn
+                    };
+                    let condition = Some(self.pool.intern_condition(cond));
+                    b = b.alt_cost(mtg_core::card::AltCost {
+                        cost: mtg_core::card::Cost {
+                            mana: cost.clone(),
+                            ..mtg_core::card::Cost::default()
+                        },
+                        count: 1,
+                        condition,
+                        others_gain: 0,
+                    });
+                }
+                Ability::Mechanic(Mechanic::Extort) => {
+                    // CR 702.101a: "you gain life equal to the total life
+                    // lost this way".
+                    counts.push(mtg_core::card::CountExpr::LifeLostThisWay);
+                    self.extort = u8::try_from(counts.len() - 1).ok();
+                }
                 Ability::Affinity(f) => {
                     let mut f = self.filter(f);
                     f.who = Some(mtg_core::card::Who::You);
@@ -575,6 +641,10 @@ impl Compiler<'_> {
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
                             | Mechanic::BecomesDay
+                            | Mechanic::Retrace
+                            | Mechanic::JumpStart
+                            | Mechanic::Surge(_)
+                            | Mechanic::Spectacle(_)
                     )
             ) {
                 continue;
@@ -673,6 +743,10 @@ impl Compiler<'_> {
                     SameRef::SharesColorWith(n) => Same {
                         of: target(n),
                         what: SameWhat::Color,
+                    },
+                    SameRef::LesserPower => Same {
+                        of: SameOf::Source,
+                        what: SameWhat::LesserPower,
                     },
                 }
             }),
@@ -805,6 +879,7 @@ impl Compiler<'_> {
             StaticCond::Attacking => StaticCondition::SourceAttacking,
             StaticCond::Enchanted => StaticCondition::SourceEnchanted,
             StaticCond::Equipped => StaticCondition::SourceEquipped,
+            StaticCond::Monstrous => StaticCondition::SourceMonstrous,
             StaticCond::OpponentLifeAtMost(n) => StaticCondition::OpponentLifeAtMost(*n),
             StaticCond::MoreLifeThanOpponent => StaticCondition::MoreLifeThanOpponent,
             StaticCond::BasicLandTypes(n) => StaticCondition::BasicLandTypes(*n),
@@ -1938,6 +2013,7 @@ impl Compiler<'_> {
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
             Effect::Bolster(n) => out.push(CoreEffect::Bolster(*n)),
+            Effect::Monstrosity(n) => out.push(CoreEffect::Monstrosity(*n)),
             Effect::Populate => out.push(CoreEffect::Populate),
             // CR 701.41a: one counter on each target.
             Effect::Support(to) => {
@@ -2997,11 +3073,15 @@ impl Compiler<'_> {
                 }),
                 // CR 702.98a: the first of unleash's two static abilities
                 // (the card adds the second, `unleash_static`).
-                Mechanic::Unleash => AbilityDef::Replacement(ReplacementAbility {
+                // CR 702.136a: riot, "You may have this permanent enter
+                // with an additional +1/+1 counter on it. If you don't, it
+                // gains haste."
+                Mechanic::Unleash | Mechanic::Riot => AbilityDef::Replacement(ReplacementAbility {
                     replaces: mtg_core::card::Replaces::Enters,
                     replacement: mtg_core::card::Replacement::EnterWithCountersMay {
                         kind: mtg_core::card::CounterKind::PlusOnePlusOne,
                         n: 1,
+                        haste: matches!(m, Mechanic::Riot),
                     },
                     then: Vec::new(),
                 }),
@@ -3084,6 +3164,28 @@ impl Compiler<'_> {
                         None,
                     )
                 }
+                // CR 702.115a: "Whenever this creature deals combat damage
+                // to a player, that player exiles the top card of their
+                // library."
+                Mechanic::Ingest => AbilityDef::Triggered(TriggeredAbility {
+                    from_graveyard: false,
+                    trigger: TriggerSpec::DealsCombatDamageToPlayer(CoreTriggerObj::This),
+                    condition: None,
+                    targets: Vec::new(),
+                    effects: vec![CoreEffect::ExileTop {
+                        who: CoreRecipient::TriggeringPlayer,
+                    }],
+                }),
+                // CR 702.101a: "Whenever you cast a spell, you may pay
+                // {W/B}. If you do, each opponent loses 1 life and you gain
+                // life equal to the total life lost this way."
+                Mechanic::Extort => {
+                    let Some(i) = self.extort else {
+                        return self.err("extort's count is missing");
+                    };
+                    let expanded = extort(i);
+                    return self.ability(&expanded);
+                }
                 other => {
                     let expanded = expand_mechanic(other);
                     return self.ability(&expanded);
@@ -3138,6 +3240,10 @@ impl Compiler<'_> {
 
 /// The token Fabricate creates (CR 702.123a).
 const SERVO: &str = "1/1 colorless Servo artifact creature";
+/// The token afterlife creates (CR 702.135a).
+const AFTERLIFE_SPIRIT: &str = "1/1 white and black Spirit creature with flying";
+/// The token living weapon creates (CR 702.92a).
+const GERM: &str = "0/0 black Phyrexian Germ creature";
 /// The token Incubate creates (CR 701.53a, 111.10i).
 const INCUBATOR: &str = "Incubator";
 
@@ -3155,6 +3261,48 @@ pub(crate) fn unleash_static() -> AbilityDef {
             at_least: true,
         }),
     })
+}
+
+/// Extort's triggered ability (CR 702.101a), `i` the card's count of the
+/// life lost this way.
+fn extort(i: u8) -> Ability {
+    use crate::ast::{Effect as E, Join};
+    let pay = E::YouMay(vec![Sentence::new(vec![E::Pay {
+        mana: mtg_core::mana::ManaCost::parse("{W/B}").expect("a mana cost"),
+        life: 0,
+    }])]);
+    let drain = Sentence {
+        effects: vec![
+            E::LoseLife {
+                amount: Num::N(1),
+                who: Recipient::EachOpponent,
+            },
+            E::GainLife {
+                amount: Num::Count(i),
+                who: Recipient::You,
+            },
+        ],
+        label: None,
+        para: false,
+        eot_first: false,
+        then_first: false,
+        joins: vec![Join::And],
+    };
+    Ability::Triggered {
+        from_graveyard: false,
+        trigger: Trigger::CastsSpell {
+            whose: Who::You,
+            noncreature: false,
+            instant_or_sorcery: false,
+            or_copy: false,
+        },
+        condition: None,
+        targets: Vec::new(),
+        effects: vec![
+            Sentence::new(vec![pay]),
+            Sentence::new(vec![E::IfYouDo(vec![drain])]),
+        ],
+    }
 }
 
 /// What a keyword ability with a parameter stands for, as an ordinary
@@ -3184,6 +3332,89 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 count: Num::N(1),
                 to: Recipient::Source,
             }),
+        },
+        // CR 702.135a: "When this creature dies, create N 1/1 white and
+        // black Spirit creature tokens with flying."
+        Mechanic::Afterlife(n) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Dies(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::CreateToken {
+                token: AFTERLIFE_SPIRIT.to_string(),
+                count: Num::N(*n),
+                tapped: false,
+                who: None,
+                it_has: false,
+                attached: None,
+            }),
+        },
+        // CR 702.134a: "Whenever this creature attacks, put a +1/+1
+        // counter on target attacking creature with lesser power."
+        Mechanic::Mentor => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Attacks(TriggerObj::This),
+            condition: None,
+            targets: vec![Target::Filter(Filter {
+                types: vec![mtg_core::card::CardType::Creature],
+                attacking: true,
+                same: Some(crate::ast::SameRef::LesserPower),
+                ..Filter::default()
+            })],
+            effects: one(E::AddCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                count: Num::N(1),
+                to: Recipient::Target(0),
+            }),
+        },
+        // CR 702.92a: "When this Equipment enters, create a 0/0 black
+        // Phyrexian Germ creature token, then attach this Equipment to it."
+        Mechanic::LivingWeapon => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Enters(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![Sentence {
+                effects: vec![
+                    E::CreateToken {
+                        token: GERM.to_string(),
+                        count: Num::N(1),
+                        tapped: false,
+                        who: None,
+                        it_has: false,
+                        attached: None,
+                    },
+                    E::Attach {
+                        what: Recipient::Source,
+                        to: Recipient::CreatedObject,
+                    },
+                ],
+                label: None,
+                para: false,
+                eot_first: false,
+                then_first: false,
+                joins: vec![Join::Then],
+            }],
+        },
+        // CR 702.77a: "[Cost], Discard this card: Put N +1/+1 counters on
+        // target creature."
+        Mechanic::Reinforce(n, cost) => Ability::Activated {
+            cost: Cost {
+                mana: cost.clone(),
+                discard_self: true,
+                ..Default::default()
+            },
+            targets: vec![Target::Filter(Filter {
+                types: vec![mtg_core::card::CardType::Creature],
+                ..Filter::default()
+            })],
+            effects: one(E::AddCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                count: Num::N(*n),
+                to: Recipient::Target(0),
+            }),
+            equip: false,
+            cycling: false,
         },
         Mechanic::Bushido(n) => Ability::Triggered {
             from_graveyard: false,
@@ -3504,6 +3735,13 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Renown(_)
         | Mechanic::Unleash
         | Mechanic::Station
+        | Mechanic::Extort
+        | Mechanic::Riot
+        | Mechanic::Retrace
+        | Mechanic::Ingest
+        | Mechanic::JumpStart
+        | Mechanic::Surge(_)
+        | Mechanic::Spectacle(_)
         | Mechanic::Saddle(_) => unreachable!("not an expansion"),
     }
 }

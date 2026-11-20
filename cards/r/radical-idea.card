@@ -1,0 +1,7 @@
+card "Radical Idea" {
+  oracle_id fd51dce2-8e8a-4686-910e-1bbc2825d190
+  cost {1}{U}
+  type Instant
+  spell: draw 1 card
+  jump start
+}

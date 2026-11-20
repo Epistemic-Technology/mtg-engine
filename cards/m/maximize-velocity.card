@@ -1,0 +1,7 @@
+card "Maximize Velocity" {
+  oracle_id 96e7e4c8-f66d-4327-aee6-85da648418f5
+  cost {R}
+  type Sorcery
+  spell: target creature gets +1/+1 and gains haste
+  jump start
+}

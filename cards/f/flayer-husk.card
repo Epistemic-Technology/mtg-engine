@@ -1,0 +1,8 @@
+card "Flayer Husk" {
+  oracle_id 5cfdfcac-57fb-4507-a97a-cccbac2d1327
+  cost {1}
+  type Artifact — Equipment
+  living weapon
+  static equipped creature: +1/+1
+  equip {2}
+}

@@ -1,0 +1,8 @@
+card "Imperious Oligarch" {
+  oracle_id b0381c2a-40e2-4002-82e3-ae2d687daed3
+  cost {W}{B}
+  type Creature — Human Cleric
+  pt 2/1
+  keywords vigilance
+  afterlife 1
+}

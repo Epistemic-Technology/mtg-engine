@@ -1,0 +1,8 @@
+card "Mosquito Guard" {
+  oracle_id 6beaeec2-b4e9-4904-b817-c0118549d4a9
+  cost {W}
+  type Creature — Kithkin Soldier
+  pt 1/1
+  keywords first strike
+  reinforce 1 {1}{W}
+}

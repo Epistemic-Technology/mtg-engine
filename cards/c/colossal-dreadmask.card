@@ -1,0 +1,8 @@
+card "Colossal Dreadmask" {
+  oracle_id 1244902e-1a4e-4d3c-9a55-9be4602e3d2d
+  cost {4}{G}{G}
+  type Artifact — Equipment
+  living weapon
+  static equipped creature: +6/+6, has trample
+  equip {3}{G}{G}
+}

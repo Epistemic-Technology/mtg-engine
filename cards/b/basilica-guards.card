@@ -1,0 +1,8 @@
+card "Basilica Guards" {
+  oracle_id 24d2e266-2dcb-40f1-a465-cfc63e9aa6ae
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/4
+  keywords defender
+  extort
+}

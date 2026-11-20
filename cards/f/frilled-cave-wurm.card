@@ -1,0 +1,7 @@
+card "Frilled Cave-Wurm" {
+  oracle_id ac5294c6-bc79-4a0f-b8b3-52b554561e38
+  cost {3}{U}
+  type Creature — Salamander Wurm
+  pt 2/5
+  label "Descend 4" static this: +2/+0 as long as 4 permanent cards in your graveyard
+}

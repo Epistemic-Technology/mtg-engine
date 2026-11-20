@@ -1178,6 +1178,8 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: false,
             renowned: false,
+            monstrous: false,
+            riot_haste: false,
             skip_untap: false,
             chosen: Chosen::None,
             alt: crate::state::AltCast::None,

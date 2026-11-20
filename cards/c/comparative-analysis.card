@@ -1,0 +1,7 @@
+card "Comparative Analysis" {
+  oracle_id 59b869b9-cb48-4152-ad91-52f582e2df5b
+  cost {3}{U}
+  type Instant
+  surge {2}{U}
+  spell: target player draws 2 cards
+}

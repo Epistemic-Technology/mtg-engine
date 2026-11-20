@@ -1,0 +1,7 @@
+card "Basking Capybara" {
+  oracle_id 0ce678fa-6495-4857-b178-231c283b4514
+  cost {1}{G}
+  type Creature — Capybara
+  pt 1/3
+  label "Descend 4" static this: +3/+0 as long as 4 permanent cards in your graveyard
+}

@@ -1,0 +1,7 @@
+card "Flame Jab" {
+  oracle_id 05eccdee-84f8-42d5-b79c-36d081656915
+  cost {R}
+  type Sorcery
+  spell: deal 1 damage to any target
+  retrace
+}

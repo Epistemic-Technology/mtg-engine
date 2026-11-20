@@ -1,0 +1,7 @@
+card "Boulder Salvo" {
+  oracle_id 16df20e2-5228-4543-84b7-74a3170d9d31
+  cost {4}{R}
+  type Sorcery
+  surge {1}{R}
+  spell: deal 4 damage to target creature
+}

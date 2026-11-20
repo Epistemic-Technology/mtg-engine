@@ -1,0 +1,8 @@
+card "Skinwing" {
+  oracle_id 100c877d-4cce-4b96-8f21-a4f8a43e7d84
+  cost {4}
+  type Artifact — Equipment
+  living weapon
+  static equipped creature: +2/+2, has flying
+  equip {6}
+}

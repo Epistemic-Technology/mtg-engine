@@ -1,0 +1,375 @@
+# M5: keyword mechanics written as DSL lines that expand to ordinary
+# triggers, effects, and costs: afterlife (CR 702.135), extort (702.101),
+# mentor (702.134).
+
+scenario "afterlife: a Spirit when it dies" {
+  battlefield A: "Imperious Oligarch"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Imperious Oligarch"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Imperious Oligarch"
+  assert battlefield A contains 1 "Spirit"
+  assert has "Spirit" flying
+  assert is "Spirit" white
+  assert is "Spirit" black
+  assert power "Spirit" 1
+}
+
+scenario "afterlife 2: two Spirits" {
+  battlefield A: "Ministrant of Obligation"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Ministrant of Obligation"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Spirit"
+}
+
+scenario "afterlife: leaving otherwise makes nothing" {
+  battlefield A: "Imperious Oligarch"
+  battlefield B: 2 "Island"
+  hand B: "Unsummon"
+  start turn 2 B
+  turn 2 B: cast "Unsummon" targeting "Imperious Oligarch"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Imperious Oligarch"
+  assert battlefield A lacks "Spirit"
+}
+
+scenario "extort: pay {W/B} to drain each opponent for 1" {
+  battlefield A: "Syndic of Tithes", 2 "Plains"
+  hand A: "Savannah Lions"
+  turn 1 A: cast "Savannah Lions"
+  turn 1 A: accept "Syndic of Tithes"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+}
+
+scenario "extort: declined, no drain" {
+  battlefield A: "Syndic of Tithes", 2 "Plains"
+  hand A: "Savannah Lions"
+  turn 1 A: cast "Savannah Lions"
+  turn 1 A: decline "Syndic of Tithes"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+}
+
+scenario "extort: each instance triggers" {
+  battlefield A: "Syndic of Tithes", "Basilica Screecher", 3 "Swamp"
+  hand A: "Dark Ritual"
+  turn 1 A: cast "Dark Ritual"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+
+scenario "extort: an opponent's spell doesn't trigger it" {
+  battlefield A: "Syndic of Tithes", "Plains"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert life B 20
+}
+
+scenario "mentor: a counter on an attacker with lesser power" {
+  battlefield A: "Blade Instructor", "Grizzly Bears"
+  turn 1 A: attack "Blade Instructor", "Grizzly Bears"
+  turn 1 A: trigger "Blade Instructor" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert life B 14
+}
+
+scenario "mentor: equal power isn't lesser" {
+  battlefield A: "Blade Instructor", "Hill Giant"
+  turn 1 A: attack "Blade Instructor", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+  assert counters "Blade Instructor" +1/+1 0
+}
+
+scenario "mentor: a creature that isn't attacking can't be chosen" {
+  battlefield A: "Blade Instructor", "Grizzly Bears"
+  turn 1 A: attack "Blade Instructor"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+# Living weapon (CR 702.92), monstrosity (701.37), riot (702.136).
+
+scenario "living weapon: a Germ, then the Equipment attached to it" {
+  battlefield A: "Plains"
+  hand A: "Flayer Husk"
+  turn 1 A: cast "Flayer Husk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Phyrexian Germ"
+  assert attached "Flayer Husk" to "Phyrexian Germ"
+  assert power "Phyrexian Germ" 1
+  assert toughness "Phyrexian Germ" 1
+  assert is "Phyrexian Germ" black
+}
+
+scenario "living weapon: the Germ dies once the Equipment moves" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand A: "Flayer Husk"
+  turn 1 A: cast "Flayer Husk"
+  turn 1 A: activate "Flayer Husk" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Phyrexian Germ"
+  assert attached "Flayer Husk" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+}
+
+scenario "monstrosity: counters, and it becomes monstrous" {
+  battlefield A: "Sinuous Vermin", 5 "Swamp"
+  turn 1 A: activate "Sinuous Vermin"
+  run_to turn 1 postcombat_main
+  assert counters "Sinuous Vermin" +1/+1 3
+  assert power "Sinuous Vermin" 5
+  assert has "Sinuous Vermin" menace
+}
+
+scenario "monstrosity: not monstrous yet, no menace" {
+  battlefield A: "Sinuous Vermin" with 1 +1/+1
+  run_to turn 1 postcombat_main
+  assert has not "Sinuous Vermin" menace
+}
+
+scenario "monstrosity: a second activation adds nothing" {
+  battlefield A: "Ill-Tempered Cyclops", 12 "Mountain"
+  turn 1 A: activate "Ill-Tempered Cyclops"
+  turn 1 A: activate "Ill-Tempered Cyclops"
+  run_to turn 1 postcombat_main
+  assert counters "Ill-Tempered Cyclops" +1/+1 3
+  assert power "Ill-Tempered Cyclops" 6
+}
+
+scenario "riot: a +1/+1 counter, no haste" {
+  battlefield A: 5 "Forest"
+  hand A: "Rampaging Rendhorn"
+  turn 1 A: cast "Rampaging Rendhorn"
+  turn 1 A: accept "Rampaging Rendhorn"
+  run_to turn 1 postcombat_main
+  assert counters "Rampaging Rendhorn" +1/+1 1
+  assert power "Rampaging Rendhorn" 5
+  assert has not "Rampaging Rendhorn" haste
+}
+
+scenario "riot: haste instead, and it attacks right away" {
+  battlefield A: 5 "Forest"
+  hand A: "Rampaging Rendhorn"
+  turn 1 A: cast "Rampaging Rendhorn"
+  turn 1 A: decline "Rampaging Rendhorn"
+  turn 1 A: attack "Rampaging Rendhorn"
+  run_to turn 1 postcombat_main
+  assert counters "Rampaging Rendhorn" +1/+1 0
+  assert has "Rampaging Rendhorn" haste
+  assert life B 16
+}
+
+scenario "riot: with the counter it can't attack this turn" {
+  battlefield A: 5 "Forest"
+  hand A: "Rampaging Rendhorn"
+  turn 1 A: cast "Rampaging Rendhorn"
+  turn 1 A: accept "Rampaging Rendhorn"
+  illegal turn 1 A: attack "Rampaging Rendhorn"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "riot: modular's counters and riot's extra one" {
+  battlefield A: 5 "Mountain"
+  hand A: "Arcbound Slasher"
+  turn 1 A: cast "Arcbound Slasher"
+  turn 1 A: accept "Arcbound Slasher"
+  run_to turn 1 postcombat_main
+  assert counters "Arcbound Slasher" +1/+1 5
+}
+
+# Retrace (CR 702.81), jump-start (702.133), surge (702.117), spectacle
+# (702.137).
+
+scenario "retrace: cast from the graveyard discarding a land, and it stays" {
+  battlefield A: 2 "Mountain"
+  graveyard A: "Flame Jab"
+  hand A: "Forest", "Plains"
+  turn 1 A: cast "Flame Jab" from graveyard discarding "Forest" targeting player B
+  turn 1 postcombat_main A: cast "Flame Jab" from graveyard discarding "Plains" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard A contains "Flame Jab"
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Plains"
+  assert hand A count 0
+}
+
+scenario "retrace: no land card in hand, no cast" {
+  battlefield A: "Mountain"
+  graveyard A: "Flame Jab"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Flame Jab" from graveyard discarding "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "jump-start: cast from the graveyard discarding a card, then exiled" {
+  battlefield A: 3 "Mountain"
+  graveyard A: "Direct Current"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Direct Current" from graveyard discarding "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert exile A contains "Direct Current"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "jump-start: an empty hand, no cast" {
+  battlefield A: 3 "Mountain"
+  graveyard A: "Direct Current"
+  illegal turn 1 A: cast "Direct Current" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "jump-start: from the hand it's an ordinary spell" {
+  battlefield A: 3 "Mountain"
+  hand A: "Direct Current", "Grizzly Bears"
+  turn 1 A: cast "Direct Current" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Direct Current"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "surge: the surge cost after another spell this turn" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt", "Boulder Salvo"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Boulder Salvo" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "surge: not without another spell first" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Boulder Salvo"
+  illegal turn 1 A: cast "Boulder Salvo" alternative targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "spectacle: the spectacle cost once an opponent lost life" {
+  battlefield A: 2 "Mountain"
+  hand A: "Lightning Bolt", "Skewer the Critics"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Skewer the Critics" alternative targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "spectacle: not before an opponent lost life" {
+  battlefield A: "Mountain"
+  hand A: "Skewer the Critics"
+  illegal turn 1 A: cast "Skewer the Critics" alternative targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "spectacle: your own life loss doesn't count" {
+  battlefield A: "Mountain", "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Skewer the Critics"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  illegal turn 1 A: cast "Skewer the Critics" alternative targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert life B 20
+}
+
+# Ingest (CR 702.115), reinforce (702.77).
+
+scenario "ingest: combat damage to a player exiles their top card" {
+  battlefield A: "Culling Drone"
+  library B: "Hill Giant", "Forest"
+  turn 1 A: attack "Culling Drone"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert exile B contains "Hill Giant"
+  assert library B count 1
+}
+
+scenario "ingest: blocked, nothing exiled" {
+  battlefield A: "Culling Drone"
+  battlefield B: "Grizzly Bears"
+  library B: "Hill Giant", "Forest"
+  turn 1 A: attack "Culling Drone"
+  turn 1 B: block "Culling Drone" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B lacks "Hill Giant"
+  assert library B count 2
+}
+
+scenario "reinforce: discard it from hand for counters on target creature" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Burrenton Bombardier"
+  turn 1 A: activate "Burrenton Bombardier" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert graveyard A contains "Burrenton Bombardier"
+}
+
+scenario "reinforce: an instant's reinforce instead of casting it" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Earthbrawn"
+  turn 1 A: activate "Earthbrawn" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert graveyard A contains "Earthbrawn"
+}
+
+# Descend 4, an ability word (CR 207.2c): "if there are four or more
+# permanent cards in your graveyard".
+
+scenario "descend: four permanent cards in the graveyard" {
+  battlefield A: "Basking Capybara"
+  graveyard A: "Forest", "Grizzly Bears", "Ornithopter", "Pacifism"
+  run_to turn 1 postcombat_main
+  assert power "Basking Capybara" 4
+}
+
+scenario "descend: instants and sorceries aren't permanent cards" {
+  battlefield A: "Basking Capybara"
+  graveyard A: "Forest", "Grizzly Bears", "Ornithopter", "Lightning Bolt", "Shock"
+  run_to turn 1 postcombat_main
+  assert power "Basking Capybara" 1
+}
+
+scenario "descend: an attack trigger with four" {
+  battlefield A: "Malamet Veteran", "Hill Giant"
+  graveyard A: "Forest", "Grizzly Bears", "Ornithopter", "Pacifism"
+  turn 1 A: attack "Malamet Veteran"
+  turn 1 A: trigger "Malamet Veteran" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "descend: no trigger with three" {
+  battlefield A: "Malamet Veteran", "Hill Giant"
+  graveyard A: "Forest", "Ornithopter", "Pacifism"
+  turn 1 A: attack "Malamet Veteran"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+  assert counters "Malamet Veteran" +1/+1 0
+}

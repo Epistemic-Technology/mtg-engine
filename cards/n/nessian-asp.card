@@ -1,0 +1,8 @@
+card "Nessian Asp" {
+  oracle_id 8b46e077-f667-432f-ab5b-8256a7378311
+  cost {4}{G}
+  type Creature — Snake
+  pt 4/5
+  keywords reach
+  activated {6}{G}: monstrosity 4
+}

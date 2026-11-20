@@ -1,0 +1,8 @@
+card "Parhelion Patrol" {
+  oracle_id d4891bfc-12b7-4412-be11-d02e6d014463
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 2/3
+  keywords flying, vigilance
+  mentor
+}

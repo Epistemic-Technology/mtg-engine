@@ -1,0 +1,8 @@
+card "Sickleslicer" {
+  oracle_id 7a004a4b-b53b-4b8e-86f5-528c1082e146
+  cost {3}
+  type Artifact — Equipment
+  living weapon
+  static equipped creature: +2/+2
+  equip {4}
+}

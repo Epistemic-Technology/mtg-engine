@@ -1,0 +1,8 @@
+card "Basilica Screecher" {
+  oracle_id 752ebcba-97fb-43a3-8811-d244164b3e16
+  cost {1}{B}
+  type Creature — Bat
+  pt 1/2
+  keywords flying
+  extort
+}

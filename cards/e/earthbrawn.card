@@ -1,0 +1,7 @@
+card "Earthbrawn" {
+  oracle_id 91edf44a-0f46-4936-909a-934e2c4fe176
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3
+  reinforce 1 {1}{G}
+}

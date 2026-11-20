@@ -62,7 +62,7 @@ const KEYWORDS: [&str; 39] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 89] = [
+const TEMPLATED_TAGS: [&str; 101] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -149,6 +149,18 @@ const TEMPLATED_TAGS: [&str; 89] = [
     "Renown",
     "Evolve",
     "Unleash",
+    "Afterlife",
+    "Extort",
+    "Mentor",
+    "Riot",
+    "Living weapon",
+    "Monstrosity",
+    "Retrace",
+    "Jump-start",
+    "Surge",
+    "Spectacle",
+    "Ingest",
+    "Reinforce",
     "Support",
     "Bolster",
     "Populate",
@@ -1157,6 +1169,9 @@ impl Templates {
             }),
             (r(r"^Adapt (\d+)$"), |c, _| {
                 Some(format!("adapt {}", cap(c, 1)))
+            }),
+            (r(r"^Monstrosity (\d+|X)$"), |c, _| {
+                Some(format!("monstrosity {}", cap(c, 1)))
             }),
             (r(r"^[Bb]olster (\d+)$"), |c, _| {
                 Some(format!("bolster {}", cap(c, 1)))
@@ -2602,7 +2617,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown) (\d+)$",
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle|Fabricate|Renown|Afterlife) (\d+)$",
         )
         .unwrap()
         .captures(line)
@@ -2612,12 +2627,21 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Embalm|Eternalize|Offspring|Bestow|Overload) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.77: "Reinforce 1—{1}{R}".
+        if let Some(c) = Regex::new(r"^Reinforce (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("reinforce {} {}", cap(&c, 1), cap(&c, 2)));
             return Ok(());
         }
         // CR 702.47: "Splice onto Arcane {1}{R}".
@@ -2687,11 +2711,22 @@ impl Builder<'_> {
             self.statements.push("conspire".to_string());
             return Ok(());
         }
+        if line == "Jump-start" {
+            self.statements.push("jump start".to_string());
+            return Ok(());
+        }
+        if line == "Living weapon" {
+            self.statements.push("living weapon".to_string());
+            return Ok(());
+        }
         if line == "Bargain" {
             self.statements.push("bargain".to_string());
             return Ok(());
         }
-        if line == "Evolve" || line == "Unleash" {
+        if matches!(
+            line,
+            "Evolve" | "Unleash" | "Extort" | "Mentor" | "Riot" | "Retrace" | "Ingest"
+        ) {
             self.statements.push(line.to_lowercase());
             return Ok(());
         }

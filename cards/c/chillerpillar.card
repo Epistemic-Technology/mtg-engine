@@ -1,0 +1,8 @@
+card "Chillerpillar" {
+  oracle_id 5607bc18-f3b7-40b0-b97d-2e06affa99ac
+  cost {3}{U}
+  type Snow Creature — Insect
+  pt 3/3
+  activated {4}{S}{S}: monstrosity 2
+  static as long as monstrous, this: has flying
+}

@@ -1,0 +1,8 @@
+card "Jwar Isle Avenger" {
+  oracle_id 2db8fc61-13af-4227-83f9-9f426ab978d3
+  cost {4}{U}
+  type Creature — Sphinx
+  pt 3/3
+  surge {2}{U}
+  keywords flying
+}

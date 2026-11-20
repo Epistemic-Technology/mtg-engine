@@ -1,0 +1,8 @@
+card "Blade Juggler" {
+  oracle_id 34400cf5-b8c4-4cf2-9186-51f12037cc51
+  cost {4}{B}
+  type Creature — Human Rogue
+  pt 3/2
+  spectacle {2}{B}
+  triggered when this enters: deal 1 damage to you and you draw 1 card
+}

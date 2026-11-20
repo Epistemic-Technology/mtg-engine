@@ -1,0 +1,8 @@
+card "Arcbound Slasher" {
+  oracle_id bf86376d-474d-4658-8cf3-d0e2a01cdfff
+  cost {4}{R}
+  type Artifact Creature — Cat
+  pt 0/0
+  modular 4
+  riot
+}

@@ -144,6 +144,12 @@ pub struct GameObject {
     /// Renowned (CR 702.112b): a designation it keeps until it leaves the
     /// battlefield.
     pub renowned: bool,
+    /// Monstrous (CR 701.37b): a designation it keeps until it leaves the
+    /// battlefield.
+    pub monstrous: bool,
+    /// Riot's haste (CR 702.136a): it entered without the counter, so it
+    /// has haste for as long as it is this object.
+    pub riot_haste: bool,
     /// Skips its controller's next untap step ("doesn't untap during its
     /// controller's next untap step").
     pub skip_untap: bool,
@@ -2379,6 +2385,7 @@ impl GameState {
                 .combat
                 .as_ref()
                 .is_some_and(|c| c.attackers.iter().any(|a| a.id == source)),
+            C::SourceMonstrous => self.objects.get(source).is_some_and(|o| o.monstrous),
             C::SourceEnchanted | C::SourceEquipped => {
                 let want = if *cond == C::SourceEnchanted {
                     crate::card::Subtype::AURA
@@ -2752,7 +2759,8 @@ impl GameState {
             .as_ref()
             .map(|c| c.def)
             .filter(|d| *d != self.pool.face_down(false) && *d != self.pool.face_down(true));
-        f.with_same(def, c.map(|c| c.colors).unwrap_or_default())
+        let power = c.as_ref().map(|c| c.power);
+        f.with_same(def, c.map(|c| c.colors).unwrap_or_default(), power)
     }
 
     /// A filter with "named ~" filled in from the source ("target

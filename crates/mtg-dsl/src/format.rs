@@ -580,6 +580,7 @@ impl Fmt {
             Effect::Manifest => "manifest".to_string(),
             Effect::Adapt(n) => format!("adapt {n}"),
             Effect::Bolster(n) => format!("bolster {}", num(*n)),
+            Effect::Monstrosity(n) => format!("monstrosity {}", num(*n)),
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
             Effect::Incubate(n) => format!("incubate {}", num(*n)),
@@ -2547,6 +2548,7 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::NotNamedThis => "not named this".to_string(),
         SameRef::SameNameAs(n) => format!("with same name as target {}", n + 1),
         SameRef::SharesColorWith(n) => format!("that shares color with target {}", n + 1),
+        SameRef::LesserPower => "with lesser power".to_string(),
     }
 }
 
@@ -3439,6 +3441,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Attacking => "attacking".to_string(),
         StaticCond::Enchanted => "enchanted".to_string(),
         StaticCond::Equipped => "equipped".to_string(),
+        StaticCond::Monstrous => "monstrous".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("opponent life {n} or less"),
         StaticCond::MoreLifeThanOpponent => "your life more than opponent".to_string(),
         StaticCond::BasicLandTypes(n) => format!("{n} basic land types"),
@@ -4135,6 +4138,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Evolve => "evolve".to_string(),
                 crate::ast::Mechanic::Renown(n) => format!("renown {n}"),
                 crate::ast::Mechanic::Unleash => "unleash".to_string(),
+                crate::ast::Mechanic::Afterlife(n) => format!("afterlife {n}"),
+                crate::ast::Mechanic::Extort => "extort".to_string(),
+                crate::ast::Mechanic::Mentor => "mentor".to_string(),
+                crate::ast::Mechanic::Riot => "riot".to_string(),
+                crate::ast::Mechanic::LivingWeapon => "living weapon".to_string(),
+                crate::ast::Mechanic::Retrace => "retrace".to_string(),
+                crate::ast::Mechanic::Ingest => "ingest".to_string(),
+                crate::ast::Mechanic::Reinforce(n, c) => format!("reinforce {n} {c}"),
+                crate::ast::Mechanic::JumpStart => "jump start".to_string(),
+                crate::ast::Mechanic::Surge(c) => format!("surge {c}"),
+                crate::ast::Mechanic::Spectacle(c) => format!("spectacle {c}"),
             };
             let _ = writeln!(out, "{indent}{text}");
         }
@@ -4287,6 +4301,7 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
         Ability::Mechanic(crate::ast::Mechanic::Frenzy(n)) => Some(format!("frenzy {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Absorb(n)) => Some(format!("absorb {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Provoke) => Some("provoke".to_string()),
+        Ability::Mechanic(crate::ast::Mechanic::Mentor) => Some("mentor".to_string()),
         Ability::Mechanic(crate::ast::Mechanic::Outlast(c)) => Some(format!("outlast {c}")),
         Ability::Protection(f) if *f == Filter::default() => {
             Some("protection from everything".to_string())

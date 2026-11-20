@@ -1360,6 +1360,50 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Provoke))
             }
+            "ingest" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Ingest))
+            }
+            "reinforce"
+                if matches!(self.peek_at(1), Some(Tok::Num(_)))
+                    && matches!(self.peek_at(2), Some(Tok::Sym(_))) =>
+            {
+                self.pos += 1;
+                let n = self.number()?;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Reinforce(n, c)))
+            }
+            "retrace" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Retrace))
+            }
+            "jump" if self.at_words(&["jump", "start"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::JumpStart))
+            }
+            "riot" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Riot))
+            }
+            "living" if self.at_words(&["living", "weapon"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::LivingWeapon))
+            }
+            "extort" | "mentor" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(if w == "extort" {
+                    Mechanic::Extort
+                } else {
+                    Mechanic::Mentor
+                }))
+            }
             "evolve" | "unleash" => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -1371,6 +1415,7 @@ impl P {
             }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
             | "saddle" | "poisonous" | "frenzy" | "absorb" | "fabricate" | "renown"
+            | "afterlife"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
@@ -1389,13 +1434,14 @@ impl P {
                     "absorb" => Mechanic::Absorb(n),
                     "fabricate" => Mechanic::Fabricate(n),
                     "renown" => Mechanic::Renown(n),
+                    "afterlife" => Mechanic::Afterlife(n),
                     _ => Mechanic::Toxic(n),
                 }))
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "embalm" | "eternalize" | "offspring" | "bestow" | "splice"
-            | "strive" | "overload"
+            | "strive" | "overload" | "surge" | "spectacle"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1423,6 +1469,8 @@ impl P {
                     "eternalize" => Mechanic::Eternalize(c),
                     "offspring" => Mechanic::Offspring(c),
                     "strive" => Mechanic::Strive(c),
+                    "surge" => Mechanic::Surge(c),
+                    "spectacle" => Mechanic::Spectacle(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }
@@ -2045,6 +2093,9 @@ impl P {
         if self.eat_word("provoke") {
             return Ok(Some(Ability::Mechanic(Mechanic::Provoke)));
         }
+        if self.eat_word("mentor") {
+            return Ok(Some(Ability::Mechanic(Mechanic::Mentor)));
+        }
         if self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))) {
             self.pos += 1;
             return Ok(Some(Ability::Mechanic(Mechanic::Outlast(
@@ -2072,6 +2123,7 @@ impl P {
                 .is_some_and(|w| matches!(w.as_str(), "poisonous" | "frenzy" | "absorb"))
                 && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.at_word("provoke")
+            || self.at_word("mentor")
             || (self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
     }
 
@@ -2645,6 +2697,9 @@ impl P {
         if self.eat_word("equipped") {
             return Ok(StaticCond::Equipped);
         }
+        if self.eat_word("monstrous") {
+            return Ok(StaticCond::Monstrous);
+        }
         if self.eat_words(&["opponent", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
             self.expect_words(&["or", "less"])?;
@@ -2710,10 +2765,13 @@ impl P {
         if self.eat_words(&["basic", "land", "types"]) {
             return Ok(StaticCond::BasicLandTypes(n));
         }
-        if self
-            .word_at(0)
-            .is_some_and(|w| card_type(&w).is_some() || w.starts_with("non") || color(&w).is_some())
-            || matches!(self.peek(), Some(Tok::Word(w)) if w.chars().next().is_some_and(char::is_uppercase))
+        if self.word_at(0).is_some_and(|w| {
+            card_type(&w).is_some()
+                    || w.starts_with("non")
+                    || color(&w).is_some()
+                    // Descend: "four or more permanent cards".
+                    || w == "permanent"
+        }) || matches!(self.peek(), Some(Tok::Word(w)) if w.chars().next().is_some_and(char::is_uppercase))
         {
             let filter = self.filter()?;
             // "an artifact card is in your graveyard".
@@ -5426,6 +5484,7 @@ impl P {
             "proliferate" => Ok(Effect::Proliferate),
             "adapt" => Ok(Effect::Adapt(self.count()?)),
             "bolster" => Ok(Effect::Bolster(self.num()?)),
+            "monstrosity" => Ok(Effect::Monstrosity(self.num()?)),
             "populate" => Ok(Effect::Populate),
             "incubate" => Ok(Effect::Incubate(self.num()?)),
             // CR 701.41a: "up to N other target creatures" on a permanent
@@ -7882,6 +7941,11 @@ impl P {
                     self.pos += 5;
                     let n = self.declared_target()?;
                     f.same = Some(SameRef::SharesColorWith(n));
+                }
+                // "with lesser power" (mentor, CR 702.134a).
+                "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {
+                    self.pos += 3;
+                    f.same = Some(SameRef::LesserPower);
                 }
                 "that" if self.at_words(&["that", "was", "dealt", "damage", "this", "turn"]) => {
                     f.damaged = true;

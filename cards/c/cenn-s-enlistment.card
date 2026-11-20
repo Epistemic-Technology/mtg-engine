@@ -1,0 +1,7 @@
+card "Cenn's Enlistment" {
+  oracle_id 49fe9f5a-5821-4586-b913-7d8aef1f8669
+  cost {3}{W}
+  type Sorcery
+  spell: create 2 "1/1 white Kithkin Soldier creature"
+  retrace
+}

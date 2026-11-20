@@ -1,0 +1,9 @@
+card "Salvage Drone" {
+  oracle_id 9b18bbf3-3b1c-4010-bc6f-e7eacb2ffb70
+  cost {U}
+  type Creature — Eldrazi Drone
+  pt 1/1
+  keywords devoid
+  ingest
+  triggered when this dies: you may draw 1 card; if you do, discard 1 card
+}

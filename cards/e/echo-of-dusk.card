@@ -1,0 +1,7 @@
+card "Echo of Dusk" {
+  oracle_id fd0980ae-eabf-45da-98e7-23d81bfa185a
+  cost {1}{B}
+  type Creature — Vampire Spirit
+  pt 2/2
+  label "Descend 4" static as long as 4 permanent cards in your graveyard, this: +1/+1, has lifelink
+}

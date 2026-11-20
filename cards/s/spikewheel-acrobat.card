@@ -1,0 +1,7 @@
+card "Spikewheel Acrobat" {
+  oracle_id e9b403db-8981-440f-a451-aa77ae3cf006
+  cost {3}{R}
+  type Creature — Human Rogue
+  pt 5/2
+  spectacle {2}{R}
+}

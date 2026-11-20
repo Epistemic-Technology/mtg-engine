@@ -1,0 +1,8 @@
+card "Brighthearth Banneret" {
+  oracle_id 04120095-74a5-4284-bfba-aeb0b509dc84
+  cost {1}{R}
+  type Creature — Elemental Warrior
+  pt 1/1
+  spells Elemental or Warrior you cast cost {1} less
+  reinforce 1 {1}{R}
+}

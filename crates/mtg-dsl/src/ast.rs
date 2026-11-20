@@ -731,6 +731,9 @@ pub enum SameRef {
     SameNameAs(usize),
     /// `that shares color with target 1`: "that shares a color with it".
     SharesColorWith(usize),
+    /// `with lesser power`: "with lesser power" (than the source's power,
+    /// as it is or last existed; mentor, CR 702.134a).
+    LesserPower,
 }
 
 /// How a filter refers to a chosen color or type, as printed after the
@@ -1202,6 +1205,40 @@ pub enum Mechanic {
     /// `unleash` (CR 702.98): may enter with a +1/+1 counter; can't block
     /// as long as it has one.
     Unleash,
+    /// `afterlife 1` (CR 702.135): when this dies, N 1/1 white and black
+    /// Spirit tokens with flying.
+    Afterlife(u32),
+    /// `extort` (CR 702.101): whenever you cast a spell, you may pay
+    /// {W/B}; if you do, each opponent loses 1 life and you gain that
+    /// much life.
+    Extort,
+    /// `mentor` (CR 702.134): whenever this attacks, a +1/+1 counter on
+    /// target attacking creature with lesser power.
+    Mentor,
+    /// `riot` (CR 702.136): enters with your choice of a +1/+1 counter or
+    /// haste.
+    Riot,
+    /// `living weapon` (CR 702.92): when this Equipment enters, a 0/0
+    /// black Phyrexian Germ token, then attach this to it.
+    LivingWeapon,
+    /// `retrace` (CR 702.81): cast from your graveyard by discarding a land
+    /// card in addition to its other costs.
+    Retrace,
+    /// `jump-start` (CR 702.133): cast from your graveyard by discarding a
+    /// card in addition to its other costs; then exiled.
+    JumpStart,
+    /// `surge {1}{R}` (CR 702.117): an alternative cost if you've cast
+    /// another spell this turn.
+    Surge(ManaCost),
+    /// `spectacle {R}` (CR 702.137): an alternative cost if an opponent
+    /// lost life this turn.
+    Spectacle(ManaCost),
+    /// `ingest` (CR 702.115): whenever this deals combat damage to a
+    /// player, that player exiles the top card of their library.
+    Ingest,
+    /// `reinforce 1 {1}{R}` (CR 702.77): "Reinforce 1—{1}{R}", "{1}{R},
+    /// Discard this card: Put a +1/+1 counter on target creature."
+    Reinforce(u32, ManaCost),
 }
 
 /// A blocking restriction on this creature.
@@ -1278,6 +1315,8 @@ pub enum StaticCond {
     Attacking,
     Enchanted,
     Equipped,
+    /// `monstrous`: "this creature is monstrous" (CR 701.37b).
+    Monstrous,
     /// `opponent life 10 or less`: "an opponent has 10 or less life".
     OpponentLifeAtMost(i32),
     /// `your life 30 or more`: "you have 30 or more life".
@@ -2792,6 +2831,8 @@ pub enum Effect {
     Adapt(u32),
     /// `bolster 2` (CR 701.39).
     Bolster(Num),
+    /// `monstrosity 3` (CR 701.37): "Monstrosity 3."
+    Monstrosity(Num),
     /// `support 2` (CR 701.41a): a +1/+1 counter on each of up to N target
     /// creatures, other than the source in a triggered ability (support on
     /// a permanent); the recipients are those targets.

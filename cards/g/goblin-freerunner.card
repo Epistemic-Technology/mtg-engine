@@ -1,0 +1,8 @@
+card "Goblin Freerunner" {
+  oracle_id 372094f8-86dc-4c78-a5d0-444ffbf02630
+  cost {3}{R}
+  type Creature — Goblin Warrior Ally
+  pt 3/2
+  surge {1}{R}
+  keywords menace
+}

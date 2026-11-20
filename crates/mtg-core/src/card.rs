@@ -1173,6 +1173,9 @@ pub enum SameWhat {
     NotName,
     /// Shares a color ("that shares a color with it").
     Color,
+    /// Has lesser power ("target attacking creature with lesser power",
+    /// mentor, CR 702.134a).
+    LesserPower,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1278,10 +1281,11 @@ impl ObjFilter {
 
     /// The filter with its `same` relation filled in from the object it
     /// relates to: that object's definition (`None` for an object with no
-    /// name, CR 708.2: nothing has the same name as it) and colors (sharing
-    /// a color with a colorless object is impossible, CR 105.2c).
+    /// name, CR 708.2: nothing has the same name as it), colors (sharing
+    /// a color with a colorless object is impossible, CR 105.2c), and
+    /// power (`None`: no object, so nothing has lesser power).
     #[must_use]
-    pub fn with_same(&self, def: Option<CardRef>, colors: ColorSet) -> Self {
+    pub fn with_same(&self, def: Option<CardRef>, colors: ColorSet, power: Option<i16>) -> Self {
         let mut f = self.clone();
         let Some(same) = f.same.take() else {
             return f;
@@ -1291,6 +1295,9 @@ impl ObjFilter {
             SameWhat::Name => f.named = Some((def.unwrap_or(CardRef(u32::MAX)), true)),
             SameWhat::NotName => f.named = def.map(|d| (d, false)),
             SameWhat::Color => f.colors = Some(colors),
+            SameWhat::LesserPower => {
+                f.power = Some((Cmp::AtMost, power.map_or(i16::MIN, |p| p.saturating_sub(1))));
+            }
         }
         f
     }
@@ -1918,6 +1925,8 @@ pub enum StaticCondition {
     /// "as long as it's enchanted" / "as long as it's equipped".
     SourceEnchanted,
     SourceEquipped,
+    /// "as long as this creature is monstrous" (CR 701.37b).
+    SourceMonstrous,
     /// "as long as an opponent has 10 or less life"; "as long as you have
     /// 30 or more life" (`at_least`), "you have 5 or less life".
     OpponentLifeAtMost(i32),
@@ -2830,6 +2839,11 @@ pub enum Effect {
         count: Num,
         who: Recipient,
     },
+    /// The recipient player exiles the top card of their library (ingest,
+    /// CR 702.115a).
+    ExileTop {
+        who: Recipient,
+    },
     /// The controller gets an emblem (CR 114) with this definition's
     /// abilities, in the command zone.
     CreateEmblem {
@@ -3590,6 +3604,9 @@ pub enum Effect {
     /// The source becomes renowned (CR 702.112a, b), if it is still on the
     /// battlefield.
     BecomeRenowned,
+    /// Monstrosity N (CR 701.37a): if the source isn't monstrous, N +1/+1
+    /// counters on it and it becomes monstrous.
+    Monstrosity(Num),
     /// The recipient creature connives (CR 701.50): its controller draws
     /// and discards a card; a nonland discard puts a +1/+1 counter on it.
     Connive {
@@ -4077,8 +4094,13 @@ pub enum Replacement {
     /// Enters with counters.
     EnterWithCounters { kind: CounterKind, n: Num },
     /// Its controller may have it enter with N more counters (unleash, CR
-    /// 702.98a).
-    EnterWithCountersMay { kind: CounterKind, n: u32 },
+    /// 702.98a); with `haste`, if they don't, it has haste (riot, CR
+    /// 702.136a).
+    EnterWithCountersMay {
+        kind: CounterKind,
+        n: u32,
+        haste: bool,
+    },
     /// CR 701.15a: instead of being destroyed, the permanent has all damage
     /// removed, is tapped, and leaves combat. A stored shield; used once.
     Regenerate,
@@ -5407,6 +5429,10 @@ pub struct CardDef {
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
     pub flashback: Option<Box<Cost>>,
+    /// Retrace (CR 702.81): `flashback` is the card's mana cost and a land
+    /// card discarded, and the spell isn't exiled as it leaves the stack.
+    #[serde(default)]
+    pub retrace: bool,
     /// Event kinds any of this definition's triggers (keyword triggers
     /// included) can fire on; see `TriggerSpec::watch_mask`.
     watch_mask: u32,
@@ -7070,6 +7096,7 @@ impl Builder {
             escape: None,
             modular: 0,
             flashback: None,
+            retrace: false,
             watch_mask: 0,
             except_watch_mask: 0,
             printed: None,
@@ -7415,6 +7442,21 @@ impl Builder {
     #[must_use]
     pub fn flashback(mut self, cost: Cost) -> Self {
         self.0.flashback = Some(Box::new(cost));
+        self
+    }
+
+    /// Retrace (CR 702.81a): cast from the graveyard for its mana cost and
+    /// a land card discarded; it isn't exiled.
+    #[must_use]
+    pub fn retrace(mut self, land: ObjFilter) -> Self {
+        let mana = self.0.mana_cost.clone();
+        self.0.flashback = Some(Box::new(Cost {
+            mana,
+            discard: 1,
+            discard_filter: Some(land),
+            ..Cost::default()
+        }));
+        self.0.retrace = true;
         self
     }
 

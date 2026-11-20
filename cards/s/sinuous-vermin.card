@@ -1,0 +1,8 @@
+card "Sinuous Vermin" {
+  oracle_id 658f5cfb-326d-4da9-a39b-2ecd393a1f54
+  cost {1}{B}
+  type Creature — Rat Horror
+  pt 2/2
+  activated {3}{B}{B}: monstrosity 3
+  static as long as monstrous, this: has menace
+}

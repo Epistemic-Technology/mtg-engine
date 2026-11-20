@@ -85,6 +85,8 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: false,
             renowned: false,
+            monstrous: false,
+            riot_haste: false,
             skip_untap: false,
             chosen: Chosen::None,
             alt: AltCast::None,
@@ -312,6 +314,8 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: to == Zone::Battlefield,
             renowned: false,
+            monstrous: false,
+            riot_haste: enter.haste && to == Zone::Battlefield,
             skip_untap: false,
             chosen,
             // CR 702.62a: a creature cast by suspend has haste.
@@ -627,6 +631,7 @@ impl GameState {
             Enter {
                 tapped,
                 counters: None,
+                haste: false,
             },
         )
     }

@@ -1,0 +1,7 @@
+card "Hammer Dropper" {
+  oracle_id 088c9fa7-65ec-48c6-90cc-9087bc9df43e
+  cost {2}{R}{W}
+  type Creature — Giant Soldier
+  pt 5/2
+  mentor
+}
