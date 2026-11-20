@@ -1,0 +1,7 @@
+card "Helica Glider" {
+  oracle_id 8bcdb107-3827-4280-9e5e-7f1e771ef0c5
+  cost {2}{W}
+  type Creature — Nightmare Squirrel
+  pt 2/2
+  enters with choice flying counter or first strike counter
+}

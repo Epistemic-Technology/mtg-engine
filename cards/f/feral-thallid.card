@@ -1,0 +1,8 @@
+card "Feral Thallid" {
+  oracle_id 3953fd17-03f4-4431-99b5-87dcac5a279d
+  cost {3}{G}{G}{G}
+  type Creature — Fungus
+  pt 6/3
+  triggered at beginning of your upkeep: put 1 spore counter on this
+  activated remove 3 spore counters from this: regenerate this creature
+}

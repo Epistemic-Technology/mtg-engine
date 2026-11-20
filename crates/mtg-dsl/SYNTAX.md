@@ -107,7 +107,7 @@ double-faced permanent to its other face (CR 701.27).
 | `can't be blocked by Wall`, `can't be blocked except by creature with flying`, `can't be blocked by more than one creature`, `can block only creature with flying`, `can't block creature with flying` | Blocking restrictions on this creature (CR 509.1b–c). Alternatives print with "and/or" ("can't be blocked except by artifact creatures and/or white creatures", `black or red creature`: "black and/or red creatures"). Granted, they print unquoted: `static enchanted: has ability { can't be blocked except by Wall }` is "Enchanted creature can't be blocked except by Walls."; `this gains ability { can't be blocked by creature with power 2 or less }` is "This creature can't be blocked by creatures with power 2 or less this turn." ("can't be blocked this turn except by ..."). `can't be blocked by creature with lesser power` prints "Creatures with power less than this creature's power can't block it." Alternatives in `can't be blocked by` print with "or" (`can't be blocked by creature with aura or enchantment creature`: "can't be blocked by enchanted creatures or enchantment creatures"). `can't be blocked except by 3 or more creatures` (CR 509.1b: blocked by none or by at least that many, like menace's two). Allowances (CR 509.1a): `can block shadow as though had shadow` ("can block creatures with shadow as though it had shadow"; `as though didn't have shadow`: "... as though they didn't have shadow", CR 702.28b), `can block landwalk as though didn't have` ("can block creatures with landwalk abilities as though they didn't have those abilities", CR 702.14b), `can block an additional 7 creatures each combat` (eight in all). |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
 | `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as this enters choose land type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12; `land type` is "a basic land type"): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen`, `has protection from chosen color`, `set land chosen`, `add chosen type`, and filters `of chosen color` / `of chosen type`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). |
-| `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". |
+| `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". A mana value prints after who casts them: `spells creature with mana value 6 or greater you cast cost {2} less` is "Creature spells you cast with mana value 6 or greater cost {2} less to cast." |
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
 | `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything`, `protection from creature your opponents control` | Protection from a quality other than a color (CR 702.16); colors are keywords. A controller in the quality is judged from the protected object's controller ("protection from creatures your opponents control": its own creatures still may block and target it). Consecutive protections print as one line, "Protection from Spirits and from Arcane" (the gate splits such a line into one protection each, CR 702.16g); in a list of granted keywords, "has protection from green and from blue". |
@@ -121,6 +121,7 @@ double-faced permanent to its other face (CR 701.27).
 | `entwine {2}`, `escape {3}{B} exile 3`, `escapes with 2 +1/+1 counters` | Entwine (CR 702.42): a `choose one` spell may choose every mode for this cost on top. Escape (CR 702.138): cast from the graveyard for this cost, exiling N other cards from it (the oldest); a permanent cast this way keeps that, for `escapes with`. The keyword `exploit` (CR 702.110) sacrifices a creature as it enters, if its controller wants, and `triggered when this exploits a creature:` abilities follow. `discover 4` (CR 701.57) is an effect. |
 | `enters with 1 +1/+1 counter if attacked this turn`, `if spent 3 white, enters with 1 +1/+1 counter` | "This creature enters with a +1/+1 counter on it if you attacked this turn." (raid; any static condition: `opponent lost life this turn`, `permanent left this turn` (revolt: "a permanent left the battlefield under your control this turn"), `you control creature with power 4 or greater` (ferocious), `you control modified creature`), and with the condition first, "If at least three white mana was spent to cast this spell, this creature enters with a +1/+1 counter on it." (adamant). Judged as the permanent enters (CR 614.1c). |
 | `enters with count each other creature you control +1/+1 counters`, `enters with count each colors spent +1/+1 counters`, `enters with count equal all graveyards creature +1/+1 counters` | "This creature enters with a +1/+1 counter on it for each other creature you control." / "... for each color of mana spent to cast it." (converge) / "This creature enters with a number of +1/+1 counters on it equal to the number of creature cards in all graveyards.": the count judged as it enters. |
+| `enters with choice flying counter or first strike counter`, `escapes with choice +1/+1 counter or flying counter` | "This creature enters with your choice of a flying counter or a first strike counter on it." (CR 614.1c, 122.1b): its controller chooses one as it enters; "escapes with ..." only when cast with escape. |
 | `kicked with 2 +1/+1 counters`, `kicked with 2 +1/+1 counters and first strike` | "If this creature was kicked, it enters with two +1/+1 counters on it [and with first strike]." (CR 702.33c): the counters as it enters, and the keywords for as long as it stays, only if it was cast with its kicker paid. |
 | `madness {1}{R}`, `foretell {1}{U}`, `suspend 4 {1}{U}` | Madness (CR 702.35): discarded into exile, then may be cast for this cost (else to the graveyard). Foretell (CR 702.143): on its owner's turn, exiled from hand for {2}; cast on a later turn for this cost. Suspend N (CR 702.62): exiled from hand for this cost with N time counters; one comes off each upkeep, and as the last does it may be cast free (a creature has haste). The keywords `cascade` and `rebound` need no cost. `keywords cipher` (CR 702.99, printed "Cipher" after the spell's text): as the spell resolves, its controller may exile it encoded on a creature they control (`decline "X"` in scenarios; `choose "Y"` picks the creature); whenever that creature deals combat damage to a player, its controller may cast a copy of the card free. The encoding ends when the creature or the card moves. |
 | `evoke {1}{U}{U}`, `bloodthirst 2` | Evoke (CR 702.74): cast for this cost instead, and the permanent is sacrificed as it enters (`if evoked` is the trigger condition). Bloodthirst (CR 702.54): enters with N +1/+1 counters if an opponent was dealt damage this turn (`opponent damaged this turn` is also a static condition). |
@@ -169,7 +170,8 @@ the cost is paid, CR 701.9b), `discard creature
 card` (a filter: discard one matching card, printed "Discard a creature
 card"), `discard X cards` (a spell's additional cost: "As an additional
 cost to cast this spell, discard X cards."; X is announced as the spell
-is cast, at most the other cards in hand, CR 601.2b), `discard this`, `exile this from graveyard` ("Exile this card from
+is cast, at most the other cards in hand, CR 601.2b; `discard X creature
+cards` counts only matching cards), `discard this`, `exile this from graveyard` ("Exile this card from
 your graveyard"; the ability is activated from the graveyard), `return
 land you control` ("Return a land you control to its owner's hand";
 `return this`: "Return this enchantment to its owner's hand") and
@@ -377,7 +379,10 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `net`, `flood`, `glyph`, and the keyword counters `flying`, `first strike`, `trample`,
 `lifelink`, `deathtouch`, `reach`, `menace`, `vigilance`, `hexproof`,
 `indestructible` (CR 122.1b: the permanent has the keyword). A cost may
-`remove 1 charge counter from this`.
+`remove 1 charge counter from this` or `put 1 -1/-1 counter on this`
+("Put a -1/-1 counter on this creature", CR 118.3: put on as the cost is
+paid, so a creature it kills is gone before the ability resolves; a mana
+ability with it pays for spells too).
 
 Counters on a group of targets: `put 1 +1/+1 counter on up to 2 target
 creature` ("put a +1/+1 counter on each of up to two target creatures";
@@ -472,7 +477,9 @@ or less, ...` "If it had mana value 3 or less, ..." (as it last existed).
 After a sentence, `... if target 1 is legendary` checks the target as
 the sentence resolves: "Put a +1/+1 counter on target creature you
 control if it's legendary.", "... if its power is 4 or greater", "...
-if it has mana value 3 or less".
+if it has mana value 3 or less"; `... if that target 1 is with +1/+1
+counter` prints "Draw a card if that creature has a +1/+1 counter on it."
+(a target's counters are judged on the battlefield).
 `otherwise, <sentence>` after `if <condition>, ...` or after `clash; if
 you win, ...` happens only if that didn't (CR 608.2c): "Otherwise, that
 player discards a card."; creating the token the sentence before
@@ -757,7 +764,9 @@ creature card with mana value X or less from your graveyard`), `with +1/+1
 counter` / `with counter` ("creature you control with a +1/+1 counter on
 it", "with a counter on it", CR 122.1; plural "with +1/+1 counters on
 them"; printed after the controller; any kind: `permanent you control with
-oil counter`, "permanents you control with oil counters on them"), and `modified` ("a modified
+oil counter`, "permanents you control with oil counters on them"), `with
+3 or more level counters` ("a creature with three or more level counters
+on it"), and `modified` ("a modified
 creature", CR 700.9: it has a counter, is equipped, or is enchanted by an
 Aura its controller controls), `attached to creature` / `attached to land`
 ("target Aura attached to a creature": what it is attached to, CR
@@ -1032,7 +1041,7 @@ target Knight and it can't be regenerated" in one sentence), `put 2 +1/+1 counte
 `put 1 +1/+1 counter and 1 reach counter and 1 deathtouch counter on
 <what>` ("Put a +1/+1 counter, a reach counter, and a deathtouch counter
 on target creature"),
-`remove 1 +1/+1 counter from <what>`, `remove all counters from <what>`,
+`remove 1 +1/+1 counter from <what>`, `remove 1 counter from <what>` ("remove a counter from target permanent": a counter of a kind the controller chooses), `remove all counters from <what>`,
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
 `exile <what> until this leaves` ("exile target creature an opponent
@@ -1261,7 +1270,11 @@ permanent out at every other such step), `amass Zombies 2` (CR 701.47; needs the
 "0/0 black Zombie Army creature"), `<who> gets 1 poison counters`, `add {G}
 count each Elf on battlefield` ("Add {G} for each Elf on the
 battlefield."), `if kicked, <clause>` ("If this spell was kicked, ..."
-for a spell with `kicker`), `prevent all [combat] damage
+for a spell with `kicker`; `if kicked, also <clause>` puts "also" after
+the subject: "If this spell was kicked, that creature also gains hexproof
+until end of turn."; a target first named in it, "return another target
+permanent card from your graveyard to your hand", is chosen only if the
+spell is kicked, CR 601.2c), `prevent all [combat] damage
 [from <source>] [to <affects>] this turn` ("Prevent all combat damage that
 would be dealt by target attacking creature this turn"; `to each player`
 prints "to players"), `prevent all [combat] damage [to <affects>] this turn

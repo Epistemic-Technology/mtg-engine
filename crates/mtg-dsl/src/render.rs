@@ -1951,8 +1951,17 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     // "creature you control with a +1/+1 counter on it" (after the
     // controller, as Oracle prints it).
-    if let Some(q) = f.status.counter {
+    if let Some(mtg_core::card::CounterQual::AtLeast(k, n)) = f.status.counter {
+        let _ = write!(
+            s,
+            " with {} or more {} counters on {}",
+            count_words(Num::N(n), "one"),
+            counter_name(k),
+            if plural_form { "them" } else { "it" }
+        );
+    } else if let Some(q) = f.status.counter {
         let kind = match q {
+            mtg_core::card::CounterQual::AtLeast(..) => unreachable!("above"),
             mtg_core::card::CounterQual::Any => String::new(),
             mtg_core::card::CounterQual::Kind(k) => format!("{} ", counter_name(k)),
         };
@@ -2322,6 +2331,13 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     parts.push(format!("Remove {what} from {src}"));
                 }
             }
+            CostItem::PutCounters => {
+                if let Some((k, n)) = cost.put_counters {
+                    let what = counters(Num::N(n), k);
+                    let src = ctx.source();
+                    parts.push(format!("Put {what} on {src}"));
+                }
+            }
             CostItem::FromGraveyard => {}
             CostItem::ExileCards => {
                 if let Some(g) = &cost.exile_cards {
@@ -2347,7 +2363,12 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 if cost.discard_self {
                     parts.push("Discard this card".to_string());
                 } else if cost.discard_x {
-                    parts.push("Discard X cards".to_string());
+                    // "Discard X creature cards".
+                    let kind = cost
+                        .discard_filter
+                        .as_ref()
+                        .map_or(String::new(), |f| card_filter_phrase(f, ctx.card) + " ");
+                    parts.push(format!("Discard X {kind}cards"));
                 } else if let Some(f) = &cost.discard_filter {
                     parts.push(format!("Discard {}", card_filter_a(f, ctx.card)));
                 } else if cost.discard > 0 {
@@ -3976,6 +3997,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("distribute {c} among {o}"))
         }
+        Effect::RemoveCounterChosen { to } => {
+            let o = ctx.obj(*to);
+            Clause::imperative(format!("remove a counter from {o}"))
+        }
         Effect::RemoveAllCounters { to } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("remove all counters from {o}"))
@@ -4000,7 +4025,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "target nonland permanent and all other permanents with the
             // same name as that permanent ... to their owners' hands".
             let target_and = matches!(what.as_slice(), [Recipient::TargetAnd(..)]);
-            let plural = what.len() > 1 || all || target_and;
+            // "Return X target creatures to their owners' hands".
+            let plural = what.len() > 1 || all || target_and || ctx.is_many(what[0]);
             // "Return target creature card and all other cards with the
             // same name as that card from your graveyard to your hand."
             if let [Recipient::TargetAnd(t, _)] = what.as_slice()
@@ -5469,13 +5495,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::IfCondition(c, inner, also) => {
             let also = *also == crate::ast::IfWording::Also;
-            let cond = static_cond_text(c, ctx.card);
+            let kicked = *c == StaticCond::Kicked;
+            // "If this spell was kicked, those creatures also gain trample".
+            let cond = if kicked {
+                format!("this {} was kicked", kicked_noun(ctx.card))
+            } else {
+                static_cond_text(c, ctx.card)
+            };
             // "Adamant — If at least three red mana was spent to cast this
             // spell, Searing Barrage deals 3 damage ...": a spell names
             // itself again after a condition ("If you control an
             // Equipment, Misthios's Fury also deals ..."); not after
             // teamwork ("it also deals 2 damage").
-            if is_spell(ctx.card) && *c != StaticCond::Teamwork {
+            if is_spell(ctx.card) && *c != StaticCond::Teamwork && !kicked {
                 ctx.source_mentioned = false;
             }
             let body = sentences(inner, ctx);
@@ -5736,6 +5768,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 body
             } else {
                 lowercase_first(&body)
+            };
+            // "If this spell was kicked, they get +1/+1 until end of turn."
+            let body = match body.strip_prefix("those creatures ") {
+                Some(rest) => format!("they {rest}"),
+                None => body,
             };
             Clause::imperative(format!(
                 "if this spell was kicked, {}",
@@ -8668,6 +8705,13 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
         }
     } else {
         let stem = body.strip_suffix('.').unwrap_or(body);
+        // "This creature has flying as long as it has a +1/+1 counter on
+        // it."
+        if matches!(c, StaticCond::SourceCounters { at_least: true, .. })
+            && body.starts_with(&capitalize(&this_ref(card)))
+        {
+            cond = cond.replacen(&format!("this {} has", self_noun(card)), "it has", 1);
+        }
         format!("{stem} as long as {cond}.")
     }
 }
@@ -8997,9 +9041,22 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 Who::Any => "",
             };
             let more = if *generic > 0 { "more" } else { "less" };
+            // "Creature spells you cast with mana value 6 or greater":
+            // the mana value after who casts them.
+            let mut f = filter.clone();
+            let mv = f.mana_value.take().filter(|_| !f.status.mana_value_x);
+            if let Some(alt) = &mut f.or
+                && alt.mana_value == mv
+            {
+                alt.mana_value = None;
+            }
+            let (f, mv) = match mv {
+                Some((cmp, n)) => (f, format!(" with mana value {n}{}", cmp_words(cmp))),
+                None => (filter.clone(), String::new()),
+            };
             format!(
-                "{} {whose} cost {{{}}} {more} to cast.",
-                cost_spells_subject(filter, card),
+                "{} {whose}{mv} cost {{{}}} {more} to cast.",
+                cost_spells_subject(&f, card),
                 generic.unsigned_abs()
             )
             .replace("  ", " ")
@@ -9107,6 +9164,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "{} escapes with {} on it.",
                 capitalize(&this_ref(card)),
                 counters(Num::N(*n), CounterKind::PlusOnePlusOne)
+            ),
+            crate::ast::Mechanic::CounterChoice([a, b], escapes) => format!(
+                "{} {} with your choice of {} or {} on it.",
+                capitalize(&this_ref(card)),
+                if *escapes { "escapes" } else { "enters" },
+                counters(Num::N(1), *a),
+                counters(Num::N(1), *b)
             ),
             crate::ast::Mechanic::Bloodthirst(n) => format!("Bloodthirst {n}"),
             crate::ast::Mechanic::KickedWith(n, ks) => {

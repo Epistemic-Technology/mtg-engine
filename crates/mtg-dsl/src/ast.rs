@@ -139,6 +139,10 @@ pub struct Card {
     pub cast_only: Option<StaticCond>,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
+    /// The spell's targets from this index on are declared in its `if
+    /// kicked, ...` and chosen only if it is kicked (CR 601.2c); set by
+    /// the parser, never written.
+    pub kicker_targets: Option<u8>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
     pub flashback: Option<Cost>,
     /// Filters behind `Recipient::Group`, in order of first mention.
@@ -188,6 +192,7 @@ impl Card {
             unkicked_targets: None,
             cast_only: None,
             kicker: None,
+            kicker_targets: None,
             flashback: None,
             groups: Vec::new(),
             abilities: Vec::new(),
@@ -467,6 +472,9 @@ pub struct Cost {
     /// `remove 1 charge counter from this`: "Remove a charge counter from
     /// this artifact".
     pub remove_counters: Option<(CounterKind, u32)>,
+    /// `put 1 -1/-1 counter on this`: "Put a -1/-1 counter on this
+    /// creature".
+    pub put_counters: Option<(CounterKind, u32)>,
     /// `return land you control` / `tap untapped creature you control`:
     /// what the `sacrifice` filter's chosen permanent pays.
     pub chosen: mtg_core::card::ChosenCost,
@@ -521,6 +529,7 @@ pub enum CostItem {
     /// `exile 2 cards from graveyard`.
     ExileCards,
     RemoveCounters,
+    PutCounters,
     /// `from graveyard`: activated from the graveyard (printed nowhere;
     /// the effect says "this card from your graveyard").
     FromGraveyard,
@@ -1134,6 +1143,10 @@ pub enum Mechanic {
     Escape(ManaCost, u32),
     /// `escapes with 2 +1/+1 counters`.
     EscapesWith(u32),
+    /// `enters with choice flying counter or first strike counter`: "This
+    /// creature enters with your choice of a flying counter or a first
+    /// strike counter on it." (CR 614.1c); `true`: "escapes with ...".
+    CounterChoice([CounterKind; 2], bool),
     /// `kicked with 2 +1/+1 counters [and first strike]`: "If this
     /// creature was kicked, it enters with two +1/+1 counters on it [and
     /// with first strike]." (CR 702.33c, 614.1c).
@@ -2319,6 +2332,11 @@ pub enum Effect {
         to: Recipient,
     },
     RemoveAllCounters {
+        to: Recipient,
+    },
+    /// `remove 1 counter from target permanent`: "remove a counter from
+    /// target permanent" (of a kind the controller chooses).
+    RemoveCounterChosen {
         to: Recipient,
     },
     ReturnToHand {

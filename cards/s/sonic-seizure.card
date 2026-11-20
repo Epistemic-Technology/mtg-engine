@@ -1,0 +1,7 @@
+card "Sonic Seizure" {
+  oracle_id f43c68f1-97ac-47a4-82d3-a41277259388
+  cost {R}
+  type Instant
+  additional cost discard 1 card at random
+  spell: deal 3 damage to any target
+}

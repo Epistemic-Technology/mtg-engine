@@ -617,6 +617,16 @@ impl GameObject {
         }
     }
 
+    /// Whether its counters satisfy "with a +1/+1 counter on it", "with
+    /// three or more level counters on it" (CR 122.1).
+    pub fn counters_match(&self, q: crate::card::CounterQual) -> bool {
+        match q {
+            crate::card::CounterQual::Any => self.counters.iter().any(|(_, n)| *n > 0),
+            crate::card::CounterQual::Kind(k) => self.counters(k) > 0,
+            crate::card::CounterQual::AtLeast(k, n) => self.counters(k) >= n,
+        }
+    }
+
     pub fn remove_counters(&mut self, kind: CounterKind, n: u32) {
         if let Some(i) = self.counters.iter().position(|(k, _)| *k == kind) {
             self.counters[i].1 = self.counters[i].1.saturating_sub(n);
@@ -2234,12 +2244,8 @@ impl GameState {
             return false;
         }
         // "with a +1/+1 counter on it" (CR 122.1).
-        match q.counter {
-            Some(crate::card::CounterQual::Any) if !o.counters.iter().any(|(_, n)| *n > 0) => {
-                return false;
-            }
-            Some(crate::card::CounterQual::Kind(k)) if o.counters(k) == 0 => return false,
-            _ => {}
+        if q.counter.is_some_and(|c| !o.counters_match(c)) {
+            return false;
         }
         q.token
             .is_none_or(|t| (self.objects[id].kind == ObjKind::Token) == t)
@@ -2892,12 +2898,8 @@ impl GameState {
         {
             return false;
         }
-        match quals.counter {
-            Some(crate::card::CounterQual::Any) if !obj.counters.iter().any(|(_, n)| *n > 0) => {
-                return false;
-            }
-            Some(crate::card::CounterQual::Kind(k)) if obj.counters(k) == 0 => return false,
-            _ => {}
+        if quals.counter.is_some_and(|c| !obj.counters_match(c)) {
+            return false;
         }
         if quals.modified && !obj.counters.iter().any(|(_, n)| *n > 0) {
             let has = |a: ObjId, s: crate::card::Subtype| {

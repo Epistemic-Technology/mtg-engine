@@ -719,6 +719,7 @@ impl P {
             unkicked_targets: None,
             cast_only: None,
             kicker: None,
+            kicker_targets: None,
             flashback: None,
             groups: Vec::new(),
             abilities: Vec::new(),
@@ -1154,6 +1155,7 @@ impl P {
     #[allow(clippy::too_many_lines)]
     fn ability(&mut self) -> R<Ability> {
         self.targets.clear();
+        self.kicked_targets = None;
         self.votes.clear();
         self.subject = None;
         self.revealed = false;
@@ -1313,6 +1315,21 @@ impl P {
                 };
                 self.end_stmt()?;
                 Ok(Ability::HandSize { whose, delta })
+            }
+            // `enters with choice flying counter or first strike counter`:
+            // "... enters with your choice of a flying counter or a first
+            // strike counter on it."
+            "enters" | "escapes"
+                if self.word_at(1).as_deref() == Some("with")
+                    && self.word_at(2).as_deref() == Some("choice") =>
+            {
+                let escapes = w.eq_ignore_ascii_case("escapes");
+                self.pos += 3;
+                let a = self.counter_kind()?;
+                self.expect_word("or")?;
+                let b = self.counter_kind()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::CounterChoice([a, b], escapes)))
             }
             "escapes" if self.word_at(1).as_deref() == Some("with") => {
                 self.pos += 2;
@@ -3073,8 +3090,14 @@ impl P {
         // `<sentence> if target 1 is <filter>`: "Put a +1/+1 counter on
         // target creature you control if it's legendary." (the target as
         // the sentence resolves).
-        if self.at_words(&["if", "target"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
-            self.pos += 2;
+        // `... if that target 1 is ...`: "Draw a card if that creature
+        // has a +1/+1 counter on it."
+        let that = self.at_words(&["if", "that", "target"])
+            && matches!(self.peek_at(3), Some(Tok::Num(_)));
+        if that
+            || (self.at_words(&["if", "target"]) && matches!(self.peek_at(2), Some(Tok::Num(_))))
+        {
+            self.pos += if that { 3 } else { 2 };
             let n = self.number()? as usize;
             if n == 0 || n > self.targets.len() {
                 return self.fail(format!("target {n} has not been declared"));
@@ -3082,7 +3105,11 @@ impl P {
             self.expect_word("is")?;
             let filter = self.filter()?;
             let check = crate::ast::TargetCheck {
-                tense: crate::ast::TargetTense::Is,
+                tense: if that {
+                    crate::ast::TargetTense::ThatIs
+                } else {
+                    crate::ast::TargetTense::Is
+                },
                 also: false,
                 after: true,
             };
@@ -3644,6 +3671,32 @@ impl P {
         Ok(InsteadCond::Static(self.static_cond()?))
     }
 
+    /// After `if kicked`: "If this spell was kicked, ..." (CR 702.33c).
+    fn if_kicked(&mut self) -> R<Effect> {
+        if self.peek() == Some(&Tok::Comma) {
+            self.pos += 1;
+        }
+        // "If this spell was kicked, that creature also gains hexproof
+        // until end of turn."
+        if self.eat_word("also") {
+            let s = self.sentence()?;
+            return Ok(Effect::IfCondition(
+                StaticCond::Kicked,
+                vec![s],
+                crate::ast::IfWording::Also,
+            ));
+        }
+        let inner = if self.peek() == Some(&Tok::LBrace) {
+            self.effects_body()?
+        } else {
+            match self.instead_body(InsteadCond::Kicked)? {
+                Ok(e) => return Ok(e),
+                Err(s) => vec![s],
+            }
+        };
+        Ok(Effect::IfKicked(inner))
+    }
+
     /// "if you control a Treefolk, ...": a static condition. `None` (and
     /// nothing consumed) when what follows `if` is not one.
     fn if_condition(&mut self) -> R<Option<Effect>> {
@@ -3884,22 +3937,17 @@ impl P {
         // "if kicked, ..." (CR 702.33c).
         if self.at_words(&["if", "kicked"]) {
             self.pos += 2;
-            if self.peek() == Some(&Tok::Comma) {
-                self.pos += 1;
-            }
             let before = self.targets.len();
-            let inner = if self.peek() == Some(&Tok::LBrace) {
-                self.effects_body()?
-            } else {
-                match self.instead_body(InsteadCond::Kicked)? {
-                    Ok(e) => return Ok(e),
-                    Err(s) => vec![s],
-                }
-            };
-            if self.targets.len() > before && self.kicked_targets.is_none() {
+            let e = self.if_kicked()?;
+            // Not for an "instead" (Blood Beckoning's "instead return two
+            // target creature cards"): its own targets replace the others.
+            if self.targets.len() > before
+                && self.kicked_targets.is_none()
+                && !matches!(e, Effect::Instead { .. })
+            {
                 self.kicked_targets = Some(before);
             }
-            return Ok(Effect::IfKicked(inner));
+            return Ok(e);
         }
         if self.at_words(&["this", "turn"]) {
             self.pos += 2;
@@ -5445,6 +5493,14 @@ impl P {
                 if self.eat_words(&["all", "counters", "from"]) {
                     let to = self.recipient()?;
                     return Ok(Effect::RemoveAllCounters { to });
+                }
+                if matches!(self.peek(), Some(Tok::Num(1)))
+                    && self.word_at(1).as_deref() == Some("counter")
+                    && self.word_at(2).as_deref() == Some("from")
+                {
+                    self.pos += 3;
+                    let to = self.recipient()?;
+                    return Ok(Effect::RemoveCounterChosen { to });
                 }
                 let count = self.num()?;
                 let kind = self.counter_kind()?;
@@ -7848,6 +7904,19 @@ impl P {
                     f.mana_value = Some((cmp, 0));
                     f.status.mana_value_x = true;
                 }
+                // "with three or more level counters on it".
+                "with"
+                    if f.status.counter.is_none()
+                        && matches!(self.peek_at(1), Some(Tok::Num(_)))
+                        && self.word_at(2).as_deref() == Some("or")
+                        && self.word_at(3).as_deref() == Some("more") =>
+                {
+                    self.pos += 1;
+                    let n = self.count()?;
+                    self.expect_words(&["or", "more"])?;
+                    let k = self.counter_kind()?;
+                    f.status.counter = Some(mtg_core::card::CounterQual::AtLeast(k, n));
+                }
                 // "with a +1/+1 counter on it", "with a counter on it".
                 "with" if f.status.counter.is_none() && self.at_counter_qual() => {
                     self.pos += 1;
@@ -9066,6 +9135,20 @@ impl P {
                         cost.remove_counters = Some((k, n));
                         cost.order.push(CostItem::RemoveCounters);
                     }
+                    // `put 1 -1/-1 counter on this` (CR 118.3).
+                    "put"
+                        if (1..5).any(|k| {
+                            self.word_at(k).as_deref() == Some("on")
+                                && self.word_at(k + 1).as_deref() == Some("this")
+                        }) =>
+                    {
+                        self.pos += 1;
+                        let n = self.count()?;
+                        let k = self.counter_kind()?;
+                        self.expect_words(&["on", "this"])?;
+                        cost.put_counters = Some((k, n));
+                        cost.order.push(CostItem::PutCounters);
+                    }
                     "return" | "tap" if !matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                         cost.chosen = if w.eq_ignore_ascii_case("return") {
                             mtg_core::card::ChosenCost::Return
@@ -9122,9 +9205,14 @@ impl P {
                         if self.eat_word("this") {
                             self.eat_word("card");
                             cost.discard_self = true;
-                        } else if self.at_words(&["x", "cards"]) {
-                            // "Discard X cards" (CR 601.2b: X announced).
-                            self.pos += 2;
+                        } else if self.at_word("x") {
+                            // "Discard X cards", "Discard X creature cards"
+                            // (CR 601.2b: X announced).
+                            self.pos += 1;
+                            if !self.at_word("cards") {
+                                cost.discard_filter = Some(self.filter()?);
+                            }
+                            self.cards_word()?;
                             cost.discard_x = true;
                         } else if matches!(self.peek(), Some(Tok::Num(_))) {
                             cost.discard = self.count()?;

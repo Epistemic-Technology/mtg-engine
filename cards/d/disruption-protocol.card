@@ -1,0 +1,8 @@
+card "Disruption Protocol" {
+  oracle_id 4ca3306b-06f7-4a09-b904-f5540d11ddf1
+  cost {U}{U}
+  type Instant
+  additional cost tap untapped artifact you control
+  additional cost or {1}
+  spell: counter target spell
+}

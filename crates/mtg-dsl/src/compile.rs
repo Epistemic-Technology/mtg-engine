@@ -588,6 +588,9 @@ impl Compiler<'_> {
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
         }
+        if let Some(n) = card.kicker_targets {
+            b = b.kicker_targets(n);
+        }
         if let Some(fb) = &card.flashback {
             // "Flashback—Sacrifice three creatures.", "Flashback—Tap three
             // untapped white creatures you control." settle the permanent
@@ -1198,6 +1201,7 @@ impl Compiler<'_> {
             exile_self: c.exile_self,
             crew: c.crew,
             remove_counters: c.remove_counters,
+            put_counters: c.put_counters,
             energy: c.energy,
             blight: c.blight,
             chosen: c.chosen,
@@ -1470,6 +1474,9 @@ impl Compiler<'_> {
                 count: *count,
                 to: r(*to),
             }),
+            Effect::RemoveCounterChosen { to } => {
+                out.push(CoreEffect::RemoveCounterChosen { to: r(*to) });
+            }
             Effect::RemoveAllCounters { to } => {
                 out.push(CoreEffect::RemoveAllCounters { to: r(*to) });
             }
@@ -2984,6 +2991,18 @@ impl Compiler<'_> {
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Mechanic(m) => match m {
                 Mechanic::Toxic(n) => AbilityDef::Toxic(*n),
+                Mechanic::CounterChoice(kinds, escapes) => {
+                    let cond =
+                        escapes.then(|| self.pool.intern_condition(StaticCondition::Escaped));
+                    AbilityDef::Replacement(ReplacementAbility {
+                        replaces: mtg_core::card::Replaces::Enters,
+                        replacement: mtg_core::card::Replacement::EnterWithCounterChoice {
+                            kinds: *kinds,
+                            cond,
+                        },
+                        then: Vec::new(),
+                    })
+                }
                 Mechanic::Bloodthirst(n)
                 | Mechanic::EscapesWith(n)
                 | Mechanic::KickedWith(n, _) => {
@@ -3756,6 +3775,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Entwine(_)
         | Mechanic::Escape(..)
         | Mechanic::EscapesWith(_)
+        | Mechanic::CounterChoice(..)
         | Mechanic::KickedWith(..)
         | Mechanic::Buyback(_)
         | Mechanic::BuybackCost(_)

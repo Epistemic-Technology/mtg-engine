@@ -1,0 +1,7 @@
+card "Aether Tide" {
+  oracle_id 2fbf95b4-bcf4-4b5e-b5dc-0294f2b48d3e
+  cost {X}{U}
+  type Sorcery
+  additional cost discard X creature cards
+  spell: return X target creatures to hand
+}

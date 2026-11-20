@@ -1,0 +1,8 @@
+card "Champion's Drake" {
+  oracle_id 3aca5718-9151-4a5b-b8a3-bfac7abf65ef
+  cost {1}{U}
+  type Creature — Drake
+  pt 1/1
+  keywords flying
+  static this: +3/+3 as long as you control creature with 3 or more level counters
+}

@@ -104,6 +104,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         unkicked_targets: def.unkicked_targets.map(usize::from),
         cast_only: def.cast_only.map(|c| d.static_cond(pool.condition(c))),
         kicker: def.kicker.as_deref().cloned(),
+        kicker_targets: def.kicker_targets,
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
         // Unleash's second static ability comes back with its keyword line.
@@ -321,6 +322,7 @@ impl Decompiler<'_> {
             exile_self: c.exile_self,
             crew: c.crew,
             remove_counters: c.remove_counters,
+            put_counters: c.put_counters,
             energy: c.energy,
             blight: c.blight,
             chosen: c.chosen,
@@ -671,6 +673,7 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::RemoveAllCounters { to } => Effect::RemoveAllCounters { to: r(*to) },
+            CoreEffect::RemoveCounterChosen { to } => Effect::RemoveCounterChosen { to: r(*to) },
             CoreEffect::ReturnToHand { what } => Effect::ReturnToHand {
                 what: vec![r(*what)],
             },
@@ -1815,6 +1818,10 @@ impl Decompiler<'_> {
                 effects: self.sentences(&t.effects),
                 from_graveyard: t.from_graveyard,
             },
+            AbilityDef::Replacement(ReplacementAbility {
+                replacement: mtg_core::card::Replacement::EnterWithCounterChoice { kinds, cond },
+                ..
+            }) => Ability::Mechanic(crate::ast::Mechanic::CounterChoice(*kinds, cond.is_some())),
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                 ..

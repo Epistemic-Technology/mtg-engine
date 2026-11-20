@@ -1,0 +1,7 @@
+card "Savage Offensive" {
+  oracle_id b5944ca8-d54e-4830-9f66-be8fe97d101d
+  cost {1}{R}
+  type Sorcery
+  kicker {G}
+  spell: each creature you control gains first strike; if kicked, each creature you control gets +1/+1
+}

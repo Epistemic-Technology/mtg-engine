@@ -1,0 +1,7 @@
+card "Lightwalker" {
+  oracle_id 6f4848d4-a5dc-4c71-955c-ad2b1cbb7ede
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 2/1
+  static this: has flying as long as this has 1 or more +1/+1 counters
+}

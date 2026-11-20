@@ -1,0 +1,343 @@
+# Counter costs and kicker variants: a cost that puts a counter on its
+# source ("Put a -1/-1 counter on this creature: Untap this creature.",
+# CR 118.3, 602.2b), paid as the ability is activated, even by a mana
+# ability payment activates ("Put a -0/-1 counter on this creature: Add
+# {G}. Activate only once each turn."); "discard X creature cards".
+
+scenario "Devoted Druid untaps itself with a -1/-1 counter" {
+  battlefield A: "Devoted Druid" tapped
+  turn 1 A: activate "Devoted Druid"
+  run_to turn 1 postcombat_main
+  assert untapped "Devoted Druid"
+  assert counters "Devoted Druid" -1/-1 1
+  assert toughness "Devoted Druid" 1
+}
+
+scenario "Devoted Druid's second counter kills it as the cost is paid" {
+  battlefield A: "Devoted Druid" tapped with 1 -1/-1
+  turn 1 A: activate "Devoted Druid"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Devoted Druid"
+}
+
+scenario "Wall of Roots pays for a spell with a -0/-1 counter" {
+  battlefield A: "Wall of Roots", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Wall of Roots" -0/-1 1
+  assert toughness "Wall of Roots" 4
+}
+
+scenario "Wall of Roots adds mana only once each turn" {
+  battlefield A: "Wall of Roots"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Aether Tide discards X creature cards" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Aether Tide", "Grizzly Bears", "Hill Giant", "Forest"
+  turn 1 A: cast "Aether Tide" x 2 targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert hand A contains "Forest"
+}
+
+scenario "Aether Tide can't discard more creature cards than are in hand" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Aether Tide", "Grizzly Bears", "Forest"
+  illegal turn 1 A: cast "Aether Tide" x 2 targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+# "This creature enters with your choice of a flying counter or a first
+# strike counter on it" (CR 614.1c, 122.1b): the controller chooses as it
+# enters.
+
+scenario "Helica Glider enters with the chosen first strike counter" {
+  battlefield A: 3 "Plains"
+  hand A: "Helica Glider"
+  turn 1 A: cast "Helica Glider"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Helica Glider" flying 0
+  assert has "Helica Glider" first_strike
+  assert has not "Helica Glider" flying
+}
+
+scenario "Boot Nipper enters with a deathtouch counter by default" {
+  battlefield A: 2 "Swamp"
+  hand A: "Boot Nipper"
+  turn 1 A: cast "Boot Nipper"
+  run_to turn 1 postcombat_main
+  assert counters "Boot Nipper" deathtouch 1
+  assert has "Boot Nipper" deathtouch
+  assert has not "Boot Nipper" lifelink
+}
+
+scenario "Tizerus Charger cast from hand gets no counter" {
+  battlefield A: 3 "Swamp"
+  hand A: "Tizerus Charger"
+  turn 1 A: cast "Tizerus Charger"
+  run_to turn 1 postcombat_main
+  assert counters "Tizerus Charger" +1/+1 0
+  assert counters "Tizerus Charger" flying 0
+}
+
+scenario "Tizerus Charger escapes with a chosen flying counter" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Tizerus Charger", "Forest", "Forest", "Forest", "Forest", "Forest"
+  turn 1 A: cast "Tizerus Charger" from graveyard
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Tizerus Charger" flying 1
+  assert has "Tizerus Charger" flying
+}
+
+# "This creature has flying as long as it has a +1/+1 counter on it."
+
+scenario "Lightwalker flies with a +1/+1 counter" {
+  battlefield A: "Lightwalker" with 1 +1/+1
+  run_to turn 1 precombat_main
+  assert has "Lightwalker" flying
+}
+
+scenario "Lightwalker without a counter doesn't fly" {
+  battlefield A: "Lightwalker"
+  run_to turn 1 precombat_main
+  assert has not "Lightwalker" flying
+}
+
+
+
+# Spells that ask what their target has (CR 608.2c).
+
+scenario "Revelation of Power also gives flying and lifelink to a creature with a counter" {
+  battlefield A: 2 "Plains", "Grizzly Bears" with 1 -1/-1
+  hand A: "Revelation of Power"
+  turn 1 A: cast "Revelation of Power" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" lifelink
+}
+
+scenario "Revelation of Power only pumps a creature without counters" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Revelation of Power"
+  turn 1 A: cast "Revelation of Power" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "Oblivion's Hunger draws for a creature with a +1/+1 counter" {
+  battlefield A: 2 "Swamp", "Grizzly Bears" with 1 +1/+1
+  hand A: "Oblivion's Hunger"
+  turn 1 A: cast "Oblivion's Hunger" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" indestructible
+  assert hand A count 1
+}
+
+scenario "Oblivion's Hunger draws nothing without a counter" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  hand A: "Oblivion's Hunger"
+  turn 1 A: cast "Oblivion's Hunger" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Bring Low deals 5 to a creature with a +1/+1 counter" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant" with 1 +1/+1
+  hand A: "Bring Low"
+  turn 1 A: cast "Bring Low" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Bring Low deals 3 otherwise" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Bring Low"
+  turn 1 A: cast "Bring Low" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert damage "Serra Angel" 3
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Champion's Drake grows with a creature with three level counters" {
+  battlefield A: "Champion's Drake", "Grizzly Bears" with 3 level
+  run_to turn 1 precombat_main
+  assert power "Champion's Drake" 4
+}
+
+scenario "Champion's Drake doesn't grow with two level counters" {
+  battlefield A: "Champion's Drake", "Grizzly Bears" with 2 level
+  run_to turn 1 precombat_main
+  assert power "Champion's Drake" 1
+}
+
+# Kicker: "If this spell was kicked, that creature also gains hexproof",
+# "If this spell was kicked, return another target permanent card ..."
+# (a target chosen only if the spell is kicked, CR 601.2c).
+
+scenario "Shell Shield kicked also gives hexproof" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Shell Shield"
+  turn 1 A: cast "Shell Shield" kicked targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 5
+  assert has "Grizzly Bears" hexproof
+}
+
+scenario "Shell Shield unkicked gives no hexproof" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Shell Shield"
+  turn 1 A: cast "Shell Shield" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 5
+  assert has not "Grizzly Bears" hexproof
+}
+
+scenario "Savage Offensive kicked also pumps" {
+  battlefield A: 2 "Mountain", "Forest", "Grizzly Bears"
+  hand A: "Savage Offensive"
+  turn 1 A: cast "Savage Offensive" kicked
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" first_strike
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Heroic Charge unkicked gives no trample" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Heroic Charge"
+  turn 1 A: cast "Heroic Charge"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has not "Grizzly Bears" trample
+}
+
+scenario "Urborg Repossession unkicked needs only one target" {
+  battlefield A: "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Urborg Repossession"
+  turn 1 A: cast "Urborg Repossession" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert life A 22
+}
+
+scenario "Urborg Repossession kicked returns another permanent card" {
+  battlefield A: "Swamp", 2 "Forest"
+  graveyard A: "Grizzly Bears", "Plains"
+  hand A: "Urborg Repossession"
+  turn 1 A: cast "Urborg Repossession" kicked targeting "Grizzly Bears", "Plains"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Plains"
+}
+
+# Cost reductions by mana value: "Creature spells you cast with mana value
+# 6 or greater cost {2} less to cast." (CR 601.2f).
+
+scenario "Krosan Drover makes Craw Wurm cost {2} less" {
+  battlefield A: "Krosan Drover", 4 "Forest"
+  hand A: "Craw Wurm"
+  turn 1 A: cast "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Craw Wurm"
+}
+
+scenario "Krosan Drover doesn't reduce a smaller creature" {
+  battlefield A: "Krosan Drover", 2 "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Spectacle Mage makes a five-mana instant cost {1} less" {
+  battlefield A: "Spectacle Mage", 4 "Island"
+  hand A: "Hieroglyphic Illumination"
+  turn 1 A: cast "Hieroglyphic Illumination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hieroglyphic Illumination"
+  assert hand A count 2
+}
+
+scenario "Spectacle Mage doesn't reduce a three-mana sorcery" {
+  battlefield A: "Spectacle Mage", 2 "Island"
+  hand A: "Divination"
+  illegal turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+}
+
+# "When this creature enters, you may remove a counter from target
+# permanent."
+
+scenario "Medicine Runner removes a -1/-1 counter" {
+  battlefield A: 2 "Forest", "Grizzly Bears" with 1 -1/-1
+  hand A: "Medicine Runner"
+  turn 1 A: cast "Medicine Runner"
+  turn 1 A: trigger "Medicine Runner" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" -1/-1 0
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Medicine Runner may decline" {
+  battlefield A: 2 "Forest", "Grizzly Bears" with 1 -1/-1
+  hand A: "Medicine Runner"
+  turn 1 A: cast "Medicine Runner"
+  turn 1 A: trigger "Medicine Runner" targeting "Grizzly Bears"
+  turn 1 A: decline "Medicine Runner"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" -1/-1 1
+}
+
+# "As an additional cost to cast this spell, tap an untapped artifact you
+# control or pay {1}." (CR 601.2b).
+
+scenario "Disruption Protocol taps an artifact" {
+  battlefield A: 2 "Island", "Ornithopter"
+  battlefield B: "Mountain"
+  hand A: "Disruption Protocol"
+  hand B: "Shock"
+  start turn 1 B
+  turn 1 B: cast "Shock" targeting player A
+  turn 1 A: cast "Disruption Protocol" sacrificing "Ornithopter" targeting "Shock" in response to "Shock"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert tapped "Ornithopter"
+}
+
+scenario "Disruption Protocol pays {1} instead" {
+  battlefield A: 3 "Island"
+  battlefield B: "Mountain"
+  hand A: "Disruption Protocol"
+  hand B: "Shock"
+  start turn 1 B
+  turn 1 B: cast "Shock" targeting player A
+  turn 1 A: cast "Disruption Protocol" other_cost targeting "Shock" in response to "Shock"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Disruption Protocol with neither an artifact nor {1} more can't be cast" {
+  battlefield A: 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Disruption Protocol"
+  hand B: "Shock"
+  start turn 1 B
+  turn 1 B: cast "Shock" targeting player A
+  illegal turn 1 A: cast "Disruption Protocol" targeting "Shock" in response to "Shock"
+  run_to turn 1 postcombat_main
+}

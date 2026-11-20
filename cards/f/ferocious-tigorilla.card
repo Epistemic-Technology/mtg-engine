@@ -1,0 +1,7 @@
+card "Ferocious Tigorilla" {
+  oracle_id 4a7fef1e-3f11-4350-86da-6f1315fedc53
+  cost {3}{R}
+  type Creature — Cat Ape
+  pt 4/3
+  enters with choice trample counter or menace counter
+}

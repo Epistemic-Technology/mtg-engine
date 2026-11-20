@@ -1226,11 +1226,22 @@ impl Runner {
                             bestowed,
                             overloaded,
                             splice,
+                            kicked,
                             ..
                         } = &a.action
                         {
                             if *bestowed {
                                 needed += 1;
+                            }
+                            // "If this spell was kicked, return another
+                            // target ...": targets only a kicked spell has.
+                            if *kicked {
+                                let def = self.state().def_of(id).expect("card in hand");
+                                if def.kicker_targets.is_some()
+                                    && let Some((t, _)) = def.spell_ability()
+                                {
+                                    needed = t.len();
+                                }
                             }
                             if *overloaded {
                                 needed = 0;

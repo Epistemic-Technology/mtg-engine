@@ -973,6 +973,9 @@ impl Fmt {
                 counter(*kind, *count),
                 self.recipient(*to, t)
             ),
+            Effect::RemoveCounterChosen { to } => {
+                format!("remove 1 counter from {}", self.recipient(*to, t))
+            }
             Effect::RemoveAllCounters { to } => {
                 format!("remove all counters from {}", self.recipient(*to, t))
             }
@@ -1585,8 +1588,13 @@ impl Fmt {
                 )
             }
             Effect::IfTarget(n, f, inner, check) if check.after => format!(
-                "{} if target {} is {}",
+                "{} if {}target {} is {}",
                 self.line(inner, t),
+                if check.tense == crate::ast::TargetTense::ThatIs {
+                    "that "
+                } else {
+                    ""
+                },
                 n + 1,
                 filter(f)
             ),
@@ -2195,7 +2203,8 @@ fn outcome(o: &Outcome) -> String {
         Outcome::WinGame => "win".to_string(),
         Outcome::EnterTappedUnless(_)
         | Outcome::EnterWithCountersIf { .. }
-        | Outcome::EnterWithCountersMay { .. } => {
+        | Outcome::EnterWithCountersMay { .. }
+        | Outcome::EnterWithCounterChoice { .. } => {
             unreachable!("an AST ability of its own")
         }
         Outcome::EnterTapped => "tapped".to_string(),
@@ -2461,6 +2470,9 @@ fn filter_one(f: &Filter) -> String {
         Some(mtg_core::card::CounterQual::Any) => words.push("with counter".to_string()),
         Some(mtg_core::card::CounterQual::Kind(k)) => {
             words.push(format!("with {} counter", k.name()));
+        }
+        Some(mtg_core::card::CounterQual::AtLeast(k, n)) => {
+            words.push(format!("with {n} or more {} counters", k.name()));
         }
         None => {}
     }
@@ -3202,6 +3214,11 @@ fn cost_text(c: &Cost) -> String {
                     parts.push(format!("remove {n} {} from this", counter(k, Num::N(n))));
                 }
             }
+            CostItem::PutCounters => {
+                if let Some((k, n)) = c.put_counters {
+                    parts.push(format!("put {n} {} on this", counter(k, Num::N(n))));
+                }
+            }
             CostItem::Exile => {
                 if c.exile_self {
                     parts.push("exile this from graveyard".to_string());
@@ -3227,7 +3244,11 @@ fn cost_text(c: &Cost) -> String {
                 if c.discard_self {
                     parts.push("discard this".to_string());
                 } else if c.discard_x {
-                    parts.push("discard X cards".to_string());
+                    let what = c
+                        .discard_filter
+                        .as_ref()
+                        .map_or(String::new(), |f| filter(f) + " ");
+                    parts.push(format!("discard X {what}cards"));
                 } else if let Some(f) = &c.discard_filter {
                     parts.push(format!("discard {} card", filter(f)));
                 } else if c.discard > 0 {
@@ -3568,7 +3589,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::OpponentLostLifeThisTurn => "opponent lost life this turn".to_string(),
         StaticCond::PermanentLeftThisTurn => "permanent left this turn".to_string(),
         StaticCond::Escaped => unreachable!("only in `escapes with`"),
-        StaticCond::Kicked => unreachable!("only in `kicked with`"),
+        StaticCond::Kicked => "kicked".to_string(),
         StaticCond::Bargained => "bargained".to_string(),
         StaticCond::Teamwork => "teamwork".to_string(),
         StaticCond::ManaSpent {
@@ -4162,6 +4183,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::EscapesWith(n) => {
                     format!("escapes with {n} +1/+1 counters")
                 }
+                crate::ast::Mechanic::CounterChoice([a, b], escapes) => format!(
+                    "{} with choice {} or {}",
+                    if *escapes { "escapes" } else { "enters" },
+                    counter(*a, Num::N(1)),
+                    counter(*b, Num::N(1))
+                ),
                 crate::ast::Mechanic::Bloodthirst(n) => format!("bloodthirst {n}"),
                 crate::ast::Mechanic::KickedWith(n, ks) if ks.is_empty() => {
                     format!("kicked with {n} +1/+1 counters")

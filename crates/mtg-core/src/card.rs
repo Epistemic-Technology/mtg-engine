@@ -1150,6 +1150,8 @@ pub enum CounterQual {
     Any,
     /// "with a +1/+1 counter on it".
     Kind(CounterKind),
+    /// "with three or more level counters on it".
+    AtLeast(CounterKind, u32),
 }
 
 impl StatusQuals {
@@ -2895,6 +2897,11 @@ pub enum Effect {
     RemoveAllCounters {
         to: Recipient,
     },
+    /// "Remove a counter from target permanent": one counter of a kind
+    /// the controller chooses among those on it.
+    RemoveCounterChosen {
+        to: Recipient,
+    },
     /// Give the recipient a regeneration shield until end of turn (CR
     /// 701.15).
     Regenerate {
@@ -3870,6 +3877,7 @@ impl Effect {
                 | Effect::UnlessYou { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
+                | Effect::RemoveCounterChosen { .. }
                 | Effect::CopySpell
                 | Effect::Discard { .. }
                 | Effect::HandToLibrary { .. }
@@ -4202,6 +4210,14 @@ pub enum Replacement {
         kind: CounterKind,
         n: u32,
         haste: bool,
+    },
+    /// "This creature enters with your choice of a flying counter or a
+    /// first strike counter on it" (CR 614.1c, 122.1b): its controller
+    /// chooses one of `kinds` as it enters; with `cond` ("escapes with
+    /// ..."), only while the pool's condition holds.
+    EnterWithCounterChoice {
+        kinds: [CounterKind; 2],
+        cond: Option<u16>,
     },
     /// CR 701.15a: instead of being destroyed, the permanent has all damage
     /// removed, is tapped, and leaves combat. A stored shield; used once.
@@ -4721,6 +4737,11 @@ pub struct Cost {
     pub crew: u32,
     /// "Remove a charge counter from this artifact" (CR 122.8).
     pub remove_counters: Option<(CounterKind, u32)>,
+    /// "Put a -1/-1 counter on this creature" (CR 118.3, 602.2b): the
+    /// counters go on the source as the cost is paid; it may die to state-
+    /// based actions before the ability resolves.
+    #[serde(default)]
+    pub put_counters: Option<(CounterKind, u32)>,
     /// "Pay {E}{E}" (CR 107.14).
     pub energy: u32,
     /// What a `SacCost::Filter` cost does to the chosen permanent:
@@ -4807,6 +4828,7 @@ impl Cost {
             exile_self: false,
             crew: 0,
             remove_counters: None,
+            put_counters: None,
             energy: 0,
             chosen: ChosenCost::Sacrifice,
             life: 0,
@@ -5269,13 +5291,15 @@ impl AbilityDef {
         }
     }
 
-    /// "You may have this permanent enter with ..." (unleash, CR 702.98a):
-    /// its controller is asked as it enters.
+    /// "You may have this permanent enter with ..." (unleash, CR 702.98a)
+    /// or "enters with your choice of ...": its controller is asked as it
+    /// enters.
     pub const fn enters_may(&self) -> bool {
         matches!(
             self,
             AbilityDef::Replacement(ReplacementAbility {
-                replacement: Replacement::EnterWithCountersMay { .. },
+                replacement: Replacement::EnterWithCountersMay { .. }
+                    | Replacement::EnterWithCounterChoice { .. },
                 ..
             })
         )
@@ -5421,6 +5445,11 @@ pub struct CardDef {
     /// Kicker (CR 702.33): an optional additional mana cost chosen as the
     /// spell is cast.
     pub kicker: Option<Box<ManaCost>>,
+    /// The spell's targets from this index on are chosen only if it was
+    /// kicked ("If this spell was kicked, return another target permanent
+    /// card ...", CR 601.2c).
+    #[serde(default)]
+    pub kicker_targets: Option<u8>,
     /// What this spell's own text takes off its cost (affinity).
     pub self_cost: Option<SelfCost>,
     /// "This spell costs {3} less to cast if it targets a tapped
@@ -6985,7 +7014,11 @@ impl CardPool {
         });
         def.spent = self.spent_use(&def);
         def.cast_targets = match def.spell_ability() {
-            Some((t, _)) => t.to_vec(),
+            // Targets only a kicked spell has aren't needed to cast it.
+            Some((t, _)) => t[..def
+                .kicker_targets
+                .map_or(t.len(), |n| t.len().min(n.into()))]
+                .to_vec(),
             None => def.enchant().into_iter().collect(),
         };
         let mut flags = DefFlags::of(&def.abilities, def.keywords);
@@ -7257,6 +7290,7 @@ impl Builder {
             except_flags: DefFlags::default(),
             additional: Cost::default(),
             kicker: None,
+            kicker_targets: None,
             self_cost: None,
             buyback: None,
             buyback_sacrifice: None,
@@ -7598,6 +7632,14 @@ impl Builder {
     #[must_use]
     pub fn uncounterable(mut self) -> Self {
         self.0.uncounterable = true;
+        self
+    }
+
+    /// Targets chosen only if the spell is kicked (see
+    /// `CardDef::kicker_targets`).
+    #[must_use]
+    pub fn kicker_targets(mut self, from: u8) -> Self {
+        self.0.kicker_targets = Some(from);
         self
     }
 

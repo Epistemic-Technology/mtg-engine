@@ -1,0 +1,6 @@
+card "Revelation of Power" {
+  oracle_id 287f60a6-e83b-487b-add9-2048a06dcca1
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2; if target 1 is with counter, also target 1 gains flying and lifelink
+}
