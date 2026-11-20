@@ -579,23 +579,8 @@ impl Compiler<'_> {
             }
             return self.filter(&chain.expect("five alternatives"));
         }
-        // "historic" (CR 700.6): artifacts, legendaries, and Sagas, one
-        // alternative each.
-        if let Some(i) = f.subtypes.iter().position(|s| s == crate::ast::HISTORIC) {
-            let mut base = f.clone();
-            base.subtypes.remove(i);
-            let mut saga = base.clone();
-            saga.subtypes.push("Saga".to_string());
-            saga.or = f.or.clone();
-            let mut legendary = base.clone();
-            legendary
-                .supertypes
-                .push(mtg_core::card::Supertype::Legendary);
-            legendary.or = Some(Box::new(saga));
-            let mut artifact = base;
-            artifact.types.push(mtg_core::card::CardType::Artifact);
-            artifact.or = Some(Box::new(legendary));
-            return self.filter(&artifact);
+        if let Some(h) = historic(f) {
+            return self.filter(&h);
         }
         ObjFilter {
             who: f.who,
@@ -3240,4 +3225,23 @@ fn same_damage_recipients(effects: &[Sentence], before: &Sentence) -> Vec<Senten
         }
     }
     out
+}
+
+/// "historic" (CR 700.6): an artifact, a legendary, or a Saga, one
+/// alternative each; `None` for a filter without the word.
+fn historic(f: &Filter) -> Option<Filter> {
+    let i = f.subtypes.iter().position(|s| s == crate::ast::HISTORIC)?;
+    let mut base = f.clone();
+    base.subtypes.remove(i);
+    let mut saga = base.clone();
+    saga.subtypes.push("Saga".to_string());
+    let mut legendary = base.clone();
+    legendary
+        .supertypes
+        .push(mtg_core::card::Supertype::Legendary);
+    legendary.or = Some(Box::new(saga));
+    let mut artifact = base;
+    artifact.types.push(mtg_core::card::CardType::Artifact);
+    artifact.or = Some(Box::new(legendary));
+    Some(artifact)
 }

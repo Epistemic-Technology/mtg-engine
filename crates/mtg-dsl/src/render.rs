@@ -2912,6 +2912,7 @@ fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
     }
 }
 
+#[allow(clippy::too_many_lines)] // one arm per count style
 fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
     use crate::ast::CountStyle;
     let mut c = clause_inner(e, ctx);
@@ -2932,11 +2933,9 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             // then put them back in any order."
             CountStyle::Where if matches!(e, Effect::LookAtTop(_)) => {
                 let phrase = count_phrase_in(&count.expr, ctx, false);
-                c.text = c.text.replacen(
-                    ", then put",
-                    &format!(", where X is {phrase}, then put"),
-                    1,
-                );
+                c.text =
+                    c.text
+                        .replacen(", then put", &format!(", where X is {phrase}, then put"), 1);
             }
             CountStyle::Where => {
                 let _ = write!(
@@ -8259,11 +8258,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             ..f.clone()
                         }) == Filter::default() =>
                 {
-                    let _ = write!(
-                        out,
-                        ", if {} was dealt damage this turn",
-                        this_ref(card)
-                    );
+                    let _ = write!(out, ", if {} was dealt damage this turn", this_ref(card));
                     ctx.source_mentioned = true;
                 }
                 Some(crate::ast::TrigCond::Static(c)) => {
