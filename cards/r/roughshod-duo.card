@@ -1,0 +1,8 @@
+card "Roughshod Duo" {
+  oracle_id 0cc89c15-5a48-4998-b6df-21791b6ed9a3
+  cost {2}{R}
+  type Creature — Mouse Raccoon
+  pt 3/2
+  keywords trample
+  triggered whenever you expend 4: target creature you control gets +1/+1 and gains trample
+}

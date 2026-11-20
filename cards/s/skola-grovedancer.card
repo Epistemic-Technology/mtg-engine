@@ -1,0 +1,8 @@
+card "Skola Grovedancer" {
+  oracle_id 0e3246ef-e0b4-49bc-a715-b69c4b6be461
+  cost {1}{G}
+  type Enchantment Creature — Satyr Druid
+  pt 2/2
+  triggered whenever land card is put into your graveyard from anywhere: you gain 1 life
+  activated {2}{G}: mill 1 card
+}

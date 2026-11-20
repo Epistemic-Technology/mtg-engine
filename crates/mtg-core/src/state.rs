@@ -1231,6 +1231,11 @@ pub struct GameState {
     pub spells_this_turn: [u8; 4],
     /// Cards each player drew this turn ("your second card each turn").
     pub drawn_this_turn: [u8; 4],
+    /// Total mana each player has spent to cast spells this turn (expend,
+    /// CR 700.14), and what it was before their latest spell was paid
+    /// for: "Whenever you expend 4" triggers on the spell that crosses 4.
+    pub mana_spent_this_turn: [u16; 4],
+    pub mana_spent_before_cast: [u16; 4],
     /// Life each player has lost this turn ("the life you've lost this
     /// turn"; CR 119.3).
     pub life_lost_this_turn: [u32; 4],
@@ -1944,6 +1949,10 @@ impl GameState {
             if !ok {
                 return false;
             }
+        }
+        // CR 708.2: a face-down permanent.
+        if q.face_down && !self.pool.is_face_down(o.def) {
+            return false;
         }
         // "with toxic" (CR 702.164): a toxic ability among its current ones.
         if q.toxic

@@ -73,7 +73,9 @@ impl GameState {
                 // CR 603.2c: "one or more ... enter", once per batch.
                 let batch = matches!(
                     t.trigger,
-                    TriggerSpec::EntersBatch(_) | TriggerSpec::LeavesBatch { .. }
+                    TriggerSpec::EntersBatch(_)
+                        | TriggerSpec::LeavesBatch { .. }
+                        | TriggerSpec::LeavesGraveyard(_)
                 );
                 if batch && self.join_batch(&mut fired, ability, w.source) {
                     continue;
@@ -915,6 +917,77 @@ impl GameState {
                 (f.matches(*obj, o.controller, &c, Some(w.source), Some(w.controller))
                     && self.status_ok(f, *obj))
                 .then_some((Some(*obj), Some(o.controller)))
+            }
+            (TriggerSpec::Draws { whose }, Event::Draw { player, card }) => {
+                whose_ok(*whose, *player).then_some((Some(*card), Some(*player)))
+            }
+            // CR 701.9: judged as the card is discarded, still in the hand.
+            (TriggerSpec::Discards { whose, filter }, Event::Discard { player, card }) => {
+                let o = self.objects.get(*card)?;
+                let c = self.base_characteristics(o);
+                (whose_ok(*whose, *player)
+                    && filter.matches(*card, *player, &c, Some(w.source), Some(w.controller)))
+                .then_some((Some(*card), Some(*player)))
+            }
+            // CR 603.2c: once for the cards leaving the controller's
+            // graveyard together, each judged as the card it was.
+            (
+                TriggerSpec::LeavesGraveyard(filter),
+                Event::ZoneChange {
+                    new,
+                    def,
+                    from: Zone::Graveyard,
+                    ..
+                },
+            ) => {
+                let owner = self.objects.get(*new)?.owner;
+                let c = self.pool.get(*def).printed?;
+                (owner == w.controller
+                    && filter.matches(*new, owner, &c, Some(w.source), Some(w.controller)))
+                .then_some((None, Some(owner)))
+            }
+            // "is put into your graveyard from anywhere": the card in the
+            // graveyard, a new object (CR 400.7).
+            (
+                TriggerSpec::PutIntoGraveyard(filter),
+                Event::ZoneChange {
+                    new,
+                    to: Zone::Graveyard,
+                    ..
+                },
+            ) => {
+                let o = self.objects.get(*new)?;
+                if o.owner != w.controller || o.zone != Zone::Graveyard {
+                    return None;
+                }
+                let c = self.base_characteristics(o);
+                filter
+                    .matches(*new, o.owner, &c, Some(w.source), Some(w.controller))
+                    .then_some((Some(*new), Some(o.owner)))
+            }
+            (
+                TriggerSpec::EntersFromGraveyard(filter),
+                Event::ZoneChange {
+                    new,
+                    from: Zone::Graveyard,
+                    to: Zone::Battlefield,
+                    ..
+                },
+            ) => {
+                if self.objects.get(*new)?.owner != w.controller {
+                    return None;
+                }
+                let p = filter_on_battlefield(filter, *new)?;
+                Some((Some(*new), Some(p)))
+            }
+            // CR 700.14: the spell whose payment crossed `n`.
+            (TriggerSpec::Expends(n), Event::Cast { player, spell, .. }) => {
+                let i = player.index().min(3);
+                let n = u16::from(*n);
+                (*player == w.controller
+                    && self.mana_spent_before_cast[i] < n
+                    && self.mana_spent_this_turn[i] >= n)
+                    .then_some((Some(*spell), Some(*player)))
             }
             (TriggerSpec::Either(pair), _) => self
                 .fires(&pair.0, event, w)

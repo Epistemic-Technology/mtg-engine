@@ -1,0 +1,7 @@
+card "Nosy Goblin" {
+  oracle_id 7bca544e-08d8-4e83-aa30-c7201a649a66
+  cost {2}{R}
+  type Creature — Goblin
+  pt 2/1
+  activated {T}, sacrifice this: destroy target face-down creature
+}

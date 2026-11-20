@@ -1,0 +1,7 @@
+card "Mirkwood Meditator" {
+  oracle_id 399cd159-7376-421c-b001-c26f1cbadced
+  cost {2}{U}
+  type Creature — Elf Druid
+  pt 2/4
+  label "Landfall" triggered whenever land you control enters: you may this has base power and toughness 4/2 until end of turn
+}

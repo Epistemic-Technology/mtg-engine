@@ -654,7 +654,7 @@ impl Compiler<'_> {
                 use crate::ast::CombatRef;
                 use mtg_core::card::CombatWith;
                 match r {
-                    CombatRef::BlockingThis => CombatWith::Blocking,
+                    CombatRef::BlockingThis | CombatRef::BlockingIt => CombatWith::Blocking,
                     CombatRef::BlockedByThis | CombatRef::BlockedByIt => CombatWith::BlockedBy,
                     CombatRef::BlockingOrBlockedByThis => CombatWith::BlockingOrBlockedBy,
                 }
@@ -1673,6 +1673,15 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfKicked(effects));
             }
+            // "unless": nothing if the condition holds, otherwise the
+            // effects.
+            Effect::IfCondition(cond, inner, crate::ast::IfWording::Unless) => {
+                let effects = self.sentences(inner)?;
+                let c = self.static_cond(cond);
+                let i = self.pool.intern_condition(c);
+                out.push(CoreEffect::IfCondition(i, Vec::new()));
+                out.push(CoreEffect::Otherwise(effects));
+            }
             Effect::IfCondition(cond, inner, _) => {
                 let effects = self.sentences(inner)?;
                 let c = self.static_cond(cond);
@@ -2107,6 +2116,15 @@ impl Compiler<'_> {
                 filter: self.filter(filter),
                 dies: *dies,
             },
+            Trigger::Draws { whose } => TriggerSpec::Draws { whose: *whose },
+            Trigger::Discards { whose, filter } => TriggerSpec::Discards {
+                whose: *whose,
+                filter: self.filter(filter),
+            },
+            Trigger::LeavesGraveyard(f) => TriggerSpec::LeavesGraveyard(self.filter(f)),
+            Trigger::PutIntoGraveyard(f) => TriggerSpec::PutIntoGraveyard(self.filter(f)),
+            Trigger::EntersFromGraveyard(f) => TriggerSpec::EntersFromGraveyard(self.filter(f)),
+            Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::Or { first, second, .. } => {
                 TriggerSpec::Either(Box::new((self.trigger(first), self.trigger(second))))
             }

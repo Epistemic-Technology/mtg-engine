@@ -1,0 +1,7 @@
+card "Armored Transport" {
+  oracle_id 0caae56e-5995-4f1b-b735-80580a372707
+  cost {3}
+  type Artifact Creature — Construct
+  pt 2/1
+  replace combat damage from creature blocking it to this: prevent
+}

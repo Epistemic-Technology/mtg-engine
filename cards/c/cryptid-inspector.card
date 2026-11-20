@@ -1,0 +1,8 @@
+card "Cryptid Inspector" {
+  oracle_id c36f787e-d8d4-4bd5-9790-64766878fe46
+  cost {2}{G}
+  type Creature — Elf Warrior
+  pt 2/3
+  keywords vigilance
+  triggered whenever face-down permanent you control enters and whenever this or permanent you control is turned face up: put 1 +1/+1 counter on this
+}

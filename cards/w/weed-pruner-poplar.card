@@ -1,0 +1,7 @@
+card "Weed-Pruner Poplar" {
+  oracle_id 40e8ade9-9cec-4983-ab11-d9e6278fb29f
+  cost {4}{B}
+  type Creature — Treefolk Assassin
+  pt 3/3
+  triggered at beginning of your upkeep: target creature other than this gets -1/-1
+}

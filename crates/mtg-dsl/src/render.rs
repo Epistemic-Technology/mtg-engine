@@ -913,7 +913,7 @@ impl<'a> Ctx<'a> {
             Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
             Target::Spec(s) => target_phrase(*s),
             Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
-            Target::Filter(f) if f.relation == Relation::Other => {
+            Target::Filter(f) if f.relation == Relation::Other && !f.other_than_this => {
                 let mut g = f.clone();
                 crate::format::relation_any(&mut g);
                 format!(
@@ -1685,7 +1685,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         return s;
     }
     let mut words: Vec<String> = Vec::new();
-    if f.relation == Relation::Other {
+    if f.relation == Relation::Other && !f.other_than_this {
         words.push("other".to_string());
     }
     if f.status.enchanted == Some(true) && !f.enchanted_late {
@@ -1699,6 +1699,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.modified {
         words.push("modified".to_string());
+    }
+    if f.status.face_down {
+        words.push("face-down".to_string());
     }
     if let Some(b) = f.status.blocked {
         words.push(if b { "blocked" } else { "unblocked" }.to_string());
@@ -1829,6 +1832,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         Some(_) => s.push_str(" that player controls"),
         None => {}
     }
+    if f.other_than_this {
+        let _ = write!(s, " other than {}", this_ref(card));
+    }
     if f.not_attached {
         let mut host = Filter::enchanted();
         host.types.clone_from(&f.types);
@@ -1880,6 +1886,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         let this = this_ref(card);
         let _ = match r {
             crate::ast::CombatRef::BlockingThis => write!(s, " blocking {this}"),
+            crate::ast::CombatRef::BlockingIt => write!(s, " blocking it"),
             crate::ast::CombatRef::BlockedByThis => write!(s, " {this} is blocking"),
             crate::ast::CombatRef::BlockedByIt => write!(s, " it's blocking"),
             crate::ast::CombatRef::BlockingOrBlockedByThis => {
@@ -5004,6 +5011,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = sentences(inner, ctx);
             Clause::imperative(format!("{} if {cond}", body.trim_end_matches('.')))
         }
+        Effect::IfCondition(c, inner, crate::ast::IfWording::Unless) => {
+            let cond = static_cond_text(c, ctx.card);
+            let body = sentences(inner, ctx);
+            Clause::imperative(format!(
+                "{} unless {cond}",
+                lowercase_first(body.trim_end_matches('.'))
+            ))
+        }
         Effect::IfCondition(c, inner, also) => {
             let also = *also == crate::ast::IfWording::Also;
             let cond = static_cond_text(c, ctx.card);
@@ -5330,6 +5345,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ("has", "have"),
                 ];
                 let mut text = body.trim_end_matches('.').to_string();
+                // "you may have this creature's base power and toughness
+                // become 4/2 until end of turn".
+                if let Some((who, rest)) = text.split_once(" has base power and toughness ") {
+                    return Clause::imperative(format!(
+                        "you may have {who}'s base power and toughness become {rest}"
+                    ));
+                }
                 if let Some((at, (from, to))) = verbs
                     .iter()
                     .filter_map(|v| text.find(&format!(" {} ", v.0)).map(|i| (i, *v)))
@@ -5801,6 +5823,35 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::CastsNth { whose, nth } => {
             format!("whenever {}", crate::format::spell_ordinal(*nth, *whose))
         }
+        Trigger::Draws { whose } => {
+            format!("whenever {} a card", crate::format::draws_words(*whose))
+        }
+        Trigger::Discards { whose, filter: f } => format!(
+            "whenever {} {}",
+            crate::format::discards_words(*whose),
+            if *f == Filter::default() {
+                "a card".to_string()
+            } else {
+                with_article(&format!("{} card", card_filter_phrase(f, ctx.card)))
+            }
+        ),
+        Trigger::LeavesGraveyard(f) => format!(
+            "whenever one or more {} leave your graveyard",
+            if *f == Filter::default() {
+                "cards".to_string()
+            } else {
+                format!("{} cards", card_filter_phrase(f, ctx.card))
+            }
+        ),
+        Trigger::PutIntoGraveyard(f) => format!(
+            "whenever {} is put into your graveyard from anywhere",
+            with_article(&format!("{} card", card_filter_phrase(f, ctx.card)))
+        ),
+        Trigger::EntersFromGraveyard(f) => format!(
+            "whenever {} enters from your graveyard",
+            filter_a(f, ctx.card)
+        ),
+        Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::EntersBatch(f) => format!(
             "whenever one or more {} enter",
             controller_first(f, filter_phrase(f, ctx.card, true))
@@ -5844,10 +5895,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             };
             // "Whenever a creature dealt damage by this creature this turn
             // dies": not the source.
+            // "Whenever a creature an opponent controls dies": nor one
+            // its controller's opponent controls.
             if f.relation == Relation::Other
                 || f.enchanted
                 || !can_be_self
                 || f.status.damaged_by_source
+                || f.who == Some(Who::Opponents)
             {
                 format!("whenever {} {dies}", trigger_filter_a(f, ctx.card))
             } else {
@@ -6166,7 +6220,11 @@ fn trigger_subject(o: &TriggerObj, ctx: &mut Ctx) -> String {
 /// or greater" (elsewhere "a creature with power 4 or greater you
 /// control").
 fn trigger_filter_a(f: &Filter, card: &Card) -> String {
-    controller_first(f, filter_a(f, card))
+    let s = controller_first(f, filter_a(f, card));
+    if f.and_or {
+        return s.replacen(" or ", " and/or ", 1);
+    }
+    s
 }
 
 /// A rendered filter with its "you control" moved before its "with ..."
@@ -8165,6 +8223,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 }
                 // "Whenever this creature attacks while saddled", "...
                 // while you control two or more artifacts".
+                Some(crate::ast::TrigCond::While(StaticCond::DuringYourTurn)) => {
+                    out.push_str(" during your turn");
+                }
                 Some(crate::ast::TrigCond::While(c)) => {
                     out.push_str(" while ");
                     out.push_str(&match c {

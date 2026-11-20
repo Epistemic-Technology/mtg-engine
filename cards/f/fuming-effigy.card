@@ -1,0 +1,7 @@
+card "Fuming Effigy" {
+  oracle_id 37d48f9b-0286-4c5b-b549-baccb473aea3
+  cost {3}{R}
+  type Creature — Spirit
+  pt 4/3
+  triggered whenever one or more cards leave your graveyard: deal 1 damage to each opponent
+}

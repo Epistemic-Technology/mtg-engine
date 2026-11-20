@@ -1,0 +1,6 @@
+card "Jace's Erasure" {
+  oracle_id bb7c069b-8d3f-4ba2-874b-8ec575fd6dd4
+  cost {1}{U}
+  type Enchantment
+  triggered whenever you draw a card: you may target player mills 1 card
+}

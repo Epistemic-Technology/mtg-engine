@@ -4049,6 +4049,13 @@ impl GameState {
             }
             sacrifice = None;
         }
+        // Expend (CR 700.14): the mana spent to cast spells this turn,
+        // counted as the cost's mana symbols.
+        let i = caster.index().min(3);
+        let before = self.mana_spent_this_turn[i];
+        self.mana_spent_before_cast[i] = before;
+        self.mana_spent_this_turn[i] =
+            before.saturating_add(u16::try_from(req.total()).unwrap_or(u16::MAX));
         let sources = self.spell_sources(spell);
         if def.spent.record || self.spent_watchers > 0 {
             self.pay_recorded(spell, caster, &req, &sources, def.spent);

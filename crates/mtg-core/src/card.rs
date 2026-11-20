@@ -1058,6 +1058,8 @@ pub struct StatusQuals {
     /// "Aura attached to a creature", "Aura attached to a land": what it
     /// is attached to (CR 303.4) is of that kind.
     pub on: Option<OnHost>,
+    /// "face-down creature" (CR 708.2): a face-down permanent.
+    pub face_down: bool,
 }
 
 /// The kind of permanent `StatusQuals::on` asks the object to be attached
@@ -1093,6 +1095,7 @@ impl StatusQuals {
             || self.modified
             || self.toxic
             || self.on.is_some()
+            || self.face_down
     }
 }
 
@@ -4078,6 +4081,30 @@ pub enum TriggerSpec {
     /// battlefield), is the triggering object; `whose` is who sacrificed
     /// it, its controller (CR 701.21a).
     Sacrificed { what: TriggerObj, whose: Who },
+    /// "Whenever you draw a card", "Whenever a player draws a card" (CR
+    /// 121.2): once per card drawn.
+    Draws { whose: Who },
+    /// "Whenever a player discards a card", "Whenever you discard a
+    /// creature card" (CR 701.9): once per card, judged as it is
+    /// discarded (still in the hand); the card is the triggering object.
+    Discards { whose: Who, filter: ObjFilter },
+    /// "Whenever one or more cards leave your graveyard", "... creature
+    /// cards ..." (CR 603.2c, 603.10a): once for the matching cards that
+    /// leave the controller's graveyard together, however they leave;
+    /// their number is the trigger's amount.
+    LeavesGraveyard(ObjFilter),
+    /// "Whenever a land card is put into your graveyard from anywhere":
+    /// once per matching card its controller owns going to a graveyard,
+    /// the card (as it was) the triggering object.
+    PutIntoGraveyard(ObjFilter),
+    /// "Whenever a creature enters from your graveyard": a matching
+    /// permanent that entered from its controller's graveyard (the
+    /// source's controller's), the triggering object.
+    EntersFromGraveyard(ObjFilter),
+    /// "Whenever you expend 4" (CR 700.14): as the controller spends their
+    /// `n`th total mana to cast spells during a turn, judged as the spell
+    /// that paid it becomes cast.
+    Expends(u8),
 }
 
 /// Which of a player's spells this turn a cast trigger wants.
@@ -4159,7 +4186,10 @@ impl TriggerSpec {
             | TriggerSpec::Dies(_)
             | TriggerSpec::Leaves(_)
             | TriggerSpec::EntersBatch(_)
-            | TriggerSpec::LeavesBatch { .. } => WATCH_ZONE_CHANGE,
+            | TriggerSpec::LeavesBatch { .. }
+            | TriggerSpec::LeavesGraveyard(_)
+            | TriggerSpec::PutIntoGraveyard(_)
+            | TriggerSpec::EntersFromGraveyard(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
             TriggerSpec::BeginningOfStep { .. } | TriggerSpec::AttachedControllersStep(_) => {
                 WATCH_STEP_BEGIN
@@ -4180,19 +4210,21 @@ impl TriggerSpec {
             | TriggerSpec::DealsDamageTo { .. } => WATCH_DAMAGE,
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
-            TriggerSpec::DrawsNth { .. } => WATCH_DRAW,
+            TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
             TriggerSpec::Exploits | TriggerSpec::Reflexive | TriggerSpec::State(_) => 0,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,
             TriggerSpec::CastsSpell { .. }
             | TriggerSpec::CastsFiltered { .. }
             | TriggerSpec::CastsNth { .. }
-            | TriggerSpec::CastThis => WATCH_CAST,
+            | TriggerSpec::CastThis
+            | TriggerSpec::Expends(_) => WATCH_CAST,
             TriggerSpec::BecomesTarget(_)
             | TriggerSpec::TargetedByOpponent
             | TriggerSpec::TargetedByYouFirstTime => WATCH_TARGETED,
             TriggerSpec::BecomesAttachedTo(_) => WATCH_ATTACH,
-            TriggerSpec::Cycles {
+            TriggerSpec::Discards { .. }
+            | TriggerSpec::Cycles {
                 or_discard: true, ..
             } => WATCH_DISCARD,
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
