@@ -1,0 +1,34 @@
+scenario "a Gate entering puts it from the graveyard on top of the library" {
+  hand A: "Azorius Guildgate"
+  graveyard A: "Gate Colossus"
+  library A: "Plains", "Island"
+  turn 1 A: play "Azorius Guildgate"
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Gate Colossus"
+  assert library A contains "Gate Colossus"
+  run_to turn 3 precombat_main
+  assert hand A contains "Gate Colossus"
+}
+
+scenario "declined, it stays in the graveyard" {
+  hand A: "Azorius Guildgate"
+  graveyard A: "Gate Colossus"
+  turn 1 A: decline "Gate Colossus"
+  turn 1 A: play "Azorius Guildgate"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Gate Colossus"
+}
+
+scenario "Gates make it cheaper; small creatures can't block it" {
+  battlefield A: 2 "Azorius Guildgate", 4 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Gate Colossus"
+  turn 1 A: cast "Gate Colossus"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gate Colossus"
+  run_to turn 3 upkeep
+  turn 3 A: attack "Gate Colossus"
+  illegal turn 3 B: block "Gate Colossus" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 12
+}

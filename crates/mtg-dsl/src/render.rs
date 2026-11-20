@@ -4798,6 +4798,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 3 => "third".to_string(),
                 n => format!("{n}th"),
             };
+            // A graveyard ability's own card: "put this card from your
+            // graveyard on top of your library".
+            if *wording == W::Put
+                && *what == Recipient::Source
+                && works_from_graveyard(ctx.current)
+            {
+                return Clause::imperative(match place {
+                    P::Top => "put this card from your graveyard on top of your library".to_string(),
+                    P::Shuffle => "shuffle this card from your graveyard into your library".to_string(),
+                    _ => "put this card from your graveyard on the bottom of your library".to_string(),
+                });
+            }
             if *wording == W::Put {
                 let o = ctx.obj(*what);
                 let whose = graveyard_of.unwrap_or("its owner's");

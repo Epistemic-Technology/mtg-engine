@@ -1,0 +1,9 @@
+card "Gate Colossus" {
+  oracle_id 386c5895-9713-4c28-9ba8-8ca0caa06c13
+  cost {8}
+  type Artifact Creature — Construct
+  pt 8/8
+  affinity for Gate
+  can't be blocked by creature with power 2 or less
+  triggered from graveyard whenever Gate you control enters: you may put this on top of library
+}
