@@ -1176,6 +1176,7 @@ impl Decompiler<'_> {
                 },
                 to: *to,
                 who: None,
+                that_player: false,
             },
             CoreEffect::ExilePlayable { count, until } => Effect::ExilePlayable {
                 count: *count,

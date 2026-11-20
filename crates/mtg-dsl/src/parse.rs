@@ -3151,9 +3151,11 @@ impl P {
             self.expect_words(&["the", "revealed"])?;
             CardWords::TheRevealed
         };
+        let mut that_player = false;
         let to = if self.eat_words(&["into", "hand"]) {
             CardDest::Hand
         } else if self.eat_words(&["into", "graveyard"]) {
+            that_player = self.eat_words(&["of", "that", "player"]);
             CardDest::Graveyard
         } else if self.eat_words(&["onto", "battlefield"]) {
             CardDest::Battlefield {
@@ -3163,7 +3165,12 @@ impl P {
             self.expect_words(&["on", "bottom", "of", "library"])?;
             CardDest::LibraryBottom
         };
-        Ok(Effect::PutCard { what, to, who })
+        Ok(Effect::PutCard {
+            what,
+            to,
+            who,
+            that_player,
+        })
     }
 
     /// `if it is land card, <sentence>` / `if it isnt ...` / `if that card
@@ -4418,8 +4425,8 @@ impl P {
             "explores" => Ok(Effect::Explore { what: subject }),
             "connives" => Ok(Effect::Connive { what: subject }),
             "skips" | "skip" if self.at_word("next") => {
-                self.pos += 1;
                 use mtg_core::card::SkipWhat;
+                self.pos += 1;
                 let what = if self.eat_words(&["draw", "step"]) {
                     SkipWhat::DrawStep
                 } else {
@@ -7497,18 +7504,6 @@ impl P {
                                 && !f.subtypes.is_empty())) =>
                 {
                     f.not_types = vec![CardType::Instant, CardType::Sorcery];
-                    self.pos += 1;
-                }
-                // "a nonland permanent card".
-                "permanent"
-                    if matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
-                        && f.types.is_empty()
-                        && f.any_types.is_empty()
-                        && f.subtypes.is_empty()
-                        && !f.not_types.is_empty()
-                        && !f.not_types.contains(&CardType::Instant) =>
-                {
-                    f.not_types.extend([CardType::Instant, CardType::Sorcery]);
                     self.pos += 1;
                 }
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,

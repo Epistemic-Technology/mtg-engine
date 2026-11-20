@@ -3433,7 +3433,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
-        Effect::PutCard { what, to, who } => {
+        Effect::PutCard {
+            what,
+            to,
+            who,
+            that_player,
+        } => {
             use crate::ast::CardWords;
             use mtg_core::card::CardDest;
             let words = match what {
@@ -3451,6 +3456,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let many = !matches!(what, CardWords::It | CardWords::ThatCard);
             let dest = match to {
                 CardDest::Hand => format!("into {whose} hand"),
+                CardDest::Graveyard if *that_player => "into that player's graveyard".to_string(),
                 CardDest::Graveyard => format!("into {whose} graveyard"),
                 CardDest::Battlefield { tapped: false } => "onto the battlefield".to_string(),
                 CardDest::Battlefield { tapped: true } => "onto the battlefield tapped".to_string(),

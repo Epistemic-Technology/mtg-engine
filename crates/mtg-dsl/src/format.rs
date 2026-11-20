@@ -682,7 +682,12 @@ impl Fmt {
                 if *card { " card" } else { "" },
                 self.line(then, t)
             ),
-            Effect::PutCard { what, to, who } => {
+            Effect::PutCard {
+                what,
+                to,
+                who,
+                that_player,
+            } => {
                 use crate::ast::CardWords;
                 use mtg_core::card::CardDest;
                 let w = match what {
@@ -695,6 +700,7 @@ impl Fmt {
                 };
                 let d = match to {
                     CardDest::Hand => "into hand",
+                    CardDest::Graveyard if *that_player => "into graveyard of that player",
                     CardDest::Graveyard => "into graveyard",
                     CardDest::Battlefield { tapped: false } => "onto battlefield",
                     CardDest::Battlefield { tapped: true } => "onto battlefield tapped",

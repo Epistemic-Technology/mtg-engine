@@ -1545,8 +1545,8 @@ hand. You may choose ..."), `look at hand of target player discarding card`
 reveals hand exiling nonland card` ("Target opponent reveals their hand.
 You choose a nonland card from it and exile that card."; `exiling
 nonland card split`: "You choose a nonland card from it. Exile that
-card."). `nonland permanent card` is "a nonland permanent card" (neither
-a land, an instant nor a sorcery). A sentence
+card."). `nonland noninstant nonsorcery card` prints "a nonland
+permanent card" (CR 110.4a). A sentence
 may start `then` ("Then discard two cards unless ..."). After `return
 target permanent to hand`, `that player` is that permanent's owner:
 `return target permanent to hand; then that player discards 1 card`
@@ -1576,7 +1576,9 @@ that card is Goblin card, ...` "If that card is a Goblin card, ...", and
 without `card` (`if it is land, ...`) "If it's a land, ..."; with no card
 revealed (an empty library) neither holds. `otherwise, <sentence>` after
 it happens when it didn't. The card or cards move with `put it into
-hand`, `put that card into hand`, `put it into graveyard`, `put it onto
+hand`, `put that card into hand`, `put it into graveyard` (`put that card
+into graveyard of that player`: "into that player's graveyard", after
+looking at another player's library), `put it onto
 battlefield [tapped]` (under your control, CR 110.2a), `put it on bottom of
 library`, and for every revealed card still in the library `put all
 revealed into hand` ("put all cards revealed this way into your hand"),

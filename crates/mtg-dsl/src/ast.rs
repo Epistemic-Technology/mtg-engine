@@ -2861,6 +2861,9 @@ pub enum Effect {
         what: CardWords,
         to: mtg_core::card::CardDest,
         who: Option<Recipient>,
+        /// `into graveyard of that player`: "into that player's
+        /// graveyard" (the card's owner's, where it goes anyway).
+        that_player: bool,
     },
     /// `impulse 2 next turn first`: "Exile the top two cards of your
     /// library. Until the end of your next turn, you may play those
