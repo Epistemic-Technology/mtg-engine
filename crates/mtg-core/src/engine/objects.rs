@@ -160,6 +160,23 @@ impl GameState {
         .unwrap_or(id)
     }
 
+    /// CR 702.145b: "If it is night and this permanent is represented by a
+    /// double-faced card, it enters transformed." The definition a
+    /// permanent enters as.
+    fn daybound_entering(&self, def: CardRef) -> CardRef {
+        if self.desig.day_night != crate::state::DayNight::Night || self.mark_sources == 0 {
+            return def;
+        }
+        let d = self.pool.get(def);
+        if d.marks.has(crate::card::Marks::DAYBOUND)
+            && d.layout == crate::card::Layout::Transform
+            && let Some(back) = d.faces.first()
+        {
+            return *back;
+        }
+        def
+    }
+
     /// Counters a permanent enters the battlefield with: those the event
     /// says ("with a +1/+1 counter"), and a planeswalker's printed loyalty
     /// (CR 306.5b). Nothing off the battlefield.
@@ -289,7 +306,7 @@ impl GameState {
             // neither door unlocked.
             match self.pool.get(old.def).doors.as_deref() {
                 Some(d) if d.root == old.def => (d.none, old.except),
-                _ => (old.def, old.except),
+                _ => (self.daybound_entering(old.def), old.except),
             }
         } else {
             (old.card, None)

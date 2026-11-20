@@ -64,7 +64,9 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 118] = [
+const TEMPLATED_TAGS: [&str; 120] = [
+    "Daybound",
+    "Nightbound",
     "Transmute",
     "Sunburst",
     "Multikicker",
@@ -2649,6 +2651,11 @@ impl Builder<'_> {
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.145.
+        if line == "Daybound" || line == "Nightbound" {
+            self.statements.push(line.to_lowercase());
             return Ok(());
         }
         // CR 702.44a.

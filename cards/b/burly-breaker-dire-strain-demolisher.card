@@ -1,0 +1,16 @@
+card "Burly Breaker // Dire-Strain Demolisher" {
+  oracle_id 4cbfb898-e1ca-4e34-9cb2-11ba50272984
+  layout transform
+  cost {3}{G}{G}
+  type Creature — Human Werewolf
+  pt 6/5
+  ward {1}
+  daybound
+  face "Dire-Strain Demolisher" {
+    type Creature — Werewolf
+    pt 8/7
+    color green
+    ward {3}
+    nightbound
+  }
+}

@@ -1,0 +1,16 @@
+card "Weaver of Blossoms // Blossom-Clad Werewolf" {
+  oracle_id a64ecae7-0b09-48e1-8108-89442547ffda
+  layout transform
+  cost {2}{G}
+  type Creature — Human Werewolf
+  pt 2/3
+  activated {T}: add any
+  daybound
+  face "Blossom-Clad Werewolf" {
+    type Creature — Werewolf
+    pt 3/4
+    color green
+    activated {T}: add any 2
+    nightbound
+  }
+}

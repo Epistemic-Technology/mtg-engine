@@ -1,0 +1,15 @@
+card "Hookhand Mariner // Riphook Raider" {
+  oracle_id 52def237-0374-4ab0-8c01-d0d00aaa324f
+  layout transform
+  cost {3}{G}
+  type Creature — Human Werewolf
+  pt 4/4
+  daybound
+  face "Riphook Raider" {
+    type Creature — Werewolf
+    pt 6/4
+    color green
+    can't be blocked by creature with power 2 or less
+    nightbound
+  }
+}

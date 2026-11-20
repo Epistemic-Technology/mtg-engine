@@ -1312,6 +1312,13 @@ pub enum Mechanic {
     /// `becomes day as this enters`: "If it's neither day nor night, it
     /// becomes day as this creature enters." (CR 731.1).
     BecomesDay,
+    /// `daybound` (CR 702.145b), on a transforming card's front face: it
+    /// becomes day if it's neither, it enters transformed at night, it
+    /// transforms as it becomes night, and nothing else transforms it.
+    Daybound,
+    /// `nightbound` (CR 702.145e), on the back face: it transforms as it
+    /// becomes day.
+    Nightbound,
     /// `fabricate 1` (CR 702.123): when this enters, N +1/+1 counters on
     /// it or N 1/1 Servos.
     Fabricate(u32),

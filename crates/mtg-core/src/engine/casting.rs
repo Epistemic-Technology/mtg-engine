@@ -2314,6 +2314,33 @@ impl GameState {
         self.spell_payable(o.controller, spell, &req)
     }
 
+    /// Transform a double-faced permanent to its other face (CR 701.27);
+    /// it stays the same object. Whether it did.
+    pub(super) fn transform_now(&mut self, id: ObjId) -> bool {
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        if o.zone != Zone::Battlefield {
+            return false;
+        }
+        let d = self.pool.get(o.def);
+        if d.layout != Layout::Transform {
+            return false;
+        }
+        let Some(other) = d.faces.first().copied() else {
+            return false;
+        };
+        let legendary = d.is_legendary();
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, legendary, false);
+        self.objects[id].def = other;
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, self.pool.get(other).is_legendary(), true);
+        self.emit(Event::Transformed { obj: id });
+        self.cbump();
+        true
+    }
+
     /// How many times `spell`'s caster could pay its multikicker cost on
     /// top of its cost (CR 702.33c), at most 15.
     pub(super) fn multikicker_max(&self, spell: ObjId) -> u32 {
@@ -6674,27 +6701,15 @@ impl GameState {
                     let Target::Object(id) = t else {
                         continue;
                     };
-                    let Some(o) = self.objects.get(id) else {
-                        continue;
-                    };
-                    if o.zone != Zone::Battlefield {
-                        continue;
-                    }
-                    let d = self.pool.get(o.def);
-                    if d.layout != Layout::Transform {
+                    // CR 702.145b, e: a daybound or nightbound permanent
+                    // transforms only by those abilities.
+                    if self.objects.get(id).is_some_and(|o| {
+                        let m = self.pool.get(o.def).marks;
+                        m.has(crate::card::Marks::DAYBOUND) || m.has(crate::card::Marks::NIGHTBOUND)
+                    }) {
                         continue;
                     }
-                    let Some(other) = d.faces.first().copied() else {
-                        continue;
-                    };
-                    let legendary = d.is_legendary();
-                    let flags = self.flags_of(&self.objects[id]);
-                    self.count_sources(flags, legendary, false);
-                    self.objects[id].def = other;
-                    let flags = self.flags_of(&self.objects[id]);
-                    self.count_sources(flags, self.pool.get(other).is_legendary(), true);
-                    self.emit(Event::Transformed { obj: id });
-                    self.cbump();
+                    self.transform_now(id);
                 }
             }
             Effect::AddMana(mana) => {

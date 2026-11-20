@@ -5874,8 +5874,9 @@ pub struct Room {
 }
 
 /// Abilities that act on a player's designations as the game goes:
-/// ascend (CR 702.131b), start your engines! (CR 702.179a), and "If it's
-/// neither day nor night, it becomes day as this creature enters."
+/// ascend (CR 702.131b), start your engines! (CR 702.179a), "If it's
+/// neither day nor night, it becomes day as this creature enters.", and
+/// daybound and nightbound (CR 702.145).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
 pub struct Marks(pub u8);
 
@@ -5884,6 +5885,10 @@ impl Marks {
     pub const ASCEND: Marks = Marks(1);
     pub const ENGINES: Marks = Marks(2);
     pub const BECOMES_DAY: Marks = Marks(4);
+    /// Daybound (CR 702.145b): on a transforming card's front face.
+    pub const DAYBOUND: Marks = Marks(8);
+    /// Nightbound (CR 702.145e): on its back face.
+    pub const NIGHTBOUND: Marks = Marks(16);
 
     pub const fn has(self, m: Marks) -> bool {
         self.0 & m.0 != 0

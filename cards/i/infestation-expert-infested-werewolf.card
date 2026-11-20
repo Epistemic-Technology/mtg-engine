@@ -1,0 +1,16 @@
+card "Infestation Expert // Infested Werewolf" {
+  oracle_id bf69dc2a-9aec-4181-bbe9-70875055ec03
+  layout transform
+  cost {4}{G}
+  type Creature — Human Werewolf
+  pt 3/4
+  triggered whenever this enters or attacks: create 1 "1/1 green Insect creature"
+  daybound
+  face "Infested Werewolf" {
+    type Creature — Werewolf
+    pt 4/5
+    color green
+    triggered whenever this enters or attacks: create 2 "1/1 green Insect creature"
+    nightbound
+  }
+}

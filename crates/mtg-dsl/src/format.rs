@@ -4431,6 +4431,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Ascend => "ascend".to_string(),
                 crate::ast::Mechanic::StartYourEngines => "start your engines".to_string(),
                 crate::ast::Mechanic::BecomesDay => "becomes day as this enters".to_string(),
+                crate::ast::Mechanic::Daybound => "daybound".to_string(),
+                crate::ast::Mechanic::Nightbound => "nightbound".to_string(),
                 crate::ast::Mechanic::Fabricate(n) => format!("fabricate {n}"),
                 crate::ast::Mechanic::Evolve => "evolve".to_string(),
                 crate::ast::Mechanic::Renown(n) => format!("renown {n}"),

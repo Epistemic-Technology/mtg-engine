@@ -1,0 +1,16 @@
+card "Tireless Hauler // Dire-Strain Brawler" {
+  oracle_id c31e9db3-5d9d-470a-871a-b4b5b0536db5
+  layout transform
+  cost {4}{G}
+  type Creature — Human Werewolf
+  pt 4/5
+  keywords vigilance
+  daybound
+  face "Dire-Strain Brawler" {
+    type Creature — Werewolf
+    pt 6/6
+    color green
+    keywords vigilance
+    nightbound
+  }
+}

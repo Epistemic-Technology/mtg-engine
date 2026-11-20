@@ -1599,6 +1599,15 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::StartYourEngines))
             }
+            "daybound" | "nightbound" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(if w == "daybound" {
+                    Mechanic::Daybound
+                } else {
+                    Mechanic::Nightbound
+                }))
+            }
             "becomes" if self.at_words(&["becomes", "day", "as", "this", "enters"]) => {
                 self.pos += 5;
                 self.end_stmt()?;

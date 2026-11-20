@@ -1,0 +1,18 @@
+card "Suspicious Stowaway // Seafaring Werewolf" {
+  oracle_id da412474-1da8-409b-bd7b-87cbfc239fb0
+  layout transform
+  cost {1}{U}
+  type Creature — Human Rogue Werewolf
+  pt 1/1
+  keywords can't be blocked
+  triggered whenever this deals combat damage to a player: draw 1 cards then discard 1 cards
+  daybound
+  face "Seafaring Werewolf" {
+    type Creature — Werewolf
+    pt 2/1
+    color green
+    keywords can't be blocked
+    triggered whenever this deals combat damage to a player: draw 1 cards
+    nightbound
+  }
+}

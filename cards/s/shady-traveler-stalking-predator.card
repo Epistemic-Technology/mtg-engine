@@ -1,0 +1,16 @@
+card "Shady Traveler // Stalking Predator" {
+  oracle_id 10be1b27-bc9f-4c6e-ac85-f1fa8b2a34d6
+  layout transform
+  cost {2}{B}
+  type Creature — Human Werewolf
+  pt 2/3
+  keywords menace
+  daybound
+  face "Stalking Predator" {
+    type Creature — Werewolf
+    pt 4/4
+    color black
+    keywords menace
+    nightbound
+  }
+}

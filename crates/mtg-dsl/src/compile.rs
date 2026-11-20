@@ -452,6 +452,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::BecomesDay) => {
                     b = b.marks(mtg_core::card::Marks::BECOMES_DAY);
                 }
+                Ability::Mechanic(Mechanic::Daybound) => {
+                    b = b.marks(mtg_core::card::Marks::DAYBOUND);
+                }
+                Ability::Mechanic(Mechanic::Nightbound) => {
+                    b = b.marks(mtg_core::card::Marks::NIGHTBOUND);
+                }
                 Ability::Mechanic(Mechanic::Station) => {
                     // CR 702.184a: "equal to the tapped creature's power".
                     counts.push(mtg_core::card::CountExpr::MovedStat {
@@ -716,6 +722,8 @@ impl Compiler<'_> {
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
                             | Mechanic::BecomesDay
+                            | Mechanic::Daybound
+                            | Mechanic::Nightbound
                             | Mechanic::Retrace
                             | Mechanic::JumpStart
                             | Mechanic::Surge(_)
@@ -3198,7 +3206,9 @@ impl Compiler<'_> {
                 | Mechanic::Strive(_)
                 | Mechanic::Ascend
                 | Mechanic::StartYourEngines
-                | Mechanic::BecomesDay => {
+                | Mechanic::BecomesDay
+                | Mechanic::Daybound
+                | Mechanic::Nightbound => {
                     return self.err("a cost of the card, not an ability");
                 }
                 // CR 702.175a: "When this permanent enters, if its
@@ -4176,6 +4186,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Ascend
         | Mechanic::StartYourEngines
         | Mechanic::BecomesDay
+        | Mechanic::Daybound
+        | Mechanic::Nightbound
         | Mechanic::Fabricate(_)
         | Mechanic::Renown(_)
         | Mechanic::Unleash

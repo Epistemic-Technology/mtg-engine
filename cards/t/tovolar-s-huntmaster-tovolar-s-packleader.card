@@ -1,0 +1,17 @@
+card "Tovolar's Huntmaster // Tovolar's Packleader" {
+  oracle_id 18563bc9-6090-4629-b304-89a67d93f635
+  layout transform
+  cost {4}{G}{G}
+  type Creature — Human Werewolf
+  pt 6/6
+  triggered when this enters: create 2 "2/2 green Wolf creature"
+  daybound
+  face "Tovolar's Packleader" {
+    type Creature — Werewolf
+    pt 7/7
+    color green
+    triggered whenever this enters or attacks: create 2 "2/2 green Wolf creature"
+    activated {2}{G}{G}: another target Wolf or Werewolf you control fights target creature you don't control
+    nightbound
+  }
+}

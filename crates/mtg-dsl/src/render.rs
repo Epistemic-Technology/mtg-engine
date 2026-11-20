@@ -9622,6 +9622,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "If it's neither day nor night, it becomes day as {} enters.",
                 this_ref(card)
             ),
+            crate::ast::Mechanic::Daybound => "Daybound".to_string(),
+            crate::ast::Mechanic::Nightbound => "Nightbound".to_string(),
             crate::ast::Mechanic::Fabricate(n) => format!("Fabricate {n}"),
             crate::ast::Mechanic::Evolve => "Evolve".to_string(),
             crate::ast::Mechanic::Renown(n) => format!("Renown {n}"),
