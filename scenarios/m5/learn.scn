@@ -1,0 +1,21 @@
+# Learn (CR 701.48): with no Lesson cards outside the game, the player
+# may discard a card to draw a card (701.48a).
+
+scenario "learn: discard a card to draw a card" {
+  battlefield A: 3 "Island"
+  hand A: "Pop Quiz", "Forest"
+  turn 1 A: cast "Pop Quiz"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 2
+}
+
+scenario "learn: declined, nothing is discarded" {
+  battlefield A: 3 "Island"
+  hand A: "Pop Quiz", "Forest"
+  turn 1 A: cast "Pop Quiz"
+  turn 1 A: decline "Pop Quiz"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A count 1
+}

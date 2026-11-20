@@ -301,6 +301,11 @@ pub enum Keyword {
     /// "Its activated abilities can't be activated unless they're mana
     /// abilities" (Realmbreaker's Grasp).
     CantActivateNonMana,
+    /// CR 702.22: attacks in a band with other creatures with banding and
+    /// up to one without; a band is blocked as a group, and its
+    /// controller divides the combat damage of creatures blocking or
+    /// blocked by one with banding.
+    Banding,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -423,7 +428,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 63] = [
+    pub const ALL: [Keyword; 64] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -487,6 +492,7 @@ impl Keyword {
         Keyword::CantActivate,
         Keyword::CantActivateNonMana,
         Keyword::CantBecomeUntapped,
+        Keyword::Banding,
     ];
 
     /// The keyword as Oracle prints it.
@@ -540,6 +546,7 @@ impl Keyword {
             Keyword::Flanking => "flanking",
             Keyword::DoesntUntap => "doesn't untap during its controller's untap step",
             Keyword::CantBecomeUntapped => "can't become untapped",
+            Keyword::Banding => "banding",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -5160,6 +5167,8 @@ impl DefFlags {
     /// Ascend, start your engines!, or becoming day as it enters
     /// (`CardDef::marks`): state-based actions and entering then look.
     const MARKS: u32 = 4_194_304;
+    /// Banding (CR 702.22): combat then looks for bands.
+    const BANDING: u32 = 8_388_608;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -5260,6 +5269,10 @@ impl DefFlags {
 
     pub const fn has_marks(self) -> bool {
         self.has(DefFlags::MARKS)
+    }
+
+    pub const fn has_banding(self) -> bool {
+        self.has(DefFlags::BANDING)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -6333,6 +6346,7 @@ impl CardPool {
             flags.set(DefFlags::REPLACEMENTS, true);
         }
         flags.set(DefFlags::MARKS, !def.marks.is_empty());
+        flags.set(DefFlags::BANDING, def.keywords.contains(Keyword::Banding));
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
             def: r,

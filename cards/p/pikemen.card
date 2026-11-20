@@ -1,0 +1,7 @@
+card "Pikemen" {
+  oracle_id 5556a897-8947-4b78-81ce-a829508a4f11
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  keywords first strike, banding
+}

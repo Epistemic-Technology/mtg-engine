@@ -494,12 +494,101 @@ impl GameState {
         if let Some(c) = self.combat.as_mut() {
             c.attackers = attackers;
         }
+        // CR 702.22c: bands are formed as attackers are declared.
+        if self.banding_sources > 0 && events.len() >= 2 && self.band_leader(&[]).is_some() {
+            self.flow = crate::state::Flow::FormBands {
+                band: Vec::new(),
+                led: Vec::new(),
+            };
+            return;
+        }
+        self.announce_attackers();
+    }
+
+    /// The attackers are declared (CR 508.1): their "attacks" triggers,
+    /// then priority.
+    pub(super) fn announce_attackers(&mut self) {
+        let events: SmallVec<[(ObjId, Target); 4]> = self
+            .combat
+            .as_ref()
+            .map(|c| c.attackers.iter().map(|a| (a.id, a.attacking)).collect())
+            .unwrap_or_default();
         for (attacker, target) in events {
             self.emit(Event::Attack { attacker, target });
         }
         // Attacking status feeds filters ("attacking creatures get +1/+0").
         self.combat_bump();
         self.give_priority(self.active_player);
+    }
+
+    /// CR 702.22c: the next attacker with banding to lead a band, one
+    /// not in a band yet nor `led` one before.
+    pub(super) fn band_leader(&self, led: &[ObjId]) -> Option<ObjId> {
+        let c = self.combat.as_ref()?;
+        c.attackers.iter().map(|a| a.id).find(|id| {
+            !led.contains(id)
+                && c.band_of(*id).is_empty()
+                && self
+                    .characteristics(*id)
+                    .is_some_and(|ch| ch.has(Keyword::Banding))
+        })
+    }
+
+    /// CR 702.22c-d: the attackers that may join `band` (its leader first):
+    /// not in a band, attacking what the leader attacks, and at most one
+    /// without banding in the band.
+    pub(super) fn band_candidates(&self, band: &[ObjId]) -> Vec<ObjId> {
+        let Some(c) = self.combat.as_ref() else {
+            return Vec::new();
+        };
+        let Some(leader) = band.first().and_then(|l| c.attacker(*l)) else {
+            return Vec::new();
+        };
+        let banding = |id: ObjId| {
+            self.characteristics(id)
+                .is_some_and(|ch| ch.has(Keyword::Banding))
+        };
+        let one_without = band.iter().any(|id| !banding(*id));
+        c.attackers
+            .iter()
+            .filter(|a| {
+                !band.contains(&a.id)
+                    && c.band_of(a.id).is_empty()
+                    && a.attacking == leader.attacking
+                    && (!one_without || banding(a.id))
+            })
+            .map(|a| a.id)
+            .collect()
+    }
+
+    /// Who divides `source`'s combat damage (CR 510.1c-d): its controller,
+    /// but with banding (CR 702.22j-k) the other player when a creature
+    /// with banding they control is blocking it or blocked by it.
+    pub(super) fn damage_assigner(&self, source: ObjId) -> crate::ids::PlayerId {
+        let own = self.objects[source].controller;
+        if self.banding_sources == 0 {
+            return own;
+        }
+        let Some(c) = self.combat.as_ref() else {
+            return own;
+        };
+        let banding = |id: &ObjId| {
+            self.objects.get(*id).is_some_and(|o| o.controller != own)
+                && self
+                    .characteristics(*id)
+                    .is_some_and(|ch| ch.has(Keyword::Banding))
+        };
+        let other = match c.attacker(source) {
+            // An attacker: its blockers.
+            Some(a) => a.blockers.iter().any(banding),
+            // A blocker: the attackers it blocks.
+            None => c
+                .attackers
+                .iter()
+                .filter(|a| a.blockers.contains(&source))
+                .any(|a| banding(&a.id)),
+        };
+        if other { self.opponent(own) } else { own }
     }
 
     /// A creature put onto the battlefield attacking (CR 506.3a): it was
@@ -536,6 +625,22 @@ impl GameState {
         if !self.set_legal(&blockers, true) {
             let ok = self.legal_part(&blockers, true);
             blocks.retain(|(b, _)| ok.contains(b));
+        }
+        // CR 702.22h: a creature blocking one creature in a band blocks
+        // the whole band.
+        if self.banding_sources > 0
+            && let Some(c) = self.combat.as_ref()
+            && !c.bands.is_empty()
+        {
+            let mut extra = Vec::new();
+            for (b, a) in &blocks {
+                for other in c.band_of(*a) {
+                    if !blocks.contains(&(*b, *other)) && !extra.contains(&(*b, *other)) {
+                        extra.push((*b, *other));
+                    }
+                }
+            }
+            blocks.extend(extra);
         }
         let mut newly_blocked: SmallVec<[ObjId; 4]> = SmallVec::new();
         for (blocker, attacker) in &blocks {

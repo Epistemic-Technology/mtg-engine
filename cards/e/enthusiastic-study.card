@@ -1,0 +1,9 @@
+card "Enthusiastic Study" {
+  oracle_id 4233334d-bb19-41e4-a203-2b7bb0c48f52
+  cost {2}{R}
+  type Instant
+  spell {
+    target creature gets +3/+1 and gains trample
+    learn
+  }
+}

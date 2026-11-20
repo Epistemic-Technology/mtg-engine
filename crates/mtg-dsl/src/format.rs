@@ -1213,6 +1213,7 @@ impl Fmt {
                 t
             }
             Effect::Surveil(n) => format!("surveil {}", num(*n)),
+            Effect::Learn => "learn".to_string(),
             Effect::Discard { count, who } => match who {
                 None => format!("discard {} {}", num(*count), cards(*count)),
                 Some(w) => {

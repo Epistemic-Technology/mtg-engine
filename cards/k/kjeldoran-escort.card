@@ -1,0 +1,7 @@
+card "Kjeldoran Escort" {
+  oracle_id 1c6c1604-0724-40b1-9df6-71e57e5063c9
+  cost {2}{W}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  keywords banding
+}

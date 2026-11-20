@@ -92,10 +92,11 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::Splice { .. } => 36,
         DecisionKind::Conspire { .. } => 37,
         DecisionKind::CopyTarget { .. } => 38,
+        DecisionKind::FormBand { .. } => 39,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 39] = [
+pub const DECISION_KIND_NAMES: [&str; 40] = [
     "mulligan",
     "bottom",
     "priority",
@@ -135,6 +136,7 @@ pub const DECISION_KIND_NAMES: [&str; 39] = [
     "splice",
     "conspire",
     "copy_target",
+    "form_band",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {
@@ -181,10 +183,10 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::Subtype(_) => 35,
         Choice::Divide(_) => 36,
         Choice::CastDash(_) => 37,
-        Choice::CastAlt(_) => 38,
+        // The one-hot is full (`CHOICE_KINDS`): overload counts as an
+        // alternative cost.
+        Choice::CastAlt(_) | Choice::CastOverload(_) => 38,
         Choice::CastBestow(_) => 39,
-        // The one-hot is full (`CHOICE_KINDS`): an alternative cost.
-        Choice::CastOverload(_) => 38,
     }
 }
 

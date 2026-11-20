@@ -4615,6 +4615,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             })
         }
         Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
+        Effect::Learn => Clause::imperative("learn".to_string()),
         Effect::Discard { count, who } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
             match who {
@@ -8714,7 +8715,14 @@ pub fn normalize(text: &str) -> String {
         if line.is_empty() {
             continue;
         }
-        let parts: Vec<&str> = line.split(", ").collect();
+        // "Flying; banding": older keyword lines separate with semicolons
+        // (one of them had reminder text).
+        let sep = if line.contains("; ") && !line.contains(", ") {
+            "; "
+        } else {
+            ", "
+        };
+        let parts: Vec<&str> = line.split(sep).collect();
         // Keywords, or protection from a quality ("Flying, protection
         // from enchantments").
         let all_keywords = parts.iter().all(|p| {

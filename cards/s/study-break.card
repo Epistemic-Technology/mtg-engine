@@ -1,0 +1,9 @@
+card "Study Break" {
+  oracle_id 7aae7c7b-0b31-4b48-a8d3-81c913f604cf
+  cost {1}{W}
+  type Instant
+  spell {
+    tap up to two target creatures
+    learn
+  }
+}

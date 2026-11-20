@@ -253,6 +253,7 @@ impl Engine {
                 state.valiant_watchers += u32::from(def.flags().has_valiant());
                 state.state_trigger_sources += u32::from(def.flags().has_state_trigger());
                 state.mark_sources += u32::from(def.flags().has_marks());
+                state.banding_sources += u32::from(def.flags().has_banding());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -530,6 +531,7 @@ impl GameState {
             turn_static_sources: 0,
             state_trigger_sources: 0,
             mark_sources: 0,
+            banding_sources: 0,
             attack_rule_sources: 0,
             grant_sources: 0,
             eot_grants: 0,
@@ -1141,6 +1143,30 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::FormBands { band, led } => {
+                    if band.is_empty() {
+                        match self.band_leader(&led) {
+                            Some(l) => {
+                                self.flow = Flow::FormBands { band: vec![l], led };
+                            }
+                            None => self.announce_attackers(),
+                        }
+                        continue;
+                    }
+                    let candidates = self.band_candidates(&band);
+                    if candidates.is_empty() {
+                        self.close_band(band, led);
+                        continue;
+                    }
+                    // `Done` first: unscripted, no band.
+                    let mut options = vec![Choice::Done];
+                    options.extend(candidates.into_iter().map(Choice::AddAttacker));
+                    return StepResult::Decision(Decision {
+                        player: self.active_player,
+                        kind: DecisionKind::FormBand { leader: band[0] },
+                        options,
+                    });
+                }
                 Flow::AttackTargets { chosen, remaining } => {
                     let Some(attacker) = remaining.first().copied() else {
                         self.finish_attackers_with(chosen);
@@ -1290,7 +1316,7 @@ impl GameState {
                         self.deal_combat_damage(assigned);
                         continue;
                     };
-                    let player = self.objects[attacker].controller;
+                    let player = self.damage_assigner(attacker);
                     let options: Vec<Choice> = self
                         .damage_divisions(attacker)
                         .into_iter()
@@ -1773,6 +1799,11 @@ impl GameState {
                     incremental,
                 };
             }
+            (Flow::FormBands { mut band, led }, Choice::AddAttacker(id)) => {
+                band.push(id);
+                self.flow = Flow::FormBands { band, led };
+            }
+            (Flow::FormBands { band, led }, Choice::Done) => self.close_band(band, led),
             (Flow::DeclareAttackers { chosen, .. }, Choice::Done) => {
                 self.finish_attackers(chosen);
             }
@@ -1878,6 +1909,21 @@ impl GameState {
             self.after_mode(spell)
         };
         spell
+    }
+
+    /// CR 702.22c: the band being formed is finished; on to the next
+    /// leader.
+    fn close_band(&mut self, band: Vec<ObjId>, mut led: Vec<ObjId>) {
+        led.push(band[0]);
+        if band.len() >= 2
+            && let Some(c) = self.combat.as_mut()
+        {
+            c.bands.push(band);
+        }
+        self.flow = Flow::FormBands {
+            band: Vec::new(),
+            led,
+        };
     }
 
     /// The players who goaded `creature` (CR 701.15a): by an effect, or

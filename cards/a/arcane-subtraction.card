@@ -1,0 +1,9 @@
+card "Arcane Subtraction" {
+  oracle_id 4b5806fa-430f-4b78-b874-63d01a8a9de5
+  cost {1}{U}
+  type Instant
+  spell {
+    target creature gets -4/-0
+    learn
+  }
+}

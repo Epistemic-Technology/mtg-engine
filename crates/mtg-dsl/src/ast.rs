@@ -2370,6 +2370,10 @@ pub enum Effect {
         basic: bool,
     },
     Surveil(Num),
+    /// `learn` (CR 701.48): there is no sideboard here, so "you may
+    /// discard a card; if you do, draw a card" (CR 701.48a's other
+    /// choice; no Lesson card is ever outside the game).
+    Learn,
     /// `who` is `None` for the imperative "discard a card".
     Discard {
         count: Num,

@@ -596,6 +596,8 @@ pub struct Attacker {
 #[derive(Clone, Debug, Default)]
 pub struct CombatState {
     pub attackers: Vec<Attacker>,
+    /// Attacking bands (CR 702.22c), two or more creatures each.
+    pub bands: Vec<Vec<ObjId>>,
     /// Whether a first-strike combat damage step occurred this combat (CR 510.4).
     pub had_first_strike_step: bool,
 }
@@ -603,6 +605,14 @@ pub struct CombatState {
 impl CombatState {
     pub fn attacker(&self, id: ObjId) -> Option<&Attacker> {
         self.attackers.iter().find(|a| a.id == id)
+    }
+
+    /// The other creatures in `id`'s attacking band (CR 702.22).
+    pub fn band_of(&self, id: ObjId) -> &[ObjId] {
+        self.bands
+            .iter()
+            .find(|b| b.contains(&id))
+            .map_or(&[], Vec::as_slice)
     }
 
     pub fn attacker_mut(&mut self, id: ObjId) -> Option<&mut Attacker> {
@@ -1048,6 +1058,13 @@ pub enum Flow {
         chosen: Vec<(ObjId, Target)>,
         remaining: Vec<ObjId>,
     },
+    /// Attackers declared; the attacking player forms bands (CR 702.22c):
+    /// `band` is the one being formed, its leader (with banding) first;
+    /// `led` the attackers that have led one.
+    FormBands {
+        band: Vec<ObjId>,
+        led: Vec<ObjId>,
+    },
     /// All players passed with an empty stack: the step ends.
     EndStep,
     GameOver,
@@ -1382,6 +1399,9 @@ pub struct GameState {
     /// becoming day as they enter (`DefFlags::MARKS`): state-based
     /// actions look for them only then.
     pub mark_sources: u32,
+    /// Permanents with banding (CR 702.22): combat looks for bands only
+    /// while there are some.
+    pub banding_sources: u32,
     /// Battlefield permanents with an attack or block condition
     /// (`DefFlags::ATTACK_RULE`): declarations check them only then.
     pub attack_rule_sources: u32,

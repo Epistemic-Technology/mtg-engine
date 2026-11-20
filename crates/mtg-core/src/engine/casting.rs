@@ -4458,7 +4458,7 @@ impl GameState {
         {
             let o = &mut self.objects[copy];
             o.card = orig.card;
-            o.except = orig.except.clone();
+            o.except = orig.except;
             o.controller = ctx.controller;
             o.cast = orig.cast.copied();
             o.alt = if orig.alt == AltCast::Overload {
@@ -4466,7 +4466,7 @@ impl GameState {
             } else {
                 AltCast::None
             };
-            o.targets = orig.targets.clone();
+            o.targets.clone_from(&orig.targets);
         }
         if let Some(x) = self.x_chosen(ctx.source) {
             self.x_values.push((copy, x));

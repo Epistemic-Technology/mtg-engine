@@ -116,6 +116,7 @@ pub fn run(pool: &Arc<CardPool>, sc: &Scenario) -> Report {
     }
 }
 
+#[allow(clippy::struct_excessive_bools)] // one flag per scripted cost choice
 struct Runner {
     engine: Engine,
     actions: Vec<ScriptedAction>,
@@ -453,7 +454,13 @@ impl Runner {
             DecisionKind::ChooseColor
             | DecisionKind::ChooseType
             | DecisionKind::ChooseCard
-            | DecisionKind::ChooseOption { .. } => self.choose_named(d, pos),
+            | DecisionKind::ChooseOption { .. }
+            // A copy's new targets (CR 707.10c): `choose "Hill Giant"`;
+            // unscripted, it keeps the copied ones.
+            | DecisionKind::CopyTarget { .. }
+            // An attacker joins the band being formed (CR 702.22c):
+            // `choose "Grizzly Bears"`; unscripted, no band.
+            | DecisionKind::FormBand { .. } => self.choose_named(d, pos),
             // "Buyback—Sacrifice a land.": `kicked sacrificing "Forest"`.
             DecisionKind::Buyback { .. }
                 if self.pending_kicked
@@ -480,9 +487,6 @@ impl Runner {
                 };
                 Ok(index_of(d, &want).unwrap_or(0))
             }
-            // A copy's new targets (CR 707.10c): `choose "Hill Giant"`;
-            // unscripted, it keeps the copied ones.
-            DecisionKind::CopyTarget { .. } => self.choose_named(d, pos),
         }
     }
 
@@ -723,7 +727,9 @@ impl Runner {
     fn choice_name(&self, c: &Choice) -> Option<String> {
         let st = self.state();
         match c {
-            Choice::Sacrifice(id) | Choice::Target(mtg_core::state::Target::Object(id)) => {
+            Choice::Sacrifice(id)
+            | Choice::AddAttacker(id)
+            | Choice::Target(mtg_core::state::Target::Object(id)) => {
                 Some(st.name_of(*id).to_string())
             }
             Choice::Discard { def, .. } => Some(st.pool.get(*def).name.clone()),

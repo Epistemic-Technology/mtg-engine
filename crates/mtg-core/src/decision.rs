@@ -120,6 +120,9 @@ pub enum DecisionKind {
     /// The `index`th target of `spell`, a copy of a spell (CR 707.10c):
     /// `Target` options, the copied target first (keep it).
     CopyTarget { spell: ObjId, index: usize },
+    /// Which attacker joins the band `leader` leads (CR 702.22c):
+    /// `AddAttacker` options, or `Done` to close it.
+    FormBand { leader: ObjId },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

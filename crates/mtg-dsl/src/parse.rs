@@ -162,6 +162,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["persist"], Keyword::Persist),
     (&["undying"], Keyword::Undying),
     (&["flanking"], Keyword::Flanking),
+    (&["banding"], Keyword::Banding),
     (&["convoke"], Keyword::Convoke),
     (&["improvise"], Keyword::Improvise),
     (&["cascade"], Keyword::Cascade),
@@ -5282,6 +5283,7 @@ impl P {
                 Ok(Effect::AddMana(out))
             }
             "surveil" => Ok(Effect::Surveil(self.num()?)),
+            "learn" => Ok(Effect::Learn),
             "counter" => {
                 let to = self.recipient()?;
                 if self.eat_word("unless") {

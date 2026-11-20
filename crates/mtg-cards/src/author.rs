@@ -19,7 +19,8 @@ use crate::DataDir;
 use crate::scryfall::{self, Card as ScryCard};
 
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
-const KEYWORDS: [&str; 38] = [
+const KEYWORDS: [&str; 39] = [
+    "Banding",
     "Delve",
     "Exploit",
     "Cascade",

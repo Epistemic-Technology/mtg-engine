@@ -1581,6 +1581,20 @@ impl Compiler<'_> {
                 });
             }
             Effect::Surveil(n) => out.push(CoreEffect::Surveil { count: *n }),
+            // CR 701.48a: with no Lesson outside the game, "discard a card
+            // to draw a card", which the player may do.
+            Effect::Learn => {
+                let discard = Sentence::new(vec![Effect::Discard {
+                    count: Num::N(1),
+                    who: None,
+                }]);
+                let draw = Sentence::new(vec![Effect::DrawCards {
+                    count: Num::N(1),
+                    who: None,
+                }]);
+                out.push(CoreEffect::YouMay(self.sentences(&[discard])?));
+                out.push(CoreEffect::IfYouDo(self.sentences(&[draw])?));
+            }
             Effect::Discard { count, who } => out.push(CoreEffect::Discard {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
