@@ -1,0 +1,7 @@
+card "Hemosymbic Mite" {
+  oracle_id 103e0b63-fbde-4054-91f7-dd04b40b59ef
+  cost {G}
+  type Creature — Mite
+  pt 1/1
+  triggered whenever this becomes tapped: another target creature you control gets +1/+1 count where power
+}

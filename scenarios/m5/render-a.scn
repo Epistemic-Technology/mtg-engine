@@ -37,3 +37,22 @@ scenario "Halana and Alena give another creature counters and haste" {
   assert has "Grizzly Bears" haste
   assert counters "Halana and Alena, Partners" +1/+1 1
 }
+
+scenario "Brambleguard Captain gives its power to a creature you control" {
+  battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Brambleguard Captain" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Hemosymbic Mite pumps another creature as it attacks" {
+  battlefield A: "Hemosymbic Mite", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hemosymbic Mite"
+  turn 1 declare_attackers A: trigger "Hemosymbic Mite" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+}

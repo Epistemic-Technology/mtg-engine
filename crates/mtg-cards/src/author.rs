@@ -1196,6 +1196,21 @@ impl Templates {
                     ))
                 },
             ),
+            // "target creature you control gets +X/+0 until end of turn,
+            // where X is this creature's power".
+            (
+                r(
+                    r"^(.+?) gets? \+X/\+(X|0) until end of turn, where X is (?:this creature|~)'s (power|toughness)$",
+                ),
+                |c, t| {
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    Some(format!(
+                        "{who} gets +1/+{} count where {}",
+                        if cap(c, 2) == "X" { "1" } else { "0" },
+                        cap(c, 3)
+                    ))
+                },
+            ),
             (
                 r(r"^(.+?) gains? life equal to the number of (.+)$"),
                 |c, t| {

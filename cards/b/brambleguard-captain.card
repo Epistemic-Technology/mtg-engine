@@ -1,0 +1,7 @@
+card "Brambleguard Captain" {
+  oracle_id 104baa4e-a3f3-45dc-979d-4c58b659ba1a
+  cost {3}{R}
+  type Creature — Mouse Soldier
+  pt 2/3
+  triggered at beginning of your combat: target creature you control gets +1/+0 count where power
+}
