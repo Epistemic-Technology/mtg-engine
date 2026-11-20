@@ -2199,6 +2199,9 @@ pub enum Effect {
         to: Vec<Recipient>,
     },
     /// `tap or untap target creature`.
+    /// `next spell costs {1} less`: "the next spell you cast this turn
+    /// costs {1} less to cast".
+    NextSpellLess(u32),
     TapOrUntap {
         to: Recipient,
     },

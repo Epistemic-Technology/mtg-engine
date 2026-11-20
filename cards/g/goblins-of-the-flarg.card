@@ -1,0 +1,8 @@
+card "Goblins of the Flarg" {
+  oracle_id 3a620d92-ec92-4733-8c05-7fa1b956bab6
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  keywords mountainwalk
+  triggered when you control Dwarf: sacrifice this
+}

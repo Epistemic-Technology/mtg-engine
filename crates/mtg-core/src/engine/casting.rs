@@ -1248,7 +1248,7 @@ impl GameState {
         }
         let face = self.pool.get(face_ref);
         let mut req = cost.requirements(0);
-        if !changers.is_empty() {
+        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
         }
         self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
@@ -1278,7 +1278,7 @@ impl GameState {
         }
         let face = self.pool.get(face_ref);
         let mut req = cost.requirements(0);
-        if !changers.is_empty() {
+        if !changers.is_empty() || self.next_spell_less[p.index().min(3)] > 0 {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
         }
         self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
@@ -1303,7 +1303,11 @@ impl GameState {
             return false;
         }
         let mut req = def.mana_cost.requirements(0);
-        if def.self_cost.is_some() || def.cond_cost.is_some() || !changers.is_empty() {
+        if def.self_cost.is_some()
+            || def.cond_cost.is_some()
+            || !changers.is_empty()
+            || self.next_spell_less[p.index().min(3)] > 0
+        {
             adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
         }
         // Cheaper with a fitting target: castable if one exists (targets
@@ -1602,7 +1606,7 @@ impl GameState {
         id: ObjId,
         changers: &[ObjId],
     ) -> i32 {
-        let mut d = 0i32;
+        let mut d = -i32::from(self.next_spell_less[p.index().min(3)]);
         if let Some((delta, cond)) = def.cond_cost {
             let cond = self.pool.condition(cond);
             // "If you've cast another instant or sorcery spell this turn":
@@ -2164,7 +2168,11 @@ impl GameState {
         } else if !other && !def.additional.mana.is_empty() {
             req.add(&def.additional.mana.requirements(0));
         }
-        if def.self_cost.is_some() || def.cond_cost.is_some() || !self.cost_changers().is_empty() {
+        if def.self_cost.is_some()
+            || def.cond_cost.is_some()
+            || !self.cost_changers().is_empty()
+            || self.next_spell_less[o.controller.index().min(3)] > 0
+        {
             adjust_generic(
                 &mut req,
                 self.cost_delta(o.controller, def, spell, &self.cost_changers()),
@@ -4303,6 +4311,9 @@ impl GameState {
         }
         let n = &mut self.spells_this_turn[caster.index().min(3)];
         *n = n.saturating_add(1);
+        // "The next spell you cast this turn costs {1} less": used up by
+        // this spell, its total cost paid (CR 601.2f-h).
+        self.next_spell_less[caster.index().min(3)] = 0;
         self.cast_this_turn.push((caster, def_ref));
         // "As long as you've cast an instant or sorcery spell this turn":
         // the cast is recorded after the card left its zone, so a
@@ -6275,6 +6286,11 @@ impl GameState {
                         self.tap(id);
                     }
                 }
+            }
+            Effect::NextSpellLess(n) => {
+                let i = ctx.controller.index().min(3);
+                self.next_spell_less[i] =
+                    self.next_spell_less[i].saturating_add(u16::try_from(*n).unwrap_or(u16::MAX));
             }
             Effect::TapOrUntap { to } => {
                 for t in self.recipients(ctx, *to) {

@@ -3994,6 +3994,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let v = ctx.verb(*who, "sacrifices", "sacrifice");
             Clause::with_subject(*who, s, format!("{v} {o}"))
         }
+        Effect::NextSpellLess(n) => Clause::imperative(format!(
+            "the next spell you cast this turn costs {{{n}}} less to cast"
+        )),
         Effect::TapOrUntap { to } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("tap or untap {o}"))

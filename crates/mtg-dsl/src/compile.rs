@@ -1345,6 +1345,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Sacrifice { what: r(*what) });
             }
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
+            Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
             Effect::Tap { to } => {
                 for t in to {

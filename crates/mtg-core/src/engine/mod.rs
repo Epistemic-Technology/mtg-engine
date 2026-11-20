@@ -463,6 +463,7 @@ impl GameState {
             goads: Vec::new(),
             turn_number: 0,
             spells_this_turn: [0; 4],
+            next_spell_less: [0; 4],
             mana_spent_this_turn: [0; 4],
             mana_spent_before_cast: [0; 4],
             drawn_this_turn: [0; 4],
@@ -2437,6 +2438,7 @@ impl GameState {
             self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
+            self.next_spell_less = [0; 4];
             self.drawn_this_turn = [0; 4];
             self.mana_spent_this_turn = [0; 4];
             self.mana_spent_before_cast = [0; 4];

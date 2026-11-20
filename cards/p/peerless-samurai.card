@@ -1,0 +1,8 @@
+card "Peerless Samurai" {
+  oracle_id fe3b0393-dc50-4fa6-9b3f-1175a6a825e4
+  cost {2}{R}
+  type Creature — Human Samurai
+  pt 2/3
+  keywords menace
+  triggered whenever Samurai or Warrior you control attacks alone: next spell costs {1} less
+}

@@ -3049,6 +3049,11 @@ pub enum Effect {
     Tap {
         to: Recipient,
     },
+    /// "The next spell you cast this turn costs {1} less to cast" (CR
+    /// 601.2f): the controller's next spell this turn costs that much less
+    /// generic mana; several such effects add up, and that one spell uses
+    /// them all up.
+    NextSpellLess(u32),
     /// "Tap or untap target permanent": its controller (the ability's)
     /// chooses as it resolves.
     TapOrUntap {

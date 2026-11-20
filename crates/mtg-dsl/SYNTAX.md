@@ -205,7 +205,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `at beginning of enchanted controller's upkeep`, `at beginning of enchanted controller's end step` | "At the beginning of the upkeep of enchanted creature's controller" (the noun from the Aura's enchant restriction): the step of whoever controls what the source is attached to, judged as the step begins; that permanent is `that creature`, its controller `that player` |
 | `whenever this attacks`, `whenever creature you control attacks`, `whenever this blocks` | attacks or blocks |
 | `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
-| `when you control no Island`, `when you control no other creature` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature." Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
+| `when you control no Island`, `when you control no other creature`, `when you control Dwarf` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature."; any static condition after `when you control` ("When you control a Dwarf", "When you control a creature with toughness 2 or less"). Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | |
 | `whenever you roll dice`, `whenever you win a coin flip` | "Whenever you roll one or more dice" (once per roll, CR 706), "Whenever you win a coin flip" (CR 705.2) |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
@@ -566,6 +566,9 @@ cards in your graveyard, scry 2` ("Spell mastery — If there are two or more
 instant and/or sorcery cards in your graveyard, scry 2."). `that target
 1` prints "that creature" even after the first mention.
 `tap or untap target creature` (the controller chooses on resolution).
+`next spell costs {1} less` prints "the next spell you cast this turn costs {1}
+less to cast" (CR 601.2f): generic mana off the controller's next spell
+this turn; several add up, and that spell uses them all up.
 `learn` (CR 701.48) prints "Learn."; there are no Lesson cards outside the
 game here, so it is "you may discard a card; if you do, draw a card".
 `goad target creature` (CR 701.15; `goad target 1` prints "Goad it.",

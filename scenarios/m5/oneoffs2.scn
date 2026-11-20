@@ -1,0 +1,104 @@
+# One-off phrasings, second sweep: state triggers on a positive condition
+# ("When you control a Dwarf", CR 603.8) and "the next spell you cast this
+# turn costs {1} less to cast" (CR 601.2f).
+
+# ----- state triggers on a positive condition -----
+
+scenario "Goblins of the Flarg stays while you control no Dwarf" {
+  battlefield A: "Goblins of the Flarg", "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Goblins of the Flarg"
+}
+
+scenario "Goblins of the Flarg is sacrificed once you control a Dwarf" {
+  battlefield A: "Goblins of the Flarg", "Plains"
+  hand A: "Staunch Shieldmate"
+  turn 1 A: cast "Staunch Shieldmate"
+  run_to turn 1 end
+  assert battlefield A contains "Staunch Shieldmate"
+  assert graveyard A contains "Goblins of the Flarg"
+}
+
+scenario "An opponent's Dwarf doesn't make Goblins of the Flarg go" {
+  battlefield A: "Goblins of the Flarg"
+  battlefield B: "Staunch Shieldmate"
+  run_to turn 1 end
+  assert battlefield A contains "Goblins of the Flarg"
+}
+
+scenario "Endangered Armodon is sacrificed when you control a creature with toughness 2 or less" {
+  battlefield A: "Endangered Armodon", "Forest"
+  hand A: "Llanowar Elves"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Endangered Armodon"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard A contains "Endangered Armodon"
+}
+
+scenario "Endangered Armodon ignores a creature with toughness 3" {
+  battlefield A: "Endangered Armodon", "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Endangered Armodon"
+}
+
+# ----- the next spell you cast this turn costs {1} less -----
+
+scenario "Hardened Berserker attacks, and the next spell costs {1} less" {
+  battlefield A: "Hardened Berserker", 3 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: attack "Hardened Berserker"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  turn 1 postcombat_main A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Without an attack, Hill Giant costs its full {3}{R}" {
+  battlefield A: "Hardened Berserker", 3 "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Only the next spell costs less, even one that pays no generic mana" {
+  battlefield A: "Hardened Berserker", 4 "Mountain"
+  hand A: "Shock", "Hill Giant"
+  turn 1 A: attack "Hardened Berserker"
+  run_to turn 1 postcombat_main
+  turn 1 postcombat_main A: cast "Shock" targeting player B
+  illegal turn 1 postcombat_main A: cast "Hill Giant"
+  run_to turn 1 end
+  assert life B 15
+  assert hand A contains "Hill Giant"
+}
+
+scenario "The reduction ends with the turn" {
+  battlefield A: "Hardened Berserker", 3 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: attack "Hardened Berserker"
+  illegal turn 3 A: cast "Hill Giant"
+  run_to turn 3 end
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Peerless Samurai attacking alone makes the next spell cheaper" {
+  battlefield A: "Peerless Samurai", 3 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: attack "Peerless Samurai"
+  run_to turn 1 postcombat_main
+  turn 1 postcombat_main A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Peerless Samurai attacking with another creature doesn't trigger" {
+  battlefield A: "Peerless Samurai", "Grizzly Bears", 3 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: attack "Peerless Samurai", "Grizzly Bears"
+  illegal turn 1 postcombat_main A: cast "Hill Giant"
+  run_to turn 1 end
+  assert hand A contains "Hill Giant"
+}

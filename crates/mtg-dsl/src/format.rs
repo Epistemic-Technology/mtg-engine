@@ -975,6 +975,7 @@ impl Fmt {
             ),
             Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
             Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
+            Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
             Effect::Goad { what } => format!("goad {}", self.recipient(*what, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
             Effect::Grant { keywords: ks, to } => {

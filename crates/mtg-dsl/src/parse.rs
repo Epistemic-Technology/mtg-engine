@@ -5445,6 +5445,12 @@ impl P {
                 let what = self.recipient()?;
                 Ok(Effect::Sacrifice { what })
             }
+            "next" if self.at_word("spell") => {
+                self.expect_words(&["spell", "costs"])?;
+                let n = self.mana_cost()?.mana_value();
+                self.expect_word("less")?;
+                Ok(Effect::NextSpellLess(n))
+            }
             "tap" if self.at_words(&["or", "untap"]) => {
                 self.pos += 2;
                 Ok(Effect::TapOrUntap {
@@ -8133,8 +8139,9 @@ impl P {
         if !(self.eat_word("when") || self.eat_word("whenever")) {
             return self.unexpected("`when`, `whenever`, or `at`");
         }
-        // "When you control no Islands": a state trigger (CR 603.8).
-        if !whenever && self.at_words(&["you", "control", "no"]) {
+        // "When you control no Islands", "When you control a Dwarf": a
+        // state trigger (CR 603.8).
+        if !whenever && self.at_words(&["you", "control"]) {
             return Ok(Trigger::State(self.static_cond()?));
         }
         if self.at_words(&["you", "gain", "life"]) {
