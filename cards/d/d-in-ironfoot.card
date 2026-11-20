@@ -1,0 +1,9 @@
+card "Dáin Ironfoot" {
+  oracle_id 9924c189-3c82-431a-b570-7805b2a406f0
+  cost {2}{R}
+  type Legendary Creature — Dwarf Warrior
+  pt 1/4
+  short_name "Dáin"
+  triggered when this enters: create 1 "colorless Equipment artifact named Axe"; when you do, attach that token to target creature you control
+  triggered whenever this attacks: each single attacking creature with Equipment gains double strike
+}

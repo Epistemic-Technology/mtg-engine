@@ -8954,7 +8954,11 @@ impl GameState {
                             ability: *ability,
                             source: ctx.source,
                             def,
-                            trigger_obj: ctx.trigger_obj,
+                            // "Create an Axe token. When you do, attach it
+                            // to target creature you control": the
+                            // reflexive ability carries what the ability
+                            // just created as its object ("that token").
+                            trigger_obj: ctx.created.or(ctx.trigger_obj),
                             trigger_player: ctx.trigger_player,
                             trigger_amount: ctx.trigger_amount,
                         },

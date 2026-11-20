@@ -2754,8 +2754,14 @@ fn token_description(name: &str, count: Num, tapped: bool, it_has: bool, ctx: &C
     // A creature token whose name is not its subtypes is named (CR
     // 111.4): "a 2/2 colorless Wizard Soldier creature token named Cadet".
     let shown = token.display_name.as_deref().unwrap_or(&token.name);
-    let named = (token.types.contains(&CardType::Creature) && shown != token.subtypes.join(" "))
-        .then(|| format!(" named {shown}"));
+    // An Equipment token is named too: "a colorless Equipment artifact
+    // token named Sturdy Shield with \"Equipped creature gets +1/+2\" and
+    // equip {2}".
+    let equipment = !token.types.contains(&CardType::Creature) && is_equipment(token);
+    let named = ((token.types.contains(&CardType::Creature) || equipment)
+        && shown != token.subtypes.join(" "))
+    .then(|| format!(" named {shown}"));
+    let mut equip_last: Vec<String> = Vec::new();
     // Keywords and keyword abilities print bare ("with flying", "with
     // toxic 1"); restrictions and other abilities print quoted ("with
     // \"This token can't block.\"").
@@ -2776,6 +2782,14 @@ fn token_description(name: &str, count: Num, tapped: bool, it_has: bool, ctx: &C
             Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => bare.push(format!("toxic {n}")),
             Ability::Keyword(k) if !is_restriction(*k) => {
                 bare.push(keyword_name(*k).to_string());
+            }
+            Ability::Activated { equip: true, .. } if equipment => {
+                equip_last.push(lowercase_first(&ability_text(token, a, ctx.lookup)));
+            }
+            // Its abilities print without their final period.
+            _ if equipment => {
+                let t = ability_text(token, a, ctx.lookup);
+                quoted.push(t.strip_suffix('.').unwrap_or(&t).to_string());
             }
             _ => quoted.push(ability_text(token, a, ctx.lookup)),
         }
@@ -2802,6 +2816,7 @@ fn token_description(name: &str, count: Num, tapped: bool, it_has: bool, ctx: &C
     let parts: Vec<String> = bare
         .into_iter()
         .chain(quoted.into_iter().map(|q| format!("\"{q}\"")))
+        .chain(equip_last)
         .collect();
     if it_has && !parts.is_empty() {
         // "create a 1/1 colorless Eldrazi Scion creature token. It has
@@ -4623,7 +4638,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Attach { what, to } if *what != Recipient::Source => {
             let w = ctx.obj(*what);
-            let o = ctx.obj(*to);
+            // "Attach it to U.S.Agent": after "it" is the created token,
+            // the source is named again.
+            let o = if *what == Recipient::CreatedObject && *to == Recipient::Source {
+                ctx.source_name()
+            } else {
+                ctx.obj(*to)
+            };
             Clause::imperative(format!("attach {w} to {o}"))
         }
         // "Unattach all Equipment from target creature" (the group's filter

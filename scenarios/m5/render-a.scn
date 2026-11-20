@@ -498,6 +498,62 @@ scenario "Collective Inferno doubles damage from sources of the chosen type" {
   assert life B 13
 }
 
+scenario "U.S.Agent enters with Sturdy Shield attached" {
+  battlefield A: 4 "Plains"
+  hand A: "U.S.Agent, John Walker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "U.S.Agent, John Walker"
+  run_to turn 1 postcombat_main
+  assert attached "Sturdy Shield" to "U.S.Agent, John Walker"
+  assert power "U.S.Agent, John Walker" 4
+  assert toughness "U.S.Agent, John Walker" 4
+}
+
+scenario "Sturdy Shield can be equipped to another creature for {2}" {
+  battlefield A: 6 "Plains", "Grizzly Bears"
+  hand A: "U.S.Agent, John Walker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "U.S.Agent, John Walker"
+  turn 1 A: wait
+  turn 1 A: activate "Sturdy Shield" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Sturdy Shield" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 4
+  assert power "U.S.Agent, John Walker" 3
+}
+
+scenario "Iron Hills Blacksmith makes an Axe" {
+  battlefield A: 2 "Plains"
+  hand A: "Iron Hills Blacksmith"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Iron Hills Blacksmith"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Axe"
+  assert is "Axe" artifact
+}
+
+scenario "Dain Ironfoot attaches an Axe; equipped attackers gain double strike" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Dáin Ironfoot"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dáin Ironfoot"
+  turn 1 A: trigger "Dáin Ironfoot" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Axe" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  run_to turn 3 precombat_main
+  assert life B 20
+}
+
+scenario "Dain Ironfoot: an equipped attacker deals first-strike and regular damage" {
+  battlefield A: "Dáin Ironfoot", "Grizzly Bears", "Axe" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dáin Ironfoot", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 13
+}
+
 scenario "Brambleguard Captain gives its power to a creature you control" {
   battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
   start turn 1 A precombat_main

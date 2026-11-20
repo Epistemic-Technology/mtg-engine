@@ -32,7 +32,7 @@ keyword abilities bare, their restrictions and other abilities quoted ("a
 \"This token can't block.\""; "a 0/1 colorless Eldrazi Spawn creature
 token with \"Sacrifice this token: Add {C}.\""), and a creature token
 whose name is not its subtypes is named ("a 2/2 colorless Wizard Soldier
-creature token named Cadet"). A Role token (CR 111.10j–r: an `Enchantment
+creature token named Cadet"); so is an Equipment token, its abilities quoted without their final period and its equip ability last ("a colorless Equipment artifact token named Axe with \"Equipped creature gets +1/+0\" and equip {2}"). A Role token (CR 111.10j–r: an `Enchantment
 — Aura Role` with `enchant creature` and `name "Wicked"`, keyed `"Wicked
 Role"`) prints by name too: "a Wicked Role token". If one player controls
 more than one Role on a permanent, all but the newest go to the graveyard

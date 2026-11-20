@@ -1359,9 +1359,9 @@ impl GameState {
     pub(super) fn resolve_ability(&mut self, id: ObjId) {
         let obj = self.objects[id].clone();
         let sa = obj.ability.expect("ability object");
-        let condition = match self.pool.ability(sa.ability) {
-            AbilityDef::Triggered(t) => t.condition,
-            AbilityDef::Activated(_) => None,
+        let (condition, reflexive) = match self.pool.ability(sa.ability) {
+            AbilityDef::Triggered(t) => (t.condition, t.trigger == TriggerSpec::Reflexive),
+            AbilityDef::Activated(_) => (None, false),
             _ => unreachable!("only triggered and activated abilities use the stack"),
         };
         // A modal ability's targets and effects are its chosen mode's.
@@ -1430,7 +1430,8 @@ impl GameState {
             trigger_obj: sa.trigger_obj,
             trigger_player: sa.trigger_player,
             trigger_amount: sa.trigger_amount,
-            created: None,
+            // A reflexive ability's "that token" (see `Effect::Reflexive`).
+            created: if reflexive { sa.trigger_obj } else { None },
             revealed: Vec::new(),
             x,
             did: true,
