@@ -2640,9 +2640,11 @@ pub enum Effect {
     /// this creature enters, choose one —" (CR 603.3c).
     Modes(Vec<Mode>),
     /// `target 1 doesn't untap next untap step`: "It doesn't untap during
-    /// its controller's next untap step."
+    /// its controller's next untap step."; `... next untap steps`: "Those
+    /// creatures don't untap during their controllers' next untap steps."
     SkipNextUntap {
         to: Recipient,
+        steps: bool,
     },
     /// `that creature can't be regenerated`: "That creature can't be
     /// regenerated this turn."

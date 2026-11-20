@@ -4094,8 +4094,12 @@ impl P {
             "explores" => Ok(Effect::Explore { what: subject }),
             "connives" => Ok(Effect::Connive { what: subject }),
             "doesn't" => {
-                self.expect_words(&["untap", "next", "untap", "step"])?;
-                Ok(Effect::SkipNextUntap { to: subject })
+                self.expect_words(&["untap", "next", "untap"])?;
+                let steps = self.eat_word("steps");
+                if !steps {
+                    self.expect_word("step")?;
+                }
+                Ok(Effect::SkipNextUntap { to: subject, steps })
             }
             "get" | "gets" => match self.next() {
                 Some(Tok::Pt {

@@ -1876,7 +1876,7 @@ impl Compiler<'_> {
                 to: r(*to),
                 all: *all,
             }),
-            Effect::SkipNextUntap { to } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
+            Effect::SkipNextUntap { to, .. } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });
             }
@@ -2498,6 +2498,7 @@ impl Compiler<'_> {
             Ability::Exert(effects) => {
                 let mut inner = vec![Sentence::new(vec![crate::ast::Effect::SkipNextUntap {
                     to: Recipient::Source,
+                    steps: false,
                 }])];
                 inner.extend(effects.iter().cloned());
                 return self.ability(&Ability::Triggered {

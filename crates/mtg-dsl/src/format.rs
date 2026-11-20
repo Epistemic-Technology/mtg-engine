@@ -691,9 +691,11 @@ impl Fmt {
             Effect::CantBeRegenerated { to } => {
                 format!("{} can't be regenerated", self.recipient(*to, t))
             }
-            Effect::SkipNextUntap { to } => {
-                format!("{} doesn't untap next untap step", self.recipient(*to, t))
-            }
+            Effect::SkipNextUntap { to, steps } => format!(
+                "{} doesn't untap next untap step{}",
+                self.recipient(*to, t),
+                if *steps { "s" } else { "" }
+            ),
             Effect::PutFromHand { filter: f, tapped } => format!(
                 "put {} card from hand onto battlefield{}",
                 filter(f),

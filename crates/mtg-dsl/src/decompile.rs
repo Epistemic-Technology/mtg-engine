@@ -1107,6 +1107,7 @@ impl Decompiler<'_> {
             },
             CoreEffect::SkipNextUntap { to } => Effect::SkipNextUntap {
                 to: Self::recipient(*to),
+                steps: false,
             },
             CoreEffect::BlocksIfAble { blocker, attacker } => Effect::BlocksIfAble {
                 blocker: Self::recipient(*blocker),

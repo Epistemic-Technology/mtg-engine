@@ -1,0 +1,9 @@
+card "Far Wanderings" {
+  oracle_id 2ef797ef-c05f-4309-85c7-1bd151dac3fa
+  cost {2}{G}
+  type Sorcery
+  spell {
+    search basic land card to battlefield tapped that card
+    label "Threshold" if threshold, instead search up to 3 basic land card to battlefield tapped
+  }
+}

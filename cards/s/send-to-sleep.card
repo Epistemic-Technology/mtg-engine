@@ -1,0 +1,9 @@
+card "Send to Sleep" {
+  oracle_id 9e3fd1e9-7db6-40de-b1de-cd8cc9f60590
+  cost {1}{U}
+  type Instant
+  spell {
+    tap up to 2 target creature
+    label "Spell mastery" if 2 instant or sorcery cards in your graveyard, targets 1 to 2 doesn't untap next untap steps
+  }
+}

@@ -3438,7 +3438,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*to);
             Clause::with_subject(*to, s, "can't be regenerated this turn".to_string())
         }
-        Effect::SkipNextUntap { to } => {
+        Effect::SkipNextUntap { to, steps } => {
             let s = match *to {
                 // "Tap up to two target creatures. Those creatures don't
                 // untap ...".
@@ -3473,6 +3473,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             let text = if yours && !plural {
                 "doesn't untap during your next untap step"
+            } else if plural && *steps {
+                "don't untap during their controllers' next untap steps"
             } else if plural {
                 "don't untap during their controller's next untap step"
             } else {
@@ -5086,6 +5088,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let subject = [
                     "it ",
                     "they ",
+                    "those creatures ",
                     this.as_str(),
                     name.as_str(),
                     short.as_str(),

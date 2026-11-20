@@ -316,3 +316,82 @@ scenario "look at the top X: Information Dealer counts Wizards" {
   run_to turn 1 postcombat_main
   assert tapped "Information Dealer"
 }
+
+scenario "spell mastery: Kytheon's Tactics also gives vigilance" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  graveyard A: 2 "Shock"
+  hand A: "Kytheon's Tactics"
+  turn 1 A: cast "Kytheon's Tactics"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" vigilance
+}
+
+scenario "spell mastery: one instant isn't enough" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  graveyard A: "Shock"
+  hand A: "Kytheon's Tactics"
+  turn 1 A: cast "Kytheon's Tactics"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has not "Grizzly Bears" vigilance
+}
+
+scenario "spell mastery: Send to Sleep keeps the creatures tapped" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  graveyard A: 2 "Shock"
+  hand A: "Send to Sleep"
+  turn 1 A: cast "Send to Sleep" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "spell mastery: without it they untap" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Send to Sleep"
+  turn 1 A: cast "Send to Sleep" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert untapped "Grizzly Bears"
+}
+
+scenario "threshold: Far Wanderings fetches three basic lands instead" {
+  battlefield A: "Forest", 2 "Plains"
+  graveyard A: 7 "Shock"
+  library A: 4 "Forest"
+  hand A: "Far Wanderings"
+  turn 1 A: cast "Far Wanderings"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Forest"
+}
+
+scenario "threshold: without it Far Wanderings fetches one" {
+  battlefield A: "Forest", 2 "Plains"
+  library A: 4 "Forest"
+  hand A: "Far Wanderings"
+  turn 1 A: cast "Far Wanderings"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Forest"
+}
+
+scenario "kicked: Tribute to Urborg counts instants and sorceries in your graveyard" {
+  battlefield A: 2 "Swamp", 2 "Island"
+  battlefield B: "Craw Wurm"
+  graveyard A: 2 "Shock"
+  hand A: "Tribute to Urborg"
+  turn 1 A: cast "Tribute to Urborg" kicked targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+}
+
+scenario "unkicked: Tribute to Urborg gives only -2/-2" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Craw Wurm"
+  graveyard A: 2 "Shock"
+  hand A: "Tribute to Urborg"
+  turn 1 A: cast "Tribute to Urborg" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert toughness "Craw Wurm" 2
+}
