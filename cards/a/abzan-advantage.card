@@ -1,0 +1,6 @@
+card "Abzan Advantage" {
+  oracle_id e7b2f844-2ba2-4465-bb80-358a4d915f36
+  cost {1}{W}
+  type Instant
+  spell: target player sacrifices 1 enchantment; bolster 1
+}

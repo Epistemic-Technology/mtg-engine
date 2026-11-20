@@ -1,0 +1,6 @@
+card "Druid's Deliverance" {
+  oracle_id fde7645a-5f02-4d5f-b38c-8390f325899e
+  cost {1}{G}
+  type Instant
+  spell: prevent all combat damage to you this turn; populate
+}

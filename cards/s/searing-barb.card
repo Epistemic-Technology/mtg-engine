@@ -1,0 +1,6 @@
+card "Searing Barb" {
+  oracle_id 9a1622a5-c982-407b-a158-7b8ad9238aac
+  cost {2}{R}
+  type Sorcery
+  spell: deal 2 damage to any target; if target 1 is creature, target 1 can't block; incubate 1
+}

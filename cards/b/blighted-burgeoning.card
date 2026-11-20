@@ -1,0 +1,8 @@
+card "Blighted Burgeoning" {
+  oracle_id 5e10fd35-9768-48e4-8cdb-95224ad33b9b
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: incubate 2
+  triggered whenever enchanted land is tapped for mana: add any
+}
