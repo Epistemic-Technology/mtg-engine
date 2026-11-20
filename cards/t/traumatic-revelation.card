@@ -1,0 +1,6 @@
+card "Traumatic Revelation" {
+  oracle_id e47253d1-9b12-4989-80c0-604906c88b5e
+  cost {1}{B}
+  type Sorcery
+  spell: target opponent reveals hand discarding may creature or battle card; if you dont, incubate 3
+}

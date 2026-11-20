@@ -6896,6 +6896,8 @@ impl GameState {
                 filter,
                 optional,
             } => {
+                // "If you do" / "If you don't": whether a card was chosen.
+                ctx.did = false;
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
@@ -6925,6 +6927,7 @@ impl GameState {
                     let k = self.choose_mid(ctx.controller, DecisionKind::Discard, options.clone());
                     if let Choice::Discard { card, .. } = options[k] {
                         self.discard_card(p, card);
+                        ctx.did = true;
                     }
                 }
             }

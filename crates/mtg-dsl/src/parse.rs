@@ -3678,6 +3678,20 @@ impl P {
         if self.at_words(&["if", "target"]) || self.at_words(&["if", "that", "target"]) {
             return self.if_target();
         }
+        // `if you dont, ...` / `if you cant, ...` after an action.
+        if (self.at_words(&["if", "you", "dont"]) || self.at_words(&["if", "you", "cant"]))
+            && self.peek_at(3) == Some(&Tok::Comma)
+        {
+            let cant = self.word_at(2).as_deref() == Some("cant");
+            self.pos += 4;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfYouDont {
+                cant,
+                then: vec![s],
+            });
+        }
         // `if you dont put it into hand, ...` after `if it is ...`.
         if self.revealed && self.at_words(&["if", "you", "dont", "put", "it"]) {
             use mtg_core::card::CardDest;
@@ -5143,7 +5157,12 @@ impl P {
             "destroy" => {
                 let to = self.recipients()?;
                 let no_regen = self.eat_words(&["without", "regeneration"]);
-                Ok(Effect::Destroy { to, no_regen })
+                let joined = no_regen && self.eat_word("joined");
+                Ok(Effect::Destroy {
+                    to,
+                    no_regen,
+                    joined,
+                })
             }
             // `put 2 cards from hand on top of library`.
             "put" if self.revealed && self.at_card_words() => self.put_card(None),

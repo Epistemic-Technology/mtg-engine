@@ -553,10 +553,17 @@ impl Fmt {
                 toughness,
                 to,
             } => format!("{} gets {power:+}/{toughness:+}", self.recipient(*to, t)),
-            Effect::Destroy { to, no_regen } => {
+            Effect::Destroy {
+                to,
+                no_regen,
+                joined,
+            } => {
                 let mut s = format!("destroy {}", self.recipients(to, t));
                 if *no_regen {
                     s.push_str(" without regeneration");
+                }
+                if *joined {
+                    s.push_str(" joined");
                 }
                 s
             }
@@ -636,6 +643,11 @@ impl Fmt {
                 }
             },
             Effect::RevealIt => "reveal it".to_string(),
+            Effect::IfYouDont { cant, then } => format!(
+                "if you {}, {}",
+                if *cant { "cant" } else { "dont" },
+                self.line(then, t)
+            ),
             Effect::IfYouDontPut { to, then } => format!(
                 "if you dont put it {}, {}",
                 match to {

@@ -621,10 +621,12 @@ impl Decompiler<'_> {
             CoreEffect::Destroy { to } => Effect::Destroy {
                 to: vec![r(*to)],
                 no_regen: false,
+                joined: false,
             },
             CoreEffect::DestroyNoRegen { to } => Effect::Destroy {
                 to: vec![r(*to)],
                 no_regen: true,
+                joined: false,
             },
             CoreEffect::GainLife { amount, who } => Effect::GainLife {
                 amount: *amount,

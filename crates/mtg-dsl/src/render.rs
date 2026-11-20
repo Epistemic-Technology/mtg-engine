@@ -815,6 +815,10 @@ struct Ctx<'a> {
     /// A spell was just countered unless its controller paid: "If they
     /// do" follows.
     they_paid: bool,
+    /// The next sentence is "If you don't, ...": an optional choice before
+    /// it prints its result "If you do, ..." ("You may choose a creature
+    /// card from it. If you do, that player discards that card.").
+    before_if_you_dont: bool,
     /// Rendering the effect of "[effect] unless [player] pays".
     in_unless: bool,
     /// Rendering what winning a clash does ("If you win, that creature
@@ -844,6 +848,7 @@ impl<'a> Ctx<'a> {
             pumped: Vec::new(),
             in_won: false,
             they_paid: false,
+            before_if_you_dont: false,
             in_unless: false,
         }
     }
@@ -3287,7 +3292,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             )
             .until_eot()
         }
-        Effect::Destroy { to, no_regen } => {
+        Effect::Destroy {
+            to,
+            no_regen,
+            joined,
+        } => {
             let objs = ctx.obj_list(to, true);
             let mut text = format!("destroy {objs}");
             if *no_regen {
@@ -3296,7 +3305,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else {
                     "It"
                 };
-                let _ = write!(text, ". {pronoun} can't be regenerated");
+                if *joined {
+                    let _ = write!(text, " and {} can't be regenerated", pronoun.to_lowercase());
+                } else {
+                    let _ = write!(text, ". {pronoun} can't be regenerated");
+                }
             }
             Clause::imperative(text)
         }
@@ -3462,6 +3475,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
         }
         Effect::RevealIt => Clause::imperative("reveal it".to_string()),
+        Effect::IfYouDont { cant, then } => {
+            let body = lowercase_first(&sentences(then, ctx));
+            let verb = if *cant { "can't" } else { "don't" };
+            Clause::imperative(format!("if you {verb}, {}", body.trim_end_matches('.')))
+        }
         Effect::IfYouDontPut { to, then } => {
             let body = lowercase_first(&sentences(then, ctx));
             let dest = match to {
@@ -4603,11 +4621,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ));
             }
             let s = ctx.subj(*who);
+            let then = if *may && ctx.before_if_you_dont {
+                "If you do, that player"
+            } else {
+                "That player"
+            };
             Clause::with_subject(
                 *who,
                 s,
                 format!(
-                    "{} their hand{choose} That player discards that card",
+                    "{} their hand{choose} {then} discards that card",
                     ctx.verb(*who, "reveals", "reveal")
                 ),
             )
@@ -6120,7 +6143,15 @@ fn sentences(ss: &[Sentence], ctx: &mut Ctx) -> String {
             out.push_str(l);
             out.push_str(" — ");
         }
+        let saved = ctx.before_if_you_dont;
+        ctx.before_if_you_dont = ss.get(i + 1).is_some_and(|n| {
+            matches!(
+                n.effects.first(),
+                Some(Effect::IfYouDont { cant: false, .. })
+            )
+        });
         out.push_str(&sentence(&sentence_text(s, ctx)));
+        ctx.before_if_you_dont = saved;
     }
     out
 }

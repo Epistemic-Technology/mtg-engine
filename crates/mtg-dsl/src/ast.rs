@@ -2189,6 +2189,9 @@ pub enum Effect {
     Destroy {
         to: Vec<Recipient>,
         no_regen: bool,
+        /// `without regeneration joined`: "Destroy target Knight and it
+        /// can't be regenerated." in one sentence.
+        joined: bool,
     },
     GainLife {
         amount: Num,
@@ -2896,6 +2899,15 @@ pub enum Effect {
         /// `if it shares creature type with this, ...`: "If it shares a
         /// creature type with this creature, ..." (kinship).
         shares_type: bool,
+        then: Vec<Sentence>,
+    },
+    /// `if you dont, <sentence>` / `if you cant, <sentence>`: "If you
+    /// don't, ..." after an optional action ("You may pay {U}. If you
+    /// don't, ..."), "If you can't, ..." after one that must happen if it
+    /// can ("return a land card from your graveyard to your hand. If you
+    /// can't, ..."): only if it didn't happen (CR 608.2c).
+    IfYouDont {
+        cant: bool,
         then: Vec<Sentence>,
     },
     /// `if you dont put it into hand, <sentence>`: "If you don't put the

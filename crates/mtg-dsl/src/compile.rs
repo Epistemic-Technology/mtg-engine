@@ -1301,7 +1301,7 @@ impl Compiler<'_> {
                 toughness: *toughness,
                 to: r(*to),
             }),
-            Effect::Destroy { to, no_regen } => {
+            Effect::Destroy { to, no_regen, .. } => {
                 for t in to {
                     out.push(if *no_regen {
                         CoreEffect::DestroyNoRegen { to: r(*t) }
@@ -2001,6 +2001,12 @@ impl Compiler<'_> {
                 });
             }
             Effect::RevealIt => out.push(CoreEffect::RevealCard),
+            // "If you don't, ..." / "If you can't, ...": the optional or
+            // chosen action before it set whether it happened (CR 608.2c).
+            Effect::IfYouDont { then, .. } => {
+                let effects = self.sentences(then)?;
+                out.push(CoreEffect::Otherwise(effects));
+            }
             Effect::IfYouDontPut { then, .. } => {
                 if !matches!(out.last(), Some(CoreEffect::IfCard { .. })) {
                     return self.err("`if you dont put it` needs `if it is ...` before it");
