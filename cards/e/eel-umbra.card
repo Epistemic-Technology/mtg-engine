@@ -1,0 +1,9 @@
+card "Eel Umbra" {
+  oracle_id 4be1ecd0-ee41-4ac0-9155-0fcae7a4d337
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +1/+1
+  replace destroy enchanted: umbra armor
+}

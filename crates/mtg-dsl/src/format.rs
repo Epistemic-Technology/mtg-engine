@@ -2154,6 +2154,7 @@ fn outcome(o: &Outcome) -> String {
             format!("with {} {}", num(*n), counter(*kind, *n))
         }
         Outcome::Regenerate => "regenerate".to_string(),
+        Outcome::UmbraArmor => "umbra armor".to_string(),
         Outcome::RedirectToAttached => "redirect to attached".to_string(),
         Outcome::PreventNextTime => "prevent next time".to_string(),
         Outcome::Redirect { to, next } => {

@@ -27,8 +27,8 @@ use smallvec::{SmallVec, smallvec};
 
 use super::casting::EffectCtx;
 use crate::card::{
-    AbilityDef, AbilityId, Affects, CardRef, CounterKind, ObjFilter, RedirectTo, Replacement,
-    ReplacementAbility, Replaces, RuleKind, Who,
+    AbilityDef, AbilityId, Affects, CardRef, CounterKind, Keyword, ObjFilter, RedirectTo,
+    Replacement, ReplacementAbility, Replaces, RuleKind, Who,
 };
 use crate::decision::{Choice, Decision, DecisionKind};
 use crate::event::Event;
@@ -457,6 +457,16 @@ impl GameState {
                         )
                     })
             }
+            // Umbra armor (CR 702.89a) isn't regeneration: it applies to a
+            // permanent that can't be regenerated, but not to one that is
+            // indestructible (it wouldn't be destroyed).
+            (Replaces::Destroy { to }, Proposed::Destroy { obj, .. })
+                if r.replacement == Replacement::UmbraArmor =>
+            {
+                self.characteristics(*obj)
+                    .is_some_and(|c| !c.has(Keyword::Indestructible))
+                    && self.affects(to, Target::Object(*obj), source, controller, lock)
+            }
             (
                 Replaces::Destroy { to },
                 Proposed::Destroy {
@@ -794,6 +804,19 @@ impl GameState {
                         }
                     }
                 }
+            }
+            (Replacement::UmbraArmor, Proposed::Destroy { obj, .. }) => {
+                // CR 702.89a: remove all damage from it and destroy this
+                // Aura instead.
+                if let Some(o) = self.objects.get_mut(obj) {
+                    o.damage = 0;
+                    o.deathtouch_damage = false;
+                }
+                self.sba_touch();
+                Outcome::Event(Proposed::Destroy {
+                    obj: c.source,
+                    regenerate: true,
+                })
             }
             (Replacement::Regenerate, Proposed::Destroy { obj, .. }) => {
                 // CR 701.15a: remove all damage, tap, remove from combat.

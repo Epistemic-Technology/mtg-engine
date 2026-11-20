@@ -1,0 +1,8 @@
+card "Hyena Umbra" {
+  oracle_id 354affb3-1be7-4a9e-91da-2989eb54f62d
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has first strike
+  replace destroy enchanted: umbra armor
+}

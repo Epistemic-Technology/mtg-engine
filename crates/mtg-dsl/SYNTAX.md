@@ -651,7 +651,10 @@ damage.".
 
 Outcomes: `prevent`, `prevent next 4`, `double`, `plus one`, `exile`,
 `draw two`, `win`, `tapped`, `with 2 +1/+1 counters`, `regenerate`,
-`redirect to attached`; in a `this turn, replace` effect also `prevent
+`redirect to attached`, `umbra armor` (`replace destroy enchanted: umbra
+armor` prints "Umbra armor", CR 702.89a: if the enchanted permanent would
+be destroyed, all damage is removed from it and the Aura is destroyed
+instead; it applies even if the permanent can't be regenerated); in a `this turn, replace` effect also `prevent
 next time` ("The next time a red source of your choice would deal damage
 to you this turn, prevent that damage.": a shield for one damage event,
 CR 615.7) and redirection (CR 614.9): `redirect to this`, `redirect to

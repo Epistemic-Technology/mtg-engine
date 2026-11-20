@@ -9081,6 +9081,10 @@ impl P {
                 Outcome::EnterWithCounters { kind, n }
             }
             "regenerate" => Outcome::Regenerate,
+            "umbra" => {
+                self.expect_word("armor")?;
+                Outcome::UmbraArmor
+            }
             "redirect" => {
                 let next = if self.eat_word("next") {
                     Some(self.number()?)

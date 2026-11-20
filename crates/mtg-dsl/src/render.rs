@@ -7038,6 +7038,8 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             };
             format!("If {who} would die{when}, {instead} instead.")
         }
+        // CR 702.89a: an Aura's keyword ability.
+        (Replaces::Destroy { .. }, Outcome::UmbraArmor) => "Umbra armor".to_string(),
         (Replaces::Destroy { to }, Outcome::Regenerate) => {
             let to = affects_to(to, ctx);
             format!("Regenerate {to}.")

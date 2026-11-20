@@ -99,3 +99,46 @@ scenario "manifest dread: with one card left, it is manifested" {
   assert battlefield A contains "face-down creature"
   assert library A count 0
 }
+
+# ---- umbra armor ----
+
+scenario "umbra armor: Eland Umbra is destroyed instead of its creature" {
+  battlefield A: "Grizzly Bears", "Eland Umbra" on "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Eland Umbra"
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "umbra armor: lethal damage is removed and the Aura destroyed" {
+  battlefield A: "Grizzly Bears", "Spider Umbra" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert graveyard A contains "Spider Umbra"
+}
+
+scenario "umbra armor: an Aura on another creature doesn't protect this one" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Hyena Umbra" on "Hill Giant"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Hyena Umbra"
+}
+
+scenario "umbra armor: the creature is still sacrificed" {
+  battlefield A: "Grizzly Bears", "Mammoth Umbra" on "Grizzly Bears"
+  battlefield B: 2 "Swamp"
+  hand B: "Diabolic Edict"
+  turn 1 B: cast "Diabolic Edict" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}

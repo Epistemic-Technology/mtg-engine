@@ -4037,6 +4037,10 @@ pub enum Replacement {
     /// creature this turn is dealt to target creature you control
     /// instead"). Stored effects only.
     Redirect { to: RedirectTo, next: Option<u32> },
+    /// Umbra armor (CR 702.89a): instead of the enchanted permanent being
+    /// destroyed, all damage is removed from it and this Aura is
+    /// destroyed.
+    UmbraArmor,
 }
 
 /// A replacement or prevention effect (CR 614, 615), either a static
