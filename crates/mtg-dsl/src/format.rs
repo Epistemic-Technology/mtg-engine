@@ -606,7 +606,9 @@ impl Fmt {
             Effect::Populate => "populate".to_string(),
             Effect::Incubate(n) => format!("incubate {}", num(*n)),
             Effect::Discover(n) => format!("discover {n}"),
-            Effect::MoveSourceCounters { .. } | Effect::CumulativeUpkeep(_) => {
+            Effect::MoveSourceCounters { .. }
+            | Effect::CumulativeUpkeep(_)
+            | Effect::Soulbond { .. } => {
                 unreachable!("only in expansions")
             }
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
@@ -2490,6 +2492,11 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.enchanted {
         words.push("enchanted".to_string());
+    }
+    match f.paired {
+        Some(true) => words.push("paired named".to_string()),
+        Some(false) => words.push("paired".to_string()),
+        None => {}
     }
     for s in &f.supertypes {
         words.push(format!("{s:?}").to_lowercase());
@@ -4424,6 +4431,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Replicate(c) => format!("replicate {c}"),
                 crate::ast::Mechanic::Multikicker(c) => format!("multikicker {c}"),
                 crate::ast::Mechanic::Transmute(c) => format!("transmute {c}"),
+                crate::ast::Mechanic::Soulbond => "soulbond".to_string(),
                 crate::ast::Mechanic::Disturb(c) => format!("disturb {c}"),
                 crate::ast::Mechanic::GraveyardExile => "exiled instead of graveyard".to_string(),
                 crate::ast::Mechanic::Teamwork(n) => format!("teamwork {n}"),

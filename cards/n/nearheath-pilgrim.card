@@ -1,0 +1,8 @@
+card "Nearheath Pilgrim" {
+  oracle_id 54c10a1d-360a-42cb-bb3b-c3ab57e1d7ea
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 2/1
+  soulbond
+  static paired: has lifelink
+}

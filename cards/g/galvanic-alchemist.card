@@ -1,0 +1,8 @@
+card "Galvanic Alchemist" {
+  oracle_id 694b78c6-443a-4044-84ea-46ac85c8d2cd
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 1/4
+  soulbond
+  static paired: has ability { activated {2}{U}: untap this creature }
+}

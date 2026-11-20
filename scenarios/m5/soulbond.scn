@@ -1,0 +1,104 @@
+# Soulbond (CR 702.95): as this creature enters, its controller may pair it
+# with another unpaired creature they control; as another creature they
+# control enters, they may pair the two if both are unpaired. Paired, the
+# card's "both creatures" / "each of those creatures" ability applies to
+# both. A pair breaks when either leaves the battlefield, stops being a
+# creature, or changes controller (702.95e). `choose "X"` picks the
+# creature to pair with; unscripted, the first is paired.
+
+scenario "soulbond: it enters and pairs, both creatures fly" {
+  battlefield A: "Island", "Grizzly Bears"
+  hand A: "Wingcrafter"
+  turn 1 A: cast "Wingcrafter"
+  run_to turn 1 postcombat_main
+  assert has "Wingcrafter" flying
+  assert has "Grizzly Bears" flying
+}
+
+scenario "soulbond: alone, nothing to pair with" {
+  battlefield A: "Island"
+  hand A: "Wingcrafter"
+  turn 1 A: cast "Wingcrafter"
+  run_to turn 1 postcombat_main
+  assert has not "Wingcrafter" flying
+}
+
+scenario "soulbond: another creature enters later and pairs" {
+  battlefield A: "Wingcrafter", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" flying
+  assert has "Wingcrafter" flying
+}
+
+scenario "soulbond: the creature to pair with is chosen" {
+  battlefield A: "Forest", "Grizzly Bears", "Hill Giant", 2 "Forest"
+  hand A: "Trusted Forcemage"
+  turn 1 A: cast "Trusted Forcemage"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 4
+  assert power "Grizzly Bears" 2
+  assert power "Trusted Forcemage" 3
+}
+
+scenario "soulbond: a paired creature can't pair again" {
+  battlefield A: "Grizzly Bears", "Island", 3 "Forest"
+  hand A: "Wingcrafter", "Trusted Forcemage"
+  turn 1 A: cast "Wingcrafter"
+  turn 1 A: wait
+  turn 1 A: cast "Trusted Forcemage"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" flying
+  assert has not "Trusted Forcemage" flying
+  assert power "Trusted Forcemage" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "soulbond: the pair breaks as one leaves" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Wingcrafter"
+  hand B: "Shock"
+  turn 1 A: cast "Wingcrafter"
+  turn 2 B: cast "Shock" targeting "Wingcrafter"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Wingcrafter"
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "soulbond: an opponent's creature entering doesn't pair" {
+  battlefield A: "Wingcrafter"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert has not B "Grizzly Bears" flying
+  assert has not "Wingcrafter" flying
+}
+
+scenario "soulbond: an ability granted to both" {
+  battlefield A: 6 "Island", "Grizzly Bears" tapped
+  hand A: "Galvanic Alchemist"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Galvanic Alchemist"
+  turn 1 A: wait
+  turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+}
+
+scenario "soulbond: the pump goes away when the pair breaks" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand A: "Trusted Forcemage"
+  hand B: "Murder"
+  turn 1 A: cast "Trusted Forcemage"
+  turn 2 B: cast "Murder" targeting "Trusted Forcemage"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 2
+}

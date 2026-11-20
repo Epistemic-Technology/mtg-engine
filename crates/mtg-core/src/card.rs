@@ -993,6 +993,11 @@ pub struct ObjFilter {
     pub relation: Relation,
     /// Only the object the source is attached to ("enchanted creature").
     pub enchanted: bool,
+    /// Only the source and the creature it's paired with, while paired
+    /// (soulbond, CR 702.95b: "both creatures", "each of those
+    /// creatures").
+    #[serde(default)]
+    pub paired: bool,
     /// Only objects with no abilities.
     pub no_abilities: bool,
     /// Must have at least one of these types ("artifact or enchantment").
@@ -3815,6 +3820,13 @@ pub enum Effect {
     MoveSourceCounters {
         to: Recipient,
     },
+    /// Soulbond's pairing (CR 702.95a): the source and an unpaired
+    /// creature its controller controls, chosen (or, with `triggering`,
+    /// the creature that entered), become paired if both are unpaired
+    /// creatures that player controls (702.95c); a "may".
+    Soulbond {
+        triggering: bool,
+    },
     /// Cumulative upkeep (CR 702.24a): an age counter on the source, then
     /// sacrifice it unless its controller pays the cost once per age
     /// counter.
@@ -4031,6 +4043,7 @@ impl Effect {
                 | Effect::Discover(_)
                 | Effect::Exploit
                 | Effect::CumulativeUpkeep(_)
+                | Effect::Soulbond { .. }
                 | Effect::TapOrUntap { .. }
                 | Effect::OfChoice { .. }
                 | Effect::Choose(_)

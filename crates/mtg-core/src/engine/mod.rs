@@ -481,6 +481,7 @@ impl GameState {
             ninjutsu: Vec::new(),
             bargains: Vec::new(),
             divisions: Vec::new(),
+            pairs: Vec::new(),
             splices: Vec::new(),
             goads: Vec::new(),
             turn_number: 0,

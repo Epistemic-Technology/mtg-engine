@@ -1496,6 +1496,8 @@ pub struct GameState {
     /// among their targets (CR 601.2d), in target order from the variable
     /// group's first target; kept off `GameObject` like `x_values`.
     pub divisions: Vec<(ObjId, Vec<u32>)>,
+    /// Creatures paired by soulbond (CR 702.95b), each pair once.
+    pub pairs: Vec<(ObjId, ObjId)>,
     /// Spells with cards spliced onto them (CR 702.47a), kept off
     /// `GameObject` like `x_values`.
     pub splices: Vec<Spliced>,
@@ -3145,6 +3147,19 @@ impl GameState {
             .iter()
             .copied()
             .filter(move |id| self.objects[*id].controller == p)
+    }
+
+    /// The creature `id` is paired with (CR 702.95b).
+    pub fn partner(&self, id: ObjId) -> Option<ObjId> {
+        self.pairs.iter().find_map(|&(a, b)| {
+            if a == id {
+                Some(b)
+            } else if b == id {
+                Some(a)
+            } else {
+                None
+            }
+        })
     }
 
     pub fn creatures_of(&self, p: PlayerId) -> impl Iterator<Item = ObjId> + '_ {

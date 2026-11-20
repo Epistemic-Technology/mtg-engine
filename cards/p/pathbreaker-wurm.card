@@ -1,0 +1,8 @@
+card "Pathbreaker Wurm" {
+  oracle_id ab342d57-240a-4c56-aed6-ac3cdc51af8d
+  cost {4}{G}{G}
+  type Creature — Wurm
+  pt 6/4
+  soulbond
+  static paired: has trample
+}

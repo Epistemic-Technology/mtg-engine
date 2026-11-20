@@ -2351,6 +2351,49 @@ impl GameState {
         self.spell_payable(o.controller, spell, &req)
     }
 
+    /// Soulbond's pairing (CR 702.95a, c): the source with a creature
+    /// chosen from the unpaired creatures its controller controls, or
+    /// with the creature that entered; either may be declined.
+    #[cold]
+    #[inline(never)]
+    fn soulbond(&mut self, ctx: &EffectCtx, triggering: bool) {
+        let p = ctx.controller;
+        let eligible = |s: &Self, id: ObjId| {
+            s.objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Battlefield && o.controller == p)
+                && s.characteristics(id).is_some_and(|c| c.is_creature())
+                && s.partner(id).is_none()
+        };
+        let Some(src) = self
+            .current_object(ctx.source)
+            .filter(|s| eligible(self, *s))
+        else {
+            return;
+        };
+        let candidates: Vec<ObjId> = if triggering {
+            ctx.trigger_obj
+                .and_then(|t| self.current_object(t))
+                .filter(|t| *t != src && eligible(self, *t))
+                .into_iter()
+                .collect()
+        } else {
+            self.creatures_of(p)
+                .filter(|c| *c != src && eligible(self, *c))
+                .collect()
+        };
+        if candidates.is_empty() {
+            return;
+        }
+        let mut options: Vec<Choice> = candidates.iter().map(|c| Choice::Sacrifice(*c)).collect();
+        options.push(Choice::Decline);
+        let k = self.choose_mid(p, DecisionKind::ChooseCard, options);
+        if let Some(other) = candidates.get(k) {
+            self.pairs.push((src, *other));
+            self.cbump();
+        }
+    }
+
     /// Transform a double-faced permanent to its other face (CR 701.27);
     /// it stays the same object. Whether it did.
     pub(super) fn transform_now(&mut self, id: ObjId) -> bool {
@@ -8981,6 +9024,7 @@ impl GameState {
                     }
                 }
             }
+            Effect::Soulbond { triggering } => self.soulbond(ctx, *triggering),
             Effect::CumulativeUpkeep(cost) => {
                 let Some(id) = self
                     .current_object(ctx.source)

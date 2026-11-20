@@ -596,6 +596,10 @@ pub struct Filter {
     pub not_keywords: Vec<Keyword>,
     pub relation: Relation,
     pub enchanted: bool,
+    /// `paired` (`paired named`): "as long as this creature (~) is paired
+    /// with another creature, both creatures ..." (soulbond, CR 702.95b);
+    /// `Some(true)` names the card.
+    pub paired: Option<bool>,
     pub no_abilities: bool,
     /// `who` is `Opponents`, written and printed "you don't control".
     pub dont_control: bool,
@@ -1283,6 +1287,9 @@ pub enum Mechanic {
     /// `multikicker {1}{G}` (CR 702.33c): a kicker cost paid any number of
     /// times as the spell is cast.
     Multikicker(ManaCost),
+    /// `soulbond` (CR 702.95): pairing as this creature or another
+    /// creature its controller controls enters.
+    Soulbond,
     /// `disturb {1}{U}` (CR 702.146): "You may cast this card transformed
     /// from your graveyard by paying [cost] rather than its mana cost."
     Disturb(ManaCost),
@@ -3096,6 +3103,10 @@ pub enum Effect {
     /// `discover 4` (CR 701.57).
     Discover(u32),
     /// Modular's "put its +1/+1 counters on [recipient]" (internal).
+    /// Soulbond's pairing (internal; CR 702.95a).
+    Soulbond {
+        triggering: bool,
+    },
     MoveSourceCounters {
         to: Recipient,
     },

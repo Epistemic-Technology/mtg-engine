@@ -1,0 +1,8 @@
+card "Nightshade Peddler" {
+  oracle_id afd6089a-38cc-4a0f-853b-94d6be2d4470
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 1/1
+  soulbond
+  static paired: has deathtouch
+}

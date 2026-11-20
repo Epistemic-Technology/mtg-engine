@@ -1,0 +1,8 @@
+card "Geist Trappers" {
+  oracle_id 7116da4a-96c1-4183-b123-29c6b70ef543
+  cost {4}{G}
+  type Creature — Human Warrior
+  pt 3/5
+  soulbond
+  static paired: has reach
+}

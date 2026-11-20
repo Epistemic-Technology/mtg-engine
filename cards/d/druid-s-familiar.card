@@ -1,0 +1,8 @@
+card "Druid's Familiar" {
+  oracle_id 6a5b1cd4-e597-4122-8fc7-4dce241d7c01
+  cost {3}{G}
+  type Creature — Bear
+  pt 2/2
+  soulbond
+  static paired: +2/+2
+}

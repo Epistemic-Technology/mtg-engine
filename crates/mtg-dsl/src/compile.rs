@@ -747,6 +747,13 @@ impl Compiler<'_> {
             if let Ability::Mechanic(Mechanic::Unleash) = a {
                 b = b.ability(unleash_static());
             }
+            // CR 702.95a: soulbond's second trigger, "Whenever another
+            // creature you control enters, ... you may pair that creature
+            // with this creature".
+            if let Ability::Mechanic(Mechanic::Soulbond) = a {
+                let second = soulbond_trigger(true);
+                b = b.ability(self.ability(&second)?);
+            }
             // "As this creature enters or is turned face up, put ...
             // counters on it": also an enters-with replacement (CR
             // 614.1c).
@@ -800,6 +807,7 @@ impl Compiler<'_> {
         names.iter().map(|s| self.pool.subtype(s)).collect()
     }
 
+    #[allow(clippy::too_many_lines)] // one line per filter field
     fn filter(&mut self, f: &Filter) -> ObjFilter {
         // "an outlaw" (CR 700.12): one alternative per creature type.
         if let Some(i) = f.subtypes.iter().position(|s| s == crate::ast::OUTLAW) {
@@ -861,6 +869,7 @@ impl Compiler<'_> {
             }),
             named: None,
             enchanted: f.enchanted,
+            paired: f.paired.is_some(),
             no_abilities: f.no_abilities,
             any_types: TypeSet::of(f.any_types.iter().copied()),
             power: f.power,
@@ -2212,6 +2221,11 @@ impl Compiler<'_> {
                 });
             }
             Effect::Discover(n) => out.push(CoreEffect::Discover(*n)),
+            Effect::Soulbond { triggering } => {
+                out.push(CoreEffect::Soulbond {
+                    triggering: *triggering,
+                });
+            }
             Effect::MoveSourceCounters { to } => {
                 out.push(CoreEffect::MoveSourceCounters { to: r(*to) });
             }
@@ -3639,6 +3653,29 @@ const GERM: &str = "0/0 black Phyrexian Germ creature";
 /// The token Incubate creates (CR 701.53a, 111.10i).
 const INCUBATOR: &str = "Incubator";
 
+/// Soulbond's two triggers (CR 702.95a): as this creature enters
+/// (`triggering` false: pair it with a creature chosen), and as another
+/// creature its controller controls enters (pair it with that one).
+fn soulbond_trigger(triggering: bool) -> Ability {
+    let trigger = if triggering {
+        Trigger::Enters(TriggerObj::Filter(Filter {
+            types: vec![mtg_core::card::CardType::Creature],
+            who: Some(Who::You),
+            relation: mtg_core::card::Relation::Other,
+            ..Default::default()
+        }))
+    } else {
+        Trigger::Enters(TriggerObj::This)
+    };
+    Ability::Triggered {
+        from_graveyard: false,
+        trigger,
+        condition: None,
+        targets: Vec::new(),
+        effects: vec![Sentence::new(vec![Effect::Soulbond { triggering }])],
+    }
+}
+
 /// Unleash's "This permanent can't block as long as it has a +1/+1 counter
 /// on it." (CR 702.98a).
 pub(crate) fn unleash_static() -> AbilityDef {
@@ -3969,6 +4006,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 )]),
             ],
         },
+        Mechanic::Soulbond => soulbond_trigger(false),
         // CR 702.24a.
         Mechanic::CumulativeUpkeep(cost) => Ability::Triggered {
             from_graveyard: false,

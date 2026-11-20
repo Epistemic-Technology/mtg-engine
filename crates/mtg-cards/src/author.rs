@@ -64,7 +64,8 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 121] = [
+const TEMPLATED_TAGS: [&str; 122] = [
+    "Soulbond",
     "Disturb",
     "Daybound",
     "Nightbound",
@@ -2663,6 +2664,33 @@ impl Builder<'_> {
         // CR 702.145.
         if line == "Daybound" || line == "Nightbound" {
             self.statements.push(line.to_lowercase());
+            return Ok(());
+        }
+        // CR 702.95a.
+        if line == "Soulbond" {
+            self.statements.push("soulbond".to_string());
+            return Ok(());
+        }
+        // Soulbond (CR 702.95b): "As long as this creature is paired with
+        // another creature, both creatures have flying.", "... each of
+        // those creatures gets +1/+1.", authored as an Aura's static
+        // ability and given the paired subject.
+        if let Some(c) = Regex::new(
+            r"^As long as (this creature|~) is paired with another creature, (?:both creatures have|each of those creatures (has|gets)) (.+)$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let verb = c.get(2).map_or("has", |m| m.as_str());
+            let inner = format!("Enchanted creature {verb} {}", cap(&c, 3));
+            let made = self
+                .quoted(&inner)
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            let rest = made
+                .strip_prefix("static enchanted: ")
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            let named = if cap(&c, 1) == "~" { " named" } else { "" };
+            self.statements.push(format!("static paired{named}: {rest}"));
             return Ok(());
         }
         // CR 702.44a.

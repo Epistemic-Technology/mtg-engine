@@ -1,0 +1,8 @@
+card "Elgaud Shieldmate" {
+  oracle_id a85f7e34-7783-474c-ac96-9b075b296b8f
+  cost {3}{U}
+  type Creature — Human Soldier
+  pt 2/3
+  soulbond
+  static paired: has hexproof
+}

@@ -3443,6 +3443,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Populate => Clause::imperative("populate".to_string()),
         Effect::Incubate(n) => Clause::imperative(format!("incubate {}", digits(*n))),
         Effect::Discover(n) => Clause::imperative(format!("discover {n}")),
+        Effect::Soulbond { .. } => Clause::imperative("pair them".to_string()),
         Effect::MoveSourceCounters { to } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("put its +1/+1 counters on {o}"))
@@ -7860,6 +7861,28 @@ pub(crate) fn also_subtypes(filter: &Filter, mods: &[Mod]) -> Option<Vec<String>
 
 #[allow(clippy::too_many_lines)] // one case per kind of static
 fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
+    // Soulbond (CR 702.95b): "As long as this creature is paired with
+    // another creature, both creatures have flying." / "each of those
+    // creatures gets +1/+1." / "each of those creatures has "..."."
+    if let Some(named) = filter.paired {
+        let mut f = filter.clone();
+        f.paired = None;
+        f.relation = Relation::This;
+        let this = capitalize(&this_ref(card));
+        let body = static_text(&f, mods, card);
+        let rest = body.strip_prefix(&format!("{this} ")).unwrap_or(&body);
+        let keywords = mods.iter().all(|m| matches!(m, Mod::AddKeywords(_)));
+        let tail = match rest.strip_prefix("has ") {
+            Some(r) if keywords => format!("both creatures have {r}"),
+            _ => format!("each of those creatures {rest}"),
+        };
+        let who = if named {
+            short_name(card).to_string()
+        } else {
+            this_ref(card)
+        };
+        return format!("As long as {who} is paired with another creature, {tail}");
+    }
     // Characteristic-defining abilities name the card.
     if let Some(Mod::CdaPt {
         count,
@@ -9612,6 +9635,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Replicate(c) => format!("Replicate {c}"),
             crate::ast::Mechanic::Multikicker(c) => format!("Multikicker {c}"),
             crate::ast::Mechanic::Transmute(c) => format!("Transmute {c}"),
+            crate::ast::Mechanic::Soulbond => "Soulbond".to_string(),
             crate::ast::Mechanic::Disturb(c) => format!("Disturb {c}"),
             crate::ast::Mechanic::GraveyardExile => format!(
                 "If {} would be put into a graveyard from anywhere, exile it instead.",
