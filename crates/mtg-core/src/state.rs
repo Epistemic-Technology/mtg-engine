@@ -211,6 +211,10 @@ pub struct ExileCasts {
     pub playable: Vec<PlayableExile>,
 }
 
+/// `PlayableExile::own_ends` for a warped card exiled this turn: castable
+/// from the next turn on (CR 702.185a).
+pub const WARP_LATER: u8 = u8::MAX;
+
 /// An exiled card a player may play (impulse draw), and until when.
 #[derive(Copy, Clone, Debug)]
 pub struct PlayableExile {
@@ -218,7 +222,8 @@ pub struct PlayableExile {
     pub player: PlayerId,
     pub until: crate::card::PlayUntil,
     /// For `EndOfYourNextTurn`: how many more of the player's turns must
-    /// end before the permission does.
+    /// end before the permission does. `WARP_LATER` with `Forever`: not
+    /// until a later turn (CR 702.185a).
     pub own_ends: u8,
 }
 
@@ -253,6 +258,8 @@ pub enum AltCast {
     /// Cast for its dash cost (CR 702.109a); kept by the permanent, which
     /// has haste.
     Dash,
+    /// Cast for its warp cost (CR 702.185a).
+    Warp,
     /// Cast for the alternative cost its own text offers (CR 118.9, "rather
     /// than pay this spell's mana cost").
     AltCost,

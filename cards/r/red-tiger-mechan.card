@@ -1,0 +1,8 @@
+card "Red Tiger Mechan" {
+  oracle_id 94c9aea7-564d-4fc8-ae14-7b22cba18b95
+  cost {3}{R}
+  type Artifact Creature — Robot Cat
+  pt 3/3
+  keywords haste
+  warp {1}{R}
+}

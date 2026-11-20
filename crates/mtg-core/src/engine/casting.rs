@@ -129,6 +129,19 @@ impl GameState {
             {
                 options.push(Choice::CastDash(*id));
             }
+            // CR 702.185a: cast for the warp cost instead.
+            if let Some(warp) = &def.warp
+                && (sorcery_timing || self.has_flash(p, def, *id))
+                && self.payable_for(
+                    p,
+                    &sources,
+                    &warp.requirements(0),
+                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                )
+                && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
+            {
+                options.push(Choice::CastWarp(*id));
+            }
             // CR 702.103a: cast for the bestow cost, as an Aura spell.
             if let Some(face) = def.bestow_face
                 && self.bestow_castable(p, def, face, *id, sorcery_timing, &sources, &changers)
@@ -198,7 +211,11 @@ impl GameState {
                 let Some(o) = self.objects.get(pe.card) else {
                     continue;
                 };
-                if pe.player != p || o.zone != Zone::Exile {
+                // CR 702.185a: a warped card, not until a later turn.
+                if pe.player != p
+                    || o.zone != Zone::Exile
+                    || pe.own_ends == crate::state::WARP_LATER
+                {
                     continue;
                 }
                 let def = self.pool.get(o.def);
@@ -368,6 +385,7 @@ impl GameState {
             Choice::Cast(id)
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
+            | Choice::CastWarp(id)
             | Choice::CastAlt(id) => !(creatures && creature(id)),
             Choice::CastFaceDown(_) => !creatures,
             Choice::CastFace { card, face } => {
@@ -2185,6 +2203,9 @@ impl GameState {
             }
             (_, false) if o.alt == AltCast::Dash && def.dash.is_some() => {
                 def.dash.as_ref().expect("checked").requirements(x)
+            }
+            (_, false) if o.alt == AltCast::Warp && def.warp.is_some() => {
+                def.warp.as_ref().expect("checked").requirements(x)
             }
             (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
                 def.overload.as_ref().expect("checked").requirements(x)
@@ -8275,6 +8296,35 @@ impl GameState {
                         self.move_object(id, Zone::Graveyard, false);
                     } else {
                         self.move_object(id, Zone::Library, false);
+                    }
+                }
+            }
+            // CR 702.185a: the warped permanent is exiled; its owner may
+            // cast it from exile on a later turn.
+            Effect::WarpExile => {
+                for t in self.recipients(ctx, crate::card::Recipient::SameObject) {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    if !self
+                        .objects
+                        .get(id)
+                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                    {
+                        continue;
+                    }
+                    let owner = self.objects[id].owner;
+                    let new = self.move_object(id, Zone::Exile, false);
+                    if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                        self.exile_casts
+                            .get_or_insert_with(Box::default)
+                            .playable
+                            .push(crate::state::PlayableExile {
+                                card: new,
+                                player: owner,
+                                until: crate::card::PlayUntil::Forever,
+                                own_ends: crate::state::WARP_LATER,
+                            });
                     }
                 }
             }

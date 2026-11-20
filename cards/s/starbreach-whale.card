@@ -1,0 +1,9 @@
+card "Starbreach Whale" {
+  oracle_id 076865e9-ee10-4a87-9180-4274202d37c1
+  cost {4}{U}
+  type Creature — Whale
+  pt 3/5
+  keywords flying
+  triggered when this enters: surveil 2
+  warp {1}{U}
+}

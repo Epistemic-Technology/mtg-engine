@@ -344,6 +344,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Dash(cost)) => {
                     b = b.dash(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Warp(cost)) => {
+                    b = b.warp(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Overload(cost)) => {
                     b = b.overload(cost.clone());
                 }
@@ -577,6 +580,7 @@ impl Compiler<'_> {
                             | Mechanic::Megamorph(_)
                             | Mechanic::Disguise(_)
                             | Mechanic::Dash(_)
+                            | Mechanic::Warp(_)
                             | Mechanic::Bestow(_)
                             | Mechanic::Overload(_)
                             | Mechanic::Splice(_)
@@ -2909,6 +2913,7 @@ impl Compiler<'_> {
                 | Mechanic::Megamorph(_)
                 | Mechanic::Disguise(_)
                 | Mechanic::Dash(_)
+                | Mechanic::Warp(_)
                 | Mechanic::Bestow(_)
                 | Mechanic::Overload(_)
                 | Mechanic::Splice(_)
@@ -3503,6 +3508,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Ninjutsu(_)
         | Mechanic::Scavenge(_)
         | Mechanic::Dash(_)
+        | Mechanic::Warp(_)
         | Mechanic::Bestow(_)
         | Mechanic::Overload(_)
         | Mechanic::Splice(_)

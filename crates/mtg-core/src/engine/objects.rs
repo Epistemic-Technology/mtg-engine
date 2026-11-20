@@ -376,10 +376,14 @@ impl GameState {
         let cleanup = old.cast.instant_timing();
         if to == Zone::Battlefield
             && old.zone == Zone::Stack
-            && (old.alt == AltCast::Dash || cleanup)
+            && (matches!(old.alt, AltCast::Dash | AltCast::Warp) || cleanup)
         {
+            // CR 702.185a: a warped permanent is exiled at the next end
+            // step.
             let ability = self.pool.builtin(if cleanup {
                 crate::card::Builtin::CleanupSacrifice
+            } else if old.alt == AltCast::Warp {
+                crate::card::Builtin::WarpExile
             } else {
                 crate::card::Builtin::DashReturn
             });

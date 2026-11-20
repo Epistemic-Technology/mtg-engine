@@ -1558,6 +1558,9 @@ impl GameState {
             (Flow::Priority, Choice::CastDash(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Dash);
             }
+            (Flow::Priority, Choice::CastWarp(card)) => {
+                self.begin_cast(player, card, crate::state::AltCast::Warp);
+            }
             (Flow::Priority, Choice::CastBestow(card)) => {
                 // CR 702.103b: on the stack it is the Aura, enchant
                 // creature, from the start.
@@ -2601,8 +2604,15 @@ impl GameState {
                                 }
                                 pe.own_ends > 0
                             }
-                            crate::card::PlayUntil::YourNextEndStep
-                            | crate::card::PlayUntil::Forever => true,
+                            // CR 702.185a: a warped card, castable from
+                            // the next turn on.
+                            crate::card::PlayUntil::Forever => {
+                                if pe.own_ends == crate::state::WARP_LATER {
+                                    pe.own_ends = 0;
+                                }
+                                true
+                            }
+                            crate::card::PlayUntil::YourNextEndStep => true,
                         }
                     });
                 }

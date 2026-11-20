@@ -1,0 +1,8 @@
+card "Knight Luminary" {
+  oracle_id 11809d9b-30f3-49d5-9119-e45b4de044c8
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 3/2
+  triggered when this enters: create 1 "1/1 white Human Soldier creature"
+  warp {1}{W}
+}

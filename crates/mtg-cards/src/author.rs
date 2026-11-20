@@ -62,7 +62,7 @@ const KEYWORDS: [&str; 39] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 91] = [
+const TEMPLATED_TAGS: [&str; 92] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -146,6 +146,7 @@ const TEMPLATED_TAGS: [&str; 91] = [
     "Conspire",
     "Casualty",
     "Teamwork",
+    "Warp",
     "Saddle",
     "Fabricate",
     "Renown",
@@ -2617,7 +2618,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Embalm|Eternalize|Offspring|Bestow|Overload) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {

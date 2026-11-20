@@ -1146,6 +1146,10 @@ pub enum Mechanic {
     /// CR 702.109: `dash {2}{R}`: an alternative cost; haste, and back to
     /// its owner's hand at the next end step.
     Dash(ManaCost),
+    /// CR 702.185: `warp {1}{U}`: an alternative cost from the hand; the
+    /// permanent is exiled at the next end step, and may be cast from
+    /// exile on a later turn.
+    Warp(ManaCost),
     /// CR 702.103: `bestow {3}{W}`: an alternative cost; the spell is an
     /// Aura with enchant creature, a creature again once unattached.
     Bestow(ManaCost),

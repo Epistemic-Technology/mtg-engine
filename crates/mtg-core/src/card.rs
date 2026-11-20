@@ -346,6 +346,10 @@ pub enum Builtin {
     /// beginning of the next cleanup step" (Spider Climb cast any time a
     /// sorcery couldn't have been).
     CleanupSacrifice,
+    /// CR 702.185a: "Exile this creature at the beginning of the next end
+    /// step, then you may cast it from exile on a later turn." (a warped
+    /// permanent's delayed trigger).
+    WarpExile,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -3457,6 +3461,9 @@ pub enum Effect {
     },
     /// The source's echo has been dealt with (CR 702.30a).
     ClearEcho,
+    /// Warp's delayed trigger (CR 702.185a, `Builtin::WarpExile`): exile
+    /// the permanent; its owner may cast it from exile on a later turn.
+    WarpExile,
     /// "Look at the top four cards of your library. You may reveal a
     /// creature card from among them and put it into your hand. Put the
     /// rest on the bottom of your library in any order." `filter` None is
@@ -5320,6 +5327,11 @@ pub struct CardDef {
     /// Dash (CR 702.109): an alternative cost; a dashed permanent has
     /// haste and returns to its owner's hand at the next end step.
     pub dash: Option<Box<ManaCost>>,
+    /// Warp (CR 702.185): cast from the hand for this cost instead; the
+    /// permanent is exiled at the beginning of the next end step, and may
+    /// be cast from exile on a later turn.
+    #[serde(default)]
+    pub warp: Option<Box<ManaCost>>,
     /// Bestow (CR 702.103): an alternative cost; the spell is then an Aura
     /// with enchant creature (`bestow_face`), and the permanent becomes a
     /// creature again when it isn't attached.
@@ -6084,7 +6096,7 @@ pub struct CardPool {
     flanking: AbilityId,
     evoke: AbilityId,
     exploit: AbilityId,
-    builtins: [AbilityId; 8],
+    builtins: [AbilityId; 9],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -6164,7 +6176,7 @@ impl CardPool {
             flanking: AbilityId(0),
             evoke: AbilityId(0),
             exploit: AbilityId(0),
-            builtins: [AbilityId(0); 8],
+            builtins: [AbilityId(0); 9],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -6281,6 +6293,17 @@ impl CardPool {
                 effects: vec![Effect::ReturnToHand {
                     what: Recipient::SameObject,
                 }],
+            }));
+        pool.builtins[Builtin::WarpExile as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::End,
+                    whose: Who::Any,
+                },
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::WarpExile],
             }));
         pool.builtins[Builtin::Conspire as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
@@ -7055,6 +7078,7 @@ impl Builder {
             morph: None,
             evoke: None,
             dash: None,
+            warp: None,
             bestow: None,
             bestow_face: None,
             overload: None,
@@ -7255,6 +7279,13 @@ impl Builder {
     #[must_use]
     pub fn unkicked_targets(mut self, n: u8) -> Self {
         self.0.unkicked_targets = Some(n);
+        self
+    }
+
+    /// Warp (CR 702.185).
+    #[must_use]
+    pub fn warp(mut self, cost: ManaCost) -> Self {
+        self.0.warp = Some(Box::new(cost));
         self
     }
 

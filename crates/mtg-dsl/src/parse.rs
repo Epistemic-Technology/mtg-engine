@@ -1397,8 +1397,8 @@ impl P {
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
-            | "scavenge" | "dash" | "embalm" | "eternalize" | "offspring" | "bestow" | "splice"
-            | "strive" | "overload"
+            | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring" | "bestow"
+            | "splice" | "strive" | "overload"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1419,6 +1419,7 @@ impl P {
                     "ninjutsu" => Mechanic::Ninjutsu(c),
                     "scavenge" => Mechanic::Scavenge(c),
                     "dash" => Mechanic::Dash(c),
+                    "warp" => Mechanic::Warp(c),
                     "bestow" => Mechanic::Bestow(c),
                     "overload" => Mechanic::Overload(c),
                     "splice" => Mechanic::Splice(c),

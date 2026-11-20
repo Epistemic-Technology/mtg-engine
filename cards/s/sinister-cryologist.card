@@ -1,0 +1,8 @@
+card "Sinister Cryologist" {
+  oracle_id be3038ff-b39e-4d2e-97ee-85de074ccfd3
+  cost {2}{U}
+  type Creature — Jellyfish Wizard
+  pt 2/3
+  triggered when this enters: target creature an opponent controls gets -3/-0 until end of turn
+  warp {U}
+}
