@@ -1,0 +1,27 @@
+scenario "its colored mana casts a creature spell of the chosen type" {
+  battlefield A: "Mountain"
+  hand A: "Secluded Courtyard", "Grizzly Bears"
+  turn 1 A: play "Secluded Courtyard"
+  turn 1 A: choose Bear
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "its colored mana can't cast an instant" {
+  hand A: "Secluded Courtyard", "Lightning Bolt"
+  turn 1 A: play "Secluded Courtyard"
+  turn 1 A: choose Bear
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "nor a creature spell of another type" {
+  battlefield A: "Mountain"
+  hand A: "Secluded Courtyard", "Grizzly Bears"
+  turn 1 A: play "Secluded Courtyard"
+  turn 1 A: choose Elf
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}

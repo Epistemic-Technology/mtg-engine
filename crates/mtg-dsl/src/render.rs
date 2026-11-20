@@ -520,6 +520,11 @@ fn restricted_mana_text(card: &Card, m: Mana, r: &crate::ast::ManaRestriction) -
         (_, Some(s)) => format!("Spend this mana only to {s}."),
         (_, None) => format!("Spend this mana only to activate {ability}."),
     };
+    // "a creature spell of the chosen type", "a creature source of the
+    // chosen type": the noun before the chosen type.
+    let rule = rule
+        .replace(" of the chosen type spell", " spell of the chosen type")
+        .replace(" of the chosen type source", " source of the chosen type");
     format!("{{T}}: Add {what}. {rule}")
 }
 

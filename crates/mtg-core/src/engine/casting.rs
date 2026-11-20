@@ -4754,6 +4754,27 @@ impl GameState {
                 let AbilityDef::RestrictedMana { mana, restriction } = self.pool.ability(*a) else {
                     continue;
                 };
+                // "a creature spell of the chosen type": the type this
+                // permanent's controller chose as it entered.
+                let filled;
+                let restriction = if restriction.spells.as_ref().is_some_and(|f| f.chosen)
+                    || restriction.ability_source.as_ref().is_some_and(|f| f.chosen)
+                {
+                    let fill = |f: &crate::card::ObjFilter| {
+                        if f.chosen {
+                            f.with_chosen(o.chosen)
+                        } else {
+                            f.clone()
+                        }
+                    };
+                    let mut r = restriction.clone();
+                    r.spells = restriction.spells.as_ref().map(fill);
+                    r.ability_source = restriction.ability_source.as_ref().map(fill);
+                    filled = r;
+                    &filled
+                } else {
+                    restriction
+                };
                 let allowed = match spend {
                     Spend::Spell(sc) => restriction.allows_spell(sc),
                     Spend::Ability(src) => restriction.allows_abilities(src),

@@ -1,0 +1,20 @@
+scenario "its mana casts a creature spell of the chosen type" {
+  battlefield A: 3 "Mountain"
+  hand A: "Pillar of Origins", "Grizzly Bears"
+  turn 1 A: cast "Pillar of Origins"
+  turn 1 A: choose Bear
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "but not an instant" {
+  battlefield A: 2 "Island"
+  hand A: "Pillar of Origins", "Lightning Bolt"
+  turn 1 A: cast "Pillar of Origins"
+  turn 1 A: choose Bear
+  illegal turn 1 postcombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}

@@ -1,0 +1,7 @@
+card "Pillar of Origins" {
+  oracle_id 9e62f30d-3130-416e-b459-48b5f71f8be9
+  cost {2}
+  type Artifact
+  as this enters choose creature type
+  mana any only to cast creature of chosen type spell
+}
