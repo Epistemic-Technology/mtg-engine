@@ -3603,6 +3603,13 @@ pub enum Effect {
         all: bool,
     },
     /// "It doesn't untap during its controller's next untap step".
+    /// "Target player skips their next draw step", "Target opponent skips
+    /// their next combat phase" (CR 500.11), `this_turn`: "... skips their
+    /// next combat phase this turn" (only a combat phase of this turn).
+    SkipNext {
+        who: Recipient,
+        what: SkipWhat,
+    },
     SkipNextUntap {
         to: Recipient,
     },
@@ -3842,6 +3849,17 @@ pub struct ThisWayCond {
     pub filter: Option<Box<ObjFilter>>,
     pub negated: bool,
     pub by_you: bool,
+}
+
+/// What `Effect::SkipNext` skips (CR 500.11).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum SkipWhat {
+    /// "their next draw step".
+    DrawStep,
+    /// "their next combat phase".
+    CombatPhase,
+    /// "their next combat phase this turn".
+    CombatPhaseThisTurn,
 }
 
 /// What `Effect::ChooseAct` does to each object its controller chooses.

@@ -1224,6 +1224,10 @@ impl Decompiler<'_> {
             CoreEffect::CantBeRegenerated { to } => Effect::CantBeRegenerated {
                 to: Self::recipient(*to),
             },
+            CoreEffect::SkipNext { who, what } => Effect::SkipNext {
+                who: r(*who),
+                what: *what,
+            },
             CoreEffect::SkipNextUntap { to } => Effect::SkipNextUntap {
                 to: Self::recipient(*to),
                 steps: false,

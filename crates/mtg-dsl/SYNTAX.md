@@ -1045,7 +1045,13 @@ loses flying`, `<who> reveals hand`, `<who> reveals hand discarding
 nonland card` (Duress: you choose the card), `<who> discards 1 card at
 random` (`discard 1 card at random` for you; `that player discards
 another card at random`), `<who> reveals 1 card at random from hand`
-("reveals a card at random from their hand"),
+("reveals a card at random from their hand"; the card is `that card`
+after it: `then loses count equal mana value of that card life`, "then
+loses life equal to that card's mana value"), `<who> skips next draw
+step` ("Target player skips their next draw step", CR 500.11), `<who>
+skips next combat phase` ("Target opponent skips their next combat
+phase"; `... combat phase this turn`: only a combat phase of this turn;
+the main phase after it still happens),
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>` (this: "attach this Equipment to ..."),
 `attach <what> to <what>` ("Attach target Equipment you control to target

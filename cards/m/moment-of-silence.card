@@ -1,0 +1,6 @@
+card "Moment of Silence" {
+  oracle_id 43af5041-a4bd-4b61-b1a1-bdea916afc59
+  cost {W}
+  type Instant
+  spell: target player skips next combat phase this turn
+}

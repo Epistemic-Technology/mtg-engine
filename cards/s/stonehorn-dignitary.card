@@ -1,0 +1,7 @@
+card "Stonehorn Dignitary" {
+  oracle_id 65368569-68bf-4498-9979-d2935942ca49
+  cost {3}{W}
+  type Creature — Rhino Soldier
+  pt 1/4
+  triggered when this enters: target opponent skips next combat phase
+}

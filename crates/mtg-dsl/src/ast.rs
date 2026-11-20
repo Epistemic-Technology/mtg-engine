@@ -2880,6 +2880,13 @@ pub enum Effect {
     /// `target 1 doesn't untap next untap step`: "It doesn't untap during
     /// its controller's next untap step."; `... next untap steps`: "Those
     /// creatures don't untap during their controllers' next untap steps."
+    /// `target player skips next draw step` ("Target player skips their
+    /// next draw step"), `target opponent skips next combat phase`, `...
+    /// combat phase this turn`.
+    SkipNext {
+        who: Recipient,
+        what: mtg_core::card::SkipWhat,
+    },
     SkipNextUntap {
         to: Recipient,
         steps: bool,

@@ -3700,6 +3700,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*to);
             Clause::with_subject(*to, s, "can't be regenerated this turn".to_string())
         }
+        Effect::SkipNext { who, what } => {
+            let s = ctx.subj(*who);
+            let whose = if *who == Recipient::You {
+                "your"
+            } else {
+                "their"
+            };
+            let w = match what {
+                mtg_core::card::SkipWhat::DrawStep => "draw step",
+                mtg_core::card::SkipWhat::CombatPhase => "combat phase",
+                mtg_core::card::SkipWhat::CombatPhaseThisTurn => "combat phase this turn",
+            };
+            let v = ctx.verb(*who, "skips", "skip");
+            Clause::with_subject(*who, s, format!("{v} {whose} next {w}"))
+        }
         Effect::SkipNextUntap { to, steps } => {
             let s = match *to {
                 // "Tap up to two target creatures. Those creatures don't

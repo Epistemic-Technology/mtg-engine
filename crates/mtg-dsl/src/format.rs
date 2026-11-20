@@ -590,9 +590,9 @@ impl Fmt {
                 } else {
                     s.push_str("look");
                 }
-                s.push_str(&format!(" at top {}", num(*count)));
+                let _ = write!(s, " at top {}", num(*count));
                 if let Some(o) = of {
-                    s.push_str(&format!(" of {}", self.recipient(*o, t)));
+                    let _ = write!(s, " of {}", self.recipient(*o, t));
                 }
                 if *only {
                     s.push_str(" only");
@@ -850,6 +850,19 @@ impl Fmt {
             ),
             Effect::CantBeRegenerated { to } => {
                 format!("{} can't be regenerated", self.recipient(*to, t))
+            }
+            Effect::SkipNext { who, what } => {
+                let v = if *who == Recipient::You {
+                    "skip"
+                } else {
+                    "skips"
+                };
+                let w = match what {
+                    mtg_core::card::SkipWhat::DrawStep => "draw step",
+                    mtg_core::card::SkipWhat::CombatPhase => "combat phase",
+                    mtg_core::card::SkipWhat::CombatPhaseThisTurn => "combat phase this turn",
+                };
+                format!("{} {v} next {w}", self.recipient(*who, t))
             }
             Effect::SkipNextUntap { to, steps } => format!(
                 "{} doesn't untap next untap step{}",
@@ -1453,13 +1466,13 @@ impl Fmt {
                     }
                 };
                 if let Some(fl) = fl {
-                    s.push_str(&format!(" all {} card from", filter(fl)));
+                    let _ = write!(s, " all {} card from", filter(fl));
                 } else if *cards {
                     s.push_str(" cards from");
                 }
                 s.push_str(if *hand { " hand" } else { " graveyard" });
                 if let Some(o) = of {
-                    s.push_str(&format!(" of {}", self.recipient(*o, t)));
+                    let _ = write!(s, " of {}", self.recipient(*o, t));
                 }
                 s.push_str(" into library");
                 s

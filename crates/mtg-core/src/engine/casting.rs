@@ -6439,6 +6439,21 @@ impl GameState {
                     }
                 }
             }
+            Effect::SkipNext { who, what } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    let ps = self.player_mut(p);
+                    match what {
+                        crate::card::SkipWhat::DrawStep => ps.skip_draw += 1,
+                        crate::card::SkipWhat::CombatPhase => ps.skip_combat += 1,
+                        crate::card::SkipWhat::CombatPhaseThisTurn => {
+                            ps.skip_combat_this_turn += 1;
+                        }
+                    }
+                }
+            }
             Effect::SkipNextUntap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -6669,12 +6684,15 @@ impl GameState {
                         continue;
                     };
                     let n = self.player(p).hand.len();
+                    ctx.created = None;
                     if n == 0 {
                         continue;
                     }
                     let i = rand::Rng::random_range(&mut self.rng, 0..n);
                     let card = self.player(p).hand[i];
                     self.reveal_in_hand(card);
+                    // "then loses life equal to that card's mana value".
+                    ctx.created = Some(card);
                 }
             }
             Effect::Vote { options } => {

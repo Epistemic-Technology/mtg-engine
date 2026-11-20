@@ -4417,6 +4417,21 @@ impl P {
             }
             "explores" => Ok(Effect::Explore { what: subject }),
             "connives" => Ok(Effect::Connive { what: subject }),
+            "skips" | "skip" if self.at_word("next") => {
+                self.pos += 1;
+                use mtg_core::card::SkipWhat;
+                let what = if self.eat_words(&["draw", "step"]) {
+                    SkipWhat::DrawStep
+                } else {
+                    self.expect_words(&["combat", "phase"])?;
+                    if self.eat_words(&["this", "turn"]) {
+                        SkipWhat::CombatPhaseThisTurn
+                    } else {
+                        SkipWhat::CombatPhase
+                    }
+                };
+                Ok(Effect::SkipNext { who: subject, what })
+            }
             "doesn't" => {
                 self.expect_words(&["untap", "next", "untap"])?;
                 let steps = self.eat_word("steps");

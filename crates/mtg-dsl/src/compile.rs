@@ -2050,6 +2050,10 @@ impl Compiler<'_> {
                 to: r(*to),
                 all: *all,
             }),
+            Effect::SkipNext { who, what } => out.push(CoreEffect::SkipNext {
+                who: r(*who),
+                what: *what,
+            }),
             Effect::SkipNextUntap { to, .. } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });

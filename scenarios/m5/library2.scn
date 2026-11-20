@@ -275,3 +275,57 @@ scenario "a nonland permanent card: not an instant (Auntie's Sentence)" {
   assert graveyard B contains "Hill Giant"
   assert hand B contains "Shock"
 }
+
+scenario "reveal a card at random, lose life equal to its mana value (Singe-Mind Ogre)" {
+  battlefield A: 2 "Swamp", 2 "Mountain"
+  hand A: "Singe-Mind Ogre"
+  hand B: "Hill Giant"
+  turn 1 A: cast "Singe-Mind Ogre"
+  turn 1 A: trigger "Singe-Mind Ogre" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand B contains "Hill Giant"
+}
+
+scenario "skip the next draw step, only once (Fatigue)" {
+  battlefield A: 2 "Island"
+  hand A: "Fatigue"
+  library B: "Forest", "Plains", "Swamp"
+  turn 1 A: cast "Fatigue" targeting player B
+  run_to turn 2 postcombat_main
+  assert hand B count 0
+  assert library B count 3
+  run_to turn 4 precombat_main
+  assert hand B count 1
+}
+
+scenario "skip the next combat phase (Stonehorn Dignitary)" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Bloodrock Cyclops"
+  hand A: "Stonehorn Dignitary"
+  turn 1 A: cast "Stonehorn Dignitary"
+  turn 1 A: trigger "Stonehorn Dignitary" targeting player B
+  run_to turn 2 end
+  assert life A 20
+  run_to turn 4 end
+  assert life A 17
+}
+
+scenario "skip the next combat phase this turn (Moment of Silence)" {
+  battlefield A: "Plains"
+  battlefield B: "Bloodrock Cyclops"
+  hand A: "Moment of Silence"
+  turn 2 upkeep A: cast "Moment of Silence" targeting player B
+  run_to turn 2 end
+  assert life A 20
+  assert graveyard A contains "Moment of Silence"
+}
+
+scenario "skip the next combat phase this turn: not a later turn's (Moment of Silence)" {
+  battlefield A: "Plains"
+  battlefield B: "Bloodrock Cyclops"
+  hand A: "Moment of Silence"
+  turn 1 A: cast "Moment of Silence" targeting player B
+  run_to turn 2 end
+  assert life A 17
+}
