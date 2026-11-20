@@ -4248,6 +4248,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("tap or untap {o}"))
         }
+        Effect::FaceDownSpellsLess(n) => Clause::imperative(format!(
+            "face-down spells you cast this turn cost {{{n}}} less to cast"
+        )),
         Effect::TurnFaceUp { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("turn {o} face up"))
@@ -6341,6 +6344,7 @@ fn lowercase_first(s: &str) -> String {
                 | "Attacking"
                 | "Blocking"
                 | "Tapped"
+                | "Face-down"
                 | "Untapped"
                 | "Legendary"
                 | "Nonland"

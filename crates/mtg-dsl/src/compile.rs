@@ -1537,6 +1537,7 @@ impl Compiler<'_> {
             }
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
+            Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
             Effect::TurnFaceUp { what } => out.push(CoreEffect::TurnFaceUp { what: r(*what) }),
             Effect::TurnFaceDown { what } => out.push(CoreEffect::TurnFaceDown { what: r(*what) }),

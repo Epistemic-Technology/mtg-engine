@@ -600,6 +600,9 @@ instant and/or sorcery cards in your graveyard, scry 2."). `that target
 `next spell costs {1} less` prints "the next spell you cast this turn costs {1}
 less to cast" (CR 601.2f): generic mana off the controller's next spell
 this turn; several add up, and that spell uses them all up.
+`face-down spells cost {1} less this turn` prints "face-down spells you
+cast this turn cost {1} less to cast": off the {3} of each face-down spell
+(CR 702.37c) the controller casts for the rest of the turn.
 `learn` (CR 701.48) prints "Learn."; there are no Lesson cards outside the
 game here, so it is "you may discard a card; if you do, draw a card".
 `goad target creature` (CR 701.15; `goad target 1` prints "Goad it.",

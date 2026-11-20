@@ -1252,6 +1252,9 @@ pub struct TurnLog {
     /// Players under whose control a face-down creature entered the
     /// battlefield (CR 708.3).
     pub face_down_entered: u8,
+    /// Generic mana face-down spells each player casts this turn cost less
+    /// ("face-down spells you cast this turn cost {1} less to cast").
+    pub face_down_less: [u8; 4],
     /// Creatures that entered the battlefield under each player's control.
     pub creatures_entered: [u8; 4],
     /// Nonland permanents that did (celebration).

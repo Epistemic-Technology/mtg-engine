@@ -3239,6 +3239,9 @@ pub enum Effect {
     /// generic mana; several such effects add up, and that one spell uses
     /// them all up.
     NextSpellLess(u32),
+    /// "Face-down spells you cast this turn cost {1} less to cast." (CR
+    /// 601.2f): the controller's face-down spells (CR 702.37c) this turn.
+    FaceDownSpellsLess(u32),
     /// "Turn target face-down creature an opponent controls face up" (CR
     /// 708.8): no cost is paid, so megamorph adds no counter (CR
     /// 702.37b); one whose card is an instant or sorcery is revealed and

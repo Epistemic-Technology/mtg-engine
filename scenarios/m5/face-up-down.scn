@@ -168,3 +168,22 @@ scenario "as enters or is turned face up: X counters as it turns up, other creat
   run_to turn 1 end
   assert counters "Crowd-Control Warden" +1/+1 1
 }
+
+scenario "face-down spells cost {1} less this turn after the attack" {
+  battlefield A: "Goblin Maskmaker", 2 "Mountain"
+  hand A: "Atarka Efreet"
+  start turn 3 A
+  turn 3 A: attack "Goblin Maskmaker"
+  turn 3 postcombat_main A: cast "Atarka Efreet" face_down
+  run_to turn 3 end
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "face-down spells cost {1} less: not without the attack" {
+  battlefield A: "Goblin Maskmaker", 2 "Mountain"
+  hand A: "Atarka Efreet"
+  start turn 3 A
+  illegal turn 3 postcombat_main A: cast "Atarka Efreet" face_down
+  run_to turn 3 end
+  assert hand A contains "Atarka Efreet"
+}

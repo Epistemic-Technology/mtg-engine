@@ -1461,9 +1461,25 @@ impl GameState {
         options: &mut Vec<Choice>,
     ) {
         let ps = self.player(p);
-        if self.payable(p, sources, &ps.mana_pool, &three(), ps.life, None) {
+        if self.payable(
+            p,
+            sources,
+            &ps.mana_pool,
+            &self.face_down_cost(p),
+            ps.life,
+            None,
+        ) {
             options.push(Choice::CastFaceDown(id));
         }
+    }
+
+    /// CR 702.37c: a face-down spell costs {3}, less what "face-down
+    /// spells you cast this turn cost {1} less" takes off for `p`.
+    fn face_down_cost(&self, p: PlayerId) -> ManaRequirement {
+        let mut req = three();
+        let less = self.turn_log.face_down_less[p.index().min(3)];
+        req.generic = req.generic.saturating_sub(less.into());
+        req
     }
 
     #[cold]
@@ -2289,9 +2305,7 @@ impl GameState {
                 def.evoke.as_ref().expect("checked").requirements(x)
             }
             // CR 702.37c: a face-down spell costs {3}.
-            _ if self.pool.is_face_down(o.def) => crate::mana::ManaCost::parse("{3}")
-                .expect("a mana cost")
-                .requirements(0),
+            _ if self.pool.is_face_down(o.def) => self.face_down_cost(o.controller),
             _ => def.mana_cost.requirements(x),
         };
         // CR 107.3: "Spend only black mana on X." X is then paid as that
@@ -8325,6 +8339,11 @@ impl GameState {
                 }
             }
             Effect::CopySpell => self.copy_spell(ctx),
+            Effect::FaceDownSpellsLess(n) => {
+                let i = ctx.controller.index().min(3);
+                let less = &mut self.turn_log.face_down_less[i];
+                *less = less.saturating_add(u8::try_from(*n).unwrap_or(u8::MAX));
+            }
             Effect::TurnFaceUp { what } => {
                 for t in self.recipients(ctx, *what) {
                     let Some(id) = on_battlefield(self, t) else {

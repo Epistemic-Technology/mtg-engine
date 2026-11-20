@@ -5935,6 +5935,12 @@ impl P {
                 self.expect_word("card")?;
                 Ok(Effect::RevealUntil { who: None, filter })
             }
+            "face-down" if self.at_words(&["spells", "cost"]) => {
+                self.pos += 2;
+                let n = self.mana_cost()?.mana_value();
+                self.expect_words(&["less", "this", "turn"])?;
+                Ok(Effect::FaceDownSpellsLess(n))
+            }
             "look" if self.at_words(&["at", "hand", "top", "and", "face-down", "of"]) => {
                 self.pos += 6;
                 Ok(Effect::LookAtPlayer {

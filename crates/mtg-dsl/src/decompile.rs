@@ -705,6 +705,7 @@ impl Decompiler<'_> {
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
+            CoreEffect::FaceDownSpellsLess(n) => Effect::FaceDownSpellsLess(*n),
             CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },
             CoreEffect::TurnFaceUp { what } => Effect::TurnFaceUp { what: r(*what) },
             CoreEffect::TurnFaceDown { what } => Effect::TurnFaceDown { what: r(*what) },

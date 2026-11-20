@@ -2428,6 +2428,9 @@ pub enum Effect {
     /// `next spell costs {1} less`: "the next spell you cast this turn
     /// costs {1} less to cast".
     NextSpellLess(u32),
+    /// `face-down spells cost {1} less this turn`: "face-down spells you
+    /// cast this turn cost {1} less to cast".
+    FaceDownSpellsLess(u32),
     TapOrUntap {
         to: Recipient,
     },

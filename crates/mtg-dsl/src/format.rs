@@ -1067,6 +1067,9 @@ impl Fmt {
             Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
             Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
+            Effect::FaceDownSpellsLess(n) => {
+                format!("face-down spells cost {{{n}}} less this turn")
+            }
             Effect::Goad { what } => format!("goad {}", self.recipient(*what, t)),
             Effect::TurnFaceUp { what } => format!("turn face up {}", self.recipient(*what, t)),
             Effect::TurnFaceDown { what } => {
