@@ -1,0 +1,7 @@
+card "Descendant of Soramaro" {
+  oracle_id 1cf3126e-fbac-4245-beba-3d4eedda24bf
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  activated {1}{U}: look at top count where hand
+}

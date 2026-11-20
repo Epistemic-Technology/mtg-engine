@@ -1,0 +1,6 @@
+card "Hobbit's Sting" {
+  oracle_id 845bbad1-02f9-432b-aca4-13a5ec71fd06
+  cost {1}{W}
+  type Instant
+  spell: deal count where creature you control plus Food you control damage to target creature
+}

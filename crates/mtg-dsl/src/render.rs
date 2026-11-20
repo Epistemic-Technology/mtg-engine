@@ -2164,6 +2164,9 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                             None => p,
                         };
                         format!("{} {p}", count_words(Num::N(cost.count), "a"))
+                    } else if f.relation == Relation::This && *f == Filter::this() {
+                        // "Return this enchantment to its owner's hand".
+                        ctx.source()
                     } else {
                         filter_a(f, ctx.card)
                     };
@@ -2524,7 +2527,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::CreateToken { count, .. } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
-        Effect::Scry(n) => vec![*n],
+        Effect::Scry(n) | Effect::LookAtTop(n) => vec![*n],
         Effect::CreateReplacement(r) => match r.outcome {
             mtg_core::card::Replacement::PreventNext(n) => vec![n],
             _ => Vec::new(),
@@ -2924,6 +2927,16 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 c.text = c
                     .text
                     .replacen("X damage", &format!("damage equal to {phrase}"), 1);
+            }
+            // "Look at the top X cards of your library, where X is ...,
+            // then put them back in any order."
+            CountStyle::Where if matches!(e, Effect::LookAtTop(_)) => {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c.text.replacen(
+                    ", then put",
+                    &format!(", where X is {phrase}, then put"),
+                    1,
+                );
             }
             CountStyle::Where => {
                 let _ = write!(
@@ -8232,6 +8245,22 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         "this permanent is",
                         1,
                     ));
+                    ctx.source_mentioned = true;
+                }
+                // "At the beginning of each end step, if this creature was
+                // dealt damage this turn, put a +0/+1 counter on it."
+                Some(crate::ast::TrigCond::Static(StaticCond::Is(f)))
+                    if f.damaged
+                        && (Filter {
+                            damaged: false,
+                            ..f.clone()
+                        }) == Filter::default() =>
+                {
+                    let _ = write!(
+                        out,
+                        ", if {} was dealt damage this turn",
+                        this_ref(card)
+                    );
                     ctx.source_mentioned = true;
                 }
                 Some(crate::ast::TrigCond::Static(c)) => {

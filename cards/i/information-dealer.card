@@ -1,0 +1,7 @@
+card "Information Dealer" {
+  oracle_id 52d10e81-c8ae-44bb-bb83-f4fe737f30d7
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: look at top count where Wizard on battlefield
+}

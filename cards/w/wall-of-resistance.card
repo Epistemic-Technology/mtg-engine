@@ -1,0 +1,8 @@
+card "Wall of Resistance" {
+  oracle_id e6f5f80c-2620-4558-8a5f-8fc36cea4793
+  cost {1}{W}
+  type Creature — Wall
+  pt 0/3
+  keywords defender, flying
+  triggered at beginning of every end step if this is damaged: put 1 +0/+1 counter on this
+}

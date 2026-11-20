@@ -1,0 +1,8 @@
+card "Sabertooth Outrider" {
+  oracle_id 2a98f634-d739-47a7-98cb-b7f935cd65ef
+  cost {3}{R}
+  type Creature — Human Warrior
+  pt 4/2
+  keywords trample
+  label "Formidable" triggered whenever this attacks if total power 8 or more: this gains first strike
+}

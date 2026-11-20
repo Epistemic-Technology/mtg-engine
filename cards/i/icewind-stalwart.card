@@ -1,0 +1,7 @@
+card "Icewind Stalwart" {
+  oracle_id 9ad12c75-e97d-404a-bfa9-26ff1d0bb506
+  cost {3}{W}
+  type Creature — Tiefling Warrior
+  pt 3/3
+  label "Protection Fighting Style" triggered when this enters: exile up to 1 target non-Warrior creature you control then return target 1 to battlefield under its owner's control
+}

@@ -2151,6 +2151,9 @@ fn filter_one(f: &Filter) -> String {
     if f.damaged && !f.damaged_short {
         words.push("damaged".to_string());
     }
+    if f.status.modified {
+        words.push("modified".to_string());
+    }
     if let Some(cc) = f.color_count {
         words.push(format!("{cc:?}").to_lowercase());
     }
@@ -2202,9 +2205,6 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.status.equipped {
         words.push("with Equipment".to_string());
-    }
-    if f.status.modified {
-        words.push("modified".to_string());
     }
     if f.status.toxic {
         words.push("with toxic".to_string());

@@ -185,3 +185,134 @@ scenario "party: Shepherd of Heroes counts itself and a Rogue" {
   run_to turn 1 postcombat_main
   assert life A 24
 }
+
+scenario "sum: Hobbit's Sting counts creatures plus Foods" {
+  battlefield A: "Grizzly Bears", "Food", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Hobbit's Sting"
+  turn 1 A: cast "Hobbit's Sting" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+}
+
+scenario "sum: Slash of Light counts creatures plus Equipment" {
+  battlefield A: "Grizzly Bears", "Wall of Wood", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Slash of Light"
+  turn 1 A: cast "Slash of Light" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+}
+
+scenario "greatest mana value: Torrent of Fire" {
+  battlefield A: "Craw Wurm", 5 "Mountain"
+  hand A: "Torrent of Fire"
+  turn 1 A: cast "Torrent of Fire" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "formidable: Sabertooth Outrider gains first strike with total power 8" {
+  battlefield A: "Sabertooth Outrider", "Craw Wurm"
+  start turn 2 A
+  turn 2 A: attack "Sabertooth Outrider", "Craw Wurm"
+  run_to turn 2 declare_blockers
+  assert has "Sabertooth Outrider" first_strike
+}
+
+scenario "formidable: alone it doesn't" {
+  battlefield A: "Sabertooth Outrider"
+  start turn 2 A
+  turn 2 A: attack "Sabertooth Outrider"
+  run_to turn 2 declare_blockers
+  assert has not "Sabertooth Outrider" first_strike
+}
+
+scenario "domain: Artillery Blast deals 1 plus basic land types" {
+  battlefield A: "Plains", "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Artillery Blast"
+  turn 1 A: cast "Artillery Blast" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "domain: Exploding Borders counts the land it fetched" {
+  battlefield A: "Mountain", "Forest", "Island", "Plains"
+  library A: "Swamp", "Plains"
+  hand A: "Exploding Borders"
+  turn 1 A: cast "Exploding Borders" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Swamp"
+  assert life B 15
+}
+
+scenario "count with defender: Doorkeeper mills by defenders" {
+  battlefield A: "Doorkeeper", "Wall of Wood", 3 "Island"
+  turn 1 A: activate "Doorkeeper" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 2
+}
+
+
+
+scenario "dealt damage this turn: Wall of Resistance grows at the end step" {
+  battlefield A: "Wall of Resistance", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Wall of Resistance"
+  run_to turn 2 upkeep
+  assert counters "Wall of Resistance" +0/+1 1
+  assert toughness "Wall of Resistance" 4
+}
+
+scenario "dealt damage this turn: an undamaged Wall of Resistance doesn't" {
+  battlefield A: "Wall of Resistance"
+  run_to turn 2 upkeep
+  assert counters "Wall of Resistance" +0/+1 0
+}
+
+scenario "Balduvian Rage pumps an attacker by X and draws next upkeep" {
+  battlefield A: "Grizzly Bears", 4 "Mountain"
+  hand A: "Balduvian Rage"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Balduvian Rage" x 3 targeting "Grizzly Bears"
+  run_to turn 3 draw
+  assert life B 15
+  assert hand A count 2
+}
+
+scenario "Gossamer Chains returns itself to stop an unblocked creature's damage" {
+  battlefield A: "Gossamer Chains"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_blockers A: activate "Gossamer Chains" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert hand A contains "Gossamer Chains"
+}
+
+scenario "non-Warrior: Icewind Stalwart blinks a creature that isn't a Warrior" {
+  battlefield A: "Grizzly Bears" with 1 +1/+1, "Sabertooth Outrider", 4 "Plains"
+  hand A: "Icewind Stalwart"
+  turn 1 A: cast "Icewind Stalwart"
+  turn 1 A: trigger "Icewind Stalwart" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "non-Warrior: Icewind Stalwart can't blink a Warrior" {
+  battlefield A: "Sabertooth Outrider" with 1 +1/+1, 4 "Plains"
+  hand A: "Icewind Stalwart"
+  turn 1 A: cast "Icewind Stalwart"
+  run_to turn 1 postcombat_main
+  assert counters "Sabertooth Outrider" +1/+1 1
+}
+
+scenario "look at the top X: Information Dealer counts Wizards" {
+  battlefield A: "Information Dealer"
+  turn 1 A: activate "Information Dealer"
+  run_to turn 1 postcombat_main
+  assert tapped "Information Dealer"
+}
