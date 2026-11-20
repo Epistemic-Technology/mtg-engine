@@ -1955,9 +1955,16 @@ impl Templates {
                     "that token".to_string()
                 } else if made_token && matches!(obj, "them" | "those tokens") {
                     "those tokens".to_string()
-                } else if matches!(obj, "this creature" | "~") {
+                } else if matches!(obj, "this creature" | "~") && cap(&c, 1) != "Return" {
+                    // Sacrificed or destroyed where it is; a card returning
+                    // from exile is a new object (CR 400.7).
                     "this".to_string()
-                } else if *targets > 0 && matches!(obj, "it" | "that card" | "that creature") {
+                } else if *targets > 0
+                    && matches!(obj, "it" | "that card" | "that creature")
+                    && !out.iter().any(|l| l.contains("to battlefield"))
+                {
+                    // Not a card just returned to the battlefield: the
+                    // target was the card in the graveyard.
                     format!("target {}", *targets)
                 } else {
                     return Err(Skip::Sentence(sentence));
@@ -2071,6 +2078,15 @@ impl Templates {
             out.push(format!("{prefix}{e}"));
         }
         if out.is_empty() {
+            return Err(Skip::Sentence(text.to_string()));
+        }
+        // After a token is created with no target named, Oracle's "that
+        // creature" is the token, but `that creature` would be a target or
+        // the triggering object: not this card's meaning.
+        if *targets == 0
+            && let Some(k) = out.iter().position(|e| e.contains("create "))
+            && out[k..].iter().any(|e| e.contains("that creature"))
+        {
             return Err(Skip::Sentence(text.to_string()));
         }
         Ok(out.join("; "))
@@ -4123,7 +4139,18 @@ fn wording_variants(text: &str) -> Vec<String> {
                 }
                 "this" if !matches!(next, "turn" | "spell" | "creature" | "way") => {
                     alts.push("this creature".to_string());
-                    if it_ok {
+                    // Oracle's "it" names the source only before anything
+                    // else has been named: after a token, a target, or a
+                    // moved card, "it" is that object, which `this` and
+                    // `it` here are not.
+                    let before = words[start..j].join(" ");
+                    let named = [
+                        "create", "target", "that", "return", "exile", "search", "reveal", "dig",
+                        "put", "attach", "copy", "mill", "discard",
+                    ]
+                    .iter()
+                    .any(|w| before.split(' ').any(|b| b == *w));
+                    if it_ok && !named {
                         alts.push("it".to_string());
                     }
                 }
