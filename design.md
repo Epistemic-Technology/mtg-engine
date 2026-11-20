@@ -2647,3 +2647,10 @@ turn-long delayed triggers). The keyword set grew past 64 bits
 into one byte to keep `GameObject` at 136. Per-game cost by instruction
 count rose about 2% over the three waves. Corpus 11,347 cards: 86.3% of
 Pauper, 38.9% of Modern; 5,578 scenarios pass.
+
+Then a last small wave (encore / awaken / enlist / detain / storm /
+replicate / assist / dredge; turning permanents face up or down and
+looking at face-down creatures; entered-this-turn conditions, "that
+player may pay", second-spell cost reductions). Corpus 11,423 cards:
+87.0% of Pauper, 31.0% of Standard, 39.1% of Modern; 5,665 scenarios
+pass; per-game cost flat.
