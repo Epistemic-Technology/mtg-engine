@@ -412,3 +412,26 @@ scenario "Room: a Room put onto the battlefield uncast has both doors locked" {
   assert hand A count 0
   assert battlefield A lacks "Derelict Attic"
 }
+
+scenario "battle: put an instant, sorcery, or battle card from your graveyard on top" {
+  battlefield A: 5 "Island"
+  hand A: "Halo-Charged Skaab"
+  library A: "Invasion of Dominaria", "Forest", "Island"
+  library B: "Forest", "Island", "Island"
+  turn 1 A: cast "Halo-Charged Skaab"
+  run_to turn 1 end
+  assert graveyard A lacks "Invasion of Dominaria"
+  assert graveyard A contains "Forest"
+  assert library A contains "Invasion of Dominaria"
+  assert library A count 2
+}
+
+scenario "battle: a creature card is not an instant, sorcery, or battle card" {
+  battlefield A: 5 "Island"
+  hand A: "Halo-Charged Skaab"
+  library A: "Grizzly Bears", "Forest", "Island"
+  turn 1 A: cast "Halo-Charged Skaab"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert library A count 1
+}

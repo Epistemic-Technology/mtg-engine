@@ -1,0 +1,7 @@
+card "Halo-Charged Skaab" {
+  oracle_id d7dcd1a3-3163-4e26-94e8-f4072e477e6a
+  cost {4}{U}
+  type Creature — Zombie
+  pt 4/4
+  triggered when this enters: each player mills 2 cards; then you may put 1 instant, sorcery, or battle card from your graveyard on top of library chosen
+}

@@ -769,6 +769,7 @@ impl GameState {
                 .collect(),
             ChooseAct::ExileFromGraveyard
             | ChooseAct::ReturnFromGraveyard
+            | ChooseAct::GraveyardToTop
             | ChooseAct::ReturnRandomFromGraveyard => self
                 .player(p)
                 .graveyard
@@ -906,6 +907,9 @@ impl GameState {
                 ChooseAct::Discard => self.discard_card(p, id),
                 ChooseAct::HandToBottom => {
                     self.move_object(id, Zone::Library, false);
+                }
+                ChooseAct::GraveyardToTop => {
+                    self.move_object(id, Zone::Library, true);
                 }
                 ChooseAct::ExileFromGraveyard => {
                     ctx.created = Some(self.move_object(id, Zone::Exile, false));

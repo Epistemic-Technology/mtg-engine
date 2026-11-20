@@ -4337,6 +4337,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::ExileFromGraveyard => {
                     format!("exile {} from your graveyard", cards())
                 }
+                ChooseAct::GraveyardToTop => {
+                    format!("put {} from your graveyard on top of your library", cards())
+                }
                 ChooseAct::ReturnFromGraveyard => {
                     format!("return {} from your graveyard to your hand", cards())
                 }

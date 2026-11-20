@@ -1456,6 +1456,9 @@ impl Fmt {
                     ChooseAct::ExileFromGraveyard => {
                         format!("exile {n} {f} {cs} from your graveyard chosen")
                     }
+                    ChooseAct::GraveyardToTop => {
+                        format!("put {n} {f} {cs} from your graveyard on top of library chosen")
+                    }
                     ChooseAct::ReturnFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand chosen")
                     }

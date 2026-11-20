@@ -3682,6 +3682,9 @@ pub enum ChooseAct {
     /// "put a card from your hand on the bottom of your library" (cards in
     /// your hand).
     HandToBottom,
+    /// "put an instant, sorcery, or battle card from your graveyard on top
+    /// of your library" (cards in your graveyard).
+    GraveyardToTop,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,

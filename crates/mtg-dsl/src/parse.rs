@@ -4457,6 +4457,7 @@ impl P {
     /// chosen`, `return up to N <filter> to hand chosen`, `put N <filter>
     /// card from among milled cards into hand chosen` (or `from among
     /// them`).
+    #[allow(clippy::too_many_lines)] // one arm per act
     fn chosen_act(&mut self) -> R<Effect> {
         use mtg_core::card::ChooseAct;
         let verb = self.word()?;
@@ -4519,6 +4520,29 @@ impl P {
                 let f = card_filter(self)?;
                 self.pos += 6;
                 (ChooseAct::HandToBottom, f)
+            }
+            // `put 1 instant or sorcery card from your graveyard on top of
+            // library chosen`.
+            "put"
+                if {
+                    let at = self.pos;
+                    let gy = card_filter(self).is_ok()
+                        && self.at_words(&[
+                            "from",
+                            "your",
+                            "graveyard",
+                            "on",
+                            "top",
+                            "of",
+                            "library",
+                        ]);
+                    self.pos = at;
+                    gy
+                } =>
+            {
+                let f = card_filter(self)?;
+                self.pos += 7;
+                (ChooseAct::GraveyardToTop, f)
             }
             _ => {
                 let f = card_filter(self)?;

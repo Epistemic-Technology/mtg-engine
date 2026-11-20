@@ -1593,6 +1593,10 @@ battles (CR 115.4).
   battle` is a filter.
 - Effect: `double this power` ("double its power until end of turn",
   CR 701.10f: +X/+0 with X its power).
+- Effect: `you may put 1 instant, sorcery, or battle card from your
+  graveyard on top of library chosen` ("you may put an instant,
+  sorcery, or battle card from your graveyard on top of your library":
+  the controller chooses, no target).
 
 Rooms (CR 709.5) are `layout split` cards whose two `face`s are both
 `type Enchantment — Room`; "this Room" is the self-noun. Casting a half
