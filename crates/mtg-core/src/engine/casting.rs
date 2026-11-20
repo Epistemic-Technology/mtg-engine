@@ -10456,6 +10456,14 @@ impl GameState {
                 Some(l) => l.object.counters.clone(),
                 None => return,
             },
+            // "Whenever another creature you control dies, ... put its
+            // counters on this creature": as that creature last existed.
+            None if from == Recipient::TriggeringObject => {
+                match ctx.trigger_obj.and_then(|o| self.lki.get(&o)) {
+                    Some(l) => l.object.counters.clone(),
+                    None => return,
+                }
+            }
             None => return,
         };
         if dest.is_empty() {

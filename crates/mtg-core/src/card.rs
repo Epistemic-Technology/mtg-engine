@@ -5009,6 +5009,10 @@ pub enum Condition {
     /// "if it had a +1/+1 counter on it" (Promising Duskmage), judged the
     /// same way.
     HadCounters(CounterKind),
+    /// "if it had counters on it" of the triggering object, any kind, as
+    /// it last existed (Buzzard-Wasp Colony's "Whenever another creature
+    /// you control dies, if it had counters on it, ...").
+    TriggerHadCounters,
     /// "if no spells were cast last turn" (werewolves).
     NoSpellsLastTurn,
     /// "if a player cast two or more spells last turn".

@@ -1839,6 +1839,7 @@ impl Fmt {
                 up_to,
                 filter: f,
                 among_them,
+                among_those,
                 this_way,
                 returns,
             } => {
@@ -1880,6 +1881,8 @@ impl Fmt {
                         "put {n} {f} {cs} from among {} into hand chosen",
                         if *among_them {
                             "them"
+                        } else if *among_those {
+                            "those cards"
                         } else if *this_way {
                             "milled this way cards"
                         } else {
@@ -4310,6 +4313,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 Some(mtg_core::card::Condition::HadCounters(k)) => {
                     let _ = write!(head, " if it had {}", counter(*k, Num::N(1)));
+                }
+                Some(mtg_core::card::Condition::TriggerHadCounters) => {
+                    head.push_str(" if it had counters");
                 }
                 None => {}
             }

@@ -1497,14 +1497,9 @@ impl<'a> Ctx<'a> {
                 let mut filter = filter.clone();
                 filter.that_player = None;
                 let filter = &filter;
-                if *filter == Filter::default() {
-                    format!("cards from {whose}")
-                } else {
-                    format!(
-                        "{} cards from {whose}",
-                        filter_phrase(filter, self.card, false)
-                    )
-                }
+                // "one or two target permanent cards from your graveyard",
+                // as one is "target permanent card".
+                format!("{} from {whose}", cards_phrase(filter, self.card, true))
             }
         }
     }
@@ -3683,7 +3678,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             kind,
             count,
         } => match (kind, count) {
-            (None, None) if *from == Recipient::Source => {
+            (None, None) if matches!(from, Recipient::Source | Recipient::TriggeringObject) => {
                 let o = ctx.obj(*to);
                 Clause::imperative(format!("put its counters on {o}"))
             }
@@ -4378,6 +4373,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // "return those cards to the battlefield under their
                 // owner's control" (Oracle's singular "owner's").
                 format!("return {o} to the battlefield{tapped} under their owner's control")
+            } else if matches!(what, Recipient::Targets(..)) {
+                // "exile up to one target artifact you control and up to
+                // one target creature you control. Then return them to the
+                // battlefield under their owners' control."
+                format!("return {o} to the battlefield{tapped} under their owners' control")
             } else {
                 format!("return {o} to the battlefield{tapped} under its owner's control")
             };
@@ -5078,6 +5078,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             up_to,
             filter,
             among_them,
+            among_those,
             this_way,
             returns,
         } => {
@@ -5143,6 +5144,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     cards(),
                     if *among_them {
                         "them"
+                    } else if *among_those {
+                        "those cards"
                     } else if *this_way {
                         "the cards milled this way"
                     } else {
@@ -6979,6 +6982,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 // Oracle names no "this creature or another" for a
                 // qualifier the source may lack.
                 || f.status.modified
+                // "Whenever a creature you control with a +1/+1 counter on
+                // it dies" (Meltstrider Eulogist): likewise.
+                || f.status.counter.is_some()
                 // "Whenever a nonland creature you control dies" (Beifong's
                 // Bounty Hunters).
                 || f.not_types.contains(&CardType::Land)
@@ -7423,6 +7429,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
             "if it had {} on it",
             with_article(&format!("{} counter", counter_name(k)))
         ),
+        Condition::TriggerHadCounters => "if it had counters on it".to_string(),
         Condition::NoSpellsLastTurn => "if no spells were cast last turn".to_string(),
         Condition::TwoSpellsLastTurn => "if a player cast two or more spells last turn".to_string(),
         Condition::EchoDue => {

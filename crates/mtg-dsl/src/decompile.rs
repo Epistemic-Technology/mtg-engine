@@ -1406,6 +1406,7 @@ impl Decompiler<'_> {
                 up_to: *up_to,
                 filter: self.filter(filter),
                 among_them: false,
+                among_those: false,
                 this_way: false,
                 returns: false,
             },

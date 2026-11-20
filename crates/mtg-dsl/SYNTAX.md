@@ -794,7 +794,13 @@ dies this turn, manifest dread` prints "When it dies this turn, ...".
 Trigger `whenever you turn a permanent face up` (a permanent you
 control; "it" is that permanent). `return up to 2 permanent card from
 among them to hand chosen` after a mill prints "return ... from among
-them to your hand"; `impulse 2 next turn it` prints "You may play them
+them to your hand", and `put 1 Hero or enchantment card from among those
+cards into hand chosen` "... from among those cards into your hand" (Rick
+Jones). In a triggered ability, `put its counters on this` moves the
+triggering object's counters, as it last existed ("Whenever another
+creature you control dies, if it had counters on it, put its counters on
+this creature."; the condition `if it had counters` is any kind on the
+triggering object). `impulse 2 next turn it` prints "You may play them
 until the end of your next turn."
 
 An optional additional cost (CR 601.2b): `additional cost may collect
@@ -1645,8 +1651,12 @@ mentions refer to it by number: `target 1`, printed as "it", or
 targets of one kind (two different objects, CR 115.3); `up to 2 target
 creatures` declares optional ones (CR 601.2c), which come after an
 ability's other targets. A variable group is one target word naming any
-number of objects within bounds (CR 601.2c), the last of an ability's
-targets: `X target creature` ("X target creatures": exactly X, the spell's
+number of objects within bounds (CR 601.2c), chosen after the ability's
+other targets even when a target is written after it (`tap 1 to 2 target
+untapped creature you control; target 1 bites target creature an opponent
+controls`, Coordinated Clobbering: scenarios script the creature an
+opponent controls first; in a `choose two` pair whose first mode ends
+with a group, the second mode's targets come first): `X target creature` ("X target creatures": exactly X, the spell's
 X, which can't exceed what there is to target), `1 to 2 target creature`
 ("one or two target creatures"; `1 to 3` prints "one, two, or three"),
 `any number of target player`, and `1 to 2 targets` / `any number of

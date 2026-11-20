@@ -1,0 +1,8 @@
+card "Don & Leo, Problem Solvers" {
+  oracle_id a4ae71c8-ea1b-4fa4-9e47-cf00ab60c5ee
+  cost {3}{W/U}{W/U}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 4/6
+  keywords vigilance
+  triggered at beginning of your end step: exile up to 1 target artifact you control and up to 1 target creature you control; then return targets 1 to 2 to battlefield
+}

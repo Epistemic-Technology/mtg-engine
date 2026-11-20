@@ -5424,6 +5424,7 @@ impl P {
             Ok(f)
         };
         let mut among_them = false;
+        let mut among_those = false;
         let mut this_way = false;
         let mut returns = false;
         let (act, filter) = match verb.as_str() {
@@ -5510,6 +5511,8 @@ impl P {
                 self.expect_words(&["from", "among"])?;
                 if self.eat_word("them") {
                     among_them = true;
+                } else if self.eat_words(&["those", "cards"]) {
+                    among_those = true;
                 } else if self.eat_words(&["milled", "this", "way", "cards"]) {
                     this_way = true;
                 } else {
@@ -5531,6 +5534,7 @@ impl P {
             up_to,
             filter,
             among_them,
+            among_those,
             this_way,
             returns,
         })
@@ -5844,8 +5848,15 @@ impl P {
             "put" if self.at_words(&["its", "counters", "on"]) => {
                 self.pos += 3;
                 let to = self.recipient()?;
+                // "put its counters on this creature" in a triggered
+                // ability: the triggering object's (Buzzard-Wasp Colony).
+                let from = if self.in_trigger && to == Recipient::Source {
+                    Recipient::TriggeringObject
+                } else {
+                    Recipient::Source
+                };
                 Ok(Effect::MoveCounters {
-                    from: Recipient::Source,
+                    from,
                     to,
                     kind: None,
                     count: None,
@@ -9849,6 +9860,9 @@ impl P {
             "a", "player", "cast", "two", "or", "more", "spells", "last", "turn",
         ]) {
             return Ok(Condition::TwoSpellsLastTurn);
+        }
+        if self.eat_words(&["it", "had", "counters"]) {
+            return Ok(Condition::TriggerHadCounters);
         }
         if self.eat_words(&["it", "had", "no"]) {
             let k = self.counter_kind()?;

@@ -1,0 +1,6 @@
+card "Coordinated Clobbering" {
+  oracle_id b2b65b17-1fb4-42d6-9c6a-376d3f18851b
+  cost {G}
+  type Sorcery
+  spell: tap 1 to 2 target untapped creature you control; target 1 bites target creature an opponent controls
+}

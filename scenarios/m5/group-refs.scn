@@ -108,3 +108,148 @@ scenario "The Ooze: a creature without counters leaving makes none" {
   run_to turn 1 begin_combat
   assert battlefield A lacks "Mutagen"
 }
+
+scenario "Trystan's Command: untap them is the target player's creatures" {
+  battlefield A: 3 "Swamp", 3 "Forest", "Grizzly Bears" tapped
+  battlefield B: "Memnite" tapped, "Hill Giant"
+  hand A: "Trystan's Command"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Trystan's Command" mode 6 targeting B "Hill Giant", player B
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Hill Giant"
+  assert untapped "Memnite"
+  assert power "Memnite" 4
+  assert tapped "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Trystan's Command: one or two permanent cards back, and a destroy after it" {
+  battlefield A: 3 "Swamp", 3 "Forest"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears", "Pacifism", "Shock"
+  hand A: "Trystan's Command"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Trystan's Command" mode 4 targeting B "Hill Giant", "Grizzly Bears", "Pacifism"
+  run_to turn 1 begin_combat
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Pacifism"
+  assert graveyard A contains "Shock"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Trystan's Command: an instant isn't a permanent card" {
+  battlefield A: 3 "Swamp", 3 "Forest"
+  battlefield B: "Hill Giant"
+  graveyard A: "Shock"
+  hand A: "Trystan's Command"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Trystan's Command" mode 4 targeting B "Hill Giant", "Shock"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Shock"
+}
+
+scenario "Coordinated Clobbering: two creatures each deal damage to the opponent's creature" {
+  battlefield A: "Forest", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Coordinated Clobbering"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coordinated Clobbering" targeting B "Serra Angel", "Grizzly Bears", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Serra Angel"
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "Coordinated Clobbering: one creature" {
+  battlefield A: "Forest", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Coordinated Clobbering"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coordinated Clobbering" targeting B "Serra Angel", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert damage "Serra Angel" 3
+  assert tapped "Hill Giant"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Coordinated Clobbering: only untapped creatures you control" {
+  battlefield A: "Forest", "Grizzly Bears" tapped
+  battlefield B: "Serra Angel"
+  hand A: "Coordinated Clobbering"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Coordinated Clobbering" targeting B "Serra Angel", "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert damage "Serra Angel" 0
+}
+
+scenario "Don & Leo: exile and return them under their owners' control" {
+  battlefield A: "Don & Leo, Problem Solvers", "Ornithopter", "Grizzly Bears" with 2 +1/+1
+  start turn 1 A precombat_main
+  turn 1 end A: trigger "Don & Leo, Problem Solvers" targeting "Ornithopter", "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Ornithopter"
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Rick Jones: a Hero or enchantment card from among those cards" {
+  battlefield A: "Rick Jones, Destined Sidekick", 3 "Forest"
+  library A: "Grizzly Bears", "Pacifism", "Shock", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rick Jones, Destined Sidekick"
+  run_to turn 1 begin_combat
+  assert hand A contains "Pacifism"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Shock"
+  assert library A count 1
+}
+
+scenario "Buzzard-Wasp Colony: a dying creature's counters move to it" {
+  battlefield A: "Buzzard-Wasp Colony", "Grizzly Bears" with 2 +1/+1, 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom Blade" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert counters "Buzzard-Wasp Colony" +1/+1 2
+  assert power "Buzzard-Wasp Colony" 4
+}
+
+scenario "Buzzard-Wasp Colony: nothing from a creature without counters" {
+  battlefield A: "Buzzard-Wasp Colony" with 1 +1/+1, "Hill Giant", 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom Blade" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert counters "Buzzard-Wasp Colony" +1/+1 1
+}
+
+scenario "Meltstrider Eulogist: draws when a creature with a +1/+1 counter dies" {
+  battlefield A: "Meltstrider Eulogist", "Grizzly Bears" with 1 +1/+1, 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom Blade" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand A count 1
+}
+
+scenario "Meltstrider Eulogist: not for a creature without one" {
+  battlefield A: "Meltstrider Eulogist", "Grizzly Bears", 2 "Swamp"
+  hand A: "Doom Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom Blade" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand A count 0
+}
+
+# A variable target group before another target (CR 601.2c): the engine
+# chooses the group last, so the target after it is still chosen.
+scenario "Fiery Justice: divided damage, and the target opponent gains 5 life" {
+  battlefield A: "Mountain", "Forest", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Fiery Justice"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fiery Justice" targeting player B, B "Hill Giant", player B dividing 3, 2
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Hill Giant"
+  assert life B 23
+}

@@ -3613,6 +3613,9 @@ pub enum Effect {
         /// `MilledToHand` only: "from among them" rather than "from among
         /// the milled cards".
         among_them: bool,
+        /// `MilledToHand` only: `from among those cards`, "from among
+        /// those cards" (Rick Jones).
+        among_those: bool,
         /// `MilledToHand` only: `from among milled this way cards`, "from
         /// among the cards milled this way".
         this_way: bool,

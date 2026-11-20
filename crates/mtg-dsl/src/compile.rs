@@ -94,6 +94,7 @@ pub fn add_card(
             lookup: by_name,
             groups: Vec::new(),
             many: None,
+            tmap: None,
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
             scavenge: None,
@@ -120,6 +121,7 @@ pub fn add_card(
                 lookup: by_name,
                 groups: Vec::new(),
                 many: None,
+                tmap: None,
                 implied: Vec::new(),
                 implied_used: std::rc::Rc::default(),
                 scavenge: None,
@@ -146,6 +148,7 @@ pub fn add_card(
         lookup: by_name,
         groups: Vec::new(),
         many: None,
+        tmap: None,
         implied: Vec::new(),
         implied_used: std::rc::Rc::default(),
         scavenge: None,
@@ -223,6 +226,7 @@ fn add_stages(
             lookup: by_name,
             groups: Vec::new(),
             many: None,
+            tmap: None,
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
             scavenge: None,
@@ -317,6 +321,11 @@ struct Compiler<'a> {
     /// The index of the variable target group (CR 601.2c) of the ability
     /// being compiled, whose targets run to the end of the list.
     many: Option<usize>,
+    /// The variable group's index and the number of targets, when it isn't
+    /// the last target: the engine takes a variable group's targets to the
+    /// end of the list, so it is compiled last and the targets after it
+    /// move up one (`target_index`).
+    tmap: Option<(usize, usize)>,
     /// Per group, the choice its filter implies ("of the color of your
     /// choice"), made as the effect using it resolves.
     implied: Vec<Option<CoreChoiceKind>>,
@@ -1025,7 +1034,10 @@ impl Compiler<'_> {
                 _ => f.relation,
             },
             same: f.same.map(|r| {
-                let target = |n: usize| SameOf::Target(u8::try_from(n).unwrap_or(u8::MAX));
+                let tmap = self.tmap;
+                let target = |n: usize| {
+                    SameOf::Target(u8::try_from(target_index(tmap, n)).unwrap_or(u8::MAX))
+                };
                 match r {
                     SameRef::NamedThis => Same {
                         of: SameOf::Source,
@@ -1071,9 +1083,9 @@ impl Compiler<'_> {
                     AttachedRef::Source => AttachedTo::Source,
                     AttachedRef::Host => AttachedTo::SourceHost,
                     AttachedRef::TriggeringObject => AttachedTo::TriggeringObject,
-                    AttachedRef::Target(n) | AttachedRef::ThatTarget(n) => {
-                        AttachedTo::Target(u8::try_from(n).unwrap_or(u8::MAX))
-                    }
+                    AttachedRef::Target(n) | AttachedRef::ThatTarget(n) => AttachedTo::Target(
+                        u8::try_from(target_index(self.tmap, n)).unwrap_or(u8::MAX),
+                    ),
                 }
             }),
             combat_with: f.combat_with.map(|r| {
@@ -1120,16 +1132,32 @@ impl Compiler<'_> {
                 name: m.name.clone(),
             });
         }
-        let pair = |a: &CoreMode, b: &CoreMode| CoreMode {
-            targets: a.targets.iter().chain(&b.targets).copied().collect(),
-            effects: a.effects.iter().chain(&b.effects).cloned().collect(),
-            text: format!("{} and {}", a.text, b.text),
-            split: Some((
-                u16::try_from(a.effects.len()).unwrap_or(u16::MAX),
-                u16::try_from(a.targets.len()).unwrap_or(u16::MAX),
-            )),
-            split2: None,
-            name: None,
+        let pair = |a: &CoreMode, b: &CoreMode| {
+            // The first mode ends with a variable target group (CR
+            // 601.2c), which the engine takes to the end of the targets:
+            // the second mode's targets go first. Its effects still happen
+            // second, each part seeing its own targets.
+            if matches!(a.targets.last(), Some(TargetSpec::Many(_))) && !b.targets.is_empty() {
+                return CoreMode {
+                    targets: b.targets.iter().chain(&a.targets).copied().collect(),
+                    effects: a.effects.iter().chain(&b.effects).cloned().collect(),
+                    text: format!("{} and {}", a.text, b.text),
+                    split: Some((0, u16::try_from(b.targets.len()).unwrap_or(u16::MAX))),
+                    split2: Some((u16::try_from(a.effects.len()).unwrap_or(u16::MAX), 0)),
+                    name: None,
+                };
+            }
+            CoreMode {
+                targets: a.targets.iter().chain(&b.targets).copied().collect(),
+                effects: a.effects.iter().chain(&b.effects).cloned().collect(),
+                text: format!("{} and {}", a.text, b.text),
+                split: Some((
+                    u16::try_from(a.effects.len()).unwrap_or(u16::MAX),
+                    u16::try_from(a.targets.len()).unwrap_or(u16::MAX),
+                )),
+                split2: None,
+                name: None,
+            }
         };
         if two {
             // The chosen mode is kept in three bits (`CastInfo`): at most
@@ -1469,7 +1497,7 @@ impl Compiler<'_> {
             A::CardsInGraveyard(f) => C::CardsInGraveyard(f.as_ref().map(|f| self.filter(f))),
             A::SourcePower => C::SourcePower,
             A::TargetStat { n, toughness, .. } => C::TargetStat {
-                n: *n,
+                n: target_index(self.tmap, *n),
                 toughness: *toughness,
             },
             A::Life => C::Life,
@@ -1505,7 +1533,7 @@ impl Compiler<'_> {
             A::CardsDrawnThisTurn => C::CardsDrawnThisTurn,
             A::SpellsCastThisTurn { other } => C::SpellsCastThisTurn { other: *other },
             A::SourceToughness => C::SourceToughness,
-            A::TargetManaValue { n, .. } => C::TargetManaValue(*n),
+            A::TargetManaValue { n, .. } => C::TargetManaValue(target_index(self.tmap, *n)),
             A::CardManaValue => C::CardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
             A::SpentColors(_) => C::SpentColors,
@@ -1525,7 +1553,7 @@ impl Compiler<'_> {
                 verb: *verb,
                 stat: *stat,
             },
-            A::TargetHand(n) => C::TargetHand(*n),
+            A::TargetHand(n) => C::TargetHand(target_index(self.tmap, *n)),
             A::GreatestToughness(f) => C::GreatestToughness(self.filter(f)),
             A::Sum(a, b) => C::Sum(Box::new(self.count_expr(a)), Box::new(self.count_expr(b))),
             A::LifeLostThisTurn => C::LifeLostThisTurn,
@@ -1584,7 +1612,19 @@ impl Compiler<'_> {
     /// variable group as all its targets.
     fn targets(&mut self, ts: &[Target]) -> Vec<TargetSpec> {
         self.many = ts.iter().position(|t| matches!(t, Target::Many { .. }));
-        ts.iter().map(|t| self.target(t)).collect()
+        // "Tap one or two target untapped creatures you control. They each
+        // deal damage ... to target creature an opponent controls.": the
+        // group goes last (CR 601.2c names no order among target words).
+        self.tmap = self
+            .many
+            .filter(|m| m + 1 < ts.len())
+            .map(|m| (m, ts.len()));
+        let mut specs: Vec<TargetSpec> = ts.iter().map(|t| self.target(t)).collect();
+        if let Some((m, _)) = self.tmap {
+            let g = specs.remove(m);
+            specs.push(g);
+        }
+        specs
     }
 
     fn cost(&mut self, c: &Cost) -> CoreCost {
@@ -1634,7 +1674,13 @@ impl Compiler<'_> {
         }
     }
 
-    fn recipient(groups: &[u16], many: Option<usize>, r: Recipient) -> CoreRecipient {
+    fn recipient(
+        groups: &[u16],
+        many: Option<usize>,
+        tmap: Option<(usize, usize)>,
+        r: Recipient,
+    ) -> CoreRecipient {
+        let ti = |i: usize| target_index(tmap, i);
         match r {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
             Recipient::RandomOf(i) => CoreRecipient::RandomOf(groups[usize::from(i)]),
@@ -1642,18 +1688,20 @@ impl Compiler<'_> {
             Recipient::OpponentsWithout(i) => {
                 CoreRecipient::OpponentsWithout(groups[usize::from(i)])
             }
-            Recipient::TargetAnd(t, i) => CoreRecipient::TargetAndGroup(t, groups[usize::from(i)]),
+            Recipient::TargetAnd(t, i) => {
+                CoreRecipient::TargetAndGroup(ti(t), groups[usize::from(i)])
+            }
             // A variable group: its targets to the end of the list.
             Recipient::Target(i) if Some(i) == many => {
-                CoreRecipient::Targets(u8::try_from(i).unwrap_or(u8::MAX), u8::MAX)
+                CoreRecipient::Targets(u8::try_from(ti(i)).unwrap_or(u8::MAX), u8::MAX)
             }
             Recipient::Target(i) | Recipient::ThatTarget(i) | Recipient::TheTarget(i) => {
-                CoreRecipient::Target(i)
+                CoreRecipient::Target(ti(i))
             }
             Recipient::Targets(a, n)
             | Recipient::ThoseCards(a, n)
             | Recipient::ThoseTargets(a, n) => CoreRecipient::Targets(
-                u8::try_from(a).unwrap_or(u8::MAX),
+                u8::try_from(ti(a)).unwrap_or(u8::MAX),
                 u8::try_from(n).unwrap_or(u8::MAX),
             ),
             Recipient::You => CoreRecipient::You,
@@ -1675,8 +1723,8 @@ impl Compiler<'_> {
             }
             Recipient::ControllerOf(i)
             | Recipient::ThatControllerOf(i)
-            | Recipient::TheControllerOf(i) => CoreRecipient::ControllerOf(i),
-            Recipient::OwnerOf(i) | Recipient::ThatOwner(i) => CoreRecipient::OwnerOf(i),
+            | Recipient::TheControllerOf(i) => CoreRecipient::ControllerOf(ti(i)),
+            Recipient::OwnerOf(i) | Recipient::ThatOwner(i) => CoreRecipient::OwnerOf(ti(i)),
             Recipient::EachCreature => CoreRecipient::EachCreature,
             Recipient::EachPlayer => CoreRecipient::EachPlayer,
             Recipient::EachCreatureYouControl => CoreRecipient::EachCreatureYouControl,
@@ -1793,6 +1841,7 @@ impl Compiler<'_> {
     fn effect_inner(&mut self, e: &Effect, out: &mut Vec<CoreEffect>) -> Result<(), CompileError> {
         let groups = self.groups.clone();
         let many = self.many;
+        let tmap = self.tmap;
         let implied = self.implied.clone();
         let used = std::rc::Rc::clone(&self.implied_used);
         let r = |x: Recipient| {
@@ -1801,7 +1850,7 @@ impl Compiler<'_> {
             {
                 used.set(Some(*k));
             }
-            Self::recipient(&groups, many, x)
+            Self::recipient(&groups, many, tmap, x)
         };
         match e {
             Effect::DealDamage { to, .. } if to.is_empty() => {
@@ -3007,15 +3056,20 @@ impl Compiler<'_> {
             Affects::Objects(f) => CoreAffects::Objects(self.filter(f)),
             Affects::YouAnd(f) => CoreAffects::YouAnd(self.filter(f)),
             // A variable group: its targets to the end of the list.
-            Affects::Target(i) if Some(*i) == self.many => {
-                CoreAffects::Targets(u8::try_from(*i).unwrap_or(u8::MAX), u8::MAX)
+            Affects::Target(i) if Some(*i) == self.many => CoreAffects::Targets(
+                u8::try_from(target_index(self.tmap, *i)).unwrap_or(u8::MAX),
+                u8::MAX,
+            ),
+            Affects::Target(i) | Affects::ThatTarget(i) => {
+                CoreAffects::Target(target_index(self.tmap, *i))
             }
-            Affects::Target(i) | Affects::ThatTarget(i) => CoreAffects::Target(*i),
             Affects::Targets(a, n) => CoreAffects::Targets(
-                u8::try_from(*a).unwrap_or(u8::MAX),
+                u8::try_from(target_index(self.tmap, *a)).unwrap_or(u8::MAX),
                 u8::try_from(*n).unwrap_or(u8::MAX),
             ),
-            Affects::OtherThanTarget(f, i) => CoreAffects::OtherThanTarget(self.filter(f), *i),
+            Affects::OtherThanTarget(f, i) => {
+                CoreAffects::OtherThanTarget(self.filter(f), target_index(self.tmap, *i))
+            }
             Affects::Chosen(f) => CoreAffects::Chosen(self.filter(f)),
             Affects::DamagedThisWay => CoreAffects::DamagedThisWay,
         }
@@ -3246,6 +3300,7 @@ impl Compiler<'_> {
     #[allow(clippy::too_many_lines)] // one arm per ability kind
     fn ability(&mut self, a: &Ability) -> Result<AbilityDef, CompileError> {
         self.many = None;
+        self.tmap = None;
         Ok(match a {
             Ability::Keyword(_) => return self.err("a keyword is not an ability definition"),
             Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
@@ -4893,4 +4948,14 @@ fn historic(f: &Filter) -> Option<Filter> {
     artifact.types.push(mtg_core::card::CardType::Artifact);
     artifact.or = Some(Box::new(legendary));
     Some(artifact)
+}
+
+/// The engine's index of the ability's `i`th target, with a variable
+/// group that isn't last moved to the end (`Compiler::tmap`).
+fn target_index(tmap: Option<(usize, usize)>, i: usize) -> usize {
+    match tmap {
+        Some((m, n)) if i == m => n - 1,
+        Some((m, _)) if i > m => i - 1,
+        _ => i,
+    }
 }
