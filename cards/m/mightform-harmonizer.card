@@ -1,0 +1,8 @@
+card "Mightform Harmonizer" {
+  oracle_id 8e025cda-71c5-4d06-8436-decd408667af
+  cost {2}{G}{G}
+  type Creature — Insect Druid
+  pt 4/4
+  label "Landfall" triggered whenever land you control enters: double the power of target creature you control
+  warp {2}{G}
+}

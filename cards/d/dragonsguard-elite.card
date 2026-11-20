@@ -1,0 +1,8 @@
+card "Dragonsguard Elite" {
+  oracle_id 9bc966b3-1b6e-4bea-ab1d-321bc03d2bc7
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 2/2
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: put 1 +1/+1 counter on this
+  activated {4}{G}{G}: double the number of +1/+1 counters on this
+}

@@ -2786,12 +2786,27 @@ pub enum Effect {
     /// discard a card; if you do, draw a card" (CR 701.48a's other
     /// choice; no Lesson card is ever outside the game).
     Learn,
-    /// `double this power`: "double its power until end of turn" (CR
-    /// 701.10f: it gets +X/+0, X its power); `times` is the count of its
-    /// power.
-    DoublePower {
+    /// `double this power`, `double target creature power and toughness`:
+    /// "double its power until end of turn", "Double target creature's
+    /// power and toughness until end of turn" (CR 701.10a-c); with `of`,
+    /// `double the power of target creature`: "Double the power of target
+    /// creature until end of turn".
+    DoublePt {
         to: Recipient,
-        times: Num,
+        toughness: bool,
+        of: bool,
+    },
+    /// `double the number of +1/+1 counters on this`, `double the number
+    /// of each kind of counter on target permanent` (`kind` None) (CR
+    /// 701.10e).
+    DoubleCounters {
+        kind: Option<CounterKind>,
+        to: Recipient,
+    },
+    /// `double your life total`, `double target player life total`,
+    /// `double its controller life total` (CR 701.10d).
+    DoubleLife {
+        who: Recipient,
     },
     /// `who` is `None` for the imperative "discard a card".
     Discard {

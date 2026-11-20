@@ -6345,17 +6345,39 @@ impl P {
             }
             "surveil" => Ok(Effect::Surveil(self.num()?)),
             "learn" => Ok(Effect::Learn),
-            "double" if self.at_words(&["this", "power"]) => {
-                self.pos += 2;
+            // CR 701.10.
+            "double" => {
+                if self.eat_words(&["the", "number", "of"]) {
+                    let kind = if self.eat_words(&["each", "kind", "of", "counter"]) {
+                        None
+                    } else {
+                        let k = self.counter_kind()?;
+                        Some(k)
+                    };
+                    self.expect_word("on")?;
+                    let to = self.recipient()?;
+                    return Ok(Effect::DoubleCounters { kind, to });
+                }
+                if self.eat_words(&["your", "life", "total"]) {
+                    return Ok(Effect::DoubleLife {
+                        who: Recipient::You,
+                    });
+                }
+                let of = self.eat_words(&["the", "power"]);
+                let (to, toughness) = if of {
+                    let toughness = self.eat_words(&["and", "toughness"]);
+                    self.expect_word("of")?;
+                    (self.recipient()?, toughness)
+                } else {
+                    let to = self.recipient()?;
+                    if self.eat_words(&["life", "total"]) {
+                        return Ok(Effect::DoubleLife { who: to });
+                    }
+                    self.expect_word("power")?;
+                    (to, self.eat_words(&["and", "toughness"]))
+                };
                 self.until_end_of_turn();
-                let times = self.push_count(crate::ast::Count {
-                    expr: crate::ast::CountExpr::SourcePower,
-                    style: crate::ast::CountStyle::Equal,
-                })?;
-                Ok(Effect::DoublePower {
-                    to: Recipient::Source,
-                    times,
-                })
+                Ok(Effect::DoublePt { to, toughness, of })
             }
             "counter" => {
                 let to = self.recipient()?;

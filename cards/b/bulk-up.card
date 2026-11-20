@@ -1,0 +1,7 @@
+card "Bulk Up" {
+  oracle_id fade8af0-5fdb-4237-9dd6-48bfd1d62767
+  cost {1}{R}
+  type Instant
+  spell: double target creature power
+  flashback {4}{R}{R}
+}

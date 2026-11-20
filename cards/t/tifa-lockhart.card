@@ -1,0 +1,8 @@
+card "Tifa Lockhart" {
+  oracle_id 878df304-9d6d-4ce9-b65b-1439c251f3e0
+  cost {1}{G}
+  type Legendary Creature — Human Monk
+  pt 1/2
+  keywords trample
+  label "Landfall" triggered whenever land you control enters: double this power
+}

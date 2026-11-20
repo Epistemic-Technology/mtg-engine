@@ -9027,6 +9027,63 @@ impl GameState {
                     o.marks |= crate::state::OBJ_RENOWNED;
                 }
             }
+            Effect::DoublePt { to, toughness } => {
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let Some(c) = self.characteristics(id) else {
+                        continue;
+                    };
+                    // CR 701.10b, c: +X/+0 with X its power, which may be
+                    // negative.
+                    let power = i32::from(c.power);
+                    let tough = if *toughness {
+                        i32::from(c.toughness)
+                    } else {
+                        0
+                    };
+                    self.effect_until_end_of_turn(
+                        ctx,
+                        id,
+                        smallvec::smallvec![Modification::ModifyPt {
+                            power,
+                            toughness: tough,
+                        }],
+                    );
+                }
+            }
+            Effect::DoubleCounters { kind, to } => {
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    // CR 701.10e: as many as it already has, each kind.
+                    let have: SmallVec<[(CounterKind, u32); 2]> = self.objects[id]
+                        .counters
+                        .iter()
+                        .copied()
+                        .filter(|(k, n)| *n > 0 && kind.is_none_or(|w| w == *k))
+                        .collect();
+                    for (k, n) in have {
+                        self.add_counters(id, k, n);
+                    }
+                }
+            }
+            Effect::DoubleLife { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        // CR 701.10d: gain or lose so the total is twice
+                        // what it was.
+                        let life = self.player(p).life;
+                        if life > 0 {
+                            self.gain_life(p, life.unsigned_abs());
+                        } else if life < 0 {
+                            self.change_life(p, life);
+                        }
+                    }
+                }
+            }
             Effect::Firebend(n) => {
                 let n = self.eval_num(*n, ctx);
                 let ps = self.player_mut(ctx.controller);

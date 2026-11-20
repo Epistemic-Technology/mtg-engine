@@ -1,0 +1,7 @@
+card "Angrath's Marauders" {
+  oracle_id 2d4976d4-649c-4d42-ac5a-ada4b46a480c
+  cost {5}{R}{R}
+  type Creature — Human Pirate
+  pt 4/4
+  replace damage from permanent you control to any: double
+}

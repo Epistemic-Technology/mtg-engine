@@ -1,0 +1,9 @@
+card "Byrke, Long Ear of the Law" {
+  oracle_id e9c6e4e6-0c3f-4048-93e6-161a1221ea36
+  cost {4}{G}{W}
+  type Legendary Creature — Rabbit Soldier
+  pt 4/4
+  keywords vigilance
+  triggered when this enters: put 1 +1/+1 counter on up to 2 target creature
+  triggered whenever creature you control with +1/+1 counter attacks: double the number of +1/+1 counters on it
+}

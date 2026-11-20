@@ -1855,12 +1855,15 @@ impl Compiler<'_> {
                 out.push(CoreEffect::YouMay(self.sentences(&[discard])?));
                 out.push(CoreEffect::IfYouDo(self.sentences(&[draw])?));
             }
-            Effect::DoublePower { to, times } => out.push(CoreEffect::PumpVar {
-                power: 1,
-                toughness: 0,
-                times: *times,
+            Effect::DoublePt { to, toughness, .. } => out.push(CoreEffect::DoublePt {
+                to: r(*to),
+                toughness: *toughness,
+            }),
+            Effect::DoubleCounters { kind, to } => out.push(CoreEffect::DoubleCounters {
+                kind: *kind,
                 to: r(*to),
             }),
+            Effect::DoubleLife { who } => out.push(CoreEffect::DoubleLife { who: r(*who) }),
             Effect::Discard { count, who } => out.push(CoreEffect::Discard {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),

@@ -1,0 +1,7 @@
+card "Dictate of the Twin Gods" {
+  oracle_id 3d960d33-623a-4415-ae00-f8cffbc15f5a
+  cost {3}{R}{R}
+  type Enchantment
+  keywords flash
+  replace damage to any: double
+}

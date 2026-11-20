@@ -1,0 +1,9 @@
+card "Zopandrel, Hunger Dominus" {
+  oracle_id b168e4e6-f572-4d9f-b98f-95b2611354cb
+  cost {5}{G}{G}
+  type Legendary Creature — Phyrexian Horror
+  pt 4/6
+  keywords reach
+  triggered at beginning of each combat: double the power and toughness of each creature you control
+  activated {G/P}{G/P}, sacrifice 2 other creature: put 1 indestructible counter on this
+}

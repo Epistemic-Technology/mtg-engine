@@ -64,7 +64,7 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 116] = [
+const TEMPLATED_TAGS: [&str; 117] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -182,6 +182,7 @@ const TEMPLATED_TAGS: [&str; 116] = [
     "Earthbend",
     "Waterbend",
     "Firebending",
+    "Double",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -1202,6 +1203,54 @@ impl Templates {
                 r(r"^[Ee]arthbend X, where X is that creature's power$"),
                 |_, _| Some("earthbend count where power of that creature".to_string()),
             ),
+            // CR 701.10.
+            (
+                r(r"^[Dd]ouble (.+?)'s power( and toughness)? until end of turn$"),
+                |c, t| {
+                    let to = recipient(cap(c, 1), t)?;
+                    let and = if cap(c, 2).is_empty() {
+                        ""
+                    } else {
+                        " and toughness"
+                    };
+                    Some(format!("double {to} power{and}"))
+                },
+            ),
+            (
+                r(r"^[Dd]ouble the power( and toughness)? of (.+) until end of turn$"),
+                |c, t| {
+                    let to = recipient(cap(c, 2), t)?;
+                    let and = if cap(c, 1).is_empty() {
+                        ""
+                    } else {
+                        " and toughness"
+                    };
+                    Some(format!("double the power{and} of {to}"))
+                },
+            ),
+            (
+                r(r"^[Dd]ouble the number of ([+-]\d+/[+-]\d+|\w+) counters on (.+)$"),
+                |c, t| {
+                    let to = recipient(cap(c, 2), t)?;
+                    Some(format!(
+                        "double the number of {} counters on {to}",
+                        cap(c, 1)
+                    ))
+                },
+            ),
+            (
+                r(r"^[Dd]ouble the number of each kind of counter on (.+)$"),
+                |c, t| {
+                    let to = recipient(cap(c, 1), t)?;
+                    Some(format!("double the number of each kind of counter on {to}"))
+                },
+            ),
+            (r(r"^[Dd]ouble your life total$"), |_, _| {
+                Some("double your life total".to_string())
+            }),
+            (r(r"^[Dd]ouble (.+?)'s life total$"), |c, t| {
+                Some(format!("double {} life total", recipient(cap(c, 1), t)?))
+            }),
             (r(r"^[Bb]olster (\d+)$"), |c, _| {
                 Some(format!("bolster {}", cap(c, 1)))
             }),

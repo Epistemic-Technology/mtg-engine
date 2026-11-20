@@ -3770,6 +3770,25 @@ pub enum Effect {
     /// control with the least toughness among creatures they control and
     /// puts N +1/+1 counters on it.
     Bolster(Num),
+    /// "Double target creature's power [and toughness] until end of turn"
+    /// (CR 701.10a-c): it gets +X/+0 (+X/+Y), X its power (Y its
+    /// toughness) as this resolves; a negative value gets more negative.
+    DoublePt {
+        to: Recipient,
+        toughness: bool,
+    },
+    /// "Double the number of +1/+1 counters on ..." (`kind`), "... of each
+    /// kind of counter on ..." (`None`) (CR 701.10e): each recipient gets
+    /// as many of those counters as it already has.
+    DoubleCounters {
+        kind: Option<CounterKind>,
+        to: Recipient,
+    },
+    /// "Double your life total" (CR 701.10d): each recipient player gains
+    /// (or, below zero, loses) life equal to their life total.
+    DoubleLife {
+        who: Recipient,
+    },
     /// Firebending's effect (CR 702.189a): "add N {R}. Until end of
     /// combat, you don't lose this mana as steps and phases end."
     Firebend(Num),

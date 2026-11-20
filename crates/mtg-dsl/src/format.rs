@@ -1489,7 +1489,34 @@ impl Fmt {
             }
             Effect::Surveil(n) => format!("surveil {}", num(*n)),
             Effect::Learn => "learn".to_string(),
-            Effect::DoublePower { .. } => "double this power".to_string(),
+            Effect::DoublePt { to, toughness, of } => {
+                let pt = if *toughness {
+                    "power and toughness"
+                } else {
+                    "power"
+                };
+                let who = self.recipient(*to, t);
+                if *of {
+                    format!("double the {pt} of {who}")
+                } else {
+                    format!("double {who} {pt}")
+                }
+            }
+            Effect::DoubleCounters { kind, to } => format!(
+                "double the number of {} on {}",
+                kind.map_or("each kind of counter".to_string(), |k| counter(
+                    k,
+                    Num::N(2)
+                )),
+                self.recipient(*to, t)
+            ),
+            Effect::DoubleLife { who } => {
+                if *who == Recipient::You {
+                    "double your life total".to_string()
+                } else {
+                    format!("double {} life total", self.recipient(*who, t))
+                }
+            }
             Effect::Discard { count, who } => match who {
                 None => format!("discard {} {}", num(*count), cards(*count)),
                 Some(w) => {

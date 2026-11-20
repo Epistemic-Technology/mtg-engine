@@ -1,0 +1,9 @@
+card "Kalonian Hydra" {
+  oracle_id 7bd36106-04fe-481f-b16e-e076dcbb183b
+  cost {3}{G}{G}
+  type Creature — Hydra
+  pt 0/0
+  keywords trample
+  enters with 4 +1/+1 counters
+  triggered whenever this attacks: double the number of +1/+1 counters on each creature you control
+}

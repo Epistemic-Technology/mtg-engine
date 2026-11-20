@@ -2485,6 +2485,16 @@ fn energy(n: u32) -> String {
     "{E}".repeat(n as usize)
 }
 
+/// "its", "your", "target creature's".
+fn possessive(s: &str) -> String {
+    match s {
+        "it" => "its".to_string(),
+        "you" => "your".to_string(),
+        "they" => "their".to_string(),
+        s => format!("{s}'s"),
+    }
+}
+
 fn counter_name(k: CounterKind) -> &'static str {
     k.name()
 }
@@ -5282,14 +5292,36 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
         Effect::Learn => Clause::imperative("learn".to_string()),
-        Effect::DoublePower { to, .. } => {
-            let s = ctx.subj(*to);
-            let whose = if s == "it" {
-                "its".to_string()
+        Effect::DoublePt { to, toughness, of } => {
+            let pt = if *toughness {
+                "power and toughness"
             } else {
-                format!("{s}'s")
+                "power"
             };
-            Clause::imperative(format!("double {whose} power until end of turn"))
+            if *of {
+                let o = ctx.obj(*to);
+                Clause::imperative(format!("double the {pt} of {o} until end of turn"))
+            } else {
+                let s = ctx.subj(*to);
+                Clause::imperative(format!("double {} {pt} until end of turn", possessive(&s)))
+            }
+        }
+        Effect::DoubleCounters { kind, to } => {
+            let what = kind.map_or("each kind of counter".to_string(), |k| {
+                format!("{} counters", counter_name(k))
+            });
+            let o = ctx.obj(*to);
+            // "on each of those creatures" (Biogenic Upgrade).
+            let o = if o.starts_with("those ") {
+                format!("each of {o}")
+            } else {
+                o
+            };
+            Clause::imperative(format!("double the number of {what} on {o}"))
+        }
+        Effect::DoubleLife { who } => {
+            let s = ctx.subj(*who);
+            Clause::imperative(format!("double {} life total", possessive(&s)))
         }
         Effect::Discard { count, who } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
@@ -7481,11 +7513,31 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 None => "damage",
             };
             let to_text = affects_to(to, ctx);
+            // "to that permanent or player", but "to you", "to this
+            // creature" (Goldnight Castigator).
+            let that = match to_text.strip_prefix("a ") {
+                Some(rest) => format!("that {rest}"),
+                None => to_text.clone(),
+            };
             match from {
                 None => format!(
-                    "If a source would deal {kind} to {to_text}, it deals double that {kind} to that {} instead.",
-                    to_text.trim_start_matches("a ")
+                    "If a source would deal {kind} to {to_text}, it deals double that {kind} to {that} instead."
                 ),
+                // "If a source you control would deal damage to a
+                // permanent or player, it deals double that damage to that
+                // permanent or player instead." (Angrath's Marauders); "If
+                // a Giant source you control ..." (Calamity Bearer).
+                Some(Affects::Objects(f)) if f.types.is_empty() && f.any_types.is_empty() => {
+                    let p = filter_a(f, ctx.card);
+                    let by = if p.contains("permanent") {
+                        p.replacen("permanent", "source", 1)
+                    } else {
+                        p.replacen(" you control", " source you control", 1)
+                    };
+                    format!(
+                        "If {by} would deal {kind} to {to_text}, it deals double that {kind} to {that} instead."
+                    )
+                }
                 Some(f) => {
                     let by = match f {
                         Affects::Objects(f) => filter_a(f, ctx.card),

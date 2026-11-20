@@ -1162,6 +1162,16 @@ impl Decompiler<'_> {
             CoreEffect::Bolster(n) => Effect::Bolster(*n),
             CoreEffect::Monstrosity(n) => Effect::Monstrosity(*n),
             CoreEffect::Firebend(n) => Effect::Firebend(*n),
+            CoreEffect::DoublePt { to, toughness } => Effect::DoublePt {
+                to: r(*to),
+                toughness: *toughness,
+                of: false,
+            },
+            CoreEffect::DoubleCounters { kind, to } => Effect::DoubleCounters {
+                kind: *kind,
+                to: r(*to),
+            },
+            CoreEffect::DoubleLife { who } => Effect::DoubleLife { who: r(*who) },
             CoreEffect::Earthbend { count, to } => Effect::Earthbend {
                 count: *count,
                 to: r(*to),

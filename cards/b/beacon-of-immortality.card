@@ -1,0 +1,6 @@
+card "Beacon of Immortality" {
+  oracle_id bfcdf563-c6e5-4a54-bb63-4aba219b94e2
+  cost {5}{W}
+  type Instant
+  spell: double target player life total; shuffle this into library
+}

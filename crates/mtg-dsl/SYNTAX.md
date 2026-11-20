@@ -663,6 +663,23 @@ counters; a delayed trigger returns it to the battlefield tapped under the
 earthbender's control when it dies or is put into exile (leaving for any
 other zone ends it). Prints "Earthbend 2." In scenarios the land is the
 spell's or ability's target like any other.
+Double (CR 701.10): `double target creature power` ("Double target
+creature's power until end of turn"), `double this power and toughness`,
+`double the power of target creature` ("Double the power of target
+creature until end of turn"), `double the power and toughness of each
+creature you control`: +X/+0 (+X/+Y) until end of turn, X its power (Y
+its toughness) as the effect resolves, negative values getting more
+negative. `double the number of +1/+1 counters on this`, `double the
+number of each kind of counter on target permanent` (each recipient gets
+as many of those counters as it has; `on those targets` prints "on each
+of those creatures"). `double your life total`, `double target player
+life total`, `double its controller life total` ("Double target player's
+life total": gain, or below zero lose, that much life). The damage
+outcome `double` (`replace damage from permanent you control to any:
+double`) prints "If a source you control would deal damage to a
+permanent or player, it deals double that damage to that permanent or
+player instead." (a filter without a card type names a source;
+`replace damage to you: double` "... to you instead.").
 `spells red or white you cast cost {1} less` prints "Red spells and white
 spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
 spells". `defending player` as a subject prints "defending player".
@@ -1963,7 +1980,7 @@ battles (CR 115.4).
 - Target: `target player or battle`; `target creature, planeswalker, or
   battle` is a filter.
 - Effect: `double this power` ("double its power until end of turn",
-  CR 701.10f: +X/+0 with X its power).
+  CR 701.10b: +X/+0 with X its power; see Double above).
 - Effect: `you may put 1 instant, sorcery, or battle card from your
   graveyard on top of library chosen` ("you may put an instant,
   sorcery, or battle card from your graveyard on top of your library":
