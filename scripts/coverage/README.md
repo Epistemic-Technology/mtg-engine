@@ -37,10 +37,11 @@ pass. Everything here is about reaching that at less cost.
    give both buckets to one agent). Put the full assignment list in every
    agent's instructions so nobody builds a second version.
 4. **Launch with an explicit model per agent.** Subagents inherit the
-   session model unless told otherwise. Feature agents: Opus. Card and
-   retry agents: try Sonnet and compare acceptance against the Opus
-   yields (retries of cards whose missing feature landed: about half).
-   The gate holds the bar, so only yield is at risk. Tell each agent
+   session model unless told otherwise. Feature, card, and retry agents
+   all run on Opus. A matched trial on 2026-11-20 (40 uncovered Standard
+   cards each) had Opus accept 18 for 192k tokens and Sonnet 11 for
+   200k; an Opus token costs twice a Sonnet token, so cost per accepted
+   card is about equal and Opus leaves fewer cards to retry. Tell each agent
    which `Co-Authored-By` line to use.
 5. **Merge, then verify behaviour.** After each merge check that both
    sides' scenarios still exercise their feature. Run the random-deck

@@ -2122,8 +2122,9 @@ it).
   for Modern too. The template author (`mtg-cards author --write`) runs
   for every target format after each wave; a dry run found 16 Pauper,
   196 Standard, and 1,421 Modern cards it can already write with no
-  model. Each agent's model is set explicitly (feature agents on Opus;
-  card and retry agents trialled on Sonnet). Feature agents no longer
+  model. Each agent's model is set explicitly: Opus for all of them,
+  after a matched 40-card trial in which Sonnet accepted 11 cards to
+  Opus's 18 for the same token count. Feature agents no longer
   read this document, and each is told what the others are building so
   a primitive is built once. The procedure, briefs, and census scripts
   are in `scripts/coverage/`.

@@ -1835,7 +1835,18 @@ impl P {
             "spell" => {
                 self.pos += 1;
                 self.kicked_targets = None;
-                let effects = self.effects_body()?;
+                let mut effects = self.effects_body()?;
+                // `spell: choose one { ... }` is a modal spell: its modes
+                // are chosen on casting (CR 700.2a), not on resolution.
+                let lone_modes = self.targets.is_empty()
+                    && matches!(effects.as_slice(), [s] if s.label.is_none()
+                        && matches!(s.effects.as_slice(), [Effect::Modes(_)]));
+                if lone_modes
+                    && let Some(Effect::Modes(modes)) =
+                        effects.pop().and_then(|mut s| s.effects.pop())
+                {
+                    return Ok(Ability::Modal(modes));
+                }
                 Ok(Ability::Spell {
                     targets: std::mem::take(&mut self.targets),
                     effects,
@@ -10680,6 +10691,27 @@ card "Lightning Bolt" {
                     }])]
                 );
             }
+            other => panic!("{other:?}"),
+        }
+    }
+
+    #[test]
+    fn a_spell_that_is_only_a_modes_block_is_modal() {
+        let cards = parse(
+            r#"
+card "Test Charm" {
+  cost {B}
+  type Instant
+  spell: choose one {
+    mode: tap target creature
+    mode: you gain 1 life
+  }
+}
+"#,
+        )
+        .unwrap();
+        match &cards[0].abilities[0] {
+            Ability::Modal(modes) => assert_eq!(modes.len(), 2),
             other => panic!("{other:?}"),
         }
     }
