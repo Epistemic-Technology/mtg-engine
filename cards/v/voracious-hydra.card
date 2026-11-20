@@ -1,0 +1,12 @@
+card "Voracious Hydra" {
+  oracle_id ff8f5a4b-112a-425e-b489-7ee26d1d9fb3
+  cost {X}{G}{G}
+  type Creature — Hydra
+  pt 0/1
+  keywords trample
+  enters with X +1/+1 counters
+  triggered when this enters: choose one {
+    mode: double the number of +1/+1 counters on this
+    mode: this fights target creature you don't control
+  }
+}

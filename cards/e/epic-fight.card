@@ -1,0 +1,9 @@
+card "Epic Fight" {
+  oracle_id 4bdfc580-de51-445b-b170-8c6832e44704
+  cost {2}{G}
+  type Sorcery
+  choose one or both {
+    mode: double target creature power and toughness
+    mode: target creature you control fights target creature an opponent controls
+  }
+}

@@ -1,0 +1,126 @@
+# Earthbend N (CR 701.66): target land you control becomes a 0/0
+# creature with haste in addition to its other types, indefinitely, and
+# gets N +1/+1 counters; when that land dies or is put into exile, it
+# returns to the battlefield tapped under its earthbender's control.
+
+scenario "earthbend: the land becomes a hasty 0/0 creature with counters" {
+  battlefield A: 4 "Forest", "Plains"
+  hand A: "Earthbending Lesson"
+  turn 1 A: cast "Earthbending Lesson" targeting "Plains"
+  run_to turn 1 postcombat_main
+  assert is "Plains" creature
+  assert is "Plains" land
+  assert is "Plains" plains
+  assert has "Plains" haste
+  assert counters "Plains" +1/+1 4
+  assert power "Plains" 4
+  assert toughness "Plains" 4
+}
+
+scenario "earthbend: it lasts after the turn, and the land attacks" {
+  battlefield A: 4 "Forest", "Plains"
+  hand A: "Earthbending Lesson"
+  turn 1 A: cast "Earthbending Lesson" targeting "Plains"
+  turn 3 A: attack "Plains"
+  run_to turn 3 postcombat_main
+  assert is "Plains" creature
+  assert life B 16
+}
+
+scenario "earthbend: a land that dies returns tapped, no longer a creature" {
+  battlefield A: 2 "Swamp", "Plains"
+  battlefield B: "Mountain"
+  hand A: "Dai Li Indoctrination"
+  hand B: "Lightning Bolt"
+  library A: "Island", "Island"
+  turn 1 A: cast "Dai Li Indoctrination" mode 2 targeting "Plains"
+  turn 3 end B: cast "Lightning Bolt" targeting "Plains"
+  run_to turn 3 cleanup
+  assert battlefield A contains "Plains"
+  assert graveyard A lacks "Plains"
+  assert tapped "Plains"
+  assert is not "Plains" creature
+  assert counters "Plains" +1/+1 0
+}
+
+scenario "earthbend: a land that is exiled returns too" {
+  battlefield A: 4 "Forest", "Plains"
+  battlefield B: 3 "Plains"
+  hand A: "Earthbending Lesson"
+  hand B: "Unmake"
+  library A: "Island", "Island"
+  turn 1 A: cast "Earthbending Lesson" targeting A "Plains"
+  turn 1 postcombat_main B: cast "Unmake" targeting A "Plains"
+  run_to turn 1 end
+  assert battlefield A contains "Plains"
+  assert exile A lacks "Plains"
+  assert tapped A "Plains"
+}
+
+scenario "earthbend: a land returned to its owner's hand stays there" {
+  battlefield A: 4 "Forest", "Plains"
+  battlefield B: "Island"
+  hand A: "Earthbending Lesson"
+  hand B: "Unsummon"
+  library A: "Island", "Island"
+  turn 1 A: cast "Earthbending Lesson" targeting "Plains"
+  turn 1 postcombat_main B: cast "Unsummon" targeting "Plains"
+  run_to turn 1 end
+  assert hand A contains "Plains"
+  assert battlefield A lacks "Plains"
+}
+
+scenario "earthbend: only a land you control" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Earthbending Lesson"
+  illegal turn 1 A: cast "Earthbending Lesson" targeting "Mountain"
+  run_to turn 1 postcombat_main
+  assert is not "Mountain" creature
+}
+
+scenario "earthbend: a creature's death trigger animates a land" {
+  battlefield A: "Earth Village Ruffians", "Forest"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 B
+  turn 1 B: cast "Lightning Bolt" targeting "Earth Village Ruffians"
+  turn 1 A: trigger "Earth Village Ruffians" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Earth Village Ruffians"
+  assert is "Forest" creature
+  assert counters "Forest" +1/+1 2
+}
+
+scenario "earthbend X: counted as it resolves" {
+  battlefield A: 3 "Forest", "Plains"
+  hand A: "Rockalanche"
+  turn 1 A: cast "Rockalanche" targeting "Plains"
+  run_to turn 1 postcombat_main
+  assert counters "Plains" +1/+1 3
+  assert power "Plains" 3
+}
+
+scenario "earthbend twice: two lands" {
+  battlefield A: 3 "Forest", 2 "Swamp", "Plains", "Island"
+  hand A: "Dai Li Agents"
+  turn 1 A: cast "Dai Li Agents"
+  turn 1 A: trigger "Dai Li Agents" targeting "Plains", "Island"
+  run_to turn 1 postcombat_main
+  assert is "Plains" creature
+  assert is "Island" creature
+  assert power "Plains" 1
+  assert power "Island" 1
+}
+
+scenario "earthbend: when you do, a fight" {
+  battlefield A: 4 "Forest", "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Earth Rumble"
+  turn 1 A: cast "Earth Rumble" targeting "Mountain"
+  turn 1 A: trigger "Earth Rumble" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert counters "Mountain" +1/+1 2
+}

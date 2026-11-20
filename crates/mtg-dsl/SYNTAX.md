@@ -146,6 +146,7 @@ to its other face as well.
 | `crew 3` | Crew (CR 702.122): "Tap any number of other untapped creatures you control with total power 3 or more: this Vehicle becomes an artifact creature until end of turn." The engine taps the weakest creature strong enough alone, else the strongest until the power suffices. |
 | `morph {2}{U}`, `megamorph {G}`, `disguise {1}{W}` | Cast face down as a nameless colorless 2/2 creature for {3}, turned face up any time its controller has priority for the cost (a special action; CR 702.37, 708); megamorph adds a +1/+1 counter as it turns up, and a disguised permanent has ward {2} while face down (CR 702.168). `triggered when this is turned face up: ...`. `morph pay 5 life`, `morph discard 1 card`, `morph return Bird you control` print "Morph—Pay 5 life." and kin (CR 702.37a: any cost): turning it face up pays the life, or asks the player which card to discard or which permanent to return. `manifest` is an effect: the top card of your library onto the battlefield face down (CR 701.34); a manifested creature card turns face up for its mana cost. `manifest dread` (CR 701.62): look at the top two cards of your library, manifest the one you choose, and put the other into your graveyard. |
 | `bushido 2`, `soulshift 3`, `afflict 1`, `toxic 1`, `ward {2}`, `echo {2}{R}`, `unearth {B}`, `buyback {3}`, `outlast {1}{W}` | Keyword abilities with a number or cost (CR 702.45, .46, .130, .164, .21, .30, .84, .27, .107), printed as the keyword ("Bushido 2") in place and compiled to what they stand for: a blocks-or-blocked pump; a dies trigger that may return a Spirit card with that mana value or less; a becomes-blocked life loss; poison counters with combat damage to a player; a trigger countering an opponent's spell or ability that targets it unless they pay; an upkeep sacrifice unless paid, once after it comes under your control; an ability activated from the graveyard as a sorcery that returns it with haste and exiles it at the next end step; an optional additional cost that returns the spell to its owner's hand; and "{cost}, {T}: Put a +1/+1 counter on this creature. Activate only as a sorcery." `flanking` is a plain keyword. `ward pay 3 life` prints "Ward—Pay 3 life." (CR 702.21a: counter it unless that player pays 3 life); `buyback sacrifice land` prints "Buyback—Sacrifice a land." (CR 702.27a: the land is chosen as buyback is decided and sacrificed as the costs are paid). `ward discard 1 card` and `echo discard 1 card` print "Ward—Discard a card." and "Echo—Discard a card.": the payer discards a card of their choice to pay (none in hand, it can't be paid). |
+| `firebending 2`, `firebending count where power`, `firebending count where creature you control` | Firebending (CR 702.189): "Whenever this creature attacks, add N {R}. Until end of combat, you don't lose this mana as steps and phases end." The red mana stays in the pool as each combat step ends, through the end of combat step (the player's other mana is taken to be spent first); X is counted as the trigger resolves. Prints "Firebending 2" (in a keyword line with others: "Trample, firebending 4, haste") or "Firebending X, where X is this creature's power." |
 | `strive {2}{W}` | "Strive — This spell costs {2}{W} more to cast for each target beyond the first." (CR 207.2c): the cost is added once per target beyond the first as the total cost is determined (CR 601.2f); a variable target group stops offering targets once another could not be paid for. Printed first. |
 | `protection doesn't remove this` | "This effect doesn't remove this Aura.", printed after the static ability before it (`static enchanted: has protection from chosen color`): the Aura's state-based check (CR 704.5m) ignores protection. |
 | `ninjutsu {1}{U}` | Ninjutsu (CR 702.49): activated from the hand once blockers are declared, returning an unblocked attacker you control to its owner's hand as a cost; the card enters tapped and attacking what that creature attacked. It was never declared as an attacker. |
@@ -238,6 +239,15 @@ less to activate if you've drawn three or more cards this turn.") take
 mana off the ability's cost as it is activated (CR 601.2f by way of
 602.2b), printed after the effect and before the restrictions. An ability whose cost
 includes `discard this` is activated from the hand (cycling, channel).
+`waterbend {3}` (CR 701.67) is generic mana, printed "Waterbend {3}", of
+which each {1} may be paid by tapping an untapped artifact or creature its
+payer controls (the engine taps them after its mana sources; the source of
+an ability with {T} doesn't help). As a spell's additional cost
+(`additional cost waterbend {5}`: "As an additional cost to cast this
+spell, waterbend {5}."), only that cost's own generic mana may be paid
+this way (CR 701.67b). As an effect, `discard 1 card unless you waterbend
+{2}` ("Then discard a card unless you waterbend {2}."): the controller
+may pay it the same way (`accept`/`decline` in scenarios).
 
 ### Triggers
 
@@ -667,6 +677,31 @@ card to its controller and to whoever has looked at it.
 `detain target creature an opponent controls` (CR 701.35): until the
 controller's next turn the permanent can't attack or block and its
 activated abilities can't be activated.
+`earthbend 2` (CR 701.66), `earthbend count where Forest you control`
+("Earthbend X, where X is the number of Forests you control"): declares
+its own target, "target land you control", which becomes a 0/0 creature
+with haste in addition to its other types (indefinitely) and gets N +1/+1
+counters; a delayed trigger returns it to the battlefield tapped under the
+earthbender's control when it dies or is put into exile (leaving for any
+other zone ends it). Prints "Earthbend 2." In scenarios the land is the
+spell's or ability's target like any other.
+Double (CR 701.10): `double target creature power` ("Double target
+creature's power until end of turn"), `double this power and toughness`,
+`double the power of target creature` ("Double the power of target
+creature until end of turn"), `double the power and toughness of each
+creature you control`: +X/+0 (+X/+Y) until end of turn, X its power (Y
+its toughness) as the effect resolves, negative values getting more
+negative. `double the number of +1/+1 counters on this`, `double the
+number of each kind of counter on target permanent` (each recipient gets
+as many of those counters as it has; `on those targets` prints "on each
+of those creatures"). `double your life total`, `double target player
+life total`, `double its controller life total` ("Double target player's
+life total": gain, or below zero lose, that much life). The damage
+outcome `double` (`replace damage from permanent you control to any:
+double`) prints "If a source you control would deal damage to a
+permanent or player, it deals double that damage to that permanent or
+player instead." (a filter without a card type names a source;
+`replace damage to you: double` "... to you instead.").
 `spells red or white you cast cost {1} less` prints "Red spells and white
 spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
 spells". `defending player` as a subject prints "defending player".
@@ -2050,7 +2085,7 @@ battles (CR 115.4).
 - Target: `target player or battle`; `target creature, planeswalker, or
   battle` is a filter.
 - Effect: `double this power` ("double its power until end of turn",
-  CR 701.10f: +X/+0 with X its power).
+  CR 701.10b: +X/+0 with X its power; see Double above).
 - Effect: `you may put 1 instant, sorcery, or battle card from your
   graveyard on top of library chosen` ("you may put an instant,
   sorcery, or battle card from your graveyard on top of your library":

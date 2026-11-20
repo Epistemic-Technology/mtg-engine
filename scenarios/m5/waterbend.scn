@@ -1,0 +1,106 @@
+# Waterbend {N} (CR 701.67): pay {N}; for each generic mana, an untapped
+# artifact or creature you control may be tapped rather than paying that
+# mana. As an additional cost, only the waterbend cost's own generic
+# mana may be paid this way (CR 701.67b).
+
+scenario "waterbend: creatures and artifacts pay the whole cost" {
+  battlefield A: "Flexible Waterbender", "Grizzly Bears", "Ornithopter"
+  turn 1 A: activate "Flexible Waterbender"
+  run_to turn 1 postcombat_main
+  assert power "Flexible Waterbender" 5
+  assert toughness "Flexible Waterbender" 2
+  assert tapped "Flexible Waterbender"
+  assert tapped "Grizzly Bears"
+  assert tapped "Ornithopter"
+}
+
+scenario "waterbend: mana and creatures together" {
+  battlefield A: "Flexible Waterbender", "Grizzly Bears", "Island"
+  turn 1 A: activate "Flexible Waterbender"
+  run_to turn 1 postcombat_main
+  assert power "Flexible Waterbender" 5
+  assert tapped "Island"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "waterbend: not enough to tap and no mana" {
+  battlefield A: "Flexible Waterbender", "Grizzly Bears"
+  illegal turn 1 A: activate "Flexible Waterbender"
+  run_to turn 1 postcombat_main
+  assert power "Flexible Waterbender" 2
+}
+
+scenario "waterbend: lands don't tap except for mana, tapped creatures don't help" {
+  battlefield A: "Flexible Waterbender", "Grizzly Bears" tapped, "Ornithopter" tapped, "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Flexible Waterbender"
+  run_to turn 1 postcombat_main
+  assert power "Flexible Waterbender" 2
+}
+
+scenario "waterbend with {T}: the source doesn't also help" {
+  battlefield A: "North Pole Patrol", "Grizzly Bears", "Ornithopter"
+  battlefield B: "Hill Giant"
+  illegal turn 1 A: activate "North Pole Patrol" ability 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "waterbend with {T}: three others pay it" {
+  battlefield A: "North Pole Patrol", "Grizzly Bears", "Ornithopter", "Memnite"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "North Pole Patrol" ability 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "North Pole Patrol"
+  assert tapped "Memnite"
+}
+
+scenario "waterbend as an additional cost: creatures pay it" {
+  battlefield A: 2 "Island", "Grizzly Bears", "Ornithopter", "Memnite", "Coral Eel", "Flexible Waterbender"
+  hand A: "Benevolent River Spirit"
+  turn 1 A: cast "Benevolent River Spirit"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Benevolent River Spirit"
+  assert tapped "Coral Eel"
+  assert tapped "Memnite"
+}
+
+scenario "waterbend as an additional cost: not the spell's own colored mana" {
+  battlefield A: "Island", "Grizzly Bears", "Ornithopter", "Memnite", "Coral Eel", "Flexible Waterbender", "North Pole Patrol"
+  hand A: "Benevolent River Spirit"
+  illegal turn 1 A: cast "Benevolent River Spirit"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Benevolent River Spirit"
+}
+
+scenario "unless you waterbend: paid, no discard" {
+  battlefield A: 4 "Island", "Grizzly Bears", "Ornithopter"
+  hand A: "Waterbending Lesson"
+  library A: "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Waterbending Lesson"
+  turn 1 A: accept "Waterbending Lesson"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert tapped "Grizzly Bears"
+  assert tapped "Ornithopter"
+}
+
+scenario "unless you waterbend: declined, a discard" {
+  battlefield A: 4 "Island", "Grizzly Bears", "Ornithopter"
+  hand A: "Waterbending Lesson"
+  library A: "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Waterbending Lesson"
+  turn 1 A: decline "Waterbending Lesson"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert untapped "Grizzly Bears"
+}
+
+scenario "waterbend: exhaust animates the Vehicle" {
+  battlefield A: "Invasion Submersible", "Grizzly Bears", "Ornithopter", "Memnite"
+  turn 1 A: activate "Invasion Submersible"
+  run_to turn 3 precombat_main
+  assert is "Invasion Submersible" creature
+  assert power "Invasion Submersible" 3
+}

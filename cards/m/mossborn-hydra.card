@@ -1,0 +1,9 @@
+card "Mossborn Hydra" {
+  oracle_id 84122d81-9634-4d3f-85a5-f6cf4303691a
+  cost {2}{G}
+  type Creature — Elemental Hydra
+  pt 0/0
+  keywords trample
+  enters with 1 +1/+1 counter
+  label "Landfall" triggered whenever land you control enters: double the number of +1/+1 counters on this
+}

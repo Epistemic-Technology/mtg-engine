@@ -1,0 +1,9 @@
+card "Vindictive Warden" {
+  oracle_id 43b339ec-4d7d-41ac-a5ab-96c6a6de00e2
+  cost {2}{B/R}
+  type Creature — Human Soldier
+  pt 2/3
+  keywords menace
+  firebending 1
+  activated {3}: deal 1 damage to each opponent
+}

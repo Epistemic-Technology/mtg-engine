@@ -1,0 +1,8 @@
+card "Hydra's Growth" {
+  oracle_id 559903cd-5cba-47a5-8b5b-7067e393e76a
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: put 1 +1/+1 counter on enchanted creature
+  triggered at beginning of your upkeep: double the number of +1/+1 counters on enchanted creature
+}

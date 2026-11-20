@@ -1,0 +1,8 @@
+card "Flexible Waterbender" {
+  oracle_id 8cf88fa8-2f47-4125-a59d-9c2b2d4765a7
+  cost {3}{U}
+  type Creature — Human Warrior Ally
+  pt 2/5
+  keywords vigilance
+  activated waterbend {3}: this has base power and toughness 5/2
+}

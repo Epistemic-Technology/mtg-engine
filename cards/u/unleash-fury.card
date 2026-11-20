@@ -1,0 +1,6 @@
+card "Unleash Fury" {
+  oracle_id 4eaa100c-f1ef-4a2b-9370-5dad7f3a95f2
+  cost {1}{R}
+  type Instant
+  spell: double the power of target creature
+}

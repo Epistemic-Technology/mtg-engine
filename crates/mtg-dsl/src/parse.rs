@@ -1462,6 +1462,12 @@ impl P {
                     Mechanic::Mentor
                 }))
             }
+            "firebending" => {
+                self.pos += 1;
+                let n = self.num()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Firebending(n)))
+            }
             "evolve" | "unleash" => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -6047,6 +6053,20 @@ impl P {
                 what: self.recipient()?,
                 on: true,
             }),
+            // CR 701.66a: "Target land you control becomes ...": the
+            // keyword action declares its target.
+            "earthbend" => {
+                let count = self.num()?;
+                self.targets.push(Target::Filter(Filter {
+                    types: vec![mtg_core::card::CardType::Land],
+                    who: Some(Who::You),
+                    ..Filter::default()
+                }));
+                Ok(Effect::Earthbend {
+                    count,
+                    to: Recipient::Target(self.targets.len() - 1),
+                })
+            }
             "populate" => Ok(Effect::Populate),
             "incubate" => Ok(Effect::Incubate(self.num()?)),
             // CR 701.41a: "up to N other target creatures" on a permanent
@@ -6228,6 +6248,7 @@ impl P {
             "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
             "blight" => Ok(Effect::Blight(self.count()?)),
             "collect" if self.eat_word("evidence") => Ok(Effect::CollectEvidence(self.count()?)),
+            "waterbend" => Ok(Effect::Waterbend(self.mana_cost()?)),
             "manifest" => {
                 self.eat_words(&["the", "top", "card", "of", "your", "library"]);
                 Ok(Effect::Manifest)
@@ -6527,17 +6548,39 @@ impl P {
             }
             "surveil" => Ok(Effect::Surveil(self.num()?)),
             "learn" => Ok(Effect::Learn),
-            "double" if self.at_words(&["this", "power"]) => {
-                self.pos += 2;
+            // CR 701.10.
+            "double" => {
+                if self.eat_words(&["the", "number", "of"]) {
+                    let kind = if self.eat_words(&["each", "kind", "of", "counter"]) {
+                        None
+                    } else {
+                        let k = self.counter_kind()?;
+                        Some(k)
+                    };
+                    self.expect_word("on")?;
+                    let to = self.recipient()?;
+                    return Ok(Effect::DoubleCounters { kind, to });
+                }
+                if self.eat_words(&["your", "life", "total"]) {
+                    return Ok(Effect::DoubleLife {
+                        who: Recipient::You,
+                    });
+                }
+                let of = self.eat_words(&["the", "power"]);
+                let (to, toughness) = if of {
+                    let toughness = self.eat_words(&["and", "toughness"]);
+                    self.expect_word("of")?;
+                    (self.recipient()?, toughness)
+                } else {
+                    let to = self.recipient()?;
+                    if self.eat_words(&["life", "total"]) {
+                        return Ok(Effect::DoubleLife { who: to });
+                    }
+                    self.expect_word("power")?;
+                    (to, self.eat_words(&["and", "toughness"]))
+                };
                 self.until_end_of_turn();
-                let times = self.push_count(crate::ast::Count {
-                    expr: crate::ast::CountExpr::SourcePower,
-                    style: crate::ast::CountStyle::Equal,
-                })?;
-                Ok(Effect::DoublePower {
-                    to: Recipient::Source,
-                    times,
-                })
+                Ok(Effect::DoublePt { to, toughness, of })
             }
             "counter" => {
                 let to = self.recipient()?;
@@ -9904,6 +9947,18 @@ impl P {
                             optional,
                         }));
                         cost.order.push(CostItem::Behold);
+                    }
+                    // CR 701.67a: `waterbend {3}`, the mana that follows.
+                    "waterbend" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+                        self.pos += 1;
+                        cost.waterbend = true;
+                        while let Some(Tok::Sym(s)) = self.peek() {
+                            mana.push('{');
+                            mana.push_str(s);
+                            mana.push('}');
+                            self.pos += 1;
+                        }
+                        cost.order.push(CostItem::Mana);
                     }
                     "blight" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                         self.pos += 1;

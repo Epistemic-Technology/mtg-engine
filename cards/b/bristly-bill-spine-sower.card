@@ -1,0 +1,8 @@
+card "Bristly Bill, Spine Sower" {
+  oracle_id d3b2d8a2-d3bc-448c-9cf6-6bead6010c28
+  cost {1}{G}
+  type Legendary Creature — Plant Druid
+  pt 2/2
+  label "Landfall" triggered whenever land you control enters: put 1 +1/+1 counter on target creature
+  activated {3}{G}{G}: double the number of +1/+1 counters on each creature you control
+}

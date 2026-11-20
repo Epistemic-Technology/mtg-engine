@@ -1276,6 +1276,14 @@ impl GameState {
     /// choice needs something to choose; anything else can be done.
     fn can_do(&self, ctx: &EffectCtx, e: &Effect) -> bool {
         match e {
+            Effect::Waterbend(mana) => {
+                let p = ctx.controller;
+                let req = mana.requirements(0);
+                let mut sources = self.mana_sources(p);
+                sources.extend(self.waterbend_sources(p, req.generic, None));
+                let ps = self.player(p);
+                self.payable(p, &sources, &ps.mana_pool, &req, ps.life, None)
+            }
             Effect::ChooseAct {
                 act,
                 filter,
@@ -1553,7 +1561,7 @@ impl GameState {
         {
             adjust_generic(&mut req, tc.0);
         }
-        let helped = Keyword::helps_pay(def.keywords);
+        let helped = Keyword::helps_pay(def.keywords) || def.additional.waterbend;
         let restricted = match (self.restricted_mana_sources, &def.printed) {
             (0, _) | (_, None) => None,
             (_, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c)),
@@ -2023,6 +2031,12 @@ impl GameState {
                 out.push((*id, Mana::Colorless));
             }
         }
+        // CR 701.67b: an additional waterbend cost's artifacts and
+        // creatures pay only its own generic mana.
+        if def.additional.waterbend {
+            let n = def.additional.mana.requirements(0).generic;
+            out.extend(self.waterbend_sources(p, n, None));
+        }
         if !convoke && !improvise {
             return out;
         }
@@ -2049,6 +2063,33 @@ impl GameState {
         out
     }
 
+    /// CR 701.67a: the untapped artifacts and creatures `p` controls that
+    /// may each be tapped to pay {1} of a waterbend cost, at most `cap` of
+    /// them, `exclude` (a source tapping for its own {T}) left out. After
+    /// mana sources, so they are used last.
+    pub(super) fn waterbend_sources(
+        &self,
+        p: PlayerId,
+        cap: u32,
+        exclude: Option<ObjId>,
+    ) -> Sources {
+        let mut out = Sources::new();
+        for id in self.permanents_of(p) {
+            if out.len() >= cap as usize {
+                break;
+            }
+            if self.objects[id].tapped || Some(id) == exclude {
+                continue;
+            }
+            if self.characteristics(id).is_some_and(|c| {
+                c.is_creature() || c.types.contains(crate::card::CardType::Artifact)
+            }) {
+                out.push((id, Mana::Colorless));
+            }
+        }
+        out
+    }
+
     /// The sources that may pay for the spell `spell` being cast.
     fn spell_sources(&self, spell: ObjId) -> Sources {
         let o = &self.objects[spell];
@@ -2060,7 +2101,7 @@ impl GameState {
             s = all;
         }
         let def = self.pool.get(o.def);
-        if Keyword::helps_pay(def.keywords) {
+        if Keyword::helps_pay(def.keywords) || def.additional.waterbend {
             s.extend(self.helper_sources(o.controller, def));
         }
         s
@@ -3303,6 +3344,19 @@ impl GameState {
                     continue;
                 }
                 let req = self.activation_mana(id, ab);
+                // CR 701.67a: artifacts and creatures help pay a waterbend
+                // cost.
+                let bent: Sources;
+                let sources = if ab.cost.waterbend {
+                    bent = sources
+                        .iter()
+                        .copied()
+                        .chain(self.waterbend_sources(p, req.generic, ab.cost.tap.then_some(id)))
+                        .collect();
+                    &bent
+                } else {
+                    sources
+                };
                 // A source tapped as a cost cannot also tap for mana.
                 let payable = if ab.cost.tap {
                     let rest: Sources = sources.iter().filter(|(s, _)| *s != id).copied().collect();
@@ -3699,7 +3753,14 @@ impl GameState {
                     _ => None,
                 });
         let sources = match ability {
-            Some((source, _)) => self.ability_sources(caster, source),
+            Some((source, a)) => {
+                let mut s = self.ability_sources(caster, source);
+                if a.cost.waterbend {
+                    let own = a.cost.tap.then_some(source);
+                    s.extend(self.waterbend_sources(caster, u32::MAX, own));
+                }
+                s
+            }
             None => self.spell_sources(spell),
         };
         let exclude = ability.map(|(source, _)| source);
@@ -4194,8 +4255,12 @@ impl GameState {
             }
             sacrifice = None;
         }
-        let sources = self.ability_sources(controller, sa.source);
+        let mut sources = self.ability_sources(controller, sa.source);
         let req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
+        // CR 701.67a: a {T} source is tapped already, so it doesn't help.
+        if ab.cost.waterbend {
+            sources.extend(self.waterbend_sources(controller, req.generic, None));
+        }
         self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
@@ -8670,6 +8735,19 @@ impl GameState {
                 }
                 ctx.controller = you;
             }
+            // CR 701.67a: pay it, tapping artifacts and creatures for
+            // generic mana where mana runs short.
+            Effect::Waterbend(mana) => {
+                if self.can_do(ctx, effect) {
+                    let p = ctx.controller;
+                    let req = mana.requirements(0);
+                    let mut sources = self.mana_sources(p);
+                    sources.extend(self.waterbend_sources(p, req.generic, None));
+                    self.pay_from(p, &req, &sources, None);
+                } else {
+                    ctx.did = false;
+                }
+            }
             Effect::Pay { mana, life } => {
                 let p = ctx.controller;
                 let req = mana.requirements(0);
@@ -9574,6 +9652,101 @@ impl GameState {
                     if let Choice::Target(Target::Object(id)) = options[k] {
                         self.add_counters(id, CounterKind::MinusOneMinusOne, *n);
                     }
+                }
+            }
+            Effect::DoublePt { to, toughness } => {
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let Some(c) = self.characteristics(id) else {
+                        continue;
+                    };
+                    // CR 701.10b, c: +X/+0 with X its power, which may be
+                    // negative.
+                    let power = i32::from(c.power);
+                    let tough = if *toughness {
+                        i32::from(c.toughness)
+                    } else {
+                        0
+                    };
+                    self.effect_until_end_of_turn(
+                        ctx,
+                        id,
+                        smallvec::smallvec![Modification::ModifyPt {
+                            power,
+                            toughness: tough,
+                        }],
+                    );
+                }
+            }
+            Effect::DoubleCounters { kind, to } => {
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    // CR 701.10e: as many as it already has, each kind.
+                    let have: SmallVec<[(CounterKind, u32); 2]> = self.objects[id]
+                        .counters
+                        .iter()
+                        .copied()
+                        .filter(|(k, n)| *n > 0 && kind.is_none_or(|w| w == *k))
+                        .collect();
+                    for (k, n) in have {
+                        self.add_counters(id, k, n);
+                    }
+                }
+            }
+            Effect::DoubleLife { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        // CR 701.10d: gain or lose so the total is twice
+                        // what it was.
+                        let life = self.player(p).life;
+                        if life > 0 {
+                            self.gain_life(p, life.unsigned_abs());
+                        } else if life < 0 {
+                            self.change_life(p, life);
+                        }
+                    }
+                }
+            }
+            Effect::Firebend(n) => {
+                let n = self.eval_num(*n, ctx);
+                let ps = self.player_mut(ctx.controller);
+                ps.mana_pool.colored[crate::mana::Color::Red as usize] += n;
+                ps.combat_mana += n;
+                self.bump();
+            }
+            Effect::Earthbend { count, to } => {
+                // CR 701.66a: the land becomes a 0/0 creature with haste
+                // in addition to its other types, gets N +1/+1 counters,
+                // and returns tapped when it dies or is put into exile.
+                let effects = [
+                    Effect::Animate {
+                        to: *to,
+                        types: crate::card::TypeSet::of([crate::card::CardType::Creature]),
+                        subtypes: crate::card::SubtypeSet::default(),
+                        pt: Some((0, 0)),
+                        colors: None,
+                        keywords: crate::card::KeywordSet::NONE.with(Keyword::Haste),
+                        indefinite: true,
+                        loses_abilities: false,
+                        in_addition: true,
+                    },
+                    Effect::AddCounters {
+                        kind: CounterKind::PlusOnePlusOne,
+                        count: *count,
+                        to: *to,
+                    },
+                    Effect::Delayed {
+                        ability: self.pool.builtin(crate::card::Builtin::EarthbendReturn),
+                        about: *to,
+                        this_turn: false,
+                    },
+                ];
+                for e in &effects {
+                    self.apply_effect(ctx, e);
                 }
             }
             Effect::Monstrosity(n) => {

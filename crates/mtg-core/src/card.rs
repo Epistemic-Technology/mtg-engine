@@ -369,6 +369,10 @@ pub enum Builtin {
     /// this spell from among those cards without paying their mana costs.
     /// Put the rest on the bottom of your library."
     Ripple,
+    /// CR 701.66a: earthbend's "When that land dies or is put into exile,
+    /// return it to the battlefield tapped under your control." (a
+    /// delayed trigger about the land).
+    EarthbendReturn,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -3830,6 +3834,41 @@ pub enum Effect {
     /// control with the least toughness among creatures they control and
     /// puts N +1/+1 counters on it.
     Bolster(Num),
+    /// "Double target creature's power [and toughness] until end of turn"
+    /// (CR 701.10a-c): it gets +X/+0 (+X/+Y), X its power (Y its
+    /// toughness) as this resolves; a negative value gets more negative.
+    DoublePt {
+        to: Recipient,
+        toughness: bool,
+    },
+    /// "Double the number of +1/+1 counters on ..." (`kind`), "... of each
+    /// kind of counter on ..." (`None`) (CR 701.10e): each recipient gets
+    /// as many of those counters as it already has.
+    DoubleCounters {
+        kind: Option<CounterKind>,
+        to: Recipient,
+    },
+    /// "Double your life total" (CR 701.10d): each recipient player gains
+    /// (or, below zero, loses) life equal to their life total.
+    DoubleLife {
+        who: Recipient,
+    },
+    /// Firebending's effect (CR 702.189a): "add N {R}. Until end of
+    /// combat, you don't lose this mana as steps and phases end."
+    Firebend(Num),
+    /// "unless you waterbend {2}" (CR 701.67a): pay this generic mana,
+    /// each {1} by mana or by tapping an untapped artifact or creature the
+    /// controller controls; inside "you may" or "unless", like `Pay`.
+    Waterbend(ManaCost),
+    /// Earthbend N (CR 701.66a): the target land the controller controls
+    /// becomes a 0/0 creature with haste in addition to its other types
+    /// (indefinitely), gets N +1/+1 counters, and a delayed trigger
+    /// (`Builtin::EarthbendReturn`) returns it to the battlefield tapped
+    /// under the controller's control when it dies or is put into exile.
+    Earthbend {
+        count: Num,
+        to: Recipient,
+    },
     /// Populate (CR 701.36a): the controller chooses a creature token they
     /// control and creates a token that's a copy of it; with none, nothing
     /// happens (CR 701.36b).
@@ -4576,6 +4615,10 @@ pub enum TriggerSpec {
     AttacksOrBlocks(TriggerObj),
     /// "When this creature leaves the battlefield" (to any zone).
     Leaves(TriggerObj),
+    /// "When that land dies or is put into exile" (earthbend's delayed
+    /// trigger, CR 701.66a): leaves the battlefield for a graveyard or
+    /// exile. Delayed triggers only.
+    DiesOrExiled(TriggerObj),
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
     /// "Whenever ~ deals combat damage to a player or battle" (CR 310.6):
@@ -4855,6 +4898,7 @@ impl TriggerSpec {
             TriggerSpec::Enters(_)
             | TriggerSpec::Dies(_)
             | TriggerSpec::Leaves(_)
+            | TriggerSpec::DiesOrExiled(_)
             | TriggerSpec::EntersBatch(_)
             | TriggerSpec::LeavesBatch { .. }
             | TriggerSpec::LeavesGraveyard(_)
@@ -5076,6 +5120,11 @@ pub struct Cost {
     /// payer controls or card in their graveyard matching the filter,
     /// other than the source (the engine picks, graveyard cards first).
     pub craft: Option<Box<ObjFilter>>,
+    /// "Waterbend {5}" (CR 701.67a): the generic mana of `mana` may be
+    /// paid, {1} each, by tapping untapped artifacts and creatures the
+    /// payer controls. Every waterbend cost is generic mana only.
+    #[serde(default)]
+    pub waterbend: bool,
 }
 
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
@@ -5147,6 +5196,7 @@ impl Cost {
             behold: None,
             evidence: 0,
             craft: None,
+            waterbend: false,
         }
     }
 
@@ -6691,7 +6741,7 @@ pub struct CardPool {
     /// Decayed's "When this creature attacks, sacrifice it at end of
     /// combat" (CR 702.147a).
     decayed: AbilityId,
-    builtins: [AbilityId; 11],
+    builtins: [AbilityId; 12],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -6776,7 +6826,7 @@ impl CardPool {
             evoke: AbilityId(0),
             exploit: AbilityId(0),
             decayed: AbilityId(0),
-            builtins: [AbilityId(0); 11],
+            builtins: [AbilityId(0); 12],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -6967,6 +7017,20 @@ impl CardPool {
                     },
                     Effect::CastExiled(ExileCast::Transformed),
                 ],
+            }));
+        pool.builtins[Builtin::EarthbendReturn as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::DiesOrExiled(TriggerObj::This),
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::ReturnToBattlefield {
+                    what: Recipient::TriggeringCard,
+                    counters: None,
+                    tapped: true,
+                    under_you: true,
+                    attached: None,
+                }],
             }));
         pool.builtins[Builtin::CleanupSacrifice as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {

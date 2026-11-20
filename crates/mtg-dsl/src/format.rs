@@ -618,6 +618,8 @@ impl Fmt {
                 format!("{} no longer suspected", self.recipient(*what, t))
             }
             Effect::BlightBy { who, n } => format!("{} blights {n}", self.recipient(*who, t)),
+            Effect::Firebend(_) => unreachable!("only in expansions"),
+            Effect::Earthbend { count, .. } => format!("earthbend {}", num(*count)),
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
             Effect::Incubate(n) => format!("incubate {}", num(*n)),
@@ -1513,7 +1515,34 @@ impl Fmt {
             }
             Effect::Surveil(n) => format!("surveil {}", num(*n)),
             Effect::Learn => "learn".to_string(),
-            Effect::DoublePower { .. } => "double this power".to_string(),
+            Effect::DoublePt { to, toughness, of } => {
+                let pt = if *toughness {
+                    "power and toughness"
+                } else {
+                    "power"
+                };
+                let who = self.recipient(*to, t);
+                if *of {
+                    format!("double the {pt} of {who}")
+                } else {
+                    format!("double {who} {pt}")
+                }
+            }
+            Effect::DoubleCounters { kind, to } => format!(
+                "double the number of {} on {}",
+                kind.map_or("each kind of counter".to_string(), |k| counter(
+                    k,
+                    Num::N(2)
+                )),
+                self.recipient(*to, t)
+            ),
+            Effect::DoubleLife { who } => {
+                if *who == Recipient::You {
+                    "double your life total".to_string()
+                } else {
+                    format!("double {} life total", self.recipient(*who, t))
+                }
+            }
             Effect::Discard { count, who } => match who {
                 None => format!("discard {} {}", num(*count), cards(*count)),
                 Some(w) => {
@@ -1949,6 +1978,7 @@ impl Fmt {
                 }
             }
             Effect::Pay { mana, life } => format!("pay {}", pay_amount(mana, *life)),
+            Effect::Waterbend(mana) => format!("waterbend {mana}"),
             Effect::UnlessYou { act, effect } => {
                 let inner = self.effect(effect, t);
                 let act = self.effect(act, t);
@@ -3405,7 +3435,9 @@ fn cost_text(c: &Cost) -> String {
         match item {
             CostItem::Mana => {
                 let mana = c.mana.to_string();
-                if !mana.is_empty() {
+                if c.waterbend {
+                    parts.push(format!("waterbend {mana}"));
+                } else if !mana.is_empty() {
                     parts.push(mana);
                 }
             }
@@ -4473,6 +4505,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Bushido(n) => format!("bushido {n}"),
                 crate::ast::Mechanic::Soulshift(n) => format!("soulshift {n}"),
                 crate::ast::Mechanic::Afflict(n) => format!("afflict {n}"),
+                crate::ast::Mechanic::Firebending(n) => format!("firebending {}", num(*n)),
                 crate::ast::Mechanic::Poisonous(n) => format!("poisonous {n}"),
                 crate::ast::Mechanic::Frenzy(n) => format!("frenzy {n}"),
                 crate::ast::Mechanic::Absorb(n) => format!("absorb {n}"),

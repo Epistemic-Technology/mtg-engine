@@ -1,0 +1,7 @@
+card "Reckless Amplimancer" {
+  oracle_id 1c264f6e-caa7-44cb-8719-86212292679c
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 2/2
+  activated {4}{G}: double this power and toughness
+}

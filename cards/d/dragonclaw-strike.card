@@ -1,0 +1,6 @@
+card "Dragonclaw Strike" {
+  oracle_id 69e0d9f1-f9dd-4614-ad9f-13e7153710ce
+  cost {2/G}{2/U}{2/R}
+  type Sorcery
+  spell: double the power and toughness of target creature you control; then target 1 fights up to one target creature an opponent controls
+}

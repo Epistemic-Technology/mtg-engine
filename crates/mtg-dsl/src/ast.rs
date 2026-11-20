@@ -523,6 +523,9 @@ pub struct Cost {
     pub behold: Option<Box<Behold>>,
     /// `collect evidence 3`: "Collect evidence 3" (CR 701.59a).
     pub evidence: u32,
+    /// `waterbend {3}`: "Waterbend {3}" (CR 701.67a): the mana's generic
+    /// part may be paid by tapping artifacts and creatures.
+    pub waterbend: bool,
 }
 
 /// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and
@@ -1167,6 +1170,9 @@ pub enum Mechanic {
     Soulshift(u32),
     /// CR 702.130: becomes blocked, defending player loses N life.
     Afflict(u32),
+    /// CR 702.189: `firebending 2`, `firebending count where power`:
+    /// whenever it attacks, add N {R} that lasts until end of combat.
+    Firebending(Num),
     /// CR 702.70: combat damage to a player gives that player N poison
     /// counters.
     Poisonous(u32),
@@ -2940,12 +2946,27 @@ pub enum Effect {
     /// discard a card; if you do, draw a card" (CR 701.48a's other
     /// choice; no Lesson card is ever outside the game).
     Learn,
-    /// `double this power`: "double its power until end of turn" (CR
-    /// 701.10f: it gets +X/+0, X its power); `times` is the count of its
-    /// power.
-    DoublePower {
+    /// `double this power`, `double target creature power and toughness`:
+    /// "double its power until end of turn", "Double target creature's
+    /// power and toughness until end of turn" (CR 701.10a-c); with `of`,
+    /// `double the power of target creature`: "Double the power of target
+    /// creature until end of turn".
+    DoublePt {
         to: Recipient,
-        times: Num,
+        toughness: bool,
+        of: bool,
+    },
+    /// `double the number of +1/+1 counters on this`, `double the number
+    /// of each kind of counter on target permanent` (`kind` None) (CR
+    /// 701.10e).
+    DoubleCounters {
+        kind: Option<CounterKind>,
+        to: Recipient,
+    },
+    /// `double your life total`, `double target player life total`,
+    /// `double its controller life total` (CR 701.10d).
+    DoubleLife {
+        who: Recipient,
     },
     /// `who` is `None` for the imperative "discard a card".
     Discard {
@@ -3229,6 +3250,18 @@ pub enum Effect {
     Bolster(Num),
     /// `monstrosity 3` (CR 701.37): "Monstrosity 3."
     Monstrosity(Num),
+    /// Firebending's effect (CR 702.189a), from its expansion: "add N {R}
+    /// that lasts until end of combat".
+    Firebend(Num),
+    /// `waterbend {2}` (CR 701.67a), inside "unless" or "you may": pay
+    /// the mana, artifacts and creatures tapped to help.
+    Waterbend(ManaCost),
+    /// `earthbend 2` (CR 701.66): "Earthbend 2." `to` is the implicit
+    /// "target land you control" the parser declares.
+    Earthbend {
+        count: Num,
+        to: Recipient,
+    },
     /// `support 2` (CR 701.41a): a +1/+1 counter on each of up to N target
     /// creatures, other than the source in a triggered ability (support on
     /// a permanent); the recipients are those targets.

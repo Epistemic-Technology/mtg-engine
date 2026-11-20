@@ -1,0 +1,52 @@
+# Firebending N (CR 702.189): "Whenever this creature attacks, add N {R}.
+# Until end of combat, you don't lose this mana as steps and phases end."
+
+scenario "firebending: the mana lasts into later combat steps" {
+  battlefield A: "Fire Sages", 2 "Mountain"
+  turn 1 A: attack "Fire Sages"
+  turn 1 declare_blockers A: activate "Fire Sages"
+  run_to turn 1 postcombat_main
+  assert counters "Fire Sages" +1/+1 1
+  assert tapped oldest A "Mountain"
+  assert tapped newest A "Mountain"
+  assert life B 17
+}
+
+scenario "firebending: the mana is gone after combat" {
+  battlefield A: "Fire Sages", 2 "Mountain"
+  turn 1 A: attack "Fire Sages"
+  illegal turn 1 postcombat_main A: activate "Fire Sages"
+  run_to turn 1 end
+  assert counters "Fire Sages" +1/+1 0
+}
+
+scenario "firebending: no attack, no mana" {
+  battlefield A: "Fire Sages", 2 "Mountain"
+  illegal turn 1 declare_blockers A: activate "Fire Sages"
+  run_to turn 1 postcombat_main
+  assert counters "Fire Sages" +1/+1 0
+}
+
+scenario "firebending X: the number of creatures you control" {
+  battlefield A: "Sun Warriors", 2 "Grizzly Bears", 2 "Plains"
+  turn 1 A: attack "Sun Warriors"
+  turn 1 combat_damage A: activate "Sun Warriors"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ally"
+}
+
+scenario "firebending X: too little for the ability" {
+  battlefield A: "Sun Warriors", "Grizzly Bears", 2 "Plains"
+  turn 1 A: attack "Sun Warriors"
+  illegal turn 1 combat_damage A: activate "Sun Warriors"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Ally"
+}
+
+scenario "firebending X: the creature's power as it resolves" {
+  battlefield A: "Firebending Student" with 2 +1/+1, "Fire Sages"
+  turn 1 A: attack "Firebending Student"
+  turn 1 declare_blockers A: activate "Fire Sages"
+  run_to turn 1 postcombat_main
+  assert counters "Fire Sages" +1/+1 1
+}

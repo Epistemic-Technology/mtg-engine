@@ -1,0 +1,8 @@
+card "Firebending Student" {
+  oracle_id 1ad3be51-f68b-46d6-b58e-400b50e384f1
+  cost {1}{R}
+  type Creature — Human Monk
+  pt 1/2
+  keywords prowess
+  firebending count where power
+}

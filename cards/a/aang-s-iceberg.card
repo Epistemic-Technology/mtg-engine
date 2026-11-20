@@ -1,0 +1,8 @@
+card "Aang's Iceberg" {
+  oracle_id 646f9ad8-9d18-4b42-954a-e21a62e9f0e8
+  cost {2}{W}
+  type Enchantment
+  keywords flash
+  triggered when this enters: exile up to 1 another target nonland permanent until this leaves
+  activated waterbend {3}: sacrifice this; if you do, scry 2
+}

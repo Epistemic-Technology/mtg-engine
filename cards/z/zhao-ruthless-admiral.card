@@ -1,0 +1,8 @@
+card "Zhao, Ruthless Admiral" {
+  oracle_id d6b0198a-c1f2-4142-b5e2-8205adf14d0a
+  cost {2}{B/R}{B/R}
+  type Legendary Creature — Human Soldier
+  pt 3/4
+  firebending 2
+  triggered whenever you sacrifice other permanent: each creature you control gets +1/+0
+}

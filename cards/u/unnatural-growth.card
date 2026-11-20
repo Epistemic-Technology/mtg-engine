@@ -1,0 +1,6 @@
+card "Unnatural Growth" {
+  oracle_id 7324abaa-48da-439d-9339-b0ea5eea612e
+  cost {1}{G}{G}{G}{G}
+  type Enchantment
+  triggered at beginning of each combat: double the power and toughness of each creature you control
+}

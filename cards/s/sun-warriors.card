@@ -1,0 +1,8 @@
+card "Sun Warriors" {
+  oracle_id 513a2fca-fea4-434e-9b25-b0c0d7f322b2
+  cost {2}{R}{W}
+  type Creature — Human Warrior Ally
+  pt 3/5
+  firebending count where creature you control
+  activated {5}: create 1 "1/1 white Ally creature"
+}

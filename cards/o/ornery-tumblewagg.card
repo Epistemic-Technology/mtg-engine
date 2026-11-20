@@ -1,0 +1,9 @@
+card "Ornery Tumblewagg" {
+  oracle_id f8d7bcbd-9a1d-4fc6-abdd-88a7e01b9411
+  cost {2}{G}
+  type Creature — Brushwagg Mount
+  pt 2/2
+  triggered at beginning of your combat: put 1 +1/+1 counter on target creature
+  triggered whenever this attacks while saddled: double the number of +1/+1 counters on target creature
+  saddle 2
+}

@@ -342,6 +342,7 @@ impl Decompiler<'_> {
             energy: c.energy,
             blight: c.blight,
             evidence: c.evidence,
+            waterbend: c.waterbend,
             chosen: c.chosen,
             count: c.count,
             exile_cards: c.exile_cards.as_ref().map(|g| {
@@ -1077,6 +1078,7 @@ impl Decompiler<'_> {
                     effects: self.sentences(&t.effects),
                 }
             }
+            CoreEffect::Waterbend(mana) => Effect::Waterbend(mana.clone()),
             CoreEffect::Pay { mana, life } => Effect::Pay {
                 mana: mana.clone(),
                 life: *life,
@@ -1210,6 +1212,21 @@ impl Decompiler<'_> {
             CoreEffect::BlightBy { who, n } => Effect::BlightBy {
                 who: r(*who),
                 n: *n,
+            },
+            CoreEffect::Firebend(n) => Effect::Firebend(*n),
+            CoreEffect::DoublePt { to, toughness } => Effect::DoublePt {
+                to: r(*to),
+                toughness: *toughness,
+                of: false,
+            },
+            CoreEffect::DoubleCounters { kind, to } => Effect::DoubleCounters {
+                kind: *kind,
+                to: r(*to),
+            },
+            CoreEffect::DoubleLife { who } => Effect::DoubleLife { who: r(*who) },
+            CoreEffect::Earthbend { count, to } => Effect::Earthbend {
+                count: *count,
+                to: r(*to),
             },
             CoreEffect::Populate => Effect::Populate,
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
@@ -1478,6 +1495,7 @@ impl Decompiler<'_> {
             TriggerSpec::BlocksOrBlocked(o) => Trigger::BlocksOrBlocked(self.trigger_obj(o)),
             TriggerSpec::AttacksOrBlocks(o) => Trigger::AttacksOrBlocks(self.trigger_obj(o)),
             TriggerSpec::Leaves(o) => Trigger::Leaves(self.trigger_obj(o)),
+            TriggerSpec::DiesOrExiled(_) => unreachable!("earthbend's built-in delayed trigger"),
             TriggerSpec::Blocks(o) => Trigger::Blocks(self.trigger_obj(o)),
             TriggerSpec::BlockPair {
                 what,

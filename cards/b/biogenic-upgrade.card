@@ -1,0 +1,6 @@
+card "Biogenic Upgrade" {
+  oracle_id 30812870-87c0-469c-95a5-811d5a181e72
+  cost {4}{G}{G}
+  type Sorcery
+  spell: distribute 3 +1/+1 counters among 1 to 3 target creatures, then double the number of +1/+1 counters on those targets
+}

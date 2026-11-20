@@ -1,0 +1,129 @@
+# Double (CR 701.10): power and toughness (+X/+0, X its power as the
+# effect resolves, until end of turn), counters (as many of each kind as
+# it already has), life (gain or lose to twice the total), and damage
+# (a replacement effect).
+
+scenario "double power: +X/+0 with X its power as it resolves" {
+  battlefield A: "Hill Giant", "Mountain", "Mountain"
+  hand A: "Bulk Up"
+  turn 1 A: cast "Bulk Up" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 6
+  assert toughness "Hill Giant" 3
+}
+
+scenario "double power: it ends with the turn" {
+  battlefield A: "Hill Giant", "Mountain", "Mountain"
+  hand A: "Unleash Fury"
+  turn 1 A: cast "Unleash Fury" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 3
+}
+
+scenario "double power and toughness" {
+  battlefield A: "Reckless Amplimancer", 5 "Forest"
+  turn 1 A: activate "Reckless Amplimancer"
+  run_to turn 1 postcombat_main
+  assert power "Reckless Amplimancer" 4
+  assert toughness "Reckless Amplimancer" 4
+}
+
+scenario "double power: the power it has now, after other effects" {
+  battlefield A: "Hill Giant", "Mountain", "Mountain"
+  battlefield B: "Swamp"
+  hand A: "Bulk Up"
+  hand B: "Disfigure"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Disfigure" targeting "Hill Giant"
+  turn 1 A: cast "Bulk Up" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 2
+}
+
+scenario "double power and toughness of each creature you control" {
+  battlefield A: "Unnatural Growth", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power A "Grizzly Bears" 4
+  assert toughness "Hill Giant" 6
+  assert power B "Grizzly Bears" 2
+}
+
+scenario "double counters: +1/+1 counters after one more" {
+  battlefield A: "Grizzly Bears" with 2 +1/+1, "Forest", "Island"
+  hand A: "Growth Curve"
+  turn 1 A: cast "Growth Curve" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 6
+  assert power "Grizzly Bears" 8
+}
+
+scenario "double counters: none, still none" {
+  battlefield A: "Dragonsguard Elite", 6 "Forest"
+  turn 1 A: activate "Dragonsguard Elite"
+  run_to turn 1 postcombat_main
+  assert counters "Dragonsguard Elite" +1/+1 0
+}
+
+scenario "double counters: each creature you control as it attacks" {
+  battlefield A: "Kalonian Hydra" with 4 +1/+1, "Grizzly Bears" with 1 +1/+1
+  turn 1 A: attack "Kalonian Hydra"
+  run_to turn 1 postcombat_main
+  assert counters "Kalonian Hydra" +1/+1 8
+  assert counters "Grizzly Bears" +1/+1 2
+  assert life B 12
+}
+
+scenario "double each kind of counter" {
+  battlefield A: "Vorel of the Hull Clade", "Forest", "Island", "Grizzly Bears" with 1 +1/+1, "Grizzly Bears" with 2 flying
+  start turn 1 A precombat_main
+  turn 1 A: activate "Vorel of the Hull Clade" targeting newest A "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters newest A "Grizzly Bears" flying 4
+  assert counters oldest A "Grizzly Bears" +1/+1 1
+}
+
+scenario "double counters: the upkeep trigger" {
+  battlefield A: "Primordial Hydra" with 3 +1/+1
+  start turn 1 A precombat_main
+  run_to turn 3 precombat_main
+  assert counters "Primordial Hydra" +1/+1 6
+}
+
+scenario "double life total" {
+  battlefield A: 6 "Plains"
+  hand A: "Beacon of Immortality"
+  life A 15
+  turn 1 A: cast "Beacon of Immortality" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 30
+  assert library A contains "Beacon of Immortality"
+}
+
+scenario "double damage: a source you control, a spell too" {
+  battlefield A: "Angrath's Marauders", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "double damage: not another player's source" {
+  battlefield A: "Angrath's Marauders"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 17
+}
+
+scenario "double damage dealt to you and to this creature" {
+  battlefield A: "Goldnight Castigator"
+  battlefield B: "Mountain", "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 16
+}

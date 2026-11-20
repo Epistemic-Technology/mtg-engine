@@ -1,0 +1,7 @@
+card "Ba Sing Se" {
+  oracle_id de1ae205-ca5b-4d26-8194-ca85f1406e53
+  type Land
+  enters tapped unless you control basic land
+  mana {G}
+  activated {2}{G}, {T}, sorcery: earthbend 2
+}

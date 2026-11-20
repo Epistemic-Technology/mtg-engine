@@ -770,6 +770,10 @@ pub struct PlayerState {
     /// Combat phases this player skips this turn only ("... skips their
     /// next combat phase this turn"); cleared as the turn ends.
     pub skip_combat_this_turn: u8,
+    /// Red mana in the pool that lasts until end of combat (firebending,
+    /// CR 702.189a): at most this much red stays as each combat step
+    /// ends (the player spends their other mana first).
+    pub combat_mana: u32,
 }
 
 impl PlayerState {

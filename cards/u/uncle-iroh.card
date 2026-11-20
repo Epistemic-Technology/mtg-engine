@@ -1,0 +1,8 @@
+card "Uncle Iroh" {
+  oracle_id 8a98ddac-7341-4118-b188-51d8d03afd1d
+  cost {1}{R/G}{R/G}
+  type Legendary Creature — Human Noble Ally
+  pt 4/2
+  firebending 1
+  spells Lesson you cast cost {1} less
+}

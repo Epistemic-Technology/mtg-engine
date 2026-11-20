@@ -1,0 +1,9 @@
+card "Goldnight Castigator" {
+  oracle_id d46a6e0b-d39e-42ad-b95f-6902e1b72e62
+  cost {2}{R}{R}
+  type Creature — Angel
+  pt 4/9
+  keywords flying, haste
+  replace damage to you: double
+  replace damage to this: double
+}

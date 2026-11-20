@@ -1,0 +1,6 @@
+card "Waterbending Lesson" {
+  oracle_id 3d28886c-46bf-4d2e-a257-cb9016cc3573
+  cost {3}{U}
+  type Sorcery — Lesson
+  spell: draw 3 cards; then discard 1 card unless you waterbend {2}
+}

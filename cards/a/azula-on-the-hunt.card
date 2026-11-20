@@ -1,0 +1,8 @@
+card "Azula, On the Hunt" {
+  oracle_id 89f96032-5cba-404d-82b0-38d2be963e4b
+  cost {3}{B}
+  type Legendary Creature — Human Noble
+  pt 4/3
+  firebending 2
+  triggered whenever this attacks: you lose 1 life and create 1 "Clue"
+}

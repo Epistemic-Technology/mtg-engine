@@ -1,0 +1,8 @@
+card "Giant Koi" {
+  oracle_id c93bb65a-a74a-499b-a538-65272079aab8
+  cost {4}{U}{U}
+  type Creature — Fish
+  pt 5/7
+  activated waterbend {3}: this can't be blocked this turn
+  islandcycling {2}
+}

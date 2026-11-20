@@ -2376,7 +2376,9 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
         match item {
             CostItem::Mana => {
                 let mana = cost.mana.to_string();
-                if !mana.is_empty() {
+                if cost.waterbend {
+                    parts.push(format!("Waterbend {mana}"));
+                } else if !mana.is_empty() {
                     parts.push(mana);
                 }
             }
@@ -2560,6 +2562,16 @@ const EOT: &str = "until end of turn";
 /// "{E}{E}{E}".
 fn energy(n: u32) -> String {
     "{E}".repeat(n as usize)
+}
+
+/// "its", "your", "target creature's".
+fn possessive(s: &str) -> String {
+    match s {
+        "it" => "its".to_string(),
+        "you" => "your".to_string(),
+        "they" => "their".to_string(),
+        s => format!("{s}'s"),
+    }
 }
 
 fn counter_name(k: CounterKind) -> &'static str {
@@ -2805,6 +2817,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::AddManaCombination { count, .. }
         | Effect::CreateToken { count, .. }
         | Effect::EmpowerJace { count } => vec![*count],
+        Effect::Earthbend { count, .. } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
         Effect::Scry(n)
@@ -3533,6 +3546,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 s,
                 format!("{} {n}", ctx.verb(*who, "blights", "blight")),
             )
+        }
+        Effect::Firebend(n) => Clause::imperative(format!(
+            "add {} {{R}}. Until end of combat, you don't lose this mana as steps and phases end",
+            digits(*n)
+        )),
+        Effect::Earthbend { count, .. } => {
+            Clause::imperative(format!("earthbend {}", digits(*count)))
         }
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
@@ -5396,14 +5416,36 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
         Effect::Learn => Clause::imperative("learn".to_string()),
-        Effect::DoublePower { to, .. } => {
-            let s = ctx.subj(*to);
-            let whose = if s == "it" {
-                "its".to_string()
+        Effect::DoublePt { to, toughness, of } => {
+            let pt = if *toughness {
+                "power and toughness"
             } else {
-                format!("{s}'s")
+                "power"
             };
-            Clause::imperative(format!("double {whose} power until end of turn"))
+            if *of {
+                let o = ctx.obj(*to);
+                Clause::imperative(format!("double the {pt} of {o} until end of turn"))
+            } else {
+                let s = ctx.subj(*to);
+                Clause::imperative(format!("double {} {pt} until end of turn", possessive(&s)))
+            }
+        }
+        Effect::DoubleCounters { kind, to } => {
+            let what = kind.map_or("each kind of counter".to_string(), |k| {
+                format!("{} counters", counter_name(k))
+            });
+            let o = ctx.obj(*to);
+            // "on each of those creatures" (Biogenic Upgrade).
+            let o = if o.starts_with("those ") {
+                format!("each of {o}")
+            } else {
+                o
+            };
+            Clause::imperative(format!("double the number of {what} on {o}"))
+        }
+        Effect::DoubleLife { who } => {
+            let s = ctx.subj(*who);
+            Clause::imperative(format!("double {} life total", possessive(&s)))
         }
         Effect::Discard { count, who } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
@@ -5799,6 +5841,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = lowercase_first(&body);
             Clause::imperative(format!("if {who}, {}", body.trim_end_matches('.')))
         }
+        Effect::Waterbend(mana) => Clause::imperative(format!("waterbend {mana}")),
         Effect::Pay { mana, life } => Clause::imperative(if *life > 0 {
             format!("pay {life} life")
         } else {
@@ -6893,6 +6936,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 // Oracle names no "this creature or another" for a
                 // qualifier the source may lack.
                 || f.status.modified
+                // "Whenever a nonland creature you control dies" (Beifong's
+                // Bounty Hunters).
+                || f.not_types.contains(&CardType::Land)
             {
                 format!("whenever {} {dies}", trigger_filter_a(f, ctx.card))
             } else {
@@ -7657,11 +7703,31 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 None => "damage",
             };
             let to_text = affects_to(to, ctx);
+            // "to that permanent or player", but "to you", "to this
+            // creature" (Goldnight Castigator).
+            let that = match to_text.strip_prefix("a ") {
+                Some(rest) => format!("that {rest}"),
+                None => to_text.clone(),
+            };
             match from {
                 None => format!(
-                    "If a source would deal {kind} to {to_text}, it deals double that {kind} to that {} instead.",
-                    to_text.trim_start_matches("a ")
+                    "If a source would deal {kind} to {to_text}, it deals double that {kind} to {that} instead."
                 ),
+                // "If a source you control would deal damage to a
+                // permanent or player, it deals double that damage to that
+                // permanent or player instead." (Angrath's Marauders); "If
+                // a Giant source you control ..." (Calamity Bearer).
+                Some(Affects::Objects(f)) if f.types.is_empty() && f.any_types.is_empty() => {
+                    let p = filter_a(f, ctx.card);
+                    let by = if p.contains("permanent") {
+                        p.replacen("permanent", "source", 1)
+                    } else {
+                        p.replacen(" you control", " source you control", 1)
+                    };
+                    format!(
+                        "If {by} would deal {kind} to {to_text}, it deals double that {kind} to {that} instead."
+                    )
+                }
                 Some(f) => {
                     let by = match f {
                         Affects::Objects(f) => filter_a(f, ctx.card),
@@ -9769,6 +9835,19 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Bushido(n) => format!("Bushido {n}"),
             crate::ast::Mechanic::Soulshift(n) => format!("Soulshift {n}"),
             crate::ast::Mechanic::Afflict(n) => format!("Afflict {n}"),
+            // "Firebending X, where X is this creature's power."
+            crate::ast::Mechanic::Firebending(amount) => match amount {
+                Num::Count(idx) => {
+                    let phrase = match card.counts.get(usize::from(*idx)).map(|c| &c.expr) {
+                        Some(crate::ast::CountExpr::SourcePower) | None => {
+                            format!("{}'s power", this_ref(card))
+                        }
+                        Some(expr) => count_phrase(expr, card, false),
+                    };
+                    format!("Firebending X, where X is {phrase}.")
+                }
+                _ => format!("Firebending {}", digits(*amount)),
+            },
             crate::ast::Mechanic::Poisonous(n) => format!("Poisonous {n}"),
             crate::ast::Mechanic::Frenzy(n) => format!("Frenzy {n}"),
             crate::ast::Mechanic::Absorb(n) => format!("Absorb {n}"),
@@ -10351,11 +10430,22 @@ pub fn normalize(text: &str) -> String {
                     && !cost.contains(' ')
             })
         };
+        // "Flying, ward {2}", "Trample, firebending 4, haste": a keyword
+        // with a cost or number among plain ones.
+        let with_param = |p: &str| {
+            p.split_once(' ').is_some_and(|(w, rest)| {
+                matches!(w.to_ascii_lowercase().as_str(), "ward" | "firebending")
+                    && (rest.starts_with('{') && !rest.contains(' ')
+                        || rest == "X"
+                        || rest.chars().all(|c| c.is_ascii_digit()))
+            })
+        };
         let all_keywords = parts.iter().all(|p| {
             Keyword::ALL
                 .iter()
                 .any(|k| keyword_name(*k).eq_ignore_ascii_case(p))
                 || p.to_ascii_lowercase().starts_with("protection from ")
+                || with_param(p)
         }) || parts.iter().all(|p| typecycling(p));
         // "Protection from Spirits and from Arcane": one protection
         // ability per quality (CR 702.16g), so one line each.

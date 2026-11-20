@@ -1551,6 +1551,7 @@ impl Compiler<'_> {
             energy: c.energy,
             blight: c.blight,
             evidence: c.evidence,
+            waterbend: c.waterbend,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -2183,12 +2184,15 @@ impl Compiler<'_> {
                 out.push(CoreEffect::YouMay(self.sentences(&[discard])?));
                 out.push(CoreEffect::IfYouDo(self.sentences(&[draw])?));
             }
-            Effect::DoublePower { to, times } => out.push(CoreEffect::PumpVar {
-                power: 1,
-                toughness: 0,
-                times: *times,
+            Effect::DoublePt { to, toughness, .. } => out.push(CoreEffect::DoublePt {
+                to: r(*to),
+                toughness: *toughness,
+            }),
+            Effect::DoubleCounters { kind, to } => out.push(CoreEffect::DoubleCounters {
+                kind: *kind,
                 to: r(*to),
             }),
+            Effect::DoubleLife { who } => out.push(CoreEffect::DoubleLife { who: r(*who) }),
             Effect::Discard { count, who } => out.push(CoreEffect::Discard {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
@@ -2380,6 +2384,7 @@ impl Compiler<'_> {
             Effect::Instead { .. } => {
                 return self.err("`instead` is a sentence of its own, after the one it replaces");
             }
+            Effect::Waterbend(cost) => out.push(CoreEffect::Waterbend(cost.clone())),
             Effect::Pay { mana, life } => out.push(CoreEffect::Pay {
                 mana: mana.clone(),
                 life: *life,
@@ -2501,6 +2506,11 @@ impl Compiler<'_> {
             Effect::BlightBy { who, n } => out.push(CoreEffect::BlightBy {
                 who: r(*who),
                 n: *n,
+            }),
+            Effect::Firebend(n) => out.push(CoreEffect::Firebend(*n)),
+            Effect::Earthbend { count, to } => out.push(CoreEffect::Earthbend {
+                count: *count,
+                to: r(*to),
             }),
             Effect::Populate => out.push(CoreEffect::Populate),
             // CR 701.41a: one counter on each target.
@@ -4229,6 +4239,15 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     attacker: Recipient::Source,
                 },
             ])])),
+        },
+        // CR 702.189a: "Whenever this creature attacks, add N {R}. Until
+        // end of combat, you don't lose this mana as steps and phases end."
+        Mechanic::Firebending(n) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Attacks(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::Firebend(*n)),
         },
         Mechanic::Afflict(n) => Ability::Triggered {
             from_graveyard: false,

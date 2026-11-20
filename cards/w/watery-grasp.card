@@ -1,0 +1,8 @@
+card "Watery Grasp" {
+  oracle_id 520b2799-66bd-40bf-9bc0-9cd3aed321f5
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has doesn't untap
+  activated waterbend {5}: owner shuffles enchanted creature into library
+}
