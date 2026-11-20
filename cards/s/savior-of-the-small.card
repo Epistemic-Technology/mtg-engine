@@ -1,0 +1,7 @@
+card "Savior of the Small" {
+  oracle_id 15f2085f-d5e6-4bc6-870f-00fcaccd981b
+  cost {3}{W}
+  type Creature — Kor Survivor
+  pt 3/4
+  label "Survival" triggered at beginning of your second main if this is tapped: return target creature card with mana value 3 or less from your graveyard to hand
+}

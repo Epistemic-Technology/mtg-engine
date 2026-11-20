@@ -1,0 +1,7 @@
+card "Ingenious Leonin" {
+  oracle_id 99853d2e-2223-4c05-bbd7-0a746f8f810d
+  cost {4}{W}
+  type Creature — Cat Soldier
+  pt 4/4
+  activated {3}{W}: put 1 +1/+1 counter on another target attacking creature you control; if that target 1 is Cat, target 1 gains first strike
+}

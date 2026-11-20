@@ -1,0 +1,6 @@
+card "Skycoach Waypoint" {
+  oracle_id 2ac2b815-2d72-48e6-b43a-18884a74bf95
+  type Land
+  mana {C}
+  activated {3}, {T}: target creature becomes prepared
+}

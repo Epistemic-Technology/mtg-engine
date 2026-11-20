@@ -1,0 +1,6 @@
+card "Return to the Sewers" {
+  oracle_id a3ee8565-f34c-4073-bc94-3fe9ec6bbe8a
+  cost {3}{U}
+  type Instant
+  spell: owner puts target creature on top or bottom of library; you create 1 "Mutagen"
+}

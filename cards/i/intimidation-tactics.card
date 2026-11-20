@@ -1,0 +1,7 @@
+card "Intimidation Tactics" {
+  oracle_id 121bd1af-da21-4937-a911-377c5b430796
+  cost {B}
+  type Sorcery
+  spell: target opponent reveals hand exiling artifact or creature card split
+  cycling {3}
+}

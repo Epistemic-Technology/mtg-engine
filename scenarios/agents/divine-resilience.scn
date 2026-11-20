@@ -1,0 +1,32 @@
+scenario "divine resilience: one creature gains indestructible" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Plains"
+  hand A: "Divine Resilience"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divine Resilience" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" indestructible
+  assert has not "Hill Giant" indestructible
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" indestructible
+}
+
+scenario "divine resilience: kicked, any number gain indestructible" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Craw Wurm", 4 "Plains"
+  hand A: "Divine Resilience"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divine Resilience" kicked targeting "Grizzly Bears", "Grizzly Bears", "Hill Giant", "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" indestructible
+  assert has "Hill Giant" indestructible
+  assert has "Craw Wurm" indestructible
+}
+
+scenario "divine resilience: only creatures you control" {
+  battlefield A: "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Divine Resilience"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Divine Resilience" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Divine Resilience"
+}

@@ -1,0 +1,18 @@
+scenario "leonin vanguard grows with three creatures" {
+  battlefield A: "Leonin Vanguard", 2 "Grizzly Bears"
+  start turn 2 A precombat_main
+  run_to turn 2 declare_attackers
+  assert power "Leonin Vanguard" 2
+  assert toughness "Leonin Vanguard" 2
+  assert life A 21
+  run_to turn 3 upkeep
+  assert power "Leonin Vanguard" 1
+}
+
+scenario "leonin vanguard does nothing with two creatures" {
+  battlefield A: "Leonin Vanguard", "Grizzly Bears"
+  start turn 2 A precombat_main
+  run_to turn 2 declare_attackers
+  assert power "Leonin Vanguard" 1
+  assert life A 20
+}

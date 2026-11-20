@@ -1,0 +1,23 @@
+scenario "Effortless Master enters with counters after two spells" {
+  battlefield A: 2 "Island", 2 "Mountain", 2 "Plains"
+  hand A: "Effortless Master", "Healing Salve", "Healing Salve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Effortless Master"
+  run_to turn 1 postcombat_main
+  assert counters "Effortless Master" +1/+1 2
+  assert power "Effortless Master" 6
+}
+
+scenario "Effortless Master enters without counters otherwise" {
+  battlefield A: 2 "Island", 2 "Mountain"
+  hand A: "Effortless Master"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Effortless Master"
+  run_to turn 1 postcombat_main
+  assert counters "Effortless Master" +1/+1 0
+  assert has "Effortless Master" menace
+}

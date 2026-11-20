@@ -1,0 +1,6 @@
+card "Beyond the Quiet" {
+  oracle_id c96424e7-63c4-4f07-959f-6ad09f91279a
+  cost {3}{W}{W}
+  type Sorcery
+  spell: exile all creature or Spacecraft
+}

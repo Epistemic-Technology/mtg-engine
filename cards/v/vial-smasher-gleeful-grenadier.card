@@ -1,0 +1,7 @@
+card "Vial Smasher, Gleeful Grenadier" {
+  oracle_id a66d8dc6-ced4-4b24-b0c2-3557b2a851be
+  cost {B}{R}
+  type Legendary Creature — Goblin Mercenary
+  pt 3/2
+  triggered whenever other outlaw you control enters: deal 1 damage to target opponent
+}

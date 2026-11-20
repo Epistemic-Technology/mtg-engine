@@ -1,0 +1,21 @@
+scenario "Weftblade Enhancer puts a counter on each of two creatures" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 6 "Plains"
+  hand A: "Weftblade Enhancer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Weftblade Enhancer"
+  turn 1 A: trigger "Weftblade Enhancer" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Weftblade Enhancer warped is exiled at end step" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Weftblade Enhancer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Weftblade Enhancer" warped
+  turn 1 A: trigger "Weftblade Enhancer" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert counters "Grizzly Bears" +1/+1 1
+  assert exile A contains "Weftblade Enhancer"
+}

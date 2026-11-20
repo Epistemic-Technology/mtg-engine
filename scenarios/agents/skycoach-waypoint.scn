@@ -1,0 +1,26 @@
+scenario "Skycoach Waypoint prepares a creature, which casts its prepare spell" {
+  battlefield A: "Skycoach Waypoint", "Abigale, Poet Laureate // Heroic Stanza", 5 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Skycoach Waypoint" targeting "Abigale, Poet Laureate"
+  turn 1 main2 A: cast "Heroic Stanza" targeting "Abigale, Poet Laureate"
+  run_to turn 1 end
+  assert tapped "Skycoach Waypoint"
+  assert counters "Abigale, Poet Laureate" +1/+1 1
+}
+
+scenario "without the Waypoint the creature isn't prepared" {
+  battlefield A: "Abigale, Poet Laureate // Heroic Stanza", 5 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 main2 A: cast "Heroic Stanza" targeting "Abigale, Poet Laureate"
+  run_to turn 1 end
+}
+
+scenario "Skycoach Waypoint taps for colorless" {
+  battlefield A: "Skycoach Waypoint"
+  hand A: "Bonesplitter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bonesplitter"
+  run_to turn 1 end
+  assert battlefield A contains "Bonesplitter"
+  assert tapped "Skycoach Waypoint"
+}

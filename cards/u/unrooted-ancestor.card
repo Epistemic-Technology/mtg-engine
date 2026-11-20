@@ -1,0 +1,8 @@
+card "Unrooted Ancestor" {
+  oracle_id de5c6c9d-04a2-4287-8c6e-fdf56c411507
+  cost {2}{B}
+  type Creature — Spirit Cleric
+  pt 3/2
+  keywords flash
+  activated {1}, sacrifice other creature: this gains indestructible; tap it
+}

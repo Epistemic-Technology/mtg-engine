@@ -1,0 +1,8 @@
+card "Goldfury Strider" {
+  oracle_id 7534d0b3-4211-4add-8e8d-370c033518d3
+  cost {4}{R}
+  type Artifact Creature — Golem
+  pt 3/5
+  keywords trample
+  activated tap 2 untapped artifact or creature you control, sorcery: target creature gets +2/+0 until end of turn
+}

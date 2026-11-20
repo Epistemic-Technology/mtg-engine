@@ -1,0 +1,12 @@
+scenario "Honored Knight-Captain: a Human Soldier, then an Equipment" {
+  battlefield A: 8 "Plains"
+  hand A: "Honored Knight-Captain"
+  library A: "Plains", "Bonesplitter", "Plains"
+  turn 1 A: cast "Honored Knight-Captain"
+  turn 1 A: wait
+  turn 1 A: activate "Honored Knight-Captain"
+  run_to turn 1 end
+  assert battlefield A contains "Human Soldier"
+  assert battlefield A contains "Bonesplitter"
+  assert graveyard A contains "Honored Knight-Captain"
+}

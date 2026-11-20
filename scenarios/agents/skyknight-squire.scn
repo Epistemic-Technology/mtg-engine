@@ -1,0 +1,21 @@
+scenario "Skyknight Squire grows and gains flying at three counters" {
+  battlefield A: "Skyknight Squire" with 2 +1/+1, 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Skyknight Squire" +1/+1 3
+  assert has "Skyknight Squire" flying
+  assert is "Skyknight Squire" Knight
+}
+
+scenario "Skyknight Squire without three counters has no flying" {
+  battlefield A: "Skyknight Squire", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Skyknight Squire" +1/+1 1
+  assert has not "Skyknight Squire" flying
+  assert is not "Skyknight Squire" Knight
+}

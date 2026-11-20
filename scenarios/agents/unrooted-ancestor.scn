@@ -1,0 +1,9 @@
+scenario "Unrooted Ancestor sacrifices another creature to gain indestructible and tap" {
+  battlefield A: "Unrooted Ancestor", "Grizzly Bears", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Unrooted Ancestor" sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert has "Unrooted Ancestor" indestructible
+  assert tapped "Unrooted Ancestor"
+}

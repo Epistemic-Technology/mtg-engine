@@ -1,0 +1,6 @@
+card "Stress Dream" {
+  oracle_id 52124954-b0b6-492c-8d03-fe54c220facc
+  cost {3}{U}{R}
+  type Instant
+  spell: deal 5 damage to up to 1 target creature; dig 2 take card rest bottom reword
+}

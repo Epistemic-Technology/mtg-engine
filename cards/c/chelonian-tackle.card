@@ -1,0 +1,6 @@
+card "Chelonian Tackle" {
+  oracle_id 8c1c519a-6edd-4204-b825-b0feca5afa42
+  cost {2}{G}
+  type Sorcery
+  spell: target creature you control gets +0/+10; then target 1 fights up to one target creature an opponent controls
+}

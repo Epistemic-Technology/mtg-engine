@@ -1,0 +1,21 @@
+scenario "pests of honor celebrates after two nonland permanents enter" {
+  battlefield A: "Pests of Honor", 4 "Forest"
+  hand A: 2 "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 declare_attackers
+  assert counters "Pests of Honor" +1/+1 1
+  assert power "Pests of Honor" 3
+}
+
+scenario "pests of honor gets nothing after one" {
+  battlefield A: "Pests of Honor", 4 "Forest"
+  hand A: "Grizzly Bears", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: play "Forest"
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 declare_attackers
+  assert counters "Pests of Honor" +1/+1 0
+}

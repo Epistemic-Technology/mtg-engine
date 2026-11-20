@@ -1,0 +1,7 @@
+card "Neighborhood Guardian" {
+  oracle_id ef414347-bbe3-47cb-b900-88275561c43e
+  cost {1}{W}
+  type Creature — Unicorn
+  pt 2/2
+  triggered whenever other creature you control with power 2 or less enters: target creature you control gets +1/+1 until end of turn
+}

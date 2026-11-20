@@ -1,0 +1,21 @@
+scenario "Vaultguard Trooper rummages with two tapped creatures" {
+  battlefield A: "Vaultguard Trooper", "Grizzly Bears"
+  hand A: "Forest", "Island", "Swamp"
+  library A: "Plains", "Mountain", "Island"
+  start turn 2 A
+  turn 2 A: attack "Vaultguard Trooper", "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert hand A count 2
+  assert graveyard A contains "Swamp"
+  assert graveyard A contains "Plains"
+  assert hand A contains "Mountain"
+}
+
+scenario "Vaultguard Trooper does nothing without tapped creatures" {
+  battlefield A: "Vaultguard Trooper", "Grizzly Bears"
+  hand A: "Forest", "Island", "Swamp"
+  start turn 2 A
+  run_to turn 2 cleanup
+  assert hand A count 4
+  assert graveyard A count 0
+}

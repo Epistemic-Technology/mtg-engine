@@ -1,0 +1,16 @@
+scenario "preposterous proportions: +10/+10 and vigilance until end of turn" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 7 "Forest"
+  hand A: "Preposterous Proportions"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Preposterous Proportions"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 12
+  assert toughness "Hill Giant" 13
+  assert has "Hill Giant" vigilance
+  assert untapped "Grizzly Bears"
+  assert life B 8
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" vigilance
+}

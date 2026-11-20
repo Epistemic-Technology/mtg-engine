@@ -1,0 +1,9 @@
+card "Aerid Konstrari" {
+  oracle_id 172a8f58-c420-4497-b962-c5853f923667
+  cost {1}{R}{G}{G}
+  type Legendary Creature — Elder Sphinx
+  pt 5/4
+  keywords flying
+  triggered when this enters or dies: create 1 "Heartwood"
+  activated {6}: create 1 "Heartwood"; then this gets +1/+0 count where artifact you control until end of turn
+}

@@ -1,0 +1,6 @@
+card "Thoughtweft Charge" {
+  oracle_id a8cdcaa0-8e25-4c17-b5ce-16f72b535123
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3 until end of turn; if creature entered this turn, draw 1 card
+}

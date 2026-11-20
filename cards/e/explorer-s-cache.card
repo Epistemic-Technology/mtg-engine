@@ -1,0 +1,8 @@
+card "Explorer's Cache" {
+  oracle_id 9fa0c9d1-2a63-41a8-8733-39bfaee4eb0a
+  cost {1}{G}
+  type Artifact
+  enters with 2 +1/+1 counters
+  triggered whenever creature you control with +1/+1 counter dies: put 1 +1/+1 counter on this
+  activated {T}, sorcery: move 1 +1/+1 counter from this onto target creature
+}

@@ -1,0 +1,25 @@
+scenario "Tragic Banshee gives -1/-1 without morbid" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Tragic Banshee"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tragic Banshee"
+  turn 1 A: trigger "Tragic Banshee" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+}
+
+scenario "Tragic Banshee gives -13/-13 with morbid" {
+  battlefield A: 5 "Swamp", "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Tragic Banshee", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Tragic Banshee"
+  turn 1 A: trigger "Tragic Banshee" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}

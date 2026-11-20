@@ -1,0 +1,32 @@
+scenario "Cryptex pays for a spell with collected evidence and gains an unlock counter" {
+  battlefield A: "Cryptex"
+  hand A: "Shock"
+  graveyard A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cryptex" ability 1
+  turn 1 A: choose red
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Cryptex"
+  assert exile A contains "Hill Giant"
+  assert counters "Cryptex" unlock 1
+}
+
+scenario "Cryptex sacrifices with five unlock counters to surveil and draw" {
+  battlefield A: "Cryptex" with 5 unlock
+  library A: "Island", "Forest", "Swamp", "Plains", "Mountain", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cryptex"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Cryptex"
+  assert hand A count 3
+}
+
+scenario "Cryptex can't be sacrificed with four unlock counters" {
+  battlefield A: "Cryptex" with 4 unlock
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Cryptex"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Cryptex"
+}

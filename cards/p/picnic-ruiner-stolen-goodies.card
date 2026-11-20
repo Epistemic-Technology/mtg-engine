@@ -1,0 +1,13 @@
+card "Picnic Ruiner // Stolen Goodies" {
+  oracle_id 334fba11-e500-40fd-a142-41ff553642b5
+  layout adventure
+  cost {1}{R}
+  type Creature — Goblin Rogue
+  pt 2/2
+  triggered whenever this attacks while you control creature with power 4 or greater: this creature gains double strike until end of turn
+  face "Stolen Goodies" {
+    cost {3}{G}
+    type Sorcery — Adventure
+    spell: distribute 3 +1/+1 counters among any number of target creatures you control
+  }
+}

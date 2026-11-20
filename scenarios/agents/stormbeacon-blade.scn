@@ -1,0 +1,27 @@
+scenario "stormbeacon blade: draws with three attackers" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Craw Wurm", "Stormbeacon Blade" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Hill Giant", "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert power "Grizzly Bears" 5
+  assert life B 6
+}
+
+scenario "stormbeacon blade: no draw with two attackers" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Stormbeacon Blade" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert life B 12
+}
+
+scenario "stormbeacon blade: equip" {
+  battlefield A: "Grizzly Bears", "Stormbeacon Blade", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stormbeacon Blade" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Stormbeacon Blade" to "Grizzly Bears"
+  assert power "Grizzly Bears" 5
+}

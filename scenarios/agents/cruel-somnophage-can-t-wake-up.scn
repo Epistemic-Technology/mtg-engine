@@ -1,0 +1,23 @@
+scenario "Cruel Somnophage: power and toughness count creature cards in all graveyards" {
+  battlefield A: "Cruel Somnophage // Can't Wake Up"
+  graveyard A: "Hill Giant", "Lightning Bolt"
+  graveyard B: "Grizzly Bears", "Wind Drake"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Cruel Somnophage" 3
+  assert toughness "Cruel Somnophage" 3
+}
+
+scenario "Can't Wake Up: target player mills four, then the Nightmare is cast from exile" {
+  battlefield A: 2 "Island", 2 "Swamp"
+  hand A: "Cruel Somnophage // Can't Wake Up"
+  library B: "Grizzly Bears", "Hill Giant", "Shock", "Serra Angel", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Can't Wake Up" targeting player B
+  turn 1 postcombat_main A: cast "Cruel Somnophage"
+  run_to turn 1 end
+  assert graveyard B count 4
+  assert library B count 1
+  assert power "Cruel Somnophage" 3
+  assert toughness "Cruel Somnophage" 3
+}

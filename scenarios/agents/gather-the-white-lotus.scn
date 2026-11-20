@@ -1,0 +1,11 @@
+scenario "Gather the White Lotus makes an Ally for each Plains" {
+  battlefield A: 5 "Plains", "Island"
+  battlefield B: "Plains"
+  hand A: "Gather the White Lotus"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gather the White Lotus"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 5 "Ally"
+  assert power newest A "Ally" 1
+  assert graveyard A contains "Gather the White Lotus"
+}

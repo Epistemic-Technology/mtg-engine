@@ -1,0 +1,11 @@
+card "Yuriko, Hope from the Shadows" {
+  oracle_id 983f4fde-ab04-44f0-a294-c3b472de0b19
+  cost {U}
+  type Legendary Creature — Human Ninja
+  pt 1/1
+  keywords flash
+  triggered when this enters: choose one {
+    mode: target creature gets -1/-0 count where graveyard
+    mode: surveil 2
+  }
+}

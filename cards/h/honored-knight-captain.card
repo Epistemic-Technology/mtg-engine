@@ -1,0 +1,8 @@
+card "Honored Knight-Captain" {
+  oracle_id 69741d3b-1259-43f5-897f-6f4c3ca0844b
+  cost {1}{W}
+  type Creature — Human Advisor Knight
+  pt 1/1
+  triggered when this enters: create 1 "1/1 white Human Soldier creature"
+  activated {4}{W}{W}, sacrifice this: search Equipment card to battlefield
+}

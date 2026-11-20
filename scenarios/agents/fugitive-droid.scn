@@ -1,0 +1,34 @@
+scenario "Fugitive Droid counters a spell targeting a creature you control" {
+  battlefield A: "Fugitive Droid", "Grizzly Bears", "Island"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 A: activate "Fugitive Droid" targeting "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Fugitive Droid"
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "Fugitive Droid can't be blocked after an artifact entered" {
+  battlefield A: "Fugitive Droid"
+  battlefield B: "Grizzly Bears"
+  hand A: "Ornithopter"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ornithopter"
+  turn 2 A: attack "Fugitive Droid"
+  illegal turn 2 B: block "Fugitive Droid" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 19
+}
+
+scenario "Fugitive Droid can be blocked otherwise" {
+  battlefield A: "Fugitive Droid"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Fugitive Droid"
+  turn 2 B: block "Fugitive Droid" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Fugitive Droid"
+}

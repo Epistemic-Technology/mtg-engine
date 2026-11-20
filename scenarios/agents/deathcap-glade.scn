@@ -1,0 +1,15 @@
+scenario "Deathcap Glade: untapped with two other lands" {
+  battlefield A: 2 "Forest"
+  hand A: "Deathcap Glade"
+  turn 1 A: play "Deathcap Glade"
+  run_to turn 1 end
+  assert untapped "Deathcap Glade"
+}
+
+scenario "Deathcap Glade: tapped with one other land" {
+  battlefield A: "Forest"
+  hand A: "Deathcap Glade"
+  turn 1 A: play "Deathcap Glade"
+  run_to turn 1 end
+  assert tapped "Deathcap Glade"
+}

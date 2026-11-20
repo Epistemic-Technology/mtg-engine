@@ -1,0 +1,7 @@
+card "Supportive Parents" {
+  oracle_id b1266feb-516e-4b44-b750-7988ca6e6e55
+  cost {2}{G}
+  type Creature — Human Citizen
+  pt 3/3
+  activated tap 2 untapped creature you control: add any
+}

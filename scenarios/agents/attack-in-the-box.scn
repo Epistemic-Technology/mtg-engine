@@ -1,0 +1,20 @@
+scenario "Attack-in-the-Box pumps and is sacrificed at end step" {
+  battlefield A: "Attack-in-the-Box"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Attack-in-the-Box"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert battlefield A contains "Attack-in-the-Box"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Attack-in-the-Box"
+}
+
+scenario "Attack-in-the-Box declined stays" {
+  battlefield A: "Attack-in-the-Box"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Attack-in-the-Box"
+  turn 1 declare_attackers A: decline "Attack-in-the-Box"
+  run_to turn 2 upkeep
+  assert life B 18
+  assert battlefield A contains "Attack-in-the-Box"
+}

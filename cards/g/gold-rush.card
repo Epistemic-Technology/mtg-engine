@@ -1,0 +1,6 @@
+card "Gold Rush" {
+  oracle_id 45687a24-e8cb-4864-8721-410eb8320aab
+  cost {1}{G}
+  type Instant
+  spell: create 1 "Treasure"; until end of turn, up to 1 target creature gets +2/+2 count each Treasure you control
+}

@@ -1,0 +1,8 @@
+card "Qarsi Revenant" {
+  oracle_id bbea79bc-71d4-4100-92f4-783c2c4b46da
+  cost {1}{B}{B}
+  type Creature — Vampire
+  pt 3/3
+  keywords flying, deathtouch, lifelink
+  label "Renew" activated {2}{B}, exile this from graveyard, sorcery: put 1 flying counter and 1 deathtouch counter and 1 lifelink counter on target creature
+}

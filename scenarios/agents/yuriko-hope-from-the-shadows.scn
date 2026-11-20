@@ -1,0 +1,27 @@
+scenario "Yuriko shrinks an attacker by the cards in its controller's graveyard" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Yuriko, Hope from the Shadows"
+  graveyard A: "Forest", "Island", "Shock"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Yuriko, Hope from the Shadows"
+  turn 2 declare_attackers A: trigger "Yuriko, Hope from the Shadows" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Yuriko, Hope from the Shadows"
+  assert life A 20
+}
+
+scenario "Yuriko's -X/-0 lasts until end of turn" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Yuriko, Hope from the Shadows"
+  graveyard A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Yuriko, Hope from the Shadows"
+  turn 1 A: trigger "Yuriko, Hope from the Shadows" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 3
+}

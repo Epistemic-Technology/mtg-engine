@@ -1,0 +1,20 @@
+scenario "Alquist Proft investigates as it enters" {
+  battlefield A: "Plains", "Island", "Island"
+  hand A: "Alquist Proft, Master Sleuth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Alquist Proft, Master Sleuth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Alquist Proft, Master Sleuth"
+  assert battlefield A contains "Clue"
+}
+
+scenario "Alquist Proft sacrifices a Clue to draw X cards and gain X life" {
+  battlefield A: "Alquist Proft, Master Sleuth", "Clue", "Plains", 2 "Island", 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Alquist Proft, Master Sleuth" x 2 sacrificing "Clue"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert life A 22
+  assert battlefield A lacks "Clue"
+  assert tapped "Alquist Proft, Master Sleuth"
+}

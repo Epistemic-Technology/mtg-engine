@@ -1,0 +1,23 @@
+scenario "tough cookie makes a Food and animates it" {
+  battlefield A: 5 "Forest"
+  hand A: "Tough Cookie"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Tough Cookie"
+  turn 2 A: wait
+  turn 2 A: activate "Tough Cookie" targeting "Food"
+  run_to turn 2 begin_combat
+  assert is "Food" creature
+  assert power "Food" 4
+  assert toughness "Food" 4
+  run_to turn 3 upkeep
+  assert is not "Food" creature
+}
+
+scenario "tough cookie sacrifices itself for life" {
+  battlefield A: "Tough Cookie", 2 "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Tough Cookie" ability 2
+  run_to turn 2 begin_combat
+  assert life A 23
+  assert graveyard A contains "Tough Cookie"
+}

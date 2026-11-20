@@ -1,0 +1,25 @@
+scenario "Illvoi Infiltrator: unblockable after two spells, draws" {
+  battlefield A: "Illvoi Infiltrator", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock", "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: attack "Illvoi Infiltrator"
+  illegal turn 1 B: block "Illvoi Infiltrator" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert hand A count 1
+}
+
+scenario "Illvoi Infiltrator: blockable after one spell" {
+  battlefield A: "Illvoi Infiltrator", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: attack "Illvoi Infiltrator"
+  turn 1 B: block "Illvoi Infiltrator" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 0
+}

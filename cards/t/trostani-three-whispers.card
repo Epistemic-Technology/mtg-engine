@@ -1,0 +1,9 @@
+card "Trostani, Three Whispers" {
+  oracle_id 5c90b951-826e-4595-aacc-958904f3f794
+  cost {G}{G/W}{W}
+  type Legendary Creature — Dryad
+  pt 4/4
+  activated {1}{G}: target creature gains deathtouch
+  activated {G/W}: target creature gains vigilance
+  activated {2}{W}: target creature gains double strike
+}

@@ -1,0 +1,6 @@
+card "Preposterous Proportions" {
+  oracle_id 1e03aad2-6426-4d18-a0e5-bc3d8e6b7b11
+  cost {5}{G}{G}
+  type Sorcery
+  spell: each creature you control gets +10/+10 and each creature you control gain vigilance
+}

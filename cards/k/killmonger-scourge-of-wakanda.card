@@ -1,0 +1,8 @@
+card "Killmonger, Scourge of Wakanda" {
+  oracle_id 1c3ba54a-a8ef-4838-b3aa-cb6df827a619
+  cost {2}{B}{G}
+  type Legendary Creature — Human Mercenary Villain
+  pt 3/3
+  triggered when this enters: you may sacrifice 1 other creature chosen; when you do, destroy target nonland permanent an opponent controls
+  static as long as 2 creature cards in your graveyard, this: +2/+1
+}

@@ -1,0 +1,6 @@
+card "Personify" {
+  oracle_id e1708ad9-35d4-4243-92ca-ddf9d129aa32
+  cost {1}{W}
+  type Instant
+  spell: exile target creature you control then return that card to battlefield under its owner's control; create 1 "1/1 colorless Shapeshifter creature with changeling"
+}

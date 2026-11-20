@@ -1,0 +1,37 @@
+scenario "Koya exiles a creature that returns at end step if you don't pay" {
+  battlefield A: 3 "Plains", 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Koya, Death from Above"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Koya, Death from Above"
+  turn 1 A: trigger "Koya, Death from Above" targeting "Hill Giant"
+  turn 1 end A: decline "Koya, Death from Above"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Koya keeps the creature exiled if you pay" {
+  battlefield A: 3 "Plains", 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Koya, Death from Above"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Koya, Death from Above"
+  turn 1 A: trigger "Koya, Death from Above" targeting "Hill Giant"
+  turn 1 end A: accept "Koya, Death from Above"
+  run_to turn 2 upkeep
+  assert exile B contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "Koya's creature returns if the payment can't be made" {
+  battlefield A: 3 "Plains", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Koya, Death from Above"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Koya, Death from Above"
+  turn 1 A: trigger "Koya, Death from Above" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield B contains "Hill Giant"
+}

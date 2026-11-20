@@ -1,0 +1,26 @@
+scenario "Riverpyre Verge: with a Mountain it taps for blue" {
+  battlefield A: "Riverpyre Verge", 2 "Mountain"
+  hand A: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wind Drake"
+}
+
+scenario "Riverpyre Verge: without an Island or Mountain it makes no blue" {
+  battlefield A: "Riverpyre Verge", 2 "Plains"
+  hand A: "Wind Drake"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Wind Drake"
+}
+
+scenario "Riverpyre Verge: always taps for red" {
+  battlefield A: "Riverpyre Verge"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

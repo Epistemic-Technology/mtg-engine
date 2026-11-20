@@ -1,0 +1,19 @@
+scenario "Trostani grants double strike" {
+  battlefield A: "Trostani, Three Whispers", "Grizzly Bears", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Trostani, Three Whispers" ability 3 targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Trostani grants deathtouch and vigilance" {
+  battlefield A: "Trostani, Three Whispers", "Grizzly Bears", 2 "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Trostani, Three Whispers" ability 1 targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Trostani, Three Whispers" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert has "Grizzly Bears" deathtouch
+  assert has "Grizzly Bears" vigilance
+}

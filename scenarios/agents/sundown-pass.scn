@@ -1,0 +1,17 @@
+scenario "Sundown Pass enters untapped with two other lands" {
+  battlefield A: "Plains", "Mountain"
+  hand A: "Sundown Pass"
+  start turn 1 A precombat_main
+  turn 1 A: play "Sundown Pass"
+  run_to turn 1 postcombat_main
+  assert untapped "Sundown Pass"
+}
+
+scenario "Sundown Pass enters tapped with one other land" {
+  battlefield A: "Plains"
+  hand A: "Sundown Pass"
+  start turn 1 A precombat_main
+  turn 1 A: play "Sundown Pass"
+  run_to turn 1 postcombat_main
+  assert tapped "Sundown Pass"
+}

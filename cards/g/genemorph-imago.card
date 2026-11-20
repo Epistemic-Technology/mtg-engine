@@ -1,0 +1,8 @@
+card "Genemorph Imago" {
+  oracle_id bf3a0585-3976-4078-8beb-6afa79f97027
+  cost {G}{U}
+  type Creature — Insect Druid
+  pt 1/3
+  keywords flying
+  label "Landfall" triggered whenever land you control enters: target creature has base power and toughness 3/3 until end of turn; if you control 6 land, that target 1 has base power and toughness 6/6 until end of turn instead
+}

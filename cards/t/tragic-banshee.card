@@ -1,0 +1,7 @@
+card "Tragic Banshee" {
+  oracle_id 888f58c0-1860-4df4-ad75-53e634150680
+  cost {4}{B}
+  type Creature — Spirit
+  pt 5/3
+  label "Morbid" triggered when this enters: target creature an opponent controls gets -1/-1; if creature died this turn, that target 1 gets -13/-13 instead
+}

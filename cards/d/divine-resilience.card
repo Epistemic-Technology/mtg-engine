@@ -1,0 +1,7 @@
+card "Divine Resilience" {
+  oracle_id 4f6e2e47-34df-4bf3-a546-e06b42840167
+  cost {W}
+  type Instant
+  kicker {2}{W}
+  spell: target creature you control gains indestructible; if kicked, instead any number of target creature you control gains indestructible
+}

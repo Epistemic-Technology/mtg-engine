@@ -1,0 +1,6 @@
+card "Enter the Avatar State" {
+  oracle_id 4e552be1-0702-4e18-822f-98611f8a8e70
+  cost {W}
+  type Instant — Lesson
+  spell: until end of turn, target creature you control becomes Avatar in addition and gains flying, first strike, lifelink, and hexproof
+}

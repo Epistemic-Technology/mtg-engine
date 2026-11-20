@@ -1,0 +1,26 @@
+scenario "Master Pakku attacking mills X for Lessons in graveyard" {
+  battlefield A: "Master Pakku"
+  graveyard A: "Abandon Attachments", "Basic Conjuration", "Grizzly Bears"
+  library B: "Hill Giant", "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Master Pakku"
+  turn 1 A: trigger "Master Pakku" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Forest"
+  assert library B contains "Island"
+  assert library B contains "Swamp"
+  assert life B 19
+}
+
+scenario "Master Pakku with no Lessons mills nothing" {
+  battlefield A: "Master Pakku"
+  graveyard A: "Grizzly Bears"
+  library B: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Master Pakku"
+  turn 1 A: trigger "Master Pakku" targeting player B
+  run_to turn 1 postcombat_main
+  assert library B contains "Hill Giant"
+  assert graveyard B count 0
+}

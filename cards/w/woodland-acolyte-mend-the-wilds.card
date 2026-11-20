@@ -1,0 +1,13 @@
+card "Woodland Acolyte // Mend the Wilds" {
+  oracle_id ba610f08-61a7-47fe-9a80-32b5ce51b118
+  layout adventure
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  triggered when this enters: draw 1 card
+  face "Mend the Wilds" {
+    cost {G}
+    type Instant — Adventure
+    spell: put target permanent card from your graveyard on top of library
+  }
+}

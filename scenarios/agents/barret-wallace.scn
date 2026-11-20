@@ -1,0 +1,18 @@
+scenario "barret wallace: attack deals damage per equipped creature" {
+  battlefield A: "Barret Wallace", "Grizzly Bears", "Hill Giant", "Bonesplitter" on "Grizzly Bears", "Leonin Scimitar" on "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Barret Wallace"
+  run_to turn 1 declare_blockers
+  assert life B 18
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "barret wallace: no equipped creatures, no damage" {
+  battlefield A: "Barret Wallace", "Grizzly Bears", "Bonesplitter"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Barret Wallace"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert has "Barret Wallace" reach
+}

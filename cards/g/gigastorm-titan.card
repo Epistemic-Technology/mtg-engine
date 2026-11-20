@@ -1,0 +1,7 @@
+card "Gigastorm Titan" {
+  oracle_id ef06e10c-553b-45b8-abf0-1d2e87c22128
+  cost {4}{U}
+  type Creature — Elemental
+  pt 4/4
+  this spell costs {3} less if cast another spell this turn
+}

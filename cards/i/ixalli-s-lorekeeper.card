@@ -1,0 +1,7 @@
+card "Ixalli's Lorekeeper" {
+  oracle_id a3ce0fa9-8742-4e2c-a8a0-00fc009f998a
+  cost {G}
+  type Creature — Human Druid
+  pt 1/1
+  mana any only to cast Dinosaur spell or activate of Dinosaur
+}

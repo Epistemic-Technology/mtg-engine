@@ -1,0 +1,24 @@
+scenario "Stress Dream deals 5 and digs two" {
+  battlefield A: 4 "Island", "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Stress Dream"
+  library A: "Grizzly Bears", "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stress Dream" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert hand A count 1
+  assert library A count 2
+  assert library A contains "Forest"
+}
+
+scenario "Stress Dream with no target still digs" {
+  battlefield A: 4 "Island", "Mountain"
+  hand A: "Stress Dream"
+  library A: "Grizzly Bears", "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stress Dream"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A contains "Stress Dream"
+}

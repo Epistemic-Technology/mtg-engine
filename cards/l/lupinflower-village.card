@@ -1,0 +1,7 @@
+card "Lupinflower Village" {
+  oracle_id b6c7c708-5212-4100-b954-b77855b27915
+  type Land
+  mana {C}
+  mana {W} only to cast creature spell
+  activated {1}{W}, {T}, sacrifice this: dig 6 take Bat or Bird or Mouse or Rabbit card may revealing rest bottom random
+}

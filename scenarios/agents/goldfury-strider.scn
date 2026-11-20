@@ -1,0 +1,25 @@
+scenario "goldfury strider taps two creatures to pump" {
+  battlefield A: "Goldfury Strider", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Goldfury Strider" targeting "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert power "Grizzly Bears" 4
+  assert tapped "Grizzly Bears"
+  assert tapped "Goldfury Strider"
+}
+
+scenario "goldfury strider needs two untapped artifacts or creatures" {
+  battlefield A: "Goldfury Strider", "Grizzly Bears" tapped
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Goldfury Strider" targeting "Goldfury Strider"
+  run_to turn 2 begin_combat
+  assert power "Goldfury Strider" 3
+}
+
+scenario "goldfury strider is sorcery speed" {
+  battlefield A: "Goldfury Strider", 2 "Grizzly Bears"
+  start turn 2 A precombat_main
+  illegal turn 2 begin_combat A: activate "Goldfury Strider" targeting "Goldfury Strider"
+  run_to turn 2 declare_attackers
+  assert power "Goldfury Strider" 3
+}

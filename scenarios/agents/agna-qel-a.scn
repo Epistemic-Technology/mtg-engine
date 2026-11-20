@@ -1,0 +1,27 @@
+scenario "Agna Qel'a enters untapped with a basic land" {
+  battlefield A: "Island"
+  hand A: "Agna Qel'a"
+  start turn 1 A precombat_main
+  turn 1 A: play "Agna Qel'a"
+  run_to turn 1 postcombat_main
+  assert untapped "Agna Qel'a"
+}
+
+scenario "Agna Qel'a enters tapped without a basic land" {
+  hand A: "Agna Qel'a"
+  start turn 1 A precombat_main
+  turn 1 A: play "Agna Qel'a"
+  run_to turn 1 postcombat_main
+  assert tapped "Agna Qel'a"
+}
+
+scenario "Agna Qel'a loots" {
+  battlefield A: "Agna Qel'a", 3 "Island"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Agna Qel'a"
+  run_to turn 1 postcombat_main
+  assert tapped "Agna Qel'a"
+  assert hand A count 0
+  assert graveyard A contains "Grizzly Bears"
+}

@@ -1,0 +1,8 @@
+card "The Masters of Evil" {
+  oracle_id fcb1caea-e1ac-48f0-a67a-d4aadad490d9
+  cost {5}{B}
+  type Legendary Creature — Human Villain
+  pt 5/6
+  static other Villain you control: +2/+1
+  activated {1}{B}, discard this: search Plan card reveal to hand
+}

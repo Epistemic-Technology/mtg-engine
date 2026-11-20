@@ -1,0 +1,11 @@
+scenario "Qarsi Revenant renews from the graveyard" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  graveyard A: "Qarsi Revenant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Qarsi Revenant" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Qarsi Revenant"
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" deathtouch
+  assert has "Grizzly Bears" lifelink
+}

@@ -1,0 +1,24 @@
+scenario "Realm-Scorcher Hellkite: bargained, it adds four mana that pays for its ping" {
+  battlefield A: 6 "Mountain", "Treasure"
+  hand A: "Realm-Scorcher Hellkite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Realm-Scorcher Hellkite" sacrificing "Treasure"
+  turn 1 A: choose red
+  turn 1 A: wait
+  turn 1 A: activate "Realm-Scorcher Hellkite" targeting player B
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Realm-Scorcher Hellkite"
+  assert battlefield A lacks "Treasure"
+  assert life B 19
+}
+
+scenario "Realm-Scorcher Hellkite: not bargained, no mana; haste lets it attack" {
+  battlefield A: 6 "Mountain"
+  hand A: "Realm-Scorcher Hellkite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Realm-Scorcher Hellkite"
+  illegal turn 1 postcombat_main A: activate "Realm-Scorcher Hellkite" targeting player B
+  turn 1 A: attack "Realm-Scorcher Hellkite"
+  run_to turn 1 end
+  assert life B 16
+}

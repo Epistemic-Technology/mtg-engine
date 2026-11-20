@@ -1,0 +1,14 @@
+card "Marang River Regent // Coil and Catch" {
+  oracle_id 099b8d2c-b482-48dd-b6bc-dedf546d66c5
+  layout omen
+  cost {4}{U}{U}
+  type Creature — Dragon
+  pt 6/7
+  keywords flying
+  triggered when this enters: return up to 2 another target nonland permanent to hand
+  face "Coil and Catch" {
+    cost {3}{U}
+    type Instant — Omen
+    spell: draw 3 cards then discard 1 cards
+  }
+}

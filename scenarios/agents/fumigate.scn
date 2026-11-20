@@ -1,0 +1,12 @@
+scenario "Fumigate destroys all creatures and gains life per creature" {
+  battlefield A: "Grizzly Bears", 5 "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Fumigate"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fumigate"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 23
+}

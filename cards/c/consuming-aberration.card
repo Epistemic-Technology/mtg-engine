@@ -1,0 +1,7 @@
+card "Consuming Aberration" {
+  oracle_id 9b55fb72-237d-4935-b645-8ebc6eb4140e
+  cost {3}{U}{B}
+  type Creature — Horror
+  static this: cda pt opponents graveyards
+  triggered whenever you cast a spell: each opponent reveals until land card then puts those revealed into graveyard
+}

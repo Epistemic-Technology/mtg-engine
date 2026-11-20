@@ -1,0 +1,7 @@
+card "Muse Seeker" {
+  oracle_id 31f3d37f-e613-427f-b34c-cc87611ea078
+  cost {1}{U}
+  type Creature — Elf Wizard
+  pt 1/2
+  label "Opus" triggered whenever you cast an instant or sorcery spell: draw 1 card; then discard 1 card unless that spell spent 5 mana
+}

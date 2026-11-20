@@ -1,0 +1,6 @@
+card "Fumigate" {
+  oracle_id b17ea905-0696-4e58-b564-557e87236e27
+  cost {3}{W}{W}
+  type Sorcery
+  spell: destroy all creature; you gain count each creature destroyed this way life
+}

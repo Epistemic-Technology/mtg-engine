@@ -1,0 +1,8 @@
+card "Flopsie, Bumi's Buddy" {
+  oracle_id a8966245-501c-47e4-8ce0-849dcb532eb2
+  cost {4}{G}{G}
+  type Legendary Creature — Ape Goat
+  pt 4/4
+  triggered when this enters: put 1 +1/+1 counter on each creature you control
+  static each creature you control with power 4 or greater: has ability { can't be blocked by more than one creature }
+}

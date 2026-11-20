@@ -1,0 +1,24 @@
+scenario "Lupinflower Village: dig for a Bird" {
+  battlefield A: "Lupinflower Village", 2 "Plains"
+  library A: "Plains", "Island", "Birds of Paradise", "Swamp", "Forest", "Mountain", "Plains"
+  turn 1 A: activate "Lupinflower Village" ability 1
+  run_to turn 1 end
+  assert hand A contains "Birds of Paradise"
+  assert graveyard A contains "Lupinflower Village"
+}
+
+scenario "Lupinflower Village: its white pays for a creature spell" {
+  battlefield A: "Lupinflower Village"
+  hand A: "Savannah Lions"
+  turn 1 A: cast "Savannah Lions"
+  run_to turn 1 end
+  assert battlefield A contains "Savannah Lions"
+}
+
+scenario "Lupinflower Village: not for a noncreature spell" {
+  battlefield A: "Lupinflower Village"
+  hand A: "Healing Salve"
+  illegal turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 end
+  assert hand A contains "Healing Salve"
+}

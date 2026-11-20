@@ -1,0 +1,24 @@
+scenario "thoughtweft charge: pump without a draw" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Thoughtweft Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Thoughtweft Charge" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert hand A count 0
+}
+
+scenario "thoughtweft charge: draws after a creature entered" {
+  battlefield A: 4 "Forest"
+  hand A: "Grizzly Bears", "Thoughtweft Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Thoughtweft Charge" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert hand A count 1
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}

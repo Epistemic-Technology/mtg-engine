@@ -1,0 +1,7 @@
+card "Ostrich-Horse" {
+  oracle_id 2b6cb199-1564-4214-b24f-624dc962c907
+  cost {2}{G}
+  type Creature — Bird Horse
+  pt 3/1
+  triggered when this enters: mill 3 cards; you may put 1 land card from among them into hand chosen; if you don't, put 1 +1/+1 counter on this creature
+}

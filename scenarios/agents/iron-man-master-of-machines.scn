@@ -1,0 +1,24 @@
+scenario "Iron Man: +1/+0 per other artifact" {
+  battlefield A: "Iron Man, Master of Machines", 2 "Ornithopter"
+  run_to turn 1 precombat_main
+  assert power "Iron Man, Master of Machines" 3
+  assert has "Iron Man, Master of Machines" flying
+}
+
+scenario "Iron Man: draws when an artifact entered this turn" {
+  battlefield A: "Iron Man, Master of Machines"
+  hand A: "Ornithopter"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: attack "Iron Man, Master of Machines"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life B 18
+}
+
+scenario "Iron Man: no draw otherwise" {
+  battlefield A: "Iron Man, Master of Machines"
+  turn 1 A: attack "Iron Man, Master of Machines"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert untapped "Iron Man, Master of Machines"
+}

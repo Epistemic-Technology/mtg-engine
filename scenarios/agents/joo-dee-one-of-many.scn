@@ -1,0 +1,21 @@
+scenario "Joo Dee surveils, copies itself, then a permanent is sacrificed" {
+  battlefield A: "Joo Dee, One of Many", "Swamp", "Grizzly Bears"
+  library A: "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Joo Dee, One of Many"
+  run_to turn 1 postcombat_main
+  # the edict takes the first option (the original Joo Dee); the token copy stays
+  assert battlefield A contains "Joo Dee, One of Many"
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A count 1
+  assert graveyard A contains "Joo Dee, One of Many"
+  assert tapped "Swamp"
+}
+
+scenario "Joo Dee is sorcery speed" {
+  battlefield A: "Joo Dee, One of Many", "Swamp"
+  start turn 2 B precombat_main
+  illegal turn 2 A: activate "Joo Dee, One of Many"
+  run_to turn 2 postcombat_main
+  assert untapped "Joo Dee, One of Many"
+}

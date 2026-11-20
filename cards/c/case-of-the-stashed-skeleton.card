@@ -1,0 +1,8 @@
+card "Case of the Stashed Skeleton" {
+  oracle_id 64219e17-1302-4a43-85d2-8a6214448890
+  cost {1}{B}
+  type Enchantment — Case
+  triggered when this enters: create 1 "2/1 black Skeleton creature" and suspect that token
+  to solve you control no suspected Skeleton
+  solved activated {1}{B}, sacrifice this, sorcery: search card to hand
+}

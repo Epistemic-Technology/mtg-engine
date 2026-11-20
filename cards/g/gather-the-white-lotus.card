@@ -1,0 +1,6 @@
+card "Gather the White Lotus" {
+  oracle_id db69c3c9-d809-4361-8055-8c2dd4c6dd67
+  cost {4}{W}
+  type Sorcery
+  spell: create count each Plains you control "1/1 white Ally creature"; scry 2
+}

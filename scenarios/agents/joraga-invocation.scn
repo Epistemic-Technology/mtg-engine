@@ -1,0 +1,12 @@
+scenario "Joraga Invocation pumps and forces blocks" {
+  battlefield A: "Grizzly Bears", 6 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Joraga Invocation"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Joraga Invocation"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}

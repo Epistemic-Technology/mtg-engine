@@ -1,0 +1,40 @@
+scenario "Deceit cast with blue mana bounces a permanent" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Deceit"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Deceit"
+  turn 1 A: trigger "Deceit" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert battlefield A contains "Deceit"
+}
+
+scenario "Deceit cast with black mana makes the opponent discard" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Deceit"
+  hand B: "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Deceit"
+  turn 1 A: trigger "Deceit" targeting player B
+  turn 1 precombat_main A: discard "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B contains "Forest"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Deceit evoked is sacrificed but still bounces" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Deceit"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Deceit" evoked
+  turn 1 A: trigger "Deceit" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Deceit"
+  assert hand B contains "Hill Giant"
+}

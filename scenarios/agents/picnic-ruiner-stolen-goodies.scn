@@ -1,0 +1,26 @@
+scenario "Picnic Ruiner gains double strike with a power 4 creature" {
+  battlefield A: "Picnic Ruiner", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Picnic Ruiner"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Picnic Ruiner without a power 4 creature deals normal damage" {
+  battlefield A: "Picnic Ruiner", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Picnic Ruiner"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Stolen Goodies distributes three counters and goes on an adventure" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Forest"
+  hand A: "Picnic Ruiner"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stolen Goodies" targeting "Grizzly Bears", "Hill Giant" dividing 2, 1
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Hill Giant" +1/+1 1
+  assert exile A contains "Picnic Ruiner"
+}

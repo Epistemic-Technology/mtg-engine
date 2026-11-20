@@ -1,0 +1,24 @@
+scenario "Lie in Wait returns a creature card and deals its power in damage" {
+  battlefield A: "Swamp", "Forest", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Lie in Wait"
+  graveyard A: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lie in Wait" targeting "Serra Angel", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Serra Angel"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Lie in Wait damage is the returned card's power" {
+  battlefield A: "Swamp", "Forest", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Lie in Wait"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lie in Wait" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}

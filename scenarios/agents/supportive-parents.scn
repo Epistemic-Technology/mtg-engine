@@ -1,0 +1,22 @@
+scenario "Supportive Parents taps two creatures for red mana" {
+  battlefield A: "Supportive Parents", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Supportive Parents" sacrificing "Supportive Parents"
+  turn 1 A: choose red
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Supportive Parents"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Supportive Parents needs two untapped creatures" {
+  battlefield A: "Supportive Parents"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

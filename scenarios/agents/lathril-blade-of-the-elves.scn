@@ -1,0 +1,22 @@
+scenario "Lathril: combat damage makes that many Elf Warriors" {
+  battlefield A: "Lathril, Blade of the Elves"
+  turn 1 A: attack "Lathril, Blade of the Elves"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains 2 "Elf Warrior"
+}
+
+scenario "Lathril: tap ten Elves, drain 10" {
+  battlefield A: "Lathril, Blade of the Elves", 10 "Llanowar Elves"
+  turn 1 A: activate "Lathril, Blade of the Elves"
+  run_to turn 1 end
+  assert life B 10
+  assert life A 30
+}
+
+scenario "Lathril: not with nine Elves" {
+  battlefield A: "Lathril, Blade of the Elves", 9 "Llanowar Elves"
+  illegal turn 1 A: activate "Lathril, Blade of the Elves"
+  run_to turn 1 end
+  assert life B 20
+}

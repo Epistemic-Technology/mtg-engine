@@ -1,0 +1,7 @@
+card "Dimensional Exile" {
+  oracle_id 8f0777bc-4fca-4601-beed-1fd060f28075
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant basic land you control
+  triggered when this enters: exile target creature an opponent controls until this leaves
+}

@@ -1,0 +1,22 @@
+scenario "aerid konstrari makes Heartwood on entering and pumps per artifact" {
+  battlefield A: "Mountain", 9 "Forest"
+  hand A: "Aerid Konstrari"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Aerid Konstrari"
+  turn 2 A: wait
+  turn 2 A: activate "Aerid Konstrari"
+  run_to turn 2 begin_combat
+  assert battlefield A contains 2 "Heartwood"
+  assert power "Aerid Konstrari" 7
+}
+
+scenario "aerid konstrari makes Heartwood when it dies" {
+  battlefield A: "Aerid Konstrari"
+  hand B: "Murder"
+  battlefield B: 3 "Swamp"
+  start turn 2 A precombat_main
+  turn 2 B: cast "Murder" targeting "Aerid Konstrari"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Aerid Konstrari"
+  assert battlefield A contains "Heartwood"
+}

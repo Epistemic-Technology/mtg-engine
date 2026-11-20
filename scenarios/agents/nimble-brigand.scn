@@ -1,0 +1,25 @@
+scenario "after a crime Nimble Brigand can't be blocked and draws" {
+  battlefield A: "Nimble Brigand", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  library A: "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: attack "Nimble Brigand"
+  illegal turn 1 B: block "Nimble Brigand" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand A count 1
+}
+
+scenario "without a crime Nimble Brigand can be blocked" {
+  battlefield A: "Nimble Brigand"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Nimble Brigand"
+  turn 1 B: block "Nimble Brigand" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert hand A count 0
+  assert damage "Nimble Brigand" 2
+}

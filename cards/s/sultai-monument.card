@@ -1,0 +1,7 @@
+card "Sultai Monument" {
+  oracle_id 9db71b76-eda7-49dd-af5a-3de18acb8ccb
+  cost {2}
+  type Artifact
+  triggered when this enters: search basic Swamp or basic Forest or basic Island card reveal to hand
+  activated {2}{B}{G}{U}, {T}, sacrifice this, sorcery: create 2 "2/2 black Zombie Druid creature"
+}

@@ -1,0 +1,7 @@
+card "Joo Dee, One of Many" {
+  oracle_id 4601ed7b-716e-4c89-b733-1eeabe8bf5a2
+  cost {1}{B}
+  type Creature — Human Advisor
+  pt 2/2
+  activated {B}, {T}, sorcery: surveil 1; create token copy of this then you sacrifice 1 artifact or creature
+}

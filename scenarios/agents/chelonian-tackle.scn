@@ -1,0 +1,22 @@
+scenario "Chelonian Tackle pumps toughness then fights" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Chelonian Tackle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chelonian Tackle" targeting A "Grizzly Bears", B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 12
+  assert damage "Grizzly Bears" 3
+  assert damage "Hill Giant" 2
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Chelonian Tackle with no creature to fight" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  hand A: "Chelonian Tackle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chelonian Tackle" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 12
+  assert graveyard A contains "Chelonian Tackle"
+}

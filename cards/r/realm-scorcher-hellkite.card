@@ -1,0 +1,10 @@
+card "Realm-Scorcher Hellkite" {
+  oracle_id 50ace222-57f1-477f-9e06-155d7b403512
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 4/6
+  bargain
+  keywords flying, haste
+  triggered when this enters if bargained: add 4 mana any combination
+  activated {1}{R}: deal 1 damage to any target
+}

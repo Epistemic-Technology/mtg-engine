@@ -1,0 +1,8 @@
+card "Archway Angel" {
+  oracle_id f2cf087a-d89a-4145-9394-945ce41c8cca
+  cost {5}{W}
+  type Creature — Angel
+  pt 3/4
+  keywords flying
+  triggered when this enters: you gain count each 2 Gate you control life
+}

@@ -1,0 +1,6 @@
+card "Floodfarm Verge" {
+  oracle_id f1e9abfb-c3c8-483e-b446-5c2afc9f6394
+  type Land
+  mana {W}
+  activated {T}, if you control Plains or an Island: add {U}
+}

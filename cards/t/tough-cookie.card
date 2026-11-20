@@ -1,0 +1,9 @@
+card "Tough Cookie" {
+  oracle_id 8a1a5862-c027-4c15-99a7-1795d0da96da
+  cost {1}{G}
+  type Artifact Creature — Food Golem
+  pt 2/2
+  triggered when this enters: create 1 "Food"
+  activated {2}{G}: until end of turn, target noncreature artifact you control becomes 4/4 artifact creature
+  activated {2}, {T}, sacrifice this: you gain 3 life
+}

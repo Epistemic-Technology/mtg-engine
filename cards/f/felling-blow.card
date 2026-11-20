@@ -1,0 +1,6 @@
+card "Felling Blow" {
+  oracle_id fbfa19ca-98bb-4c7d-a04e-920a8aafb031
+  cost {2}{G}
+  type Sorcery
+  spell: put 1 +1/+1 counter on target creature you control; then that target 1 bites target creature an opponent controls
+}

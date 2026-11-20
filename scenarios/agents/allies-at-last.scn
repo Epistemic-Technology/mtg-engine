@@ -1,0 +1,30 @@
+scenario "allies at last: two creatures each deal their power" {
+  battlefield A: 2 "Grizzly Bears", 3 "Forest"
+  battlefield B: "Craw Wurm"
+  hand A: "Allies at Last"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Allies at Last" targeting oldest "Grizzly Bears", newest "Grizzly Bears", "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Craw Wurm"
+  assert graveyard A contains "Allies at Last"
+}
+
+scenario "allies at last: affinity for Allies reduces the cost" {
+  battlefield A: 2 "Akoum Flameseeker", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Allies at Last"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Allies at Last" targeting oldest "Akoum Flameseeker", newest "Akoum Flameseeker", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "allies at last: unaffordable without Allies" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Allies at Last"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Allies at Last" targeting A "Grizzly Bears", B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Allies at Last"
+}

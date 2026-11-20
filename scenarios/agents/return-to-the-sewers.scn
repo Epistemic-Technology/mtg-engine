@@ -1,0 +1,24 @@
+scenario "Return to the Sewers: owner puts the creature on top, caster gets a Mutagen" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Return to the Sewers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Return to the Sewers" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert library B contains "Hill Giant"
+  assert battlefield A contains "Mutagen"
+  assert graveyard A contains "Return to the Sewers"
+}
+
+scenario "Return to the Sewers: the Mutagen puts a +1/+1 counter on a creature" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Return to the Sewers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Return to the Sewers" targeting "Hill Giant"
+  turn 1 postcombat_main A: activate "Mutagen" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 1
+  assert battlefield A lacks "Mutagen"
+}

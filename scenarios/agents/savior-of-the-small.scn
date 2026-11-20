@@ -1,0 +1,29 @@
+scenario "savior of the small returns a small creature card if tapped in second main" {
+  battlefield A: "Savior of the Small"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Savior of the Small"
+  turn 2 postcombat_main A: trigger "Savior of the Small" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "savior of the small does nothing if untapped" {
+  battlefield A: "Savior of the Small"
+  graveyard A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  run_to turn 2 end
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A lacks "Grizzly Bears"
+}
+
+scenario "savior of the small can't target a creature card with mana value 4" {
+  battlefield A: "Savior of the Small"
+  graveyard A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Savior of the Small"
+  run_to turn 2 end
+  assert graveyard A contains "Hill Giant"
+}

@@ -1,0 +1,17 @@
+scenario "Tragedy Feaster makes you sacrifice a permanent without life gain" {
+  battlefield A: "Tragedy Feaster"
+  start turn 1 A precombat_main
+  run_to turn 2 untap
+  assert graveyard A contains "Tragedy Feaster"
+}
+
+scenario "Tragedy Feaster: no sacrifice after gaining life" {
+  battlefield A: "Tragedy Feaster", "Plains"
+  hand A: "Healing Salve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  run_to turn 2 untap
+  assert life A 23
+  assert battlefield A contains "Tragedy Feaster"
+  assert battlefield A contains "Plains"
+}

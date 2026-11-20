@@ -1,0 +1,7 @@
+card "Vaultguard Trooper" {
+  oracle_id e15c78d4-6fb1-4bd3-8219-c66b83fcaba1
+  cost {4}{R}
+  type Creature — Kavu Soldier
+  pt 5/5
+  triggered at beginning of your end step if you control 2 tapped creature: you may discard hand; if you do, draw 2 cards
+}

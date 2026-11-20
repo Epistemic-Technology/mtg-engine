@@ -1,0 +1,12 @@
+card "Cruel Somnophage // Can't Wake Up" {
+  oracle_id 997bdec5-f67b-4822-a3ba-c636e2685e8a
+  layout adventure
+  cost {1}{B}
+  type Creature — Nightmare
+  static this: cda pt creature cards in graveyards
+  face "Can't Wake Up" {
+    cost {1}{U}
+    type Sorcery — Adventure
+    spell: target player mills 4 cards
+  }
+}

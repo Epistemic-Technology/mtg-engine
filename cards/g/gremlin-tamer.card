@@ -1,0 +1,7 @@
+card "Gremlin Tamer" {
+  oracle_id a4e34165-4e53-4c31-bf61-eb772bc3c054
+  cost {W}{U}
+  type Creature — Human Scout
+  pt 2/2
+  label "Eerie" triggered whenever enchantment you control enters and whenever you fully unlock a Room: create 1 "1/1 red Gremlin creature"
+}

@@ -1,0 +1,12 @@
+scenario "Krenko makes a Goblin for each Goblin" {
+  battlefield A: "Krenko, Mob Boss"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Krenko, Mob Boss"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Goblin"
+  assert tapped "Krenko, Mob Boss"
+  run_to turn 3 precombat_main
+  turn 3 A: activate "Krenko, Mob Boss"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 3 "Goblin"
+}

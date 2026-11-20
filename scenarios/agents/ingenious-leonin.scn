@@ -1,0 +1,24 @@
+scenario "Ingenious Leonin: a Cat gets a counter and first strike" {
+  battlefield A: "Ingenious Leonin", "Savannah Lions", 4 "Plains"
+  turn 1 A: attack "Savannah Lions"
+  turn 1 declare_attackers A: activate "Ingenious Leonin" targeting "Savannah Lions"
+  run_to turn 1 declare_blockers
+  assert counters "Savannah Lions" +1/+1 1
+  assert has "Savannah Lions" first_strike
+}
+
+scenario "Ingenious Leonin: a non-Cat gets only the counter" {
+  battlefield A: "Ingenious Leonin", "Grizzly Bears", 4 "Plains"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: activate "Ingenious Leonin" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has not "Grizzly Bears" first_strike
+}
+
+scenario "Ingenious Leonin: only an attacking creature" {
+  battlefield A: "Ingenious Leonin", "Grizzly Bears", 4 "Plains"
+  illegal turn 1 A: activate "Ingenious Leonin" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 0
+}

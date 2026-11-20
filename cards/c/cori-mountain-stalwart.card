@@ -1,0 +1,7 @@
+card "Cori Mountain Stalwart" {
+  oracle_id 322a2d97-cf71-4bfc-b52d-f642f2d0dcbd
+  cost {1}{R}{W}
+  type Creature — Human Monk
+  pt 3/3
+  label "Flurry" triggered whenever you cast your second spell each turn: deal 2 damage to each opponent and you gain 2 life
+}

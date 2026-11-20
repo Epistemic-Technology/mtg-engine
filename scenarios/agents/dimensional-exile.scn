@@ -1,0 +1,21 @@
+scenario "Dimensional Exile exiles until the land's Aura leaves" {
+  battlefield A: 2 "Plains", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Dimensional Exile", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dimensional Exile" targeting "Mountain"
+  turn 1 A: trigger "Dimensional Exile" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Dimensional Exile" to "Mountain"
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Dimensional Exile can't enchant an opponent's land" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant", "Forest"
+  hand A: "Dimensional Exile"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Dimensional Exile" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Dimensional Exile"
+}

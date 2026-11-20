@@ -1,0 +1,21 @@
+scenario "Slick Sequence draws after another spell" {
+  battlefield A: 3 "Island", 2 "Mountain"
+  hand A: "Shock", "Slick Sequence"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Slick Sequence" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand A count 1
+}
+
+scenario "Slick Sequence alone doesn't draw" {
+  battlefield A: 3 "Island", 2 "Mountain"
+  hand A: "Slick Sequence"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Slick Sequence" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 0
+}

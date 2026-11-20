@@ -1,0 +1,8 @@
+card "Effortless Master" {
+  oracle_id 185e0892-194f-43ac-853f-1e142bf8476e
+  cost {2}{U}{R}
+  type Creature — Orc Monk
+  pt 4/3
+  keywords vigilance, menace
+  enters with 2 +1/+1 counters if cast 2 spell this turn
+}

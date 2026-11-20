@@ -1,0 +1,8 @@
+card "Buried in the Garden" {
+  oracle_id f1f0eab3-681b-4c2d-b590-555951920880
+  cost {2}{G}{W}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: exile target nonland permanent you don't control until this leaves
+  triggered whenever enchanted land is tapped for mana: add any
+}

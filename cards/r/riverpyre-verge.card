@@ -1,0 +1,6 @@
+card "Riverpyre Verge" {
+  oracle_id 510a6ac5-f098-4145-ac07-771b1b6f7cdf
+  type Land
+  mana {R}
+  activated {T}, if you control Island or a Mountain: add {U}
+}

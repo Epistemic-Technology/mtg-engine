@@ -1,0 +1,6 @@
+card "Lie in Wait" {
+  oracle_id 4dc0831a-0eb1-4f7d-9591-6e670e180116
+  cost {B}{G}{U}
+  type Sorcery
+  spell: return target creature card from your graveyard to hand; deal damage equal power of that target 1 to target creature
+}

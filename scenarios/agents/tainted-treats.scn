@@ -1,0 +1,21 @@
+scenario "tainted treats destroys a small creature and makes a Food" {
+  battlefield A: "Swamp", "Forest", "Forest"
+  hand A: "Tainted Treats"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Tainted Treats" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Food"
+}
+
+scenario "tainted treats makes no Food for mana value 5" {
+  battlefield A: "Swamp", "Forest", "Forest"
+  hand A: "Tainted Treats"
+  battlefield B: "Serra Angel"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Tainted Treats" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A lacks "Food"
+}

@@ -1,0 +1,8 @@
+card "Stormbeacon Blade" {
+  oracle_id f4b3ee43-fc01-425f-8322-29bf6d16cb3f
+  cost {1}{W}
+  type Artifact — Equipment
+  static enchanted: +3/+0
+  triggered whenever equipped creature attacks: draw 1 card if you control 3 attacking creature
+  equip {2}
+}

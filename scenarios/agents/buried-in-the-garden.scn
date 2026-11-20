@@ -1,0 +1,20 @@
+scenario "Buried in the Garden exiles a permanent until it leaves" {
+  battlefield A: "Forest", "Forest", "Plains", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Buried in the Garden"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Buried in the Garden" targeting oldest "Forest"
+  turn 1 A: trigger "Buried in the Garden" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield A contains "Buried in the Garden"
+}
+
+scenario "Buried in the Garden's land adds an extra mana" {
+  battlefield A: "Forest", "Buried in the Garden" on "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}

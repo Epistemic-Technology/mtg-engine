@@ -1,0 +1,27 @@
+scenario "Sultai Monument fetches a basic Swamp, Forest, or Island" {
+  battlefield A: 2 "Plains"
+  library A: "Mountain", "Forest", "Plains"
+  hand A: "Sultai Monument"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sultai Monument"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A count 1
+}
+
+scenario "Sultai Monument sacrifices for two Zombie Druids" {
+  battlefield A: "Sultai Monument", "Swamp", "Forest", "Island", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sultai Monument"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Zombie Druid"
+  assert graveyard A contains "Sultai Monument"
+}
+
+scenario "Sultai Monument's ability is sorcery speed" {
+  battlefield A: "Sultai Monument", "Swamp", "Forest", "Island", "Plains", "Plains"
+  start turn 2 B precombat_main
+  illegal turn 2 upkeep A: activate "Sultai Monument"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Sultai Monument"
+}

@@ -1,0 +1,20 @@
+scenario "Virtue of Loyalty counters and untaps at end step" {
+  battlefield A: "Virtue of Loyalty // Ardenvale Fealty", "Grizzly Bears" tapped
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 1
+  assert untapped "Grizzly Bears"
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Ardenvale Fealty makes a Knight and goes on an adventure" {
+  battlefield A: 2 "Plains"
+  hand A: "Virtue of Loyalty // Ardenvale Fealty"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ardenvale Fealty"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Knight"
+  assert has "Knight" vigilance
+  assert exile A contains "Virtue of Loyalty"
+}

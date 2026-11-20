@@ -1,0 +1,19 @@
+scenario "Gigastorm Titan costs 3 less after another spell" {
+  battlefield A: 2 "Island", "Plains"
+  hand A: "Gigastorm Titan", "Healing Salve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Gigastorm Titan"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gigastorm Titan"
+}
+
+scenario "Gigastorm Titan costs full price otherwise" {
+  battlefield A: 2 "Island"
+  hand A: "Gigastorm Titan"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Gigastorm Titan"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Gigastorm Titan"
+}

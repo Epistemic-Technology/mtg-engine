@@ -1,0 +1,9 @@
+card "Iron Man, Master of Machines" {
+  oracle_id 94bc796d-8c04-4835-8a99-7e5dce9540ee
+  cost {2}{U}{R}
+  type Legendary Artifact Creature — Human Hero
+  pt 1/4
+  keywords flying, vigilance
+  static this: +1/+0 count each other artifact you control
+  triggered whenever this attacks if artifact entered this turn: draw 1 card
+}

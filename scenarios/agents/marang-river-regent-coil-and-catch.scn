@@ -1,0 +1,25 @@
+scenario "Marang River Regent bounces two nonland permanents" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Forest"
+  hand A: "Marang River Regent"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Marang River Regent"
+  turn 1 A: trigger "Marang River Regent" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Marang River Regent"
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert battlefield B contains "Forest"
+}
+
+scenario "Coil and Catch draws three, discards one, shuffles into library" {
+  battlefield A: 4 "Island"
+  hand A: "Marang River Regent"
+  library A: "Grizzly Bears", "Hill Giant", "Shock", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coil and Catch"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Grizzly Bears"
+  assert library A contains "Marang River Regent"
+}

@@ -1,0 +1,9 @@
+card "Resilient Roadrunner" {
+  oracle_id 78c7c73f-847d-43bf-9e02-cf85357453f4
+  cost {1}{R}
+  type Creature — Bird
+  pt 2/2
+  keywords haste
+  protection from Coyote
+  activated {3}: this gains ability { can't be blocked except by creature with haste }
+}

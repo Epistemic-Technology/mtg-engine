@@ -1,0 +1,21 @@
+scenario "arnim zola: creates a tapped Villain with two creature cards in graveyard" {
+  battlefield A: "Arnim Zola, Bio-Fanatic", 3 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Arnim Zola, Bio-Fanatic"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Villain"
+  assert tapped "Villain"
+  assert has "Villain" menace
+  assert power "Villain" 2
+  assert tapped "Arnim Zola, Bio-Fanatic"
+}
+
+scenario "arnim zola: can't activate with one creature card in graveyard" {
+  battlefield A: "Arnim Zola, Bio-Fanatic", 3 "Swamp"
+  graveyard A: "Grizzly Bears", "Lightning Bolt"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Arnim Zola, Bio-Fanatic"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Villain"
+}

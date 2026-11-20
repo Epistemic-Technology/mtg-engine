@@ -1,0 +1,8 @@
+card "Leaves from the Vine" {
+  oracle_id 7c4abd72-29b0-4c82-9e67-b481cf7e8775
+  cost {1}{G}
+  type Enchantment — Saga
+  triggered chapter 1: mill 3 cards then create 1 "Food"
+  triggered chapter 2: put 1 +1/+1 counter on up to 2 target creature you control
+  triggered chapter 3: draw 1 card if there's creature or Lesson card in your graveyard
+}

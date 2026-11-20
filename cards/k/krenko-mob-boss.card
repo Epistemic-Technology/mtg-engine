@@ -1,0 +1,7 @@
+card "Krenko, Mob Boss" {
+  oracle_id 68418069-f615-40ef-ae0d-764192acae00
+  cost {2}{R}{R}
+  type Legendary Creature — Goblin Warrior
+  pt 3/3
+  activated {T}: create count where Goblin you control "1/1 red Goblin creature"
+}

@@ -1,0 +1,7 @@
+card "Cryptex" {
+  oracle_id 8186a992-9065-4a7f-bb00-1c20e01e8fb6
+  cost {2}
+  type Artifact
+  activated {T}, collect evidence 3: add any; put 1 unlock counter on this
+  activated sacrifice this, if this has 5 or more unlock counters: surveil 3, then draw 3 cards
+}

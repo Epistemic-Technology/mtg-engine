@@ -1,0 +1,9 @@
+card "Lathril, Blade of the Elves" {
+  oracle_id 9b568c34-ba0a-44a7-a0ee-bee3a37b3396
+  cost {2}{B}{G}
+  type Legendary Creature — Elf Noble
+  pt 2/3
+  keywords menace
+  triggered whenever this deals combat damage to a player: create that much "1/1 green Elf Warrior creature"
+  activated {T}, tap 10 untapped Elf you control: each opponent loses 10 life and you gain 10 life
+}

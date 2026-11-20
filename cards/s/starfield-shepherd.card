@@ -1,0 +1,9 @@
+card "Starfield Shepherd" {
+  oracle_id 42fa99ab-d35f-4439-ab00-fe99bad626ac
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 3/2
+  keywords flying
+  triggered when this enters: search basic Plains card or a creature with mana value 1 or less card reveal to hand
+  warp {1}{W}
+}

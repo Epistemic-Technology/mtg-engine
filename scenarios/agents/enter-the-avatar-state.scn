@@ -1,0 +1,33 @@
+scenario "Enter the Avatar State grants Avatar type and keywords" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Enter the Avatar State"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Enter the Avatar State" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" Avatar
+  assert is "Grizzly Bears" Bear
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" first_strike
+  assert has "Grizzly Bears" lifelink
+  assert has "Grizzly Bears" hexproof
+}
+
+scenario "Enter the Avatar State wears off at end of turn" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Enter the Avatar State"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Enter the Avatar State" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert is not "Grizzly Bears" Avatar
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "Enter the Avatar State can't target an opponent's creature" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Enter the Avatar State"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Enter the Avatar State" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Enter the Avatar State"
+}

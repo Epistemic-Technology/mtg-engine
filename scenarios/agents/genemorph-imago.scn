@@ -1,0 +1,23 @@
+scenario "Genemorph Imago: landfall makes target creature 3/3" {
+  battlefield A: "Genemorph Imago", "Grizzly Bears"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: trigger "Genemorph Imago" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "Genemorph Imago: with six lands it becomes 6/6 instead, until end of turn" {
+  battlefield A: "Genemorph Imago", "Grizzly Bears", 5 "Forest"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: trigger "Genemorph Imago" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 6
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+}

@@ -1,0 +1,22 @@
+scenario "The Misty Mountains Cold makes a Dragon once four Treasures are controlled" {
+  battlefield A: 3 "Mountain", 3 "Treasure"
+  hand A: "The Misty Mountains Cold"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Misty Mountains Cold"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Treasure"
+  assert battlefield A contains "Dragon"
+  assert graveyard A contains "The Misty Mountains Cold"
+}
+
+scenario "The Misty Mountains Cold just makes a Treasure with fewer than four" {
+  battlefield A: 3 "Mountain"
+  hand A: "The Misty Mountains Cold"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Misty Mountains Cold"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 2 "Treasure"
+  assert battlefield A lacks "Dragon"
+  assert battlefield A contains "The Misty Mountains Cold"
+  assert counters "The Misty Mountains Cold" lore 2
+}

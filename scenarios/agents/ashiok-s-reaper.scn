@@ -1,0 +1,22 @@
+scenario "own enchantment destroyed draws a card" {
+  battlefield A: "Ashiok's Reaper", "Glorious Anthem", 2 "Plains"
+  hand A: "Disenchant"
+  library A: "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Disenchant" targeting "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Glorious Anthem"
+  assert hand A count 1
+  assert hand A contains "Island"
+}
+
+scenario "opponent's enchantment destroyed draws nothing" {
+  battlefield A: "Ashiok's Reaper", 2 "Plains"
+  battlefield B: "Glorious Anthem"
+  hand A: "Disenchant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Disenchant" targeting "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Glorious Anthem"
+  assert hand A count 0
+}

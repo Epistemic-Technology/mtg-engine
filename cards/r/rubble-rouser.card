@@ -1,0 +1,8 @@
+card "Rubble Rouser" {
+  oracle_id f35aa497-bd0f-4642-8713-820b9f014da5
+  cost {2}{R}
+  type Creature — Dwarf Sorcerer
+  pt 1/4
+  triggered when this enters: you may discard 1 card; if you do, draw 1 card
+  activated {T}, exile 1 card from graveyard: add {R}; when you do, this creature deals 1 damage to each opponent
+}

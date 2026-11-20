@@ -1,0 +1,23 @@
+scenario "The Masters of Evil: other Villains get +2/+1, not itself or non-Villains" {
+  battlefield A: "The Masters of Evil", "Symbiote Spawn", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Symbiote Spawn" 5
+  assert toughness "Symbiote Spawn" 3
+  assert power "The Masters of Evil" 5
+  assert toughness "The Masters of Evil" 6
+  assert power "Grizzly Bears" 2
+}
+
+scenario "The Masters of Evil: discarded from hand to search for a Plan" {
+  battlefield A: 2 "Swamp"
+  hand A: "The Masters of Evil"
+  library A: "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Masters of Evil"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "The Masters of Evil"
+  assert hand A count 0
+  assert tapped oldest "Swamp"
+  assert tapped newest "Swamp"
+}

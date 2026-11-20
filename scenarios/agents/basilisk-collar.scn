@@ -1,0 +1,19 @@
+scenario "Basilisk Collar gives deathtouch and lifelink" {
+  battlefield A: "Grizzly Bears", "Basilisk Collar", 2 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Basilisk Collar" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 22
+}
+
+scenario "unequipped creature lacks deathtouch" {
+  battlefield A: "Grizzly Bears", "Basilisk Collar"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has not "Grizzly Bears" deathtouch
+  assert has not "Grizzly Bears" lifelink
+}

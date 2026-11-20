@@ -1,0 +1,20 @@
+scenario "Ghired's creatures copy a token that entered this turn" {
+  battlefield A: "Ghired, Mirror of the Wilds", "Grizzly Bears", 2 "Plains"
+  hand A: "Personify"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Personify" targeting "Ghired, Mirror of the Wilds"
+  turn 1 A: wait
+  turn 1 A: activate "Grizzly Bears" targeting "Shapeshifter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Shapeshifter"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Ghired's ability can't copy an older token" {
+  battlefield A: "Ghired, Mirror of the Wilds", "Grizzly Bears", "Treasure"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Grizzly Bears" targeting "Treasure"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Treasure"
+  assert untapped "Grizzly Bears"
+}

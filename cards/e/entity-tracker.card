@@ -1,0 +1,8 @@
+card "Entity Tracker" {
+  oracle_id c9db5293-4866-46ec-9ae8-059d27bd50fc
+  cost {2}{U}
+  type Creature — Human Scout
+  pt 2/3
+  keywords flash
+  label "Eerie" triggered whenever enchantment you control enters and whenever you fully unlock a Room: draw 1 card
+}

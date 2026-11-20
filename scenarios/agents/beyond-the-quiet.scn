@@ -1,0 +1,14 @@
+scenario "Beyond the Quiet exiles creatures and Spacecraft but not lands" {
+  battlefield A: 5 "Plains", "Grizzly Bears", "Debris Field Crusher", "Ornithopter"
+  battlefield B: "Hill Giant", "Atmospheric Greenhouse"
+  hand A: "Beyond the Quiet"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Beyond the Quiet"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert exile A contains "Debris Field Crusher"
+  assert exile A contains "Ornithopter"
+  assert exile B contains "Hill Giant"
+  assert exile B contains "Atmospheric Greenhouse"
+  assert battlefield A contains 5 "Plains"
+}

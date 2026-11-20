@@ -1,0 +1,8 @@
+card "Barret Wallace" {
+  oracle_id 913672bc-cc88-4964-a331-7dbce40f2bda
+  cost {3}{R}
+  type Legendary Creature — Human Rebel
+  pt 4/4
+  keywords reach
+  triggered whenever this attacks: deal damage equal creature you control with Equipment to that defending player
+}

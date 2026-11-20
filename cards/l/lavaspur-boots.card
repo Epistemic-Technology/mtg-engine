@@ -1,0 +1,7 @@
+card "Lavaspur Boots" {
+  oracle_id 63bfb9ca-d9d5-4c17-be39-82eb115bc20c
+  cost {1}
+  type Artifact — Equipment
+  static equipped: +1/+0, has haste, has ward {1}
+  equip {1}
+}

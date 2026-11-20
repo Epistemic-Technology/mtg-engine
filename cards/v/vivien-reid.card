@@ -1,0 +1,9 @@
+card "Vivien Reid" {
+  oracle_id b5f20a6d-8c3e-452f-9d98-4886f0fa052a
+  cost {3}{G}{G}
+  type Legendary Planeswalker — Vivien
+  loyalty 5
+  loyalty +1: dig 4 take creature or land card may revealing rest bottom random
+  loyalty -3: destroy target artifact, enchantment, or creature with flying
+  loyalty -8: emblem "Vivien Reid emblem"
+}

@@ -1,0 +1,26 @@
+scenario "Eaten by Piranhas turns a creature into a 1/1 black Skeleton" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Eaten by Piranhas"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Eaten by Piranhas" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 1
+  assert toughness "Serra Angel" 1
+  assert has not "Serra Angel" flying
+  assert is "Serra Angel" black
+  assert is not "Serra Angel" white
+  assert is "Serra Angel" Skeleton
+  assert is not "Serra Angel" Angel
+}
+
+scenario "Eaten by Piranhas has flash" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Eaten by Piranhas"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Eaten by Piranhas" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 19
+}

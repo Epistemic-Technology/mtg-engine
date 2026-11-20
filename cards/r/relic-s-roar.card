@@ -1,0 +1,6 @@
+card "Relic's Roar" {
+  oracle_id 7887f060-3024-4dc4-aeb5-fb5546db6b48
+  cost {U}
+  type Instant
+  spell: until end of turn, target artifact or creature becomes Dinosaur artifact creature base 4/3 in addition
+}

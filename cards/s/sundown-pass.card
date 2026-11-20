@@ -1,0 +1,6 @@
+card "Sundown Pass" {
+  oracle_id 5ad0b405-cca4-475e-985c-4d7e3599d87e
+  type Land
+  enters tapped unless you control 2 other land
+  mana {R} or {W}
+}

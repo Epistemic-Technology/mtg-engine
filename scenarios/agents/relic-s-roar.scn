@@ -1,0 +1,22 @@
+scenario "Relic's Roar: an artifact becomes a 4/3 Dinosaur" {
+  battlefield A: "Island", "Bonesplitter"
+  hand A: "Relic's Roar"
+  turn 1 A: cast "Relic's Roar" targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert is "Bonesplitter" creature
+  assert is "Bonesplitter" "Dinosaur"
+  assert power "Bonesplitter" 4
+  assert toughness "Bonesplitter" 3
+}
+
+scenario "Relic's Roar: a creature keeps its types" {
+  battlefield A: "Island", "Ornithopter"
+  hand A: "Relic's Roar"
+  turn 1 A: cast "Relic's Roar" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert power "Ornithopter" 4
+  assert is "Ornithopter" "Thopter"
+  assert has "Ornithopter" flying
+  run_to turn 2 upkeep
+  assert power "Ornithopter" 0
+}

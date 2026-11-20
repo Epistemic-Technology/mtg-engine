@@ -1,0 +1,8 @@
+card "Weftblade Enhancer" {
+  oracle_id 4d8ee903-17b3-43c9-9637-ee596955a9f4
+  cost {5}{W}
+  type Creature — Drix Artificer
+  pt 3/4
+  triggered when this enters: put 1 +1/+1 counter on up to 2 target creature
+  warp {2}{W}
+}

@@ -1,0 +1,16 @@
+scenario "Floodfarm Verge: blue with a Plains" {
+  battlefield A: "Floodfarm Verge", 2 "Plains"
+  hand A: "Wind Drake"
+  turn 1 A: cast "Wind Drake"
+  run_to turn 1 end
+  assert battlefield A contains "Wind Drake"
+  assert tapped "Floodfarm Verge"
+}
+
+scenario "Floodfarm Verge: no blue without a Plains or an Island" {
+  battlefield A: "Floodfarm Verge", 2 "Swamp"
+  hand A: "Wind Drake"
+  illegal turn 1 A: cast "Wind Drake"
+  run_to turn 1 end
+  assert hand A contains "Wind Drake"
+}

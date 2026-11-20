@@ -1,0 +1,24 @@
+scenario "Rubble Rouser taps for red and pings each opponent" {
+  battlefield A: "Rubble Rouser"
+  graveyard A: "Forest"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rubble Rouser"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Forest"
+  assert tapped "Rubble Rouser"
+}
+
+scenario "Rubble Rouser rummages as it enters" {
+  battlefield A: 3 "Mountain"
+  hand A: "Rubble Rouser", "Forest"
+  library A: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rubble Rouser"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert hand A contains "Island"
+}

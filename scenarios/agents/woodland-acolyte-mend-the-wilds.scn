@@ -1,0 +1,25 @@
+scenario "Woodland Acolyte: enters and draws a card" {
+  battlefield A: 3 "Plains"
+  hand A: "Woodland Acolyte // Mend the Wilds"
+  library A: "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Woodland Acolyte"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Woodland Acolyte"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Mend the Wilds: a permanent card from the graveyard goes on top, then the creature from exile" {
+  battlefield A: "Forest", 3 "Plains"
+  hand A: "Woodland Acolyte // Mend the Wilds"
+  graveyard A: "Hill Giant", "Lightning Bolt"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Mend the Wilds" targeting "Lightning Bolt"
+  turn 1 A: cast "Mend the Wilds" targeting "Hill Giant"
+  turn 1 postcombat_main A: cast "Woodland Acolyte"
+  run_to turn 1 end
+  assert graveyard A lacks "Hill Giant"
+  assert hand A contains "Hill Giant"
+  assert battlefield A contains "Woodland Acolyte"
+}

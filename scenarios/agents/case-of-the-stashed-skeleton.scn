@@ -1,0 +1,23 @@
+scenario "case of the stashed skeleton makes a suspected skeleton and stays unsolved" {
+  battlefield A: 2 "Swamp"
+  hand A: "Case of the Stashed Skeleton"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Case of the Stashed Skeleton"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Skeleton"
+  assert has "Skeleton" menace
+  assert power "Skeleton" 2
+  illegal turn 4 A: activate "Case of the Stashed Skeleton"
+  run_to turn 4 postcombat_main
+  assert battlefield A contains "Case of the Stashed Skeleton"
+}
+
+scenario "case of the stashed skeleton solves without a suspected skeleton and tutors" {
+  battlefield A: "Case of the Stashed Skeleton", 2 "Swamp"
+  library A: "Island", "Hill Giant", "Island"
+  start turn 2 A precombat_main
+  turn 4 A: activate "Case of the Stashed Skeleton"
+  run_to turn 4 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Case of the Stashed Skeleton"
+}

@@ -1,0 +1,23 @@
+scenario "Intimidation Tactics exiles a creature card from the opponent's hand" {
+  battlefield A: "Swamp"
+  hand A: "Intimidation Tactics"
+  hand B: "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Intimidation Tactics" targeting player B
+  turn 1 precombat_main A: discard "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert hand B contains "Forest"
+  assert hand B count 1
+}
+
+scenario "Intimidation Tactics finds nothing in a hand of lands" {
+  battlefield A: "Swamp"
+  hand A: "Intimidation Tactics"
+  hand B: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Intimidation Tactics" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+  assert graveyard A contains "Intimidation Tactics"
+}

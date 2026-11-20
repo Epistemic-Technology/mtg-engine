@@ -1,0 +1,8 @@
+card "Fugitive Droid" {
+  oracle_id c04d4fd4-e5aa-431d-824b-8bc94245f103
+  cost {U}
+  type Artifact Creature — Robot Scientist
+  pt 1/1
+  static this: has can't be blocked if artifact entered this turn
+  activated {U}, sacrifice this: counter target spell that targets an artifact or creature you control
+}

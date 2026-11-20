@@ -1,0 +1,12 @@
+card "Virtue of Loyalty // Ardenvale Fealty" {
+  oracle_id f61f4307-4eec-476a-97e5-d4d3da2b54c3
+  layout adventure
+  cost {3}{W}{W}
+  type Enchantment
+  triggered at beginning of your end step: put 1 +1/+1 counter on each creature you control; untap those creatures
+  face "Ardenvale Fealty" {
+    cost {1}{W}
+    type Instant — Adventure
+    spell: create 1 "2/2 white Knight creature with vigilance"
+  }
+}

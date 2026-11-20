@@ -1,0 +1,7 @@
+card "Arnim Zola, Bio-Fanatic" {
+  oracle_id 95161e23-e4c4-411f-bce5-58a02abc0958
+  cost {2}{B}
+  type Legendary Artifact Creature — Scientist Villain
+  pt 2/3
+  activated {3}, {T}, if 2 creature cards in your graveyard: create 1 tapped "2/1 black Villain creature with menace"
+}

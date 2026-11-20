@@ -1,0 +1,36 @@
+scenario "Ostrich-Horse takes a milled land into hand" {
+  battlefield A: 3 "Forest"
+  hand A: "Ostrich-Horse"
+  library A: "Shock", "Island", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ostrich-Horse"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Ostrich-Horse" +1/+1 0
+}
+
+scenario "Ostrich-Horse gets a counter when no land is taken" {
+  battlefield A: 3 "Forest"
+  hand A: "Ostrich-Horse"
+  library A: "Shock", "Island", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ostrich-Horse"
+  turn 1 A: decline "Ostrich-Horse"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert counters "Ostrich-Horse" +1/+1 1
+  assert power "Ostrich-Horse" 4
+}
+
+scenario "Ostrich-Horse gets a counter when no land is milled" {
+  battlefield A: 3 "Forest"
+  hand A: "Ostrich-Horse"
+  library A: "Shock", "Murder", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ostrich-Horse"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert counters "Ostrich-Horse" +1/+1 1
+}

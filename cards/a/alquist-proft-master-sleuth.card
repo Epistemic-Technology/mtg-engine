@@ -1,0 +1,9 @@
+card "Alquist Proft, Master Sleuth" {
+  oracle_id dd79a994-7dad-49d4-8d8f-62dbedde4a38
+  cost {1}{W}{U}
+  type Legendary Creature — Human Detective
+  pt 3/3
+  keywords vigilance
+  triggered when this enters: investigate
+  activated {X}{W}{U}{U}, {T}, sacrifice Clue: you draw X cards and gain X life
+}

@@ -1,0 +1,18 @@
+scenario "Ixalli's Lorekeeper mana casts a Dinosaur" {
+  battlefield A: "Ixalli's Lorekeeper", "Mountain"
+  hand A: "Nest Robber"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nest Robber"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Nest Robber"
+  assert tapped "Ixalli's Lorekeeper"
+}
+
+scenario "Ixalli's Lorekeeper mana can't cast a non-Dinosaur" {
+  battlefield A: "Ixalli's Lorekeeper", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}

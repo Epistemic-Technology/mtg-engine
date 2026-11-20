@@ -1,0 +1,7 @@
+card "Ashiok's Reaper" {
+  oracle_id 6f1e5571-ddda-4cea-84ef-36a571d8fd51
+  cost {3}{B}
+  type Creature — Nightmare
+  pt 3/3
+  triggered whenever enchantment you control dies: draw 1 card
+}

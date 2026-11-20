@@ -1,0 +1,8 @@
+card "Illvoi Infiltrator" {
+  oracle_id 3084377f-73fb-4b00-9dd9-3844b1ecafc2
+  cost {2}{U}
+  type Creature — Jellyfish Rogue
+  pt 1/3
+  static this: has can't be blocked if cast 2 spell this turn
+  triggered whenever this deals combat damage to a player: draw 1 card
+}

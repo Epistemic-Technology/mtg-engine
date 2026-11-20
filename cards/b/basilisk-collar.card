@@ -1,0 +1,7 @@
+card "Basilisk Collar" {
+  oracle_id f5f4dd28-f4ae-4d39-b9b8-6ebfd63c93fe
+  cost {1}
+  type Artifact — Equipment
+  static equipped: has deathtouch and lifelink
+  equip {2}
+}

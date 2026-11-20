@@ -1,0 +1,27 @@
+scenario "Lavaspur Boots gives +1/+0 and haste" {
+  battlefield A: "Lavaspur Boots", "Plains"
+  hand A: "Grizzly Bears"
+  battlefield A: "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Lavaspur Boots" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Lavaspur Boots" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" haste
+  assert life B 17
+}
+
+scenario "Lavaspur Boots ward counters an unpaid spell" {
+  battlefield A: "Grizzly Bears", "Lavaspur Boots" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+  assert damage "Grizzly Bears" 0
+}

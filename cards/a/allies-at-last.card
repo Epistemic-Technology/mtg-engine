@@ -1,0 +1,7 @@
+card "Allies at Last" {
+  oracle_id c15e5e93-2eff-407d-ae75-437e36ef85ba
+  cost {2}{G}
+  type Instant
+  affinity for Ally
+  spell: up to two target creatures you control each bites target creature an opponent controls
+}

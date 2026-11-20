@@ -1,0 +1,6 @@
+card "Deathcap Glade" {
+  oracle_id f6d24565-5b32-4eff-b2e0-6e2c25516ff0
+  type Land
+  enters tapped unless you control 2 other land
+  mana {B} or {G}
+}

@@ -1,0 +1,25 @@
+scenario "Killmonger: sacrifice, then destroy a nonland permanent" {
+  battlefield A: 2 "Swamp", 2 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Killmonger, Scourge of Wakanda"
+  turn 1 A: cast "Killmonger, Scourge of Wakanda"
+  turn 1 A: trigger "Killmonger, Scourge of Wakanda" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Killmonger: +2/+1 with two creature cards in the graveyard" {
+  battlefield A: "Killmonger, Scourge of Wakanda"
+  graveyard A: 2 "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Killmonger, Scourge of Wakanda" 5
+  assert toughness "Killmonger, Scourge of Wakanda" 4
+}
+
+scenario "Killmonger: no bonus with one" {
+  battlefield A: "Killmonger, Scourge of Wakanda"
+  graveyard A: "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Killmonger, Scourge of Wakanda" 3
+}

@@ -1,0 +1,13 @@
+scenario "Choco-Comet deals X damage and makes a landfall Bird" {
+  battlefield A: 4 "Mountain"
+  hand A: "Choco-Comet", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Choco-Comet" x 2 targeting player B
+  turn 1 A: wait
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Bird"
+  assert power "Bird" 3
+  assert is "Bird" green
+}

@@ -1,0 +1,9 @@
+card "Choco-Comet" {
+  oracle_id 07b28ed7-eab8-4560-9994-3befcba876d3
+  cost {X}{R}{R}
+  type Sorcery
+  spell {
+    deal X damage to any target
+    create 1 "2/2 green Bird creature with landfall pump"
+  }
+}

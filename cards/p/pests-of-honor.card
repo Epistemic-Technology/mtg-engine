@@ -1,0 +1,7 @@
+card "Pests of Honor" {
+  oracle_id c2a4066a-f911-4622-beb2-683e7e10822f
+  cost {2}{W}
+  type Creature — Mouse
+  pt 2/2
+  label "Celebration" triggered at beginning of your combat if 2 nonland entered this turn: put 1 +1/+1 counter on this
+}

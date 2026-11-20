@@ -1,0 +1,9 @@
+card "Deceit" {
+  oracle_id d7dddeac-c6ed-4111-ba40-e2830c08d480
+  cost {4}{U/B}{U/B}
+  type Creature — Elemental Incarnation
+  pt 5/5
+  triggered when this enters if spent {U}{U}: return up to 1 another target nonland permanent to hand
+  triggered when this enters if spent {B}{B}: target opponent reveals hand discarding nonland card
+  evoke {U/B}{U/B}
+}

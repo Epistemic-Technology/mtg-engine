@@ -1,0 +1,10 @@
+scenario "Gold Rush makes a Treasure and pumps per Treasure" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Gold Rush"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gold Rush" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}

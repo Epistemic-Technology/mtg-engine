@@ -1,0 +1,9 @@
+scenario "Archway Angel gains 2 life per Gate" {
+  battlefield A: "Azorius Guildgate", "Basilisk Gate", 4 "Plains"
+  hand A: "Archway Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Archway Angel"
+  run_to turn 1 postcombat_main
+  assert life A 24
+  assert battlefield A contains "Archway Angel"
+}

@@ -1,0 +1,6 @@
+card "Joraga Invocation" {
+  oracle_id 216d3eed-cb07-40c5-869a-962e074e757d
+  cost {4}{G}{G}
+  type Sorcery
+  spell: each single creature you control gets +3/+3 and must be blocked if able
+}

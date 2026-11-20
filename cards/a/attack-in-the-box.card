@@ -1,0 +1,7 @@
+card "Attack-in-the-Box" {
+  oracle_id f0fd78bb-cb83-4dfa-a910-0334d225f87c
+  cost {3}
+  type Artifact Creature — Toy
+  pt 2/4
+  triggered whenever this attacks: you may this gets +4/+0 until end of turn; if you do, delayed this: sacrifice it at beginning of the next end step
+}

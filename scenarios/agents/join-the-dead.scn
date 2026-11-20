@@ -1,0 +1,33 @@
+scenario "Join the Dead gives -5/-5" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Serra Angel", "Colossal Dreadmaw"
+  hand A: "Join the Dead"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Join the Dead" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Colossal Dreadmaw"
+  assert power "Colossal Dreadmaw" 1
+  assert toughness "Colossal Dreadmaw" 1
+}
+
+scenario "Join the Dead with descend 4 gives -10/-10" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Colossal Dreadmaw"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Forest", "Ornithopter"
+  hand A: "Join the Dead"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Join the Dead" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Colossal Dreadmaw"
+}
+
+scenario "Join the Dead: instants don't count for descend" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Colossal Dreadmaw"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Forest", "Shock"
+  hand A: "Join the Dead"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Join the Dead" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Colossal Dreadmaw"
+}

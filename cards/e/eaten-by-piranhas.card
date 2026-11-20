@@ -1,0 +1,8 @@
+card "Eaten by Piranhas" {
+  oracle_id c37eae65-1afe-4242-b677-24dd40e6f401
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: loses all abilities, set color black, set subtype Skeleton, set type creature, base 1/1
+}

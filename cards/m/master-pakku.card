@@ -1,0 +1,8 @@
+card "Master Pakku" {
+  oracle_id b1727c07-c829-4d64-a1c5-8b53c743888a
+  cost {1}{U}
+  type Legendary Creature — Human Advisor Ally
+  pt 1/3
+  keywords prowess
+  triggered whenever this becomes tapped: target player mills count where graveyard Lesson cards
+}

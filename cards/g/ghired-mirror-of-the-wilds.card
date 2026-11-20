@@ -1,0 +1,8 @@
+card "Ghired, Mirror of the Wilds" {
+  oracle_id 34b36022-0d93-48cc-a2cc-90ca4d65dc31
+  cost {R}{G}{W}
+  type Legendary Creature — Human Shaman
+  pt 3/3
+  keywords haste
+  static nontoken creature you control: has ability { activated {T}: create token copy of target token you control that entered this turn }
+}

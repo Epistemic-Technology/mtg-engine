@@ -1,0 +1,21 @@
+scenario "Muse Seeker draws then discards for a cheap spell" {
+  battlefield A: "Muse Seeker", 3 "Island"
+  hand A: "Divination"
+  library A: "Forest", "Plains", "Swamp", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Divination"
+  assert graveyard A count 2
+}
+
+scenario "Muse Seeker keeps the card when five mana was spent" {
+  battlefield A: "Muse Seeker", 5 "Mountain"
+  hand A: "Blaze"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blaze" x 4 targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life B 16
+}
