@@ -68,6 +68,13 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
                 .map_or("a door", |d| state.pool.get(d.half(*door)).name.as_str());
             format!("{half} is unlocked.")
         }
+        Event::StageChanged { obj, stage } => {
+            let name = state.name_of_or_lki(*obj);
+            match state.objects.get(*obj).map(|o| state.pool.get(o.def)) {
+                Some(d) if d.subtypes.iter().any(|s| s == "Case") => format!("{name} is solved."),
+                _ => format!("{name} becomes level {}.", stage + 1),
+            }
+        }
         Event::TurnedFaceUp { obj } => format!("{} is turned face up.", state.name_of_or_lki(*obj)),
         Event::Revealed { def, .. } => format!("{} is revealed.", state.pool.get(*def).name),
         Event::Draw { player, card } => {
@@ -210,7 +217,9 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
         Event::EffectEnded { .. } | Event::Replaced { .. } | Event::Targeted { .. } => {
             return None;
         }
-        Event::CountersAdded { obj: o, kind, n } => {
+        Event::CountersAdded {
+            obj: o, kind, n, ..
+        } => {
             format!("{n} {kind:?} counter(s) put on {}.", obj(state, *o))
         }
         Event::CountersRemoved { obj: o, kind, n } => {

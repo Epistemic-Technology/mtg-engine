@@ -3552,6 +3552,12 @@ pub enum Effect {
     },
     /// "Pay {E}{E}", inside "you may": like `Pay`.
     PayEnergy(u32),
+    /// "Level 2" (a Class's level ability, CR 716.2a: the stage is the
+    /// level less one) or "it becomes solved" (a Case's to-solve ability,
+    /// CR 719.3a: stage 1): the source becomes that stage of its card
+    /// (`CardDef::stages`) if it is at an earlier one, gaining the
+    /// abilities the stage adds (CR 716.2b, 719.3b).
+    BecomeStage(u8),
     /// "You become the monarch" (CR 725): `You`, or for the monarch's own
     /// combat-damage trigger `TriggeringController` (CR 725.2).
     BecomeMonarch {
@@ -4656,6 +4662,14 @@ pub enum TriggerSpec {
     /// `n`th total mana to cast spells during a turn, judged as the spell
     /// that paid it becomes cast.
     Expends(u8),
+    /// A Saga's chapter ability (CR 714.2): bit `n` set for chapter `n`
+    /// ("I, II —" is bits 1 and 2, CR 714.2b). It triggers when lore
+    /// counters put on the source take their number from below `n` to `n`
+    /// or more (CR 714.2c), once for each chapter number so crossed.
+    Chapter(u16),
+    /// "When this Class becomes level 2" (CR 716.2c): the source becomes
+    /// that stage of its card (`Effect::BecomeStage`).
+    BecomesStage(u8),
 }
 
 /// Which of a player's spells this turn a cast trigger wants.
@@ -4787,10 +4801,11 @@ impl TriggerSpec {
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
             TriggerSpec::UnlocksDoor { .. }
+            | TriggerSpec::BecomesStage(_)
             | TriggerSpec::FullyUnlocks { .. }
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
-            TriggerSpec::CountersPut { .. } => WATCH_COUNTERS,
+            TriggerSpec::CountersPut { .. } | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
         }
     }
 }
@@ -5596,6 +5611,12 @@ pub struct CardDef {
     /// fully locked and fully unlocked states.
     #[serde(default)]
     pub doors: Option<Box<RoomDoors>>,
+    /// A Class's levels (CR 716) or a Case's unsolved and solved states
+    /// (CR 719), in order, the first the card itself: each a definition
+    /// with the abilities it has then. Set by `CardPool::set_stages` on
+    /// every one of them; empty for other cards.
+    #[serde(default)]
+    pub stages: Vec<CardRef>,
     /// Ascend, start your engines!, and becoming day as it enters
     /// (`Marks`).
     #[serde(default)]
@@ -5843,6 +5864,10 @@ pub struct CardDef {
     /// spent to cast it.
     #[serde(skip)]
     pub spent: SpentUse,
+    /// Filled in by `CardPool::add`: a Saga's final chapter number (CR
+    /// 714.2d), the greatest among its chapter abilities; 0 without any.
+    #[serde(skip)]
+    pub final_chapter: u8,
 }
 
 /// A room of a dungeon card (CR 309.4): its name (flavor, CR 309.4b), the
@@ -5988,6 +6013,9 @@ impl DefFlags {
     const BANDING: u32 = 8_388_608;
     /// A Room (`CardDef::doors`): priority then offers its locked doors.
     const ROOM: u32 = 16_777_216;
+    /// A Saga with chapter abilities (`CardDef::final_chapter`, CR 714):
+    /// the precombat main phase and state-based actions then look.
+    const SAGA: u32 = 33_554_432;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -6096,6 +6124,10 @@ impl DefFlags {
 
     pub const fn has_room(self) -> bool {
         self.has(DefFlags::ROOM)
+    }
+
+    pub const fn has_saga(self) -> bool {
+        self.has(DefFlags::SAGA)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -7318,6 +7350,21 @@ impl CardPool {
         }
         flags.set(DefFlags::MARKS, !def.marks.is_empty());
         flags.set(DefFlags::BANDING, def.keywords.contains(Keyword::Banding));
+        // CR 714.2d: the final chapter number is the greatest among its
+        // chapter abilities.
+        def.final_chapter = def
+            .abilities
+            .iter()
+            .filter_map(|a| match a {
+                AbilityDef::Triggered(TriggeredAbility {
+                    trigger: TriggerSpec::Chapter(mask),
+                    ..
+                }) if *mask != 0 => u8::try_from(15 - mask.leading_zeros()).ok(),
+                _ => None,
+            })
+            .max()
+            .unwrap_or(0);
+        flags.set(DefFlags::SAGA, def.final_chapter > 0);
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
             def: r,
@@ -7333,6 +7380,14 @@ impl CardPool {
         self.by_name.insert(def.name.clone(), r);
         self.defs.push(def);
         r
+    }
+
+    /// Link a Class's levels or a Case's states (`CardDef::stages`), the
+    /// card itself first.
+    pub fn set_stages(&mut self, stages: &[CardRef]) {
+        for r in stages {
+            self.defs[r.0 as usize].stages = stages.to_vec();
+        }
     }
 
     /// Make `r` findable by `key` as well as its name.
@@ -7535,6 +7590,7 @@ impl Builder {
             defense: 0,
             rooms: Vec::new(),
             doors: None,
+            stages: Vec::new(),
             marks: Marks::NONE,
             copy_except: None,
             subtype_ids: SubtypeSet::new(),
@@ -7594,6 +7650,7 @@ impl Builder {
             printed: None,
             cast_targets: Vec::new(),
             flags: DefFlags::default(),
+            final_chapter: 0,
         })
     }
 

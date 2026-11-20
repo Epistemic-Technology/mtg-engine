@@ -236,6 +236,10 @@ impl GameState {
                 }
             }
             self.lookback = None;
+            // 704.5s (CR 714.4): a Saga past its final chapter.
+            if self.saga_count > 0 && self.saga_sba() {
+                acted = true;
+            }
             // 702.131b, 702.179a: ascend and start your engines!.
             if self.mark_sources > 0 && self.designation_sba() {
                 acted = true;
@@ -250,6 +254,55 @@ impl GameState {
             any = true;
         }
         any
+    }
+
+    /// CR 714.4 (704.5s): a Saga with lore counters at least its final
+    /// chapter number, and no chapter ability of its own waiting to leave
+    /// the stack, is sacrificed by its controller.
+    #[cold]
+    #[inline(never)]
+    fn saga_sba(&mut self) -> bool {
+        let done: Vec<ObjId> = self
+            .battlefield
+            .iter()
+            .copied()
+            .filter(|id| {
+                let o = &self.objects[*id];
+                let last = self.pool.get(o.def).final_chapter;
+                last > 0
+                    && o.counters(CounterKind::Lore) >= u32::from(last)
+                    && !self.chapter_waiting_from(*id)
+            })
+            .collect();
+        if done.is_empty() {
+            return false;
+        }
+        self.lookback = Some(self.snapshot_battlefield());
+        for id in done {
+            self.sacrifice(id);
+        }
+        self.lookback = None;
+        true
+    }
+
+    /// Whether a chapter ability of `source` has triggered but not left
+    /// the stack (CR 714.4).
+    fn chapter_waiting_from(&self, source: ObjId) -> bool {
+        let chapter = |a: crate::card::AbilityId| {
+            matches!(
+                self.pool.ability(a),
+                crate::card::AbilityDef::Triggered(t)
+                    if matches!(t.trigger, crate::card::TriggerSpec::Chapter(_))
+            )
+        };
+        self.pending_triggers
+            .iter()
+            .any(|t| t.ability.source == source && chapter(t.ability.ability))
+            || self.stack.iter().any(|s| {
+                self.objects[*s]
+                    .ability
+                    .is_some_and(|a| a.source == source && chapter(a.ability))
+            })
     }
 
     /// Whether a triggered ability from `source` has triggered but not

@@ -68,7 +68,7 @@ pub fn compile_order(cards: &mut [Card]) {
 }
 
 /// Compile one definition into the pool.
-#[allow(clippy::implicit_hasher)]
+#[allow(clippy::implicit_hasher, clippy::too_many_lines)] // one step per kind of face
 pub fn add_card(
     pool: &mut CardPool,
     card: &Card,
@@ -125,9 +125,13 @@ pub fn add_card(
         }
         None => None,
     };
+    // A Class's levels or a Case's states (CR 716, 719): the card itself
+    // is the first, each a definition with the abilities it has then.
+    let stages = stage_cards(card);
+    let first = stages.first().unwrap_or(card);
     let mut c = Compiler {
         pool,
-        card,
+        card: first,
         lookup: by_name,
         groups: Vec::new(),
         many: None,
@@ -141,6 +145,9 @@ pub fn add_card(
     };
     let mut def = c.card()?;
     link_exiles(&mut def);
+    if !stages.is_empty() {
+        def.oracle_text = render::oracle_text(card, by_name);
+    }
     if !faces.is_empty() {
         def.layout = card.layout;
         def.faces.clone_from(&faces);
@@ -177,7 +184,111 @@ pub fn add_card(
             pool.alias(display, prev);
         }
     }
+    if !stages.is_empty() {
+        add_stages(pool, card, &stages[1..], r, by_name)?;
+    }
     Ok(r)
+}
+
+/// Compile a Class's later levels or a solved Case (`stage_cards`) and
+/// link them to the card `r` (`CardDef::stages`).
+fn add_stages(
+    pool: &mut CardPool,
+    card: &Card,
+    later: &[Card],
+    r: CardRef,
+    by_name: &HashMap<&str, &Card>,
+) -> Result<(), CompileError> {
+    let mut refs = vec![r];
+    for s in later {
+        let mut c = Compiler {
+            pool,
+            card: s,
+            lookup: by_name,
+            groups: Vec::new(),
+            many: None,
+            implied: Vec::new(),
+            implied_used: std::rc::Rc::default(),
+            scavenge: None,
+            station: None,
+            extort: None,
+            token: None,
+            cast_snapshot: None,
+        };
+        let mut d = c.card()?;
+        link_exiles(&mut d);
+        d.oracle_text.clone_from(&pool.get(r).oracle_text);
+        refs.push(pool.add(d));
+    }
+    // Each stage registered under the card's name; the card keeps it.
+    pool.alias(&card.name, r);
+    pool.set_stages(&refs);
+    Ok(())
+}
+
+/// A Class's levels (CR 716) or a Case's unsolved and solved states (CR
+/// 719), each the card with the abilities it has then; empty for any
+/// other card. A Class at level N has the abilities before its level N+1
+/// marker, but of the level markers only that one (CR 716.2a); a Case
+/// unsolved has its to-solve ability and not its solved ones, and solved
+/// the reverse.
+fn stage_cards(card: &Card) -> Vec<Card> {
+    let levels: Vec<usize> = card
+        .abilities
+        .iter()
+        .enumerate()
+        .filter(|(_, a)| matches!(a, Ability::ClassLevel { .. }))
+        .map(|(i, _)| i)
+        .collect();
+    if !levels.is_empty() {
+        let mut out = Vec::new();
+        for k in 0..=levels.len() {
+            let end = levels.get(k).copied().unwrap_or(card.abilities.len());
+            let abilities = card.abilities[..end]
+                .iter()
+                .filter(|a| !matches!(a, Ability::ClassLevel { .. }))
+                .chain(levels.get(k).map(|i| &card.abilities[*i]))
+                .cloned()
+                .collect();
+            out.push(Card {
+                abilities,
+                ..card.clone()
+            });
+        }
+        return out;
+    }
+    let case = card
+        .abilities
+        .iter()
+        .any(|a| matches!(a, Ability::ToSolve(_) | Ability::Solved(_)));
+    if !case {
+        return Vec::new();
+    }
+    let unsolved = card
+        .abilities
+        .iter()
+        .filter(|a| !matches!(a, Ability::Solved(_)))
+        .cloned()
+        .collect();
+    let solved = card
+        .abilities
+        .iter()
+        .filter(|a| !matches!(a, Ability::ToSolve(_)))
+        .map(|a| match a {
+            Ability::Solved(inner) => inner.as_ref().clone(),
+            other => other.clone(),
+        })
+        .collect();
+    vec![
+        Card {
+            abilities: unsolved,
+            ..card.clone()
+        },
+        Card {
+            abilities: solved,
+            ..card.clone()
+        },
+    ]
 }
 
 struct Compiler<'a> {
@@ -2440,6 +2551,8 @@ impl Compiler<'_> {
             Trigger::Attacks(o) => TriggerSpec::Attacks(self.trigger_obj(o)),
             Trigger::AttacksBattle(o) => TriggerSpec::AttacksBattle(self.trigger_obj(o)),
             Trigger::UnlocksDoor => TriggerSpec::UnlocksDoor { door: 0 },
+            Trigger::BecomesLevel(n) => TriggerSpec::BecomesStage(n - 1),
+            Trigger::Chapter(ns) => TriggerSpec::Chapter(ns.iter().fold(0u16, |m, n| m | 1 << n)),
             Trigger::FullyUnlocks => TriggerSpec::FullyUnlocks { whose: Who::You },
             Trigger::DealsCombatDamageToPlayerOrBattle(o) => {
                 TriggerSpec::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
@@ -3470,6 +3583,45 @@ impl Compiler<'_> {
             // CR 721.2a-b: "As long as this permanent has N or more charge
             // counters on it, it has [abilities] and is a creature with
             // base power and toughness [P/T]" (the card's own P/T).
+            // CR 716.2a: "{R}{G}: Level 2" is activated only as a sorcery,
+            // and only while the Class is level 1: it is an ability of the
+            // level 1 stage alone.
+            Ability::ClassLevel { level, cost } => AbilityDef::Activated(ActivatedAbility {
+                cost: CoreCost {
+                    mana: cost.clone(),
+                    ..CoreCost::default()
+                },
+                targets: Vec::new(),
+                effects: vec![CoreEffect::BecomeStage(level - 1)],
+                sorcery_speed: true,
+                per_turn: 0,
+                conditions: Vec::new(),
+                once_ever: false,
+                from_hand: false,
+                cycling: false,
+                from_graveyard: false,
+                keyword: None,
+                reduction: None,
+                text: render::ability_text(self.card, a, self.lookup),
+            }),
+            // CR 719.2a: "At the beginning of your end step, if <condition>
+            // and this Case is not solved, it becomes solved." It is an
+            // ability of the unsolved stage alone.
+            Ability::ToSolve(cond) => {
+                let c = self.static_cond(cond);
+                let i = self.pool.intern_condition(c);
+                AbilityDef::Triggered(mtg_core::card::TriggeredAbility {
+                    trigger: TriggerSpec::BeginningOfStep {
+                        step: mtg_core::turn::Step::End,
+                        whose: mtg_core::card::Who::You,
+                    },
+                    condition: Some(mtg_core::card::Condition::Static(i)),
+                    targets: Vec::new(),
+                    effects: vec![CoreEffect::BecomeStage(1)],
+                    from_graveyard: false,
+                })
+            }
+            Ability::Solved(inner) => return self.ability(inner),
             Ability::StationLevel { n, keywords } => {
                 let mut mods = Vec::new();
                 if self.card.pt.is_some() {

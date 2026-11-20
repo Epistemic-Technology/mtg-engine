@@ -1,0 +1,8 @@
+card "Binding the Old Gods" {
+  oracle_id 4050e5b3-07c2-461c-9852-a2c081c0198d
+  cost {2}{B}{G}
+  type Enchantment — Saga
+  triggered chapter 1: destroy target nonland permanent an opponent controls
+  triggered chapter 2: search Forest card to battlefield tapped
+  triggered chapter 3: each creature you control gains deathtouch
+}

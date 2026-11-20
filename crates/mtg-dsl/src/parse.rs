@@ -1175,6 +1175,29 @@ impl P {
                 Ok(Ability::XManaColor(c))
             }
             "spells" => self.cost_change(None),
+            // CR 716.2a: a Class's level ability.
+            "level" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                let Some(level) = u8::try_from(n).ok().filter(|n| (2..=9).contains(n)) else {
+                    return self.fail("a Class level is 2 to 9");
+                };
+                let cost = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::ClassLevel { level, cost })
+            }
+            // CR 719.2: a Case's "To solve" and "Solved".
+            "to" if self.at_words(&["to", "solve"]) => {
+                self.pos += 2;
+                let cond = self.static_cond()?;
+                self.end_stmt()?;
+                Ok(Ability::ToSolve(cond))
+            }
+            "solved" => {
+                self.pos += 1;
+                let inner = self.ability()?;
+                Ok(Ability::Solved(Box::new(inner)))
+            }
             "this" if self.at_words(&["this", "spell", "can't", "be", "countered"]) => {
                 self.pos += 5;
                 self.end_stmt()?;
@@ -8802,6 +8825,22 @@ impl P {
 
     #[allow(clippy::too_many_lines)]
     fn trigger_one(&mut self) -> R<Trigger> {
+        // CR 714.2: `chapter 1, 2`.
+        if self.eat_word("chapter") {
+            let mut chapters = Vec::new();
+            loop {
+                let n = self.number()?;
+                let Some(n) = u8::try_from(n).ok().filter(|n| (1..=15).contains(n)) else {
+                    return self.unexpected("a chapter number from 1 to 15");
+                };
+                chapters.push(n);
+                if self.peek() != Some(&Tok::Comma) {
+                    break;
+                }
+                self.pos += 1;
+            }
+            return Ok(Trigger::Chapter(chapters));
+        }
         if self.eat_word("at") {
             // CR 511.2: "at end of combat" triggers as the end of combat
             // step begins.
@@ -8876,6 +8915,13 @@ impl P {
         }
         if self.eat_words(&["you", "unlock", "this", "door"]) {
             return Ok(Trigger::UnlocksDoor);
+        }
+        if self.eat_words(&["this", "becomes", "level"]) {
+            let n = self.number()?;
+            let Some(level) = u8::try_from(n).ok().filter(|n| (2..=9).contains(n)) else {
+                return self.fail("a Class level is 2 to 9");
+            };
+            return Ok(Trigger::BecomesLevel(level));
         }
         if self.eat_words(&["you", "fully", "unlock", "a", "Room"]) {
             return Ok(Trigger::FullyUnlocks);

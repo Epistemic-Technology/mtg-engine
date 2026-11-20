@@ -1,0 +1,9 @@
+card "Summon: Primal Garuda" {
+  oracle_id aaf9e711-94e1-4869-81b0-baa6380ee873
+  cost {3}{W}
+  type Enchantment Creature — Saga Harpy
+  pt 3/3
+  label "Aerial Blast" triggered chapter 1: deal 4 damage to target tapped creature an opponent controls
+  label "Slipstream" triggered chapter 2, 3: another target creature you control gets +1/+0 and gains flying
+  keyword flying
+}

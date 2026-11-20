@@ -1,0 +1,7 @@
+card "History of Benalia" {
+  oracle_id c15bb7eb-aaaa-4468-9641-8f706d6137e8
+  cost {1}{W}{W}
+  type Enchantment — Saga
+  triggered chapter 1, 2: create 1 "2/2 white Knight creature with vigilance"
+  triggered chapter 3: each Knight you control gets +2/+1 until end of turn
+}

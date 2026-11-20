@@ -1,0 +1,8 @@
+card "Summon: G.F. Ifrit" {
+  oracle_id 96d1bfc1-b80f-466f-b07d-df1ab361e8e0
+  cost {2}{R}
+  type Enchantment Creature — Saga Demon
+  pt 3/2
+  triggered chapter 1, 2: you may discard 1 cards; if you do, draw 1 cards
+  triggered chapter 3, 4: add {R}
+}

@@ -1,0 +1,7 @@
+card "Thunder of Unity" {
+  oracle_id 8419d1d5-bb0e-4a2d-bb6f-67957d035dde
+  cost {R}{W}{B}
+  type Enchantment — Saga
+  triggered chapter 1: you draw 2 cards, and you lose 2 life
+  triggered chapter 2, 3: delayed this: whenever creature you control enters this turn, each opponent loses 1 life and you gain 1 life
+}

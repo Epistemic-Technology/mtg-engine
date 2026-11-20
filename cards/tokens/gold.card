@@ -1,0 +1,4 @@
+token "Gold" {
+  type Artifact — Gold
+  activated sacrifice this: add any
+}

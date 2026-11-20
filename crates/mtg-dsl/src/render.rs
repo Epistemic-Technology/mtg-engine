@@ -403,6 +403,18 @@ pub(crate) fn type_noun(t: CardType) -> &'static str {
     }
 }
 
+/// Chapter numbers as printed (CR 714.2a): Roman numerals, "I, II".
+fn chapter_numerals(ns: &[u8]) -> String {
+    const ROMAN: [&str; 16] = [
+        "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII",
+        "XIV", "XV",
+    ];
+    ns.iter()
+        .map(|n| ROMAN[usize::from(*n).min(15)])
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
 fn capitalize(s: &str) -> String {
     let mut c = s.chars();
     match c.next() {
@@ -741,6 +753,15 @@ pub fn self_noun(card: &Card) -> String {
     }
     if card.types.contains(&CardType::Planeswalker) {
         return "planeswalker".to_string();
+    }
+    // "this Saga" (Urza's Saga is a land), "this Class", "this Case".
+    if card.types.contains(&CardType::Enchantment)
+        && let Some(s) = card
+            .subtypes
+            .iter()
+            .find(|s| matches!(s.as_str(), "Saga" | "Class" | "Case"))
+    {
+        return s.clone();
     }
     if card.types.contains(&CardType::Land) {
         return "land".to_string();
@@ -6879,6 +6900,8 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             )
         }
         Trigger::UnlocksDoor => "when you unlock this door".to_string(),
+        Trigger::Chapter(ns) => chapter_numerals(ns),
+        Trigger::BecomesLevel(n) => format!("when {} becomes level {n}", this(ctx)),
         Trigger::FullyUnlocks => "whenever you fully unlock a Room".to_string(),
         Trigger::AttacksBattle(TriggerObj::This) => {
             format!("whenever {} attacks a battle", this(ctx))
@@ -9220,6 +9243,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let mut ctx = Ctx::new(card, lookup, targets);
             ctx.current = Some(a);
             ctx.trigger = Some(trigger);
+            // CR 714.2b: "I, II — Draw a card."
+            if let Trigger::Chapter(ns) = trigger {
+                return format!(
+                    "{} — {}",
+                    chapter_numerals(ns),
+                    sentences(effects, &mut ctx)
+                );
+            }
             let mut out = capitalize(&trigger_text(trigger, &mut ctx, false));
             match condition {
                 Some(crate::ast::TrigCond::Core(c)) => {
@@ -9381,8 +9412,19 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             format!("{me} {}.", block_rule_phrase(r, card, false))
         }
+        // "I — Wark — Create ...": a chapter's name follows its numerals.
         Ability::Labeled { label, ability } => {
-            format!("{label} — {}", ability_text(card, ability, lookup))
+            let text = ability_text(card, ability, lookup);
+            match (ability.as_ref(), text.split_once(" — ")) {
+                (
+                    Ability::Triggered {
+                        trigger: Trigger::Chapter(_),
+                        ..
+                    },
+                    Some((numerals, rest)),
+                ) => format!("{numerals} — {label} — {rest}"),
+                _ => format!("{label} — {text}"),
+            }
         }
         Ability::CostChange {
             filter,
@@ -9677,6 +9719,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let ks: Vec<String> = keywords.iter().map(|k| capitalize(k.name())).collect();
             format!("{n}+ | {}", ks.join(", "))
         }
+        // CR 716.2a, 719.2.
+        Ability::ClassLevel { level, cost } => format!("{cost}: Level {level}"),
+        Ability::ToSolve(c) => format!("To solve — {}.", capitalize(&static_cond_text(c, card))),
+        Ability::Solved(inner) => format!("Solved — {}", ability_text(card, inner, lookup)),
         Ability::CrewsAs {
             saddles,
             toughness,

@@ -70,6 +70,7 @@ impl GameState {
                 {
                     continue;
                 }
+                let copies = chapter_copies(&t.trigger, event);
                 // CR 603.2c: "one or more ... enter", once per batch.
                 let batch = matches!(
                     t.trigger,
@@ -80,7 +81,7 @@ impl GameState {
                 if batch && self.join_batch(&mut fired, ability, w.source) {
                     continue;
                 }
-                fired.push(PendingTrigger {
+                let pending = PendingTrigger {
                     controller: w.controller,
                     ability: StackAbility {
                         ability,
@@ -91,7 +92,8 @@ impl GameState {
                         trigger_amount: if batch { 1 } else { event_amount },
                     },
                     timestamp: 0,
-                });
+                };
+                fired.extend(std::iter::repeat_n(pending, copies));
             }
         }
         if matches!(event, Event::Cycled { .. }) {
@@ -809,6 +811,22 @@ impl GameState {
                 }
                 let p = on_battlefield(what, *obj)?;
                 Some((Some(*obj), Some(p)))
+            }
+            // CR 714.2c: lore counters put on this Saga take their number
+            // from below a chapter number to at least it.
+            (
+                TriggerSpec::Chapter(mask),
+                Event::CountersAdded {
+                    obj,
+                    kind: crate::card::CounterKind::Lore,
+                    n,
+                    before,
+                },
+            ) => (*obj == w.source && chapters_crossed(*mask, *before, *n) != 0)
+                .then_some((Some(*obj), Some(w.controller))),
+            // CR 716.2c: "When this Class becomes level 2".
+            (TriggerSpec::BecomesStage(k), Event::StageChanged { obj, stage }) => {
+                (*obj == w.source && stage == k).then_some((Some(*obj), Some(w.controller)))
             }
             (TriggerSpec::BecomesTarget(what), Event::Targeted { target: obj, .. })
             | (TriggerSpec::BecomesTapped(what), Event::Tapped { obj })
@@ -1546,5 +1564,36 @@ impl GameState {
         self.remove_from_zone_list(id);
         self.objects.remove(id);
         self.bump();
+        // CR 714.4: a Saga waits for its chapter abilities to leave the
+        // stack, which changes nothing else a state-based action sees.
+        if self.saga_count > 0 {
+            self.sba_touch();
+        }
     }
+}
+
+/// How many times a triggered ability triggers on `event`: once, but a
+/// chapter ability once for each chapter number its lore counters reach
+/// (CR 714.2c).
+fn chapter_copies(trigger: &TriggerSpec, event: &Event) -> usize {
+    match (trigger, event) {
+        (TriggerSpec::Chapter(mask), Event::CountersAdded { n, before, .. }) => {
+            chapters_crossed(*mask, *before, *n).count_ones() as usize
+        }
+        _ => 1,
+    }
+}
+
+/// The chapter numbers in `mask` (bit `n` for chapter `n`) that `n` lore
+/// counters put on a Saga with `before` of them reach (CR 714.2c): those
+/// above `before` and at most `before + n`.
+fn chapters_crossed(mask: u16, before: u32, n: u32) -> u16 {
+    let bits = |k: u32| -> u16 {
+        if k >= 15 {
+            u16::MAX
+        } else {
+            (1u16 << (k + 1)) - 1
+        }
+    };
+    mask & bits(before.saturating_add(n)) & !bits(before)
 }

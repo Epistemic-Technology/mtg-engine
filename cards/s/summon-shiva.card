@@ -1,0 +1,8 @@
+card "Summon: Shiva" {
+  oracle_id 5846718c-7d31-4d2c-80a2-b1534e2aebc1
+  cost {3}{U}{U}
+  type Enchantment Creature — Saga Elemental
+  pt 4/5
+  label "Heavenly Strike" triggered chapter 1, 2: tap target creature an opponent controls; put 1 stun counter on target 1
+  label "Diamond Dust" triggered chapter 3: draw count each tapped creature your opponents control cards
+}

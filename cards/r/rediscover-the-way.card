@@ -1,0 +1,7 @@
+card "Rediscover the Way" {
+  oracle_id 680a8e14-053f-4cde-a060-e1b36873cf14
+  cost {U}{R}{W}
+  type Enchantment — Saga
+  triggered chapter 1, 2: dig 3 take card rest bottom
+  triggered chapter 3: delayed this: whenever you cast a noncreature spell this turn, target creature you control gains double strike
+}

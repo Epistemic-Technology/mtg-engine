@@ -1,0 +1,8 @@
+card "Revival of the Ancestors" {
+  oracle_id 5a848c1f-d11a-42fb-b9ce-663901fc9555
+  cost {1}{W}{B}{G}
+  type Enchantment — Saga
+  triggered chapter 1: create 3 "1/1 white Spirit creature"
+  triggered chapter 2: distribute 3 +1/+1 counters among 1 to 3 target creatures you control
+  triggered chapter 3: each creature you control gains trample, lifelink
+}

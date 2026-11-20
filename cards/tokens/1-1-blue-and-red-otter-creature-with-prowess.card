@@ -1,0 +1,7 @@
+token "1/1 blue and red Otter creature with prowess" {
+  name "Otter"
+  type Creature — Otter
+  pt 1/1
+  color blue red
+  keywords prowess
+}

@@ -45,6 +45,11 @@ pub enum Event {
         door: u8,
         fully: bool,
     },
+    /// A Class gained a level or a Case became solved (`Effect::BecomeStage`).
+    StageChanged {
+        obj: ObjId,
+        stage: u8,
+    },
     GameStart {
         starting_player: PlayerId,
     },
@@ -168,6 +173,9 @@ pub enum Event {
         obj: ObjId,
         kind: CounterKind,
         n: u32,
+        /// How many of that kind it had before (a Saga's chapters, CR
+        /// 714.2c).
+        before: u32,
     },
     CountersRemoved {
         obj: ObjId,
@@ -358,7 +366,9 @@ impl Event {
             Event::Discard { .. } => WATCH_DISCARD,
             Event::Attached { .. } => WATCH_ATTACH,
             Event::RolledDie { .. } | Event::FlippedCoin { .. } => WATCH_ROLL,
-            Event::DayNight { .. } | Event::Unlocked { .. } => WATCH_DESIG,
+            Event::DayNight { .. } | Event::Unlocked { .. } | Event::StageChanged { .. } => {
+                WATCH_DESIG
+            }
             Event::Sacrificed { .. } => WATCH_SACRIFICE,
             Event::CountersAdded { .. } => WATCH_COUNTERS,
             _ => 0,

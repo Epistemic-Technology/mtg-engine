@@ -187,6 +187,10 @@ impl GameState {
         if d.types.contains(crate::card::CardType::Battle) && d.defense > 0 {
             counters.push((CounterKind::Defense, d.defense));
         }
+        // CR 714.3a: a Saga enters with a lore counter.
+        if d.final_chapter > 0 {
+            counters.push((CounterKind::Lore, 1));
+        }
         // CR 702.43a: modular's counters.
         if d.modular > 0 {
             match counters
@@ -536,6 +540,22 @@ impl GameState {
             from: old.zone,
             to,
         });
+        // CR 122.6: counters a permanent enters with are put on it, so a
+        // Saga's first lore counter triggers its chapter I (CR 714.3a).
+        if to == Zone::Battlefield && self.objects[new].counters.iter().any(|(_, n)| *n > 0) {
+            let entered: SmallVec<[(CounterKind, u32); 2]> =
+                self.objects[new].counters.iter().copied().collect();
+            for (kind, n) in entered {
+                if n > 0 {
+                    self.emit(Event::CountersAdded {
+                        obj: new,
+                        kind,
+                        n,
+                        before: 0,
+                    });
+                }
+            }
+        }
         // CR 709.5h: a Room entering with a door unlocked (its half was
         // cast) unlocks that door as it enters.
         if to == Zone::Battlefield
@@ -607,6 +627,7 @@ impl GameState {
             self.mark_sources += d(flags.has_marks());
             self.banding_sources += d(flags.has_banding());
             self.room_count += d(flags.has_room());
+            self.saga_count += d(flags.has_saga());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
@@ -627,6 +648,7 @@ impl GameState {
             self.mark_sources -= d(flags.has_marks());
             self.banding_sources -= d(flags.has_banding());
             self.room_count -= d(flags.has_room());
+            self.saga_count -= d(flags.has_saga());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
             self.control_dirty |= flags.has_control_static();
@@ -1307,12 +1329,18 @@ impl GameState {
         if o.zone != Zone::Battlefield || n == 0 {
             return;
         }
+        let before = o.counters(kind);
         o.add_counters(kind, n);
         if kind == CounterKind::PlusOnePlusOne {
             self.turn_log.counter_put |= 1 << o.controller.index().min(7);
         }
         self.cbump();
-        self.emit(Event::CountersAdded { obj: id, kind, n });
+        self.emit(Event::CountersAdded {
+            obj: id,
+            kind,
+            n,
+            before,
+        });
     }
 
     /// CR 122.5: remove counters from a permanent.
@@ -1422,6 +1450,36 @@ impl GameState {
 
     /// Unlock a Room's door (CR 709.5e-f): the permanent takes the
     /// definition of its new set of unlocked doors.
+    /// A Class gains a level or a Case becomes solved (CR 716.2a,
+    /// 719.3a): the permanent becomes that stage of its card, if it is at
+    /// an earlier one. It stays the same object.
+    pub(super) fn become_stage(&mut self, id: ObjId, stage: u8) {
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        if o.zone != Zone::Battlefield {
+            return;
+        }
+        let stages = &self.pool.get(o.def).stages;
+        let (Some(now), Some(&to)) = (
+            stages.iter().position(|s| *s == o.def),
+            stages.get(usize::from(stage)),
+        ) else {
+            return;
+        };
+        if now >= usize::from(stage) {
+            return;
+        }
+        let flags = self.flags_of(&self.objects[id]);
+        let legendary = self.pool.get(self.objects[id].def).is_legendary();
+        self.count_sources(flags, legendary, false);
+        self.objects[id].def = to;
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, legendary, true);
+        self.cbump();
+        self.emit(Event::StageChanged { obj: id, stage });
+    }
+
     pub(super) fn unlock(&mut self, id: ObjId, door: u8) {
         let Some(o) = self.objects.get(id) else {
             return;

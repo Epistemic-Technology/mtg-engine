@@ -1968,6 +1968,43 @@ paying its half's cost is a special action at sorcery speed (scenario
 - Static condition: `2 unlocked doors` ("there are two or more unlocked
   doors among Rooms you control").
 
+Sagas (CR 714) are `type Enchantment — Saga` cards whose chapter
+abilities are `triggered chapter 1: ...` ("I — ..."), `triggered
+chapter 1, 2: ...` ("I, II — ...", one ability triggering for each
+number, CR 714.2b); `label "Wark" triggered chapter 1: ...` prints the
+chapter's name after its numerals ("I — Wark — ..."). "this Saga" is the
+self-noun (a Saga creature's is "this creature"). The engine reads the
+final chapter from the abilities (`CardDef::final_chapter`): a Saga
+enters with a lore counter (CR 714.3a), gets another as its
+controller's precombat main phase begins (CR 714.3b), and is sacrificed
+once its lore counters reach the final chapter and no chapter ability of
+its own is waiting to leave the stack (CR 714.4). A chapter triggers as
+lore counters put on the Saga take their number from below its chapter
+number to at least it, however they are put there (proliferate too).
+
+Classes (CR 716) are `type Enchantment — Class` cards whose abilities are
+listed in order with `level 2 {R}{G}` lines between them ("{R}{G}: Level
+2"): the abilities before the first are level 1's, those after a level
+line that level's. `triggered when this becomes level 2: ...` ("When
+this Class becomes level 2, ...", CR 716.2c). "this Class" is the
+self-noun. The engine holds a definition per level (`CardDef::stages`,
+the card itself level 1), each with the abilities the Class has at that
+level and of the level lines only the next one, so "{R}{G}: Level 2" is
+activated only as a sorcery while the Class is level 1 (CR 716.2a). The
+level resolves as `Effect::BecomeStage`; the Class is the same object,
+and leaves the battlefield as its card again, level 1.
+
+Cases (CR 719) are `type Enchantment — Case` cards with `to solve
+<condition>` ("To solve — You control three or more artifacts.", any
+static condition, printed capitalized) and `solved <ability>` ("Solved —
+<ability>", any ability line after `solved`). "this Case" is the
+self-noun. Like a Class, a Case has a definition per state
+(`CardDef::stages`): unsolved, the card itself, with its to-solve
+ability, "At the beginning of your end step, if <condition>, this Case
+becomes solved" (judged as it triggers and as it resolves, CR 719.2a),
+and not its solved abilities; solved, the reverse (CR 719.2b). It stays
+solved until it leaves the battlefield.
+
 Spacecraft: `station` ("Station": tap another untapped creature you
 control, put charge counters equal to its power on this permanent,
 only as a sorcery, CR 702.184) and `station 4: flying` ("4+ | Flying",

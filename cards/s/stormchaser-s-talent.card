@@ -1,0 +1,10 @@
+card "Stormchaser's Talent" {
+  oracle_id 00c1788d-c52f-4839-9cd8-11fb86c418b6
+  cost {U}
+  type Enchantment — Class
+  triggered when this enters: create 1 "1/1 blue and red Otter creature with prowess"
+  level 2 {3}{U}
+  triggered when this becomes level 2: return target instant or sorcery card from your graveyard to hand
+  level 3 {5}{U}
+  triggered whenever you cast an instant or sorcery spell: create 1 "1/1 blue and red Otter creature with prowess"
+}

@@ -1,0 +1,10 @@
+card "Gossip's Talent" {
+  oracle_id 96e6d220-87db-4dab-abaa-e80c9577d89a
+  cost {1}{U}
+  type Enchantment — Class
+  triggered whenever creature you control enters: surveil 1
+  level 2 {1}{U}
+  triggered whenever you attack: target attacking creature with power 3 or less can't be blocked this turn
+  level 3 {3}{U}
+  triggered whenever creature you control deals combat damage to a player: you may exile it then return it to battlefield under its owner's control
+}

@@ -1116,6 +1116,9 @@ impl Decompiler<'_> {
             },
             CoreEffect::PayEnergy(n) => Effect::PayEnergy(*n),
             CoreEffect::Proliferate => Effect::Proliferate,
+            CoreEffect::BecomeStage(_) => {
+                unreachable!("a Class's level or a Case's to-solve line, never decompiled")
+            }
             CoreEffect::RingTempts => Effect::RingTempts,
             CoreEffect::BecomeMonarch { .. } => Effect::BecomeMonarch,
             CoreEffect::TakeInitiative { .. } => Effect::TakeInitiative,
@@ -1406,6 +1409,10 @@ impl Decompiler<'_> {
             TriggerSpec::Attacks(o) => Trigger::Attacks(self.trigger_obj(o)),
             TriggerSpec::AttacksBattle(o) => Trigger::AttacksBattle(self.trigger_obj(o)),
             TriggerSpec::UnlocksDoor { .. } => Trigger::UnlocksDoor,
+            TriggerSpec::BecomesStage(k) => Trigger::BecomesLevel(k + 1),
+            TriggerSpec::Chapter(mask) => {
+                Trigger::Chapter((1..=15u8).filter(|n| mask & (1 << n) != 0).collect())
+            }
             TriggerSpec::FullyUnlocks { .. } => Trigger::FullyUnlocks,
             TriggerSpec::DealsCombatDamageToPlayerOrBattle(o) => {
                 Trigger::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))

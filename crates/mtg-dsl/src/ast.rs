@@ -1073,6 +1073,22 @@ pub enum Ability {
         n: u32,
         keywords: Vec<Keyword>,
     },
+    /// `level 2 {R}{G}`: a Class's level ability, "{R}{G}: Level 2" (CR
+    /// 716.2a: activate only as a sorcery while it is level 1). The
+    /// abilities after it, up to the next, are the ones it gains at that
+    /// level.
+    ClassLevel {
+        level: u8,
+        cost: ManaCost,
+    },
+    /// `to solve you control 3 artifact`: a Case's "To solve — You
+    /// control three or more artifacts." (CR 719.2a: at the beginning of
+    /// its controller's end step, if the condition holds and it isn't
+    /// solved, it becomes solved).
+    ToSolve(StaticCond),
+    /// `solved <ability>`: "Solved — <ability>" (CR 719.2b), an ability
+    /// the Case has only once solved.
+    Solved(Box<Ability>),
     /// `protection doesn't remove this`: "This effect doesn't remove this
     /// Aura.", printed after the static ability before it.
     AuraStays,
@@ -1961,6 +1977,11 @@ pub enum Trigger {
     AttacksBattle(TriggerObj),
     /// `when you unlock this door` (CR 709.5h).
     UnlocksDoor,
+    /// `chapter 1, 2`: a Saga's chapter ability (CR 714.2), printed as
+    /// its chapter numbers in Roman numerals, "I, II — ...".
+    Chapter(Vec<u8>),
+    /// `when this becomes level 2` (CR 716.2c).
+    BecomesLevel(u8),
     /// `whenever you fully unlock a Room` (CR 709.5i).
     FullyUnlocks,
     /// `deals combat damage to defending player`: the same trigger, worded

@@ -1626,6 +1626,10 @@ pub struct GameState {
     /// Room permanents on the battlefield (CR 709.5): priority looks for
     /// locked doors to unlock only when there are any.
     pub room_count: u32,
+    /// Sagas with chapter abilities on the battlefield (CR 714): the
+    /// precombat main phase and state-based actions look for them only
+    /// when there are any.
+    pub saga_count: u32,
     /// A cast just undone (CR 726) and the state version then: it is not
     /// offered again until something changes, so an agent can't loop on it.
     pub undone_cast: Option<(ObjId, u64)>,

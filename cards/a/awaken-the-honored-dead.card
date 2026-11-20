@@ -1,0 +1,8 @@
+card "Awaken the Honored Dead" {
+  oracle_id 5f694917-f434-4459-bc86-caf9ac1c80e7
+  cost {B}{G}{U}
+  type Enchantment — Saga
+  triggered chapter 1: destroy target nonland permanent
+  triggered chapter 2: mill 3 cards
+  triggered chapter 3: you may discard 1 card; when you do, return target creature or land card from your graveyard to hand
+}

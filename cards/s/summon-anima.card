@@ -1,0 +1,9 @@
+card "Summon: Anima" {
+  oracle_id 0990e57f-279e-4348-a049-e06187cc38d4
+  cost {4}{B}{B}
+  type Enchantment Creature — Saga Horror
+  pt 4/4
+  label "Pain" triggered chapter 1, 2, 3: you draw 1 card, and you lose 1 life
+  label "Oblivion" triggered chapter 4: each opponent sacrifices 1 creature and loses 3 life
+  keyword menace
+}

@@ -1,0 +1,8 @@
+card "Elspeth's Nightmare" {
+  oracle_id ff768016-67f8-409e-8359-9ed05bcb46d2
+  cost {2}{B}
+  type Enchantment — Saga
+  triggered chapter 1: destroy target creature an opponent controls with power 2 or less
+  triggered chapter 2: target opponent reveals hand discarding noncreature nonland card
+  triggered chapter 3: exile graveyard of target opponent
+}

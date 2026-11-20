@@ -2977,6 +2977,7 @@ pub fn natural_when(t: &Trigger) -> bool {
     matches!(
         t,
         Trigger::Enters(TriggerObj::This)
+            | Trigger::BecomesLevel(_)
             | Trigger::Dies(TriggerObj::This)
             | Trigger::Leaves(TriggerObj::This)
             | Trigger::Sacrificed {
@@ -3154,6 +3155,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::AttacksBattle(o) => format!("whenever {} attacks a battle", trigger_obj(o)),
         Trigger::UnlocksDoor => "when you unlock this door".to_string(),
+        Trigger::BecomesLevel(n) => format!("when this becomes level {n}"),
+        Trigger::Chapter(ns) => format!(
+            "chapter {}",
+            ns.iter().map(u8::to_string).collect::<Vec<_>>().join(", ")
+        ),
         Trigger::FullyUnlocks => "whenever you fully unlock a Room".to_string(),
         Trigger::DealsCombatDamageToDefending(o) => {
             format!(
@@ -4488,6 +4494,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::StationLevel { n, keywords } => {
             let ks: Vec<&str> = keywords.iter().map(|k| k.name()).collect();
             let _ = writeln!(out, "{indent}station {n}: {}", ks.join(", "));
+        }
+        Ability::ClassLevel { level, cost } => {
+            let _ = writeln!(out, "{indent}level {level} {cost}");
+        }
+        Ability::ToSolve(c) => {
+            let _ = writeln!(out, "{indent}to solve {}", static_cond(c));
+        }
+        Ability::Solved(inner) => {
+            let mut tmp = String::new();
+            self::ability(&mut tmp, inner, indent, groups);
+            let _ = write!(out, "{indent}solved {}", &tmp[indent.len()..]);
         }
         Ability::CrewsAs {
             saddles,

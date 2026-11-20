@@ -1,0 +1,9 @@
+card "The First Iroan Games" {
+  oracle_id 58934f6d-1aa2-414c-85c6-955a1e26d675
+  cost {2}{G}
+  type Enchantment — Saga
+  triggered chapter 1: create 1 "1/1 white Human Soldier creature"
+  triggered chapter 2: put 3 +1/+1 counters on target creature you control
+  triggered chapter 3: if you control creature with power 4 or greater, draw 2 cards
+  triggered chapter 4: create 1 "Gold"
+}
