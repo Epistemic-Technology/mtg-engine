@@ -1,0 +1,6 @@
+token "0/0 black Phyrexian Germ creature" {
+  name "Phyrexian Germ"
+  type Creature — Phyrexian Germ
+  pt 0/0
+  color black
+}

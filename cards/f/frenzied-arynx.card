@@ -1,0 +1,9 @@
+card "Frenzied Arynx" {
+  oracle_id 772873f4-74b9-44da-bd69-e4c8de797a26
+  cost {2}{R}{G}
+  type Creature — Cat Beast
+  pt 3/3
+  riot
+  keywords trample
+  activated {4}{R}{G}: this gets +3/+0
+}

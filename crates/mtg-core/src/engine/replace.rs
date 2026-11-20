@@ -41,6 +41,8 @@ use crate::state::{Chosen, GameState, LossReason, Target, Zone};
 pub(crate) struct Enter {
     pub tapped: bool,
     pub counters: Option<(CounterKind, u32)>,
+    /// Riot's haste was chosen (CR 702.136a).
+    pub haste: bool,
 }
 
 /// An event that is about to happen and may still be replaced.
@@ -904,8 +906,8 @@ impl GameState {
                     to_top,
                     controller,
                     enter: Enter {
-                        tapped: enter.tapped,
                         counters: enter.counters.map(|(k, n)| (k, n + 1)),
+                        ..enter
                     },
                 })
             }
@@ -960,10 +962,7 @@ impl GameState {
                     to,
                     to_top,
                     controller,
-                    enter: Enter {
-                        tapped: enter.tapped,
-                        counters,
-                    },
+                    enter: Enter { counters, ..enter },
                 })
             }
             (
@@ -983,10 +982,7 @@ impl GameState {
                     to,
                     to_top,
                     controller,
-                    enter: Enter {
-                        tapped,
-                        counters: enter.counters,
-                    },
+                    enter: Enter { tapped, ..enter },
                 })
             }
             (
@@ -1005,7 +1001,7 @@ impl GameState {
                 controller,
                 enter: Enter {
                     tapped: true,
-                    counters: enter.counters,
+                    ..enter
                 },
             }),
             (
@@ -1054,16 +1050,14 @@ impl GameState {
                     to,
                     to_top,
                     controller,
-                    enter: Enter {
-                        tapped: enter.tapped,
-                        counters,
-                    },
+                    enter: Enter { counters, ..enter },
                 })
             }
             // CR 702.98a: "You may have this permanent enter with an
             // additional +1/+1 counter on it."
+            // CR 702.136a: riot, "If you don't, it gains haste."
             (
-                Replacement::EnterWithCountersMay { kind, n },
+                Replacement::EnterWithCountersMay { kind, n, haste },
                 Proposed::ZoneChange {
                     obj,
                     to,
@@ -1073,12 +1067,12 @@ impl GameState {
                 },
             ) => {
                 let def = self.objects[obj].def;
-                let counters = if self.choose_mid(
+                let take = self.choose_mid(
                     controller,
                     DecisionKind::YouMay { def },
                     vec![Choice::Accept, Choice::Decline],
-                ) == 0
-                {
+                ) == 0;
+                let counters = if take {
                     match enter.counters {
                         Some((k, m)) if k == kind => Some((k, m + n)),
                         Some(other) => Some(other),
@@ -1087,6 +1081,7 @@ impl GameState {
                 } else {
                     enter.counters
                 };
+                let haste = enter.haste || (haste && !take);
                 Outcome::Event(Proposed::ZoneChange {
                     obj,
                     to,
@@ -1095,6 +1090,7 @@ impl GameState {
                     enter: Enter {
                         tapped: enter.tapped,
                         counters,
+                        haste,
                     },
                 })
             }

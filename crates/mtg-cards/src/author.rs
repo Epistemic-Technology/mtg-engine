@@ -62,7 +62,7 @@ const KEYWORDS: [&str; 39] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 92] = [
+const TEMPLATED_TAGS: [&str; 95] = [
     "Transform",
     "Role token",
     "Landcycling",
@@ -152,6 +152,9 @@ const TEMPLATED_TAGS: [&str; 92] = [
     "Afterlife",
     "Extort",
     "Mentor",
+    "Riot",
+    "Living weapon",
+    "Monstrosity",
     "Support",
     "Bolster",
     "Populate",
@@ -1160,6 +1163,9 @@ impl Templates {
             }),
             (r(r"^Adapt (\d+)$"), |c, _| {
                 Some(format!("adapt {}", cap(c, 1)))
+            }),
+            (r(r"^Monstrosity (\d+|X)$"), |c, _| {
+                Some(format!("monstrosity {}", cap(c, 1)))
             }),
             (r(r"^[Bb]olster (\d+)$"), |c, _| {
                 Some(format!("bolster {}", cap(c, 1)))
@@ -2690,11 +2696,15 @@ impl Builder<'_> {
             self.statements.push("conspire".to_string());
             return Ok(());
         }
+        if line == "Living weapon" {
+            self.statements.push("living weapon".to_string());
+            return Ok(());
+        }
         if line == "Bargain" {
             self.statements.push("bargain".to_string());
             return Ok(());
         }
-        if matches!(line, "Evolve" | "Unleash" | "Extort" | "Mentor") {
+        if matches!(line, "Evolve" | "Unleash" | "Extort" | "Mentor" | "Riot") {
             self.statements.push(line.to_lowercase());
             return Ok(());
         }

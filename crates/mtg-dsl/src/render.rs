@@ -3246,6 +3246,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
+        Effect::Monstrosity(n) => Clause::imperative(format!("monstrosity {}", digits(*n))),
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
         Effect::Incubate(n) => Clause::imperative(format!("incubate {}", digits(*n))),
@@ -7958,6 +7959,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Attacking => "it's attacking".to_string(),
         StaticCond::Enchanted => "it's enchanted".to_string(),
         StaticCond::Equipped => "it's equipped".to_string(),
+        StaticCond::Monstrous => "it's monstrous".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("an opponent has {n} or less life"),
         StaticCond::MoreLifeThanOpponent => "you have more life than an opponent".to_string(),
         StaticCond::BasicLandTypes(n) => format!(
@@ -8254,6 +8256,7 @@ fn about_source(c: &StaticCond) -> bool {
         StaticCond::Attacking
             | StaticCond::Enchanted
             | StaticCond::Equipped
+            | StaticCond::Monstrous
             | StaticCond::Is(_)
             | StaticCond::Modified
             | StaticCond::AttackingAlone
@@ -8871,6 +8874,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Afterlife(n) => format!("Afterlife {n}"),
             crate::ast::Mechanic::Extort => "Extort".to_string(),
             crate::ast::Mechanic::Mentor => "Mentor".to_string(),
+            crate::ast::Mechanic::Riot => "Riot".to_string(),
+            crate::ast::Mechanic::LivingWeapon => "Living weapon".to_string(),
         },
         Ability::EntersWithIf {
             n,

@@ -1,0 +1,8 @@
+card "Ill-Tempered Cyclops" {
+  oracle_id 07f62413-92cc-4f44-a827-a7c3a7318602
+  cost {3}{R}
+  type Creature — Cyclops
+  pt 3/3
+  keywords trample
+  activated {5}{R}: monstrosity 3
+}

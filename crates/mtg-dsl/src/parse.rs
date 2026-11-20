@@ -1312,6 +1312,16 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Provoke))
             }
+            "riot" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Riot))
+            }
+            "living" if self.at_words(&["living", "weapon"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::LivingWeapon))
+            }
             "extort" | "mentor" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -2545,6 +2555,9 @@ impl P {
         }
         if self.eat_word("equipped") {
             return Ok(StaticCond::Equipped);
+        }
+        if self.eat_word("monstrous") {
+            return Ok(StaticCond::Monstrous);
         }
         if self.eat_words(&["opponent", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
@@ -5294,6 +5307,7 @@ impl P {
             "proliferate" => Ok(Effect::Proliferate),
             "adapt" => Ok(Effect::Adapt(self.count()?)),
             "bolster" => Ok(Effect::Bolster(self.num()?)),
+            "monstrosity" => Ok(Effect::Monstrosity(self.num()?)),
             "populate" => Ok(Effect::Populate),
             "incubate" => Ok(Effect::Incubate(self.num()?)),
             // CR 701.41a: "up to N other target creatures" on a permanent

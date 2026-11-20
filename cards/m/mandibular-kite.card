@@ -1,0 +1,8 @@
+card "Mandibular Kite" {
+  oracle_id bca9f65e-ea7a-4b8d-ab0f-c2672fa967f0
+  cost {W}
+  type Artifact — Equipment
+  living weapon
+  static equipped creature: +1/+1, has flying
+  equip {3}{W}
+}

@@ -1,0 +1,8 @@
+card "Wrecking Beast" {
+  oracle_id 181a7b5a-3794-46ae-b6ff-48849ee1470f
+  cost {5}{G}{G}
+  type Creature — Beast
+  pt 6/6
+  riot
+  keywords trample
+}

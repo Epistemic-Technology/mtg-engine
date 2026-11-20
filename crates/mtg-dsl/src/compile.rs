@@ -776,6 +776,7 @@ impl Compiler<'_> {
             StaticCond::Attacking => StaticCondition::SourceAttacking,
             StaticCond::Enchanted => StaticCondition::SourceEnchanted,
             StaticCond::Equipped => StaticCondition::SourceEquipped,
+            StaticCond::Monstrous => StaticCondition::SourceMonstrous,
             StaticCond::OpponentLifeAtMost(n) => StaticCondition::OpponentLifeAtMost(*n),
             StaticCond::MoreLifeThanOpponent => StaticCondition::MoreLifeThanOpponent,
             StaticCond::BasicLandTypes(n) => StaticCondition::BasicLandTypes(*n),
@@ -1893,6 +1894,7 @@ impl Compiler<'_> {
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
             Effect::Bolster(n) => out.push(CoreEffect::Bolster(*n)),
+            Effect::Monstrosity(n) => out.push(CoreEffect::Monstrosity(*n)),
             Effect::Populate => out.push(CoreEffect::Populate),
             // CR 701.41a: one counter on each target.
             Effect::Support(to) => {
@@ -2937,11 +2939,15 @@ impl Compiler<'_> {
                 }),
                 // CR 702.98a: the first of unleash's two static abilities
                 // (the card adds the second, `unleash_static`).
-                Mechanic::Unleash => AbilityDef::Replacement(ReplacementAbility {
+                // CR 702.136a: riot, "You may have this permanent enter
+                // with an additional +1/+1 counter on it. If you don't, it
+                // gains haste."
+                Mechanic::Unleash | Mechanic::Riot => AbilityDef::Replacement(ReplacementAbility {
                     replaces: mtg_core::card::Replaces::Enters,
                     replacement: mtg_core::card::Replacement::EnterWithCountersMay {
                         kind: mtg_core::card::CounterKind::PlusOnePlusOne,
                         n: 1,
+                        haste: matches!(m, Mechanic::Riot),
                     },
                     then: Vec::new(),
                 }),
@@ -3024,6 +3030,8 @@ impl Compiler<'_> {
 const SERVO: &str = "1/1 colorless Servo artifact creature";
 /// The token afterlife creates (CR 702.135a).
 const AFTERLIFE_SPIRIT: &str = "1/1 white and black Spirit creature with flying";
+/// The token living weapon creates (CR 702.92a).
+const GERM: &str = "0/0 black Phyrexian Germ creature";
 /// The token Incubate creates (CR 701.53a, 111.10i).
 const INCUBATOR: &str = "Incubator";
 
@@ -3146,6 +3154,35 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 count: Num::N(1),
                 to: Recipient::Target(0),
             }),
+        },
+        // CR 702.92a: "When this Equipment enters, create a 0/0 black
+        // Phyrexian Germ creature token, then attach this Equipment to it."
+        Mechanic::LivingWeapon => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Enters(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![Sentence {
+                effects: vec![
+                    E::CreateToken {
+                        token: GERM.to_string(),
+                        count: Num::N(1),
+                        tapped: false,
+                        who: None,
+                        it_has: false,
+                        attached: None,
+                    },
+                    E::Attach {
+                        what: Recipient::Source,
+                        to: Recipient::CreatedObject,
+                    },
+                ],
+                label: None,
+                para: false,
+                eot_first: false,
+                then_first: false,
+                joins: vec![Join::Then],
+            }],
         },
         Mechanic::Bushido(n) => Ability::Triggered {
             from_graveyard: false,
@@ -3466,6 +3503,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Renown(_)
         | Mechanic::Unleash
         | Mechanic::Extort
+        | Mechanic::Riot
         | Mechanic::Saddle(_) => unreachable!("not an expansion"),
     }
 }

@@ -1,0 +1,8 @@
+card "Burning-Tree Vandal" {
+  oracle_id 5bed3702-984d-436f-bb71-e16eaeffe902
+  cost {2}{R}
+  type Creature — Human Rogue
+  pt 2/1
+  riot
+  triggered whenever this attacks: you may discard 1 card; if you do, draw 1 card
+}

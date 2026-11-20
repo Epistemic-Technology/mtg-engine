@@ -352,6 +352,7 @@ impl Decompiler<'_> {
             StaticCondition::SourceAttacking => StaticCond::Attacking,
             StaticCondition::SourceEnchanted => StaticCond::Enchanted,
             StaticCondition::SourceEquipped => StaticCond::Equipped,
+            StaticCondition::SourceMonstrous => StaticCond::Monstrous,
             StaticCondition::OpponentLifeAtMost(n) => StaticCond::OpponentLifeAtMost(*n),
             StaticCondition::MoreLifeThanOpponent => StaticCond::MoreLifeThanOpponent,
             StaticCondition::BasicLandTypes(n) => StaticCond::BasicLandTypes(*n),
@@ -1085,6 +1086,7 @@ impl Decompiler<'_> {
             }
             CoreEffect::Adapt(n) => Effect::Adapt(*n),
             CoreEffect::Bolster(n) => Effect::Bolster(*n),
+            CoreEffect::Monstrosity(n) => Effect::Monstrosity(*n),
             CoreEffect::Populate => Effect::Populate,
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
             CoreEffect::Fabricate { .. } | CoreEffect::BecomeRenowned => {
@@ -1728,9 +1730,13 @@ impl Decompiler<'_> {
                 Ability::Mechanic(crate::ast::Mechanic::Evolve)
             }
             AbilityDef::Replacement(ReplacementAbility {
-                replacement: mtg_core::card::Replacement::EnterWithCountersMay { .. },
+                replacement: mtg_core::card::Replacement::EnterWithCountersMay { haste, .. },
                 ..
-            }) => Ability::Mechanic(crate::ast::Mechanic::Unleash),
+            }) => Ability::Mechanic(if *haste {
+                crate::ast::Mechanic::Riot
+            } else {
+                crate::ast::Mechanic::Unleash
+            }),
             AbilityDef::Triggered(t) => Ability::Triggered {
                 trigger: self.trigger(&t.trigger),
                 condition: t.condition.map(|c| match c {

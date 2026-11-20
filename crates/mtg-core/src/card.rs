@@ -1878,6 +1878,8 @@ pub enum StaticCondition {
     /// "as long as it's enchanted" / "as long as it's equipped".
     SourceEnchanted,
     SourceEquipped,
+    /// "as long as this creature is monstrous" (CR 701.37b).
+    SourceMonstrous,
     /// "as long as an opponent has 10 or less life"; "as long as you have
     /// 30 or more life" (`at_least`), "you have 5 or less life".
     OpponentLifeAtMost(i32),
@@ -3532,6 +3534,9 @@ pub enum Effect {
     /// The source becomes renowned (CR 702.112a, b), if it is still on the
     /// battlefield.
     BecomeRenowned,
+    /// Monstrosity N (CR 701.37a): if the source isn't monstrous, N +1/+1
+    /// counters on it and it becomes monstrous.
+    Monstrosity(Num),
     /// The recipient creature connives (CR 701.50): its controller draws
     /// and discards a card; a nonland discard puts a +1/+1 counter on it.
     Connive {
@@ -4010,8 +4015,13 @@ pub enum Replacement {
     /// Enters with counters.
     EnterWithCounters { kind: CounterKind, n: Num },
     /// Its controller may have it enter with N more counters (unleash, CR
-    /// 702.98a).
-    EnterWithCountersMay { kind: CounterKind, n: u32 },
+    /// 702.98a); with `haste`, if they don't, it has haste (riot, CR
+    /// 702.136a).
+    EnterWithCountersMay {
+        kind: CounterKind,
+        n: u32,
+        haste: bool,
+    },
     /// CR 701.15a: instead of being destroyed, the permanent has all damage
     /// removed, is tapped, and leaves combat. A stored shield; used once.
     Regenerate,

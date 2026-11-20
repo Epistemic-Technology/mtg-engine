@@ -2722,6 +2722,8 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: false,
             renowned: false,
+            monstrous: false,
+            riot_haste: false,
             skip_untap: false,
             chosen: Chosen::None,
             alt: crate::state::AltCast::None,
@@ -5612,6 +5614,7 @@ impl GameState {
                         super::replace::Enter {
                             tapped: *tapped,
                             counters: None,
+                            haste: false,
                         },
                     );
                     ctx.created = Some(new);
@@ -5669,6 +5672,7 @@ impl GameState {
                 super::replace::Enter {
                     tapped: false,
                     counters: Some((CounterKind::PlusOnePlusOne, counters)),
+                    haste: false,
                 },
             );
             if self
@@ -7575,6 +7579,7 @@ impl GameState {
                         super::replace::Enter {
                             tapped: *tapped,
                             counters: *counters,
+                            haste: false,
                         },
                     );
                     if let Some(h) = host
@@ -7958,6 +7963,7 @@ impl GameState {
                     super::replace::Enter {
                         tapped: false,
                         counters: (n > 0).then_some((CounterKind::PlusOnePlusOne, n)),
+                        haste: false,
                     },
                 );
                 if self.objects.contains_key(new) {
@@ -7972,6 +7978,20 @@ impl GameState {
                     && o.zone == Zone::Battlefield
                 {
                     o.renowned = true;
+                }
+            }
+            Effect::Monstrosity(n) => {
+                // CR 701.37a: only a permanent that isn't monstrous; one
+                // that has left the battlefield does nothing.
+                let n = self.eval_num(*n, ctx);
+                if let Some(id) = self.current_object(ctx.source)
+                    && self.objects[id].zone == Zone::Battlefield
+                    && !self.objects[id].monstrous
+                {
+                    self.add_counters(id, CounterKind::PlusOnePlusOne, n);
+                    self.objects[id].monstrous = true;
+                    // "As long as this creature is monstrous" (CR 701.37b).
+                    self.cbump();
                 }
             }
             Effect::Connive { what } => {
@@ -8158,6 +8178,7 @@ impl GameState {
                     super::replace::Enter {
                         tapped: true,
                         counters: None,
+                        haste: false,
                     },
                 );
                 ctx.created = Some(new);
@@ -8448,6 +8469,7 @@ impl GameState {
                         super::replace::Enter {
                             tapped,
                             counters: None,
+                            haste: false,
                         },
                     )
                 }

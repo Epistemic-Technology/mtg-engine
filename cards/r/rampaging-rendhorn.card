@@ -1,0 +1,7 @@
+card "Rampaging Rendhorn" {
+  oracle_id b867deb4-a088-492e-95fe-487071ebfe8d
+  cost {4}{G}
+  type Creature — Beast
+  pt 4/4
+  riot
+}

@@ -1,0 +1,8 @@
+card "Skittering Crustacean" {
+  oracle_id 9a6d8d37-fcf9-4974-89f5-3500e9da3518
+  cost {2}{U}
+  type Creature — Crab
+  pt 2/3
+  activated {6}{U}: monstrosity 4
+  static as long as monstrous, this: has hexproof
+}

@@ -569,6 +569,7 @@ impl Fmt {
             Effect::Manifest => "manifest".to_string(),
             Effect::Adapt(n) => format!("adapt {n}"),
             Effect::Bolster(n) => format!("bolster {}", num(*n)),
+            Effect::Monstrosity(n) => format!("monstrosity {}", num(*n)),
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
             Effect::Incubate(n) => format!("incubate {}", num(*n)),
@@ -3409,6 +3410,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Attacking => "attacking".to_string(),
         StaticCond::Enchanted => "enchanted".to_string(),
         StaticCond::Equipped => "equipped".to_string(),
+        StaticCond::Monstrous => "monstrous".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("opponent life {n} or less"),
         StaticCond::MoreLifeThanOpponent => "your life more than opponent".to_string(),
         StaticCond::BasicLandTypes(n) => format!("{n} basic land types"),
@@ -4086,6 +4088,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Afterlife(n) => format!("afterlife {n}"),
                 crate::ast::Mechanic::Extort => "extort".to_string(),
                 crate::ast::Mechanic::Mentor => "mentor".to_string(),
+                crate::ast::Mechanic::Riot => "riot".to_string(),
+                crate::ast::Mechanic::LivingWeapon => "living weapon".to_string(),
             };
             let _ = writeln!(out, "{indent}{text}");
         }

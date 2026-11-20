@@ -1,0 +1,8 @@
+card "Ghor-Clan Wrecker" {
+  oracle_id b113285c-80b2-46dd-874e-201d26979518
+  cost {3}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  riot
+  keywords menace
+}

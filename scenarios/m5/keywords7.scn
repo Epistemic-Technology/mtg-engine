@@ -101,3 +101,94 @@ scenario "mentor: a creature that isn't attacking can't be chosen" {
   run_to turn 1 postcombat_main
   assert counters "Grizzly Bears" +1/+1 0
 }
+
+# Living weapon (CR 702.92), monstrosity (701.37), riot (702.136).
+
+scenario "living weapon: a Germ, then the Equipment attached to it" {
+  battlefield A: "Plains"
+  hand A: "Flayer Husk"
+  turn 1 A: cast "Flayer Husk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Phyrexian Germ"
+  assert attached "Flayer Husk" to "Phyrexian Germ"
+  assert power "Phyrexian Germ" 1
+  assert toughness "Phyrexian Germ" 1
+  assert is "Phyrexian Germ" black
+}
+
+scenario "living weapon: the Germ dies once the Equipment moves" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand A: "Flayer Husk"
+  turn 1 A: cast "Flayer Husk"
+  turn 1 A: activate "Flayer Husk" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Phyrexian Germ"
+  assert attached "Flayer Husk" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+}
+
+scenario "monstrosity: counters, and it becomes monstrous" {
+  battlefield A: "Sinuous Vermin", 5 "Swamp"
+  turn 1 A: activate "Sinuous Vermin"
+  run_to turn 1 postcombat_main
+  assert counters "Sinuous Vermin" +1/+1 3
+  assert power "Sinuous Vermin" 5
+  assert has "Sinuous Vermin" menace
+}
+
+scenario "monstrosity: not monstrous yet, no menace" {
+  battlefield A: "Sinuous Vermin" with 1 +1/+1
+  run_to turn 1 postcombat_main
+  assert has not "Sinuous Vermin" menace
+}
+
+scenario "monstrosity: a second activation adds nothing" {
+  battlefield A: "Ill-Tempered Cyclops", 12 "Mountain"
+  turn 1 A: activate "Ill-Tempered Cyclops"
+  turn 1 A: activate "Ill-Tempered Cyclops"
+  run_to turn 1 postcombat_main
+  assert counters "Ill-Tempered Cyclops" +1/+1 3
+  assert power "Ill-Tempered Cyclops" 6
+}
+
+scenario "riot: a +1/+1 counter, no haste" {
+  battlefield A: 5 "Forest"
+  hand A: "Rampaging Rendhorn"
+  turn 1 A: cast "Rampaging Rendhorn"
+  turn 1 A: accept "Rampaging Rendhorn"
+  run_to turn 1 postcombat_main
+  assert counters "Rampaging Rendhorn" +1/+1 1
+  assert power "Rampaging Rendhorn" 5
+  assert has not "Rampaging Rendhorn" haste
+}
+
+scenario "riot: haste instead, and it attacks right away" {
+  battlefield A: 5 "Forest"
+  hand A: "Rampaging Rendhorn"
+  turn 1 A: cast "Rampaging Rendhorn"
+  turn 1 A: decline "Rampaging Rendhorn"
+  turn 1 A: attack "Rampaging Rendhorn"
+  run_to turn 1 postcombat_main
+  assert counters "Rampaging Rendhorn" +1/+1 0
+  assert has "Rampaging Rendhorn" haste
+  assert life B 16
+}
+
+scenario "riot: with the counter it can't attack this turn" {
+  battlefield A: 5 "Forest"
+  hand A: "Rampaging Rendhorn"
+  turn 1 A: cast "Rampaging Rendhorn"
+  turn 1 A: accept "Rampaging Rendhorn"
+  illegal turn 1 A: attack "Rampaging Rendhorn"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "riot: modular's counters and riot's extra one" {
+  battlefield A: 5 "Mountain"
+  hand A: "Arcbound Slasher"
+  turn 1 A: cast "Arcbound Slasher"
+  turn 1 A: accept "Arcbound Slasher"
+  run_to turn 1 postcombat_main
+  assert counters "Arcbound Slasher" +1/+1 5
+}

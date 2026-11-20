@@ -1173,6 +1173,12 @@ pub enum Mechanic {
     /// `mentor` (CR 702.134): whenever this attacks, a +1/+1 counter on
     /// target attacking creature with lesser power.
     Mentor,
+    /// `riot` (CR 702.136): enters with your choice of a +1/+1 counter or
+    /// haste.
+    Riot,
+    /// `living weapon` (CR 702.92): when this Equipment enters, a 0/0
+    /// black Phyrexian Germ token, then attach this to it.
+    LivingWeapon,
 }
 
 /// A blocking restriction on this creature.
@@ -1228,6 +1234,8 @@ pub enum StaticCond {
     Attacking,
     Enchanted,
     Equipped,
+    /// `monstrous`: "this creature is monstrous" (CR 701.37b).
+    Monstrous,
     /// `opponent life 10 or less`: "an opponent has 10 or less life".
     OpponentLifeAtMost(i32),
     /// `your life 30 or more`: "you have 30 or more life".
@@ -2712,6 +2720,8 @@ pub enum Effect {
     Adapt(u32),
     /// `bolster 2` (CR 701.39).
     Bolster(Num),
+    /// `monstrosity 3` (CR 701.37): "Monstrosity 3."
+    Monstrosity(Num),
     /// `support 2` (CR 701.41a): a +1/+1 counter on each of up to N target
     /// creatures, other than the source in a triggered ability (support on
     /// a permanent); the recipients are those targets.
