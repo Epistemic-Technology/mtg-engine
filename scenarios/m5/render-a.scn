@@ -69,6 +69,139 @@ scenario "Madame Masque connives as she enters" {
   assert counters "Madame Masque" +1/+1 1
 }
 
+scenario "Ajani Resolute's 0 ability gains life, which adds loyalty" {
+  battlefield A: "Ajani Resolute" with 2 loyalty
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ajani Resolute" ability 1
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert counters "Ajani Resolute" loyalty 3
+}
+
+scenario "Ajani Resolute's -4 makes Ajani's Pridemate, which grows on life gain" {
+  battlefield A: "Ajani Resolute" with 4 loyalty
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ajani Resolute" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ajani's Pridemate"
+  assert graveyard A contains "Ajani Resolute"
+}
+
+scenario "Ajani Resolute's emblem pumps your creatures" {
+  battlefield A: "Ajani Resolute" with 10 loyalty, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ajani Resolute" ability 3
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "Arcanis draws three and returns to hand" {
+  battlefield A: "Arcanis the Omnipotent", 4 "Island"
+  library A: 5 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Arcanis the Omnipotent" ability 1
+  turn 1 A: activate "Arcanis the Omnipotent" ability 2
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+  assert hand A contains "Arcanis the Omnipotent"
+}
+
+scenario "Kiora makes a Dragon as she enters" {
+  battlefield A: 6 "Mountain"
+  hand A: "Kiora of Fire and Ashes"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kiora of Fire and Ashes"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dragon"
+}
+
+scenario "War Machine gives another creature its power" {
+  battlefield A: "War Machine, Legacy of Iron" with 2 +1/+1, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "War Machine, Legacy of Iron" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Ashroot Animist gives trample and its power" {
+  battlefield A: "Ashroot Animist", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Ashroot Animist"
+  turn 1 declare_attackers A: trigger "Ashroot Animist" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 6
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Wildwood Mentor pumps another attacker by its power" {
+  battlefield A: "Wildwood Mentor" with 2 +1/+1, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Wildwood Mentor", "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Wildwood Mentor" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+}
+
+scenario "Liliana the Repentant mills two as another creature enters" {
+  battlefield A: "Liliana the Repentant", 2 "Forest"
+  hand A: "Grizzly Bears"
+  library A: 4 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 2
+}
+
+scenario "Affectionate Indrik may fight a creature you don't control" {
+  battlefield A: 6 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Affectionate Indrik"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Affectionate Indrik"
+  turn 1 A: trigger "Affectionate Indrik" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Affectionate Indrik" 2
+}
+
+scenario "Affectionate Indrik's fight is optional" {
+  battlefield A: 6 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Affectionate Indrik"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Affectionate Indrik"
+  turn 1 A: trigger "Affectionate Indrik" targeting "Grizzly Bears"
+  turn 1 A: decline "Affectionate Indrik"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Wisecrack: an attacker hits itself and its controller takes 2" {
+  battlefield A: "Hill Giant"
+  battlefield B: 3 "Mountain"
+  hand B: "Wisecrack"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_attackers B: cast "Wisecrack" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert life A 18
+}
+
+scenario "Wisecrack on a creature that isn't attacking deals no damage to its controller" {
+  battlefield A: "Hill Giant"
+  battlefield B: 3 "Mountain"
+  hand B: "Wisecrack"
+  start turn 1 A precombat_main
+  turn 1 precombat_main B: cast "Wisecrack" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert life A 20
+}
+
 scenario "Brambleguard Captain gives its power to a creature you control" {
   battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
   start turn 1 A precombat_main

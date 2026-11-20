@@ -1,0 +1,7 @@
+token "2/2 white Cat Soldier creature named Ajani's Pridemate" {
+  name "Ajani's Pridemate"
+  type Creature — Cat Soldier
+  pt 2/2
+  color white
+  triggered whenever you gain life: put 1 +1/+1 counters on this
+}

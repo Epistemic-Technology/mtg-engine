@@ -1,0 +1,8 @@
+card "Wildwood Mentor" {
+  oracle_id f4e61b03-e6c8-4751-9720-b91fdecd57da
+  cost {2}{G}
+  type Creature — Treefolk
+  pt 1/1
+  triggered whenever token you control enters: put 1 +1/+1 counters on this
+  triggered whenever this attacks: another target attacking creature gets +1/+1 count where power
+}

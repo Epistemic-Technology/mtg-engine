@@ -1,0 +1,9 @@
+card "Liliana the Repentant" {
+  oracle_id 5eb4403f-f199-4f75-a7c6-e76783f9b07d
+  cost {1}{B}
+  type Legendary Creature — Human Warlock
+  pt 2/2
+  short_name "Liliana"
+  triggered whenever other creature or planeswalker you control enters: mill 2 cards
+  exhaust {5}{B}, sorcery: return target creature or planeswalker card from your graveyard to battlefield; put 1 +1/+1 counters on this
+}

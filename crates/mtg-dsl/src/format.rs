@@ -112,6 +112,9 @@ fn format_inner(card: &Card) -> String {
     if card.flash_cleanup {
         let _ = writeln!(out, "  flash with cleanup sacrifice");
     }
+    if let Some(n) = &card.short_name {
+        let _ = writeln!(out, "  short_name {n:?}");
+    }
     match card.pronoun {
         Some(crate::ast::Pronoun::He) => {
             let _ = writeln!(out, "  pronoun he");

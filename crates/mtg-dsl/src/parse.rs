@@ -724,6 +724,7 @@ impl P {
             flash_if: None,
             flash_cleanup: false,
             pronoun: None,
+            short_name: None,
             unkicked_targets: None,
             cast_only: None,
             kicker: None,
@@ -841,7 +842,10 @@ impl P {
                 }
                 self.end_stmt()
             }
-            "loyalty" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+            "loyalty"
+                if matches!(self.peek_at(1), Some(Tok::Num(_)))
+                    && self.peek_at(2) != Some(&Tok::Colon) =>
+            {
                 self.pos += 1;
                 card.loyalty = Some(self.number()?);
                 self.end_stmt()
@@ -939,6 +943,11 @@ impl P {
             "kicker" => {
                 self.pos += 1;
                 card.kicker = Some(self.mana_cost()?);
+                self.end_stmt()
+            }
+            "short_name" => {
+                self.pos += 1;
+                card.short_name = Some(self.string()?);
                 self.end_stmt()
             }
             "pronoun" => {
@@ -1930,8 +1939,11 @@ impl P {
             }
             "loyalty" => {
                 self.pos += 1;
-                let Some(Tok::Signed(n)) = self.next() else {
-                    return self.fail("expected a loyalty cost such as +1 or -3");
+                // "0:" (CR 606.3) is written `loyalty 0:` or `loyalty +0:`.
+                let n = match self.next() {
+                    Some(Tok::Signed(n)) => n,
+                    Some(Tok::Num(0)) => 0,
+                    _ => return self.fail("expected a loyalty cost such as +1, 0, or -3"),
                 };
                 let effects = self.effects_body()?;
                 Ok(Ability::Activated {

@@ -4775,6 +4775,32 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         let word = Regex::new(&format!(r"\b{}\b", regex::escape(short))).unwrap();
         oracle = word.replace_all(&oracle, "~").into_owned();
     }
+    // "Ajani" for "Ajani Resolute", "Smaug" for "Smaug the Magnificent":
+    // a legendary card without a comma in its name may call itself by its
+    // first word (not "Ajani's Pridemate", a token's name).
+    let mut short = None;
+    if type_line.contains("Legendary")
+        && !s.name.contains(", ")
+        && let Some((first, _)) = s.name.split_once(' ')
+        && first != "The"
+        && first.chars().all(char::is_alphabetic)
+    {
+        let word = Regex::new(&format!(r"\b{}\b('s )?", regex::escape(first))).unwrap();
+        let mut found = false;
+        oracle = word
+            .replace_all(&oracle, |c: &regex::Captures| {
+                if c.get(1).is_some() {
+                    c[0].to_string()
+                } else {
+                    found = true;
+                    "~".to_string()
+                }
+            })
+            .into_owned();
+        if found {
+            short = Some(first.to_string());
+        }
+    }
     // A character's text calls it "he" or "she"; the templates read "it"
     // and the card gets a `pronoun` line.
     let pronoun = if type_line.contains("Legendary") {
@@ -4884,6 +4910,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     }
     if let Some(d) = &s.defense {
         let _ = writeln!(text, "  defense {d}");
+    }
+    if let Some(n) = &short {
+        let _ = writeln!(text, "  short_name {n:?}");
     }
     if let Some(p) = pronoun {
         let _ = writeln!(text, "  pronoun {p}");

@@ -1,0 +1,11 @@
+card "Ajani Resolute" {
+  oracle_id 0d60c095-4c6c-4618-8ef3-508f3d454efa
+  cost {1}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 2
+  short_name "Ajani"
+  triggered whenever you gain life: put 1 loyalty counters on this
+  loyalty 0: you gain 1 life
+  loyalty -4: create 1 "2/2 white Cat Soldier creature named Ajani's Pridemate"
+  loyalty -10: emblem "Ajani Resolute emblem"
+}

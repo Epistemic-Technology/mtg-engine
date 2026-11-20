@@ -1,0 +1,6 @@
+card "Wisecrack" {
+  oracle_id e9c9a445-4386-4616-ad00-f08064d73dcd
+  cost {2}{R}
+  type Instant
+  spell: target creature bites that target 1; if that target 1 is attacking, deal 2 damage to controller of that target 1
+}

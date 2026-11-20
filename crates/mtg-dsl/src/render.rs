@@ -743,6 +743,10 @@ pub fn this_ref(card: &Card) -> String {
 /// 201.5), else the whole name.
 pub fn short_name(card: &Card) -> &str {
     if card.supertypes.contains(&Supertype::Legendary) {
+        // `short_name "Ajani"` for "Ajani Resolute".
+        if let Some(s) = &card.short_name {
+            return s;
+        }
         card.name.split(", ").next().unwrap_or(&card.name)
     } else {
         &card.name
@@ -2381,7 +2385,11 @@ fn additional_text(cost: &Cost, ctx: &mut Ctx) -> String {
 #[allow(clippy::too_many_lines)] // one arm per cost part
 fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
     if let Some(n) = cost.loyalty {
-        return if n >= 0 {
+        // A zero loyalty cost prints "0:" (Gideon Jura's "0: Until end of
+        // turn, ...").
+        return if n == 0 {
+            "0".to_string()
+        } else if n > 0 {
             format!("+{n}")
         } else {
             format!("−{}", -n)
@@ -5632,7 +5640,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Bite { source, to, twice } => {
             let s = ctx.subj(*source);
-            let o = ctx.obj(*to);
+            // `target creature bites that target 1`: the newer "deals
+            // damage equal to its power to itself" (Wisecrack).
+            let o = match (source, to) {
+                (Recipient::Target(a), Recipient::ThatTarget(b)) if a == b => "itself".to_string(),
+                _ => ctx.obj(*to),
+            };
             let twice = if *twice { "twice " } else { "" };
             // "Up to two target creatures you control each deal damage
             // equal to their power to ...".
@@ -6385,6 +6398,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ("discards", "discard"),
                     ("becomes", "become"),
                     ("draws", "draw"),
+                    ("fights", "fight"),
                     ("has", "have"),
                 ];
                 let mut text = body.trim_end_matches('.').to_string();

@@ -1,0 +1,7 @@
+card "Affectionate Indrik" {
+  oracle_id 88aa032d-dc11-4cae-81f3-ce66353963e0
+  cost {5}{G}
+  type Creature — Beast
+  pt 4/4
+  triggered when this enters: you may this fights target creature you don't control
+}

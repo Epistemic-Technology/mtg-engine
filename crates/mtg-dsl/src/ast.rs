@@ -144,6 +144,10 @@ pub struct Card {
     pub flash_cleanup: bool,
     /// `pronoun he`: how the text refers to the card after naming it.
     pub pronoun: Option<Pronoun>,
+    /// `short_name "Ajani"`: the name a legendary card's text uses for
+    /// itself when it isn't the part before a comma ("put a loyalty
+    /// counter on Ajani" on Ajani Resolute; CR 201.5).
+    pub short_name: Option<String>,
     /// Derived as a spell is parsed: how many of its targets come before
     /// those an "if kicked" sentence declares (Orim's Thunder's "target
     /// creature" is chosen only if the spell is kicked, CR 601.2c).
@@ -205,6 +209,7 @@ impl Card {
             flash_if: None,
             flash_cleanup: false,
             pronoun: None,
+            short_name: None,
             unkicked_targets: None,
             cast_only: None,
             kicker: None,
