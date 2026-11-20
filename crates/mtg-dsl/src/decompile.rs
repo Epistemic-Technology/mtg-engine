@@ -1141,6 +1141,7 @@ impl Decompiler<'_> {
                 kind: format!("{}s", self.pool.get(*token).name.trim_end_matches(" Army")),
                 count: *count,
             },
+            CoreEffect::EmpowerJace { count, .. } => Effect::EmpowerJace { count: *count },
             CoreEffect::ClearEcho => Effect::ClearEcho,
             CoreEffect::Manifest => Effect::Manifest,
             CoreEffect::ManifestDread => Effect::ManifestDread,

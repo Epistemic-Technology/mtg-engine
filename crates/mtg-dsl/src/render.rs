@@ -2724,7 +2724,8 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::DistributeCounters { count, .. }
         | Effect::AddManaTimes { count, .. }
         | Effect::AddManaCombination { count, .. }
-        | Effect::CreateToken { count, .. } => vec![*count],
+        | Effect::CreateToken { count, .. }
+        | Effect::EmpowerJace { count } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
         Effect::Scry(n)
@@ -4011,6 +4012,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Amass { kind, count } => {
             ctx.amassed = true;
             Clause::imperative(format!("amass {kind} {}", digits(*count)))
+        }
+        Effect::EmpowerJace { count } => {
+            Clause::imperative(format!("empower Jace {}", digits(*count)))
         }
         Effect::ClearEcho => Clause::imperative(String::new()),
         Effect::AddEnergy { count, who } => {
@@ -7847,7 +7851,7 @@ pub(crate) fn also_subtypes(filter: &Filter, mods: &[Mod]) -> Option<Vec<String>
 }
 
 #[allow(clippy::too_many_lines)] // one case per kind of static
-fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
+fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) -> String {
     // Characteristic-defining abilities name the card.
     if let Some(Mod::CdaPt {
         count,
@@ -8038,13 +8042,13 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
                     return format!(
                         "{} {}",
                         if plural_form { "have" } else { "has" },
-                        quoted_as(a, card, &[], &())
+                        quoted_as(a, card, &[], lookup)
                     );
                 } else {
                     CardType::Creature
                 };
                 let have = if plural_form { "have" } else { "has" };
-                return format!("{have} {}", quoted(a, card, noun, &()));
+                return format!("{have} {}", quoted(a, card, noun, lookup));
             }
             // "gets +1/+1 and all creatures able to block it do so" (Gift
             // of the Deity).
@@ -8351,7 +8355,16 @@ fn quoted_as(a: &Ability, card: &Card, types: &[CardType], lookup: &dyn Lookup) 
     holder.types = types.to_vec();
     holder.groups.clone_from(&card.groups);
     holder.counts.clone_from(&card.counts);
-    format!("\"{}\"", ability_text(&holder, a, lookup))
+    let text = ability_text(&holder, a, lookup);
+    // A quoted loyalty ability brackets its cost: "[−4]: ..." (CR 606.4
+    // prints the bare symbol only on a planeswalker's own text).
+    if let Ability::Activated { cost, .. } = a
+        && cost.loyalty.is_some()
+        && let Some((c, rest)) = text.split_once(": ")
+    {
+        return format!("\"[{c}]: {rest}\"");
+    }
+    format!("\"{text}\"")
 }
 
 /// "seven or more cards are in your graveyard", "you control an Island".
@@ -9321,7 +9334,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             cond_first,
             cond_if,
         } => {
-            let mut body = static_text(filter, mods, card);
+            let mut body = static_text(filter, mods, card, lookup);
             // "This creature doesn't untap during your untap step if ..."
             // (Goblin Rock Sled).
             if filter.relation == Relation::This {

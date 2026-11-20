@@ -3638,6 +3638,14 @@ pub enum Effect {
         count: Num,
         token: CardRef,
     },
+    /// Empower Jace N: put N loyalty counters on a Jace planeswalker
+    /// token the controller controls, creating `token` (the blue Jace
+    /// with 0 loyalty, "[−1]: Surveil 1" and "[−3]: Draw a card.") first
+    /// if they control none. A nontoken Jace doesn't count.
+    EmpowerJace {
+        count: Num,
+        token: CardRef,
+    },
     /// The source's echo has been dealt with (CR 702.30a).
     ClearEcho,
     /// Warp's delayed trigger (CR 702.185a, `Builtin::WarpExile`): exile

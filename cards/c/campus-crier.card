@@ -1,0 +1,7 @@
+card "Campus Crier" {
+  oracle_id c1a9d60f-a469-48f9-8f1c-3ca5ae86bd64
+  cost {1}{W}
+  type Creature — Human Advisor
+  pt 3/1
+  activated {1}, exile this from graveyard: empower jace 2
+}

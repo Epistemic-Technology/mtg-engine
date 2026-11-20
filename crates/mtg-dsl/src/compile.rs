@@ -42,6 +42,9 @@ pub fn compile_all(cards: &[Card]) -> Result<CardPool, CompileError> {
     Ok(pool)
 }
 
+/// The token Empower Jace creates.
+pub const JACE_TOKEN: &str = "Jace planeswalker";
+
 /// Sort definitions into compile order: tokens, then emblems, then cards,
 /// each group by name.
 pub fn compile_order(cards: &mut [Card]) {
@@ -2174,6 +2177,15 @@ impl Compiler<'_> {
                     return self.err(format!("unknown token \"{key}\""));
                 };
                 out.push(CoreEffect::Amass {
+                    count: *count,
+                    token,
+                });
+            }
+            Effect::EmpowerJace { count } => {
+                let Some(token) = self.pool.lookup(JACE_TOKEN) else {
+                    return self.err(format!("unknown token \"{JACE_TOKEN}\""));
+                };
+                out.push(CoreEffect::EmpowerJace {
                     count: *count,
                     token,
                 });

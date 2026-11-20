@@ -1,0 +1,7 @@
+card "Hexhaven Battalion" {
+  oracle_id 158823ed-6015-437a-82b0-8dadb1e9aab2
+  cost {4}{W}{W}
+  type Sorcery
+  spell: create 3 "Cadet"; empower jace 2
+  basic landcycling {2}
+}

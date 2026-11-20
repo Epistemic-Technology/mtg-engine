@@ -1,0 +1,9 @@
+card "Academic Ascent" {
+  oracle_id 406e853b-713f-4c89-9efb-aca74a11183f
+  cost {1}{W}
+  type Instant
+  spell {
+  target creature gets +2/+2 and gains flying
+  empower jace 2
+  }
+}

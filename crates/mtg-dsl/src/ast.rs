@@ -3042,6 +3042,11 @@ pub enum Effect {
         kind: String,
         count: Num,
     },
+    /// `empower jace 3`: "Empower Jace 3." (needs the token "Jace
+    /// planeswalker").
+    EmpowerJace {
+        count: Num,
+    },
     /// Echo's bookkeeping (from its expansion).
     ClearEcho,
     /// `manifest`: "manifest the top card of your library" (CR 701.34).

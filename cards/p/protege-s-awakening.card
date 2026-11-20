@@ -1,0 +1,9 @@
+card "Protege's Awakening" {
+  oracle_id 07617648-6490-4719-acec-7705671f7e01
+  cost {3}{U}
+  type Sorcery
+  spell {
+  empower jace 6
+  draw 1 card
+  }
+}

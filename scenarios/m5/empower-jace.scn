@@ -1,0 +1,91 @@
+# Empower Jace N: put N loyalty counters on a Jace planeswalker token you
+# control; if you control none, first create a blue Jace planeswalker
+# token with 0 loyalty, "[−1]: Surveil 1" and "[−3]: Draw a card."
+
+scenario "Empower Jace creates the Jace token with that much loyalty" {
+  battlefield A: 3 "Island"
+  hand A: "Mindseeker Oculus"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mindseeker Oculus"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Jace"
+  assert counters "Jace" loyalty 4
+  assert is "Jace" planeswalker
+  assert is "Jace" blue
+}
+
+scenario "A second empower adds to the Jace token you control" {
+  battlefield A: 3 "Island", "Forest", "Plains"
+  hand A: "Mindseeker Oculus", "Academic Ascent"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mindseeker Oculus"
+  turn 1 postcombat_main A: cast "Academic Ascent" targeting "Mindseeker Oculus"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Jace"
+  assert counters "Jace" loyalty 6
+}
+
+scenario "A nontoken Jace doesn't count" {
+  battlefield A: "Jace Beleren", 3 "Island"
+  hand A: "Mindseeker Oculus"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mindseeker Oculus"
+  run_to turn 1 postcombat_main
+  assert counters "Jace Beleren" loyalty 3
+  assert battlefield A contains 1 "Jace"
+  assert counters "Jace" loyalty 4
+}
+
+scenario "The Jace token's −3 draws a card" {
+  battlefield A: 3 "Island"
+  hand A: "Mindseeker Oculus"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mindseeker Oculus"
+  turn 1 postcombat_main A: activate "Jace" ability 2
+  run_to turn 1 end
+  assert counters "Jace" loyalty 1
+  assert hand A contains "Forest"
+}
+
+scenario "Repurposed Enforcer empowers Jace X, X the creatures you control" {
+  battlefield A: "Repurposed Enforcer", 2 "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Repurposed Enforcer"
+  run_to turn 1 postcombat_main
+  assert counters "Jace" loyalty 3
+}
+
+scenario "Overwrite the Multiverse empowers Jace once per creature exiled" {
+  battlefield A: 6 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Overwrite the Multiverse"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Overwrite the Multiverse"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Serra Angel"
+  assert counters "Jace" loyalty 3
+}
+
+scenario "Way of the Wildspeaker: the Jace token has the granted −4" {
+  battlefield A: 5 "Forest"
+  hand A: "Way of the Wildspeaker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Way of the Wildspeaker"
+  turn 1 postcombat_main A: activate "Jace" ability 3
+  run_to turn 1 end
+  assert counters "Jace" loyalty 3
+  assert battlefield A contains 1 "Beast"
+}
+
+scenario "A Jace token at 0 loyalty is put into the graveyard" {
+  battlefield A: 2 "Swamp"
+  hand A: "Solve for Disappointment"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Solve for Disappointment" targeting player B
+  turn 1 postcombat_main A: activate "Jace" ability 1
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A lacks "Jace"
+}

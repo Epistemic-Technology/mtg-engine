@@ -1,0 +1,8 @@
+card "Arcane Amphisbaena" {
+  oracle_id 5c151e3b-fcf2-4adb-a60b-9eff0c360705
+  cost {1}{G}
+  type Creature — Snake
+  pt 1/1
+  keywords deathtouch
+  triggered when this enters: empower jace 2
+}

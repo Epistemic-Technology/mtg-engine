@@ -1,0 +1,9 @@
+card "Vraska's Final Mercy" {
+  oracle_id 7799413d-e313-4a05-ad28-f4c926c26d28
+  cost {B}{B}
+  type Sorcery
+  choose one {
+  mode: you lose 2 life; destroy target creature or planeswalker
+  mode: you lose 2 life; empower jace 6
+  }
+}

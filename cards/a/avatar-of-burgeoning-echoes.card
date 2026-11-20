@@ -1,0 +1,8 @@
+card "Avatar of Burgeoning Echoes" {
+  oracle_id 08e8a63c-9fcc-48cf-a9af-15cbaeec943f
+  cost {G}{U}
+  type Creature — Avatar
+  pt 2/3
+  label "Landfall" triggered whenever land you control enters: empower jace 2
+  static planeswalker you control: has ability { loyalty -10: put count each land you control +1/+1 counters on target creature }
+}

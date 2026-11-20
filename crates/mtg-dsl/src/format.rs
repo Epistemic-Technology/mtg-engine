@@ -595,6 +595,7 @@ impl Fmt {
             Effect::Explore { what } => format!("{} explores", self.recipient(*what, t)),
             Effect::PhaseOut { what } => format!("{} phases out", self.recipient(*what, t)),
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
+            Effect::EmpowerJace { count } => format!("empower jace {}", num(*count)),
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
             Effect::ManifestDread => "manifest dread".to_string(),

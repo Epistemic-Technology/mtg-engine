@@ -8633,6 +8633,28 @@ impl GameState {
                     ctx.created = Some(id);
                 }
             }
+            Effect::EmpowerJace { count, token } => {
+                let n = self.eval_num(*count, ctx);
+                let p = ctx.controller;
+                let jace = self.pool.subtype_lookup("Jace");
+                let mut target = jace.and_then(|j| {
+                    self.permanents_of(p).find(|id| {
+                        self.objects[*id].kind == ObjKind::Token
+                            && self
+                                .characteristics(*id)
+                                .is_some_and(|c| c.is_planeswalker() && c.has_subtype(j))
+                    })
+                });
+                if target.is_none() {
+                    let new = self.create_token(*token, p);
+                    if self.objects.contains_key(new) {
+                        target = Some(new);
+                    }
+                }
+                if let Some(id) = target {
+                    self.add_counters(id, CounterKind::Loyalty, n);
+                }
+            }
             // Modes resolve through the chosen mode (`effects_of`).
             Effect::Modes(_) => {}
             // Looking at the top cards keeps their order; the controller

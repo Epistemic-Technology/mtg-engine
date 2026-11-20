@@ -1,0 +1,7 @@
+card "Way of the Healer" {
+  oracle_id cb27dc83-85ee-4f54-b032-41cd1806d3ac
+  cost {3}{W}
+  type Legendary Enchantment
+  triggered when this enters: empower jace 5
+  static planeswalker you control: has ability { loyalty -2: create 1 "Cadet"; surveil 1 }
+}

@@ -6048,6 +6048,11 @@ impl P {
                 Ok(Effect::SwitchPt { to })
             }
 
+            "empower" => {
+                self.expect_words(&["jace"])?;
+                let count = self.num()?;
+                Ok(Effect::EmpowerJace { count })
+            }
             "amass" => {
                 let kind = self.word()?;
                 let count = self.num()?;

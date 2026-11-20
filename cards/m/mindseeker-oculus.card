@@ -1,0 +1,7 @@
+card "Mindseeker Oculus" {
+  oracle_id aa9547b3-e4e4-4557-9dd1-3aa9a7cb9937
+  cost {2}{U}
+  type Creature — Homunculus
+  pt 2/1
+  triggered when this enters: empower jace 4
+}

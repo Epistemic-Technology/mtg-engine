@@ -1,0 +1,6 @@
+card "Overwrite the Multiverse" {
+  oracle_id d0372cde-bf30-4a1b-93bb-9ff4ac1c116d
+  cost {4}{B}{B}
+  type Sorcery
+  spell: exile each creature; empower jace count where creatures exiled this way
+}

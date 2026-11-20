@@ -1,0 +1,9 @@
+card "Solve for Disappointment" {
+  oracle_id 3241a3f5-7ae5-4497-9dd2-a55f3370a055
+  cost {1}{B}
+  type Sorcery
+  spell {
+  target opponent reveals hand discarding nonland noninstant nonsorcery card
+  empower jace 1
+  }
+}

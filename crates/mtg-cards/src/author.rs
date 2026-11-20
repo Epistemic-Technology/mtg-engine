@@ -64,7 +64,8 @@ const KEYWORDS: [&str; 41] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 115] = [
+const TEMPLATED_TAGS: [&str; 116] = [
+    "Empower Jace",
     "Station",
     "Start your engines!",
     "Transform",
@@ -1260,6 +1261,10 @@ impl Templates {
                     ))
                 },
             ),
+            // "Empower Jace 2." (its reminder text already gone).
+            (r(r"^[Ee]mpower Jace (\w+)$"), |c, _| {
+                Some(format!("empower jace {}", number(cap(c, 1))?))
+            }),
             (r(r"^Amass (\w+) (\w+)$"), |c, _| {
                 Some(format!("amass {} {}", cap(c, 1), number(cap(c, 2))?))
             }),

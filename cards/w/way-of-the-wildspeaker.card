@@ -1,0 +1,7 @@
+card "Way of the Wildspeaker" {
+  oracle_id 501580b9-692c-4804-be34-012a25ba8adf
+  cost {4}{G}
+  type Legendary Enchantment
+  triggered when this enters: empower jace 7
+  static planeswalker you control: has ability { loyalty -4: create 1 "4/4 green Beast creature with trample" }
+}

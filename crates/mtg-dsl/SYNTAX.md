@@ -886,7 +886,10 @@ damage to any target.\""), written as its own ability line (`activated
 {T}: deal 1 damage to any target`), where `this` is the object that has
 it; "this permanent" when the group names only a subtype (`static all
 Sliver: has ability { activated {2}: regenerate this }` prints "All
-Slivers have \"{2}: Regenerate this permanent.\""). A replacement or
+Slivers have \"{2}: Regenerate this permanent.\""). A granted loyalty
+ability brackets its cost (`static planeswalker you control: has ability
+{ loyalty -4: ... }`: "Planeswalkers you control have \"[−4]: ...\"").
+A token a quoted ability creates prints its full description. A replacement or
 prevention ability may be granted (absorb). `has protection from
 multicolored`, `has protection from artifact` grant protection from a
 quality (CR 702.16); as an effect, `target creature gains protection from
@@ -1354,7 +1357,12 @@ explores` (CR 701.44), `<what> phases out` (CR 702.26: treated as though
 it doesn't exist, with what's attached to it, until it phases in as its
 controller's next untap step begins; `keywords phasing` phases a
 permanent out at every other such step), `amass Zombies 2` (CR 701.47; needs the token
-"0/0 black Zombie Army creature"), `<who> gets 1 poison counters`, `add {G}
+"0/0 black Zombie Army creature"), `empower jace 2` / `empower jace count
+where creature you control` ("Empower Jace 2.", "Empower Jace X, where X
+is ...": N loyalty counters on a Jace planeswalker token you control,
+the token "Jace planeswalker" (blue, 0 loyalty, "[−1]: Surveil 1",
+"[−3]: Draw a card.") created first if you control none; a nontoken
+Jace doesn't count), `<who> gets 1 poison counters`, `add {G}
 count each Elf on battlefield` ("Add {G} for each Elf on the
 battlefield."), `if kicked, <clause>` ("If this spell was kicked, ..."
 for a spell with `kicker`; `if kicked, also <clause>` puts "also" after
