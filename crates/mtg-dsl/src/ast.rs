@@ -2168,6 +2168,11 @@ pub enum Effect {
     RemoveAllCounters {
         to: Recipient,
     },
+    /// `remove 1 counter from target permanent`: "remove a counter from
+    /// target permanent" (of a kind the controller chooses).
+    RemoveCounterChosen {
+        to: Recipient,
+    },
     ReturnToHand {
         what: Vec<Recipient>,
     },

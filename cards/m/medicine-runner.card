@@ -1,0 +1,7 @@
+card "Medicine Runner" {
+  oracle_id 9c0a8412-af9f-4a22-b462-e9b2d9bd04c6
+  cost {1}{G/W}
+  type Creature — Elf Cleric
+  pt 2/1
+  triggered when this enters: you may remove 1 counter from target permanent
+}

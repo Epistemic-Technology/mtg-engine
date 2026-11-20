@@ -1,0 +1,8 @@
+card "Spectacle Mage" {
+  oracle_id 71920c05-7061-4ba5-8903-cffd3d2f85f4
+  cost {1}{U}{R}
+  type Creature — Bird Shaman
+  pt 2/2
+  keywords flying
+  spells instant or sorcery with mana value 5 or greater you cast cost {1} less
+}

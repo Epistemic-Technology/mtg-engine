@@ -1,0 +1,7 @@
+card "Krosan Drover" {
+  oracle_id cd8ae400-4f40-42aa-a905-2787de443471
+  cost {3}{G}
+  type Creature — Elf
+  pt 2/2
+  spells creature with mana value 6 or greater you cast cost {2} less
+}

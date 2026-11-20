@@ -2752,6 +2752,11 @@ pub enum Effect {
     RemoveAllCounters {
         to: Recipient,
     },
+    /// "Remove a counter from target permanent": one counter of a kind
+    /// the controller chooses among those on it.
+    RemoveCounterChosen {
+        to: Recipient,
+    },
     /// Give the recipient a regeneration shield until end of turn (CR
     /// 701.15).
     Regenerate {
@@ -3692,6 +3697,7 @@ impl Effect {
                 | Effect::UnlessYou { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
+                | Effect::RemoveCounterChosen { .. }
                 | Effect::CopySpell
                 | Effect::Discard { .. }
                 | Effect::HandToLibrary { .. }

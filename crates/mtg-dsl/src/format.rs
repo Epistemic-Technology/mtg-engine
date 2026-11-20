@@ -932,6 +932,9 @@ impl Fmt {
                 counter(*kind, *count),
                 self.recipient(*to, t)
             ),
+            Effect::RemoveCounterChosen { to } => {
+                format!("remove 1 counter from {}", self.recipient(*to, t))
+            }
             Effect::RemoveAllCounters { to } => {
                 format!("remove all counters from {}", self.recipient(*to, t))
             }

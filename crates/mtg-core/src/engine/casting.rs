@@ -1661,7 +1661,15 @@ impl GameState {
                         crate::card::Who::You => p == o.controller,
                         crate::card::Who::Opponents => p != o.controller,
                     };
+                    // "Creature spells you cast with mana value 6 or
+                    // greater": the mana value isn't a characteristic
+                    // `matches` sees.
+                    let mv_ok = cc
+                        .spells
+                        .mana_value
+                        .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)));
                     if whose
+                        && mv_ok
                         && cc
                             .spells
                             .matches(id, p, chars, Some(*src), Some(o.controller))
@@ -5839,6 +5847,34 @@ impl GameState {
                     if let Some(id) = on_battlefield(self, t) {
                         self.remove_counters(id, *kind, self.eval_num(*count, ctx));
                     }
+                }
+            }
+            Effect::RemoveCounterChosen { to } => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| &l.object))
+                    .map(|o| o.def);
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let kinds: SmallVec<[CounterKind; 4]> = self.objects[id]
+                        .counters
+                        .iter()
+                        .filter(|(_, n)| *n > 0)
+                        .map(|(k, _)| *k)
+                        .collect();
+                    let i = match (kinds.len(), def) {
+                        (0, _) => continue,
+                        (1, _) | (_, None) => 0,
+                        (n, Some(def)) => self.choose_mid(
+                            ctx.controller,
+                            DecisionKind::ChooseOption { def },
+                            (0..n).map(Choice::Mode).collect(),
+                        ),
+                    };
+                    self.remove_counters(id, kinds[i.min(kinds.len() - 1)], 1);
                 }
             }
             Effect::RemoveAllCounters { to } => {

@@ -3866,6 +3866,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("distribute {c} among {o}"))
         }
+        Effect::RemoveCounterChosen { to } => {
+            let o = ctx.obj(*to);
+            Clause::imperative(format!("remove a counter from {o}"))
+        }
         Effect::RemoveAllCounters { to } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("remove all counters from {o}"))
@@ -8747,9 +8751,22 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 Who::Any => "",
             };
             let more = if *generic > 0 { "more" } else { "less" };
+            // "Creature spells you cast with mana value 6 or greater":
+            // the mana value after who casts them.
+            let mut f = filter.clone();
+            let mv = f.mana_value.take().filter(|_| !f.status.mana_value_x);
+            if let Some(alt) = &mut f.or
+                && alt.mana_value == mv
+            {
+                alt.mana_value = None;
+            }
+            let (f, mv) = match mv {
+                Some((cmp, n)) => (f, format!(" with mana value {n}{}", cmp_words(cmp))),
+                None => (filter.clone(), String::new()),
+            };
             format!(
-                "{} {whose} cost {{{}}} {more} to cast.",
-                cost_spells_subject(filter, card),
+                "{} {whose}{mv} cost {{{}}} {more} to cast.",
+                cost_spells_subject(&f, card),
                 generic.unsigned_abs()
             )
             .replace("  ", " ")

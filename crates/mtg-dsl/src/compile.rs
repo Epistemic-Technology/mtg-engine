@@ -1310,6 +1310,9 @@ impl Compiler<'_> {
                 count: *count,
                 to: r(*to),
             }),
+            Effect::RemoveCounterChosen { to } => {
+                out.push(CoreEffect::RemoveCounterChosen { to: r(*to) });
+            }
             Effect::RemoveAllCounters { to } => {
                 out.push(CoreEffect::RemoveAllCounters { to: r(*to) });
             }

@@ -650,6 +650,7 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::RemoveAllCounters { to } => Effect::RemoveAllCounters { to: r(*to) },
+            CoreEffect::RemoveCounterChosen { to } => Effect::RemoveCounterChosen { to: r(*to) },
             CoreEffect::ReturnToHand { what } => Effect::ReturnToHand {
                 what: vec![r(*what)],
             },

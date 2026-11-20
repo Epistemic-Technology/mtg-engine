@@ -5228,6 +5228,14 @@ impl P {
                     let to = self.recipient()?;
                     return Ok(Effect::RemoveAllCounters { to });
                 }
+                if matches!(self.peek(), Some(Tok::Num(1)))
+                    && self.word_at(1).as_deref() == Some("counter")
+                    && self.word_at(2).as_deref() == Some("from")
+                {
+                    self.pos += 3;
+                    let to = self.recipient()?;
+                    return Ok(Effect::RemoveCounterChosen { to });
+                }
                 let count = self.num()?;
                 let kind = self.counter_kind()?;
                 self.expect_word("from")?;
