@@ -1,0 +1,9 @@
+card "Mage Hunters' Onslaught" {
+  oracle_id 22195e0e-a426-48d6-b100-480c7e2bd5cc
+  cost {2}{B}{B}
+  type Sorcery
+  spell {
+    destroy target creature or planeswalker
+    delayed this: whenever creature blocks this turn, its controller loses 1 life
+  }
+}

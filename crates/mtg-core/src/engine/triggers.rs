@@ -125,6 +125,9 @@ impl GameState {
         {
             self.delayed_leave_triggers(*old, *to, &mut fired);
         }
+        if !self.delayed_triggers.is_empty() {
+            self.delayed_turn_triggers(event, event_amount, &mut fired);
+        }
         for mut t in fired {
             t.timestamp = self.tick();
             if self.logging {
@@ -173,6 +176,64 @@ impl GameState {
             } else {
                 i += 1;
             }
+        }
+    }
+
+    /// Delayed triggered abilities that trigger on every matching event
+    /// until the turn ends ("Whenever a creature blocks this turn, ...";
+    /// CR 603.7c), seen as their controller's: not removed as they
+    /// trigger, but at the cleanup step with the other "this turn" ones.
+    #[cold]
+    #[inline(never)]
+    fn delayed_turn_triggers(
+        &self,
+        event: &Event,
+        event_amount: u32,
+        fired: &mut SmallVec<[PendingTrigger; 2]>,
+    ) {
+        for dt in &self.delayed_triggers {
+            if !dt.this_turn {
+                continue;
+            }
+            let AbilityDef::Triggered(t) = self.pool.ability(dt.ability.ability) else {
+                continue;
+            };
+            if matches!(
+                t.trigger,
+                TriggerSpec::BeginningOfStep { .. }
+                    | TriggerSpec::Dies(TriggerObj::This)
+                    | TriggerSpec::Leaves(TriggerObj::This)
+            ) {
+                continue;
+            }
+            let source = dt.ability.source;
+            let chars = match self.objects.get(source) {
+                Some(o) => self.base_characteristics(o),
+                None => match self.lki.get(&source) {
+                    Some(l) => l.characteristics,
+                    None => continue,
+                },
+            };
+            let w = Watcher {
+                source,
+                controller: dt.controller,
+                tapped: false,
+                chars,
+                in_graveyard: false,
+            };
+            let Some((trigger_obj, trigger_player)) = self.fires(&t.trigger, event, &w) else {
+                continue;
+            };
+            fired.push(PendingTrigger {
+                controller: dt.controller,
+                ability: StackAbility {
+                    trigger_obj,
+                    trigger_player,
+                    trigger_amount: event_amount,
+                    ..dt.ability
+                },
+                timestamp: 0,
+            });
         }
     }
 
@@ -1295,6 +1356,7 @@ impl GameState {
             did: true,
             chosen: Chosen::None,
             couldnt: 0,
+            created_tokens: SmallVec::new(),
         };
         let outer = self.begin_this_way(id);
         self.apply_effects(&mut ctx, effects, split);

@@ -286,6 +286,7 @@ impl Fmt {
                 "it".to_string()
             }
             Recipient::CreatedObject => "that token".to_string(),
+            Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.
             // `all` prints with the filter.
@@ -562,10 +563,17 @@ impl Fmt {
                 toughness,
                 to,
             } => format!("{} gets {power:+}/{toughness:+}", self.recipient(*to, t)),
-            Effect::Destroy { to, no_regen } => {
+            Effect::Destroy {
+                to,
+                no_regen,
+                joined,
+            } => {
                 let mut s = format!("destroy {}", self.recipients(to, t));
                 if *no_regen {
                     s.push_str(" without regeneration");
+                }
+                if *joined {
+                    s.push_str(" joined");
                 }
                 s
             }
@@ -649,6 +657,11 @@ impl Fmt {
                 }
             },
             Effect::RevealIt => "reveal it".to_string(),
+            Effect::IfYouDont { cant, then } => format!(
+                "if you {}, {}",
+                if *cant { "cant" } else { "dont" },
+                self.line(then, t)
+            ),
             Effect::IfYouDontPut { to, then } => format!(
                 "if you dont put it {}, {}",
                 match to {
@@ -1610,8 +1623,6 @@ impl Fmt {
                 self.line(inner, t)
             ),
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
-            Effect::IfYouCant(inner) => format!("if you can't, {}", self.line(inner, t)),
-            Effect::IfYouDont(inner) => format!("if you don't, {}", self.line(inner, t)),
             Effect::Otherwise(inner) => format!("otherwise, {}", self.line(inner, t)),
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
@@ -1818,7 +1829,9 @@ impl Fmt {
             } => {
                 let about = self.recipient(*about, t);
                 let body = self.line(effects, t);
-                let trig = if *this_turn {
+                let trig = if *this_turn && !about_that_creature(trigger) {
+                    format!("{} this turn", trigger_text(trigger, true))
+                } else if *this_turn {
                     this_turn_trigger(trigger).to_string()
                 } else {
                     trigger_text(trigger, true)
@@ -4311,6 +4324,17 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
 
 /// A delayed trigger about its recipient that ends with the turn (CR
 /// 603.7c), as written and printed: "when that creature dies this turn".
+/// A delayed "this turn" trigger on the object it is about ("When that
+/// creature dies this turn"), rather than one that triggers on any event
+/// of its kind until the turn ends ("Whenever a creature blocks this
+/// turn").
+pub(crate) fn about_that_creature(t: &Trigger) -> bool {
+    matches!(
+        t,
+        Trigger::Dies(TriggerObj::This) | Trigger::Leaves(TriggerObj::This)
+    )
+}
+
 pub(crate) fn this_turn_trigger(t: &Trigger) -> &'static str {
     match t {
         Trigger::Leaves(_) => "when that creature leaves the battlefield this turn",

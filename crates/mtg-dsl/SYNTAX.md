@@ -1023,7 +1023,8 @@ that creature's power to the creature's controller", where `deal count
 equal ... damage to <what>` prints "deals damage to <what> equal to ...").
 
 Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
-`destroy <what> [without regeneration]`, `put 2 +1/+1 counters on <what>`,
+`destroy <what> [without regeneration [joined]]` (`joined`: "destroy
+target Knight and it can't be regenerated" in one sentence), `put 2 +1/+1 counters on <what>`,
 `put 1 +1/+1 counter and 1 reach counter and 1 deathtouch counter on
 <what>` ("Put a +1/+1 counter, a reach counter, and a deathtouch counter
 on target creature"),
@@ -1171,8 +1172,13 @@ targets this` ("that targets this
 creature"),
 `you may <clause>`, `pay {2}` / `pay 2 life` (after `you may`), `if you do,
 <clause>` (only if the optional action before it happened: "You may pay
-{2}. If you do, draw a card."), `if you don't, <clause>` (only if it
-didn't: "You may pay {2}. If you don't, blight 2."), `when you do, <clause>` (a reflexive
+{2}. If you do, draw a card."), `if you don't, <clause>` / `if you dont, <clause>` (only if it
+didn't: "You may pay {U}. If you don't, destroy target Knight."; after
+`reveals hand discarding may ...` the discard then prints "If you do,
+that player discards that card."), `if you can't, <clause>` / `if you cant, <clause>` (after an act
+that happens if it can, only if nothing was chosen: "Put a land card
+from among the milled cards into your hand. If you can't, create a
+Treasure token."), `when you do, <clause>` (a reflexive
 triggered ability, CR 603.12: it triggers only if the optional action
 before it happened, and its targets are its own, chosen as it goes on the
 stack: `you may pay {2}{R}; when you do, this deals 3 damage to any
@@ -1286,7 +1292,20 @@ the ability is about; in one about `that creature` (the triggering object),
 creature` is the object too. `delayed target 1: when that creature dies
 this turn, <effects>` (and `when that creature leaves the battlefield this
 turn`) triggers once if that object dies (leaves) and ends unfired at the
-cleanup step (CR 603.7c).
+cleanup step (CR 603.7c). A target declared by the delayed ability
+itself prints in its trigger: `delayed target creature: when that
+creature dies this turn, return triggering card to battlefield` ("When
+target creature dies this turn, return that card to the battlefield under
+its owner's control."; `triggering card` is the card it became). After
+`create 3 "..."`, `those tokens` is every token that sentence created
+(those still on the battlefield), and `delayed those tokens: sacrifice
+those tokens at beginning of the next end step` is one delayed trigger
+about each ("Sacrifice those tokens at the beginning of the next end
+step."). `delayed this: whenever <trigger> this turn, <effects>` triggers on
+every such event until the turn ends (CR 603.7c), as its controller's
+ability: "Whenever a creature blocks this turn, its controller loses 1
+life." (`its controller` is the triggering object's), "Whenever a
+nontoken creature you control dies this turn, create ...".
 
 Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,
 `its controller` / `its owner` (of the last target declared),

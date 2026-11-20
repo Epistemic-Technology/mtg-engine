@@ -1,0 +1,6 @@
+card "Thatcher Revolt" {
+  oracle_id 83cdff93-531d-4148-bff7-5312b3b53bf0
+  cost {2}{R}
+  type Sorcery
+  spell: create 3 "1/1 red Human creature with haste"; delayed those tokens: sacrifice those tokens at beginning of the next end step
+}

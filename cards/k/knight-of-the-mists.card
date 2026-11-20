@@ -1,0 +1,8 @@
+card "Knight of the Mists" {
+  oracle_id e9893534-3d05-42c2-93ff-f28ffae89aa3
+  cost {2}{U}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flanking
+  triggered when this enters: you may pay {U}; if you dont, destroy target Knight without regeneration joined
+}

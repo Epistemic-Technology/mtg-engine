@@ -1247,7 +1247,10 @@ impl Compiler<'_> {
             Recipient::EachPlayer => CoreRecipient::EachPlayer,
             Recipient::EachCreatureYouControl => CoreRecipient::EachCreatureYouControl,
             Recipient::EachPermanentYouControl => CoreRecipient::EachPermanentYouControl,
-            Recipient::SameObject | Recipient::SameThat => CoreRecipient::SameObject,
+            Recipient::SameObject | Recipient::SameThat | Recipient::SameTokens => {
+                CoreRecipient::SameObject
+            }
+            Recipient::CreatedTokens => CoreRecipient::CreatedTokens,
             Recipient::CreatedObject => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
@@ -1382,7 +1385,7 @@ impl Compiler<'_> {
                 toughness: *toughness,
                 to: r(*to),
             }),
-            Effect::Destroy { to, no_regen } => {
+            Effect::Destroy { to, no_regen, .. } => {
                 for t in to {
                     out.push(if *no_regen {
                         CoreEffect::DestroyNoRegen { to: r(*t) }
@@ -1906,19 +1909,6 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfYouDo(effects));
             }
-            // What happens when the choice before found nothing to act on.
-            Effect::IfYouCant(inner) => {
-                if !matches!(out.last(), Some(CoreEffect::ChooseAct { .. })) {
-                    return self.err("`if you can't` needs a choice before it");
-                }
-                let effects = self.sentences(inner)?;
-                out.push(CoreEffect::Otherwise(effects));
-            }
-            // What runs when the optional action didn't happen.
-            Effect::IfYouDont(inner) => {
-                let effects = self.sentences(inner)?;
-                out.push(CoreEffect::Otherwise(effects));
-            }
             Effect::Otherwise(inner) => {
                 if !matches!(
                     out.last(),
@@ -2100,6 +2090,12 @@ impl Compiler<'_> {
                 });
             }
             Effect::RevealIt => out.push(CoreEffect::RevealCard),
+            // "If you don't, ..." / "If you can't, ...": the optional or
+            // chosen action before it set whether it happened (CR 608.2c).
+            Effect::IfYouDont { then, .. } => {
+                let effects = self.sentences(then)?;
+                out.push(CoreEffect::Otherwise(effects));
+            }
             Effect::IfYouDontPut { then, .. } => {
                 if !matches!(out.last(), Some(CoreEffect::IfCard { .. })) {
                     return self.err("`if you dont put it` needs `if it is ...` before it");

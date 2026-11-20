@@ -3735,7 +3735,10 @@ impl P {
             let saved = self.subject.take();
             let s = self.sentence()?;
             self.subject = saved;
-            return Ok(Effect::IfYouCant(vec![s]));
+            return Ok(Effect::IfYouDont {
+                cant: true,
+                then: vec![s],
+            });
         }
         // "If you don't, ...": after an optional action that didn't happen.
         if self.at_words(&["if", "you", "don't"]) && self.peek_at(3) == Some(&Tok::Comma) {
@@ -3743,7 +3746,10 @@ impl P {
             let saved = self.subject.take();
             let s = self.sentence()?;
             self.subject = saved;
-            return Ok(Effect::IfYouDont(vec![s]));
+            return Ok(Effect::IfYouDont {
+                cant: false,
+                then: vec![s],
+            });
         }
         // "Otherwise, ..." after a conditional sentence (CR 608.2c).
         if self.at_word("otherwise") && self.peek_at(1) == Some(&Tok::Comma) {
@@ -3772,6 +3778,20 @@ impl P {
         }
         if self.at_words(&["if", "target"]) || self.at_words(&["if", "that", "target"]) {
             return self.if_target();
+        }
+        // `if you dont, ...` / `if you cant, ...` after an action.
+        if (self.at_words(&["if", "you", "dont"]) || self.at_words(&["if", "you", "cant"]))
+            && self.peek_at(3) == Some(&Tok::Comma)
+        {
+            let cant = self.word_at(2).as_deref() == Some("cant");
+            self.pos += 4;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfYouDont {
+                cant,
+                then: vec![s],
+            });
         }
         // `if you dont put it into hand, ...` after `if it is ...`.
         if self.revealed && self.at_words(&["if", "you", "dont", "put", "it"]) {
@@ -5242,7 +5262,12 @@ impl P {
             "destroy" => {
                 let to = self.recipients()?;
                 let no_regen = self.eat_words(&["without", "regeneration"]);
-                Ok(Effect::Destroy { to, no_regen })
+                let joined = no_regen && self.eat_word("joined");
+                Ok(Effect::Destroy {
+                    to,
+                    no_regen,
+                    joined,
+                })
             }
             // `put 2 cards from hand on top of library`.
             "put" if self.revealed && self.at_card_words() => self.put_card(None),
@@ -6064,6 +6089,9 @@ impl P {
                     } else {
                         None
                     };
+                // "Whenever a creature blocks this turn, ...": a delayed
+                // trigger that triggers each time until the turn ends.
+                let mut turn_long = false;
                 let (trigger, effects, trigger_first) = if let Some(t) = this_turn.clone() {
                     if self.peek() == Some(&Tok::Comma) {
                         self.pos += 1;
@@ -6075,11 +6103,16 @@ impl P {
                     (t, e?, true)
                 } else if self.at_word("at") || self.at_word("when") || self.at_word("whenever") {
                     let t = self.trigger()?;
+                    turn_long = self.eat_words(&["this", "turn"]);
                     if self.peek() == Some(&Tok::Comma) {
                         self.pos += 1;
                     }
-                    let e = self.sentences_inline()?;
-                    (t, e, true)
+                    // "its controller": the triggering object's.
+                    let was_dies = self.delayed_dies;
+                    self.delayed_dies |= turn_long;
+                    let e = self.sentences_inline();
+                    self.delayed_dies = was_dies;
+                    (t, e?, true)
                 } else {
                     let e = self.delayed_effects()?;
                     let t = self.trigger()?;
@@ -6092,7 +6125,7 @@ impl P {
                     trigger,
                     effects,
                     trigger_first,
-                    this_turn: this_turn.is_some(),
+                    this_turn: this_turn.is_some() || turn_long,
                 })
             }
             "prevent" => {
@@ -7101,6 +7134,14 @@ impl P {
         }
         if self.in_trigger && self.eat_words(&["controller", "of", "the", "creature"]) {
             return Ok(Recipient::TheTriggeringController);
+        }
+        // "Sacrifice those tokens at the beginning of the next end step."
+        if self.eat_words(&["those", "tokens"]) {
+            return Ok(if self.in_delayed {
+                Recipient::SameTokens
+            } else {
+                Recipient::CreatedTokens
+            });
         }
         if self.eat_words(&["those", "cards"]) {
             if self.targets.is_empty() {

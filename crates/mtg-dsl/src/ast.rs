@@ -2191,6 +2191,11 @@ pub enum Recipient {
     /// the trigger is about (`SameObject`), printed "that creature".
     SameThat,
     CreatedObject,
+    /// `those tokens`: every token the last token-creating sentence
+    /// created; inside a delayed trigger about them, each in turn
+    /// (`SameTokens`, the core `SameObject`).
+    CreatedTokens,
+    SameTokens,
     /// `each <filter>` / `all <filter>`: the `n`th of the card's `groups`.
     Group(u16),
     /// `random <filter>`: one of the `n`th group's permanents, picked at
@@ -2245,6 +2250,9 @@ pub enum Effect {
     Destroy {
         to: Vec<Recipient>,
         no_regen: bool,
+        /// `without regeneration joined`: "Destroy target Knight and it
+        /// can't be regenerated." in one sentence.
+        joined: bool,
     },
     GainLife {
         amount: Num,
@@ -2765,13 +2773,6 @@ pub enum Effect {
     },
     /// `if you do, ...`: only if the optional action before happened.
     IfYouDo(Vec<Sentence>),
-    /// `if you can't, ...`: only if the action before did nothing ("return
-    /// a land card from your graveyard to your hand. If you can't, draw a
-    /// card.").
-    IfYouCant(Vec<Sentence>),
-    /// `if you don't, ...`: only if it didn't ("You may pay {2}. If you
-    /// don't, blight 2.").
-    IfYouDont(Vec<Sentence>),
     /// `otherwise, ...`: only if the conditional sentence just before (`if
     /// <condition>, ...`, `if you win, ...`) didn't happen (CR 608.2c).
     Otherwise(Vec<Sentence>),
@@ -2975,6 +2976,15 @@ pub enum Effect {
         /// `if it shares creature type with this, ...`: "If it shares a
         /// creature type with this creature, ..." (kinship).
         shares_type: bool,
+        then: Vec<Sentence>,
+    },
+    /// `if you dont, <sentence>` / `if you cant, <sentence>`: "If you
+    /// don't, ..." after an optional action ("You may pay {U}. If you
+    /// don't, ..."), "If you can't, ..." after one that must happen if it
+    /// can ("return a land card from your graveyard to your hand. If you
+    /// can't, ..."): only if it didn't happen (CR 608.2c).
+    IfYouDont {
+        cant: bool,
         then: Vec<Sentence>,
     },
     /// `if you dont put it into hand, <sentence>`: "If you don't put the
