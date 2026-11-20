@@ -1,0 +1,8 @@
+card "Surging Might" {
+  oracle_id 04647861-0023-432b-9b24-77264f11e470
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  ripple 4
+}

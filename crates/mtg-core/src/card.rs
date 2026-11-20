@@ -350,6 +350,11 @@ pub enum Builtin {
     /// step, then you may cast it from exile on a later turn." (a warped
     /// permanent's delayed trigger).
     WarpExile,
+    /// CR 702.60a: "When you cast this spell, you may reveal the top N
+    /// cards of your library. You may cast spells with the same name as
+    /// this spell from among those cards without paying their mana costs.
+    /// Put the rest on the bottom of your library."
+    Ripple,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -3464,6 +3469,9 @@ pub enum Effect {
     /// Warp's delayed trigger (CR 702.185a, `Builtin::WarpExile`): exile
     /// the permanent; its owner may cast it from exile on a later turn.
     WarpExile,
+    /// Ripple's trigger (CR 702.60a, `Builtin::Ripple`), N from the
+    /// source's card.
+    Ripple,
     /// "Look at the top four cards of your library. You may reveal a
     /// creature card from among them and put it into your hand. Put the
     /// rest on the bottom of your library in any order." `filter` None is
@@ -3789,6 +3797,7 @@ impl Effect {
                 | Effect::CastExiled(_)
                 | Effect::SuspendTick
                 | Effect::Cascade
+                | Effect::Ripple
                 | Effect::PutInLibrary {
                     place: LibraryPlace::TopOrBottom | LibraryPlace::FromTopOrBottom(_),
                     ..
@@ -5357,6 +5366,11 @@ pub struct CardDef {
     /// 0: none.
     #[serde(default)]
     pub teamwork: u8,
+    /// Ripple N (CR 702.60): as it is cast, its caster may reveal the top
+    /// N cards of their library and cast those with the same name free.
+    /// 0: none.
+    #[serde(default)]
+    pub ripple: u8,
     /// "Enchanted creature ... is goaded" (CR 701.15): the permanent's
     /// static ability grants "attacks each combat if able"; this marks
     /// that what it is attached to attacks a player other than the
@@ -6096,7 +6110,7 @@ pub struct CardPool {
     flanking: AbilityId,
     evoke: AbilityId,
     exploit: AbilityId,
-    builtins: [AbilityId; 9],
+    builtins: [AbilityId; 10],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -6176,7 +6190,7 @@ impl CardPool {
             flanking: AbilityId(0),
             evoke: AbilityId(0),
             exploit: AbilityId(0),
-            builtins: [AbilityId(0); 9],
+            builtins: [AbilityId(0); 10],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -6304,6 +6318,14 @@ impl CardPool {
                 condition: None,
                 targets: Vec::new(),
                 effects: vec![Effect::WarpExile],
+            }));
+        pool.builtins[Builtin::Ripple as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::Reflexive,
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::Ripple],
             }));
         pool.builtins[Builtin::Conspire as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
@@ -7087,6 +7109,7 @@ impl Builder {
             conspire: false,
             casualty: 0,
             teamwork: 0,
+            ripple: 0,
             splice: None,
             alt_cost: None,
             additional_or: None,
@@ -7314,6 +7337,13 @@ impl Builder {
     #[must_use]
     pub fn casualty(mut self, n: u8) -> Self {
         self.0.casualty = n;
+        self
+    }
+
+    /// Ripple N (CR 702.60).
+    #[must_use]
+    pub fn ripple(mut self, n: u8) -> Self {
+        self.0.ripple = n;
         self
     }
 

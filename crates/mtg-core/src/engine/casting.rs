@@ -2451,6 +2451,45 @@ impl GameState {
         }
     }
 
+    /// CR 702.60a: reveal the top N cards (set aside in exile while the
+    /// player chooses); each with the source's name may be cast without
+    /// paying its mana cost; the rest go on the bottom in their order.
+    fn ripple(&mut self, ctx: &EffectCtx) {
+        let p = ctx.controller;
+        let def = self
+            .objects
+            .get(ctx.source)
+            .map(|o| o.def)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def));
+        let Some(def) = def else {
+            return;
+        };
+        let d = self.pool.get(def);
+        let (n, name) = (d.ripple, d.name.clone());
+        let mut revealed = Vec::new();
+        for _ in 0..n {
+            let Some(top) = self.player(p).library.last().copied() else {
+                break;
+            };
+            revealed.push(self.move_object(top, Zone::Exile, true));
+        }
+        let mut rest = Vec::new();
+        for id in revealed {
+            let same = self
+                .objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Exile && self.pool.get(o.def).name == name);
+            if !(same && self.offer_exile_cast_by(id, AltCast::Free, p)) {
+                rest.push(id);
+            }
+        }
+        for id in rest {
+            if self.objects.get(id).is_some_and(|o| o.zone == Zone::Exile) {
+                self.move_object(id, Zone::Library, false);
+            }
+        }
+    }
+
     /// CR 702.110a: the controller may sacrifice a creature; if they do,
     /// the source's "when this exploits a creature" abilities trigger.
     fn exploit(&mut self, ctx: &EffectCtx) {
@@ -4494,6 +4533,11 @@ impl GameState {
             def: def_ref,
             targets,
         });
+        // CR 702.60a: ripple triggers as the spell is cast.
+        if def.ripple > 0 {
+            let ability = self.pool.builtin(crate::card::Builtin::Ripple);
+            self.queue_builtin(caster, ability, spell, def_ref);
+        }
         // CR 702.85a: cascade triggers as the spell is cast.
         if def.keywords.contains(Keyword::Cascade) {
             let ability = self.pool.builtin(crate::card::Builtin::Cascade);
@@ -8096,6 +8140,7 @@ impl GameState {
                 }
             }
             Effect::Cascade => self.cascade(ctx, None),
+            Effect::Ripple => self.ripple(ctx),
             Effect::Discover(n) => self.cascade(ctx, Some(*n)),
             Effect::Exploit => self.exploit(ctx),
             Effect::MoveSourceCounters { to } => {

@@ -1,0 +1,7 @@
+card "Surging Flame" {
+  oracle_id 3c51b991-f6fa-44d2-81a3-0894939f3c22
+  cost {1}{R}
+  type Instant
+  ripple 4
+  spell: deal 2 damage to any target
+}

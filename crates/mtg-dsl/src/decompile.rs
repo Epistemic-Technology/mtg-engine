@@ -1093,6 +1093,7 @@ impl Decompiler<'_> {
             | CoreEffect::SuspendTick
             | CoreEffect::CopySpell
             | CoreEffect::WarpExile
+            | CoreEffect::Ripple
             | CoreEffect::Cascade
             | CoreEffect::Exploit
             | CoreEffect::EnterAttacking

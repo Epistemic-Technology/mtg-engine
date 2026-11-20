@@ -1190,6 +1190,8 @@ pub enum Mechanic {
     /// spell, you may tap any number of creatures you control with total
     /// power 2 or more.)"
     Teamwork(u32),
+    /// `ripple 4` (CR 702.60).
+    Ripple(u32),
     /// CR 702.184: `station`: "Tap another untapped creature you control:
     /// Put a number of charge counters on this permanent equal to the
     /// tapped creature's power. Activate only as a sorcery."

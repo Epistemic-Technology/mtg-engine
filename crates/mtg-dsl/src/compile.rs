@@ -391,6 +391,12 @@ impl Compiler<'_> {
                     };
                     b = b.casualty(n);
                 }
+                Ability::Mechanic(Mechanic::Ripple(n)) => {
+                    let Ok(n) = u8::try_from(*n) else {
+                        return self.err("ripple is at most 255");
+                    };
+                    b = b.ripple(n);
+                }
                 Ability::Mechanic(Mechanic::Teamwork(n)) => {
                     let Ok(n) = u8::try_from(*n) else {
                         return self.err("teamwork is at most 255");
@@ -589,6 +595,7 @@ impl Compiler<'_> {
                             | Mechanic::Conspire
                             | Mechanic::Casualty(_)
                             | Mechanic::Teamwork(_)
+                            | Mechanic::Ripple(_)
                             | Mechanic::Strive(_)
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
@@ -2922,6 +2929,7 @@ impl Compiler<'_> {
                 | Mechanic::Conspire
                 | Mechanic::Casualty(_)
                 | Mechanic::Teamwork(_)
+                | Mechanic::Ripple(_)
                 | Mechanic::Strive(_)
                 | Mechanic::Ascend
                 | Mechanic::StartYourEngines
@@ -3522,6 +3530,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Conspire
         | Mechanic::Casualty(_)
         | Mechanic::Teamwork(_)
+        | Mechanic::Ripple(_)
         | Mechanic::Ascend
         | Mechanic::StartYourEngines
         | Mechanic::BecomesDay
