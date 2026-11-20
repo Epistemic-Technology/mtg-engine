@@ -1,0 +1,9 @@
+card "Harbinger of the Hunt" {
+  oracle_id 3256029f-6558-4fcc-9fa1-74ceba3e5c92
+  cost {3}{R}{G}
+  type Creature — Dragon
+  pt 5/3
+  keywords flying
+  activated {2}{R}: deal 1 damage to each creature without flying
+  activated {2}{G}: deal 1 damage to each other creature with flying
+}

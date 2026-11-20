@@ -1,0 +1,8 @@
+card "Emberheart Challenger" {
+  oracle_id 5b4b21ed-c24e-4038-83fb-bd7f3c3426cd
+  cost {1}{R}
+  type Creature — Mouse Warrior
+  pt 2/2
+  keywords haste, prowess
+  label "Valiant" triggered whenever this becomes targeted by you first time each turn: impulse 1 this turn first
+}

@@ -1,0 +1,7 @@
+card "Sanctum Seeker" {
+  oracle_id afb71560-0fc9-4ea5-9d52-d93c17d72519
+  cost {2}{B}{B}
+  type Creature — Vampire Knight
+  pt 3/4
+  triggered whenever Vampire you control attacks: each opponent loses 1 life and you gains 1 life
+}

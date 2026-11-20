@@ -1,0 +1,7 @@
+card "Selesnya Sagittars" {
+  oracle_id 027484b8-0df5-48b6-b69b-bb4e39c5ba81
+  cost {3}{G}{W}
+  type Creature — Elf Archer
+  pt 2/5
+  keywords reach, can block an additional creature each combat
+}

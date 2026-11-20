@@ -1,0 +1,8 @@
+card "Silumgar Spell-Eater" {
+  oracle_id 34d90f98-7af5-4c67-8fb3-620237d94d14
+  cost {2}{U}
+  type Creature — Snake Wizard
+  pt 2/3
+  megamorph {4}{U}
+  triggered when this is turned face up: counter target spell unless its controller pays {3}
+}

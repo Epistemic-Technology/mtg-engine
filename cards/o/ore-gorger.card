@@ -1,0 +1,7 @@
+card "Ore Gorger" {
+  oracle_id e5a9d34b-c7d4-4682-8e26-dd82e38ee84e
+  cost {3}{R}{R}
+  type Creature — Spirit
+  pt 3/1
+  triggered whenever you cast Spirit or Arcane spell: you may destroy target nonbasic land
+}

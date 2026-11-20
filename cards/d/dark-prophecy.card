@@ -1,0 +1,6 @@
+card "Dark Prophecy" {
+  oracle_id f47659b5-d834-4153-b9fc-6a0702c503d9
+  cost {B}{B}{B}
+  type Enchantment
+  triggered whenever creature you control dies: you draw 1 card, and you lose 1 life
+}

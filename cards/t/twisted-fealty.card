@@ -1,0 +1,9 @@
+card "Twisted Fealty" {
+  oracle_id a5ae75de-0dff-44bf-9dc6-5895ab3ae731
+  cost {2}{R}
+  type Sorcery
+  spell {
+    gain control of target creature; untap that creature; target 1 gains haste
+    create 1 "Wicked Role" attached to up to one target creature
+  }
+}

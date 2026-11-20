@@ -1,0 +1,10 @@
+card "Lorehold Charm" {
+  oracle_id a5729f11-6cde-4830-b882-ab4c5251c1a9
+  cost {R}{W}
+  type Instant
+  choose one {
+    mode: each opponent sacrifices 1 nontoken artifact
+    mode: return target artifact or creature card with mana value 2 or less from your graveyard to battlefield
+    mode: each creature you control gets +1/+1 and gains trample
+  }
+}

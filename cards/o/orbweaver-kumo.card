@@ -1,0 +1,8 @@
+card "Orbweaver Kumo" {
+  oracle_id a2b29ae0-feaf-4662-9aee-8c6179f91853
+  cost {4}{G}{G}
+  type Creature — Spirit
+  pt 3/4
+  keywords reach
+  triggered whenever you cast Spirit or Arcane spell: this gains forestwalk
+}

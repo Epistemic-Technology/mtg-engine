@@ -1,0 +1,8 @@
+card "Furyborn Hellkite" {
+  oracle_id 8c4aba38-7fbd-463e-8454-21037090c71e
+  cost {4}{R}{R}{R}
+  type Creature — Dragon
+  pt 6/6
+  bloodthirst 6
+  keyword flying
+}

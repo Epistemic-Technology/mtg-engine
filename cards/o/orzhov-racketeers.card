@@ -1,0 +1,8 @@
+card "Orzhov Racketeers" {
+  oracle_id 4f6c9cee-5af7-4b00-a2a4-2770dab0a2dc
+  cost {4}{B}
+  type Creature — Human Rogue
+  pt 3/2
+  triggered whenever this deals combat damage to a player: that player discards 1 cards
+  afterlife 2
+}

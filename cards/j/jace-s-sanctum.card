@@ -1,0 +1,7 @@
+card "Jace's Sanctum" {
+  oracle_id 22d7048e-d538-4fd3-9fb3-2e99e74875fe
+  cost {3}{U}
+  type Enchantment
+  spells instant or sorcery you cast cost {1} less
+  triggered whenever you cast an instant or sorcery spell: scry 1
+}

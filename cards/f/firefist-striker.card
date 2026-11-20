@@ -1,0 +1,7 @@
+card "Firefist Striker" {
+  oracle_id a017ab43-7d73-441a-8931-2a038306083f
+  cost {1}{R}
+  type Creature — Human Soldier
+  pt 2/1
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: target creature can't block
+}

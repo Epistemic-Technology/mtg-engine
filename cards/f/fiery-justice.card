@@ -1,0 +1,6 @@
+card "Fiery Justice" {
+  oracle_id 333809cb-e196-45f2-8a67-31374438e56e
+  cost {R}{G}{W}
+  type Sorcery
+  spell: deal 5 damage divided among any number of targets; target opponent gains 5 life
+}

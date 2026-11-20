@@ -1,0 +1,7 @@
+card "Eclipsed Elf" {
+  oracle_id 7c89ef4d-b375-4644-ac8b-034effdbe98c
+  cost {B/G}{B/G}{B/G}
+  type Creature — Elf Scout
+  pt 3/2
+  triggered when this enters: dig 4 take Elf, Swamp, or Forest card may revealing rest bottom random
+}

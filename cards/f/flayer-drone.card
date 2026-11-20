@@ -1,0 +1,8 @@
+card "Flayer Drone" {
+  oracle_id 9e275428-3562-4ed6-8a49-3bb202a5130a
+  cost {1}{B}{R}
+  type Creature — Eldrazi Drone
+  pt 3/1
+  keywords devoid, first strike
+  triggered whenever other colorless creature you control enters: target opponent loses 1 life
+}

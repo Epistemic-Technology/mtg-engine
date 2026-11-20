@@ -1,0 +1,8 @@
+card "Tomb Robber" {
+  oracle_id cc5ffb09-3d08-4a52-a880-50c94df30c15
+  cost {2}{B}
+  type Creature — Human Pirate
+  pt 1/1
+  keywords menace
+  activated {1}, discard 1 card: this explores
+}

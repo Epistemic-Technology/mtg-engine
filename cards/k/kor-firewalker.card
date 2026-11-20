@@ -1,0 +1,8 @@
+card "Kor Firewalker" {
+  oracle_id fb37ff1c-7461-4a16-b27f-6eef0db937fe
+  cost {W}{W}
+  type Creature — Kor Soldier
+  pt 2/2
+  keywords protection from red
+  triggered whenever a player casts red spell: you may you gain 1 life
+}

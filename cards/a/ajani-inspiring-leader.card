@@ -1,0 +1,9 @@
+card "Ajani, Inspiring Leader" {
+  oracle_id 15474e82-94b4-47e1-b91c-3deaf4dbffd6
+  cost {4}{W}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 5
+  loyalty +2: you gains 2 life; put 2 +1/+1 counters on up to one target creature
+  loyalty -3: exile target creature; its controller gains 2 life
+  loyalty -10: each creature you control gains flying, double strike
+}

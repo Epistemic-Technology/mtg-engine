@@ -1,0 +1,7 @@
+card "Yotian Tactician" {
+  oracle_id 0d9d7f04-6319-4596-8b74-de5a794936e5
+  cost {2}{W}{U}
+  type Creature — Human Soldier
+  pt 3/4
+  static other Soldier you control: +1/+1
+}

@@ -1,0 +1,7 @@
+card "Ovalchase Daredevil" {
+  oracle_id a33961bb-fff0-4f4a-aa35-f904dbf2b075
+  cost {3}{B}
+  type Creature — Human Pilot
+  pt 4/2
+  triggered from graveyard whenever artifact you control enters: you may return this to hand
+}

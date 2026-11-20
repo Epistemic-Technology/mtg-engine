@@ -1,0 +1,8 @@
+card "Tibor and Lumia" {
+  oracle_id ee6d6f2f-68d5-466a-86c6-20fdb360e629
+  cost {2}{U}{R}
+  type Legendary Creature — Human Wizard
+  pt 3/3
+  triggered whenever you cast blue spell: target creature gains flying
+  triggered whenever you cast red spell: deal 1 damage to each creature without flying
+}

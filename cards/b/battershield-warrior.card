@@ -1,0 +1,7 @@
+card "Battershield Warrior" {
+  oracle_id f8e8cdc6-5685-4986-a14b-20bb9e31d9cf
+  cost {2}{W}
+  type Creature — Human Warrior
+  pt 2/2
+  boast {1}{W}: each creature you control gets +1/+1
+}

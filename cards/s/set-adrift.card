@@ -1,0 +1,7 @@
+card "Set Adrift" {
+  oracle_id f27f51e1-b881-4639-9d36-47cdf2a61117
+  cost {5}{U}
+  type Sorcery
+  keywords delve
+  spell: put target nonland permanent on top of library
+}

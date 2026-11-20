@@ -1,0 +1,7 @@
+card "Luminarch Aspirant" {
+  oracle_id cb9994b9-924b-4e10-9075-9cfbec88f2bf
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  triggered at beginning of your combat: put 1 +1/+1 counters on target creature you control
+}

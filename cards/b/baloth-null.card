@@ -1,0 +1,7 @@
+card "Baloth Null" {
+  oracle_id 55a0a40c-cb40-469d-9bf3-9c33b378f4f7
+  cost {4}{B}{G}
+  type Creature — Zombie Beast
+  pt 4/5
+  triggered when this enters: return up to two target creature card from your graveyard to hand
+}

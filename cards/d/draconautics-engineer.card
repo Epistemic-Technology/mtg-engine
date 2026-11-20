@@ -1,0 +1,8 @@
+card "Draconautics Engineer" {
+  oracle_id 380d8d64-9aec-4656-b5b8-d336ebf803c8
+  cost {1}{R}
+  type Creature — Goblin Artificer
+  pt 2/2
+  exhaust {R}: each other creature you control gains haste; put 1 +1/+1 counters on this
+  exhaust {3}{R}: create 1 "4/4 red Dinosaur Dragon creature with flying"
+}

@@ -1,0 +1,5 @@
+card "Ancient Ziggurat" {
+  oracle_id 0baabe39-72ae-47bd-a095-cbf7eb8a6361
+  type Land
+  mana any only to cast creature spell
+}

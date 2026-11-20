@@ -1,0 +1,9 @@
+card "Yavimaya Iconoclast" {
+  oracle_id 9900c771-ab81-415e-90a7-123c1bacfa83
+  cost {1}{G}
+  type Creature — Elf
+  pt 3/2
+  kicker {R}
+  keyword trample
+  triggered when this enters if kicked: this gets +1/+1 and gains haste
+}

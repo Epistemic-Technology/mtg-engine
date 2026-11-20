@@ -1,0 +1,9 @@
+card "Mithril Coat" {
+  oracle_id 3dc364f3-3094-4660-80ca-9418588c7fde
+  cost {3}
+  type Legendary Artifact — Equipment
+  keywords flash, indestructible
+  triggered when this enters: attach to target legendary creature you control
+  static enchanted: has indestructible
+  equip {3}
+}

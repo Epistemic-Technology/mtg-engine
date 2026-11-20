@@ -1,0 +1,7 @@
+card "Spiteful Hexmage" {
+  oracle_id d07e0d88-8b7f-423d-97b7-cf7b80d8924c
+  cost {B}
+  type Creature — Human Warlock
+  pt 3/2
+  triggered when this enters: create 1 "Cursed Role" attached to target creature you control
+}

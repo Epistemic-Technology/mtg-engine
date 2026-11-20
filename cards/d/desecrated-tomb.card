@@ -1,0 +1,6 @@
+card "Desecrated Tomb" {
+  oracle_id 07ff619a-21ee-44b6-b666-ceab4a78096a
+  cost {3}
+  type Artifact
+  triggered whenever one or more creature cards leave your graveyard: create 1 "1/1 black Bat creature with flying"
+}

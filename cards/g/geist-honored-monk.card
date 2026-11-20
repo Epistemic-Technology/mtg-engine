@@ -1,0 +1,8 @@
+card "Geist-Honored Monk" {
+  oracle_id e5deac0b-4417-42cc-b145-db0afe34f6e0
+  cost {3}{W}{W}
+  type Creature — Human Monk
+  keywords vigilance
+  static this: cda pt count creature you control
+  triggered when this enters: create 2 "1/1 white Spirit creature with flying"
+}

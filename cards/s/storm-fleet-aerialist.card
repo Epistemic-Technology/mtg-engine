@@ -1,0 +1,8 @@
+card "Storm Fleet Aerialist" {
+  oracle_id b128d0cf-77d9-4751-99c6-0f3bc3660318
+  cost {1}{U}
+  type Creature — Human Pirate
+  pt 1/2
+  keywords flying
+  label "Raid" enters with 1 +1/+1 counter if attacked this turn
+}

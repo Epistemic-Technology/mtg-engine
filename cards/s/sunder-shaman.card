@@ -1,0 +1,8 @@
+card "Sunder Shaman" {
+  oracle_id 38b23fe1-0e76-494a-ad9b-bc22c7d21a5e
+  cost {R}{R}{G}{G}
+  type Creature — Giant Shaman
+  pt 5/5
+  can't be blocked by more than one creature
+  triggered whenever this deals combat damage to a player: destroy target artifact or enchantment that player controls
+}

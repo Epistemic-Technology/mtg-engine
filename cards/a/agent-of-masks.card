@@ -1,0 +1,7 @@
+card "Agent of Masks" {
+  oracle_id 632ccf7e-eaf4-42a6-9069-6ad915d03a5b
+  cost {3}{W}{B}
+  type Creature — Human Advisor
+  pt 2/3
+  triggered at beginning of your upkeep: each opponent loses 1 life; you gain count equal life lost this way life
+}

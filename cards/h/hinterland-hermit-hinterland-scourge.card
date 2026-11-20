@@ -1,0 +1,15 @@
+card "Hinterland Hermit // Hinterland Scourge" {
+  oracle_id 8287306b-47d3-4e95-aa39-551f949d687c
+  layout transform
+  cost {1}{R}
+  type Creature — Human Werewolf
+  pt 2/1
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Hinterland Scourge" {
+    type Creature — Werewolf
+    pt 3/2
+    color red
+    keywords must be blocked if able
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

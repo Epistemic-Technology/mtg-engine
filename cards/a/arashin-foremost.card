@@ -1,0 +1,8 @@
+card "Arashin Foremost" {
+  oracle_id 581c2fb6-fcce-42c1-b198-1f8d62e862b1
+  cost {1}{W}{W}
+  type Creature — Human Warrior
+  pt 2/2
+  keywords double strike
+  triggered whenever this enters or attacks: another target Warrior creature you control gains double strike
+}

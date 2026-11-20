@@ -1,0 +1,8 @@
+card "Loch Dragon" {
+  oracle_id e40d47cf-6232-41ec-8865-d12a335dfcee
+  cost {U/R}{U/R}{U/R}{U/R}
+  type Creature — Dragon
+  pt 3/2
+  keywords flying
+  triggered whenever this enters or attacks: you may discard 1 cards; if you do, draw 1 cards
+}

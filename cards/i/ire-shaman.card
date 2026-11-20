@@ -1,0 +1,9 @@
+card "Ire Shaman" {
+  oracle_id 7f691e0d-dac5-4d7e-8727-dd2cab9a7863
+  cost {1}{R}
+  type Creature — Orc Shaman
+  pt 2/1
+  keywords menace
+  megamorph {R}
+  triggered when this is turned face up: impulse 1 this turn first
+}

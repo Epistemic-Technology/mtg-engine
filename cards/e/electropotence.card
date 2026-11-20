@@ -1,0 +1,6 @@
+card "Electropotence" {
+  oracle_id c2459c41-82b4-4ca2-b634-11b55ddb63d9
+  cost {2}{R}
+  type Enchantment
+  triggered whenever creature you control enters: you may pay {2}{R}; if you do, that creature bites any target
+}

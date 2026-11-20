@@ -1,0 +1,7 @@
+card "Dundoolin Weaver" {
+  oracle_id 28564d10-bfc5-4beb-b0e2-b9aa5c03f740
+  cost {1}{G}
+  type Creature — Kithkin Druid
+  pt 2/1
+  triggered when this enters if you control 3 creature: return target permanent card from your graveyard to hand
+}

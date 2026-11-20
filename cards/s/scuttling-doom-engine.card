@@ -1,0 +1,8 @@
+card "Scuttling Doom Engine" {
+  oracle_id 72ccdcef-5c84-45ba-bda3-3dc014e1585c
+  cost {6}
+  type Artifact Creature — Construct
+  pt 6/6
+  can't be blocked by creature with power 2 or less
+  triggered when this dies: deal 6 damage to target opponent or planeswalker
+}

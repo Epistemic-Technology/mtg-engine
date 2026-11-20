@@ -1,0 +1,8 @@
+card "Diamond Pick-Axe" {
+  oracle_id 542e7d60-3fc8-46e2-8786-f7c8b3d4c979
+  cost {R}
+  type Artifact — Equipment
+  keywords indestructible
+  static enchanted: +1/+1, has ability { triggered whenever this attacks: create 1 "Treasure" }
+  equip {2}
+}

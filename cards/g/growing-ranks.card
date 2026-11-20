@@ -1,0 +1,6 @@
+card "Growing Ranks" {
+  oracle_id bec6fb31-60a3-432f-ba36-aebf172f8b27
+  cost {2}{G/W}{G/W}
+  type Enchantment
+  triggered at beginning of your upkeep: populate
+}

@@ -1,0 +1,8 @@
+card "Ezekiel Sims, Spider-Totem" {
+  oracle_id 4074e897-82a4-4f57-86c2-4aab3f29ef9b
+  cost {4}{G}
+  type Legendary Creature — Spider Human Advisor
+  pt 3/5
+  keywords reach
+  triggered at beginning of your combat: target Spider you control gets +2/+2
+}

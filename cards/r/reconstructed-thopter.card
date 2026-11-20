@@ -1,0 +1,8 @@
+card "Reconstructed Thopter" {
+  oracle_id c87ff8e8-a3da-4848-9881-fbc896acf7c5
+  cost {3}
+  type Artifact Creature — Thopter
+  pt 2/1
+  keywords flying
+  unearth {2}
+}

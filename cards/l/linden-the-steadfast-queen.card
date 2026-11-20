@@ -1,0 +1,8 @@
+card "Linden, the Steadfast Queen" {
+  oracle_id dbc56f3b-83b3-41c8-a8ae-d3774fe6ee01
+  cost {W}{W}{W}
+  type Legendary Creature — Human Noble
+  pt 3/3
+  keywords vigilance
+  triggered whenever white creature you control attacks: you gains 1 life
+}

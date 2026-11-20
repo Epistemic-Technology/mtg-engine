@@ -1,0 +1,8 @@
+card "Boros Challenger" {
+  oracle_id bc6b40b1-0d17-4dd2-bec9-f1653611dba3
+  cost {R}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  mentor
+  activated {2}{R}{W}: this gets +1/+1
+}

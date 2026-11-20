@@ -1,0 +1,7 @@
+card "Molecular Modifier" {
+  oracle_id d0e58b8e-2c41-4602-a905-c2a6086ecf70
+  cost {2}{R}
+  type Creature — Kavu Artificer
+  pt 2/2
+  triggered at beginning of your combat: target creature you control gets +1/+0 and gains first strike
+}

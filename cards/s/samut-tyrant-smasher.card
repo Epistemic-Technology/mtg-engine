@@ -1,0 +1,8 @@
+card "Samut, Tyrant Smasher" {
+  oracle_id 80405d7a-f533-44bd-ac85-890476cf2b78
+  cost {2}{R/G}{R/G}
+  type Legendary Planeswalker — Samut
+  loyalty 5
+  static creature you control: has haste
+  loyalty -1: target creature gets +2/+1 and gains haste; scry 1
+}

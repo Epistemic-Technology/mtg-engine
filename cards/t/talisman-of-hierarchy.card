@@ -1,0 +1,7 @@
+card "Talisman of Hierarchy" {
+  oracle_id b693c3de-2eaf-4850-b405-e79d00adefda
+  cost {2}
+  type Artifact
+  mana {C}
+  activated {T}: add {W} or {B}; deal 1 damage to you
+}

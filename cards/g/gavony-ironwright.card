@@ -1,0 +1,7 @@
+card "Gavony Ironwright" {
+  oracle_id 99a4f104-c358-442a-8273-6fe94286edb5
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/4
+  label "Fateful hour" static as long as your life 5 or less, other creature you control: +1/+4
+}

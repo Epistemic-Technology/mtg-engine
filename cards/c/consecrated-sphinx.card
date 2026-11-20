@@ -1,0 +1,8 @@
+card "Consecrated Sphinx" {
+  oracle_id 311a449d-dc74-46e6-9a47-6a597931f736
+  cost {4}{U}{U}
+  type Creature — Sphinx
+  pt 4/6
+  keywords flying
+  triggered whenever an opponent draws a card: you may draw 2 cards
+}

@@ -1,0 +1,8 @@
+card "Vampire Outcasts" {
+  oracle_id 25ad4e88-b5ee-4853-a4fc-0a0420c746f6
+  cost {2}{B}{B}
+  type Creature — Vampire
+  pt 2/2
+  bloodthirst 2
+  keyword lifelink
+}

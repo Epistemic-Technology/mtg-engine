@@ -1,0 +1,8 @@
+card "Murder of Crows" {
+  oracle_id babab2f5-fd1f-4e0a-a692-6c2ce35df708
+  cost {3}{U}{U}
+  type Creature — Bird
+  pt 4/4
+  keywords flying
+  triggered whenever other creature dies: you may draw 1 cards; if you do, discard 1 cards
+}

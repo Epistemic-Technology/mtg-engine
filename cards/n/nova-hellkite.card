@@ -1,0 +1,9 @@
+card "Nova Hellkite" {
+  oracle_id 9635d79e-62ec-4d80-ae37-2793489cc13b
+  cost {3}{R}{R}
+  type Creature — Dragon
+  pt 4/5
+  keywords flying, haste
+  triggered when this enters: deal 1 damage to target creature an opponent controls
+  warp {2}{R}
+}

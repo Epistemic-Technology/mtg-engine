@@ -1,0 +1,7 @@
+card "Stasis Snare" {
+  oracle_id 6a83768e-672e-4fec-8931-853f5e96d43d
+  cost {1}{W}{W}
+  type Enchantment
+  keywords flash
+  triggered when this enters: exile target creature an opponent controls until this leaves
+}

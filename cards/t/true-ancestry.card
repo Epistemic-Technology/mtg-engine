@@ -1,0 +1,9 @@
+card "True Ancestry" {
+  oracle_id 26c2dd96-07e7-4294-9431-96d5aeff3761
+  cost {1}{G}
+  type Sorcery — Lesson
+  spell {
+    return up to one target permanent card from your graveyard to hand
+    create 1 "Clue"
+  }
+}

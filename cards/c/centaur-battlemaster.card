@@ -1,0 +1,7 @@
+card "Centaur Battlemaster" {
+  oracle_id 4b854749-f3a5-4199-bbfa-83090b8ccc25
+  cost {3}{G}{G}
+  type Creature — Centaur Warrior
+  pt 3/3
+  label "Heroic" triggered whenever you cast a spell that targets this: put 3 +1/+1 counters on this
+}

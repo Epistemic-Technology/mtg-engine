@@ -1,0 +1,7 @@
+card "Aethershield Artificer" {
+  oracle_id d2575513-72fa-49c7-be6b-9f6f85950f88
+  cost {3}{W}
+  type Creature — Dwarf Artificer
+  pt 3/3
+  triggered at beginning of your combat: target artifact creature you control gets +2/+2 and gains indestructible
+}

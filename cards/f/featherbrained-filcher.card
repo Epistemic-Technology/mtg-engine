@@ -1,0 +1,8 @@
+card "Featherbrained Filcher" {
+  oracle_id 79a9fc1c-a6a9-483a-9ba7-d09fe41760c3
+  cost {W}
+  type Creature — Bird Mutant
+  pt 0/2
+  keywords flying
+  triggered when this leaves the battlefield: create 1 "Food"
+}

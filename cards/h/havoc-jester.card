@@ -1,0 +1,7 @@
+card "Havoc Jester" {
+  oracle_id 58f5bbd2-b876-4eb9-aa79-f4d3511961e0
+  cost {4}{R}
+  type Creature — Devil
+  pt 5/5
+  triggered whenever you sacrifice permanent: deal 1 damage to any target
+}

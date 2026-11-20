@@ -1,0 +1,11 @@
+card "Galadriel, Gift-Giver" {
+  oracle_id d0c0a2ef-27b4-4186-8538-6ba5d35d85bb
+  cost {3}{G}{G}
+  type Legendary Creature — Elf Noble
+  pt 4/4
+  triggered whenever this enters or attacks: choose one {
+    mode: put 1 +1/+1 counters on another target creature
+    mode: create 1 "Food"
+    mode: create 1 "Treasure"
+  }
+}

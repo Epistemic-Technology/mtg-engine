@@ -1,0 +1,10 @@
+card "Sheoldred's Edict" {
+  oracle_id 217062f5-96f1-454c-9507-17f34ef37070
+  cost {1}{B}
+  type Instant
+  choose one {
+    mode: each opponent sacrifices 1 nontoken creature
+    mode: each opponent sacrifices 1 creature token
+    mode: each opponent sacrifices 1 planeswalker
+  }
+}

@@ -1,0 +1,6 @@
+card "Ardent Plea" {
+  oracle_id 49a8ca54-30d3-42d3-b122-334d24805e1b
+  cost {1}{W}{U}
+  type Enchantment
+  keywords exalted, cascade
+}

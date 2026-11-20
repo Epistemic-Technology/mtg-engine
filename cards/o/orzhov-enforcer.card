@@ -1,0 +1,8 @@
+card "Orzhov Enforcer" {
+  oracle_id f60b879e-82b4-442d-a544-2349429fe4c9
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 1/2
+  keywords deathtouch
+  afterlife 1
+}

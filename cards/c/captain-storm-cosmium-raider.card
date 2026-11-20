@@ -1,0 +1,7 @@
+card "Captain Storm, Cosmium Raider" {
+  oracle_id 431e85e3-15e6-471b-ba71-6058394c9a96
+  cost {U}{R}
+  type Legendary Creature — Human Pirate
+  pt 2/2
+  triggered whenever artifact you control enters: put 1 +1/+1 counters on target Pirate you control
+}

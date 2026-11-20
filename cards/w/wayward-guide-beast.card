@@ -1,0 +1,8 @@
+card "Wayward Guide-Beast" {
+  oracle_id c752e001-56cc-46dc-acb3-3fca6c0bdd2e
+  cost {R}
+  type Creature — Beast
+  pt 2/2
+  keywords trample, haste
+  triggered whenever this deals combat damage to a player: return 1 land you control chosen
+}

@@ -1,0 +1,7 @@
+card "Eclipsed Flamekin" {
+  oracle_id 48c641df-d511-4e35-b623-9d1fdb5240da
+  cost {1}{U/R}{U/R}
+  type Creature — Elemental Scout
+  pt 1/4
+  triggered when this enters: dig 4 take Elemental, Island, or Mountain card may revealing rest bottom random
+}

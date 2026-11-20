@@ -1,0 +1,8 @@
+card "Cloister Gargoyle" {
+  oracle_id e1e84b14-c521-4eb7-92ed-bde1131e8662
+  cost {2}{W}
+  type Artifact Creature — Gargoyle
+  pt 0/4
+  triggered when this enters: venture
+  static as long as completed dungeon, this: +3/+0, has flying
+}

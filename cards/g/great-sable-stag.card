@@ -1,0 +1,8 @@
+card "Great Sable Stag" {
+  oracle_id d6dbb83d-3215-4446-8480-8f1bf8cf2938
+  cost {1}{G}{G}
+  type Creature — Elk
+  pt 3/3
+  this spell can't be countered
+  keyword protection from blue, protection from black
+}

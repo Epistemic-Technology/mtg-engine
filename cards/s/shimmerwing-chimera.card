@@ -1,0 +1,8 @@
+card "Shimmerwing Chimera" {
+  oracle_id 21c768fa-4f1a-4a1a-abb9-e69e17426233
+  cost {3}{U}
+  type Enchantment Creature — Chimera
+  pt 3/2
+  keywords flying
+  triggered at beginning of your upkeep: return up to 1 another target enchantment you control to hand
+}

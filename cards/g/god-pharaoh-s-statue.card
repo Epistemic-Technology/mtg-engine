@@ -1,0 +1,7 @@
+card "God-Pharaoh's Statue" {
+  oracle_id 183954d2-7b40-4c7e-adfa-d80191ab5ad6
+  cost {6}
+  type Legendary Artifact
+  spells your opponents cast cost {2} more
+  triggered at beginning of your end step: each opponent loses 1 life
+}

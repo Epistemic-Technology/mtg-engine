@@ -1,0 +1,7 @@
+card "Earthshaker" {
+  oracle_id 944904a4-aab6-4ad9-96d7-6a3e47c118ca
+  cost {4}{R}{R}
+  type Creature — Spirit
+  pt 4/5
+  triggered whenever you cast Spirit or Arcane spell: deal 2 damage to each creature without flying
+}

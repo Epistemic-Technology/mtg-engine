@@ -1,0 +1,9 @@
+card "Archfiend of Ifnir" {
+  oracle_id 535e2af0-7b08-4026-b1bf-87626407dd42
+  cost {3}{B}{B}
+  type Creature — Demon
+  pt 5/4
+  keywords flying
+  triggered whenever you cycle or discard another card: put 1 -1/-1 counters on each creature your opponents control
+  cycling {2}
+}

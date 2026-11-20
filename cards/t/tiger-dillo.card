@@ -1,0 +1,7 @@
+card "Tiger-Dillo" {
+  oracle_id b6e82d4f-4fbf-495c-bebd-982d2a855ad0
+  cost {1}{R}
+  type Creature — Cat Armadillo
+  pt 4/3
+  can't attack or block unless you control other creature with power 4 or greater
+}

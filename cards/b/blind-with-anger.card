@@ -1,0 +1,6 @@
+card "Blind with Anger" {
+  oracle_id 97913c3c-eec0-4510-921a-d70c022f7961
+  cost {3}{R}
+  type Instant — Arcane
+  spell: untap target nonlegendary creature and gain control of it until end of turn; that creature gains haste
+}

@@ -1,0 +1,8 @@
+card "Olivia's Bloodsworn" {
+  oracle_id e2cfbaf5-903c-49fa-b7bf-2c55087f1ffa
+  cost {1}{B}
+  type Creature — Vampire Soldier
+  pt 2/1
+  keywords flying, can't block
+  activated {R}: target Vampire gains haste
+}

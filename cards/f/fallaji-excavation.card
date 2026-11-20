@@ -1,0 +1,6 @@
+card "Fallaji Excavation" {
+  oracle_id b13c91be-079a-46f1-8a99-b7dba99bb9c0
+  cost {3}{G}{G}
+  type Sorcery
+  spell: create 3 tapped "Powerstone"; you gains 3 life
+}

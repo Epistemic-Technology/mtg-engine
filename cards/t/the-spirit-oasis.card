@@ -1,0 +1,7 @@
+card "The Spirit Oasis" {
+  oracle_id b677a73c-f179-46bf-83ee-c2b05f9fca67
+  cost {2}{U}
+  type Legendary Enchantment — Shrine
+  triggered when this enters: draw count each Shrine you control cards
+  triggered whenever other Shrine you control enters: draw 1 cards
+}

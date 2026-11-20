@@ -1,0 +1,7 @@
+card "Castle Ardenvale" {
+  oracle_id f8f4fc60-725d-46d8-8e8f-e68e00d20589
+  type Land
+  enters tapped unless you control Plains
+  mana {W}
+  activated {2}{W}{W}, {T}: create 1 "1/1 white Human creature"
+}

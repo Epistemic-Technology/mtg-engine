@@ -1,0 +1,6 @@
+card "Encroaching Wastes" {
+  oracle_id 43144f06-079b-4515-a03a-01ea3e90d586
+  type Land
+  mana {C}
+  activated {4}, {T}, sacrifice this: destroy target nonbasic land
+}

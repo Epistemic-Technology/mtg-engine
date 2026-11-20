@@ -1,0 +1,8 @@
+card "Soramaro, First to Dream" {
+  oracle_id b11f96a0-5f70-45d6-90cc-2edbead3672e
+  cost {4}{U}{U}
+  type Legendary Creature — Spirit
+  keywords flying
+  static this: cda pt hand
+  activated {4}, return land you control: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Triton Fortune Hunter" {
+  oracle_id f84637f0-1a04-4fd1-85d9-8e8f5d444800
+  cost {2}{U}
+  type Creature — Merfolk Soldier
+  pt 2/2
+  label "Heroic" triggered whenever you cast a spell that targets this: draw 1 cards
+}

@@ -1,0 +1,8 @@
+card "Lightning-Rig Crew" {
+  oracle_id 8e0f93d7-7208-4902-bd92-e7bf66d35fef
+  cost {2}{R}
+  type Creature — Goblin Pirate
+  pt 0/5
+  activated {T}: deal 1 damage to each opponent
+  triggered whenever you cast Pirate spell: untap this
+}

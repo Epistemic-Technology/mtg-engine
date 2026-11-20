@@ -1,0 +1,8 @@
+card "Cemetery Reaper" {
+  oracle_id 70fa209f-5e79-44de-81ce-1d8d0d8c1006
+  cost {1}{B}{B}
+  type Creature — Zombie
+  pt 2/2
+  static other Zombie creature you control: +1/+1
+  activated {2}{B}, {T}: exile target creature card from a graveyard; create 1 "2/2 black Zombie creature"
+}

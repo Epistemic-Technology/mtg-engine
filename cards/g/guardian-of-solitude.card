@@ -1,0 +1,7 @@
+card "Guardian of Solitude" {
+  oracle_id 712ec339-ffa8-43bb-a826-a7b0f0120b1f
+  cost {1}{U}
+  type Creature — Spirit
+  pt 1/2
+  triggered whenever you cast Spirit or Arcane spell: target creature gains flying
+}

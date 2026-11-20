@@ -1,0 +1,10 @@
+card "World Breaker" {
+  oracle_id deeb7e22-b207-42de-b9d4-f790403d52a9
+  cost {6}{G}
+  type Creature — Eldrazi
+  pt 5/7
+  keywords devoid
+  triggered when you cast this: exile target artifact, enchantment, or land
+  keyword reach
+  activated {2}{C}, sacrifice land, from graveyard: return this to hand
+}

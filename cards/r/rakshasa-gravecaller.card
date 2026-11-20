@@ -1,0 +1,8 @@
+card "Rakshasa Gravecaller" {
+  oracle_id 1b57e9f8-68af-4f83-9062-6d715857dcef
+  cost {4}{B}
+  type Creature — Demon
+  pt 3/6
+  keywords exploit
+  triggered when this exploits a creature: create 2 "2/2 black Zombie creature"
+}

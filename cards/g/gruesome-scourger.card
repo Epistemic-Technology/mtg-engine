@@ -1,0 +1,7 @@
+card "Gruesome Scourger" {
+  oracle_id 1b2993fa-b212-4eaa-b3e8-f79c2f2e4cbe
+  cost {3}{B}{B}
+  type Creature — Orc Warrior
+  pt 3/3
+  triggered when this enters: deal count equal creature you control damage to target opponent or planeswalker
+}

@@ -1,0 +1,9 @@
+card "Wintermoor Commander" {
+  oracle_id b1e4cf31-9efe-4aca-a3ba-cc2681109a2f
+  cost {W}{B}
+  type Creature — Human Knight
+  pt 2/*
+  keywords deathtouch
+  static this: cda toughness count Knight you control
+  triggered whenever this attacks: another target Knight you control gains indestructible
+}

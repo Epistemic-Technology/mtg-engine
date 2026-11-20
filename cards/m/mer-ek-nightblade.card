@@ -1,0 +1,8 @@
+card "Mer-Ek Nightblade" {
+  oracle_id 56a8554c-d427-44ca-a01d-9e12c89acd1e
+  cost {3}{B}
+  type Creature — Orc Assassin
+  pt 2/3
+  outlast {B}
+  static each creature you control with +1/+1 counter: has deathtouch
+}

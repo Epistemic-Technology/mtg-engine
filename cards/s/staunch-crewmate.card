@@ -1,0 +1,7 @@
+card "Staunch Crewmate" {
+  oracle_id 8ab49974-3f06-4b6b-a416-d6f872b3887f
+  cost {1}{U}
+  type Creature — Human Pirate
+  pt 2/1
+  triggered when this enters: dig 4 take artifact or Pirate card may revealing rest bottom random
+}

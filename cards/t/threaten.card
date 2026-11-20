@@ -1,0 +1,6 @@
+card "Threaten" {
+  oracle_id 3dc8d15a-3ca7-4d1f-a819-c1b7f947a59e
+  cost {2}{R}
+  type Sorcery
+  spell: untap target creature and gain control of it until end of turn; that creature gains haste
+}

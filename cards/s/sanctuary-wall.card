@@ -1,0 +1,8 @@
+card "Sanctuary Wall" {
+  oracle_id 83856c3a-652e-4afc-9dc0-0072324ac36f
+  cost {1}{W}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender
+  activated {2}{W}, {T}: tap target creature; you may put 1 stun counters on target 1; if you do, put 1 stun counters on this
+}

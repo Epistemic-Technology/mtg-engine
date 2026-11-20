@@ -1,0 +1,7 @@
+card "Seal Away" {
+  oracle_id c8909015-ea49-47cb-8d37-653904f965bb
+  cost {1}{W}
+  type Enchantment
+  keywords flash
+  triggered when this enters: exile target tapped creature an opponent controls until this leaves
+}

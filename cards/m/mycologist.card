@@ -1,0 +1,9 @@
+card "Mycologist" {
+  oracle_id af0bf083-0624-4ccd-b282-a35937e925fe
+  cost {1}{W}
+  type Creature — Human Druid
+  pt 0/2
+  triggered at beginning of your upkeep: put 1 spore counters on this
+  activated remove 3 spore counters from this: create 1 "1/1 green Saproling creature"
+  activated sacrifice Saproling: you gains 2 life
+}

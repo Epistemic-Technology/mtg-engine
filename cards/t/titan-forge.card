@@ -1,0 +1,7 @@
+card "Titan Forge" {
+  oracle_id 3b02dfca-bcaa-4e22-b143-401ed250d016
+  cost {3}
+  type Artifact
+  activated {3}, {T}: put 1 charge counters on this
+  activated {T}, remove 3 charge counters from this: create 1 "9/9 colorless Golem artifact creature"
+}

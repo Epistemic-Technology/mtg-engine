@@ -1,0 +1,8 @@
+card "Agent of the Fates" {
+  oracle_id 45f88a6a-ac8a-4a53-a96b-f09ca33c79ba
+  cost {1}{B}{B}
+  type Creature — Human Assassin
+  pt 3/2
+  keywords deathtouch
+  label "Heroic" triggered whenever you cast a spell that targets this: each opponent sacrifices 1 creature
+}

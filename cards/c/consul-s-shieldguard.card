@@ -1,0 +1,8 @@
+card "Consul's Shieldguard" {
+  oracle_id c1a3eeef-7ea5-4d58-9e6f-91bbf1c2cc8c
+  cost {3}{W}
+  type Creature — Dwarf Soldier
+  pt 3/4
+  triggered when this enters: you get 2 energy
+  triggered whenever this attacks: you may pay 1 energy; if you do, another target attacking creature gains indestructible
+}

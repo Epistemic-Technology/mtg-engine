@@ -1,0 +1,6 @@
+card "Faebloom Trick" {
+  oracle_id 903d114b-1899-4e67-bee3-af0673850388
+  cost {2}{U}
+  type Instant
+  spell: create 2 "1/1 blue Faerie creature with flying"; when you do, tap target creature an opponent controls
+}

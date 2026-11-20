@@ -1,0 +1,9 @@
+card "Herdchaser Dragon" {
+  oracle_id 9c7073e9-c676-4629-814c-a96e7af905cf
+  cost {5}{G}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying, trample
+  megamorph {5}{G}{G}
+  triggered when this is turned face up: put 1 +1/+1 counters on each other Dragon creature you control
+}

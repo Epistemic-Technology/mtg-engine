@@ -1,0 +1,7 @@
+card "Chilling Grasp" {
+  oracle_id 45c517d4-944c-43f6-8ead-a47965377575
+  cost {2}{U}
+  type Instant
+  spell: tap up to two target creatures; targets 1 to 2 doesn't untap next untap step
+  madness {3}{U}
+}

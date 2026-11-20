@@ -1,0 +1,9 @@
+card "Twin Blades" {
+  oracle_id 88b076a4-46ff-4a41-95a5-2821f4d8944d
+  cost {2}{R}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; that creature gains double strike
+  static enchanted: +1/+1
+  equip {2}
+}

@@ -1,0 +1,9 @@
+card "Briarhorn" {
+  oracle_id fcc7dd32-2198-446c-9144-e50d56ef53ed
+  cost {3}{G}
+  type Creature — Elemental
+  pt 3/3
+  keywords flash
+  triggered when this enters: target creature gets +3/+3
+  evoke {1}{G}
+}

@@ -1,0 +1,7 @@
+card "Vote Out" {
+  oracle_id 7efe9fe5-d93c-46a6-afbd-9655a902c6bc
+  cost {3}{B}
+  type Sorcery
+  keywords convoke
+  spell: destroy target creature
+}

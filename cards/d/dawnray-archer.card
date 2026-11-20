@@ -1,0 +1,8 @@
+card "Dawnray Archer" {
+  oracle_id 19055292-1a79-413e-8056-7d4aec9839ed
+  cost {2}{U}
+  type Creature — Human Archer
+  pt 1/1
+  keywords exalted
+  activated {W}, {T}: deal 1 damage to target attacking or blocking creature
+}

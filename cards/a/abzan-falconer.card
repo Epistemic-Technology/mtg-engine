@@ -1,0 +1,8 @@
+card "Abzan Falconer" {
+  oracle_id 8b972819-507a-40a9-ab1f-1a674ea56083
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  outlast {W}
+  static each creature you control with +1/+1 counter: has flying
+}

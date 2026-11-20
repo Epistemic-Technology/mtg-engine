@@ -1,0 +1,10 @@
+card "Ravenous Sailback" {
+  oracle_id 17e74c4b-435c-469e-a9a4-32bf0cb7634c
+  cost {4}{G}
+  type Creature — Dinosaur
+  pt 3/4
+  triggered when this enters: choose one {
+    mode: this gains haste
+    mode: destroy target artifact or enchantment
+  }
+}

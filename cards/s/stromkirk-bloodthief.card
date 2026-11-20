@@ -1,0 +1,7 @@
+card "Stromkirk Bloodthief" {
+  oracle_id c85987b4-090e-472e-b9af-1114cce56ffb
+  cost {2}{B}
+  type Creature — Vampire Rogue
+  pt 2/2
+  triggered at beginning of your end step if opponent lost life this turn: put 1 +1/+1 counters on target Vampire you control
+}

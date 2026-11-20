@@ -1,0 +1,9 @@
+card "Seeker's Folly" {
+  oracle_id 223794f2-67a3-4ab5-81c5-046c63307c6c
+  cost {2}{B}
+  type Sorcery
+  choose one {
+    mode: target opponent discards 2 cards
+    mode: each creature your opponents control gets -1/-1
+  }
+}

@@ -1,0 +1,9 @@
+card "Graf Reaver" {
+  oracle_id 8bd41805-5903-4f3f-927e-2391f0ab9478
+  cost {1}{B}
+  type Creature — Zombie Warrior
+  pt 3/3
+  keywords exploit
+  triggered when this exploits a creature: destroy target planeswalker
+  triggered at beginning of your upkeep: deal 1 damage to you
+}

@@ -1,0 +1,7 @@
+card "Savai Crystal" {
+  oracle_id cd0c1165-673d-4936-8254-deedd0ebbe97
+  cost {3}
+  type Artifact
+  mana {R} or {W} or {B}
+  cycling {2}
+}

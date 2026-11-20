@@ -1,0 +1,9 @@
+card "Tainted Observer" {
+  oracle_id 420aaa77-f429-4f3d-a73e-91dc25cb38db
+  cost {1}{G}{U}
+  type Creature — Phyrexian Bird
+  pt 2/3
+  keywords flying
+  toxic 1
+  triggered whenever other creature you control enters: you may pay {2}; if you do, proliferate
+}

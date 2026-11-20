@@ -1,0 +1,7 @@
+card "Shrapnel Blast" {
+  oracle_id d3c623f3-c7c9-47c0-8096-6dee3267baff
+  cost {1}{R}
+  type Instant
+  additional cost sacrifice artifact
+  spell: deal 5 damage to any target
+}

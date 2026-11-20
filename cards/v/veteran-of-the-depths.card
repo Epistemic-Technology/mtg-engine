@@ -1,0 +1,7 @@
+card "Veteran of the Depths" {
+  oracle_id 70bcec56-1485-4e4e-8fff-940d7b133c5d
+  cost {3}{W}
+  type Creature — Merfolk Soldier
+  pt 2/2
+  triggered whenever this becomes tapped: you may put 1 +1/+1 counters on this
+}

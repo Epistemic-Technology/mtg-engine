@@ -1,0 +1,7 @@
+card "Ochran Assassin" {
+  oracle_id ef6ecb67-7e49-4d40-84f2-1e7c02960a0d
+  cost {1}{B}{G}
+  type Creature — Elf Assassin
+  pt 1/1
+  keywords deathtouch, lure
+}

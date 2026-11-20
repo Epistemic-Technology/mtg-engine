@@ -1,0 +1,7 @@
+card "Hall of Tagsin" {
+  oracle_id fd809587-773c-47ec-8676-cefef6d1e38f
+  type Land
+  mana {C}
+  activated {1}, {T}: add any
+  activated {4}, {T}: create 1 tapped "Powerstone"
+}

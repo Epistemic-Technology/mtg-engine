@@ -1,0 +1,8 @@
+card "Persuasive Interrogators" {
+  oracle_id b401179f-eded-4973-8182-df4627133886
+  cost {4}{B}{B}
+  type Creature — Gorgon Detective
+  pt 5/6
+  triggered when this enters: investigate
+  triggered whenever you sacrifice Clue: target opponent gets 2 poison counters
+}

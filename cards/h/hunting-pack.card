@@ -1,0 +1,7 @@
+card "Hunting Pack" {
+  oracle_id d3e1848a-c236-4352-a7be-b0b4699af968
+  cost {5}{G}{G}
+  type Instant
+  spell: create 1 "4/4 green Beast creature"
+  storm
+}

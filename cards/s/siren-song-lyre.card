@@ -1,0 +1,7 @@
+card "Siren Song Lyre" {
+  oracle_id 400da7e6-43f8-4539-8959-ec60a3cc431b
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has ability { activated {2}, {T}: tap target creature }
+  equip {2}
+}

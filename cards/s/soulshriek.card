@@ -1,0 +1,6 @@
+card "Soulshriek" {
+  oracle_id 77ae796e-fc56-47b9-b8a0-97e24fbd60f7
+  cost {B}
+  type Instant
+  spell: target creature you control gets +1/+0 count where graveyard creature; delayed target 1: sacrifice that creature at beginning of the next end step
+}

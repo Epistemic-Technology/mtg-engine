@@ -1,0 +1,8 @@
+card "Linebreaker Baloth" {
+  oracle_id c3b395b3-fea0-41d9-a3f2-6c90f89d8bdb
+  cost {3}{G}{G}
+  type Creature — Beast
+  pt 4/5
+  enlist
+  can't be blocked by creature with power 2 or less
+}

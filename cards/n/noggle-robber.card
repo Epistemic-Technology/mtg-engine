@@ -1,0 +1,7 @@
+card "Noggle Robber" {
+  oracle_id a2f33166-6cfc-4dc5-8edc-088bf40f06b5
+  cost {1}{R/G}{R/G}
+  type Creature — Noggle Rogue
+  pt 3/3
+  triggered when this enters or dies: create 1 "Treasure"
+}

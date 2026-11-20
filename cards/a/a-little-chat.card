@@ -1,0 +1,7 @@
+card "A Little Chat" {
+  oracle_id 1167fe30-32b8-4381-8067-a05cd345977b
+  cost {1}{U}
+  type Instant
+  casualty 1
+  spell: dig 2 take card rest bottom
+}

@@ -1,0 +1,7 @@
+card "Incendiary Sabotage" {
+  oracle_id 28da6443-4acc-4f1c-a54f-9153286f18c4
+  cost {2}{R}{R}
+  type Instant
+  additional cost sacrifice artifact
+  spell: deal 3 damage to each creature
+}

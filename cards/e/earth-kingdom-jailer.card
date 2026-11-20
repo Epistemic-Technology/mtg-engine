@@ -1,0 +1,7 @@
+card "Earth Kingdom Jailer" {
+  oracle_id 1b799c30-4a43-403d-b822-0555bd513913
+  cost {2}{W}
+  type Creature — Human Soldier Ally
+  pt 3/3
+  triggered when this enters: exile up to one target artifact, creature, or enchantment an opponent controls with mana value 3 or greater until this leaves
+}

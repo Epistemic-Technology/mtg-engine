@@ -1,0 +1,14 @@
+card "Said // Done" {
+  oracle_id 5d1d76e0-049c-4a33-96ec-8e60deed16d5
+  layout split
+  face "Said" {
+    cost {2}{U}
+    type Sorcery
+    spell: return target instant or sorcery card from your graveyard to hand
+  }
+  face "Done" {
+    cost {3}{U}
+    type Instant
+    spell: tap up to two target creatures; targets 1 to 2 doesn't untap next untap step
+  }
+}

@@ -1,0 +1,11 @@
+card "Aether Channeler" {
+  oracle_id fb220f46-f8b8-4804-baa4-e7d50b4871f7
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  triggered when this enters: choose one {
+    mode: create 1 "1/1 white Bird creature with flying"
+    mode: return another target nonland permanent to hand
+    mode: draw 1 cards
+  }
+}

@@ -1,0 +1,10 @@
+card "Aragorn, the Uniter" {
+  oracle_id 3f31c423-d45c-4c3e-b7d4-ca125be0f92c
+  cost {R}{G}{W}{U}
+  type Legendary Creature — Human Noble
+  pt 5/5
+  triggered whenever you cast white spell: create 1 "1/1 white Human Soldier creature"
+  triggered whenever you cast blue spell: scry 2
+  triggered whenever you cast red spell: deal 3 damage to target opponent
+  triggered whenever you cast green spell: target creature gets +4/+4
+}

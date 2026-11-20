@@ -1,0 +1,8 @@
+card "Haazda Shield Mate" {
+  oracle_id 49b689a3-9197-4a04-a62f-218b245d6e23
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  triggered at beginning of your upkeep: sacrifice this unless you pay {W}{W}
+  activated {W}: this turn, replace damage from chosen source to you: prevent next time
+}

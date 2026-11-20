@@ -1,0 +1,7 @@
+card "Hard Cover" {
+  oracle_id 8613d71b-4ac9-490d-b883-aefe03bcebce
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +0/+2, has ability { activated {T}: draw 1 cards then discard 1 cards }
+}

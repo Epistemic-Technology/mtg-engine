@@ -1,0 +1,7 @@
+card "Dawn of Hope" {
+  oracle_id d7a38484-2acc-49a6-b32d-d54dddb14d31
+  cost {1}{W}
+  type Enchantment
+  triggered whenever you gain life: you may pay {2}; if you do, draw 1 cards
+  activated {3}{W}: create 1 "1/1 white Soldier creature with lifelink"
+}

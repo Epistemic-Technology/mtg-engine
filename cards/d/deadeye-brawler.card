@@ -1,0 +1,9 @@
+card "Deadeye Brawler" {
+  oracle_id a7c36b66-4f58-41af-b1c5-704ff0d9eac8
+  cost {2}{U}{B}
+  type Creature — Human Pirate
+  pt 2/4
+  keywords deathtouch
+  ascend
+  triggered whenever this deals combat damage to a player if city's blessing: draw 1 cards
+}

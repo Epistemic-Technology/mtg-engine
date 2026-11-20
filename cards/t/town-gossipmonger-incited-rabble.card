@@ -1,0 +1,15 @@
+card "Town Gossipmonger // Incited Rabble" {
+  oracle_id 8a8e225b-14e4-464f-bebe-89b4c9be7fe1
+  layout transform
+  cost {W}
+  type Creature — Human
+  pt 1/1
+  activated {T}, tap untapped creature you control: transform this
+  face "Incited Rabble" {
+    type Creature — Human
+    pt 2/3
+    color red
+    keywords attacks each combat if able
+    activated {2}: this gets +1/+0
+  }
+}

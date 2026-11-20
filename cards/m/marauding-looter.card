@@ -1,0 +1,7 @@
+card "Marauding Looter" {
+  oracle_id 427bf4eb-3dfd-4747-be92-4a4a3d96a228
+  cost {2}{U}{R}
+  type Creature — Human Pirate
+  pt 4/3
+  label "Raid" triggered at beginning of your end step if attacked this turn: you may draw 1 cards; if you do, discard 1 cards
+}

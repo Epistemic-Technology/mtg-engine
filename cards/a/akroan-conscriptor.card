@@ -1,0 +1,7 @@
+card "Akroan Conscriptor" {
+  oracle_id 54216953-c575-4e08-9bee-384721c0bc4d
+  cost {4}{R}
+  type Creature — Human Shaman
+  pt 3/2
+  label "Heroic" triggered whenever you cast a spell that targets this: gain control of another target creature; untap that creature; target 1 gains haste
+}

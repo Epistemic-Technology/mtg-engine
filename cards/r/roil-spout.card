@@ -1,0 +1,7 @@
+card "Roil Spout" {
+  oracle_id ebc1d343-26f1-4d85-ac3a-610da24c990e
+  cost {1}{W}{U}
+  type Sorcery
+  spell: put target creature on top of library
+  awaken 4 {4}{W}{U}
+}

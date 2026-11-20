@@ -1,0 +1,8 @@
+card "Obsessive Stitcher" {
+  oracle_id e8210145-a6ac-4f84-a74c-a5799c5e9434
+  cost {1}{U}{B}
+  type Creature — Human Wizard
+  pt 0/3
+  activated {T}: draw 1 cards then discard 1 cards
+  activated {2}{U}{B}, {T}, sacrifice this: return target creature card from your graveyard to battlefield
+}

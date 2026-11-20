@@ -1,0 +1,7 @@
+card "Zendikar Incarnate" {
+  oracle_id ecd307e6-9096-401f-bd82-ad190532d389
+  cost {2}{R}{G}
+  type Creature — Elemental
+  pt */4
+  static this: cda power count land you control
+}

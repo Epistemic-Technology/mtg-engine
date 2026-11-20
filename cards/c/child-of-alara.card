@@ -1,0 +1,8 @@
+card "Child of Alara" {
+  oracle_id 70dbe8a9-505d-41c2-9b5b-a991d13ab459
+  cost {W}{U}{B}{R}{G}
+  type Legendary Creature — Avatar
+  pt 6/6
+  keywords trample
+  triggered when this dies: destroy each nonland permanent without regeneration
+}

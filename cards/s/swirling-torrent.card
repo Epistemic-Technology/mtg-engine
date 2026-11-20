@@ -1,0 +1,9 @@
+card "Swirling Torrent" {
+  oracle_id 70f44207-338e-4031-a093-f045e8d328b2
+  cost {5}{U}
+  type Sorcery
+  choose one or both {
+    mode: put target creature on top of library
+    mode: return target creature to hand
+  }
+}

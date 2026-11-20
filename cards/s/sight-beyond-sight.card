@@ -1,0 +1,7 @@
+card "Sight Beyond Sight" {
+  oracle_id c2905e12-8af1-46f4-b888-be272a9b9748
+  cost {3}{U}
+  type Sorcery
+  keywords rebound
+  spell: dig 2 take card rest bottom
+}

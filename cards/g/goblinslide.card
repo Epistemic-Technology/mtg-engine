@@ -1,0 +1,6 @@
+card "Goblinslide" {
+  oracle_id 4885354f-0b77-47b6-b8f7-00753804436f
+  cost {2}{R}
+  type Enchantment
+  triggered whenever you cast a noncreature spell: you may pay {1}; if you do, create 1 "1/1 red Goblin creature with haste"
+}

@@ -1,0 +1,8 @@
+card "Tajic, Blade of the Legion" {
+  oracle_id 8951d797-6356-4f27-a6de-e013216274d6
+  cost {2}{R}{W}
+  type Legendary Creature — Human Soldier
+  pt 2/2
+  keywords indestructible
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: this creature gets +5/+5
+}

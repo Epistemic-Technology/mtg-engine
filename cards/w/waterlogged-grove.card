@@ -1,0 +1,6 @@
+card "Waterlogged Grove" {
+  oracle_id 70fa2eba-565e-4fed-adc9-7f5d9fcbf1fa
+  type Land
+  activated {T}, pay 1 life: add {G} or {U}
+  activated {1}, {T}, sacrifice this: draw 1 cards
+}

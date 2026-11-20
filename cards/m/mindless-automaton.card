@@ -1,0 +1,9 @@
+card "Mindless Automaton" {
+  oracle_id e7441107-57b1-4e88-a9d8-3eb7c338ef07
+  cost {4}
+  type Artifact Creature — Construct
+  pt 0/0
+  enters with 2 +1/+1 counters
+  activated {1}, discard 1 card: put 1 +1/+1 counters on this
+  activated remove 2 +1/+1 counters from this: draw 1 cards
+}

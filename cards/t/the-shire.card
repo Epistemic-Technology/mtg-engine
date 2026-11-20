@@ -1,0 +1,7 @@
+card "The Shire" {
+  oracle_id 9abf9a0e-8e7d-406b-a01d-d4870b30134e
+  type Legendary Land
+  enters tapped unless you control legendary creature
+  mana {G}
+  activated {1}{G}, {T}, tap untapped creature you control: create 1 "Food"
+}

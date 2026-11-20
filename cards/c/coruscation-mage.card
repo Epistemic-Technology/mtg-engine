@@ -1,0 +1,8 @@
+card "Coruscation Mage" {
+  oracle_id 88bb91b5-2ccd-4ce9-8cd4-e54d63c12abf
+  cost {1}{R}
+  type Creature — Otter Wizard
+  pt 2/2
+  offspring {2}
+  triggered whenever you cast a noncreature spell: deal 1 damage to each opponent
+}

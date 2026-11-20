@@ -1,0 +1,7 @@
+card "Deadeye Harpooner" {
+  oracle_id 959e1f72-4ba2-4c87-95d1-ca0265dc128c
+  cost {2}{W}
+  type Creature — Dwarf Warrior
+  pt 2/2
+  label "Revolt" triggered when this enters if permanent left this turn: destroy target tapped creature an opponent controls
+}

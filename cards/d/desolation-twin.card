@@ -1,0 +1,7 @@
+card "Desolation Twin" {
+  oracle_id c0cb1f37-1679-42c7-a794-81e088157eeb
+  cost {10}
+  type Creature — Eldrazi
+  pt 10/10
+  triggered when you cast this: create 1 "10/10 colorless Eldrazi creature"
+}

@@ -1,0 +1,7 @@
+card "Tunneling Geopede" {
+  oracle_id 78cd6d20-033f-471f-a86e-59ec8307ae1f
+  cost {2}{R}
+  type Creature — Insect
+  pt 3/2
+  label "Landfall" triggered whenever land you control enters: deal 1 damage to each opponent
+}

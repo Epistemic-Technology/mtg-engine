@@ -1,0 +1,9 @@
+card "Ghost-Lit Drifter" {
+  oracle_id c8618fec-e124-4f42-b440-0f41a7de3d1f
+  cost {2}{U}
+  type Creature — Spirit
+  pt 2/2
+  keywords flying
+  activated {2}{U}: another target creature gains flying
+  label "Channel" activated {X}{U}, discard this: X target creatures gains flying
+}

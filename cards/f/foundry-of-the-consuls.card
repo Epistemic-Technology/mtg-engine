@@ -1,0 +1,6 @@
+card "Foundry of the Consuls" {
+  oracle_id 0498ea14-53d9-4655-a616-0ff3cf73de4e
+  type Land
+  mana {C}
+  activated {5}, {T}, sacrifice this: create 2 "1/1 colorless Thopter artifact creature with flying"
+}

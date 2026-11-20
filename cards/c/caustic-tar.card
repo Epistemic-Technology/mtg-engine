@@ -1,0 +1,7 @@
+card "Caustic Tar" {
+  oracle_id 2b5f70ec-33da-4dff-9cff-fe05eb906685
+  cost {4}{B}{B}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: has ability { activated {T}: target player loses 3 life }
+}

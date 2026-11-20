@@ -1,0 +1,9 @@
+card "Defabricate" {
+  oracle_id 60fc5eb0-95d6-49b0-a538-945ef599e484
+  cost {1}{U}
+  type Instant
+  choose one {
+    mode: counter target artifact or enchantment spell to exile
+    mode: counter target activated or triggered ability
+  }
+}

@@ -1,0 +1,7 @@
+card "Manifold Key" {
+  oracle_id 370c37f7-2484-40e8-8fd9-c10cf6f5d5f2
+  cost {1}
+  type Artifact
+  activated {1}, {T}: untap another target artifact
+  activated {3}, {T}: target creature can't be blocked
+}

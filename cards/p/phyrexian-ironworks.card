@@ -1,0 +1,7 @@
+card "Phyrexian Ironworks" {
+  oracle_id b3c87cb9-a37a-428e-95d1-e6dd90b31097
+  cost {2}{R}
+  type Artifact
+  triggered whenever you attack: you get 1 energy
+  activated {T}, pay 3 energy, sorcery: create 1 "3/3 colorless Phyrexian Golem artifact creature"
+}

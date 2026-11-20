@@ -1,0 +1,7 @@
+card "Deepfire Elemental" {
+  oracle_id c8119ebe-aedd-4bdb-8f7f-368674a049fd
+  cost {4}{B}{R}
+  type Creature — Elemental
+  pt 4/4
+  activated {X}{X}{1}: destroy target artifact or creature with mana value X
+}

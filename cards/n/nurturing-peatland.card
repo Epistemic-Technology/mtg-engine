@@ -1,0 +1,6 @@
+card "Nurturing Peatland" {
+  oracle_id 8ed932ff-986c-4592-ad70-53b3fac80d69
+  type Land
+  activated {T}, pay 1 life: add {B} or {G}
+  activated {1}, {T}, sacrifice this: draw 1 cards
+}

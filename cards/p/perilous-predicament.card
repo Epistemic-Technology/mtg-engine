@@ -1,0 +1,6 @@
+card "Perilous Predicament" {
+  oracle_id 169728d6-7820-4a6d-a815-70714ad3e887
+  cost {4}{B}
+  type Instant
+  spell: each opponent sacrifices 1 artifact creature and a nonartifact creature
+}

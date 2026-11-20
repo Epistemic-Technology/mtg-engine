@@ -1,0 +1,8 @@
+card "Clamor Shaman" {
+  oracle_id 7fd2dcb2-760d-461d-8e5b-693aacf548cf
+  cost {2}{R}
+  type Creature — Goblin Shaman
+  pt 1/1
+  riot
+  triggered whenever this attacks: target creature an opponent controls can't block
+}

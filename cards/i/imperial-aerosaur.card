@@ -1,0 +1,8 @@
+card "Imperial Aerosaur" {
+  oracle_id 6889a555-6fde-4728-9cf2-715f0730efb7
+  cost {3}{W}
+  type Creature — Dinosaur
+  pt 3/3
+  keywords flying
+  triggered when this enters: another target creature you control gets +1/+1 and gains flying
+}

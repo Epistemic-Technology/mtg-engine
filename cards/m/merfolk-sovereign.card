@@ -1,0 +1,8 @@
+card "Merfolk Sovereign" {
+  oracle_id 16aba9af-7a12-4c3d-87eb-06278921cb7c
+  cost {1}{U}{U}
+  type Creature — Merfolk Noble
+  pt 2/2
+  static other Merfolk creature you control: +1/+1
+  activated {T}: target Merfolk creature can't be blocked
+}

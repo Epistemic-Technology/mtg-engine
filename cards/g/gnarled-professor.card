@@ -1,0 +1,8 @@
+card "Gnarled Professor" {
+  oracle_id e66083f0-62a9-4ff7-8bb0-3eafc6d2e95d
+  cost {2}{G}{G}
+  type Creature — Treefolk Druid
+  pt 5/4
+  keywords trample
+  triggered when this enters: learn
+}

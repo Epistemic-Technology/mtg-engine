@@ -1,0 +1,8 @@
+card "Disciplined Duelist" {
+  oracle_id c650f497-92d6-48cf-8b59-5d61eb184dc0
+  cost {G}{W}{U}
+  type Creature — Human Citizen
+  pt 2/1
+  keywords double strike
+  enters with 1 shield counters
+}

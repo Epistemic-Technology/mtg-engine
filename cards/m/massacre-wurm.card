@@ -1,0 +1,8 @@
+card "Massacre Wurm" {
+  oracle_id 93cf50cf-0ecc-4d3e-abea-778c1ebacec4
+  cost {3}{B}{B}{B}
+  type Creature — Phyrexian Wurm
+  pt 6/5
+  triggered when this enters: each creature your opponents control gets -2/-2
+  triggered whenever creature an opponent controls dies: that player loses 2 life
+}

@@ -1,0 +1,8 @@
+card "Myr Convert" {
+  oracle_id 6abf433e-27da-4abb-b262-3af792a1db23
+  cost {2}
+  type Artifact Creature — Phyrexian Myr
+  pt 2/1
+  toxic 1
+  activated {T}, pay 2 life: add any
+}

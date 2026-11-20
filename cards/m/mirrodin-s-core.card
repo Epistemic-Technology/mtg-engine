@@ -1,0 +1,7 @@
+card "Mirrodin's Core" {
+  oracle_id ea53adbe-3f9a-4847-87c7-723ac2789918
+  type Land
+  mana {C}
+  activated {T}: put 1 charge counters on this
+  activated {T}, remove 1 charge counters from this: add any
+}

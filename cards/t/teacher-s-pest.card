@@ -1,0 +1,9 @@
+card "Teacher's Pest" {
+  oracle_id 12397dbf-99a9-40c3-aa7c-76d09baad008
+  cost {B}{G}
+  type Creature — Skeleton Pest
+  pt 1/1
+  keywords menace
+  triggered whenever this attacks: you gains 1 life
+  activated {B}{G}, from graveyard: return this to battlefield tapped
+}

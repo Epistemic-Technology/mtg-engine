@@ -1,0 +1,7 @@
+card "Sylvan Safekeeper" {
+  oracle_id bddf8f4a-3149-4dd6-a9e5-7747e7e45a1c
+  cost {G}
+  type Creature — Human Wizard
+  pt 1/1
+  activated sacrifice land: target creature you control gains shroud
+}

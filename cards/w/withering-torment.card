@@ -1,0 +1,6 @@
+card "Withering Torment" {
+  oracle_id ffce81c5-1b58-4882-a4e7-6f8d7cb170de
+  cost {2}{B}
+  type Instant
+  spell: destroy target creature or enchantment; you loses 2 life
+}

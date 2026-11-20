@@ -1,0 +1,8 @@
+card "Koth of the Homestead" {
+  oracle_id 567aeb60-a441-41b1-98f4-54510d299317
+  cost {2}{W}
+  type Legendary Creature — Human Citizen
+  pt 2/3
+  label "Landfall" triggered whenever land you control enters: you gains 1 life
+  triggered whenever Plains you control enters: put 1 +1/+1 counters on target creature
+}

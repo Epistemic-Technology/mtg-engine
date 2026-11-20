@@ -1,0 +1,10 @@
+card "Ayula, Queen Among Bears" {
+  oracle_id a79d2fc8-467f-464d-9e73-2dae4b059628
+  cost {1}{G}
+  type Legendary Creature — Bear
+  pt 2/2
+  triggered whenever other Bear you control enters: choose one {
+    mode: put 2 +1/+1 counters on target Bear
+    mode: target Bear you control fights target creature you don't control
+  }
+}

@@ -1,0 +1,7 @@
+card "Loxodon Battle Priest" {
+  oracle_id 8cf4ddb0-2a83-4d8f-b636-7ba3c81ea4ca
+  cost {4}{W}
+  type Creature — Elephant Cleric
+  pt 3/5
+  triggered at beginning of your combat: put 1 +1/+1 counters on another target creature you control
+}

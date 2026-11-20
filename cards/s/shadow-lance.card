@@ -1,0 +1,8 @@
+card "Shadow Lance" {
+  oracle_id f1a2a78c-2794-4bc9-9b06-49306378ef69
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has first strike
+  activated {1}{B}: enchanted creature gets +2/+2
+}

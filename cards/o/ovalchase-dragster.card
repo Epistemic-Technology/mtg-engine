@@ -1,0 +1,8 @@
+card "Ovalchase Dragster" {
+  oracle_id 345de988-4d26-4400-8202-225968db370f
+  cost {4}
+  type Artifact — Vehicle
+  pt 6/1
+  keywords trample, haste
+  crew 1
+}

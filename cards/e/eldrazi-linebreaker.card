@@ -1,0 +1,8 @@
+card "Eldrazi Linebreaker" {
+  oracle_id db432387-58d3-4473-9442-b5b586dbea38
+  cost {1}{C}{R}
+  type Creature — Eldrazi
+  pt 3/3
+  keywords devoid, trample
+  triggered at beginning of your combat: target creature you control gains haste and gets +1/+0 count where Eldrazi you control
+}

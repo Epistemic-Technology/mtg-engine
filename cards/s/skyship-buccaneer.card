@@ -1,0 +1,8 @@
+card "Skyship Buccaneer" {
+  oracle_id 5951f734-05d3-41ad-94ee-19bd310077d2
+  cost {3}{U}{U}
+  type Creature — Human Pirate
+  pt 4/3
+  keywords flying
+  label "Raid" triggered when this enters if attacked this turn: draw 1 cards
+}

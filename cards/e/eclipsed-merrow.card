@@ -1,0 +1,7 @@
+card "Eclipsed Merrow" {
+  oracle_id a3a00b62-f07e-44ef-8d97-22a3e7a06f72
+  cost {W/U}{W/U}{W/U}
+  type Creature — Merfolk Scout
+  pt 2/3
+  triggered when this enters: dig 4 take Merfolk, Plains, or Island card may revealing rest bottom random
+}

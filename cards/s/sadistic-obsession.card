@@ -1,0 +1,7 @@
+card "Sadistic Obsession" {
+  oracle_id 1c55af05-7fbe-4078-9463-689b21c0d3e4
+  cost {3}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {B}, {T}: put 1 -1/-1 counters on target creature }
+}

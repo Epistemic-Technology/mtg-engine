@@ -1,0 +1,9 @@
+card "Nightdrinker Moroii" {
+  oracle_id 07d830a7-f0a2-4d46-9a53-101dca681603
+  cost {3}{B}
+  type Creature — Vampire
+  pt 4/2
+  keywords flying
+  triggered when this enters: you loses 3 life
+  disguise {B}{B}
+}

@@ -1,0 +1,8 @@
+card "Goblin Ringleader" {
+  oracle_id 4100e486-0d27-436c-8429-76bc2c1a26ab
+  cost {3}{R}
+  type Creature — Goblin
+  pt 2/2
+  keywords haste
+  triggered when this enters: dig 4 reveal take all Goblin card rest bottom
+}

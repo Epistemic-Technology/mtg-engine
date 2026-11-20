@@ -1,0 +1,7 @@
+card "Distorted Curiosity" {
+  oracle_id 6ebbf025-2996-46f2-ac23-992909251525
+  cost {2}{U}
+  type Sorcery
+  label "Corrupted" this spell costs {2} less if opponent poison 3 or more
+  spell: draw 2 cards
+}

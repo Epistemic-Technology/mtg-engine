@@ -1,0 +1,9 @@
+card "Glarewielder" {
+  oracle_id 9d3136da-3efa-4103-9d35-8da87d318544
+  cost {4}{R}
+  type Creature — Elemental Shaman
+  pt 3/1
+  keywords haste
+  triggered when this enters: up to two target creatures can't block
+  evoke {1}{R}
+}

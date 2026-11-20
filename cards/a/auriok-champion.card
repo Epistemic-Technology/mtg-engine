@@ -1,0 +1,8 @@
+card "Auriok Champion" {
+  oracle_id 633fd158-19d0-4d97-a076-2ad897bbed19
+  cost {W}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  keywords protection from black, protection from red
+  triggered whenever other creature enters: you may you gain 1 life
+}

@@ -1,0 +1,7 @@
+card "Karplusan Yeti" {
+  oracle_id d6d84884-4a58-4187-aa5c-20b39b379590
+  cost {3}{R}{R}
+  type Creature — Yeti
+  pt 3/3
+  activated {T}: this bites target creature; that creature bites this creature
+}

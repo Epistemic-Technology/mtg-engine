@@ -1,0 +1,7 @@
+card "Eusocial Engineering" {
+  oracle_id 2f3f5a1c-8b88-4080-bd80-14db4d6c8c50
+  cost {3}{G}{G}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: create 1 "2/2 colorless Robot artifact creature"
+  warp {1}{G}
+}

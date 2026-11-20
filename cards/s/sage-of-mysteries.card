@@ -1,0 +1,7 @@
+card "Sage of Mysteries" {
+  oracle_id 62c949c8-0011-4ab7-8388-e643be79df83
+  cost {U}
+  type Creature — Human Wizard
+  pt 0/2
+  label "Constellation" triggered whenever enchantment you control enters: target player mills 2 cards
+}

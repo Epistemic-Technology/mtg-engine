@@ -1,0 +1,8 @@
+card "War Oracle" {
+  oracle_id aa26fb50-1b53-488e-90d1-b0c7af273622
+  cost {2}{W}{W}
+  type Creature — Human Cleric
+  pt 3/3
+  keywords lifelink
+  renown 1
+}

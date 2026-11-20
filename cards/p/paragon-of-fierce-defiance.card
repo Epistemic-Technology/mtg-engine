@@ -1,0 +1,8 @@
+card "Paragon of Fierce Defiance" {
+  oracle_id 0f94d1a7-351f-4d37-8dab-1ebf2e8ee213
+  cost {3}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  static other red creature you control: +1/+1
+  activated {R}, {T}: another target red creature you control gains haste
+}

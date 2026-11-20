@@ -1,0 +1,7 @@
+token "1/1 white Cat creature with lifelink" {
+  name "Cat"
+  type Creature — Cat
+  pt 1/1
+  color white
+  keywords lifelink
+}

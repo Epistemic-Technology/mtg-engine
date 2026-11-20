@@ -1,0 +1,6 @@
+card "Blighted Woodland" {
+  oracle_id 02679a2e-303d-412f-87d8-0a37a8ca259c
+  type Land
+  mana {C}
+  activated {3}{G}, {T}, sacrifice this: search up to 2 basic land card to battlefield tapped
+}

@@ -1,0 +1,7 @@
+card "Sword Dancer" {
+  oracle_id 9ae49b45-a38f-4bd6-aa08-b5a5da6e75a1
+  cost {1}{W}
+  type Creature — Human Rebel
+  pt 1/2
+  activated {W}{W}: target attacking creature gets -1/-0
+}

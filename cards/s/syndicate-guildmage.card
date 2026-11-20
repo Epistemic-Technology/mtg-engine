@@ -1,0 +1,8 @@
+card "Syndicate Guildmage" {
+  oracle_id ec484fd1-aa9a-4056-becf-1d8c710272fd
+  cost {W}{B}
+  type Creature — Human Cleric
+  pt 2/2
+  activated {1}{W}, {T}: tap target creature with power 4 or greater
+  activated {4}{B}, {T}: deal 2 damage to target opponent or planeswalker
+}

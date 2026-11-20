@@ -1,0 +1,6 @@
+card "Gargoyle Castle" {
+  oracle_id 963f2848-15bd-441b-a55c-635f53b7b63f
+  type Land
+  mana {C}
+  activated {5}, {T}, sacrifice this: create 1 "3/4 colorless Gargoyle artifact creature with flying"
+}

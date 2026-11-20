@@ -1,0 +1,7 @@
+card "Countless Gears Renegade" {
+  oracle_id 9d1f9036-a466-46b6-ab7c-2de487876978
+  cost {1}{W}
+  type Creature — Dwarf Artificer
+  pt 2/2
+  label "Revolt" triggered when this enters if permanent left this turn: create 1 "1/1 colorless Servo artifact creature"
+}

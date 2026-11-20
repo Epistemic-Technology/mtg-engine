@@ -1,0 +1,8 @@
+card "Innocence Kami" {
+  oracle_id dc9b963e-eae7-4919-a5a9-16aad04e4b22
+  cost {3}{W}{W}
+  type Creature — Spirit
+  pt 2/3
+  activated {W}, {T}: tap target creature
+  triggered whenever you cast Spirit or Arcane spell: untap this
+}

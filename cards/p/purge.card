@@ -1,0 +1,6 @@
+card "Purge" {
+  oracle_id d06f0f7c-0270-44be-991a-a5ebbddb0900
+  cost {1}{W}
+  type Instant
+  spell: destroy target artifact creature or black creature without regeneration
+}

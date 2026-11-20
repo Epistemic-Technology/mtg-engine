@@ -1,0 +1,7 @@
+card "Reki, the History of Kamigawa" {
+  oracle_id 8a7d68ae-ac43-46a6-9dc8-d6b07cc0333c
+  cost {2}{G}
+  type Legendary Creature — Human Shaman
+  pt 1/2
+  triggered whenever you cast legendary spell: draw 1 cards
+}

@@ -1,0 +1,8 @@
+card "Blacklance Paragon" {
+  oracle_id 258a78cc-a9f3-459a-9837-93a9856f72db
+  cost {1}{B}
+  type Creature — Human Knight
+  pt 3/1
+  keywords flash
+  triggered when this enters: target Knight gains deathtouch, lifelink
+}

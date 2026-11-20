@@ -1,0 +1,8 @@
+card "Bellowing Tanglewurm" {
+  oracle_id a1091651-4e3e-4840-87e2-b80084770137
+  cost {3}{G}{G}
+  type Creature — Wurm
+  pt 4/4
+  keywords intimidate
+  static other green creature you control: has intimidate
+}

@@ -1,0 +1,8 @@
+card "Liliana the Faultless" {
+  oracle_id 22c2e66d-a2a1-46db-a70a-dff5ad5d6c14
+  cost {W}
+  type Legendary Creature — Human Cleric
+  pt 1/1
+  triggered whenever other creature or planeswalker you control enters: you gains 1 life
+  activated {1}, {T}, discard 1 card: another target creature or planeswalker you control gains hexproof
+}

@@ -1,0 +1,12 @@
+card "Charming Scoundrel" {
+  oracle_id 9eec304d-ffcb-4287-b877-280ac1e4f496
+  cost {1}{R}
+  type Creature — Human Rogue
+  pt 1/1
+  keywords haste
+  triggered when this enters: choose one {
+    mode: discard 1 cards then draw 1 cards
+    mode: create 1 "Treasure"
+    mode: create 1 "Wicked Role" attached to target creature you control
+  }
+}

@@ -1,0 +1,8 @@
+card "Griffin Guide" {
+  oracle_id c5323a43-82de-4340-8578-b3ffcc66f8fa
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has flying
+  triggered when enchanted creature dies: create 1 "2/2 white Griffin creature with flying"
+}

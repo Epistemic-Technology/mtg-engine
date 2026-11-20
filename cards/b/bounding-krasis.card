@@ -1,0 +1,8 @@
+card "Bounding Krasis" {
+  oracle_id c6736bac-314b-48af-8722-c16a0d66affa
+  cost {1}{G}{U}
+  type Creature — Fish Lizard
+  pt 3/3
+  keywords flash
+  triggered when this enters: you may tap or untap target creature
+}

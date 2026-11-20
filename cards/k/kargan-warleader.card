@@ -1,0 +1,7 @@
+card "Kargan Warleader" {
+  oracle_id 63324e72-e580-456a-91be-766c9f07b7b3
+  cost {1}{R}{W}
+  type Creature — Human Warrior
+  pt 3/3
+  static other Warrior you control: +1/+1
+}

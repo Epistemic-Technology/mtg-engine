@@ -1,0 +1,6 @@
+card "Arcane Melee" {
+  oracle_id 9967b292-1239-4aed-b871-72e40d1f3e26
+  cost {4}{U}
+  type Enchantment
+  spells instant or sorcery cost {2} less
+}

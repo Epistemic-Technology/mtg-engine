@@ -1,0 +1,6 @@
+card "Displacement Wave" {
+  oracle_id 2b3fc609-7b19-441a-ab7e-58ccd70d955b
+  cost {X}{U}{U}
+  type Sorcery
+  spell: return all nonland permanent with mana value X or less to hand
+}

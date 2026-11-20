@@ -1,0 +1,7 @@
+card "Renegade Rallier" {
+  oracle_id 6fa07b6c-f01a-4416-b0fc-986b0fc4e412
+  cost {1}{G}{W}
+  type Creature — Human Warrior
+  pt 3/2
+  label "Revolt" triggered when this enters if permanent left this turn: return target permanent card with mana value 2 or less from your graveyard to battlefield
+}

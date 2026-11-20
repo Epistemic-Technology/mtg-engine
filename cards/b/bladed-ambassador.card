@@ -1,0 +1,8 @@
+card "Bladed Ambassador" {
+  oracle_id 3088ee75-3b51-4cbc-8987-76cb93f416b1
+  cost {1}{W}
+  type Creature — Phyrexian Soldier
+  pt 3/1
+  enters with 1 oil counters
+  activated {1}, remove 1 oil counters from this: this creature gains indestructible
+}

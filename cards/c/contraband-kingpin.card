@@ -1,0 +1,8 @@
+card "Contraband Kingpin" {
+  oracle_id 680da572-6cd5-482a-b01d-32944566d8c4
+  cost {U}{B}
+  type Creature — Aetherborn Rogue
+  pt 1/4
+  keywords lifelink
+  triggered whenever artifact you control enters: scry 1
+}

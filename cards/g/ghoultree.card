@@ -1,0 +1,7 @@
+card "Ghoultree" {
+  oracle_id 5f2628e3-e29a-4d77-bc27-6e1ce240d192
+  cost {7}{G}
+  type Creature — Zombie Treefolk
+  pt 10/10
+  this spell costs {1} less count each graveyard creature
+}

@@ -1,0 +1,8 @@
+card "Hot Soup" {
+  oracle_id a853e48b-1e15-4492-a5b4-9924b1a4cf9a
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: has can't be blocked
+  triggered whenever equipped creature is dealt damage: destroy it
+  equip {3}
+}

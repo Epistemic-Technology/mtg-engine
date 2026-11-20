@@ -1,0 +1,6 @@
+card "Trap Essence" {
+  oracle_id d64adb26-62c4-44aa-bc2e-d05bd1cf657b
+  cost {G}{U}{R}
+  type Instant
+  spell: counter target creature spell; put 2 +1/+1 counters on up to one target creature
+}

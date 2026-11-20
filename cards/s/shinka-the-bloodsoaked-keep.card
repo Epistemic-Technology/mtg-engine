@@ -1,0 +1,6 @@
+card "Shinka, the Bloodsoaked Keep" {
+  oracle_id 255b937f-c9c9-4ae9-815e-17418eba0602
+  type Legendary Land
+  mana {R}
+  activated {R}, {T}: target legendary creature gains first strike
+}

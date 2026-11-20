@@ -1,0 +1,8 @@
+card "Dromoka Captain" {
+  oracle_id 74333718-2a05-4643-9a37-013df39b32e0
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  keywords first strike
+  triggered whenever this attacks: bolster 1
+}

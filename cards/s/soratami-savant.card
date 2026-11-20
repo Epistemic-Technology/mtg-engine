@@ -1,0 +1,8 @@
+card "Soratami Savant" {
+  oracle_id 33cbb650-a756-4e06-8b18-6cc97b2340b4
+  cost {2}{U}{U}
+  type Creature — Moonfolk Wizard
+  pt 2/2
+  keywords flying
+  activated {3}, return land you control: counter target spell unless its controller pays {3}
+}

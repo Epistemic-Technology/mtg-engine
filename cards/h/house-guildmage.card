@@ -1,0 +1,8 @@
+card "House Guildmage" {
+  oracle_id 257cc8e9-55b4-4510-9d1f-5df8c1ae2061
+  cost {U}{B}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {1}{U}, {T}: target creature doesn't untap next untap step
+  activated {2}{B}, {T}: surveil 2
+}

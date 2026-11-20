@@ -1,0 +1,7 @@
+card "Cauldron of Essence" {
+  oracle_id a2f8cde8-bf7b-4234-89f0-a95f9dc937e3
+  cost {1}{B}{G}
+  type Artifact
+  triggered whenever creature you control dies: each opponent loses 1 life and you gains 1 life
+  activated {1}{B}{G}, {T}, sacrifice creature, sorcery: return target creature card from your graveyard to battlefield
+}

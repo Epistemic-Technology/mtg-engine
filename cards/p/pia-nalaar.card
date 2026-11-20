@@ -1,0 +1,9 @@
+card "Pia Nalaar" {
+  oracle_id 715336f5-a708-488b-9f30-5702a9013af0
+  cost {2}{R}
+  type Legendary Creature — Human Artificer
+  pt 2/2
+  triggered when this enters: create 1 "1/1 colorless Thopter artifact creature with flying"
+  activated {1}{R}: target artifact creature gets +1/+0
+  activated {1}, sacrifice artifact: target creature can't block
+}

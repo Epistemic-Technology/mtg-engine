@@ -1,0 +1,8 @@
+card "Ichor Rats" {
+  oracle_id f8148664-49c0-421f-93a5-cd59e4e9ea36
+  cost {1}{B}{B}
+  type Creature — Phyrexian Rat
+  pt 2/1
+  keywords infect
+  triggered when this enters: each player gets 1 poison counters
+}

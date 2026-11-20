@@ -1,0 +1,7 @@
+card "Trash for Treasure" {
+  oracle_id e69279f6-50a1-4db5-83be-30a2ea7fc6a9
+  cost {2}{R}
+  type Sorcery
+  additional cost sacrifice artifact
+  spell: return target artifact card from your graveyard to battlefield
+}

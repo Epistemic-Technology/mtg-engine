@@ -1,0 +1,8 @@
+card "Taurean Mauler" {
+  oracle_id fd5ee26c-cc54-4dc0-b611-5cda14354a5e
+  cost {2}{R}
+  type Creature — Shapeshifter
+  pt 2/2
+  keywords changeling
+  triggered whenever an opponent casts a spell: you may put 1 +1/+1 counters on this
+}

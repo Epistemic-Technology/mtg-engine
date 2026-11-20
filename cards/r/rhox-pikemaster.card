@@ -1,0 +1,8 @@
+card "Rhox Pikemaster" {
+  oracle_id 8866d33e-8159-4e10-8b11-914c12a0918f
+  cost {2}{W}{W}
+  type Creature — Rhino Soldier
+  pt 3/3
+  keywords first strike
+  static other Soldier creature you control: has first strike
+}

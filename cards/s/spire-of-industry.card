@@ -1,0 +1,6 @@
+card "Spire of Industry" {
+  oracle_id 55a519b4-61cb-448a-875b-4d6dbe00580f
+  type Land
+  mana {C}
+  activated {T}, pay 1 life, if you control artifact: add any
+}

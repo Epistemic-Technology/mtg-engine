@@ -1,0 +1,9 @@
+card "Shipwreck Singer" {
+  oracle_id 8aae6f84-02ac-4f8f-9721-b12138588b6b
+  cost {U}{B}
+  type Creature — Siren
+  pt 1/2
+  keywords flying
+  activated {1}{U}: target creature an opponent controls attacks if able
+  activated {1}{B}, {T}: each attacking creature gets -1/-1
+}

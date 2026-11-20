@@ -1,0 +1,8 @@
+card "Wingshield Agent" {
+  oracle_id 513034fc-873a-4877-afb2-39ece1ea6a7c
+  cost {2}{U}
+  type Creature — Human Soldier
+  pt 2/3
+  enters with 1 shield counters
+  triggered whenever this attacks: up to 1 another target creature gains flying
+}

@@ -1,0 +1,7 @@
+card "Last Word" {
+  oracle_id 33d6a17a-0112-4d4f-a24a-0769360408a8
+  cost {2}{U}{U}
+  type Instant
+  this spell can't be countered
+  spell: counter target spell
+}

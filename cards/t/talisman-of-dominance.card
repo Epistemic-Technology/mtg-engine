@@ -1,0 +1,7 @@
+card "Talisman of Dominance" {
+  oracle_id 4c0a0448-b9d6-43a0-8549-64066dac63f0
+  cost {2}
+  type Artifact
+  mana {C}
+  activated {T}: add {U} or {B}; deal 1 damage to you
+}

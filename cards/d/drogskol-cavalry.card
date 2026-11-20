@@ -1,0 +1,9 @@
+card "Drogskol Cavalry" {
+  oracle_id a8bac5a8-5a60-4f7a-a4d6-cb922da92472
+  cost {5}{W}{W}
+  type Creature — Spirit Knight
+  pt 4/4
+  keywords flying
+  triggered whenever other Spirit you control enters: you gains 2 life
+  activated {3}{W}: create 1 "1/1 white Spirit creature with flying"
+}

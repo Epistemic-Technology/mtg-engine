@@ -1,0 +1,8 @@
+card "Conquering Manticore" {
+  oracle_id 140b58b9-7e82-4feb-99d7-5e8b707b845c
+  cost {4}{R}{R}
+  type Creature — Manticore
+  pt 5/5
+  keywords flying
+  triggered when this enters: gain control of target creature an opponent controls; untap that creature; target 1 gains haste
+}

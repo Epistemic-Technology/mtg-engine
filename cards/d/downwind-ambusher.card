@@ -1,0 +1,11 @@
+card "Downwind Ambusher" {
+  oracle_id 1e0a2709-2cd2-4954-81ca-60654ab03d7c
+  cost {3}{B}
+  type Creature — Skunk Assassin
+  pt 4/2
+  keywords flash
+  triggered when this enters: choose one {
+    mode: target creature an opponent controls gets -1/-1
+    mode: destroy target creature an opponent controls that was dealt damage this turn
+  }
+}

@@ -1,0 +1,7 @@
+card "Kithkin Rabble" {
+  oracle_id 17386f88-dbf0-47ae-91d1-6b1aaceee05f
+  cost {3}{W}
+  type Creature — Kithkin
+  keywords vigilance
+  static this: cda pt count white permanent you control
+}

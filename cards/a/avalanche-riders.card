@@ -1,0 +1,9 @@
+card "Avalanche Riders" {
+  oracle_id c9048d35-aff7-45ae-ae97-db89397b3e74
+  cost {3}{R}
+  type Creature — Human Nomad
+  pt 2/2
+  keywords haste
+  echo {3}{R}
+  triggered when this enters: destroy target land
+}

@@ -1,0 +1,7 @@
+card "Truck Toss" {
+  oracle_id 7d765055-da62-43f7-9580-98e9d164753b
+  cost {2}{R}{R}
+  type Instant
+  this spell costs {2} less if you control Vehicle
+  spell: deal 4 damage to any target
+}

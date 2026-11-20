@@ -1,0 +1,8 @@
+card "Spellbook Vendor" {
+  oracle_id 51dad7d3-f91d-4bd8-aaed-235da42a448b
+  cost {1}{W}
+  type Creature — Human Peasant
+  pt 2/2
+  keywords vigilance
+  triggered at beginning of your combat: you may pay {1}; when you do, create 1 "Sorcerer Role" attached to target creature you control
+}

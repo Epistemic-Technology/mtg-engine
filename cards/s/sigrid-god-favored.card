@@ -1,0 +1,9 @@
+card "Sigrid, God-Favored" {
+  oracle_id 84d37104-2681-42c1-9d19-91a2ebe6a435
+  cost {1}{W}{W}
+  type Legendary Creature — Human Warrior
+  pt 2/2
+  keywords flash, first strike
+  protection from God creature
+  triggered when this enters: exile up to one target attacking or blocking creature until this leaves
+}

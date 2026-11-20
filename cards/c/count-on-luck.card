@@ -1,0 +1,6 @@
+card "Count on Luck" {
+  oracle_id 73ad7bcd-4ffc-442c-b6b5-d935b9ccaaaf
+  cost {R}{R}{R}
+  type Enchantment
+  triggered at beginning of your upkeep: impulse 1 this turn
+}

@@ -1,0 +1,8 @@
+card "Stormfist Crusader" {
+  oracle_id 0d3bebc6-662a-4cd4-ad1e-aeed0c5e04f6
+  cost {B}{R}
+  type Creature — Human Knight
+  pt 2/2
+  keywords menace
+  triggered at beginning of your upkeep: each player draws a card and loses 1 life
+}

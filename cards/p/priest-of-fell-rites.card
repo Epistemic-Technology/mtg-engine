@@ -1,0 +1,8 @@
+card "Priest of Fell Rites" {
+  oracle_id ec6ccd8f-cc75-4a50-8639-f4ec31a280aa
+  cost {W}{B}
+  type Creature — Human Warlock
+  pt 2/2
+  activated {T}, pay 3 life, sacrifice this, sorcery: return target creature card from your graveyard to battlefield
+  unearth {3}{W}{B}
+}

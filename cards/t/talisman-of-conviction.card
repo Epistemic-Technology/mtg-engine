@@ -1,0 +1,7 @@
+card "Talisman of Conviction" {
+  oracle_id 6c326439-5620-4ec6-a56a-fe9c3d5d2a46
+  cost {2}
+  type Artifact
+  mana {C}
+  activated {T}: add {R} or {W}; deal 1 damage to you
+}

@@ -1,0 +1,8 @@
+card "Carnival Hellsteed" {
+  oracle_id 34ae5b49-f8bf-4aa8-bb62-92d6d3118b26
+  cost {4}{B}{R}
+  type Creature — Nightmare Horse
+  pt 5/4
+  keywords first strike, haste
+  unleash
+}

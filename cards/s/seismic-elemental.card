@@ -1,0 +1,7 @@
+card "Seismic Elemental" {
+  oracle_id 61ec78da-979c-45cf-8be6-12aa24dc833a
+  cost {3}{R}{R}
+  type Creature — Elemental
+  pt 4/4
+  triggered when this enters: each creature without flying can't block
+}

@@ -1,0 +1,6 @@
+card "Sphinx's Revelation" {
+  oracle_id 71d83fca-e40e-4d0e-956d-d0d6da9cc472
+  cost {X}{W}{U}{U}
+  type Instant
+  spell: you gain X life and draw X card
+}

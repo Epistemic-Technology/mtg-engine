@@ -1,0 +1,7 @@
+card "High Priest of Penance" {
+  oracle_id d8070ee7-dbd1-4d38-9715-ba14e103e379
+  cost {W}{B}
+  type Creature — Human Cleric
+  pt 1/1
+  triggered whenever this is dealt damage: you may destroy target nonland permanent
+}

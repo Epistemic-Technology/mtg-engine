@@ -1,0 +1,7 @@
+card "Psychosis Crawler" {
+  oracle_id 2876e74f-a242-4995-9702-0b737a1ab67a
+  cost {5}
+  type Artifact Creature — Phyrexian Horror
+  static this: cda pt hand
+  triggered whenever you draw a card: each opponent loses 1 life
+}

@@ -1,0 +1,7 @@
+card "Ruinous Path" {
+  oracle_id 7b4aa101-3c8a-44b3-9d87-91a4fe4fbae4
+  cost {1}{B}{B}
+  type Sorcery
+  spell: destroy target creature or planeswalker
+  awaken 4 {5}{B}{B}
+}

@@ -1,0 +1,8 @@
+card "Garrison Excavator" {
+  oracle_id 5d808e64-a648-4f1b-a3a9-fd09568db281
+  cost {3}{R}
+  type Creature — Orc Sorcerer
+  pt 3/4
+  keywords menace
+  triggered whenever one or more cards leave your graveyard: create 1 "2/2 red and white Spirit creature"
+}

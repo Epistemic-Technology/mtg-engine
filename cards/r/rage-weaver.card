@@ -1,0 +1,7 @@
+card "Rage Weaver" {
+  oracle_id 9777a54b-1c60-4d6b-bb83-c57cb3a1d7e6
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 2/1
+  activated {2}: target black or green creature gains haste
+}

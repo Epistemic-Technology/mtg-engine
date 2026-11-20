@@ -1,0 +1,7 @@
+card "Evolution Sage" {
+  oracle_id b45fdeab-00cc-4422-af9f-66f30a880a7c
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 3/2
+  label "Landfall" triggered whenever land you control enters: proliferate
+}

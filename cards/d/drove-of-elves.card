@@ -1,0 +1,7 @@
+card "Drove of Elves" {
+  oracle_id 3ba81fbe-2c53-495b-9a2b-f124475bd71b
+  cost {3}{G}
+  type Creature — Elf
+  keywords hexproof
+  static this: cda pt count green permanent you control
+}

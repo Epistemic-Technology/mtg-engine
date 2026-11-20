@@ -1,0 +1,8 @@
+card "Legion Guildmage" {
+  oracle_id bb33abbe-b43c-4a74-b2db-cce949f0edf2
+  cost {R}{W}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {5}{R}, {T}: deal 3 damage to each opponent
+  activated {2}{W}, {T}: tap another target creature
+}

@@ -1,0 +1,9 @@
+card "Stromkirk Occultist" {
+  oracle_id 3bdd140b-1406-4d07-8f35-78f2ba92de64
+  cost {2}{R}
+  type Creature — Vampire Horror
+  pt 3/2
+  keywords trample
+  triggered whenever this deals combat damage to a player: impulse 1 this turn first
+  madness {1}{R}
+}

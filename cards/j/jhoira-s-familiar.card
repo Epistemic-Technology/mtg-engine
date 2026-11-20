@@ -1,0 +1,8 @@
+card "Jhoira's Familiar" {
+  oracle_id df4b5f7b-9d83-49b1-bd5e-77d0652eb34c
+  cost {4}
+  type Artifact Creature — Bird
+  pt 2/2
+  keywords flying
+  spells historic you cast cost {1} less
+}

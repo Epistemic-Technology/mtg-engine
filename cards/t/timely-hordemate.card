@@ -1,0 +1,7 @@
+card "Timely Hordemate" {
+  oracle_id 9ace6510-7876-48e4-9cae-1c24f2229e03
+  cost {3}{W}
+  type Creature — Human Warrior
+  pt 3/2
+  label "Raid" triggered when this enters if attacked this turn: return target creature card with mana value 2 or less from your graveyard to battlefield
+}

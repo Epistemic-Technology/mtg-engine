@@ -1,0 +1,8 @@
+card "Foot Mystic" {
+  oracle_id 2043fbde-48c4-4a77-8911-8991d77de1eb
+  cost {3}{B}
+  type Creature — Human Ninja Warlock
+  pt 2/4
+  keywords lifelink
+  label "Disappear" triggered when this enters if permanent left this turn: create 1 "1/1 black Ninja creature"
+}

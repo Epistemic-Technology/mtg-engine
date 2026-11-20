@@ -1,0 +1,6 @@
+card "Memory Erosion" {
+  oracle_id f4a96881-586d-44ad-b427-5cdf8988f9a1
+  cost {1}{U}{U}
+  type Enchantment
+  triggered whenever an opponent casts a spell: that player mills 2 cards
+}

@@ -1,0 +1,8 @@
+card "Bristling Hydra" {
+  oracle_id b3b23c58-0b7a-4fe4-a8e8-5320a7605724
+  cost {2}{G}{G}
+  type Creature — Hydra
+  pt 4/3
+  triggered when this enters: you get 3 energy
+  activated pay 3 energy: put 1 +1/+1 counters on this; this gains hexproof
+}

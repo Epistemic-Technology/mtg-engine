@@ -1,0 +1,10 @@
+card "Tormentor Exarch" {
+  oracle_id ebc52f9a-ba0c-48ed-bb04-ed086efeb060
+  cost {3}{R}
+  type Creature — Phyrexian Cleric
+  pt 2/2
+  triggered when this enters: choose one {
+    mode: target creature gets +2/+0
+    mode: target creature gets -0/-2
+  }
+}

@@ -1,0 +1,7 @@
+card "Firefist Adept" {
+  oracle_id 0f513242-b175-4b4d-a05f-78b1b457a020
+  cost {4}{R}
+  type Creature — Human Wizard
+  pt 3/3
+  triggered when this enters: deal count where Wizard you control damage to target creature an opponent controls
+}

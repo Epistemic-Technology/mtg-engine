@@ -1,0 +1,7 @@
+card "Sleek Schooner" {
+  oracle_id 3284010f-aeb2-493e-9252-3b953a192a94
+  cost {3}
+  type Artifact — Vehicle
+  pt 4/3
+  crew 1
+}

@@ -1,0 +1,7 @@
+card "Lassoed by the Law" {
+  oracle_id 9457f3c1-a087-46cd-a8be-cf665466b77c
+  cost {3}{W}
+  type Enchantment
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+  triggered when this enters: create 1 "Mercenary"
+}

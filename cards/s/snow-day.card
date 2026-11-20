@@ -1,0 +1,9 @@
+card "Snow Day" {
+  oracle_id 057729d0-f7ed-465b-91aa-fb2c6d6612b2
+  cost {4}{U}{U}
+  type Instant
+  spell {
+    tap up to two target creatures; targets 1 to 2 doesn't untap next untap step
+    draw 2 cards then discard 1 cards
+  }
+}

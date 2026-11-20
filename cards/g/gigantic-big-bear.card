@@ -1,0 +1,8 @@
+card "Gigantic Big Bear" {
+  oracle_id 88d7bd11-7b1d-426c-8552-01448531c6ad
+  cost {5}{G}{G}
+  type Creature — Bear
+  pt 10/7
+  this spell can't be countered
+  keyword hexproof, haste
+}

@@ -1,0 +1,6 @@
+card "Squall Line" {
+  oracle_id cdf9fab2-bfdb-4bf3-a06a-b21e07600e23
+  cost {X}{G}{G}
+  type Instant
+  spell: deal X damage to each creature with flying and each player
+}

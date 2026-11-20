@@ -1,0 +1,6 @@
+card "Obzedat's Aid" {
+  oracle_id f3be91ce-e99b-4a51-a0f7-a000fd9d0e14
+  cost {3}{W}{B}
+  type Sorcery
+  spell: return target permanent card from your graveyard to battlefield
+}

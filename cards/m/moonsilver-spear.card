@@ -1,0 +1,8 @@
+card "Moonsilver Spear" {
+  oracle_id d99bcf62-db93-40db-8844-3d0af0756a0c
+  cost {4}
+  type Artifact — Equipment
+  static enchanted: has first strike
+  triggered whenever equipped creature attacks: create 1 "4/4 white Angel creature with flying"
+  equip {4}
+}

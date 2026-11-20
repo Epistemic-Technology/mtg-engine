@@ -1,0 +1,9 @@
+card "Woodland Guidance" {
+  oracle_id 09e84398-7782-48d0-8411-9055d253395c
+  cost {3}{G}
+  type Sorcery
+  spell {
+    return target card from your graveyard to hand; clash; if you win, untap each Forest you control
+    exile this
+  }
+}

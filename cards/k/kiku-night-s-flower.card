@@ -1,0 +1,7 @@
+card "Kiku, Night's Flower" {
+  oracle_id 98d68954-bffe-460e-ab83-6a4bbb59cc13
+  cost {B}{B}
+  type Legendary Creature — Human Assassin
+  pt 1/1
+  activated {2}{B}{B}, {T}: target creature bites itself
+}

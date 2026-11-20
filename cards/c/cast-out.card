@@ -1,0 +1,8 @@
+card "Cast Out" {
+  oracle_id f90b00f6-36e0-4988-9409-57297483a952
+  cost {3}{W}
+  type Enchantment
+  keywords flash
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+  cycling {W}
+}

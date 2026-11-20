@@ -1,0 +1,7 @@
+card "Bastion of Remembrance" {
+  oracle_id c7f33cea-2ec8-4081-9208-a5b1d86721b3
+  cost {2}{B}
+  type Enchantment
+  triggered when this enters: create 1 "1/1 white Human Soldier creature"
+  triggered whenever creature you control dies: each opponent loses 1 life and you gains 1 life
+}

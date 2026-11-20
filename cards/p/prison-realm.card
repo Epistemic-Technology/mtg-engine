@@ -1,0 +1,7 @@
+card "Prison Realm" {
+  oracle_id 808a8491-2966-4388-8590-a46ba147f65a
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: exile target creature or planeswalker an opponent controls until this leaves
+  triggered when this enters: scry 1
+}

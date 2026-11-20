@@ -1,0 +1,8 @@
+card "Primal Witchstalker" {
+  oracle_id c21fafaf-4510-4752-a501-606ae68e6699
+  cost {1}{B}{G}
+  type Creature — Wolf
+  pt 2/1
+  keywords menace
+  triggered when this enters: mill 4 cards; when you do, return target land card from your graveyard to battlefield tapped
+}

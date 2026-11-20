@@ -1,0 +1,7 @@
+card "Whitewater Naiads" {
+  oracle_id 6c73e533-9ed1-4df0-af12-c0174c0b52b9
+  cost {3}{U}{U}
+  type Enchantment Creature — Nymph
+  pt 4/4
+  label "Constellation" triggered whenever this or enchantment you control enters: target creature can't be blocked
+}

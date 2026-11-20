@@ -1,0 +1,6 @@
+card "Efficient Construction" {
+  oracle_id 5af48f87-7b94-44de-90e3-91f10ced00d3
+  cost {3}{U}
+  type Enchantment
+  triggered whenever you cast artifact spell: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

@@ -1,0 +1,7 @@
+card "Surgespanner" {
+  oracle_id 3f15349a-6ac6-4091-95a3-ae9f593e4650
+  cost {2}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  triggered whenever this becomes tapped: you may pay {1}{U}; if you do, return target permanent to hand
+}

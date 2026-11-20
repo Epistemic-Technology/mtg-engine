@@ -1,0 +1,8 @@
+card "Warden of the Chained" {
+  oracle_id d2f33d3a-afc6-4d15-9049-ecd33f85eb94
+  cost {1}{R}{G}
+  type Creature — Minotaur Warrior
+  pt 4/4
+  keywords trample
+  can't attack unless you control other creature with power 4 or greater
+}

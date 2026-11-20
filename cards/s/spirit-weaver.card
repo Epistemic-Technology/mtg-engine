@@ -1,0 +1,7 @@
+card "Spirit Weaver" {
+  oracle_id 4e6e28f1-111b-4bac-b814-487f6c206485
+  cost {1}{W}
+  type Creature — Human Wizard
+  pt 2/1
+  activated {2}: target green or blue creature gets +0/+1
+}

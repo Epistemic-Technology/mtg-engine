@@ -1,0 +1,6 @@
+card "Wurm's Tooth" {
+  oracle_id 69476326-fda5-48c8-a506-e71eb7c81c2f
+  cost {2}
+  type Artifact
+  triggered whenever a player casts green spell: you may you gain 1 life
+}

@@ -1,0 +1,7 @@
+card "Lorescale Coatl" {
+  oracle_id c87440aa-4616-49ff-a211-ebdc37767f62
+  cost {1}{G}{U}
+  type Creature — Snake
+  pt 2/2
+  triggered whenever you draw a card: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,8 @@
+card "Wasteland Viper" {
+  oracle_id e30b4eb8-6393-486a-9f8e-970ad2351d8a
+  cost {G}
+  type Creature — Snake
+  pt 1/2
+  keywords deathtouch
+  label "Bloodrush" activated {G}, discard this: target attacking creature gets +1/+2 and gains deathtouch
+}

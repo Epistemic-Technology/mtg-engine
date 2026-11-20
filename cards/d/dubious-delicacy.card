@@ -1,0 +1,9 @@
+card "Dubious Delicacy" {
+  oracle_id 697b8045-0edb-4f7b-a933-4d41ec2b53d5
+  cost {2}{B}
+  type Artifact — Food
+  keywords flash
+  triggered when this enters: up to one target creature gets -3/-3
+  activated {2}, {T}, sacrifice this: you gains 3 life
+  activated {2}, {T}, sacrifice this: target opponent loses 3 life
+}

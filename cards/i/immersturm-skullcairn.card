@@ -1,0 +1,7 @@
+card "Immersturm Skullcairn" {
+  oracle_id 354a7376-fb4b-424d-8964-93727302dccb
+  type Land
+  enters tapped
+  mana {B}
+  activated {1}{B}{R}{R}, {T}, sacrifice this, sorcery: deal 3 damage to target player; that player discards 1 cards
+}

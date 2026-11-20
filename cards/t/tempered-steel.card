@@ -1,0 +1,6 @@
+card "Tempered Steel" {
+  oracle_id e220138c-5fc6-487d-9fa9-f21b2fb1f12c
+  cost {1}{W}{W}
+  type Enchantment
+  static artifact creature you control: +2/+2
+}

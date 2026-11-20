@@ -1,0 +1,8 @@
+card "Teapot Slinger" {
+  oracle_id 5ba19dbe-9dbb-4cc9-81a3-18c26f27bd0f
+  cost {3}{R}
+  type Creature — Raccoon Warrior
+  pt 3/4
+  keywords menace
+  triggered whenever you expend 4: deal 2 damage to each opponent
+}

@@ -1,0 +1,9 @@
+card "Kolaghan, the Storm's Fury" {
+  oracle_id f6e160c1-b29f-4f3d-ab55-43ffe3ab4acf
+  cost {3}{B}{R}
+  type Legendary Creature — Dragon
+  pt 4/5
+  keywords flying
+  triggered whenever Dragon you control attacks: each creature you control gets +1/+0
+  dash {3}{B}{R}
+}

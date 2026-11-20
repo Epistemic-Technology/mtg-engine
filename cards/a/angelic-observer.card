@@ -1,0 +1,8 @@
+card "Angelic Observer" {
+  oracle_id 17df0fda-d726-4c9d-bf44-6f2e3a347117
+  cost {5}{W}
+  type Creature — Angel Advisor
+  pt 3/3
+  affinity for Citizen
+  keyword flying
+}

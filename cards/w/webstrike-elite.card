@@ -1,0 +1,9 @@
+card "Webstrike Elite" {
+  oracle_id 48a1d55e-0b71-4724-ab2a-6d2c87e86b5b
+  cost {G}{G}
+  type Creature — Insect Archer
+  pt 3/3
+  keywords reach
+  cycling {X}{G}{G}
+  triggered when you cycle this: destroy up to one target artifact or enchantment with mana value X
+}

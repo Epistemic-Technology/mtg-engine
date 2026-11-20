@@ -1,0 +1,6 @@
+card "Blighted Fen" {
+  oracle_id b8f3da11-7c8f-4846-98a6-204bfd8d572b
+  type Land
+  mana {C}
+  activated {4}{B}, {T}, sacrifice this: target opponent sacrifices 1 creature
+}

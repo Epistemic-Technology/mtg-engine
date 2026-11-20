@@ -1,0 +1,9 @@
+card "Salvation Engine" {
+  oracle_id 7903666e-7803-4cfc-9ed9-482a6b577c96
+  cost {4}{W}
+  type Artifact — Vehicle
+  pt 6/10
+  static other artifact creature you control: +2/+2
+  triggered whenever this attacks: return up to one target artifact card from your graveyard to battlefield
+  crew 6
+}

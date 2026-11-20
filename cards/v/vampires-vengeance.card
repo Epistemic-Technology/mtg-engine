@@ -1,0 +1,6 @@
+card "Vampires' Vengeance" {
+  oracle_id 3a82e724-28f6-430f-a474-ab4276197963
+  cost {2}{R}
+  type Instant
+  spell: deal 2 damage to each non-Vampire creature; create 1 "Blood"
+}

@@ -1,0 +1,9 @@
+card "Rakdos Pit Dragon" {
+  oracle_id 63dd611e-1c36-4e5d-ba45-87c7f629cd54
+  cost {2}{R}{R}
+  type Creature — Dragon
+  pt 3/3
+  activated {R}{R}: this gains flying
+  activated {R}: this gets +1/+0
+  label "Hellbent" static this: has double strike as long as hand 0 or less
+}

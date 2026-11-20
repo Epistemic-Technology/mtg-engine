@@ -1,0 +1,9 @@
+card "Vein Drinker" {
+  oracle_id 705d89f6-13a8-4f40-a01a-3d5d0ce4f34e
+  cost {4}{B}{B}
+  type Creature — Vampire
+  pt 4/4
+  keywords flying
+  activated {R}, {T}: this bites target creature; that creature bites this creature
+  triggered whenever creature dealt damage by this this turn dies: put 1 +1/+1 counters on this
+}

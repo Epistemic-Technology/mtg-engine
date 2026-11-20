@@ -1,0 +1,7 @@
+card "Abyssal Nocturnus" {
+  oracle_id b79c4066-66a9-4a53-8716-23f7a340a85f
+  cost {1}{B}{B}
+  type Creature — Horror
+  pt 2/2
+  triggered whenever an opponent discards a card: this gets +2/+2 and gains fear
+}

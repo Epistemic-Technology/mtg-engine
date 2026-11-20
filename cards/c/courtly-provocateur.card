@@ -1,0 +1,8 @@
+card "Courtly Provocateur" {
+  oracle_id 3752277a-5b3c-4902-90a1-63acdac66dc9
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: target creature attacks if able
+  activated {T}: target creature blocks if able
+}

@@ -1,0 +1,9 @@
+card "Bloodghast" {
+  oracle_id e97f9c2b-b41e-4f36-9245-77c0ac125647
+  cost {B}{B}
+  type Creature — Vampire Spirit
+  pt 2/1
+  keywords can't block
+  static this: has haste as long as opponent life 10 or less
+  label "Landfall" triggered from graveyard whenever land you control enters: you may return this to battlefield
+}

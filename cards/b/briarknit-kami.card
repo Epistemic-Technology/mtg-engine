@@ -1,0 +1,7 @@
+card "Briarknit Kami" {
+  oracle_id 913dcf97-0804-4b21-8daa-f2b481dc0f2f
+  cost {3}{G}{G}
+  type Creature — Spirit
+  pt 3/3
+  triggered whenever you cast Spirit or Arcane spell: put 1 +1/+1 counters on target creature
+}

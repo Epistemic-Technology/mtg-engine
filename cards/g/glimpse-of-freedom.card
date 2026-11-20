@@ -1,0 +1,7 @@
+card "Glimpse of Freedom" {
+  oracle_id 02d78e76-8151-4851-bb4e-e0a1fa98756f
+  cost {1}{U}
+  type Instant
+  spell: draw 1 cards
+  escape {2}{U} exile 5
+}

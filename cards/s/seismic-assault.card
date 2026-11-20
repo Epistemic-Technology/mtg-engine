@@ -1,0 +1,6 @@
+card "Seismic Assault" {
+  oracle_id 8ad4f2fe-6d98-4279-a331-3817d40ae46d
+  cost {R}{R}{R}
+  type Enchantment
+  activated discard land card: deal 2 damage to any target
+}

@@ -1,0 +1,8 @@
+card "Fang Guardian" {
+  oracle_id 1e0b9767-8e51-4021-a8fb-22259e2f5347
+  cost {3}{G}
+  type Creature — Ape Druid
+  pt 4/2
+  keywords flash
+  triggered when this enters: another target creature or Vehicle you control gets +2/+2
+}

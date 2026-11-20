@@ -1,0 +1,7 @@
+card "Broodheart Engine" {
+  oracle_id 1b759831-abe8-4996-a897-3c6d6d30a1c7
+  cost {B}{G}
+  type Artifact
+  triggered at beginning of your upkeep: surveil 1
+  activated {2}{B}{G}, {T}, sacrifice this, sorcery: return target creature or Vehicle card from your graveyard to battlefield
+}

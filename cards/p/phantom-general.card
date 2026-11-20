@@ -1,0 +1,7 @@
+card "Phantom General" {
+  oracle_id b800c3e5-4ed9-4603-a987-d830e90cf25e
+  cost {3}{W}
+  type Creature — Spirit Soldier
+  pt 2/3
+  static creature token you control: +1/+1
+}

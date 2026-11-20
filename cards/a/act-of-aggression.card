@@ -1,0 +1,6 @@
+card "Act of Aggression" {
+  oracle_id 9d7624ea-ffff-470b-928b-bbac66ddbd1c
+  cost {3}{R/P}{R/P}
+  type Instant
+  spell: gain control of target creature an opponent controls; untap that creature; target 1 gains haste
+}

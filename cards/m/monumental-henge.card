@@ -1,0 +1,7 @@
+card "Monumental Henge" {
+  oracle_id c48df45c-3513-4d56-aed6-30c2f3a759cd
+  type Land
+  enters tapped unless you control Plains
+  mana {W}
+  activated {2}{W}{W}, {T}: dig 5 take historic card may revealing rest bottom random
+}

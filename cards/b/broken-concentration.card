@@ -1,0 +1,7 @@
+card "Broken Concentration" {
+  oracle_id 7b0fa80e-6b16-4a4a-9776-6a91f145fc63
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell
+  madness {3}{U}
+}

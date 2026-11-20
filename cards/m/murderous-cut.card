@@ -1,0 +1,7 @@
+card "Murderous Cut" {
+  oracle_id c0ce7d5a-68fd-41f3-b5ba-a1a178cee9ec
+  cost {4}{B}
+  type Instant
+  keywords delve
+  spell: destroy target creature
+}

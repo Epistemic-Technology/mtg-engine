@@ -1,0 +1,8 @@
+card "Vitu-Ghazi Guildmage" {
+  oracle_id da6f79ec-5f7e-4099-89c5-6d2bfc14d957
+  cost {G}{W}
+  type Creature — Dryad Shaman
+  pt 2/2
+  activated {4}{G}{W}: create 1 "3/3 green Centaur creature"
+  activated {2}{G}{W}: populate
+}

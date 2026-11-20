@@ -1,0 +1,6 @@
+card "Dromoka's Gift" {
+  oracle_id 1264da2f-4767-4bec-b4ed-1c625ac3cf95
+  cost {4}{G}
+  type Instant
+  spell: bolster 4
+}

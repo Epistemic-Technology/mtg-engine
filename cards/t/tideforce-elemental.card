@@ -1,0 +1,8 @@
+card "Tideforce Elemental" {
+  oracle_id bda87ca2-91d0-48fa-bb82-a3396f0438ac
+  cost {2}{U}
+  type Creature — Elemental
+  pt 2/1
+  activated {U}, {T}: you may tap or untap another target creature
+  label "Landfall" triggered whenever land you control enters: you may untap this
+}

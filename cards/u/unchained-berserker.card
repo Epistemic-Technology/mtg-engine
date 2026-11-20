@@ -1,0 +1,8 @@
+card "Unchained Berserker" {
+  oracle_id 32e7befb-c083-4e17-aaeb-7247f317bbcf
+  cost {1}{R}
+  type Creature — Human Berserker
+  pt 1/1
+  keywords protection from white
+  static this: +2/+0 as long as attacking
+}

@@ -1,0 +1,6 @@
+card "Witch's Mist" {
+  oracle_id 4327225e-140f-45a4-a56f-dcf472f6c062
+  cost {2}{B}
+  type Enchantment
+  activated {2}{B}, {T}: destroy target creature that was dealt damage this turn
+}

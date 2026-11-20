@@ -1,0 +1,7 @@
+card "Doomskar" {
+  oracle_id 38ece0fa-2c94-4eae-b6ab-74b783862f3e
+  cost {3}{W}{W}
+  type Sorcery
+  spell: destroy all creatures
+  foretell {1}{W}{W}
+}

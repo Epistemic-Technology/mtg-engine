@@ -1,0 +1,7 @@
+card "Kor Entanglers" {
+  oracle_id 6fedd98c-9c58-4ca5-b77b-dcb4cd88d238
+  cost {4}{W}
+  type Creature — Kor Soldier Ally
+  pt 3/4
+  label "Rally" triggered whenever this or Ally you control enters: tap target creature an opponent controls
+}

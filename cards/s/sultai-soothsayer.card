@@ -1,0 +1,7 @@
+card "Sultai Soothsayer" {
+  oracle_id 5fe127e0-ee38-4f80-969b-13e84712a26f
+  cost {2}{B}{G}{U}
+  type Creature — Snake Shaman
+  pt 2/5
+  triggered when this enters: dig 4 take card rest graveyard
+}

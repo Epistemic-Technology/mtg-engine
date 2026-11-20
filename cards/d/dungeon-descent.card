@@ -1,0 +1,7 @@
+card "Dungeon Descent" {
+  oracle_id f086a63c-0c62-4674-bd27-82e7aed12b1a
+  type Land
+  enters tapped
+  mana {C}
+  activated {4}, {T}, tap untapped legendary creature you control, sorcery: venture
+}

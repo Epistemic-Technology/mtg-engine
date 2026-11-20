@@ -1,0 +1,8 @@
+card "Silent Sentinel" {
+  oracle_id 26396b80-e5b7-44f5-916c-56a9215a7a49
+  cost {5}{W}{W}
+  type Creature — Archon
+  pt 4/6
+  keywords flying
+  triggered whenever this attacks: you may return target enchantment card from your graveyard to battlefield
+}

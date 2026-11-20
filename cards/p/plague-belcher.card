@@ -1,0 +1,9 @@
+card "Plague Belcher" {
+  oracle_id f086a82d-8dbe-4d02-a076-03789704e9d4
+  cost {2}{B}
+  type Creature — Zombie Beast
+  pt 5/4
+  keywords menace
+  triggered when this enters: put 2 -1/-1 counters on target creature you control
+  triggered whenever other Zombie you control dies: each opponent loses 1 life
+}

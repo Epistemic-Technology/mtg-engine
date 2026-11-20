@@ -1,0 +1,6 @@
+card "Unnatural Restoration" {
+  oracle_id 05d1e797-bda2-4411-a546-919493768650
+  cost {1}{G}
+  type Sorcery
+  spell: return target permanent card from your graveyard to hand; proliferate
+}

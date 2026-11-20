@@ -1,0 +1,8 @@
+card "Itzquinth, Firstborn of Gishath" {
+  oracle_id f976a244-1240-4430-9182-bb8d6d932ea0
+  cost {R}{G}
+  type Legendary Creature — Dinosaur
+  pt 2/3
+  keywords haste
+  triggered when this enters: you may pay {2}; when you do, target Dinosaur you control bites another target creature
+}

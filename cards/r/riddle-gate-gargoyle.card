@@ -1,0 +1,9 @@
+card "Riddle Gate Gargoyle" {
+  oracle_id c5830515-9316-4b08-a990-3026ee15ffea
+  cost {W}{U}
+  type Artifact Creature — Gargoyle
+  pt 2/2
+  keywords flying
+  triggered when this enters: you get 3 energy
+  triggered whenever you attack: you may pay 2 energy; when you do, target creature you control gains lifelink
+}

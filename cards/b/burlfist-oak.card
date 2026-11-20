@@ -1,0 +1,7 @@
+card "Burlfist Oak" {
+  oracle_id 95a08f25-8d44-4704-a4d1-a098bf010932
+  cost {2}{G}{G}
+  type Creature — Treefolk
+  pt 2/3
+  triggered whenever you draw a card: this gets +2/+2
+}

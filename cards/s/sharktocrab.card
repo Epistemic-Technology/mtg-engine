@@ -1,0 +1,8 @@
+card "Sharktocrab" {
+  oracle_id fb8e43f2-41d5-4ffb-a61e-940477749e00
+  cost {2}{G}{U}
+  type Creature — Shark Octopus Crab
+  pt 4/4
+  activated {2}{G}{U}: adapt 1
+  triggered whenever one or more +1/+1 counters put on this: tap target creature an opponent controls; that creature doesn't untap next untap step
+}

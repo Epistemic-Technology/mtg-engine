@@ -1,0 +1,9 @@
+card "Rampaging Monument" {
+  oracle_id 3984478b-debb-4a65-ab5b-4bc134e03d82
+  cost {4}
+  type Artifact Creature — Cleric
+  pt 0/0
+  keywords trample
+  enters with 3 +1/+1 counters
+  triggered whenever you cast multicolored spell: put 1 +1/+1 counters on this
+}

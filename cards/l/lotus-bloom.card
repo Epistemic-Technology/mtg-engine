@@ -1,0 +1,6 @@
+card "Lotus Bloom" {
+  oracle_id 04cf02dc-f053-414e-87d8-1537f25bcbf4
+  type Artifact
+  suspend 3 {0}
+  activated {T}, sacrifice this: add any 3
+}

@@ -1,0 +1,8 @@
+card "Jackdaw" {
+  oracle_id ac161100-46b7-4f0f-a72b-84aaa45980ad
+  cost {1}{U}{R}
+  type Legendary Artifact — Vehicle
+  pt 4/4
+  triggered whenever this deals combat damage to a player: you may discard hand; if you do, draw count each artifact you control cards
+  crew 3
+}

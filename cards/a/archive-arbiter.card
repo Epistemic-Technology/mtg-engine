@@ -1,0 +1,11 @@
+card "Archive Arbiter" {
+  oracle_id 36cb3d18-019c-464d-b591-8c87e1b81f31
+  cost {6}
+  type Artifact Creature — Sphinx
+  pt 4/4
+  keywords flying
+  triggered when this enters: choose one {
+    mode: destroy target noncreature, nonland permanent
+    mode: you gains 4 life
+  }
+}

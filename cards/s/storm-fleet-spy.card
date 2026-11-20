@@ -1,0 +1,7 @@
+card "Storm Fleet Spy" {
+  oracle_id 42081a57-b521-45c2-928d-0a0a4641818d
+  cost {2}{U}
+  type Creature — Human Pirate
+  pt 2/2
+  label "Raid" triggered when this enters if attacked this turn: draw 1 cards
+}

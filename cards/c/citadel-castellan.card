@@ -1,0 +1,8 @@
+card "Citadel Castellan" {
+  oracle_id b9e93832-93b7-409d-91aa-13757225824d
+  cost {1}{G}{W}
+  type Creature — Human Knight
+  pt 2/3
+  keywords vigilance
+  renown 2
+}

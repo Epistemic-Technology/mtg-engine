@@ -1,0 +1,8 @@
+card "Sword of the Animist" {
+  oracle_id d79cbc61-6c15-48ea-bbba-3cffb819ccba
+  cost {2}
+  type Legendary Artifact — Equipment
+  static enchanted: +1/+1
+  triggered whenever equipped creature attacks: you may search basic land card to battlefield tapped
+  equip {2}
+}

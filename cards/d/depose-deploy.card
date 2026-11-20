@@ -1,0 +1,17 @@
+card "Depose // Deploy" {
+  oracle_id c547c9ab-a303-48fb-9579-37f9de9a558b
+  layout split
+  face "Depose" {
+    cost {1}{W/U}
+    type Instant
+    spell {
+      tap target creature
+      draw 1 cards
+    }
+  }
+  face "Deploy" {
+    cost {2}{W}{U}
+    type Instant
+    spell: create 2 "1/1 colorless Thopter artifact creature with flying" then you gain count each creature you control life
+  }
+}

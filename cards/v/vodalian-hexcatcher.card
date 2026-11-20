@@ -1,0 +1,9 @@
+card "Vodalian Hexcatcher" {
+  oracle_id 4246b503-0da8-4de7-9343-9dfb3c3672df
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  keywords flash
+  static other Merfolk you control: +1/+1
+  activated sacrifice Merfolk: counter target noncreature spell unless its controller pays {1}
+}

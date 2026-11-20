@@ -1,0 +1,8 @@
+card "Corsair Captain" {
+  oracle_id a7ec13c6-7ade-433a-b5a2-047854eef486
+  cost {2}{U}
+  type Creature — Human Pirate
+  pt 2/2
+  triggered when this enters: create 1 "Treasure"
+  static other Pirate you control: +1/+1
+}

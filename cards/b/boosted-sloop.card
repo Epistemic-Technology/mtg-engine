@@ -1,0 +1,9 @@
+card "Boosted Sloop" {
+  oracle_id cec10abd-2a2d-4d89-9ecc-ea50c2ac1538
+  cost {1}{U}{R}
+  type Artifact — Vehicle
+  pt 3/3
+  keywords menace
+  triggered whenever you attack: draw 1 cards then discard 1 cards
+  crew 1
+}

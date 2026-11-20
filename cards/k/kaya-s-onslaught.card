@@ -1,0 +1,7 @@
+card "Kaya's Onslaught" {
+  oracle_id 230811bf-52e7-451e-96ec-9d57c864ac5d
+  cost {2}{W}
+  type Instant
+  spell: target creature gets +1/+1 and gains double strike
+  foretell {W}
+}

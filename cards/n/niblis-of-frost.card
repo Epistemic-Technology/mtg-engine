@@ -1,0 +1,8 @@
+card "Niblis of Frost" {
+  oracle_id ed2f3339-5c3e-473f-b08e-58288c4ad9c2
+  cost {2}{U}{U}
+  type Creature — Spirit
+  pt 3/3
+  keywords flying, prowess
+  triggered whenever you cast an instant or sorcery spell: tap target creature an opponent controls; that creature doesn't untap next untap step
+}

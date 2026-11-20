@@ -1,0 +1,8 @@
+card "Baxter Stockman" {
+  oracle_id e610bfd4-d064-410b-929c-1d9dd82828b1
+  cost {3}{U}{R}
+  type Legendary Creature — Human Scientist
+  pt 3/3
+  triggered when this enters: create 1 "1/1 colorless Robot artifact creature"
+  triggered at beginning of your combat: target artifact creature you control gets +3/+0 and gains first strike, vigilance
+}

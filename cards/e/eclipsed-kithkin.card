@@ -1,0 +1,7 @@
+card "Eclipsed Kithkin" {
+  oracle_id e6227840-6e3e-48c7-b4a4-42cfd8f14b68
+  cost {G/W}{G/W}
+  type Creature — Kithkin Scout
+  pt 2/1
+  triggered when this enters: dig 4 take Kithkin, Forest, or Plains card may revealing rest bottom random
+}

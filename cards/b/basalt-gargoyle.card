@@ -1,0 +1,9 @@
+card "Basalt Gargoyle" {
+  oracle_id 83a38c8d-e2f6-404b-83be-9cfce037d6e2
+  cost {2}{R}
+  type Creature — Gargoyle
+  pt 3/2
+  keywords flying
+  echo {2}{R}
+  activated {R}: this gets +0/+1
+}

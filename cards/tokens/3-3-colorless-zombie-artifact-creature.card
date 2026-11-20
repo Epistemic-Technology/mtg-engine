@@ -1,0 +1,6 @@
+token "3/3 colorless Zombie artifact creature" {
+  name "Zombie"
+  type Artifact Creature — Zombie
+  pt 3/3
+  color
+}

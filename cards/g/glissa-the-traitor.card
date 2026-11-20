@@ -1,0 +1,8 @@
+card "Glissa, the Traitor" {
+  oracle_id cafacba9-195c-44ea-ba80-3e489274759c
+  cost {B}{G}{G}
+  type Legendary Creature — Phyrexian Zombie Elf
+  pt 3/3
+  keywords first strike, deathtouch
+  triggered whenever creature an opponent controls dies: you may return target artifact card from your graveyard to hand
+}

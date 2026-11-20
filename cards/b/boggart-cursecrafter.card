@@ -1,0 +1,8 @@
+card "Boggart Cursecrafter" {
+  oracle_id 5d58aefe-a3df-4e0a-b679-b967cd5fd2c6
+  cost {B}{R}
+  type Creature — Goblin Warlock
+  pt 2/3
+  keywords deathtouch
+  triggered whenever other Goblin you control dies: deal 1 damage to each opponent
+}

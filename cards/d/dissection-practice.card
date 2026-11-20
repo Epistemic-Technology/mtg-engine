@@ -1,0 +1,10 @@
+card "Dissection Practice" {
+  oracle_id 73905f94-9665-4d82-8927-725d2c4fc4bd
+  cost {B}
+  type Instant
+  spell {
+    target opponent loses 1 life and you gains 1 life
+    up to one target creature gets +1/+1
+    up to one target creature gets -1/-1
+  }
+}

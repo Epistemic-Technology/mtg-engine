@@ -1,0 +1,13 @@
+card "An Unexpected Party // At the Door" {
+  oracle_id 38503d34-f4f9-4eeb-9b1e-4fec1df921b3
+  layout adventure
+  cost {2}{W}{W}
+  type Enchantment
+  as this enters choose creature type
+  static creature you control of chosen type: +2/+2
+  face "At the Door" {
+    cost {X}{2}{W}
+    type Sorcery — Adventure
+    spell: create X "2/2 red Dwarf creature"
+  }
+}

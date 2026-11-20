@@ -1,0 +1,6 @@
+card "Horizon Canopy" {
+  oracle_id 262a5d83-506c-4781-9bc9-1a2b5d83955c
+  type Land
+  activated {T}, pay 1 life: add {G} or {W}
+  activated {1}, {T}, sacrifice this: draw 1 cards
+}

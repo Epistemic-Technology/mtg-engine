@@ -1,0 +1,7 @@
+card "Crush the Weak" {
+  oracle_id 4aa119f7-d411-4188-956e-547f7d14e789
+  cost {2}{R}
+  type Sorcery
+  spell: deal 2 damage to each creature; this turn, replace creature dealt damage this way dies: exile
+  foretell {R}
+}

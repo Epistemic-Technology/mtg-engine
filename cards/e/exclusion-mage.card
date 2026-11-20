@@ -1,0 +1,7 @@
+card "Exclusion Mage" {
+  oracle_id fd28fe55-36cd-4242-8dd4-edb58fbb9895
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: return target creature an opponent controls to hand
+}

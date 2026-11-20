@@ -1,0 +1,7 @@
+card "Upriser Renegade" {
+  oracle_id 9f9b3ef8-e0ce-4906-96b3-a7727d7cc662
+  cost {1}{R}
+  type Creature — Human Samurai
+  pt 1/3
+  static this: +2/+0 count each other modified creature you control
+}

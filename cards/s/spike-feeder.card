@@ -1,0 +1,9 @@
+card "Spike Feeder" {
+  oracle_id 5b147eab-39dd-4c2a-8f59-d778037788aa
+  cost {1}{G}{G}
+  type Creature — Spike
+  pt 0/0
+  enters with 2 +1/+1 counters
+  activated {2}, remove 1 +1/+1 counters from this: put 1 +1/+1 counters on target creature
+  activated remove 1 +1/+1 counters from this: you gains 2 life
+}

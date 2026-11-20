@@ -1,0 +1,8 @@
+card "Kraul Whipcracker" {
+  oracle_id b563ae31-338e-4bcc-a05f-d7ed7c3fe46e
+  cost {B}{G}
+  type Creature — Insect Assassin
+  pt 3/2
+  keywords reach
+  triggered when this enters: destroy target token an opponent controls
+}

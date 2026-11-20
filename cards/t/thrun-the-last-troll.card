@@ -1,0 +1,9 @@
+card "Thrun, the Last Troll" {
+  oracle_id 1149e5ac-554a-41b1-84ae-bac42579c1aa
+  cost {2}{G}{G}
+  type Legendary Creature — Troll Shaman
+  pt 4/4
+  this spell can't be countered
+  keyword hexproof
+  activated {1}{G}: regenerate this
+}

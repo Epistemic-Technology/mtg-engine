@@ -1,0 +1,6 @@
+card "Rix Maadi, Dungeon Palace" {
+  oracle_id a1bee68d-135b-4e30-8830-48a3315d13a9
+  type Land
+  mana {C}
+  activated {1}{B}{R}, {T}, sorcery: each player discards 1 cards
+}

@@ -1,0 +1,10 @@
+card "Hypnotic Siren" {
+  oracle_id 54aede54-4f7d-40f5-bad0-2448293e2cf0
+  cost {U}
+  type Enchantment Creature — Siren
+  pt 1/1
+  bestow {5}{U}{U}
+  keyword flying
+  static enchanted: control
+  static enchanted: +1/+1, has flying
+}

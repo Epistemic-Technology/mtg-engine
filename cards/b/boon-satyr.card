@@ -1,0 +1,9 @@
+card "Boon Satyr" {
+  oracle_id aedcd2fb-813a-4915-b7b9-ac7479863462
+  cost {1}{G}{G}
+  type Enchantment Creature — Satyr
+  pt 4/2
+  keywords flash
+  bestow {3}{G}{G}
+  static enchanted: +4/+2
+}

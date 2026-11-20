@@ -1,0 +1,9 @@
+card "Arcbound Crusher" {
+  oracle_id ee496b34-d8e0-482a-a2c2-3122ea376da0
+  cost {4}
+  type Artifact Creature — Juggernaut
+  pt 0/0
+  keywords trample
+  triggered whenever other artifact enters: put 1 +1/+1 counters on this
+  modular 1
+}

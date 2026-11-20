@@ -1,0 +1,8 @@
+card "Drunau Corpse Trawler" {
+  oracle_id 870ca989-0e72-4e74-9570-57e129298f2e
+  cost {3}{U}
+  type Creature — Zombie
+  pt 1/1
+  triggered when this enters: create 1 "2/2 black Zombie creature"
+  activated {2}{B}: target Zombie gains deathtouch
+}

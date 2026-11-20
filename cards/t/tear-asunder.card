@@ -1,0 +1,7 @@
+card "Tear Asunder" {
+  oracle_id 610af0f7-b5e3-43fb-9d02-7c59bd99034c
+  cost {1}{G}
+  type Instant
+  kicker {1}{B}
+  spell: exile target artifact or enchantment; if kicked, exile target nonland permanent instead
+}

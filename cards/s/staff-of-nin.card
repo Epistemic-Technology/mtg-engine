@@ -1,0 +1,7 @@
+card "Staff of Nin" {
+  oracle_id 48d9f488-4ebb-4fdb-a568-6930fc2f5416
+  cost {6}
+  type Artifact
+  triggered at beginning of your upkeep: draw 1 cards
+  activated {T}: deal 1 damage to any target
+}

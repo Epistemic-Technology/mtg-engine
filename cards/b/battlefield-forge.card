@@ -1,0 +1,6 @@
+card "Battlefield Forge" {
+  oracle_id 6b75b94e-83b7-457e-ac41-7ca90b5a59aa
+  type Land
+  mana {C}
+  activated {T}: add {R} or {W}; deal 1 damage to you
+}

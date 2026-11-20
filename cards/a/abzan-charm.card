@@ -1,0 +1,10 @@
+card "Abzan Charm" {
+  oracle_id 4137a22c-f793-4e27-a9b2-72740a6e2121
+  cost {W}{B}{G}
+  type Instant
+  choose one {
+    mode: exile target creature with power 3 or greater
+    mode: you draw 2 card, and you lose 2 life
+    mode: distribute 2 +1/+1 counters among 1 to 2 target creatures
+  }
+}

@@ -1,0 +1,8 @@
+card "Summoned Dromedary" {
+  oracle_id 697b14c6-fe6a-4880-9cf2-b6602a52ca0b
+  cost {3}{W}
+  type Creature — Spirit Camel
+  pt 4/3
+  keywords vigilance
+  activated {1}{W}, sorcery, from graveyard: return this to hand
+}

@@ -1,0 +1,8 @@
+card "Markov Crusader" {
+  oracle_id 0a8511b9-ed7d-4e33-9c2f-96b9a4c535e2
+  cost {4}{B}
+  type Creature — Vampire Knight
+  pt 4/3
+  keywords lifelink
+  static this: has haste as long as you control other Vampire
+}

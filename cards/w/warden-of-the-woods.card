@@ -1,0 +1,8 @@
+card "Warden of the Woods" {
+  oracle_id c8c6924e-9af8-4212-be28-b0b4eaa4c7d8
+  cost {4}{G}{G}
+  type Creature — Treefolk
+  pt 5/7
+  keywords vigilance
+  triggered whenever this becomes targeted by opponent: you may draw 2 cards
+}

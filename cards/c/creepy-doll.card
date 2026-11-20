@@ -1,0 +1,8 @@
+card "Creepy Doll" {
+  oracle_id f9c8f9e1-a3a8-47f7-8d29-f954d14ad37b
+  cost {5}
+  type Artifact Creature — Construct
+  pt 1/1
+  keywords indestructible
+  triggered whenever this deals combat damage to creature: flip coin; if you win the flip, destroy that creature
+}

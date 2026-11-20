@@ -1,0 +1,6 @@
+card "Blighted Cataract" {
+  oracle_id 4d722521-0396-48f9-88b2-08b6249f970d
+  type Land
+  mana {C}
+  activated {5}{U}, {T}, sacrifice this: draw 2 cards
+}

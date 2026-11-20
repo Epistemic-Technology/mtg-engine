@@ -1,0 +1,7 @@
+card "Battlesong Berserker" {
+  oracle_id 396cc8ce-9efa-4fc7-90a6-b439b2b021db
+  cost {3}{R}
+  type Creature — Human Berserker
+  pt 3/4
+  triggered whenever you attack: target creature you control gets +1/+0 and gains menace
+}

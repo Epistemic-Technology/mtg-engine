@@ -1,0 +1,7 @@
+card "Memorial to War" {
+  oracle_id f98db69c-b330-4560-ac53-10857674466b
+  type Land
+  enters tapped
+  mana {R}
+  activated {4}{R}, {T}, sacrifice this: destroy target land
+}

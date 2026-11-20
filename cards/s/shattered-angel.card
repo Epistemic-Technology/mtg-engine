@@ -1,0 +1,8 @@
+card "Shattered Angel" {
+  oracle_id e339c6cb-c75d-4dd4-8c1a-78f844983242
+  cost {3}{W}{W}
+  type Creature — Phyrexian Angel
+  pt 3/3
+  keywords flying
+  triggered whenever land an opponent controls enters: you may you gain 3 life
+}

@@ -1,0 +1,8 @@
+card "Nobilis of War" {
+  oracle_id 4789ac35-ca91-4046-8262-24c34e751cea
+  cost {R/W}{R/W}{R/W}{R/W}{R/W}
+  type Creature — Spirit Avatar
+  pt 3/4
+  keywords flying
+  static attacking creature you control: +2/+0
+}

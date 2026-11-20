@@ -1,0 +1,6 @@
+card "Mox Opal" {
+  oracle_id de2440de-e948-4811-903c-0bbe376ff64d
+  cost {0}
+  type Legendary Artifact
+  label "Metalcraft" activated {T}, if you control 3 artifact: add any
+}

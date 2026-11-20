@@ -1,0 +1,8 @@
+card "Trollbred Guardian" {
+  oracle_id e9c756a5-f4d4-4b84-be60-ad4bc0d1acf9
+  cost {4}{G}
+  type Creature — Troll Frog Warrior
+  pt 5/5
+  activated {2}{G}: adapt 2
+  static each creature you control with +1/+1 counter: has trample
+}

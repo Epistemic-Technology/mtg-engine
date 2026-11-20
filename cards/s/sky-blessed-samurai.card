@@ -1,0 +1,8 @@
+card "Sky-Blessed Samurai" {
+  oracle_id dad767d4-e7d4-4fe0-8a18-bb434c5268eb
+  cost {6}{W}
+  type Enchantment Creature — Human Samurai
+  pt 4/4
+  affinity for enchantment
+  keyword flying
+}

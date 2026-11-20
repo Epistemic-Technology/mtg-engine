@@ -1,0 +1,9 @@
+card "Hellspark Elemental" {
+  oracle_id a7ba88c6-81e7-4ab7-9c9b-308831e56833
+  cost {1}{R}
+  type Creature — Elemental
+  pt 3/1
+  keywords trample, haste
+  triggered at beginning of each end step: sacrifice this
+  unearth {1}{R}
+}

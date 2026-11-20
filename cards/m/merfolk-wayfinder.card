@@ -1,0 +1,8 @@
+card "Merfolk Wayfinder" {
+  oracle_id 45b34d33-7d70-4308-8f07-bb044be891bb
+  cost {2}{U}
+  type Creature — Merfolk Scout
+  pt 1/2
+  keywords flying
+  triggered when this enters: dig 3 reveal take all Island card rest bottom
+}

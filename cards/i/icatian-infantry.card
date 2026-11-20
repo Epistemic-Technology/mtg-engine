@@ -1,0 +1,8 @@
+card "Icatian Infantry" {
+  oracle_id 9eb274f3-ef55-4545-81b4-29454a48f075
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {1}: this gains first strike
+  activated {1}: this gains banding
+}

@@ -1,0 +1,9 @@
+card "Skarrgan Firebird" {
+  oracle_id 42a96276-fddc-435e-bd47-04f9c6001ec7
+  cost {4}{R}{R}
+  type Creature — Phoenix
+  pt 3/3
+  bloodthirst 3
+  keyword flying
+  activated {R}{R}{R}, if opponent damaged this turn, from graveyard: return this to hand
+}

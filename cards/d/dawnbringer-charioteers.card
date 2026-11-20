@@ -1,0 +1,8 @@
+card "Dawnbringer Charioteers" {
+  oracle_id 29263d48-cb28-478b-a99e-5a18dbc924f0
+  cost {2}{W}{W}
+  type Creature — Human Soldier
+  pt 2/4
+  keywords flying, lifelink
+  label "Heroic" triggered whenever you cast a spell that targets this: put 1 +1/+1 counters on this
+}

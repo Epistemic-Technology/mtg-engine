@@ -1,0 +1,8 @@
+card "Pia and Kiran Nalaar" {
+  oracle_id 86084ed9-b8bb-4289-9579-6056194787bc
+  cost {2}{R}{R}
+  type Legendary Creature — Human Artificer
+  pt 2/2
+  triggered when this enters: create 2 "1/1 colorless Thopter artifact creature with flying"
+  activated {2}{R}, sacrifice artifact: deal 2 damage to any target
+}

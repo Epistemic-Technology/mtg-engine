@@ -1,0 +1,8 @@
+card "Leonin Relic-Warder" {
+  oracle_id 8e720216-a980-4a34-8aef-62ac3ef15a6e
+  cost {W}{W}
+  type Creature — Cat Cleric
+  pt 2/2
+  triggered when this enters: you may exile target artifact or enchantment
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}

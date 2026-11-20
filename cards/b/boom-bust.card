@@ -1,0 +1,14 @@
+card "Boom // Bust" {
+  oracle_id 514fdac0-95f4-4034-b891-283fe0fb6da6
+  layout split
+  face "Boom" {
+    cost {1}{R}
+    type Sorcery
+    spell: destroy target land you control and target land you don't control
+  }
+  face "Bust" {
+    cost {5}{R}
+    type Sorcery
+    spell: destroy each land
+  }
+}

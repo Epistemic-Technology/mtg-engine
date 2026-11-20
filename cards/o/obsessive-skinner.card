@@ -1,0 +1,8 @@
+card "Obsessive Skinner" {
+  oracle_id e7e59437-cdd0-476a-b1ec-231be4139d31
+  cost {1}{G}
+  type Creature — Human Rogue
+  pt 1/1
+  triggered when this enters: put 1 +1/+1 counters on target creature
+  label "Delirium" triggered at beginning of each opponent's upkeep step if 4 card types in your graveyard: put 1 +1/+1 counters on target creature
+}

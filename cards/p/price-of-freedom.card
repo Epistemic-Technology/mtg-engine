@@ -1,0 +1,9 @@
+card "Price of Freedom" {
+  oracle_id 5e6faa98-cf55-430d-87ce-8085f68aa20a
+  cost {1}{R}
+  type Sorcery — Lesson
+  spell {
+    destroy target artifact or land an opponent controls; its controller may search basic land card to battlefield tapped
+    draw 1 cards
+  }
+}

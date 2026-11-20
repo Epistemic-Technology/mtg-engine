@@ -1,0 +1,9 @@
+card "Geralf's Messenger" {
+  oracle_id 740f9740-aaa7-4061-86f5-85be79742541
+  cost {B}{B}{B}
+  type Creature — Zombie
+  pt 3/2
+  enters tapped
+  triggered when this enters: target opponent loses 2 life
+  keyword undying
+}

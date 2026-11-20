@@ -1,0 +1,7 @@
+card "Honor-Worn Shaku" {
+  oracle_id babeeaf6-0fe4-491f-bbf5-63a0568b3d6e
+  cost {3}
+  type Artifact
+  mana {C}
+  activated tap untapped legendary permanent you control: untap this
+}

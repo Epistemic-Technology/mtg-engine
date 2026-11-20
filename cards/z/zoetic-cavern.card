@@ -1,0 +1,6 @@
+card "Zoetic Cavern" {
+  oracle_id 3763de30-28e1-4689-a71c-07d2fea3a466
+  type Land
+  mana {C}
+  morph {2}
+}

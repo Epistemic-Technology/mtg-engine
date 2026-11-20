@@ -1,0 +1,7 @@
+card "Bark-Knuckle Boxer" {
+  oracle_id 08e173e3-4c28-49d2-bb57-ccf533f20daf
+  cost {1}{G}
+  type Creature — Raccoon Berserker
+  pt 3/2
+  triggered whenever you expend 4: this gains indestructible
+}

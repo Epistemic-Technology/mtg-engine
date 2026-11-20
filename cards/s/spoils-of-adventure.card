@@ -1,0 +1,7 @@
+card "Spoils of Adventure" {
+  oracle_id c4f3a6c6-a123-43ad-9513-d65fbff10d02
+  cost {4}{W}{U}
+  type Instant
+  this spell costs {1} less count each party
+  spell: you gain 3 life and draw 3 card
+}

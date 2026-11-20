@@ -1,0 +1,7 @@
+card "Arcane Infusion" {
+  oracle_id d5251d47-11de-41f7-9965-1f921e12d927
+  cost {U}{R}
+  type Instant
+  spell: dig 4 take instant or sorcery card may revealing rest bottom random
+  flashback {3}{U}{R}
+}

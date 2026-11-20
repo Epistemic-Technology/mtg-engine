@@ -1,0 +1,6 @@
+card "Bootleggers' Stash" {
+  oracle_id d1deba03-b26a-4a0d-b242-24bb3a3f9ea6
+  cost {5}{G}
+  type Artifact
+  static land you control: has ability { activated {T}: create 1 "Treasure" }
+}

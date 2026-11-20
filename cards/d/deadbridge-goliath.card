@@ -1,0 +1,7 @@
+card "Deadbridge Goliath" {
+  oracle_id 1498f5a1-6df7-4f80-9470-c93528b64a9c
+  cost {2}{G}{G}
+  type Creature — Insect
+  pt 5/5
+  scavenge {4}{G}{G}
+}

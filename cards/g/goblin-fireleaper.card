@@ -1,0 +1,8 @@
+card "Goblin Fireleaper" {
+  oracle_id c5fa1631-8685-49e1-baad-86ef72a9499c
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  activated {1}{R}: this gets +1/+0
+  triggered when this dies: this bites target creature an opponent controls
+}

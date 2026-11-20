@@ -1,0 +1,10 @@
+card "Brutalizer Exarch" {
+  oracle_id bdec14d1-1b38-4223-869e-a0ffc76b2b0c
+  cost {5}{G}
+  type Creature — Phyrexian Cleric
+  pt 3/3
+  triggered when this enters: choose one {
+    mode: search creature card reveal to top that card
+    mode: put target noncreature permanent on bottom of library
+  }
+}

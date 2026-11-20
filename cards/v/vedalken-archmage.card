@@ -1,0 +1,7 @@
+card "Vedalken Archmage" {
+  oracle_id 568cf486-0261-4634-ac36-a6507101b2d0
+  cost {2}{U}{U}
+  type Creature — Vedalken Wizard
+  pt 0/2
+  triggered whenever you cast artifact spell: draw 1 cards
+}

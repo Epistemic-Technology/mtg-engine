@@ -1,0 +1,8 @@
+card "Kokusho, the Evening Star" {
+  oracle_id cf631c93-b7fb-4e4f-b405-3778c15b1117
+  cost {4}{B}{B}
+  type Legendary Creature — Dragon Spirit
+  pt 5/5
+  keywords flying
+  triggered when this dies: each opponent loses 5 life; you gain count equal life lost this way life
+}

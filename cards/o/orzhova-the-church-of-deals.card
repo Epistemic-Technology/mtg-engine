@@ -1,0 +1,6 @@
+card "Orzhova, the Church of Deals" {
+  oracle_id 8551a9cf-c54b-42d4-92d6-550f4890a3d7
+  type Land
+  mana {C}
+  activated {3}{W}{B}, {T}: target player loses 1 life and you gains 1 life
+}

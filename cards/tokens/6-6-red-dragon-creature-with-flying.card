@@ -1,0 +1,7 @@
+token "6/6 red Dragon creature with flying" {
+  name "Dragon"
+  type Creature — Dragon
+  pt 6/6
+  color red
+  keywords flying
+}

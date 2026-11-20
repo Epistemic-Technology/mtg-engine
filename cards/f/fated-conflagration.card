@@ -1,0 +1,6 @@
+card "Fated Conflagration" {
+  oracle_id ac0a110a-0721-4aa6-a891-95e3fcc847df
+  cost {1}{R}{R}{R}
+  type Instant
+  spell: deal 5 damage to target creature or planeswalker; if your turn, scry 2
+}

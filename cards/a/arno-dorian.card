@@ -1,0 +1,9 @@
+card "Arno Dorian" {
+  oracle_id ae90daea-6644-4235-bca6-b94ee9925f63
+  cost {2}{B}{R}
+  type Legendary Creature — Human Assassin
+  pt 3/3
+  keywords deathtouch
+  static other Assassin you control: +2/+0
+  disguise {B}{R}
+}

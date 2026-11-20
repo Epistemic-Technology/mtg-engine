@@ -1,0 +1,7 @@
+card "Anointer of Champions" {
+  oracle_id f74ef5b0-9222-43d0-a919-aaf28dc21b59
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {T}: target attacking creature gets +1/+1
+}

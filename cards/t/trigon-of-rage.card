@@ -1,0 +1,8 @@
+card "Trigon of Rage" {
+  oracle_id 3b172be8-1bac-441e-98cc-f5af8da6005b
+  cost {2}
+  type Artifact
+  enters with 3 charge counters
+  activated {R}{R}, {T}: put 1 charge counters on this
+  activated {2}, {T}, remove 1 charge counters from this: target creature gets +3/+0
+}

@@ -1,0 +1,6 @@
+card "Helping Hand" {
+  oracle_id 170a5dbc-6a43-4715-9501-178b1eb7b08c
+  cost {W}
+  type Sorcery
+  spell: return target creature card with mana value 3 or less from your graveyard to battlefield tapped
+}

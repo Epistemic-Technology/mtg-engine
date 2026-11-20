@@ -1,0 +1,6 @@
+card "Inundate" {
+  oracle_id 0390a3dc-386c-402f-a89c-b94867bfb0a2
+  cost {3}{U}{U}{U}
+  type Sorcery
+  spell: return all nonblue creature to hand
+}

@@ -1,0 +1,9 @@
+card "High-Society Hunter" {
+  oracle_id 0dc158ba-7ec8-4558-91f5-0a87ef8380d4
+  cost {3}{B}{B}
+  type Creature — Vampire Noble
+  pt 5/3
+  keywords flying
+  triggered whenever this attacks: you may sacrifice 1 another creature chosen; if you do, put 1 +1/+1 counters on this creature
+  triggered whenever other nontoken creature dies: draw 1 cards
+}

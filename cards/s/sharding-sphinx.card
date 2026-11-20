@@ -1,0 +1,8 @@
+card "Sharding Sphinx" {
+  oracle_id 9ebc0144-fc45-4de7-b3d8-ef8cf2e211ae
+  cost {4}{U}{U}
+  type Artifact Creature — Sphinx
+  pt 4/4
+  keywords flying
+  triggered whenever artifact creature you control deals combat damage to a player: you may create 1 "1/1 blue Thopter artifact creature with flying"
+}

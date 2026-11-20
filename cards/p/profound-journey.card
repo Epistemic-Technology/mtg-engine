@@ -1,0 +1,7 @@
+card "Profound Journey" {
+  oracle_id 070e3224-0f89-4716-b91b-0131eff6146f
+  cost {5}{W}{W}
+  type Sorcery
+  keywords rebound
+  spell: return target permanent card from your graveyard to battlefield
+}

@@ -1,0 +1,6 @@
+card "Blood Rites" {
+  oracle_id 69757aaf-182e-41a0-a5b4-4404e4c81c45
+  cost {3}{R}{R}
+  type Enchantment
+  activated {1}{R}, sacrifice creature: deal 2 damage to any target
+}

@@ -1,0 +1,7 @@
+card "Prayer of Binding" {
+  oracle_id 4505ff9f-97f1-45d1-aea9-5590fefb4a4d
+  cost {3}{W}
+  type Enchantment
+  keywords flash
+  triggered when this enters: exile up to one target nonland permanent an opponent controls until this leaves; you gains 2 life
+}

@@ -1,0 +1,6 @@
+card "Shimmer of Possibility" {
+  oracle_id 85e2b073-e953-46f9-a1d4-0dfe030b3751
+  cost {1}{U}
+  type Sorcery
+  spell: dig 4 take card rest bottom random
+}

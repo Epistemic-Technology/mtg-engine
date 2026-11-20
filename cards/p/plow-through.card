@@ -1,0 +1,9 @@
+card "Plow Through" {
+  oracle_id a5492d28-b1bf-408d-a048-8f200158d6b1
+  cost {G}
+  type Sorcery
+  choose one {
+    mode: target creature you control fights target creature an opponent controls
+    mode: destroy target Vehicle
+  }
+}

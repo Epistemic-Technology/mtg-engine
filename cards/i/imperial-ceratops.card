@@ -1,0 +1,7 @@
+card "Imperial Ceratops" {
+  oracle_id 86cee7f0-0aac-46f1-8e4e-062fc398477e
+  cost {4}{W}
+  type Creature — Dinosaur
+  pt 3/5
+  label "Enrage" triggered whenever this is dealt damage: you gains 2 life
+}

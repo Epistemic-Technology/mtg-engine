@@ -1,0 +1,6 @@
+card "Deft Dismissal" {
+  oracle_id 7cbe863a-6654-4f54-b4ec-e1040e830174
+  cost {3}{W}
+  type Instant
+  spell: deal 3 damage divided among 1 to 3 target attacking or blocking creatures
+}

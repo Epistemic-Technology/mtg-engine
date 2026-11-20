@@ -1,0 +1,8 @@
+card "Sibsig Muckdraggers" {
+  oracle_id 423c1079-bdba-42fc-8732-59cb83ebafc3
+  cost {8}{B}
+  type Creature — Zombie
+  pt 3/6
+  keywords delve
+  triggered when this enters: return target creature card from your graveyard to hand
+}

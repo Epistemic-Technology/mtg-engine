@@ -1,0 +1,6 @@
+card "Access Tunnel" {
+  oracle_id ed9cc560-f30b-4b60-a094-ccf93ed656a7
+  type Land
+  mana {C}
+  activated {3}, {T}: target creature with power 3 or less can't be blocked
+}

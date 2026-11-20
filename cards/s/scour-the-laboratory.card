@@ -1,0 +1,7 @@
+card "Scour the Laboratory" {
+  oracle_id 983c5c59-806c-4430-adec-c91a099c8d41
+  cost {4}{U}{U}
+  type Instant
+  label "Delirium" this spell costs {2} less if 4 card types in your graveyard
+  spell: draw 3 cards
+}

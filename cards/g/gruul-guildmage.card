@@ -1,0 +1,8 @@
+card "Gruul Guildmage" {
+  oracle_id 75645b1f-0e12-4a05-b47f-0d2e2616c3ca
+  cost {R/G}{R/G}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {3}{R}, sacrifice land: deal 2 damage to target player or planeswalker
+  activated {3}{G}: target creature gets +2/+2
+}

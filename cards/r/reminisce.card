@@ -1,0 +1,6 @@
+card "Reminisce" {
+  oracle_id 296c4d2b-e41c-416b-807e-5b4db638ec57
+  cost {2}{U}
+  type Sorcery
+  spell: target player shuffles graveyard into library
+}

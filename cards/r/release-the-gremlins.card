@@ -1,0 +1,6 @@
+card "Release the Gremlins" {
+  oracle_id 3b583358-d0d5-4f53-b06c-c6439156e684
+  cost {X}{X}{R}
+  type Sorcery
+  spell: destroy X target artifacts; create X "2/2 red Gremlin creature"
+}

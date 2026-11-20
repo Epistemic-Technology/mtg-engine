@@ -1,0 +1,9 @@
+card "Dracosaur Auxiliary" {
+  oracle_id 457e3218-b2ef-4280-931a-5320987b9657
+  cost {4}{R}{R}
+  type Creature — Dinosaur Dragon Mount
+  pt 4/4
+  keywords flying, haste
+  triggered whenever this attacks while saddled: deal 2 damage to any target
+  saddle 3
+}

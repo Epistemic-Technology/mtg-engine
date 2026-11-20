@@ -1,0 +1,6 @@
+card "Mirkwood Pathmaker" {
+  oracle_id f1b36dde-9cde-46c8-8d5a-9ad93feba41f
+  cost {2}{G}
+  type Creature — Elf Ranger
+  static this: cda pt count land you control
+}

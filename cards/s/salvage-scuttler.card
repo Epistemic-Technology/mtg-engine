@@ -1,0 +1,7 @@
+card "Salvage Scuttler" {
+  oracle_id 01a6f8e6-439b-4de4-9f0a-21a035fd849e
+  cost {4}{U}
+  type Creature — Crab
+  pt 4/4
+  triggered whenever this attacks: return 1 artifact you control chosen
+}

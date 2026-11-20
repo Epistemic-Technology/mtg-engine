@@ -1,0 +1,8 @@
+card "Goblin Trashmaster" {
+  oracle_id 0283bf5e-ddf2-4a4a-a7cf-d3e27eed7e7d
+  cost {2}{R}{R}
+  type Creature — Goblin Warrior
+  pt 3/3
+  static other Goblin you control: +1/+1
+  activated sacrifice Goblin: destroy target artifact
+}

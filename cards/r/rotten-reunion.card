@@ -1,0 +1,7 @@
+card "Rotten Reunion" {
+  oracle_id 1bde8eaa-9beb-4529-b540-5e0155c09713
+  cost {B}
+  type Instant
+  spell: exile up to one target card from a graveyard; create 1 "2/2 black Zombie creature with decayed"
+  flashback {1}{B}
+}

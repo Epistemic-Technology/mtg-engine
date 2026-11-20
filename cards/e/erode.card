@@ -1,0 +1,6 @@
+card "Erode" {
+  oracle_id 2e467fab-e808-44d3-99bf-e3621baeb7cb
+  cost {W}
+  type Instant
+  spell: destroy target creature or planeswalker; its controller may search basic land card to battlefield tapped
+}

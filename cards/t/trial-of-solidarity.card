@@ -1,0 +1,7 @@
+card "Trial of Solidarity" {
+  oracle_id cbcc2577-7556-4174-83ff-9e00611412b3
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: each creature you control gets +2/+1 and gains vigilance
+  triggered when Cartouche you control enters: return this to hand
+}

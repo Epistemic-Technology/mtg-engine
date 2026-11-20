@@ -1,0 +1,8 @@
+card "Illusionary Armor" {
+  oracle_id f36603d4-571d-4d03-a9cb-d1f2af3eb3c1
+  cost {4}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +4/+4
+  triggered when enchanted creature becomes targeted: sacrifice this
+}

@@ -1,0 +1,10 @@
+card "Loot, the Pathfinder" {
+  oracle_id 68c7e459-0932-4644-a3c0-9a1eae1db7a3
+  cost {2}{G}{U}{R}
+  type Legendary Creature — Beast Noble
+  pt 2/4
+  keywords double strike, vigilance, haste
+  exhaust {G}, {T}: add any 3
+  exhaust {U}, {T}: draw 3 cards
+  exhaust {R}, {T}: deal 3 damage to any target
+}

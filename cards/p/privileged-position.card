@@ -1,0 +1,6 @@
+card "Privileged Position" {
+  oracle_id abd62af0-c17d-4f62-af15-9ea83037b990
+  cost {2}{G/W}{G/W}{G/W}
+  type Enchantment
+  static other permanent you control: has hexproof
+}

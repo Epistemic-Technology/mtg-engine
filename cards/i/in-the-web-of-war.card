@@ -1,0 +1,6 @@
+card "In the Web of War" {
+  oracle_id 9629e6b7-75e1-4447-bf20-4d4a43d6f60a
+  cost {3}{R}{R}
+  type Enchantment
+  triggered whenever creature you control enters: it gets +2/+0 and gains haste
+}

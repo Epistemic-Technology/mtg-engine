@@ -1,0 +1,8 @@
+card "Zanikev Locust" {
+  oracle_id e29012bb-4a1d-409e-8db9-50920fdf68a2
+  cost {5}{B}
+  type Creature — Insect
+  pt 3/3
+  keywords flying
+  scavenge {2}{B}{B}
+}

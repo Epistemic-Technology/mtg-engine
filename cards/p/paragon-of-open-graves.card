@@ -1,0 +1,8 @@
+card "Paragon of Open Graves" {
+  oracle_id 39375b5d-f509-4482-8d34-797dae17d38b
+  cost {3}{B}
+  type Creature — Skeleton Warrior
+  pt 2/2
+  static other black creature you control: +1/+1
+  activated {2}{B}, {T}: another target black creature you control gains deathtouch
+}

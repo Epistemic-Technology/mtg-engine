@@ -1,0 +1,8 @@
+card "Manticore Eternal" {
+  oracle_id d859e9b3-7804-418d-be95-e03a5de290ca
+  cost {3}{R}{R}
+  type Creature — Zombie Manticore
+  pt 5/4
+  afflict 3
+  keyword attacks each combat if able
+}

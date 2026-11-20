@@ -1,0 +1,8 @@
+card "Abzan Battle Priest" {
+  oracle_id 1b44fe0a-4a99-4166-b0b3-102b36b54ffa
+  cost {3}{W}
+  type Creature — Human Cleric
+  pt 3/2
+  outlast {W}
+  static each creature you control with +1/+1 counter: has lifelink
+}

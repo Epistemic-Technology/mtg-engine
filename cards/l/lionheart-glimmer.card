@@ -1,0 +1,8 @@
+card "Lionheart Glimmer" {
+  oracle_id bd63bfda-e20a-4476-8a61-cdb51355a227
+  cost {3}{W}{W}
+  type Enchantment Creature — Cat Glimmer
+  pt 2/5
+  ward {2}
+  triggered whenever you attack: each creature you control gets +1/+1
+}

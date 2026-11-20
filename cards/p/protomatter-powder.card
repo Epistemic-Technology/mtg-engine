@@ -1,0 +1,6 @@
+card "Protomatter Powder" {
+  oracle_id 22d57bc8-e473-47c5-8e48-c0fb98e66948
+  cost {2}{U}
+  type Artifact
+  activated {4}{W}, {T}, sacrifice this: return target artifact card from your graveyard to battlefield
+}

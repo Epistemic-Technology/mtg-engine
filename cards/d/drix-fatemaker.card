@@ -1,0 +1,9 @@
+card "Drix Fatemaker" {
+  oracle_id 583102f8-7232-4fbb-a715-087448536bb2
+  cost {3}{G}
+  type Creature — Drix Wizard
+  pt 3/2
+  triggered when this enters: put 1 +1/+1 counters on target creature
+  static each creature you control with +1/+1 counter: has trample
+  warp {1}{G}
+}

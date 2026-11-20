@@ -1,0 +1,8 @@
+card "Crested Sunmare" {
+  oracle_id 054fedbb-062e-491e-9a94-594fda33094f
+  cost {3}{W}{W}
+  type Creature — Horse
+  pt 5/5
+  static other Horse you control: has indestructible
+  triggered at beginning of every end step if gained life this turn: create 1 "5/5 white Horse creature"
+}

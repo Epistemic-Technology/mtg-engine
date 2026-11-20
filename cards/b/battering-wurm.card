@@ -1,0 +1,8 @@
+card "Battering Wurm" {
+  oracle_id fdcfa49a-70ed-48a4-b424-527a1698fd85
+  cost {6}{G}
+  type Creature — Wurm
+  pt 4/3
+  bloodthirst 1
+  can't be blocked by creature with lesser power
+}

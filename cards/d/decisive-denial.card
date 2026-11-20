@@ -1,0 +1,9 @@
+card "Decisive Denial" {
+  oracle_id 2d0bd780-b754-44a3-894c-a9c8aa711f05
+  cost {G}{U}
+  type Instant
+  choose one {
+    mode: target creature you control fights target creature you don't control
+    mode: counter target noncreature spell unless its controller pays {3}
+  }
+}

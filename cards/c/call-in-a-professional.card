@@ -1,0 +1,6 @@
+card "Call In a Professional" {
+  oracle_id ca54e14c-67ee-4de2-bc0f-19a5f9461d37
+  cost {2}{R}
+  type Instant
+  spell: players can't gain life this turn; damage can't be prevented this turn; deal 3 damage to any target
+}

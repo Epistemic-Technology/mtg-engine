@@ -1,0 +1,14 @@
+card "Grabby Giant // That's Mine" {
+  oracle_id e6f59807-eaf6-4889-8c89-2ac915afefff
+  layout adventure
+  cost {3}{R}
+  type Creature — Giant
+  pt 4/3
+  keywords reach
+  activated {2}{R}, sacrifice artifact or land: draw 1 cards
+  face "That's Mine" {
+    cost {1}{R}
+    type Instant — Adventure
+    spell: create 1 "Treasure"
+  }
+}

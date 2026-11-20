@@ -1,0 +1,6 @@
+card "Ruinous Ultimatum" {
+  oracle_id a6f38908-aa4f-4f99-a28e-85d11dab52e4
+  cost {R}{R}{W}{W}{W}{B}{B}
+  type Sorcery
+  spell: destroy each nonland permanent your opponents control
+}

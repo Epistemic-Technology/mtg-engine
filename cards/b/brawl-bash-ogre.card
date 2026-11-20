@@ -1,0 +1,8 @@
+card "Brawl-Bash Ogre" {
+  oracle_id 0156bfbc-26bc-4699-a7ff-437f7c043716
+  cost {2}{B}{R}
+  type Creature — Ogre Warrior
+  pt 3/3
+  keywords menace
+  triggered whenever this attacks: you may sacrifice 1 another creature chosen; if you do, this creature gets +2/+2
+}

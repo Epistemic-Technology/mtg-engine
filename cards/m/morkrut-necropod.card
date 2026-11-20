@@ -1,0 +1,8 @@
+card "Morkrut Necropod" {
+  oracle_id ed3990cd-fa67-427b-bbe4-a2b1942e9be2
+  cost {5}{B}
+  type Creature — Slug Horror
+  pt 7/7
+  keywords menace
+  triggered whenever this attacks or blocks: sacrifice 1 another creature or land chosen
+}

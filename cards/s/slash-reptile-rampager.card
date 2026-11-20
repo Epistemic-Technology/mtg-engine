@@ -1,0 +1,8 @@
+card "Slash, Reptile Rampager" {
+  oracle_id 8abff7b5-fe27-46bd-b951-b5d9f93f3a14
+  cost {3}{R}{R}
+  type Legendary Creature — Mutant Berserker Turtle
+  pt 7/5
+  label "Alliance" triggered whenever other creature you control enters: deal 2 damage to each opponent
+  triggered whenever this attacks: create 1 "2/2 red Mutant creature"
+}

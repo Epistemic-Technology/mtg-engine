@@ -1,0 +1,7 @@
+card "Plaguemaw Beast" {
+  oracle_id 22252186-15d0-468f-8cab-c74db9b71439
+  cost {3}{G}{G}
+  type Creature — Phyrexian Beast
+  pt 4/3
+  activated {T}, sacrifice creature: proliferate
+}

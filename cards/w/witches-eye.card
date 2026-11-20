@@ -1,0 +1,7 @@
+card "Witches' Eye" {
+  oracle_id c8d479b8-b96c-4382-97d3-68d85cf371ba
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: has ability { activated {1}, {T}: scry 1 }
+  equip {1}
+}

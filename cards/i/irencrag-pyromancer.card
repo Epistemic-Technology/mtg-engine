@@ -1,0 +1,7 @@
+card "Irencrag Pyromancer" {
+  oracle_id 5abcc262-fbe1-4e81-897c-da5a8fb1f1f4
+  cost {2}{R}
+  type Creature — Human Wizard
+  pt 0/4
+  triggered whenever you draw your second card each turn: deal 3 damage to any target
+}

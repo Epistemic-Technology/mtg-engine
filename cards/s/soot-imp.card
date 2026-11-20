@@ -1,0 +1,8 @@
+card "Soot Imp" {
+  oracle_id c867e31a-90ea-4d20-80db-3977ec68b16b
+  cost {1}{B}{B}
+  type Creature — Imp
+  pt 1/2
+  keywords flying
+  triggered whenever a player casts nonblack spell: that player loses 1 life
+}

@@ -1,0 +1,7 @@
+card "Grinding Station" {
+  oracle_id 0fcd476f-4db8-4293-9388-1678a0043c9e
+  cost {2}
+  type Artifact
+  activated {T}, sacrifice artifact: target player mills 3 cards
+  triggered whenever artifact enters: you may untap this
+}

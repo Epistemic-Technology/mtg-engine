@@ -1,0 +1,6 @@
+card "Mox Jasper" {
+  oracle_id d5fca77c-377f-41b4-a9e9-e91a89d351cc
+  cost {0}
+  type Legendary Artifact
+  activated {T}, if you control Dragon: add any
+}

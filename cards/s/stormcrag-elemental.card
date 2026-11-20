@@ -1,0 +1,8 @@
+card "Stormcrag Elemental" {
+  oracle_id f28c18a1-13f8-4360-adc7-9d828ab1e933
+  cost {5}{R}
+  type Creature — Elemental
+  pt 5/5
+  keywords trample
+  megamorph {4}{R}{R}
+}

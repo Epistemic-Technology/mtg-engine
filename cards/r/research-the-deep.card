@@ -1,0 +1,6 @@
+card "Research the Deep" {
+  oracle_id 02f35851-c1be-4162-a6f8-7897325555a7
+  cost {1}{U}
+  type Sorcery
+  spell: draw 1 cards; clash; if you win, return this to its owner's hand
+}

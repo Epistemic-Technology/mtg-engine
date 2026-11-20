@@ -1,0 +1,8 @@
+card "Hypnotic Specter" {
+  oracle_id 759af941-f6a3-4726-91f2-9b1e4e55ea71
+  cost {1}{B}{B}
+  type Creature — Specter
+  pt 2/2
+  keywords flying
+  triggered whenever this deals damage to opponent: that player discards 1 cards at random
+}

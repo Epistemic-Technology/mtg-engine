@@ -1,0 +1,9 @@
+card "Hackrobat" {
+  oracle_id 65ce903f-8c3e-4283-9b6e-ee9b3176f059
+  cost {1}{B}{R}
+  type Creature — Human Rogue
+  pt 2/3
+  spectacle {B}{R}
+  activated {B}: this gains deathtouch
+  activated {R}: this gets +2/-2
+}

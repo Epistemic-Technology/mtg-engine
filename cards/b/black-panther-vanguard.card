@@ -1,0 +1,10 @@
+card "Black Panther, Vanguard" {
+  oracle_id b0bf1964-c543-4c53-9f09-0dd7c608d5c5
+  cost {2}{G}{W}
+  type Legendary Creature — Human Warrior Hero
+  pt 4/4
+  triggered whenever other nontoken Hero you control enters: choose one {
+    mode: create 1 "1/1 white Soldier creature"
+    mode: each creature you control gets +1/+1
+  }
+}

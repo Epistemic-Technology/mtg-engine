@@ -1,0 +1,7 @@
+card "Fungusaur" {
+  oracle_id 3e771f5b-2de3-4a1b-8281-ab1f7491e5a1
+  cost {3}{G}
+  type Creature — Fungus Dinosaur
+  pt 2/2
+  triggered whenever this is dealt damage: put 1 +1/+1 counters on this
+}

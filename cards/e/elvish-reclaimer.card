@@ -1,0 +1,8 @@
+card "Elvish Reclaimer" {
+  oracle_id 94f01534-7bb3-4b1e-8f77-e84156408686
+  cost {G}
+  type Creature — Elf Warrior
+  pt 1/2
+  static this: +2/+2 as long as 3 land cards in your graveyard
+  activated {2}, {T}, sacrifice land: search land card to battlefield tapped
+}

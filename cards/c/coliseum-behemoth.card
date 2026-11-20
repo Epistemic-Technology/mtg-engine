@@ -1,0 +1,11 @@
+card "Coliseum Behemoth" {
+  oracle_id 076cf4f1-b3d4-4175-b976-938ad851cc0e
+  cost {5}{G}{G}
+  type Creature — Beast
+  pt 7/7
+  keywords trample
+  triggered when this enters: choose one {
+    mode: destroy target artifact or enchantment
+    mode: draw 1 cards
+  }
+}

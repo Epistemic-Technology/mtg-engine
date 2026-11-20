@@ -1,0 +1,8 @@
+card "Youthful Valkyrie" {
+  oracle_id 6d37ba4b-ff56-4eec-9dc2-2d7f357dc9c9
+  cost {1}{W}
+  type Creature — Angel
+  pt 1/3
+  keywords flying
+  triggered whenever other Angel you control enters: put 1 +1/+1 counters on this
+}

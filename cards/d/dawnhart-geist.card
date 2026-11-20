@@ -1,0 +1,7 @@
+card "Dawnhart Geist" {
+  oracle_id ed7a2ee0-289d-4e5f-92e0-1539395baf33
+  cost {1}{W}
+  type Creature — Spirit Warlock
+  pt 1/3
+  triggered whenever you cast enchantment spell: you gains 2 life
+}

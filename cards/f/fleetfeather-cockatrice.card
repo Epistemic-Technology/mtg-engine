@@ -1,0 +1,8 @@
+card "Fleetfeather Cockatrice" {
+  oracle_id d5006683-f1c4-4a18-bf64-2d075372534c
+  cost {3}{G}{U}
+  type Creature — Cockatrice
+  pt 3/3
+  keywords flash, flying, deathtouch
+  activated {5}{G}{U}: monstrosity 3
+}

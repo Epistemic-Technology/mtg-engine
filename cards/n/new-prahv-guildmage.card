@@ -1,0 +1,8 @@
+card "New Prahv Guildmage" {
+  oracle_id 5912d4b7-d18d-4619-a96b-d2615200971f
+  cost {W}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {W}{U}: target creature gains flying
+  activated {3}{W}{U}: detain target nonland permanent an opponent controls
+}

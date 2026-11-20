@@ -1,0 +1,9 @@
+card "Birthing Hulk" {
+  oracle_id 33899675-0de2-4adb-bf3f-55e18b493015
+  cost {6}{G}
+  type Creature — Eldrazi Drone
+  pt 5/4
+  keywords devoid
+  triggered when this enters: create 2 "Eldrazi Scion" it has
+  activated {1}{C}: regenerate this
+}

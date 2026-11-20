@@ -1,0 +1,7 @@
+card "Doomwake Giant" {
+  oracle_id ba069664-9f92-47c7-b556-9e5143a22579
+  cost {4}{B}
+  type Enchantment Creature — Giant
+  pt 4/6
+  label "Constellation" triggered whenever this or enchantment you control enters: each creature your opponents control gets -1/-1
+}

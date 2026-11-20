@@ -1,0 +1,9 @@
+card "Soul of Innistrad" {
+  oracle_id b5ba8155-520b-4053-be31-2744b77fb862
+  cost {4}{B}{B}
+  type Creature — Avatar
+  pt 6/6
+  keywords deathtouch
+  activated {3}{B}{B}: return up to three target creature card from your graveyard to hand
+  activated {3}{B}{B}, exile this from graveyard: return up to three target creature card from your graveyard to hand
+}

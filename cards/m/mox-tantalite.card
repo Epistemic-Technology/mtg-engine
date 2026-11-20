@@ -1,0 +1,6 @@
+card "Mox Tantalite" {
+  oracle_id cc319819-68f9-4c1e-8d60-25a5e3e50669
+  type Artifact
+  suspend 3 {0}
+  mana any
+}

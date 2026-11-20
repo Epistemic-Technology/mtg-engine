@@ -1,0 +1,8 @@
+card "Lurking Roper" {
+  oracle_id 61f3e964-6bea-4543-992e-3e36404bf628
+  cost {2}{G}
+  type Creature — Horror
+  pt 4/5
+  keywords doesn't untap
+  triggered whenever you gain life: untap this
+}

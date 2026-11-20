@@ -1,0 +1,8 @@
+card "Imperious Perfect" {
+  oracle_id 3fa71348-fa4d-4f39-a451-cf1570591991
+  cost {2}{G}
+  type Creature — Elf Warrior
+  pt 2/2
+  static other Elf you control: +1/+1
+  activated {G}, {T}: create 1 "1/1 green Elf Warrior creature"
+}

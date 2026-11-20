@@ -1,0 +1,7 @@
+card "Nessian Hornbeetle" {
+  oracle_id ab097f46-a7bf-4cf1-a96c-36b681fe79da
+  cost {1}{G}
+  type Creature — Insect
+  pt 2/2
+  triggered at beginning of your combat if you control other creature with power 4 or greater: put 1 +1/+1 counters on this
+}

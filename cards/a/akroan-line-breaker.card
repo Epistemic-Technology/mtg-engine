@@ -1,0 +1,7 @@
+card "Akroan Line Breaker" {
+  oracle_id 01443d75-3f86-45c0-81fa-fbf1b3175d4f
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 2/1
+  label "Heroic" triggered whenever you cast a spell that targets this: this gets +2/+0 and gains intimidate
+}

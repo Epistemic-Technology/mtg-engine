@@ -1,0 +1,8 @@
+card "Oyobi, Who Split the Heavens" {
+  oracle_id df5c1f34-94e4-4f89-b1af-943c430862d0
+  cost {6}{W}
+  type Legendary Creature — Spirit
+  pt 3/6
+  keywords flying
+  triggered whenever you cast Spirit or Arcane spell: create 1 "3/3 white Spirit creature with flying"
+}

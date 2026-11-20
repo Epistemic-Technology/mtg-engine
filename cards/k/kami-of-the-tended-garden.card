@@ -1,0 +1,8 @@
+card "Kami of the Tended Garden" {
+  oracle_id e2770ebf-24e3-4787-956b-ca01aaa50a6f
+  cost {3}{G}
+  type Creature — Spirit
+  pt 4/4
+  triggered at beginning of your upkeep: sacrifice this unless you pay {G}
+  soulshift 3
+}

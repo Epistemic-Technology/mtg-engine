@@ -1,0 +1,8 @@
+card "Meddling Youths" {
+  oracle_id 9acb74a9-f372-43ad-a80d-4f8d52236eb8
+  cost {3}{R}{W}
+  type Creature — Human Detective
+  pt 4/5
+  keywords haste
+  triggered whenever you attack with 3 or more creatures: investigate
+}

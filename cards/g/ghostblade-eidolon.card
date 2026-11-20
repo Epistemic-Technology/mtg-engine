@@ -1,0 +1,9 @@
+card "Ghostblade Eidolon" {
+  oracle_id 78a1f291-22ed-41f1-87fd-0bdc97f9c065
+  cost {2}{W}
+  type Enchantment Creature — Spirit
+  pt 1/1
+  bestow {5}{W}
+  keyword double strike
+  static enchanted: +1/+1, has double strike
+}

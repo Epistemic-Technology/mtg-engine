@@ -1,0 +1,6 @@
+card "Shivan Reef" {
+  oracle_id 0fe16212-66c3-4e45-a641-7391e9b2e304
+  type Land
+  mana {C}
+  activated {T}: add {U} or {R}; deal 1 damage to you
+}

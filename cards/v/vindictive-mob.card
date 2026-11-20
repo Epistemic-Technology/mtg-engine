@@ -1,0 +1,8 @@
+card "Vindictive Mob" {
+  oracle_id af55096c-af6b-479f-8257-144e596e89d8
+  cost {4}{B}{B}
+  type Creature — Human Berserker
+  pt 5/5
+  triggered when this enters: sacrifice 1 creature chosen
+  can't be blocked by Saproling
+}

@@ -1,0 +1,6 @@
+card "Exsanguinate" {
+  oracle_id 8164b1e8-3350-465e-8a17-75f57d326344
+  cost {X}{B}{B}
+  type Sorcery
+  spell: each opponent loses X life; you gain count equal life lost this way life
+}

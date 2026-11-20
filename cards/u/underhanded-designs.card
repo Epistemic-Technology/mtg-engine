@@ -1,0 +1,7 @@
+card "Underhanded Designs" {
+  oracle_id 870185fc-7b05-47d3-95ff-97fbf12796d4
+  cost {1}{B}
+  type Enchantment
+  triggered whenever artifact you control enters: you may pay {1}; if you do, each opponent loses 1 life and you gains 1 life
+  activated {1}{B}, sacrifice this, if you control 2 artifact: destroy target creature
+}

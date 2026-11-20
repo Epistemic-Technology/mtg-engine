@@ -1,0 +1,7 @@
+card "Shadows of the Past" {
+  oracle_id a5ba544f-b223-47c8-a408-b00512772107
+  cost {1}{B}
+  type Enchantment
+  triggered whenever creature dies: scry 1
+  activated {4}{B}, if 4 creature cards in your graveyard: each opponent loses 2 life and you gains 2 life
+}

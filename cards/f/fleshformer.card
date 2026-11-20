@@ -1,0 +1,7 @@
+card "Fleshformer" {
+  oracle_id 67b8b67d-fda3-4a62-9bfb-51a171638502
+  cost {2}{B}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {W}{U}{B}{R}{G}, during your turn: this gets +2/+2 and gains fear; target creature gets -2/-2
+}

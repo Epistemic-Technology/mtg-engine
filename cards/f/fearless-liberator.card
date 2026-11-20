@@ -1,0 +1,7 @@
+card "Fearless Liberator" {
+  oracle_id b0b93253-6432-401e-9a01-94c41fb72c10
+  cost {1}{R}
+  type Creature — Dwarf Berserker
+  pt 2/1
+  boast {2}{R}: create 1 "2/1 red Dwarf Berserker creature"
+}

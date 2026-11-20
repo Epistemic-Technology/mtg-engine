@@ -1,0 +1,6 @@
+card "Fateful Discovery" {
+  oracle_id 72c6174c-fa2c-4ff2-b76e-eb6e890e97c9
+  cost {3}{U}{U}
+  type Enchantment
+  triggered whenever artifact you control enters: draw 1 cards
+}

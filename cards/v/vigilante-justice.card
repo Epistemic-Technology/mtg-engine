@@ -1,0 +1,6 @@
+card "Vigilante Justice" {
+  oracle_id 9610176a-dcd6-4117-89db-45f56b16cdd6
+  cost {3}{R}
+  type Enchantment
+  triggered whenever Human you control enters: deal 1 damage to any target
+}

@@ -1,0 +1,8 @@
+card "Vryn Wingmare" {
+  oracle_id c7c241f2-d3cc-4032-a9da-149de73c2539
+  cost {2}{W}
+  type Creature — Pegasus
+  pt 2/1
+  keywords flying
+  spells noncreature cost {1} more
+}

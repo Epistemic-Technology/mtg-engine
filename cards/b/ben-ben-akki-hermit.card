@@ -1,0 +1,7 @@
+card "Ben-Ben, Akki Hermit" {
+  oracle_id e5b7d0c5-f478-43ef-98fd-7792122ab8f5
+  cost {2}{R}{R}
+  type Legendary Creature — Goblin Shaman
+  pt 1/1
+  activated {T}: deal count equal untapped Mountain you control damage to target attacking creature
+}

@@ -1,0 +1,7 @@
+card "Archmage Emeritus" {
+  oracle_id 8305d576-21d8-4ce7-8eda-a7cd9793aca5
+  cost {2}{U}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: draw 1 cards
+}

@@ -1,0 +1,8 @@
+card "Haywire Mite" {
+  oracle_id 749d2994-44e7-40d3-8630-7bebed239e9e
+  cost {1}
+  type Artifact Creature — Insect
+  pt 1/1
+  triggered when this dies: you gains 2 life
+  activated {G}, sacrifice this: exile target noncreature artifact or noncreature enchantment
+}

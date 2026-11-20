@@ -1,0 +1,9 @@
+card "Turtle Blimp" {
+  oracle_id bb8c6dd2-1abe-4eb2-be1f-b0c078e5f257
+  cost {5}
+  type Artifact — Vehicle
+  pt 3/4
+  keywords flying
+  triggered when this enters: create 1 "2/2 red Mutant creature"
+  crew 2
+}

@@ -1,0 +1,9 @@
+card "He Who Hungers" {
+  oracle_id 5449bf36-e26c-4f76-bcae-944c70d184f8
+  cost {4}{B}
+  type Legendary Creature — Spirit
+  pt 3/2
+  keywords flying
+  activated {1}, sacrifice Spirit, sorcery: target opponent reveals hand discarding card
+  soulshift 4
+}

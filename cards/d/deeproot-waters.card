@@ -1,0 +1,6 @@
+card "Deeproot Waters" {
+  oracle_id 8e7b31eb-7a91-4992-b24a-d81173e1dbc8
+  cost {2}{U}
+  type Enchantment
+  triggered whenever you cast Merfolk spell: create 1 "1/1 blue Merfolk creature with hexproof"
+}

@@ -1,0 +1,7 @@
+card "Thopter Architect" {
+  oracle_id 3194fe3d-57d3-4dab-ab39-3778b75150fa
+  cost {3}{W}
+  type Creature — Human Artificer
+  pt 2/3
+  triggered whenever artifact you control enters: target creature gains flying
+}

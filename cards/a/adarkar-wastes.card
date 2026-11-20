@@ -1,0 +1,6 @@
+card "Adarkar Wastes" {
+  oracle_id d5ad26cc-2bdb-46b7-b8bf-dd099d5fa09b
+  type Land
+  mana {C}
+  activated {T}: add {W} or {U}; deal 1 damage to you
+}

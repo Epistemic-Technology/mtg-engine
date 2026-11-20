@@ -1,0 +1,7 @@
+card "Topan Ascetic" {
+  oracle_id e5868cf5-9fdc-442d-95cb-3bc5e2727981
+  cost {2}{G}
+  type Creature — Human Monk
+  pt 2/2
+  activated tap untapped creature you control: this gets +1/+1
+}

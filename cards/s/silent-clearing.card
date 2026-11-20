@@ -1,0 +1,6 @@
+card "Silent Clearing" {
+  oracle_id fd45063f-c83c-431c-9104-f139c497ec0d
+  type Land
+  activated {T}, pay 1 life: add {W} or {B}
+  activated {1}, {T}, sacrifice this: draw 1 cards
+}

@@ -1,0 +1,6 @@
+card "Hazel's Nocturne" {
+  oracle_id 2a74a055-ff7f-434b-8dfb-d9fb72579cee
+  cost {3}{B}
+  type Instant
+  spell: return up to two target creature card from your graveyard to hand; each opponent loses 2 life and you gains 2 life
+}

@@ -1,0 +1,7 @@
+card "Shardless Agent" {
+  oracle_id 2afbaa9a-c171-4a8b-90f3-5250d8498356
+  cost {1}{G}{U}
+  type Artifact Creature — Human Rogue
+  pt 2/2
+  keywords cascade
+}

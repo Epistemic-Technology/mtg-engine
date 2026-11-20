@@ -1,0 +1,12 @@
+card "Cleanup Crew" {
+  oracle_id 12e0321b-1cd7-4519-8929-3261cf11a1a9
+  cost {4}{G}{G}
+  type Creature — Human Citizen
+  pt 6/6
+  triggered when this enters: choose one {
+    mode: destroy target artifact
+    mode: destroy target enchantment
+    mode: exile target card from a graveyard
+    mode: you gains 4 life
+  }
+}

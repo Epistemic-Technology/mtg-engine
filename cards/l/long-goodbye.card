@@ -1,0 +1,7 @@
+card "Long Goodbye" {
+  oracle_id 9d63ba8a-a5cd-4fdb-bba3-95612be0077c
+  cost {1}{B}
+  type Instant
+  this spell can't be countered
+  spell: destroy target creature or planeswalker with mana value 3 or less
+}

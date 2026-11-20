@@ -1,0 +1,6 @@
+card "Bewildering Blizzard" {
+  oracle_id 84469042-d48d-409f-a2c9-047058f13bc5
+  cost {4}{U}{U}
+  type Instant
+  spell: draw 3 cards; each creature your opponents control gets -3/-0
+}

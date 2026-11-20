@@ -1,0 +1,9 @@
+card "Acid-Spewer Dragon" {
+  oracle_id f4378682-359f-48b0-adb7-b996b8d972db
+  cost {5}{B}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying, deathtouch
+  megamorph {5}{B}{B}
+  triggered when this is turned face up: put 1 +1/+1 counters on each other Dragon creature you control
+}

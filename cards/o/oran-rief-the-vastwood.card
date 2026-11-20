@@ -1,0 +1,7 @@
+card "Oran-Rief, the Vastwood" {
+  oracle_id e88027a6-24cc-4a8b-86db-734f26149ea8
+  type Land
+  enters tapped
+  mana {G}
+  activated {T}: put 1 +1/+1 counters on each green creature that entered this turn
+}

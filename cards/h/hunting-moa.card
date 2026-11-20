@@ -1,0 +1,8 @@
+card "Hunting Moa" {
+  oracle_id 102d73bc-94ed-4a57-9872-6f7b9bf282f9
+  cost {2}{G}
+  type Creature — Bird Beast
+  pt 3/2
+  echo {2}{G}
+  triggered when this enters or dies: put 1 +1/+1 counters on target creature
+}

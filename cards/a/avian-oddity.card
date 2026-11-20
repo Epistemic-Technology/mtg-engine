@@ -1,0 +1,9 @@
+card "Avian Oddity" {
+  oracle_id d6a03a52-7e85-46de-920c-93a3f6479c4c
+  cost {3}{U}
+  type Creature — Bird
+  pt 2/4
+  keywords flying
+  cycling {2}{U}
+  triggered when you cycle this: put 1 flying counters on target creature you control
+}

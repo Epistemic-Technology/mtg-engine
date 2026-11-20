@@ -1,0 +1,8 @@
+card "Duskfang Mentor" {
+  oracle_id d8b770c2-0406-4a2d-95d9-e14bb5d3bdc6
+  cost {2}{B}
+  type Creature — Human Cleric
+  pt 1/3
+  triggered when this enters: put 1 lifelink counters on target non-Human creature you control
+  activated {1}{B}, {T}: put 1 +1/+1 counters on each creature you control with lifelink
+}

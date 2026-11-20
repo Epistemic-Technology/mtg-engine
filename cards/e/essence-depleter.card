@@ -1,0 +1,8 @@
+card "Essence Depleter" {
+  oracle_id 19ea37cc-e715-4a3c-87f3-5ed9d44f42d9
+  cost {2}{B}
+  type Creature — Eldrazi Drone
+  pt 2/3
+  keywords devoid
+  activated {1}{C}: target opponent loses 1 life and you gains 1 life
+}

@@ -1,0 +1,8 @@
+card "Shockmaw Dragon" {
+  oracle_id e0754b8e-fd3c-4207-9031-a6323e1b66d5
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered whenever this deals combat damage to a player: deal 1 damage to each creature that player controls
+}

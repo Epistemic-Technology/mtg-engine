@@ -1,0 +1,6 @@
+card "Servo Schematic" {
+  oracle_id 6b8c6104-c537-4025-83e2-e89c8668f3ba
+  cost {2}
+  type Artifact
+  triggered when this enters or dies: create 1 "1/1 colorless Servo artifact creature"
+}

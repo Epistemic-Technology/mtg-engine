@@ -1,0 +1,7 @@
+card "Ketria Crystal" {
+  oracle_id 3ee5d7b6-0263-4239-a5fb-de1e1a220c55
+  cost {3}
+  type Artifact
+  mana {G} or {U} or {R}
+  cycling {2}
+}

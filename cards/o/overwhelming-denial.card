@@ -1,0 +1,8 @@
+card "Overwhelming Denial" {
+  oracle_id 45aa8bdb-54da-4069-bd6c-c63396154464
+  cost {2}{U}{U}
+  type Instant
+  surge {U}{U}
+  this spell can't be countered
+  spell: counter target spell
+}

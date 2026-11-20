@@ -1,0 +1,8 @@
+card "Crab Umbra" {
+  oracle_id 7d3d1c90-a5fb-44ff-a85b-27c037ca6753
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  activated {2}{U}: untap enchanted creature
+  replace destroy enchanted: umbra armor
+}

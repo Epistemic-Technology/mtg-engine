@@ -1,0 +1,7 @@
+card "Hour of Reckoning" {
+  oracle_id 3bc13640-03f8-4b19-b0a4-7e7cb5271c0c
+  cost {4}{W}{W}{W}
+  type Sorcery
+  keywords convoke
+  spell: destroy each nontoken creature
+}

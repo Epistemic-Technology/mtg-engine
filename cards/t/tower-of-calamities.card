@@ -1,0 +1,6 @@
+card "Tower of Calamities" {
+  oracle_id 27618701-e8c9-4117-94f3-3836cf34990d
+  cost {4}
+  type Artifact
+  activated {8}, {T}: deal 12 damage to target creature
+}

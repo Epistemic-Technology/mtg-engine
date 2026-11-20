@@ -1,0 +1,8 @@
+card "Redtooth Vanguard" {
+  oracle_id 9e459e48-d2bb-4c4e-9a87-58efb56cddd1
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 3/1
+  keywords trample
+  triggered from graveyard whenever enchantment you control enters: you may pay {2}; if you do, return this to hand
+}

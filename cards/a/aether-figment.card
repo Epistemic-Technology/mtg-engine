@@ -1,0 +1,9 @@
+card "Aether Figment" {
+  oracle_id 15fee0bd-ede2-4f65-a9a1-2da4623679d5
+  cost {1}{U}
+  type Creature — Illusion
+  pt 1/1
+  kicker {3}
+  kicked with 2 +1/+1 counters
+  keyword can't be blocked
+}

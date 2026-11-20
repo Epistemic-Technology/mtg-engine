@@ -1,0 +1,9 @@
+card "Splendor Mare" {
+  oracle_id fd2a00d1-9f21-4d54-9458-024fa03354b8
+  cost {2}{W}
+  type Creature — Elk Unicorn
+  pt 3/3
+  keywords lifelink
+  cycling {1}{W}
+  triggered when you cycle this: put 1 lifelink counters on target creature you control
+}

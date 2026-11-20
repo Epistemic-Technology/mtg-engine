@@ -1,0 +1,8 @@
+card "Grave Titan" {
+  oracle_id f3abd4d1-a975-4e85-8684-aa0fce029670
+  cost {4}{B}{B}
+  type Creature — Giant
+  pt 6/6
+  keywords deathtouch
+  triggered whenever this enters or attacks: create 2 "2/2 black Zombie creature"
+}

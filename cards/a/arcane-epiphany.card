@@ -1,0 +1,7 @@
+card "Arcane Epiphany" {
+  oracle_id fe1556cc-32d0-4e51-bb15-f3fce669a5e1
+  cost {3}{U}{U}
+  type Instant
+  this spell costs {1} less if you control Wizard
+  spell: draw 3 cards
+}

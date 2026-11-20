@@ -1,0 +1,8 @@
+card "Glaring Fleshraker" {
+  oracle_id 0ffce5e0-6b1d-4d1a-9318-1a1a219df532
+  cost {2}{C}
+  type Creature — Eldrazi Drone
+  pt 2/2
+  triggered whenever you cast colorless spell: create 1 "Eldrazi Spawn"
+  triggered whenever other colorless creature you control enters: deal 1 damage to each opponent
+}

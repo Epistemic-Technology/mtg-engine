@@ -1,0 +1,7 @@
+card "Wirewood Symbiote" {
+  oracle_id 67a52a74-9474-4f4e-8785-6ff54078a8ca
+  cost {G}
+  type Creature — Insect
+  pt 1/1
+  activated return Elf you control, once: untap target creature
+}

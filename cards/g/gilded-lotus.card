@@ -1,0 +1,6 @@
+card "Gilded Lotus" {
+  oracle_id 9a02a9a7-39d9-4763-85d3-747a0540b60b
+  cost {5}
+  type Artifact
+  activated {T}: add any 3
+}

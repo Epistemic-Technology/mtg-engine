@@ -1,0 +1,9 @@
+card "Kappa Cannoneer" {
+  oracle_id 7fffbe7f-ad78-4bb6-a611-c37e495c6ee0
+  cost {5}{U}
+  type Artifact Creature — Turtle Warrior
+  pt 4/4
+  keywords improvise
+  ward {4}
+  triggered whenever this or artifact you control enters: put 1 +1/+1 counters on this; this can't be blocked
+}

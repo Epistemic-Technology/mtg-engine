@@ -1,0 +1,7 @@
+card "Thousand-legged Kami" {
+  oracle_id 2f3bd1fc-387e-41b7-b19b-62dd9fbe2d10
+  cost {6}{G}{G}
+  type Creature — Spirit
+  pt 6/6
+  soulshift 7
+}

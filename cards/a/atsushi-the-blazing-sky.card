@@ -1,0 +1,11 @@
+card "Atsushi, the Blazing Sky" {
+  oracle_id 535f405d-94df-4f45-aedc-b331103720b7
+  cost {2}{R}{R}
+  type Legendary Creature — Dragon Spirit
+  pt 4/4
+  keywords flying, trample
+  triggered when this dies: choose one {
+    mode: impulse 2 next turn first
+    mode: create 3 "Treasure"
+  }
+}

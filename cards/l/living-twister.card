@@ -1,0 +1,8 @@
+card "Living Twister" {
+  oracle_id 206f7eaf-1e0b-48ea-9c40-38902e109e4f
+  cost {R}{R}{G}
+  type Creature — Elemental
+  pt 2/5
+  activated {1}{R}, discard land card: deal 2 damage to any target
+  activated {G}: return 1 tapped land you control chosen
+}

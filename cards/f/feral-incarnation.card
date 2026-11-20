@@ -1,0 +1,7 @@
+card "Feral Incarnation" {
+  oracle_id 31fefd48-6fff-41bf-a559-35a1699357ca
+  cost {8}{G}
+  type Sorcery
+  keywords convoke
+  spell: create 3 "3/3 green Beast creature"
+}

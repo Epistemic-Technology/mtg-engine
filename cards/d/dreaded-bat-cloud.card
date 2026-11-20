@@ -1,0 +1,8 @@
+card "Dreaded Bat-Cloud" {
+  oracle_id 3cc64ce6-45e2-4dc3-9b28-d7206a131873
+  cost {4}{B}
+  type Creature — Bat
+  pt 4/2
+  this spell costs {3} less if creature died this turn
+  keyword flying, deathtouch
+}

@@ -1,0 +1,7 @@
+card "Horizon Seed" {
+  oracle_id 3970e021-209d-41d3-9466-8b3ef9ab1a4c
+  cost {4}{W}
+  type Creature — Spirit
+  pt 2/1
+  triggered whenever you cast Spirit or Arcane spell: regenerate target creature
+}

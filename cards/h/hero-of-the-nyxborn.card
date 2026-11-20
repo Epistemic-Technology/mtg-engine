@@ -1,0 +1,8 @@
+card "Hero of the Nyxborn" {
+  oracle_id 19e483e7-a0a5-4164-a5ea-dab51c07a3d7
+  cost {1}{R}{W}
+  type Enchantment Creature — Human Soldier
+  pt 2/2
+  triggered when this enters: create 1 "1/1 white Human Soldier creature"
+  triggered whenever you cast a spell that targets this: each creature you control gets +1/+0
+}

@@ -1,0 +1,7 @@
+token "3/4 colorless Gargoyle artifact creature with flying" {
+  name "Gargoyle"
+  type Artifact Creature — Gargoyle
+  pt 3/4
+  color
+  keywords flying
+}

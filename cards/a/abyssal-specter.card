@@ -1,0 +1,8 @@
+card "Abyssal Specter" {
+  oracle_id 51833cff-6519-4806-8d91-0040e9a02189
+  cost {2}{B}{B}
+  type Creature — Specter
+  pt 2/3
+  keywords flying
+  triggered whenever this deals damage to player: that player discards 1 cards
+}

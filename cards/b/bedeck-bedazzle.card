@@ -1,0 +1,14 @@
+card "Bedeck // Bedazzle" {
+  oracle_id b8bb97a8-5f5d-48e9-a4c1-b4c20efe7739
+  layout split
+  face "Bedeck" {
+    cost {B/R}{B/R}
+    type Instant
+    spell: target creature gets +3/-3
+  }
+  face "Bedazzle" {
+    cost {4}{B}{R}
+    type Instant
+    spell: destroy target nonbasic land; deal 2 damage to target opponent or planeswalker
+  }
+}

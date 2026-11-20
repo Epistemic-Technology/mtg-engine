@@ -1,0 +1,8 @@
+card "Elusive Krasis" {
+  oracle_id b876101b-7b18-48d7-9c8c-aaa6b1b5c199
+  cost {1}{G}{U}
+  type Creature — Fish Mutant
+  pt 0/4
+  keywords can't be blocked
+  evolve
+}

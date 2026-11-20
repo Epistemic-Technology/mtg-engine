@@ -1,0 +1,13 @@
+card "Sea Hag // Aquatic Ingress" {
+  oracle_id 788a1d3f-8d73-4ecd-97ac-77906a873cfe
+  layout adventure
+  cost {4}{U}
+  type Creature — Hag
+  pt 3/5
+  triggered when this enters: each creature your opponents control gets -4/-0
+  face "Aquatic Ingress" {
+    cost {2}{U}
+    type Instant — Adventure
+    spell: up to two target creatures each get +1/+0 until end of turn and can't be blocked
+  }
+}

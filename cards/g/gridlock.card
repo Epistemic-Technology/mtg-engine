@@ -1,0 +1,6 @@
+card "Gridlock" {
+  oracle_id 049e9963-1b74-476f-9a81-dbfae543e1c5
+  cost {X}{U}
+  type Instant
+  spell: tap X target nonland permanents
+}

@@ -1,0 +1,9 @@
+card "Human Torch, Johnny Storm" {
+  oracle_id 5b6f2770-e774-4a77-801f-a3fda093c3dd
+  cost {2}{R}
+  type Legendary Creature — Human Hero
+  pt 2/2
+  keywords flying
+  triggered whenever you draw a card if you control other Hero: deal 1 damage to target opponent
+  power-up {6}{R}: put 3 +1/+1 counters on this
+}

@@ -1,0 +1,6 @@
+card "Neutralize the Guards" {
+  oracle_id b793141d-581c-4cc7-b09f-1fe8bd5536c5
+  cost {2}{B}
+  type Instant
+  spell: each creature target opponent controls gets -1/-1; surveil 2
+}

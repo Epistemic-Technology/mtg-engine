@@ -1,0 +1,8 @@
+card "Snapping Sailback" {
+  oracle_id 6f7b9ff4-fe79-4d21-9262-47bcd2411259
+  cost {4}{G}
+  type Creature — Dinosaur
+  pt 4/4
+  keywords flash
+  label "Enrage" triggered whenever this is dealt damage: put 1 +1/+1 counters on this
+}

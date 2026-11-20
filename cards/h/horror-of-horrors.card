@@ -1,0 +1,6 @@
+card "Horror of Horrors" {
+  oracle_id b2e1a1c4-9147-4dfc-b202-c3d3f9c2d3dc
+  cost {3}{B}{B}
+  type Enchantment
+  activated sacrifice Swamp: regenerate target black creature
+}

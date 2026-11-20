@@ -1,0 +1,8 @@
+card "Drover of the Mighty" {
+  oracle_id 6deba6e8-077b-4602-86af-64db766fbbd9
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 1/1
+  static this: +2/+2 as long as you control Dinosaur
+  mana any
+}

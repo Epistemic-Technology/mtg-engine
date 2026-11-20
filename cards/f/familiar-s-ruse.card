@@ -1,0 +1,7 @@
+card "Familiar's Ruse" {
+  oracle_id 3b6d773b-e2f7-4e74-9e77-f2e0d369a31e
+  cost {U}{U}
+  type Instant
+  additional cost return creature you control
+  spell: counter target spell
+}

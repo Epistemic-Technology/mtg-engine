@@ -1,0 +1,7 @@
+card "Crossover Collaboration" {
+  oracle_id 150cefd2-061d-43b2-8470-c17be0144021
+  cost {2}{R}
+  type Instant
+  teamwork 2
+  spell: impulse 2 next turn first; if teamwork, create 1 "Treasure"
+}

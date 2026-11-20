@@ -1,0 +1,7 @@
+card "Stoke the Flames" {
+  oracle_id 2249001c-08d5-4c0a-86f8-d97519a39f37
+  cost {2}{R}{R}
+  type Instant
+  keywords convoke
+  spell: deal 4 damage to any target
+}

@@ -1,0 +1,7 @@
+card "Faerie Swarm" {
+  oracle_id d7178feb-29ce-45d9-a970-2c6003779a00
+  cost {3}{U}
+  type Creature — Faerie
+  keywords flying
+  static this: cda pt count blue permanent you control
+}

@@ -1,0 +1,7 @@
+card "Nemesis Mask" {
+  oracle_id 34062d79-457f-4af3-b9c6-cab2e4d17581
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: has lure
+  equip {3}
+}

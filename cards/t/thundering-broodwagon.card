@@ -1,0 +1,10 @@
+card "Thundering Broodwagon" {
+  oracle_id 817464d8-1e2d-4e12-96f8-5c7ec9b3e681
+  cost {2}{B}{B}{G}{G}
+  type Artifact — Vehicle
+  pt 6/5
+  keywords reach, menace
+  triggered when this enters: destroy target nonland permanent an opponent controls with mana value 4 or less
+  crew 3
+  cycling {2}
+}

@@ -1,0 +1,8 @@
+card "Labyrinth Adversary" {
+  oracle_id 00a9bdd0-8a39-4489-bd42-2ac92e550781
+  cost {3}{R}
+  type Creature — Minotaur
+  pt 4/3
+  keywords trample
+  triggered whenever you attack: you may pay {1}{R}; when you do, target creature can't block
+}

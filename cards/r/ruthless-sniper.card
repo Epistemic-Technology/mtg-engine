@@ -1,0 +1,7 @@
+card "Ruthless Sniper" {
+  oracle_id 02a506bd-203f-421c-b72e-e2ba77e922aa
+  cost {B}
+  type Creature — Human Archer
+  pt 1/2
+  triggered whenever you cycle or discard a card: you may pay {1}; if you do, put 1 -1/-1 counters on target creature
+}

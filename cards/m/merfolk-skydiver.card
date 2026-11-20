@@ -1,0 +1,9 @@
+card "Merfolk Skydiver" {
+  oracle_id 5d2ccaa4-4815-4987-889f-d08c4d1e7a8e
+  cost {G}{U}
+  type Creature — Merfolk Mutant
+  pt 1/1
+  keywords flying
+  triggered when this enters: put 1 +1/+1 counters on target creature you control
+  activated {3}{G}{U}: proliferate
+}

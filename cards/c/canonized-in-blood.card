@@ -1,0 +1,7 @@
+card "Canonized in Blood" {
+  oracle_id d491995f-e9b2-4187-852c-8a4c2495eaca
+  cost {1}{B}
+  type Enchantment
+  triggered at beginning of your end step if descended this turn: put 1 +1/+1 counters on target creature you control
+  activated {5}{B}{B}, sacrifice this: create 1 "4/3 white and black Vampire Demon creature with flying"
+}

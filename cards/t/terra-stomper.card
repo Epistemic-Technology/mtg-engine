@@ -1,0 +1,8 @@
+card "Terra Stomper" {
+  oracle_id d688baac-0574-4d88-b7eb-a7384c298ef5
+  cost {3}{G}{G}{G}
+  type Creature — Beast
+  pt 8/8
+  this spell can't be countered
+  keyword trample
+}

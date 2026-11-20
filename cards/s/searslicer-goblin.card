@@ -1,0 +1,7 @@
+card "Searslicer Goblin" {
+  oracle_id 86ec0b56-497f-481c-a03a-c4e64e8e7404
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/1
+  label "Raid" triggered at beginning of your end step if attacked this turn: create 1 "1/1 red Goblin creature"
+}

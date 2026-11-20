@@ -1,0 +1,11 @@
+card "Silumgar's Command" {
+  oracle_id 7052fbd6-94df-41a9-a382-641701086804
+  cost {3}{U}{B}
+  type Instant
+  choose two {
+    mode: counter target noncreature spell
+    mode: return target permanent to hand
+    mode: target creature gets -3/-3
+    mode: destroy target planeswalker
+  }
+}

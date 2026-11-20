@@ -1,0 +1,8 @@
+card "Circle of Elders" {
+  oracle_id f720f80a-74bc-4681-ad4f-d33152ff988b
+  cost {2}{G}{G}
+  type Creature — Human Shaman
+  pt 2/4
+  keywords vigilance
+  label "Formidable" activated {T}, if total power 8 or more: add {C}{C}{C}
+}

@@ -1,0 +1,6 @@
+card "Act on Impulse" {
+  oracle_id 19ad338a-c89f-406d-ad1a-222c22044e1b
+  cost {2}{R}
+  type Sorcery
+  spell: impulse 3 this turn first
+}

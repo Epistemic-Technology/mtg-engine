@@ -1,0 +1,9 @@
+card "Saruman's Trickery" {
+  oracle_id 1b415806-a3e3-4d87-b4c1-ccd11a8ee589
+  cost {1}{U}{U}
+  type Instant
+  spell {
+    counter target spell
+    amass Orcs 1
+  }
+}

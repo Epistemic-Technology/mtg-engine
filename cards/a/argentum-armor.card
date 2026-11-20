@@ -1,0 +1,8 @@
+card "Argentum Armor" {
+  oracle_id d0a1f39b-cda4-4925-83f8-2161f575edfb
+  cost {6}
+  type Artifact — Equipment
+  static enchanted: +6/+6
+  triggered whenever equipped creature attacks: destroy target permanent
+  equip {6}
+}

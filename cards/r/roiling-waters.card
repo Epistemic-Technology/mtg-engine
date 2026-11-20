@@ -1,0 +1,6 @@
+card "Roiling Waters" {
+  oracle_id 77fef82d-e8d0-444b-8d76-68e9b533f38b
+  cost {5}{U}{U}
+  type Sorcery
+  spell: return up to two target creatures your opponents control to hand; target player draws 2 cards
+}

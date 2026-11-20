@@ -1,0 +1,7 @@
+card "Dead Drop" {
+  oracle_id 09f3d60c-34ee-41ec-a047-fe2140b11950
+  cost {9}{B}
+  type Sorcery
+  keywords delve
+  spell: target player sacrifices 2 creature
+}

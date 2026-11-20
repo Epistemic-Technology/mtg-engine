@@ -1,0 +1,7 @@
+card "Supreme Verdict" {
+  oracle_id 0230de18-8d15-4cfa-9d42-7ccddd9f9570
+  cost {1}{W}{W}{U}
+  type Sorcery
+  this spell can't be countered
+  spell: destroy all creatures
+}

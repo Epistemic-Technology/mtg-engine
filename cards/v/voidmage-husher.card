@@ -1,0 +1,9 @@
+card "Voidmage Husher" {
+  oracle_id cdb1f944-a5ac-4683-a4eb-eebb82feea8d
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  keywords flash
+  triggered when this enters: counter target activated ability
+  triggered whenever you cast a spell: you may return this to hand
+}

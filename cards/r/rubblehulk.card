@@ -1,0 +1,7 @@
+card "Rubblehulk" {
+  oracle_id 063960e0-3f9c-4697-ba5e-81c56ac1b5d2
+  cost {4}{R}{G}
+  type Creature — Elemental
+  static this: cda pt count land you control
+  label "Bloodrush" activated {1}{R}{G}, discard this: target attacking creature gets +1/+1 count where land you control
+}

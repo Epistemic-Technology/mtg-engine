@@ -1,0 +1,7 @@
+card "Valgavoth's Faithful" {
+  oracle_id a871dfbf-1fb9-4d1c-81bb-e4f0b131a11b
+  cost {B}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {3}{B}, sacrifice this, sorcery: return target creature card from your graveyard to battlefield
+}

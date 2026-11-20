@@ -1,0 +1,9 @@
+card "Herald of Anguish" {
+  oracle_id 97b559fe-b09d-4883-9509-c45ace2d8487
+  cost {5}{B}{B}
+  type Creature — Demon
+  pt 5/5
+  keywords improvise, flying
+  triggered at beginning of your end step: each opponent discards 1 cards
+  activated {1}{B}, sacrifice artifact: target creature gets -2/-2
+}

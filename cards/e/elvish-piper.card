@@ -1,0 +1,7 @@
+card "Elvish Piper" {
+  oracle_id 872ef617-7cdb-4a7a-85f5-efc9e12bece5
+  cost {3}{G}
+  type Creature — Elf Shaman
+  pt 1/1
+  activated {G}, {T}: you may put creature card from hand onto battlefield
+}

@@ -1,0 +1,8 @@
+card "Mask of Riddles" {
+  oracle_id a50c55a7-4e7e-40f6-b76c-1e32598dc9b6
+  cost {U}{B}
+  type Artifact — Equipment
+  static enchanted: has fear
+  triggered whenever equipped creature deals combat damage to a player: you may draw 1 cards
+  equip {2}
+}

@@ -1,0 +1,6 @@
+card "Caves of Koilos" {
+  oracle_id 33de01e9-ce5a-42d4-afcb-343cd54a6d80
+  type Land
+  mana {C}
+  activated {T}: add {W} or {B}; deal 1 damage to you
+}

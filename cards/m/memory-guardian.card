@@ -1,0 +1,8 @@
+card "Memory Guardian" {
+  oracle_id dac33359-0317-4b11-9078-fccfd2321e53
+  cost {4}{U}
+  type Artifact Creature — Robot Artificer
+  pt 3/4
+  affinity for artifact
+  keyword flying
+}

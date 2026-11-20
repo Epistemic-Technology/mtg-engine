@@ -1,0 +1,7 @@
+card "Paradise Mantle" {
+  oracle_id c1121b83-1ba2-473d-89c9-e3bbd4529072
+  cost {0}
+  type Artifact — Equipment
+  static enchanted: has ability { mana any }
+  equip {1}
+}

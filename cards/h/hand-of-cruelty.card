@@ -1,0 +1,8 @@
+card "Hand of Cruelty" {
+  oracle_id ddbd4d8c-9763-43d7-882f-6edf8efffb0a
+  cost {B}{B}
+  type Creature — Human Samurai
+  pt 2/2
+  keywords protection from white
+  bushido 1
+}

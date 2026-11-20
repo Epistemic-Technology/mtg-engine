@@ -1,0 +1,8 @@
+card "Grave-Shell Scarab" {
+  oracle_id 9d954def-0045-4860-b154-cb64b6835fe0
+  cost {2}{B}{G}{G}
+  type Creature — Insect
+  pt 4/4
+  activated {1}, sacrifice this: draw 1 cards
+  dredge 1
+}

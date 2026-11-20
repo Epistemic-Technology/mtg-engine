@@ -1,0 +1,8 @@
+card "Voltaic Brawler" {
+  oracle_id ab7609dd-f4c0-4636-8177-7a926c01e470
+  cost {R}{G}
+  type Creature — Human Warrior
+  pt 3/2
+  triggered when this enters: you get 2 energy
+  triggered whenever this attacks: you may pay 1 energy; if you do, this gets +1/+1 and gains trample
+}

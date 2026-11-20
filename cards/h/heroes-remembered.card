@@ -1,0 +1,7 @@
+card "Heroes Remembered" {
+  oracle_id 2f30ffd2-9910-4fbd-96f9-d66f1da506e9
+  cost {6}{W}{W}{W}
+  type Sorcery
+  spell: you gains 20 life
+  suspend 10 {W}
+}

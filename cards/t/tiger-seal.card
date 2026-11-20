@@ -1,0 +1,9 @@
+card "Tiger-Seal" {
+  oracle_id 68f84643-c0f9-4d31-ba2e-38b65ab45d04
+  cost {U}
+  type Creature — Cat Seal
+  pt 3/3
+  keywords vigilance
+  triggered at beginning of your upkeep: tap this
+  triggered whenever you draw your second card each turn: untap this
+}

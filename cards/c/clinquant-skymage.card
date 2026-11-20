@@ -1,0 +1,8 @@
+card "Clinquant Skymage" {
+  oracle_id d9a3207a-a330-4517-967e-f37c9a9f1355
+  cost {3}{U}
+  type Creature — Bird Wizard
+  pt 1/1
+  keywords flying
+  triggered whenever you draw a card: put 1 +1/+1 counters on this
+}

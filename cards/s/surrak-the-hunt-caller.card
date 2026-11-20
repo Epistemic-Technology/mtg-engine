@@ -1,0 +1,7 @@
+card "Surrak, the Hunt Caller" {
+  oracle_id fa56a5fa-ef96-404c-8fb6-d1f5fcebb52e
+  cost {2}{G}{G}
+  type Legendary Creature — Human Warrior
+  pt 5/4
+  label "Formidable" triggered at beginning of your combat if total power 8 or more: target creature you control gains haste
+}

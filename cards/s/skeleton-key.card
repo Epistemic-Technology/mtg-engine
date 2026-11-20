@@ -1,0 +1,8 @@
+card "Skeleton Key" {
+  oracle_id 328834f6-1f49-417a-a2d6-d430b8dca177
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: has skulk
+  triggered whenever equipped creature deals combat damage to a player: you may draw 1 cards; if you do, discard 1 cards
+  equip {2}
+}

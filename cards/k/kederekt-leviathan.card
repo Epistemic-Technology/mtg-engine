@@ -1,0 +1,8 @@
+card "Kederekt Leviathan" {
+  oracle_id edf459c0-53e4-47e8-8098-105656f9b49c
+  cost {6}{U}{U}
+  type Creature — Leviathan
+  pt 5/5
+  triggered when this enters: return all other nonland permanent to hand
+  unearth {6}{U}
+}

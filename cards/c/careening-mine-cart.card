@@ -1,0 +1,8 @@
+card "Careening Mine Cart" {
+  oracle_id c3775748-ff62-469f-916b-8e551ccce23c
+  cost {3}
+  type Artifact — Vehicle
+  pt 3/3
+  triggered whenever this attacks: create 1 "Treasure"
+  crew 1
+}

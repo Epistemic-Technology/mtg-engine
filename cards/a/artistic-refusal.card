@@ -1,0 +1,10 @@
+card "Artistic Refusal" {
+  oracle_id ff192482-3808-4291-a31e-3dfaeb49cda2
+  cost {4}{U}{U}
+  type Instant
+  keywords convoke
+  choose one or both {
+    mode: counter target spell
+    mode: draw 2 cards then discard 1 cards
+  }
+}

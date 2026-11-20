@@ -1,0 +1,8 @@
+card "Nezumi Prowler" {
+  oracle_id a93b5956-c11e-434e-bed5-94af9de55382
+  cost {1}{B}
+  type Artifact Creature — Rat Ninja
+  pt 3/1
+  ninjutsu {1}{B}
+  triggered when this enters: target creature you control gains deathtouch, lifelink
+}

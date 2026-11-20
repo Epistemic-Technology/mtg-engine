@@ -1,0 +1,8 @@
+card "Daring Saboteur" {
+  oracle_id d36f64a0-53f7-4c56-9f40-a7927a5c2608
+  cost {1}{U}
+  type Creature — Human Pirate
+  pt 2/1
+  activated {2}{U}: this can't be blocked
+  triggered whenever this deals combat damage to a player: you may draw 1 cards; if you do, discard 1 cards
+}

@@ -1,0 +1,7 @@
+card "Unburial Rites" {
+  oracle_id d48e1545-7997-45ed-83a1-aee45b3d3d20
+  cost {4}{B}
+  type Sorcery
+  spell: return target creature card from your graveyard to battlefield
+  flashback {3}{W}
+}

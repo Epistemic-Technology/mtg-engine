@@ -1,0 +1,8 @@
+card "Dromoka, the Eternal" {
+  oracle_id 73520b5a-3d55-40c9-af60-90fdd811934f
+  cost {3}{G}{W}
+  type Legendary Creature — Dragon
+  pt 5/5
+  keywords flying
+  triggered whenever Dragon you control attacks: bolster 2
+}

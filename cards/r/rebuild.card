@@ -1,0 +1,7 @@
+card "Rebuild" {
+  oracle_id 496999a7-a82a-45ea-9c4e-1b6aabc781cd
+  cost {2}{U}
+  type Instant
+  spell: return all artifact to hand
+  cycling {2}
+}

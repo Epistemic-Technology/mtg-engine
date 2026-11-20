@@ -1,0 +1,7 @@
+card "Arboretum Elemental" {
+  oracle_id 1708d60d-30af-4184-bc95-2f7a7aed4a6e
+  cost {7}{G}{G}
+  type Creature — Elemental
+  pt 7/5
+  keywords convoke, hexproof
+}

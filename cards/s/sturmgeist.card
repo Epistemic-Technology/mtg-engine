@@ -1,0 +1,8 @@
+card "Sturmgeist" {
+  oracle_id b3045ee5-232b-4e63-8ea8-b5e46b49e71a
+  cost {3}{U}{U}
+  type Creature — Spirit
+  keywords flying
+  static this: cda pt hand
+  triggered whenever this deals combat damage to a player: draw 1 cards
+}

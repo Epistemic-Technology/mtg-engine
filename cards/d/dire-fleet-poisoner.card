@@ -1,0 +1,8 @@
+card "Dire Fleet Poisoner" {
+  oracle_id 8150cc84-3f9f-470d-a0f9-ee6d9dab13da
+  cost {1}{B}
+  type Creature — Human Pirate
+  pt 2/2
+  keywords flash, deathtouch
+  triggered when this enters: target attacking Pirate you control gets +1/+1 and gains deathtouch
+}

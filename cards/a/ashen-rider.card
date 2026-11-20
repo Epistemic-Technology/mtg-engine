@@ -1,0 +1,8 @@
+card "Ashen Rider" {
+  oracle_id 455f66eb-3e33-4b51-9ec1-32288bdd3a68
+  cost {4}{W}{W}{B}{B}
+  type Creature — Archon
+  pt 5/5
+  keywords flying
+  triggered when this enters or dies: exile target permanent
+}

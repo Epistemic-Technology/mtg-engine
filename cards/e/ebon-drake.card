@@ -1,0 +1,8 @@
+card "Ebon Drake" {
+  oracle_id db4242ab-fdf3-487a-bc77-42bd2ef973c3
+  cost {2}{B}
+  type Creature — Drake
+  pt 3/3
+  keywords flying
+  triggered whenever a player casts a spell: you loses 1 life
+}

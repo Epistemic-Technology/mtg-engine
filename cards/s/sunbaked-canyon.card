@@ -1,0 +1,6 @@
+card "Sunbaked Canyon" {
+  oracle_id f97fd068-b83a-4621-bf8c-cc96e880ce90
+  type Land
+  activated {T}, pay 1 life: add {R} or {W}
+  activated {1}, {T}, sacrifice this: draw 1 cards
+}

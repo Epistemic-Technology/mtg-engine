@@ -1,0 +1,11 @@
+card "Austere Command" {
+  oracle_id 09cc8709-fe10-472a-b05c-e89f3523018d
+  cost {4}{W}{W}
+  type Sorcery
+  choose two {
+    mode: destroy each artifact
+    mode: destroy each enchantment
+    mode: destroy each creature with mana value 3 or less
+    mode: destroy each creature with mana value 4 or greater
+  }
+}

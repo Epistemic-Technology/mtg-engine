@@ -1,0 +1,8 @@
+card "Tooth Collector" {
+  oracle_id b7c165a4-53a2-4117-a452-b9a8fe309c09
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 3/2
+  triggered when this enters: target creature an opponent controls gets -1/-1
+  label "Delirium" triggered at beginning of each opponent's upkeep step if 4 card types in your graveyard: target creature that player controls gets -1/-1
+}

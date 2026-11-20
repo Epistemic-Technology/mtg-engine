@@ -1,0 +1,7 @@
+card "Firemantle Mage" {
+  oracle_id 27599eff-19df-48e2-9a1e-0c087f42a075
+  cost {2}{R}
+  type Creature — Human Shaman Ally
+  pt 2/2
+  label "Rally" triggered whenever this or Ally you control enters: each creature you control gains menace
+}

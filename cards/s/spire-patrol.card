@@ -1,0 +1,8 @@
+card "Spire Patrol" {
+  oracle_id afacd2b1-1733-4b28-b834-71a31149fa00
+  cost {2}{W}{U}
+  type Creature — Human Soldier
+  pt 3/2
+  keywords flying
+  triggered when this enters: tap target creature an opponent controls; that creature doesn't untap next untap step
+}

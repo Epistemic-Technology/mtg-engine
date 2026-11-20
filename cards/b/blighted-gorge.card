@@ -1,0 +1,6 @@
+card "Blighted Gorge" {
+  oracle_id c2cb0afd-781f-4cfa-b680-ed1edfa81868
+  type Land
+  mana {C}
+  activated {4}{R}, {T}, sacrifice this: deal 2 damage to any target
+}

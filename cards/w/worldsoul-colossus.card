@@ -1,0 +1,8 @@
+card "Worldsoul Colossus" {
+  oracle_id 6970f285-dc2b-437b-b099-ca1d3ef106ab
+  cost {X}{G}{W}
+  type Creature — Elemental
+  pt 0/0
+  keywords convoke
+  enters with X +1/+1 counters
+}

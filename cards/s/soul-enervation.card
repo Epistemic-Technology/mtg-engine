@@ -1,0 +1,8 @@
+card "Soul Enervation" {
+  oracle_id 5b4508a3-1d21-46ec-8a50-cd3171a7348a
+  cost {3}{B}
+  type Enchantment
+  keywords flash
+  triggered when this enters: target creature gets -4/-4
+  triggered whenever one or more creature cards leave your graveyard: each opponent loses 1 life and you gains 1 life
+}

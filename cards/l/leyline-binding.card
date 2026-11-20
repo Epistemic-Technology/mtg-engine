@@ -1,0 +1,8 @@
+card "Leyline Binding" {
+  oracle_id b49642f6-20bd-468d-9dac-e578f9ac3091
+  cost {5}{W}
+  type Enchantment
+  keywords flash
+  label "Domain" this spell costs {1} less count each domain
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+}

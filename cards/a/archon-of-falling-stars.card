@@ -1,0 +1,8 @@
+card "Archon of Falling Stars" {
+  oracle_id 38e0a1d0-2a4c-4510-9610-abea7fa1de7c
+  cost {4}{W}{W}
+  type Creature — Archon
+  pt 4/4
+  keywords flying
+  triggered when this dies: you may return target enchantment card from your graveyard to battlefield
+}

@@ -1,0 +1,7 @@
+card "Falkenrath Pit Fighter" {
+  oracle_id 46d6bc30-9a21-4476-947b-87951cd9c882
+  cost {R}
+  type Creature — Vampire Warrior
+  pt 2/1
+  activated {1}{R}, discard 1 card, sacrifice Vampire, if opponent lost life this turn: draw 2 cards
+}

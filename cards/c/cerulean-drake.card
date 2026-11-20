@@ -1,0 +1,8 @@
+card "Cerulean Drake" {
+  oracle_id ecd6587c-3548-4bc1-89e4-9f7fbbc2d2ad
+  cost {1}{U}
+  type Creature — Drake
+  pt 1/1
+  keywords flying, protection from red
+  activated sacrifice this: counter target spell that targets you
+}

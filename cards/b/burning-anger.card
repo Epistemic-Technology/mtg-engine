@@ -1,0 +1,7 @@
+card "Burning Anger" {
+  oracle_id a2c76ac2-5ab1-450c-b64e-e9a6c4dad1ca
+  cost {4}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {T}: this bites any target }
+}

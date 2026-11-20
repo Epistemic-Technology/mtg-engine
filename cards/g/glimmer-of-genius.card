@@ -1,0 +1,6 @@
+card "Glimmer of Genius" {
+  oracle_id b9c58cfb-b7d5-4e86-a5d3-efb07192aa22
+  cost {3}{U}
+  type Instant
+  spell: scry 2 then draw 2 cards; you get 2 energy
+}

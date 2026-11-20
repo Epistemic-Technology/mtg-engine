@@ -1,0 +1,8 @@
+card "Ojutai, Soul of Winter" {
+  oracle_id 27d7f737-59a4-4948-9b2e-599ae848e054
+  cost {5}{W}{U}
+  type Legendary Creature — Dragon
+  pt 5/6
+  keywords flying, vigilance
+  triggered whenever Dragon you control attacks: tap target nonland permanent an opponent controls; that target 1 doesn't untap next untap step
+}

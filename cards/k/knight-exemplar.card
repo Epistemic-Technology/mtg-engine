@@ -1,0 +1,8 @@
+card "Knight Exemplar" {
+  oracle_id ecb198fc-5663-4380-b2da-ad54421e966d
+  cost {1}{W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike
+  static other Knight creature you control: +1/+1, has indestructible
+}

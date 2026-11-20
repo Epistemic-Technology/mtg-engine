@@ -1,0 +1,8 @@
+card "Niblis of the Breath" {
+  oracle_id 10391bcb-0932-49a0-8d47-e06e3c10dd68
+  cost {2}{U}
+  type Creature — Spirit
+  pt 2/1
+  keywords flying
+  activated {U}, {T}: you may tap or untap target creature
+}

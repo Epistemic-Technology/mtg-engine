@@ -1,0 +1,8 @@
+card "Sunhome Stalwart" {
+  oracle_id 340d6218-d351-4b2e-80da-7d4afa77190a
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords first strike
+  mentor
+}

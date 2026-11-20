@@ -1,0 +1,6 @@
+card "Stew the Coneys" {
+  oracle_id f6f1b8da-5e7c-4121-9b0f-fd6678b04991
+  cost {2}{G}
+  type Instant
+  spell: target creature you control bites target creature you don't control; create 1 "Food"
+}

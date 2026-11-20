@@ -1,0 +1,7 @@
+card "Samurai Enforcers" {
+  oracle_id 9d0d19e4-34f9-4bfa-9c8b-74356d223a18
+  cost {4}{W}{W}
+  type Creature — Human Samurai
+  pt 4/4
+  bushido 2
+}

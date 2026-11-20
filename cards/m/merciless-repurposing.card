@@ -1,0 +1,6 @@
+card "Merciless Repurposing" {
+  oracle_id 2e1b5ae6-a29d-4f37-a380-eebee6cdcbd2
+  cost {4}{B}{B}
+  type Instant
+  spell: exile target creature; incubate 3
+}

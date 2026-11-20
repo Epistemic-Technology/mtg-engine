@@ -1,0 +1,8 @@
+card "Heavy Arbalest" {
+  oracle_id 748fd75b-c61b-4e02-889d-b7dab23319ef
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: has doesn't untap
+  static enchanted: has ability { activated {T}: deal 2 damage to any target }
+  equip {4}
+}

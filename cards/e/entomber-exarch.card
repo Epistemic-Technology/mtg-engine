@@ -1,0 +1,10 @@
+card "Entomber Exarch" {
+  oracle_id e820296a-81b0-401f-959c-7aed8abefce1
+  cost {2}{B}{B}
+  type Creature — Phyrexian Cleric
+  pt 2/2
+  triggered when this enters: choose one {
+    mode: return target creature card from your graveyard to hand
+    mode: target opponent reveals hand discarding noncreature card
+  }
+}

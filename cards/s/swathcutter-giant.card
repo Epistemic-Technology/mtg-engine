@@ -1,0 +1,8 @@
+card "Swathcutter Giant" {
+  oracle_id fc16a2ce-a570-454f-8498-f9c604c0d68b
+  cost {4}{R}{W}
+  type Creature — Giant Soldier
+  pt 5/5
+  keywords vigilance
+  triggered whenever this attacks: deal 1 damage to each creature defending player controls
+}

@@ -1,0 +1,9 @@
+card "Uurg, Spawn of Turg" {
+  oracle_id 0191a93a-f304-4c20-9af4-7cdea82c07cf
+  cost {B}{B}{G}
+  type Legendary Creature — Frog Beast
+  pt */5
+  static this: cda power graveyard land
+  triggered at beginning of your upkeep: surveil 1
+  activated {B}{G}, sacrifice land: you gains 2 life
+}

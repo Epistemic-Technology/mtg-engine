@@ -1,0 +1,10 @@
+card "Vile Aggregate" {
+  oracle_id 4a6b254e-76fb-4712-ac34-5e26c311b2e4
+  cost {2}{R}
+  type Creature — Eldrazi Drone
+  pt */5
+  keywords devoid
+  static this: cda power count colorless creature you control
+  keyword trample
+  ingest
+}

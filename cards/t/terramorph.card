@@ -1,0 +1,7 @@
+card "Terramorph" {
+  oracle_id 17a34f8d-a80f-4331-8be5-06cbb9d10d7b
+  cost {3}{G}
+  type Sorcery
+  keywords rebound
+  spell: search basic land card to battlefield
+}

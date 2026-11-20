@@ -1,0 +1,9 @@
+card "Shard Phoenix" {
+  oracle_id 3b629793-0efb-4d60-9d82-38b7b400abfd
+  cost {4}{R}
+  type Creature — Phoenix
+  pt 2/2
+  keywords flying
+  activated sacrifice this: deal 2 damage to each creature without flying
+  activated {R}{R}{R}, during your upkeep, from graveyard: return this to hand
+}

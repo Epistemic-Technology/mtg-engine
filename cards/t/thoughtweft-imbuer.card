@@ -1,0 +1,7 @@
+card "Thoughtweft Imbuer" {
+  oracle_id 9dee8c0b-71e0-4a94-b411-78b29b599847
+  cost {3}{W}
+  type Creature — Kithkin Advisor
+  pt 0/5
+  triggered whenever creature you control attacks alone: it gets +1/+1 count where Kithkin you control
+}

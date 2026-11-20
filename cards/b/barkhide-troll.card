@@ -1,0 +1,8 @@
+card "Barkhide Troll" {
+  oracle_id b7d231eb-255d-4505-89a9-0c6824622209
+  cost {G}{G}
+  type Creature — Troll
+  pt 2/2
+  enters with 1 +1/+1 counters
+  activated {1}, remove 1 +1/+1 counters from this: this creature gains hexproof
+}

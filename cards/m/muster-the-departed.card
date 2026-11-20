@@ -1,0 +1,7 @@
+card "Muster the Departed" {
+  oracle_id f0ba9cca-b946-465c-acae-0b465d7e1622
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: create 1 "1/1 white Spirit creature with flying"
+  label "Morbid" triggered at beginning of your end step if creature died this turn: populate
+}

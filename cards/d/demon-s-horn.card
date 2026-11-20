@@ -1,0 +1,6 @@
+card "Demon's Horn" {
+  oracle_id ee38377f-8d3a-402e-a5d7-a01cfe3a5322
+  cost {2}
+  type Artifact
+  triggered whenever a player casts black spell: you may you gain 1 life
+}

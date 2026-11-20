@@ -1,0 +1,8 @@
+card "Ob Nixilis, the Hate-Twisted" {
+  oracle_id 88cd12e5-ca89-4176-96fd-320fe2ccd087
+  cost {3}{B}{B}
+  type Legendary Planeswalker — Nixilis
+  loyalty 5
+  triggered whenever an opponent draws a card: deal 1 damage to that player
+  loyalty -2: destroy target creature; its controller draws 2 cards
+}

@@ -1,0 +1,8 @@
+card "Kraul Swarm" {
+  oracle_id ac97d8fc-15fa-4a60-96d3-4c09deafa83a
+  cost {4}{B}
+  type Creature — Insect Warrior
+  pt 4/1
+  keywords flying
+  activated {2}{B}, discard creature card, from graveyard: return this to hand
+}

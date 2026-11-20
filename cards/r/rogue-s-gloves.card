@@ -1,0 +1,7 @@
+card "Rogue's Gloves" {
+  oracle_id 308d7868-49f9-47a3-a7b1-4b0332d610f1
+  cost {2}
+  type Artifact — Equipment
+  triggered whenever equipped creature deals combat damage to a player: you may draw 1 cards
+  equip {2}
+}

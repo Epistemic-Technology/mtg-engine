@@ -1,0 +1,8 @@
+card "She-Hulk, Jade Defender" {
+  oracle_id bbd0a2a4-f81b-4a6b-bc4d-d7e53dc51333
+  cost {3}{G}
+  type Legendary Creature — Gamma Hero
+  pt 4/4
+  keywords reach, trample
+  power-up {4}{G}{G}: destroy up to one target artifact or enchantment; put 1 +1/+1 counters on this
+}

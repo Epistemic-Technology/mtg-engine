@@ -1,0 +1,7 @@
+card "Unsparing Boltcaster" {
+  oracle_id 0a56a33b-033f-4398-8dc1-e531be059710
+  cost {2}{R}
+  type Creature — Ogre Wizard
+  pt 3/3
+  triggered when this enters: deal 5 damage to target creature an opponent controls that was dealt damage this turn
+}

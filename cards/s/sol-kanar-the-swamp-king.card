@@ -1,0 +1,8 @@
+card "Sol'kanar the Swamp King" {
+  oracle_id b8aac8e8-4588-4cb9-8b95-5c4abab1c48b
+  cost {2}{U}{B}{R}
+  type Legendary Creature — Demon
+  pt 5/5
+  keywords swampwalk
+  triggered whenever a player casts black spell: you gains 1 life
+}

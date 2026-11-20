@@ -1,0 +1,8 @@
+card "Riptide Pilferer" {
+  oracle_id d3e40d26-1687-4cb4-9ff8-4c4421f09e53
+  cost {1}{U}
+  type Creature — Merfolk Rogue
+  pt 1/1
+  triggered whenever this deals combat damage to a player: that player discards 1 cards
+  morph {U}
+}

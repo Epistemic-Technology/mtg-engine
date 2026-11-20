@@ -1,0 +1,8 @@
+card "Wydwen, the Biting Gale" {
+  oracle_id 7891ec87-8d1c-42fc-b00a-4c64ee5edbff
+  cost {2}{U}{B}
+  type Legendary Creature — Faerie Wizard
+  pt 3/3
+  keywords flash, flying
+  activated {U}{B}, pay 1 life: return this to its owner's hand
+}

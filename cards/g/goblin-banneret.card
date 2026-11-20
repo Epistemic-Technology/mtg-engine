@@ -1,0 +1,8 @@
+card "Goblin Banneret" {
+  oracle_id a2d9554e-70c0-4213-ba5e-f0954ad32854
+  cost {R}
+  type Creature — Goblin Soldier
+  pt 1/1
+  mentor
+  activated {1}{R}: this gets +2/+0
+}

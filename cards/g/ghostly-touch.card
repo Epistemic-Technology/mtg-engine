@@ -1,0 +1,7 @@
+card "Ghostly Touch" {
+  oracle_id 02d25219-888d-4032-9e9e-8c6f879a9084
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { triggered whenever this attacks: you may tap or untap target permanent }
+}

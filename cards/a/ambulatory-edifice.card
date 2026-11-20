@@ -1,0 +1,7 @@
+card "Ambulatory Edifice" {
+  oracle_id b46351cf-73c7-493c-b8a7-5d7bedc8b205
+  cost {2}{B}
+  type Artifact Creature — Phyrexian Construct
+  pt 3/2
+  triggered when this enters: you may pay 2 life; when you do, target creature gets -1/-1
+}

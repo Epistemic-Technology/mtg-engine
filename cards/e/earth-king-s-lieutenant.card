@@ -1,0 +1,9 @@
+card "Earth King's Lieutenant" {
+  oracle_id 9da9248d-1201-447f-b6c2-2b64af4f71c4
+  cost {G}{W}
+  type Creature — Human Soldier Ally
+  pt 1/1
+  keywords trample
+  triggered when this enters: put 1 +1/+1 counters on each other Ally creature you control
+  triggered whenever other Ally you control enters: put 1 +1/+1 counters on this
+}

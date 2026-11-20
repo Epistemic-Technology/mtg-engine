@@ -1,0 +1,7 @@
+card "Gemstone Array" {
+  oracle_id 91303465-4b98-4ecc-82f4-cfd2f9a0f8a7
+  cost {4}
+  type Artifact
+  activated {2}: put 1 charge counters on this
+  activated remove 1 charge counters from this: add any
+}

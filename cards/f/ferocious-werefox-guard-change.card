@@ -1,0 +1,13 @@
+card "Ferocious Werefox // Guard Change" {
+  oracle_id fef67393-9b7b-495d-8b03-865537386d42
+  layout adventure
+  cost {3}{G}
+  type Creature — Elf Fox Warrior
+  pt 4/3
+  keywords trample
+  face "Guard Change" {
+    cost {1}{G}
+    type Instant — Adventure
+    spell: create 1 "Monster Role" attached to target creature you control
+  }
+}

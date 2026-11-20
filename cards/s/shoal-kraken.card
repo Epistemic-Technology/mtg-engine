@@ -1,0 +1,7 @@
+card "Shoal Kraken" {
+  oracle_id be700da5-123e-461e-8192-88f9d86925b9
+  cost {4}{U}
+  type Creature — Kraken
+  pt 3/5
+  label "Constellation" triggered whenever enchantment you control enters: you may draw 1 cards; if you do, discard 1 cards
+}

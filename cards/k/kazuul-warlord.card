@@ -1,0 +1,7 @@
+card "Kazuul Warlord" {
+  oracle_id 78504edb-6536-4a11-ac1c-7d53684f2226
+  cost {4}{R}
+  type Creature — Minotaur Warrior Ally
+  pt 3/3
+  triggered whenever this or Ally you control enters: you may put 1 +1/+1 counters on each Ally creature you control
+}

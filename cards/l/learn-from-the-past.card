@@ -1,0 +1,9 @@
+card "Learn from the Past" {
+  oracle_id f325fd7a-dcae-4892-adf5-de9893a23ac5
+  cost {3}{U}
+  type Instant
+  spell {
+    target player shuffles graveyard into library
+    draw 1 cards
+  }
+}

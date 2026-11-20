@@ -1,0 +1,7 @@
+card "Thoughtrender Lamia" {
+  oracle_id d97c4bca-6433-4cb0-b63a-fdf8360fc29c
+  cost {4}{B}{B}
+  type Enchantment Creature — Lamia
+  pt 5/3
+  label "Constellation" triggered whenever this or enchantment you control enters: each opponent discards 1 cards
+}

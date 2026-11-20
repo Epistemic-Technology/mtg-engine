@@ -1,0 +1,8 @@
+card "Weaver of Lightning" {
+  oracle_id 28274c39-19e2-4b4c-bd53-d31d6063c2ba
+  cost {2}{R}
+  type Creature — Human Shaman
+  pt 1/4
+  keywords reach
+  triggered whenever you cast an instant or sorcery spell: deal 1 damage to target creature an opponent controls
+}

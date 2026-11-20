@@ -1,0 +1,8 @@
+card "Dáin's Company" {
+  oracle_id ae03782f-8f05-4ce2-a049-005b1b688faf
+  cost {R}{W}
+  type Creature — Dwarf Warrior
+  pt 2/2
+  static this: has lifelink as long as you control other Dwarf
+  triggered when this enters: dig 4 take Dwarf or Equipment card may revealing rest bottom random
+}

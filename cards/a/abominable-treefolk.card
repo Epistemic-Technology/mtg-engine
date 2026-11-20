@@ -1,0 +1,8 @@
+card "Abominable Treefolk" {
+  oracle_id 9d341ed4-4f9b-40df-9bd9-3bfeaf0fe595
+  cost {2}{G}{U}
+  type Snow Creature — Treefolk
+  keywords trample
+  static this: cda pt count snow permanent you control
+  triggered when this enters: tap target creature an opponent controls; that creature doesn't untap next untap step
+}

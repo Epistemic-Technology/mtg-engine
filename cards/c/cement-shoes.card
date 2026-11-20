@@ -1,0 +1,8 @@
+card "Cement Shoes" {
+  oracle_id 52d04c36-9d38-42b2-9e47-905ab06cb708
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +3/+3, has ability { triggered at beginning of your end step: tap this }
+  static enchanted: has doesn't untap
+  equip {2}
+}

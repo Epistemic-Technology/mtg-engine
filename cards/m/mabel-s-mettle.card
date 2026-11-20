@@ -1,0 +1,6 @@
+card "Mabel's Mettle" {
+  oracle_id c657626f-7444-4c26-842c-dda9b9656fa3
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2; up to 1 another target creature gets +1/+1
+}

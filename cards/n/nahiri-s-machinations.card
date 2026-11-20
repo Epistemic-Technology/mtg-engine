@@ -1,0 +1,7 @@
+card "Nahiri's Machinations" {
+  oracle_id b119e0de-6af4-4b5b-9920-187f0a414231
+  cost {1}{W}
+  type Enchantment
+  triggered at beginning of your combat: target creature you control gains indestructible
+  activated {1}{R}: deal 1 damage to target blocking creature
+}

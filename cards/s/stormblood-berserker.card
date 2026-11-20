@@ -1,0 +1,8 @@
+card "Stormblood Berserker" {
+  oracle_id 84e56125-3fbb-4229-8aa0-8f8acff27038
+  cost {1}{R}
+  type Creature — Human Berserker
+  pt 1/1
+  bloodthirst 2
+  keyword menace
+}

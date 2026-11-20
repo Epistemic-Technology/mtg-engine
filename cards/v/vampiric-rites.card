@@ -1,0 +1,6 @@
+card "Vampiric Rites" {
+  oracle_id 660de988-b6fb-4f36-8006-42af3e7f908d
+  cost {B}
+  type Enchantment
+  activated {1}{B}, sacrifice creature: you gain 1 life and draw 1 card
+}

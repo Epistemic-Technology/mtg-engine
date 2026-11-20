@@ -1,0 +1,7 @@
+card "Undercity Eliminator" {
+  oracle_id 93cb9c7e-d6d3-4b1e-8bcf-2a4a1d95a549
+  cost {3}{B}{B}
+  type Creature — Gorgon Assassin
+  pt 3/3
+  triggered when this enters: you may sacrifice 1 artifact or creature chosen; when you do, exile target creature an opponent controls
+}

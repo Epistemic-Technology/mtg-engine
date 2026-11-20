@@ -1,0 +1,7 @@
+card "Graceful Adept" {
+  oracle_id 684b2026-1589-4f59-bd72-5795fae44c1c
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 1/3
+  hand size none
+}

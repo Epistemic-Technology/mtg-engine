@@ -1,0 +1,7 @@
+card "Twinblade Assassins" {
+  oracle_id 66093486-c9c3-42c5-97d1-ec0fe54f65b0
+  cost {3}{B}{G}
+  type Creature — Elf Assassin
+  pt 5/4
+  triggered at beginning of your end step if creature died this turn: draw 1 cards
+}

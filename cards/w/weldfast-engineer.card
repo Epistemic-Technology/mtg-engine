@@ -1,0 +1,7 @@
+card "Weldfast Engineer" {
+  oracle_id 74adb283-9bef-4a6f-9489-bcfcba53e8d7
+  cost {1}{B}{R}
+  type Creature — Human Artificer
+  pt 3/3
+  triggered at beginning of your combat: target artifact creature you control gets +2/+0
+}

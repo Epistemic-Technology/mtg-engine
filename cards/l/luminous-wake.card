@@ -1,0 +1,7 @@
+card "Luminous Wake" {
+  oracle_id 950e345d-455e-4bd4-be8e-bc3381ac3050
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature attacks or blocks: you gains 4 life
+}

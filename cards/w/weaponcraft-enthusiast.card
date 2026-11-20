@@ -1,0 +1,7 @@
+card "Weaponcraft Enthusiast" {
+  oracle_id 7c27136a-bf9d-4f42-9c37-abe347fad1bb
+  cost {2}{B}
+  type Creature — Aetherborn Artificer
+  pt 0/1
+  fabricate 2
+}

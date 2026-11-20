@@ -1,0 +1,8 @@
+card "Gnawing Vermin" {
+  oracle_id 33ef3d51-845d-460b-97a0-95e7591cf466
+  cost {B}
+  type Creature — Rat
+  pt 1/1
+  triggered when this enters: target player mills 2 cards
+  triggered when this dies: target creature you don't control gets -1/-1
+}

@@ -1,0 +1,8 @@
+card "Unraveling Mummy" {
+  oracle_id ea30f395-86fc-444f-8c9e-b9876287084e
+  cost {1}{W}{B}
+  type Creature — Zombie
+  pt 2/3
+  activated {1}{W}: target attacking Zombie gains lifelink
+  activated {1}{B}: target attacking Zombie gains deathtouch
+}

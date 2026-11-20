@@ -1,0 +1,6 @@
+card "Curse of the Werefox" {
+  oracle_id 64b41b54-ca22-41df-8bd3-dc4f7832fbb7
+  cost {2}{G}
+  type Sorcery
+  spell: create 1 "Monster Role" attached to target creature you control; when you do, that creature fights up to one target creature you don't control
+}

@@ -1,0 +1,8 @@
+card "Electrostatic Field" {
+  oracle_id 2fa94a07-c932-4f85-b6e0-a97d2b29eb52
+  cost {1}{R}
+  type Creature — Wall
+  pt 0/4
+  keywords defender
+  triggered whenever you cast an instant or sorcery spell: deal 1 damage to each opponent
+}

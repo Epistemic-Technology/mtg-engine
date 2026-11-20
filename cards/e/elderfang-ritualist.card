@@ -1,0 +1,7 @@
+card "Elderfang Ritualist" {
+  oracle_id 29c1f80e-f7e2-425e-a225-e88351fcbaab
+  cost {2}{B}
+  type Creature — Elf Cleric
+  pt 3/1
+  triggered when this dies: return another target Elf card from your graveyard to hand
+}

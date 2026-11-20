@@ -1,0 +1,8 @@
+card "Angrath, Captain of Chaos" {
+  oracle_id de08f5d4-8868-4d0f-8c0e-d0d3a2105581
+  cost {2}{B/R}{B/R}
+  type Legendary Planeswalker — Angrath
+  loyalty 5
+  static creature you control: has menace
+  loyalty -2: amass Zombies 2
+}

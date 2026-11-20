@@ -1,0 +1,14 @@
+card "Disruptive Stormbrood // Petty Revenge" {
+  oracle_id ec74ae5d-1284-443c-9842-18954f8cf5a8
+  layout omen
+  cost {4}{G}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying
+  triggered when this enters: destroy up to one target artifact or enchantment
+  face "Petty Revenge" {
+    cost {1}{B}
+    type Sorcery — Omen
+    spell: destroy target creature with power 3 or less
+  }
+}

@@ -1,0 +1,7 @@
+card "Godo's Irregulars" {
+  oracle_id bcf0ca90-134f-43af-890a-558c5e82974e
+  cost {R}
+  type Creature — Human Warrior
+  pt 1/1
+  activated {R}: deal 1 damage to target creature blocking it
+}

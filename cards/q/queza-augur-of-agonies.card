@@ -1,0 +1,7 @@
+card "Queza, Augur of Agonies" {
+  oracle_id c983338d-ae6b-4a15-9931-daa20fca8269
+  cost {1}{W}{U}{B}
+  type Legendary Creature — Octopus Advisor
+  pt 3/4
+  triggered whenever you draw a card: target opponent loses 1 life and you gains 1 life
+}

@@ -1,0 +1,7 @@
+card "Joraga Auxiliary" {
+  oracle_id b74082da-435c-4e45-9424-1188ad7ef5b3
+  cost {1}{G}{W}
+  type Creature — Elf Soldier Ally
+  pt 2/3
+  activated {4}{G}{W}: support 2
+}

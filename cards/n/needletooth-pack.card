@@ -1,0 +1,7 @@
+card "Needletooth Pack" {
+  oracle_id ac68fe30-a4a5-45f6-8782-fed57718c42e
+  cost {3}{G}{G}
+  type Creature — Dinosaur
+  pt 4/5
+  label "Morbid" triggered at beginning of your end step if creature died this turn: put 2 +1/+1 counters on target creature you control
+}

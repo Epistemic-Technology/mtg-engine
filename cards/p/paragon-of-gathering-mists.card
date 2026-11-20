@@ -1,0 +1,8 @@
+card "Paragon of Gathering Mists" {
+  oracle_id 38212d24-40fd-404f-a8bb-24ed0d023fe8
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  static other blue creature you control: +1/+1
+  activated {U}, {T}: another target blue creature you control gains flying
+}

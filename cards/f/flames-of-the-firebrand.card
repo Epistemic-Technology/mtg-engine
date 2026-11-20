@@ -1,0 +1,6 @@
+card "Flames of the Firebrand" {
+  oracle_id bc32c24f-2f2a-4125-917c-60d425166640
+  cost {2}{R}
+  type Sorcery
+  spell: deal 3 damage divided among 1 to 3 targets
+}

@@ -1,0 +1,15 @@
+card "Invasion of Ixalan // Belligerent Regisaur" {
+  oracle_id 1e5a5a7d-2c34-4e56-96e9-ebcf7745a03c
+  layout transform
+  cost {1}{G}
+  type Battle — Siege
+  defense 4
+  triggered when this enters: dig 5 take permanent card may revealing rest bottom random
+  face "Belligerent Regisaur" {
+    type Creature — Dinosaur
+    pt 4/3
+    color green
+    keywords trample
+    triggered whenever you cast a spell: this gains indestructible
+  }
+}

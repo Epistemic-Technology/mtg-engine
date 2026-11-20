@@ -1,0 +1,8 @@
+card "Draugr's Helm" {
+  oracle_id 8762e9ec-e026-45aa-9c7b-d894d17c75a2
+  cost {1}{B}
+  type Artifact — Equipment
+  triggered when this enters: you may pay {2}{B}; if you do, create 1 "2/2 black Zombie Berserker creature" then attach to that token
+  static enchanted: +2/+2, has menace
+  equip {4}
+}

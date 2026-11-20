@@ -1,0 +1,8 @@
+card "Carnage Wurm" {
+  oracle_id 007161cb-a44b-4443-a53a-dfaacc6cfb86
+  cost {6}{G}
+  type Creature — Wurm
+  pt 6/6
+  bloodthirst 3
+  keyword trample
+}

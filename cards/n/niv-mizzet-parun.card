@@ -1,0 +1,10 @@
+card "Niv-Mizzet, Parun" {
+  oracle_id 33666a98-812f-4892-9f8d-33e0cbecc340
+  cost {U}{U}{U}{R}{R}{R}
+  type Legendary Creature — Dragon Wizard
+  pt 5/5
+  this spell can't be countered
+  keyword flying
+  triggered whenever you draw a card: deal 1 damage to any target
+  triggered whenever a player casts instant or sorcery spell: you draws 1 cards
+}

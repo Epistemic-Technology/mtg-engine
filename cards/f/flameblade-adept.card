@@ -1,0 +1,8 @@
+card "Flameblade Adept" {
+  oracle_id b1c721e6-d0b1-4443-937d-89f7c3a459e6
+  cost {R}
+  type Creature — Jackal Warrior
+  pt 1/2
+  keywords menace
+  triggered whenever you cycle or discard a card: this gets +1/+0
+}

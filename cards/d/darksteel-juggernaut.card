@@ -1,0 +1,8 @@
+card "Darksteel Juggernaut" {
+  oracle_id 4893a301-29a8-4a0e-845c-8ddb5cb8db25
+  cost {5}
+  type Artifact Creature — Juggernaut
+  keywords indestructible
+  static this: cda pt count artifact you control
+  keyword attacks each combat if able
+}

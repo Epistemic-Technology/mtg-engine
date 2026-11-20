@@ -1,0 +1,8 @@
+card "Seshiro the Anointed" {
+  oracle_id 54fc373e-157f-4157-b7dd-74d689f4c0f9
+  cost {4}{G}{G}
+  type Legendary Creature — Snake Monk
+  pt 3/4
+  static other Snake creature you control: +2/+2
+  triggered whenever Snake you control deals combat damage to a player: you may draw 1 cards
+}

@@ -1,0 +1,8 @@
+card "Snow Villiers" {
+  oracle_id 01cdaf69-f53a-4735-92f2-ef149de4d5c9
+  cost {2}{W}
+  type Legendary Creature — Human Rebel Monk
+  pt */3
+  keywords vigilance
+  static this: cda power count creature you control
+}

@@ -1,0 +1,6 @@
+card "Blood Mist" {
+  oracle_id 22188333-69b6-4685-b96b-b8a102ad5531
+  cost {3}{R}
+  type Enchantment
+  triggered at beginning of your combat: target creature you control gains double strike
+}

@@ -1,0 +1,7 @@
+card "Harvester Troll" {
+  oracle_id 28c44f88-1d47-4894-86ce-4089bd761360
+  cost {3}{G}
+  type Creature — Troll
+  pt 2/3
+  triggered when this enters: you may sacrifice 1 creature or land chosen; if you do, put 2 +1/+1 counters on this creature
+}

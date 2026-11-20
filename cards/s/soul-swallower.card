@@ -1,0 +1,8 @@
+card "Soul Swallower" {
+  oracle_id 6cc99047-91dc-4ef2-99f3-65932b82ca31
+  cost {2}{G}{G}
+  type Creature — Wurm
+  pt 3/3
+  keywords trample
+  label "Delirium" triggered at beginning of your upkeep if 4 card types in your graveyard: put 3 +1/+1 counters on this
+}

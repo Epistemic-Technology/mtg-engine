@@ -1,0 +1,7 @@
+card "Talisman of Unity" {
+  oracle_id e5fcc5d7-6a60-4a5b-9d02-6c30041a95b9
+  cost {2}
+  type Artifact
+  mana {C}
+  activated {T}: add {G} or {W}; deal 1 damage to you
+}

@@ -1,0 +1,6 @@
+card "Furnace Celebration" {
+  oracle_id af6d6844-c612-4731-86da-59a8fa02956b
+  cost {1}{R}{R}
+  type Enchantment
+  triggered whenever you sacrifice other permanent: you may pay {2}; if you do, deal 2 damage to any target
+}

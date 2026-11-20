@@ -1,0 +1,8 @@
+card "Galvanic Juggernaut" {
+  oracle_id a3d8c0f8-ebe8-4e28-bef1-e2a45c0d86d5
+  cost {4}
+  type Artifact Creature — Juggernaut
+  pt 5/5
+  keywords attacks each combat if able, doesn't untap
+  triggered whenever other creature dies: untap this
+}

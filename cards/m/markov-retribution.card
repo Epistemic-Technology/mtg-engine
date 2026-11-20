@@ -1,0 +1,9 @@
+card "Markov Retribution" {
+  oracle_id 3a9ca9b2-0085-41de-9c08-60aaa8122da2
+  cost {2}{R}
+  type Sorcery
+  choose one or both {
+    mode: each creature you control gets +1/+0
+    mode: target Vampire you control bites another target creature
+  }
+}

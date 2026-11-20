@@ -1,0 +1,7 @@
+card "Vedalken Anatomist" {
+  oracle_id 7719fd5d-c9dc-49b8-87b4-24f7d42af62f
+  cost {2}{U}
+  type Creature — Phyrexian Vedalken Wizard
+  pt 1/2
+  activated {2}{U}, {T}: put 1 -1/-1 counters on target creature; you may tap or untap that creature
+}

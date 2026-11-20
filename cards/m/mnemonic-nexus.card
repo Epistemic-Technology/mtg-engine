@@ -1,0 +1,6 @@
+card "Mnemonic Nexus" {
+  oracle_id 6fe302f2-5594-478c-a66b-89b4b96e3611
+  cost {3}{U}
+  type Instant
+  spell: each player shuffles graveyard into library
+}

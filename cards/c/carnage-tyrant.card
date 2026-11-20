@@ -1,0 +1,8 @@
+card "Carnage Tyrant" {
+  oracle_id 8c411f4e-a091-447c-9450-d895b10b4985
+  cost {4}{G}{G}
+  type Creature — Dinosaur
+  pt 7/6
+  this spell can't be countered
+  keyword trample, hexproof
+}

@@ -1,0 +1,8 @@
+card "Avacyn, Angel of Hope" {
+  oracle_id 216cb26e-8da9-478b-bfbc-8030f7adee72
+  cost {5}{W}{W}{W}
+  type Legendary Creature — Angel
+  pt 8/8
+  keywords flying, vigilance, indestructible
+  static other permanent you control: has indestructible
+}

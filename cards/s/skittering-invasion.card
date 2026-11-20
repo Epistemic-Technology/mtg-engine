@@ -1,0 +1,6 @@
+card "Skittering Invasion" {
+  oracle_id cf890abd-b282-4dbb-ac86-9e7caec1c1b8
+  cost {7}
+  type Kindred Sorcery — Eldrazi
+  spell: create 5 "Eldrazi Spawn" it has
+}

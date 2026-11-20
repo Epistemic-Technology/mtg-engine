@@ -1,0 +1,9 @@
+card "Valkyrie Aerial Unit" {
+  oracle_id 1333d690-a6dc-4ef8-8c57-2ba16727c0a5
+  cost {5}{U}{U}
+  type Artifact Creature — Construct
+  pt 5/4
+  affinity for artifact
+  keyword flying
+  triggered when this enters: surveil 2
+}

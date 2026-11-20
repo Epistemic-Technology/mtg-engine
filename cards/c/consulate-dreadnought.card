@@ -1,0 +1,7 @@
+card "Consulate Dreadnought" {
+  oracle_id bc822c9a-633f-4830-9cb3-9af6a80622e4
+  cost {1}
+  type Artifact — Vehicle
+  pt 7/11
+  crew 6
+}

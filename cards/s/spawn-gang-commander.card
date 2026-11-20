@@ -1,0 +1,9 @@
+card "Spawn-Gang Commander" {
+  oracle_id 3641ceef-4f26-4647-ac12-c958524d68ca
+  cost {3}{R}{R}
+  type Creature — Eldrazi Goblin
+  pt 2/2
+  keywords devoid
+  triggered when you cast this: create 3 "Eldrazi Spawn"
+  activated {1}{C}, sacrifice Eldrazi: deal 2 damage to any target
+}

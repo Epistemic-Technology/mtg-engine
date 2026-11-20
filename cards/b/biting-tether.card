@@ -1,0 +1,8 @@
+card "Biting Tether" {
+  oracle_id 1ea20ecb-1919-4be7-b0bb-d79d2dec98fd
+  cost {4}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: control
+  triggered at beginning of your upkeep: put 1 -1/-1 counters on enchanted creature
+}

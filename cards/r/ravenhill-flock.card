@@ -1,0 +1,8 @@
+card "Ravenhill Flock" {
+  oracle_id 7f961374-00b0-40df-83eb-9ced2bb519aa
+  cost {3}{U}
+  type Creature — Bird
+  pt 1/2
+  keywords flying
+  triggered whenever you draw a card: put 1 +1/+1 counters on this
+}

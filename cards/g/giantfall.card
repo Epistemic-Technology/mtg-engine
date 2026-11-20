@@ -1,0 +1,9 @@
+card "Giantfall" {
+  oracle_id 77e5e7e3-b97b-4953-9df4-1aee509fbf2a
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode: target creature you control bites target creature an opponent controls
+    mode: destroy target artifact
+  }
+}

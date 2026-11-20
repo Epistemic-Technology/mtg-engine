@@ -1,0 +1,8 @@
+card "White Lotus Reinforcements" {
+  oracle_id c55a4b25-ccc4-49de-9f98-a829c547a64d
+  cost {1}{G}{W}
+  type Creature — Human Soldier Ally
+  pt 2/3
+  keywords vigilance
+  static other Allie you control: +1/+1
+}

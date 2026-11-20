@@ -1,0 +1,7 @@
+card "Hero of Precinct One" {
+  oracle_id 5a66802a-76f9-4a31-a776-24110dcfca64
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered whenever you cast multicolored spell: create 1 "1/1 white Human creature"
+}

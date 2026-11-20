@@ -1,0 +1,8 @@
+card "Arcbound Slith" {
+  oracle_id 4fa113da-44aa-4c84-8f63-b1cad63da926
+  cost {2}
+  type Artifact Creature — Slith
+  pt 0/0
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+  modular 1
+}

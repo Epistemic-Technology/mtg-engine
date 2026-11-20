@@ -1,0 +1,9 @@
+card "Thunder Lasso" {
+  oracle_id d98cc18b-6ebb-4f55-9d0d-b8fbe9a92bc1
+  cost {2}{W}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static enchanted: +1/+1
+  triggered whenever equipped creature attacks: tap target creature defending player controls
+  equip {2}
+}

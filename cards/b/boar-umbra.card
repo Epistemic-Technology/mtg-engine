@@ -1,0 +1,8 @@
+card "Boar Umbra" {
+  oracle_id 75e4448b-5bd7-4ed4-8db8-820cd6d04c12
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3
+  replace destroy enchanted: umbra armor
+}

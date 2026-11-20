@@ -1,0 +1,7 @@
+card "Zhur-Taa Goblin" {
+  oracle_id 1003304f-af01-4235-af82-6ef901bd00bf
+  cost {R}{G}
+  type Creature — Goblin Berserker
+  pt 2/2
+  riot
+}

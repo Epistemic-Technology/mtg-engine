@@ -1,0 +1,9 @@
+card "Angel of Sanctions" {
+  oracle_id 3c49e98d-d33b-47fa-8b07-b38b367de2c7
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 3/4
+  keywords flying
+  triggered when this enters: you may exile target nonland permanent an opponent controls until this leaves
+  embalm {5}{W}
+}

@@ -1,0 +1,7 @@
+card "Inspiring Veteran" {
+  oracle_id aa1a63dd-acb1-465f-8970-667b8d7c57c9
+  cost {R}{W}
+  type Creature — Human Knight
+  pt 2/2
+  static other Knight you control: +1/+1
+}

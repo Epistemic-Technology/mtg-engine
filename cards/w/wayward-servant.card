@@ -1,0 +1,7 @@
+card "Wayward Servant" {
+  oracle_id 2916f041-f080-450f-ae79-dc09076d971a
+  cost {W}{B}
+  type Creature — Zombie
+  pt 2/2
+  triggered whenever other Zombie you control enters: each opponent loses 1 life and you gains 1 life
+}

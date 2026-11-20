@@ -1,0 +1,7 @@
+card "Mask of Memory" {
+  oracle_id d6b2c998-a226-426c-a40d-6e6007041bfe
+  cost {2}
+  type Artifact — Equipment
+  triggered whenever equipped creature deals combat damage to a player: you may draw 2 cards; if you do, discard 1 cards
+  equip {1}
+}

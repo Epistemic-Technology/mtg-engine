@@ -1,0 +1,6 @@
+card "Buried Ruin" {
+  oracle_id 3644f316-f9a3-46c9-9b1e-747f86cf4ead
+  type Land
+  mana {C}
+  activated {2}, {T}, sacrifice this: return target artifact card from your graveyard to hand
+}

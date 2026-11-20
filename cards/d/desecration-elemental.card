@@ -1,0 +1,8 @@
+card "Desecration Elemental" {
+  oracle_id 38ff7aa1-e2cb-450d-a18f-45841f9f9337
+  cost {3}{B}
+  type Creature — Elemental
+  pt 8/8
+  keywords fear
+  triggered whenever a player casts a spell: sacrifice 1 creature chosen
+}

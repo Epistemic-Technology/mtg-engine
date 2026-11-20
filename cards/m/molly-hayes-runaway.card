@@ -1,0 +1,7 @@
+card "Molly Hayes, Runaway" {
+  oracle_id e3f0a2a6-7a42-46bc-9736-d0f6a0ce0b37
+  cost {2}{R}
+  type Legendary Creature — Mutant Hero
+  pt 3/3
+  power-up {5}{R}: put 2 +1/+1 counters on this; impulse 1 next turn first
+}

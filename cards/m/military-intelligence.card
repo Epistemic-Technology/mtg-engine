@@ -1,0 +1,6 @@
+card "Military Intelligence" {
+  oracle_id 464bfcdb-a82b-4573-92a4-c5e463724fbe
+  cost {1}{U}
+  type Enchantment
+  triggered whenever you attack with 2 or more creatures: draw 1 cards
+}

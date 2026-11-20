@@ -1,0 +1,8 @@
+card "Trueheart Duelist" {
+  oracle_id a0185db5-8988-4f63-8f3c-a19b4807a431
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 2/2
+  keywords can block an additional creature each combat
+  embalm {2}{W}
+}

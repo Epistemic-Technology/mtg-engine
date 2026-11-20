@@ -1,0 +1,8 @@
+card "Sire of the Storm" {
+  oracle_id 68f1db12-82fb-4bf1-908d-db38fd67efe5
+  cost {4}{U}{U}
+  type Creature — Spirit
+  pt 3/3
+  keywords flying
+  triggered whenever you cast Spirit or Arcane spell: you may draw 1 cards
+}

@@ -1,0 +1,6 @@
+card "Shizo, Death's Storehouse" {
+  oracle_id 008f2698-1721-45a3-8353-10f2f400dc8f
+  type Legendary Land
+  mana {B}
+  activated {B}, {T}: target legendary creature gains fear
+}

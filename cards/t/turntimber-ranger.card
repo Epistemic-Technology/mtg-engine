@@ -1,0 +1,7 @@
+card "Turntimber Ranger" {
+  oracle_id 391fdf1e-e489-410e-9f33-b674fd98d0fc
+  cost {3}{G}{G}
+  type Creature — Elf Scout Ranger Ally
+  pt 2/2
+  triggered whenever this or Ally you control enters: you may create 1 "2/2 green Wolf creature"; if you do, put 1 +1/+1 counters on this
+}

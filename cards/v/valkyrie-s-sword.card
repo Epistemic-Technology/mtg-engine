@@ -1,0 +1,8 @@
+card "Valkyrie's Sword" {
+  oracle_id 236c4ff1-8c3f-4763-8df9-925021e65726
+  cost {1}{W}
+  type Artifact — Equipment
+  triggered when this enters: you may pay {4}{W}; if you do, create 1 "4/4 white Angel Warrior creature with flying and vigilance" then attach to that token
+  static enchanted: +2/+1
+  equip {3}
+}

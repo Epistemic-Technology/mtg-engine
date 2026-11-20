@@ -1,0 +1,10 @@
+card "Obelisk of Alara" {
+  oracle_id 75fcb9ce-ac01-4048-82b7-9100143e3b07
+  cost {6}
+  type Artifact
+  activated {1}{W}, {T}: you gains 5 life
+  activated {1}{U}, {T}: draw 1 cards then discard 1 cards
+  activated {1}{B}, {T}: target creature gets -2/-2
+  activated {1}{R}, {T}: deal 3 damage to target player or planeswalker
+  activated {1}{G}, {T}: target creature gets +4/+4
+}

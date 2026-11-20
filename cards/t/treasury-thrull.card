@@ -1,0 +1,8 @@
+card "Treasury Thrull" {
+  oracle_id 34161ec4-5d99-45e6-b43c-c8d28958660a
+  cost {4}{W}{B}
+  type Creature — Thrull
+  pt 4/4
+  extort
+  triggered whenever this attacks: you may return target artifact, creature, or enchantment card from your graveyard to hand
+}

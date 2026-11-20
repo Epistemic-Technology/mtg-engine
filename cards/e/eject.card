@@ -1,0 +1,10 @@
+card "Eject" {
+  oracle_id 9a18fb98-796a-43b1-8157-e3afca53a1c0
+  cost {3}{U}
+  type Instant
+  this spell can't be countered
+  spell {
+    return target nonland permanent to hand
+    draw 1 cards
+  }
+}

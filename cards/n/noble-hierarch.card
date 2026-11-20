@@ -1,0 +1,8 @@
+card "Noble Hierarch" {
+  oracle_id 98aa9424-5912-4bd6-9300-b3972a31d8af
+  cost {G}
+  type Creature — Human Druid
+  pt 0/1
+  keywords exalted
+  mana {G} or {W} or {U}
+}

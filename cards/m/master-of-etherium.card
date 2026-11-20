@@ -1,0 +1,7 @@
+card "Master of Etherium" {
+  oracle_id 181e6b3e-c33e-49e7-acb8-67473289a856
+  cost {2}{U}
+  type Artifact Creature — Vedalken Wizard
+  static this: cda pt count artifact you control
+  static other artifact creature you control: +1/+1
+}

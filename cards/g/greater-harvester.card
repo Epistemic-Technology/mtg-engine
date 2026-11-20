@@ -1,0 +1,8 @@
+card "Greater Harvester" {
+  oracle_id 1e8f17ab-4616-44de-adfd-010882cfcd42
+  cost {2}{B}{B}{B}
+  type Creature — Horror
+  pt 5/6
+  triggered at beginning of your upkeep: sacrifice 1 permanent chosen
+  triggered whenever this deals combat damage to a player: that player sacrifices 2 permanent
+}

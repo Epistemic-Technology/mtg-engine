@@ -1,0 +1,9 @@
+card "Deep-Slumber Titan" {
+  oracle_id d8f2c12c-d463-42dc-95f1-2daf68f99873
+  cost {2}{R}{R}
+  type Creature — Giant Warrior
+  pt 7/7
+  enters tapped
+  keyword doesn't untap
+  triggered whenever this is dealt damage: untap this
+}

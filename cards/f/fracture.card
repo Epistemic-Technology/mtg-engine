@@ -1,0 +1,6 @@
+card "Fracture" {
+  oracle_id f21d0319-0509-4ac1-b6e3-10955a26fd7a
+  cost {W}{B}
+  type Instant
+  spell: destroy target artifact, enchantment, or planeswalker
+}

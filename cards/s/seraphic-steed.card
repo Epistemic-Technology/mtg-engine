@@ -1,0 +1,9 @@
+card "Seraphic Steed" {
+  oracle_id 51622e89-aa5e-4dd6-a078-eb45e8ebb434
+  cost {G}{W}
+  type Creature — Unicorn Mount
+  pt 2/2
+  keywords first strike, lifelink
+  triggered whenever this attacks while saddled: create 1 "3/3 white Angel creature with flying"
+  saddle 4
+}

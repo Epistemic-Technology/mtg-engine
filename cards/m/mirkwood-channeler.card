@@ -1,0 +1,7 @@
+card "Mirkwood Channeler" {
+  oracle_id 30f373d8-cd8c-4fb2-9383-9969fc547df9
+  cost {3}{G}
+  type Creature — Elf Druid
+  pt 3/3
+  triggered at beginning of your combat: target Elf you control gains trample and gets +1/+1 count where Forest you control
+}

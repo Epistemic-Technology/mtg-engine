@@ -1,0 +1,9 @@
+card "High-Speed Hoverbike" {
+  oracle_id 9bf2f0d9-57fb-4e44-90a5-260d735076a0
+  cost {2}
+  type Artifact — Vehicle
+  pt 2/2
+  keywords flash, flying
+  triggered when this enters: tap up to one target creature
+  crew 1
+}

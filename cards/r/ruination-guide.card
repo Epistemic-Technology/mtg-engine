@@ -1,0 +1,9 @@
+card "Ruination Guide" {
+  oracle_id 3394ce74-c352-4ae1-a7bb-f6ef8ac1c810
+  cost {2}{U}
+  type Creature — Eldrazi Drone
+  pt 3/2
+  keywords devoid
+  ingest
+  static other colorless creature you control: +1/+0
+}

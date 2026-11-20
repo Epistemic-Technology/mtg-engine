@@ -1,0 +1,7 @@
+card "Fiery Inscription" {
+  oracle_id 111889d4-bcca-4b1f-ad48-3077e2f5136f
+  cost {2}{R}
+  type Enchantment
+  triggered when this enters: the ring tempts you
+  triggered whenever you cast an instant or sorcery spell: deal 2 damage to each opponent
+}

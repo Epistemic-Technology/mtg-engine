@@ -1,0 +1,8 @@
+card "Wall of Frost" {
+  oracle_id 741e4f32-0587-40fa-a73d-5bcf66b52348
+  cost {1}{U}{U}
+  type Creature — Wall
+  pt 0/7
+  keywords defender
+  triggered whenever this blocks a creature: that creature doesn't untap next untap step
+}

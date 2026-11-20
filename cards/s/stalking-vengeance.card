@@ -1,0 +1,8 @@
+card "Stalking Vengeance" {
+  oracle_id 5f4ff27f-ebc1-4a86-8b0b-eeea470a25fb
+  cost {5}{R}{R}
+  type Creature — Avatar
+  pt 5/5
+  keywords haste
+  triggered whenever other creature you control dies: it bites target player or planeswalker
+}

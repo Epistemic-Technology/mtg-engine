@@ -1,0 +1,10 @@
+card "Noxious Hatchling" {
+  oracle_id 36072943-7823-434d-b898-f0a2c4e00af2
+  cost {3}{B/G}
+  type Creature — Elemental
+  pt 6/6
+  enters with 4 -1/-1 counters
+  keyword wither
+  triggered whenever you cast black spell: remove 1 -1/-1 counters from this
+  triggered whenever you cast green spell: remove 1 -1/-1 counters from this
+}

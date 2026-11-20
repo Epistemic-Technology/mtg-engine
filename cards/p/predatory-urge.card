@@ -1,0 +1,7 @@
+card "Predatory Urge" {
+  oracle_id f6175cca-0e19-4db8-a175-3369fb650f24
+  cost {3}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {T}: this bites target creature; that creature bites this creature }
+}

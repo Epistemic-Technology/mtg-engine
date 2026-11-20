@@ -1,0 +1,6 @@
+card "Press the Advantage" {
+  oracle_id 7a021af0-d54d-4220-ad01-1cfed9a65e98
+  cost {2}{G}{G}
+  type Instant
+  spell: up to two target creatures each gets +2/+2 and gains trample
+}

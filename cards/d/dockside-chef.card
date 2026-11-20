@@ -1,0 +1,7 @@
+card "Dockside Chef" {
+  oracle_id fed12a16-8920-403c-be63-0601a9d864b0
+  cost {B}
+  type Enchantment Creature — Human Citizen
+  pt 1/2
+  activated {1}{B}, sacrifice artifact or creature: draw 1 cards
+}

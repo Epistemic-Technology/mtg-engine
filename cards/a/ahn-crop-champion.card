@@ -1,0 +1,7 @@
+card "Ahn-Crop Champion" {
+  oracle_id c03d073e-ea59-4873-952a-bcf2730f1115
+  cost {2}{G}{W}
+  type Creature — Human Warrior
+  pt 4/4
+  exert: untap each other creature you control
+}

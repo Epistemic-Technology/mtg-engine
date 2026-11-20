@@ -1,0 +1,7 @@
+card "Assert Authority" {
+  oracle_id 085bc7be-bd44-40af-8e8f-a1a8006fe22c
+  cost {5}{U}{U}
+  type Instant
+  affinity for artifact
+  spell: counter target spell to exile
+}

@@ -1,0 +1,6 @@
+card "Forced Fruition" {
+  oracle_id 448b27a5-7c0c-4ab6-bddf-bd62b920aacc
+  cost {4}{U}{U}
+  type Enchantment
+  triggered whenever an opponent casts a spell: that player draws 7 cards
+}

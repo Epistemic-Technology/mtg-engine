@@ -1,0 +1,6 @@
+card "Knockout Maneuver" {
+  oracle_id 7e4931f4-f518-4200-aad4-4ac8acf202e5
+  cost {2}{G}
+  type Sorcery
+  spell: put 1 +1/+1 counters on target creature you control then target 1 bites target creature an opponent controls
+}

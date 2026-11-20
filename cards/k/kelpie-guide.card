@@ -1,0 +1,8 @@
+card "Kelpie Guide" {
+  oracle_id 8fc1e8b1-3afc-4e9d-a3ae-7bd9bcdcb465
+  cost {2}{U}
+  type Creature — Beast
+  pt 2/2
+  activated {T}: untap another target permanent you control
+  activated {T}, if you control 8 land: tap target permanent
+}

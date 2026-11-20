@@ -1,0 +1,8 @@
+card "Strandwalker" {
+  oracle_id 55a4b186-c6d4-4b08-bf45-481429693948
+  cost {5}
+  type Artifact — Equipment
+  living weapon
+  static enchanted: +2/+4, has reach
+  equip {4}
+}

@@ -1,0 +1,8 @@
+card "Bloodhall Priest" {
+  oracle_id 2eed5eb1-ab67-4f23-885d-922131364aba
+  cost {2}{B}{R}
+  type Creature — Vampire Cleric
+  pt 4/4
+  triggered whenever this enters or attacks if hand 0 or less: deal 2 damage to any target
+  madness {1}{B}{R}
+}

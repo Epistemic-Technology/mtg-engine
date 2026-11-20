@@ -1,0 +1,8 @@
+card "Riptide Chimera" {
+  oracle_id 718d72c4-ad37-49b6-860a-0b921c0de978
+  cost {2}{U}
+  type Enchantment Creature — Chimera
+  pt 3/4
+  keywords flying
+  triggered at beginning of your upkeep: return 1 enchantment you control chosen
+}

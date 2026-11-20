@@ -1,0 +1,6 @@
+card "Boon Reflection" {
+  oracle_id b86d3142-568a-4eea-b1ae-5fcfc1453533
+  cost {4}{W}
+  type Enchantment
+  replace you gain life: double
+}

@@ -1,0 +1,12 @@
+card "Beanstalk Giant // Fertile Footsteps" {
+  oracle_id 22c75ad5-237c-4dbd-bbc4-3058a3db408f
+  layout adventure
+  cost {6}{G}
+  type Creature — Giant
+  static this: cda pt count land you control
+  face "Fertile Footsteps" {
+    cost {2}{G}
+    type Sorcery — Adventure
+    spell: search basic land card to battlefield
+  }
+}

@@ -1,0 +1,9 @@
+card "Reroute Systems" {
+  oracle_id 26d2762b-4346-40d0-b93d-b0dbfeb6e2bc
+  cost {W}
+  type Instant
+  choose one {
+    mode: target artifact or creature gains indestructible
+    mode: deal 2 damage to target tapped creature
+  }
+}

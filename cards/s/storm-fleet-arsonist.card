@@ -1,0 +1,7 @@
+card "Storm Fleet Arsonist" {
+  oracle_id 36081fbb-413f-4924-a536-82add34e38be
+  cost {4}{R}
+  type Creature — Orc Pirate
+  pt 4/4
+  label "Raid" triggered when this enters if attacked this turn: target opponent sacrifices 1 permanent
+}

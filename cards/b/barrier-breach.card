@@ -1,0 +1,7 @@
+card "Barrier Breach" {
+  oracle_id 581425e6-3128-4f83-9efc-17028fc65078
+  cost {2}{G}
+  type Instant
+  spell: exile up to three target enchantments
+  cycling {2}
+}

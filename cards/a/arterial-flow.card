@@ -1,0 +1,6 @@
+card "Arterial Flow" {
+  oracle_id f5e2fb92-4678-410c-8c83-42aead9d29d3
+  cost {1}{B}{B}
+  type Sorcery
+  spell: each opponent discards 2 cards; if you control Vampire, each opponent loses 2 life and you gains 2 life
+}

@@ -1,0 +1,7 @@
+card "Warden of the Eye" {
+  oracle_id 5342ce88-4afc-431c-814a-054e5fca4b9e
+  cost {2}{U}{R}{W}
+  type Creature — Djinn Wizard
+  pt 3/3
+  triggered when this enters: return target noncreature, nonland card from your graveyard to hand
+}

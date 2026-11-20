@@ -1,0 +1,7 @@
+card "Vinereap Mentor" {
+  oracle_id db649e15-24ca-4fd8-9f0b-f1df28c9c57d
+  cost {B}{G}
+  type Creature — Squirrel Druid
+  pt 3/2
+  triggered when this enters or dies: create 1 "Food"
+}

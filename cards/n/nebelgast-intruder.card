@@ -1,0 +1,8 @@
+card "Nebelgast Intruder" {
+  oracle_id 4c591977-f2af-4a6e-a0be-3dfb45a3598b
+  cost {2}{U}
+  type Creature — Spirit
+  pt 2/1
+  keywords flash, flying
+  triggered when this enters: up to one target creature an opponent controls gets -2/-0
+}

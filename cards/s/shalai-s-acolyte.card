@@ -1,0 +1,9 @@
+card "Shalai's Acolyte" {
+  oracle_id 53ec394a-5aaa-4d83-82ec-f00e99902c0d
+  cost {4}{W}
+  type Creature — Angel
+  pt 3/4
+  kicker {1}{G}
+  keyword flying
+  kicked with 2 +1/+1 counters
+}

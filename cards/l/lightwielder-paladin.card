@@ -1,0 +1,8 @@
+card "Lightwielder Paladin" {
+  oracle_id ad62e9d6-61bc-485f-a9b8-2ef9ba98a4b0
+  cost {3}{W}{W}
+  type Creature — Human Knight
+  pt 4/4
+  keywords first strike
+  triggered whenever this deals combat damage to a player: you may exile target black or red permanent that player controls
+}

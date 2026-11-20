@@ -1,0 +1,8 @@
+card "Tireless Tracker" {
+  oracle_id e6555cca-e608-4c87-b835-9cd47fd1f543
+  cost {2}{G}
+  type Creature — Human Scout
+  pt 3/2
+  label "Landfall" triggered whenever land you control enters: investigate
+  triggered whenever you sacrifice Clue: put 1 +1/+1 counters on this
+}

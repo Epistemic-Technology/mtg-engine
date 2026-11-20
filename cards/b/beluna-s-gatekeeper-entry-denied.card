@@ -1,0 +1,12 @@
+card "Beluna's Gatekeeper // Entry Denied" {
+  oracle_id 52fd9309-b849-419a-8d19-5882c00a72b4
+  layout adventure
+  cost {5}{U}
+  type Creature — Giant Soldier
+  pt 6/5
+  face "Entry Denied" {
+    cost {1}{U}
+    type Sorcery — Adventure
+    spell: return target creature you don't control with mana value 3 or less to hand
+  }
+}

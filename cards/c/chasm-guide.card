@@ -1,0 +1,7 @@
+card "Chasm Guide" {
+  oracle_id 446d3207-bff8-4edf-9b20-62abcc56427e
+  cost {3}{R}
+  type Creature — Goblin Scout Ally
+  pt 3/2
+  label "Rally" triggered whenever this or Ally you control enters: each creature you control gains haste
+}

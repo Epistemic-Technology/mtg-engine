@@ -1,0 +1,8 @@
+card "Plague Mare" {
+  oracle_id 4cd096ac-dd67-4208-a3ad-8e6061b442c6
+  cost {1}{B}{B}
+  type Creature — Nightmare Horse
+  pt 2/2
+  can't be blocked by white creature
+  triggered when this enters: each creature your opponents control gets -1/-1
+}

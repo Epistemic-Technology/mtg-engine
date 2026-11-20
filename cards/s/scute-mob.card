@@ -1,0 +1,7 @@
+card "Scute Mob" {
+  oracle_id f1e0eda0-4a5e-4f1f-8131-ba58a58887cf
+  cost {G}
+  type Creature — Insect
+  pt 1/1
+  triggered at beginning of your upkeep if you control 5 land: put 4 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Magus of the Coffers" {
+  oracle_id 23dd895c-92bd-4af0-8b1a-7d76ca49178f
+  cost {4}{B}
+  type Creature — Human Wizard
+  pt 4/4
+  activated {2}, {T}: add {B} count each Swamp you control
+}

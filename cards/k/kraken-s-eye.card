@@ -1,0 +1,6 @@
+card "Kraken's Eye" {
+  oracle_id 14a21d8a-2097-4150-8af5-8c155049477a
+  cost {2}
+  type Artifact
+  triggered whenever a player casts blue spell: you may you gain 1 life
+}

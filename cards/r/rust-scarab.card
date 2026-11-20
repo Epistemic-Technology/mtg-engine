@@ -1,0 +1,7 @@
+card "Rust Scarab" {
+  oracle_id c3bd1d38-e73f-4e30-b22a-dca0a0e4d701
+  cost {4}{G}
+  type Creature — Insect
+  pt 4/5
+  triggered whenever this becomes blocked: you may destroy target artifact or enchantment defending player controls
+}

@@ -1,0 +1,6 @@
+card "Geth's Grimoire" {
+  oracle_id ef809e99-34a2-4471-8269-f56bf8037686
+  cost {4}
+  type Artifact — Book
+  triggered whenever an opponent discards a card: you may draw 1 cards
+}

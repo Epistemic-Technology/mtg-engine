@@ -1,0 +1,7 @@
+card "Wizened Cenn" {
+  oracle_id b5905ef3-6565-462f-a015-2bb5b5b09eff
+  cost {W}{W}
+  type Creature — Kithkin Cleric
+  pt 2/2
+  static other Kithkin creature you control: +1/+1
+}

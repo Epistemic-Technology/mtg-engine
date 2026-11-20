@@ -1,0 +1,8 @@
+card "Shatterskull Minotaur" {
+  oracle_id 2019004c-ebcf-4665-8736-f01ce7d8fcd2
+  cost {4}{R}{R}
+  type Creature — Minotaur Warrior
+  pt 5/4
+  this spell costs {1} less count each party
+  keyword haste
+}

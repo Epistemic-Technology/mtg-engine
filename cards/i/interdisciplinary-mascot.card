@@ -1,0 +1,9 @@
+card "Interdisciplinary Mascot" {
+  oracle_id 74d9331b-832b-420b-9249-f2a58253a361
+  cost {6}{U}{U}
+  type Creature — Elemental Fractal
+  pt 5/5
+  keywords convoke
+  ward {3}
+  triggered when this enters: dig 4 take card rest bottom random
+}

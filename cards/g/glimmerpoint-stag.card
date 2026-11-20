@@ -1,0 +1,8 @@
+card "Glimmerpoint Stag" {
+  oracle_id 9620c8a2-63a8-4151-b4fd-a15db191a7b0
+  cost {2}{W}{W}
+  type Creature — Elk
+  pt 3/3
+  keywords vigilance
+  triggered when this enters: exile another target permanent; delayed target 1: return it to battlefield at beginning of the next end step
+}

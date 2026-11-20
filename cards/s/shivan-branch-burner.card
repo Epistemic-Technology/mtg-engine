@@ -1,0 +1,7 @@
+card "Shivan Branch-Burner" {
+  oracle_id bf7f5e9d-de3d-4a29-af25-f0b56336cecb
+  cost {5}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords convoke, flying, haste
+}

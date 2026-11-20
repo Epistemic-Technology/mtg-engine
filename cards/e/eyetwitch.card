@@ -1,0 +1,8 @@
+card "Eyetwitch" {
+  oracle_id 6a7a5e93-fea8-4aa0-a2b1-73d466220cfb
+  cost {B}
+  type Creature — Eye Bat
+  pt 1/1
+  keywords flying
+  triggered when this dies: learn
+}

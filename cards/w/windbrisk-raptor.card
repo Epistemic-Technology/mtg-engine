@@ -1,0 +1,8 @@
+card "Windbrisk Raptor" {
+  oracle_id 1fd729f6-27ea-4b07-81f0-885f2c0c00eb
+  cost {5}{W}{W}
+  type Creature — Bird
+  pt 5/7
+  keywords flying
+  static attacking creature you control: has lifelink
+}

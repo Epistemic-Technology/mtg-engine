@@ -1,0 +1,7 @@
+card "Marshdrinker Giant" {
+  oracle_id be109ed5-9e3e-40b3-9bf0-7caf7cdbb958
+  cost {3}{G}{G}
+  type Creature — Giant Warrior
+  pt 4/3
+  triggered when this enters: destroy target Island or Swamp an opponent controls
+}

@@ -1,0 +1,6 @@
+card "Gruul War Chant" {
+  oracle_id a9edb891-1a38-4b8a-8539-c459e8a52315
+  cost {2}{R}{G}
+  type Enchantment
+  static attacking creature you control: +1/+0, has menace
+}

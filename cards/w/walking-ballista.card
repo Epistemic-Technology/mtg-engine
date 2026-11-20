@@ -1,0 +1,9 @@
+card "Walking Ballista" {
+  oracle_id 4b515bb0-f275-4400-8032-3173b799ab40
+  cost {X}{X}
+  type Artifact Creature — Construct
+  pt 0/0
+  enters with X +1/+1 counters
+  activated {4}: put 1 +1/+1 counters on this
+  activated remove 1 +1/+1 counters from this: deal 1 damage to any target
+}

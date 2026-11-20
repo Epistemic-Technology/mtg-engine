@@ -1,0 +1,10 @@
+card "Twisted Reflection" {
+  oracle_id 57fdf496-c31e-4a3b-a8a6-4f053b808267
+  cost {1}{U}
+  type Instant
+  choose one {
+    mode: target creature gets -6/-0
+    mode: switch pt of target creature
+  }
+  entwine {B}
+}

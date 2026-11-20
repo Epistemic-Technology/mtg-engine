@@ -1,0 +1,8 @@
+card "Sling-Gang Lieutenant" {
+  oracle_id 4e93b23c-a7f7-4bdd-bbca-0dc48bb5c223
+  cost {3}{B}
+  type Creature — Goblin
+  pt 1/1
+  triggered when this enters: create 2 "1/1 red Goblin creature"
+  activated sacrifice Goblin: target player loses 1 life and you gains 1 life
+}

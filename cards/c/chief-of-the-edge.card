@@ -1,0 +1,7 @@
+card "Chief of the Edge" {
+  oracle_id 636a9364-54a6-4f67-ad96-731646e8bde7
+  cost {W}{B}
+  type Creature — Human Warrior
+  pt 3/2
+  static other Warrior creature you control: +1/+0
+}

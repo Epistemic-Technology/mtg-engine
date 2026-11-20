@@ -1,0 +1,8 @@
+card "Insatiable Gorgers" {
+  oracle_id e4534f33-8784-40a5-af1a-0f9975741aa2
+  cost {2}{R}{R}
+  type Creature — Vampire Berserker
+  pt 5/3
+  keywords attacks each combat if able
+  madness {3}{R}
+}

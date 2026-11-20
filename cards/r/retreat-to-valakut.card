@@ -1,0 +1,9 @@
+card "Retreat to Valakut" {
+  oracle_id 91108ed7-5b24-4b51-b01d-85005998c69d
+  cost {2}{R}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: choose one {
+    mode: target creature gets +2/+0
+    mode: target creature can't block
+  }
+}

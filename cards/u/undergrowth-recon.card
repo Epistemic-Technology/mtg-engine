@@ -1,0 +1,6 @@
+card "Undergrowth Recon" {
+  oracle_id 3fbe46fa-88da-439a-994e-c8f1791332a8
+  cost {1}{G}{G}
+  type Enchantment
+  triggered at beginning of your upkeep: return target land card from your graveyard to battlefield tapped
+}

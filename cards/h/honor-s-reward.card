@@ -1,0 +1,6 @@
+card "Honor's Reward" {
+  oracle_id 87e6aabb-41f5-41d2-b662-cd09ad61a1c8
+  cost {2}{W}
+  type Instant
+  spell: you gains 4 life; bolster 2
+}

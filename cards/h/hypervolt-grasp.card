@@ -1,0 +1,8 @@
+card "Hypervolt Grasp" {
+  oracle_id 269a2b53-52d7-4032-ba62-7b7742e7a159
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {T}: deal 1 damage to any target }
+  activated {1}{U}: return this to hand
+}

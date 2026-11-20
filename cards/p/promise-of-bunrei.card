@@ -1,0 +1,6 @@
+card "Promise of Bunrei" {
+  oracle_id 6158ab85-a929-472c-9618-8e76d2d4b228
+  cost {2}{W}
+  type Enchantment
+  triggered when creature you control dies: sacrifice this; if you do, create 4 "1/1 colorless Spirit creature"
+}

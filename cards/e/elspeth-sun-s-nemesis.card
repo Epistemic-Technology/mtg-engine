@@ -1,0 +1,10 @@
+card "Elspeth, Sun's Nemesis" {
+  oracle_id faf296b0-59e5-4ec9-9912-e5e21c0ce9f5
+  cost {2}{W}{W}
+  type Legendary Planeswalker — Elspeth
+  loyalty 5
+  loyalty -1: up to two target creatures you control each gets +2/+1
+  loyalty -2: create 2 "1/1 white Human Soldier creature"
+  loyalty -3: you gains 5 life
+  escape {4}{W}{W} exile 4
+}

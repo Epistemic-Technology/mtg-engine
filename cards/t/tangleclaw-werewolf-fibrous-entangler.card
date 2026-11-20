@@ -1,0 +1,14 @@
+card "Tangleclaw Werewolf // Fibrous Entangler" {
+  oracle_id 280d5601-802c-4607-9655-75cc83248210
+  layout transform
+  cost {2}{G}{G}
+  type Creature — Werewolf Horror
+  pt 2/4
+  keywords can block an additional creature each combat
+  activated {6}{G}: transform this
+  face "Fibrous Entangler" {
+    type Creature — Eldrazi Werewolf
+    pt 4/6
+    keywords vigilance, must be blocked if able, can block an additional creature each combat
+  }
+}

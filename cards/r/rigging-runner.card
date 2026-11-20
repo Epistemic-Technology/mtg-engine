@@ -1,0 +1,8 @@
+card "Rigging Runner" {
+  oracle_id 72b600e3-d671-4279-8ca6-9a3d6e774b53
+  cost {R}
+  type Creature — Goblin Pirate
+  pt 1/1
+  keywords first strike
+  label "Raid" enters with 1 +1/+1 counter if attacked this turn
+}

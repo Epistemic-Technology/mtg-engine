@@ -1,0 +1,7 @@
+card "Breaker of Armies" {
+  oracle_id 0be1ace3-2b3d-4465-b63a-be523f73df36
+  cost {8}
+  type Creature — Eldrazi
+  pt 10/8
+  keywords lure
+}

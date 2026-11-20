@@ -1,0 +1,7 @@
+card "Visionary Augmenter" {
+  oracle_id 1782bfd7-7d8f-4ed2-9d45-ba9adb41e996
+  cost {2}{W}{W}
+  type Creature — Dwarf Artificer
+  pt 2/1
+  fabricate 2
+}

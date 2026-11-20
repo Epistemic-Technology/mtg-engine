@@ -1,0 +1,10 @@
+card "Brokers Charm" {
+  oracle_id a90de2b8-4d71-4d0e-82b3-3b7ab194165b
+  cost {G}{W}{U}
+  type Instant
+  choose one {
+    mode: target creature you control gets +1/+0; target 1 bites target creature or planeswalker an opponent controls
+    mode: destroy target enchantment
+    mode: draw 2 cards
+  }
+}

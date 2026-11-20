@@ -1,0 +1,7 @@
+token "1/1 colorless Pentavite artifact creature with flying" {
+  name "Pentavite"
+  type Artifact Creature — Pentavite
+  pt 1/1
+  color
+  keywords flying
+}

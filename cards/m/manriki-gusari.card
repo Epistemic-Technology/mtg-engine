@@ -1,0 +1,7 @@
+card "Manriki-Gusari" {
+  oracle_id cc2eb3e4-084c-471b-9fe0-72aa9ff2019a
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+2, has ability { activated {T}: destroy target Equipment }
+  equip {1}
+}

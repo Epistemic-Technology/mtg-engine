@@ -1,0 +1,9 @@
+card "Solar Transformer" {
+  oracle_id cb377c27-39a6-42b4-8c89-80a9a2350e81
+  cost {2}
+  type Artifact
+  enters tapped
+  triggered when this enters: you get 3 energy
+  mana {C}
+  activated {T}, pay 1 energy: add any
+}

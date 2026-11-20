@@ -1,0 +1,8 @@
+card "Wandertale Mentor" {
+  oracle_id 9d14c7bd-7802-401c-b02b-c7f3c51b007f
+  cost {R}{G}
+  type Creature — Raccoon Bard
+  pt 2/2
+  triggered whenever you expend 4: put 1 +1/+1 counters on this
+  mana {R} or {G}
+}

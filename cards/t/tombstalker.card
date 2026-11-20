@@ -1,0 +1,7 @@
+card "Tombstalker" {
+  oracle_id 944735ad-3f17-421a-b8fa-40f3bb8456f2
+  cost {6}{B}{B}
+  type Creature — Demon
+  pt 5/5
+  keywords flying, delve
+}

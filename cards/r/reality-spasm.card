@@ -1,0 +1,9 @@
+card "Reality Spasm" {
+  oracle_id 34a2fc4c-ab56-4ecd-95d9-04316046843c
+  cost {X}{U}{U}
+  type Instant
+  choose one {
+    mode: tap X target permanents
+    mode: untap X target permanents
+  }
+}

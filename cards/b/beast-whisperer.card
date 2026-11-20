@@ -1,0 +1,7 @@
+card "Beast Whisperer" {
+  oracle_id 5da7eea8-bb9e-47ce-a554-8a1ee058bd7a
+  cost {2}{G}{G}
+  type Creature — Elf Druid
+  pt 2/3
+  triggered whenever you cast creature spell: draw 1 cards
+}

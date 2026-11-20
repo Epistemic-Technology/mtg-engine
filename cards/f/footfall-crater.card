@@ -1,0 +1,8 @@
+card "Footfall Crater" {
+  oracle_id ca4fdf89-a74e-4086-8109-b0f9dd91710e
+  cost {R}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: has ability { activated {T}: target creature gains trample, haste }
+  cycling {1}
+}

@@ -1,0 +1,7 @@
+card "Mold Adder" {
+  oracle_id 2091eb7e-2357-4ef8-b15e-1e6f82176340
+  cost {G}
+  type Creature — Fungus Snake
+  pt 1/1
+  triggered whenever an opponent casts blue or black spell: you may put 1 +1/+1 counters on this
+}

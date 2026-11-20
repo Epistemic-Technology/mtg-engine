@@ -1,0 +1,7 @@
+card "Tattered Ratter" {
+  oracle_id ba36f27a-08fc-46a5-bc55-2a71091cebcc
+  cost {1}{R}
+  type Creature — Human Peasant
+  pt 2/2
+  triggered whenever Rat you control becomes blocked: it gets +2/+0
+}

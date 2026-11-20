@@ -1,0 +1,7 @@
+card "Oracle's Insight" {
+  oracle_id 3f1f27ca-15e6-4ac6-8bd3-1e6b3ca00857
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {T}: scry 1 then draw 1 cards }
+}

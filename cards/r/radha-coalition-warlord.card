@@ -1,0 +1,7 @@
+card "Radha, Coalition Warlord" {
+  oracle_id fbf0bde7-cb13-402b-b3ab-81c787ce4827
+  cost {2}{R}{G}
+  type Legendary Creature — Elf Warrior
+  pt 3/3
+  label "Domain" triggered whenever this becomes tapped: another target creature you control gets +1/+1 count where domain
+}

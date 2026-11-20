@@ -1,0 +1,6 @@
+card "Throne of Bone" {
+  oracle_id f73c7edf-ed2c-41e8-ac83-c83ddd543f14
+  cost {1}
+  type Artifact
+  triggered whenever a player casts black spell: you may pay {1}; if you do, you gains 1 life
+}

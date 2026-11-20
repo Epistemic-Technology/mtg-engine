@@ -1,0 +1,7 @@
+card "Strength of the Coalition" {
+  oracle_id f0b24d59-b3f4-47e6-befd-40a25ad976e2
+  cost {G}
+  type Instant
+  kicker {2}{W}
+  spell: target creature you control gets +2/+2; if kicked, put 1 +1/+1 counters on each creature you control
+}

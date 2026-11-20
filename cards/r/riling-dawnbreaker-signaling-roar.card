@@ -1,0 +1,14 @@
+card "Riling Dawnbreaker // Signaling Roar" {
+  oracle_id 1fc31651-70fe-4a58-9b7e-7359510bba51
+  layout omen
+  cost {4}{W}
+  type Creature — Dragon
+  pt 3/4
+  keywords flying, vigilance
+  triggered at beginning of your combat: another target creature you control gets +1/+0
+  face "Signaling Roar" {
+    cost {1}{W}
+    type Sorcery — Omen
+    spell: create 1 "2/2 white Soldier creature"
+  }
+}

@@ -1,0 +1,8 @@
+card "Brackish Trudge" {
+  oracle_id c775d3ef-2184-4425-8c8e-2bbc49687f76
+  cost {2}{B}
+  type Creature — Fungus Beast
+  pt 4/2
+  enters tapped
+  activated {1}{B}, if gained life this turn, from graveyard: return this to hand
+}

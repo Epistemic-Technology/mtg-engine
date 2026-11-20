@@ -1,0 +1,6 @@
+card "Righteousness" {
+  oracle_id 3f6b2f76-0364-415e-a6a2-e9e5bf31b745
+  cost {W}
+  type Instant
+  spell: target blocking creature gets +7/+7
+}

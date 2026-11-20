@@ -1,0 +1,7 @@
+card "Call of the Nightwing" {
+  oracle_id 919d21ad-3d1e-4f80-8005-64e3f8bf64d1
+  cost {2}{U}{B}
+  type Sorcery
+  keywords cipher
+  spell: create 1 "1/1 blue and black Horror creature with flying"
+}

@@ -1,0 +1,9 @@
+card "Shepherd of the Cosmos" {
+  oracle_id 2c5aa155-646c-47f6-ba5c-6e1b41fd4bb2
+  cost {4}{W}{W}
+  type Creature — Angel Warrior
+  pt 3/3
+  keywords flying
+  triggered when this enters: return target permanent card with mana value 2 or less from your graveyard to battlefield
+  foretell {3}{W}
+}

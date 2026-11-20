@@ -1,0 +1,7 @@
+card "Rising of the Day" {
+  oracle_id 434a20f8-3f87-4004-9155-0f196fc2257e
+  cost {2}{R}
+  type Enchantment
+  static creature you control: has haste
+  static legendary creature you control: +1/+0
+}

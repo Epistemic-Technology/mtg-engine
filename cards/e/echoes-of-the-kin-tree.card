@@ -1,0 +1,6 @@
+card "Echoes of the Kin Tree" {
+  oracle_id 9863a7da-6f51-4d3e-9ace-e8ff201faf13
+  cost {1}{W}
+  type Enchantment
+  activated {2}{W}: bolster 1
+}

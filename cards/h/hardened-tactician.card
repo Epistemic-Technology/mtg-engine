@@ -1,0 +1,7 @@
+card "Hardened Tactician" {
+  oracle_id ca1dc6f0-3ec2-4f62-a08a-1395201bd93f
+  cost {1}{W}{B}
+  type Creature — Human Warrior
+  pt 2/4
+  activated {1}, sacrifice token: draw 1 cards
+}

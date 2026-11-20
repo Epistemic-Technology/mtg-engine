@@ -1,0 +1,7 @@
+card "Merfolk Branchwalker" {
+  oracle_id 24b5dbe3-578a-4897-8215-e723f00a8f1a
+  cost {1}{G}
+  type Creature — Merfolk Scout
+  pt 2/1
+  triggered when this enters: this explores
+}

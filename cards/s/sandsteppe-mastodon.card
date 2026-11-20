@@ -1,0 +1,8 @@
+card "Sandsteppe Mastodon" {
+  oracle_id 99fa202b-052c-4627-b78c-f0b323f7bdf3
+  cost {5}{G}{G}
+  type Creature — Elephant
+  pt 5/5
+  keywords reach
+  triggered when this enters: bolster 5
+}

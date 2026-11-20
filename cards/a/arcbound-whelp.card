@@ -1,0 +1,9 @@
+card "Arcbound Whelp" {
+  oracle_id 36875030-8094-4e2c-860d-c0820825a24e
+  cost {3}{R}
+  type Artifact Creature — Dragon
+  pt 0/0
+  keywords flying
+  activated {R}: this gets +1/+0
+  modular 2
+}

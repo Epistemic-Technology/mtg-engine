@@ -1,0 +1,8 @@
+card "Sphinx of Jwar Isle" {
+  oracle_id 3951f13e-f6dd-4d67-a088-23925baaf99b
+  cost {4}{U}{U}
+  type Creature — Sphinx
+  pt 5/5
+  keywords flying, shroud
+  may look top
+}

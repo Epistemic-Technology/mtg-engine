@@ -1,0 +1,8 @@
+card "Vinebred Brawler" {
+  oracle_id 5fffd840-1e6e-4f5d-b847-802f9a25eb5c
+  cost {2}{G}
+  type Creature — Elf Berserker
+  pt 4/2
+  keywords must be blocked if able
+  triggered whenever this attacks: another target Elf you control gets +2/+1
+}

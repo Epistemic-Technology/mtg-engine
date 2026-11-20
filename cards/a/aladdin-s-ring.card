@@ -1,0 +1,6 @@
+card "Aladdin's Ring" {
+  oracle_id 7810915f-df4d-445a-8ba8-fe6ed3abf1ae
+  cost {8}
+  type Artifact
+  activated {8}, {T}: deal 4 damage to any target
+}

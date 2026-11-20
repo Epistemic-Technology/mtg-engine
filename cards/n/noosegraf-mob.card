@@ -1,0 +1,8 @@
+card "Noosegraf Mob" {
+  oracle_id f27fb53f-a983-410a-821b-e48cd8c01f2e
+  cost {4}{B}{B}
+  type Creature — Zombie
+  pt 0/0
+  enters with 5 +1/+1 counters
+  triggered whenever a player casts a spell: remove 1 +1/+1 counters from this; if you do, create 1 "2/2 black Zombie creature"
+}

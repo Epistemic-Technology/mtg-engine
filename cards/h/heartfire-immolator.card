@@ -1,0 +1,8 @@
+card "Heartfire Immolator" {
+  oracle_id 1e414a4f-6e76-4cbe-9c69-d52852cd5bc0
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 2/2
+  keywords prowess
+  activated {R}, sacrifice this: this bites target creature or planeswalker
+}

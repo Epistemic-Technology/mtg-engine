@@ -1,0 +1,7 @@
+card "Dungrove Elder" {
+  oracle_id 32083c9f-04c6-4b6f-9e24-cc8f3cae3e3e
+  cost {2}{G}
+  type Creature — Treefolk
+  keywords hexproof
+  static this: cda pt count Forest you control
+}

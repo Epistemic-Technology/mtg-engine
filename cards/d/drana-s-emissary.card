@@ -1,0 +1,8 @@
+card "Drana's Emissary" {
+  oracle_id ef49b53d-e5b6-423a-88f0-51a7b2021c46
+  cost {1}{W}{B}
+  type Creature — Vampire Cleric Ally
+  pt 2/2
+  keywords flying
+  triggered at beginning of your upkeep: each opponent loses 1 life and you gains 1 life
+}

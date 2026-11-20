@@ -1,0 +1,7 @@
+card "King of the Pride" {
+  oracle_id 96d0e4dd-6cc2-4349-ac44-785b50f8dd90
+  cost {2}{W}
+  type Creature — Cat
+  pt 2/1
+  static other Cat you control: +2/+1
+}

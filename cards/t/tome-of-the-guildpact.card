@@ -1,0 +1,7 @@
+card "Tome of the Guildpact" {
+  oracle_id 3c7dd86d-25eb-4b24-9358-98b951248e04
+  cost {5}
+  type Artifact — Book
+  triggered whenever you cast multicolored spell: draw 1 cards
+  mana any
+}

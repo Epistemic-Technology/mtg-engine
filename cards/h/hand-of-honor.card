@@ -1,0 +1,8 @@
+card "Hand of Honor" {
+  oracle_id feb65f2e-6f71-4f29-bf31-b210c85f3ab3
+  cost {W}{W}
+  type Creature — Human Samurai
+  pt 2/2
+  keywords protection from black
+  bushido 1
+}

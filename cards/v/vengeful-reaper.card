@@ -1,0 +1,8 @@
+card "Vengeful Reaper" {
+  oracle_id 5d776be0-cece-4496-a3b0-b7424eca77fd
+  cost {3}{B}
+  type Creature — Angel Cleric
+  pt 2/3
+  keywords flying, deathtouch, haste
+  foretell {1}{B}
+}

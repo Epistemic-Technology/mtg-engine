@@ -1,0 +1,9 @@
+card "Glint-Sleeve Siphoner" {
+  oracle_id ea34ec71-2f3b-4119-937d-4629cbf7ac5e
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 2/1
+  keywords menace
+  triggered whenever this enters or attacks: you get 1 energy
+  triggered at beginning of your upkeep: you may pay 2 energy; if you do, you draw 1 card, and you lose 1 life
+}

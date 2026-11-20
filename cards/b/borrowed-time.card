@@ -1,0 +1,6 @@
+card "Borrowed Time" {
+  oracle_id f1ac4e0e-5633-46e4-9a21-d3924e481d13
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+}

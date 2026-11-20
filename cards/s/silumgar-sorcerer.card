@@ -1,0 +1,8 @@
+card "Silumgar Sorcerer" {
+  oracle_id be5c87d3-492c-4b73-9d79-067bd3c3e738
+  cost {1}{U}{U}
+  type Creature — Human Wizard Sorcerer
+  pt 2/1
+  keywords flash, flying, exploit
+  triggered when this exploits a creature: counter target creature spell
+}

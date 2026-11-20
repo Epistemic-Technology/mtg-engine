@@ -1,0 +1,8 @@
+card "Fiend Hunter" {
+  oracle_id cb9d557a-fc06-428c-8be6-7d28add33028
+  cost {1}{W}{W}
+  type Creature — Human Cleric
+  pt 1/3
+  triggered when this enters: you may exile another target creature
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}

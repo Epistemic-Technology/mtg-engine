@@ -1,0 +1,7 @@
+card "Resolute Blademaster" {
+  oracle_id fec7b50a-7ed3-461d-9e91-e5c6ca9f774f
+  cost {3}{R}{W}
+  type Creature — Human Soldier Ally
+  pt 2/2
+  label "Rally" triggered whenever this or Ally you control enters: each creature you control gains double strike
+}

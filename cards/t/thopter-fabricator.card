@@ -1,0 +1,9 @@
+card "Thopter Fabricator" {
+  oracle_id 8aab9181-c306-471a-8061-9a7a7654dab5
+  cost {2}{U}
+  type Artifact — Vehicle
+  pt 4/4
+  keywords flying
+  triggered whenever you draw your second card each turn: create 1 "1/1 colorless Thopter artifact creature with flying"
+  crew 2
+}

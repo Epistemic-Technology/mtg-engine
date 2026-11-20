@@ -1,0 +1,7 @@
+card "Memorial to Glory" {
+  oracle_id eb8ec34c-ae07-4a09-940f-ee965146a787
+  type Land
+  enters tapped
+  mana {W}
+  activated {3}{W}, {T}, sacrifice this: create 2 "1/1 white Soldier creature"
+}

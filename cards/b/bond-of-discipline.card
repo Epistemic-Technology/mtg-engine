@@ -1,0 +1,6 @@
+card "Bond of Discipline" {
+  oracle_id 00e9957a-5684-4a07-954e-8161925fefe4
+  cost {4}{W}
+  type Sorcery
+  spell: tap each creature your opponents control; each creature you control gains lifelink
+}

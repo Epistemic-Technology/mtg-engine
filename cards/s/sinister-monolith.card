@@ -1,0 +1,7 @@
+card "Sinister Monolith" {
+  oracle_id ae8003eb-9f19-4f23-be3b-0ac3ddc03a72
+  cost {3}{B}
+  type Artifact
+  triggered at beginning of your combat: each opponent loses 1 life and you gains 1 life
+  activated {T}, pay 2 life, sacrifice this, sorcery: draw 2 cards
+}

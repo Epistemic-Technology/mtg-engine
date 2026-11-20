@@ -1,0 +1,7 @@
+card "Seraph of the Masses" {
+  oracle_id 5d6f75f1-dd9c-4d94-aea8-3bdec41eaa29
+  cost {5}{W}{W}
+  type Creature — Angel
+  keywords convoke, flying
+  static this: cda pt count creature you control
+}

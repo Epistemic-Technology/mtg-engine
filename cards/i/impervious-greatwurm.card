@@ -1,0 +1,7 @@
+card "Impervious Greatwurm" {
+  oracle_id 65c0ab05-e740-4380-b39c-8bae9662f885
+  cost {7}{G}{G}{G}
+  type Creature — Wurm
+  pt 16/16
+  keywords convoke, indestructible
+}

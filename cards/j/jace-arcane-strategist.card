@@ -1,0 +1,9 @@
+card "Jace, Arcane Strategist" {
+  oracle_id 4126bab7-6a2a-43b2-ba65-77299f9bb8cf
+  cost {4}{U}{U}
+  type Legendary Planeswalker — Jace
+  loyalty 4
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counters on target creature you control
+  loyalty +1: draw 1 cards
+  loyalty -7: each creature you control can't be blocked
+}

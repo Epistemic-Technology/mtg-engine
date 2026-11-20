@@ -1,0 +1,7 @@
+card "Bothersome Noisemaker" {
+  oracle_id 978e07fd-8b8c-4eab-850e-e4c0e712251e
+  cost {1}{R}
+  type Creature — Goblin Bard
+  pt 2/2
+  triggered whenever you cast a noncreature spell: amass Goblins 1
+}

@@ -1,0 +1,7 @@
+card "Azami, Lady of Scrolls" {
+  oracle_id 0f8b97fe-3e5e-47c2-9a9d-7f77482aa159
+  cost {2}{U}{U}{U}
+  type Legendary Creature — Human Wizard
+  pt 0/2
+  activated tap untapped Wizard you control: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Goatnapper" {
+  oracle_id 6875839a-9815-4ed2-adcf-b4d097c9bafd
+  cost {2}{R}
+  type Creature — Goblin Rogue
+  pt 2/2
+  triggered when this enters: untap target Goat and gain control of it until end of turn; target 1 gains haste
+}

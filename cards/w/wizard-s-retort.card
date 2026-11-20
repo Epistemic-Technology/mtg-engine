@@ -1,0 +1,7 @@
+card "Wizard's Retort" {
+  oracle_id b828251c-86a9-454f-9852-d0876d0f5153
+  cost {1}{U}{U}
+  type Instant
+  this spell costs {1} less if you control Wizard
+  spell: counter target spell
+}

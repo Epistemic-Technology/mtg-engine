@@ -1,0 +1,8 @@
+card "Hammer of Ruin" {
+  oracle_id 78ba3363-0fc8-42a9-b586-69d0795ca65e
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +2/+0
+  triggered whenever equipped creature deals combat damage to a player: you may destroy target Equipment that player controls
+  equip {2}
+}

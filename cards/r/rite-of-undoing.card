@@ -1,0 +1,7 @@
+card "Rite of Undoing" {
+  oracle_id 9dbfa026-e364-4111-a03a-e9b1693bc7b7
+  cost {4}{U}
+  type Instant
+  keywords delve
+  spell: return target nonland permanent you control and target nonland permanent you don't control to hand
+}

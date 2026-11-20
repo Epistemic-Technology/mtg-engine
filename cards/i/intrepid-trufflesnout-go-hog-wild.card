@@ -1,0 +1,13 @@
+card "Intrepid Trufflesnout // Go Hog Wild" {
+  oracle_id 147d1e5c-fcfd-4115-a2f9-bea9b7ad7bb6
+  layout adventure
+  cost {1}{G}
+  type Creature — Boar
+  pt 3/1
+  triggered whenever this attacks alone: create 1 "Food"
+  face "Go Hog Wild" {
+    cost {1}{G}
+    type Instant — Adventure
+    spell: target creature gets +2/+2
+  }
+}

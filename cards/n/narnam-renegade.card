@@ -1,0 +1,8 @@
+card "Narnam Renegade" {
+  oracle_id a4f99939-4b70-41ee-ad38-2dda56dbc9ce
+  cost {G}
+  type Creature — Elf Warrior
+  pt 1/2
+  keywords deathtouch
+  label "Revolt" enters with 1 +1/+1 counter if permanent left this turn
+}

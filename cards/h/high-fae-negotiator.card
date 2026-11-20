@@ -1,0 +1,9 @@
+card "High Fae Negotiator" {
+  oracle_id 90ecd452-333a-43b0-be08-a61f3779b3bd
+  cost {3}{B}{B}
+  type Creature — Faerie Warlock
+  pt 3/5
+  bargain
+  keyword flying
+  triggered when this enters if bargained: each opponent loses 3 life and you gains 3 life
+}

@@ -1,0 +1,9 @@
+card "Knowledge Seeker" {
+  oracle_id bdc2d980-ca14-4040-a9a1-786d724dc65c
+  cost {1}{U}
+  type Creature — Fox Spirit
+  pt 2/1
+  keywords vigilance
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counters on this
+  triggered when this dies: create 1 "Clue"
+}

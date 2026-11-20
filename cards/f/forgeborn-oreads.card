@@ -1,0 +1,7 @@
+card "Forgeborn Oreads" {
+  oracle_id 8289190c-b180-48e3-b92f-7dccbca61b39
+  cost {2}{R}{R}
+  type Enchantment Creature — Nymph
+  pt 4/2
+  label "Constellation" triggered whenever this or enchantment you control enters: deal 1 damage to any target
+}

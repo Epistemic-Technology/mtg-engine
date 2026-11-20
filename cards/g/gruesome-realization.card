@@ -1,0 +1,9 @@
+card "Gruesome Realization" {
+  oracle_id c24e34e7-0ac6-451a-b73b-31c7f96d123f
+  cost {1}{B}{B}
+  type Sorcery
+  choose one {
+    mode: you draw 2 card, and you lose 2 life
+    mode: each creature your opponents control gets -1/-1
+  }
+}

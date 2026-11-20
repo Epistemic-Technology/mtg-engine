@@ -1,0 +1,8 @@
+card "Swooping Protector" {
+  oracle_id 094689cc-617a-426e-beb9-3f8de692cd5b
+  cost {3}{W}
+  type Creature — Bird Citizen
+  pt 2/1
+  keywords flash, flying
+  enters with 1 shield counters
+}

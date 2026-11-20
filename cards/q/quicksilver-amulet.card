@@ -1,0 +1,6 @@
+card "Quicksilver Amulet" {
+  oracle_id e1096a98-a631-43f5-97d8-325001d608b3
+  cost {4}
+  type Artifact
+  activated {4}, {T}: you may put creature card from hand onto battlefield
+}

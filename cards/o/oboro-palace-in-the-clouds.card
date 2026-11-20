@@ -1,0 +1,6 @@
+card "Oboro, Palace in the Clouds" {
+  oracle_id 645fb11b-d684-4bec-8532-8fa97e8f7b28
+  type Legendary Land
+  mana {U}
+  activated {1}: return this to its owner's hand
+}

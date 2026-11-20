@@ -1,0 +1,6 @@
+card "Thran Temporal Gateway" {
+  oracle_id 36282c29-a44b-4156-9441-03aa4bf386a8
+  cost {4}
+  type Legendary Artifact
+  activated {4}, {T}: you may put historic permanent card from hand onto battlefield
+}

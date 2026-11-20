@@ -1,0 +1,8 @@
+card "Obyra, Dreaming Duelist" {
+  oracle_id 4162e60f-9d70-4b8c-a838-df57b83c208d
+  cost {U}{B}
+  type Legendary Creature — Faerie Warrior
+  pt 2/2
+  keywords flash, flying
+  triggered whenever other Faerie you control enters: each opponent loses 1 life
+}

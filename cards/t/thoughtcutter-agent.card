@@ -1,0 +1,7 @@
+card "Thoughtcutter Agent" {
+  oracle_id 06ada754-da78-4eda-8be7-3ac4f06115c4
+  cost {U}{B}
+  type Artifact Creature — Human Rogue
+  pt 1/1
+  activated {U}{B}, {T}: target player loses 1 life and reveals hand
+}

@@ -1,0 +1,7 @@
+card "Debtor's Pulpit" {
+  oracle_id 541c6564-ec39-4b14-8c02-dd6a5d122ed3
+  cost {4}{W}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: has ability { activated {T}: tap target creature }
+}

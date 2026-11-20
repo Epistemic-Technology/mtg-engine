@@ -1,0 +1,9 @@
+card "Kor Aeronaut" {
+  oracle_id 1adb733c-d18a-4019-9229-0ad701a15b1a
+  cost {W}{W}
+  type Creature — Kor Soldier
+  pt 2/2
+  kicker {1}{W}
+  keyword flying
+  triggered when this enters if kicked: target creature gains flying
+}

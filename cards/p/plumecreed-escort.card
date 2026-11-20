@@ -1,0 +1,8 @@
+card "Plumecreed Escort" {
+  oracle_id 04669a6f-6299-465b-a26e-6cae37cdc081
+  cost {1}{U}
+  type Creature — Bird Scout
+  pt 2/1
+  keywords flash, flying
+  triggered when this enters: target creature you control gains hexproof
+}

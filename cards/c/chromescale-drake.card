@@ -1,0 +1,9 @@
+card "Chromescale Drake" {
+  oracle_id 534eb5bd-1eb0-4a12-8e98-e964495aa7e9
+  cost {6}{U}{U}{U}
+  type Creature — Drake
+  pt 3/4
+  affinity for artifact
+  keyword flying
+  triggered when this enters: dig 3 reveal take all artifact card rest graveyard
+}

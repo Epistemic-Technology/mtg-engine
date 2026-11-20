@@ -1,0 +1,9 @@
+card "Escarpment Fortress" {
+  oracle_id 5c3f45cb-d2f0-4dac-b124-18e8f6d7e2dc
+  cost {4}{W}
+  type Creature — Wall
+  pt 3/5
+  keywords defender, reach
+  static other creature you control: +1/+0
+  triggered whenever you attack with 2 or more creatures: draw 1 cards
+}

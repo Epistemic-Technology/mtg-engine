@@ -1,0 +1,8 @@
+card "Blood Cultist" {
+  oracle_id 031ddf1e-afcf-4b09-8859-4df0f0ab5dcf
+  cost {1}{B}{R}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: deal 1 damage to target creature
+  triggered whenever creature dealt damage by this this turn dies: put 1 +1/+1 counters on this
+}

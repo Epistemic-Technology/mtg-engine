@@ -1,0 +1,9 @@
+card "Skylasher" {
+  oracle_id 153a4c11-e75f-46d7-b684-17d500ea13e6
+  cost {1}{G}
+  type Creature — Insect
+  pt 2/2
+  keywords flash
+  this spell can't be countered
+  keyword reach, protection from blue
+}

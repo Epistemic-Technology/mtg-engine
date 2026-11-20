@@ -1,0 +1,7 @@
+card "Yotian Dissident" {
+  oracle_id 6ad61622-a70f-423c-99e3-b1ef6ead0b31
+  cost {G}{W}
+  type Creature — Human Artificer
+  pt 1/1
+  triggered whenever artifact you control enters: put 1 +1/+1 counters on target creature you control
+}

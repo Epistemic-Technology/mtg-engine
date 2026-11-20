@@ -1,0 +1,8 @@
+card "Maulfist Doorbuster" {
+  oracle_id 70a04e3f-e123-4925-9a02-9825488f1bc8
+  cost {3}{R}
+  type Creature — Human Warrior
+  pt 4/2
+  triggered when this enters: you get 2 energy
+  triggered whenever this attacks: you may pay 1 energy; if you do, target creature can't block
+}

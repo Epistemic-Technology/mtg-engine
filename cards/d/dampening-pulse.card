@@ -1,0 +1,6 @@
+card "Dampening Pulse" {
+  oracle_id fe3c81b8-9bca-4760-b677-02bfa7e6137b
+  cost {3}{U}
+  type Enchantment
+  static creature your opponents control: -1/-0
+}

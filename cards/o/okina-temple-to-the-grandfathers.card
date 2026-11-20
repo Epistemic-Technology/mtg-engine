@@ -1,0 +1,6 @@
+card "Okina, Temple to the Grandfathers" {
+  oracle_id 3ad69bfb-2e51-4fe9-8d2f-7d071a4f1c69
+  type Legendary Land
+  mana {G}
+  activated {G}, {T}: target legendary creature gets +1/+1
+}

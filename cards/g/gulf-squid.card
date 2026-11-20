@@ -1,0 +1,7 @@
+card "Gulf Squid" {
+  oracle_id 98a60a97-3a43-4544-8ea3-40d0bad79caf
+  cost {3}{U}
+  type Creature — Squid Beast
+  pt 2/2
+  triggered when this enters: tap each land target player controls
+}

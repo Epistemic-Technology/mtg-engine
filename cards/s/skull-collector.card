@@ -1,0 +1,8 @@
+card "Skull Collector" {
+  oracle_id 42ec62b1-c899-4ebd-b786-28edf76ce8e0
+  cost {1}{B}{B}
+  type Creature — Ogre Warrior
+  pt 3/3
+  triggered at beginning of your upkeep: return 1 black creature you control chosen
+  activated {1}{B}: regenerate this
+}

@@ -1,0 +1,8 @@
+card "Divinity of Pride" {
+  oracle_id 2c91c236-34d7-4454-a55a-784db7f68bde
+  cost {W/B}{W/B}{W/B}{W/B}{W/B}
+  type Creature — Spirit Avatar
+  pt 4/4
+  keywords flying, lifelink
+  static this: +4/+4 as long as your life 25 or more
+}

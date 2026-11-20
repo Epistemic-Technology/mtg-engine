@@ -1,0 +1,8 @@
+card "Whirler Virtuoso" {
+  oracle_id f82da236-e567-4221-a0bc-439a0c7e2b03
+  cost {1}{U}{R}
+  type Creature — Vedalken Artificer
+  pt 2/3
+  triggered when this enters: you get 3 energy
+  activated pay 3 energy: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

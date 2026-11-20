@@ -1,0 +1,7 @@
+card "Asceticism" {
+  oracle_id 9396546c-d067-4ce3-9c3d-b62cca970b4f
+  cost {3}{G}{G}
+  type Enchantment
+  static creature you control: has hexproof
+  activated {1}{G}: regenerate target creature
+}

@@ -1,0 +1,8 @@
+card "Slumbering Cerberus" {
+  oracle_id 39cae244-96e1-4ea3-899a-3aa871cca31c
+  cost {1}{R}
+  type Creature — Dog
+  pt 4/2
+  keywords doesn't untap
+  label "Morbid" triggered at beginning of every end step if creature died this turn: untap this
+}

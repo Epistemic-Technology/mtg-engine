@@ -1,0 +1,8 @@
+card "Paladin of Predation" {
+  oracle_id fb5a02ce-6080-47f9-815a-fef3758d753b
+  cost {5}{G}{G}
+  type Creature — Phyrexian Knight
+  pt 6/7
+  toxic 6
+  can't be blocked by creature with power 2 or less
+}

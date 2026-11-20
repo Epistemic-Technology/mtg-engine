@@ -1,0 +1,8 @@
+card "Ruric Thar, Biomagus" {
+  oracle_id 873fa095-5662-407a-bd24-9a1c4712a428
+  cost {4}{U}{U}
+  type Legendary Creature — Ogre Crab Wizard
+  pt 4/6
+  keywords flying, prowess, prowess
+  triggered whenever this becomes targeted by opponent: draw 1 cards
+}

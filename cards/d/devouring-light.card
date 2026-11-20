@@ -1,0 +1,7 @@
+card "Devouring Light" {
+  oracle_id 5334dc24-040e-4094-80f4-8d1b9de01230
+  cost {1}{W}{W}
+  type Instant
+  keywords convoke
+  spell: exile target attacking or blocking creature
+}

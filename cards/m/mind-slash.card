@@ -1,0 +1,6 @@
+card "Mind Slash" {
+  oracle_id 47e79913-322e-4ba6-9bf8-3b4c1c82a6c4
+  cost {1}{B}{B}
+  type Enchantment
+  activated {B}, sacrifice creature, sorcery: target opponent reveals hand discarding card
+}

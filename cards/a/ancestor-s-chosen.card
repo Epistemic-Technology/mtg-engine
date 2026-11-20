@@ -1,0 +1,8 @@
+card "Ancestor's Chosen" {
+  oracle_id fc2ccab7-cab1-4463-b73d-898070136d74
+  cost {5}{W}{W}
+  type Creature — Human Cleric
+  pt 4/4
+  keywords first strike
+  triggered when this enters: you gain count each graveyard life
+}

@@ -1,0 +1,9 @@
+card "Sanctuary Smasher" {
+  oracle_id 29925297-b6d4-4fc8-a585-1425c1482ec6
+  cost {4}{R}{R}
+  type Creature — Rhino Beast
+  pt 6/4
+  keywords first strike
+  cycling {2}{R}
+  triggered when you cycle this: put 1 first strike counters on target creature you control
+}

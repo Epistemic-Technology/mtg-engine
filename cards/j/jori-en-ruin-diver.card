@@ -1,0 +1,7 @@
+card "Jori En, Ruin Diver" {
+  oracle_id 4cd9b48e-5774-4a1c-857f-9f4a92db9b41
+  cost {1}{U}{R}
+  type Legendary Creature — Merfolk Wizard
+  pt 2/3
+  triggered whenever you cast your second spell each turn: draw 1 cards
+}

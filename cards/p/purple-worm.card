@@ -1,0 +1,8 @@
+card "Purple Worm" {
+  oracle_id 179cc807-5150-4513-88b2-73cb05009b7d
+  cost {5}{G}{G}
+  type Creature — Worm
+  pt 8/7
+  this spell costs {2} less if creature died this turn
+  ward {2}
+}

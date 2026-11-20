@@ -1,0 +1,7 @@
+card "Tamiyo's Immobilizer" {
+  oracle_id c2c7a9c2-28f8-4cf0-a042-420f6a4ba8bd
+  cost {3}{U}
+  type Artifact
+  enters with 4 oil counters
+  activated {T}, remove 1 oil counters from this: tap target artifact or creature
+}

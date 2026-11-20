@@ -1,0 +1,9 @@
+card "Surge Mare" {
+  oracle_id 8342de86-5b11-486d-8012-f0f9d2ded8c4
+  cost {U}{U}
+  type Creature — Horse Fish
+  pt 0/5
+  can't be blocked by green creature
+  triggered whenever this deals damage to opponent: you may draw 1 cards; if you do, discard 1 cards
+  activated {1}{U}: this gets +2/-2
+}

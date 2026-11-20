@@ -1,0 +1,8 @@
+card "Ultimecia, Temporal Threat" {
+  oracle_id 5a8e7e35-e9ea-4808-8aa7-7580a23b9d9d
+  cost {4}{U}{U}
+  type Legendary Creature — Human Warlock
+  pt 4/4
+  triggered when this enters: tap each creature your opponents control
+  triggered whenever creature you control deals combat damage to a player: draw 1 cards
+}

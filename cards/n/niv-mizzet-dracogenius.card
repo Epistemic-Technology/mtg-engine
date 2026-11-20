@@ -1,0 +1,9 @@
+card "Niv-Mizzet, Dracogenius" {
+  oracle_id 899d58dc-60b2-4013-9f91-c1888c585d66
+  cost {2}{U}{U}{R}{R}
+  type Legendary Creature — Dragon Wizard
+  pt 5/5
+  keywords flying
+  triggered whenever this deals damage to player: you may draw 1 cards
+  activated {U}{R}: deal 1 damage to any target
+}

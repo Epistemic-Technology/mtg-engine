@@ -1,0 +1,7 @@
+card "Ghastbark Twins" {
+  oracle_id bdd0d01d-b9f2-4c3f-9b3b-04e122013de5
+  cost {5}{G}{G}
+  type Creature — Treefolk
+  pt 7/7
+  keywords trample, can block an additional creature each combat
+}

@@ -1,0 +1,8 @@
+card "Malcolm, the Eyes" {
+  oracle_id 7932ab35-39dc-4500-aa44-2ad7228f0d2a
+  cost {U}{R}
+  type Legendary Creature — Siren Pirate
+  pt 2/2
+  keywords flying, haste
+  triggered whenever you cast your second spell each turn: investigate
+}

@@ -1,0 +1,8 @@
+card "Dread Wanderer" {
+  oracle_id 88154d64-221f-4742-bccb-b1b61a2e8bf0
+  cost {B}
+  type Creature — Zombie Jackal
+  pt 2/1
+  enters tapped
+  activated {2}{B}, sorcery, if hand 1 or less, from graveyard: return this to battlefield
+}

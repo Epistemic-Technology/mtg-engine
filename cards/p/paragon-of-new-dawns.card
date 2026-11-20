@@ -1,0 +1,8 @@
+card "Paragon of New Dawns" {
+  oracle_id f064e5e3-4772-4f6d-b8fa-4f36d4fcdb42
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  static other white creature you control: +1/+1
+  activated {W}, {T}: another target white creature you control gains vigilance
+}

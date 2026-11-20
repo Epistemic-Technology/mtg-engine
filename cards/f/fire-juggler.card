@@ -1,0 +1,7 @@
+card "Fire Juggler" {
+  oracle_id dd1b4235-f053-4c46-8993-ae8d7860a0f3
+  cost {2}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  triggered whenever this becomes blocked: clash; if you win, deal 4 damage to each creature blocking it
+}

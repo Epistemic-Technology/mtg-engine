@@ -1,0 +1,7 @@
+card "Cenote Scout" {
+  oracle_id ec3911c0-686f-4c78-838d-a683eed6c01c
+  cost {G}
+  type Creature — Merfolk Scout
+  pt 1/1
+  triggered when this enters: this explores
+}

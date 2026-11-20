@@ -1,0 +1,11 @@
+card "Deceiver Exarch" {
+  oracle_id 3c939ea6-68b7-4965-b1d3-af1d3dc79778
+  cost {2}{U}
+  type Creature — Phyrexian Cleric
+  pt 1/4
+  keywords flash
+  triggered when this enters: choose one {
+    mode: untap target permanent you control
+    mode: tap target permanent an opponent controls
+  }
+}

@@ -1,0 +1,9 @@
+card "Nadaar, Selfless Paladin" {
+  oracle_id 0e3f9345-d986-4d60-a343-45598ab59aff
+  cost {2}{W}
+  type Legendary Creature — Dragon Knight
+  pt 3/3
+  keywords vigilance
+  triggered whenever this enters or attacks: venture
+  static other creature you control: +1/+1 as long as completed dungeon
+}

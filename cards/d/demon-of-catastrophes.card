@@ -1,0 +1,8 @@
+card "Demon of Catastrophes" {
+  oracle_id 2e0b838d-c858-4aa5-999e-c4ef9d29571b
+  cost {2}{B}{B}
+  type Creature — Demon
+  pt 6/6
+  keywords flying, trample
+  additional cost sacrifice creature
+}

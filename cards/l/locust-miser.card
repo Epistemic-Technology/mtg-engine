@@ -1,0 +1,7 @@
+card "Locust Miser" {
+  oracle_id 75a53a88-51a5-4c76-9f67-ee94c3065b98
+  cost {2}{B}{B}
+  type Creature — Rat Shaman
+  pt 2/2
+  hand size opponents -2
+}

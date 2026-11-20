@@ -1,0 +1,6 @@
+card "Kiss of the Amesha" {
+  oracle_id 779d3e58-de06-44be-98f8-f05f7711ecb2
+  cost {4}{W}{U}
+  type Sorcery
+  spell: target player gains 7 life and draws 2 cards
+}

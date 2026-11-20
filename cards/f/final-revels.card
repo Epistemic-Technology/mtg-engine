@@ -1,0 +1,9 @@
+card "Final Revels" {
+  oracle_id 978aef8e-6af8-4838-97ce-afb84baa9edc
+  cost {4}{B}
+  type Sorcery
+  choose one {
+    mode: all creatures gets +2/+0
+    mode: all creatures gets -0/-2
+  }
+}

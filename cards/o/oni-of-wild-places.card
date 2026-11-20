@@ -1,0 +1,8 @@
+card "Oni of Wild Places" {
+  oracle_id f551093d-40b7-43ac-8023-4cfbb6c646da
+  cost {5}{R}
+  type Creature — Demon Spirit
+  pt 6/5
+  keywords haste
+  triggered at beginning of your upkeep: return 1 red creature you control chosen
+}

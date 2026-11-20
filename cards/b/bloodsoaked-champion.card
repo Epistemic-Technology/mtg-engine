@@ -1,0 +1,8 @@
+card "Bloodsoaked Champion" {
+  oracle_id cad09970-14c8-4d80-82fe-6c855efb0191
+  cost {B}
+  type Creature — Human Warrior
+  pt 2/1
+  keywords can't block
+  label "Raid" activated {1}{B}, if attacked this turn, from graveyard: return this to battlefield
+}

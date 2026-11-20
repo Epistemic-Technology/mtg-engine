@@ -1,0 +1,7 @@
+card "Aura of Silence" {
+  oracle_id e7faf8eb-e829-4109-8dfe-42865a23ba86
+  cost {1}{W}{W}
+  type Enchantment
+  spells artifact or enchantment your opponents cast cost {2} more
+  activated sacrifice this: destroy target artifact or enchantment
+}

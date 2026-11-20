@@ -1,0 +1,8 @@
+card "Channeler Initiate" {
+  oracle_id a98ea782-1c49-4207-a130-41329087fdf6
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 3/4
+  triggered when this enters: put 3 -1/-1 counters on target creature you control
+  activated {T}, remove 1 -1/-1 counters from this: add any
+}

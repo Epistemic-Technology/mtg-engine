@@ -1,0 +1,7 @@
+card "Ancestral Vision" {
+  oracle_id 9728dec9-d482-4c7a-8cdc-44d010dc878d
+  type Sorcery
+  color blue
+  suspend 4 {U}
+  spell: target player draws 3 cards
+}

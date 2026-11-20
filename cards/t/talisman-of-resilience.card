@@ -1,0 +1,7 @@
+card "Talisman of Resilience" {
+  oracle_id 42b8aa14-10bc-4bd6-88d9-4bb287eadd19
+  cost {2}
+  type Artifact
+  mana {C}
+  activated {T}: add {B} or {G}; deal 1 damage to you
+}

@@ -1,0 +1,8 @@
+card "Rage Nimbus" {
+  oracle_id ab5b49d4-e648-43f1-bcc0-7dd4763316ee
+  cost {2}{R}
+  type Creature — Elemental
+  pt 5/3
+  keywords defender, flying
+  activated {1}{R}: target creature attacks if able
+}

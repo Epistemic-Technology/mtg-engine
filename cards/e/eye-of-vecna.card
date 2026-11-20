@@ -1,0 +1,7 @@
+card "Eye of Vecna" {
+  oracle_id 371a7bbf-5890-46d8-ae57-f020c103b465
+  cost {2}
+  type Legendary Artifact
+  triggered when this enters: you draw 1 card, and you lose 2 life
+  triggered at beginning of your upkeep: you may pay {2}; if you do, you draw 1 card, and you lose 2 life
+}

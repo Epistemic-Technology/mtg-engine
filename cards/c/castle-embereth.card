@@ -1,0 +1,7 @@
+card "Castle Embereth" {
+  oracle_id 91fbb25b-8521-483f-88b0-77778d25f7fd
+  type Land
+  enters tapped unless you control Mountain
+  mana {R}
+  activated {1}{R}{R}, {T}: each creature you control gets +1/+0
+}

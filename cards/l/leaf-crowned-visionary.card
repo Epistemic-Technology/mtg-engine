@@ -1,0 +1,8 @@
+card "Leaf-Crowned Visionary" {
+  oracle_id ef693b9f-11e3-49bf-8387-b8f480b9007a
+  cost {G}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  static other Elf you control: +1/+1
+  triggered whenever you cast Elf spell: you may pay {G}; if you do, draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Ranging Raptors" {
+  oracle_id 2a86b70b-34ca-45df-8aa1-c3fb2da72dc3
+  cost {2}{G}
+  type Creature — Dinosaur
+  pt 2/3
+  label "Enrage" triggered whenever this is dealt damage: you may search basic land card to battlefield tapped
+}

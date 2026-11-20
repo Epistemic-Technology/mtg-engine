@@ -1,0 +1,6 @@
+card "Incandescent Aria" {
+  oracle_id d031b482-b33d-4eb4-a5bc-ea96e66a1d99
+  cost {R}{G}{W}
+  type Sorcery
+  spell: deal 3 damage to each nontoken creature
+}

@@ -1,0 +1,8 @@
+card "Burning-Yard Trainer" {
+  oracle_id 6ea7a921-45b2-4589-833b-75b6dc6aed07
+  cost {4}{R}
+  type Creature — Human Knight
+  pt 3/3
+  keywords trample, haste
+  triggered when this enters: another target Knight you control gets +2/+2 and gains trample, haste
+}

@@ -1,0 +1,13 @@
+card "Bilbo Baggins, Burglar // Take a Glance" {
+  oracle_id fa85f9e6-69ff-4669-b70a-440aa7b16c97
+  layout adventure
+  cost {2}{U}
+  type Legendary Creature — Halfling Rogue
+  pt 2/1
+  triggered when this enters: draw 1 cards
+  face "Take a Glance" {
+    cost {U}
+    type Sorcery — Adventure
+    spell: scry 2
+  }
+}

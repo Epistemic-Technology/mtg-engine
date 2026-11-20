@@ -1,0 +1,6 @@
+card "Isolation Cell" {
+  oracle_id 56c558f3-535d-49aa-a2de-54e0bb598483
+  cost {4}
+  type Artifact
+  triggered whenever an opponent casts creature spell: that player loses 2 life unless they pay {2}
+}

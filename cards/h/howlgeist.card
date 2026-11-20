@@ -1,0 +1,8 @@
+card "Howlgeist" {
+  oracle_id 5a00eb94-6c0f-4f41-8c16-fc4e2f7cb9aa
+  cost {5}{G}
+  type Creature — Spirit Wolf
+  pt 4/2
+  can't be blocked by creature with lesser power
+  keyword undying
+}

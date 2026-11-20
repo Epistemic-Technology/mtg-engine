@@ -1,0 +1,8 @@
+card "Brood Monitor" {
+  oracle_id 9a08bb4b-46df-4b99-8f86-670d07e900ba
+  cost {4}{G}{G}
+  type Creature — Eldrazi Drone
+  pt 3/3
+  keywords devoid
+  triggered when this enters: create 3 "Eldrazi Scion" it has
+}

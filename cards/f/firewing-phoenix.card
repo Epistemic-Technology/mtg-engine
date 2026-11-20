@@ -1,0 +1,8 @@
+card "Firewing Phoenix" {
+  oracle_id 326d9b5c-ac04-45b5-9a8c-a9be7d8cca1b
+  cost {3}{R}
+  type Creature — Phoenix
+  pt 4/2
+  keywords flying
+  activated {1}{R}{R}{R}, from graveyard: return this to hand
+}

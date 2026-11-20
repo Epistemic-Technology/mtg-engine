@@ -1,0 +1,8 @@
+card "Meadowboon" {
+  oracle_id 708bf989-dd8d-4066-a463-96cc5eadbb06
+  cost {2}{W}{W}
+  type Creature — Elemental
+  pt 3/3
+  triggered when this leaves the battlefield: put 1 +1/+1 counters on each creature target player controls
+  evoke {3}{W}
+}

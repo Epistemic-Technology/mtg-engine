@@ -1,0 +1,7 @@
+card "Needletooth Raptor" {
+  oracle_id 2c431df9-095a-44f1-993e-74eb215d75fe
+  cost {3}{R}
+  type Creature — Dinosaur
+  pt 2/2
+  label "Enrage" triggered whenever this is dealt damage: deal 5 damage to target creature an opponent controls
+}

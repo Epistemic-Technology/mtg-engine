@@ -1,0 +1,9 @@
+card "Skysovereign, Consul Flagship" {
+  oracle_id 50b14338-9318-4327-a1dd-c0ef38903cc4
+  cost {5}
+  type Legendary Artifact — Vehicle
+  pt 6/5
+  keywords flying
+  triggered whenever this enters or attacks: deal 3 damage to target creature or planeswalker an opponent controls
+  crew 3
+}

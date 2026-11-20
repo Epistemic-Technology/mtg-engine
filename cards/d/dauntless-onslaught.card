@@ -1,0 +1,6 @@
+card "Dauntless Onslaught" {
+  oracle_id ce29f71a-6662-4be4-9915-5a4be87288e0
+  cost {2}{W}
+  type Instant
+  spell: up to two target creatures each gets +2/+2
+}

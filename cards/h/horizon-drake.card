@@ -1,0 +1,8 @@
+card "Horizon Drake" {
+  oracle_id 9c724912-5afd-4813-affb-4dbda64fd4ee
+  cost {1}{U}{U}
+  type Creature — Drake
+  pt 3/1
+  keywords flying
+  protection from land
+}

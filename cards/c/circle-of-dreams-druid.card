@@ -1,0 +1,7 @@
+card "Circle of Dreams Druid" {
+  oracle_id 1c857fa4-e823-494d-9ea4-7eb9e719c9b6
+  cost {G}{G}{G}
+  type Creature — Elf Druid
+  pt 2/1
+  activated {T}: add {G} count each creature you control
+}

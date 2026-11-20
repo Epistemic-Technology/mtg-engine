@@ -1,0 +1,7 @@
+card "Nightmare Void" {
+  oracle_id 9a53ef0d-8e29-4128-9cc4-fbdd3e4fdb84
+  cost {3}{B}
+  type Sorcery
+  spell: target player reveals hand discarding card
+  dredge 2
+}

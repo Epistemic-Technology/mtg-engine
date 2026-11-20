@@ -1,0 +1,7 @@
+card "Quicksmith Genius" {
+  oracle_id bca0c136-3845-4cb9-8d80-f504a01ad50a
+  cost {2}{R}
+  type Creature — Human Artificer
+  pt 3/2
+  triggered whenever artifact you control enters: you may discard 1 cards; if you do, draw 1 cards
+}

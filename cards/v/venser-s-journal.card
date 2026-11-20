@@ -1,0 +1,7 @@
+card "Venser's Journal" {
+  oracle_id f7907327-4df3-4bb2-a274-03d9e266af2f
+  cost {5}
+  type Artifact — Book
+  hand size none
+  triggered at beginning of your upkeep: you gain count each hand life
+}

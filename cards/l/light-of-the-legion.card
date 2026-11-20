@@ -1,0 +1,9 @@
+card "Light of the Legion" {
+  oracle_id 79fc0d30-9b9b-400c-a614-c3a1f90a5380
+  cost {4}{W}{W}
+  type Creature — Angel
+  pt 5/5
+  keywords flying
+  mentor
+  triggered when this dies: put 1 +1/+1 counters on each white creature you control
+}

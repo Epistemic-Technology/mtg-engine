@@ -1,0 +1,8 @@
+card "Gelectrode" {
+  oracle_id 8039df5c-b26b-4277-8226-4c08a5a69fbb
+  cost {1}{U}{R}
+  type Creature — Weird
+  pt 0/1
+  activated {T}: deal 1 damage to any target
+  triggered whenever you cast an instant or sorcery spell: you may untap this
+}

@@ -1,0 +1,8 @@
+card "Patchwork Automaton" {
+  oracle_id 0ba86a50-13df-4b26-8b3a-9e3917ff850f
+  cost {2}
+  type Artifact Creature — Construct
+  pt 1/1
+  ward {2}
+  triggered whenever you cast artifact spell: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Blasphemous Act" {
+  oracle_id 7a2484a9-04fd-41a0-8224-610c1c07ed10
+  cost {8}{R}
+  type Sorcery
+  this spell costs {1} less count each creature on battlefield
+  spell: deal 13 damage to each creature
+}

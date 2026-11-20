@@ -1,0 +1,9 @@
+card "Firemaw Kavu" {
+  oracle_id 7ac09735-f05c-4e28-83d6-262cddc9eeb3
+  cost {5}{R}
+  type Creature — Kavu
+  pt 4/2
+  echo {5}{R}
+  triggered when this enters: deal 2 damage to target creature
+  triggered when this leaves the battlefield: deal 4 damage to target creature
+}

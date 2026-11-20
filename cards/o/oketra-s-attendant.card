@@ -1,0 +1,9 @@
+card "Oketra's Attendant" {
+  oracle_id c45d1df1-92a7-4b36-8e27-1f88c3737bf9
+  cost {3}{W}{W}
+  type Creature — Bird Soldier
+  pt 3/3
+  keywords flying
+  cycling {2}
+  embalm {3}{W}{W}
+}

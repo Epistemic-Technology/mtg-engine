@@ -1,0 +1,7 @@
+card "Rage Thrower" {
+  oracle_id f9697a59-46e2-4612-b30b-d041a38fdd30
+  cost {5}{R}
+  type Creature — Human Shaman
+  pt 4/2
+  triggered whenever other creature dies: deal 2 damage to target player or planeswalker
+}

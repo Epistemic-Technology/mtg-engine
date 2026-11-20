@@ -1,0 +1,7 @@
+card "Madame Hydra" {
+  oracle_id d812c8e3-a475-4ad2-a93f-7208ad873676
+  cost {2}{B}{R}
+  type Legendary Creature — Human Villain
+  pt 2/3
+  triggered whenever you cast Villain spell: create 1 "2/1 black Villain creature with menace"
+}

@@ -1,0 +1,9 @@
+card "Retreat to Emeria" {
+  oracle_id cc0cda37-9fea-48c6-897a-45f6b84e1eae
+  cost {3}{W}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: choose one {
+    mode: create 1 "1/1 white Kor Ally creature"
+    mode: each creature you control gets +1/+1
+  }
+}

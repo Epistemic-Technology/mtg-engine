@@ -1,0 +1,6 @@
+card "Despise" {
+  oracle_id b13b40f1-1b1f-40e8-989b-ef24dc05007a
+  cost {B}
+  type Sorcery
+  spell: target opponent reveals hand discarding creature or planeswalker card
+}

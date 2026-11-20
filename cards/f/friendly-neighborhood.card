@@ -1,0 +1,8 @@
+card "Friendly Neighborhood" {
+  oracle_id 10fe402e-8d6f-4058-9f42-86f229055359
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: create 3 "1/1 green and white Human Citizen creature"
+  static enchanted: has ability { activated {1}, {T}, sorcery: target creature gets +1/+1 count each creature you control }
+}

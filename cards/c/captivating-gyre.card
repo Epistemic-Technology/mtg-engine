@@ -1,0 +1,6 @@
+card "Captivating Gyre" {
+  oracle_id 41011f09-ad8a-4eea-aa52-d20a219bc94c
+  cost {4}{U}{U}
+  type Sorcery
+  spell: return up to three target creatures to hand
+}

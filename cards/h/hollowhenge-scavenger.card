@@ -1,0 +1,7 @@
+card "Hollowhenge Scavenger" {
+  oracle_id 60116231-cc54-4c74-b3d9-74e517182f1f
+  cost {3}{G}{G}
+  type Creature — Elemental
+  pt 4/5
+  label "Morbid" triggered when this enters if creature died this turn: you gains 5 life
+}

@@ -1,0 +1,8 @@
+card "Soulsurge Elemental" {
+  oracle_id a98764e2-3cf6-40a4-aba5-34e2411623ab
+  cost {3}{R}
+  type Creature — Elemental
+  pt */1
+  keywords first strike
+  static this: cda power count creature you control
+}

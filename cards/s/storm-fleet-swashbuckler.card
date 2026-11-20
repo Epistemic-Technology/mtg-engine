@@ -1,0 +1,8 @@
+card "Storm Fleet Swashbuckler" {
+  oracle_id 6640bcfc-4bdc-4380-8b51-61b906f9aee6
+  cost {1}{R}
+  type Creature — Human Pirate
+  pt 2/2
+  ascend
+  static this: has double strike as long as city's blessing
+}

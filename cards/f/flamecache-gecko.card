@@ -1,0 +1,8 @@
+card "Flamecache Gecko" {
+  oracle_id d767463b-0fc9-43fc-a85f-e60f030f9b96
+  cost {1}{R}
+  type Creature — Lizard Warlock
+  pt 2/2
+  triggered when this enters if opponent lost life this turn: add {B}{R}
+  activated {1}{R}, discard 1 card: draw 1 cards
+}

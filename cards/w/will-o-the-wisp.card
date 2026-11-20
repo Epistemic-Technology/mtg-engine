@@ -1,0 +1,8 @@
+card "Will-o'-the-Wisp" {
+  oracle_id 8b60fcfe-fb90-4a00-a708-25b59bfc9b5a
+  cost {B}
+  type Creature — Spirit
+  pt 0/1
+  keywords flying
+  activated {B}: regenerate this
+}

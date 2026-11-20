@@ -1,0 +1,9 @@
+card "Thousand Winds" {
+  oracle_id 81b50d34-d778-4606-80de-0e0780610d1f
+  cost {4}{U}{U}
+  type Creature — Elemental
+  pt 5/6
+  keywords flying
+  morph {5}{U}{U}
+  triggered when this is turned face up: return all other tapped creature to hand
+}

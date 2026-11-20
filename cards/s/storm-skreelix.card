@@ -1,0 +1,9 @@
+card "Storm Skreelix" {
+  oracle_id 0ccd1084-64bb-41ee-81c0-666af434b8df
+  cost {3}{U}{R}
+  type Creature — Drake Horror
+  pt 2/4
+  keywords flying
+  spells instant or sorcery you cast cost {1} less
+  triggered whenever you cast an instant or sorcery spell: this gets +2/+0
+}

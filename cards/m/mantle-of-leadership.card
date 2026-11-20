@@ -1,0 +1,8 @@
+card "Mantle of Leadership" {
+  oracle_id 65c0d59b-3a94-49af-94cd-2ab4820a51f3
+  cost {1}{W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered whenever creature enters: enchanted creature gets +2/+2
+}

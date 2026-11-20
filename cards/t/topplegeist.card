@@ -1,0 +1,9 @@
+card "Topplegeist" {
+  oracle_id 4a71f404-e48d-4c86-882e-4e21c8210dea
+  cost {W}
+  type Creature — Spirit
+  pt 1/1
+  keywords flying
+  triggered when this enters: tap target creature an opponent controls
+  label "Delirium" triggered at beginning of each opponent's upkeep step if 4 card types in your graveyard: tap target creature that player controls
+}

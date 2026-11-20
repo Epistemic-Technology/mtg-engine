@@ -1,0 +1,9 @@
+card "Sarkhan Vol" {
+  oracle_id d902074a-2a2b-42b7-a1e5-750862c64fbe
+  cost {2}{R}{G}
+  type Legendary Planeswalker — Sarkhan
+  loyalty 4
+  loyalty +1: each creature you control gets +1/+1 and gains haste
+  loyalty -2: gain control of target creature; untap that creature; target 1 gains haste
+  loyalty -6: create 5 "4/4 red Dragon creature with flying"
+}

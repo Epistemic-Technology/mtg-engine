@@ -1,0 +1,6 @@
+card "Plague Wind" {
+  oracle_id 18ec721f-c1ac-4581-a61d-2f0b09d6bf92
+  cost {7}{B}{B}
+  type Sorcery
+  spell: destroy each creature you don't control without regeneration
+}

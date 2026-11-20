@@ -1,0 +1,8 @@
+card "Azorius Skyguard" {
+  oracle_id bbfdb5eb-2140-4d50-a667-1b4ac75d03a5
+  cost {4}{W}{U}
+  type Creature — Human Knight
+  pt 3/3
+  keywords flying, first strike
+  static creature your opponents control: -1/-0
+}

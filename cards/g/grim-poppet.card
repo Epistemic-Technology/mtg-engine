@@ -1,0 +1,8 @@
+card "Grim Poppet" {
+  oracle_id 43e0dbaf-3c81-47e2-b0c2-364f7ac7295f
+  cost {7}
+  type Artifact Creature — Scarecrow
+  pt 4/4
+  enters with 3 -1/-1 counters
+  activated remove 1 -1/-1 counters from this: put 1 -1/-1 counters on another target creature
+}

@@ -1,0 +1,9 @@
+card "Bloated Contaminator" {
+  oracle_id 090018e0-4dcb-4b3c-b4e0-7ba62de0484d
+  cost {2}{G}
+  type Creature — Phyrexian Beast
+  pt 4/4
+  keywords trample
+  toxic 1
+  triggered whenever this deals combat damage to a player: proliferate
+}

@@ -1,0 +1,8 @@
+card "Trigon of Corruption" {
+  oracle_id 0da19cd4-7b3f-47bb-bb35-cbcc88ab53cd
+  cost {4}
+  type Artifact
+  enters with 3 charge counters
+  activated {B}{B}, {T}: put 1 charge counters on this
+  activated {2}, {T}, remove 1 charge counters from this: put 1 -1/-1 counters on target creature
+}

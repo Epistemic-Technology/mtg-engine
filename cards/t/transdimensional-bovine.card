@@ -1,0 +1,8 @@
+card "Transdimensional Bovine" {
+  oracle_id eaa6b294-ac66-4fe2-b694-97b0a04f7be1
+  cost {2}{G}
+  type Creature — Ox Avatar
+  pt 0/4
+  keywords flying
+  activated {T}: add any 2
+}

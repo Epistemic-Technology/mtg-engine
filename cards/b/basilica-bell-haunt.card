@@ -1,0 +1,7 @@
+card "Basilica Bell-Haunt" {
+  oracle_id 796dc53d-5a0d-4d19-9fa4-f474a9d96041
+  cost {W}{W}{B}{B}
+  type Creature — Spirit
+  pt 3/4
+  triggered when this enters: each opponent discards a card and you gains 3 life
+}

@@ -1,0 +1,8 @@
+card "Winter, Team Player" {
+  oracle_id 254f133a-eee5-48b9-b19f-110555e49300
+  cost {4}{R}
+  type Legendary Creature — Human Warrior
+  pt 3/3
+  keywords convoke
+  triggered whenever you cast a noncreature spell: each creature you control gets +1/+0
+}

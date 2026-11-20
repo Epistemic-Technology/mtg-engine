@@ -1,0 +1,8 @@
+card "Vona, Butcher of Magan" {
+  oracle_id b1c56e23-eae6-47a1-a1cd-3a2d01621768
+  cost {3}{W}{B}
+  type Legendary Creature — Vampire Knight
+  pt 4/4
+  keywords vigilance, lifelink
+  activated {T}, pay 7 life, during your turn: destroy target nonland permanent
+}

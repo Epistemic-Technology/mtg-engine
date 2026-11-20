@@ -1,0 +1,6 @@
+card "Corpsehatch" {
+  oracle_id 5a6c9376-313b-4420-890e-5aa78fa6382f
+  cost {3}{B}{B}
+  type Sorcery
+  spell: destroy target nonblack creature; create 2 "Eldrazi Spawn" it has
+}

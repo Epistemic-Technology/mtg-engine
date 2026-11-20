@@ -1,0 +1,6 @@
+card "Opulent Palace" {
+  oracle_id f9e7e855-1e3b-42d3-91b0-64ba8b5b8982
+  type Land
+  enters tapped
+  mana {B} or {G} or {U}
+}

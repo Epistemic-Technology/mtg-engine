@@ -1,0 +1,8 @@
+card "Ronin Warclub" {
+  oracle_id 11b969f2-ff68-4c9e-b3f3-839736084303
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +2/+1
+  triggered whenever creature you control enters: attach to that creature
+  equip {5}
+}

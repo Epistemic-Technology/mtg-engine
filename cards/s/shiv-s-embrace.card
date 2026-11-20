@@ -1,0 +1,8 @@
+card "Shiv's Embrace" {
+  oracle_id e41162bf-1a4f-4e69-870a-faf9836c56d5
+  cost {2}{R}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has flying
+  activated {R}: enchanted creature gets +1/+0
+}

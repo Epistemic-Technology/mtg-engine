@@ -1,0 +1,7 @@
+card "Spikeshot Elder" {
+  oracle_id 8307bfb0-3ab2-467f-b13c-ad4acadf319c
+  cost {R}
+  type Creature — Goblin Shaman
+  pt 1/1
+  activated {1}{R}{R}: this bites any target
+}

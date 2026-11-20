@@ -1,0 +1,8 @@
+card "Arcbound Lancer" {
+  oracle_id fd6ffa00-170b-46d2-810a-f255de62b9d7
+  cost {7}
+  type Artifact Creature — Beast
+  pt 0/0
+  keywords first strike
+  modular 4
+}

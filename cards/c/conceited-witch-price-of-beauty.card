@@ -1,0 +1,13 @@
+card "Conceited Witch // Price of Beauty" {
+  oracle_id 1c751201-24ba-4e5c-bf44-71c3e4693a92
+  layout adventure
+  cost {2}{B}
+  type Creature — Human Warlock
+  pt 2/3
+  keywords menace
+  face "Price of Beauty" {
+    cost {B}
+    type Sorcery — Adventure
+    spell: create 1 "Wicked Role" attached to target creature you control
+  }
+}

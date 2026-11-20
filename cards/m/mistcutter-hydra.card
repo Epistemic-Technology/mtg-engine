@@ -1,0 +1,9 @@
+card "Mistcutter Hydra" {
+  oracle_id 30b5b764-478a-46fa-8f95-a1f515925a2d
+  cost {X}{G}
+  type Creature — Hydra
+  pt 0/0
+  this spell can't be countered
+  keyword haste, protection from blue
+  enters with X +1/+1 counters
+}

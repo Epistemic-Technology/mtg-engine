@@ -1,0 +1,7 @@
+card "Master of the Pearl Trident" {
+  oracle_id 9f6ea9fe-eee5-4dca-a34e-c66d3e218716
+  cost {U}{U}
+  type Creature — Merfolk
+  pt 2/2
+  static other Merfolk creature you control: +1/+1, has islandwalk
+}

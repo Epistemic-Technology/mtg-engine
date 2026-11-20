@@ -1,0 +1,7 @@
+card "Horde of Boggarts" {
+  oracle_id 1229b82f-fc50-4259-83c6-31f706ac2303
+  cost {3}{R}
+  type Creature — Goblin
+  keywords menace
+  static this: cda pt count red permanent you control
+}

@@ -1,0 +1,8 @@
+card "Ironroot Warlord" {
+  oracle_id abc49dc3-03b3-48a4-afe1-5fc435b65d0f
+  cost {1}{G}{W}
+  type Creature — Treefolk Soldier
+  pt */5
+  static this: cda power count creature you control
+  activated {3}{G}{W}: create 1 "1/1 white Soldier creature"
+}

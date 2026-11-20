@@ -1,0 +1,8 @@
+card "Haunt of the Dead Marshes" {
+  oracle_id 0b683611-e46f-4105-b336-014d1556c8de
+  cost {B}
+  type Creature — Nightmare Elf
+  pt 1/1
+  triggered when this enters: scry 1
+  activated {2}{B}, if you control legendary creature, from graveyard: return this to battlefield tapped
+}

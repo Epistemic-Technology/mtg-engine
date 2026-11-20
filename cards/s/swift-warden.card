@@ -1,0 +1,8 @@
+card "Swift Warden" {
+  oracle_id 0928ddda-20ea-462e-9f00-6c10ef1cfb4b
+  cost {1}{G}{G}
+  type Creature — Merfolk Warrior
+  pt 3/3
+  keywords flash
+  triggered when this enters: target Merfolk you control gains hexproof
+}

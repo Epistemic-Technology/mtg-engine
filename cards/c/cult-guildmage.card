@@ -1,0 +1,8 @@
+card "Cult Guildmage" {
+  oracle_id c65f8949-5e37-4929-994a-ec037814bf63
+  cost {B}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {3}{B}, {T}, sorcery: target player discards 1 cards
+  activated {R}, {T}: deal 1 damage to target opponent or planeswalker
+}

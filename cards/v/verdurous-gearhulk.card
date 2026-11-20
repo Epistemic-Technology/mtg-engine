@@ -1,0 +1,8 @@
+card "Verdurous Gearhulk" {
+  oracle_id 3765e8bb-e70d-4503-b8dc-1e684e434c18
+  cost {3}{G}{G}
+  type Artifact Creature — Construct
+  pt 4/4
+  keywords trample
+  triggered when this enters: distribute 4 +1/+1 counters among any number of target creatures you control
+}

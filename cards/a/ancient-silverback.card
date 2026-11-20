@@ -1,0 +1,7 @@
+card "Ancient Silverback" {
+  oracle_id 5f12134c-d626-4a5e-8653-700681a491fc
+  cost {4}{G}{G}
+  type Creature — Ape
+  pt 6/5
+  activated {G}: regenerate this
+}

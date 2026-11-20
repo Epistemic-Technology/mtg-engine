@@ -1,0 +1,8 @@
+card "Flourishing Fox" {
+  oracle_id 44add927-4e6b-408e-907f-6a665add8b16
+  cost {W}
+  type Creature — Fox
+  pt 1/1
+  triggered whenever you cycle another card: put 1 +1/+1 counters on this
+  cycling {1}
+}

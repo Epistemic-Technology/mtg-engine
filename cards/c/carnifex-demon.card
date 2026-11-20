@@ -1,0 +1,9 @@
+card "Carnifex Demon" {
+  oracle_id 527e4eec-0983-46a9-a4f7-451080200aea
+  cost {4}{B}{B}
+  type Creature — Phyrexian Demon
+  pt 6/6
+  keywords flying
+  enters with 2 -1/-1 counters
+  activated {B}, remove 1 -1/-1 counters from this: put 1 -1/-1 counters on each other creature
+}

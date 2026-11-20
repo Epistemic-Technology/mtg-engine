@@ -1,0 +1,9 @@
+card "Congregation Gryff" {
+  oracle_id 376cbc85-2941-4d97-b031-bffff86550e7
+  cost {1}{G}{W}
+  type Creature — Hippogriff Mount
+  pt 1/4
+  keywords flying, lifelink
+  triggered whenever this attacks while saddled: this gets +1/+1 count where Mount you control
+  saddle 3
+}

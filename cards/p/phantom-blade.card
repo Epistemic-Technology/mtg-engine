@@ -1,0 +1,8 @@
+card "Phantom Blade" {
+  oracle_id 58d5d563-cb60-4977-86cd-f32cd811aa77
+  cost {4}{B}
+  type Artifact — Equipment
+  triggered when this enters: attach to up to one target creature you control; destroy up to 1 another target creature
+  static enchanted: +1/+1, has menace
+  equip {2}
+}

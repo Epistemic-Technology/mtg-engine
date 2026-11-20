@@ -1,0 +1,7 @@
+card "Cut of the Profits" {
+  oracle_id 8ce63f60-0211-46c7-8fb6-c5484ebfa029
+  cost {X}{B}{B}
+  type Sorcery
+  casualty 3
+  spell: you draw X card, and you lose X life
+}

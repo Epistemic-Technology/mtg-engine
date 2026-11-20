@@ -1,0 +1,6 @@
+card "Arcane Sanctum" {
+  oracle_id 7d7cf15c-06b9-4062-a1eb-32614c458a3b
+  type Land
+  enters tapped
+  mana {W} or {U} or {B}
+}

@@ -1,0 +1,6 @@
+card "Commune with Evil" {
+  oracle_id 0248bf01-14e0-4a39-ba3a-5177fe272fe9
+  cost {2}{B}
+  type Sorcery
+  spell: dig 4 take card rest graveyard; you gains 3 life
+}

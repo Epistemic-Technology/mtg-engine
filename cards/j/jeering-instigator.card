@@ -1,0 +1,8 @@
+card "Jeering Instigator" {
+  oracle_id 170adfe9-ffbe-40b1-b665-e756e7eb0302
+  cost {1}{R}
+  type Creature — Goblin Rogue
+  pt 2/1
+  morph {2}{R}
+  triggered when this is turned face up if your turn: gain control of another target creature; untap that creature; target 1 gains haste
+}

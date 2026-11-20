@@ -1,0 +1,8 @@
+card "Regisaur Alpha" {
+  oracle_id 0673f4e0-66ff-458c-b4ba-eb067e560cce
+  cost {3}{R}{G}
+  type Creature — Dinosaur
+  pt 4/4
+  static other Dinosaur you control: has haste
+  triggered when this enters: create 1 "3/3 green Dinosaur creature with trample"
+}

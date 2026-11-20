@@ -1,0 +1,8 @@
+card "Grim Haruspex" {
+  oracle_id 72aef1d8-11df-4bc2-af83-907b05df73a8
+  cost {2}{B}
+  type Creature — Human Wizard
+  pt 3/2
+  morph {B}
+  triggered whenever other nontoken creature you control dies: draw 1 cards
+}

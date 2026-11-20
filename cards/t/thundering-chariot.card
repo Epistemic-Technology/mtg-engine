@@ -1,0 +1,8 @@
+card "Thundering Chariot" {
+  oracle_id 589ea35b-c64e-4cf6-81c5-806e9463e992
+  cost {4}
+  type Artifact — Vehicle
+  pt 3/3
+  keywords first strike, trample, haste
+  crew 1
+}

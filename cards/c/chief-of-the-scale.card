@@ -1,0 +1,7 @@
+card "Chief of the Scale" {
+  oracle_id 32e4de02-8437-4ffc-acc9-a3736652d282
+  cost {W}{B}
+  type Creature — Human Warrior
+  pt 2/3
+  static other Warrior creature you control: +0/+1
+}

@@ -1,0 +1,8 @@
+card "Hero of the Winds" {
+  oracle_id 711893a5-2f4c-4957-90f5-2b1d6492b175
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 1/4
+  keywords flying
+  triggered whenever you cast a spell that targets this: each creature you control gets +1/+0
+}

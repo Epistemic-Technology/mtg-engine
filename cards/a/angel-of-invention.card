@@ -1,0 +1,9 @@
+card "Angel of Invention" {
+  oracle_id 28c7f2b6-ba67-4ccf-9e1b-99c89a9d1f72
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 2/1
+  keywords flying, vigilance, lifelink
+  fabricate 2
+  static other creature you control: +1/+1
+}

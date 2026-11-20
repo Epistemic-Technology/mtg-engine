@@ -1,0 +1,8 @@
+card "Intruding Soulrager" {
+  oracle_id 7673d0db-07d6-4b40-a32e-f2c98d7ea7c1
+  cost {U}{R}
+  type Creature — Spirit
+  pt 2/2
+  keywords vigilance
+  activated {T}, sacrifice Room: deal 2 damage to each opponent; draw 1 cards
+}

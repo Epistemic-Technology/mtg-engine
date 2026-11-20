@@ -1,0 +1,7 @@
+card "Rally the Ranks" {
+  oracle_id eeb07c8a-21d1-43fa-a5f3-ee3fe328a671
+  cost {1}{W}
+  type Enchantment
+  as this enters choose creature type
+  static creature you control of chosen type: +1/+1
+}

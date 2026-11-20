@@ -1,0 +1,7 @@
+card "Sliver Hive" {
+  oracle_id e7286688-ffbe-4d25-ad55-27990f005368
+  type Land
+  mana {C}
+  mana any only to cast Sliver spell
+  activated {5}, {T}, if you control Sliver: create 1 "1/1 colorless Sliver creature"
+}

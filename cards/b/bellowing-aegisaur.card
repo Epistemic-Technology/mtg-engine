@@ -1,0 +1,7 @@
+card "Bellowing Aegisaur" {
+  oracle_id 7063abe1-87dd-4526-9867-f7ce255b2cf0
+  cost {5}{W}
+  type Creature — Dinosaur
+  pt 3/5
+  label "Enrage" triggered whenever this is dealt damage: put 1 +1/+1 counters on each other creature you control
+}

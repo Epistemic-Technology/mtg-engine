@@ -1,0 +1,7 @@
+card "Hate Weaver" {
+  oracle_id 2a41f61b-a419-4b79-a25f-2506eaf05f55
+  cost {1}{B}
+  type Creature — Zombie Wizard
+  pt 2/1
+  activated {2}: target blue or red creature gets +1/+0
+}

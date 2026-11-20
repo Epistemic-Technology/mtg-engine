@@ -1,0 +1,9 @@
+card "Stonecloaker" {
+  oracle_id b2d597f4-162f-4adc-9dc9-6d44815b7a68
+  cost {2}{W}
+  type Creature — Gargoyle
+  pt 3/2
+  keywords flash, flying
+  triggered when this enters: return 1 creature you control chosen
+  triggered when this enters: exile target card from a graveyard
+}

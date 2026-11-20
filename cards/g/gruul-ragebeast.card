@@ -1,0 +1,7 @@
+card "Gruul Ragebeast" {
+  oracle_id e5fa93a3-0b2b-4477-ad3f-4fc1b325ca19
+  cost {5}{R}{G}
+  type Creature — Beast
+  pt 6/6
+  triggered whenever this or creature you control enters: that creature fights target creature an opponent controls
+}

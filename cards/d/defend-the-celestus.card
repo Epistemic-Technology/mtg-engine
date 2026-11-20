@@ -1,0 +1,6 @@
+card "Defend the Celestus" {
+  oracle_id c079a636-cfd4-49cd-bcd4-54375b3fa355
+  cost {2}{G}{G}
+  type Instant
+  spell: distribute 3 +1/+1 counters among 1 to 3 target creatures you control
+}

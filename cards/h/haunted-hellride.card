@@ -1,0 +1,8 @@
+card "Haunted Hellride" {
+  oracle_id 47944bf1-b954-4143-b479-45c10071e35a
+  cost {1}{U}{B}
+  type Artifact — Vehicle
+  pt 3/3
+  triggered whenever you attack: target creature you control gets +1/+0 and gains deathtouch; untap target 1
+  crew 1
+}

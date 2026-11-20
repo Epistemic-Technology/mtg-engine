@@ -1,0 +1,7 @@
+card "Zagoth Crystal" {
+  oracle_id 87edb566-8929-4961-9c03-d3657a8c6feb
+  cost {3}
+  type Artifact
+  mana {B} or {G} or {U}
+  cycling {2}
+}

@@ -1,0 +1,8 @@
+card "Ezio, Blade of Vengeance" {
+  oracle_id 2127a245-d664-45cb-8ed1-0024de1a10df
+  cost {3}{U}{B}
+  type Legendary Creature — Human Assassin
+  pt 5/5
+  keywords deathtouch
+  triggered whenever Assassin you control deals combat damage to a player: draw 1 cards
+}

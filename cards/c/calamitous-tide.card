@@ -1,0 +1,6 @@
+card "Calamitous Tide" {
+  oracle_id d605d9d1-c01a-4ef6-89f9-06fae8cd57e6
+  cost {4}{U}{U}
+  type Sorcery
+  spell: return up to two target creatures to hand; draw 2 cards then discard 1 cards
+}

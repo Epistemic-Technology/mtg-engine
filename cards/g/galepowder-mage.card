@@ -1,0 +1,8 @@
+card "Galepowder Mage" {
+  oracle_id b2457982-6c28-47e9-9b32-9db359eb0ac5
+  cost {3}{W}
+  type Creature — Kithkin Wizard
+  pt 3/3
+  keywords flying
+  triggered whenever this attacks: exile another target creature; delayed target 1: return it to battlefield at beginning of the next end step
+}

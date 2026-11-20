@@ -1,0 +1,6 @@
+card "Warm Welcome" {
+  oracle_id 53807ded-5bbb-44a1-9c22-ffdd4b8523e0
+  cost {2}{G}
+  type Instant
+  spell: dig 5 take creature card may revealing rest bottom random; create 1 "1/1 green and white Citizen creature"
+}

@@ -1,0 +1,7 @@
+card "Onyx Mage" {
+  oracle_id 8a398777-2fa5-4cac-adee-4582e59d410d
+  cost {1}{B}
+  type Creature — Human Wizard
+  pt 2/1
+  activated {1}{B}: target creature you control gains deathtouch
+}

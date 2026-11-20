@@ -1,0 +1,7 @@
+card "Meletis Astronomer" {
+  oracle_id 6593a7c1-fb48-4e53-8e6a-339ad2cc4489
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/3
+  label "Heroic" triggered whenever you cast a spell that targets this: dig 3 take enchantment card may revealing rest bottom
+}

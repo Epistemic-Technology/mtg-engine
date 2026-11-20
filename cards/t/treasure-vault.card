@@ -1,0 +1,6 @@
+card "Treasure Vault" {
+  oracle_id 3c43efd6-b1a8-452c-ae20-9a936c3340ab
+  type Artifact Land
+  mana {C}
+  activated {X}{X}, {T}, sacrifice this: create X "Treasure"
+}

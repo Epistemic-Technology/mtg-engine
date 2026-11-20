@@ -1,0 +1,8 @@
+card "Disruptor of Currents" {
+  oracle_id e76ae81f-729c-4def-ae83-6870a696cbe8
+  cost {3}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 3/3
+  keywords flash, convoke
+  triggered when this enters: return up to 1 another target nonland permanent to hand
+}

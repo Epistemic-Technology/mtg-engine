@@ -1,0 +1,8 @@
+card "Sifter of Skulls" {
+  oracle_id 688e5e19-8f28-45c4-ace4-a38144f494f1
+  cost {3}{B}
+  type Creature — Eldrazi
+  pt 4/3
+  keywords devoid
+  triggered whenever other nontoken creature you control dies: create 1 "Eldrazi Scion" it has
+}

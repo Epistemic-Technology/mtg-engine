@@ -1,0 +1,7 @@
+card "Emperor's Vanguard" {
+  oracle_id 5007425e-a626-46f7-ab7d-777af97ee724
+  cost {3}{G}
+  type Creature — Human Scout
+  pt 4/3
+  triggered whenever this deals combat damage to a player: this explores
+}

@@ -1,0 +1,8 @@
+card "Junk Winder" {
+  oracle_id 5b677e88-bcc9-4a55-9c89-8bbd0e2344dc
+  cost {5}{U}{U}
+  type Creature — Serpent
+  pt 5/6
+  affinity for token
+  triggered whenever token you control enters: tap target nonland permanent an opponent controls; target 1 doesn't untap next untap step
+}

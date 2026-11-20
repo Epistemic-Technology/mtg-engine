@@ -1,0 +1,8 @@
+card "Ballista Charger" {
+  oracle_id b4862430-e3d3-4f29-90ca-50141e36e2f1
+  cost {5}
+  type Artifact — Vehicle
+  pt 6/6
+  triggered whenever this attacks: deal 1 damage to any target
+  crew 3
+}

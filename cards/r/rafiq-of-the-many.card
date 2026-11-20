@@ -1,0 +1,8 @@
+card "Rafiq of the Many" {
+  oracle_id c6e17443-2379-419d-8c32-13ea9bf52993
+  cost {1}{G}{W}{U}
+  type Legendary Creature — Human Knight
+  pt 3/3
+  keywords exalted
+  triggered whenever creature you control attacks alone: it gains double strike
+}

@@ -1,0 +1,7 @@
+card "Eternal Student" {
+  oracle_id 140cb5cf-8aa2-457c-9d65-5acefea00195
+  cost {3}{B}
+  type Creature — Zombie Warlock
+  pt 4/2
+  activated {1}{B}, exile this from graveyard: create 2 "1/1 white and black Inkling creature with flying"
+}

@@ -1,0 +1,7 @@
+card "Femeref Archers" {
+  oracle_id b5867796-5898-4a75-a75a-c802407ab338
+  cost {2}{G}
+  type Creature — Human Archer
+  pt 2/2
+  activated {T}: deal 4 damage to target attacking creature with flying
+}

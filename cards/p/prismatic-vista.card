@@ -1,0 +1,5 @@
+card "Prismatic Vista" {
+  oracle_id 032b8a0d-491a-4a12-ab9f-689010054d5b
+  type Land
+  activated {T}, pay 1 life, sacrifice this: search basic land card to battlefield
+}

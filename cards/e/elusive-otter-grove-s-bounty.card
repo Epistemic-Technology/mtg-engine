@@ -1,0 +1,14 @@
+card "Elusive Otter // Grove's Bounty" {
+  oracle_id 54175132-2c44-4749-8dfd-d08dcc63e4b3
+  layout adventure
+  cost {U}
+  type Creature — Otter
+  pt 1/1
+  keywords prowess
+  can't be blocked by creature with lesser power
+  face "Grove's Bounty" {
+    cost {X}{G}
+    type Sorcery — Adventure
+    spell: distribute X +1/+1 counters among any number of target creatures you control
+  }
+}

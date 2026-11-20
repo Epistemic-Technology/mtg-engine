@@ -1,0 +1,7 @@
+card "Trial of Strength" {
+  oracle_id b272cb56-dcba-479e-9fba-5b31e616a95f
+  cost {2}{G}
+  type Enchantment
+  triggered when this enters: create 1 "4/2 green Beast creature"
+  triggered when Cartouche you control enters: return this to hand
+}

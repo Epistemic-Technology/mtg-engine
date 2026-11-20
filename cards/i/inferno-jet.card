@@ -1,0 +1,7 @@
+card "Inferno Jet" {
+  oracle_id 50c13b38-9865-4c60-b2df-3fd6e3a9c6a2
+  cost {5}{R}
+  type Sorcery
+  spell: deal 6 damage to target opponent or planeswalker
+  cycling {2}
+}

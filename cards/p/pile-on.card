@@ -1,0 +1,7 @@
+card "Pile On" {
+  oracle_id 361b0d7f-1e43-45c5-92c2-92baacaf326f
+  cost {3}{B}
+  type Instant
+  keywords convoke
+  spell: destroy target creature or planeswalker; surveil 2
+}

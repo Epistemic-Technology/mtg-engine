@@ -1,0 +1,8 @@
+card "Obelisk of Urd" {
+  oracle_id e2ef3a24-9e78-47fc-9192-049aa0ddb7a0
+  cost {6}
+  type Artifact
+  keywords convoke
+  as this enters choose creature type
+  static creature you control of chosen type: +2/+2
+}

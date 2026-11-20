@@ -1,0 +1,7 @@
+card "Skirsdag Cultist" {
+  oracle_id a7fe5473-fae5-490e-8600-b7e497b9989e
+  cost {2}{R}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {R}, {T}, sacrifice creature: deal 2 damage to any target
+}

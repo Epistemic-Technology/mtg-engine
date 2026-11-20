@@ -1,0 +1,8 @@
+card "Arni, Humble Scribe" {
+  oracle_id a680d1ab-99f2-43d0-b289-5fdba4083d03
+  cost {2}{U}
+  type Legendary Creature — Human Wizard
+  pt 3/2
+  triggered whenever other nontoken creature you control enters: untap this
+  activated {T}: draw 1 cards then discard 1 cards
+}

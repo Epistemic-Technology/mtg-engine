@@ -1,0 +1,8 @@
+card "Coretapper" {
+  oracle_id 66e37011-f3d2-41ed-8e09-7bba9464e8c3
+  cost {2}
+  type Artifact Creature — Myr
+  pt 1/1
+  activated {T}: put 1 charge counters on target artifact
+  activated sacrifice this: put 2 charge counters on target artifact
+}

@@ -1,0 +1,7 @@
+card "Lux Cannon" {
+  oracle_id ebdf26a4-77ee-4635-8d52-926bdca623f7
+  cost {4}
+  type Artifact
+  activated {T}: put 1 charge counters on this
+  activated {T}, remove 3 charge counters from this: destroy target permanent
+}

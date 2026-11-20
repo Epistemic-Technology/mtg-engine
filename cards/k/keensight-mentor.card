@@ -1,0 +1,8 @@
+card "Keensight Mentor" {
+  oracle_id 500a17a0-8332-414c-9c3a-7157a7800887
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 1/4
+  triggered when this enters: put 1 vigilance counters on target non-Human creature you control
+  activated {1}{W}, {T}: put 1 +1/+1 counters on each creature you control with vigilance
+}

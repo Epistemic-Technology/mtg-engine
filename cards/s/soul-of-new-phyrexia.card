@@ -1,0 +1,9 @@
+card "Soul of New Phyrexia" {
+  oracle_id add500e1-8eeb-45d7-a10d-2fae2cc69233
+  cost {6}
+  type Artifact Creature — Phyrexian Avatar
+  pt 6/6
+  keywords trample
+  activated {5}: each permanent you control gains indestructible
+  activated {5}, exile this from graveyard: each permanent you control gains indestructible
+}

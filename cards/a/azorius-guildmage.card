@@ -1,0 +1,8 @@
+card "Azorius Guildmage" {
+  oracle_id 16f61f69-cdde-4b6c-b855-c74db9038ceb
+  cost {W/U}{W/U}
+  type Creature — Vedalken Wizard
+  pt 2/2
+  activated {2}{W}: tap target creature
+  activated {2}{U}: counter target activated ability
+}

@@ -1,0 +1,7 @@
+card "Tears of Valakut" {
+  oracle_id fce335fb-bc67-4fa4-8d38-097f2a661332
+  cost {1}{R}
+  type Instant
+  this spell can't be countered
+  spell: deal 5 damage to target creature with flying
+}

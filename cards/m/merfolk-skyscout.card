@@ -1,0 +1,8 @@
+card "Merfolk Skyscout" {
+  oracle_id 381eb146-879e-473c-b628-65f6c0814a29
+  cost {2}{U}{U}
+  type Creature — Merfolk Scout
+  pt 2/3
+  keywords flying
+  triggered whenever this attacks or blocks: untap target permanent
+}

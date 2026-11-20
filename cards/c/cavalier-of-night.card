@@ -1,0 +1,9 @@
+card "Cavalier of Night" {
+  oracle_id 27c2b8ce-17b9-4f6c-8444-3bdc636dd413
+  cost {2}{B}{B}{B}
+  type Creature — Elemental Knight
+  pt 4/5
+  keywords lifelink
+  triggered when this enters: you may sacrifice 1 another creature chosen; when you do, destroy target creature an opponent controls
+  triggered when this dies: return target creature card with mana value 3 or less from your graveyard to battlefield
+}

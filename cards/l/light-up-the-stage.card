@@ -1,0 +1,7 @@
+card "Light Up the Stage" {
+  oracle_id 8d286376-f386-43ab-a9bd-8478fb9e2497
+  cost {2}{R}
+  type Sorcery
+  spectacle {R}
+  spell: impulse 2 next turn first
+}

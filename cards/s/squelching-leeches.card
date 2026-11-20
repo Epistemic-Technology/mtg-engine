@@ -1,0 +1,6 @@
+card "Squelching Leeches" {
+  oracle_id 662a2158-4176-4b4a-be6a-13f4501d22f9
+  cost {2}{B}{B}
+  type Creature — Leech
+  static this: cda pt count Swamp you control
+}

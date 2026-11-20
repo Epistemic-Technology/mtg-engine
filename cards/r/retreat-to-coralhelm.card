@@ -1,0 +1,9 @@
+card "Retreat to Coralhelm" {
+  oracle_id c450f6b7-bb2a-4b8c-aec7-d27555137b63
+  cost {2}{U}
+  type Enchantment
+  label "Landfall" triggered whenever land you control enters: choose one {
+    mode: you may tap or untap target creature
+    mode: scry 1
+  }
+}

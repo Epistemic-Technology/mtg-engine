@@ -1,0 +1,8 @@
+card "Bloodfray Giant" {
+  oracle_id 5f83fd2f-c4cb-4bcf-a4db-0238df251740
+  cost {2}{R}{R}
+  type Creature — Giant
+  pt 4/3
+  keywords trample
+  unleash
+}

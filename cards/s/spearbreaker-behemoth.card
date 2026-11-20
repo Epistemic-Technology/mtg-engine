@@ -1,0 +1,8 @@
+card "Spearbreaker Behemoth" {
+  oracle_id 025f8db8-11d1-4c59-8e1f-004c9c843fd8
+  cost {5}{G}{G}
+  type Creature — Beast
+  pt 5/5
+  keywords indestructible
+  activated {1}: target creature with power 5 or greater gains indestructible
+}

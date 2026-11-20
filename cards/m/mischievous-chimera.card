@@ -1,0 +1,8 @@
+card "Mischievous Chimera" {
+  oracle_id 5cc57770-1070-45f6-9d76-d402c55a0d06
+  cost {U}{R}
+  type Enchantment Creature — Chimera
+  pt 2/2
+  keywords flying
+  triggered whenever you cast your first spell during each opponent's turn: deal 1 damage to each opponent; scry 1
+}

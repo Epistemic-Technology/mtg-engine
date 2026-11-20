@@ -1,0 +1,7 @@
+card "Salvaging Station" {
+  oracle_id 3501ed98-473c-4a17-8b5f-1e0c00ee75da
+  cost {6}
+  type Artifact
+  activated {T}: return target noncreature artifact card with mana value 1 or less from your graveyard to battlefield
+  triggered whenever creature dies: you may untap this
+}

@@ -1,0 +1,8 @@
+card "Stormcatch Mentor" {
+  oracle_id b2252471-01ca-4d58-aa99-4ab0aa5eae12
+  cost {U}{R}
+  type Creature — Otter Wizard
+  pt 1/1
+  keywords haste, prowess
+  spells instant or sorcery you cast cost {1} less
+}

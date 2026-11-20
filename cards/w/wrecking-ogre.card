@@ -1,0 +1,8 @@
+card "Wrecking Ogre" {
+  oracle_id 85d03947-a39a-4f4f-97c3-6d1094c9248e
+  cost {4}{R}
+  type Creature — Ogre Warrior
+  pt 3/3
+  keywords double strike
+  label "Bloodrush" activated {3}{R}{R}, discard this: target attacking creature gets +3/+3 and gains double strike
+}

@@ -1,0 +1,7 @@
+card "Grapeshot" {
+  oracle_id ebd2d760-5ad8-4027-b124-171822f3edfe
+  cost {1}{R}
+  type Sorcery
+  spell: deal 1 damage to any target
+  storm
+}

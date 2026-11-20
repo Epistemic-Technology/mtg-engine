@@ -1,0 +1,18 @@
+card "Bloodline Keeper // Lord of Lineage" {
+  oracle_id 434e82b5-abd4-41ac-a5b1-2dd01c667374
+  layout transform
+  cost {2}{B}{B}
+  type Creature — Vampire
+  pt 3/3
+  keywords flying
+  activated {T}: create 1 "2/2 black Vampire creature with flying"
+  activated {B}, if you control 5 Vampire: transform this
+  face "Lord of Lineage" {
+    type Creature — Vampire
+    pt 5/5
+    color black
+    keywords flying
+    static other Vampire creature you control: +2/+2
+    activated {T}: create 1 "2/2 black Vampire creature with flying"
+  }
+}

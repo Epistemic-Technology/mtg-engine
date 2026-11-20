@@ -1,0 +1,6 @@
+card "Hard-Hitting Question" {
+  oracle_id 05fdefb4-2be7-4d9a-9ab9-14bbbe72aef7
+  cost {G}
+  type Sorcery
+  spell: target creature you control bites target creature or planeswalker you don't control
+}

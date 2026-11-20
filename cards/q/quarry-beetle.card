@@ -1,0 +1,7 @@
+card "Quarry Beetle" {
+  oracle_id fff66029-24bb-4354-a650-99a205fd168f
+  cost {4}{G}
+  type Creature — Insect
+  pt 4/5
+  triggered when this enters: you may return target land card from your graveyard to battlefield
+}

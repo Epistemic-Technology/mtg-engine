@@ -1,0 +1,10 @@
+card "Nullpriest of Oblivion" {
+  oracle_id c1111228-ef88-4b64-91e0-66ee32a1f5e4
+  cost {1}{B}
+  type Creature — Vampire Cleric
+  pt 2/1
+  kicker {3}{B}
+  keyword lifelink
+  keyword menace
+  triggered when this enters if kicked: return target creature card from your graveyard to battlefield
+}

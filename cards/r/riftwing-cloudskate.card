@@ -1,0 +1,9 @@
+card "Riftwing Cloudskate" {
+  oracle_id ae2e6ffd-fb93-4c47-88e7-e84460eefbe5
+  cost {3}{U}{U}
+  type Creature — Illusion
+  pt 2/2
+  keywords flying
+  triggered when this enters: return target permanent to hand
+  suspend 3 {1}{U}
+}

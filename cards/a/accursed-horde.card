@@ -1,0 +1,7 @@
+card "Accursed Horde" {
+  oracle_id 8f3cba20-e7a4-47f4-8bce-90168ce9cc5c
+  cost {3}{B}
+  type Creature — Zombie
+  pt 3/3
+  activated {1}{B}: target attacking Zombie gains indestructible
+}

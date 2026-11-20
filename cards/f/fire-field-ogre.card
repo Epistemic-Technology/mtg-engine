@@ -1,0 +1,8 @@
+card "Fire-Field Ogre" {
+  oracle_id 343a258e-ea46-4acb-8543-9f869e43bc59
+  cost {1}{U}{B}{R}
+  type Creature — Ogre Mutant
+  pt 4/2
+  keywords first strike
+  unearth {U}{B}{R}
+}

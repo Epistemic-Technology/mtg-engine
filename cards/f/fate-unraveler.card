@@ -1,0 +1,7 @@
+card "Fate Unraveler" {
+  oracle_id 7d66f67d-3148-4636-ac5a-2cf8a51d5e50
+  cost {3}{B}
+  type Enchantment Creature — Hag
+  pt 3/4
+  triggered whenever an opponent draws a card: deal 1 damage to that player
+}

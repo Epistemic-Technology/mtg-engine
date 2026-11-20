@@ -1,0 +1,7 @@
+card "Ruthless Lawbringer" {
+  oracle_id 82b6a283-9897-4ce1-8de3-e7579cc9b75b
+  cost {1}{W}{B}
+  type Creature — Vampire Assassin
+  pt 3/2
+  triggered when this enters: you may sacrifice 1 another creature chosen; when you do, destroy target nonland permanent
+}

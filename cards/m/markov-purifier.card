@@ -1,0 +1,8 @@
+card "Markov Purifier" {
+  oracle_id d28eac97-f38a-4d2a-aeae-e758bd3ecf4e
+  cost {1}{W}{B}
+  type Creature — Vampire Cleric
+  pt 2/3
+  keywords lifelink
+  triggered at beginning of your end step if gained life this turn: you may pay {2}; if you do, draw 1 cards
+}

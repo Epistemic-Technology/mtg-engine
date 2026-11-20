@@ -1,0 +1,9 @@
+card "Kogla, the Titan Ape" {
+  oracle_id 8b21062e-97b0-4967-96df-30e8309f4fba
+  cost {3}{G}{G}{G}
+  type Legendary Creature — Ape
+  pt 7/6
+  triggered when this enters: this fights up to one target creature you don't control
+  triggered whenever this attacks: destroy target artifact or enchantment defending player controls
+  activated {1}{G}: return target Human you control to hand; this gains indestructible
+}

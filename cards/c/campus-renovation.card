@@ -1,0 +1,6 @@
+card "Campus Renovation" {
+  oracle_id d34a3b58-a905-4e90-b35c-9f5c21149b04
+  cost {3}{R}{W}
+  type Sorcery
+  spell: return up to one target artifact or enchantment card from your graveyard to battlefield; impulse 2 next turn first
+}

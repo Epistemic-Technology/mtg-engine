@@ -1,0 +1,6 @@
+card "Harsh Scrutiny" {
+  oracle_id 31338e24-a437-4587-acab-cec46be021e7
+  cost {B}
+  type Sorcery
+  spell: target opponent reveals hand discarding creature card; scry 1
+}

@@ -1,0 +1,8 @@
+card "Shire Shirriff" {
+  oracle_id 14f36157-f55f-495d-9ffe-f38135a59750
+  cost {1}{W}
+  type Creature — Halfling Soldier
+  pt 2/2
+  keywords vigilance
+  triggered when this enters: you may sacrifice 1 token chosen; when you do, exile target creature an opponent controls until this leaves
+}

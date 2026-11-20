@@ -1,0 +1,7 @@
+card "Shivan Meteor" {
+  oracle_id 6cf5edd6-1ca2-46a5-83b4-7ddff590ef96
+  cost {3}{R}{R}
+  type Sorcery
+  spell: deal 13 damage to target creature
+  suspend 2 {1}{R}{R}
+}

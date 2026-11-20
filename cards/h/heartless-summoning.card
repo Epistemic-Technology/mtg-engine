@@ -1,0 +1,7 @@
+card "Heartless Summoning" {
+  oracle_id fa1be67e-a07e-42ce-88be-446acd643dc6
+  cost {1}{B}
+  type Enchantment
+  spells creature you cast cost {2} less
+  static creature you control: -1/-1
+}

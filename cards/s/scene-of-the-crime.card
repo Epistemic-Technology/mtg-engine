@@ -1,0 +1,8 @@
+card "Scene of the Crime" {
+  oracle_id ba11a517-1dbd-4797-9f5e-46ce0f6c77c0
+  type Artifact Land — Clue
+  enters tapped
+  mana {C}
+  activated {T}, tap untapped creature you control: add any
+  activated {2}, sacrifice this: draw 1 cards
+}

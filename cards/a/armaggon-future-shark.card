@@ -1,0 +1,8 @@
+card "Armaggon, Future Shark" {
+  oracle_id e2a35850-92c5-40ab-8697-2e995819d7ac
+  cost {6}{B}{B}
+  type Legendary Creature — Shark Horror Mutant
+  pt 9/6
+  keywords flash
+  triggered when this enters: destroy up to three target creatures
+}

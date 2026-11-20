@@ -1,0 +1,8 @@
+card "Scorn-Blade Berserker" {
+  oracle_id 93107139-b743-4d62-b0ac-9997202e0562
+  cost {B}
+  type Creature — Human Berserker
+  pt 0/1
+  backup 1
+  activated {1}, sacrifice this: draw 1 cards
+}

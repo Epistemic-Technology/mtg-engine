@@ -1,0 +1,6 @@
+card "Justice Strike" {
+  oracle_id bc63e7ca-e62a-4026-803d-eecdbbedf3c6
+  cost {R}{W}
+  type Instant
+  spell: target creature bites itself
+}

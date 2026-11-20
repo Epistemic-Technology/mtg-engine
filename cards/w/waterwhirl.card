@@ -1,0 +1,6 @@
+card "Waterwhirl" {
+  oracle_id 77636154-962f-4ca8-85e7-c0c9c0c3cd2d
+  cost {4}{U}{U}
+  type Instant
+  spell: return up to two target creatures to hand
+}

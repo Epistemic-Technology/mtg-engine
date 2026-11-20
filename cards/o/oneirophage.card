@@ -1,0 +1,8 @@
+card "Oneirophage" {
+  oracle_id 48c97aeb-6591-4175-a24b-d3488bf3ab0b
+  cost {3}{U}
+  type Creature — Squid Illusion
+  pt 1/2
+  keywords flying
+  triggered whenever you draw a card: put 1 +1/+1 counters on this
+}

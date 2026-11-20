@@ -1,0 +1,9 @@
+card "Arcbound Condor" {
+  oracle_id d484be42-5dd4-49e0-afcd-2d3c1a2c3037
+  cost {2}{B}{B}
+  type Artifact Creature — Bird
+  pt 0/0
+  keywords flying
+  modular 3
+  triggered whenever other artifact you control enters: target creature an opponent controls gets -1/-1
+}

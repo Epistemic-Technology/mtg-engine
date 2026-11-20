@@ -1,0 +1,9 @@
+card "Faerie Dreamthief" {
+  oracle_id d6e68414-80cb-4e08-ae84-b084a3f4b6de
+  cost {B}
+  type Creature — Faerie Warlock
+  pt 1/1
+  keywords flying
+  triggered when this enters: surveil 1
+  activated {2}{B}, exile this from graveyard: you draw 1 card, and you lose 1 life
+}

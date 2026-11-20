@@ -1,0 +1,7 @@
+card "Fire Nation Engineer" {
+  oracle_id 9a983666-376b-48a8-9f82-8d041d32ae93
+  cost {2}{B}
+  type Creature — Human Artificer
+  pt 2/3
+  label "Raid" triggered at beginning of your end step if attacked this turn: put 1 +1/+1 counters on another target creature or Vehicle you control
+}

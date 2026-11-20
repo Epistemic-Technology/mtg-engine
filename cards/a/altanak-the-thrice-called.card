@@ -1,0 +1,9 @@
+card "Altanak, the Thrice-Called" {
+  oracle_id 6591f243-f94c-4a83-bb16-1fb838d9eb14
+  cost {5}{G}{G}
+  type Legendary Creature — Insect Beast
+  pt 9/9
+  keywords trample
+  triggered whenever this becomes targeted by opponent: draw 1 cards
+  activated {1}{G}, discard this: return target land card from your graveyard to battlefield tapped
+}

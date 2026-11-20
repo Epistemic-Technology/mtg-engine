@@ -1,0 +1,6 @@
+card "Bloodsoaked Altar" {
+  oracle_id 67631753-f37a-4f41-a6e6-1edead385acc
+  cost {4}{B}{B}
+  type Artifact
+  activated {T}, pay 2 life, discard 1 card, sacrifice creature, sorcery: create 1 "5/5 black Demon creature with flying"
+}

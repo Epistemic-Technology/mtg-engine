@@ -1,0 +1,8 @@
+card "Apocalypse Runner" {
+  oracle_id 0ca1f76d-ae77-490a-8b32-d30ad33afc2d
+  cost {2}{B}{R}
+  type Artifact — Vehicle
+  pt 6/5
+  activated {T}: target creature you control with power 2 or less gains lifelink until end of turn and can't be blocked
+  crew 3
+}

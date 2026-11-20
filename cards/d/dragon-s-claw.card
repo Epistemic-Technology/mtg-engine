@@ -1,0 +1,6 @@
+card "Dragon's Claw" {
+  oracle_id bd8d707d-1201-42c6-bce6-fbda12ce5ea8
+  cost {2}
+  type Artifact
+  triggered whenever a player casts red spell: you may you gain 1 life
+}

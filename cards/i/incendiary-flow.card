@@ -1,0 +1,6 @@
+card "Incendiary Flow" {
+  oracle_id 91b2ffe8-155d-4b9f-82dd-868cc895856b
+  cost {1}{R}
+  type Sorcery
+  spell: deal 3 damage to any target; this turn, replace creature dealt damage this way dies: exile
+}

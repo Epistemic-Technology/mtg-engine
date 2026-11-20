@@ -1,0 +1,8 @@
+card "Gadwick, the Wizened" {
+  oracle_id c7530ecd-e22f-41e7-a76b-de32809901c8
+  cost {X}{U}{U}{U}
+  type Legendary Creature — Human Wizard
+  pt 3/3
+  triggered when this enters: draw X cards
+  triggered whenever you cast blue spell: tap target nonland permanent an opponent controls
+}

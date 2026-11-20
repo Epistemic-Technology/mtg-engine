@@ -1,0 +1,7 @@
+card "Mystic Speculation" {
+  oracle_id a58adf82-d9e2-4b47-933e-68180f280ba2
+  cost {U}
+  type Sorcery
+  buyback {2}
+  spell: scry 3
+}

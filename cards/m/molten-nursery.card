@@ -1,0 +1,7 @@
+card "Molten Nursery" {
+  oracle_id 92abb79d-3c60-48f7-87a0-13c25a5e1128
+  cost {2}{R}
+  type Enchantment
+  keywords devoid
+  triggered whenever you cast colorless spell: deal 1 damage to any target
+}

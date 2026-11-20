@@ -1,0 +1,7 @@
+card "Wing Shards" {
+  oracle_id b302bce5-d7ad-46d8-9dbf-8159e8709b4f
+  cost {1}{W}{W}
+  type Instant
+  spell: target player sacrifices 1 attacking creature
+  storm
+}

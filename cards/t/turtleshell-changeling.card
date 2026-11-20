@@ -1,0 +1,8 @@
+card "Turtleshell Changeling" {
+  oracle_id 87f8b403-765c-4a2a-8b21-edaaaa889234
+  cost {3}{U}
+  type Creature — Shapeshifter
+  pt 1/4
+  keywords changeling
+  activated {1}{U}: switch pt of this
+}

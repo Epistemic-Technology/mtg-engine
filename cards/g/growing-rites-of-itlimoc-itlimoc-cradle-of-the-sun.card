@@ -1,0 +1,13 @@
+card "Growing Rites of Itlimoc // Itlimoc, Cradle of the Sun" {
+  oracle_id ea9c459a-6047-43aa-968f-a582be4000e8
+  layout transform
+  cost {2}{G}
+  type Legendary Enchantment
+  triggered when this enters: dig 4 take creature card may revealing rest bottom
+  triggered at beginning of your end step if you control 4 creature: transform this
+  face "Itlimoc, Cradle of the Sun" {
+    type Legendary Land
+    mana {G}
+    activated {T}: add {G} count each creature you control
+  }
+}

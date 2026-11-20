@@ -1,0 +1,6 @@
+card "Angelic Exaltation" {
+  oracle_id 507d2f27-08a9-4938-b191-5734cda42ef2
+  cost {3}{W}
+  type Enchantment
+  triggered whenever creature you control attacks alone: it gets +1/+1 count where creature you control
+}

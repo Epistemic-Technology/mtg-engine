@@ -1,0 +1,10 @@
+card "Price of Fame" {
+  oracle_id 45d5cd4c-7285-4507-8cbf-eace7a734f41
+  cost {3}{B}
+  type Instant
+  this spell costs {2} less if it targets legendary creature
+  spell {
+    destroy target creature
+    surveil 2
+  }
+}

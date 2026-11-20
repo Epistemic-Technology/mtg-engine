@@ -1,0 +1,9 @@
+card "You Happen On a Glade" {
+  oracle_id 88e5300d-8339-41cb-85bf-325909116b61
+  cost {2}{G}
+  type Instant
+  choose one {
+    mode "Journey On": search up to 2 basic land card reveal to hand
+    mode "Make Camp": return target permanent card from your graveyard to hand
+  }
+}

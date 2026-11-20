@@ -1,0 +1,8 @@
+card "Bloodgift Demon" {
+  oracle_id e64b184d-9746-4723-a928-d459b5c3ee6c
+  cost {3}{B}{B}
+  type Creature — Demon
+  pt 5/4
+  keywords flying
+  triggered at beginning of your upkeep: target player draws a card and loses 1 life
+}

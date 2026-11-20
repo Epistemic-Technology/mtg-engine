@@ -1,0 +1,9 @@
+card "Mystic Melting" {
+  oracle_id 850fe8ad-f6b8-4d01-a94b-2b69adc3d8f0
+  cost {3}{G}
+  type Instant
+  spell {
+    destroy target artifact or enchantment
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

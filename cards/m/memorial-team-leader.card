@@ -1,0 +1,8 @@
+card "Memorial Team Leader" {
+  oracle_id c71d3775-0c71-4e37-979d-35e319f357f0
+  cost {3}{R}
+  type Creature — Kavu Soldier
+  pt 4/3
+  static during your turn, other creature you control: +1/+0
+  warp {1}{R}
+}

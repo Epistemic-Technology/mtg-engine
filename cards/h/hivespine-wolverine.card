@@ -1,0 +1,11 @@
+card "Hivespine Wolverine" {
+  oracle_id 312be209-dba5-4e6c-938e-1287642f67d4
+  cost {3}{G}{G}
+  type Creature — Elemental Wolverine
+  pt 5/4
+  triggered when this enters: choose one {
+    mode: put 1 +1/+1 counters on target creature you control
+    mode: this fights target creature token
+    mode: destroy target artifact or enchantment
+  }
+}

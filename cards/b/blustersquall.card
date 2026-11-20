@@ -1,0 +1,7 @@
+card "Blustersquall" {
+  oracle_id 2dfad8c3-1973-4fc8-971d-f66cacd88070
+  cost {U}
+  type Instant
+  spell: tap target creature you don't control
+  overload {3}{U}
+}

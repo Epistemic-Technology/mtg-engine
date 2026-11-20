@@ -1,0 +1,8 @@
+card "Conduit Goblin" {
+  oracle_id 0d3a38ff-4b75-4e97-9d8f-c54f441f8208
+  cost {R}{W}
+  type Creature — Goblin Warrior
+  pt 2/2
+  triggered when this enters: you get 2 energy
+  triggered at beginning of your combat: you may pay 1 energy; if you do, another target creature you control gets +1/+0 and gains haste
+}

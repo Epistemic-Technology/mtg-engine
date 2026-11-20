@@ -1,0 +1,7 @@
+card "Revenant" {
+  oracle_id 05fc62d3-9b3c-409a-a623-9f81f395a5a0
+  cost {4}{B}
+  type Creature — Spirit
+  keywords flying
+  static this: cda pt graveyard creature
+}

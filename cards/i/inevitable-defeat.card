@@ -1,0 +1,7 @@
+card "Inevitable Defeat" {
+  oracle_id d68439b5-7011-4b1d-a7da-14ef0f4d9994
+  cost {1}{R}{W}{B}
+  type Instant
+  this spell can't be countered
+  spell: exile target nonland permanent; its controller loses 3 life and you gains 3 life
+}

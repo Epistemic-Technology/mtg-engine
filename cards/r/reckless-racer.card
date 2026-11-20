@@ -1,0 +1,8 @@
+card "Reckless Racer" {
+  oracle_id d9a09e7f-6bef-4e75-b5c7-cea20a69cf02
+  cost {2}{R}
+  type Creature — Human Pilot
+  pt 2/3
+  keywords first strike
+  triggered whenever this becomes tapped: you may discard 1 cards; if you do, draw 1 cards
+}

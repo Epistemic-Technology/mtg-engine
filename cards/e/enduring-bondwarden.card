@@ -1,0 +1,8 @@
+card "Enduring Bondwarden" {
+  oracle_id c17d4818-5825-4bff-8fc5-5fd740cc0c70
+  cost {W}
+  type Creature — Human Scout
+  pt 0/1
+  backup 1
+  triggered when this dies: put its counters on target creature you control
+}

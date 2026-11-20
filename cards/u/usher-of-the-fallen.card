@@ -1,0 +1,7 @@
+card "Usher of the Fallen" {
+  oracle_id a6eb06dc-a62d-4fdb-b336-e304d8d68c92
+  cost {W}
+  type Creature — Spirit Warrior
+  pt 2/1
+  boast {1}{W}: create 1 "1/1 white Human Warrior creature"
+}

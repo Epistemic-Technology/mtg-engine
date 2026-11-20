@@ -1,0 +1,6 @@
+card "Spreading Flames" {
+  oracle_id 95bedd11-ed01-4cb1-bcdb-c5f9fdba8c79
+  cost {6}{R}
+  type Instant
+  spell: deal 6 damage divided among any number of target creatures
+}

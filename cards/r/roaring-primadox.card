@@ -1,0 +1,7 @@
+card "Roaring Primadox" {
+  oracle_id 2a098296-6a64-48ba-af40-5b68bae06bec
+  cost {3}{G}
+  type Creature — Beast
+  pt 4/4
+  triggered at beginning of your upkeep: return 1 creature you control chosen
+}

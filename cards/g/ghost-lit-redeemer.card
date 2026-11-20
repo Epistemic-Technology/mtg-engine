@@ -1,0 +1,8 @@
+card "Ghost-Lit Redeemer" {
+  oracle_id b6c22cbe-61e0-4d66-a78d-7016e84c303d
+  cost {W}
+  type Creature — Spirit
+  pt 1/1
+  activated {W}, {T}: you gains 2 life
+  label "Channel" activated {1}{W}, discard this: you gains 4 life
+}

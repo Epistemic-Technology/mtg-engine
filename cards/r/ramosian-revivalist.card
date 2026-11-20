@@ -1,0 +1,7 @@
+card "Ramosian Revivalist" {
+  oracle_id f62b38d5-0bf9-4805-814a-d15689114817
+  cost {3}{W}
+  type Creature — Human Rebel Cleric
+  pt 2/2
+  activated {6}, {T}: return target Rebel permanent card with mana value 5 or less from your graveyard to battlefield
+}

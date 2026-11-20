@@ -1,0 +1,8 @@
+card "Fatestitcher" {
+  oracle_id 55765934-07be-4f03-a2e8-8292c0b601ae
+  cost {3}{U}
+  type Creature — Zombie Wizard
+  pt 1/2
+  activated {T}: you may tap or untap another target permanent
+  unearth {U}
+}

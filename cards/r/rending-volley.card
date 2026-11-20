@@ -1,0 +1,7 @@
+card "Rending Volley" {
+  oracle_id 0324941f-484c-4656-8d1c-66e919c2bc7c
+  cost {R}
+  type Instant
+  this spell can't be countered
+  spell: deal 4 damage to target white or blue creature
+}

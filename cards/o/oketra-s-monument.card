@@ -1,0 +1,7 @@
+card "Oketra's Monument" {
+  oracle_id 0370afa0-07d3-4787-8a5b-10272cb3a486
+  cost {3}
+  type Legendary Artifact
+  spells white creature you cast cost {1} less
+  triggered whenever you cast creature spell: create 1 "1/1 white Warrior creature with vigilance"
+}
