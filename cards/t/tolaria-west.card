@@ -1,0 +1,7 @@
+card "Tolaria West" {
+  oracle_id 46eefc72-2d9e-4389-8ae1-26d9ee472b5c
+  type Land
+  enters tapped
+  mana {U}
+  transmute {1}{U}{U}
+}

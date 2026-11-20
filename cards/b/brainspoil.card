@@ -1,0 +1,7 @@
+card "Brainspoil" {
+  oracle_id dd464a76-5f96-4e21-b7c6-4a476e7f9ce6
+  cost {3}{B}{B}
+  type Sorcery
+  spell: destroy target creature without aura without regeneration
+  transmute {1}{B}{B}
+}

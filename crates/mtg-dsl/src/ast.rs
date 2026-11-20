@@ -1283,6 +1283,11 @@ pub enum Mechanic {
     /// `multikicker {1}{G}` (CR 702.33c): a kicker cost paid any number of
     /// times as the spell is cast.
     Multikicker(ManaCost),
+    /// `transmute {1}{B}{B}` (CR 702.53): "{1}{B}{B}, Discard this card:
+    /// Search your library for a card with the same mana value as the
+    /// discarded card, reveal it, put it into your hand, then shuffle.
+    /// Activate only as a sorcery."
+    Transmute(ManaCost),
     /// `sunburst` (CR 702.44): enters with a +1/+1 counter (a creature
     /// card) or a charge counter (any other) for each color of mana spent
     /// to cast it.

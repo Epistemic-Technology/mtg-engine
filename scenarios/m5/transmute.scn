@@ -1,0 +1,72 @@
+# Transmute (CR 702.53): "[Cost], Discard this card: Search your library
+# for a card with the same mana value as the discarded card, reveal that
+# card, and put it into your hand. Then shuffle your library. Activate
+# only as a sorcery." `activate` names the card in hand; the search takes
+# the first matching card.
+
+scenario "transmute: a card with the same mana value to hand" {
+  battlefield A: 3 "Island"
+  hand A: "Dizzy Spell"
+  library A: "Forest", "Giant Growth", "Grizzly Bears"
+  turn 1 A: activate "Dizzy Spell"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Giant Growth"
+  assert graveyard A contains "Dizzy Spell"
+}
+
+scenario "transmute: a card with another mana value isn't found" {
+  battlefield A: 3 "Island"
+  hand A: "Dizzy Spell"
+  library A: "Forest", "Grizzly Bears"
+  turn 1 A: activate "Dizzy Spell"
+  run_to turn 1 postcombat_main
+  assert hand A lacks "Grizzly Bears"
+  assert graveyard A contains "Dizzy Spell"
+}
+
+scenario "transmute: only as a sorcery" {
+  battlefield A: 3 "Island"
+  hand A: "Dizzy Spell"
+  library A: "Giant Growth"
+  start turn 2 B
+  illegal turn 2 A: activate "Dizzy Spell"
+  run_to turn 2 end
+  assert hand A contains "Dizzy Spell"
+}
+
+scenario "transmute: not without the mana" {
+  battlefield A: 2 "Island"
+  hand A: "Dizzy Spell"
+  library A: "Giant Growth"
+  illegal turn 1 A: activate "Dizzy Spell"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Dizzy Spell"
+}
+
+scenario "transmute: a creature card finds a creature" {
+  battlefield A: 2 "Swamp", "Island"
+  hand A: "Dimir House Guard"
+  library A: "Hill Giant", "Serra Angel"
+  turn 1 A: activate "Dimir House Guard"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "transmute: a land finds a card with mana value 0" {
+  battlefield A: 3 "Island"
+  hand A: "Tolaria West"
+  library A: "Forest", "Grizzly Bears"
+  turn 1 A: activate "Tolaria West"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert graveyard A contains "Tolaria West"
+}
+
+scenario "transmute: the spell is still a spell" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Brainspoil"
+  turn 1 A: cast "Brainspoil" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}

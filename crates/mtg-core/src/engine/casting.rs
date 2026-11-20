@@ -30,13 +30,15 @@ impl GameState {
         let changers = self.cost_changers();
         for id in &ps.hand {
             let def = self.pool.get(self.objects[*id].def);
-            // Abilities activated from the hand (cycling, CR 702.29) are
-            // instant speed and cost mana, or life ("Cycling—Pay 2 life.",
-            // CR 119.4).
+            // Abilities activated from the hand (cycling, CR 702.29) cost
+            // mana, or life ("Cycling—Pay 2 life.", CR 119.4); instant
+            // speed unless "Activate only as a sorcery" (transmute, CR
+            // 702.53a).
             if self.flags_of(&self.objects[*id]).has_activated() {
                 for a in &def.ability_ids {
                     if let AbilityDef::Activated(ab) = self.pool.ability(*a)
                         && ab.from_hand
+                        && (!ab.sorcery_speed || sorcery_timing)
                         && self.activation_allowed(ab, *a, p, *id)
                         && (ab.cost.life == 0
                             || ps.life >= i32::try_from(ab.cost.life).unwrap_or(i32::MAX))

@@ -1,0 +1,8 @@
+card "Drift of Phantasms" {
+  oracle_id 6ee51134-c4ad-4101-8ce2-23dde9359cd4
+  cost {2}{U}
+  type Creature — Spirit
+  pt 0/5
+  keywords defender, flying
+  transmute {1}{U}{U}
+}

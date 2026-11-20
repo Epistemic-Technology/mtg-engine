@@ -1,0 +1,8 @@
+card "Dimir Infiltrator" {
+  oracle_id d215127b-5f1d-4d3c-935b-c228c9c7f874
+  cost {U}{B}
+  type Creature — Spirit
+  pt 1/3
+  keywords can't be blocked
+  transmute {1}{U}{B}
+}

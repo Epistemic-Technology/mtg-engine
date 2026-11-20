@@ -1,0 +1,7 @@
+card "Clutch of the Undercity" {
+  oracle_id 316cae8b-31b0-4b76-8b72-8122005e1b4e
+  cost {1}{U}{U}{B}
+  type Instant
+  spell: return target permanent to hand; its controller loses 3 life
+  transmute {1}{U}{B}
+}

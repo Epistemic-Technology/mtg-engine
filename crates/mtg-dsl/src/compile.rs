@@ -3316,6 +3316,42 @@ impl Compiler<'_> {
                 // The printed card decides which (CR 702.44a's "ignoring
                 // type-changing effects"); a permanent not cast spent no
                 // mana (CR 702.44b).
+                // CR 702.53a: "[Cost], Discard this card: Search your
+                // library for a card with the same mana value as the
+                // discarded card, reveal that card, and put it into your
+                // hand. Then shuffle your library. Activate only as a
+                // sorcery." The discarded card's mana value is the
+                // printed card's.
+                Mechanic::Transmute(cost) => {
+                    let mv = u8::try_from(self.card.cost.mana_value()).unwrap_or(u8::MAX);
+                    let ability = Ability::Activated {
+                        cost: Cost {
+                            mana: cost.clone(),
+                            discard_self: true,
+                            sorcery: true,
+                            restrict: vec![crate::ast::Restrict::Sorcery],
+                            ..Cost::default()
+                        },
+                        targets: Vec::new(),
+                        effects: vec![Sentence::new(vec![Effect::Search {
+                            filter: Filter {
+                                mana_value: Some((mtg_core::card::Cmp::Exactly, mv)),
+                                ..Filter::default()
+                            },
+                            count: Num::N(1),
+                            up_to: false,
+                            to: mtg_core::card::SearchTo::Hand,
+                            reveal: true,
+                            that_card: false,
+                            or_card: crate::ast::OrCard::No,
+                            who: None,
+                            may: false,
+                        }])],
+                        equip: false,
+                        cycling: false,
+                    };
+                    return self.ability(&ability);
+                }
                 Mechanic::Sunburst => {
                     let Some(i) = self.sunburst else {
                         return self.err("sunburst's count is missing");
@@ -4144,6 +4180,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Renown(_)
         | Mechanic::Unleash
         | Mechanic::Station
+        | Mechanic::Transmute(_)
         | Mechanic::Sunburst
         | Mechanic::Extort
         | Mechanic::Riot
