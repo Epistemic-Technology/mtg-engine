@@ -91,6 +91,9 @@ pub enum DecisionKind {
     /// Whether to bargain a spell (CR 702.166a): `Sacrifice` options for
     /// the artifact, enchantment, or token, or `Decline`.
     Bargain { spell: ObjId },
+    /// Whether to pay `spell`'s casualty cost (CR 702.153a): `Sacrifice`
+    /// options for the creatures with enough power, or `Decline`.
+    Casualty { spell: ObjId },
     /// Which card from the hand to put onto the battlefield (offered as
     /// `Choice::Discard` options), or `Done` for none.
     PutFromHand,

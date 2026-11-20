@@ -1371,6 +1371,7 @@ impl P {
             }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
             | "saddle" | "poisonous" | "frenzy" | "absorb" | "fabricate" | "renown"
+            | "casualty"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
@@ -1389,6 +1390,7 @@ impl P {
                     "absorb" => Mechanic::Absorb(n),
                     "fabricate" => Mechanic::Fabricate(n),
                     "renown" => Mechanic::Renown(n),
+                    "casualty" => Mechanic::Casualty(n),
                     _ => Mechanic::Toxic(n),
                 }))
             }

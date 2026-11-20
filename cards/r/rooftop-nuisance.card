@@ -1,0 +1,10 @@
+card "Rooftop Nuisance" {
+  oracle_id 8843faa9-0cd5-4ef3-8e7b-b8833db9dc84
+  cost {2}{U}
+  type Sorcery
+  casualty 1
+  spell {
+    tap target creature; target 1 doesn't untap next untap step
+    draw 1 cards
+  }
+}

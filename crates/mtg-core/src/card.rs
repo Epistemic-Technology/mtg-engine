@@ -5333,6 +5333,11 @@ pub struct CardDef {
     /// they do, the spell is copied.
     #[serde(default)]
     pub conspire: bool,
+    /// Casualty N (CR 702.153): as it is cast, its caster may sacrifice a
+    /// creature with power N or greater; when they do, the spell is
+    /// copied. 0: none.
+    #[serde(default)]
+    pub casualty: u8,
     /// "Enchanted creature ... is goaded" (CR 701.15): the permanent's
     /// static ability grants "attacks each combat if able"; this marks
     /// that what it is attached to attacks a player other than the
@@ -7049,6 +7054,7 @@ impl Builder {
             overload_face: None,
             goads: false,
             conspire: false,
+            casualty: 0,
             splice: None,
             alt_cost: None,
             additional_or: None,
@@ -7262,6 +7268,13 @@ impl Builder {
     #[must_use]
     pub fn conspire(mut self) -> Self {
         self.0.conspire = true;
+        self
+    }
+
+    /// Casualty N (CR 702.153).
+    #[must_use]
+    pub fn casualty(mut self, n: u8) -> Self {
+        self.0.casualty = n;
         self
     }
 

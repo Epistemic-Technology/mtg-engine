@@ -1178,6 +1178,10 @@ pub enum Mechanic {
     Bargain,
     /// Conspire (CR 702.78).
     Conspire,
+    /// `casualty 2` (CR 702.153): "As you cast this spell, you may
+    /// sacrifice a creature with power N or greater. When you do, copy
+    /// this spell."
+    Casualty(u32),
     /// CR 702.184: `station`: "Tap another untapped creature you control:
     /// Put a number of charge counters on this permanent equal to the
     /// tapped creature's power. Activate only as a sorcery."

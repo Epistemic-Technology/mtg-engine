@@ -477,7 +477,7 @@ impl Runner {
                 let want = Choice::Mode(usize::from(std::mem::take(&mut self.pending_other_cost)));
                 Ok(index_of(d, &want).unwrap_or(0))
             }
-            DecisionKind::Bargain { .. } => self.choose_bargain(d),
+            DecisionKind::Bargain { .. } | DecisionKind::Casualty { .. } => self.choose_bargain(d),
             DecisionKind::Splice { .. } => self.choose_splice(d),
             DecisionKind::Conspire { .. } => {
                 let want = if std::mem::take(&mut self.pending_conspired) {

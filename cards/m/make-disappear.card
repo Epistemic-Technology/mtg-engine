@@ -1,0 +1,7 @@
+card "Make Disappear" {
+  oracle_id 5f12f665-f083-48ae-b61a-541051c996ec
+  cost {1}{U}
+  type Instant
+  casualty 1
+  spell: counter target spell unless its controller pays {2}
+}

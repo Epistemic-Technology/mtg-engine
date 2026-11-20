@@ -333,6 +333,9 @@ impl CastInfo {
     const INSTANT_TIMING: u32 = 0x1_0000;
     /// The definition's `cast_snapshot` condition held as it was cast.
     const AS_CAST: u32 = 0x2_0000;
+    /// Its casualty cost paid (CR 702.153a): a creature sacrificed with
+    /// its costs, and it is copied.
+    const CASUALTY: u32 = 0x4_0000;
     const KICKED: u32 = 0x40;
     const FLASHBACK: u32 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -421,6 +424,18 @@ impl CastInfo {
             self.0 | Self::BARGAINED
         } else {
             self.0 & !Self::BARGAINED
+        };
+    }
+
+    pub const fn casualty(self) -> bool {
+        self.0 & Self::CASUALTY != 0
+    }
+
+    pub fn set_casualty(&mut self, on: bool) {
+        self.0 = if on {
+            self.0 | Self::CASUALTY
+        } else {
+            self.0 & !Self::CASUALTY
         };
     }
 
@@ -1084,6 +1099,11 @@ pub enum Flow {
     /// Choosing whether to bargain a spell, and what to sacrifice (CR
     /// 702.166a), after offspring and before X.
     ChoosingBargain {
+        spell: ObjId,
+    },
+    /// Choosing whether to pay a spell's casualty cost, and what to
+    /// sacrifice (CR 702.153a), after bargain.
+    ChoosingCasualty {
         spell: ObjId,
     },
     /// Choosing whether to conspire a spell (CR 702.78a), after bargain.
@@ -2234,6 +2254,21 @@ impl GameState {
             | TargetSpec::Many(_)
             | TargetSpec::CreatureCardInYourGraveyard => false,
         }
+    }
+
+    /// CR 702.153a: the creatures with power `n` or greater `p` could
+    /// sacrifice for casualty.
+    pub fn casualty_candidates(&self, p: PlayerId, n: u8) -> Vec<ObjId> {
+        self.battlefield
+            .iter()
+            .copied()
+            .filter(|id| {
+                self.objects[*id].controller == p
+                    && self.characteristics(*id).is_some_and(|c| {
+                        c.types.contains(crate::card::CardType::Creature) && c.power >= i16::from(n)
+                    })
+            })
+            .collect()
     }
 
     /// CR 702.166a: the artifacts, enchantments, and tokens `p` could

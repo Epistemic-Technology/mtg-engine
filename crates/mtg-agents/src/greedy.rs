@@ -309,6 +309,7 @@ impl GreedyAgent {
             | DecisionKind::ChooseOption { .. }
             | DecisionKind::Offspring { .. }
             | DecisionKind::Bargain { .. }
+            | DecisionKind::Casualty { .. }
             | DecisionKind::Splice { .. }
             | DecisionKind::Conspire { .. }
             | DecisionKind::CopyTarget { .. }

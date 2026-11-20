@@ -4467,8 +4467,13 @@ impl GameState {
             let ability = self.pool.builtin(crate::card::Builtin::Cascade);
             self.queue_builtin(caster, ability, spell, def_ref);
         }
-        // CR 702.78a: "When you do, copy it".
-        if self.objects.get(spell).is_some_and(|o| o.cast.conspired()) {
+        // CR 702.78a, 702.153a: "When you do, copy it" / "copy this
+        // spell".
+        if self
+            .objects
+            .get(spell)
+            .is_some_and(|o| o.cast.conspired() || o.cast.casualty())
+        {
             let ability = self.pool.builtin(crate::card::Builtin::Conspire);
             self.queue_builtin(caster, ability, spell, def_ref);
         }

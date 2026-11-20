@@ -826,6 +826,25 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::ChoosingCasualty { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    let n = self.pool.get(obj.def).casualty;
+                    let mut options: Vec<Choice> = self
+                        .casualty_candidates(player, n)
+                        .into_iter()
+                        .map(Choice::Sacrifice)
+                        .collect();
+                    options.push(Choice::Decline);
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::Casualty { spell },
+                        options,
+                    });
+                }
                 Flow::ChoosingConspire { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -1713,6 +1732,16 @@ impl GameState {
             (Flow::ChoosingBargain { spell }, Choice::Decline) => {
                 self.flow = self.after_bargain(spell);
             }
+            // CR 702.153a: the sacrifice is an additional cost, paid with
+            // the others (kept with bargain's).
+            (Flow::ChoosingCasualty { spell }, Choice::Sacrifice(s)) => {
+                self.objects[spell].cast.set_casualty(true);
+                self.bargains.push((spell, s));
+                self.flow = self.after_casualty(spell);
+            }
+            (Flow::ChoosingCasualty { spell }, Choice::Decline) => {
+                self.flow = self.after_casualty(spell);
+            }
             // CR 702.78a: the creatures are tapped as the costs are paid.
             (Flow::ChoosingConspire { spell }, Choice::Accept) => {
                 self.objects[spell].cast.set_conspired(true);
@@ -2067,6 +2096,16 @@ impl GameState {
     }
 
     fn after_bargain(&self, spell: ObjId) -> Flow {
+        // CR 702.153a: casualty, with a creature to sacrifice.
+        let o = &self.objects[spell];
+        let n = self.pool.get(o.def).casualty;
+        if n > 0 && !self.casualty_candidates(o.controller, n).is_empty() {
+            return Flow::ChoosingCasualty { spell };
+        }
+        self.after_casualty(spell)
+    }
+
+    fn after_casualty(&self, spell: ObjId) -> Flow {
         // CR 702.78a: conspire, with two creatures to tap.
         let o = &self.objects[spell];
         if self.pool.get(o.def).conspire && self.conspirators(spell).len() >= 2 {

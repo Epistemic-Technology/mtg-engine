@@ -9027,6 +9027,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ),
             crate::ast::Mechanic::Bargain => "Bargain".to_string(),
             crate::ast::Mechanic::Conspire => "Conspire".to_string(),
+            crate::ast::Mechanic::Casualty(n) => format!("Casualty {n}"),
             crate::ast::Mechanic::Station => "Station".to_string(),
             crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
             crate::ast::Mechanic::Ascend => "Ascend".to_string(),

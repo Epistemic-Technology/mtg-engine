@@ -86,7 +86,9 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::ChooseCard => 30,
         DecisionKind::ChooseOption { .. } => 31,
         DecisionKind::Offspring { .. } => 32,
-        DecisionKind::Bargain { .. } => 33,
+        // The one-hot slots are full: casualty shares bargain's (both
+        // sacrifice a permanent as the spell is cast, or decline).
+        DecisionKind::Bargain { .. } | DecisionKind::Casualty { .. } => 33,
         DecisionKind::TopOrBottom { .. } => 34,
         DecisionKind::ChooseAdditionalCost { .. } => 35,
         DecisionKind::Splice { .. } => 36,
