@@ -1159,6 +1159,9 @@ pub enum Mechanic {
     Madness(ManaCost),
     /// CR 702.143: exiled for {2} on its owner's turn, cast later for this.
     Foretell(ManaCost),
+    /// CR 702.170: `plot {2}{B}`: exiled from hand for this cost as a
+    /// sorcery, cast free as a sorcery on a later turn.
+    Plot(ManaCost),
     /// CR 702.62: `suspend 4 {1}{U}`.
     Suspend(u32, ManaCost),
     /// CR 702.42: `entwine {2}`: every mode of the "choose one" spell for
@@ -1681,6 +1684,8 @@ pub enum StaticCond {
         at_least: u8,
         that: bool,
     },
+    /// `no mana spent`: "it wasn't cast or no mana was spent to cast it".
+    NoManaSpent,
 }
 
 /// An activation restriction, in the order written and printed ("Activate
@@ -2049,6 +2054,9 @@ pub enum Trigger {
     },
     /// `when this exploits a creature` (CR 702.110).
     Exploits,
+    /// `when this becomes plotted` (CR 702.170): "When this card becomes
+    /// plotted".
+    BecomesPlotted,
     /// `whenever you draw your second card each turn`; `... card in a
     /// turn` prints that way ("When you draw your third card in a turn").
     DrawsNth {

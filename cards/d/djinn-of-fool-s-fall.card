@@ -1,0 +1,8 @@
+card "Djinn of Fool's Fall" {
+  oracle_id 7dbb540f-ee96-4115-b6ef-28ffc73da8b7
+  cost {4}{U}
+  type Creature — Djinn
+  pt 4/3
+  keywords flying
+  plot {3}{U}
+}

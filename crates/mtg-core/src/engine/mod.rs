@@ -1692,6 +1692,8 @@ impl GameState {
                     (Zone::Exile, crate::state::AltCast::Foretold) => {
                         crate::state::AltCast::Foretell
                     }
+                    // CR 702.170d: without paying its mana cost.
+                    (Zone::Exile, crate::state::AltCast::Plotted) => crate::state::AltCast::Free,
                     _ => crate::state::AltCast::None,
                 };
                 let spell = self.begin_cast(player, id, alt);
@@ -1730,6 +1732,16 @@ impl GameState {
                     .get_or_insert_with(Box::default)
                     .foretold_this_turn
                     .push(new);
+                self.give_priority(player);
+            }
+            (Flow::Priority, Choice::Plot(id)) => {
+                // CR 702.170a-b: a special action; the player keeps
+                // priority.
+                let def = self.pool.get(self.objects[id].def);
+                if let Some(cost) = def.plot.as_deref().cloned() {
+                    self.pay(player, &cost.requirements(0));
+                    self.plot(id);
+                }
                 self.give_priority(player);
             }
             (Flow::ChoosingMode { spell }, Choice::Mode(i)) => {

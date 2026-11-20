@@ -485,7 +485,8 @@ impl GameState {
                 self.graveyard_trigger_cards += 1;
             }
         }
-        if old.zone == Zone::Exile && (old.cast.adventure() || matches!(old.alt, AltCast::Foretold))
+        if old.zone == Zone::Exile
+            && (old.cast.adventure() || matches!(old.alt, AltCast::Foretold | AltCast::Plotted))
         {
             let n = &mut self.player_mut(old.owner).adventures_in_exile;
             *n = n.saturating_sub(1);

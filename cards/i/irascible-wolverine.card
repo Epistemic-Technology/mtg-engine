@@ -1,0 +1,8 @@
+card "Irascible Wolverine" {
+  oracle_id 445cd4bd-ba7c-42a2-a794-42aed823d0d3
+  cost {2}{R}
+  type Creature — Wolverine
+  pt 3/2
+  triggered when this enters: impulse 1 this turn first
+  plot {2}{R}
+}

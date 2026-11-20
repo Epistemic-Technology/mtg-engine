@@ -1466,7 +1466,7 @@ impl P {
                 }))
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
-            | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
+            | "disguise" | "evoke" | "madness" | "foretell" | "plot" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "warp" | "embalm" | "eternalize" | "offspring" | "bestow"
             | "splice" | "strive" | "overload" | "surge" | "spectacle" | "replicate" | "encore"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
@@ -1483,6 +1483,7 @@ impl P {
                     "evoke" => Mechanic::Evoke(c),
                     "madness" => Mechanic::Madness(c),
                     "foretell" => Mechanic::Foretell(c),
+                    "plot" => Mechanic::Plot(c),
                     "entwine" => Mechanic::Entwine(c),
                     "megamorph" => Mechanic::Megamorph(c),
                     "disguise" => Mechanic::Disguise(c),
@@ -2666,6 +2667,9 @@ impl P {
         }
         if self.eat_word("teamwork") {
             return Ok(StaticCond::Teamwork);
+        }
+        if self.eat_words(&["no", "mana", "spent"]) {
+            return Ok(StaticCond::NoManaSpent);
         }
         if self.eat_word("spent") {
             return self.spent_cond();
@@ -9201,6 +9205,10 @@ impl P {
                     return self.fail("only `this` exploits");
                 }
                 Ok(Trigger::Exploits)
+            }
+            "becomes" if obj == TriggerObj::This && self.at_words(&["plotted"]) => {
+                self.pos += 1;
+                Ok(Trigger::BecomesPlotted)
             }
             "is" if self.at_words(&["turned", "face", "up"]) => {
                 self.pos += 3;

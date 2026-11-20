@@ -234,7 +234,8 @@ pub struct ExileCasts {
     /// Pending cards to be cast transformed, with the face they are cast
     /// as (CR 712.11a: a defeated Siege).
     pub transformed: Vec<(ObjId, CardRef)>,
-    /// Cards foretold this turn (CR 702.143a: castable on a later turn).
+    /// Cards foretold or plotted this turn (CR 702.143a, 702.170d:
+    /// castable on a later turn).
     pub foretold_this_turn: Vec<ObjId>,
     /// Cards exiled by impulse effects that a player may play.
     pub playable: Vec<PlayableExile>,
@@ -280,6 +281,9 @@ pub enum AltCast {
     MadnessExiled,
     /// In exile: foretold, castable on a later turn.
     Foretold,
+    /// In exile: plotted (CR 702.170a), castable free as a sorcery on a
+    /// later turn.
+    Plotted,
     /// In exile: suspended, with time counters.
     Suspended,
     /// In exile: rebounding, castable at its owner's next upkeep.
@@ -2671,6 +2675,7 @@ impl GameState {
             } => self.spent_on(source).count(*kind) >= u32::from(*at_least),
             // Judged by `condition_for`, which knows the triggering spell.
             C::ManaSpent { that: true, .. } => false,
+            C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
             C::Bargained => match self.objects.get(source) {
                 Some(o) if o.zone == Zone::Hand => !self.bargain_candidates(you).is_empty(),
                 Some(o) => o.cast.bargained(),

@@ -433,6 +433,7 @@ impl Decompiler<'_> {
             StaticCondition::Kicked => StaticCond::Kicked,
             StaticCondition::Bargained => StaticCond::Bargained,
             StaticCondition::Teamwork => StaticCond::Teamwork,
+            StaticCondition::NoManaSpent => StaticCond::NoManaSpent,
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
             StaticCondition::Saddled => StaticCond::Saddled,
             StaticCondition::LandEnteredThisTurn => StaticCond::LandEnteredThisTurn,
@@ -1462,6 +1463,7 @@ impl Decompiler<'_> {
             TriggerSpec::TargetedByYouFirstTime => Trigger::TargetedByYouFirstTime,
             TriggerSpec::TurnedFaceUp(o) => Trigger::TurnedFaceUp(self.trigger_obj(o)),
             TriggerSpec::Exploits => Trigger::Exploits,
+            TriggerSpec::BecomesPlotted => Trigger::BecomesPlotted,
             TriggerSpec::Reflexive => {
                 unreachable!("a reflexive trigger is decompiled with its effect")
             }

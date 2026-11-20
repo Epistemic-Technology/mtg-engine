@@ -985,6 +985,7 @@ impl Runner {
                 Action::TurnFaceUp(_)
                     | Action::Suspend(_)
                     | Action::Foretell(_)
+                    | Action::Plot(_)
                     | Action::Unlock(_)
             )
         });
@@ -992,6 +993,7 @@ impl Runner {
             let (Action::TurnFaceUp(name)
             | Action::Suspend(name)
             | Action::Foretell(name)
+            | Action::Plot(name)
             | Action::Unlock(name)) = &self.actions[i].action
             else {
                 unreachable!()
@@ -1000,7 +1002,8 @@ impl Runner {
             let found = d.options.iter().position(|c| match (c, action) {
                 (Choice::TurnFaceUp(id), Action::TurnFaceUp(_))
                 | (Choice::Suspend(id), Action::Suspend(_))
-                | (Choice::Foretell(id), Action::Foretell(_)) => {
+                | (Choice::Foretell(id), Action::Foretell(_))
+                | (Choice::Plot(id), Action::Plot(_)) => {
                     self.state().pool.get(self.state().objects[*id].card).name == *name
                 }
                 (Choice::Unlock { obj, door }, Action::Unlock(_)) => {
@@ -1882,7 +1885,10 @@ impl Runner {
             .copied()
             .find(|id| {
                 (st.objects[*id].cast.adventure()
-                    || st.objects[*id].alt == mtg_core::state::AltCast::Foretold)
+                    || matches!(
+                        st.objects[*id].alt,
+                        mtg_core::state::AltCast::Foretold | mtg_core::state::AltCast::Plotted
+                    ))
                     && st.name_of(*id) == name
             })
             .or_else(|| self.playable_in_exile(p, name, false))
@@ -2500,6 +2506,7 @@ impl Runner {
             Choice::CastAwaken(id) => format!("cast {} awakened", self.describe_ids(&[*id])),
             Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
             Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
+            Choice::Plot(id) => format!("plot {}", self.describe_ids(&[*id])),
             Choice::TurnFaceUp(id) => {
                 let card = self.state().objects[*id].card;
                 format!("turn {} face up", self.state().pool.get(card).name)

@@ -1,0 +1,8 @@
+card "Loan Shark" {
+  oracle_id 15030c1d-7c0a-4273-a022-eb98d6c7a1ce
+  cost {3}{U}
+  type Creature — Shark Rogue
+  pt 3/4
+  triggered when this enters if cast 2 spell this turn: draw 1 cards
+  plot {3}{U}
+}

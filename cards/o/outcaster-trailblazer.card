@@ -1,0 +1,9 @@
+card "Outcaster Trailblazer" {
+  oracle_id 3b5ff623-c44e-4f2d-8ab7-ee6b11f1deee
+  cost {2}{G}
+  type Creature — Human Druid
+  pt 4/2
+  triggered when this enters: add any
+  triggered whenever other creature you control with power 4 or greater enters: draw 1 cards
+  plot {2}{G}
+}

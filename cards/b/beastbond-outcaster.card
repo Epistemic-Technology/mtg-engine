@@ -1,0 +1,8 @@
+card "Beastbond Outcaster" {
+  oracle_id 19a32e29-45ec-433e-9cb4-b2c32cac8f80
+  cost {2}{G}
+  type Creature — Human Druid
+  pt 3/3
+  triggered when this enters if you control creature with power 4 or greater: draw 1 cards
+  plot {1}{G}
+}

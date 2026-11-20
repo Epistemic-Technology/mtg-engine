@@ -184,7 +184,8 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::TurnFaceUp(_) => 31,
         Choice::CastEvoke(_) => 32,
         Choice::Suspend(_) => 33,
-        Choice::Foretell(_) => 34,
+        // Plot shares foretell's slot (exiled from hand, cast later).
+        Choice::Foretell(_) | Choice::Plot(_) => 34,
         Choice::Subtype(_) => 35,
         Choice::Divide(_) => 36,
         // Warp shares dash's slot (an alternative cost from the hand).
@@ -410,7 +411,8 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::CastAwaken(id)
             | Choice::Suspend(id)
             | Choice::Unlock { obj: id, .. }
-            | Choice::Foretell(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
+            | Choice::Foretell(id)
+            | Choice::Plot(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
             Choice::CastFaceDown(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 3.0),
             Choice::Cast(id) => {
                 let cost = state

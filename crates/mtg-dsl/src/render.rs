@@ -7030,6 +7030,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!("whenever {} is turned face up", trigger_subject(o, ctx))
         }
         Trigger::Exploits => format!("when {} exploits a creature", this(ctx)),
+        // It is a card in exile, not yet a creature (CR 702.170).
+        Trigger::BecomesPlotted => {
+            ctx.source_mentioned = true;
+            "when this card becomes plotted".to_string()
+        }
         Trigger::DrawsNth {
             whose,
             n,
@@ -8531,6 +8536,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         }
         StaticCond::Bargained => "it was bargained".to_string(),
         StaticCond::Teamwork => "this spell was cast using teamwork".to_string(),
+        StaticCond::NoManaSpent => "it wasn't cast or no mana was spent to cast it".to_string(),
         StaticCond::ManaSpent {
             kind: mtg_core::card::SpentKind::Total,
             at_least,
@@ -9527,6 +9533,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Evoke(c) => format!("Evoke {c}"),
             crate::ast::Mechanic::Madness(c) => format!("Madness {c}"),
             crate::ast::Mechanic::Foretell(c) => format!("Foretell {c}"),
+            crate::ast::Mechanic::Plot(c) => format!("Plot {c}"),
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
             crate::ast::Mechanic::Modular(n) => format!("Modular {n}"),
@@ -9761,11 +9768,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             format!("Affinity for {}", filter_phrase(&g, card, true))
         }
         Ability::EntersAsCopy(f) => {
-            let mut s = format!(
-                "You may have {} enter as a copy of any {} on the battlefield",
-                this_ref(card),
-                filter_phrase(f, card, false)
-            );
+            // "... a copy of a creature you control" (Visage Bandit).
+            let mut s = if f.who == Some(mtg_core::card::Who::You) {
+                format!(
+                    "You may have {} enter as a copy of {}",
+                    this_ref(card),
+                    with_article(&filter_phrase(f, card, false))
+                )
+            } else {
+                format!(
+                    "You may have {} enter as a copy of any {} on the battlefield",
+                    this_ref(card),
+                    filter_phrase(f, card, false)
+                )
+            };
             let x = except_text(card, None);
             if !x.is_empty() {
                 let _ = write!(s, ", except {x}");

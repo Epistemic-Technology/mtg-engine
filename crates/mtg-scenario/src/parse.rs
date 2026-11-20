@@ -722,6 +722,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
         "unmorph" => (Action::TurnFaceUp(line.string()?), None),
         "suspend" => (Action::Suspend(line.string()?), None),
         "foretell" => (Action::Foretell(line.string()?), None),
+        "plot" => (Action::Plot(line.string()?), Some(Step::PrecombatMain)),
         "unlock" => (Action::Unlock(line.string()?), Some(Step::PrecombatMain)),
         "wait" => (Action::Wait, Some(Step::PrecombatMain)),
         "activate" => {

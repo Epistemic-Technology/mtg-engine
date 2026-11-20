@@ -246,6 +246,8 @@ pub enum Choice {
     Suspend(ObjId),
     /// Foretell a card from hand (CR 702.143a), a special action.
     Foretell(ObjId),
+    /// Plot a card from hand (CR 702.170a), a special action.
+    Plot(ObjId),
     /// Cast a card with morph or disguise face down as a 2/2 for {3}
     /// (CR 702.37c, 702.168).
     CastFaceDown(ObjId),
@@ -359,6 +361,7 @@ impl Choice {
             Choice::CastAwaken(id) => format!("cast {} for its awaken cost", name(id)),
             Choice::Suspend(id) => format!("suspend {}", name(id)),
             Choice::Foretell(id) => format!("foretell {}", name(id)),
+            Choice::Plot(id) => format!("plot {}", name(id)),
             Choice::CastFaceDown(id) => {
                 let card = state
                     .objects

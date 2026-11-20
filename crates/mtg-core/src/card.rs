@@ -2241,6 +2241,10 @@ pub enum StaticCondition {
         at_least: u8,
         that: bool,
     },
+    /// "if it wasn't cast or no mana was spent to cast it": no mana was
+    /// paid to cast the source (CR 601.2h; cast without paying its mana
+    /// cost, plotted, or not cast at all).
+    NoManaSpent,
 }
 
 /// What a "mana spent to cast" condition or count looks at (CR 601.2h).
@@ -4575,6 +4579,9 @@ pub enum TriggerSpec {
     /// "When this creature exploits a creature" (CR 702.110): queued by
     /// the exploit trigger itself, never by an event.
     Exploits,
+    /// "When this card becomes plotted" (CR 702.170): queued as the card
+    /// is plotted, from exile, never by an event.
+    BecomesPlotted,
     /// "When you cycle this card" (`this`; CR 702.29d: it triggers from
     /// the graveyard the card was discarded to), "Whenever you cycle a
     /// card", "Whenever you cycle or discard a card" (`or_discard`: once
@@ -4768,7 +4775,10 @@ impl TriggerSpec {
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
-            TriggerSpec::Exploits | TriggerSpec::Reflexive | TriggerSpec::State(_) => 0,
+            TriggerSpec::Exploits
+            | TriggerSpec::BecomesPlotted
+            | TriggerSpec::Reflexive
+            | TriggerSpec::State(_) => 0,
             TriggerSpec::GainsLife { .. } | TriggerSpec::GainsLifeFirst { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,
             TriggerSpec::CastsSpell { .. }
@@ -5785,6 +5795,10 @@ pub struct CardDef {
     /// Foretell (CR 702.143): exiled from hand for {2}, cast later for
     /// this cost.
     pub foretell: Option<Box<ManaCost>>,
+    /// Plot (CR 702.170): exiled from hand for this cost as a special
+    /// action at sorcery speed; cast free as a sorcery on a later turn.
+    #[serde(default)]
+    pub plot: Option<Box<ManaCost>>,
     /// Suspend N—cost (CR 702.62).
     pub suspend: Option<Box<(u32, ManaCost)>>,
     /// Entwine (CR 702.42): every mode of a "choose one" spell for this
@@ -6947,6 +6961,9 @@ impl CardPool {
     fn spent_use(&self, def: &CardDef) -> SpentUse {
         let mut out = SpentUse::default();
         let mut want = |c: &StaticCondition| {
+            if *c == StaticCondition::NoManaSpent {
+                out.record = true;
+            }
             if let StaticCondition::ManaSpent {
                 kind,
                 at_least,
@@ -7583,6 +7600,7 @@ impl Builder {
             cond_cost: None,
             madness: None,
             foretell: None,
+            plot: None,
             suspend: None,
             entwine: None,
             escape: None,
@@ -7948,6 +7966,13 @@ impl Builder {
     #[must_use]
     pub fn foretell(mut self, cost: ManaCost) -> Self {
         self.0.foretell = Some(Box::new(cost));
+        self
+    }
+
+    /// Plot (CR 702.170).
+    #[must_use]
+    pub fn plot(mut self, cost: ManaCost) -> Self {
+        self.0.plot = Some(Box::new(cost));
         self
     }
 

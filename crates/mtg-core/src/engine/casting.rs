@@ -170,7 +170,7 @@ impl GameState {
             if def.morph.is_some() && sorcery_timing {
                 self.face_down_option(p, *id, &sources, &mut options);
             }
-            if def.suspend.is_some() || def.foretell.is_some() {
+            if def.suspend.is_some() || def.foretell.is_some() || def.plot.is_some() {
                 self.exile_actions(p, *id, sorcery_timing, &sources, &mut options);
             }
         }
@@ -199,6 +199,20 @@ impl GameState {
                             .as_ref()
                             .is_some_and(|e| e.foretold_this_turn.contains(id))
                         && self.exile_castable(p, *id, AltCast::Foretell)
+                    {
+                        options.push(Choice::Cast(*id));
+                    }
+                    continue;
+                }
+                // CR 702.170d: a plotted card, free, during its owner's
+                // main phase with the stack empty, on a later turn.
+                if o.alt == AltCast::Plotted {
+                    if sorcery_timing
+                        && !self
+                            .exile_casts
+                            .as_ref()
+                            .is_some_and(|e| e.foretold_this_turn.contains(id))
+                        && self.exile_castable(p, *id, AltCast::Free)
                     {
                         options.push(Choice::Cast(*id));
                     }
@@ -1610,8 +1624,9 @@ impl GameState {
         }
     }
 
-    /// Suspend (CR 702.62a: whenever the card could be cast) and foretell
-    /// (CR 702.143a: any time during its owner's turn) from the hand.
+    /// Suspend (CR 702.62a: whenever the card could be cast), foretell
+    /// (CR 702.143a: any time during its owner's turn), and plot (CR
+    /// 702.170a: at sorcery speed) from the hand.
     #[cold]
     #[inline(never)]
     fn exile_actions(
@@ -1649,6 +1664,20 @@ impl GameState {
             )
         {
             options.push(Choice::Foretell(id));
+        }
+        // CR 702.170a: plot, any time its owner could cast a sorcery.
+        if let Some(cost) = def.plot.as_deref()
+            && sorcery_timing
+            && self.payable(
+                p,
+                sources,
+                &ps.mana_pool,
+                &cost.requirements(0),
+                ps.life,
+                None,
+            )
+        {
+            options.push(Choice::Plot(id));
         }
     }
 
@@ -4170,6 +4199,30 @@ impl GameState {
         let c = self.characteristics(source);
         self.with_restricted(p, &sources, Spend::Ability(c.as_ref()))
             .unwrap_or(sources)
+    }
+
+    /// Exile `card` and make it plotted (CR 702.170a, 702.170c): its owner
+    /// may cast it free as a sorcery from a later turn on. The exiled card.
+    pub(super) fn plot(&mut self, card: ObjId) -> ObjId {
+        let new = self.move_object(card, Zone::Exile, true);
+        self.objects[new].alt = AltCast::Plotted;
+        let owner = self.objects[new].owner;
+        self.player_mut(owner).adventures_in_exile += 1;
+        self.exile_casts
+            .get_or_insert_with(Box::default)
+            .foretold_this_turn
+            .push(new);
+        // "When this card becomes plotted".
+        let def = self.objects[new].def;
+        let pool = std::sync::Arc::clone(&self.pool);
+        for a in &pool.get(def).ability_ids {
+            if let AbilityDef::Triggered(t) = pool.ability(*a)
+                && t.trigger == crate::card::TriggerSpec::BecomesPlotted
+            {
+                self.queue_builtin(owner, *a, new, def);
+            }
+        }
+        new
     }
 
     /// The sources `p` may tap to foretell a card (CR 702.143a): restricted

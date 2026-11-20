@@ -169,6 +169,8 @@ pub enum Action {
     Suspend(String),
     /// `foretell "X"`: foretell card X from the hand (a special action).
     Foretell(String),
+    /// `plot "X"`: plot card X from the hand (a special action).
+    Plot(String),
     /// `unlock "Door"`: unlock that locked door (half) of a Room the
     /// player controls (CR 709.5e, a special action).
     Unlock(String),
@@ -252,6 +254,7 @@ impl Action {
             Action::TurnFaceUp(_) => "unmorph",
             Action::Suspend(_) => "suspend",
             Action::Foretell(_) => "foretell",
+            Action::Plot(_) => "plot",
             Action::Unlock(_) => "unlock",
         }
     }

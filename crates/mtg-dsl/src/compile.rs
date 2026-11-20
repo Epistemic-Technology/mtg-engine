@@ -325,6 +325,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Foretell(cost)) => {
                     b = b.foretell(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Plot(cost)) => {
+                    b = b.plot(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Suspend(n, cost)) => {
                     b = b.suspend(*n, cost.clone());
                 }
@@ -670,6 +673,7 @@ impl Compiler<'_> {
                             | Mechanic::Evoke(_)
                             | Mechanic::Madness(_)
                             | Mechanic::Foretell(_)
+                            | Mechanic::Plot(_)
                             | Mechanic::Suspend(..)
                             | Mechanic::Entwine(_)
                             | Mechanic::Escape(..)
@@ -1025,6 +1029,7 @@ impl Compiler<'_> {
             StaticCond::Kicked => StaticCondition::Kicked,
             StaticCond::Bargained => StaticCondition::Bargained,
             StaticCond::Teamwork => StaticCondition::Teamwork,
+            StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
             StaticCond::Saddled => StaticCondition::Saddled,
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
             StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
@@ -2498,6 +2503,7 @@ impl Compiler<'_> {
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
             Trigger::TurnedFaceUp(o) => TriggerSpec::TurnedFaceUp(self.trigger_obj(o)),
             Trigger::Exploits => TriggerSpec::Exploits,
+            Trigger::BecomesPlotted => TriggerSpec::BecomesPlotted,
             Trigger::DrawsNth { whose, n, .. } => TriggerSpec::DrawsNth {
                 whose: *whose,
                 n: *n,
@@ -3151,6 +3157,7 @@ impl Compiler<'_> {
                 | Mechanic::Evoke(_)
                 | Mechanic::Madness(_)
                 | Mechanic::Foretell(_)
+                | Mechanic::Plot(_)
                 | Mechanic::Suspend(..)
                 | Mechanic::Entwine(_)
                 | Mechanic::Escape(..)
@@ -3987,6 +3994,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Evoke(_)
         | Mechanic::Madness(_)
         | Mechanic::Foretell(_)
+        | Mechanic::Plot(_)
         | Mechanic::Suspend(..)
         | Mechanic::Entwine(_)
         | Mechanic::Escape(..)

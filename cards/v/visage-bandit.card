@@ -1,0 +1,11 @@
+card "Visage Bandit" {
+  oracle_id db11596a-6704-427b-aaef-0211e7822127
+  cost {3}{U}
+  type Creature — Shapeshifter Rogue
+  pt 2/2
+  enters as copy of creature you control
+  except {
+  subtypes Shapeshifter Rogue
+  }
+  plot {2}{U}
+}
