@@ -2503,8 +2503,7 @@ impl GameState {
         if q.counter.is_some_and(|c| !o.counters_match(c)) {
             return false;
         }
-        q.token
-            .is_none_or(|t| (self.objects[id].kind == ObjKind::Token) == t)
+        q.token.is_none_or(|t| (o.kind == ObjKind::Token) == t)
     }
 
     /// Whether the spell `obj` targets what `t` asks for, judged by
@@ -3005,19 +3004,21 @@ impl GameState {
                         filter.matches(source, o.controller, &c, Some(source), Some(you))
                     }) && self.status_ok(filter, source)
                 }
-                // "When this creature dies, if it's not a token": as it
-                // last existed (CR 603.10a, 603.4).
+                // A leaves-the-battlefield trigger's "if it isn't a token"
+                // (Sphinx of False Conclusions): the permanent as it last
+                // existed (CR 603.10a, 608.2h).
                 None => self.lki.get(&source).is_some_and(|l| {
-                    filter.matches(
-                        source,
-                        l.object.controller,
-                        &l.characteristics,
-                        Some(source),
-                        Some(you),
-                    ) && filter
-                        .status
-                        .token
-                        .is_none_or(|t| (l.object.kind == ObjKind::Token) == t)
+                    let o = &l.object;
+                    self.characteristics_or_lki(source).is_some_and(|c| {
+                        filter.matches(source, o.controller, &c, Some(source), Some(you))
+                    }) && filter.tapped.is_none_or(|t| o.tapped == t)
+                        && !filter.attacking
+                        && !filter.blocking
+                        && (!filter.status.any() || self.status_quals_ok(filter.status, source, o))
+                        && filter
+                            .status
+                            .token
+                            .is_none_or(|t| (o.kind == ObjKind::Token) == t)
                 }),
             },
             C::AttachedIs(filter) => self

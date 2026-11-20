@@ -1,0 +1,9 @@
+card "Madame Masque" {
+  oracle_id b5b0e85f-6651-4667-829c-2253ff8b130d
+  cost {4}{B}
+  type Legendary Creature — Human Villain
+  pt 3/2
+  pronoun she
+  triggered when this enters: this connives
+  triggered whenever you draw your second card each turn: create 1 "2/1 black Villain creature with menace"
+}

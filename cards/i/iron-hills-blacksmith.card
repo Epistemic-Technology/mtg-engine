@@ -1,0 +1,8 @@
+card "Iron Hills Blacksmith" {
+  oracle_id 9febdfa8-8af2-4aba-b2e6-cb2baad7e02b
+  cost {1}{W}
+  type Creature — Dwarf Artificer
+  pt 1/1
+  keywords double strike
+  triggered when this enters: create 1 "colorless Equipment artifact named Axe"
+}

@@ -1,0 +1,9 @@
+card "Arcanis the Omnipotent" {
+  oracle_id 8a7183cc-161c-444d-a889-a17519c8061b
+  cost {3}{U}{U}{U}
+  type Legendary Creature — Wizard
+  pt 3/4
+  short_name "Arcanis"
+  activated {T}: draw 3 cards
+  activated {2}{U}{U}: return this to its owner's hand
+}

@@ -1196,6 +1196,21 @@ impl Templates {
                     ))
                 },
             ),
+            // "target creature you control gets +X/+0 until end of turn,
+            // where X is this creature's power".
+            (
+                r(
+                    r"^(.+?) gets? \+X/\+(X|0) until end of turn, where X is (?:this creature|~)'s (power|toughness)$",
+                ),
+                |c, t| {
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    Some(format!(
+                        "{who} gets +1/+{} count where {}",
+                        if cap(c, 2) == "X" { "1" } else { "0" },
+                        cap(c, 3)
+                    ))
+                },
+            ),
             (
                 r(r"^(.+?) gains? life equal to the number of (.+)$"),
                 |c, t| {
@@ -1474,6 +1489,10 @@ impl Templates {
             (r(r"^(It|This creature|~) explores$"), |_, t| {
                 (*t == 0).then(|| "this explores".to_string())
             }),
+            (
+                r(r"^(It|it|This creature|~) explores, then it explores again$"),
+                |_, t| (*t == 0).then(|| "this explores twice".to_string()),
+            ),
             (r(r"^(.+) gets? (a|\w+) poison counters?$"), |c, t| {
                 Some(format!(
                     "{} gets {} poison counters",
@@ -2227,6 +2246,7 @@ impl Templates {
             let clauses: Vec<&str> = if body.contains("earch your library")
                 || body.contains("earch their library")
                 || body == "Discard all the cards in your hand, then draw that many cards"
+                || body.ends_with("explores, then it explores again")
             {
                 vec![body.as_str()]
             } else {
@@ -2770,6 +2790,9 @@ fn trigger_general(head: &str) -> Option<String> {
             Some("whenever this attacks and isn't blocked")
         }
         "Whenever you attack" => Some("whenever you attack"),
+        "Whenever one or more creatures you control attack" => {
+            Some("whenever one or more creatures you control attack")
+        }
         "Whenever one or more +1/+1 counters are put on this creature" => {
             Some("whenever one or more +1/+1 counters put on this")
         }
@@ -2870,6 +2893,9 @@ fn static_condition(s: &str) -> Option<String> {
         "you've completed a dungeon" => return Some("completed dungeon".to_string()),
         "you're the monarch" => return Some("you are monarch".to_string()),
         "you gained life this turn" => return Some("gained life this turn".to_string()),
+        "a card left your graveyard this turn" => {
+            return Some("card left your graveyard this turn".to_string());
+        }
         "an opponent lost life this turn" => {
             return Some("opponent lost life this turn".to_string());
         }
@@ -4725,6 +4751,60 @@ fn wording_variants(text: &str) -> Vec<String> {
 
 /// Build the card file for one Scryfall record, or say why not.
 #[allow(clippy::too_many_lines)]
+/// A legendary character's Oracle text with "he"/"she" and their other
+/// forms read as "it"/"its", and which pronoun it used (`he`, `she`).
+fn neuter_pronouns(oracle: &str) -> (String, Option<&'static str>) {
+    let he = Regex::new(r"\b(?:[Hh]e|[Hh]im|[Hh]is)\b").unwrap();
+    let she = Regex::new(r"\b(?:[Ss]he|[Hh]er)\b").unwrap();
+    let pronoun = match (he.is_match(oracle), she.is_match(oracle)) {
+        (true, false) => "he",
+        (false, true) => "she",
+        _ => return (oracle.to_string(), None),
+    };
+    let word = Regex::new(r"\b([Hh]e|[Hh]im|[Hh]is|[Ss]he|[Hh]er)\b( ?)(\w*)").unwrap();
+    let out = word.replace_all(oracle, |c: &regex::Captures| {
+        let w = &c[1];
+        let next = &c[3];
+        // "her owner's", "her power": possessive; "on her", "her to the
+        // battlefield": the object.
+        let possessive = w.eq_ignore_ascii_case("his")
+            || (w.eq_ignore_ascii_case("her")
+                && !c[2].is_empty()
+                && next.chars().next().is_some_and(char::is_lowercase)
+                && !matches!(
+                    next,
+                    "to" | "into"
+                        | "onto"
+                        | "and"
+                        | "or"
+                        | "on"
+                        | "from"
+                        | "with"
+                        | "until"
+                        | "this"
+                        | "that"
+                        | "a"
+                        | "an"
+                        | "the"
+                        | "as"
+                        | "if"
+                        | "unless"
+                        | "at"
+                        | "under"
+                        | "instead"
+                ));
+        let it = if possessive { "its" } else { "it" };
+        let it = if w.starts_with(char::is_uppercase) {
+            if possessive { "Its" } else { "It" }
+        } else {
+            it
+        };
+        format!("{it}{}{next}", &c[2])
+    });
+    (out.into_owned(), Some(pronoun))
+}
+
+#[allow(clippy::too_many_lines)] // one step per part of the card
 pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if matches!(
         s.layout.as_str(),
@@ -4794,6 +4874,41 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         let word = Regex::new(&format!(r"\b{}\b", regex::escape(short))).unwrap();
         oracle = word.replace_all(&oracle, "~").into_owned();
     }
+    // "Ajani" for "Ajani Resolute", "Smaug" for "Smaug the Magnificent":
+    // a legendary card without a comma in its name may call itself by its
+    // first word (not "Ajani's Pridemate", a token's name).
+    let mut short = None;
+    if type_line.contains("Legendary")
+        && !s.name.contains(", ")
+        && let Some((first, _)) = s.name.split_once(' ')
+        && first != "The"
+        && first.chars().all(char::is_alphabetic)
+    {
+        let word = Regex::new(&format!(r"\b{}\b('s )?", regex::escape(first))).unwrap();
+        let mut found = false;
+        oracle = word
+            .replace_all(&oracle, |c: &regex::Captures| {
+                if c.get(1).is_some() {
+                    c[0].to_string()
+                } else {
+                    found = true;
+                    "~".to_string()
+                }
+            })
+            .into_owned();
+        if found {
+            short = Some(first.to_string());
+        }
+    }
+    // A character's text calls it "he" or "she"; the templates read "it"
+    // and the card gets a `pronoun` line.
+    let pronoun = if type_line.contains("Legendary") {
+        let (oracle_it, pronoun) = neuter_pronouns(&oracle);
+        oracle = oracle_it;
+        pronoun
+    } else {
+        None
+    };
     let templates = Templates::new();
     let mut b = Builder {
         templates: &templates,
@@ -4894,6 +5009,12 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     }
     if let Some(d) = &s.defense {
         let _ = writeln!(text, "  defense {d}");
+    }
+    if let Some(n) = &short {
+        let _ = writeln!(text, "  short_name {n:?}");
+    }
+    if let Some(p) = pronoun {
+        let _ = writeln!(text, "  pronoun {p}");
     }
     if let Some(ci) = &s.color_indicator {
         let names: Vec<&str> = ci

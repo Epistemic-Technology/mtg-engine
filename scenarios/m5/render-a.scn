@@ -1,0 +1,574 @@
+# Cards completed by renderer and parser fixes (render-a).
+
+scenario "Captain America pumps each other Hero by its toughness" {
+  battlefield A: "Captain America, Wings of Freedom" with 2 +1/+1, "Sif's Spearmaster", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Captain America, Wings of Freedom"
+  run_to turn 1 declare_blockers
+  assert power "Sif's Spearmaster" 4
+  assert toughness "Sif's Spearmaster" 7
+  assert power "Grizzly Bears" 2
+  assert power "Captain America, Wings of Freedom" 5
+}
+
+scenario "Ouroboroid puts its power in counters on each creature you control" {
+  battlefield A: "Ouroboroid", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert counters "Ouroboroid" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Ouroboroid" 2
+}
+
+scenario "Ouroboroid's second combat uses its grown power" {
+  battlefield A: "Ouroboroid" with 2 +1/+1, "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert counters "Ouroboroid" +1/+1 5
+  assert counters "Grizzly Bears" +1/+1 3
+}
+
+scenario "Halana and Alena give another creature counters and haste" {
+  battlefield A: "Halana and Alena, Partners" with 1 +1/+1, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Halana and Alena, Partners" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert counters "Grizzly Bears" +1/+1 3
+  assert has "Grizzly Bears" haste
+  assert counters "Halana and Alena, Partners" +1/+1 1
+}
+
+scenario "Abomination's power-up grows him and he fights" {
+  battlefield A: "Abomination, Terrifying Titan", 7 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Abomination, Terrifying Titan" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Abomination, Terrifying Titan" +1/+1 1
+  assert graveyard B contains "Hill Giant"
+  assert damage "Abomination, Terrifying Titan" 3
+}
+
+scenario "Abomination's power-up is activated only once" {
+  battlefield A: "Abomination, Terrifying Titan", 14 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Abomination, Terrifying Titan"
+  illegal turn 1 postcombat_main A: activate "Abomination, Terrifying Titan"
+  run_to turn 1 end
+  assert counters "Abomination, Terrifying Titan" +1/+1 1
+}
+
+scenario "Madame Masque connives as she enters" {
+  battlefield A: 5 "Swamp"
+  hand A: "Madame Masque"
+  library A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Madame Masque"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Madame Masque" +1/+1 1
+}
+
+scenario "Ajani Resolute's 0 ability gains life, which adds loyalty" {
+  battlefield A: "Ajani Resolute" with 2 loyalty
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ajani Resolute" ability 1
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert counters "Ajani Resolute" loyalty 3
+}
+
+scenario "Ajani Resolute's -4 makes Ajani's Pridemate, which grows on life gain" {
+  battlefield A: "Ajani Resolute" with 4 loyalty
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ajani Resolute" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ajani's Pridemate"
+  assert graveyard A contains "Ajani Resolute"
+}
+
+scenario "Ajani Resolute's emblem pumps your creatures" {
+  battlefield A: "Ajani Resolute" with 10 loyalty, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ajani Resolute" ability 3
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "Arcanis draws three and returns to hand" {
+  battlefield A: "Arcanis the Omnipotent", 4 "Island"
+  library A: 5 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Arcanis the Omnipotent" ability 1
+  turn 1 A: activate "Arcanis the Omnipotent" ability 2
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+  assert hand A contains "Arcanis the Omnipotent"
+}
+
+scenario "Kiora makes a Dragon as she enters" {
+  battlefield A: 6 "Mountain"
+  hand A: "Kiora of Fire and Ashes"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kiora of Fire and Ashes"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dragon"
+}
+
+scenario "War Machine gives another creature its power" {
+  battlefield A: "War Machine, Legacy of Iron" with 2 +1/+1, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "War Machine, Legacy of Iron" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Ashroot Animist gives trample and its power" {
+  battlefield A: "Ashroot Animist", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Ashroot Animist"
+  turn 1 declare_attackers A: trigger "Ashroot Animist" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 6
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Wildwood Mentor pumps another attacker by its power" {
+  battlefield A: "Wildwood Mentor" with 2 +1/+1, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Wildwood Mentor", "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Wildwood Mentor" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+}
+
+scenario "Liliana the Repentant mills two as another creature enters" {
+  battlefield A: "Liliana the Repentant", 2 "Forest"
+  hand A: "Grizzly Bears"
+  library A: 4 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 2
+}
+
+scenario "Affectionate Indrik may fight a creature you don't control" {
+  battlefield A: 6 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Affectionate Indrik"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Affectionate Indrik"
+  turn 1 A: trigger "Affectionate Indrik" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Affectionate Indrik" 2
+}
+
+scenario "Affectionate Indrik's fight is optional" {
+  battlefield A: 6 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Affectionate Indrik"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Affectionate Indrik"
+  turn 1 A: trigger "Affectionate Indrik" targeting "Grizzly Bears"
+  turn 1 A: decline "Affectionate Indrik"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Wisecrack: an attacker hits itself and its controller takes 2" {
+  battlefield A: "Hill Giant"
+  battlefield B: 3 "Mountain"
+  hand B: "Wisecrack"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_attackers B: cast "Wisecrack" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert life A 18
+}
+
+scenario "Wisecrack on a creature that isn't attacking deals no damage to its controller" {
+  battlefield A: "Hill Giant"
+  battlefield B: 3 "Mountain"
+  hand B: "Wisecrack"
+  start turn 1 A precombat_main
+  turn 1 precombat_main B: cast "Wisecrack" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert life A 20
+}
+
+scenario "Jadelight Ranger explores twice: two lands to hand" {
+  battlefield A: 3 "Forest"
+  hand A: "Jadelight Ranger"
+  library A: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jadelight Ranger"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains "Island"
+  assert counters "Jadelight Ranger" +1/+1 0
+}
+
+scenario "Jadelight Ranger explores twice: two nonland cards make two counters" {
+  battlefield A: 3 "Forest"
+  hand A: "Jadelight Ranger"
+  library A: "Grizzly Bears", "Hill Giant", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jadelight Ranger"
+  run_to turn 1 postcombat_main
+  assert counters "Jadelight Ranger" +1/+1 2
+}
+
+scenario "Over the Edge: target creature explores twice" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Over the Edge"
+  library A: "Hill Giant", "Forest", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Over the Edge" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert hand A contains "Forest"
+}
+
+scenario "Over the Edge destroys an artifact" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Over the Edge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Over the Edge" mode 1 targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+}
+
+scenario "Defossilize returns a creature, which explores twice" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Defossilize"
+  library A: "Grizzly Bears", "Grizzly Bears", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Defossilize" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" +1/+1 2
+}
+
+scenario "Cerebral Download surveils by artifacts, then draws three" {
+  battlefield A: 5 "Island", 2 "Ornithopter"
+  hand A: "Cerebral Download"
+  library A: 6 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cerebral Download"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A contains "Cerebral Download"
+}
+
+scenario "Dragonologist takes a Dragon card; untapped Dragons have hexproof" {
+  battlefield A: 3 "Island", "Shivan Dragon"
+  hand A: "Dragonologist"
+  library A: "Forest", "Shivan Dragon", "Forest", "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dragonologist"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shivan Dragon"
+  assert has A "Shivan Dragon" hexproof
+}
+
+scenario "Questing Druid grows on a red spell, not a green one" {
+  battlefield A: "Questing Druid", 2 "Mountain", "Forest"
+  hand A: "Lightning Bolt", "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Questing Druid"
+  run_to turn 1 postcombat_main
+  assert counters "Questing Druid" +1/+1 1
+}
+
+scenario "Elixir shuffles nonland cards back and gains that much life" {
+  battlefield A: "Elixir", 5 "Plains"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Elixir"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert graveyard A count 1
+  assert exile A contains "Elixir"
+}
+
+scenario "Brambleguard Veteran: Raccoons get +1/+1 and vigilance on expend 4" {
+  battlefield A: "Brambleguard Veteran", 5 "Mountain"
+  hand A: "Hill Giant", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Brambleguard Veteran" 4
+  assert has "Brambleguard Veteran" vigilance
+  assert power "Hill Giant" 3
+}
+
+scenario "Resplendent Angel makes an Angel after you gain 5 life" {
+  battlefield A: "Resplendent Angel", 6 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Resplendent Angel"
+  turn 1 A: attack "Resplendent Angel"
+  run_to turn 1 cleanup
+  assert life A 25
+  assert battlefield A contains "Angel"
+}
+
+scenario "Resplendent Angel: less than 5 life makes no Angel" {
+  battlefield A: "Resplendent Angel", 6 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Resplendent Angel"
+  run_to turn 1 cleanup
+  assert battlefield A lacks "Angel"
+}
+
+scenario "Ancestor Dragon: gain 1 life for each attacking creature" {
+  battlefield A: "Ancestor Dragon", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 declare_blockers
+  assert life A 22
+}
+
+scenario "Ancestor Dragon: no attack, no life" {
+  battlefield A: "Ancestor Dragon", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Groundchuck & Dirtbag: each land you tap adds an extra {G}" {
+  battlefield A: "Groundchuck & Dirtbag", 2 "Forest"
+  hand A: "Centaur Courser"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Centaur Courser"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Centaur Courser"
+}
+
+scenario "Groundchuck & Dirtbag: one land is not enough for three mana" {
+  battlefield A: "Groundchuck & Dirtbag", "Forest"
+  hand A: "Centaur Courser"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Centaur Courser"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Centaur Courser"
+}
+
+scenario "Leonardo's Technique returns two small creature cards" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Grizzly Bears", "Centaur Courser"
+  hand A: "Leonardo's Technique"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Leonardo's Technique" targeting "Grizzly Bears", "Centaur Courser"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Centaur Courser"
+}
+
+scenario "Leonardo's Technique can't return a creature card with mana value 4" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Grizzly Bears", "Serra Angel"
+  hand A: "Leonardo's Technique"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Leonardo's Technique" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+}
+
+scenario "Retro-Mutation: a 0/1 Turtle that can't attack and has no abilities" {
+  battlefield A: 3 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Retro-Mutation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Retro-Mutation" targeting "Serra Angel"
+  illegal turn 2 B: attack "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert power "Serra Angel" 0
+  assert toughness "Serra Angel" 1
+  assert is "Serra Angel" "Turtle"
+  assert has not "Serra Angel" flying
+}
+
+scenario "Spider-Man No More: a 1/1 Citizen with defender" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Spider-Man No More"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spider-Man No More" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 1
+  assert has "Serra Angel" defender
+  assert has not "Serra Angel" flying
+  assert is "Serra Angel" "Citizen"
+}
+
+scenario "Goddric becomes a 4/4 flying Dragon after two permanents enter" {
+  battlefield A: "Goddric, Cloaked Reveler", "Mountain"
+  hand A: "Ornithopter", "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: activate "Goddric, Cloaked Reveler"
+  run_to turn 1 postcombat_main
+  assert is "Goddric, Cloaked Reveler" "Dragon"
+  assert has "Goddric, Cloaked Reveler" flying
+  assert power "Goddric, Cloaked Reveler" 5
+  assert toughness "Goddric, Cloaked Reveler" 4
+}
+
+scenario "Goddric stays a 3/3 Human after one permanent enters" {
+  battlefield A: "Goddric, Cloaked Reveler"
+  hand A: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert power "Goddric, Cloaked Reveler" 3
+  assert has not "Goddric, Cloaked Reveler" flying
+}
+
+scenario "Primary Research returns a permanent card, then draws at end step" {
+  battlefield A: 5 "Plains"
+  graveyard A: "Grizzly Bears"
+  hand A: "Primary Research"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primary Research"
+  turn 1 A: trigger "Primary Research" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Essence Anchor makes a Zombie Druid once a card left your graveyard" {
+  battlefield A: "Essence Anchor", 5 "Plains"
+  graveyard A: "Grizzly Bears"
+  hand A: "Primary Research"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primary Research"
+  turn 1 A: trigger "Primary Research" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Essence Anchor"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zombie Druid"
+}
+
+scenario "Essence Anchor can't be activated if no card left your graveyard" {
+  battlefield A: "Essence Anchor"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Essence Anchor"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Zombie Druid"
+}
+
+scenario "Living History pumps an attacker after a card left your graveyard" {
+  battlefield A: "Living History", "Grizzly Bears", 5 "Plains"
+  graveyard A: "Centaur Courser"
+  hand A: "Primary Research"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Primary Research"
+  turn 1 A: trigger "Primary Research" targeting "Centaur Courser"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Living History" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Collective Inferno doubles damage from sources of the chosen type" {
+  battlefield A: 5 "Mountain", "Grizzly Bears", "Hill Giant"
+  hand A: "Collective Inferno"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Collective Inferno"
+  turn 1 A: choose Bear
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 13
+}
+
+scenario "U.S.Agent enters with Sturdy Shield attached" {
+  battlefield A: 4 "Plains"
+  hand A: "U.S.Agent, John Walker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "U.S.Agent, John Walker"
+  run_to turn 1 postcombat_main
+  assert attached "Sturdy Shield" to "U.S.Agent, John Walker"
+  assert power "U.S.Agent, John Walker" 4
+  assert toughness "U.S.Agent, John Walker" 4
+}
+
+scenario "Sturdy Shield can be equipped to another creature for {2}" {
+  battlefield A: 6 "Plains", "Grizzly Bears"
+  hand A: "U.S.Agent, John Walker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "U.S.Agent, John Walker"
+  turn 1 A: wait
+  turn 1 A: activate "Sturdy Shield" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Sturdy Shield" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 4
+  assert power "U.S.Agent, John Walker" 3
+}
+
+scenario "Iron Hills Blacksmith makes an Axe" {
+  battlefield A: 2 "Plains"
+  hand A: "Iron Hills Blacksmith"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Iron Hills Blacksmith"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Axe"
+  assert is "Axe" artifact
+}
+
+scenario "Dain Ironfoot attaches an Axe; equipped attackers gain double strike" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Dáin Ironfoot"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dáin Ironfoot"
+  turn 1 A: trigger "Dáin Ironfoot" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Axe" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  run_to turn 3 precombat_main
+  assert life B 20
+}
+
+scenario "Dain Ironfoot: an equipped attacker deals first-strike and regular damage" {
+  battlefield A: "Dáin Ironfoot", "Grizzly Bears", "Axe" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dáin Ironfoot", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 13
+}
+
+scenario "Brambleguard Captain gives its power to a creature you control" {
+  battlefield A: "Brambleguard Captain" with 1 +1/+1, "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Brambleguard Captain" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Hemosymbic Mite pumps another creature as it attacks" {
+  battlefield A: "Hemosymbic Mite", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hemosymbic Mite"
+  turn 1 declare_attackers A: trigger "Hemosymbic Mite" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+}

@@ -112,6 +112,18 @@ fn format_inner(card: &Card) -> String {
     if card.flash_cleanup {
         let _ = writeln!(out, "  flash with cleanup sacrifice");
     }
+    if let Some(n) = &card.short_name {
+        let _ = writeln!(out, "  short_name {n:?}");
+    }
+    match card.pronoun {
+        Some(crate::ast::Pronoun::He) => {
+            let _ = writeln!(out, "  pronoun he");
+        }
+        Some(crate::ast::Pronoun::She) => {
+            let _ = writeln!(out, "  pronoun she");
+        }
+        None => {}
+    }
     if let Some(c) = &card.cast_only {
         let c = static_cond(c);
         if c.starts_with("during") || c.starts_with("before") {
@@ -608,7 +620,11 @@ impl Fmt {
             Effect::TakeInitiative => "take initiative".to_string(),
             Effect::Venture { undercity: false } => "venture".to_string(),
             Effect::Venture { undercity: true } => "venture into undercity".to_string(),
-            Effect::Explore { what } => format!("{} explores", self.recipient(*what, t)),
+            Effect::Explore { what, twice } => format!(
+                "{} explores{}",
+                self.recipient(*what, t),
+                if *twice { " twice" } else { "" }
+            ),
             Effect::PhaseOut { what } => format!("{} phases out", self.recipient(*what, t)),
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
             Effect::EmpowerJace { count } => format!("empower jace {}", num(*count)),
@@ -2549,7 +2565,9 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         };
         g.status.mana_value_x = false;
         g.status.spent_colors = false;
-        mv = format!(" with mana value {n}{}", cmp_suffix(cmp));
+        let each = if g.each { " each" } else { "" };
+        g.each = false;
+        mv = format!("{each} with mana value {n}{}", cmp_suffix(cmp));
     }
     if g == Filter::default() {
         format!("target card{named}{mv} from {whose}")
@@ -3292,6 +3310,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             this: false,
             min: 1,
         } => "whenever you attack".to_string(),
+        Trigger::CreaturesYouControlAttack => {
+            "whenever one or more creatures you control attack".to_string()
+        }
         Trigger::AttacksWith { this: false, min } => {
             format!("whenever you attack with {min} or more creatures")
         }

@@ -1,0 +1,13 @@
+card "Questing Druid // Seek the Beast" {
+  oracle_id 555df32f-f8e9-49af-bc4a-1194ea325a97
+  layout adventure
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 1/1
+  triggered whenever you cast white or blue or black or red spell: put 1 +1/+1 counters on this
+  face "Seek the Beast" {
+    cost {1}{R}
+    type Instant — Adventure
+    spell: impulse 2 next end step first
+  }
+}

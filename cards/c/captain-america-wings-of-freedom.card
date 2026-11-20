@@ -1,0 +1,9 @@
+card "Captain America, Wings of Freedom" {
+  oracle_id 942ac2ac-7528-4768-8398-8520a8ee15e5
+  cost {2}{W}
+  type Legendary Creature — Human Soldier Hero
+  pt 3/1
+  keywords flying, first strike
+  ward {1}
+  triggered whenever this attacks: each single other Hero you control gets +1/+1 count where toughness
+}

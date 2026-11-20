@@ -1,0 +1,10 @@
+card "Goddric, Cloaked Reveler" {
+  oracle_id 35b2b172-5fbc-4e4d-a011-390ee1b6c848
+  cost {1}{R}{R}
+  type Legendary Creature — Human Noble
+  pt 3/3
+  keywords haste
+  label "Celebration" static as long as 2 nonland entered this turn, this: set subtype Dragon, base 4/4, has flying, has ability {
+    activated {R}: each Dragon you control gets +1/+0
+  }
+}

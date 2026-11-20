@@ -7478,9 +7478,13 @@ impl GameState {
                 }
             }
             Effect::AddCounters { kind, count, to } => {
+                // CR 608.2h: the number is determined once, before any
+                // counter is put ("put X +1/+1 counters on each creature
+                // you control, where X is this creature's power").
+                let n = self.eval_num(*count, ctx);
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.add_counters(id, *kind, self.eval_num(*count, ctx));
+                        self.add_counters(id, *kind, n);
                     }
                 }
             }
@@ -9238,7 +9242,11 @@ impl GameState {
                             ability: *ability,
                             source: ctx.source,
                             def,
-                            trigger_obj: ctx.trigger_obj,
+                            // "Create an Axe token. When you do, attach it
+                            // to target creature you control": the
+                            // reflexive ability carries what the ability
+                            // just created as its object ("that token").
+                            trigger_obj: ctx.created.or(ctx.trigger_obj),
                             trigger_player: ctx.trigger_player,
                             trigger_amount: ctx.trigger_amount,
                         },

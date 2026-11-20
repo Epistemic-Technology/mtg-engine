@@ -2619,7 +2619,12 @@ impl Compiler<'_> {
             Effect::Venture { undercity } => out.push(CoreEffect::Venture {
                 undercity: *undercity,
             }),
-            Effect::Explore { what } => out.push(CoreEffect::Explore { what: r(*what) }),
+            Effect::Explore { what, twice } => {
+                out.push(CoreEffect::Explore { what: r(*what) });
+                if *twice {
+                    out.push(CoreEffect::Explore { what: r(*what) });
+                }
+            }
             Effect::PhaseOut { what } => out.push(CoreEffect::PhaseOut { what: r(*what) }),
             Effect::Amass { kind, count } => {
                 // "Amass Zombies 2": a Zombie Army token.
@@ -2974,6 +2979,10 @@ impl Compiler<'_> {
                 TriggerSpec::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
             }
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
+            Trigger::CreaturesYouControlAttack => TriggerSpec::AttacksWith {
+                this: false,
+                min: 1,
+            },
             Trigger::AttacksWith { this, min } => TriggerSpec::AttacksWith {
                 this: *this,
                 min: *min,

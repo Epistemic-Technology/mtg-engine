@@ -102,6 +102,8 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         }),
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
         flash_cleanup: def.flash_cleanup,
+        pronoun: None,
+        short_name: None,
         unkicked_targets: def.unkicked_targets.map(usize::from),
         kicked_drops: def.kicked_drops.map(usize::from),
         cast_only: def.cast_only.map(|c| d.static_cond(pool.condition(c))),
@@ -1194,6 +1196,7 @@ impl Decompiler<'_> {
             CoreEffect::Ascend => unreachable!("ascend is decompiled as a keyword line"),
             CoreEffect::Explore { what } => Effect::Explore {
                 what: Self::recipient(*what),
+                twice: false,
             },
             CoreEffect::PhaseOut { what } => Effect::PhaseOut {
                 what: Self::recipient(*what),

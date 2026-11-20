@@ -1,0 +1,9 @@
+card "Kang, Temporal Tyrant" {
+  oracle_id b43350a8-fc4d-41ed-becd-f0277512bb5f
+  cost {2}{U}{B}
+  type Legendary Creature — Human Villain
+  pt 3/4
+  pronoun he
+  triggered whenever this attacks: this connives
+  triggered whenever you draw your second card each turn: each opponent loses 1 life and you gains 1 life
+}

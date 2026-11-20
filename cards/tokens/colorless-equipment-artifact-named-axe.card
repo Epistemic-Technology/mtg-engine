@@ -1,0 +1,6 @@
+token "colorless Equipment artifact named Axe" {
+  name "Axe"
+  type Artifact — Equipment
+  static enchanted: +1/+0
+  equip {2}
+}

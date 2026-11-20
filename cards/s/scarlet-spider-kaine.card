@@ -1,0 +1,10 @@
+card "Scarlet Spider, Kaine" {
+  oracle_id 4ec8a5ea-b750-4711-8843-2bc98f4ce060
+  cost {B}{R}
+  type Legendary Creature — Spider Human Hero
+  pt 2/1
+  pronoun he
+  keywords menace
+  triggered when this enters: you may discard 1 cards; if you do, put 1 +1/+1 counters on this
+  mayhem {B/R}
+}

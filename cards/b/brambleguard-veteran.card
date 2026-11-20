@@ -1,0 +1,7 @@
+card "Brambleguard Veteran" {
+  oracle_id bc9c7e1a-5155-431a-be21-fcbd18718980
+  cost {1}{G}{G}
+  type Creature — Raccoon Warrior
+  pt 3/4
+  triggered whenever you expend 4: each Raccoon you control gets +1/+1 and gains vigilance
+}

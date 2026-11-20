@@ -797,6 +797,8 @@ impl P {
             alt_cost: None,
             flash_if: None,
             flash_cleanup: false,
+            pronoun: None,
+            short_name: None,
             unkicked_targets: None,
             kicked_drops: None,
             cast_only: None,
@@ -915,7 +917,10 @@ impl P {
                 }
                 self.end_stmt()
             }
-            "loyalty" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+            "loyalty"
+                if matches!(self.peek_at(1), Some(Tok::Num(_)))
+                    && self.peek_at(2) != Some(&Tok::Colon) =>
+            {
                 self.pos += 1;
                 card.loyalty = Some(self.number()?);
                 self.end_stmt()
@@ -1013,6 +1018,20 @@ impl P {
             "kicker" => {
                 self.pos += 1;
                 card.kicker = Some(self.mana_cost()?);
+                self.end_stmt()
+            }
+            "short_name" => {
+                self.pos += 1;
+                card.short_name = Some(self.string()?);
+                self.end_stmt()
+            }
+            "pronoun" => {
+                self.pos += 1;
+                card.pronoun = Some(match self.word()?.as_str() {
+                    "he" => crate::ast::Pronoun::He,
+                    "she" => crate::ast::Pronoun::She,
+                    w => return self.fail(format!("unknown pronoun `{w}` (he, she)")),
+                });
                 self.end_stmt()
             }
             "flash" if self.at_words(&["flash", "with", "cleanup", "sacrifice"]) => {
@@ -2021,8 +2040,11 @@ impl P {
             }
             "loyalty" => {
                 self.pos += 1;
-                let Some(Tok::Signed(n)) = self.next() else {
-                    return self.fail("expected a loyalty cost such as +1 or -3");
+                // "0:" (CR 606.3) is written `loyalty 0:` or `loyalty +0:`.
+                let n = match self.next() {
+                    Some(Tok::Signed(n)) => n,
+                    Some(Tok::Num(0)) => 0,
+                    _ => return self.fail("expected a loyalty cost such as +1, 0, or -3"),
                 };
                 let effects = self.effects_body()?;
                 Ok(Ability::Activated {
@@ -5203,7 +5225,10 @@ impl P {
                     who: subject,
                 })
             }
-            "explores" => Ok(Effect::Explore { what: subject }),
+            "explores" => Ok(Effect::Explore {
+                what: subject,
+                twice: self.eat_word("twice"),
+            }),
             "phases" => {
                 self.expect_word("out")?;
                 Ok(Effect::PhaseOut { what: subject })
@@ -8485,7 +8510,7 @@ impl P {
                     || (matches!(next.as_deref(), Some("spell" | "spells"))
                         && !ws.ends_with(&["spell"]))
                     || (matches!(next.as_deref(), Some("card" | "cards"))
-                        && matches!(after.as_deref(), Some("from" | "with")))
+                        && matches!(after.as_deref(), Some("from" | "with" | "each")))
                     // "target permanent not named ~".
                     || (matches!(next.as_deref(), Some("named" | "not"))
                         && matches!(after.as_deref(), Some("named" | "this")));
@@ -8538,10 +8563,22 @@ impl P {
         }
         // "creature card with mana value X or less from your graveyard":
         // the mana value after the noun.
-        let mv_after =
-            !named && f.mana_value.is_none() && self.at_words(&["card", "with", "mana", "value"]);
+        // `card each with mana value 3 or less`: "one or two target
+        // creature cards each with mana value 3 or less".
+        let each = !named
+            && f.mana_value.is_none()
+            && self.at_words(&["card", "each", "with", "mana", "value"]);
+        if each {
+            self.pos += 2;
+            f.each = true;
+        }
+        let mv_after = !named
+            && f.mana_value.is_none()
+            && (each || self.at_words(&["card", "with", "mana", "value"]));
         if mv_after {
-            self.pos += 1;
+            if !each {
+                self.pos += 1;
+            }
             let g = self.filter()?;
             f.mana_value = g.mana_value;
             f.status.mana_value_x = g.status.mana_value_x;
@@ -9695,6 +9732,9 @@ impl P {
             return Ok(Trigger::Expends(u8::try_from(n).unwrap_or(u8::MAX)));
         }
         // CR 122.1: "one or more +1/+1 counters are put on this creature".
+        if self.eat_words(&["one", "or", "more", "creatures", "you", "control", "attack"]) {
+            return Ok(Trigger::CreaturesYouControlAttack);
+        }
         if self.at_words(&["one", "or", "more"]) && matches!(self.peek_at(3), Some(Tok::Pt { .. }))
         {
             self.pos += 3;
@@ -10313,6 +10353,13 @@ impl P {
                             } else {
                                 c
                             }
+                        } else if self.at_words(&["during", "your", "turn"])
+                            && self.peek_at(3) == Some(&Tok::Comma)
+                        {
+                            // `during your turn, if ...`: "Activate only
+                            // during your turn and only if ...".
+                            self.pos += 3;
+                            StaticCond::DuringYourTurn
                         } else {
                             match self.turn_time() {
                                 Some(c) => c,

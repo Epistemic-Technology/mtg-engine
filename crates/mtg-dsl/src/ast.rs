@@ -92,6 +92,15 @@ pub struct ManaRestriction {
     pub wording: mtg_core::card::SpendWording,
 }
 
+/// The pronoun a character's text uses for it after its name: `pronoun
+/// he` ("He fights up to one target creature", "shuffles him into their
+/// library"), `pronoun she`. Wording only.
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
+pub enum Pronoun {
+    He,
+    She,
+}
+
 /// One definition: a `card`, `token`, or `emblem` block.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Card {
@@ -133,6 +142,12 @@ pub struct Card {
     /// cast, the controller of the permanent it becomes sacrifices it at
     /// the beginning of the next cleanup step."
     pub flash_cleanup: bool,
+    /// `pronoun he`: how the text refers to the card after naming it.
+    pub pronoun: Option<Pronoun>,
+    /// `short_name "Ajani"`: the name a legendary card's text uses for
+    /// itself when it isn't the part before a comma ("put a loyalty
+    /// counter on Ajani" on Ajani Resolute; CR 201.5).
+    pub short_name: Option<String>,
     /// Derived as a spell is parsed: how many of its targets come before
     /// those an "if kicked" sentence declares (Orim's Thunder's "target
     /// creature" is chosen only if the spell is kicked, CR 601.2c).
@@ -197,6 +212,8 @@ impl Card {
             alt_cost: None,
             flash_if: None,
             flash_cleanup: false,
+            pronoun: None,
+            short_name: None,
             unkicked_targets: None,
             kicked_drops: None,
             cast_only: None,
@@ -2153,6 +2170,9 @@ pub enum Trigger {
         this: bool,
         min: u8,
     },
+    /// `whenever one or more creatures you control attack`: the older
+    /// wording of `whenever you attack` (CR 508.1m), the same trigger.
+    CreaturesYouControlAttack,
     /// `whenever this attacks and isn't blocked`.
     AttacksUnblocked(TriggerObj),
     /// `whenever this becomes blocked`.
@@ -3334,9 +3354,11 @@ pub enum Effect {
     Venture {
         undercity: bool,
     },
-    /// `this explores` (CR 701.44).
+    /// `this explores` (CR 701.44); `explores twice`: "explores, then it
+    /// explores again".
     Explore {
         what: Recipient,
+        twice: bool,
     },
     /// `target creature phases out` (CR 702.26).
     PhaseOut {

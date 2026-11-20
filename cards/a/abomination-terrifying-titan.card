@@ -1,0 +1,9 @@
+card "Abomination, Terrifying Titan" {
+  oracle_id 72101185-4336-480a-b4d7-f8ceb0007a51
+  cost {3}{R/G}
+  type Legendary Creature — Gamma Villain
+  pt 4/4
+  pronoun he
+  keywords trample
+  power-up {5}{R/G}{R/G}: put 1 +1/+1 counters on this; this fights up to one target creature an opponent controls
+}

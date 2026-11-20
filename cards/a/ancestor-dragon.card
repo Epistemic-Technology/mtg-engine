@@ -1,0 +1,8 @@
+card "Ancestor Dragon" {
+  oracle_id 60b03a44-a7bd-48fa-8c8f-1704aed02cd7
+  cost {4}{W}{W}
+  type Creature — Dragon
+  pt 5/6
+  keywords flying
+  triggered whenever one or more creatures you control attack: you gain count each attacking creature life
+}

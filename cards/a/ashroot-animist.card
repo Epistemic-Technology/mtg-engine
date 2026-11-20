@@ -1,0 +1,8 @@
+card "Ashroot Animist" {
+  oracle_id 3f008b57-6471-4785-9571-3b90193da7e2
+  cost {2}{R}{G}
+  type Creature — Lizard Druid
+  pt 4/4
+  keywords trample
+  triggered whenever this attacks: another target creature you control gains trample and gets +1/+1 count where power
+}

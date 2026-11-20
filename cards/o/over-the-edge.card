@@ -1,0 +1,9 @@
+card "Over the Edge" {
+  oracle_id 26b441b9-fdfb-43e2-bc02-b358653eadf4
+  cost {1}{G}
+  type Sorcery
+  choose one {
+    mode: destroy target artifact or enchantment
+    mode: target creature you control explores twice
+  }
+}

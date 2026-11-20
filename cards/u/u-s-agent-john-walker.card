@@ -1,0 +1,7 @@
+card "U.S.Agent, John Walker" {
+  oracle_id 2b6fa8b6-4865-4eb6-974b-00f6b16b6f0f
+  cost {3}{W/B}
+  type Legendary Creature — Human Soldier Hero
+  pt 3/2
+  triggered when this enters: create 1 "colorless Equipment artifact named Sturdy Shield"; attach that token to this
+}

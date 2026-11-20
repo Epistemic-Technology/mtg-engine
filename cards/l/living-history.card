@@ -1,0 +1,7 @@
+card "Living History" {
+  oracle_id a76adc88-e7db-43e2-8fbf-bae95c0838ef
+  cost {1}{R}
+  type Enchantment
+  triggered when this enters: create 1 "2/2 red and white Spirit creature"
+  triggered whenever you attack if card left your graveyard this turn: target attacking creature gets +2/+0
+}

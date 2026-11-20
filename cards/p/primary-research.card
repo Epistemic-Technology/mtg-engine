@@ -1,0 +1,7 @@
+card "Primary Research" {
+  oracle_id 51af3da5-0970-436e-baa6-3171889a40e0
+  cost {4}{W}
+  type Enchantment
+  triggered when this enters: return target nonland noninstant nonsorcery card with mana value 3 or less from your graveyard to battlefield
+  triggered at beginning of your end step if card left your graveyard this turn: draw 1 cards
+}
