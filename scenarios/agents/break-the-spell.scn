@@ -1,0 +1,18 @@
+scenario "destroying your own enchantment draws a card" {
+  battlefield A: "Plains", "Glorious Anthem"
+  hand A: "Break the Spell"
+  turn 1 A: cast "Break the Spell" targeting "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Glorious Anthem"
+  assert hand A count 1
+}
+
+scenario "an opponent's nontoken enchantment: no card" {
+  battlefield A: "Plains"
+  battlefield B: "Glorious Anthem"
+  hand A: "Break the Spell"
+  turn 1 A: cast "Break the Spell" targeting "Glorious Anthem"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Glorious Anthem"
+  assert hand A count 0
+}

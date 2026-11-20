@@ -1365,14 +1365,32 @@ impl GameState {
         m: &crate::state::Moved,
         f: &crate::card::ObjFilter,
     ) -> bool {
+        // Each alternative on its own, with "token" (a status qualifier
+        // `matches` leaves to the caller) judged as the object last
+        // existed: "a permanent you controlled or a token".
         self.lki.get(&m.old).is_some_and(|l| {
-            f.matches(
-                m.old,
-                l.object.controller,
-                &l.characteristics,
-                Some(ctx.source),
-                Some(ctx.controller),
-            )
+            let mut alt = Some(f);
+            while let Some(a) = alt {
+                let one = crate::card::ObjFilter {
+                    or: None,
+                    ..a.clone()
+                };
+                if one.matches(
+                    m.old,
+                    l.object.controller,
+                    &l.characteristics,
+                    Some(ctx.source),
+                    Some(ctx.controller),
+                ) && one
+                    .status
+                    .token
+                    .is_none_or(|t| (l.object.kind == crate::state::ObjKind::Token) == t)
+                {
+                    return true;
+                }
+                alt = a.or.as_deref();
+            }
+            false
         })
     }
 

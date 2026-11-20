@@ -6509,10 +6509,16 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
     let what = match (&c.filter, c.card) {
         (None, _) => "a card".to_string(),
         (Some(f), true) => with_article(&cards_phrase(f, card, false)),
-        (Some(f), false) => with_article(&filter_phrase(f, card, false)),
+        (Some(f), false) => each_with_article(f, card),
     };
     match &c.wording {
-        ThisWayWording::Was => format!("{what} was {verb} this way"),
+        // "If a permanent you controlled or a token was destroyed this
+        // way": control as it was, in the past tense.
+        ThisWayWording::Was => format!(
+            "{} was {verb} this way",
+            what.replace(" you controlled", " you control")
+                .replace(" you control", " you controlled")
+        ),
         ThisWayWording::Is => format!("{what} is {verb} this way"),
         ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand => {
             format!("you put {what} into your hand this way")
