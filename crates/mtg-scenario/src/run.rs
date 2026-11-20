@@ -982,12 +982,17 @@ impl Runner {
         let special = self.matching(d.player, pos, true, |a| {
             matches!(
                 a,
-                Action::TurnFaceUp(_) | Action::Suspend(_) | Action::Foretell(_)
+                Action::TurnFaceUp(_)
+                    | Action::Suspend(_)
+                    | Action::Foretell(_)
+                    | Action::Unlock(_)
             )
         });
         for i in special {
-            let (Action::TurnFaceUp(name) | Action::Suspend(name) | Action::Foretell(name)) =
-                &self.actions[i].action
+            let (Action::TurnFaceUp(name)
+            | Action::Suspend(name)
+            | Action::Foretell(name)
+            | Action::Unlock(name)) = &self.actions[i].action
             else {
                 unreachable!()
             };
@@ -997,6 +1002,14 @@ impl Runner {
                 | (Choice::Suspend(id), Action::Suspend(_))
                 | (Choice::Foretell(id), Action::Foretell(_)) => {
                     self.state().pool.get(self.state().objects[*id].card).name == *name
+                }
+                (Choice::Unlock { obj, door }, Action::Unlock(_)) => {
+                    let st = self.state();
+                    st.pool
+                        .get(st.objects[*obj].def)
+                        .doors
+                        .as_deref()
+                        .is_some_and(|d| st.pool.get(d.half(*door)).name == *name)
                 }
                 _ => false,
             });
@@ -2399,6 +2412,7 @@ impl Runner {
                 format!("cast face {face} of {}", self.describe_ids(&[*card]))
             }
             Choice::CastFaceDown(id) => format!("cast {} face down", self.describe_ids(&[*id])),
+            Choice::Unlock { .. } => c.describe(self.state()),
             Choice::CastEvoke(id) => format!("cast {} evoked", self.describe_ids(&[*id])),
             Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
             Choice::CastAlt(id) => format!("cast {} alternative", self.describe_ids(&[*id])),

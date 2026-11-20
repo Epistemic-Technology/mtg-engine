@@ -1,0 +1,6 @@
+card "Volcanic Spite" {
+  oracle_id 10426070-2e6f-47a5-bc8d-16dcfb058b26
+  cost {1}{R}
+  type Instant
+  spell: this deals 3 damage to target creature, planeswalker, or battle; you may put 1 card from hand on bottom of library; if you do, draw 1 card
+}

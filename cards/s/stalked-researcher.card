@@ -1,0 +1,8 @@
+card "Stalked Researcher" {
+  oracle_id 8ec3c334-8a53-46d8-8cfb-c647c3a1ef74
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 3/3
+  keywords defender
+  label "Eerie" triggered whenever enchantment you control enters and whenever you fully unlock a Room: this can attack as though it didn't have defender
+}

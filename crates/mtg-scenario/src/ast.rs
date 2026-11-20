@@ -164,6 +164,9 @@ pub enum Action {
     Suspend(String),
     /// `foretell "X"`: foretell card X from the hand (a special action).
     Foretell(String),
+    /// `unlock "Door"`: unlock that locked door (half) of a Room the
+    /// player controls (CR 709.5e, a special action).
+    Unlock(String),
     /// `attack "X" [at <target>], ...`: attackers, each optionally with
     /// the player or planeswalker it attacks (CR 508.1a).
     Attack(Vec<(String, Option<TargetRef>)>),
@@ -242,6 +245,7 @@ impl Action {
             Action::TurnFaceUp(_) => "unmorph",
             Action::Suspend(_) => "suspend",
             Action::Foretell(_) => "foretell",
+            Action::Unlock(_) => "unlock",
         }
     }
 }

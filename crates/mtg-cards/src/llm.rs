@@ -137,6 +137,9 @@ pub fn header(s: &ScryCard) -> String {
     if let Some(l) = &s.loyalty {
         let _ = writeln!(text, "  loyalty {l}");
     }
+    if let Some(d) = &s.defense {
+        let _ = writeln!(text, "  defense {d}");
+    }
     if let Some(ci) = &s.color_indicator {
         let names: Vec<&str> = ci
             .iter()

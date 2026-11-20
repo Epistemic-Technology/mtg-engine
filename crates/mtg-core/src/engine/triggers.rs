@@ -654,7 +654,8 @@ impl GameState {
                 Some((Some(*blocker), Some(p)))
             }
             (
-                TriggerSpec::DealsCombatDamageToPlayer(what),
+                TriggerSpec::DealsCombatDamageToPlayer(what)
+                | TriggerSpec::DealsCombatDamageToPlayerOrBattle(what),
                 Event::Damage {
                     source,
                     target: Target::Player(p),
@@ -664,6 +665,48 @@ impl GameState {
             ) => {
                 on_battlefield(what, *source)?;
                 Some((Some(*source), Some(*p)))
+            }
+            (
+                TriggerSpec::DealsCombatDamageToPlayerOrBattle(what),
+                Event::Damage {
+                    source,
+                    target: Target::Object(b),
+                    combat: true,
+                    ..
+                },
+            ) => {
+                if !self.characteristics(*b).is_some_and(|c| c.is_battle()) {
+                    return None;
+                }
+                on_battlefield(what, *source)?;
+                Some((Some(*source), self.protector(*b)))
+            }
+            // CR 709.5h: this door, as it enters or later.
+            (TriggerSpec::UnlocksDoor { door }, Event::Unlocked { obj, door: d, .. }) => {
+                (*obj == w.source && d == door).then_some((Some(*obj), Some(w.controller)))
+            }
+            // CR 709.5i.
+            (
+                TriggerSpec::FullyUnlocks { whose },
+                Event::Unlocked {
+                    obj, fully: true, ..
+                },
+            ) => {
+                let p = self.objects.get(*obj)?.controller;
+                whose_ok(*whose, p).then_some((Some(*obj), Some(p)))
+            }
+            (
+                TriggerSpec::AttacksBattle(what),
+                Event::Attack {
+                    attacker,
+                    target: Target::Object(b),
+                },
+            ) => {
+                if !self.characteristics(*b).is_some_and(|c| c.is_battle()) {
+                    return None;
+                }
+                let p = on_battlefield(what, *attacker)?;
+                Some((Some(*attacker), Some(p)))
             }
             (TriggerSpec::GainsLife { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))

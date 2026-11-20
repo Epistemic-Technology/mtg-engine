@@ -38,6 +38,13 @@ pub enum Event {
     Transformed {
         obj: ObjId,
     },
+    /// A Room's door was unlocked (CR 709.5c-i), as it entered or later:
+    /// `door` 0 is the left half; `fully`, both are now unlocked.
+    Unlocked {
+        obj: ObjId,
+        door: u8,
+        fully: bool,
+    },
     GameStart {
         starting_player: PlayerId,
     },
@@ -350,7 +357,7 @@ impl Event {
             Event::Discard { .. } => WATCH_DISCARD,
             Event::Attached { .. } => WATCH_ATTACH,
             Event::RolledDie { .. } | Event::FlippedCoin { .. } => WATCH_ROLL,
-            Event::DayNight { .. } => WATCH_DESIG,
+            Event::DayNight { .. } | Event::Unlocked { .. } => WATCH_DESIG,
             Event::Sacrificed { .. } => WATCH_SACRIFICE,
             _ => 0,
         }

@@ -1,0 +1,8 @@
+card "Dynamite Diver" {
+  oracle_id 5f9ef763-22aa-4d43-b084-ef02465b489c
+  cost {R}
+  type Creature — Goblin Pilot
+  pt 1/1
+  saddles and crews plus 2
+  triggered when this dies: deal 1 damage to any target
+}

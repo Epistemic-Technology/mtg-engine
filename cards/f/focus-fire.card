@@ -1,0 +1,6 @@
+card "Focus Fire" {
+  oracle_id 6c4514be-fda7-45e8-83fe-04d49e2b932c
+  cost {W}
+  type Instant
+  spell: deal count where plus 2 andor creature or Spacecraft you control damage to target attacking or blocking creature
+}

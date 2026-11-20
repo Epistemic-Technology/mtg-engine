@@ -69,6 +69,9 @@ fn format_inner(card: &Card) -> String {
     if let Some(n) = card.loyalty {
         let _ = writeln!(out, "  loyalty {n}");
     }
+    if let Some(n) = card.defense {
+        let _ = writeln!(out, "  defense {n}");
+    }
     if let Some(colors) = &card.color_indicator {
         let names: Vec<&str> = colors.iter().map(|c| color_name(*c)).collect();
         let _ = writeln!(out, "  color {}", names.join(" "));
@@ -1360,6 +1363,7 @@ impl Fmt {
             }
             Effect::Surveil(n) => format!("surveil {}", num(*n)),
             Effect::Learn => "learn".to_string(),
+            Effect::DoublePower { .. } => "double this power".to_string(),
             Effect::Discard { count, who } => match who {
                 None => format!("discard {} {}", num(*count), cards(*count)),
                 Some(w) => {
@@ -1612,6 +1616,9 @@ impl Fmt {
                     }
                     ChooseAct::ExileFromGraveyard => {
                         format!("exile {n} {f} {cs} from your graveyard chosen")
+                    }
+                    ChooseAct::GraveyardToTop => {
+                        format!("put {n} {f} {cs} from your graveyard on top of library chosen")
                     }
                     ChooseAct::ReturnFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand chosen")
@@ -2914,6 +2921,15 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 trigger_obj(o)
             )
         }
+        Trigger::DealsCombatDamageToPlayerOrBattle(o) => {
+            format!(
+                "whenever {} deals combat damage to a player or battle",
+                trigger_obj(o)
+            )
+        }
+        Trigger::AttacksBattle(o) => format!("whenever {} attacks a battle", trigger_obj(o)),
+        Trigger::UnlocksDoor => "when you unlock this door".to_string(),
+        Trigger::FullyUnlocks => "whenever you fully unlock a Room".to_string(),
         Trigger::DealsCombatDamageToDefending(o) => {
             format!(
                 "whenever {} deals combat damage to defending player",
@@ -3474,6 +3490,9 @@ fn static_cond(c: &StaticCond) -> String {
             if *attacking { "attacking" } else { "defending" }
         ),
         StaticCond::AttackedThisTurn => "attacked this turn".to_string(),
+        StaticCond::UnlockedDoors(n) => format!("{n} unlocked doors"),
+        StaticCond::AttackedWith(f) => format!("attacked with {} this turn", filter(f)),
+        StaticCond::AttackedBattleThisTurn => "attacked a battle this turn".to_string(),
         StaticCond::AttackedLastTurn => "attacked last turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "opponent damaged this turn".to_string(),
@@ -4074,6 +4093,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Strive(c) => format!("strive {c}"),
                 crate::ast::Mechanic::Bargain => "bargain".to_string(),
                 crate::ast::Mechanic::Conspire => "conspire".to_string(),
+                crate::ast::Mechanic::Station => "station".to_string(),
                 crate::ast::Mechanic::Saddle(n) => format!("saddle {n}"),
                 crate::ast::Mechanic::Ascend => "ascend".to_string(),
                 crate::ast::Mechanic::StartYourEngines => "start your engines".to_string(),
@@ -4127,6 +4147,26 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::AuraStays => {
             let _ = writeln!(out, "{indent}protection doesn't remove this");
+        }
+        Ability::StationLevel { n, keywords } => {
+            let ks: Vec<&str> = keywords.iter().map(|k| k.name()).collect();
+            let _ = writeln!(out, "{indent}station {n}: {}", ks.join(", "));
+        }
+        Ability::CrewsAs {
+            saddles,
+            toughness,
+            plus,
+        } => {
+            let _ = writeln!(
+                out,
+                "{indent}{}crews {}",
+                if *saddles { "saddles and " } else { "" },
+                if *toughness {
+                    "using toughness".to_string()
+                } else {
+                    format!("plus {plus}")
+                }
+            );
         }
         Ability::ExtraVote { optional } => {
             let _ = writeln!(

@@ -306,6 +306,9 @@ pub enum Keyword {
     /// controller divides the combat damage of creatures blocking or
     /// blocked by one with banding.
     Banding,
+    /// "can't crew Vehicles" (CR 702.122d): it can't be tapped to pay a
+    /// crew cost.
+    CantCrew,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -335,6 +338,10 @@ pub enum Builtin {
     /// CR 702.78a: conspire's reflexive trigger, "When you do, copy it
     /// and you may choose a new target for the copy."
     Conspire,
+    /// CR 310.12b: a Siege's "When the last defense counter is removed
+    /// from this permanent, exile it, then you may cast it transformed
+    /// without paying its mana cost."
+    SiegeDefeated,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -344,10 +351,13 @@ pub enum ExileCast {
     Madness,
     /// Without paying its mana cost.
     Free,
+    /// Transformed (its back face, CR 712.11), without paying its mana
+    /// cost: a defeated Siege (CR 310.12b).
+    Transformed,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
-pub struct KeywordSet(u64);
+pub struct KeywordSet(u128);
 
 impl KeywordSet {
     pub const NONE: KeywordSet = KeywordSet(0);
@@ -358,7 +368,7 @@ impl KeywordSet {
 
     #[must_use]
     pub const fn with(self, k: Keyword) -> Self {
-        KeywordSet(self.0 | (1 << (k as u64)))
+        KeywordSet(self.0 | (1 << (k as u128)))
     }
 
     #[must_use]
@@ -372,7 +382,7 @@ impl KeywordSet {
     }
 
     pub const fn contains(self, k: Keyword) -> bool {
-        self.0 & (1 << (k as u64)) != 0
+        self.0 & (1 << (k as u128)) != 0
     }
 
     pub const fn intersects(self, other: KeywordSet) -> bool {
@@ -428,7 +438,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 64] = [
+    pub const ALL: [Keyword; 65] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -493,6 +503,7 @@ impl Keyword {
         Keyword::CantActivateNonMana,
         Keyword::CantBecomeUntapped,
         Keyword::Banding,
+        Keyword::CantCrew,
     ];
 
     /// The keyword as Oracle prints it.
@@ -564,6 +575,7 @@ impl Keyword {
             Keyword::CantActivateNonMana => {
                 "its activated abilities can't be activated unless they're mana abilities"
             }
+            Keyword::CantCrew => "can't crew Vehicles",
         }
     }
 
@@ -637,6 +649,10 @@ impl Subtype {
     pub const ROLE: Subtype = Subtype(5 + 36);
     pub const ARCANE: Subtype = Subtype(5 + 43);
     pub const TREASURE: Subtype = Subtype(5 + 27);
+    pub const VEHICLE: Subtype = Subtype(5 + 28);
+    pub const SPACECRAFT: Subtype = Subtype(5 + 29);
+    pub const ROOM: Subtype = Subtype(5 + 37);
+    pub const SIEGE: Subtype = Subtype(5 + 47);
     /// Not interned: "is every creature type" (layer 4), held among an
     /// object's subtypes in place of its creature types; `has_subtype`
     /// treats it as each of them, like changeling (CR 702.73a) but as a
@@ -1854,6 +1870,13 @@ pub struct StaticAbility {
 pub enum StaticCondition {
     /// "seven or more cards are in your graveyard" (threshold).
     CardsInGraveyard(u32),
+    /// "there are two or more unlocked doors among Rooms you control"
+    /// (CR 709.5j).
+    UnlockedDoors(u32),
+    /// "you attacked with a Spacecraft this turn": a creature matching
+    /// the filter (judged now, or as it last existed) attacked under your
+    /// control this turn.
+    AttackedWith(ObjFilter),
     /// "there are four or more card types among cards in your graveyard"
     /// (delirium).
     CardTypesInGraveyard(u32),
@@ -1868,6 +1891,9 @@ pub enum StaticCondition {
     YourTurn,
     /// "as long as it's attacking" (the source).
     SourceAttacking,
+    /// "as long as it attacked a battle this turn" (the source, CR
+    /// 310.5).
+    SourceAttackedBattle,
     /// "as long as it's enchanted" / "as long as it's equipped".
     SourceEnchanted,
     SourceEquipped,
@@ -2197,6 +2223,8 @@ pub enum CounterKind {
     MinusOneMinusOne,
     /// Loyalty counters on a planeswalker (CR 306.5).
     Loyalty,
+    /// Defense counters on a battle (CR 310.4b).
+    Defense,
     /// CR 122.1d: as the permanent would untap, a stun counter is removed
     /// instead.
     Stun,
@@ -2362,6 +2390,9 @@ impl CounterKind {
         if self == CounterKind::Loyalty {
             return "loyalty";
         }
+        if self == CounterKind::Defense {
+            return "defense";
+        }
         if let Some((n, ..)) = CounterKind::PT.iter().find(|(_, k, ..)| *k == self) {
             return n;
         }
@@ -2375,6 +2406,9 @@ impl CounterKind {
     pub fn by_name(name: &str) -> Option<CounterKind> {
         if name == "loyalty" {
             return Some(CounterKind::Loyalty);
+        }
+        if name == "defense" {
+            return Some(CounterKind::Defense);
         }
         CounterKind::PT
             .iter()
@@ -2468,6 +2502,8 @@ pub enum TargetSpec {
     OpponentOrPlaneswalker,
     /// "target artifact or creature".
     ArtifactOrCreature,
+    /// "target player or battle".
+    PlayerOrBattle,
     /// "target attacking or blocking creature".
     AttackingOrBlockingCreature,
     /// "target attacking creature".
@@ -3800,6 +3836,9 @@ pub enum ThisWay {
     /// Put into a hand ("returned this way", "If you put an artifact card
     /// into your hand this way").
     PutInHand,
+    /// Tapped to pay a cost ("the tapped creature's power", station's,
+    /// CR 702.184a): recorded where it stays, on the battlefield.
+    Tapped,
 }
 
 /// "If a creature card was exiled this way", "If you discarded a card this
@@ -3842,6 +3881,9 @@ pub enum ChooseAct {
     /// "put a card from your hand on the bottom of your library" (cards in
     /// your hand).
     HandToBottom,
+    /// "put an instant, sorcery, or battle card from your graveyard on top
+    /// of your library" (cards in your graveyard).
+    GraveyardToTop,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
@@ -4123,6 +4165,17 @@ pub enum TriggerSpec {
     Leaves(TriggerObj),
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
+    /// "Whenever ~ deals combat damage to a player or battle" (CR 310.6):
+    /// the player dealt damage is the triggering player.
+    DealsCombatDamageToPlayerOrBattle(TriggerObj),
+    /// "Whenever this creature attacks a battle" (CR 310.5, 508.1).
+    AttacksBattle(TriggerObj),
+    /// "When you unlock this door" (CR 709.5h): the door of the Room
+    /// whose half has this ability (0 left, 1 right, set by
+    /// `CardPool::add_room_doors`) is unlocked, as it enters or later.
+    UnlocksDoor { door: u8 },
+    /// "Whenever you fully unlock a Room" (CR 709.5i).
+    FullyUnlocks { whose: Who },
     /// "Whenever you gain life".
     GainsLife { whose: Who },
     /// "Whenever you roll one or more dice" (CR 706): once per
@@ -4371,6 +4424,7 @@ impl TriggerSpec {
                 WATCH_STEP_BEGIN
             }
             TriggerSpec::Attacks(_)
+            | TriggerSpec::AttacksBattle(_)
             | TriggerSpec::AttacksAlone(_)
             | TriggerSpec::AttacksWith { .. } => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
@@ -4380,6 +4434,7 @@ impl TriggerSpec {
             | TriggerSpec::BlockPair { .. }
             | TriggerSpec::AttacksUnblocked(_) => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_)
+            | TriggerSpec::DealsCombatDamageToPlayerOrBattle(_)
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. }
@@ -4405,7 +4460,9 @@ impl TriggerSpec {
             } => WATCH_DISCARD,
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
-            TriggerSpec::DayNight => WATCH_DESIG,
+            TriggerSpec::UnlocksDoor { .. }
+            | TriggerSpec::FullyUnlocks { .. }
+            | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
         }
     }
@@ -4804,6 +4861,11 @@ impl ActivatedKeyword {
 }
 
 impl ActivatedAbility {
+    /// Saddle's ability (CR 702.171a), whose cost is a crew-like tap.
+    pub fn saddles(&self) -> bool {
+        self.effects.contains(&Effect::BecomeSaddled)
+    }
+
     /// CR 605.1a: no targets, not a loyalty ability, and it could add
     /// mana; it may do other things too ("Add {G}{G}. If there are no
     /// depletion counters on this land, sacrifice it.").
@@ -4954,6 +5016,16 @@ pub enum AbilityDef {
     ExtraVote {
         optional: bool,
     },
+    /// "This creature crews Vehicles using its toughness rather than its
+    /// power." (`toughness`), "... saddles Mounts and crews Vehicles as
+    /// though its power were 2 greater." (`plus` 2): what it counts for
+    /// when tapped to pay a crew cost (CR 702.122a), and with `saddles` a
+    /// saddle cost too (CR 702.171a).
+    CrewsAs {
+        saddles: bool,
+        toughness: bool,
+        plus: u32,
+    },
     Activated(ActivatedAbility),
     Static(StaticAbility),
     Triggered(TriggeredAbility),
@@ -4982,6 +5054,7 @@ impl AbilityDef {
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
+            | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
@@ -5008,6 +5081,7 @@ impl AbilityDef {
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
+            | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
@@ -5126,10 +5200,17 @@ pub struct CardDef {
     pub emblem: bool,
     /// A planeswalker's printed loyalty (CR 306.5b).
     pub loyalty: u32,
+    /// A battle's printed defense (CR 310.4a).
+    pub defense: u32,
     /// A dungeon card's rooms (CR 309.4), topmost first; empty for any
     /// other card.
     #[serde(default)]
     pub rooms: Vec<Room>,
+    /// A Room's definitions, one per unlock state (CR 709.5): set by
+    /// `CardPool::add_room_doors` on the split card, its halves, and the
+    /// fully locked and fully unlocked states.
+    #[serde(default)]
+    pub doors: Option<Box<RoomDoors>>,
     /// Ascend, start your engines!, and becoming day as it enters
     /// (`Marks`).
     #[serde(default)]
@@ -5346,6 +5427,47 @@ impl Marks {
     }
 }
 
+/// A Room permanent's definitions (CR 709.5): a permanent with a shared
+/// type line has the name, mana cost, and rules text of its unlocked
+/// halves only, so each set of unlocked doors is a definition of its own:
+/// the left half alone, the right half alone, both (`both`: the names,
+/// costs, and abilities of the two), or neither (`none`: the shared type
+/// line only). `root` is the split card itself.
+#[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct RoomDoors {
+    pub root: CardRef,
+    pub left: CardRef,
+    pub right: CardRef,
+    pub both: CardRef,
+    pub none: CardRef,
+}
+
+impl RoomDoors {
+    /// Which doors (left, right) a permanent with definition `def` has
+    /// unlocked (CR 709.5c).
+    pub fn unlocked(&self, def: CardRef) -> [bool; 2] {
+        [
+            def == self.left || def == self.both,
+            def == self.right || def == self.both,
+        ]
+    }
+
+    /// The definition for a set of unlocked doors.
+    pub fn def_for(&self, unlocked: [bool; 2]) -> CardRef {
+        match unlocked {
+            [true, true] => self.both,
+            [true, false] => self.left,
+            [false, true] => self.right,
+            [false, false] => self.none,
+        }
+    }
+
+    /// A door's half (CR 709.5j).
+    pub fn half(&self, door: u8) -> CardRef {
+        if door == 0 { self.left } else { self.right }
+    }
+}
+
 /// Precomputed facts about a definition (see `CardDef::has_triggers` and
 /// friends).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
@@ -5411,6 +5533,8 @@ impl DefFlags {
     const MARKS: u32 = 4_194_304;
     /// Banding (CR 702.22): combat then looks for bands.
     const BANDING: u32 = 8_388_608;
+    /// A Room (`CardDef::doors`): priority then offers its locked doors.
+    const ROOM: u32 = 16_777_216;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -5515,6 +5639,10 @@ impl DefFlags {
 
     pub const fn has_banding(self) -> bool {
         self.has(DefFlags::BANDING)
+    }
+
+    pub const fn has_room(self) -> bool {
+        self.has(DefFlags::ROOM)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -5878,7 +6006,7 @@ pub struct CardPool {
     flanking: AbilityId,
     evoke: AbilityId,
     exploit: AbilityId,
-    builtins: [AbilityId; 6],
+    builtins: [AbilityId; 7],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -5958,7 +6086,7 @@ impl CardPool {
             flanking: AbilityId(0),
             evoke: AbilityId(0),
             exploit: AbilityId(0),
-            builtins: [AbilityId(0); 6],
+            builtins: [AbilityId(0); 7],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -6083,6 +6211,19 @@ impl CardPool {
                 condition: None,
                 targets: Vec::new(),
                 effects: vec![Effect::CopySpell],
+            }));
+        pool.builtins[Builtin::SiegeDefeated as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                from_graveyard: false,
+                trigger: TriggerSpec::Reflexive,
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![
+                    Effect::Exile {
+                        what: Recipient::Source,
+                    },
+                    Effect::CastExiled(ExileCast::Transformed),
+                ],
             }));
         pool.add_designations();
         // Named only for logs: a face-down permanent has no name.
@@ -6521,6 +6662,7 @@ impl CardPool {
             || sa.affected.blocking
             || matches!(sa.condition, Some(
                 StaticCondition::SourceAttacking
+                    | StaticCondition::SourceAttackedBattle
                     | StaticCondition::SourceAttackingAlone
                     | StaticCondition::SourceBlocked
                     | StaticCondition::SourceBeingBlocked
@@ -6628,6 +6770,83 @@ impl CardPool {
         d.faces = faces;
     }
 
+    /// A split card whose halves are permanents (a Room, CR 709.5): adds
+    /// the definitions of its fully locked and fully unlocked states and
+    /// links all five (`CardDef::doors`). Each half's "When you unlock
+    /// this door" learns which door it is. Nothing for other cards.
+    pub fn add_room_doors(&mut self, root: CardRef) {
+        let d = self.get(root);
+        let (&[left, right], Layout::Split) = (d.faces.as_slice(), d.layout) else {
+            return;
+        };
+        if !self.get(left).types.is_permanent_type() {
+            return;
+        }
+        let root_name = d.name.clone();
+        for (half, door) in [(left, 0u8), (right, 1u8)] {
+            for id in self
+                .get(half)
+                .ability_ids
+                .iter()
+                .copied()
+                .collect::<Vec<_>>()
+            {
+                if let AbilityDef::Triggered(t) = &mut self.abilities[id.0 as usize]
+                    && let TriggerSpec::UnlocksDoor { door: d } = &mut t.trigger
+                {
+                    *d = door;
+                }
+            }
+        }
+        let (l, r) = (self.get(left).clone(), self.get(right).clone());
+        // Both unlocked: both names, costs, and rules texts (CR 709.5).
+        let mut both = l.clone();
+        both.name.clone_from(&root_name);
+        both.mana_cost =
+            ManaCost::parse(&format!("{}{}", l.mana_cost, r.mana_cost)).unwrap_or_default();
+        both.abilities.extend(r.abilities.iter().cloned());
+        both.keywords = l.keywords.union(r.keywords);
+        both.oracle_text = format!("{}\n{}", l.oracle_text, r.oracle_text);
+        // Neither: the shared type line only.
+        let mut none = l.clone();
+        none.name = String::new();
+        none.mana_cost = ManaCost::default();
+        none.abilities.clear();
+        none.keywords = KeywordSet::NONE;
+        none.oracle_text = String::new();
+        let keep = self.by_name.clone();
+        let both = self.add(both);
+        let none = self.add(none);
+        self.by_name = keep;
+        // The halves' abilities themselves, so a door's triggers are the
+        // ones its half registered.
+        let ids: AbilitySet = l
+            .ability_ids
+            .iter()
+            .chain(r.ability_ids.iter())
+            .copied()
+            .collect();
+        let b = &mut self.defs[both.0 as usize];
+        b.ability_ids = ids;
+        if let Some(p) = &mut b.printed {
+            p.abilities = ids;
+        }
+        let doors = RoomDoors {
+            root,
+            left,
+            right,
+            both,
+            none,
+        };
+        for x in [root, left, right, both, none] {
+            let d = &mut self.defs[x.0 as usize];
+            d.doors = Some(Box::new(doors));
+            if x != root {
+                d.flags.set(DefFlags::ROOM, true);
+            }
+        }
+    }
+
     /// Intern a subtype name.
     pub fn subtype(&mut self, name: &str) -> Subtype {
         if let Some(id) = self.subtype_ids.get(name) {
@@ -6727,7 +6946,9 @@ impl Builder {
             token: false,
             emblem: false,
             loyalty: 0,
+            defense: 0,
             rooms: Vec::new(),
+            doors: None,
             marks: Marks::NONE,
             copy_except: None,
             subtype_ids: SubtypeSet::new(),
@@ -6826,6 +7047,12 @@ impl Builder {
     #[must_use]
     pub fn loyalty(mut self, n: u32) -> Self {
         self.0.loyalty = n;
+        self
+    }
+
+    #[must_use]
+    pub fn defense(mut self, n: u32) -> Self {
+        self.0.defense = n;
         self
     }
 

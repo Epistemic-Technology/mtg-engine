@@ -1,0 +1,8 @@
+card "Caught in the Brights" {
+  oracle_id fa131186-d730-460b-b9e5-b97d89857e24
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  triggered when Vehicle you control attacks: exile enchanted creature
+}

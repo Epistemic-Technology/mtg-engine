@@ -212,6 +212,12 @@ impl Engine {
             }
             for perm in &ps.battlefield {
                 let id = state.new_object(perm.def, p, Zone::Battlefield);
+                // A Room set up by a half's name is that card with the
+                // half's door unlocked (CR 709.5).
+                if let Some(d) = state.pool.get(perm.def).doors.as_deref() {
+                    let root = d.root;
+                    state.objects[id].card = root;
+                }
                 let printed_loyalty = {
                     let d = state.pool.get(perm.def);
                     d.types
@@ -234,6 +240,17 @@ impl Engine {
                 {
                     o.add_counters(crate::card::CounterKind::Loyalty, l);
                 }
+                // CR 310.4b: a battle likewise has its printed defense.
+                let printed_defense = state.pool.get(perm.def).defense;
+                let o = &mut state.objects[id];
+                if printed_defense > 0
+                    && !perm
+                        .counters
+                        .iter()
+                        .any(|(k, _)| *k == crate::card::CounterKind::Defense)
+                {
+                    o.add_counters(crate::card::CounterKind::Defense, printed_defense);
+                }
                 state.battlefield.push(id);
                 let def = state.pool.get(perm.def);
                 state.trigger_sources += u32::from(def.has_triggers());
@@ -254,6 +271,7 @@ impl Engine {
                 state.state_trigger_sources += u32::from(def.flags().has_state_trigger());
                 state.mark_sources += u32::from(def.flags().has_marks());
                 state.banding_sources += u32::from(def.flags().has_banding());
+                state.room_count += u32::from(def.flags().has_room());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -449,6 +467,7 @@ impl GameState {
             activated_once: Vec::new(),
             activated_ever: Vec::new(),
             attackers_this_turn: Vec::new(),
+            battle_attackers_this_turn: Vec::new(),
             attacked_last_turn: Vec::new(),
             blockers_this_turn: Vec::new(),
             dealt_damage_this_turn: Vec::new(),
@@ -540,6 +559,7 @@ impl GameState {
             eot_grants: 0,
             undone_cast: None,
             face_down_count: 0,
+            room_count: 0,
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
             this_way: None,
@@ -640,7 +660,12 @@ impl GameState {
                             .get(card)
                             .is_some_and(|o| matches!(o.zone, Zone::Exile | Zone::Hand))
                         {
-                            self.begin_cast(p, card, alt);
+                            // CR 712.11a: cast transformed, back face up.
+                            let face = self.exile_casts.as_mut().and_then(|e| {
+                                let i = e.transformed.iter().position(|(c, _)| *c == card)?;
+                                Some(e.transformed.swap_remove(i).1)
+                            });
+                            self.begin_cast_as(p, card, alt, face);
                         }
                         continue;
                     }
@@ -1189,6 +1214,10 @@ impl GameState {
                                 .map(|pw| Choice::AttackTarget(Target::Object(pw))),
                         );
                     }
+                    options.extend(
+                        self.attackable_battles(defender)
+                            .map(|b| Choice::AttackTarget(Target::Object(b))),
+                    );
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::ChooseAttackTarget { attacker },
@@ -1525,6 +1554,21 @@ impl GameState {
                 self.objects[spell].def = self.pool.face_down(ward);
                 self.cbump();
                 self.flow = self.after_mode(spell);
+            }
+            (Flow::Priority, Choice::Unlock { obj, door }) => {
+                // CR 709.5e: a special action; the player keeps priority.
+                let half = self
+                    .pool
+                    .get(self.objects[obj].def)
+                    .doors
+                    .as_deref()
+                    .map(|d| d.half(door));
+                if let Some(half) = half {
+                    let req = self.pool.get(half).mana_cost.requirements(0);
+                    self.pay(player, &req);
+                    self.unlock(obj, door);
+                }
+                self.give_priority(player);
             }
             (Flow::Priority, Choice::TurnFaceUp(id)) => {
                 // CR 116.2b: a special action; the player keeps priority.
@@ -2377,6 +2421,10 @@ impl GameState {
         self.attacked_last_turn.retain(|(p, _)| *p != ending);
         self.attacked_last_turn
             .extend(self.attackers_this_turn.drain(..).map(|id| (ending, id)));
+        if !self.battle_attackers_this_turn.is_empty() {
+            self.battle_attackers_this_turn.clear();
+            self.cbump();
+        }
     }
 
     /// The current step ends (CR 500.2): mana empties, combat clears, and the

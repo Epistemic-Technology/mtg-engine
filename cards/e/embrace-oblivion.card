@@ -1,0 +1,7 @@
+card "Embrace Oblivion" {
+  oracle_id 0fad5713-c09c-43d3-9cc0-10c65aead488
+  cost {B}
+  type Sorcery
+  additional cost sacrifice artifact or creature
+  spell: destroy target creature or Spacecraft
+}

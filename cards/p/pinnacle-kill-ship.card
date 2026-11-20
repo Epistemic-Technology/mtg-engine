@@ -1,0 +1,9 @@
+card "Pinnacle Kill-Ship" {
+  oracle_id ad556aee-3dbf-4c8b-9f3a-31947e26c6f5
+  cost {7}
+  type Artifact — Spacecraft
+  pt 7/7
+  triggered when this enters: deal 10 damage to up to 1 target creature
+  station
+  station 7: flying
+}

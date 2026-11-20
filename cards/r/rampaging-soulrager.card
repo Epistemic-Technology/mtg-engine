@@ -1,0 +1,7 @@
+card "Rampaging Soulrager" {
+  oracle_id f6d8e6cb-0878-4f2c-9a89-ce84cb4f5bbc
+  cost {2}{R}
+  type Creature — Spirit
+  pt 1/4
+  static this: +3/+0 as long as 2 unlocked doors
+}

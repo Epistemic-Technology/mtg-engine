@@ -106,6 +106,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
         Keyword::CantActivateNonMana,
     ),
     (&["can't", "activate"], Keyword::CantActivate),
+    (&["can't", "crew", "Vehicles"], Keyword::CantCrew),
     (
         &["can't", "become", "untapped"],
         Keyword::CantBecomeUntapped,
@@ -275,6 +276,7 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
         &["player", "or", "planeswalker"],
         TargetSpec::PlayerOrPlaneswalker,
     ),
+    (&["player", "or", "battle"], TargetSpec::PlayerOrBattle),
     (
         &["creature", "or", "planeswalker"],
         TargetSpec::CreatureOrPlaneswalker,
@@ -324,6 +326,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["those", "permanents"], Recipient::EachPermanentYouControl),
     (&["that", "creature"], Recipient::TriggeringObject),
     (&["that", "permanent"], Recipient::TriggeringObject),
+    (&["that", "Vehicle"], Recipient::TriggeringObject),
     (&["that", "object"], Recipient::TriggeringObject),
     (&["that", "player"], Recipient::TriggeringPlayer),
     (
@@ -698,6 +701,7 @@ impl P {
             subtypes: Vec::new(),
             pt: None,
             loyalty: None,
+            defense: None,
             keywords: Vec::new(),
             additional: None,
             additional_or: None,
@@ -818,6 +822,11 @@ impl P {
             "loyalty" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                 self.pos += 1;
                 card.loyalty = Some(self.number()?);
+                self.end_stmt()
+            }
+            "defense" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                card.defense = Some(self.number()?);
                 self.end_stmt()
             }
             "color" | "colors" => {
@@ -1222,6 +1231,26 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Protection(filter))
             }
+            "crews" | "saddles"
+                if self.at_words(&["crews", "using"])
+                    || self.at_words(&["crews", "plus"])
+                    || self.at_words(&["saddles", "and", "crews"]) =>
+            {
+                let saddles = self.eat_words(&["saddles", "and"]);
+                self.expect_word("crews")?;
+                let (toughness, plus) = if self.eat_words(&["using", "toughness"]) {
+                    (true, 0)
+                } else {
+                    self.expect_word("plus")?;
+                    (false, self.number()?)
+                };
+                self.end_stmt()?;
+                Ok(Ability::CrewsAs {
+                    saddles,
+                    toughness,
+                    plus,
+                })
+            }
             "extra" if self.word_at(1).as_deref() == Some("vote") => {
                 self.pos += 2;
                 let optional = self.eat_word("may");
@@ -1398,6 +1427,19 @@ impl P {
                 self.pos += 1;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Conspire))
+            }
+            "station" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Station))
+            }
+            "station" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                self.expect(&Tok::Colon)?;
+                let keywords = self.keyword_list()?;
+                self.end_stmt()?;
+                Ok(Ability::StationLevel { n, keywords })
             }
             "bargain" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
@@ -2380,6 +2422,22 @@ impl P {
         }
         if self.eat_words(&["attacked", "this", "turn"]) {
             return Ok(StaticCond::AttackedThisTurn);
+        }
+        if matches!(self.peek(), Some(Tok::Num(_)))
+            && self.word_at(1).as_deref() == Some("unlocked")
+            && self.word_at(2).as_deref() == Some("doors")
+        {
+            let n = self.number()?;
+            self.pos += 2;
+            return Ok(StaticCond::UnlockedDoors(n));
+        }
+        if self.eat_words(&["attacked", "a", "battle", "this", "turn"]) {
+            return Ok(StaticCond::AttackedBattleThisTurn);
+        }
+        if self.eat_words(&["attacked", "with"]) {
+            let f = self.filter()?;
+            self.expect_words(&["this", "turn"])?;
+            return Ok(StaticCond::AttackedWith(f));
         }
         if self.eat_words(&["attacked", "last", "turn"]) {
             return Ok(StaticCond::AttackedLastTurn);
@@ -4704,6 +4762,7 @@ impl P {
     /// chosen`, `return up to N <filter> to hand chosen`, `put N <filter>
     /// card from among milled cards into hand chosen` (or `from among
     /// them`).
+    #[allow(clippy::too_many_lines)] // one arm per act
     fn chosen_act(&mut self) -> R<Effect> {
         use mtg_core::card::ChooseAct;
         let verb = self.word()?;
@@ -4766,6 +4825,29 @@ impl P {
                 let f = card_filter(self)?;
                 self.pos += 6;
                 (ChooseAct::HandToBottom, f)
+            }
+            // `put 1 instant or sorcery card from your graveyard on top of
+            // library chosen`.
+            "put"
+                if {
+                    let at = self.pos;
+                    let gy = card_filter(self).is_ok()
+                        && self.at_words(&[
+                            "from",
+                            "your",
+                            "graveyard",
+                            "on",
+                            "top",
+                            "of",
+                            "library",
+                        ]);
+                    self.pos = at;
+                    gy
+                } =>
+            {
+                let f = card_filter(self)?;
+                self.pos += 7;
+                (ChooseAct::GraveyardToTop, f)
             }
             _ => {
                 let f = card_filter(self)?;
@@ -5703,6 +5785,18 @@ impl P {
             }
             "surveil" => Ok(Effect::Surveil(self.num()?)),
             "learn" => Ok(Effect::Learn),
+            "double" if self.at_words(&["this", "power"]) => {
+                self.pos += 2;
+                self.until_end_of_turn();
+                let times = self.push_count(crate::ast::Count {
+                    expr: crate::ast::CountExpr::SourcePower,
+                    style: crate::ast::CountStyle::Equal,
+                })?;
+                Ok(Effect::DoublePower {
+                    to: Recipient::Source,
+                    times,
+                })
+            }
             "counter" => {
                 let to = self.recipient()?;
                 if self.eat_word("unless") {
@@ -6512,6 +6606,7 @@ impl P {
                 None => return self.fail(format!("unknown counter kind {power:+}/{toughness:+}")),
             },
             Some(Tok::Word(w)) if w == "loyalty" => CounterKind::Loyalty,
+            Some(Tok::Word(w)) if w == "defense" => CounterKind::Defense,
             Some(Tok::Word(w)) => {
                 // "stun", "first strike": the named kinds.
                 let two = self.word_at(0).map(|n| format!("{w} {n}"));
@@ -8141,6 +8236,12 @@ impl P {
             self.pos += 3;
             return Ok(Trigger::GainsLife { whose: Who::You });
         }
+        if self.eat_words(&["you", "unlock", "this", "door"]) {
+            return Ok(Trigger::UnlocksDoor);
+        }
+        if self.eat_words(&["you", "fully", "unlock", "a", "Room"]) {
+            return Ok(Trigger::FullyUnlocks);
+        }
         if self.at_words(&["you", "win", "a", "coin", "flip"]) {
             self.pos += 5;
             return Ok(Trigger::WinsFlip { whose: Who::You });
@@ -8492,6 +8593,9 @@ impl P {
                 if self.eat_words(&["and", "isn't", "blocked"]) {
                     return Ok(Trigger::AttacksUnblocked(obj));
                 }
+                if self.eat_words(&["a", "battle"]) {
+                    return Ok(Trigger::AttacksBattle(obj));
+                }
                 Ok(Trigger::Attacks(obj))
             }
             "blocks" if self.at_words(&["or", "becomes", "blocked"]) => {
@@ -8506,6 +8610,10 @@ impl P {
             }
             "blocks" => Ok(Trigger::Blocks(obj)),
             "deals" => {
+                if self.at_words(&["combat", "damage", "to", "a", "player", "or", "battle"]) {
+                    self.pos += 7;
+                    return Ok(Trigger::DealsCombatDamageToPlayerOrBattle(obj));
+                }
                 if self.at_words(&["combat", "damage", "to", "a", "player"]) {
                     self.pos += 5;
                     return Ok(Trigger::DealsCombatDamageToPlayer(obj));
@@ -8898,6 +9006,10 @@ impl P {
             return Ok(Replaces::Dies {
                 to: Affects::Target(n - 1),
             });
+        }
+        // `this dies`: "If this creature would die, exile it instead."
+        if self.eat_words(&["this", "dies"]) {
+            return Ok(Replaces::Dies { to: Affects::This });
         }
         // `creature dealt damage this way dies` (CR 608.2c).
         if self.eat_words(&["creature", "dealt", "damage", "this", "way", "dies"]) {

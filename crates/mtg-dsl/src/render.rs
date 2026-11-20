@@ -122,7 +122,7 @@ fn pluralize(word: &str) -> String {
     match word {
         "Plains" | "Equipment" | "Kavu" | "Aurochs" | "Sheep" | "Fish" | "Moonfolk" | "Kithkin"
         | "Merfolk" | "Samurai" | "Kor" | "Zubera" | "Vedalken" | "Aetherborn" | "Eldrazi"
-        | "Treefolk" | "Arcane" => {
+        | "Treefolk" | "Arcane" | "Spacecraft" => {
             return word.to_string();
         }
         "Elf" => return "Elves".to_string(),
@@ -254,6 +254,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::AttackDespiteDefender
             | Keyword::CantActivate
             | Keyword::CantActivateNonMana
+            | Keyword::CantCrew
     )
 }
 
@@ -294,7 +295,12 @@ fn lure_sentence(what: &str, this_turn: bool) -> String {
 /// "can't attack or block", "can't block", ...
 fn restriction_phrase(ks: &[Keyword]) -> String {
     let mut parts = Vec::new();
-    if ks.contains(&Keyword::CantAttack) && ks.contains(&Keyword::CantBlock) {
+    if ks.contains(&Keyword::CantAttack)
+        && ks.contains(&Keyword::CantBlock)
+        && ks.contains(&Keyword::CantCrew)
+    {
+        parts.push("can't attack, block, or crew Vehicles".to_string());
+    } else if ks.contains(&Keyword::CantAttack) && ks.contains(&Keyword::CantBlock) {
         parts.push("can't attack or block".to_string());
     } else {
         for k in ks {
@@ -719,8 +725,17 @@ pub fn self_noun(card: &Card) -> String {
     if card.types.contains(&CardType::Artifact) {
         // "this Vehicle", "this Equipment" (Oracle's templating since
         // 2024).
-        if card.subtypes.iter().any(|s| s == "Vehicle") {
-            return "Vehicle".to_string();
+        if card
+            .subtypes
+            .iter()
+            .any(|s| s == "Vehicle" || s == "Spacecraft")
+        {
+            return card
+                .subtypes
+                .iter()
+                .find(|s| *s == "Vehicle" || *s == "Spacecraft")
+                .cloned()
+                .unwrap_or_default();
         }
         if card.subtypes.iter().any(|s| s == "Equipment") {
             return "Equipment".to_string();
@@ -731,7 +746,18 @@ pub fn self_noun(card: &Card) -> String {
         if card.subtypes.iter().any(|s| s == "Aura") {
             return "Aura".to_string();
         }
+        // "this Room" (Duskmourn's templating).
+        if card.subtypes.iter().any(|s| s == "Room") {
+            return "Room".to_string();
+        }
         return "enchantment".to_string();
+    }
+    // "this Siege" (CR 310.3).
+    if card.types.contains(&CardType::Battle) {
+        if card.subtypes.iter().any(|s| s == "Siege") {
+            return "Siege".to_string();
+        }
+        return "battle".to_string();
     }
     "permanent".to_string()
 }
@@ -1009,6 +1035,14 @@ impl<'a> Ctx<'a> {
                 if matches!(self.trigger, Some(Trigger::AttachedStep(_))) =>
             {
                 format!("that {}", enchanted_noun(self.card))
+            }
+            // "Whenever a Vehicle you control attacks, that Vehicle gains
+            // first strike".
+            Recipient::TriggeringObject
+                if matches!(self.trigger, Some(Trigger::Attacks(TriggerObj::Filter(f)))
+                    if f.subtypes.iter().any(|s| s == "Vehicle")) =>
+            {
+                "that Vehicle".to_string()
             }
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
@@ -1436,6 +1470,7 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::AttackingCreature
             | TargetSpec::BlockingCreature => "creature".to_string(),
             TargetSpec::PlayerOrPlaneswalker
+            | TargetSpec::PlayerOrBattle
             | TargetSpec::Player
             | TargetSpec::Opponent
             | TargetSpec::OpponentOrPlaneswalker => "player".to_string(),
@@ -1502,6 +1537,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::Any => "any target",
         TargetSpec::Creature | TargetSpec::CreatureWithSubtype(_) => "target creature",
         TargetSpec::PlayerOrPlaneswalker => "target player or planeswalker",
+        TargetSpec::PlayerOrBattle => "target player or battle",
         TargetSpec::CreatureOrPlaneswalker => "target creature or planeswalker",
         TargetSpec::Land => "target land",
         TargetSpec::Player => "target player",
@@ -3596,6 +3632,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             for m in modes {
                 let mut inner = Ctx::new(ctx.card, ctx.lookup, &m.targets);
                 inner.current = ctx.current;
+                inner.trigger = ctx.trigger;
                 out.push_str("\n• ");
                 push_mode_name(&mut out, m);
                 out.push_str(&sentences(&m.effects, &mut inner));
@@ -4584,6 +4621,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChooseAct::ExileFromGraveyard => {
                     format!("exile {} from your graveyard", cards())
                 }
+                ChooseAct::GraveyardToTop => {
+                    format!("put {} from your graveyard on top of your library", cards())
+                }
                 ChooseAct::ReturnFromGraveyard => {
                     format!("return {} from your graveyard to your hand", cards())
                 }
@@ -4896,6 +4936,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
         Effect::Learn => Clause::imperative("learn".to_string()),
+        Effect::DoublePower { to, .. } => {
+            let s = ctx.subj(*to);
+            let whose = if s == "it" {
+                "its".to_string()
+            } else {
+                format!("{s}'s")
+            };
+            Clause::imperative(format!("double {whose} power until end of turn"))
+        }
         Effect::Discard { count, who } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
             match who {
@@ -6346,6 +6395,26 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::DealsCombatDamageToPlayer(TriggerObj::This) => {
             format!("whenever {} deals combat damage to a player", this(ctx))
         }
+        Trigger::DealsCombatDamageToPlayerOrBattle(TriggerObj::This) => {
+            format!(
+                "whenever {} deals combat damage to a player or battle",
+                this(ctx)
+            )
+        }
+        Trigger::DealsCombatDamageToPlayerOrBattle(o) => {
+            format!(
+                "whenever {} deals combat damage to a player or battle",
+                trigger_subject(o, ctx)
+            )
+        }
+        Trigger::UnlocksDoor => "when you unlock this door".to_string(),
+        Trigger::FullyUnlocks => "whenever you fully unlock a Room".to_string(),
+        Trigger::AttacksBattle(TriggerObj::This) => {
+            format!("whenever {} attacks a battle", this(ctx))
+        }
+        Trigger::AttacksBattle(o) => {
+            format!("whenever {} attacks a battle", trigger_subject(o, ctx))
+        }
         Trigger::DealsCombatDamageToDefending(o) => {
             let s = match o {
                 TriggerObj::This => this(ctx),
@@ -7603,8 +7672,18 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
         // its controller's untap step" (Encrust).
         let untap_only =
             matches!(mods, [Mod::AddKeywords(ks)] if ks.as_slice() == [Keyword::DoesntUntap]);
-        body.push_str(if untap_only { " and " } else { ", and " });
-        body.push_str(clause);
+        // After "can't attack, block, or crew Vehicles" it is a sentence
+        // of its own (Intercessor's Arrest).
+        let crew = mods
+            .iter()
+            .any(|m| matches!(m, Mod::AddKeywords(ks) if ks.contains(&Keyword::CantCrew)));
+        if crew {
+            body.push_str(". ");
+            body.push_str(&capitalize(clause));
+        } else {
+            body.push_str(if untap_only { " and " } else { ", and " });
+            body.push_str(clause);
+        }
     }
     if body.ends_with(".\"") {
         body
@@ -7955,6 +8034,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             ),
         },
         StaticCond::Attacking => "it's attacking".to_string(),
+        StaticCond::AttackedBattleThisTurn => "it attacked a battle this turn".to_string(),
+        StaticCond::AttackedWith(f) => {
+            format!("you attacked with {} this turn", filter_a(f, card))
+        }
+        StaticCond::UnlockedDoors(n) => format!(
+            "there are {} or more unlocked doors among Rooms you control",
+            count_words(Num::N(*n), "one")
+        ),
         StaticCond::Enchanted => "it's enchanted".to_string(),
         StaticCond::Equipped => "it's equipped".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("an opponent has {n} or less life"),
@@ -8856,6 +8943,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ),
             crate::ast::Mechanic::Bargain => "Bargain".to_string(),
             crate::ast::Mechanic::Conspire => "Conspire".to_string(),
+            crate::ast::Mechanic::Station => "Station".to_string(),
             crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
             crate::ast::Mechanic::Ascend => "Ascend".to_string(),
             crate::ast::Mechanic::StartYourEngines => "Start your engines!".to_string(),
@@ -8920,6 +9008,28 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         Ability::Uncounterable => "This spell can't be countered.".to_string(),
         Ability::AuraStays => "This effect doesn't remove this Aura.".to_string(),
+        // CR 721.2: "4+ | Flying".
+        Ability::StationLevel { n, keywords } => {
+            let ks: Vec<String> = keywords.iter().map(|k| capitalize(k.name())).collect();
+            format!("{n}+ | {}", ks.join(", "))
+        }
+        Ability::CrewsAs {
+            saddles,
+            toughness,
+            plus,
+        } => {
+            let verb = if *saddles {
+                "saddles Mounts and crews Vehicles"
+            } else {
+                "crews Vehicles"
+            };
+            let how = if *toughness {
+                "using its toughness rather than its power".to_string()
+            } else {
+                format!("as though its power were {plus} greater")
+            };
+            format!("This {} {verb} {how}.", self_noun(card))
+        }
         Ability::ExtraVote { optional: false } => {
             "While voting, you get an additional vote.".to_string()
         }

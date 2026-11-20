@@ -202,6 +202,9 @@ pub struct ExileCasts {
     /// Cards to be cast as the current resolution finishes ("you may cast
     /// it without paying its mana cost"): the caster, the card, how.
     pub pending: Vec<(PlayerId, ObjId, AltCast)>,
+    /// Pending cards to be cast transformed, with the face they are cast
+    /// as (CR 712.11a: a defeated Siege).
+    pub transformed: Vec<(ObjId, CardRef)>,
     /// Cards foretold this turn (CR 702.143a: castable on a later turn).
     pub foretold_this_turn: Vec<ObjId>,
     /// Cards exiled by impulse effects that a player may play.
@@ -817,6 +820,10 @@ impl Characteristics {
         self.types.contains(CardType::Planeswalker)
     }
 
+    pub fn is_battle(&self) -> bool {
+        self.types.contains(CardType::Battle)
+    }
+
     pub fn has(&self, k: Keyword) -> bool {
         self.keywords.contains(k)
     }
@@ -941,6 +948,7 @@ impl Moved {
             ThisWay::Discarded => self.from == Zone::Hand && self.to != Zone::Hand,
             ThisWay::Milled => self.from == Zone::Library && self.to == Zone::Graveyard,
             ThisWay::PutInHand => self.to == Zone::Hand && self.from != Zone::Hand,
+            ThisWay::Tapped => self.from == Zone::Battlefield && self.to == Zone::Battlefield,
         }
     }
 }
@@ -1248,6 +1256,9 @@ pub struct GameState {
     /// Creatures declared as attackers this turn (boast, CR 702.142a);
     /// one put onto the battlefield attacking was never declared.
     pub attackers_this_turn: Vec<ObjId>,
+    /// Creatures that attacked a battle this turn (CR 310.5: "as long as
+    /// it attacked a battle this turn").
+    pub battle_attackers_this_turn: Vec<ObjId>,
     /// The creatures each player attacked with during their last turn
     /// ("if it attacked during your last turn").
     pub attacked_last_turn: Vec<(PlayerId, ObjId)>,
@@ -1426,6 +1437,9 @@ pub struct GameState {
     /// Face-down permanents on the battlefield, so listing options skips
     /// the turn-face-up check without any.
     pub face_down_count: u32,
+    /// Room permanents on the battlefield (CR 709.5): priority looks for
+    /// locked doors to unlock only when there are any.
+    pub room_count: u32,
     /// A cast just undone (CR 726) and the state version then: it is not
     /// offered again until something changes, so an agent can't loop on it.
     pub undone_cast: Option<(ObjId, u64)>,
@@ -1516,6 +1530,55 @@ impl GameState {
     /// The single opponent in a two-player game.
     pub fn opponent(&self, p: PlayerId) -> PlayerId {
         self.next_player(p)
+    }
+
+    /// A battle's protector (CR 310.9): a Siege's is its controller's
+    /// opponent (CR 310.12a), another battle's its controller (CR
+    /// 310.9a). With two players the choice is forced, and a change of
+    /// control re-chooses it the same way (CR 310.11), so it is derived.
+    pub fn protector(&self, id: ObjId) -> Option<PlayerId> {
+        let o = self.objects.get(id)?;
+        let c = self.characteristics(id)?;
+        if !c.is_battle() {
+            return None;
+        }
+        Some(if c.has_subtype(crate::card::Subtype::SIEGE) {
+            self.opponent(o.controller)
+        } else {
+            o.controller
+        })
+    }
+
+    /// Whether a creature matching `f` attacked under `p`'s control this
+    /// turn ("if you attacked with a Spacecraft this turn"), judged as it
+    /// is or as it last existed.
+    pub fn attacked_with(&self, p: PlayerId, f: &crate::card::ObjFilter) -> bool {
+        self.attackers_this_turn.iter().any(|id| {
+            let (controller, c) = match self.objects.get(*id) {
+                Some(o) => (o.controller, self.characteristics(*id)),
+                None => match self.lki.get(id) {
+                    Some(l) => (l.object.controller, Some(l.characteristics)),
+                    None => return false,
+                },
+            };
+            controller == p && c.is_some_and(|c| f.matches(*id, controller, &c, None, Some(p)))
+        })
+    }
+
+    /// Unlocked doors among Rooms `p` controls (CR 709.5j).
+    pub fn unlocked_doors(&self, p: PlayerId) -> u32 {
+        if self.room_count == 0 {
+            return 0;
+        }
+        self.battlefield
+            .iter()
+            .filter_map(|id| {
+                let o = &self.objects[*id];
+                (o.controller == p).then_some(())?;
+                let doors = self.pool.get(o.def).doors.as_deref()?;
+                Some(u32::from(doors.unlocked(o.def)[0]) + u32::from(doors.unlocked(o.def)[1]))
+            })
+            .sum()
     }
 
     pub fn obj(&self, id: ObjId) -> Option<&GameObject> {
@@ -2139,6 +2202,7 @@ impl GameState {
             | TargetSpec::NoncreatureSpell
             | TargetSpec::OnStack { .. }
             | TargetSpec::PlayerOrPlaneswalker
+            | TargetSpec::PlayerOrBattle
             | TargetSpec::OpponentOrPlaneswalker
             | TargetSpec::SpellFiltered(_)
             | TargetSpec::GraveyardCard { .. }
@@ -2243,6 +2307,8 @@ impl GameState {
         };
         match cond {
             C::CardsInGraveyard(n) => self.player(you).graveyard.len() >= *n as usize,
+            C::UnlockedDoors(n) => self.unlocked_doors(you) >= *n,
+            C::AttackedWith(f) => self.attacked_with(you, f),
             C::CardTypesInGraveyard(n) => {
                 let mut types = crate::card::TypeSet::default();
                 for g in &self.player(you).graveyard {
@@ -2282,6 +2348,7 @@ impl GameState {
                     .any(|p| mine > creatures(p))
             }
             C::YourTurn => self.active_player == you,
+            C::SourceAttackedBattle => self.battle_attackers_this_turn.contains(&source),
             C::SourceAttacking => self
                 .combat
                 .as_ref()
@@ -2885,9 +2952,10 @@ impl GameState {
                 p.index() < self.num_players()
                     && self.player(p).lost.is_none()
                     && match spec {
-                        TargetSpec::Any | TargetSpec::Player | TargetSpec::PlayerOrPlaneswalker => {
-                            true
-                        }
+                        TargetSpec::Any
+                        | TargetSpec::Player
+                        | TargetSpec::PlayerOrPlaneswalker
+                        | TargetSpec::PlayerOrBattle => true,
                         TargetSpec::Opponent | TargetSpec::OpponentOrPlaneswalker => p != caster,
                         _ => false,
                     }
@@ -2970,11 +3038,11 @@ impl GameState {
                     return false;
                 };
                 let type_ok = match spec {
-                    // CR 115.4: "any target" is a creature, player, or
-                    // planeswalker (battles are not modelled).
-                    TargetSpec::Any | TargetSpec::CreatureOrPlaneswalker => {
-                        c.is_creature() || c.is_planeswalker()
-                    }
+                    // CR 115.4: "any target" is a creature, player,
+                    // planeswalker, or battle.
+                    TargetSpec::Any => c.is_creature() || c.is_planeswalker() || c.is_battle(),
+                    TargetSpec::CreatureOrPlaneswalker => c.is_creature() || c.is_planeswalker(),
+                    TargetSpec::PlayerOrBattle => c.is_battle(),
                     TargetSpec::PlayerOrPlaneswalker | TargetSpec::OpponentOrPlaneswalker => {
                         c.is_planeswalker()
                     }
@@ -3107,6 +3175,8 @@ mod tests {
             std::mem::size_of::<Event>()
         );
         assert!(o <= 136, "GameObject is {o} bytes");
-        assert!(c <= 72, "Characteristics is {c} bytes");
+        // 80 since the keyword set outgrew 64 bits (banding and "can't
+        // crew Vehicles" took the last two; 2026-11-19).
+        assert!(c <= 80, "Characteristics is {c} bytes");
     }
 }

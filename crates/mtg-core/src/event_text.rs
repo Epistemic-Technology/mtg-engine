@@ -60,6 +60,14 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             format!("{} reveals their hand.", who(*player, viewer))
         }
         Event::Transformed { obj } => format!("{} transforms.", state.name_of_or_lki(*obj)),
+        Event::Unlocked { obj, door, .. } => {
+            let half = state
+                .objects
+                .get(*obj)
+                .and_then(|o| state.pool.get(o.def).doors.as_deref())
+                .map_or("a door", |d| state.pool.get(d.half(*door)).name.as_str());
+            format!("{half} is unlocked.")
+        }
         Event::TurnedFaceUp { obj } => format!("{} is turned face up.", state.name_of_or_lki(*obj)),
         Event::Revealed { def, .. } => format!("{} is revealed.", state.pool.get(*def).name),
         Event::Draw { player, card } => {

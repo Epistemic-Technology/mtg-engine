@@ -187,6 +187,7 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         // alternative cost.
         Choice::CastAlt(_) | Choice::CastOverload(_) => 38,
         Choice::CastBestow(_) => 39,
+        Choice::Unlock { .. } => 40,
     }
 }
 
@@ -400,6 +401,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)
             | Choice::Suspend(id)
+            | Choice::Unlock { obj: id, .. }
             | Choice::Foretell(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
             Choice::CastFaceDown(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 3.0),
             Choice::Cast(id) => {

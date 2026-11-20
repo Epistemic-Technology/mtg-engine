@@ -108,6 +108,8 @@ pub struct Card {
     pub subtypes: Vec<String>,
     pub pt: Option<(i32, i32)>,
     pub loyalty: Option<u32>,
+    /// A battle's printed defense (CR 310.4a): `defense 5`.
+    pub defense: Option<u32>,
     /// In the order written, which is the order printed.
     pub keywords: Vec<Keyword>,
     /// "As an additional cost to cast this spell, ..." (CR 601.2b).
@@ -162,6 +164,7 @@ impl Card {
             subtypes: Vec::new(),
             pt: None,
             loyalty: None,
+            defense: None,
             keywords: Vec::new(),
             additional: None,
             additional_or: None,
@@ -984,6 +987,22 @@ pub enum Ability {
     ExtraVote {
         optional: bool,
     },
+    /// `crews using toughness`: "This creature crews Vehicles using its
+    /// toughness rather than its power."; `saddles and crews plus 2`:
+    /// "This creature saddles Mounts and crews Vehicles as though its
+    /// power were 2 greater." (CR 702.122a, 702.171a).
+    CrewsAs {
+        saddles: bool,
+        toughness: bool,
+        plus: u32,
+    },
+    /// `station 4: flying` (CR 721.2): "4+ | Flying": as long as it has
+    /// four or more charge counters it has the keywords, and with a P/T
+    /// box (the card's `pt`) it is a creature (CR 721.2b).
+    StationLevel {
+        n: u32,
+        keywords: Vec<Keyword>,
+    },
     /// `protection doesn't remove this`: "This effect doesn't remove this
     /// Aura.", printed after the static ability before it.
     AuraStays,
@@ -1140,6 +1159,10 @@ pub enum Mechanic {
     Bargain,
     /// Conspire (CR 702.78).
     Conspire,
+    /// CR 702.184: `station`: "Tap another untapped creature you control:
+    /// Put a number of charge counters on this permanent equal to the
+    /// tapped creature's power. Activate only as a sorcery."
+    Station,
     /// CR 702.131: `ascend`: the city's blessing once you control ten or
     /// more permanents (a permanent's static ability; an instant's or
     /// sorcery's first effect).
@@ -1287,6 +1310,15 @@ pub enum StaticCond {
     YouControlEach(Vec<Filter>),
     /// `attacked this turn` (raid): "you attacked this turn".
     AttackedThisTurn,
+    /// `2 unlocked doors`: "there are two or more unlocked doors among
+    /// Rooms you control" (CR 709.5j).
+    UnlockedDoors(u32),
+    /// `attacked with Spacecraft this turn`: "you attacked with a
+    /// Spacecraft this turn".
+    AttackedWith(Filter),
+    /// `attacked a battle this turn`: "it attacked a battle this turn"
+    /// (the source).
+    AttackedBattleThisTurn,
     /// `attacked last turn`: "it attacked during your last turn".
     AttackedLastTurn,
     /// `creature died this turn` (morbid).
@@ -1731,6 +1763,14 @@ pub enum Trigger {
     },
     Blocks(TriggerObj),
     DealsCombatDamageToPlayer(TriggerObj),
+    /// `deals combat damage to a player or battle` (CR 310.6).
+    DealsCombatDamageToPlayerOrBattle(TriggerObj),
+    /// `whenever this attacks a battle` (CR 310.5).
+    AttacksBattle(TriggerObj),
+    /// `when you unlock this door` (CR 709.5h).
+    UnlocksDoor,
+    /// `whenever you fully unlock a Room` (CR 709.5i).
+    FullyUnlocks,
     /// `deals combat damage to defending player`: the same trigger, worded
     /// with "defending player" (combat damage to a player is dealt to the
     /// defending player, CR 510.1).
@@ -2475,6 +2515,13 @@ pub enum Effect {
     /// discard a card; if you do, draw a card" (CR 701.48a's other
     /// choice; no Lesson card is ever outside the game).
     Learn,
+    /// `double this power`: "double its power until end of turn" (CR
+    /// 701.10f: it gets +X/+0, X its power); `times` is the count of its
+    /// power.
+    DoublePower {
+        to: Recipient,
+        times: Num,
+    },
     /// `who` is `None` for the imperative "discard a card".
     Discard {
         count: Num,
@@ -2980,6 +3027,7 @@ pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
         ThisWay::Discarded => "discarded",
         ThisWay::Milled => "milled",
         ThisWay::PutInHand => "returned",
+        ThisWay::Tapped => "tapped",
     }
 }
 

@@ -1,0 +1,7 @@
+card "Cult Healer" {
+  oracle_id c51da69b-7fd7-43a3-be29-c44fc0c36130
+  cost {2}{W}
+  type Creature — Human Doctor
+  pt 3/3
+  label "Eerie" triggered whenever enchantment you control enters and whenever you fully unlock a Room: this gains lifelink
+}

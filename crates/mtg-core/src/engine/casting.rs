@@ -153,6 +153,10 @@ impl GameState {
         if self.face_down_count > 0 {
             self.face_up_options(p, &sources, &mut options);
         }
+        // CR 709.5e: unlocking a Room's door, as a sorcery.
+        if self.room_count > 0 && sorcery_timing {
+            self.unlock_options(p, &sources, &mut options);
+        }
         // CR 715.3d: a card on an adventure may be cast from exile (its
         // main face).
         if ps.adventures_in_exile > 0 {
@@ -830,6 +834,7 @@ impl GameState {
                 .collect(),
             ChooseAct::ExileFromGraveyard
             | ChooseAct::ReturnFromGraveyard
+            | ChooseAct::GraveyardToTop
             | ChooseAct::ReturnRandomFromGraveyard => self
                 .player(p)
                 .graveyard
@@ -967,6 +972,9 @@ impl GameState {
                 ChooseAct::Discard => self.discard_card(p, id),
                 ChooseAct::HandToBottom => {
                     self.move_object(id, Zone::Library, false);
+                }
+                ChooseAct::GraveyardToTop => {
+                    self.move_object(id, Zone::Library, true);
                 }
                 ChooseAct::ExileFromGraveyard => {
                     ctx.created = Some(self.move_object(id, Zone::Exile, false));
@@ -1383,6 +1391,35 @@ impl GameState {
 
     #[cold]
     #[inline(never)]
+    fn unlock_options(&self, p: PlayerId, sources: &Sources, options: &mut Vec<Choice>) {
+        let ps = self.player(p);
+        for id in self.permanents_of(p) {
+            let def = self.objects[id].def;
+            let Some(doors) = self.pool.get(def).doors.as_deref() else {
+                continue;
+            };
+            let unlocked = doors.unlocked(def);
+            for door in 0..2u8 {
+                if unlocked[usize::from(door)] {
+                    continue;
+                }
+                let cost = &self.pool.get(doors.half(door)).mana_cost;
+                if self.payable(
+                    p,
+                    sources,
+                    &ps.mana_pool,
+                    &cost.requirements(0),
+                    ps.life,
+                    None,
+                ) {
+                    options.push(Choice::Unlock { obj: id, door });
+                }
+            }
+        }
+    }
+
+    #[cold]
+    #[inline(never)]
     fn face_up_options(&self, p: PlayerId, sources: &Sources, options: &mut Vec<Choice>) {
         let ps = self.player(p);
         for id in self.permanents_of(p) {
@@ -1477,22 +1514,48 @@ impl GameState {
         self.turn_face_up(id);
     }
 
-    /// Other untapped creatures `p` controls that could crew `vehicle`,
-    /// with their power (CR 702.122a; summoning sickness doesn't matter).
-    fn crew_candidates(&self, p: PlayerId, vehicle: ObjId) -> SmallVec<[(ObjId, u32); 4]> {
+    /// Other untapped creatures `p` controls that could crew `vehicle`
+    /// (or saddle it, with `saddle`), with the power each counts for (CR
+    /// 702.122a, 702.171a; summoning sickness doesn't matter). One that
+    /// can't crew Vehicles can't pay a crew cost (CR 702.122d); one that
+    /// crews using its toughness, or as though its power were greater,
+    /// counts that instead.
+    fn crew_candidates(
+        &self,
+        p: PlayerId,
+        vehicle: ObjId,
+        saddle: bool,
+    ) -> SmallVec<[(ObjId, u32); 4]> {
         self.creatures_of(p)
             .filter(|id| *id != vehicle && !self.objects[*id].tapped)
-            .map(|id| {
-                let power = self
-                    .characteristics(id)
-                    .map_or(0, |c| u32::try_from(c.power().max(0)).unwrap_or(0));
-                (id, power)
+            .filter_map(|id| {
+                let c = self.characteristics(id)?;
+                if !saddle && c.has(Keyword::CantCrew) {
+                    return None;
+                }
+                let mut n = c.power();
+                for a in &c.abilities {
+                    if let crate::card::AbilityDef::CrewsAs {
+                        saddles,
+                        toughness,
+                        plus,
+                    } = self.pool.ability(*a)
+                        && (*saddles || !saddle)
+                    {
+                        if *toughness {
+                            n = c.toughness();
+                        } else {
+                            n = n.saturating_add(i32::try_from(*plus).unwrap_or(0));
+                        }
+                    }
+                }
+                Some((id, u32::try_from(n.max(0)).unwrap_or(0)))
             })
             .collect()
     }
 
-    fn crew_power(&self, p: PlayerId, vehicle: ObjId) -> u32 {
-        self.crew_candidates(p, vehicle)
+    fn crew_power(&self, p: PlayerId, vehicle: ObjId, saddle: bool) -> u32 {
+        self.crew_candidates(p, vehicle, saddle)
             .iter()
             .map(|(_, n)| n)
             .sum()
@@ -1500,8 +1563,14 @@ impl GameState {
 
     /// The creatures that crew: the weakest one strong enough alone, or
     /// else the strongest until the power suffices.
-    fn crew_choice(&self, p: PlayerId, vehicle: ObjId, need: u32) -> SmallVec<[ObjId; 4]> {
-        let mut c = self.crew_candidates(p, vehicle);
+    fn crew_choice(
+        &self,
+        p: PlayerId,
+        vehicle: ObjId,
+        need: u32,
+        saddle: bool,
+    ) -> SmallVec<[ObjId; 4]> {
+        let mut c = self.crew_candidates(p, vehicle, saddle);
         if let Some((id, _)) = c.iter().filter(|(_, n)| *n >= need).min_by_key(|(_, n)| *n) {
             return smallvec::smallvec![*id];
         }
@@ -2211,7 +2280,19 @@ impl GameState {
     /// Whether `card` (exiled) could be cast `alt`'s way now: a nonland
     /// card with targets for some mode, whose cost (if any) is payable.
     fn exile_castable(&self, p: PlayerId, card: ObjId, alt: AltCast) -> bool {
-        let def = self.pool.get(self.objects[card].def);
+        self.exile_castable_as(p, card, alt, self.objects[card].def)
+    }
+
+    /// `exile_castable`, the spell having the characteristics of `face`
+    /// (CR 712.11c: only the face to be cast is evaluated).
+    fn exile_castable_as(
+        &self,
+        p: PlayerId,
+        card: ObjId,
+        alt: AltCast,
+        face: crate::card::CardRef,
+    ) -> bool {
+        let def = self.pool.get(face);
         if def.is_land() {
             return false;
         }
@@ -2251,7 +2332,20 @@ impl GameState {
     }
 
     pub(super) fn offer_exile_cast_by(&mut self, card: ObjId, alt: AltCast, p: PlayerId) -> bool {
-        if !self.exile_castable(p, card, alt) {
+        let face = self.objects[card].def;
+        self.offer_exile_cast_as(card, alt, p, face)
+    }
+
+    /// `offer_exile_cast_by`, cast as `face` (transformed, CR 712.11a);
+    /// the caller remembers the face.
+    pub(super) fn offer_exile_cast_as(
+        &mut self,
+        card: ObjId,
+        alt: AltCast,
+        p: PlayerId,
+        face: crate::card::CardRef,
+    ) -> bool {
+        if !self.exile_castable_as(p, card, alt, face) {
             return false;
         }
         let k = self.choose_mid(
@@ -2450,7 +2544,7 @@ impl GameState {
                 if !self.targets_available(p, &ab.targets, Some(id)) {
                     continue;
                 }
-                if ab.cost.crew > 0 && self.crew_power(p, id) < ab.cost.crew {
+                if ab.cost.crew > 0 && self.crew_power(p, id, ab.saddles()) < ab.cost.crew {
                     continue;
                 }
                 if let Some((k, n)) = ab.cost.remove_counters
@@ -3209,6 +3303,7 @@ impl GameState {
         }
         // "Tap two untapped Beasts you control": before the mana.
         let mut sacrifice = sacrifice;
+        let mut tapped_paid: SmallVec<[ObjId; 2]> = SmallVec::new();
         if let (true, Some(SacCost::Filter(f))) = (ab.cost.taps_chosen(), &ab.cost.sacrifice) {
             let sources = self.ability_sources(controller, sa.source);
             let n = ab.cost.chosen_count();
@@ -3225,6 +3320,7 @@ impl GameState {
                 .unwrap_or_default()
             {
                 self.tap(c);
+                tapped_paid.push(c);
             }
             sacrifice = None;
         }
@@ -3232,7 +3328,7 @@ impl GameState {
         let req = self.activation_mana(sa.source, ab);
         self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.cost.crew > 0 {
-            for c in self.crew_choice(controller, sa.source, ab.cost.crew) {
+            for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
                 self.tap(c);
             }
         }
@@ -3263,6 +3359,10 @@ impl GameState {
             }
         }
         self.pay_costs_recorded(obj, |s| {
+            // "the tapped creature's power" (station, CR 702.184a).
+            for c in tapped_paid {
+                s.note_tapped_for_cost(c);
+            }
             s.pay_other_costs(controller, &ab.cost, sa.source, sacrifice, discard);
         });
         self.emit(Event::Activated {
@@ -3706,7 +3806,10 @@ impl GameState {
                             crate::card::ChosenCost::Return => {
                                 self.move_object(s, Zone::Hand, false);
                             }
-                            crate::card::ChosenCost::Tap => self.tap(s),
+                            crate::card::ChosenCost::Tap => {
+                                self.tap(s);
+                                self.note_tapped_for_cost(s);
+                            }
                         }
                     }
                 }
@@ -3755,6 +3858,23 @@ impl GameState {
                 let Some(n) = next else { break };
                 self.discard_card(p, n);
             }
+        }
+    }
+
+    /// Remember a permanent tapped to pay a cost, for "the tapped
+    /// creature's power" as the ability resolves (`ThisWay::Tapped`).
+    fn note_tapped_for_cost(&mut self, id: ObjId) {
+        let Some(owner) = self.objects.get(id).map(|o| o.owner) else {
+            return;
+        };
+        if let Some(log) = &mut self.this_way {
+            log.moved.push(crate::state::Moved {
+                old: id,
+                new: id,
+                from: Zone::Battlefield,
+                to: Zone::Battlefield,
+                owner,
+            });
         }
     }
 
@@ -7860,6 +7980,21 @@ impl GameState {
                 let alt = match kind {
                     crate::card::ExileCast::Madness => AltCast::Madness,
                     crate::card::ExileCast::Free => AltCast::Free,
+                    crate::card::ExileCast::Transformed => {
+                        // CR 310.12b: "you" (the Siege's controller) may
+                        // cast it transformed.
+                        let d = self.pool.get(self.objects[card].def);
+                        if d.layout == Layout::Transform
+                            && let Some(back) = d.faces.first().copied()
+                            && self.offer_exile_cast_as(card, AltCast::Free, ctx.controller, back)
+                        {
+                            self.exile_casts
+                                .get_or_insert_with(Box::default)
+                                .transformed
+                                .push((card, back));
+                        }
+                        return;
+                    }
                 };
                 self.objects[card].alt = AltCast::None;
                 if !self.offer_exile_cast(card, alt) && *kind == crate::card::ExileCast::Madness {

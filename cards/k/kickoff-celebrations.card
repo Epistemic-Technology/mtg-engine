@@ -1,0 +1,8 @@
+card "Kickoff Celebrations" {
+  oracle_id 94868faf-9e88-4221-8db6-3ad10aa02da5
+  cost {1}{R}
+  type Enchantment
+  start your engines
+  triggered when this enters: you may discard 1 card; if you do, draw 2 cards
+  label "Max speed" activated sacrifice this: all creature or Vehicle you control gain haste
+}

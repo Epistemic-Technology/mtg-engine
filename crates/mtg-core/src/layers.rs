@@ -331,6 +331,8 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
     let you = work.controller_of(source);
     match cond {
         StaticCondition::CardsInGraveyard(n) => state.player(you).graveyard.len() >= *n as usize,
+        StaticCondition::UnlockedDoors(n) => state.unlocked_doors(you) >= *n,
+        StaticCondition::AttackedWith(f) => state.attacked_with(you, f),
         StaticCondition::CardTypesInGraveyard(n) => {
             let mut types = crate::card::TypeSet::default();
             for g in &state.player(you).graveyard {
@@ -356,6 +358,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             n >= *at_least as usize
         }
         StaticCondition::YourTurn => state.active_player == you,
+        StaticCondition::SourceAttackedBattle => state.battle_attackers_this_turn.contains(&source),
         StaticCondition::SourceAttacking => state
             .combat
             .as_ref()

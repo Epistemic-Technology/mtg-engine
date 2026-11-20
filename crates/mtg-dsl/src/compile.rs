@@ -88,6 +88,7 @@ pub fn add_card(
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
             scavenge: None,
+            station: None,
             token: None,
         };
         let def = c.card()?;
@@ -110,6 +111,7 @@ pub fn add_card(
                 implied: Vec::new(),
                 implied_used: std::rc::Rc::default(),
                 scavenge: None,
+                station: None,
                 token: None,
             };
             let def = c.card()?;
@@ -128,6 +130,7 @@ pub fn add_card(
         implied: Vec::new(),
         implied_used: std::rc::Rc::default(),
         scavenge: None,
+        station: None,
         token,
     };
     let mut def = c.card()?;
@@ -155,6 +158,8 @@ pub fn add_card(
     let r = pool.add(def);
     if !faces.is_empty() {
         pool.alias(&card.name, r);
+        // CR 709.5: a Room's locked and unlocked states.
+        pool.add_room_doors(r);
         // A double-faced card's back face turns back into the front.
         if card.layout == mtg_core::card::Layout::Transform {
             pool.set_faces(faces[0], mtg_core::card::Layout::Transform, vec![r]);
@@ -185,6 +190,8 @@ struct Compiler<'a> {
     implied_used: std::rc::Rc<std::cell::Cell<Option<CoreChoiceKind>>>,
     /// Scavenge's count (the card's power), once added to the counts.
     scavenge: Option<u8>,
+    /// Station's count (the tapped creature's power), likewise.
+    station: Option<u8>,
     /// The token embalm, eternalize, or offspring creates, compiled
     /// before the card (`derived_token`).
     token: Option<CardRef>,
@@ -382,6 +389,14 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::BecomesDay) => {
                     b = b.marks(mtg_core::card::Marks::BECOMES_DAY);
                 }
+                Ability::Mechanic(Mechanic::Station) => {
+                    // CR 702.184a: "equal to the tapped creature's power".
+                    counts.push(mtg_core::card::CountExpr::MovedStat {
+                        verb: mtg_core::card::ThisWay::Tapped,
+                        stat: mtg_core::card::Stat::Power,
+                    });
+                    self.station = u8::try_from(counts.len() - 1).ok();
+                }
                 Ability::Mechanic(Mechanic::Scavenge(_)) => {
                     // CR 702.97a: "equal to this card's power", as the card
                     // last existed in the graveyard.
@@ -414,6 +429,9 @@ impl Compiler<'_> {
             .any(|a| matches!(a, Ability::Static { mods, .. } if mods.contains(&Mod::Goaded)))
         {
             b = b.goads();
+        }
+        if let Some(n) = card.defense {
+            b = b.defense(n);
         }
         if let Some(colors) = &card.color_indicator {
             b = b.color_indicator(colors.iter().copied());
@@ -817,6 +835,9 @@ impl Compiler<'_> {
                     .collect(),
             ),
             StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
+            StaticCond::UnlockedDoors(n) => StaticCondition::UnlockedDoors(*n),
+            StaticCond::AttackedWith(f) => StaticCondition::AttackedWith(self.filter(f)),
+            StaticCond::AttackedBattleThisTurn => StaticCondition::SourceAttackedBattle,
             StaticCond::AttackedLastTurn => StaticCondition::AttackedLastTurn,
             StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
             StaticCond::OpponentDamagedThisTurn => StaticCondition::OpponentDamagedThisTurn,
@@ -1617,6 +1638,12 @@ impl Compiler<'_> {
                 out.push(CoreEffect::YouMay(self.sentences(&[discard])?));
                 out.push(CoreEffect::IfYouDo(self.sentences(&[draw])?));
             }
+            Effect::DoublePower { to, times } => out.push(CoreEffect::PumpVar {
+                power: 1,
+                toughness: 0,
+                times: *times,
+                to: r(*to),
+            }),
             Effect::Discard { count, who } => out.push(CoreEffect::Discard {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
@@ -2141,6 +2168,12 @@ impl Compiler<'_> {
             },
             Trigger::AttachedStep(step) => TriggerSpec::AttachedControllersStep(*step),
             Trigger::Attacks(o) => TriggerSpec::Attacks(self.trigger_obj(o)),
+            Trigger::AttacksBattle(o) => TriggerSpec::AttacksBattle(self.trigger_obj(o)),
+            Trigger::UnlocksDoor => TriggerSpec::UnlocksDoor { door: 0 },
+            Trigger::FullyUnlocks => TriggerSpec::FullyUnlocks { whose: Who::You },
+            Trigger::DealsCombatDamageToPlayerOrBattle(o) => {
+                TriggerSpec::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
+            }
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
             Trigger::AttacksWith { this, min } => TriggerSpec::AttacksWith {
                 this: *this,
@@ -2930,6 +2963,42 @@ impl Compiler<'_> {
                     },
                     then: Vec::new(),
                 }),
+                // CR 702.184a: "Tap another untapped creature you control:
+                // Put a number of charge counters on this permanent equal
+                // to the tapped creature's power. Activate only as a
+                // sorcery."
+                Mechanic::Station => {
+                    let Some(i) = self.station else {
+                        return self.err("station's count is missing");
+                    };
+                    let mut f = mtg_core::card::ObjFilter::creatures()
+                        .who(mtg_core::card::Who::You)
+                        .other();
+                    f.tapped = Some(false);
+                    AbilityDef::Activated(ActivatedAbility {
+                        cost: CoreCost {
+                            sacrifice: Some(CoreSacCost::Filter(f)),
+                            chosen: mtg_core::card::ChosenCost::Tap,
+                            ..CoreCost::default()
+                        },
+                        targets: Vec::new(),
+                        effects: vec![CoreEffect::AddCounters {
+                            kind: mtg_core::card::CounterKind::Charge,
+                            count: Num::Count(i),
+                            to: CoreRecipient::Source,
+                        }],
+                        sorcery_speed: true,
+                        per_turn: 0,
+                        conditions: Vec::new(),
+                        once_ever: false,
+                        from_hand: false,
+                        cycling: false,
+                        from_graveyard: false,
+                        keyword: None,
+                        reduction: None,
+                        text: render::ability_text(self.card, a, self.lookup),
+                    })
+                }
                 Mechanic::Saddle(n) => AbilityDef::Activated(ActivatedAbility {
                     cost: CoreCost {
                         crew: *n,
@@ -2982,8 +3051,38 @@ impl Compiler<'_> {
                 whose: *whose,
                 delta: *delta,
             },
+            // CR 721.2a-b: "As long as this permanent has N or more charge
+            // counters on it, it has [abilities] and is a creature with
+            // base power and toughness [P/T]" (the card's own P/T).
+            Ability::StationLevel { n, keywords } => {
+                let mut mods = Vec::new();
+                if self.card.pt.is_some() {
+                    mods.push(Mod::AddTypes(vec![mtg_core::card::CardType::Creature]));
+                }
+                mods.push(Mod::AddKeywords(keywords.clone()));
+                return self.ability(&Ability::Static {
+                    filter: crate::ast::Filter::this(),
+                    mods,
+                    condition: Some(StaticCond::SourceCounters {
+                        kind: mtg_core::card::CounterKind::Charge,
+                        n: *n,
+                        at_least: true,
+                    }),
+                    cond_first: false,
+                    cond_if: false,
+                });
+            }
             Ability::ExtraVote { optional } => AbilityDef::ExtraVote {
                 optional: *optional,
+            },
+            Ability::CrewsAs {
+                saddles,
+                toughness,
+                plus,
+            } => AbilityDef::CrewsAs {
+                saddles: *saddles,
+                toughness: *toughness,
+                plus: *plus,
             },
             Ability::SelfCost { .. }
             | Ability::TargetCost { .. }
@@ -3362,6 +3461,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Fabricate(_)
         | Mechanic::Renown(_)
         | Mechanic::Unleash
+        | Mechanic::Station
         | Mechanic::Saddle(_) => unreachable!("not an expansion"),
     }
 }

@@ -1,0 +1,6 @@
+card "Thaumaton Torpedo" {
+  oracle_id 9f9ae015-dc59-4ecb-a2bb-668496b48a48
+  cost {1}
+  type Artifact
+  activated {6}, {T}, sacrifice this, reduced {3} if attacked with Spacecraft this turn: destroy target nonland permanent
+}

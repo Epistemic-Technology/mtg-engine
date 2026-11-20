@@ -1,0 +1,437 @@
+# M5: newer permanent types: battles (CR 310), Rooms (CR 709.5), and
+# Vehicles crewed in other ways (CR 702.122).
+
+scenario "battle: a Siege enters with defense counters and its ETB" {
+  battlefield A: 3 "Plains"
+  hand A: "Invasion of Dominaria"
+  turn 1 A: cast "Invasion of Dominaria"
+  run_to turn 1 end
+  assert battlefield A contains "Invasion of Dominaria"
+  assert counters "Invasion of Dominaria" defense 5
+  assert life A 24
+  assert hand A count 1
+}
+
+scenario "battle: its controller attacks the Siege its opponent protects" {
+  battlefield A: "Invasion of Dominaria" with 5 defense, "Hill Giant"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Dominaria"
+  run_to turn 3 postcombat_main
+  assert counters "Invasion of Dominaria" defense 2
+  assert life B 20
+}
+
+scenario "battle: the protector's creatures block an attacker of the battle" {
+  battlefield A: "Invasion of Dominaria" with 5 defense, "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Dominaria"
+  turn 3 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert counters "Invasion of Dominaria" defense 5
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "battle: the protector can't attack the Siege" {
+  battlefield A: "Invasion of Dominaria" with 5 defense
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  # Only the player could be attacked: no target was asked for.
+  assert life A 17
+  assert counters "Invasion of Dominaria" defense 5
+}
+
+scenario "battle: defeated, the Siege is exiled and cast transformed" {
+  battlefield A: "Invasion of Dominaria" with 2 defense, "Hill Giant"
+  start turn 3 A
+  turn 3 A: attack "Hill Giant" at "Invasion of Dominaria"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Serra Faithkeeper"
+  assert has "Serra Faithkeeper" flying
+  assert power "Serra Faithkeeper" 4
+  assert battlefield A lacks "Invasion of Dominaria"
+}
+
+scenario "battle: any target includes battles; damage removes defense" {
+  battlefield A: "Invasion of Dominaria" with 5 defense
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Invasion of Dominaria"
+  run_to turn 2 end
+  assert counters "Invasion of Dominaria" defense 2
+}
+
+scenario "battle: a Siege dealt its last defense by a spell is defeated" {
+  battlefield A: "Invasion of Belenon" with 3 defense, "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Invasion of Belenon"
+  run_to turn 2 end
+  assert battlefield A contains "Belenon War Anthem"
+  assert power "Grizzly Bears" 3
+}
+
+scenario "battle: target player or battle" {
+  battlefield A: "Invasion of Dominaria" with 5 defense, "Onakke Javelineer"
+  turn 1 A: activate "Onakke Javelineer" targeting "Invasion of Dominaria"
+  run_to turn 1 end
+  assert counters "Invasion of Dominaria" defense 3
+}
+
+scenario "battle: target player or battle refuses a creature" {
+  battlefield A: "Onakke Javelineer", "Grizzly Bears"
+  illegal turn 1 A: activate "Onakke Javelineer" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "battle: attacks-a-battle triggers and the indestructible it gives" {
+  battlefield A: "Invasion of Dominaria" with 9 defense, "War-Trained Slasher", "Thrashing Frontliner", "War Historian"
+  start turn 3 A
+  turn 3 A: attack "War-Trained Slasher" at "Invasion of Dominaria"
+  turn 3 A: attack "Thrashing Frontliner" at "Invasion of Dominaria"
+  turn 3 A: attack "War Historian" at "Invasion of Dominaria"
+  run_to turn 3 declare_blockers
+  assert power "War-Trained Slasher" 8
+  assert power "Thrashing Frontliner" 3
+  assert toughness "Thrashing Frontliner" 3
+  assert has "War Historian" indestructible
+}
+
+scenario "battle: attacking a player doesn't trigger attacks-a-battle" {
+  battlefield A: "Invasion of Dominaria" with 9 defense, "War-Trained Slasher", "War Historian"
+  start turn 3 A
+  turn 3 A: attack "War-Trained Slasher", "War Historian"
+  run_to turn 3 declare_blockers
+  assert power "War-Trained Slasher" 4
+  assert has not "War Historian" indestructible
+}
+
+scenario "battle: combat damage to a battle triggers a player-or-battle trigger" {
+  battlefield A: "Invasion of Dominaria" with 9 defense, "Grizzly Bears", "Beamtown Beatstick" on "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears" at "Invasion of Dominaria"
+  run_to turn 3 postcombat_main
+  assert counters "Invasion of Dominaria" defense 6
+  assert battlefield A contains "Treasure"
+}
+
+scenario "battle: creature, planeswalker, or battle" {
+  battlefield A: "Invasion of Dominaria" with 5 defense
+  battlefield B: 2 "Mountain"
+  hand B: "Volcanic Spite"
+  start turn 2 B
+  turn 2 B: cast "Volcanic Spite" targeting "Invasion of Dominaria"
+  turn 2 B: decline "Volcanic Spite"
+  run_to turn 2 end
+  assert counters "Invasion of Dominaria" defense 2
+}
+
+scenario "Spacecraft: destroy target creature or Spacecraft" {
+  battlefield A: "Swamp", "Ornithopter"
+  battlefield B: "Grizzly Bears"
+  hand A: "Embrace Oblivion"
+  turn 1 A: cast "Embrace Oblivion" sacrificing "Ornithopter" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "crew: a creature that crews using its toughness" {
+  battlefield A: "Clamorous Ironclad", "Giant Ox"
+  turn 1 A: activate "Clamorous Ironclad"
+  run_to turn 1 end
+  assert is "Clamorous Ironclad" creature
+  assert tapped "Giant Ox"
+}
+
+scenario "crew: Giant Ox's toughness doesn't saddle" {
+  battlefield A: "Trained Arynx", "Giant Ox"
+  illegal turn 1 A: activate "Trained Arynx"
+  run_to turn 1 end
+}
+
+scenario "crew: crews as though its power were 2 greater" {
+  battlefield A: "Clamorous Ironclad", "Dynamite Diver"
+  turn 1 A: activate "Clamorous Ironclad"
+  run_to turn 1 end
+  assert is "Clamorous Ironclad" creature
+  assert tapped "Dynamite Diver"
+}
+
+scenario "crew: saddles as though its power were 2 greater" {
+  battlefield A: "Trained Arynx", "Deathless Pilot"
+  turn 1 A: activate "Trained Arynx"
+  run_to turn 1 end
+  assert tapped "Deathless Pilot"
+}
+
+scenario "crew: without the bonus, not enough power" {
+  battlefield A: "Clamorous Ironclad", "Grizzly Bears"
+  illegal turn 1 A: activate "Clamorous Ironclad"
+  run_to turn 1 end
+}
+
+scenario "crew: an enchanted creature can't crew Vehicles" {
+  battlefield A: "Adventurer's Airship", "Grizzly Bears", "Revoke Privileges" on "Grizzly Bears"
+  illegal turn 1 A: activate "Adventurer's Airship"
+  run_to turn 1 end
+}
+
+scenario "crew: an arrested permanent can't crew" {
+  battlefield A: "Adventurer's Airship", "Hill Giant", "Intercessor's Arrest" on "Hill Giant"
+  illegal turn 1 A: activate "Adventurer's Airship"
+  run_to turn 1 end
+}
+
+scenario "crew: a Vehicle attacks, so the Fox Pilot gives it first strike" {
+  battlefield A: "Adventurer's Airship", "Grizzly Bears", "Kitsune Ace"
+  library A: 3 "Island"
+  start turn 3 A
+  turn 3 A: activate "Adventurer's Airship"
+  turn 3 A: attack "Adventurer's Airship"
+  run_to turn 3 declare_blockers
+  assert has "Adventurer's Airship" first_strike
+}
+
+scenario "crew: a Vehicle attacking exiles the creature under the Aura" {
+  battlefield A: "Adventurer's Airship", "Grizzly Bears", "Caught in the Brights" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  library A: 3 "Island"
+  start turn 3 A
+  turn 3 A: activate "Adventurer's Airship"
+  turn 3 A: attack "Adventurer's Airship"
+  run_to turn 3 declare_blockers
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Vehicle: a +1/+1 counter on target creature or Vehicle you control" {
+  battlefield A: 3 "Forest", "Plains", "Adventurer's Airship"
+  hand A: "Grafted Growth"
+  turn 1 A: cast "Grafted Growth" targeting "Plains"
+  turn 1 A: trigger "Grafted Growth" targeting "Adventurer's Airship"
+  run_to turn 1 end
+  assert counters "Adventurer's Airship" +1/+1 1
+}
+
+scenario "Room: cast a half; that door unlocks as it enters" {
+  battlefield A: 3 "Swamp"
+  hand A: "Derelict Attic // Widow's Walk"
+  library A: 3 "Island"
+  turn 1 A: cast "Derelict Attic"
+  run_to turn 1 end
+  assert battlefield A contains "Derelict Attic"
+  assert hand A count 2
+  assert life A 18
+}
+
+scenario "Room: unlock the other door as a sorcery by paying its cost" {
+  battlefield A: 4 "Swamp", "Derelict Attic", "Balemurk Leech"
+  turn 1 A: unlock "Widow's Walk"
+  run_to turn 1 end
+  assert battlefield A contains "Derelict Attic // Widow's Walk"
+  # Eerie: fully unlocking a Room.
+  assert life B 19
+  # Unlocking Widow's Walk doesn't unlock Derelict Attic again.
+  assert life A 20
+}
+
+scenario "Room: a locked door can't be unlocked without its mana" {
+  battlefield A: 3 "Swamp", "Derelict Attic"
+  illegal turn 1 A: unlock "Widow's Walk"
+  run_to turn 1 end
+}
+
+scenario "Room: a locked door's abilities don't work" {
+  battlefield A: "Derelict Attic", "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 declare_blockers
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Room: an unlocked door's abilities work" {
+  battlefield A: "Widow's Walk", "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 declare_blockers
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" deathtouch
+}
+
+scenario "Room: unlocking a door triggers its own unlock ability" {
+  battlefield A: 5 "Mountain", "Shattered Yard"
+  battlefield B: "Hill Giant"
+  turn 1 A: unlock "Glassworks"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Room: casting a half is an enchantment entering (eerie)" {
+  battlefield A: 3 "Swamp", "Balemurk Leech"
+  hand A: "Derelict Attic // Widow's Walk"
+  library A: 3 "Island"
+  turn 1 A: cast "Derelict Attic"
+  run_to turn 1 end
+  assert life B 19
+}
+
+scenario "Room: two unlocked doors among Rooms you control" {
+  battlefield A: "Derelict Attic", "Glassworks", "Rampaging Soulrager"
+  run_to turn 1 end
+  assert power "Rampaging Soulrager" 4
+}
+
+scenario "Room: one unlocked door isn't two" {
+  battlefield A: "Derelict Attic", "Rampaging Soulrager"
+  run_to turn 1 end
+  assert power "Rampaging Soulrager" 1
+}
+
+scenario "Room: eerie lets a defender attack" {
+  battlefield A: 5 "Island", "Meat Locker", "Stalked Researcher"
+  library A: 5 "Island"
+  start turn 3 A
+  turn 3 A: unlock "Drowned Diner"
+  turn 3 A: attack "Stalked Researcher"
+  run_to turn 3 postcombat_main
+  assert life B 17
+}
+
+scenario "Room: without eerie the defender can't attack" {
+  battlefield A: "Meat Locker", "Stalked Researcher", "Grizzly Bears"
+  start turn 3 A
+  illegal turn 3 A: attack "Stalked Researcher"
+  run_to turn 3 postcombat_main
+}
+
+scenario "station: tap another creature for charge counters equal to its power" {
+  battlefield A: "Wurmwall Sweeper", "Hill Giant"
+  turn 1 A: activate "Wurmwall Sweeper" sacrificing "Hill Giant"
+  run_to turn 1 end
+  assert counters "Wurmwall Sweeper" charge 3
+  assert tapped "Hill Giant"
+  assert is not "Wurmwall Sweeper" creature
+}
+
+scenario "station: at 4+ it is an artifact creature with flying" {
+  battlefield A: "Wurmwall Sweeper" with 3 charge, "Grizzly Bears"
+  turn 1 A: activate "Wurmwall Sweeper" sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Wurmwall Sweeper" charge 5
+  assert is "Wurmwall Sweeper" creature
+  assert has "Wurmwall Sweeper" flying
+  assert power "Wurmwall Sweeper" 2
+}
+
+scenario "station: only as a sorcery" {
+  battlefield A: "Wurmwall Sweeper", "Hill Giant"
+  start turn 2 B
+  illegal turn 2 A: activate "Wurmwall Sweeper"
+  run_to turn 2 end
+}
+
+scenario "Spacecraft: the ability costs {3} less after attacking with a Spacecraft" {
+  battlefield A: "Thaumaton Torpedo", 3 "Island", "Wurmwall Sweeper" with 4 charge
+  battlefield B: "Hill Giant"
+  start turn 3 A
+  turn 3 A: attack "Wurmwall Sweeper"
+  turn 3 main2 A: activate "Thaumaton Torpedo" targeting "Hill Giant"
+  run_to turn 3 end
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+}
+
+scenario "Spacecraft: no attack, no reduction" {
+  battlefield A: "Thaumaton Torpedo", 3 "Island", "Wurmwall Sweeper" with 4 charge
+  battlefield B: "Hill Giant"
+  start turn 3 A
+  illegal turn 3 main2 A: activate "Thaumaton Torpedo" targeting "Hill Giant"
+  run_to turn 3 end
+}
+
+scenario "battle: return target creature or battle card; exiled instead of dying" {
+  battlefield A: 5 "Forest"
+  battlefield B: 2 "Mountain"
+  hand A: "Wildwood Escort"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  graveyard A: "Invasion of Dominaria"
+  turn 1 A: cast "Wildwood Escort"
+  turn 1 A: trigger "Wildwood Escort" targeting "Invasion of Dominaria"
+  turn 1 main2 B: cast "Lightning Bolt" targeting "Wildwood Escort"
+  turn 1 main2 B: cast "Lightning Bolt" targeting "Wildwood Escort"
+  run_to turn 1 end
+  assert hand A contains "Invasion of Dominaria"
+  assert exile A contains "Wildwood Escort"
+  assert graveyard A lacks "Wildwood Escort"
+}
+
+scenario "Room: destroy target Room" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Derelict Attic"
+  hand A: "Anthropede", "Forest"
+  turn 1 A: cast "Anthropede"
+  run_to turn 1 end
+  assert graveyard B contains "Derelict Attic // Widow's Walk"
+}
+
+scenario "Vehicle: creatures and Vehicles you control gain haste at max speed" {
+  speed A: 4
+  battlefield A: "Kickoff Celebrations", "Grizzly Bears"
+  hand A: "Clamorous Ironclad"
+  battlefield A: 4 "Mountain"
+  turn 1 A: cast "Clamorous Ironclad"
+  turn 1 A: wait
+  turn 1 A: activate "Kickoff Celebrations"
+  run_to turn 1 end
+  assert has "Clamorous Ironclad" haste
+  assert has "Grizzly Bears" haste
+}
+
+scenario "Vehicle: pay {U}, another attacker can't be blocked" {
+  battlefield A: "Passenger Ferry", "Hill Giant", "Grizzly Bears", "Island"
+  battlefield B: "Wall of Stone"
+  start turn 3 A
+  turn 3 A: activate "Passenger Ferry"
+  turn 3 A: attack "Passenger Ferry", "Hill Giant"
+  illegal turn 3 B: block "Hill Giant" with "Wall of Stone"
+  run_to turn 3 end
+}
+
+scenario "Room: a Room put onto the battlefield uncast has both doors locked" {
+  battlefield A: 3 "Plains", "Derelict Attic"
+  hand A: "Flickerwisp"
+  library A: 5 "Island"
+  turn 1 A: cast "Flickerwisp"
+  turn 1 A: trigger "Flickerwisp" targeting "Derelict Attic"
+  run_to turn 2 upkeep
+  # Returned at the end step: no door unlocked, so no unlock trigger.
+  assert life A 20
+  assert hand A count 0
+  assert battlefield A lacks "Derelict Attic"
+}
+
+scenario "battle: put an instant, sorcery, or battle card from your graveyard on top" {
+  battlefield A: 5 "Island"
+  hand A: "Halo-Charged Skaab"
+  library A: "Invasion of Dominaria", "Forest", "Island"
+  library B: "Forest", "Island", "Island"
+  turn 1 A: cast "Halo-Charged Skaab"
+  run_to turn 1 end
+  assert graveyard A lacks "Invasion of Dominaria"
+  assert graveyard A contains "Forest"
+  assert library A contains "Invasion of Dominaria"
+  assert library A count 2
+}
+
+scenario "battle: a creature card is not an instant, sorcery, or battle card" {
+  battlefield A: 5 "Island"
+  hand A: "Halo-Charged Skaab"
+  library A: "Grizzly Bears", "Forest", "Island"
+  turn 1 A: cast "Halo-Charged Skaab"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert library A count 1
+}

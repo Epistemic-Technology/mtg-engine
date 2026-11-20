@@ -1,0 +1,8 @@
+card "Wildwood Escort" {
+  oracle_id ce807ee3-a27c-4f3b-92a4-37faaca42aa1
+  cost {4}{G}
+  type Creature — Elf Warrior
+  pt 3/3
+  triggered when this enters: return target creature or battle card from your graveyard to hand
+  replace this dies: exile
+}

@@ -1,0 +1,10 @@
+card "Kitsune Ace" {
+  oracle_id 1dbadf75-28cd-4525-8f51-9c53049b9b54
+  cost {1}{W}
+  type Creature — Fox Pilot
+  pt 2/2
+  triggered whenever Vehicle you control attacks: choose one {
+    mode: that Vehicle gains first strike
+    mode: untap this
+  }
+}
