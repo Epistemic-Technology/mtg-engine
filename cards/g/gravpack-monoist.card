@@ -1,0 +1,8 @@
+card "Gravpack Monoist" {
+  oracle_id 9c009b3f-6580-4ab8-84e8-d4cf7a456a02
+  cost {2}{B}
+  type Creature — Human Scout
+  pt 2/1
+  keywords flying
+  triggered when this dies: create 1 tapped "2/2 colorless Robot artifact creature"
+}

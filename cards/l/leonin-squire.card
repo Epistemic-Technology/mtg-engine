@@ -1,0 +1,7 @@
+card "Leonin Squire" {
+  oracle_id fa19c9d7-fe93-4e93-a5ef-9af9c6cd1a5e
+  cost {1}{W}
+  type Creature — Cat Soldier
+  pt 2/2
+  triggered when this enters: return target artifact card with mana value 1 or less from your graveyard to hand
+}

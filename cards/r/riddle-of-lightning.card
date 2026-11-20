@@ -1,0 +1,6 @@
+card "Riddle of Lightning" {
+  oracle_id ea480035-9f1b-40c9-a3a5-ce7cd093dfcf
+  cost {3}{R}{R}
+  type Instant
+  spell: choose any target; scry 3 then reveal top card; this deals damage equal mana value of that card to that target 1
+}

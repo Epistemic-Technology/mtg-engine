@@ -1,0 +1,7 @@
+card "Kithkin Zephyrnaut" {
+  oracle_id f69e9629-a7f7-4241-bf0c-c8def7d19d66
+  cost {2}{W}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  label "Kinship" triggered at beginning of your upkeep: you may look at top card; if it shares creature type with this, you may reveal it; if you do, this gets +2/+2 and gains flying and vigilance
+}

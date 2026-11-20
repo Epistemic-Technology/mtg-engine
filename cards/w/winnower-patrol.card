@@ -1,0 +1,7 @@
+card "Winnower Patrol" {
+  oracle_id 41618227-a1c9-41e2-b567-7dfb493974c4
+  cost {2}{G}
+  type Creature — Elf Warrior
+  pt 3/2
+  label "Kinship" triggered at beginning of your upkeep: you may look at top card; if it shares creature type with this, you may reveal it; if you do, put 1 +1/+1 counter on this
+}

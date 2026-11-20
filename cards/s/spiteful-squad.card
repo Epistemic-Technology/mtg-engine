@@ -1,0 +1,9 @@
+card "Spiteful Squad" {
+  oracle_id 41ee78ce-a5ef-4f88-b479-2eb6651123f7
+  cost {2}{W}{B}
+  type Creature — Human Warlock
+  pt 0/0
+  keywords deathtouch
+  enters with 2 +1/+1 counters
+  triggered when this dies: put its counters on target creature you control
+}

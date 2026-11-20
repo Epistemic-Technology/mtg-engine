@@ -1,0 +1,7 @@
+card "Llanowar Empath" {
+  oracle_id 0f71416c-e244-48b4-acbe-2a8ef540db0f
+  cost {3}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  triggered when this enters: scry 2 then reveal top card; if it is creature card, put it into hand
+}

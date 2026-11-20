@@ -1,0 +1,6 @@
+card "Judge Unworthy" {
+  oracle_id 9d687287-7b3f-48c8-b5df-0d7550b9ad66
+  cost {1}{W}
+  type Instant
+  spell: choose target attacking or blocking creature; scry 3 then reveal top card; this deals damage equal mana value of that card to that target 1
+}

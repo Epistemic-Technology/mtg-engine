@@ -1,0 +1,6 @@
+card "Rush of Knowledge" {
+  oracle_id 34282c99-68ef-4855-b683-7bb205fa6374
+  cost {4}{U}
+  type Sorcery
+  spell: draw count equal greatest mana value cards
+}

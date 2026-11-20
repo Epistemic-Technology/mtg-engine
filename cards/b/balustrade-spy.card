@@ -1,0 +1,8 @@
+card "Balustrade Spy" {
+  oracle_id 39b4a47a-df51-4bd9-9a20-43ac80a5d352
+  cost {3}{B}
+  type Creature — Vampire Rogue
+  pt 2/3
+  keywords flying
+  triggered when this enters: target player reveals until land card then puts those revealed into graveyard
+}

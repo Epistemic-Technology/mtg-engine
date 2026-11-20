@@ -1,0 +1,7 @@
+card "Explorer's Scope" {
+  oracle_id a563ede9-b92f-4285-88f8-abcbdd017742
+  cost {1}
+  type Artifact — Equipment
+  triggered whenever equipped creature attacks: look at top card; if it is land card, you may put it onto battlefield tapped
+  equip {1}
+}

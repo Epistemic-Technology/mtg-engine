@@ -1,0 +1,6 @@
+card "Keep Watch" {
+  oracle_id 847b5be5-cb0c-4857-bcd9-c5cfe55fdaeb
+  cost {2}{U}
+  type Instant
+  spell: draw count each attacking creature cards
+}

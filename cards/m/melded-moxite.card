@@ -1,0 +1,7 @@
+card "Melded Moxite" {
+  oracle_id 86e0e718-82b5-4c99-9837-1b4d8729a27e
+  cost {1}{R}
+  type Artifact
+  triggered when this enters: you may discard 1 card; if you do, draw 2 cards
+  activated {3}, sacrifice this: create 1 tapped "2/2 colorless Robot artifact creature"
+}

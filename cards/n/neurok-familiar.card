@@ -1,0 +1,8 @@
+card "Neurok Familiar" {
+  oracle_id 8e11d1f7-fa98-4cd2-9912-081e9c9e37ee
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered when this enters: reveal top card; if it is artifact card, put it into hand; otherwise, put it into graveyard
+}

@@ -1224,6 +1224,7 @@ impl GameState {
             trigger_player: sa.trigger_player,
             trigger_amount: sa.trigger_amount,
             created: None,
+            revealed: Vec::new(),
             x: 0,
             did: true,
             chosen: Chosen::None,

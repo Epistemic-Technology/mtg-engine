@@ -1,0 +1,7 @@
+card "Lantern of Revealing" {
+  oracle_id 00e25126-b807-4753-ba63-9a533755e5ce
+  cost {3}
+  type Artifact
+  mana any
+  activated {4}, {T}: look at top card; if it is land card, you may put it onto battlefield tapped; if you dont put it onto battlefield, you may put it on bottom of library
+}

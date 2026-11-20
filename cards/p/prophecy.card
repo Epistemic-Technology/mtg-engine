@@ -1,0 +1,9 @@
+card "Prophecy" {
+  oracle_id 8dcf15fd-f000-4424-b74c-22fc2642b8c3
+  cost {W}
+  type Sorcery
+  spell {
+    reveal top card of target opponent; if it is land, you gain 1 life; then that player shuffles
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

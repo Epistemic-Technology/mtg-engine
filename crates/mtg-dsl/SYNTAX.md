@@ -1490,6 +1490,75 @@ target permanent to hand`, `that player` is that permanent's owner:
 a card."). `return this to its
 owner's hand` in a spell returns the resolving spell from the stack.
 
+### Revealing a card and acting on what it is
+
+`reveal top card` is "reveal the top card of your library", `look at top
+card` "look at the top card of your library", `target player reveals top
+card` "Target player reveals the top card of their library", and `reveal
+top card of target opponent` "Reveal the top card of target opponent's
+library". The card stays where it is (CR 701.20b) and is `it` / `that
+card` for the rest of the ability. `reveal until nonland card` is "reveal
+cards from the top of your library until you reveal a nonland card" (`its
+controller reveals until land card`: "Its controller reveals cards from
+the top of their library until they reveal a land card"); the revealed
+cards stay in the library, the last one (the card that matched, if any)
+is `that card`, and with no match the whole library is revealed.
+
+After either, `if it is land card, <sentence>` is "If it's a land card,
+...", `if it isnt land card, ...` "If it isn't a land card, ...", `if
+that card is Goblin card, ...` "If that card is a Goblin card, ...", and
+without `card` (`if it is land, ...`) "If it's a land, ..."; with no card
+revealed (an empty library) neither holds. `otherwise, <sentence>` after
+it happens when it didn't. The card or cards move with `put it into
+hand`, `put that card into hand`, `put it into graveyard`, `put it onto
+battlefield [tapped]` (under your control, CR 110.2a), `put it on bottom of
+library`, and for every revealed card still in the library `put all
+revealed into hand` ("put all cards revealed this way into your hand"),
+`put all other revealed into graveyard` ("all other cards revealed this
+way"), `put the revealed on bottom of library` ("Put the revealed cards on
+the bottom of your library in any order": in the order revealed), and with
+the revealing player as subject `then puts those revealed into graveyard`
+("..., then puts those cards into their graveyard"). `mana value of that
+card` counts "that card's mana value" (`choose any target; ...; deal damage
+equal mana value of that card to that target 1`: "Choose any target. ... deals
+damage equal to that card's mana value to that permanent or player"); `that player shuffles` is "Then that player
+shuffles." (CR 701.24).
+
+After `if it is ...`, `if you dont put it into hand, <sentence>` is "If
+you don't put the card into your hand, ..." (`onto battlefield`, `into
+graveyard`, `on bottom of library` likewise): it happens when the card
+didn't match or the optional put was declined. `if it shares creature type with this, ...` is kinship's "If it shares a
+creature type with this creature, ..." (changeling's every type
+included); `reveal it` reveals a looked-at card where it is ("you may
+reveal it. If you do, ..."). `draw 1 card and reveal it` is "Draw a card
+and reveal it." with the drawn card `it` after, and `discard it` discards
+it ("If it isn't a land card, discard it.").
+
+A revealed card is known to every player and a looked-at one (also the
+cards a player scries) to that player, until it moves or its library is
+shuffled (`GameObject::revealed`); a search's `determinize` keeps known
+cards where they are in a library, as it does revealed cards in a hand.
+
+```
+triggered when this enters: reveal top card; if it is land card, put it onto battlefield; otherwise, put that card into hand
+spell: choose any target; reveal until nonland card; this deals damage equal mana value of that card to that target 1; put the revealed on bottom of library
+activated {2}, once: reveal top card; if it is land card, this gets +1/+0 and gains first strike
+```
+
+### Moving counters
+
+`move all counters from target creature onto another target creature`
+("Move all counters from target creature onto another target creature")
+and `move 1 +1/+1 counter from this onto target creature` ("Move a +1/+1
+counter from this artifact onto target creature") take the counters off
+the first permanent and put them on the second (CR 122.5); nothing moves
+if the second is gone. `put its counters on target creature you control`
+in a dies trigger puts the counters the source had as it last existed on
+the battlefield, of every kind (CR 608.2h). After `exile target card from
+an opponent's graveyard`, `that player` is the card's owner (Carrion
+Locust's "If it was a creature card, that player loses 1 life"; `if target
+1 was creature` prints "If it was a creature card" for a graveyard card).
+
 ### Dice, coins, votes, and "at random"
 
 Every random outcome draws on the game's seeded random number generator,

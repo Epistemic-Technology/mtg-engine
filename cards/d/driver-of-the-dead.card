@@ -1,0 +1,7 @@
+card "Driver of the Dead" {
+  oracle_id 7c179e54-3beb-4761-bddf-41fa98b082db
+  cost {3}{B}
+  type Creature — Vampire
+  pt 3/2
+  triggered when this dies: return target creature card with mana value 2 or less from your graveyard to battlefield
+}

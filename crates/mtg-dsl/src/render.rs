@@ -2730,6 +2730,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             )
         }
         CountExpr::SourceToughness => return "its toughness".to_string(),
+        CountExpr::CardManaValue => return "that card's mana value".to_string(),
         CountExpr::TargetManaValue {
             that, the_spell, ..
         } => {
@@ -3266,6 +3267,165 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("You may play {what} {when}")
             };
             Clause::imperative(format!("{head}. {body}"))
+        }
+        Effect::RevealTop { who, look, of } => match (who, of) {
+            (None, _) => Clause::imperative(format!(
+                "{} the top card of your library",
+                if *look { "look at" } else { "reveal" }
+            )),
+            (Some(w), true) => {
+                let o = ctx.obj(*w);
+                Clause::imperative(format!(
+                    "{} the top card of {o}'s library",
+                    if *look { "look at" } else { "reveal" }
+                ))
+            }
+            (Some(w), false) => {
+                let subject = ctx.subj(*w);
+                let v = if *look {
+                    ctx.verb(*w, "looks at", "look at")
+                } else {
+                    ctx.verb(*w, "reveals", "reveal")
+                };
+                let whose = if *w == Recipient::You {
+                    "your"
+                } else {
+                    "their"
+                };
+                Clause::with_subject(*w, subject, format!("{v} the top card of {whose} library"))
+            }
+        },
+        Effect::MoveCounters {
+            from,
+            to,
+            kind,
+            count,
+        } => match (kind, count) {
+            (None, None) if *from == Recipient::Source => {
+                let o = ctx.obj(*to);
+                Clause::imperative(format!("put its counters on {o}"))
+            }
+            (Some(kind), Some(n)) => {
+                let what = counters(Num::N(*n), *kind);
+                let src = ctx.obj(*from);
+                let dst = ctx.obj(*to);
+                Clause::imperative(format!("move {what} from {src} onto {dst}"))
+            }
+            _ => {
+                let src = ctx.obj(*from);
+                let dst = ctx.obj(*to);
+                Clause::imperative(format!("move all counters from {src} onto {dst}"))
+            }
+        },
+        Effect::Shuffle { who } => {
+            let subject = ctx.subj(*who);
+            let v = ctx.verb(*who, "shuffles", "shuffle");
+            Clause::with_subject(*who, subject, v.to_string())
+        }
+        Effect::RevealUntil { who, filter } => {
+            let pred = card_filter_a(filter, ctx.card);
+            match who {
+                None => Clause::imperative(format!(
+                    "reveal cards from the top of your library until you reveal {pred}"
+                )),
+                Some(w) => {
+                    let subject = ctx.subj(*w);
+                    let v = ctx.verb(*w, "reveals", "reveal");
+                    let (whose, they) = if *w == Recipient::You {
+                        ("your", "you")
+                    } else {
+                        ("their", "they")
+                    };
+                    Clause::with_subject(
+                        *w,
+                        subject,
+                        format!(
+                            "{v} cards from the top of {whose} library until {they} reveal {pred}"
+                        ),
+                    )
+                }
+            }
+        }
+        Effect::RevealIt => Clause::imperative("reveal it".to_string()),
+        Effect::IfYouDontPut { to, then } => {
+            let body = lowercase_first(&sentences(then, ctx));
+            let dest = match to {
+                mtg_core::card::CardDest::Hand => "into your hand",
+                mtg_core::card::CardDest::Graveyard => "into your graveyard",
+                mtg_core::card::CardDest::Battlefield { .. } => "onto the battlefield",
+                mtg_core::card::CardDest::LibraryBottom => "on the bottom of your library",
+            };
+            Clause::imperative(format!(
+                "if you don't put the card {dest}, {}",
+                body.trim_end_matches('.')
+            ))
+        }
+        Effect::DrawReveal => Clause::imperative("draw a card and reveal it".to_string()),
+        Effect::DiscardIt => Clause::imperative("discard it".to_string()),
+        Effect::IfCard {
+            filter,
+            negated,
+            card,
+            that,
+            shares_type,
+            then,
+        } => {
+            let body = sentences(then, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            let pred = if *card {
+                card_filter_a(filter, ctx.card)
+            } else {
+                target_predicate(filter, ctx.card)
+            };
+            let cond = match (that, negated) {
+                _ if *shares_type => {
+                    format!("it shares a creature type with {}", this_ref(ctx.card))
+                }
+                (false, false) => format!("it's {pred}"),
+                (false, true) => format!("it isn't {pred}"),
+                (true, false) => format!("that card is {pred}"),
+                (true, true) => format!("that card isn't {pred}"),
+            };
+            Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
+        }
+        Effect::PutCard { what, to, who } => {
+            use crate::ast::CardWords;
+            use mtg_core::card::CardDest;
+            let words = match what {
+                CardWords::It => "it",
+                CardWords::ThatCard => "that card",
+                CardWords::AllRevealed => "all cards revealed this way",
+                CardWords::Those => "those cards",
+                CardWords::TheRevealed => "the revealed cards",
+                CardWords::OtherRevealed => "all other cards revealed this way",
+            };
+            let whose = match who {
+                Some(player) if *player != Recipient::You => "their",
+                _ => "your",
+            };
+            let many = !matches!(what, CardWords::It | CardWords::ThatCard);
+            let dest = match to {
+                CardDest::Hand => format!("into {whose} hand"),
+                CardDest::Graveyard => format!("into {whose} graveyard"),
+                CardDest::Battlefield { tapped: false } => "onto the battlefield".to_string(),
+                CardDest::Battlefield { tapped: true } => "onto the battlefield tapped".to_string(),
+                CardDest::LibraryBottom if many => {
+                    format!("on the bottom of {whose} library in any order")
+                }
+                CardDest::LibraryBottom => format!("on the bottom of {whose} library"),
+            };
+            match who {
+                None => Clause::imperative(format!("put {words} {dest}")),
+                Some(player) => {
+                    let subject = ctx.subj(*player);
+                    let verb = ctx.verb(*player, "puts", "put");
+                    Clause::with_subject(*player, subject, format!("{verb} {words} {dest}"))
+                }
+            }
         }
         Effect::LookAtTop(n) => Clause::imperative(format!(
             "look at the top {} cards of your library, then put them back in any order",
@@ -5160,15 +5320,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 _ => target_predicate(f, ctx.card),
             };
             // "If it's a Zombie card": a card in a graveyard.
-            if matches!(
+            let graveyard_card = matches!(
                 ctx.targets.get(*n).map(Target::base),
                 Some(
                     Target::GraveyardCard { .. }
                         | Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
                 )
-            ) && f.types.is_empty()
-                && !f.subtypes.is_empty()
-            {
+            );
+            if graveyard_card && f.types.is_empty() && !f.subtypes.is_empty() {
                 pred.push_str(" card");
             }
             // "If that creature has infect".
@@ -5216,6 +5375,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 (TargetTense::Was, _) if *f == Filter::controlled_by_you() => {
                     format!("you controlled that {noun}")
+                }
+                // "If it was a creature card" (Carrion Locust): an exiled
+                // graveyard card, as it last existed.
+                (TargetTense::Was, None) if graveyard_card => {
+                    format!("it was {}", card_filter_a(f, ctx.card))
                 }
                 (TargetTense::Was, _) => format!("that {noun} was {pred}"),
                 // "If an opponent controls that creature".
@@ -5608,6 +5772,7 @@ fn lowercase_first(s: &str) -> String {
         && !matches!(
             first,
             "Target"
+                | "Reveal"
                 | "This"
                 | "That"
                 | "These"

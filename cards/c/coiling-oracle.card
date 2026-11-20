@@ -1,0 +1,7 @@
+card "Coiling Oracle" {
+  oracle_id 69fd4ddf-9ed8-4c56-bef3-9944daf05e4f
+  cost {G}{U}
+  type Creature — Snake Elf Druid
+  pt 1/1
+  triggered when this enters: reveal top card; if it is land card, put it onto battlefield; otherwise, put that card into hand
+}

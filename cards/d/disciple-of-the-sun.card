@@ -1,0 +1,8 @@
+card "Disciple of the Sun" {
+  oracle_id 3ea41848-7a11-4608-88c1-7a6e76e812ca
+  cost {4}{W}
+  type Creature — Human Cleric
+  pt 3/3
+  keywords lifelink
+  triggered when this enters: return target permanent card with mana value 3 or less from your graveyard to hand
+}

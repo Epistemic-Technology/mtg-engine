@@ -1,0 +1,8 @@
+card "Raiders' Karve" {
+  oracle_id 1e9b3c9e-07ae-4de5-8607-93773825f655
+  cost {3}
+  type Artifact — Vehicle
+  pt 4/4
+  triggered whenever this attacks: look at top card; if it is land card, you may put it onto battlefield tapped
+  crew 3
+}

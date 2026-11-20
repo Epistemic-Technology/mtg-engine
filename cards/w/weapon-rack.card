@@ -1,0 +1,7 @@
+card "Weapon Rack" {
+  oracle_id 10d366cb-b92f-401c-a88e-60b267bd8ae5
+  cost {4}
+  type Artifact
+  enters with 3 +1/+1 counters
+  activated {T}, sorcery: move 1 +1/+1 counter from this onto target creature
+}

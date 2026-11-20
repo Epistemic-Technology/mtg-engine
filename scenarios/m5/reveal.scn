@@ -1,0 +1,390 @@
+# M5: revealing and branching: reveal (or look at) the top card of a
+# library and act on it by what it is (CR 701.20), reveal cards until one
+# of a kind turns up, put the revealed cards somewhere, and "that card's
+# mana value".
+
+scenario "reveal top: a land goes onto the battlefield (Coiling Oracle)" {
+  battlefield A: "Forest", "Island"
+  hand A: "Coiling Oracle"
+  library A: "Mountain", "Grizzly Bears"
+  turn 1 A: cast "Coiling Oracle"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+  assert hand A count 0
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "reveal top: otherwise the card goes to the hand (Coiling Oracle)" {
+  battlefield A: "Forest", "Island"
+  hand A: "Coiling Oracle"
+  library A: "Grizzly Bears", "Mountain"
+  turn 1 A: cast "Coiling Oracle"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Mountain"
+  assert library A contains "Mountain"
+}
+
+scenario "reveal top: an empty library reveals nothing (Coiling Oracle)" {
+  battlefield A: "Forest", "Island"
+  hand A: "Coiling Oracle"
+  library A:
+  turn 1 A: cast "Coiling Oracle"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Coiling Oracle"
+  assert hand A count 0
+}
+
+scenario "reveal top: an artifact to the hand, anything else to the graveyard (Neurok Familiar)" {
+  battlefield A: 4 "Island"
+  hand A: "Neurok Familiar", "Neurok Familiar"
+  library A: "Ornithopter", "Grizzly Bears", "Island"
+  turn 1 A: cast "Neurok Familiar"
+  turn 1 A: wait
+  turn 1 A: cast "Neurok Familiar"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ornithopter"
+  assert graveyard A contains "Grizzly Bears"
+  assert library A contains "Island"
+}
+
+scenario "scry, then reveal: a noncreature stays on top (Llanowar Empath)" {
+  battlefield A: 4 "Forest"
+  hand A: "Llanowar Empath"
+  library A: "Forest", "Grizzly Bears"
+  turn 1 A: cast "Llanowar Empath"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A contains "Forest"
+}
+
+scenario "scry, then reveal: a creature card goes to the hand (Llanowar Empath)" {
+  battlefield A: 4 "Forest"
+  hand A: "Llanowar Empath"
+  library A: "Grizzly Bears", "Forest"
+  turn 1 A: cast "Llanowar Empath"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "a creature or land card draws a card (Track Down)" {
+  battlefield A: 2 "Forest"
+  hand A: "Track Down"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Track Down"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A count 1
+}
+
+scenario "a spell revealed draws nothing (Track Down)" {
+  battlefield A: 2 "Forest"
+  hand A: "Track Down"
+  library A: "Lightning Bolt", "Island"
+  turn 1 A: cast "Track Down"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A contains "Lightning Bolt"
+}
+
+scenario "reveal until: every card revealed goes to the hand (Treasure Hunt)" {
+  battlefield A: 2 "Island"
+  hand A: "Treasure Hunt"
+  library A: "Island", "Forest", "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Treasure Hunt"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert hand A contains "Grizzly Bears"
+  assert hand A lacks "Hill Giant"
+  assert library A contains "Hill Giant"
+}
+
+scenario "reveal until: the target player mills to their first land (Balustrade Spy)" {
+  battlefield A: 4 "Swamp"
+  hand A: "Balustrade Spy"
+  library B: "Grizzly Bears", "Lightning Bolt", "Mountain", "Hill Giant"
+  turn 1 A: cast "Balustrade Spy"
+  turn 1 A: trigger "Balustrade Spy" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Lightning Bolt"
+  assert graveyard B contains "Mountain"
+  assert library B contains "Hill Giant"
+}
+
+scenario "reveal until: no land reveals the whole library (Balustrade Spy)" {
+  battlefield A: 4 "Swamp"
+  hand A: "Balustrade Spy"
+  library B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Balustrade Spy"
+  turn 1 A: trigger "Balustrade Spy" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert library B lacks "Hill Giant"
+}
+
+scenario "reveal until: the destroyed land's controller reveals (Destroy the Evidence)" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Destroy the Evidence"
+  library B: "Lightning Bolt", "Forest", "Hill Giant"
+  turn 1 A: cast "Destroy the Evidence" targeting "Mountain"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Mountain"
+  assert graveyard B contains "Lightning Bolt"
+  assert graveyard B contains "Forest"
+  assert library B contains "Hill Giant"
+}
+
+scenario "that card's mana value: damage, then the revealed cards go to the bottom (Erratic Explosion)" {
+  battlefield A: 3 "Mountain"
+  hand A: "Erratic Explosion"
+  library A: "Island", "Hill Giant", "Forest", "Plains"
+  turn 1 A: cast "Erratic Explosion" targeting player B
+  run_to turn 3 precombat_main
+  assert life B 16
+  # Island and Hill Giant went to the bottom: Forest is drawn.
+  assert hand A contains "Forest"
+  assert library A contains "Hill Giant"
+}
+
+scenario "that card's mana value: +X/-X (Erratic Mutation)" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Erratic Mutation"
+  library A: "Island", "Grizzly Bears", "Forest"
+  turn 1 A: cast "Erratic Mutation" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 1
+}
+
+scenario "scry, then the top card's mana value as damage (Riddle of Lightning)" {
+  battlefield A: 5 "Mountain"
+  hand A: "Riddle of Lightning"
+  library A: "Hill Giant", "Island"
+  turn 1 A: cast "Riddle of Lightning" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert library A contains "Hill Giant"
+}
+
+scenario "reveal top: a land pumps the Deceiver, once each turn (Brutal Deceiver)" {
+  battlefield A: "Brutal Deceiver", 4 "Mountain"
+  library A: "Mountain", "Island"
+  turn 1 A: activate "Brutal Deceiver" ability 2
+  turn 1 A: wait
+  illegal turn 1 A: activate "Brutal Deceiver" ability 2
+  run_to turn 1 postcombat_main
+  assert power "Brutal Deceiver" 3
+  assert has "Brutal Deceiver" first_strike
+}
+
+scenario "reveal top: a nonland does nothing (Brutal Deceiver)" {
+  battlefield A: "Brutal Deceiver", 2 "Mountain"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: activate "Brutal Deceiver" ability 2
+  run_to turn 1 postcombat_main
+  assert power "Brutal Deceiver" 2
+  assert has not "Brutal Deceiver" first_strike
+}
+
+scenario "look at the top card: a land may go onto the battlefield tapped (Explorer's Scope)" {
+  battlefield A: "Grizzly Bears", "Explorer's Scope" on "Grizzly Bears"
+  library A: "Plains", "Forest", "Island"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+}
+
+scenario "look at the top card: declined, it stays (Explorer's Scope)" {
+  battlefield A: "Grizzly Bears", "Explorer's Scope" on "Grizzly Bears"
+  library A: "Plains", "Forest", "Island"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears"
+  turn 3 declare_attackers A: decline "Explorer's Scope"
+  run_to turn 3 postcombat_main
+  assert battlefield A lacks "Forest"
+  assert library A contains "Forest"
+}
+
+scenario "a Goblin permanent card enters; anything else is milled (Skirk Drill Sergeant)" {
+  battlefield A: "Skirk Drill Sergeant", "Raging Goblin", 3 "Mountain"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Shock"
+  library A: "Goblin Piker", "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Raging Goblin"
+  run_to turn 2 end
+  assert battlefield A contains "Goblin Piker"
+}
+
+scenario "a non-Goblin revealed goes to the graveyard (Skirk Drill Sergeant)" {
+  battlefield A: "Skirk Drill Sergeant", "Raging Goblin", 3 "Mountain"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock"
+  library A: "Grizzly Bears", "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Raging Goblin"
+  run_to turn 2 end
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "a land on top of the opponent's library gains life, then they shuffle (Prophecy)" {
+  battlefield A: "Plains"
+  hand A: "Prophecy"
+  library B: "Mountain", "Mountain", "Mountain"
+  turn 1 A: cast "Prophecy" targeting player B
+  run_to turn 2 draw
+  assert life A 21
+  assert hand A contains "Plains"
+}
+
+scenario "a nonland on top gains nothing (Prophecy)" {
+  battlefield A: "Plains"
+  hand A: "Prophecy"
+  library B: "Grizzly Bears"
+  turn 1 A: cast "Prophecy" targeting player B
+  run_to turn 1 end
+  assert life A 20
+}
+
+scenario "reveal until a land: it enters, the rest are milled (Avenging Druid)" {
+  battlefield A: "Avenging Druid"
+  library A: "Plains", "Grizzly Bears", "Lightning Bolt", "Forest", "Island"
+  start turn 3 A
+  turn 3 A: attack "Avenging Druid"
+  run_to turn 3 postcombat_main
+  assert life B 19
+  assert battlefield A contains "Forest"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+  assert library A contains "Island"
+}
+
+scenario "declined, nothing is revealed (Avenging Druid)" {
+  battlefield A: "Avenging Druid"
+  library A: "Plains", "Grizzly Bears", "Forest", "Island"
+  start turn 3 A
+  turn 3 A: attack "Avenging Druid"
+  turn 3 combat_damage A: decline "Avenging Druid"
+  run_to turn 3 postcombat_main
+  assert battlefield A lacks "Forest"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
+scenario "that card is a Goblin card: haste (Warren Pilferers)" {
+  battlefield A: 5 "Swamp"
+  hand A: "Warren Pilferers"
+  graveyard A: "Goblin Piker"
+  turn 1 A: cast "Warren Pilferers"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Goblin Piker"
+  assert has "Warren Pilferers" haste
+}
+
+scenario "not a Goblin card: no haste (Warren Pilferers)" {
+  battlefield A: 5 "Swamp"
+  hand A: "Warren Pilferers"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Warren Pilferers"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert has not "Warren Pilferers" haste
+}
+
+scenario "kinship: a card sharing a creature type is revealed (Winnower Patrol)" {
+  battlefield A: "Winnower Patrol"
+  library A: "Llanowar Elves", "Forest", "Forest"
+  start turn 3 A
+  run_to turn 3 draw
+  assert counters "Winnower Patrol" +1/+1 1
+}
+
+scenario "kinship: no shared creature type, nothing (Winnower Patrol)" {
+  battlefield A: "Winnower Patrol"
+  library A: "Grizzly Bears", "Forest", "Forest"
+  start turn 3 A
+  run_to turn 3 draw
+  assert counters "Winnower Patrol" +1/+1 0
+}
+
+scenario "kinship: revealed, each opponent mills three (Ink Dissolver)" {
+  battlefield A: "Ink Dissolver"
+  library A: "Saprazzan Raider", "Forest", "Forest"
+  library B: "Island", "Island", "Island", "Island"
+  start turn 3 A
+  run_to turn 3 draw
+  assert graveyard B count 3
+}
+
+scenario "kinship: declining to reveal does nothing (Ink Dissolver)" {
+  battlefield A: "Ink Dissolver"
+  library A: "Saprazzan Raider", "Forest", "Forest"
+  library B: "Island", "Island", "Island", "Island"
+  start turn 3 A
+  turn 3 upkeep A: decline "Ink Dissolver"
+  run_to turn 3 draw
+  assert graveyard B count 0
+}
+
+scenario "draw a card and reveal it: a nonland is discarded (Fa'adiyah Seer)" {
+  battlefield A: "Fa'adiyah Seer"
+  library A: "Grizzly Bears", "Forest"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Fa'adiyah Seer"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A lacks "Grizzly Bears"
+}
+
+scenario "draw a card and reveal it: a land is kept (Fa'adiyah Seer)" {
+  battlefield A: "Fa'adiyah Seer"
+  library A: "Forest", "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Fa'adiyah Seer"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Forest"
+  assert graveyard A count 0
+}
+
+scenario "look: a creature card may be revealed and put into the hand (Vivien's Grizzly)" {
+  battlefield A: "Vivien's Grizzly", 4 "Forest"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: activate "Vivien's Grizzly"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert library A contains "Island"
+}
+
+scenario "look: if you don't put the card into your hand, it goes to the bottom (Vivien's Grizzly)" {
+  battlefield A: "Vivien's Grizzly", 4 "Forest"
+  library A: "Island", "Mountain"
+  turn 1 A: activate "Vivien's Grizzly"
+  run_to turn 3 precombat_main
+  # Island went to the bottom: Mountain is drawn.
+  assert hand A contains "Mountain"
+  assert hand A lacks "Island"
+}
+
+scenario "look: a land may enter tapped (Lantern of Revealing)" {
+  battlefield A: "Lantern of Revealing", 4 "Plains"
+  library A: "Forest", "Island"
+  turn 1 A: activate "Lantern of Revealing"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+}
+
+scenario "look: a nonland may go to the bottom (Lantern of Revealing)" {
+  battlefield A: "Lantern of Revealing", 4 "Plains"
+  library A: "Grizzly Bears", "Mountain"
+  turn 1 A: activate "Lantern of Revealing"
+  run_to turn 3 precombat_main
+  assert hand A contains "Mountain"
+  assert library A contains "Grizzly Bears"
+}

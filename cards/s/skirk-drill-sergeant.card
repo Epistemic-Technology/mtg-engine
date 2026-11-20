@@ -1,0 +1,7 @@
+card "Skirk Drill Sergeant" {
+  oracle_id eb0d97a3-6494-4011-9f60-1b12b165a995
+  cost {1}{R}
+  type Creature — Goblin
+  pt 2/1
+  triggered whenever this or Goblin dies: you may pay {2}{R}; if you do, reveal top card; if it is Goblin permanent card, put it onto battlefield; otherwise, put it into graveyard
+}

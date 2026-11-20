@@ -1,0 +1,6 @@
+card "Theft of Dreams" {
+  oracle_id 008011e2-7b82-4962-af6e-be627112f37f
+  cost {2}{U}
+  type Sorcery
+  spell: draw count each tapped creature target opponent controls cards
+}

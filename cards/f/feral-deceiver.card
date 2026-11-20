@@ -1,0 +1,8 @@
+card "Feral Deceiver" {
+  oracle_id c3b8ea58-d84f-4c60-9f72-e4ec389eb93c
+  cost {3}{G}
+  type Creature — Spirit
+  pt 3/2
+  activated {1}: look at top card
+  activated {2}, once: reveal top card; if it is land card, this gets +2/+2 and gains trample
+}
