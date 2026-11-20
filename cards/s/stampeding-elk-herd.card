@@ -1,0 +1,7 @@
+card "Stampeding Elk Herd" {
+  oracle_id fc1020b7-086e-41d6-a9ae-1c6c72cf820c
+  cost {3}{G}{G}
+  type Creature — Elk
+  pt 5/5
+  label "Formidable" triggered whenever this attacks if total power 8 or more: each creature you control gains trample
+}
