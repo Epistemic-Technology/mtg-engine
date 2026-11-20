@@ -1,0 +1,9 @@
+card "Earthrumbler" {
+  oracle_id ba5982a9-e8c1-4e7c-9a73-c4caad0f7336
+  cost {4}{G}
+  type Artifact — Vehicle
+  pt 7/6
+  keywords vigilance, trample
+  activated exile artifact or creature card from graveyard: this becomes artifact creature
+  crew 3
+}

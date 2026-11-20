@@ -1,0 +1,11 @@
+scenario "Craterhoof Behemoth pumps team by creature count" {
+  battlefield A: 8 "Forest", "Grizzly Bears", "Hill Giant"
+  hand A: "Craterhoof Behemoth"
+  turn 1 precombat_main A: cast "Craterhoof Behemoth"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 5
+  assert power "Hill Giant" 6
+  assert power "Craterhoof Behemoth" 8
+  assert has "Grizzly Bears" trample
+  assert has "Craterhoof Behemoth" haste
+}

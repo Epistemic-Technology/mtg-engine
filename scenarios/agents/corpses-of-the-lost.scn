@@ -1,0 +1,19 @@
+scenario "Corpses of the Lost makes a hasty buffed Skeleton Pirate" {
+  battlefield A: 3 "Swamp"
+  hand A: "Corpses of the Lost"
+  turn 1 precombat_main A: cast "Corpses of the Lost"
+  run_to turn 1 begin_combat
+  assert power "Skeleton Pirate" 3
+  assert has "Skeleton Pirate" haste
+}
+scenario "Corpses of the Lost returns to hand after descending" {
+  battlefield A: "Corpses of the Lost"
+  hand A: "Lightning Bolt"
+  battlefield A: "Mountain", "Grizzly Bears"
+  start turn 1 A
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 end A: accept "Corpses of the Lost"
+  run_to turn 2 untap
+  assert hand A contains "Corpses of the Lost"
+  assert life A 19
+}

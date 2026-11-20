@@ -1,0 +1,10 @@
+scenario "Harsh Annotation destroys and gives an Inkling" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Harsh Annotation"
+  turn 1 precombat_main A: cast "Harsh Annotation" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Inkling"
+  assert has "Inkling" flying
+}

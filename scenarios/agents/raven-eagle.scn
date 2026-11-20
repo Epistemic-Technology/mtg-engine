@@ -1,0 +1,29 @@
+scenario "Raven Eagle exiles a creature card and makes a Clue" {
+  battlefield A: 3 "Swamp"
+  graveyard B: "Hill Giant"
+  hand A: "Raven Eagle"
+  turn 1 precombat_main A: cast "Raven Eagle"
+  turn 1 precombat_main A: trigger "Raven Eagle" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield A contains "Clue"
+}
+scenario "Raven Eagle exiling a noncreature card makes no Clue" {
+  battlefield A: 3 "Swamp"
+  graveyard B: "Shock"
+  hand A: "Raven Eagle"
+  turn 1 precombat_main A: cast "Raven Eagle"
+  turn 1 precombat_main A: trigger "Raven Eagle" targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Shock"
+  assert battlefield A lacks "Clue"
+}
+scenario "Raven Eagle drains on the second draw" {
+  battlefield A: "Raven Eagle", 3 "Island"
+  hand A: "Divination"
+  start turn 2 A precombat_main
+  turn 2 precombat_main A: cast "Divination"
+  run_to turn 2 postcombat_main
+  assert life A 21
+  assert life B 19
+}

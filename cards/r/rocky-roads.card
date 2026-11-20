@@ -1,0 +1,7 @@
+card "Rocky Roads" {
+  oracle_id a659c29f-aaca-44c5-8426-cdafcb195f86
+  type Land
+  enters tapped unless you control Mount or Vehicle
+  mana {R}
+  activated {1}{R}, {T}, sacrifice this, sorcery: create 1 "1/1 colorless Pilot creature with saddles and crews plus 2"
+}

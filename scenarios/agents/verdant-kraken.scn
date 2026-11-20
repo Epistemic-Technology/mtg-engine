@@ -1,0 +1,18 @@
+scenario "verdant kraken makes a tentacle in each player's upkeep" {
+  battlefield A: "Verdant Kraken"
+  run_to turn 2 precombat_main
+  assert battlefield A contains 2 "Forest Tentacle"
+  assert battlefield B lacks "Forest Tentacle"
+  assert is oldest A "Forest Tentacle" land
+  assert is oldest A "Forest Tentacle" forest
+  assert power oldest A "Forest Tentacle" 3
+}
+
+scenario "a tentacle taps for green on a later turn" {
+  battlefield A: "Verdant Kraken"
+  hand A: "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  turn 3 A: cast "Llanowar Elves"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+}

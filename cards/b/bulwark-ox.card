@@ -1,0 +1,9 @@
+card "Bulwark Ox" {
+  oracle_id bcd56fbf-fde3-41c2-83f5-9636e92d2893
+  cost {1}{W}
+  type Creature — Ox Mount
+  pt 2/2
+  triggered whenever this attacks while saddled: put 1 +1/+1 counter on target creature
+  activated sacrifice this: each creature you control with counter gains hexproof and indestructible
+  saddle 1
+}

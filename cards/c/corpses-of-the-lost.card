@@ -1,0 +1,8 @@
+card "Corpses of the Lost" {
+  oracle_id 78bac92f-333f-4c43-bccf-03c3772ee99b
+  cost {2}{B}
+  type Enchantment
+  static Skeleton you control: +1/+0, has haste
+  triggered whenever this enters: create 1 "2/2 black Skeleton Pirate creature"
+  triggered at beginning of your end step if descended this turn: you may pay 1 life; if you do, return this to hand
+}

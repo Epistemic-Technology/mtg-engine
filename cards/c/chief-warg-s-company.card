@@ -1,0 +1,9 @@
+card "Chief Warg's Company" {
+  oracle_id 372d7086-b7dc-4b6d-bdf6-e9ed9c995456
+  cost {1}{B}{G}
+  type Creature — Wolf
+  pt 5/3
+  keywords trample
+  can't attack unless you control 2 other Wolf
+  triggered at beginning of your upkeep: create 1 "2/2 green Wolf creature"
+}

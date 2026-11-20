@@ -1,0 +1,25 @@
+scenario "Professor Zei loots" {
+  battlefield A: "Professor Zei, Anthropologist"
+  hand A: "Forest"
+  library A: "Island"
+  turn 1 precombat_main A: activate "Professor Zei, Anthropologist" discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert hand A contains "Island"
+}
+scenario "Professor Zei returns a spell on your turn only" {
+  battlefield A: "Professor Zei, Anthropologist", "Plains"
+  graveyard A: "Shock"
+  turn 1 precombat_main A: activate "Professor Zei, Anthropologist" ability 2 targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert graveyard A contains "Professor Zei, Anthropologist"
+}
+scenario "Professor Zei cannot return on opponent turn" {
+  battlefield A: "Professor Zei, Anthropologist", "Plains"
+  graveyard A: "Shock"
+  start turn 2 B
+  illegal turn 2 precombat_main A: activate "Professor Zei, Anthropologist" ability 2 targeting "Shock"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Shock"
+}

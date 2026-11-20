@@ -1,0 +1,10 @@
+card "Quandrix Charm" {
+  oracle_id f43e36ea-6bf5-45bd-a4ad-cc507ae45641
+  cost {G}{U}
+  type Instant
+  choose one {
+    mode: counter target spell unless its controller pays {2}
+    mode: destroy target enchantment
+    mode: target creature has base power and toughness 5/5
+  }
+}

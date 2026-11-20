@@ -1,0 +1,16 @@
+scenario "sally pride creates a mutant per nontoken creature" {
+  battlefield A: "Grizzly Bears", 5 "Plains"
+  hand A: "Sally Pride, Lioness Leader"
+  turn 1 A: cast "Sally Pride, Lioness Leader"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Mutant"
+}
+
+scenario "sally pride attack puts a counter on each creature you control" {
+  battlefield A: "Sally Pride, Lioness Leader", "Grizzly Bears"
+  turn 1 A: attack "Sally Pride, Lioness Leader"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Sally Pride, Lioness Leader" +1/+1 1
+  assert life B 17
+}

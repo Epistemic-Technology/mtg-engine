@@ -1,0 +1,10 @@
+card "Kaito, Cunning Infiltrator" {
+  oracle_id f6d3f145-00e0-47cd-91d8-0381c19a000d
+  cost {1}{U}{U}
+  type Legendary Planeswalker — Kaito
+  loyalty 3
+  triggered whenever creature you control deals combat damage to a player: put 1 loyalty counter on this
+  loyalty +1: up to 1 target creature you control gains can't be blocked; draw 1 card then discard 1 card
+  loyalty -2: create 1 "2/1 blue Ninja creature"
+  loyalty -9: emblem "Kaito, Cunning Infiltrator emblem"
+}

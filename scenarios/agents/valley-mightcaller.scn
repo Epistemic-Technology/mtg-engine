@@ -1,0 +1,15 @@
+scenario "valley mightcaller grows when a rabbit enters" {
+  battlefield A: "Valley Mightcaller", "Forest"
+  hand A: "Zodiac Rabbit"
+  turn 1 A: cast "Zodiac Rabbit"
+  run_to turn 1 postcombat_main
+  assert counters "Valley Mightcaller" +1/+1 1
+}
+
+scenario "valley mightcaller ignores other creature types" {
+  battlefield A: "Valley Mightcaller", "Forest"
+  hand A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert counters "Valley Mightcaller" +1/+1 0
+}

@@ -1,0 +1,8 @@
+card "Summon: Fat Chocobo" {
+  oracle_id b5d2f8e7-89d3-4015-ab99-ba4d66918e37
+  cost {4}{G}
+  type Enchantment Creature — Saga Bird
+  pt 4/4
+  label "Wark" triggered chapter 1: create 1 "2/2 green Bird creature with landfall pump"
+  label "Kerplunk" triggered chapter 2, 3, 4: each creature you control gains trample
+}

@@ -1,0 +1,6 @@
+card "The Crystal's Chosen" {
+  oracle_id df4ef2f8-2591-4be3-b905-4f9ff9c538ea
+  cost {5}{W}{W}
+  type Sorcery
+  spell: create 4 "1/1 colorless Hero creature"; then put 1 +1/+1 counter on each creature you control
+}

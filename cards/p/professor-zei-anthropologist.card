@@ -1,0 +1,8 @@
+card "Professor Zei, Anthropologist" {
+  oracle_id 59a10335-72df-44a5-a514-5bac392cd282
+  cost {U/R}{U/R}
+  type Legendary Creature — Human Advisor Ally
+  pt 0/3
+  activated {T}, discard 1 card: draw 1 card
+  activated {1}, {T}, sacrifice this, during your turn: return target instant or sorcery card from your graveyard to hand
+}

@@ -1,0 +1,9 @@
+card "Old Flitterfang" {
+  oracle_id f95bdf0d-5bd1-4215-b143-0930973807ce
+  cost {4}{B}
+  type Legendary Creature — Rat Faerie
+  pt 3/4
+  keywords flying
+  triggered at beginning of every end step if creature died this turn: create 1 "Food"
+  activated {2}{B}, sacrifice other creature or artifact: this gets +2/+2
+}

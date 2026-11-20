@@ -1,0 +1,7 @@
+card "Reckless Detective" {
+  oracle_id 4debd0e4-3bb6-4dd1-addc-08e4bda69d11
+  cost {1}{R}
+  type Creature — Devil Detective
+  pt 0/3
+  triggered whenever this attacks: you may sacrifice 1 artifact chosen or discard 1 card; if you do, draw 1 card and this creature gets +2/+0
+}

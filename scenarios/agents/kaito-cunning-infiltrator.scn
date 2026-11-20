@@ -1,0 +1,21 @@
+scenario "kaito -2 creates a 2/1 ninja" {
+  battlefield A: "Kaito, Cunning Infiltrator"
+  turn 1 A: activate "Kaito, Cunning Infiltrator" ability 2
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ninja"
+  assert power "Ninja" 2
+  assert counters "Kaito, Cunning Infiltrator" loyalty 1
+}
+
+scenario "kaito +1 makes a creature unblockable and loots; combat damage adds loyalty" {
+  battlefield A: "Kaito, Cunning Infiltrator", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Forest"
+  turn 1 A: activate "Kaito, Cunning Infiltrator" ability 1 targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Kaito, Cunning Infiltrator" loyalty 5
+  assert hand A count 1
+}

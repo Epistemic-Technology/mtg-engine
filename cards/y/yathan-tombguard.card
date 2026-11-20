@@ -1,0 +1,8 @@
+card "Yathan Tombguard" {
+  oracle_id 2321b4fc-6b73-4d1a-84cc-13524adb0899
+  cost {2}{B}
+  type Creature — Human Warrior
+  pt 2/3
+  keywords menace
+  triggered whenever creature you control with counter deals combat damage to a player: you draw 1 card, and you lose 1 life
+}

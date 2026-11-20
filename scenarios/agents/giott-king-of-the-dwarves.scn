@@ -1,0 +1,20 @@
+scenario "Giott loots on entering and has double strike" {
+  battlefield A: "Mountain", "Plains"
+  hand A: "Giott, King of the Dwarves", "Forest"
+  library A: "Island"
+  turn 1 precombat_main A: cast "Giott, King of the Dwarves"
+  turn 1 precombat_main A: accept "Giott, King of the Dwarves"
+  turn 1 precombat_main A: discard "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert hand A contains "Island"
+  assert has "Giott, King of the Dwarves" double_strike
+}
+scenario "Giott declined loot" {
+  battlefield A: "Mountain", "Plains"
+  hand A: "Giott, King of the Dwarves", "Forest"
+  turn 1 precombat_main A: cast "Giott, King of the Dwarves"
+  turn 1 precombat_main A: decline "Giott, King of the Dwarves"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+}

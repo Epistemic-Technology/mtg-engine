@@ -1,0 +1,13 @@
+scenario "fat chocobo chapter I makes a bird, chapter II grants trample" {
+  battlefield A: 5 "Forest"
+  hand A: "Summon: Fat Chocobo"
+  turn 1 A: cast "Summon: Fat Chocobo"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bird"
+  assert counters "Summon: Fat Chocobo" lore 1
+  run_to turn 3 precombat_main
+  run_to turn 3 begin_combat
+  assert counters "Summon: Fat Chocobo" lore 2
+  assert has "Bird" trample
+  assert has "Summon: Fat Chocobo" trample
+}

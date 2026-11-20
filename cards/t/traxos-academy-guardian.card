@@ -1,0 +1,8 @@
+card "Traxos, Academy Guardian" {
+  oracle_id 7b9a574f-6d56-421b-8fbd-94da1e6e3ce1
+  cost {3}{U}
+  type Legendary Artifact Creature — Dragon Construct
+  pt 1/5
+  this spell costs {2} less if cast noncreature spell this turn
+  keywords flying, vigilance, prowess
+}

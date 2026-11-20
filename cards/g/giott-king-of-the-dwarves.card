@@ -1,0 +1,8 @@
+card "Giott, King of the Dwarves" {
+  oracle_id c629fa91-e13c-494b-a95f-a91b7c52035a
+  cost {R}{W}
+  type Legendary Creature — Dwarf Noble
+  pt 1/1
+  keywords double strike
+  triggered whenever this or Dwarf you control enters and whenever Equipment you control enters: you may discard 1 card; if you do, draw 1 card
+}

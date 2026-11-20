@@ -1,0 +1,28 @@
+scenario "reckless detective discards to draw and pump" {
+  battlefield A: "Reckless Detective"
+  hand A: "Forest"
+  turn 1 A: attack "Reckless Detective"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert hand A count 1
+  assert life B 18
+}
+
+scenario "reckless detective may decline" {
+  battlefield A: "Reckless Detective"
+  hand A: "Forest"
+  turn 1 A: attack "Reckless Detective"
+  turn 1 A: decline "Reckless Detective"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert life B 20
+}
+
+scenario "reckless detective sacrifices an artifact" {
+  battlefield A: "Reckless Detective", "Bonesplitter"
+  turn 1 A: attack "Reckless Detective"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bonesplitter"
+  assert hand A count 1
+  assert life B 18
+}

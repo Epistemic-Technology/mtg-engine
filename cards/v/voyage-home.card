@@ -1,0 +1,7 @@
+card "Voyage Home" {
+  oracle_id 5c0cbc44-6c31-44fe-a3da-a97a37a01726
+  cost {5}{W}{U}
+  type Sorcery
+  affinity for artifact
+  spell: you draw 3 cards and gain 3 life
+}

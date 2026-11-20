@@ -1,0 +1,13 @@
+scenario "Rocky Roads enters tapped without Mount or Vehicle" {
+  hand A: "Rocky Roads"
+  turn 1 precombat_main A: play "Rocky Roads"
+  run_to turn 1 postcombat_main
+  assert tapped "Rocky Roads"
+}
+scenario "Rocky Roads sacrifice makes a Pilot" {
+  battlefield A: "Rocky Roads", "Mountain", "Mountain"
+  turn 1 precombat_main A: activate "Rocky Roads"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Pilot"
+  assert battlefield A lacks "Rocky Roads"
+}

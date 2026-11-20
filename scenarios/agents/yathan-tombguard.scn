@@ -1,0 +1,17 @@
+scenario "creature with a counter deals combat damage: draw and lose 1" {
+  battlefield A: "Yathan Tombguard", "Grizzly Bears" with 1 +1/+1
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 19
+  assert hand A count 1
+}
+
+scenario "creature without counters draws nothing" {
+  battlefield A: "Yathan Tombguard", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Yathan Tombguard"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 20
+  assert hand A count 0
+}

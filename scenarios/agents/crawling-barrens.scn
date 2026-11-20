@@ -1,0 +1,18 @@
+scenario "crawling barrens grows and animates" {
+  battlefield A: "Crawling Barrens", 4 "Plains"
+  turn 1 A: activate "Crawling Barrens"
+  turn 1 A: attack "Crawling Barrens"
+  run_to turn 1 postcombat_main
+  assert counters "Crawling Barrens" +1/+1 2
+  assert life B 18
+  assert is "Crawling Barrens" land
+}
+
+scenario "crawling barrens may stay a land" {
+  battlefield A: "Crawling Barrens", 4 "Plains"
+  turn 1 A: activate "Crawling Barrens"
+  turn 1 A: decline "Crawling Barrens"
+  run_to turn 1 postcombat_main
+  assert counters "Crawling Barrens" +1/+1 2
+  assert is not "Crawling Barrens" creature
+}

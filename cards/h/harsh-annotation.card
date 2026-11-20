@@ -1,0 +1,6 @@
+card "Harsh Annotation" {
+  oracle_id 1657be64-b38f-4074-a743-bf558dc57901
+  cost {1}{W}
+  type Instant
+  spell: destroy target creature; its controller creates 1 "1/1 white and black Inkling creature with flying"
+}

@@ -1,0 +1,26 @@
+scenario "saddled ox attack puts a counter on target creature" {
+  battlefield A: "Bulwark Ox", "Grizzly Bears"
+  turn 1 A: activate "Bulwark Ox" ability 2
+  turn 1 A: attack "Bulwark Ox"
+  turn 1 A: trigger "Bulwark Ox" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert life B 18
+}
+
+scenario "unsaddled ox attack does nothing" {
+  battlefield A: "Bulwark Ox", "Grizzly Bears"
+  turn 1 A: attack "Bulwark Ox"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "sacrificing ox protects only creatures with counters" {
+  battlefield A: "Bulwark Ox", "Grizzly Bears" with 1 +1/+1, "Hill Giant"
+  turn 1 A: activate "Bulwark Ox" ability 1
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bulwark Ox"
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" indestructible
+  assert has not "Hill Giant" indestructible
+}

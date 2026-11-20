@@ -1,0 +1,15 @@
+scenario "Biomechan Engineer makes a Lander on entering" {
+  battlefield A: "Forest", "Island"
+  hand A: "Biomechan Engineer"
+  turn 1 precombat_main A: cast "Biomechan Engineer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Biomechan Engineer"
+  assert battlefield A contains "Lander"
+}
+scenario "Biomechan Engineer eight mana draws two and makes a Robot" {
+  battlefield A: 8 "Forest", "Biomechan Engineer"
+  turn 1 precombat_main A: activate "Biomechan Engineer"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert battlefield A contains "Robot"
+}

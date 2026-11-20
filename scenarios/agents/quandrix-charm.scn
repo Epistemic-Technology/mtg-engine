@@ -1,0 +1,31 @@
+scenario "quandrix charm makes a creature base 5/5" {
+  battlefield A: "Forest", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Quandrix Charm"
+  turn 1 A: cast "Quandrix Charm" mode 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+}
+
+scenario "quandrix charm destroys an enchantment" {
+  battlefield A: "Forest", "Island"
+  battlefield B: "Pacifism" on "Grizzly Bears", "Grizzly Bears"
+  hand A: "Quandrix Charm"
+  turn 1 A: cast "Quandrix Charm" mode 2 targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Pacifism"
+}
+
+scenario "quandrix charm counters a spell whose controller can't pay" {
+  battlefield A: "Forest", "Island"
+  battlefield B: "Mountain"
+  hand A: "Quandrix Charm"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 precombat_main A: cast "Quandrix Charm" mode 1 targeting "Shock" in response to "Shock"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Shock"
+}

@@ -1,0 +1,7 @@
+token "1/1 colorless Pilot creature with saddles and crews plus 2" {
+  name "Pilot"
+  type Creature — Pilot
+  pt 1/1
+  color
+  saddles and crews plus 2
+}

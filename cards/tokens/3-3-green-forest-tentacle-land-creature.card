@@ -1,0 +1,6 @@
+token "3/3 green Forest Tentacle land creature" {
+  name "Forest Tentacle"
+  type Land Creature — Forest Tentacle
+  pt 3/3
+  color green
+}

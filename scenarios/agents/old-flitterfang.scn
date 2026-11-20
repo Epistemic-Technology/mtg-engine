@@ -1,0 +1,26 @@
+scenario "flitterfang pumps by sacrificing and makes food at end step" {
+  battlefield A: "Old Flitterfang", "Grizzly Bears", 3 "Swamp"
+  turn 1 A: activate "Old Flitterfang" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Old Flitterfang" 5
+  assert toughness "Old Flitterfang" 6
+  run_to turn 2 upkeep
+  assert battlefield A contains "Food"
+}
+
+scenario "flitterfang makes no food if nothing died" {
+  battlefield A: "Old Flitterfang"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Food"
+}
+
+scenario "flitterfang triggers on the opponent's end step too" {
+  battlefield A: "Old Flitterfang"
+  battlefield B: "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  battlefield A: "Mountain"
+  start turn 2 B
+  turn 2 precombat_main A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Food"
+}

@@ -1,0 +1,19 @@
+scenario "stormshell attacks: three stun counters and three cards" {
+  battlefield A: "Ambling Stormshell"
+  turn 1 A: attack "Ambling Stormshell"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert counters "Ambling Stormshell" stun 3
+  assert hand A count 3
+  run_to turn 3 upkeep
+  assert tapped "Ambling Stormshell"
+  assert counters "Ambling Stormshell" stun 2
+}
+
+scenario "casting a turtle spell untaps stormshell" {
+  battlefield A: "Ambling Stormshell" tapped, 4 "Island"
+  hand A: "Tidepool Turtle"
+  turn 1 A: cast "Tidepool Turtle"
+  run_to turn 1 postcombat_main
+  assert untapped "Ambling Stormshell"
+}

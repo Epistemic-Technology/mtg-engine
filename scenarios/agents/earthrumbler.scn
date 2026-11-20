@@ -1,0 +1,18 @@
+scenario "earthrumbler animates by exiling a creature card from graveyard" {
+  battlefield A: "Earthrumbler"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: activate "Earthrumbler"
+  turn 1 A: attack "Earthrumbler"
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert exile A contains "Grizzly Bears"
+  assert untapped "Earthrumbler"
+}
+
+scenario "earthrumbler can't animate with no creature or artifact card in graveyard" {
+  battlefield A: "Earthrumbler"
+  graveyard A: "Forest"
+  illegal turn 1 A: activate "Earthrumbler"
+  run_to turn 1 postcombat_main
+  assert is not "Earthrumbler" creature
+}

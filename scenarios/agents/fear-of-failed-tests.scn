@@ -1,0 +1,16 @@
+scenario "Fear of Failed Tests draws cards equal to damage" {
+  battlefield A: "Fear of Failed Tests"
+  library A: "Plains", "Plains", "Plains", "Plains", "Plains"
+  turn 1 declare_attackers A: attack "Fear of Failed Tests"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 2
+}
+scenario "Fear of Failed Tests blocked draws nothing" {
+  battlefield A: "Fear of Failed Tests"
+  battlefield B: "Hill Giant"
+  turn 1 declare_attackers A: attack "Fear of Failed Tests"
+  turn 1 declare_blockers B: block "Fear of Failed Tests" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

@@ -1,0 +1,8 @@
+card "Craterhoof Behemoth" {
+  oracle_id 8c52bd39-0586-48ca-b263-17210cf9feb6
+  cost {5}{G}{G}{G}
+  type Creature — Beast
+  pt 5/5
+  keywords haste
+  triggered whenever this enters: each creature you control gains trample and gets +1/+1 count where creature you control
+}

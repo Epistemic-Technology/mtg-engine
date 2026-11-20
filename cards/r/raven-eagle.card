@@ -1,0 +1,9 @@
+card "Raven Eagle" {
+  oracle_id f75ac0a3-8795-48b4-91fd-4717900ef5b7
+  cost {2}{B}
+  type Creature — Bird Assassin
+  pt 2/3
+  keywords flying
+  triggered whenever this enters or attacks: exile up to 1 target card from a graveyard; if creature card is exiled this way, create 1 "Clue"
+  triggered whenever you draw your second card each turn: each opponent loses 1 life and you gain 1 life
+}

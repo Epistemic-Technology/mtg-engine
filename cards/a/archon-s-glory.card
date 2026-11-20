@@ -1,0 +1,7 @@
+card "Archon's Glory" {
+  oracle_id bc5631ae-494e-4987-8d17-57674bfbdb9f
+  cost {W}
+  type Instant
+  bargain
+  spell: target creature gets +2/+2; if bargained, also that target 1 gains flying, lifelink
+}

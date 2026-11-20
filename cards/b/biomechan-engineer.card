@@ -1,0 +1,8 @@
+card "Biomechan Engineer" {
+  oracle_id b395925b-2456-454e-9262-3b55c9f2799a
+  cost {G}{U}
+  type Creature — Insect Artificer
+  pt 2/2
+  triggered whenever this enters: create 1 "Lander"
+  activated {8}: draw 2 cards and create 1 "2/2 colorless Robot artifact creature"
+}

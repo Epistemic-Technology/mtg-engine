@@ -1,0 +1,8 @@
+card "Caradora, Heart of Alacria" {
+  oracle_id a9d60d80-bcef-45e0-8ded-d70bd3c2780f
+  cost {2}{G}{W}
+  type Legendary Creature — Human Knight
+  pt 4/2
+  triggered when this enters: you may search Mount or Vehicle card reveal to hand
+  replace +1/+1 counters put on creature or Vehicle you control: plus one
+}

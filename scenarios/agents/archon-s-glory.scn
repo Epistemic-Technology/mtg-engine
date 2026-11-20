@@ -1,0 +1,19 @@
+scenario "Archon's Glory pumps" {
+  battlefield A: "Plains", "Grizzly Bears"
+  hand A: "Archon's Glory"
+  turn 1 precombat_main A: cast "Archon's Glory" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has not "Grizzly Bears" flying
+}
+scenario "Archon's Glory bargained gives flying and lifelink" {
+  battlefield A: "Plains", "Grizzly Bears", "Treasure"
+  hand A: "Archon's Glory"
+  turn 1 precombat_main A: cast "Archon's Glory" sacrificing "Treasure" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" lifelink
+  assert battlefield A lacks "Treasure"
+}
