@@ -2554,6 +2554,14 @@ pub enum Recipient {
     /// controls chosen at random"), from the game's random number
     /// generator.
     RandomOf(u16),
+    /// Each opponent who controls no permanent matching the pool's `n`th
+    /// interned filter ("each opponent who doesn't control an Elf"),
+    /// judged as the effect happens.
+    OpponentsWithout(u16),
+    /// Each permanent the resolution has dealt damage to so far ("A
+    /// creature dealt damage this way can't be regenerated this turn", CR
+    /// 608.2c), still on the battlefield.
+    DamagedThisWay,
     /// What the source (an Aura or Equipment) is attached to ("enchanted
     /// creature", "equipped creature").
     Attached,
@@ -2734,6 +2742,10 @@ pub enum Effect {
     /// their library on the bottom, the rest back on top.
     Scry {
         count: Num,
+        /// Who scries: the controller, or each player or opponent in turn
+        /// order ("each player may scry 1", CR 101.4), each looking at
+        /// their own library.
+        who: Recipient,
     },
     /// Surveil N (CR 701.42): like scry, into the graveyard instead.
     Surveil {
@@ -2966,6 +2978,24 @@ pub enum Effect {
     CreateReplacement(ReplacementAbility),
     /// A "can't" effect that lasts until end of turn (CR 614.17).
     Rule(RuleKind),
+    /// "Each player puts a creature card from their graveyard onto the
+    /// battlefield": each player `who` names, in turn order, chooses a card
+    /// matching `filter` in their own graveyard (CR 101.4); then the
+    /// chosen cards enter together under their owners' control.
+    EachPutsFromGraveyard {
+        who: Recipient,
+        filter: ObjFilter,
+    },
+    /// "For each opponent who can't, you draw a card": these effects once
+    /// for each player who couldn't do what the effect before asked
+    /// (`Effect::Discard`: had too few cards to discard).
+    ForEachCouldnt(Vec<Effect>),
+    /// A "can't" effect on each player `who` names, until end of turn:
+    /// "Target player can't play lands this turn."
+    PlayerRule {
+        who: Recipient,
+        kind: PlayerRuleKind,
+    },
     Tap {
         to: Recipient,
     },
@@ -3487,6 +3517,8 @@ impl Effect {
         matches!(
             self,
             Effect::YouMay(_)
+                | Effect::ForEachCouldnt(_)
+                | Effect::EachPutsFromGraveyard { .. }
                 | Effect::IfKicked(_)
                 | Effect::IfYouDo(_)
                 | Effect::Otherwise(_)
@@ -3670,6 +3702,15 @@ pub enum RuleKind {
     /// "Damage can't be prevented." Prevention effects still apply but
     /// prevent nothing (CR 615.12).
     DamageCantBePrevented,
+}
+
+/// A "can't" effect on certain players until end of turn (CR 614.17):
+/// "Target player can't play lands this turn" (CR 305.1), "... can't cast
+/// creature spells this turn" (CR 601.2).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum PlayerRuleKind {
+    CantPlayLands,
+    CantCastCreatureSpells,
 }
 
 /// Who or what a replacement or prevention effect's event may affect.
@@ -4318,6 +4359,11 @@ pub struct AltCost {
     pub cost: Cost,
     pub count: u32,
     pub condition: Option<u16>,
+    /// "you may have each other player gain 6 life rather than pay this
+    /// spell's mana cost": paid by each other player gaining this much
+    /// life (a cost the caster can always pay, CR 118.3; it is paid even
+    /// if they can't gain life).
+    pub others_gain: u32,
 }
 
 impl Cost {

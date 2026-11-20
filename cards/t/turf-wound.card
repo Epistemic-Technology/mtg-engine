@@ -1,0 +1,9 @@
+card "Turf Wound" {
+  oracle_id 8dc48180-1482-40c4-8c5f-1724018e9c5b
+  cost {2}{R}
+  type Instant
+  spell {
+  target player can't play lands this turn
+  draw 1 card
+  }
+}

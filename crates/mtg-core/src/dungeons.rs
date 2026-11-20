@@ -52,7 +52,10 @@ fn create(token: Option<CardRef>, count: u32) -> Vec<Effect> {
 }
 
 fn scry(k: u32) -> Vec<Effect> {
-    vec![Effect::Scry { count: n(k) }]
+    vec![Effect::Scry {
+        count: n(k),
+        who: Recipient::You,
+    }]
 }
 
 fn draw(k: u32) -> Vec<Effect> {

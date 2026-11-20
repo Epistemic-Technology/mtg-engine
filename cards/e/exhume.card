@@ -1,0 +1,6 @@
+card "Exhume" {
+  oracle_id fbe61f74-1b3c-4e12-8758-7029872c9ff1
+  cost {1}{B}
+  type Sorcery
+  spell: each player puts 1 creature card from graveyard onto battlefield
+}

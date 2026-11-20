@@ -1,0 +1,7 @@
+card "Eager Construct" {
+  oracle_id 39363190-7f79-4fae-bcfc-b17ec4e07bfe
+  cost {2}
+  type Artifact Creature — Construct
+  pt 2/2
+  triggered when this enters: each player may scry 1
+}

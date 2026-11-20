@@ -1,0 +1,7 @@
+card "Chain Devil" {
+  oracle_id b73bbdcc-e872-4da5-8d80-0fc9e52418bf
+  cost {3}{B}
+  type Creature — Devil
+  pt 4/2
+  label "Animate Chains" triggered when this enters: each player sacrifices 1 nontoken creature
+}

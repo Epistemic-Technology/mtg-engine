@@ -1,0 +1,7 @@
+card "Furnace Brood" {
+  oracle_id cc87a268-253b-4377-bdc5-474940de8878
+  cost {3}{R}
+  type Creature — Elemental
+  pt 3/3
+  activated {R}: target creature can't be regenerated
+}

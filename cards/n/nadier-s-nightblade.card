@@ -1,0 +1,7 @@
+card "Nadier's Nightblade" {
+  oracle_id 391978f6-0bbc-41e8-9246-f7d0e21c7900
+  cost {2}{B}
+  type Creature — Elf Warrior
+  pt 1/3
+  triggered whenever token you control leaves the battlefield: each opponent loses 1 life and you gain 1 life
+}

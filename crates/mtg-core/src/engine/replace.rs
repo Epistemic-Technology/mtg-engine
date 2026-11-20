@@ -1037,6 +1037,7 @@ impl GameState {
                             x: self.x_of(obj),
                             did: true,
                             chosen: Chosen::None,
+                            couldnt: 0,
                         };
                         self.eval_num(n, &ctx)
                     }
@@ -1075,6 +1076,7 @@ impl GameState {
                 x: 0,
                 did: true,
                 chosen: Chosen::None,
+                couldnt: 0,
             };
             for effect in &c.ability.then {
                 self.apply_effect(&mut ctx, effect);

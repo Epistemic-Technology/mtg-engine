@@ -1,0 +1,6 @@
+card "End the Festivities" {
+  oracle_id 09618da4-6e2d-4047-96d7-0576c0754e7d
+  cost {R}
+  type Sorcery
+  spell: deal 1 damage to each opponent and each creature or planeswalker they control
+}

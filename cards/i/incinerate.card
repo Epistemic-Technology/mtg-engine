@@ -1,0 +1,6 @@
+card "Incinerate" {
+  oracle_id d8fd7a34-8418-4e98-b79b-119c4348c667
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to any target; creature dealt damage this way can't be regenerated
+}

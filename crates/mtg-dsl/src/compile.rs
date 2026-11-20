@@ -444,6 +444,7 @@ impl Compiler<'_> {
                 cost: self.cost(&a.cost),
                 count: a.count,
                 condition,
+                others_gain: a.others_gain,
             });
         }
         if let Some(c) = &card.flash_if {
@@ -1048,6 +1049,10 @@ impl Compiler<'_> {
         match r {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
             Recipient::RandomOf(i) => CoreRecipient::RandomOf(groups[usize::from(i)]),
+            Recipient::DamagedThisWay => CoreRecipient::DamagedThisWay,
+            Recipient::OpponentsWithout(i) => {
+                CoreRecipient::OpponentsWithout(groups[usize::from(i)])
+            }
             Recipient::TargetAnd(t, i) => CoreRecipient::TargetAndGroup(t, groups[usize::from(i)]),
             // A variable group: its targets to the end of the list.
             Recipient::Target(i) if Some(i) == many => {
@@ -1376,7 +1381,14 @@ impl Compiler<'_> {
                     dest: *dest,
                 });
             }
-            Effect::Scry(n) => out.push(CoreEffect::Scry { count: *n }),
+            Effect::Scry(n) => out.push(CoreEffect::Scry {
+                count: *n,
+                who: CoreRecipient::You,
+            }),
+            Effect::ScryEach { who, count, .. } => out.push(CoreEffect::Scry {
+                count: *count,
+                who: r(*who),
+            }),
             Effect::AddMana(m) => out.push(CoreEffect::AddMana(m.clone())),
             Effect::AddManaOneOf(m) => out.push(CoreEffect::AddManaOneOf(m.clone())),
             Effect::AddManaTimes { mana, count } => out.push(CoreEffect::AddManaTimes {
@@ -1668,6 +1680,16 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfKicked(effects));
             }
+            Effect::EachPutsFromGraveyard { who, filter } => {
+                out.push(CoreEffect::EachPutsFromGraveyard {
+                    who: r(*who),
+                    filter: self.filter(filter),
+                });
+            }
+            Effect::ForEachCouldnt { inner, .. } => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::ForEachCouldnt(effects));
+            }
             Effect::IfCondition(cond, inner, _) => {
                 let effects = self.sentences(inner)?;
                 let c = self.static_cond(cond);
@@ -1771,6 +1793,10 @@ impl Compiler<'_> {
                 out.push(CoreEffect::CreateReplacement(compiled));
             }
             Effect::Rule(k) => out.push(CoreEffect::Rule(*k)),
+            Effect::PlayerRule { who, kind } => out.push(CoreEffect::PlayerRule {
+                who: r(*who),
+                kind: *kind,
+            }),
             Effect::Proliferate => out.push(CoreEffect::Proliferate),
             Effect::RingTempts => out.push(CoreEffect::RingTempts),
             Effect::BecomeMonarch => out.push(CoreEffect::BecomeMonarch {
@@ -1869,8 +1895,8 @@ impl Compiler<'_> {
                 blocker: r(*blocker),
                 attacker: r(*attacker),
             }),
-            Effect::ReturnChosen { count, filter } => out.push(CoreEffect::ReturnChosen {
-                who: CoreRecipient::You,
+            Effect::ReturnChosen { count, filter, who } => out.push(CoreEffect::ReturnChosen {
+                who: who.map_or(CoreRecipient::You, r),
                 filter: self.filter(filter).who(Who::You),
                 count: *count,
             }),

@@ -12,8 +12,8 @@ use smallvec::SmallVec;
 pub use crate::card::Layer;
 use crate::card::{
     AbilityId, AbilitySet, CardDef, CardPool, CardRef, CardType, CounterKind, Keyword, KeywordSet,
-    Modification, ObjFilter, ReplacementAbility, RuleKind, SubtypeSet, SupertypeSet, TargetSpec,
-    TypeSet,
+    Modification, ObjFilter, PlayerRuleKind, ReplacementAbility, RuleKind, SubtypeSet,
+    SupertypeSet, TargetSpec, TypeSet,
 };
 use crate::decision::{ChoiceId, Decision};
 use crate::event::Event;
@@ -663,6 +663,14 @@ pub struct RuleEffect {
     pub duration: Duration,
 }
 
+/// A "can't" effect on one player from a resolved spell (CR 614.17),
+/// until end of turn: "Target player can't play lands this turn."
+#[derive(Copy, Clone, Debug)]
+pub struct PlayerRuleEffect {
+    pub player: PlayerId,
+    pub kind: PlayerRuleKind,
+}
+
 /// A decision taken in the middle of applying an event (CR 616.1: which
 /// of several replacement effects applies first). The engine cannot pause
 /// there, so it records the question, lets a default stand, and the
@@ -1300,6 +1308,8 @@ pub struct GameState {
     pub replacements: Vec<ReplacementEffect>,
     /// "Can't" effects from resolved spells (CR 614.17).
     pub rules: Vec<RuleEffect>,
+    /// "Target player can't play lands this turn": until end of turn.
+    pub player_rules: Vec<PlayerRuleEffect>,
     /// Battlefield objects whose definition has a replacement or
     /// prevention ability, so that events on plain boards cost nothing.
     pub replacement_sources: u32,
@@ -1623,6 +1633,13 @@ impl GameState {
     /// Whether a "can't" effect of this kind is in force (CR 614.17).
     pub fn rule_in_force(&self, kind: RuleKind) -> bool {
         self.rules.iter().any(|r| r.kind == kind)
+    }
+
+    /// Whether a "can't" effect of this kind applies to `p` this turn.
+    pub fn player_rule(&self, p: PlayerId, kind: PlayerRuleKind) -> bool {
+        self.player_rules
+            .iter()
+            .any(|r| r.player == p && r.kind == kind)
     }
 
     /// Whether applying an action could ask a player a question in the

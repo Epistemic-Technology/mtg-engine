@@ -1,0 +1,7 @@
+card "Claws of Wirewood" {
+  oracle_id 4ef6ec4a-bbd2-487f-98c2-c0e78aebb550
+  cost {3}{G}
+  type Sorcery
+  spell: deal 3 damage to each creature with flying and each player
+  cycling {2}
+}

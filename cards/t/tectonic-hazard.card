@@ -1,0 +1,6 @@
+card "Tectonic Hazard" {
+  oracle_id 9097243a-39fa-4e18-8316-c0e57699c783
+  cost {R}
+  type Sorcery
+  spell: deal 1 damage to each opponent and each creature they control
+}

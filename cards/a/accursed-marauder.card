@@ -1,0 +1,7 @@
+card "Accursed Marauder" {
+  oracle_id d8ad23a1-0b43-48ea-9fbe-d89b29194509
+  cost {1}{B}
+  type Creature — Zombie Warrior
+  pt 2/1
+  triggered when this enters: each player sacrifices 1 nontoken creature
+}

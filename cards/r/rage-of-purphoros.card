@@ -1,0 +1,6 @@
+card "Rage of Purphoros" {
+  oracle_id d6667a93-c706-451f-a83d-ffe5b9b9e53e
+  cost {4}{R}
+  type Sorcery
+  spell: deal 4 damage to target creature; target 1 can't be regenerated; scry 1
+}

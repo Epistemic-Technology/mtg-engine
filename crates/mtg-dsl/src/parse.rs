@@ -857,6 +857,23 @@ impl P {
                 self.expect_word("cost")?;
                 // `sacrifice 2 Mountain`: the count, then a cost of one.
                 let mut count = 1;
+                // `each other player gains 6 life`: a cost part of its own,
+                // before any other.
+                let mut others_gain = 0;
+                if self.eat_words(&["each", "other", "player", "gains"]) {
+                    others_gain = self.number()?;
+                    self.expect_word("life")?;
+                    if self.peek() == Some(&Tok::Comma) {
+                        self.pos += 1;
+                    } else {
+                        card.alt_cost = Some(crate::ast::AltCost {
+                            cost: crate::ast::Cost::default(),
+                            count,
+                            others_gain,
+                        });
+                        return self.end_stmt();
+                    }
+                }
                 if self.at_word("sacrifice")
                     && let Some(Tok::Num(n)) = self.peek_at(1)
                 {
@@ -867,7 +884,11 @@ impl P {
                 if cost.sacrifice.is_none() && count > 1 {
                     return self.fail("a count needs a permanent to sacrifice");
                 }
-                card.alt_cost = Some(crate::ast::AltCost { cost, count });
+                card.alt_cost = Some(crate::ast::AltCost {
+                    cost,
+                    count,
+                    others_gain,
+                });
                 self.end_stmt()
             }
             "kicker" => {
@@ -2965,7 +2986,11 @@ impl P {
         if NUMBER_WORDS.contains(&w.as_str()) && self.word_at(1).as_deref() == Some("target") {
             return true;
         }
-        if w == "it" || w == "target" || w == "another" {
+        if w == "it"
+            || w == "target"
+            || w == "another"
+            || self.at_words(&["creature", "dealt", "damage", "this", "way"])
+        {
             return true;
         }
         if w == "targets" && matches!(self.peek_at(1), Some(Tok::Num(_))) {
@@ -3041,6 +3066,7 @@ impl P {
                     | "sacrifice"
                     | "reveals"
                     | "reveal"
+                    | "returns"
             )
         )
     }
@@ -3430,6 +3456,20 @@ impl P {
             && let Some(e) = self.if_condition()?
         {
             return Ok(e);
+        }
+        // "For each opponent who can't, you draw a card."
+        if self.at_words(&["for", "each"])
+            && matches!(self.word_at(2).as_deref(), Some("opponent" | "player"))
+            && self.word_at(3).as_deref() == Some("who")
+        {
+            self.pos += 2;
+            let opponent = self.word()? == "opponent";
+            self.expect_words(&["who", "can't"])?;
+            if self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+            }
+            let inner = vec![self.sentence()?];
+            return Ok(Effect::ForEachCouldnt { opponent, inner });
         }
         // "if kicked, ..." (CR 702.33c).
         if self.at_words(&["if", "kicked"]) {
@@ -3833,6 +3873,24 @@ impl P {
                     bottom,
                 })
             }
+            // "Each player puts a creature card from their graveyard onto
+            // the battlefield."
+            "puts"
+                if matches!(self.peek(), Some(Tok::Num(1)))
+                    && (2..6).any(|k| {
+                        self.word_at(k).as_deref() == Some("from")
+                            && self.word_at(k + 1).as_deref() == Some("graveyard")
+                    }) =>
+            {
+                self.pos += 1;
+                let filter = self.filter()?;
+                self.expect_word("card")?;
+                self.expect_words(&["from", "graveyard", "onto", "battlefield"])?;
+                Ok(Effect::EachPutsFromGraveyard {
+                    who: subject,
+                    filter,
+                })
+            }
             "discard" | "discards" => {
                 if let Some(e) = self.discard_all(Some(subject))? {
                     return Ok(e);
@@ -3867,6 +3925,35 @@ impl P {
                 })
             }
             "investigates" => Ok(Effect::Investigates(subject)),
+            // "Each player returns a creature they control to its owner's
+            // hand": each chooses one of their own.
+            "returns" => {
+                let count = self.num()?;
+                let filter = self.filter()?;
+                Ok(Effect::ReturnChosen {
+                    count,
+                    filter,
+                    who: Some(subject),
+                })
+            }
+            // "Each player may scry 1", "each opponent scries 1".
+            "may" if self.at_word("scry") => {
+                self.pos += 1;
+                let count = self.num()?;
+                Ok(Effect::ScryEach {
+                    who: subject,
+                    count,
+                    may: true,
+                })
+            }
+            "scries" => {
+                let count = self.num()?;
+                Ok(Effect::ScryEach {
+                    who: subject,
+                    count,
+                    may: false,
+                })
+            }
             // "Its controller may search their library for ...": the
             // player searches their own library (CR 701.19).
             "may" | "searches" if subject != Recipient::You => {
@@ -3923,8 +4010,13 @@ impl P {
                         graveyard,
                     });
                 }
-                let filter = self.filter()?;
-                self.expect_words(&["they", "control"])?;
+                let mut filter = self.filter()?;
+                if filter.they_control {
+                    filter.they_control = false;
+                    filter.who = None;
+                } else {
+                    self.expect_words(&["they", "control"])?;
+                }
                 Ok(Effect::ExileChosen {
                     who: subject,
                     count,
@@ -4041,6 +4133,19 @@ impl P {
                     blocker: subject,
                     attacker,
                 })
+            }
+            "can't"
+                if self.at_words(&["play", "lands"])
+                    || self.at_words(&["cast", "creature", "spells"]) =>
+            {
+                let kind = if self.eat_words(&["play", "lands"]) {
+                    mtg_core::card::PlayerRuleKind::CantPlayLands
+                } else {
+                    self.expect_words(&["cast", "creature", "spells"])?;
+                    mtg_core::card::PlayerRuleKind::CantCastCreatureSpells
+                };
+                self.expect_words(&["this", "turn"])?;
+                Ok(Effect::PlayerRule { who: subject, kind })
             }
             "can't" => {
                 let keywords = if self.eat_word("block") {
@@ -4824,7 +4929,11 @@ impl P {
                 let count = self.num()?;
                 let filter = self.filter()?;
                 self.expect_word("chosen")?;
-                Ok(Effect::ReturnChosen { count, filter })
+                Ok(Effect::ReturnChosen {
+                    count,
+                    filter,
+                    who: None,
+                })
             }
             "return" => {
                 let all = self.recipients()?;
@@ -6237,6 +6346,21 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one check per recipient form
     fn recipient(&mut self) -> R<Recipient> {
+        // "A creature dealt damage this way can't be regenerated this turn."
+        if self.eat_words(&["creature", "dealt", "damage", "this", "way"]) {
+            return Ok(Recipient::DamagedThisWay);
+        }
+        // "each opponent who doesn't control an Elf".
+        if self.eat_words(&["each", "opponent", "who", "doesn't", "control"]) {
+            let f = self.filter()?;
+            self.groups.push(f);
+            return Ok(Recipient::OpponentsWithout(
+                u16::try_from(self.groups.len() - 1).map_err(|_| ParseError {
+                    line: self.line(),
+                    message: "too many groups".to_string(),
+                })?,
+            ));
+        }
         if self.at_many() {
             return self.many_target();
         }
@@ -6516,7 +6640,11 @@ impl P {
                                 | "dealt"
                                 | "blocked"
                         )
-                    ) || (self.word_at(ws.len()).as_deref() == Some("blocking")
+                    ) || self.word_at(ws.len()).as_deref() == Some("or")
+                        && self.word_at(ws.len() + 1).as_deref() == Some("planeswalker")
+                        || self.word_at(ws.len()).as_deref() == Some("they")
+                        && self.word_at(ws.len() + 1).as_deref() == Some("control")
+                        || (self.word_at(ws.len()).as_deref() == Some("blocking")
                         && matches!(self.word_at(ws.len() + 1).as_deref(), Some("this" | "or")))
                         // "each creature target player controls".
                         || (self.word_at(ws.len()).as_deref() == Some("target")
@@ -6992,6 +7120,11 @@ impl P {
                     f.dont_control = true;
                     self.pos += 3;
                 }
+                "they" if self.at_words(&["they", "control"]) => {
+                    f.who = Some(Who::Opponents);
+                    f.they_control = true;
+                    self.pos += 2;
+                }
                 "with" if self.at_words(&["with", "no", "abilities"]) => {
                     f.no_abilities = true;
                     self.pos += 3;
@@ -7248,8 +7381,12 @@ impl P {
                     });
                     self.pos += 1;
                 }
+                // "green or white creature"; "green creature or white
+                // creature" is two alternatives.
                 "or" if self.word_at(1).as_deref().and_then(color).is_some()
-                    && f.colors.is_some() =>
+                    && f.colors.is_some()
+                    && f.types.is_empty()
+                    && f.subtypes.is_empty() =>
                 {
                     self.pos += 1;
                 }
@@ -7307,7 +7444,10 @@ impl P {
                         return self.unexpected("a keyword after `with`");
                     };
                     f.keywords.push(k);
-                    while self.eat_word("and") {
+                    // "each creature with flying and each player": an
+                    // `and` not followed by a keyword ends the filter.
+                    while self.at_word("and") && self.word_at(1).as_deref() != Some("each") {
+                        self.pos += 1;
                         let Some(k) = self.keyword() else {
                             return self.unexpected("a keyword after `and`");
                         };

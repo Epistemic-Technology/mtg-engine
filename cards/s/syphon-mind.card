@@ -1,0 +1,6 @@
+card "Syphon Mind" {
+  oracle_id abc37d6c-6300-47b5-a679-9db5b83eb54f
+  cost {3}{B}
+  type Sorcery
+  spell: each other player discards 1 card; you draw count each discarded this way cards
+}

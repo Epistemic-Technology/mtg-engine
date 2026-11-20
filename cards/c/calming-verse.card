@@ -1,0 +1,6 @@
+card "Calming Verse" {
+  oracle_id c70ae479-0bd1-481c-885f-16bfa096cf58
+  cost {3}{G}
+  type Sorcery
+  spell: destroy each enchantment you don't control; then if you control untapped land, destroy each enchantment you control
+}

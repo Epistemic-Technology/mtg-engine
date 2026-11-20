@@ -1,0 +1,375 @@
+# Mass and per-player effects: damage to "each opponent and each creature
+# they control" and "each creature with flying and each player"; each
+# player choosing and acting on their own ("each player returns a creature
+# they control", "each player may scry 1", "each player may search");
+# "each opponent who doesn't control an Elf"; "for each opponent who
+# can't" after a discard; players who can't play lands or cast creature
+# spells this turn (CR 614.17); an alternative cost of having each other
+# player gain life (CR 118.9).
+
+# ---- damage to groups ----
+
+scenario "Tectonic Hazard: each opponent and each creature they control, not yours" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  battlefield B: "Llanowar Elves", "Hill Giant"
+  hand A: "Tectonic Hazard"
+  turn 1 A: cast "Tectonic Hazard"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 20
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Hill Giant" 1
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "End the Festivities: each creature and planeswalker they control" {
+  battlefield A: "Mountain", "Llanowar Elves"
+  battlefield B: "Llanowar Elves", "Jace Beleren"
+  hand A: "End the Festivities"
+  turn 1 A: cast "End the Festivities"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Llanowar Elves"
+  assert battlefield A contains "Llanowar Elves"
+  assert counters "Jace Beleren" loyalty 2
+}
+
+scenario "Claws of Wirewood: each creature with flying and each player" {
+  battlefield A: 4 "Forest", "Hill Giant"
+  battlefield B: "Serra Angel", "Wind Drake"
+  hand A: "Claws of Wirewood"
+  turn 1 A: cast "Claws of Wirewood"
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert life B 17
+  assert graveyard B contains "Wind Drake"
+  assert damage "Serra Angel" 3
+  assert damage "Hill Giant" 0
+}
+
+# ---- each player chooses and acts ----
+
+scenario "Curfew: each player returns a creature they control to its owner's hand" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Llanowar Elves"
+  hand A: "Curfew"
+  turn 1 A: cast "Curfew"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert battlefield B contains "Llanowar Elves"
+}
+
+scenario "Curfew: a player with no creature returns nothing" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Curfew"
+  turn 1 A: cast "Curfew"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert battlefield A contains "Island"
+}
+
+scenario "Jungle Wayfinder: each player may search for a basic land" {
+  battlefield A: 3 "Forest"
+  hand A: "Jungle Wayfinder"
+  library A: "Grizzly Bears", "Forest"
+  library B: "Hill Giant", "Mountain"
+  turn 1 A: cast "Jungle Wayfinder"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand B contains "Mountain"
+}
+
+scenario "Eager Construct: each player may scry 1, and the game goes on" {
+  battlefield A: 2 "Island"
+  hand A: "Eager Construct"
+  library A: "Grizzly Bears", "Forest"
+  library B: "Hill Giant", "Mountain"
+  turn 1 A: cast "Eager Construct"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Eager Construct"
+  assert library A count 2
+  assert library B count 2
+}
+
+scenario "Words of Wisdom: you draw two, then each other player draws one" {
+  battlefield A: 2 "Island"
+  hand A: "Words of Wisdom"
+  turn 1 A: cast "Words of Wisdom"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand B count 1
+}
+
+# ---- each opponent who ----
+
+scenario "Thornbow Archer: an opponent without an Elf loses 1 life" {
+  battlefield A: "Thornbow Archer"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Thornbow Archer"
+  turn 1 B: block "Thornbow Archer" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Thornbow Archer: an opponent who controls an Elf loses nothing" {
+  battlefield A: "Thornbow Archer"
+  battlefield B: "Llanowar Elves"
+  turn 1 A: attack "Thornbow Archer"
+  turn 1 B: block "Thornbow Archer" with "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Cruel Grimnarch: an opponent with no card to discard gives you 4 life" {
+  battlefield A: 6 "Swamp"
+  hand A: "Cruel Grimnarch"
+  turn 1 A: cast "Cruel Grimnarch"
+  run_to turn 1 postcombat_main
+  assert life A 24
+}
+
+scenario "Cruel Grimnarch: an opponent who discards gives nothing" {
+  battlefield A: 6 "Swamp"
+  hand A: "Cruel Grimnarch"
+  hand B: "Hill Giant"
+  turn 1 A: cast "Cruel Grimnarch"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Refurbished Familiar: for each opponent who can't discard, draw" {
+  battlefield A: 4 "Swamp"
+  hand A: "Refurbished Familiar"
+  turn 1 A: cast "Refurbished Familiar"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+# ---- players who can't ----
+
+scenario "Turf Wound: the effect ends with the turn" {
+  battlefield A: 3 "Mountain"
+  hand A: "Turf Wound"
+  hand B: "Forest"
+  turn 1 A: cast "Turf Wound" targeting player B
+  turn 2 B: play "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Forest"
+  assert hand A count 1
+}
+
+scenario "Turf Wound: you can't play a land after targeting yourself" {
+  battlefield A: 3 "Mountain"
+  hand A: "Turf Wound", "Forest"
+  turn 1 A: cast "Turf Wound" targeting player A
+  turn 1 A: wait
+  illegal turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+}
+
+scenario "Solfatara: can't play lands this turn; draw at the next upkeep" {
+  battlefield B: 3 "Mountain"
+  hand B: "Solfatara"
+  hand A: "Forest"
+  start turn 1 A upkeep
+  turn 1 upkeep B: cast "Solfatara" targeting player A
+  illegal turn 1 A: play "Forest"
+  run_to turn 2 draw
+  assert hand B count 2
+  assert hand A contains "Forest"
+}
+
+scenario "Cease-Fire: no creature spells this turn, other spells still" {
+  battlefield A: 2 "Forest"
+  battlefield B: 3 "Plains"
+  hand A: "Grizzly Bears", "Giant Growth"
+  hand B: "Cease-Fire"
+  battlefield A: "Llanowar Elves"
+  start turn 1 A upkeep
+  turn 1 upkeep B: cast "Cease-Fire" targeting player A
+  illegal turn 1 A: cast "Grizzly Bears"
+  turn 1 A: cast "Giant Growth" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert power "Llanowar Elves" 4
+}
+
+scenario "Flash of Defiance: green and white creatures can't block, red ones can" {
+  battlefield A: 2 "Mountain", "Hill Giant", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Goblin Piker"
+  hand A: "Flash of Defiance"
+  turn 1 A: cast "Flash of Defiance"
+  turn 1 A: attack "Hill Giant", "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 B: block "Hill Giant" with "Goblin Piker"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+# ---- an alternative cost paid by other players ----
+
+scenario "Reverent Silence: with a Forest, have each other player gain 6 life instead" {
+  battlefield A: "Forest", "Holy Strength" on "Grizzly Bears", "Grizzly Bears"
+  hand A: "Reverent Silence"
+  battlefield B: "Pacifism" on "Grizzly Bears"
+  turn 1 A: cast "Reverent Silence" alternative
+  run_to turn 1 postcombat_main
+  assert life B 26
+  assert untapped "Forest"
+  assert graveyard A contains "Holy Strength"
+  assert graveyard B contains "Pacifism"
+}
+
+scenario "Skyshroud Cutter: without a Forest there is no alternative" {
+  battlefield A: 4 "Mountain"
+  hand A: "Skyshroud Cutter"
+  illegal turn 1 A: cast "Skyshroud Cutter" alternative
+  run_to turn 1 postcombat_main
+}
+
+scenario "Skyshroud Cutter: with a Forest, free; the opponent gains 5" {
+  battlefield A: "Forest"
+  hand A: "Skyshroud Cutter"
+  turn 1 A: cast "Skyshroud Cutter" alternative
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Skyshroud Cutter"
+  assert life B 25
+  assert life A 20
+}
+
+# ---- existing forms on new cards ----
+
+scenario "Hurr Jackal: the creature can't be regenerated this turn" {
+  battlefield A: "Hurr Jackal", "Mountain"
+  battlefield B: "Drudge Skeletons", "Swamp"
+  hand A: "Shock"
+  turn 1 A: activate "Hurr Jackal" targeting "Drudge Skeletons"
+  turn 1 B: activate "Drudge Skeletons"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Drudge Skeletons"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Drudge Skeletons"
+}
+
+scenario "Hurr Jackal: without it, the shield saves the creature" {
+  battlefield A: "Mountain"
+  battlefield B: "Drudge Skeletons", "Swamp"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Drudge Skeletons"
+  turn 1 B: activate "Drudge Skeletons"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Drudge Skeletons"
+}
+
+scenario "Incinerate: a creature dealt damage this way can't be regenerated" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Drudge Skeletons", "Swamp"
+  hand A: "Incinerate"
+  turn 1 B: activate "Drudge Skeletons"
+  turn 1 A: cast "Incinerate" targeting "Drudge Skeletons"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Drudge Skeletons"
+}
+
+scenario "Incinerate: to a player, nothing more" {
+  battlefield A: 2 "Mountain"
+  hand A: "Incinerate"
+  turn 1 A: cast "Incinerate" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Exhume: each player puts a creature card from their graveyard onto the battlefield" {
+  battlefield A: 2 "Swamp"
+  hand A: "Exhume"
+  graveyard A: "Hill Giant", "Lightning Bolt"
+  graveyard B: "Giant Growth", "Grizzly Bears"
+  turn 1 A: cast "Exhume"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard B contains "Giant Growth"
+}
+
+scenario "Exhume: a player with no creature card puts nothing" {
+  battlefield A: 2 "Swamp"
+  hand A: "Exhume"
+  graveyard B: "Giant Growth"
+  turn 1 A: cast "Exhume"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Giant Growth"
+  assert graveyard A contains "Exhume"
+}
+
+scenario "Syphon Mind: each other player discards; draw for each card discarded" {
+  battlefield A: 4 "Swamp"
+  hand A: "Syphon Mind"
+  hand B: "Hill Giant", "Shock"
+  turn 1 A: cast "Syphon Mind"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand B count 1
+}
+
+scenario "Syphon Mind: nothing discarded, nothing drawn" {
+  battlefield A: 4 "Swamp"
+  hand A: "Syphon Mind"
+  turn 1 A: cast "Syphon Mind"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Calming Verse: with an untapped land, your enchantments go too" {
+  battlefield A: 5 "Forest", "Bad Moon"
+  battlefield B: "Bad Moon"
+  hand A: "Calming Verse"
+  turn 1 A: cast "Calming Verse"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bad Moon"
+  assert graveyard B contains "Bad Moon"
+}
+
+scenario "Calming Verse: with every land tapped, yours stay" {
+  battlefield A: 4 "Forest", "Bad Moon"
+  battlefield B: "Bad Moon"
+  hand A: "Calming Verse"
+  turn 1 A: cast "Calming Verse"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bad Moon"
+  assert graveyard B contains "Bad Moon"
+}
+
+scenario "Gangrenous Zombies: 1 damage to each creature and each player" {
+  battlefield A: "Gangrenous Zombies", "Swamp"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  turn 1 A: activate "Gangrenous Zombies"
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert life B 19
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "Gangrenous Zombies: with a snow Swamp, 2 damage instead" {
+  battlefield A: "Gangrenous Zombies", "Snow-Covered Swamp"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Gangrenous Zombies"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert life B 18
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Clip Wings: each opponent sacrifices a creature with flying" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Hill Giant", "Wind Drake"
+  hand A: "Clip Wings"
+  turn 1 A: cast "Clip Wings"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert battlefield B contains "Hill Giant"
+}

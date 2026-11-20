@@ -1,0 +1,6 @@
+card "Clip Wings" {
+  oracle_id cefa28e2-6a95-4aca-86f4-b0b741f61939
+  cost {1}{G}
+  type Instant
+  spell: each opponent sacrifices 1 creature of their choice with flying
+}

@@ -1,0 +1,7 @@
+card "Wicked Visitor" {
+  oracle_id 10330a79-a416-40da-bf5a-8b7cbd9a0498
+  cost {1}{B}
+  type Creature — Nightmare
+  pt 2/2
+  triggered whenever enchantment you control dies: each opponent loses 1 life
+}

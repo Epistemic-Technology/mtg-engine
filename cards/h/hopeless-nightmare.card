@@ -1,0 +1,8 @@
+card "Hopeless Nightmare" {
+  oracle_id 5e63b69c-d901-4a01-8dfa-88e044856239
+  cost {B}
+  type Enchantment
+  triggered when this enters: each opponent discards 1 card and loses 2 life
+  triggered when this dies: scry 2
+  activated {2}{B}: sacrifice this
+}

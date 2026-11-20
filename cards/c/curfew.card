@@ -1,0 +1,6 @@
+card "Curfew" {
+  oracle_id 6ff1e793-1569-4887-b6bb-d9855c5e8a26
+  cost {U}
+  type Instant
+  spell: each player returns 1 creature they control
+}

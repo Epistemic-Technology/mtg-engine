@@ -515,6 +515,7 @@ impl GameState {
             effects: Vec::new(),
             replacements: Vec::new(),
             rules: Vec::new(),
+            player_rules: Vec::new(),
             replacement_sources: 0,
             control_sources: 0,
             control_effects: 0,
@@ -2200,6 +2201,7 @@ impl GameState {
             .retain(|e| e.duration != Duration::UntilEndOfTurn);
         self.rules
             .retain(|e| e.duration != Duration::UntilEndOfTurn);
+        self.player_rules.clear();
         // CR 603.7c: "when that creature dies this turn" ends unfired.
         if !self.delayed_triggers.is_empty() {
             self.delayed_triggers.retain(|d| !d.this_turn);
