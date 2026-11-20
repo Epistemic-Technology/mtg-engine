@@ -1,0 +1,58 @@
+# Counter costs and kicker variants: a cost that puts a counter on its
+# source ("Put a -1/-1 counter on this creature: Untap this creature.",
+# CR 118.3, 602.2b), paid as the ability is activated, even by a mana
+# ability payment activates ("Put a -0/-1 counter on this creature: Add
+# {G}. Activate only once each turn."); "discard X creature cards".
+
+scenario "Devoted Druid untaps itself with a -1/-1 counter" {
+  battlefield A: "Devoted Druid" tapped
+  turn 1 A: activate "Devoted Druid"
+  run_to turn 1 postcombat_main
+  assert untapped "Devoted Druid"
+  assert counters "Devoted Druid" -1/-1 1
+  assert toughness "Devoted Druid" 1
+}
+
+scenario "Devoted Druid's second counter kills it as the cost is paid" {
+  battlefield A: "Devoted Druid" tapped with 1 -1/-1
+  turn 1 A: activate "Devoted Druid"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Devoted Druid"
+}
+
+scenario "Wall of Roots pays for a spell with a -0/-1 counter" {
+  battlefield A: "Wall of Roots", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Wall of Roots" -0/-1 1
+  assert toughness "Wall of Roots" 4
+}
+
+scenario "Wall of Roots adds mana only once each turn" {
+  battlefield A: "Wall of Roots"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Aether Tide discards X creature cards" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Aether Tide", "Grizzly Bears", "Hill Giant", "Forest"
+  turn 1 A: cast "Aether Tide" x 2 targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert hand A contains "Forest"
+}
+
+scenario "Aether Tide can't discard more creature cards than are in hand" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Aether Tide", "Grizzly Bears", "Forest"
+  illegal turn 1 A: cast "Aether Tide" x 2 targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}

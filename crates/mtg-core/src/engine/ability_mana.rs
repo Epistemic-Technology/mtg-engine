@@ -143,6 +143,9 @@ pub(super) struct AbilityMana {
     once_ever: bool,
     /// Counters removed from its source as a cost.
     remove: Option<(CounterKind, u32)>,
+    /// Counters put on its source as a cost ("Put a -0/-1 counter on
+    /// this creature: Add {G}.").
+    put: Option<(CounterKind, u32)>,
     /// It does more than add mana ("If there are no depletion counters on
     /// this land, sacrifice it."): the rest is applied after the mana.
     rest: bool,
@@ -170,6 +173,7 @@ pub(super) struct Activation {
     pub per_turn: bool,
     pub once_ever: bool,
     pub remove: Option<(CounterKind, u32)>,
+    pub put: Option<(CounterKind, u32)>,
     pub rest: bool,
     /// The mana it adds, colors chosen (CR 106.1b), triggered mana
     /// abilities' included.
@@ -268,6 +272,7 @@ impl GameState {
                 per_turn: false,
                 once_ever: false,
                 remove: None,
+                put: None,
                 rest: false,
                 times: 1,
                 out: made,
@@ -460,7 +465,8 @@ impl GameState {
             MAX_TIMES
         };
         let sac = cost.sacrifice.is_some();
-        let times = if cost.tap || sac || ab.once_ever || cost.remove_counters.is_some() {
+        let counters = cost.remove_counters.is_some() || cost.put_counters.is_some();
+        let times = if cost.tap || sac || ab.once_ever || counters {
             1
         } else {
             used.min(MAX_TIMES)
@@ -482,7 +488,7 @@ impl GameState {
             + 3 * req.total()
             + 2 * cost.life
             + u32::from(!cost.tap && !sac && req.total() == 0)
-            + 2 * u32::from(rest || cost.remove_counters.is_some());
+            + 2 * u32::from(rest || counters);
         Some(AbilityMana {
             id,
             ability: a,
@@ -493,6 +499,7 @@ impl GameState {
             per_turn: ab.per_turn > 0,
             once_ever: ab.once_ever,
             remove: cost.remove_counters,
+            put: cost.put_counters,
             rest,
             times,
             out,
@@ -1074,6 +1081,7 @@ fn matching(
             per_turn: a.per_turn,
             once_ever: a.once_ever,
             remove: a.remove,
+            put: a.put,
             rest: a.rest,
             mana: out.iter().map(|k| some_mana(*k)).collect(),
         })

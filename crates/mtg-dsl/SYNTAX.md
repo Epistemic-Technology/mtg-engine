@@ -157,7 +157,8 @@ the cost is paid, CR 701.9b), `discard creature
 card` (a filter: discard one matching card, printed "Discard a creature
 card"), `discard X cards` (a spell's additional cost: "As an additional
 cost to cast this spell, discard X cards."; X is announced as the spell
-is cast, at most the other cards in hand, CR 601.2b), `discard this`, `exile this from graveyard` ("Exile this card from
+is cast, at most the other cards in hand, CR 601.2b; `discard X creature
+cards` counts only matching cards), `discard this`, `exile this from graveyard` ("Exile this card from
 your graveyard"; the ability is activated from the graveyard), `return
 land you control` ("Return a land you control to its owner's hand";
 `return this`: "Return this enchantment to its owner's hand") and
@@ -361,7 +362,10 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `net`, `flood`, `glyph`, and the keyword counters `flying`, `first strike`, `trample`,
 `lifelink`, `deathtouch`, `reach`, `menace`, `vigilance`, `hexproof`,
 `indestructible` (CR 122.1b: the permanent has the keyword). A cost may
-`remove 1 charge counter from this`.
+`remove 1 charge counter from this` or `put 1 -1/-1 counter on this`
+("Put a -1/-1 counter on this creature", CR 118.3: put on as the cost is
+paid, so a creature it kills is gone before the ability resolves; a mana
+ability with it pays for spells too).
 
 Counters on a group of targets: `put 1 +1/+1 counter on up to 2 target
 creature` ("put a +1/+1 counter on each of up to two target creatures";

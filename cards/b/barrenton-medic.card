@@ -1,0 +1,8 @@
+card "Barrenton Medic" {
+  oracle_id 17661062-928c-4e33-a4f3-92ddc9d8c817
+  cost {4}{W}
+  type Creature — Kithkin Cleric
+  pt 0/4
+  activated {T}: prevent next 1 damage to any target this turn
+  activated put 1 -1/-1 counter on this: untap this creature
+}

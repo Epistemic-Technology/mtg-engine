@@ -444,6 +444,9 @@ pub struct Cost {
     /// `remove 1 charge counter from this`: "Remove a charge counter from
     /// this artifact".
     pub remove_counters: Option<(CounterKind, u32)>,
+    /// `put 1 -1/-1 counter on this`: "Put a -1/-1 counter on this
+    /// creature".
+    pub put_counters: Option<(CounterKind, u32)>,
     /// `return land you control` / `tap untapped creature you control`:
     /// what the `sacrifice` filter's chosen permanent pays.
     pub chosen: mtg_core::card::ChosenCost,
@@ -493,6 +496,7 @@ pub enum CostItem {
     /// `exile 2 cards from graveyard`.
     ExileCards,
     RemoveCounters,
+    PutCounters,
     /// `from graveyard`: activated from the graveyard (printed nowhere;
     /// the effect says "this card from your graveyard").
     FromGraveyard,

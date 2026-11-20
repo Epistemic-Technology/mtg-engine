@@ -3127,6 +3127,11 @@ fn cost_text(c: &Cost) -> String {
                     parts.push(format!("remove {n} {} from this", counter(k, Num::N(n))));
                 }
             }
+            CostItem::PutCounters => {
+                if let Some((k, n)) = c.put_counters {
+                    parts.push(format!("put {n} {} on this", counter(k, Num::N(n))));
+                }
+            }
             CostItem::Exile => {
                 if c.exile_self {
                     parts.push("exile this from graveyard".to_string());
@@ -3151,7 +3156,11 @@ fn cost_text(c: &Cost) -> String {
                 if c.discard_self {
                     parts.push("discard this".to_string());
                 } else if c.discard_x {
-                    parts.push("discard X cards".to_string());
+                    let what = c
+                        .discard_filter
+                        .as_ref()
+                        .map_or(String::new(), |f| filter(f) + " ");
+                    parts.push(format!("discard X {what}cards"));
                 } else if let Some(f) = &c.discard_filter {
                     parts.push(format!("discard {} card", filter(f)));
                 } else if c.discard > 0 {

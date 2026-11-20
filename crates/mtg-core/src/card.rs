@@ -4500,6 +4500,11 @@ pub struct Cost {
     pub crew: u32,
     /// "Remove a charge counter from this artifact" (CR 122.8).
     pub remove_counters: Option<(CounterKind, u32)>,
+    /// "Put a -1/-1 counter on this creature" (CR 118.3, 602.2b): the
+    /// counters go on the source as the cost is paid; it may die to state-
+    /// based actions before the ability resolves.
+    #[serde(default)]
+    pub put_counters: Option<(CounterKind, u32)>,
     /// "Pay {E}{E}" (CR 107.14).
     pub energy: u32,
     /// What a `SacCost::Filter` cost does to the chosen permanent:
@@ -4578,6 +4583,7 @@ impl Cost {
             exile_self: false,
             crew: 0,
             remove_counters: None,
+            put_counters: None,
             energy: 0,
             chosen: ChosenCost::Sacrifice,
             life: 0,

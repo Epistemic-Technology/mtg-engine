@@ -8693,6 +8693,20 @@ impl P {
                         cost.remove_counters = Some((k, n));
                         cost.order.push(CostItem::RemoveCounters);
                     }
+                    // `put 1 -1/-1 counter on this` (CR 118.3).
+                    "put"
+                        if (1..5).any(|k| {
+                            self.word_at(k).as_deref() == Some("on")
+                                && self.word_at(k + 1).as_deref() == Some("this")
+                        }) =>
+                    {
+                        self.pos += 1;
+                        let n = self.count()?;
+                        let k = self.counter_kind()?;
+                        self.expect_words(&["on", "this"])?;
+                        cost.put_counters = Some((k, n));
+                        cost.order.push(CostItem::PutCounters);
+                    }
                     "return" | "tap" if !matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                         cost.chosen = if w.eq_ignore_ascii_case("return") {
                             mtg_core::card::ChosenCost::Return
@@ -8747,9 +8761,14 @@ impl P {
                         if self.eat_word("this") {
                             self.eat_word("card");
                             cost.discard_self = true;
-                        } else if self.at_words(&["x", "cards"]) {
-                            // "Discard X cards" (CR 601.2b: X announced).
-                            self.pos += 2;
+                        } else if self.at_word("x") {
+                            // "Discard X cards", "Discard X creature cards"
+                            // (CR 601.2b: X announced).
+                            self.pos += 1;
+                            if !self.at_word("cards") {
+                                cost.discard_filter = Some(self.filter()?);
+                            }
+                            self.cards_word()?;
                             cost.discard_x = true;
                         } else if matches!(self.peek(), Some(Tok::Num(_))) {
                             cost.discard = self.count()?;

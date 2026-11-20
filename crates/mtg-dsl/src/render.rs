@@ -2227,6 +2227,13 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     parts.push(format!("Remove {what} from {src}"));
                 }
             }
+            CostItem::PutCounters => {
+                if let Some((k, n)) = cost.put_counters {
+                    let what = counters(Num::N(n), k);
+                    let src = ctx.source();
+                    parts.push(format!("Put {what} on {src}"));
+                }
+            }
             CostItem::FromGraveyard => {}
             CostItem::ExileCards => {
                 if let Some(g) = &cost.exile_cards {
@@ -2252,7 +2259,12 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 if cost.discard_self {
                     parts.push("Discard this card".to_string());
                 } else if cost.discard_x {
-                    parts.push("Discard X cards".to_string());
+                    // "Discard X creature cards".
+                    let kind = cost
+                        .discard_filter
+                        .as_ref()
+                        .map_or(String::new(), |f| card_filter_phrase(f, ctx.card) + " ");
+                    parts.push(format!("Discard X {kind}cards"));
                 } else if let Some(f) = &cost.discard_filter {
                     parts.push(format!("Discard {}", card_filter_a(f, ctx.card)));
                 } else if cost.discard > 0 {
@@ -3869,7 +3881,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "target nonland permanent and all other permanents with the
             // same name as that permanent ... to their owners' hands".
             let target_and = matches!(what.as_slice(), [Recipient::TargetAnd(..)]);
-            let plural = what.len() > 1 || all || target_and;
+            // "Return X target creatures to their owners' hands".
+            let plural = what.len() > 1 || all || target_and || ctx.is_many(what[0]);
             // "Return target creature card and all other cards with the
             // same name as that card from your graveyard to your hand."
             if let [Recipient::TargetAnd(t, _)] = what.as_slice()

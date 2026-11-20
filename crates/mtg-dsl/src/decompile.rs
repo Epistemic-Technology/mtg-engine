@@ -315,6 +315,7 @@ impl Decompiler<'_> {
             exile_self: c.exile_self,
             crew: c.crew,
             remove_counters: c.remove_counters,
+            put_counters: c.put_counters,
             energy: c.energy,
             chosen: c.chosen,
             count: c.count,

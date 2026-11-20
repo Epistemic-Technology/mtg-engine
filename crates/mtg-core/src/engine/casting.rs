@@ -3671,6 +3671,10 @@ impl GameState {
         if let Some((k, n)) = cost.remove_counters {
             self.remove_counters(this, k, n);
         }
+        // "Put a -1/-1 counter on this creature" (CR 118.3).
+        if let Some((k, n)) = cost.put_counters {
+            self.add_counters(this, k, n);
+        }
         if cost.reveal_hand {
             self.reveal_hand(p);
         }
@@ -4095,6 +4099,9 @@ impl GameState {
             }
             if let Some((k, n)) = act.remove {
                 self.remove_counters(act.id, k, n);
+            }
+            if let Some((k, n)) = act.put {
+                self.add_counters(act.id, k, n);
             }
             for m in act.mana {
                 self.player_mut(p).mana_pool.add(m);

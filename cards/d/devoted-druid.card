@@ -1,0 +1,8 @@
+card "Devoted Druid" {
+  oracle_id cb814e16-acf7-41d5-a357-1323dcc369f3
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 0/2
+  mana {G}
+  activated put 1 -1/-1 counter on this: untap this creature
+}

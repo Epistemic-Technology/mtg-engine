@@ -1,0 +1,7 @@
+card "Acceptable Losses" {
+  oracle_id 2b6d95b5-0680-43ae-9ff3-8e287a9eb837
+  cost {3}{R}
+  type Sorcery
+  additional cost discard 1 card at random
+  spell: deal 5 damage to target creature
+}

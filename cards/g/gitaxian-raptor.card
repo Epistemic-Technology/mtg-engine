@@ -1,0 +1,9 @@
+card "Gitaxian Raptor" {
+  oracle_id 6096b221-7b6e-4528-8b5d-8ad0fcef3fba
+  cost {2}{U}
+  type Creature — Phyrexian Bird
+  pt 1/4
+  keywords flying
+  enters with 3 oil counters
+  activated remove 1 oil counter from this: this creature gets +1/-1
+}

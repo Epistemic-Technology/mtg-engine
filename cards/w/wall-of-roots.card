@@ -1,0 +1,8 @@
+card "Wall of Roots" {
+  oracle_id 3a21a6ae-b2f2-4f0c-acfd-5f3e8d63fd2f
+  cost {1}{G}
+  type Creature — Plant Wall
+  pt 0/5
+  keywords defender
+  activated put 1 -0/-1 counter on this, once: add {G}
+}
