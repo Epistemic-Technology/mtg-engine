@@ -1356,6 +1356,10 @@ impl P {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Hexproof)
             }
+            "you" if self.at_words(&["you", "can't", "lose", "the", "game"]) => {
+                self.pos += 5;
+                self.player_static(mtg_core::card::PlayerStaticKind::CantLose)
+            }
             "you" if self.at_words(&["you", "have", "shroud"]) => {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Shroud)

@@ -4643,6 +4643,9 @@ pub enum PlayerStaticKind {
     Shroud,
     /// "Your opponents can't cast spells during your turn." (CR 101.2).
     OpponentsCantCastYourTurn,
+    /// "You can't lose the game and your opponents can't win the game."
+    /// (CR 104.3a-b, 104.2b; Platinum Angel).
+    CantLose,
     /// A rule for the whole game while the source is on the battlefield:
     /// "Players can't gain life.", "Damage can't be prevented." (CR
     /// 614.17; `GameState::rule_in_force`).

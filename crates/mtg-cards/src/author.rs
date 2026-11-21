@@ -4202,6 +4202,9 @@ impl Builder<'_> {
         // 702.18c, 103.6a).
         let player_static = match line {
             "You have hexproof." => Some("you have hexproof"),
+            "You can't lose the game and your opponents can't win the game." => {
+                Some("you can't lose the game")
+            }
             "You have shroud." => Some("you have shroud"),
             "Your opponents can't cast spells during your turn." => {
                 Some("opponents can't cast spells during your turn")

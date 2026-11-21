@@ -5233,6 +5233,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let head = match kind {
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::CantLose => "you can't lose the game".to_string(),
                 K::OpponentsCantCastYourTurn => {
                     "opponents can't cast spells during your turn".to_string()
                 }

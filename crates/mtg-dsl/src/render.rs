@@ -11751,6 +11751,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let s = match kind {
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::CantLose => {
+                    "you can't lose the game and your opponents can't win the game".to_string()
+                }
                 K::OpponentsCantCastYourTurn => {
                     "your opponents can't cast spells during your turn".to_string()
                 }

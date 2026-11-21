@@ -85,7 +85,10 @@ impl GameState {
             for i in 0..self.num_players() {
                 let p = PlayerId(u8::try_from(i).unwrap_or(0));
                 let ps = self.player(p);
-                if ps.lost.is_some() {
+                if ps.lost.is_some()
+                    || (ps.life <= 0 || ps.drew_from_empty_library || ps.poison >= 10)
+                        && self.cant_lose(p)
+                {
                     continue;
                 }
                 let reason = if ps.life <= 0 {

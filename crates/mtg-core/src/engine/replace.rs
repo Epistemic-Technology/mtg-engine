@@ -1555,6 +1555,13 @@ impl GameState {
     /// CR 104.2b: an effect makes `winner` win; every opponent leaves the
     /// game.
     pub(super) fn win_game(&mut self, winner: PlayerId) {
+        // "Your opponents can't win the game" (Platinum Angel).
+        if self
+            .players_in_game()
+            .any(|p| p != winner && self.cant_lose(p))
+        {
+            return;
+        }
         self.emit(Event::PlayerWon { player: winner });
         let losers: Vec<PlayerId> = self.players_in_game().filter(|p| *p != winner).collect();
         for p in losers {

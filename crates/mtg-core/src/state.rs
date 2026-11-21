@@ -2324,6 +2324,15 @@ impl GameState {
             })
     }
 
+    /// Whether `p` can't lose the game, and their opponents can't win it
+    /// ("You can't lose the game and your opponents can't win the game.").
+    pub fn cant_lose(&self, p: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && self
+                .player_statics()
+                .any(|(who, kind)| who == p && kind == crate::card::PlayerStaticKind::CantLose)
+    }
+
     /// Whether `p` can't cast spells now: an opponent's "Your opponents
     /// can't cast spells during your turn." during that opponent's turn.
     pub fn cant_cast_spells(&self, p: PlayerId) -> bool {
