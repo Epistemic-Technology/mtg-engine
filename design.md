@@ -2718,3 +2718,37 @@ scenario cannot choose a mode for a triggered or activated ability.
 Coverage: 89.1% of Pauper, 53.7% of Standard, 54.5% of Modern; gate
 14,926 match; 6,751 scenarios pass; random-deck fuzz clean over 30,000
 games. The bench was not run.
+
+Status 2026-11-21: the third wave. Ten more card batches accepted 112 of
+400 Standard cards (28%), their scenarios now checking amounts and
+targets. Seven feature agents, partitioned: land entry conditions,
+additional land plays, opening-hand cards, hexproof from, and
+player-level statics (84 cards); job select / harmonize / endure /
+web-slinging / forage / impending (42); recruit / increment / storied /
+airbend / fathomless descent / paradigm / cloak / pawprint modes (42);
+commit a crime, finality counters, additional combat phases, extra
+turns, counter-placement and damage-batch triggers, "the second time
+this ability has resolved" (81); effects on the top of a library,
+playing from it, discard-then-draw, granted flashback (117); renderer
+wording near-misses (123); and the open bug list from the second wave.
+Bugs fixed that changed cards already accepted: counts in granted
+abilities read the granting card; X in a permanent's enters trigger is
+the spell's X (Gadwick, Spiteful Banditry, Ajani's Anguish, and Dune
+Drifter had run with 0); modal activated abilities always took the first
+mode; graveyard abilities never paid a "sacrifice a ..." cost; "with
+mana value X" on a group restricted nothing; a mode number above 7 was
+truncated; an optional counter removal fired "when you do" with no
+counter; greatest-mana-value and devotion counts read 0 in statics.
+Scenarios can now choose the mode of a triggered or activated ability.
+Merging found one more shared bit (two branches' `DefFlags`) and one
+primitive built twice ("its mana value"; one version kept). Open: a
+declined "up to N" target skips every later target
+(`scenarios/m5/declined-up-to.scn`, skipped); a choose-two pair whose
+modes share a target is not offered with one creature (Brigid's
+Command); finality's exile is not offered as a replacement choice;
+automatic payment may let a mana ability with a blight, evidence, or
+behold cost through unpaid (unchecked); many counts still read 0 in a
+static ability while the gate matches. Per-game throughput fell 4.0%
+this wave (mono-red mirror, pinned best of five: 3,678 to 3,531
+games/s). Coverage: 89.6% of Pauper, 60.3% of Standard, 57.1% of Modern;
+gate 15,519 match; 7,556 scenarios pass; random-deck fuzz clean.
