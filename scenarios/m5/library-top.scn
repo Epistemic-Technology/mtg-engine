@@ -241,6 +241,61 @@ scenario "granted flashback: it needs the card's mana cost" {
   assert graveyard A contains "Lightning Bolt"
 }
 
+scenario "impulse choose one: only the chosen card may be played (Mishra's Research Desk)" {
+  battlefield A: "Mishra's Research Desk", 3 "Mountain"
+  library A: "Shock", "Lightning Bolt", "Island"
+  turn 1 A: activate "Mishra's Research Desk"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert exile A contains "Shock"
+}
+
+scenario "impulse from an opponent's library: Ornate Kanzashi" {
+  battlefield A: "Ornate Kanzashi", 3 "Mountain"
+  library B: "Lightning Bolt", "Island"
+  turn 1 A: activate "Ornate Kanzashi" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert graveyard B contains "Lightning Bolt"
+  assert library B count 1
+}
+
+scenario "impulse from an opponent's library: its owner can't play it" {
+  battlefield A: "Ornate Kanzashi", 2 "Mountain"
+  battlefield B: "Mountain"
+  library B: "Lightning Bolt", "Island", "Island"
+  turn 1 A: activate "Ornate Kanzashi" targeting player B
+  illegal turn 1 end B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 cleanup
+  assert life A 20
+  assert exile B contains "Lightning Bolt"
+}
+
+scenario "exile the top card: Precognition Field" {
+  battlefield A: "Precognition Field", 3 "Island"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: activate "Precognition Field"
+  run_to turn 1 end
+  assert exile A contains "Grizzly Bears"
+  assert library A count 1
+}
+
+scenario "exile the top cards of each opponent's library: Fathom Feeder" {
+  battlefield A: "Fathom Feeder", 2 "Island", 2 "Swamp", "Plains"
+  library A: "Plains", "Plains"
+  library B: "Grizzly Bears", "Island"
+  turn 1 A: activate "Fathom Feeder"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert hand A count 1
+}
+
 scenario "play from top: Johann's permission returns the next turn" {
   battlefield A: "Johann, Apprentice Sorcerer", 4 "Mountain"
   library A: "Shock", "Lightning Bolt", "Island", "Island"

@@ -1,0 +1,9 @@
+card "Ulamog, the Ceaseless Hunger" {
+  oracle_id 0bfa4512-e35a-4c93-b324-80ec659f5a97
+  cost {10}
+  type Legendary Creature — Eldrazi
+  pt 10/10
+  triggered when you cast this: exile two target permanents
+  keywords indestructible
+  triggered whenever this attacks: defending player exiles top 20 cards
+}

@@ -1253,10 +1253,16 @@ impl Decompiler<'_> {
             CoreEffect::Populate => Effect::Populate,
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
             CoreEffect::Fabricate { .. }
-            | CoreEffect::BecomeRenowned
-            | CoreEffect::ExileTop { .. } => {
+            | CoreEffect::BecomeRenowned => {
                 unreachable!("decompiled as a keyword line")
             }
+            CoreEffect::ExileTop { who, count } => Effect::ExileTop {
+                count: *count,
+                who: match who {
+                    CoreRecipient::You => None,
+                    w => Some(Self::recipient(*w)),
+                },
+            },
             CoreEffect::Discover(n) => Effect::Discover(*n),
             CoreEffect::Soulbond { triggering } => Effect::Soulbond {
                 triggering: *triggering,
@@ -1333,11 +1339,19 @@ impl Decompiler<'_> {
                 who: None,
                 that_player: false,
             },
-            CoreEffect::ExilePlayable { count, until } => Effect::ExilePlayable {
+            CoreEffect::ExilePlayable {
+                count,
+                until,
+                choose,
+                from,
+            } => Effect::ExilePlayable {
                 count: *count,
                 until: *until,
                 first: *until != mtg_core::card::PlayUntil::YourNextEndStep,
                 it: false,
+                choose: *choose,
+                from: from.map(Self::recipient),
+                this_way: false,
             },
             CoreEffect::Dig {
                 count,
@@ -1982,7 +1996,16 @@ impl Decompiler<'_> {
                 Ability::Mechanic(crate::ast::Mechanic::Fabricate(*count))
             }
             AbilityDef::Triggered(t)
-                if matches!(t.effects.as_slice(), [CoreEffect::ExileTop { .. }]) =>
+                if matches!(
+                    t.effects.as_slice(),
+                    [CoreEffect::ExileTop {
+                        who: CoreRecipient::TriggeringPlayer,
+                        count: mtg_core::card::Num::N(1),
+                    }]
+                ) && matches!(
+                    t.trigger,
+                    TriggerSpec::DealsCombatDamageToPlayer(mtg_core::card::TriggerObj::This)
+                ) =>
             {
                 Ability::Mechanic(crate::ast::Mechanic::Ingest)
             }

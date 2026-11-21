@@ -1,0 +1,6 @@
+card "Worldly Counsel" {
+  oracle_id 079b1f07-6910-491b-83ba-5ec41260f32d
+  cost {1}{U}
+  type Instant
+  label "Domain" spell: dig count where domain take card rest bottom reword
+}

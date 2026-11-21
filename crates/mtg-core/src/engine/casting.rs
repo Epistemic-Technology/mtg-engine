@@ -7673,12 +7673,17 @@ impl GameState {
                     }
                 }
             }
-            Effect::ExileTop { who } => {
+            Effect::ExileTop { who, count } => {
+                let n = self.eval_num(*count, ctx);
                 for t in self.recipients(ctx, *who) {
-                    if let Target::Player(p) = t
-                        && let Some(top) = self.player(p).library.last().copied()
-                    {
-                        self.move_object(top, Zone::Exile, true);
+                    if let Target::Player(p) = t {
+                        for _ in 0..n {
+                            let Some(top) = self.player(p).library.last().copied() else {
+                                break;
+                            };
+                            let new = self.move_object(top, Zone::Exile, true);
+                            ctx.created = Some(new);
+                        }
                     }
                 }
             }
@@ -10462,27 +10467,59 @@ impl GameState {
                     }
                 }
             }
-            Effect::ExilePlayable { count, until } => {
+            Effect::ExilePlayable {
+                count,
+                until,
+                choose,
+                from,
+            } => {
                 let p = ctx.controller;
+                // "Target opponent exiles the top card of their library":
+                // their library; the permission is still the controller's.
+                let lib = match from {
+                    Some(w) => match self.recipients(ctx, *w).first() {
+                        Some(Target::Player(q)) => *q,
+                        _ => return,
+                    },
+                    None => p,
+                };
                 // "Until the end of your next turn": through this turn too
                 // when it's already the controller's.
                 let own_ends = if self.active_player == p { 2 } else { 1 };
-                for _ in 0..self.eval_num(*count, ctx) {
-                    let Some(top) = self.player(p).library.last().copied() else {
-                        break;
-                    };
-                    let new = self.move_object(top, Zone::Exile, true);
-                    if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
-                        self.exile_casts
-                            .get_or_insert_with(Box::default)
-                            .playable
-                            .push(crate::state::PlayableExile {
-                                card: new,
-                                player: p,
-                                until: *until,
-                                own_ends,
-                            });
+                let n = self.eval_num(*count, ctx) as usize;
+                let top: Vec<ObjId> = self.player(lib).library.iter().rev().take(n).copied().collect();
+                // "Choose one of them.": only that one may be played. The
+                // choice names the cards as they were before they moved,
+                // the objects the resolution began with; they are exiled
+                // all the same.
+                let chosen = if *choose && top.len() > 1 {
+                    let options: Vec<Choice> = top
+                        .iter()
+                        .map(|id| Choice::Target(Target::Object(*id)))
+                        .collect();
+                    Some(top[self.choose_mid(p, DecisionKind::ChooseCard, options)])
+                } else {
+                    None
+                };
+                let mut exiled: Vec<ObjId> = Vec::new();
+                for id in top {
+                    let new = self.move_object(id, Zone::Exile, true);
+                    if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile)
+                        && chosen.is_none_or(|c| c == id)
+                    {
+                        exiled.push(new);
                     }
+                }
+                for new in exiled {
+                    self.exile_casts
+                        .get_or_insert_with(Box::default)
+                        .playable
+                        .push(crate::state::PlayableExile {
+                            card: new,
+                            player: p,
+                            until: *until,
+                            own_ends,
+                        });
                 }
             }
             Effect::Manifest => {

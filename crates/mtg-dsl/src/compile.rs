@@ -2775,9 +2775,21 @@ impl Compiler<'_> {
                     to: *to,
                 });
             }
-            Effect::ExilePlayable { count, until, .. } => out.push(CoreEffect::ExilePlayable {
+            Effect::ExileTop { count, who } => out.push(CoreEffect::ExileTop {
+                who: who.map_or(CoreRecipient::You, r),
+                count: *count,
+            }),
+            Effect::ExilePlayable {
+                count,
+                until,
+                choose,
+                from,
+                ..
+            } => out.push(CoreEffect::ExilePlayable {
                 count: *count,
                 until: *until,
+                choose: *choose,
+                from: from.map(r),
             }),
             Effect::Dig {
                 count,
@@ -4132,6 +4144,7 @@ impl Compiler<'_> {
                     targets: Vec::new(),
                     effects: vec![CoreEffect::ExileTop {
                         who: CoreRecipient::TriggeringPlayer,
+                        count: mtg_core::card::Num::N(1),
                     }],
                 }),
                 // CR 702.101a: "Whenever you cast a spell, you may pay

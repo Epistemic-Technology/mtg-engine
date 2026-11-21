@@ -1,0 +1,6 @@
+card "Ornate Kanzashi" {
+  oracle_id 3c41c666-5cf4-4f35-9cb8-c41f1f78f31e
+  cost {5}
+  type Artifact
+  activated {2}, {T}: impulse 1 this turn of target opponent
+}

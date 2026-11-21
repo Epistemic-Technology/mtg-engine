@@ -218,6 +218,8 @@ pub fn add_dungeons(pool: &mut CardPool) {
             vec![Effect::ExilePlayable {
                 count: n(2),
                 until: PlayUntil::Forever,
+                choose: false,
+                from: None,
             }],
         ),
         room(

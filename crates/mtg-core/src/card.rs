@@ -2932,6 +2932,11 @@ pub enum Num {
 }
 
 impl Num {
+    /// One (a serde default).
+    pub const fn one() -> Num {
+        Num::N(1)
+    }
+
     /// The value without game state: a count is 0 here (see
     /// `GameState::eval_num`).
     pub const fn eval(self, x: u32) -> u32 {
@@ -3052,9 +3057,13 @@ pub enum Effect {
         who: Recipient,
     },
     /// The recipient player exiles the top card of their library (ingest,
-    /// CR 702.115a).
+    /// CR 702.115a), or the top `count` cards ("Exile the top three cards
+    /// of your library.", "Each opponent exiles the top card of their
+    /// library.").
     ExileTop {
         who: Recipient,
+        #[serde(default = "Num::one")]
+        count: Num,
     },
     /// The controller gets an emblem (CR 114) with this definition's
     /// abilities, in the command zone.
@@ -3818,9 +3827,17 @@ pub enum Effect {
     /// play the exiled cards, paying their costs and following the usual
     /// timing rules and land-play allowance (CR 305.2, 601.3), for as long
     /// as `until` says.
+    /// With `choose`, "Choose one of them.": only the card the
+    /// controller chooses may be played. With `from`, the cards come from
+    /// that player's library ("Target opponent exiles the top card of
+    /// their library. You may play that card this turn.").
     ExilePlayable {
         count: Num,
         until: PlayUntil,
+        #[serde(default)]
+        choose: bool,
+        #[serde(default)]
+        from: Option<Recipient>,
     },
     /// "Look at the top three cards of your library, then put them back in
     /// any order" (the engine keeps the order). `who` owns the library
@@ -4205,6 +4222,8 @@ impl Effect {
                 | Effect::IfCondition(..)
                 | Effect::IfTarget { .. }
                 | Effect::IfCard { .. }
+                // "Choose one of them."
+                | Effect::ExilePlayable { choose: true, .. }
                 // A card put onto the battlefield is not known until it
                 // resolves: it can meet its namesake or a replacement.
                 | Effect::PutCard {

@@ -1,0 +1,7 @@
+card "Strongbox Raider" {
+  oracle_id ba5a2689-3578-4b1a-99d6-6b6d2356330e
+  cost {2}{R}{R}
+  type Creature — Orc Pirate
+  pt 5/2
+  label "Raid" triggered when this enters if attacked this turn: impulse 2 next turn first choose
+}

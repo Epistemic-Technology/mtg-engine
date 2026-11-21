@@ -3015,6 +3015,8 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::CreateToken { count, .. }
         | Effect::EmpowerJace { count }
         | Effect::Dig { count, .. }
+        | Effect::ExilePlayable { count, .. }
+        | Effect::ExileTop { count, .. }
         | Effect::Earthbend { count, .. } => vec![*count],
         Effect::CopySpells { times, .. } => vec![*times],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
@@ -3494,7 +3496,12 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             // "look at the top X cards of your library, where X is ...
             // . Put two of those cards into your hand ...".
-            CountStyle::Where if matches!(e, Effect::Dig { .. }) => {
+            CountStyle::Where
+                if matches!(
+                    e,
+                    Effect::Dig { .. } | Effect::ExilePlayable { .. } | Effect::ExileTop { .. }
+                ) =>
+            {
                 let phrase = count_phrase_in(&count.expr, ctx, false);
                 c.text = c.text.replacen(
                     " cards of your library",
@@ -3870,23 +3877,59 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "becomes prepared".to_string())
         }
+        Effect::ExileTop { count, who } => {
+            let one = *count == Num::N(1);
+            let whose = if who.is_some() { "their" } else { "your" };
+            let what = if one {
+                format!("the top card of {whose} library")
+            } else {
+                format!("the top {} cards of {whose} library", count_words(*count, "one"))
+            };
+            match who {
+                None => Clause::imperative(format!("exile {what}")),
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    Clause::with_subject(*w, s, format!("{} {what}", ctx.verb(*w, "exiles", "exile")))
+                }
+            }
+        }
         Effect::ExilePlayable {
             count,
             until,
             first,
             it,
+            choose,
+            from,
+            this_way,
         } => {
             use mtg_core::card::PlayUntil;
             let one = *count == Num::N(1);
+            let whose = if from.is_some() { "their" } else { "your" };
+            let exile = if from.is_some() { "exiles" } else { "exile" };
             let head = if one {
-                "exile the top card of your library".to_string()
+                format!("{exile} the top card of {whose} library")
+            } else if *count == Num::ThatMuch {
+                // "exile that many cards from the top of your library".
+                format!("{exile} that many cards from the top of {whose} library")
             } else {
                 format!(
-                    "exile the top {} cards of your library",
+                    "{exile} the top {} cards of {whose} library",
                     count_words(*count, "one")
                 )
             };
-            let what = match (one, *it) {
+            let head = match from {
+                Some(w) => format!("{} {head}", ctx.subj(*w)),
+                None => head,
+            };
+            // "Choose one of them. Until the end of your next turn, you may
+            // play that card."
+            let head = if *choose {
+                format!("{head}. Choose one of them")
+            } else {
+                head
+            };
+            let what = match (one || *choose, *it) {
+                _ if *this_way => "cards exiled this way",
                 (true, true) => "it",
                 (true, false) => "that card",
                 // "You may play them until the end of your next turn."
@@ -4233,6 +4276,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             if filter.is_none() && *take != 1 {
                 let k = count_words(Num::N(*take), "one");
+                // "Put up to two of them into your hand and the rest into
+                // your graveyard."
+                if *optional {
+                    return Clause::imperative(format!(
+                        "{head}. Put up to {k} of them into your hand and {}",
+                        rest("the rest")
+                    ));
+                }
                 // "Put two of them into your hand and the other into your
                 // graveyard." (Dark Bargain): one card left over.
                 if *count == Num::N(*take + 1) {

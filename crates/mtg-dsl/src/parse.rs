@@ -5054,6 +5054,15 @@ impl P {
             }
             // "Target opponent exiles two cards from their hand", "exiles
             // a creature they control".
+            "exiles" if self.at_word("top") => {
+                self.pos += 1;
+                let count = self.num()?;
+                self.cards_word()?;
+                Ok(Effect::ExileTop {
+                    count,
+                    who: Some(subject),
+                })
+            }
             "exiles" => {
                 let count = if self.eat_word("a") || self.eat_word("an") {
                     Num::N(1)
@@ -6347,6 +6356,17 @@ impl P {
                 if self.eat_words(&["all", "graveyards"]) {
                     return Ok(Effect::ExileAllGraveyards);
                 }
+                // `exile top 3 cards`: from the top of your library.
+                if self.at_word("top")
+                    && (matches!(self.peek_at(1), Some(Tok::Num(_)))
+                        || self.word_at(1).as_deref() == Some("count")
+                        || self.word_at(1).as_deref() == Some("X"))
+                {
+                    self.pos += 1;
+                    let count = self.num()?;
+                    self.cards_word()?;
+                    return Ok(Effect::ExileTop { count, who: None });
+                }
                 if self.eat_words(&["graveyard", "of"]) {
                     let who = self.recipient()?;
                     return Ok(Effect::ExileGraveyard { who });
@@ -6446,11 +6466,21 @@ impl P {
                 };
                 let first = self.eat_word("first");
                 let it = self.eat_word("it");
+                let choose = self.eat_word("choose");
+                let this_way = self.eat_words(&["this", "way"]);
+                let from = if self.eat_word("of") {
+                    Some(self.recipient()?)
+                } else {
+                    None
+                };
                 Ok(Effect::ExilePlayable {
                     count,
                     until,
                     first,
                     it,
+                    choose,
+                    from,
+                    this_way,
                 })
             }
             "dig" => {

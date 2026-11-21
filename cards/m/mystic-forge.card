@@ -1,0 +1,8 @@
+card "Mystic Forge" {
+  oracle_id 994bc16d-fdc6-475c-96df-beeb4d5aa03e
+  cost {4}
+  type Artifact
+  may look top
+  play from top spells artifact or colorless
+  activated {T}, pay 1 life: exile top 1 card
+}

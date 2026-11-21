@@ -1,0 +1,6 @@
+card "Machinate" {
+  oracle_id 545399a0-f1f5-40bc-bd40-038946df8ad7
+  cost {1}{U}{U}
+  type Instant
+  spell: dig count where artifact you control take card rest bottom reword
+}

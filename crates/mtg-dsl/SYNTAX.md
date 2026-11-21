@@ -1450,7 +1450,16 @@ the usual timing permissions and a land only with a land play left, CR
 305.2, 601.3; `impulse 1 this turn` is "You may play that card this
 turn.", `first` puts the duration first ("Until end of turn, you may
 play that card."), `it` prints "it" for "that card", and `next end step`
-is "until your next end step", which ends as that step begins),
+is "until your next end step", which ends as that step begins; `choose`
+adds "Choose one of them." and only that card may be played, `this way`
+prints "cards exiled this way", `of target opponent` takes the cards from
+that player's library ("Target opponent exiles the top card of their
+library. You may play that card this turn.", the permission still yours),
+a count `count where ...` prints "the top X cards of your library, where
+X is ...", and `that much` "exile that many cards from the top of your
+library"), `exile top 3 cards` ("Exile the top three cards of your
+library."; `exile top 1 card`: "the top card"; `each opponent exiles top 1
+card`: "Each opponent exiles the top card of their library."),
 `counter target spell`, `counter target spell unless its controller pays {3}`,
 `... pays {X}` (the spell's X), `... pays {X} count each hand` ("{1} for
 each card in your hand"; `count each 2 Wizard on battlefield` is "{2} for

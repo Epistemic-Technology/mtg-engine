@@ -801,6 +801,9 @@ impl Fmt {
                 until,
                 first,
                 it,
+                choose,
+                from,
+                this_way,
             } => {
                 let mut s = format!(
                     "impulse {} {}",
@@ -818,7 +821,24 @@ impl Fmt {
                 if *it {
                     s.push_str(" it");
                 }
+                if *choose {
+                    s.push_str(" choose");
+                }
+                if *this_way {
+                    s.push_str(" this way");
+                }
+                if let Some(w) = from {
+                    let _ = write!(s, " of {}", self.recipient(*w, t));
+                }
                 s
+            }
+            Effect::ExileTop { count, who } => {
+                let n = num(*count);
+                let cs = if *count == Num::N(1) { "card" } else { "cards" };
+                match who {
+                    None => format!("exile top {n} {cs}"),
+                    Some(w) => format!("{} exiles top {n} {cs}", self.recipient(*w, t)),
+                }
             }
             Effect::Dig {
                 count,

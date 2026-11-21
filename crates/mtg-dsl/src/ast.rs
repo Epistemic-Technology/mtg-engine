@@ -3611,6 +3611,20 @@ pub enum Effect {
         /// The duration before "you may play".
         first: bool,
         it: bool,
+        /// `choose`: "Choose one of them. ... you may play that card."
+        choose: bool,
+        /// `of target opponent`: "Target opponent exiles the top card of
+        /// their library. You may play that card this turn."
+        from: Option<Recipient>,
+        /// `this way`: "you may play cards exiled this way".
+        this_way: bool,
+    },
+    /// `exile top 3 cards`: "Exile the top three cards of your library."
+    /// (`exile top 1 card`: "the top card"); `each opponent exiles top 1
+    /// card`: "Each opponent exiles the top card of their library."
+    ExileTop {
+        count: Num,
+        who: Option<Recipient>,
     },
     /// `choose one { mode: ... }` as a triggered ability's effect: "When
     /// this creature enters, choose one —" (CR 603.3c).
