@@ -1,0 +1,8 @@
+card "Hylderblade" {
+  oracle_id 64ca59b8-6e90-46c8-8047-6172b9c84226
+  cost {B}
+  type Artifact — Equipment
+  static equipped creature: +3/+1
+  label "Void" triggered at beginning of your end step if void: attach this to target creature you control
+  equip {4}
+}

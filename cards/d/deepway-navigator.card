@@ -1,0 +1,9 @@
+card "Deepway Navigator" {
+  oracle_id 812df594-75af-494f-be09-5f9633aca46a
+  cost {W}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  keywords flash
+  triggered when this enters: untap each single other Merfolk you control
+  static as long as attacked with 3 Merfolk this turn, Merfolk you control: +1/+0
+}

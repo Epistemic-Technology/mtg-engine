@@ -1546,6 +1546,32 @@ impl Compiler<'_> {
             StaticCond::Or(a, b) | StaticCond::OrIf(a, b) => {
                 StaticCondition::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
+            StaticCond::And(a, b) => {
+                StaticCondition::And(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
+            }
+            StaticCond::CastBoth(a, b) => {
+                let cast = |c: &mut Self, f: &Filter| StaticCondition::CastThisTurn {
+                    filter: c.filter(f),
+                    at_least: 1,
+                    other: false,
+                };
+                StaticCondition::And(Box::new(cast(self, a)), Box::new(cast(self, b)))
+            }
+            StaticCond::CreaturesDied { n, yours } => StaticCondition::CreaturesDied {
+                n: *n,
+                yours: *yours,
+            },
+            StaticCond::OpponentMoreLands => StaticCondition::OpponentMoreLands,
+            StaticCond::Void => StaticCondition::Void,
+            StaticCond::NotYourMainPhase => StaticCondition::NotYourMainPhase,
+            StaticCond::NotCastFromHand => {
+                StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
+            }
+            StaticCond::PutAnyCounterThisTurn => StaticCondition::PutAnyCounterThisTurn,
+            StaticCond::AttackedWithAtLeast(f, n) => {
+                StaticCondition::AttackedWithAtLeast(self.filter(f), *n)
+            }
+            StaticCond::TotalToughness(n) => StaticCondition::TotalToughness(*n),
             StaticCond::OpponentGraveyard(n) => StaticCondition::OpponentGraveyard(*n),
             StaticCond::ManaValuesInGraveyard(n) => StaticCondition::ManaValuesInGraveyard(*n),
             StaticCond::OpponentControls { filter, at_least } => {
@@ -1892,7 +1918,9 @@ impl Compiler<'_> {
             | Recipient::SameTokens
             | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
-            Recipient::Manifested | Recipient::CreatedObject => CoreRecipient::CreatedObject,
+            Recipient::Manifested | Recipient::CreatedObject | Recipient::CreatedThat => {
+                CoreRecipient::CreatedObject
+            }
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,

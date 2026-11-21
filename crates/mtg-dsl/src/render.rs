@@ -1324,6 +1324,7 @@ impl<'a> Ctx<'a> {
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
             }
+            Recipient::CreatedThat => "that creature".to_string(),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 // "each creature and planeswalker they control": Oracle
@@ -10169,6 +10170,47 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::NotKicked => format!("this {} wasn't kicked", kicked_noun(card)),
         StaticCond::Impending => {
             "this permanent's impending cost was paid and it has a time counter on it".to_string()
+        }
+        StaticCond::And(a, b) => format!(
+            "{} and {}",
+            static_cond_text(a, card),
+            static_cond_text(b, card)
+        ),
+        StaticCond::CastBoth(a, b) => format!(
+            "you've cast both {} and {} this turn",
+            with_article(&spell_noun(&card_filter_phrase(a, card))),
+            with_article(&spell_noun(&card_filter_phrase(b, card)))
+        ),
+        StaticCond::CreaturesDied { yours: true, .. } => {
+            "a creature died under your control this turn".to_string()
+        }
+        StaticCond::CreaturesDied { n, .. } => {
+            format!("{} creatures died this turn", or_more(*n))
+        }
+        StaticCond::OpponentMoreLands => "an opponent controls more lands than you".to_string(),
+        StaticCond::Void => {
+            "a nonland permanent left the battlefield this turn or a spell was warped this turn"
+                .to_string()
+        }
+        StaticCond::NotYourMainPhase => "it isn't your main phase".to_string(),
+        StaticCond::NotCastFromHand => format!(
+            "{} was cast from anywhere other than your hand",
+            if is_instant_or_sorcery(card) {
+                "this spell"
+            } else {
+                "it"
+            }
+        ),
+        StaticCond::PutAnyCounterThisTurn => {
+            "you put a counter on a creature this turn".to_string()
+        }
+        StaticCond::AttackedWithAtLeast(f, n) => format!(
+            "you attacked with {} {} this turn",
+            or_more(*n),
+            filter_phrase(f, card, true)
+        ),
+        StaticCond::TotalToughness(n) => {
+            format!("creatures you control have total toughness {n} or greater")
         }
         StaticCond::Bargained
             if card.types.iter().any(|t| {

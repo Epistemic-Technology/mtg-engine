@@ -2433,6 +2433,36 @@ pub enum StaticCondition {
     /// time counter on it" (CR 702.176a): impending's static ability and
     /// end step trigger.
     Impending,
+    /// Both hold ("if there is an Elf card in your graveyard and this
+    /// creature has a -1/-1 counter on it").
+    And(Box<StaticCondition>, Box<StaticCondition>),
+    /// "two or more creatures died this turn" (`n`); with `yours`, "a
+    /// creature died under your control this turn": creatures put into a
+    /// graveyard from the battlefield this turn (CR 700.4), under your
+    /// control as they died.
+    CreaturesDied {
+        n: u32,
+        yours: bool,
+    },
+    /// "an opponent controls more lands than you".
+    OpponentMoreLands,
+    /// Void: "a nonland permanent left the battlefield this turn or a
+    /// spell was warped this turn" (CR 702.185).
+    Void,
+    /// "it isn't your main phase" (CR 505.1).
+    NotYourMainPhase,
+    /// "this spell was cast from anywhere other than your hand": the
+    /// source was cast (CR 601.2a), from another zone than this one.
+    NotCastFrom(crate::state::Zone),
+    /// "you put a counter on a creature this turn": a spell or ability you
+    /// controlled put counters of any kind on a creature (CR 122.6).
+    PutAnyCounterThisTurn,
+    /// "you attacked with three or more Merfolk this turn": at least `n`
+    /// creatures matching the filter (judged now, or as they last existed)
+    /// attacked under your control this turn.
+    AttackedWithAtLeast(ObjFilter, u32),
+    /// "creatures you control have total toughness 10 or greater".
+    TotalToughness(u32),
 }
 
 /// What a "mana spent to cast" condition or count looks at (CR 601.2h).
@@ -8227,6 +8257,10 @@ impl CardPool {
                     | StaticCondition::SurveilledThisTurn
                     | StaticCondition::OpponentDamagedThisTurn
                     | StaticCondition::OpponentLostLifeThisTurn
+                    | StaticCondition::AttackedWith(_)
+                    | StaticCondition::AttackedWithAtLeast(..)
+                    | StaticCondition::PutAnyCounterThisTurn
+                    | StaticCondition::Void
             )) || sa.parts.iter().any(|m| matches!(
                 m,
                 Modification::ModifyPtPer { count, .. } | Modification::CdaPt { count, .. }

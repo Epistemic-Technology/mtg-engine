@@ -1,0 +1,6 @@
+card "Dose of Dawnglow" {
+  oracle_id f852bc33-e2f8-43be-9e6e-7badd1f894ef
+  cost {4}{B}
+  type Instant
+  spell: return target creature card from your graveyard to battlefield; then if not your main phase, blight 2
+}

@@ -2061,6 +2061,40 @@ pub enum StaticCond {
     /// `impending`: "this permanent's impending cost was paid and it has
     /// a time counter on it" (CR 702.176a).
     Impending,
+    /// `<cond> and <cond>`: both hold ("there is an Elf card in your
+    /// graveyard and this creature has a -1/-1 counter on it").
+    And(Box<StaticCond>, Box<StaticCond>),
+    /// `cast both creature spell and noncreature spell this turn`:
+    /// "you've cast both a creature spell and a noncreature spell this
+    /// turn" (each filter at least once).
+    CastBoth(Filter, Filter),
+    /// `2 creatures died this turn`: "two or more creatures died this
+    /// turn"; `creature died under your control this turn`: "a creature
+    /// died under your control this turn" (`yours`, `n` 1).
+    CreaturesDied {
+        n: u32,
+        yours: bool,
+    },
+    /// `opponent controls more lands`: "an opponent controls more lands
+    /// than you".
+    OpponentMoreLands,
+    /// `void`: "a nonland permanent left the battlefield this turn or a
+    /// spell was warped this turn".
+    Void,
+    /// `not your main phase`: "it isn't your main phase".
+    NotYourMainPhase,
+    /// `cast from anywhere other than hand`: "this spell was cast from
+    /// anywhere other than your hand".
+    NotCastFromHand,
+    /// `put any counter this turn`: "you put a counter on a creature this
+    /// turn" (any kind).
+    PutAnyCounterThisTurn,
+    /// `attacked with 3 Merfolk this turn`: "you attacked with three or
+    /// more Merfolk this turn".
+    AttackedWithAtLeast(Filter, u32),
+    /// `total toughness 10 or more`: "creatures you control have total
+    /// toughness 10 or greater".
+    TotalToughness(u32),
 }
 
 /// An activation restriction, in the order written and printed ("Activate
@@ -2791,6 +2825,10 @@ pub enum Recipient {
     /// the beginning of the next end step").
     SameToken,
     CreatedObject,
+    /// `that created creature`: the created token (`CreatedObject`),
+    /// printed "that creature" ("Create a 1/1 ... Otter creature token
+    /// ... put a +1/+1 counter on that creature").
+    CreatedThat,
     /// `those tokens`: every token the last token-creating sentence
     /// created; inside a delayed trigger about them, each in turn
     /// (`SameTokens`, the core `SameObject`).

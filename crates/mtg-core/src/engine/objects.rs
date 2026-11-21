@@ -271,6 +271,12 @@ impl GameState {
         // Revolt: under its controller's control as it left.
         if old.zone == Zone::Battlefield {
             self.left_this_turn |= 1 << old.controller.index().min(7);
+            // Void (CR 702.185): "a nonland permanent left the battlefield
+            // this turn".
+            if !characteristics_is_land && !self.turn_log.nonland_left {
+                self.turn_log.nonland_left = true;
+                self.history_bump();
+            }
             if to == Zone::Graveyard {
                 self.turn_log.to_graveyard =
                     self.turn_log.to_graveyard.union(characteristics.types);
@@ -628,6 +634,9 @@ impl GameState {
                 if n > 0 {
                     if kind == CounterKind::PlusOnePlusOne {
                         self.turn_log.counter_put_by |= 1 << by.index().min(7);
+                    }
+                    if self.characteristics(new).is_some_and(|c| c.is_creature()) {
+                        self.turn_log.any_counter_put_by |= 1 << by.index().min(7);
                     }
                     self.emit(Event::CountersAdded {
                         obj: new,
@@ -1448,6 +1457,10 @@ impl GameState {
         if kind == CounterKind::PlusOnePlusOne {
             self.turn_log.counter_put |= 1 << o.controller.index().min(7);
             self.turn_log.counter_put_by |= 1 << by.index().min(7);
+        }
+        // "if you put a counter on a creature this turn".
+        if self.characteristics(id).is_some_and(|c| c.is_creature()) {
+            self.turn_log.any_counter_put_by |= 1 << by.index().min(7);
         }
         self.cbump();
         self.emit(Event::CountersAdded {

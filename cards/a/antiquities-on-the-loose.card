@@ -1,0 +1,7 @@
+card "Antiquities on the Loose" {
+  oracle_id 9c45682f-48b5-4e58-9277-ff4211f389ae
+  cost {1}{W}{W}
+  type Sorcery
+  spell: create 2 "2/2 red and white Spirit creature"; then if cast from anywhere other than hand, put 1 +1/+1 counter on each Spirit you control
+  flashback {4}{W}{W}
+}

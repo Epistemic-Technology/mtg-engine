@@ -445,10 +445,28 @@ from the battlefield this turn"; any card types joined by `or`),
 `discarded this turn`, `more cards in hand than each
 opponent`, `opponent poisoned` ("an opponent is poisoned"), `opponent poison
 3 or more`, `you own card in exile`, `total power 8 or more` ("creatures you
-control have total power 8 or greater", formidable), `3 different powers`
-("you control three or more creatures with different powers", coven), the
-parts of the turn under Costs, and the shorthands `threshold`, `delirium`,
-`metalcraft`. A conditional static ability that pumps what an earlier
+control have total power 8 or greater", formidable), `total toughness 10
+or more` ("creatures you control have total toughness 10 or greater"), `3
+different powers` ("you control three or more creatures with different
+powers", coven), `2 creatures died this turn` ("two or more creatures died
+this turn"), `creature died under your control this turn` (as they last
+existed, CR 700.4), `opponent controls more lands` ("an opponent controls
+more lands than you"), `void` ("a nonland permanent left the battlefield
+this turn or a spell was warped this turn", any player's; usually with
+`label "Void"`), `not your main phase` ("it isn't your main phase"), `cast
+from anywhere other than hand` ("this spell was cast from anywhere other
+than your hand": cast, and not from the hand; a permanent remembers it from
+its spell), `put any counter this turn` ("you put a counter on a creature
+this turn": any kind, by a spell or ability you controlled or a cost you
+paid), `attacked with 3 Merfolk this turn` ("you attacked with three or
+more Merfolk this turn"), `cast both creature spell and noncreature spell
+this turn` ("you've cast both a creature spell and a noncreature spell
+this turn"), the parts of the turn under Costs, and the shorthands
+`threshold`, `delirium`, `metalcraft`. Two conditions joined by `and` must
+both hold (`if there is Elf card in your graveyard and this has 1 or more
+-1/-1 counters`: "if there is an Elf card in your graveyard and this
+creature has a -1/-1 counter on it"); the `and` joins only when a condition
+follows it. A conditional static ability that pumps what an earlier
 static ability of the card pumps prints "gets an additional +2/+2".
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 `opponent poison 3 or more` ("an opponent has three or more poison
@@ -1824,7 +1842,8 @@ the source's. `each permanent you control`,
 Equipment is attached to; printed "it" after its first mention in the
 ability, or after a condition `if attached is untapped`: "tap enchanted
 creature and remove all counters from it"),
-`that token` (what the previous effect created), `each <filter>` or
+`that token` (what the previous effect created; `that created creature`
+is the same token, printed "that creature"), `each <filter>` or
 `all <filter>` (every matching permanent: `each artifact`, `each blue
 creature`, `each creature without flying`, `each white creature you
 control`; written singular, printed "all artifacts" after tap, destroy,

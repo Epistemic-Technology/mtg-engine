@@ -527,8 +527,6 @@ impl GameState {
     pub(super) fn finish_attackers_with(&mut self, set: Vec<(ObjId, Target)>) {
         if !set.is_empty() {
             self.attacked_this_turn |= 1 << self.active_player.index().min(7);
-            // "for each creature that attacked this turn" in a static.
-            self.history_bump();
         }
         let mut attackers = Vec::new();
         for (id, target) in set {
@@ -552,6 +550,9 @@ impl GameState {
                 blocked: false,
             });
         }
+        // "As long as you attacked with three or more Merfolk this turn",
+        // "for each creature that attacked this turn" in a static.
+        self.history_bump();
         // The attackers are declared together: triggers see all of them
         // ("attacks alone", CR 506.5).
         let events: SmallVec<[(ObjId, Target); 4]> =

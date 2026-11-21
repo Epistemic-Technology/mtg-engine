@@ -362,7 +362,6 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
     match cond {
         StaticCondition::CardsInGraveyard(n) => state.player(you).graveyard.len() >= *n as usize,
         StaticCondition::UnlockedDoors(n) => state.unlocked_doors(you) >= *n,
-        StaticCondition::AttackedWith(f) => state.attacked_with(you, f),
         // Permanents still on the battlefield are judged with the
         // characteristics worked out so far, the rest as they last existed.
         StaticCondition::EnteredWith { filter, .. } => {
@@ -692,6 +691,59 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                 }
                 _ => unreachable!(),
             }
+        }
+        StaticCondition::And(a, b) => {
+            static_condition_holds(work, a, source) && static_condition_holds(work, b, source)
+        }
+        // The attackers as the layers have them so far, or as they last
+        // existed (asking `characteristics` here would compute them again).
+        StaticCondition::AttackedWith(f) | StaticCondition::AttackedWithAtLeast(f, _) => {
+            let n = match cond {
+                StaticCondition::AttackedWithAtLeast(_, n) => *n as usize,
+                _ => 1,
+            };
+            state
+                .attackers_this_turn
+                .iter()
+                .filter(|id| {
+                    let (controller, c) = match work.index.get(*id) {
+                        Some(wi) if work.on_battlefield(**id) => {
+                            (work.controller_of(**id), work.chars[*wi])
+                        }
+                        _ => match state.lki.get(*id) {
+                            Some(l) => (l.object.controller, l.characteristics),
+                            None => return false,
+                        },
+                    };
+                    controller == you && f.matches(**id, controller, &c, None, Some(you))
+                })
+                .count()
+                >= n
+        }
+        StaticCondition::TotalToughness(n) => {
+            work.ids
+                .iter()
+                .filter_map(|id| {
+                    let c = &work.chars[work.index[id]];
+                    (work.on_battlefield(*id) && work.controller_of(*id) == you && c.is_creature())
+                        .then(|| c.toughness().max(0))
+                })
+                .sum::<i32>()
+                >= i32::try_from(*n).unwrap_or(i32::MAX)
+        }
+        StaticCondition::OpponentMoreLands => {
+            let lands = |p: crate::ids::PlayerId| {
+                work.ids
+                    .iter()
+                    .filter(|id| {
+                        work.on_battlefield(**id)
+                            && work.controller_of(**id) == p
+                            && work.chars[work.index[*id]].is_land()
+                    })
+                    .count()
+            };
+            let mine = lands(you);
+            state.players_in_game().any(|p| p != you && lands(p) > mine)
         }
         _ => state.condition_history(cond, you, source),
     }

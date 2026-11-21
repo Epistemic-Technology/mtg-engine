@@ -1,0 +1,8 @@
+card "Orysa, Tide Choreographer" {
+  oracle_id cf56a5b4-48fa-4d53-a4b9-14afe079c1d3
+  cost {4}{U}
+  type Legendary Creature — Merfolk Bard
+  pt 2/2
+  this spell costs {3} less if total toughness 10 or more
+  triggered when this enters: draw 2 cards
+}

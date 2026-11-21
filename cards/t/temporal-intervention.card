@@ -1,0 +1,7 @@
+card "Temporal Intervention" {
+  oracle_id 5e8a2416-e311-41ac-a3cd-be1c2441d542
+  cost {2}{B}
+  type Sorcery
+  label "Void" this spell costs {2} less if void
+  spell: target opponent reveals hand discarding nonland card
+}

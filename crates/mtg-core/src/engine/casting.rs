@@ -6264,6 +6264,11 @@ impl GameState {
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
         self.cast_this_turn.push((caster, def_ref));
+        // Void: "a spell was warped this turn" (CR 702.185).
+        if self.objects[spell].alt == crate::state::AltCast::Warp && !self.turn_log.warped {
+            self.turn_log.warped = true;
+            self.history_bump();
+        }
         // "As long as you've cast an instant or sorcery spell this turn":
         // the cast is recorded after the card left its zone, so a
         // hand-watching static is refreshed now.

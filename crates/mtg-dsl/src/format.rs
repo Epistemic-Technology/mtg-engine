@@ -328,6 +328,7 @@ impl Fmt {
                 "it".to_string()
             }
             Recipient::CreatedObject | Recipient::SameToken => "that token".to_string(),
+            Recipient::CreatedThat => "that created creature".to_string(),
             Recipient::SameCard => "that card".to_string(),
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
@@ -4297,6 +4298,27 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::NoManaSpent => "no mana spent".to_string(),
         StaticCond::NotKicked => "not kicked".to_string(),
         StaticCond::Impending => "impending".to_string(),
+        StaticCond::And(a, b) => format!("{} and {}", static_cond(a), static_cond(b)),
+        StaticCond::CastBoth(a, b) => format!(
+            "cast both {} spell and {} spell this turn",
+            filter(a),
+            filter(b)
+        ),
+        StaticCond::CreaturesDied { n, yours: false } => {
+            format!("{n} creatures died this turn")
+        }
+        StaticCond::CreaturesDied { yours: true, .. } => {
+            "creature died under your control this turn".to_string()
+        }
+        StaticCond::OpponentMoreLands => "opponent controls more lands".to_string(),
+        StaticCond::Void => "void".to_string(),
+        StaticCond::NotYourMainPhase => "not your main phase".to_string(),
+        StaticCond::NotCastFromHand => "cast from anywhere other than hand".to_string(),
+        StaticCond::PutAnyCounterThisTurn => "put any counter this turn".to_string(),
+        StaticCond::AttackedWithAtLeast(f, n) => {
+            format!("attacked with {n} {} this turn", filter(f))
+        }
+        StaticCond::TotalToughness(n) => format!("total toughness {n} or more"),
         StaticCond::WebSlung(p) => format!(
             "{}web slung",
             match p {

@@ -509,6 +509,22 @@ impl Decompiler<'_> {
             StaticCondition::NoManaSpent => StaticCond::NoManaSpent,
             StaticCondition::NotKicked => StaticCond::NotKicked,
             StaticCondition::Impending => StaticCond::Impending,
+            StaticCondition::And(a, b) => {
+                StaticCond::And(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
+            }
+            StaticCondition::CreaturesDied { n, yours } => StaticCond::CreaturesDied {
+                n: *n,
+                yours: *yours,
+            },
+            StaticCondition::OpponentMoreLands => StaticCond::OpponentMoreLands,
+            StaticCondition::Void => StaticCond::Void,
+            StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
+            StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,
+            StaticCondition::PutAnyCounterThisTurn => StaticCond::PutAnyCounterThisTurn,
+            StaticCondition::AttackedWithAtLeast(f, n) => {
+                StaticCond::AttackedWithAtLeast(self.filter(f), *n)
+            }
+            StaticCondition::TotalToughness(n) => StaticCond::TotalToughness(*n),
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
             StaticCondition::WebSlung(p) => StaticCond::WebSlung(*p),
             StaticCondition::OptionalCostPaid => StaticCond::EvidenceCollected,

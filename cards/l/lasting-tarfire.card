@@ -1,0 +1,6 @@
+card "Lasting Tarfire" {
+  oracle_id ff5502d2-37f5-4ad5-bee2-3a03ec973268
+  cost {1}{R}
+  type Enchantment
+  triggered at beginning of every end step if put any counter this turn: this deals 2 damage to each opponent
+}

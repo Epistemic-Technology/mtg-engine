@@ -410,6 +410,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     ),
     (&["defending", "player"], Recipient::DefendingPlayer),
     (&["that", "token"], Recipient::CreatedObject),
+    (&["that", "created", "creature"], Recipient::CreatedThat),
     (&["manifested", "creature"], Recipient::Manifested),
     // "attach this Equipment to the amassed Army": amass's Army (CR
     // 701.47a), created or not.
@@ -2883,8 +2884,71 @@ impl P {
         })
     }
 
-    #[allow(clippy::too_many_lines)] // one branch per condition
+    /// A condition, or two joined by `and` (both must hold): "if there is
+    /// an Elf card in your graveyard and this creature has a -1/-1
+    /// counter on it". The `and` binds only when a condition follows it.
     fn static_cond(&mut self) -> R<StaticCond> {
+        let first = self.static_cond_one()?;
+        if self.at_word("and") {
+            let at = self.pos;
+            self.pos += 1;
+            if let Ok(second) = self.static_cond() {
+                return Ok(StaticCond::And(Box::new(first), Box::new(second)));
+            }
+            self.pos = at;
+        }
+        Ok(first)
+    }
+
+    #[allow(clippy::too_many_lines)] // one branch per condition
+    fn static_cond_one(&mut self) -> R<StaticCond> {
+        if self.eat_word("void") {
+            return Ok(StaticCond::Void);
+        }
+        if self.eat_words(&["not", "your", "main", "phase"]) {
+            return Ok(StaticCond::NotYourMainPhase);
+        }
+        if self.eat_words(&["cast", "from", "anywhere", "other", "than", "hand"]) {
+            return Ok(StaticCond::NotCastFromHand);
+        }
+        if self.eat_words(&["put", "any", "counter", "this", "turn"]) {
+            return Ok(StaticCond::PutAnyCounterThisTurn);
+        }
+        if self.eat_words(&["opponent", "controls", "more", "lands"]) {
+            return Ok(StaticCond::OpponentMoreLands);
+        }
+        if self.eat_words(&[
+            "creature", "died", "under", "your", "control", "this", "turn",
+        ]) {
+            return Ok(StaticCond::CreaturesDied { n: 1, yours: true });
+        }
+        if matches!(self.peek(), Some(Tok::Num(_)))
+            && self.word_at(1).as_deref() == Some("creatures")
+            && self.word_at(2).as_deref() == Some("died")
+        {
+            let n = self.number()?;
+            self.expect_words(&["creatures", "died", "this", "turn"])?;
+            return Ok(StaticCond::CreaturesDied { n, yours: false });
+        }
+        if self.eat_words(&["total", "toughness"]) {
+            let n = self.number()?;
+            self.expect_words(&["or", "more"])?;
+            return Ok(StaticCond::TotalToughness(n));
+        }
+        if self.eat_words(&["cast", "both"]) {
+            let a = self.filter()?;
+            self.expect_words(&["spell", "and"])?;
+            let b = self.filter()?;
+            self.expect_words(&["spell", "this", "turn"])?;
+            return Ok(StaticCond::CastBoth(a, b));
+        }
+        if self.at_words(&["attacked", "with"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
+            self.pos += 2;
+            let n = self.number()?;
+            let f = self.filter()?;
+            self.expect_words(&["this", "turn"])?;
+            return Ok(StaticCond::AttackedWithAtLeast(f, n));
+        }
         if self.eat_word("threshold") {
             return Ok(StaticCond::CardsInGraveyard(7));
         }

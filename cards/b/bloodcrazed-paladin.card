@@ -1,0 +1,8 @@
+card "Bloodcrazed Paladin" {
+  oracle_id 7e7ec48c-e31d-4ddf-a128-1969951dacf9
+  cost {1}{B}
+  type Creature — Vampire Knight
+  pt 1/1
+  keywords flash
+  enters with count each creature died this turn +1/+1 counters
+}
