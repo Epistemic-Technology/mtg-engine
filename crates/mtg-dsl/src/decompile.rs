@@ -538,6 +538,9 @@ impl Decompiler<'_> {
             StaticCondition::YourCombatPhase => StaticCond::YourCombatPhase,
             StaticCondition::FirstCombatPhase => StaticCond::FirstCombatPhase,
             StaticCondition::PutCounterThisTurn => StaticCond::PutCounterThisTurn,
+            StaticCondition::OpponentNoncombatDamagedThisTurn => {
+                StaticCond::OpponentNoncombatDamagedThisTurn
+            }
             StaticCondition::LeftGraveyardThisTurn => StaticCond::LeftGraveyardThisTurn,
             StaticCondition::SacrificedThisTurn(t) => StaticCond::SacrificedThisTurn(
                 crate::render::CARD_TYPES
@@ -1646,6 +1649,13 @@ impl Decompiler<'_> {
             TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
+            TriggerSpec::CreaturesDealCombatDamage => Trigger::CreaturesDealCombatDamage,
+            TriggerSpec::NoncombatDamageToOpponent { yours, batch } => {
+                Trigger::NoncombatDamageToOpponent {
+                    yours: *yours,
+                    batch: *batch,
+                }
+            }
             TriggerSpec::CommitsCrime { your_turn } => Trigger::CommitsCrime {
                 your_turn: *your_turn,
             },

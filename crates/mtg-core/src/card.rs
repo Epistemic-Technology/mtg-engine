@@ -2060,6 +2060,8 @@ pub enum StaticCondition {
     FirstCombatPhase,
     /// "you've put one or more +1/+1 counters on a creature this turn".
     PutCounterThisTurn,
+    /// "an opponent has been dealt noncombat damage this turn".
+    OpponentNoncombatDamagedThisTurn,
     /// "as long as it's attacking" (the source).
     SourceAttacking,
     /// "as long as it attacked a battle this turn" (the source, CR
@@ -4743,6 +4745,18 @@ pub enum TriggerSpec {
     DiesOrExiled(TriggerObj),
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
+    /// "Whenever one or more creatures you control deal combat damage to a
+    /// player" (CR 510.2, 603.2c): once for each player dealt combat
+    /// damage by them in one combat damage step; that player is the
+    /// triggering player.
+    CreaturesDealCombatDamage,
+    /// "Whenever a source you control deals noncombat damage to an
+    /// opponent" (`yours`), "Whenever an opponent is dealt noncombat
+    /// damage", "Whenever one or more opponents are dealt noncombat damage"
+    /// (`batch`: once for the damage dealt at once to each opponent). The
+    /// opponent is the triggering player and the damage the trigger's
+    /// amount ("that many").
+    NoncombatDamageToOpponent { yours: bool, batch: bool },
     /// "Whenever ~ deals combat damage to a player or battle" (CR 310.6):
     /// the player dealt damage is the triggering player.
     DealsCombatDamageToPlayerOrBattle(TriggerObj),
@@ -5057,6 +5071,8 @@ impl TriggerSpec {
             | TriggerSpec::BlockPair { .. }
             | TriggerSpec::AttacksUnblocked(_) => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_)
+            | TriggerSpec::CreaturesDealCombatDamage
+            | TriggerSpec::NoncombatDamageToOpponent { .. }
             | TriggerSpec::DealsCombatDamageToPlayerOrBattle(_)
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealtCombatDamage(_)
@@ -7824,6 +7840,7 @@ impl CardPool {
                     | StaticCondition::LifeGainedThisTurn(_)
                     | StaticCondition::CrimeThisTurn
                     | StaticCondition::PutCounterThisTurn
+                    | StaticCondition::OpponentNoncombatDamagedThisTurn
                     | StaticCondition::LeftGraveyardThisTurn
                     | StaticCondition::CardToGraveyardThisTurn(_)
                     | StaticCondition::SacrificedThisTurn(_)

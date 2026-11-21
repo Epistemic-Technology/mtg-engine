@@ -3061,6 +3061,9 @@ impl P {
         if self.eat_words(&["opponent", "damaged", "this", "turn"]) {
             return Ok(StaticCond::OpponentDamagedThisTurn);
         }
+        if self.eat_words(&["opponent", "dealt", "noncombat", "damage", "this", "turn"]) {
+            return Ok(StaticCond::OpponentNoncombatDamagedThisTurn);
+        }
         if self.eat_words(&["opponent", "lost", "life", "this", "turn"]) {
             return Ok(StaticCond::OpponentLostLifeThisTurn);
         }
@@ -9817,6 +9820,60 @@ impl P {
                 TriggerObj::Filter(self.filter()?)
             };
             return Ok(Trigger::YouPutCounters { obj, kind });
+        }
+        if self.eat_words(&[
+            "one",
+            "or",
+            "more",
+            "creatures",
+            "you",
+            "control",
+            "deal",
+            "combat",
+            "damage",
+            "to",
+            "a",
+            "player",
+        ]) {
+            return Ok(Trigger::CreaturesDealCombatDamage);
+        }
+        if self.eat_words(&[
+            "a",
+            "source",
+            "you",
+            "control",
+            "deals",
+            "noncombat",
+            "damage",
+            "to",
+            "an",
+            "opponent",
+        ]) {
+            return Ok(Trigger::NoncombatDamageToOpponent {
+                yours: true,
+                batch: false,
+            });
+        }
+        if self.eat_words(&["an", "opponent", "is", "dealt", "noncombat", "damage"]) {
+            return Ok(Trigger::NoncombatDamageToOpponent {
+                yours: false,
+                batch: false,
+            });
+        }
+        if self.eat_words(&[
+            "one",
+            "or",
+            "more",
+            "opponents",
+            "are",
+            "dealt",
+            "noncombat",
+            "damage",
+        ]) {
+            return Ok(Trigger::NoncombatDamageToOpponent {
+                yours: false,
+                batch: true,
+            });
         }
         // CR 700.13.
         if self.eat_words(&["you", "commit", "a", "crime"]) {

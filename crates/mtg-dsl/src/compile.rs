@@ -1464,6 +1464,9 @@ impl Compiler<'_> {
             StaticCond::YourCombatPhase => StaticCondition::YourCombatPhase,
             StaticCond::FirstCombatPhase => StaticCondition::FirstCombatPhase,
             StaticCond::PutCounterThisTurn => StaticCondition::PutCounterThisTurn,
+            StaticCond::OpponentNoncombatDamagedThisTurn => {
+                StaticCondition::OpponentNoncombatDamagedThisTurn
+            }
             StaticCond::LeftGraveyardThisTurn => StaticCondition::LeftGraveyardThisTurn,
             StaticCond::CardToGraveyardThisTurn(t) => StaticCondition::CardToGraveyardThisTurn(
                 mtg_core::card::TypeSet::of(t.iter().copied()),
@@ -3123,6 +3126,13 @@ impl Compiler<'_> {
             Trigger::EntersFromGraveyard(f) => TriggerSpec::EntersFromGraveyard(self.filter(f)),
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
+            Trigger::CreaturesDealCombatDamage => TriggerSpec::CreaturesDealCombatDamage,
+            Trigger::NoncombatDamageToOpponent { yours, batch } => {
+                TriggerSpec::NoncombatDamageToOpponent {
+                    yours: *yours,
+                    batch: *batch,
+                }
+            }
             Trigger::CommitsCrime { your_turn } => TriggerSpec::CommitsCrime {
                 your_turn: *your_turn,
             },

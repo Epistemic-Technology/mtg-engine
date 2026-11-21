@@ -1,0 +1,8 @@
+card "Chandra's Spitfire" {
+  oracle_id 5a0eb270-b142-45da-87a2-2f1c4e25db17
+  cost {2}{R}
+  type Creature — Elemental
+  pt 1/3
+  keywords flying
+  triggered whenever an opponent is dealt noncombat damage: this gets +3/+0 until end of turn
+}

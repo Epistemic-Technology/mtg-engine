@@ -1,0 +1,8 @@
+card "Grazilaxx, Illithid Scholar" {
+  oracle_id d22ff377-d282-4a28-9dce-96f25913dc96
+  cost {1}{U}{U}
+  type Legendary Creature — Horror
+  pt 3/2
+  triggered whenever creature you control becomes blocked: you may return it to its owner's hand
+  triggered whenever one or more creatures you control deal combat damage to a player: draw 1 card
+}

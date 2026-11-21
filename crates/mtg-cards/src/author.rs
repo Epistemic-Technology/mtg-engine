@@ -2720,7 +2720,11 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever you expend 8"
         | "Whenever you collect evidence"
         | "Whenever you commit a crime"
-        | "Whenever you commit a crime during your turn" => {
+        | "Whenever you commit a crime during your turn"
+        | "Whenever one or more creatures you control deal combat damage to a player"
+        | "Whenever a source you control deals noncombat damage to an opponent"
+        | "Whenever an opponent is dealt noncombat damage"
+        | "Whenever one or more opponents are dealt noncombat damage" => {
             return Some(lowercase_first(head));
         }
         "Whenever a creature dealt damage by this creature this turn dies" => {

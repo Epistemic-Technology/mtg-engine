@@ -1389,6 +1389,8 @@ pub struct TurnLog {
     /// Players who put a +1/+1 counter on a creature ("if you've put one
     /// or more +1/+1 counters on a creature this turn").
     pub counter_put_by: u8,
+    /// Players dealt noncombat damage.
+    pub noncombat_damaged: u8,
     /// Players under whose control a face-down creature entered the
     /// battlefield (CR 708.3).
     pub face_down_entered: u8,
@@ -3242,6 +3244,9 @@ impl GameState {
             C::LifeGainedThisTurn(n) => self.turn_log.life_gained[you.index().min(3)] >= *n,
             C::CrimeThisTurn => self.turn_log.crime & (1 << you.index().min(7)) != 0,
             C::PutCounterThisTurn => self.turn_log.counter_put_by & (1 << you.index().min(7)) != 0,
+            C::OpponentNoncombatDamagedThisTurn => self.players_in_game().any(|p| {
+                p != you && self.turn_log.noncombat_damaged & (1 << p.index().min(7)) != 0
+            }),
             C::LeftGraveyardThisTurn => {
                 self.turn_log.left_graveyard & (1 << you.index().min(7)) != 0
             }

@@ -1843,6 +1843,9 @@ pub enum StaticCond {
     /// `put counter this turn`: "you've put one or more +1/+1 counters on
     /// a creature this turn".
     PutCounterThisTurn,
+    /// `opponent dealt noncombat damage this turn`: "an opponent has been
+    /// dealt noncombat damage this turn".
+    OpponentNoncombatDamagedThisTurn,
     /// `card left your graveyard this turn`: "one or more cards left your
     /// graveyard this turn".
     LeftGraveyardThisTurn,
@@ -2406,6 +2409,17 @@ pub enum Trigger {
     Expends(u8),
     /// `whenever you collect evidence` (CR 701.59).
     CollectsEvidence,
+    /// `whenever one or more creatures you control deal combat damage to a
+    /// player` (once per player, CR 603.2c).
+    CreaturesDealCombatDamage,
+    /// `whenever a source you control deals noncombat damage to an
+    /// opponent` (`yours`), `whenever an opponent is dealt noncombat
+    /// damage`, `whenever one or more opponents are dealt noncombat damage`
+    /// (`batch`).
+    NoncombatDamageToOpponent {
+        yours: bool,
+        batch: bool,
+    },
     /// `whenever you commit a crime` (CR 700.13), `... during your turn`.
     CommitsCrime {
         your_turn: bool,

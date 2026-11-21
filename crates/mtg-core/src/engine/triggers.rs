@@ -77,6 +77,24 @@ impl GameState {
                         | TriggerSpec::LeavesBatch { .. }
                         | TriggerSpec::LeavesGraveyard(_)
                 );
+                // "one or more creatures you control deal combat damage to
+                // a player": once per player dealt damage together.
+                let player_batch = matches!(
+                    t.trigger,
+                    TriggerSpec::CreaturesDealCombatDamage
+                        | TriggerSpec::NoncombatDamageToOpponent { batch: true, .. }
+                );
+                if player_batch
+                    && self.join_player_batch(
+                        &mut fired,
+                        ability,
+                        w.source,
+                        trigger_player,
+                        event_amount,
+                    )
+                {
+                    continue;
+                }
                 if (batch && self.join_batch(&mut fired, ability, w.source))
                     || !self.count_trigger(limit, w.source, ability)
                 {
@@ -338,6 +356,34 @@ impl GameState {
         {
             Some(p) => {
                 p.ability.trigger_amount += 1;
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// Like `join_batch`, for one player: the damage of a waiting "one or
+    /// more creatures you control deal combat damage to a player" trigger
+    /// about the same player grows instead.
+    #[cold]
+    fn join_player_batch(
+        &mut self,
+        fired: &mut SmallVec<[PendingTrigger; 2]>,
+        ability: AbilityId,
+        source: ObjId,
+        player: Option<PlayerId>,
+        amount: u32,
+    ) -> bool {
+        match fired
+            .iter_mut()
+            .chain(self.pending_triggers.iter_mut())
+            .find(|p| {
+                p.ability.ability == ability
+                    && p.ability.source == source
+                    && p.ability.trigger_player == player
+            }) {
+            Some(p) => {
+                p.ability.trigger_amount += amount;
                 true
             }
             None => false,
@@ -800,6 +846,41 @@ impl GameState {
                 }
                 on_battlefield(what, *source)?;
                 Some((Some(*source), self.protector(*b)))
+            }
+            (
+                TriggerSpec::CreaturesDealCombatDamage,
+                Event::Damage {
+                    source,
+                    target: Target::Player(p),
+                    combat: true,
+                    ..
+                },
+            ) => {
+                let o = self.objects.get(*source)?;
+                (o.controller == w.controller
+                    && self.characteristics(*source).is_some_and(|c| c.is_creature()))
+                .then_some((None, Some(*p)))
+            }
+            (
+                TriggerSpec::NoncombatDamageToOpponent { yours, .. },
+                Event::Damage {
+                    source,
+                    target: Target::Player(p),
+                    combat: false,
+                    ..
+                },
+            ) => {
+                if *p == w.controller {
+                    return None;
+                }
+                // The source as it is, or as it last existed (a spell that
+                // has left the stack, a sacrificed permanent).
+                let controller = self
+                    .objects
+                    .get(*source)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(source).map(|l| l.object.controller));
+                (!*yours || controller == Some(w.controller)).then_some((None, Some(*p)))
             }
             // CR 709.5h: this door, as it enters or later.
             (TriggerSpec::UnlocksDoor { door }, Event::Unlocked { obj, door: d, .. }) => {

@@ -274,6 +274,8 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
 | `when you control no Island`, `when you control no other creature`, `when you control Dwarf` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature."; any static condition after `when you control` ("When you control a Dwarf", "When you control a creature with toughness 2 or less"). Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | |
+| `whenever one or more creatures you control deal combat damage to a player` | once for each player dealt combat damage by them in one combat damage step (CR 603.2c; a first-strike step and the regular one trigger separately); that player is `that player` |
+| `whenever a source you control deals noncombat damage to an opponent`, `whenever an opponent is dealt noncombat damage`, `whenever one or more opponents are dealt noncombat damage` | damage other than combat damage (CR 120.2) to an opponent, from a source you control (a spell as it resolves, as it last existed) or any source; the last once for the damage dealt to each opponent at once. The opponent is `that player`, `that much` the damage |
 | `whenever you commit a crime`, `whenever you commit a crime during your turn` | "Whenever you commit a crime" (CR 700.13): as you finish casting a spell, activating an ability, or putting a triggered ability on the stack that targets an opponent, something an opponent controls, or a card in an opponent's graveyard; once per spell or ability. A copy put on the stack commits none. `during your turn` (Overzealous Muscle) only on your turn |
 | `whenever you gain life first time each turn` | "Whenever you gain life for the first time each turn": the gain that starts the life you gained this turn (one of several simultaneous lifelink gains) |
 | `whenever you roll dice`, `whenever you win a coin flip` | "Whenever you roll one or more dice" (once per roll, CR 706), "Whenever you win a coin flip" (CR 705.2) |
@@ -402,7 +404,8 @@ life this turn`, `gained or lost life this turn`, `descended this turn`
 ("you descended this turn", CR 700.11: a permanent card was put into your
 graveyard from anywhere), `surveilled this turn` ("you've surveilled this
 turn"), `counter put this turn` ("a +1/+1 counter was put on a permanent
-under your control this turn"), `put counter this turn` ("you've put
+under your control this turn"), `opponent dealt noncombat damage this turn` ("an opponent has been dealt
+noncombat damage this turn"), `put counter this turn` ("you've put
 one or more +1/+1 counters on a creature this turn": a spell or ability
 you control put them, CR 122.6), `face-down creature entered this turn`
 ("a face-down creature entered the battlefield under your control this

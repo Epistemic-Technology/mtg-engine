@@ -1,0 +1,7 @@
+card "Killian's Confidence" {
+  oracle_id c17f0e65-e5a3-4113-b782-0b192ab52046
+  cost {W}{B}
+  type Sorcery
+  spell: target creature gets +1/+1 until end of turn; draw 1 card
+  triggered from graveyard whenever one or more creatures you control deal combat damage to a player: you may pay {W/B}; if you do, return this to hand
+}

@@ -1246,6 +1246,10 @@ impl GameState {
                     self.damaged_this_turn |= 1 << p.index().min(7);
                     self.history_bump();
                 }
+                if !combat && self.turn_log.noncombat_damaged & (1 << p.index().min(7)) == 0 {
+                    self.turn_log.noncombat_damaged |= 1 << p.index().min(7);
+                    self.history_bump();
+                }
                 self.note_damage_source(source);
                 // CR 702.173a: an Assassin's combat damage enables
                 // freerunning for its controller this turn.

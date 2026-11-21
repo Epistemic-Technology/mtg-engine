@@ -1,0 +1,7 @@
+card "Chandra's Pyreling" {
+  oracle_id 5291deb9-0b89-42c2-bde6-26f88931c3f4
+  cost {1}{R}
+  type Creature — Elemental Lizard
+  pt 1/3
+  triggered whenever a source you control deals noncombat damage to an opponent: this gets +1/+0 and gains double strike until end of turn
+}

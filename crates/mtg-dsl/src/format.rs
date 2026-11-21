@@ -3556,6 +3556,18 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::CreaturesDealCombatDamage => {
+            "whenever one or more creatures you control deal combat damage to a player".to_string()
+        }
+        Trigger::NoncombatDamageToOpponent { yours, batch } => match (yours, batch) {
+            (true, _) => {
+                "whenever a source you control deals noncombat damage to an opponent".to_string()
+            }
+            (false, false) => "whenever an opponent is dealt noncombat damage".to_string(),
+            (false, true) => {
+                "whenever one or more opponents are dealt noncombat damage".to_string()
+            }
+        },
         Trigger::CommitsCrime { your_turn } => format!(
             "whenever you commit a crime{}",
             if *your_turn { " during your turn" } else { "" }
@@ -4174,6 +4186,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::YourCombatPhase => "your combat phase".to_string(),
         StaticCond::FirstCombatPhase => "first combat phase".to_string(),
         StaticCond::PutCounterThisTurn => "put counter this turn".to_string(),
+        StaticCond::OpponentNoncombatDamagedThisTurn => {
+            "opponent dealt noncombat damage this turn".to_string()
+        }
         StaticCond::LeftGraveyardThisTurn => "card left your graveyard this turn".to_string(),
         StaticCond::SacrificedThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
