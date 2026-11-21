@@ -1815,6 +1815,16 @@ impl Decompiler<'_> {
                 kind: *kind,
                 n: *n,
             },
+            AbilityDef::PlayFromTop {
+                lands,
+                spells,
+                once,
+            } => Ability::PlayFromTop {
+                lands: *lands,
+                spells: spells.as_ref().map(|f| self.filter(f)),
+                once: *once,
+            },
+            AbilityDef::TopRevealed { players } => Ability::TopRevealed { players: *players },
             AbilityDef::MayLook {
                 top,
                 face_down,

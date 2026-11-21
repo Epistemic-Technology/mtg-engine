@@ -1,0 +1,7 @@
+card "Assemble the Players" {
+  oracle_id 180ba940-2b11-4953-b7ce-74847e1aebfd
+  cost {1}{W}
+  type Enchantment
+  may look top
+  play from top once spells creature with power 2 or less
+}

@@ -1093,7 +1093,10 @@ impl Runner {
                     let choice = if let Some(c) = self.face_in_hand(d.player, name) {
                         c
                     } else {
-                        Choice::PlayLand(match self.playable_in_exile(d.player, name, true) {
+                        Choice::PlayLand(match self
+                            .playable_in_exile(d.player, name, true)
+                            .or_else(|| self.top_of_library(d.player, name))
+                        {
                             Some(id) if self.in_hand(a.line, d.player, name).is_err() => id,
                             _ => self.in_hand(a.line, d.player, name)?,
                         })
@@ -1153,7 +1156,9 @@ impl Runner {
                             Err(e) => match self.prepared_face(d.player, name) {
                                 Some(c) => c,
                                 None => Choice::Cast(
-                                    self.playable_in_exile(d.player, name, true).ok_or(e)?,
+                                    self.playable_in_exile(d.player, name, true)
+                                        .or_else(|| self.top_of_library(d.player, name))
+                                        .ok_or(e)?,
                                 ),
                             },
                         }
@@ -1973,6 +1978,17 @@ impl Runner {
                     .find(|(id, o)| o.zone == Zone::Exile && st.name_of(*id) == name)
                     .map(|(id, _)| id)
             })
+    }
+
+    /// The top card of `p`'s library, if it has this name: "You may cast
+    /// creature spells from the top of your library" (CR 601.3).
+    fn top_of_library(&self, p: PlayerId, name: &str) -> Option<ObjId> {
+        let st = self.state();
+        st.player(p)
+            .library
+            .last()
+            .copied()
+            .filter(|id| st.name_of(*id) == name)
     }
 
     fn in_hand(&self, line: usize, p: PlayerId, name: &str) -> Res<ObjId> {

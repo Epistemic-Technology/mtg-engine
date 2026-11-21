@@ -273,6 +273,7 @@ impl Engine {
                 state.banding_sources += u32::from(def.flags().has_banding());
                 state.room_count += u32::from(def.flags().has_room());
                 state.saga_count += u32::from(def.flags().has_saga());
+                state.top_play_sources += u32::from(def.flags().has_top_play());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -577,6 +578,7 @@ impl GameState {
             undone_cast: None,
             face_down_count: 0,
             room_count: 0,
+            top_play_sources: 0,
             saga_count: 0,
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
@@ -1790,6 +1792,17 @@ impl GameState {
                     (Zone::Exile, crate::state::AltCast::Plotted) => crate::state::AltCast::Free,
                     _ => crate::state::AltCast::None,
                 };
+                // "Once each turn, you may cast ... from the top of your
+                // library": that permission is used unless another lets
+                // the card be cast.
+                if self.objects[id].zone == Zone::Library {
+                    let perms = self.top_permissions(player, id);
+                    if !perms.iter().any(|(_, _, once)| !*once)
+                        && let Some((src, a, _)) = perms.first()
+                    {
+                        self.activated_once.push((*src, *a));
+                    }
+                }
                 let spell = self.begin_cast(player, id, alt);
                 self.objects[spell].cast.set_flashback(flashback);
             }

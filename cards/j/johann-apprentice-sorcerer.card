@@ -1,0 +1,8 @@
+card "Johann, Apprentice Sorcerer" {
+  oracle_id 8068f80f-88ee-4c0b-a0fb-3a6337f83f22
+  cost {2}{U}{R}
+  type Legendary Creature — Human Wizard Sorcerer
+  pt 2/5
+  may look top
+  play from top once spells instant or sorcery
+}

@@ -1443,6 +1443,35 @@ impl P {
                     opponents,
                 })
             }
+            "play" if self.at_words(&["play", "from", "top"]) => {
+                self.pos += 3;
+                let once = self.eat_word("once");
+                let lands = self.eat_word("lands");
+                let spells = if (!lands || self.eat_word("and")) && self.eat_word("spells") {
+                    if self.at_stmt_end() {
+                        Some(Filter::default())
+                    } else {
+                        Some(self.filter()?)
+                    }
+                } else {
+                    None
+                };
+                if !lands && spells.is_none() {
+                    return self.fail("expected `lands` or `spells`".to_string());
+                }
+                self.end_stmt()?;
+                Ok(Ability::PlayFromTop {
+                    lands,
+                    spells,
+                    once,
+                })
+            }
+            "top" if self.at_words(&["top", "revealed"]) => {
+                self.pos += 2;
+                let players = self.eat_word("players");
+                self.end_stmt()?;
+                Ok(Ability::TopRevealed { players })
+            }
             "extra" if self.word_at(1).as_deref() == Some("vote") => {
                 self.pos += 2;
                 let optional = self.eat_word("may");

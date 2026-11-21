@@ -674,6 +674,34 @@ fn cost_spells_subject(f: &Filter, card: &Card) -> String {
     subject
 }
 
+/// What a permission to cast from the top of a library covers:
+/// "creature spells", "Spider spells and noncreature spells", "spells
+/// with mana value 4 or greater", "spells with flash or flying".
+fn top_spells(f: &Filter, card: &Card) -> String {
+    let one = |g: &Filter| {
+        let s = cost_spells_subject(g, card);
+        let s = if lower_spell_subject(g) {
+            lowercase_first(&s)
+        } else {
+            s
+        };
+        // "with mana value 4 or greater spells": the qualities follow.
+        match s.strip_prefix("with ").and_then(|r| r.strip_suffix(" spells")) {
+            Some(q) => format!("spells with {q}"),
+            None => s,
+        }
+    };
+    if let Some(alt) = &f.or {
+        let (b, a) = crate::format::factor_qualifiers(f, alt);
+        let (b, a) = (one(&b), one(&a));
+        if let (Some(x), Some(y)) = (b.strip_prefix("spells with "), a.strip_prefix("spells with ")) {
+            return format!("spells with {x} or {y}");
+        }
+        return format!("{b} and {a}");
+    }
+    one(f)
+}
+
 fn spells_subject(f: &Filter, card: &Card) -> String {
     if *f == Filter::default() {
         return "Spells".to_string();
@@ -10820,6 +10848,34 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 format!("as though its power were {plus} greater")
             };
             format!("This {} {verb} {how}.", self_noun(card))
+        }
+        Ability::PlayFromTop {
+            lands,
+            spells,
+            once,
+        } => {
+            let spells = spells.as_ref().map(|f| {
+                if *once {
+                    a_spell(f, card)
+                } else {
+                    top_spells(f, card)
+                }
+            });
+            let what = match (*lands, spells) {
+                (true, None) => "play lands".to_string(),
+                (true, Some(s)) => format!("play lands and cast {s}"),
+                (false, Some(s)) => format!("cast {s}"),
+                (false, None) => String::new(),
+            };
+            let once = if *once { "Once each turn, you" } else { "You" };
+            format!("{once} may {what} from the top of your library.")
+        }
+        Ability::TopRevealed { players } => {
+            if *players {
+                "Players play with the top card of their libraries revealed.".to_string()
+            } else {
+                "Play with the top card of your library revealed.".to_string()
+            }
         }
         Ability::MayLook {
             top,

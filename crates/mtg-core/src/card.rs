@@ -5707,6 +5707,24 @@ pub enum AbilityDef {
         face_down: bool,
         opponents: bool,
     },
+    /// "You may play lands from the top of your library." (`lands`), "You
+    /// may cast creature spells from the top of your library." (`spells`,
+    /// the spells' filter), or both: the controller may play the top card
+    /// of their library as though it were in their hand, paying its costs
+    /// and following the usual timing and land-play rules (CR 601.3,
+    /// 305.1). With `once`, "Once each turn, you may cast ...": one spell
+    /// a turn by this permanent's permission.
+    PlayFromTop {
+        lands: bool,
+        spells: Option<ObjFilter>,
+        once: bool,
+    },
+    /// "Play with the top card of your library revealed." (`players`:
+    /// "Players play with the top card of their libraries revealed."):
+    /// every player knows that top card while it stays there (CR 401.2).
+    TopRevealed {
+        players: bool,
+    },
     /// "As this creature is turned face up, put four +1/+1 counters on
     /// it." (CR 708.11: applied while it is being turned face up, before
     /// "turned face up" triggers look). "As this creature enters or is
@@ -5754,6 +5772,8 @@ impl AbilityDef {
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
+            | AbilityDef::PlayFromTop { .. }
+            | AbilityDef::TopRevealed { .. }
             | AbilityDef::AsTurnedFaceUp { .. }
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
@@ -5783,6 +5803,8 @@ impl AbilityDef {
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
+            | AbilityDef::PlayFromTop { .. }
+            | AbilityDef::TopRevealed { .. }
             | AbilityDef::AsTurnedFaceUp { .. }
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
@@ -6392,6 +6414,10 @@ impl DefFlags {
     /// A Saga with chapter abilities (`CardDef::final_chapter`, CR 714):
     /// the precombat main phase and state-based actions then look.
     const SAGA: u32 = 33_554_432;
+    /// Playing from or revealing the top of a library
+    /// (`AbilityDef::PlayFromTop`, `TopRevealed`): priority then looks
+    /// at the top card.
+    const TOP_PLAY: u32 = 67_108_864;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -6506,6 +6532,10 @@ impl DefFlags {
         self.has(DefFlags::SAGA)
     }
 
+    pub const fn has_top_play(self) -> bool {
+        self.has(DefFlags::TOP_PLAY)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     #[allow(clippy::too_many_lines)] // one flag per hot-path fact
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
@@ -6601,6 +6631,15 @@ impl DefFlags {
             abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::CostChange(_))),
+        );
+        flags.set(
+            DefFlags::TOP_PLAY,
+            abilities.iter().any(|a| {
+                matches!(
+                    a,
+                    AbilityDef::PlayFromTop { .. } | AbilityDef::TopRevealed { .. }
+                )
+            }),
         );
         // Cipher asks whether to encode as the spell resolves (CR 702.99a).
         flags.set(

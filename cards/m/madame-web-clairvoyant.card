@@ -1,0 +1,9 @@
+card "Madame Web, Clairvoyant" {
+  oracle_id b1e0841d-b004-40f9-a644-aecb422f6ad5
+  cost {4}{U}{U}
+  type Legendary Creature — Mutant Advisor
+  pt 4/4
+  may look top
+  play from top spells Spider or noncreature
+  triggered whenever you attack: you may mill 1 card
+}

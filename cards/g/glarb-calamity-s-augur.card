@@ -1,0 +1,10 @@
+card "Glarb, Calamity's Augur" {
+  oracle_id df9409e6-bd6d-4b5b-b807-fcf347ee940a
+  cost {B}{G}{U}
+  type Legendary Creature — Frog Wizard Noble
+  pt 2/4
+  keywords deathtouch
+  may look top
+  play from top lands and spells with mana value 4 or greater
+  activated {T}: surveil 2
+}

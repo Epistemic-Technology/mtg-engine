@@ -1764,6 +1764,10 @@ pub struct GameState {
     /// Room permanents on the battlefield (CR 709.5): priority looks for
     /// locked doors to unlock only when there are any.
     pub room_count: u32,
+    /// Permanents on the battlefield that let their controller play from
+    /// the top of the library or reveal it (`DefFlags::TOP_PLAY`):
+    /// priority and the views look only when there are any.
+    pub top_play_sources: u32,
     /// Sagas with chapter abilities on the battlefield (CR 714): the
     /// precombat main phase and state-based actions look for them only
     /// when there are any.

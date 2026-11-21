@@ -349,6 +349,22 @@ impl GameState {
                 }
             }
         }
+        // CR 601.3, 305.1: the top card of the library, by a permanent's
+        // permission ("You may cast creature spells from the top of your
+        // library").
+        if self.top_play_sources > 0
+            && let Some(&top) = ps.library.last()
+            && !self.top_permissions(p, top).is_empty()
+        {
+            let def = self.pool.get(self.objects[top].def);
+            if def.is_land() {
+                if sorcery_timing && ps.lands_played_this_turn < 1 {
+                    options.push(Choice::PlayLand(top));
+                }
+            } else if self.castable(p, def, top, sorcery_timing, &sources, &pool, &changers) {
+                options.push(Choice::Cast(top));
+            }
+        }
         // CR 702.34a: instants and sorceries with flashback may be cast
         // from the graveyard for their flashback cost.
         if ps.flashback_in_graveyard > 0 {
@@ -2242,6 +2258,56 @@ impl GameState {
     }
 
     /// Permanents with a static ability that changes what spells cost.
+    /// CR 601.3, 305.1: the permissions `p` has to play `card`, the top
+    /// card of their library, from permanents they control
+    /// (`AbilityDef::PlayFromTop`): each (source, ability, once each
+    /// turn). A once-each-turn permission already used this turn is left
+    /// out.
+    pub(super) fn top_permissions(
+        &self,
+        p: PlayerId,
+        card: ObjId,
+    ) -> SmallVec<[(ObjId, crate::card::AbilityId, bool); 2]> {
+        let mut out = SmallVec::new();
+        if self.top_play_sources == 0 || self.player(p).library.last() != Some(&card) {
+            return out;
+        }
+        let o = &self.objects[card];
+        let def = self.pool.get(o.def);
+        let land = def.is_land();
+        let chars = self.base_characteristics(o);
+        for src in &self.battlefield {
+            let s = &self.objects[*src];
+            if s.controller != p || !self.flags_of(s).has_top_play() {
+                continue;
+            }
+            for a in &self.pool.get(s.def).ability_ids {
+                let AbilityDef::PlayFromTop {
+                    lands,
+                    spells,
+                    once,
+                } = self.pool.ability(*a)
+                else {
+                    continue;
+                };
+                let ok = if land {
+                    *lands
+                } else {
+                    // The mana value isn't a characteristic `matches` sees.
+                    spells.as_ref().is_some_and(|f| {
+                        f.mana_value
+                            .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)))
+                            && f.matches(card, p, &chars, Some(*src), Some(p))
+                    })
+                };
+                if ok && !(*once && self.activated_once.contains(&(*src, *a))) {
+                    out.push((*src, *a, *once));
+                }
+            }
+        }
+        out
+    }
+
     pub(super) fn cost_changers(&self) -> SmallVec<[ObjId; 2]> {
         if self.cost_change_sources == 0 {
             return SmallVec::new();

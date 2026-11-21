@@ -4852,6 +4852,36 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 if *opponents { " opponents" } else { "" }
             );
         }
+        Ability::PlayFromTop {
+            lands,
+            spells,
+            once,
+        } => {
+            let mut s = format!("{indent}play from top");
+            if *once {
+                s.push_str(" once");
+            }
+            if *lands {
+                s.push_str(" lands");
+            }
+            if let Some(f) = spells {
+                if *lands {
+                    s.push_str(" and");
+                }
+                s.push_str(" spells");
+                if *f != Filter::default() {
+                    let _ = write!(s, " {}", filter(f));
+                }
+            }
+            let _ = writeln!(out, "{s}");
+        }
+        Ability::TopRevealed { players } => {
+            let _ = writeln!(
+                out,
+                "{indent}top revealed{}",
+                if *players { " players" } else { "" }
+            );
+        }
         Ability::ExtraVote { optional } => {
             let _ = writeln!(
                 out,

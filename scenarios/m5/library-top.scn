@@ -60,3 +60,107 @@ scenario "dig onto battlefield: Cavalier of Thorns puts a land onto the battlefi
   assert graveyard A count 4
   assert library A count 1
 }
+
+scenario "play from top: Courser of Kruphix plays a land from the top of the library" {
+  battlefield A: "Courser of Kruphix"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 end
+  assert battlefield A contains "Forest"
+  assert life A 21
+  assert library A count 1
+}
+
+scenario "play from top: Courser of Kruphix needs a land play left" {
+  battlefield A: "Courser of Kruphix"
+  hand A: "Plains"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Plains"
+  illegal turn 1 A: play "Forest"
+  run_to turn 1 end
+  assert library A count 2
+}
+
+scenario "play from top: Courser of Kruphix doesn't cast spells, and its top card is revealed" {
+  battlefield A: "Courser of Kruphix", 2 "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert library A count 2
+  assert known B "Grizzly Bears"
+}
+
+scenario "play from top: without a revealing permanent the top card is unknown" {
+  battlefield A: "Glarb, Calamity's Augur", 2 "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  run_to turn 1 end
+  assert unknown B "Grizzly Bears"
+}
+
+scenario "play from top: Garruk's Horde casts a creature spell but not an instant" {
+  battlefield A: "Garruk's Horde", 2 "Forest", 2 "Mountain"
+  library A: "Grizzly Bears", "Lightning Bolt", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert library A count 2
+  assert life B 20
+}
+
+scenario "play from top: a creature spell from the top keeps sorcery timing" {
+  battlefield A: "Garruk's Horde", 2 "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 2 B precombat_main
+  illegal turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 end
+  assert library A count 2
+}
+
+scenario "play from top: Future Sight plays a land, then casts the spell below it" {
+  battlefield A: "Future Sight", 2 "Mountain"
+  library A: "Forest", "Lightning Bolt", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Forest"
+  assert life B 17
+}
+
+scenario "play from top: Glarb casts spells with mana value 4 or greater only" {
+  battlefield A: "Glarb, Calamity's Augur", 4 "Forest"
+  library A: "Grizzly Bears", "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert library A count 3
+}
+
+scenario "play from top: Johann casts one instant or sorcery from the top each turn" {
+  battlefield A: "Johann, Apprentice Sorcerer", 4 "Mountain"
+  library A: "Shock", "Lightning Bolt", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert library A count 2
+}
+
+scenario "play from top: Johann's permission returns the next turn" {
+  battlefield A: "Johann, Apprentice Sorcerer", 4 "Mountain"
+  library A: "Shock", "Lightning Bolt", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 2 upkeep A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 draw
+  assert life B 15
+}

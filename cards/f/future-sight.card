@@ -1,0 +1,7 @@
+card "Future Sight" {
+  oracle_id 93a0e938-b916-47ec-9803-369e885e253c
+  cost {2}{U}{U}{U}
+  type Enchantment
+  top revealed
+  play from top lands and spells
+}

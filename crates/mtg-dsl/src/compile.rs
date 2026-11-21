@@ -4227,6 +4227,16 @@ impl Compiler<'_> {
             Ability::AsTurnedFaceUp { kind, n, .. } => {
                 AbilityDef::AsTurnedFaceUp { kind: *kind, n: *n }
             }
+            Ability::PlayFromTop {
+                lands,
+                spells,
+                once,
+            } => AbilityDef::PlayFromTop {
+                lands: *lands,
+                spells: spells.as_ref().map(|f| self.filter(f)),
+                once: *once,
+            },
+            Ability::TopRevealed { players } => AbilityDef::TopRevealed { players: *players },
             Ability::MayLook {
                 top,
                 face_down,

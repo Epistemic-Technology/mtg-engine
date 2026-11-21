@@ -1,0 +1,7 @@
+card "Lantern of Insight" {
+  oracle_id e4d9c9c9-90e4-4397-9a88-9457fc6854fa
+  cost {1}
+  type Artifact
+  top revealed players
+  activated {T}, sacrifice this: target player shuffles
+}

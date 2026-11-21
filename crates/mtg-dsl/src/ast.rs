@@ -1138,6 +1138,23 @@ pub enum Ability {
         face_down: bool,
         opponents: bool,
     },
+    /// `play from top lands`: "You may play lands from the top of your
+    /// library."; `play from top spells creature`: "You may cast creature
+    /// spells from the top of your library."; `play from top lands and
+    /// spells`: "You may play lands and cast spells ..."; `play from top
+    /// once spells instant or sorcery`: "Once each turn, you may cast an
+    /// instant or sorcery spell from the top of your library." (CR 601.3).
+    PlayFromTop {
+        lands: bool,
+        spells: Option<Filter>,
+        once: bool,
+    },
+    /// `top revealed`: "Play with the top card of your library
+    /// revealed."; `top revealed players`: "Players play with the top card
+    /// of their libraries revealed."
+    TopRevealed {
+        players: bool,
+    },
     /// `as turned face up put 4 +1/+1 counters`: "As this creature is
     /// turned face up, put four +1/+1 counters on it." (CR 708.11);
     /// `as enters or turned face up put count where other creature you
