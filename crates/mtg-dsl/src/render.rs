@@ -4244,8 +4244,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::imperative(format!("{head}. {body}"))
         }
-        Effect::Modes(modes) => {
-            let mut out = "choose one —".to_string();
+        Effect::Modes(modes) | Effect::ModesTwo(modes) => {
+            let mut out = if matches!(e, Effect::ModesTwo(_)) {
+                "choose two —".to_string()
+            } else {
+                "choose one —".to_string()
+            };
             for m in modes {
                 let mut inner = Ctx::new(ctx.card, ctx.lookup, &m.targets);
                 inner.current = ctx.current;

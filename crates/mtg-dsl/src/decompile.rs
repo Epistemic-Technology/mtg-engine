@@ -309,6 +309,28 @@ impl Decompiler<'_> {
         }
     }
 
+    /// "Choose two": only pairs; the first ones, (0, 1), (0, 2), ...,
+    /// give every single mode. `None` for other modes.
+    fn modal_two(&self, modes: &[mtg_core::card::Mode]) -> Option<Vec<Mode>> {
+        if modes.is_empty() || !modes.iter().all(|m| m.split.is_some()) {
+            return None;
+        }
+        let n = (2..=modes.len() + 1)
+            .find(|n| n * (n - 1) / 2 == modes.len())
+            .unwrap_or(2);
+        let mut singles = Vec::new();
+        for (i, m) in modes.iter().take(n - 1).enumerate() {
+            let (e, t) = m
+                .split
+                .map_or((0, 0), |(e, t)| (usize::from(e), usize::from(t)));
+            if i == 0 {
+                singles.push(self.mode_part(m, ..e, ..t));
+            }
+            singles.push(self.mode_part(m, e.., t..));
+        }
+        Some(singles)
+    }
+
     /// One mode of a "choose two" pair: some of its effects and targets.
     fn mode_part<E, T>(&self, m: &mtg_core::card::Mode, effects: E, targets: T) -> Mode
     where
@@ -1364,7 +1386,10 @@ impl Decompiler<'_> {
                 top: *top,
                 reword: false,
             },
-            CoreEffect::Modes(modes) => Effect::Modes(modes.iter().map(|m| self.mode(m)).collect()),
+            CoreEffect::Modes(modes) => match self.modal_two(modes) {
+                Some(singles) => Effect::ModesTwo(singles),
+                None => Effect::Modes(modes.iter().map(|m| self.mode(m)).collect()),
+            },
             CoreEffect::GrantAbility { ability, to } => Effect::GrantAbility {
                 ability: Box::new(self.ability(self.pool.ability(*ability))),
                 to: Self::recipient(*to),
@@ -1882,20 +1907,7 @@ impl Decompiler<'_> {
             AbilityDef::Modal(modes) => {
                 // "Choose two": only pairs; the first ones, (0, 1), (0, 2),
                 // ..., give every single mode.
-                if !modes.is_empty() && modes.iter().all(|m| m.split.is_some()) {
-                    let n = (2..=modes.len() + 1)
-                        .find(|n| n * (n - 1) / 2 == modes.len())
-                        .unwrap_or(2);
-                    let mut singles = Vec::new();
-                    for (i, m) in modes.iter().take(n - 1).enumerate() {
-                        let (e, t) = m
-                            .split
-                            .map_or((0, 0), |(e, t)| (usize::from(e), usize::from(t)));
-                        if i == 0 {
-                            singles.push(self.mode_part(m, ..e, ..t));
-                        }
-                        singles.push(self.mode_part(m, e.., t..));
-                    }
+                if let Some(singles) = self.modal_two(modes) {
                     return Ability::ModalTwo(singles);
                 }
                 let both = modes.iter().any(|m| m.split.is_some());

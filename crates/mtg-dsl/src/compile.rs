@@ -2820,6 +2820,11 @@ impl Compiler<'_> {
                 let modes = self.modes(modes, false, false)?;
                 out.push(CoreEffect::Modes(modes));
             }
+            // "Choose two —": the pairs of modes are the modes.
+            Effect::ModesTwo(modes) => {
+                let modes = self.modes(modes, false, true)?;
+                out.push(CoreEffect::Modes(modes));
+            }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
             // One or the other, chosen as it resolves (CR 608.2d).
             Effect::ProtectionOr { to, filter } => {

@@ -882,8 +882,12 @@ impl Fmt {
                 }
                 s
             }
-            Effect::Modes(modes) => {
-                let mut s = "choose one {\n".to_string();
+            Effect::Modes(modes) | Effect::ModesTwo(modes) => {
+                let mut s = if matches!(effect, Effect::ModesTwo(_)) {
+                    "choose two {\n".to_string()
+                } else {
+                    "choose one {\n".to_string()
+                };
                 for m in modes {
                     let mut inner = String::new();
                     body(

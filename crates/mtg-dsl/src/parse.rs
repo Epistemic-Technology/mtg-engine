@@ -1967,12 +1967,14 @@ impl P {
                 // are chosen on casting (CR 700.2a), not on resolution.
                 let lone_modes = self.targets.is_empty()
                     && matches!(effects.as_slice(), [s] if s.label.is_none()
-                        && matches!(s.effects.as_slice(), [Effect::Modes(_)]));
-                if lone_modes
-                    && let Some(Effect::Modes(modes)) =
-                        effects.pop().and_then(|mut s| s.effects.pop())
-                {
-                    return Ok(Ability::Modal(modes));
+                        && matches!(s.effects.as_slice(), [Effect::Modes(_) | Effect::ModesTwo(_)]));
+                if lone_modes {
+                    match effects.pop().and_then(|mut s| s.effects.pop()) {
+                        Some(Effect::Modes(modes)) => return Ok(Ability::Modal(modes)),
+                        // `spell: choose two { ... }`: "Choose two —".
+                        Some(Effect::ModesTwo(modes)) => return Ok(Ability::ModalTwo(modes)),
+                        _ => unreachable!("checked"),
+                    }
                 }
                 Ok(Ability::Spell {
                     targets: std::mem::take(&mut self.targets),
@@ -4251,6 +4253,11 @@ impl P {
         if self.at_words(&["choose", "one"]) && self.peek_at(2) == Some(&Tok::LBrace) {
             self.pos += 2;
             return Ok(Effect::Modes(self.modes_block()?));
+        }
+        // "choose two { mode: ... }": two different modes (CR 700.2d).
+        if self.at_words(&["choose", "two"]) && self.peek_at(2) == Some(&Tok::LBrace) {
+            self.pos += 2;
+            return Ok(Effect::ModesTwo(self.modes_block()?));
         }
         // "when you do, ...": a reflexive trigger (CR 603.12) after an
         // optional action, with targets of its own.
@@ -11127,6 +11134,31 @@ card "Test Charm" {
             Ability::Modal(modes) => assert_eq!(modes.len(), 2),
             other => panic!("{other:?}"),
         }
+    }
+
+    #[test]
+    fn a_spell_that_is_only_a_choose_two_block_chooses_two() {
+        let cards = parse(
+            r#"
+card "Test Command" {
+  cost {B}
+  type Instant
+  spell: choose two {
+    mode: tap target creature
+    mode: you gain 1 life
+    mode: draw 1 card
+  }
+}
+"#,
+        )
+        .unwrap();
+        match &cards[0].abilities[0] {
+            Ability::ModalTwo(modes) => assert_eq!(modes.len(), 3),
+            other => panic!("{other:?}"),
+        }
+        let text = crate::format::format(&cards[0]);
+        assert!(text.contains("choose two {"), "{text}");
+        assert_eq!(parse(&text).unwrap()[0].abilities, cards[0].abilities);
     }
 
     #[test]

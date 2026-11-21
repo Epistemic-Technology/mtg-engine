@@ -1,0 +1,40 @@
+# "When this creature enters, choose two —" (CR 700.2d): two different
+# modes, chosen as the ability goes on the stack. In a scenario the modes
+# are the pairs in order: with three modes, `mode 1` is the first and
+# second, `mode 2` the first and third, `mode 3` the second and third.
+
+scenario "Craftwork Crusher: 4 damage and a Cadet" {
+  battlefield A: 3 "Mountain", 4 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Craftwork Crusher"
+  turn 1 A: cast "Craftwork Crusher"
+  turn 1 A: trigger "Craftwork Crusher" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Cadet"
+  assert hand A count 0
+}
+
+scenario "Craftwork Crusher: a Cadet and a card, no target" {
+  battlefield A: 3 "Mountain", 4 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Craftwork Crusher"
+  turn 1 A: cast "Craftwork Crusher"
+  turn 1 A: trigger "Craftwork Crusher" mode 3
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A contains "Cadet"
+  assert hand A count 1
+}
+
+scenario "Craftwork Crusher: 4 damage and a card" {
+  battlefield A: 3 "Mountain", 4 "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Craftwork Crusher"
+  turn 1 A: cast "Craftwork Crusher"
+  turn 1 A: trigger "Craftwork Crusher" mode 2 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A lacks "Cadet"
+  assert hand A count 1
+}
