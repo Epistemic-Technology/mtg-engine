@@ -10337,9 +10337,22 @@ impl P {
                 in_a_turn,
             });
         }
-        // CR 603.2c: "you discard one or more cards".
-        if self.eat_words(&["you", "discard", "one", "or", "more", "cards"]) {
-            return Ok(Trigger::DiscardsBatch);
+        // CR 603.2c: "you discard one or more cards", "a player discards
+        // one or more cards".
+        for (words, whose) in [
+            (&["you", "discard"][..], Who::You),
+            (&["a", "player", "discards"][..], Who::Any),
+            (&["an", "opponent", "discards"][..], Who::Opponents),
+        ] {
+            let n = words.len();
+            if self.at_words(words)
+                && (0..4).all(|k| {
+                    self.word_at(n + k).as_deref() == Some(["one", "or", "more", "cards"][k])
+                })
+            {
+                self.pos += n + 4;
+                return Ok(Trigger::DiscardsBatch { whose });
+            }
         }
         // "you draw a card", "a player draws a card" (CR 121.2).
         for (words, whose) in [

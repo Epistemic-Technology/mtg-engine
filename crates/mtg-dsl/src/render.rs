@@ -7974,7 +7974,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             if *your_turn { " during your turn" } else { "" }
         ),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
-        Trigger::DiscardsBatch => "whenever you discard one or more cards".to_string(),
+        Trigger::DiscardsBatch { whose } => format!(
+            "whenever {} one or more cards",
+            crate::format::discards_words(*whose)
+        ),
         Trigger::SacrificesBatch(f) => format!(
             "whenever you sacrifice one or more {}",
             filter_phrase(f, ctx.card, true)
@@ -11742,10 +11745,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             } else {
                 "that ability"
             };
-            format!(
-                "If a triggered ability of {} triggers, {it} triggers an additional time.",
-                with_article(&controller_first(f, filter_phrase(f, card, false)))
-            )
+            // "of equipped creature" (Wizard's Staff) takes no article.
+            let what = controller_first(f, filter_phrase(f, card, false));
+            let what = if what.starts_with("equipped ") || what.starts_with("enchanted ") {
+                what
+            } else {
+                with_article(&what)
+            };
+            format!("If a triggered ability of {what} triggers, {it} triggers an additional time.")
         }
         Ability::PlayerStatic { kind, cond } => {
             use mtg_core::card::PlayerStaticKind as K;

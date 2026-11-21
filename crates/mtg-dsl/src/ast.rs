@@ -2573,7 +2573,9 @@ pub enum Trigger {
     YouTurnFaceUp,
     /// `whenever you discard one or more cards` (CR 603.2c): their number
     /// is `that many`.
-    DiscardsBatch,
+    DiscardsBatch {
+        whose: Who,
+    },
     /// `whenever you sacrifice one or more Food` (CR 603.2c).
     SacrificesBatch(Filter),
     /// `whenever you attack with one or more Faerie`, `whenever you attack

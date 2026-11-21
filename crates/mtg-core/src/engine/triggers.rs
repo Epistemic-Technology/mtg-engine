@@ -395,6 +395,8 @@ impl GameState {
                         Some(id),
                         Some(o.controller),
                     )
+                    // "equipped creature" (Wizard's Staff).
+                    && (!filter.enchanted || o.attached_to == Some(w.source))
                 {
                     n += 1;
                 }

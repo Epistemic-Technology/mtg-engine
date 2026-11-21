@@ -1773,7 +1773,7 @@ impl Decompiler<'_> {
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Next(inner) => Trigger::Next(Box::new(self.trigger(inner))),
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),
-            TriggerSpec::DiscardsBatch { .. } => Trigger::DiscardsBatch,
+            TriggerSpec::DiscardsBatch { whose } => Trigger::DiscardsBatch { whose: *whose },
             TriggerSpec::SacrificesBatch(f) => Trigger::SacrificesBatch(self.filter(f)),
             TriggerSpec::AttacksWithFilter { filter, player } => Trigger::AttacksWithFilter {
                 filter: self.filter(filter),

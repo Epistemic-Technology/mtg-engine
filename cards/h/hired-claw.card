@@ -1,0 +1,8 @@
+card "Hired Claw" {
+  oracle_id 031cfc7d-8bda-454b-b88a-15d3f5fe47e2
+  cost {R}
+  type Creature — Lizard Mercenary
+  pt 1/2
+  triggered whenever you attack with one or more Lizard: deal 1 damage to target opponent
+  activated {1}{R}, if opponent lost life this turn, once: put 1 +1/+1 counters on this
+}

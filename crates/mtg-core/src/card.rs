@@ -7007,8 +7007,24 @@ impl DefFlags {
         );
         flags.set(
             DefFlags::GRANTS,
+            // A keyword with a triggered ability ("Equipped creature has
+            // prowess") grants that ability too.
             abilities.iter().any(|a| {
-                matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| matches!(m, Modification::AddAbility(_))))
+                matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| match m {
+                    Modification::AddAbility(_) => true,
+                    Modification::AddKeywords(ks) => [
+                        Keyword::Prowess,
+                        Keyword::Exalted,
+                        Keyword::Persist,
+                        Keyword::Undying,
+                        Keyword::Flanking,
+                        Keyword::Exploit,
+                        Keyword::Decayed,
+                    ]
+                    .into_iter()
+                    .any(|k| ks.contains(k)),
+                    _ => false,
+                }))
             }),
         );
         flags.set(

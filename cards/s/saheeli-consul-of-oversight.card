@@ -1,0 +1,8 @@
+card "Saheeli, Consul of Oversight" {
+  oracle_id dfa95c0e-393d-4b22-9de3-45a7efc0ba14
+  cost {3}{W}{W}
+  type Legendary Creature — Human Advisor
+  pt 4/4
+  keywords flying
+  triggered once each turn whenever you scry or surveil: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

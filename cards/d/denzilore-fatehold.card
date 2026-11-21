@@ -1,0 +1,8 @@
+card "Denzilore Fatehold" {
+  oracle_id 0f8de7f0-c61d-415d-b4db-4959374343da
+  cost {1}{W}{U}{U}
+  type Legendary Creature — Elder Sphinx
+  pt 3/4
+  keywords flash, flying
+  triggered whenever you scry or surveil: put 1 +1/+1 counters on each creature you control
+}

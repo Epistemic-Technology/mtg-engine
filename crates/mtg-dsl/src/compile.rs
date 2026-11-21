@@ -3385,7 +3385,7 @@ impl Compiler<'_> {
                     ..Filter::default()
                 }),
             )),
-            Trigger::DiscardsBatch => TriggerSpec::DiscardsBatch { whose: Who::You },
+            Trigger::DiscardsBatch { whose } => TriggerSpec::DiscardsBatch { whose: *whose },
             Trigger::SacrificesBatch(f) => TriggerSpec::SacrificesBatch(self.filter(f)),
             Trigger::AttacksWithFilter { filter, player } => TriggerSpec::AttacksWithFilter {
                 filter: self.filter(filter),

@@ -1,0 +1,8 @@
+card "Mordor Trebuchet" {
+  oracle_id 8a8e0d0a-1101-45b6-8f70-1de2c07bc369
+  cost {2}{B}
+  type Artifact Creature — Wall
+  pt 1/4
+  keywords defender
+  triggered whenever you attack with one or more andor Goblin or Orc: create 1 tapped and attacking "2/1 colorless Construct artifact creature with flying named Ballistic Boulder"; delayed that token: sacrifice that token at end of combat
+}

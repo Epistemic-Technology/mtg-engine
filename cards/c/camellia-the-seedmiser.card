@@ -1,0 +1,10 @@
+card "Camellia, the Seedmiser" {
+  oracle_id 312c7a7b-2084-42b0-9b13-0a6d3e43a73d
+  cost {1}{B}{G}
+  type Legendary Creature — Squirrel Warlock
+  pt 3/3
+  keywords menace
+  static other Squirrel you control: has menace
+  triggered whenever you sacrifice one or more Food: create 1 "1/1 green Squirrel creature"
+  activated {2}, forage: put 1 +1/+1 counters on each other Squirrel you control
+}

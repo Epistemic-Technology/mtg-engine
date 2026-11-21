@@ -1,0 +1,7 @@
+card "Way of the Paradox" {
+  oracle_id 76771cd1-6b74-49bb-9421-8845fe344567
+  cost {2}{G}
+  type Legendary Enchantment
+  triggered when this enters: empower jace 5
+  triggered whenever you activate a loyalty ability: you gain 1 life; play additional land this turn
+}

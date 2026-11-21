@@ -1,0 +1,195 @@
+# More cards with the batched and new triggers, triggering an additional
+# time (CR 603.2d), and tokens created tapped and attacking (CR 508.4).
+
+scenario "a player discards one or more: Tinybones and an opponent's discard" {
+  battlefield A: 3 "Swamp"
+  hand A: "Tinybones, Pocket Nuisance"
+  hand B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Tinybones, Pocket Nuisance"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "discard one or more: Cryptcaller Chariot makes that many tapped Zombies" {
+  battlefield A: "Cryptcaller Chariot", 3 "Swamp"
+  hand A: "Mind Rot", "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Zombie"
+  assert tapped oldest "Zombie"
+  assert tapped newest "Zombie"
+}
+
+scenario "sacrifice one or more Foods: Camellia makes a Squirrel" {
+  battlefield A: "Camellia, the Seedmiser", "Food", 2 "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Food"
+  run_to turn 2 postcombat_main
+  assert life A 23
+  assert battlefield A contains "Squirrel"
+}
+
+scenario "tap an opponent's creature: Solitary Sanctuary's own enters trigger" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Solitary Sanctuary"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Solitary Sanctuary"
+  run_to turn 2 postcombat_main
+  assert counters "Hill Giant" stun 1
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "you activate a loyalty ability: Way of the Paradox" {
+  battlefield A: 3 "Forest"
+  hand A: "Way of the Paradox"
+  library A: "Island", "Plains", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Way of the Paradox"
+  turn 2 A: activate "Jace" ability 1
+  run_to turn 2 postcombat_main
+  assert life A 21
+}
+
+scenario "an opponent's loyalty ability doesn't trigger Way of the Paradox" {
+  battlefield A: "Way of the Paradox"
+  battlefield B: "Jace Beleren"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Jace Beleren" ability 1
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "you activate an exhaust ability: Rangers' Refueler draws, Afterburner Expert returns" {
+  battlefield A: "Rangers' Refueler", 4 "Island"
+  graveyard A: "Afterburner Expert"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Rangers' Refueler"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert battlefield A contains "Afterburner Expert"
+  assert is "Rangers' Refueler" creature
+}
+
+scenario "scry or surveil: Saheeli once each turn, Denzilore each time" {
+  battlefield A: "Saheeli, Consul of Oversight", "Denzilore Fatehold", 2 "Island"
+  hand A: "Opt", "Consider"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Opt"
+  turn 2 A: cast "Consider"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Thopter"
+  assert counters "Saheeli, Consul of Oversight" +1/+1 2
+}
+
+scenario "scry or surveil: Proft pays {2} to grow and draw" {
+  battlefield A: "Proft, Consulting Detective", 3 "Island"
+  hand A: "Opt"
+  library A: "Plains", "Swamp", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Opt"
+  run_to turn 2 postcombat_main
+  assert counters "Proft, Consulting Detective" +1/+1 1
+  assert hand A count 2
+}
+
+scenario "attack with one or more Lizards: Hired Claw" {
+  battlefield A: "Hired Claw", "Lizard Warrior"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Lizard Warrior"
+  run_to turn 2 postcombat_main
+  assert life B 15
+}
+
+scenario "attack with one or more Goblins and/or Orcs: Mordor Trebuchet" {
+  battlefield A: "Mordor Trebuchet", "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert battlefield A lacks "Ballistic Boulder"
+}
+
+scenario "tapped and attacking: War Effort's Warrior, sacrificed at the end step" {
+  battlefield A: "War Effort", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 15
+  assert battlefield A contains "Warrior"
+  run_to turn 3 upkeep
+  assert battlefield A lacks "Warrior"
+}
+
+scenario "tapped and attacking: Kavaron Harrier pays {2}" {
+  battlefield A: "Kavaron Harrier", 2 "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Kavaron Harrier"
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert battlefield A lacks "Robot"
+}
+
+scenario "tapped and attacking: Warren Warleader's first mode" {
+  battlefield A: "Warren Warleader"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Warren Warleader"
+  run_to turn 2 postcombat_main
+  assert life B 15
+  assert battlefield A contains "Rabbit"
+}
+
+scenario "trigger again: Katara doubles Suki's attack trigger" {
+  battlefield A: "Katara, the Fearless", "Suki, Kyoshi Warrior"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Suki, Kyoshi Warrior"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Ally"
+}
+
+scenario "trigger again: Annie Joins Up doubles a legendary creature's trigger" {
+  battlefield A: "Annie Joins Up", "Suki, Kyoshi Warrior", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Suki, Kyoshi Warrior"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Ally"
+}
+
+scenario "trigger again: Wizard's Staff doubles the equipped creature's prowess" {
+  battlefield A: "Grizzly Bears", "Wizard's Staff" on "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+
+scenario "trigger again: Traveling Chocobo doubles landfall" {
+  battlefield A: "Traveling Chocobo", "Zendikar's Roil"
+  hand A: "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Elemental"
+}
+
+scenario "granted prowess triggers: Bria, Riptide Rogue's other creature" {
+  battlefield A: "Bria, Riptide Rogue", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 3
+}
+
+scenario "trigger again: Wizard's Staff unattached doubles nothing" {
+  battlefield A: "Bria, Riptide Rogue", "Grizzly Bears", "Wizard's Staff", "Mountain"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 3
+}

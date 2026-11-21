@@ -1,0 +1,8 @@
+card "Suki, Kyoshi Warrior" {
+  oracle_id 9223488e-5206-4d43-90ef-387189dcee16
+  cost {2}{G/W}{G/W}
+  type Legendary Creature — Human Warrior Ally
+  pt */4
+  static this: cda power count creature you control
+  triggered whenever this attacks: create 1 tapped and attacking "1/1 white Ally creature"
+}

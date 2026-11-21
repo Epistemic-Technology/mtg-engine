@@ -1,0 +1,7 @@
+card "War Effort" {
+  oracle_id d9bc6841-9f71-46af-ac1f-a01caee290c1
+  cost {3}{R}
+  type Enchantment
+  static creature you control: +1/+0
+  triggered whenever you attack: create 1 tapped and attacking "1/1 red Warrior creature"; delayed that token: sacrifice it at beginning of the next end step
+}

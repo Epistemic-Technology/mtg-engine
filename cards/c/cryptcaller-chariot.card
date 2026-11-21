@@ -1,0 +1,9 @@
+card "Cryptcaller Chariot" {
+  oracle_id 2bdd0bcb-6cfb-48e7-972e-355ff46621a4
+  cost {3}{B}
+  type Artifact — Vehicle
+  pt 5/5
+  keywords menace
+  triggered whenever you discard one or more cards: create that much tapped "2/2 black Zombie creature"
+  crew 2
+}

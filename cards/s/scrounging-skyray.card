@@ -1,0 +1,9 @@
+card "Scrounging Skyray" {
+  oracle_id 3a46d85b-ce1a-4842-a342-92a5bddb1053
+  cost {1}{U}
+  type Creature — Fish Pirate
+  pt 1/2
+  keywords flying
+  triggered whenever you discard one or more cards: put that much +1/+1 counters on this
+  cycling {2}
+}

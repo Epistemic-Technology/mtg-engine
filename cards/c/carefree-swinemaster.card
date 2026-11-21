@@ -1,0 +1,7 @@
+card "Carefree Swinemaster" {
+  oracle_id 411cf990-972c-4ee3-9ae4-98602f269407
+  cost {2}{G}
+  type Creature — Gnome Ranger
+  pt 1/4
+  triggered whenever this attacks: you may pay {1}{G}; if you do, create 1 tapped and attacking "2/2 green Boar creature"
+}

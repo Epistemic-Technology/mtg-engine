@@ -1,0 +1,7 @@
+card "Solitary Sanctuary" {
+  oracle_id 4c0a8eed-f2e2-4821-8011-6e6ad2081936
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: tap target creature an opponent controls and put 1 stun counter on target 1
+  triggered whenever you tap untapped creature an opponent controls: put 1 +1/+1 counters on target creature you control
+}

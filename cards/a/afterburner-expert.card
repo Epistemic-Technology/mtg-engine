@@ -1,0 +1,8 @@
+card "Afterburner Expert" {
+  oracle_id b4d19e3a-c2f8-4503-bcfa-1b46bde972e5
+  cost {2}{G}
+  type Creature — Goblin Artificer
+  pt 4/2
+  exhaust {2}{G}{G}: put 2 +1/+1 counters on this
+  triggered from graveyard whenever you activate an exhaust ability: return this to battlefield
+}

@@ -3755,7 +3755,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             if *your_turn { " during your turn" } else { "" }
         ),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
-        Trigger::DiscardsBatch => "whenever you discard one or more cards".to_string(),
+        Trigger::DiscardsBatch { whose } => {
+            format!("whenever {} one or more cards", discards_words(*whose))
+        }
         Trigger::SacrificesBatch(f) => format!("whenever you sacrifice one or more {}", filter(f)),
         Trigger::AttacksWithFilter { filter: f, player } => format!(
             "whenever you attack{} with one or more {}",
