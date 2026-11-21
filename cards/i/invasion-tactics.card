@@ -1,0 +1,7 @@
+card "Invasion Tactics" {
+  oracle_id eef63cb4-96de-4c9d-84aa-62a3b52a3c7f
+  cost {4}{G}
+  type Enchantment
+  triggered when this enters: each creature you control gets +2/+2 until end of turn
+  triggered whenever one or more Ally you control deal combat damage to a player: draw 1 card
+}

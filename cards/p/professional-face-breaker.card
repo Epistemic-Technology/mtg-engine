@@ -1,0 +1,9 @@
+card "Professional Face-Breaker" {
+  oracle_id 04152e7a-969c-4858-841b-0a569a9fc1bf
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 2/3
+  keywords menace
+  triggered whenever one or more creature you control deal combat damage to a player: create 1 "Treasure"
+  activated sacrifice Treasure: impulse 1 this turn
+}

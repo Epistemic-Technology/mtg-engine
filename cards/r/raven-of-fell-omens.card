@@ -1,0 +1,8 @@
+card "Raven of Fell Omens" {
+  oracle_id eec7d4f4-4141-49ed-8978-aefacc0a6609
+  cost {1}{B}
+  type Creature — Bird
+  pt 1/2
+  keywords flying
+  triggered once each turn whenever you commit a crime: each opponent loses 1 life and you gain 1 life
+}

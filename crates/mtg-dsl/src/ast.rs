@@ -1877,6 +1877,28 @@ pub enum StaticCond {
     LifeGainedThisTurn(u32),
     /// `committed crime this turn`: "you've committed a crime this turn".
     CrimeThisTurn,
+    /// `your main phase`: "it's your main phase"; `your combat phase`:
+    /// "it's your combat phase"; `first combat phase`: "it's the first
+    /// combat phase of the turn".
+    YourMainPhase,
+    YourCombatPhase,
+    FirstCombatPhase,
+    /// `put counter this turn`: "you've put one or more +1/+1 counters on
+    /// a creature this turn".
+    PutCounterThisTurn,
+    /// `opponent dealt noncombat damage this turn`: "an opponent has been
+    /// dealt noncombat damage this turn"; `was`: `opponent was dealt
+    /// noncombat damage this turn`, "an opponent was dealt ...".
+    OpponentNoncombatDamagedThisTurn {
+        was: bool,
+    },
+    /// `resolution 2`: "this is the second time this ability has resolved
+    /// this turn"; `resolution 2 again`: "it's the second time" (after the
+    /// first such condition).
+    NthResolution {
+        n: u8,
+        again: bool,
+    },
     /// `card left your graveyard this turn`: "one or more cards left your
     /// graveyard this turn".
     LeftGraveyardThisTurn,
@@ -2225,6 +2247,8 @@ pub enum Trigger {
     CreaturesYouControlAttack,
     /// `whenever this attacks and isn't blocked`.
     AttacksUnblocked(TriggerObj),
+    /// `whenever this attacks for the first time each turn`.
+    AttacksFirstTime(TriggerObj),
     /// `whenever this becomes blocked`.
     BecomesBlocked(TriggerObj),
     /// `whenever this blocks or becomes blocked`.
@@ -2318,6 +2342,13 @@ pub enum Trigger {
     CountersPut {
         obj: TriggerObj,
         kind: CounterKind,
+    },
+    /// `whenever you put one or more +1/+1 counters on creature you
+    /// control`: "Whenever you put one or more +1/+1 counters on a creature
+    /// you control"; `... one or more counters on ...` (any kind).
+    YouPutCounters {
+        obj: TriggerObj,
+        kind: Option<CounterKind>,
     },
     /// `whenever Aura becomes attached to this`: "Whenever an Aura becomes
     /// attached to this creature".
@@ -2440,6 +2471,22 @@ pub enum Trigger {
     CollectsEvidence,
     /// `whenever you forage` (CR 701.61).
     Forages,
+    /// `whenever one or more creature you control deal combat damage to a
+    /// player`, `... one or more Ally you control ...` (once per player,
+    /// CR 603.2c).
+    CreaturesDealCombatDamage(Filter),
+    /// `whenever a source you control deals noncombat damage to an
+    /// opponent` (`yours`), `whenever an opponent is dealt noncombat
+    /// damage`, `whenever one or more opponents are dealt noncombat damage`
+    /// (`batch`).
+    NoncombatDamageToOpponent {
+        yours: bool,
+        batch: bool,
+    },
+    /// `whenever you commit a crime` (CR 700.13), `... during your turn`.
+    CommitsCrime {
+        your_turn: bool,
+    },
     /// `whenever you turn a permanent face up` (CR 708.8): a permanent you
     /// control is turned face up; it is "it".
     YouTurnFaceUp,
@@ -3677,6 +3724,30 @@ pub enum Effect {
     SkipNextUntap {
         to: Recipient,
         steps: bool,
+    },
+    /// `you take extra turn`: "Take an extra turn after this one."; `target
+    /// player takes 2 extra turns`: "Target player takes two extra turns
+    /// after this one." (CR 500.7).
+    ExtraTurns {
+        who: Recipient,
+        n: u8,
+    },
+    /// `after this phase, additional combat phase`: "After this phase,
+    /// there is an additional combat phase."; `after this main phase,
+    /// additional combat phase then main phase` ("... followed by an
+    /// additional main phase"), `after this main phase, 2 additional
+    /// combat phases` ("there are two additional combat phases"); the
+    /// trailing order `additional combat phase after this phase then main
+    /// phase` ("there is an additional combat phase after this phase
+    /// followed by an additional main phase", after an `if`). CR 500.8.
+    AdditionalPhases {
+        combats: u8,
+        main: bool,
+        /// "After this phase, there is ..." rather than "there is ...
+        /// after this phase".
+        leading: bool,
+        /// "this main phase" rather than "this phase" (wording only).
+        main_phase: bool,
     },
     /// `that creature can't be regenerated`: "That creature can't be
     /// regenerated this turn."

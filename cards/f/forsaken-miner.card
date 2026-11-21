@@ -1,0 +1,8 @@
+card "Forsaken Miner" {
+  oracle_id d37e0127-6f68-438e-8b9e-a71bb3c34733
+  cost {B}
+  type Creature — Skeleton Rogue
+  pt 2/2
+  keywords can't block
+  triggered from graveyard whenever you commit a crime: you may pay {B}; if you do, return this to battlefield
+}

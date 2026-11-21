@@ -1,0 +1,6 @@
+card "Relentless Assault" {
+  oracle_id dc1c0e8c-d0c1-445c-968f-7dec91e5d5fc
+  cost {2}{R}{R}
+  type Sorcery
+  spell: untap all creature that attacked this turn; after this main phase, additional combat phase then main phase
+}

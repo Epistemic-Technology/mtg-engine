@@ -1,0 +1,8 @@
+card "Omnath, Locus of Creation" {
+  oracle_id cd133d30-51ff-4114-a7d7-029345f0f0d7
+  cost {R}{G}{W}{U}
+  type Legendary Creature — Elemental
+  pt 4/4
+  triggered when this enters: draw 1 card
+  label "Landfall" triggered whenever land you control enters: you gain 4 life if resolution 1; if resolution 2 again, add {R}{G}{W}{U}; if resolution 3 again, this deals 4 damage to each opponent and each planeswalker you don't control
+}

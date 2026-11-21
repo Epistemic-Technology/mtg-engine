@@ -1,0 +1,7 @@
+card "Thopter Spy Network" {
+  oracle_id 49be65fd-3755-410d-b0dc-2e5861ea2552
+  cost {2}{U}{U}
+  type Enchantment
+  triggered at beginning of your upkeep if you control artifact: create 1 "1/1 colorless Thopter artifact creature with flying"
+  triggered whenever one or more artifact creature you control deal combat damage to a player: draw 1 card
+}

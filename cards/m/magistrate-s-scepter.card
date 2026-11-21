@@ -1,0 +1,7 @@
+card "Magistrate's Scepter" {
+  oracle_id 487485a6-cf79-48c0-bea9-0ec6b3ee253c
+  cost {3}
+  type Artifact
+  activated {4}, {T}: put 1 charge counter on this
+  activated {T}, remove 3 charge counters from this: you take extra turn
+}

@@ -1679,6 +1679,56 @@ impl Templates {
                 Some("clash".to_string())
             }),
             (r(r"^Learn$"), |_, _| Some("learn".to_string())),
+            // CR 500.7.
+            (r(r"^[Tt]ake an extra turn after this one$"), |_, _| {
+                Some("you take extra turn".to_string())
+            }),
+            (
+                r(r"^(Target player|Target opponent) takes an extra turn after this one$"),
+                |c, t| Some(format!("{} takes extra turn", recipient(cap(c, 1), t)?)),
+            ),
+            // CR 500.8.
+            (
+                r(
+                    r"^After this (main )?phase, there is an additional combat phase( followed by an additional main phase)?$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "after this {}phase, additional combat phase{}",
+                        cap(c, 1),
+                        if cap(c, 2).is_empty() {
+                            ""
+                        } else {
+                            " then main phase"
+                        }
+                    ))
+                },
+            ),
+            // "Return this card from your graveyard to the battlefield
+            // with a finality counter on it" (CR 122.1h).
+            (
+                r(
+                    r"^[Rr]eturn this card from your graveyard to the battlefield( tapped)? with a finality counter on it$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "return this to battlefield{} with 1 finality counter",
+                        cap(c, 1)
+                    ))
+                },
+            ),
+            (
+                r(
+                    r"^Return (.+? from your graveyard) to the battlefield( tapped)? with a finality counter on it$",
+                ),
+                |c, t| {
+                    Some(format!(
+                        "return {} to battlefield{} with 1 finality counter",
+                        recipient(cap(c, 1), t)?,
+                        cap(c, 2)
+                    ))
+                },
+            ),
             (
                 r(
                     r"^[Rr]eturn this card from your graveyard to (your hand|the battlefield|the battlefield tapped)$",
@@ -1808,6 +1858,15 @@ impl Templates {
             (r(r"^Detain (.+)$"), |c, t| {
                 Some(format!("detain {}", recipient(cap(c, 1), t)?))
             }),
+            (
+                r(r"^Untap all creatures (you control )?that attacked this turn$"),
+                |c, _| {
+                    Some(format!(
+                        "untap all creature {}that attacked this turn",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             (r(r"^(Tap|Untap) (.+)$"), |c, t| {
                 Some(format!(
                     "{} {}",
@@ -1820,7 +1879,7 @@ impl Templates {
             }),
             (
                 r(
-                    r"^Put (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? on (.+)$",
+                    r"^Put (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|supply|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? on (.+)$",
                 ),
                 |c, t| {
                     Some(format!(
@@ -1833,7 +1892,7 @@ impl Templates {
             ),
             (
                 r(
-                    r"^Remove (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? from (.+)$",
+                    r"^Remove (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|supply|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? from (.+)$",
                 ),
                 |c, t| {
                     Some(format!(
@@ -2693,7 +2752,12 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever you expend 4"
         | "Whenever you expend 8"
         | "Whenever you collect evidence"
-        | "Whenever you forage" => {
+        | "Whenever you forage"
+        | "Whenever you commit a crime"
+        | "Whenever you commit a crime during your turn"
+        | "Whenever a source you control deals noncombat damage to an opponent"
+        | "Whenever an opponent is dealt noncombat damage"
+        | "Whenever one or more opponents are dealt noncombat damage" => {
             return Some(lowercase_first(head));
         }
         "Whenever a creature dealt damage by this creature this turn dies" => {
@@ -2826,6 +2890,21 @@ fn trigger_general(head: &str) -> Option<String> {
         "Whenever you attack" => Some("whenever you attack"),
         "Whenever one or more creatures you control attack" => {
             Some("whenever one or more creatures you control attack")
+        }
+        "Whenever one or more creatures you control deal combat damage to a player" => {
+            Some("whenever one or more creature you control deal combat damage to a player")
+        }
+        "Whenever you put one or more +1/+1 counters on a creature you control" => {
+            Some("whenever you put one or more +1/+1 counters on creature you control")
+        }
+        "Whenever you put one or more +1/+1 counters on a creature" => {
+            Some("whenever you put one or more +1/+1 counters on creature")
+        }
+        "Whenever you put one or more -1/-1 counters on a creature" => {
+            Some("whenever you put one or more -1/-1 counters on creature")
+        }
+        "Whenever you put one or more +1/+1 counters on this creature" => {
+            Some("whenever you put one or more +1/+1 counters on this")
         }
         "Whenever one or more +1/+1 counters are put on this creature" => {
             Some("whenever one or more +1/+1 counters put on this")

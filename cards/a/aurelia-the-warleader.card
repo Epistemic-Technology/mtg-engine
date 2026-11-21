@@ -1,0 +1,8 @@
+card "Aurelia, the Warleader" {
+  oracle_id 0f5a3a09-2f07-4774-9e0f-e99d9a444166
+  cost {2}{R}{R}{W}{W}
+  type Legendary Creature — Angel
+  pt 3/4
+  keywords flying, vigilance, haste
+  triggered whenever this attacks for the first time each turn: untap all creature you control; after this phase, additional combat phase
+}

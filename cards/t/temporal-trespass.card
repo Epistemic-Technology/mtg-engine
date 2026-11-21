@@ -1,0 +1,7 @@
+card "Temporal Trespass" {
+  oracle_id c216b924-88ac-4853-9e95-0c345c09eeb6
+  cost {8}{U}{U}{U}
+  type Sorcery
+  keywords delve
+  spell: you take extra turn; exile this
+}

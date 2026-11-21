@@ -1,0 +1,7 @@
+card "Resurrected Cultist" {
+  oracle_id 8b6d37a7-a88e-45dd-b45e-642a44caaf05
+  cost {2}{B}
+  type Creature — Human Cleric
+  pt 4/1
+  label "Delirium" activated {2}{B}{B}, from graveyard, if 4 card types in your graveyard, sorcery: return this to battlefield with 1 finality counter
+}

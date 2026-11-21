@@ -58,6 +58,13 @@ pub enum Event {
     Foraged {
         player: PlayerId,
     },
+    /// A player committed a crime (CR 700.13): they cast a spell,
+    /// activated an ability, or put a triggered ability on the stack that
+    /// targets an opponent, something an opponent controls, or a card in
+    /// an opponent's graveyard. Once per spell or ability.
+    CommittedCrime {
+        player: PlayerId,
+    },
     GameStart {
         starting_player: PlayerId,
     },
@@ -188,6 +195,9 @@ pub enum Event {
         obj: ObjId,
         kind: CounterKind,
         n: u32,
+        /// Who put them (CR 122.6): the controller of the effect, or of
+        /// the permanent for counters it enters with or puts as a cost.
+        by: PlayerId,
         /// How many of that kind it had before (a Saga's chapters, CR
         /// 714.2c).
         before: u32,
@@ -373,7 +383,7 @@ impl Event {
             Event::Damage { .. } => WATCH_DAMAGE,
             Event::LifeChange { .. } => WATCH_LIFE_CHANGE,
             Event::Cast { .. } | Event::SpellCopied { .. } => WATCH_CAST,
-            Event::Targeted { .. } => WATCH_TARGETED,
+            Event::Targeted { .. } | Event::CommittedCrime { .. } => WATCH_TARGETED,
             Event::Tapped { .. } | Event::Untapped { .. } => WATCH_TAP,
             Event::TurnedFaceUp { .. } => WATCH_FACE_UP,
             Event::Draw { .. } => WATCH_DRAW,

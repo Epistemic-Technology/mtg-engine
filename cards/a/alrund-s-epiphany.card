@@ -1,0 +1,7 @@
+card "Alrund's Epiphany" {
+  oracle_id bc842838-1993-4480-b8fe-f9d9f2dee7a4
+  cost {5}{U}{U}
+  type Sorcery
+  spell: create 2 "1/1 blue Bird creature with flying"; you take extra turn; exile this
+  foretell {4}{U}{U}
+}

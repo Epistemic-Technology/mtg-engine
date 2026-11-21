@@ -240,7 +240,13 @@ impl GameState {
     ) -> ObjId {
         // "If this would be put into a graveyard from anywhere, exile it
         // instead." (a disturbed card's back face, CR 702.146).
-        let to = if to == Zone::Graveyard && self.pool.get(self.objects[id].def).graveyard_exile {
+        // CR 122.1h: a permanent with a finality counter on it that would
+        // be put into a graveyard from the battlefield is exiled instead.
+        let to = if to == Zone::Graveyard
+            && (self.pool.get(self.objects[id].def).graveyard_exile
+                || (self.objects[id].zone == Zone::Battlefield
+                    && self.objects[id].counters(CounterKind::Finality) > 0))
+        {
             Zone::Exile
         } else {
             to
@@ -610,12 +616,19 @@ impl GameState {
         if to == Zone::Battlefield && self.objects[new].counters.iter().any(|(_, n)| *n > 0) {
             let entered: SmallVec<[(CounterKind, u32); 2]> =
                 self.objects[new].counters.iter().copied().collect();
+            let by = self
+                .effect_controller
+                .unwrap_or(self.objects[new].controller);
             for (kind, n) in entered {
                 if n > 0 {
+                    if kind == CounterKind::PlusOnePlusOne {
+                        self.turn_log.counter_put_by |= 1 << by.index().min(7);
+                    }
                     self.emit(Event::CountersAdded {
                         obj: new,
                         kind,
                         n,
+                        by,
                         before: 0,
                     });
                 }
@@ -1247,6 +1260,10 @@ impl GameState {
                     self.damaged_this_turn |= 1 << p.index().min(7);
                     self.history_bump();
                 }
+                if !combat && self.turn_log.noncombat_damaged & (1 << p.index().min(7)) == 0 {
+                    self.turn_log.noncombat_damaged |= 1 << p.index().min(7);
+                    self.history_bump();
+                }
                 self.note_damage_source(source);
                 // CR 702.173a: an Assassin's combat damage enables
                 // freerunning for its controller this turn.
@@ -1419,14 +1436,17 @@ impl GameState {
         }
         let before = o.counters(kind);
         o.add_counters(kind, n);
+        let by = self.effect_controller.unwrap_or(o.controller);
         if kind == CounterKind::PlusOnePlusOne {
             self.turn_log.counter_put |= 1 << o.controller.index().min(7);
+            self.turn_log.counter_put_by |= 1 << by.index().min(7);
         }
         self.cbump();
         self.emit(Event::CountersAdded {
             obj: id,
             kind,
             n,
+            by,
             before,
         });
     }

@@ -1,0 +1,164 @@
+# "Whenever you commit a crime" (CR 700.13): a player commits a crime as
+# they cast a spell, activate an ability, or put a triggered ability on the
+# stack that targets an opponent, something an opponent controls, or a card
+# in an opponent's graveyard. Once per spell or ability, however many such
+# targets it has; targeting only your own things is no crime.
+
+scenario "crime: a spell targeting an opponent's creature" {
+  battlefield A: "Blood Hustler", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Blood Hustler" +1/+1 1
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "crime: targeting the opponent with an activated ability" {
+  battlefield A: "Raven of Fell Omens", 4 "Swamp", "Blood Hustler"
+  turn 1 A: activate "Blood Hustler" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+  assert counters "Blood Hustler" +1/+1 1
+}
+
+scenario "crime: targeting your own creature is no crime" {
+  battlefield A: "Blood Hustler", "Mountain", "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Blood Hustler" +1/+1 0
+}
+
+scenario "crime: targeting yourself is no crime" {
+  battlefield A: "Blood Hustler", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert counters "Blood Hustler" +1/+1 0
+}
+
+scenario "crime: an opponent's crime doesn't trigger yours" {
+  battlefield A: "Blood Hustler", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Blood Hustler" +1/+1 0
+}
+
+scenario "crime: triggers only once each turn" {
+  battlefield A: "Blood Hustler", "Deepmuck Desperado", 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Shock", "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert counters "Blood Hustler" +1/+1 1
+  assert graveyard B count 4
+}
+
+scenario "crime: an untapping crime gives mana back" {
+  battlefield A: "Hardbristle Bandit"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert untapped "Hardbristle Bandit"
+}
+
+scenario "crime: a tapped Treasure and a loot counter" {
+  battlefield A: "Magda, the Hoardmaster", "Bandit's Haul", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Treasure"
+  assert tapped "Treasure"
+  assert counters "Bandit's Haul" loot 1
+}
+
+scenario "crime: during your turn only" {
+  battlefield A: "Overzealous Muscle", "Mountain"
+  hand A: "Shock"
+  start turn 2 B precombat_main
+  turn 2 end A: cast "Shock" targeting player B
+  run_to turn 2 cleanup
+  assert life B 18
+  assert has not "Overzealous Muscle" indestructible
+}
+
+scenario "crime: during your turn, it gains indestructible" {
+  battlefield A: "Overzealous Muscle", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert has "Overzealous Muscle" indestructible
+}
+
+scenario "crime: a graveyard trigger returns the miner" {
+  battlefield A: "Swamp", "Mountain"
+  graveyard A: "Forsaken Miner"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forsaken Miner"
+}
+
+scenario "crime: a triggered ability targeting the opponent's creature" {
+  battlefield A: "Rattleback Apothecary", "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: trigger "Rattleback Apothecary" targeting "Grizzly Bears"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" lifelink
+  assert has not "Grizzly Bears" menace
+}
+
+scenario "crime: as long as you've committed a crime this turn" {
+  battlefield A: "Slickshot Vault-Buster", "Omenport Vigilante", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Slickshot Vault-Buster" 3
+  assert has "Omenport Vigilante" double_strike
+}
+
+scenario "crime: no crime, no bonus" {
+  battlefield A: "Slickshot Vault-Buster", "Omenport Vigilante"
+  run_to turn 1 postcombat_main
+  assert power "Slickshot Vault-Buster" 1
+  assert has not "Omenport Vigilante" double_strike
+}
+
+scenario "crime: Servant of the Stinger tutors after a crime" {
+  battlefield A: "Servant of the Stinger", "Mountain"
+  hand A: "Shock"
+  library A: "Plains", "Hill Giant", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  turn 2 A: attack "Servant of the Stinger"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Servant of the Stinger"
+  assert hand A count 1
+}
+
+scenario "crime: Servant of the Stinger without a crime stays" {
+  battlefield A: "Servant of the Stinger"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Servant of the Stinger"
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert battlefield A contains "Servant of the Stinger"
+}

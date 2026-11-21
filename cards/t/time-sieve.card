@@ -1,0 +1,6 @@
+card "Time Sieve" {
+  oracle_id 3da5977a-36d4-4f32-ab9b-8b93809d818d
+  cost {U}{B}
+  type Artifact
+  activated {T}, sacrifice 5 artifacts: you take extra turn
+}

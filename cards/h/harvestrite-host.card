@@ -1,0 +1,7 @@
+card "Harvestrite Host" {
+  oracle_id 56208bdc-2eed-4ccc-8c34-c0eba9db0aa9
+  cost {2}{W}
+  type Creature — Rabbit Citizen
+  pt 3/3
+  triggered whenever this or Rabbit you control enters: target creature you control gets +1/+0 until end of turn; then draw 1 card if resolution 2
+}

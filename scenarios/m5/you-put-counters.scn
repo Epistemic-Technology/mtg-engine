@@ -1,0 +1,126 @@
+# "Whenever you put one or more +1/+1 counters on a creature you control"
+# (CR 122.6): counters a spell or ability you control puts, once for each
+# permanent they go on, however many; "that many" is their number. Counters
+# an opponent's effect puts don't count.
+
+scenario "you put counters: once per creature" {
+  battlefield A: "Stocking the Pantry", "Plains", "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Basri's Solidarity"
+  turn 1 A: cast "Basri's Solidarity"
+  run_to turn 1 postcombat_main
+  assert counters "Stocking the Pantry" supply 2
+}
+
+scenario "you put counters: an opponent's counters don't count" {
+  battlefield A: "Stocking the Pantry", "Grizzly Bears"
+  battlefield B: "Forest"
+  hand B: "Battlegrowth"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Stocking the Pantry" supply 0
+}
+
+scenario "you put counters: not on an opponent's creature for 'you control'" {
+  battlefield A: "Stocking the Pantry", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Battlegrowth"
+  turn 1 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Stocking the Pantry" supply 0
+}
+
+scenario "you put counters: Terrasymbiosis draws that many, once each turn" {
+  battlefield A: "Terrasymbiosis", "Plains", "Plains", "Forest", "Grizzly Bears", "Hill Giant"
+  hand A: "Basri's Solidarity", "Battlegrowth"
+  turn 1 A: cast "Basri's Solidarity"
+  turn 1 A: wait
+  turn 1 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert hand A count 1
+}
+
+scenario "you put counters: Exemplar of Light draws once each turn" {
+  battlefield A: "Exemplar of Light", "Forest", "Forest"
+  hand A: "Battlegrowth", "Battlegrowth"
+  turn 1 A: cast "Battlegrowth" targeting "Exemplar of Light"
+  turn 1 A: wait
+  turn 1 A: cast "Battlegrowth" targeting "Exemplar of Light"
+  run_to turn 1 postcombat_main
+  assert counters "Exemplar of Light" +1/+1 2
+  assert hand A count 1
+}
+
+scenario "you put counters: Nest of Scarabs makes that many Insects" {
+  battlefield A: "Nest of Scarabs", "Mountain", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Blur of Blades"
+  turn 1 A: cast "Blur of Blades" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Insect"
+  assert counters "Hill Giant" -1/-1 1
+}
+
+scenario "you put counters: Hapatra on an opponent's creature" {
+  battlefield A: "Hapatra, Vizier of Poisons"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Hapatra, Vizier of Poisons"
+  turn 2 A: trigger "Hapatra, Vizier of Poisons" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert counters "Hill Giant" -1/-1 1
+  assert battlefield A contains "Snake"
+}
+
+scenario "you put counters: Obelisk Spider drains" {
+  battlefield A: "Obelisk Spider", "Mountain", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Blur of Blades"
+  turn 1 A: cast "Blur of Blades" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 21
+}
+
+scenario "you put counters: Earth Kingdom General gains that much, once" {
+  battlefield A: "Earth Kingdom General", "Plains", "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Basri's Solidarity"
+  turn 1 A: cast "Basri's Solidarity"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
+
+scenario "you put counters: a planeswalker's loyalty cost" {
+  battlefield A: "Inspired Tethermage", "Jace Beleren"
+  turn 1 A: activate "Jace Beleren" ability 1
+  run_to turn 1 postcombat_main
+  assert counters "Inspired Tethermage" +1/+1 1
+}
+
+scenario "you put counters: Defiant Greatmaw moves a counter off another" {
+  battlefield A: 3 "Forest", "Grizzly Bears" with 1 -1/-1
+  hand A: "Defiant Greatmaw"
+  turn 1 A: cast "Defiant Greatmaw"
+  turn 1 A: trigger "Defiant Greatmaw" targeting "Defiant Greatmaw"
+  turn 1 A: trigger "Defiant Greatmaw" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Defiant Greatmaw" -1/-1 2
+  assert counters "Grizzly Bears" -1/-1 0
+}
+
+scenario "you put counters: Sigardian Paladin after you put a counter" {
+  battlefield A: "Sigardian Paladin", "Forest", "Grizzly Bears"
+  hand A: "Battlegrowth"
+  turn 1 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Sigardian Paladin" trample
+  assert has "Sigardian Paladin" lifelink
+}
+
+scenario "you put counters: Sigardian Paladin without" {
+  battlefield A: "Sigardian Paladin"
+  run_to turn 1 postcombat_main
+  assert has not "Sigardian Paladin" trample
+}

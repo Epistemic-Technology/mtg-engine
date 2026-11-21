@@ -2808,6 +2808,23 @@ impl P {
         if self.eat_words(&["your", "turn"]) {
             return Ok(StaticCond::YourTurn);
         }
+        if self.eat_words(&["your", "main", "phase"]) {
+            return Ok(StaticCond::YourMainPhase);
+        }
+        if self.eat_words(&["your", "combat", "phase"]) {
+            return Ok(StaticCond::YourCombatPhase);
+        }
+        if self.eat_words(&["first", "combat", "phase"]) {
+            return Ok(StaticCond::FirstCombatPhase);
+        }
+        if self.eat_words(&["put", "counter", "this", "turn"]) {
+            return Ok(StaticCond::PutCounterThisTurn);
+        }
+        if self.eat_word("resolution") {
+            let n = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+            let again = self.eat_word("again");
+            return Ok(StaticCond::NthResolution { n, again });
+        }
         if self.eat_words(&["not", "your", "turn"]) {
             return Ok(StaticCond::NotYourTurn);
         }
@@ -3158,6 +3175,14 @@ impl P {
         }
         if self.eat_words(&["opponent", "damaged", "this", "turn"]) {
             return Ok(StaticCond::OpponentDamagedThisTurn);
+        }
+        if self.at_words(&["opponent", "dealt", "noncombat"])
+            || self.at_words(&["opponent", "was", "dealt", "noncombat"])
+        {
+            self.pos += 1;
+            let was = self.eat_word("was");
+            self.expect_words(&["dealt", "noncombat", "damage", "this", "turn"])?;
+            return Ok(StaticCond::OpponentNoncombatDamagedThisTurn { was });
         }
         if self.eat_words(&["opponent", "lost", "life", "this", "turn"]) {
             return Ok(StaticCond::OpponentLostLifeThisTurn);
@@ -5398,6 +5423,22 @@ impl P {
                 };
                 Ok(Effect::SkipNext { who: subject, what })
             }
+            // CR 500.7.
+            "take" | "takes"
+                if self.at_word("extra") || self.word_at(1).as_deref() == Some("extra") =>
+            {
+                let n = if self.eat_word("extra") {
+                    1
+                } else {
+                    let n = self.number()?;
+                    self.expect_word("extra")?;
+                    u8::try_from(n).unwrap_or(u8::MAX)
+                };
+                if !self.eat_word("turn") {
+                    self.expect_word("turns")?;
+                }
+                Ok(Effect::ExtraTurns { who: subject, n })
+            }
             "doesn't" => {
                 self.expect_words(&["untap", "next", "untap"])?;
                 let steps = self.eat_word("steps");
@@ -6045,6 +6086,26 @@ impl P {
         })
     }
 
+    /// `[2] additional combat phase[s] [after this phase] [then main
+    /// phase]` (CR 500.8): how many combat phases, and whether a main
+    /// phase follows them.
+    fn additional_phases(&mut self, trailing: bool) -> R<(u8, bool)> {
+        let combats = if matches!(self.peek(), Some(Tok::Num(_))) {
+            u8::try_from(self.number()?).unwrap_or(u8::MAX)
+        } else {
+            1
+        };
+        self.expect_words(&["additional", "combat"])?;
+        if !self.eat_word("phase") {
+            self.expect_word("phases")?;
+        }
+        if trailing {
+            self.expect_words(&["after", "this", "phase"])?;
+        }
+        let main = self.eat_words(&["then", "main", "phase"]);
+        Ok((combats, main))
+    }
+
     #[allow(clippy::too_many_lines)]
     fn verb_first(&mut self) -> R<Effect> {
         if self.chosen_act_ahead() {
@@ -6091,6 +6152,31 @@ impl P {
             }
             // CR 701.23: "clash with an opponent".
             "clash" => Ok(Effect::Clash),
+            // CR 500.8: "After this phase, there is an additional combat
+            // phase."
+            "after" if self.at_word("this") => {
+                self.pos += 1;
+                let main_phase = self.eat_word("main");
+                self.expect_word("phase")?;
+                self.expect(&Tok::Comma)?;
+                let (combats, main) = self.additional_phases(false)?;
+                Ok(Effect::AdditionalPhases {
+                    combats,
+                    main,
+                    leading: true,
+                    main_phase,
+                })
+            }
+            "additional" if self.at_words(&["combat", "phase", "after"]) => {
+                self.pos -= 1;
+                let (combats, main) = self.additional_phases(true)?;
+                Ok(Effect::AdditionalPhases {
+                    combats,
+                    main,
+                    leading: false,
+                    main_phase: false,
+                })
+            }
             // CR 701.38: "starting with you, each player votes for ...".
             "vote" => {
                 if self.eat_word("return") {
@@ -9134,6 +9220,10 @@ impl P {
                     f.status.blocked_this_turn = true;
                     self.pos += 4;
                 }
+                "that" if self.at_words(&["that", "attacked", "this", "turn"]) => {
+                    f.status.attacked_this_turn = true;
+                    self.pos += 4;
+                }
                 "with"
                     if matches!(self.word_at(1).as_deref(), Some("power" | "toughness"))
                         || self.at_words(&["with", "mana", "value"]) =>
@@ -9888,6 +9978,67 @@ impl P {
         if self.eat_words(&["you", "forage"]) {
             return Ok(Trigger::Forages);
         }
+        // CR 122.6: "you put one or more +1/+1 counters on a creature you
+        // control".
+        if self.eat_words(&["you", "put", "one", "or", "more"]) {
+            let kind = if self.eat_word("counters") {
+                None
+            } else {
+                let k = self.counter_kind()?;
+                self.eat_word("counters");
+                Some(k)
+            };
+            self.expect_word("on")?;
+            let obj = if self.eat_word("this") {
+                TriggerObj::This
+            } else {
+                TriggerObj::Filter(self.filter()?)
+            };
+            return Ok(Trigger::YouPutCounters { obj, kind });
+        }
+        if self.eat_words(&[
+            "a",
+            "source",
+            "you",
+            "control",
+            "deals",
+            "noncombat",
+            "damage",
+            "to",
+            "an",
+            "opponent",
+        ]) {
+            return Ok(Trigger::NoncombatDamageToOpponent {
+                yours: true,
+                batch: false,
+            });
+        }
+        if self.eat_words(&["an", "opponent", "is", "dealt", "noncombat", "damage"]) {
+            return Ok(Trigger::NoncombatDamageToOpponent {
+                yours: false,
+                batch: false,
+            });
+        }
+        if self.eat_words(&[
+            "one",
+            "or",
+            "more",
+            "opponents",
+            "are",
+            "dealt",
+            "noncombat",
+            "damage",
+        ]) {
+            return Ok(Trigger::NoncombatDamageToOpponent {
+                yours: false,
+                batch: true,
+            });
+        }
+        // CR 700.13.
+        if self.eat_words(&["you", "commit", "a", "crime"]) {
+            let your_turn = self.eat_words(&["during", "your", "turn"]);
+            return Ok(Trigger::CommitsCrime { your_turn });
+        }
         if self.eat_words(&["you", "turn", "a", "permanent", "face", "up"]) {
             return Ok(Trigger::YouTurnFaceUp);
         }
@@ -9944,6 +10095,11 @@ impl P {
                     filter: f,
                     dies: false,
                 });
+            }
+            // "one or more creatures you control deal combat damage to a
+            // player" (CR 603.2c).
+            if self.eat_words(&["deal", "combat", "damage", "to", "a", "player"]) {
+                return Ok(Trigger::CreaturesDealCombatDamage(f));
             }
             self.expect_word("enter")?;
             return Ok(Trigger::EntersBatch(f));
@@ -10170,6 +10326,9 @@ impl P {
             "attacks" => {
                 if self.eat_word("alone") {
                     return Ok(Trigger::AttacksAlone(obj));
+                }
+                if self.eat_words(&["for", "the", "first", "time", "each", "turn"]) {
+                    return Ok(Trigger::AttacksFirstTime(obj));
                 }
                 if self.eat_words(&["and", "isn't", "blocked"]) {
                     return Ok(Trigger::AttacksUnblocked(obj));

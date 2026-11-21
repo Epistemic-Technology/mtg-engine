@@ -1,0 +1,7 @@
+card "Elrond, Lord of Rivendell" {
+  oracle_id 099ae8f2-5c84-43ab-aaa1-ea69f2bba784
+  cost {2}{U}
+  type Legendary Creature — Elf Noble
+  pt 3/2
+  triggered whenever this or creature you control enters: scry 1; if resolution 2, the ring tempts you
+}

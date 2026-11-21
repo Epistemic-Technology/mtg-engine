@@ -1,0 +1,7 @@
+card "Deepmuck Desperado" {
+  oracle_id b75ffa62-a291-44d7-a950-b50c8394e066
+  cost {2}{U}
+  type Creature — Homarid Mercenary
+  pt 2/4
+  triggered once each turn whenever you commit a crime: each opponent mills 3 cards
+}

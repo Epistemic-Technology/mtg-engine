@@ -983,6 +983,37 @@ impl Fmt {
                     self.recipient(*to, t)
                 )
             }
+            Effect::ExtraTurns { who, n } => {
+                let v = if *who == Recipient::You {
+                    "take"
+                } else {
+                    "takes"
+                };
+                if *n == 1 {
+                    format!("{} {v} extra turn", self.recipient(*who, t))
+                } else {
+                    format!("{} {v} {n} extra turns", self.recipient(*who, t))
+                }
+            }
+            Effect::AdditionalPhases {
+                combats,
+                main,
+                leading,
+                main_phase,
+            } => {
+                let phases = if *combats == 1 {
+                    "additional combat phase".to_string()
+                } else {
+                    format!("{combats} additional combat phases")
+                };
+                let then = if *main { " then main phase" } else { "" };
+                if *leading {
+                    let m = if *main_phase { "main " } else { "" };
+                    format!("after this {m}phase, {phases}{then}")
+                } else {
+                    format!("{phases} after this phase{then}")
+                }
+            }
             Effect::SkipNextUntap { to, steps } => format!(
                 "{} doesn't untap next untap step{}",
                 self.recipient(*to, t),
@@ -2907,6 +2938,9 @@ fn filter_one(f: &Filter) -> String {
     if f.status.blocked_this_turn {
         words.push("that blocked this turn".to_string());
     }
+    if f.status.attacked_this_turn {
+        words.push("that attacked this turn".to_string());
+    }
     if f.status.damaged_by_source {
         words.push("dealt damage by this this turn".to_string());
     }
@@ -3326,6 +3360,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             )
         }
         Trigger::Attacks(o) => format!("whenever {} attacks", trigger_obj(o)),
+        Trigger::AttacksFirstTime(o) => format!(
+            "whenever {} attacks for the first time each turn",
+            trigger_obj(o)
+        ),
         Trigger::AttacksAlone(o) => format!("whenever {} attacks alone", trigger_obj(o)),
         Trigger::AttacksWith {
             this: false,
@@ -3446,6 +3484,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             kind.name(),
             trigger_obj(obj)
         ),
+        Trigger::YouPutCounters { obj, kind } => format!(
+            "whenever you put one or more {}counters on {}",
+            kind.map_or(String::new(), |k| format!("{} ", k.name())),
+            trigger_obj(obj)
+        ),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_obj(o)),
         Trigger::DealtCombatDamage(o) => {
             format!("whenever {} is dealt combat damage", trigger_obj(o))
@@ -3535,6 +3578,23 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
         Trigger::Forages => "whenever you forage".to_string(),
+        Trigger::CreaturesDealCombatDamage(f) => format!(
+            "whenever one or more {} deal combat damage to a player",
+            filter(f)
+        ),
+        Trigger::NoncombatDamageToOpponent { yours, batch } => match (yours, batch) {
+            (true, _) => {
+                "whenever a source you control deals noncombat damage to an opponent".to_string()
+            }
+            (false, false) => "whenever an opponent is dealt noncombat damage".to_string(),
+            (false, true) => {
+                "whenever one or more opponents are dealt noncombat damage".to_string()
+            }
+        },
+        Trigger::CommitsCrime { your_turn } => format!(
+            "whenever you commit a crime{}",
+            if *your_turn { " during your turn" } else { "" }
+        ),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
         Trigger::EntersBatch(f) => format!("whenever one or more {} enter", filter(f)),
         Trigger::LeavesBatch { filter: f, dies } => format!(
@@ -4196,6 +4256,17 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Night => "night".to_string(),
         StaticCond::LifeGainedThisTurn(n) => format!("gained {n} life this turn"),
         StaticCond::CrimeThisTurn => "committed crime this turn".to_string(),
+        StaticCond::YourMainPhase => "your main phase".to_string(),
+        StaticCond::YourCombatPhase => "your combat phase".to_string(),
+        StaticCond::FirstCombatPhase => "first combat phase".to_string(),
+        StaticCond::PutCounterThisTurn => "put counter this turn".to_string(),
+        StaticCond::NthResolution { n, again } => {
+            format!("resolution {n}{}", if *again { " again" } else { "" })
+        }
+        StaticCond::OpponentNoncombatDamagedThisTurn { was } => format!(
+            "opponent {}dealt noncombat damage this turn",
+            if *was { "was " } else { "" }
+        ),
         StaticCond::LeftGraveyardThisTurn => "card left your graveyard this turn".to_string(),
         StaticCond::SacrificedThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();

@@ -1,0 +1,7 @@
+card "Soulcoil Viper" {
+  oracle_id 24c3c505-ddaa-4adb-983e-7c78d9933cc7
+  cost {2}{B}
+  type Creature — Snake
+  pt 2/3
+  activated {B}, {T}, sacrifice this, sorcery: return target creature card from your graveyard to battlefield with 1 finality counter
+}

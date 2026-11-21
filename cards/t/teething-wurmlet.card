@@ -1,0 +1,8 @@
+card "Teething Wurmlet" {
+  oracle_id a44ceede-9934-4d4e-8b8c-e087b3ef74d4
+  cost {G}
+  type Creature — Wurm
+  pt 1/1
+  static this: has deathtouch as long as you control 3 artifact
+  triggered whenever artifact you control enters: you gain 1 life; if resolution 1, put 1 +1/+1 counter on this
+}

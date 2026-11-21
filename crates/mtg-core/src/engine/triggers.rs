@@ -37,6 +37,7 @@ impl GameState {
 
     /// CR 603.2: every triggered ability whose event this is triggers.
     #[inline(never)]
+    #[allow(clippy::too_many_lines)] // the batching rules
     pub(crate) fn detect_triggers(&mut self, event: &Event) {
         if !self.any_trigger_sources(event) {
             return;
@@ -44,6 +45,7 @@ impl GameState {
         let watchers = self.watchers(event);
         let event_amount = match event {
             Event::Damage { amount, .. } => *amount,
+            Event::CountersAdded { n, .. } => *n,
             _ => 0,
         };
         let mut fired: SmallVec<[PendingTrigger; 2]> = SmallVec::new();
@@ -76,6 +78,24 @@ impl GameState {
                         | TriggerSpec::LeavesBatch { .. }
                         | TriggerSpec::LeavesGraveyard(_)
                 );
+                // "one or more creatures you control deal combat damage to
+                // a player": once per player dealt damage together.
+                let player_batch = matches!(
+                    t.trigger,
+                    TriggerSpec::CreaturesDealCombatDamage(_)
+                        | TriggerSpec::NoncombatDamageToOpponent { batch: true, .. }
+                );
+                if player_batch
+                    && self.join_player_batch(
+                        &mut fired,
+                        ability,
+                        w.source,
+                        trigger_player,
+                        event_amount,
+                    )
+                {
+                    continue;
+                }
                 if (batch && self.join_batch(&mut fired, ability, w.source))
                     || !self.count_trigger(limit, w.source, ability)
                 {
@@ -337,6 +357,34 @@ impl GameState {
         {
             Some(p) => {
                 p.ability.trigger_amount += 1;
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// Like `join_batch`, for one player: the damage of a waiting "one or
+    /// more creatures you control deal combat damage to a player" trigger
+    /// about the same player grows instead.
+    #[cold]
+    fn join_player_batch(
+        &mut self,
+        fired: &mut SmallVec<[PendingTrigger; 2]>,
+        ability: AbilityId,
+        source: ObjId,
+        player: Option<PlayerId>,
+        amount: u32,
+    ) -> bool {
+        match fired
+            .iter_mut()
+            .chain(self.pending_triggers.iter_mut())
+            .find(|p| {
+                p.ability.ability == ability
+                    && p.ability.source == source
+                    && p.ability.trigger_player == player
+            }) {
+            Some(p) => {
+                p.ability.trigger_amount += amount;
                 true
             }
             None => false,
@@ -720,6 +768,17 @@ impl GameState {
                 let p = on_battlefield(what, *attacker)?;
                 Some((Some(*attacker), Some(p)))
             }
+            // The attacker is recorded as it is declared, before the event.
+            (TriggerSpec::AttacksFirstTime(what), Event::Attack { attacker, .. }) => {
+                let p = on_battlefield(what, *attacker)?;
+                (self
+                    .attackers_this_turn
+                    .iter()
+                    .filter(|id| **id == *attacker)
+                    .count()
+                    <= 1)
+                    .then_some((Some(*attacker), Some(p)))
+            }
             (TriggerSpec::AttacksWith { this, min }, Event::Attack { attacker, .. }) => {
                 // Once per declaration: on the source's own attack, or on
                 // the first attacker declared.
@@ -789,6 +848,39 @@ impl GameState {
                 on_battlefield(what, *source)?;
                 Some((Some(*source), self.protector(*b)))
             }
+            (
+                TriggerSpec::CreaturesDealCombatDamage(f),
+                Event::Damage {
+                    source,
+                    target: Target::Player(p),
+                    combat: true,
+                    ..
+                },
+            ) => {
+                filter_on_battlefield(f, *source)?;
+                Some((None, Some(*p)))
+            }
+            (
+                TriggerSpec::NoncombatDamageToOpponent { yours, .. },
+                Event::Damage {
+                    source,
+                    target: Target::Player(p),
+                    combat: false,
+                    ..
+                },
+            ) => {
+                if *p == w.controller {
+                    return None;
+                }
+                // The source as it is, or as it last existed (a spell that
+                // has left the stack, a sacrificed permanent).
+                let controller = self
+                    .objects
+                    .get(*source)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(source).map(|l| l.object.controller));
+                (!*yours || controller == Some(w.controller)).then_some((None, Some(*p)))
+            }
             // CR 709.5h: this door, as it enters or later.
             (TriggerSpec::UnlocksDoor { door }, Event::Unlocked { obj, door: d, .. }) => {
                 (*obj == w.source && d == door).then_some((Some(*obj), Some(w.controller)))
@@ -850,6 +942,25 @@ impl GameState {
             | (TriggerSpec::Forages { whose }, Event::Foraged { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
             }
+            // CR 122.6: "Whenever you put one or more +1/+1 counters on a
+            // creature you control": counters its controller's effect put.
+            (
+                TriggerSpec::YouPutCounters { what, kind },
+                Event::CountersAdded {
+                    obj, kind: k, by, ..
+                },
+            ) => {
+                if *by != w.controller || kind.is_some_and(|kind| kind != *k) {
+                    return None;
+                }
+                let p = on_battlefield(what, *obj)?;
+                Some((Some(*obj), Some(p)))
+            }
+            // CR 700.13: "Whenever you commit a crime [during your turn]".
+            (TriggerSpec::CommitsCrime { your_turn }, Event::CommittedCrime { player }) => {
+                (*player == w.controller && (!*your_turn || self.active_player == *player))
+                    .then_some((None, Some(*player)))
+            }
             // CR 122.1: "Whenever one or more +1/+1 counters are put on
             // this creature": once per event, however many counters.
             (TriggerSpec::CountersPut { what, kind }, Event::CountersAdded { obj, kind: k, .. }) => {
@@ -868,6 +979,7 @@ impl GameState {
                     kind: crate::card::CounterKind::Lore,
                     n,
                     before,
+                    ..
                 },
             ) => (*obj == w.source && chapters_crossed(*mask, *before, *n) != 0)
                 .then_some((Some(*obj), Some(w.controller))),
@@ -1416,6 +1528,7 @@ impl GameState {
     /// CR 608.2 for an ability object (triggered or activated) on top of
     /// the stack: check its intervening "if" (CR 603.4) and targets, apply
     /// its effects, and remove it (CR 608.2n).
+    #[allow(clippy::too_many_lines)]
     pub(super) fn resolve_ability(&mut self, id: ObjId) {
         let obj = self.objects[id].clone();
         let sa = obj.ability.expect("ability object");
@@ -1508,7 +1621,21 @@ impl GameState {
         } else {
             self.doing_once.take()
         };
+        // "If this is the second time this ability has resolved this
+        // turn": this resolution counts.
+        let key = (sa.source, sa.ability);
+        self.resolved_this_turn.push(key);
+        let number = self
+            .resolved_this_turn
+            .iter()
+            .filter(|k| **k == key)
+            .count();
+        let outer_number = std::mem::replace(
+            &mut self.resolution_number,
+            u8::try_from(number).unwrap_or(u8::MAX),
+        );
         self.apply_effects(&mut ctx, effects, &split);
+        self.resolution_number = outer_number;
         self.doing_once = doing;
         self.end_this_way(outer);
         if self.objects.contains_key(id) {

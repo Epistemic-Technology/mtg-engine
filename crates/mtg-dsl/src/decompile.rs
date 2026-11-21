@@ -566,6 +566,17 @@ impl Decompiler<'_> {
             StaticCondition::Night => StaticCond::Night,
             StaticCondition::LifeGainedThisTurn(n) => StaticCond::LifeGainedThisTurn(*n),
             StaticCondition::CrimeThisTurn => StaticCond::CrimeThisTurn,
+            StaticCondition::YourMainPhase => StaticCond::YourMainPhase,
+            StaticCondition::YourCombatPhase => StaticCond::YourCombatPhase,
+            StaticCondition::FirstCombatPhase => StaticCond::FirstCombatPhase,
+            StaticCondition::PutCounterThisTurn => StaticCond::PutCounterThisTurn,
+            StaticCondition::NthResolution(n) => StaticCond::NthResolution {
+                n: *n,
+                again: false,
+            },
+            StaticCondition::OpponentNoncombatDamagedThisTurn => {
+                StaticCond::OpponentNoncombatDamagedThisTurn { was: false }
+            }
             StaticCondition::LeftGraveyardThisTurn => StaticCond::LeftGraveyardThisTurn,
             StaticCondition::SacrificedThisTurn(t) => StaticCond::SacrificedThisTurn(
                 crate::render::CARD_TYPES
@@ -1429,6 +1440,16 @@ impl Decompiler<'_> {
             CoreEffect::AssignsNoCombatDamage { to } => Effect::AssignsNoCombatDamage {
                 to: Self::recipient(*to),
             },
+            CoreEffect::ExtraTurns { who, n } => Effect::ExtraTurns {
+                who: r(*who),
+                n: *n,
+            },
+            CoreEffect::AdditionalPhases { combats, main } => Effect::AdditionalPhases {
+                combats: *combats,
+                main: *main,
+                leading: true,
+                main_phase: *main,
+            },
             CoreEffect::SkipNextUntap { to } => Effect::SkipNextUntap {
                 to: Self::recipient(*to),
                 steps: false,
@@ -1543,6 +1564,7 @@ impl Decompiler<'_> {
             TriggerSpec::AttachedControllersStep(step) => Trigger::AttachedStep(*step),
             TriggerSpec::State(i) => Trigger::State(self.static_cond(self.pool.condition(*i))),
             TriggerSpec::Attacks(o) => Trigger::Attacks(self.trigger_obj(o)),
+            TriggerSpec::AttacksFirstTime(o) => Trigger::AttacksFirstTime(self.trigger_obj(o)),
             TriggerSpec::AttacksBattle(o) => Trigger::AttacksBattle(self.trigger_obj(o)),
             TriggerSpec::UnlocksDoor { .. } => Trigger::UnlocksDoor,
             TriggerSpec::BecomesStage(k) => Trigger::BecomesLevel(k + 1),
@@ -1622,6 +1644,10 @@ impl Decompiler<'_> {
                 obj: self.trigger_obj(what),
                 kind: *kind,
             },
+            TriggerSpec::YouPutCounters { what, kind } => Trigger::YouPutCounters {
+                obj: self.trigger_obj(what),
+                kind: *kind,
+            },
             TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),
             TriggerSpec::DealtCombatDamage(o) => Trigger::DealtCombatDamage(self.trigger_obj(o)),
             TriggerSpec::DealsDamage { what, to, combat } => Trigger::DealsDamage {
@@ -1669,6 +1695,18 @@ impl Decompiler<'_> {
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
             TriggerSpec::Forages { .. } => Trigger::Forages,
+            TriggerSpec::CreaturesDealCombatDamage(f) => {
+                Trigger::CreaturesDealCombatDamage(self.filter(f))
+            }
+            TriggerSpec::NoncombatDamageToOpponent { yours, batch } => {
+                Trigger::NoncombatDamageToOpponent {
+                    yours: *yours,
+                    batch: *batch,
+                }
+            }
+            TriggerSpec::CommitsCrime { your_turn } => Trigger::CommitsCrime {
+                your_turn: *your_turn,
+            },
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Next(inner) => Trigger::Next(Box::new(self.trigger(inner))),
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),

@@ -64,6 +64,9 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             format!("{} collects evidence.", who(*player, viewer))
         }
         Event::Foraged { player } => format!("{} forages.", who(*player, viewer)),
+        Event::CommittedCrime { player } => {
+            format!("{} commits a crime.", who(*player, viewer))
+        }
         Event::Unlocked { obj, door, .. } => {
             let half = state
                 .objects

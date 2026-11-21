@@ -1,0 +1,134 @@
+# Finality counters (CR 122.1h): if a permanent with a finality counter on
+# it would be put into a graveyard from the battlefield, it is exiled
+# instead. "Return ... to the battlefield with a finality counter on it."
+
+scenario "finality: the returned creature is exiled as it would die" {
+  battlefield A: 2 "Plains", 2 "Swamp", "Mountain"
+  graveyard A: "Grizzly Bears"
+  hand A: "Rite of the Moth", "Shock"
+  turn 1 A: cast "Rite of the Moth" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
+scenario "finality: the counter is on the returned creature" {
+  battlefield A: 2 "Plains", 2 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Rite of the Moth"
+  turn 1 A: cast "Rite of the Moth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" finality 1
+}
+
+scenario "finality: Soulcoil Viper returns a creature card" {
+  battlefield A: "Soulcoil Viper", "Swamp"
+  graveyard A: "Hill Giant"
+  turn 1 A: activate "Soulcoil Viper" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" finality 1
+  assert graveyard A contains "Soulcoil Viper"
+}
+
+scenario "finality: other zones are unaffected" {
+  battlefield A: "Island", "Grizzly Bears" with 1 finality
+  hand A: "Unsummon"
+  turn 1 A: cast "Unsummon" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "finality: without the counter it dies" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "finality: no dies trigger for an exiled creature" {
+  battlefield A: "Mountain", "Doomed Traveler" with 1 finality
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Doomed Traveler"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Doomed Traveler"
+  assert battlefield A lacks "Spirit"
+}
+
+scenario "finality: Queen's Bay Paladin returns a Vampire, losing its mana value" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Vampire Champion"
+  hand A: "Queen's Bay Paladin"
+  turn 1 A: cast "Queen's Bay Paladin"
+  turn 1 A: trigger "Queen's Bay Paladin" targeting "Vampire Champion"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Vampire Champion"
+  assert counters "Vampire Champion" finality 1
+  assert life A 16
+}
+
+scenario "finality: Wolfbat returns as you draw your second card" {
+  battlefield A: 4 "Swamp", "Island"
+  graveyard A: "Wolfbat"
+  hand A: "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Divination"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Wolfbat"
+  assert counters "Wolfbat" finality 1
+}
+
+scenario "finality: Balustrade Wurm needs delirium" {
+  battlefield A: 4 "Forest"
+  graveyard A: "Balustrade Wurm"
+  illegal turn 1 A: activate "Balustrade Wurm"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Balustrade Wurm"
+}
+
+scenario "finality: Balustrade Wurm returns with delirium" {
+  battlefield A: 4 "Forest"
+  graveyard A: "Balustrade Wurm", "Shock", "Forest", "Ornithopter"
+  turn 1 A: activate "Balustrade Wurm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Balustrade Wurm"
+  assert counters "Balustrade Wurm" finality 1
+}
+
+scenario "finality: Relentless X-ATM092 returns tapped" {
+  battlefield A: 8 "Plains"
+  graveyard A: "Relentless X-ATM092"
+  turn 1 A: activate "Relentless X-ATM092"
+  run_to turn 1 postcombat_main
+  assert tapped "Relentless X-ATM092"
+  assert counters "Relentless X-ATM092" finality 1
+}
+
+scenario "finality: Uchbenbak returns with eight permanent cards in the graveyard" {
+  battlefield A: 4 "Swamp", 2 "Island"
+  graveyard A: "Uchbenbak, the Great Mistake", 7 "Forest"
+  turn 1 A: activate "Uchbenbak, the Great Mistake"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Uchbenbak, the Great Mistake"
+  assert counters "Uchbenbak, the Great Mistake" finality 1
+}
+
+scenario "finality: Uchbenbak needs eight" {
+  battlefield A: 4 "Swamp", 2 "Island"
+  graveyard A: "Uchbenbak, the Great Mistake", 6 "Forest"
+  illegal turn 1 A: activate "Uchbenbak, the Great Mistake"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Uchbenbak, the Great Mistake"
+}
+
+scenario "finality: Resurrected Cultist with delirium" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Resurrected Cultist", "Shock", "Forest", "Ornithopter"
+  turn 1 A: activate "Resurrected Cultist"
+  run_to turn 1 postcombat_main
+  assert counters "Resurrected Cultist" finality 1
+}

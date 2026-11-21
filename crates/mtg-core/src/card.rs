@@ -1150,6 +1150,10 @@ pub struct StatusQuals {
     /// "that blocked this turn": it was declared as a blocker this turn
     /// (CR 509.1).
     pub blocked_this_turn: bool,
+    /// "that attacked this turn": it was declared as an attacker this turn
+    /// (CR 508.1).
+    #[serde(default)]
+    pub attacked_this_turn: bool,
     /// "dealt damage by this creature this turn": the source dealt damage
     /// to it this turn (`GameState::damaged_by_this_turn`). Judged only by
     /// dies triggers ("Whenever a creature dealt damage by this creature
@@ -1218,6 +1222,7 @@ impl StatusQuals {
             || self.entered_this_turn
             || self.dealt_damage
             || self.blocked_this_turn
+            || self.attacked_this_turn
             || self.damaged_by_source
             || self.mana_value_x
             || self.spent_colors
@@ -2051,6 +2056,21 @@ pub enum StaticCondition {
     /// "during turns other than yours": it isn't the controller's turn.
     /// The turn change bumps the characteristics cache, as for `YourTurn`.
     NotYourTurn,
+    /// "it's your main phase" (CR 505.1), "it's your combat phase" (CR
+    /// 506.1), and "it's the first combat phase of the turn": for effects
+    /// that add phases (`Effect::AdditionalPhases`), judged as they
+    /// resolve.
+    YourMainPhase,
+    YourCombatPhase,
+    FirstCombatPhase,
+    /// "you've put one or more +1/+1 counters on a creature this turn".
+    PutCounterThisTurn,
+    /// "an opponent has been dealt noncombat damage this turn".
+    OpponentNoncombatDamagedThisTurn,
+    /// "this is the second time this ability has resolved this turn": the
+    /// resolving ability's object has resolved it this many times this
+    /// turn, counting this time.
+    NthResolution(u8),
     /// "as long as it's attacking" (the source).
     SourceAttacking,
     /// "as long as it attacked a battle this turn" (the source, CR
@@ -2506,6 +2526,11 @@ pub enum CounterKind {
     Glyph,
     Crystal,
     Unlock,
+    Loot,
+    Supply,
+    /// CR 122.1h: if a permanent with a finality counter on it would be
+    /// put into a graveyard from the battlefield, it is exiled instead.
+    Finality,
     /// Power/toughness counters other than +1/+1 and -1/-1 (CR 122.1a):
     /// each modifies power and toughness in layer 7c, and none annihilates
     /// with another (CR 704.5q is about +1/+1 and -1/-1 only).
@@ -2544,7 +2569,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 41] = [
+    pub const NAMED: [(&'static str, CounterKind); 44] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2576,6 +2601,9 @@ impl CounterKind {
         ("glyph", CounterKind::Glyph),
         ("crystal", CounterKind::Crystal),
         ("unlock", CounterKind::Unlock),
+        ("loot", CounterKind::Loot),
+        ("supply", CounterKind::Supply),
+        ("finality", CounterKind::Finality),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
         ("trample", CounterKind::Trample),
@@ -4107,6 +4135,24 @@ pub enum Effect {
     SkipNextUntap {
         to: Recipient,
     },
+    /// "Take an extra turn after this one", "Target player takes two extra
+    /// turns after this one" (CR 500.7): each recipient player takes `n`
+    /// extra turns directly after this one, the most recently created
+    /// first.
+    ExtraTurns {
+        who: Recipient,
+        n: u8,
+    },
+    /// "After this phase, there is an additional combat phase", "After
+    /// this main phase, there is an additional combat phase followed by an
+    /// additional main phase", "there are two additional combat phases"
+    /// (CR 500.8): `combats` combat phases, then a main phase if `main`,
+    /// added directly after the current phase, before phases added
+    /// earlier.
+    AdditionalPhases {
+        combats: u8,
+        main: bool,
+    },
     /// "That creature can't be regenerated this turn" (CR 701.15): no
     /// regeneration shield replaces its destruction this turn.
     CantBeRegenerated {
@@ -4732,6 +4778,10 @@ pub enum TriggerSpec {
     AttachedControllersStep(crate::turn::Step),
     /// "Whenever ~ attacks" / "Whenever a creature you control attacks".
     Attacks(TriggerObj),
+    /// "Whenever ~ attacks for the first time each turn": the attacking
+    /// creature hadn't attacked before this turn (an additional combat
+    /// phase, CR 500.8).
+    AttacksFirstTime(TriggerObj),
     /// "Whenever ~ blocks".
     Blocks(TriggerObj),
     /// "Whenever a creature you control attacks alone" (exalted, CR
@@ -4761,6 +4811,19 @@ pub enum TriggerSpec {
     DiesOrExiled(TriggerObj),
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
+    /// "Whenever one or more creatures you control deal combat damage to a
+    /// player", "... one or more Allies you control ..." (CR 510.2,
+    /// 603.2c): once for each player dealt combat damage by matching
+    /// creatures in one combat damage step; that player is the triggering
+    /// player.
+    CreaturesDealCombatDamage(ObjFilter),
+    /// "Whenever a source you control deals noncombat damage to an
+    /// opponent" (`yours`), "Whenever an opponent is dealt noncombat
+    /// damage", "Whenever one or more opponents are dealt noncombat damage"
+    /// (`batch`: once for the damage dealt at once to each opponent). The
+    /// opponent is the triggering player and the damage the trigger's
+    /// amount ("that many").
+    NoncombatDamageToOpponent { yours: bool, batch: bool },
     /// "Whenever ~ deals combat damage to a player or battle" (CR 310.6):
     /// the player dealt damage is the triggering player.
     DealsCombatDamageToPlayerOrBattle(TriggerObj),
@@ -4776,6 +4839,9 @@ pub enum TriggerSpec {
     CollectsEvidence { whose: Who },
     /// "Whenever you forage" (CR 701.61).
     Forages { whose: Who },
+    /// "Whenever you commit a crime" (CR 700.13), `your_turn`: "...
+    /// during your turn". The controller is the triggering player.
+    CommitsCrime { your_turn: bool },
     /// "Whenever you gain life".
     GainsLife { whose: Who },
     /// "Whenever you gain life for the first time each turn": the life
@@ -4947,6 +5013,15 @@ pub enum TriggerSpec {
     /// 122.1): once per instruction putting counters of that kind on it,
     /// however many.
     CountersPut { what: TriggerObj, kind: CounterKind },
+    /// "Whenever you put one or more +1/+1 counters on a creature you
+    /// control", "... counters on a Goblin, Orc, or Army you control"
+    /// (`kind` `None`: any kind): once per permanent counters are put on
+    /// by one instruction of a spell or ability its controller controls
+    /// (CR 122.6); their number is the trigger's amount ("that many").
+    YouPutCounters {
+        what: TriggerObj,
+        kind: Option<CounterKind>,
+    },
     /// "Whenever you expend 4" (CR 700.14): as the controller spends their
     /// `n`th total mana to cast spells during a turn, judged as the spell
     /// that paid it becomes cast.
@@ -5054,6 +5129,7 @@ impl TriggerSpec {
                 WATCH_STEP_BEGIN
             }
             TriggerSpec::Attacks(_)
+            | TriggerSpec::AttacksFirstTime(_)
             | TriggerSpec::AttacksBattle(_)
             | TriggerSpec::AttacksAlone(_)
             | TriggerSpec::AttacksWith { .. } => WATCH_ATTACK,
@@ -5064,6 +5140,8 @@ impl TriggerSpec {
             | TriggerSpec::BlockPair { .. }
             | TriggerSpec::AttacksUnblocked(_) => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_)
+            | TriggerSpec::CreaturesDealCombatDamage(_)
+            | TriggerSpec::NoncombatDamageToOpponent { .. }
             | TriggerSpec::DealsCombatDamageToPlayerOrBattle(_)
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealtCombatDamage(_)
@@ -5085,7 +5163,8 @@ impl TriggerSpec {
             | TriggerSpec::Expends(_) => WATCH_CAST,
             TriggerSpec::BecomesTarget(_)
             | TriggerSpec::TargetedByOpponent
-            | TriggerSpec::TargetedByYouFirstTime => WATCH_TARGETED,
+            | TriggerSpec::TargetedByYouFirstTime
+            | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
             TriggerSpec::BecomesAttachedTo(_) => WATCH_ATTACH,
             TriggerSpec::Discards { .. }
             | TriggerSpec::Cycles {
@@ -5101,7 +5180,9 @@ impl TriggerSpec {
             | TriggerSpec::Forages { .. }
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
-            TriggerSpec::CountersPut { .. } | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
+            TriggerSpec::CountersPut { .. }
+            | TriggerSpec::YouPutCounters { .. }
+            | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
         }
     }
 }
@@ -7909,6 +7990,8 @@ impl CardPool {
                 StaticCondition::GainedLifeThisTurn { .. }
                     | StaticCondition::LifeGainedThisTurn(_)
                     | StaticCondition::CrimeThisTurn
+                    | StaticCondition::PutCounterThisTurn
+                    | StaticCondition::OpponentNoncombatDamagedThisTurn
                     | StaticCondition::LeftGraveyardThisTurn
                     | StaticCondition::CardToGraveyardThisTurn(_)
                     | StaticCondition::SacrificedThisTurn(_)

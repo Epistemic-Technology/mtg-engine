@@ -1,0 +1,7 @@
+card "Queen's Bay Paladin" {
+  oracle_id 60b18d94-8ae5-4508-b4db-18f92c2d39fd
+  cost {3}{B}{B}
+  type Creature — Vampire Knight
+  pt 5/4
+  triggered whenever this enters or attacks: return up to 1 target Vampire card from your graveyard to battlefield with 1 finality counter; you lose count equal mana value of target 1 life
+}

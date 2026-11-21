@@ -1,0 +1,7 @@
+card "Wildfire Elemental" {
+  oracle_id 76ff6653-f9b9-4bfe-92a9-52bda275b340
+  cost {2}{R}{R}
+  type Creature — Elemental
+  pt 3/3
+  triggered whenever an opponent is dealt noncombat damage: each creature you control gets +1/+0 until end of turn
+}

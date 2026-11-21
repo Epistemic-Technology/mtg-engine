@@ -1,0 +1,8 @@
+card "Master of Barbs" {
+  oracle_id e8c36337-135c-460d-a1da-cc01743dda71
+  cost {1}{R}
+  type Creature — Lizard Bard
+  pt 2/1
+  keywords menace
+  triggered whenever one or more opponents are dealt noncombat damage: each creature you control gets +1/+0 until end of turn
+}

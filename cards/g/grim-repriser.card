@@ -1,0 +1,8 @@
+card "Grim Repriser" {
+  oracle_id e853e2fb-f90d-4934-aa70-c8d3cdf12e56
+  cost {B}{R}
+  type Creature — Zombie Bard
+  pt 2/2
+  keywords prowess
+  activated {B}{R}, from graveyard, if opponent dealt noncombat damage this turn: return this to battlefield with 1 finality counter
+}

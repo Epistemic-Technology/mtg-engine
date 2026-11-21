@@ -1,0 +1,7 @@
+token "4/4 red Scorpion Dragon creature with flying and haste" {
+  name "Scorpion Dragon"
+  type Creature — Scorpion Dragon
+  pt 4/4
+  color red
+  keywords flying, haste
+}

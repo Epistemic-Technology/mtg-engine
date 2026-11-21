@@ -292,6 +292,10 @@ pub struct ScriptedAction {
     /// `None` means any step of the turn (used for damage assignment, which
     /// may happen in the first-strike or regular damage step).
     pub step: Option<Step>,
+    /// `turn 2 declare_attackers combat 2 A: ...`: only in that combat
+    /// phase of the turn (additional combat phases, CR 500.8), counted
+    /// from 1; `None`, the first time the step is reached.
+    pub combat: Option<u8>,
     pub player: PlayerId,
     pub action: Action,
     /// `illegal ...`: the action must *not* be offered when its point is

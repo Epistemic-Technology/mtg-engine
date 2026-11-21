@@ -1,0 +1,8 @@
+card "Haliya, Ascendant Cadet" {
+  oracle_id 6846448b-d5a0-4ae0-bb11-ea7fa6ed2558
+  cost {2}{G}{W}{W}
+  type Legendary Creature — Human Soldier
+  pt 3/3
+  triggered whenever this enters or attacks: put 1 +1/+1 counter on target creature you control
+  triggered whenever one or more creature you control with +1/+1 counter deal combat damage to a player: draw 1 card
+}

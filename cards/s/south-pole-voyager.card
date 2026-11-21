@@ -1,0 +1,7 @@
+card "South Pole Voyager" {
+  oracle_id c5173332-68ad-456e-ad85-dd7475464d94
+  cost {1}{W}
+  type Creature — Human Scout Ally
+  pt 2/2
+  triggered whenever this or Ally you control enters: you gain 1 life; if resolution 2, draw 1 card
+}

@@ -1,0 +1,6 @@
+card "Terrasymbiosis" {
+  oracle_id 4ac94586-3ac7-4ade-af31-ad0d0e3ffc4a
+  cost {2}{G}
+  type Enchantment
+  triggered do once each turn whenever you put one or more +1/+1 counters on creature you control: you may draw that much cards
+}

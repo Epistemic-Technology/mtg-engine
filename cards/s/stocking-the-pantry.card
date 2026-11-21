@@ -1,0 +1,7 @@
+card "Stocking the Pantry" {
+  oracle_id 068b370f-a358-4244-8050-6c81680c55c7
+  cost {G}
+  type Enchantment
+  triggered whenever you put one or more +1/+1 counters on creature you control: put 1 supply counter on this
+  activated {2}, remove 1 supply counter from this: draw 1 card
+}

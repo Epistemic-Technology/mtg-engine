@@ -1,0 +1,242 @@
+# "Whenever one or more creatures you control deal combat damage to a
+# player" triggers once for each player dealt combat damage together (CR
+# 603.2c); "Whenever a source you control deals noncombat damage to an
+# opponent" and "Whenever an opponent is dealt noncombat damage" see damage
+# that isn't combat damage (CR 120.2), "that many" being the damage.
+
+scenario "combat damage batch: once for several creatures" {
+  battlefield A: "Ongoing Investigation", "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 15
+  assert battlefield A contains 1 "Clue"
+}
+
+scenario "combat damage batch: no damage, no trigger" {
+  battlefield A: "Ongoing Investigation", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Clue"
+}
+
+scenario "combat damage batch: an opponent's creatures don't count" {
+  battlefield A: "Ongoing Investigation"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert battlefield A lacks "Clue"
+}
+
+scenario "combat damage batch: first strike and regular damage trigger twice" {
+  battlefield A: "Ongoing Investigation", "Grizzly Bears", "Boros Swiftblade"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Boros Swiftblade"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Clue"
+}
+
+scenario "combat damage batch: Nature's Will taps that player's lands" {
+  battlefield A: "Nature's Will", "Grizzly Bears", "Forest" tapped
+  battlefield B: 2 "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert tapped B "Island"
+  assert untapped "Forest"
+}
+
+scenario "combat damage batch: Killian's Confidence from the graveyard" {
+  battlefield A: "Grizzly Bears", "Plains"
+  graveyard A: "Killian's Confidence"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Killian's Confidence"
+}
+
+scenario "combat damage batch: Grazilaxx returns the blocked creature" {
+  battlefield A: "Grazilaxx, Illithid Scholar", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Grazilaxx, Illithid Scholar"
+}
+
+scenario "combat damage batch: only Allies for Invasion Tactics" {
+  battlefield A: "Invasion Tactics", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert hand A count 0
+}
+
+scenario "combat damage batch: an Ally draws for Invasion Tactics" {
+  battlefield A: "Invasion Tactics", "Akoum Flameseeker", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Akoum Flameseeker", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 15
+  assert hand A count 1
+}
+
+scenario "combat damage batch: Haliya needs a +1/+1 counter on the creature" {
+  battlefield A: "Haliya, Ascendant Cadet", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Haliya, Ascendant Cadet", "Grizzly Bears"
+  turn 2 A: trigger "Haliya, Ascendant Cadet" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert hand A count 1
+}
+
+scenario "combat damage batch: Haliya, no counter, no card" {
+  battlefield A: "Haliya, Ascendant Cadet", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert hand A count 0
+}
+
+scenario "noncombat damage: Whiplash Wordsmith flies after its verse" {
+  battlefield A: 5 "Swamp"
+  hand A: "Whiplash Wordsmith"
+  turn 1 A: cast "Whiplash Wordsmith"
+  turn 1 A: wait
+  turn 1 A: cast "Vicious Verse" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert has "Whiplash Wordsmith" flying
+  assert has "Whiplash Wordsmith" haste
+}
+
+scenario "noncombat damage: Whiplash Wordsmith without" {
+  battlefield A: 4 "Swamp"
+  hand A: "Whiplash Wordsmith"
+  turn 1 A: cast "Whiplash Wordsmith"
+  run_to turn 1 postcombat_main
+  assert has not "Whiplash Wordsmith" flying
+}
+
+scenario "combat damage batch: artifact creatures only" {
+  battlefield A: "Thopter Spy Network", "Ornithopter", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}
+
+scenario "combat damage batch: an artifact creature draws" {
+  battlefield A: "Thopter Spy Network", "Bronze Sable", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Bronze Sable"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "combat damage batch: Keeper of Fables, a non-Human" {
+  battlefield A: "Keeper of Fables", "Grizzly Bears", "Keeper of Fables"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Keeper of Fables"
+  run_to turn 2 postcombat_main
+  assert hand A count 2
+}
+
+scenario "combat damage batch: Rooftop Bypass, nontoken" {
+  battlefield A: "Rooftop Bypass", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Assassin"
+}
+
+scenario "noncombat damage: Niv-Mizzet draws that many" {
+  battlefield A: "Niv-Mizzet, Visionary", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A count 3
+}
+
+scenario "noncombat damage: not to a creature" {
+  battlefield A: "Niv-Mizzet, Visionary", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "noncombat damage: not combat damage" {
+  battlefield A: "Chandra's Pyreling", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Chandra's Pyreling" 1
+}
+
+scenario "noncombat damage: Pyreling gets double strike" {
+  battlefield A: "Chandra's Pyreling", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Chandra's Pyreling" 2
+  assert has "Chandra's Pyreling" double_strike
+}
+
+scenario "noncombat damage: an opponent's source doesn't count for 'you control'" {
+  battlefield A: "Chandra's Pyreling"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert power "Chandra's Pyreling" 1
+}
+
+scenario "noncombat damage: Spitfire sees any source" {
+  battlefield A: "Chandra's Spitfire", "Wildfire Elemental", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Chandra's Spitfire" 5
+  assert power "Wildfire Elemental" 4
+}
+
+scenario "noncombat damage: Master of Barbs once for one event" {
+  battlefield A: "Master of Barbs", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Master of Barbs" 3
+}
+
+scenario "noncombat damage: Grim Repriser returns after an opponent is dealt noncombat damage" {
+  battlefield A: "Swamp", "Mountain", "Mountain"
+  graveyard A: "Grim Repriser"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: activate "Grim Repriser"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grim Repriser"
+  assert counters "Grim Repriser" finality 1
+}
+
+scenario "noncombat damage: Grim Repriser can't return without" {
+  battlefield A: "Swamp", "Mountain"
+  graveyard A: "Grim Repriser"
+  illegal turn 1 A: activate "Grim Repriser"
+  run_to turn 1 postcombat_main
+}

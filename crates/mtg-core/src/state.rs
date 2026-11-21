@@ -1408,6 +1408,11 @@ pub struct TurnLog {
     pub surveilled: u8,
     /// Players who had a +1/+1 counter put on a permanent they control.
     pub counter_put: u8,
+    /// Players who put a +1/+1 counter on a creature ("if you've put one
+    /// or more +1/+1 counters on a creature this turn").
+    pub counter_put_by: u8,
+    /// Players dealt noncombat damage.
+    pub noncombat_damaged: u8,
     /// Players under whose control a face-down creature entered the
     /// battlefield (CR 708.3).
     pub face_down_entered: u8,
@@ -1559,6 +1564,12 @@ pub struct GameState {
     /// what it limits (`TurnLimit::Do`) this turn. A new object has a new
     /// id, so it starts fresh (CR 400.7).
     pub limited_this_turn: Vec<(ObjId, crate::card::AbilityId)>,
+    /// Abilities of each source resolved this turn, once per resolution
+    /// ("if this is the second time this ability has resolved this turn").
+    pub resolved_this_turn: Vec<(ObjId, crate::card::AbilityId)>,
+    /// While an ability resolves: how many times its source's ability has
+    /// resolved this turn, counting this time (0 otherwise).
+    pub resolution_number: u8,
     /// While a `TurnLimit::Do` ability resolves: its source and ability,
     /// for its first "you may".
     pub doing_once: Option<(ObjId, crate::card::AbilityId)>,
@@ -1859,6 +1870,26 @@ pub struct GameState {
     pub flow: Flow,
     /// Set when a cleanup step must repeat (CR 514.3a).
     pub cleanup_repeat: bool,
+    /// Extra turns to come (CR 500.7), the next last: each player takes
+    /// them directly after the current turn, the most recently created
+    /// first.
+    pub extra_turns: Vec<PlayerId>,
+    /// The controller of the spell or ability whose effect is being
+    /// applied: who puts counters it puts ("Whenever you put one or more
+    /// +1/+1 counters on a creature", CR 122.6).
+    pub effect_controller: Option<PlayerId>,
+    /// While extra turns run: whose regular turn comes after them.
+    pub resume_player: Option<PlayerId>,
+    /// Additional phases added after the current phase (CR 500.8), each
+    /// by the step that begins it (`BeginningOfCombat` or
+    /// `PostcombatMain`, CR 505.1a), in the order they come.
+    pub extra_phases: Vec<Step>,
+    /// While additional phases run: the step the turn goes on with after
+    /// them (what would have followed the phase they were added after).
+    pub resume_step: Option<Step>,
+    /// Combat phases begun this turn ("if it's the first combat phase of
+    /// the turn").
+    pub combats_this_turn: u8,
     pub result: Option<GameResult>,
     pub log: Vec<Event>,
     pub logging: bool,
@@ -2565,6 +2596,9 @@ impl GameState {
         if q.blocked_this_turn && !self.blockers_this_turn.contains(&id) {
             return false;
         }
+        if q.attacked_this_turn && !self.attackers_this_turn.contains(&id) {
+            return false;
+        }
         if q.modified
             && !self.modified(
                 id,
@@ -3022,6 +3056,13 @@ impl GameState {
             C::YourTurn => self.active_player == you,
             C::SourceAttackedBattle => self.battle_attackers_this_turn.contains(&source),
             C::NotYourTurn => self.active_player != you,
+            C::YourMainPhase => self.active_player == you && self.step.is_main(),
+            C::YourCombatPhase => {
+                self.active_player == you && self.step.phase() == crate::turn::Phase::Combat
+            }
+            C::FirstCombatPhase => {
+                self.step.phase() == crate::turn::Phase::Combat && self.combats_this_turn <= 1
+            }
             C::SourceAttacking => self
                 .combat
                 .as_ref()
@@ -3369,6 +3410,11 @@ impl GameState {
             C::Night => self.desig.day_night == DayNight::Night,
             C::LifeGainedThisTurn(n) => self.turn_log.life_gained[you.index().min(3)] >= *n,
             C::CrimeThisTurn => self.turn_log.crime & (1 << you.index().min(7)) != 0,
+            C::PutCounterThisTurn => self.turn_log.counter_put_by & (1 << you.index().min(7)) != 0,
+            C::NthResolution(n) => self.resolution_number == *n,
+            C::OpponentNoncombatDamagedThisTurn => self.players_in_game().any(|p| {
+                p != you && self.turn_log.noncombat_damaged & (1 << p.index().min(7)) != 0
+            }),
             C::LeftGraveyardThisTurn => {
                 self.turn_log.left_graveyard & (1 << you.index().min(7)) != 0
             }

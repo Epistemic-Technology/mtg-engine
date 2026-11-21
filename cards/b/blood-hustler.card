@@ -1,0 +1,8 @@
+card "Blood Hustler" {
+  oracle_id bb02e64c-0c4a-41ae-972e-ce83e6fc4cb9
+  cost {1}{B}
+  type Creature — Vampire Rogue
+  pt 1/1
+  triggered once each turn whenever you commit a crime: put 1 +1/+1 counter on this
+  activated {3}{B}: target opponent loses 1 life and you gain 1 life
+}

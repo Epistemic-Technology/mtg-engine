@@ -340,10 +340,20 @@ impl Runner {
                 continue;
             }
             let a = &self.actions[i];
-            let overdue = match a.step {
+            let mut overdue = match a.step {
                 Some(step) => Position { turn: a.turn, step } < pos,
                 None => a.turn < pos.turn,
             };
+            // `combat N`: not before that combat phase, and past it once a
+            // later one has begun or the turn's ending phase has.
+            if let Some(n) = a.combat
+                && a.turn == pos.turn
+            {
+                let combats = self.state().combats_this_turn;
+                overdue = combats > n
+                    || (combats == n && overdue)
+                    || pos.step >= mtg_core::turn::Step::End;
+            }
             if overdue && a.illegal {
                 self.fired[i] = true;
                 continue;
@@ -382,6 +392,7 @@ impl Runner {
                 !self.fired[*i]
                     && a.player == player
                     && a.turn == pos.turn
+                    && a.combat.is_none_or(|n| self.state().combats_this_turn == n)
                     && (if any_step {
                         a.step.is_none() || a.step == Some(pos.step)
                     } else {

@@ -1,0 +1,6 @@
+card "Karn's Temporal Sundering" {
+  oracle_id 5afbd367-19c7-418f-994d-a7958fb1c4ae
+  cost {4}{U}{U}
+  type Legendary Sorcery
+  spell: target player takes extra turn; return up to 1 target nonland permanent to its owner's hand; exile this
+}

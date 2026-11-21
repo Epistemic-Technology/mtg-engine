@@ -1,0 +1,7 @@
+card "Keeper of Fables" {
+  oracle_id c8ca3116-e0f0-4e27-aa0f-99ed85927040
+  cost {3}{G}{G}
+  type Creature — Cat
+  pt 4/5
+  triggered whenever one or more non-Human creature you control deal combat damage to a player: draw 1 card
+}

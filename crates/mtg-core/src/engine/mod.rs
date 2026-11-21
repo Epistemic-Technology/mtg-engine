@@ -474,6 +474,8 @@ impl GameState {
             emblems: Vec::new(),
             loyalty_activated: Vec::new(),
             activated_once: Vec::new(),
+            resolved_this_turn: Vec::new(),
+            resolution_number: 0,
             limited_this_turn: Vec::new(),
             doing_once: None,
             activated_ever: Vec::new(),
@@ -608,6 +610,12 @@ impl GameState {
             next_timestamp: 1,
             flow: Flow::BeginStep,
             cleanup_repeat: false,
+            extra_turns: Vec::new(),
+            effect_controller: None,
+            resume_player: None,
+            extra_phases: Vec::new(),
+            resume_step: None,
+            combats_this_turn: 0,
             result: None,
             log: Vec::new(),
             logging,
@@ -2756,6 +2764,7 @@ impl GameState {
             }
             Step::BeginningOfCombat => {
                 self.combat = Some(CombatState::default());
+                self.combats_this_turn = self.combats_this_turn.saturating_add(1);
                 self.give_priority(active);
             }
             Step::DeclareAttackers => {
@@ -2995,6 +3004,51 @@ impl GameState {
         }
     }
 
+    /// The step after the current one: the next in the turn's order,
+    /// except that additional phases (CR 500.8) begin as the phase they
+    /// were added after ends, and the turn goes on after them with what
+    /// would have followed it. `None` after cleanup.
+    fn next_step(&self) -> Option<Step> {
+        let phase_ends = matches!(
+            self.step,
+            Step::Draw | Step::PrecombatMain | Step::EndOfCombat | Step::PostcombatMain
+        );
+        if phase_ends && (!self.extra_phases.is_empty() || self.resume_step.is_some()) {
+            return self.extra_phases.first().copied().or(self.resume_step);
+        }
+        self.step.next()
+    }
+
+    /// Takes the next additional phase off the queue as it begins (or the
+    /// step the turn resumes with after the last).
+    fn take_extra_phase(&mut self, next: Step) {
+        let phase_ends = matches!(
+            self.step,
+            Step::Draw | Step::PrecombatMain | Step::EndOfCombat | Step::PostcombatMain
+        );
+        if !phase_ends {
+            return;
+        }
+        if self.extra_phases.first() == Some(&next) {
+            self.extra_phases.remove(0);
+            if self.resume_step.is_none() {
+                self.resume_step = self.step.next();
+            }
+        } else if self.resume_step == Some(next) {
+            self.resume_step = None;
+        }
+    }
+
+    /// The player whose extra turn comes next, if one is in the game.
+    fn next_extra_turn(&mut self) -> Option<PlayerId> {
+        while let Some(p) = self.extra_turns.pop() {
+            if self.player(p).lost.is_none() {
+                return Some(p);
+            }
+        }
+        None
+    }
+
     /// The current step ends (CR 500.2): mana empties, combat clears, and the
     /// next step or turn begins.
     #[allow(clippy::too_many_lines)] // one line per turn record
@@ -3028,7 +3082,8 @@ impl GameState {
             self.flow = Flow::BeginStep;
             return;
         }
-        if let Some(mut next) = self.step.next() {
+        if let Some(mut next) = self.next_step() {
+            self.take_extra_phase(next);
             // CR 500.11: a skipped step or phase doesn't happen; the game
             // proceeds to the one after it.
             let ap = self.active_player.index();
@@ -3079,6 +3134,7 @@ impl GameState {
             self.loyalty_activated.clear();
             self.activated_once.clear();
             self.limited_this_turn.clear();
+            self.resolved_this_turn.clear();
             self.record_attacked_last_turn();
             self.blockers_this_turn.clear();
             self.targeted_by_controller.clear();
@@ -3088,6 +3144,9 @@ impl GameState {
             self.saddled.clear();
             self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;
+            self.extra_phases.clear();
+            self.resume_step = None;
+            self.combats_this_turn = 0;
             for p in &mut self.players {
                 p.skip_combat_this_turn = 0;
             }
@@ -3148,7 +3207,23 @@ impl GameState {
             self.eot_grants = 0;
             self.desig.last_active = Some(self.active_player);
             self.desig.sped = 0;
-            self.active_player = self.next_player_in_game(self.active_player);
+            // CR 500.7: an extra turn comes directly after this one, the
+            // most recently created first.
+            // The turn order then goes on from the player whose regular
+            // turn this would have been.
+            self.active_player = match self.next_extra_turn() {
+                Some(p) => {
+                    if self.resume_player.is_none() {
+                        self.resume_player = Some(self.next_player_in_game(self.active_player));
+                    }
+                    p
+                }
+                None => match self.resume_player.take() {
+                    Some(p) if self.player(p).lost.is_none() => p,
+                    Some(p) => self.next_player_in_game(p),
+                    None => self.next_player_in_game(self.active_player),
+                },
+            };
             // CR 611.2b: "until your next turn" ends as that turn begins.
             let ends = Duration::UntilYourNextTurn(self.active_player);
             if self.effects.iter().any(|e| e.duration == ends) {

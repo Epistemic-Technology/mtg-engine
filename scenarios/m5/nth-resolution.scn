@@ -1,0 +1,152 @@
+# "If this is the second time this ability has resolved this turn" counts
+# the resolutions of this object's ability this turn, this one included;
+# "you gain 1 life if this is the first time ... If it's the second time,
+# ... If it's the third time, ...".
+
+scenario "nth resolution: the second time draws" {
+  battlefield A: 5 "Plains"
+  hand A: "South Pole Voyager", "Akoum Flameseeker"
+  library A: "Island", "Island"
+  battlefield A: 3 "Mountain"
+  turn 1 A: cast "South Pole Voyager"
+  turn 1 A: wait
+  turn 1 A: cast "Akoum Flameseeker"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert hand A count 1
+}
+
+scenario "nth resolution: only once, no draw" {
+  battlefield A: 2 "Plains"
+  hand A: "South Pole Voyager"
+  turn 1 A: cast "South Pole Voyager"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert hand A count 0
+}
+
+scenario "nth resolution: counts reset each turn" {
+  battlefield A: 2 "Plains", 3 "Mountain"
+  hand A: "South Pole Voyager", "Akoum Flameseeker"
+  turn 1 A: cast "South Pole Voyager"
+  turn 3 A: cast "Akoum Flameseeker"
+  run_to turn 3 postcombat_main
+  assert life A 22
+  assert hand A count 1
+}
+
+scenario "nth resolution: Belladonna's first, second, third" {
+  battlefield A: "Belladonna Took", 4 "Forest", 4 "Forest", "Grizzly Bears"
+  hand A: "Acorn Harvest"
+  graveyard A: "Acorn Harvest"
+  turn 1 A: cast "Acorn Harvest"
+  turn 1 A: wait
+  turn 1 A: cast "Acorn Harvest" from graveyard
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert hand A count 1
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "nth resolution: Teething Wurmlet only the first time" {
+  battlefield A: "Teething Wurmlet", 2 "Island"
+  hand A: "Ornithopter", "Ornithopter"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert counters "Teething Wurmlet" +1/+1 1
+}
+
+scenario "nth resolution: Tannuk draws on the second landfall" {
+  battlefield A: "Tannuk, Memorial Ensign", 2 "Forest"
+  hand A: "Rampant Growth", "Forest"
+  library A: "Island", "Forest", "Island"
+  turn 1 A: play "Forest"
+  turn 1 A: cast "Rampant Growth"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 1
+}
+
+scenario "nth resolution: Omnath's second landfall adds mana" {
+  battlefield A: "Omnath, Locus of Creation", 2 "Forest"
+  hand A: "Rampant Growth", "Forest"
+  library A: "Island", "Forest", "Island"
+  turn 1 A: play "Forest"
+  turn 1 A: cast "Rampant Growth"
+  run_to turn 1 postcombat_main
+  assert life A 24
+  assert life B 20
+}
+
+scenario "nth resolution: Elrond's second trigger tempts" {
+  battlefield A: 4 "Island"
+  hand A: "Elrond, Lord of Rivendell", "Brave-Kin Duo"
+  battlefield A: "Plains"
+  turn 1 A: cast "Elrond, Lord of Rivendell"
+  turn 1 A: wait
+  turn 1 A: cast "Brave-Kin Duo"
+  run_to turn 1 postcombat_main
+  assert tempted A 1
+}
+
+scenario "nth resolution: Vito gains, then drains" {
+  battlefield A: "Vito, Fanatic of Aclazotz", 2 "Gold"
+  hand A: "Shock", "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert life B 14
+}
+
+scenario "nth resolution: Soulbright Flamekin's third time adds eight red" {
+  battlefield A: "Soulbright Flamekin", 6 "Plains"
+  hand A: "Hill Giant"
+  turn 1 A: activate "Soulbright Flamekin" targeting "Soulbright Flamekin"
+  turn 1 A: wait
+  turn 1 A: activate "Soulbright Flamekin" targeting "Soulbright Flamekin"
+  turn 1 A: wait
+  turn 1 A: activate "Soulbright Flamekin" targeting "Soulbright Flamekin"
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "nth resolution: Soulbright Flamekin twice adds nothing" {
+  battlefield A: "Soulbright Flamekin", 4 "Plains"
+  hand A: "Hill Giant"
+  turn 1 A: activate "Soulbright Flamekin" targeting "Soulbright Flamekin"
+  turn 1 A: wait
+  turn 1 A: activate "Soulbright Flamekin" targeting "Soulbright Flamekin"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
+scenario "nth resolution: Rumor Gatherer draws instead of scrying" {
+  battlefield A: "Rumor Gatherer", 2 "Plains"
+  hand A: "Brave-Kin Duo", "Brave-Kin Duo"
+  turn 1 A: cast "Brave-Kin Duo"
+  turn 1 A: wait
+  turn 1 A: cast "Brave-Kin Duo"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "nth resolution: Harvestrite Host then draws the second time" {
+  battlefield A: 4 "Plains"
+  hand A: "Harvestrite Host", "Brave-Kin Duo"
+  turn 1 A: cast "Harvestrite Host"
+  turn 1 A: trigger "Harvestrite Host" targeting "Harvestrite Host"
+  turn 1 A: wait
+  turn 1 A: cast "Brave-Kin Duo"
+  turn 1 A: trigger "Harvestrite Host" targeting "Harvestrite Host"
+  run_to turn 1 postcombat_main
+  assert power "Harvestrite Host" 5
+  assert hand A count 1
+}

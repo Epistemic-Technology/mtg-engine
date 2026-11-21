@@ -1,0 +1,8 @@
+card "Defiant Greatmaw" {
+  oracle_id ee152ffa-9c39-48ed-9aca-e53c8ebb0231
+  cost {2}{G}
+  type Creature — Hippo
+  pt 4/5
+  triggered when this enters: put 2 -1/-1 counters on target creature you control
+  triggered whenever you put one or more -1/-1 counters on this: remove 1 -1/-1 counter from another target creature you control
+}

@@ -1,0 +1,8 @@
+card "Bandit's Haul" {
+  oracle_id 84b08b55-0623-4202-98c6-1756d3c1bb8f
+  cost {3}
+  type Artifact
+  triggered once each turn whenever you commit a crime: put 1 loot counter on this
+  activated {T}: add any
+  activated {2}, {T}, remove 2 loot counters from this: draw 1 card
+}

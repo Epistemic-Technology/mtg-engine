@@ -281,9 +281,13 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
 | `when you control no Island`, `when you control no other creature`, `when you control Dwarf` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature."; any static condition after `when you control` ("When you control a Dwarf", "When you control a creature with toughness 2 or less"). Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | |
+| `whenever one or more creature you control deal combat damage to a player`, `whenever one or more Ally you control deal combat damage to a player` | once for each player dealt combat damage by matching creatures in one combat damage step (CR 603.2c; a first-strike step and the regular one trigger separately); that player is `that player` |
+| `whenever a source you control deals noncombat damage to an opponent`, `whenever an opponent is dealt noncombat damage`, `whenever one or more opponents are dealt noncombat damage` | damage other than combat damage (CR 120.2) to an opponent, from a source you control (a spell as it resolves, as it last existed) or any source; the last once for the damage dealt to each opponent at once. The opponent is `that player`, `that much` the damage |
+| `whenever you commit a crime`, `whenever you commit a crime during your turn` | "Whenever you commit a crime" (CR 700.13): as you finish casting a spell, activating an ability, or putting a triggered ability on the stack that targets an opponent, something an opponent controls, or a card in an opponent's graveyard; once per spell or ability. A copy put on the stack commits none. `during your turn` (Overzealous Muscle) only on your turn |
 | `whenever you gain life first time each turn` | "Whenever you gain life for the first time each turn": the gain that starts the life you gained this turn (one of several simultaneous lifelink gains) |
 | `whenever you roll dice`, `whenever you win a coin flip` | "Whenever you roll one or more dice" (once per roll, CR 706), "Whenever you win a coin flip" (CR 705.2) |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
+| `whenever this attacks for the first time each turn` | the attacking creature hadn't attacked yet this turn (with additional combat phases, CR 500.8) |
 | `whenever you attack`, `whenever you attack with 3 or more creatures`, `label "Battalion" triggered whenever this and at least 2 other creatures attack` | once as the controller declares attackers (CR 508.1m), if at least that many attack (battalion: this creature among them); "Whenever this creature and at least two other creatures attack"; `whenever one or more creatures you control attack` is the same trigger in the older wording |
 | `whenever this attacks and isn't blocked` | as blockers are declared, for an attacking creature no creature blocks (CR 509.1h) |
 | `whenever this becomes blocked`, `whenever this blocks or becomes blocked` | |
@@ -298,6 +302,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this becomes targeted` | "Whenever this creature becomes the target of a spell or ability" (`when` prints "When") |
 | `whenever this becomes tapped`, `whenever this becomes untapped` | |
 | `whenever one or more +1/+1 counters put on this` | "Whenever one or more +1/+1 counters are put on this creature" (CR 122.1): once per instruction putting counters of that kind on it (adapt, a spell), however many |
+| `whenever you put one or more +1/+1 counters on creature you control`, `whenever you put one or more -1/-1 counters on this`, `whenever you put one or more counters on Goblin, Orc, or Army you control` | "Whenever you put one or more +1/+1 counters on a creature you control" (CR 122.6): counters a spell or ability you control puts (or that a permanent you control enters with, or a cost you pay puts), once for each permanent they go on; without a kind, counters of any kind. `that much` / `that many` is how many were put |
 | `whenever Aura becomes attached to this` | "Whenever an Aura becomes attached to this creature" (CR 701.3a; an Aura entering attached too); the object attached is the triggering object |
 | `whenever enchanted land is tapped for mana: add {G}` | "Whenever enchanted land is tapped for mana, its controller adds an additional {G}." (`enchanted Forest` for an Aura with `enchant Forest`). A triggered mana ability (CR 605.1b): its effects may only add mana (`add any`, `add {G}{G}`, `add 2 mana any combination`, `add chosen`, `add {G} count each Elf on battlefield`), for the tapped permanent's controller, and it resolves at once when the permanent is tapped for mana by a mana ability (CR 605.4a), whether paying a cost or activated by hand. Payment counts the extra mana as part of what the permanent makes. `whenever land you control is tapped for mana: add {G}` prints "Whenever you tap a land for mana, add {G}." |
 | `whenever this is dealt damage` | (enrage) |
@@ -410,7 +415,15 @@ life this turn`, `gained or lost life this turn`, `descended this turn`
 ("you descended this turn", CR 700.11: a permanent card was put into your
 graveyard from anywhere), `surveilled this turn` ("you've surveilled this
 turn"), `counter put this turn` ("a +1/+1 counter was put on a permanent
-under your control this turn"), `face-down creature entered this turn`
+under your control this turn"), `opponent dealt noncombat damage this turn` ("an opponent has been dealt
+noncombat damage this turn"; `opponent was dealt ...`: "an opponent was
+dealt ..."), `resolution 2` ("this is the second time
+this ability has resolved this turn": the resolving ability's source has
+resolved it that many times this turn, this time included; `resolution 2
+again` prints "it's the second time", for "you gain 1 life if resolution
+1; if resolution 2 again, draw 1 card"), `put counter this turn` ("you've put
+one or more +1/+1 counters on a creature this turn": a spell or ability
+you control put them, CR 122.6), `face-down creature entered this turn`
 ("a face-down creature entered the battlefield under your control this
 turn", CR 708.3), `another creature entered this turn`
 ("another creature entered the battlefield under your control this
@@ -451,7 +464,11 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `spore`, `depletion`, `quest`, `ki`, `time`, `tide`, `shield`, `age`,
 `fade`, `ice`, `level`, `lore`, `page`, `arrowhead`, `javelin`, `polyp`,
 `healing`, `mining`, `scream`, `credit`, `brick`, `currency`, `sleep`,
-`net`, `flood`, `glyph`, and the keyword counters `flying`, `first strike`, `trample`,
+`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `finality` (CR
+122.1h: a permanent with one that would be put into a graveyard from the
+battlefield is exiled instead, so it doesn't die; `return target creature
+card from your graveyard to battlefield with 1 finality counter` prints
+"... with a finality counter on it"), and the keyword counters `flying`, `first strike`, `trample`,
 `lifelink`, `deathtouch`, `reach`, `menace`, `vigilance`, `hexproof`,
 `indestructible` (CR 122.1b: the permanent has the keyword). A cost may
 `remove 1 charge counter from this` or `put 1 -1/-1 counter on this`
@@ -988,7 +1005,9 @@ word `enchanted` is the permanent this is attached to), `that entered this
 turn` (its timestamp is from this turn, CR 613.7e; `as long as this is that
 entered this turn` prints "As long as this creature entered this turn"),
 `that dealt damage this turn` (it was the source of damage this turn),
-`that blocked this turn` (declared as a blocker this turn), `dealt damage
+`that blocked this turn` (declared as a blocker this turn), `that
+attacked this turn` (declared as an attacker this turn: "Untap all
+creatures that attacked this turn."), `dealt damage
 this turn` (`damaged` printed "creature dealt damage this turn"), `dealt
 damage by this this turn` ("a creature dealt damage by this creature this
 turn": the source dealt it damage this turn; only a dies trigger's subject,
@@ -1360,7 +1379,21 @@ loses life equal to that card's mana value"), `<who> skips next draw
 step` ("Target player skips their next draw step", CR 500.11), `<who>
 skips next combat phase` ("Target opponent skips their next combat
 phase"; `... combat phase this turn`: only a combat phase of this turn;
-the main phase after it still happens),
+the main phase after it still happens), `<who> takes extra turn` ("Take
+an extra turn after this one." for `you take extra turn`; `target player
+takes 2 extra turns`: "... two extra turns after this one", CR 500.7: the
+most recently created extra turn comes first), `after this phase,
+additional combat phase` ("After this phase, there is an additional
+combat phase.", CR 500.8: added directly after the current phase, before
+phases added earlier; `after this main phase, additional combat phase
+then main phase` adds "... followed by an additional main phase", `after
+this main phase, 2 additional combat phases` "there are two additional
+combat phases"; after an `if`, the trailing order `if your main phase,
+additional combat phase after this phase then main phase` prints "If it's
+your main phase, there is an additional combat phase after this phase
+followed by an additional main phase"; the conditions `your main phase`,
+`your combat phase`, and `first combat phase` are "it's your main phase",
+"it's your combat phase", "it's the first combat phase of the turn"),
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>` (this: "attach this Equipment to ..."),
 `attach <what> to <what>` ("Attach target Equipment you control to target

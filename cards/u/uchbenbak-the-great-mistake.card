@@ -1,0 +1,8 @@
+card "Uchbenbak, the Great Mistake" {
+  oracle_id 36bfcc4a-7f66-4649-ab6b-18d360299d46
+  cost {3}{U}{B}
+  type Legendary Creature — Skeleton Horror
+  pt 6/4
+  keywords vigilance, menace
+  label "Descend 8" activated {4}{U}{B}, from graveyard, if 8 permanent cards in your graveyard, sorcery: return this to battlefield with 1 finality counter
+}

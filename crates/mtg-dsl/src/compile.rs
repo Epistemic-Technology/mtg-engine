@@ -1512,6 +1512,14 @@ impl Compiler<'_> {
             StaticCond::Night => StaticCondition::Night,
             StaticCond::LifeGainedThisTurn(n) => StaticCondition::LifeGainedThisTurn(*n),
             StaticCond::CrimeThisTurn => StaticCondition::CrimeThisTurn,
+            StaticCond::YourMainPhase => StaticCondition::YourMainPhase,
+            StaticCond::YourCombatPhase => StaticCondition::YourCombatPhase,
+            StaticCond::FirstCombatPhase => StaticCondition::FirstCombatPhase,
+            StaticCond::PutCounterThisTurn => StaticCondition::PutCounterThisTurn,
+            StaticCond::NthResolution { n, .. } => StaticCondition::NthResolution(*n),
+            StaticCond::OpponentNoncombatDamagedThisTurn { .. } => {
+                StaticCondition::OpponentNoncombatDamagedThisTurn
+            }
             StaticCond::LeftGraveyardThisTurn => StaticCondition::LeftGraveyardThisTurn,
             StaticCond::CardToGraveyardThisTurn(t) => StaticCondition::CardToGraveyardThisTurn(
                 mtg_core::card::TypeSet::of(t.iter().copied()),
@@ -2910,6 +2918,16 @@ impl Compiler<'_> {
                 what: *what,
             }),
             Effect::SkipNextUntap { to, .. } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
+            Effect::ExtraTurns { who, n } => out.push(CoreEffect::ExtraTurns {
+                who: r(*who),
+                n: *n,
+            }),
+            Effect::AdditionalPhases { combats, main, .. } => {
+                out.push(CoreEffect::AdditionalPhases {
+                    combats: *combats,
+                    main: *main,
+                });
+            }
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });
             }
@@ -3047,6 +3065,7 @@ impl Compiler<'_> {
             },
             Trigger::AttachedStep(step) => TriggerSpec::AttachedControllersStep(*step),
             Trigger::Attacks(o) => TriggerSpec::Attacks(self.trigger_obj(o)),
+            Trigger::AttacksFirstTime(o) => TriggerSpec::AttacksFirstTime(self.trigger_obj(o)),
             Trigger::AttacksBattle(o) => TriggerSpec::AttacksBattle(self.trigger_obj(o)),
             Trigger::UnlocksDoor => TriggerSpec::UnlocksDoor { door: 0 },
             Trigger::BecomesLevel(n) => TriggerSpec::BecomesStage(n - 1),
@@ -3127,6 +3146,10 @@ impl Compiler<'_> {
                 what: self.trigger_obj(obj),
                 kind: *kind,
             },
+            Trigger::YouPutCounters { obj, kind } => TriggerSpec::YouPutCounters {
+                what: self.trigger_obj(obj),
+                kind: *kind,
+            },
             Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),
             Trigger::DealtCombatDamage(o) => TriggerSpec::DealtCombatDamage(self.trigger_obj(o)),
             Trigger::DealsDamage { obj, to, combat } => TriggerSpec::DealsDamage {
@@ -3182,6 +3205,18 @@ impl Compiler<'_> {
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
+            Trigger::CreaturesDealCombatDamage(f) => {
+                TriggerSpec::CreaturesDealCombatDamage(self.filter(f))
+            }
+            Trigger::NoncombatDamageToOpponent { yours, batch } => {
+                TriggerSpec::NoncombatDamageToOpponent {
+                    yours: *yours,
+                    batch: *batch,
+                }
+            }
+            Trigger::CommitsCrime { your_turn } => TriggerSpec::CommitsCrime {
+                your_turn: *your_turn,
+            },
             Trigger::YouTurnFaceUp => TriggerSpec::TurnedFaceUp(self.trigger_obj(
                 &crate::ast::TriggerObj::Filter(Filter {
                     who: Some(Who::You),

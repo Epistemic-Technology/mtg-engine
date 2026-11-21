@@ -1,0 +1,9 @@
+card "Teferi, Timebender" {
+  oracle_id 761bb894-d3f9-4248-af76-1559c502e342
+  cost {4}{W}{U}
+  type Legendary Planeswalker — Teferi
+  loyalty 5
+  loyalty +2: untap up to one target artifact or creature
+  loyalty -3: you gain 2 life and draw 2 card
+  loyalty -9: you take extra turn
+}

@@ -1,0 +1,7 @@
+card "Belladonna Took" {
+  oracle_id 011da9c5-aa8a-4fa0-b1f2-62b9f3760476
+  cost {1}{W}
+  type Legendary Creature — Halfling Citizen
+  pt 2/2
+  triggered whenever token you control enters: you gain 1 life if resolution 1; if resolution 2 again, draw 1 card; if resolution 3 again, put 1 +1/+1 counter on each creature you control
+}

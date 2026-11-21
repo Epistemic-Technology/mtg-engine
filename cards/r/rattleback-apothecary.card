@@ -1,0 +1,8 @@
+card "Rattleback Apothecary" {
+  oracle_id 5538d4cf-98eb-4e20-a9c1-42c7cdcad194
+  cost {2}{B}
+  type Creature — Gorgon Warlock
+  pt 3/2
+  keywords deathtouch
+  triggered whenever you commit a crime: target creature you control gains choice of menace or lifelink until end of turn
+}

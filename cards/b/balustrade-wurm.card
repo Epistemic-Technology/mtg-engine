@@ -1,0 +1,9 @@
+card "Balustrade Wurm" {
+  oracle_id 2dd32fec-5bc3-4cc0-a9b4-814229a64914
+  cost {3}{G}{G}
+  type Creature — Wurm
+  pt 5/5
+  this spell can't be countered
+  keywords trample, haste
+  label "Delirium" activated {2}{G}{G}, from graveyard, if 4 card types in your graveyard, sorcery: return this to battlefield with 1 finality counter
+}

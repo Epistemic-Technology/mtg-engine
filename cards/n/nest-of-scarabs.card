@@ -1,0 +1,6 @@
+card "Nest of Scarabs" {
+  oracle_id 1f21cf59-6390-44b4-ab2e-ef290dfd8c85
+  cost {2}{B}
+  type Enchantment
+  triggered whenever you put one or more -1/-1 counters on creature: create that much "1/1 black Insect creature"
+}
