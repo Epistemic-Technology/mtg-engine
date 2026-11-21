@@ -408,6 +408,7 @@ impl Fmt {
             Affects::Players(_) => "each player".to_string(),
             Affects::Objects(f) => filter(f),
             Affects::YouAnd(f) => format!("you and {}", filter(f)),
+            Affects::OpponentsAnd(f) => format!("opponent and {}", filter(f)),
             Affects::Target(i) => self.recipient(Recipient::Target(*i), targets),
             Affects::ThatTarget(i) => self.recipient(Recipient::ThatTarget(*i), targets),
             Affects::Targets(a, n) => self.recipient(Recipient::Targets(*a, *n), targets),
@@ -534,6 +535,7 @@ impl Fmt {
                 }
                 s
             }
+            Replaces::ThisToGraveyard => "this put into a graveyard".to_string(),
             Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
             Replaces::Destroy { to } => format!("destroy {}", self.affects(to, targets)),
             Replaces::Dies { to } => format!("{} dies", self.affects(to, targets)),
@@ -2657,7 +2659,11 @@ fn outcome(o: &Outcome) -> String {
         Outcome::Prevent => "prevent".to_string(),
         Outcome::PreventNext(n) => format!("prevent next {}", num(*n)),
         Outcome::Double => "double".to_string(),
+        Outcome::ShuffleIntoLibrary => "shuffle into library".to_string(),
         Outcome::PlusOne => "plus one".to_string(),
+        Outcome::PlusN { n, to_that } => {
+            format!("plus {n}{}", if *to_that { " to that" } else { "" })
+        }
         Outcome::Instead(mtg_core::state::Zone::Hand) => "hand".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),

@@ -755,6 +755,27 @@ each opponent mills that much cards }` prints "If a source you control
 would deal damage to an opponent, prevent that damage and each opponent
 mills that many cards." (`that much` is the prevented damage).
 `replace damage to you: double` "... to you instead."; `replace damage permanent you control of chosen type would deal: double` is the newer "Double all damage that sources you control of the chosen type would deal.").
+The recipient `opponent and <filter>` is "an opponent or <a filter>":
+`replace damage from permanent you control to opponent and permanent an
+opponent controls: double` prints "If a source you control would deal
+damage to an opponent or a permanent an opponent controls, it deals double
+that damage instead." (Twinflame Tyrant). The damage outcome `plus 2`
+adds that much (CR 614.1a): `replace damage from red permanent you
+control to opponent and permanent an opponent controls: plus 2` prints
+"..., it deals that much damage plus 2 instead." (Torbran); `plus 1 to
+that` adds "to that permanent or player" (`replace damage from other red
+permanent you control to any: plus 1 to that`, Jaya). For life, `replace
+you gain life: plus one` prints "If you would gain life, you gain that much
+life plus 1 instead."; for counters, `replace +1/+1 counters put on
+creature you control: double` prints "If one or more +1/+1 counters would
+be put on a creature you control, twice that many +1/+1 counters are put
+on that creature instead." (also the counters it enters with, CR 122.6).
+`replace this put into a graveyard: shuffle into library` prints "If
+Darksteel Colossus would be put into a graveyard from anywhere, reveal
+Darksteel Colossus and shuffle it into its owner's library instead.": the
+card names itself, and the ability works in every zone (CR 113.6b: hand,
+library, stack, battlefield); the card goes into the library, which is
+then shuffled.
 `cloak top` (CR 701.58): "cloak the top card of your library": the card
 enters face down under the controller's control as a nameless 2/2 creature
 with ward {2} (`that token` is it afterwards: `cloak top, then attach to

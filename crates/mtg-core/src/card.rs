@@ -4668,6 +4668,9 @@ pub enum Affects {
     /// The controller and objects matching a filter ("you and creatures
     /// you control").
     YouAnd(ObjFilter),
+    /// An opponent of the controller or an object matching a filter ("an
+    /// opponent or a permanent an opponent controls").
+    OpponentsAnd(ObjFilter),
     /// The spell's `n`th chosen target, locked in when the effect is
     /// created (stored effects only).
     Target(usize),
@@ -4727,6 +4730,9 @@ pub enum Replaces {
     /// A card would be put into a graveyard owned by `whose`, from anywhere
     /// or only from the battlefield.
     ToGraveyard { whose: Who, from_battlefield: bool },
+    /// The ability's own card would be put into a graveyard from anywhere
+    /// (Progenitus): the ability functions in every zone (CR 113.6b).
+    ThisToGraveyard,
     /// +1/+1 counters would be put on a permanent matching `on`, including
     /// as it enters (CR 122.6).
     PlusCounters { on: ObjFilter },
@@ -4751,10 +4757,16 @@ pub enum Replacement {
     PreventNext(Num),
     /// Double the damage or life.
     Double,
-    /// That many plus one counters.
+    /// That many plus one counters; that much life plus 1.
     PlusOne,
+    /// "it deals that much damage plus 2 instead" (Torbran); `to_that`
+    /// prints "to that permanent or player" after it (rendering only).
+    PlusN { n: u32, to_that: bool },
     /// Put the card into this zone instead.
     Instead(crate::state::Zone),
+    /// Reveal the card and shuffle it into its owner's library instead
+    /// (Darksteel Colossus).
+    ShuffleIntoLibrary,
     /// Draw two cards instead of one.
     DrawTwo,
     /// The player wins the game instead.

@@ -9947,6 +9947,10 @@ impl P {
             self.pos += 2;
             return Ok(Affects::YouAnd(self.filter()?));
         }
+        if self.at_words(&["opponent", "and"]) {
+            self.pos += 2;
+            return Ok(Affects::OpponentsAnd(self.filter()?));
+        }
         if self.eat_word("you") {
             return Ok(Affects::You);
         }
@@ -11180,6 +11184,11 @@ impl P {
                 to: Affects::Target(n - 1),
             });
         }
+        // `this put into a graveyard` (CR 113.6b: from anywhere).
+        if self.eat_words(&["this", "put", "into", "a", "graveyard"]) {
+            self.eat_words(&["from", "anywhere"]);
+            return Ok(Replaces::ThisToGraveyard);
+        }
         // `this dies`: "If this creature would die, exile it instead."
         if self.eat_words(&["this", "dies"]) {
             return Ok(Replaces::Dies { to: Affects::This });
@@ -11348,11 +11357,22 @@ impl P {
                 }
             }
             "double" => Outcome::Double,
+            // "reveal it and shuffle it into its owner's library instead".
+            "shuffle" => {
+                self.eat_words(&["into", "library"]);
+                Outcome::ShuffleIntoLibrary
+            }
             // "return it to its owner's hand instead".
             "hand" => Outcome::Instead(Zone::Hand),
             "plus" => {
-                self.expect_word("one")?;
-                Outcome::PlusOne
+                if self.eat_word("one") {
+                    Outcome::PlusOne
+                } else {
+                    // `plus 2`, `plus 1 to that`: damage (Torbran, Jaya).
+                    let n = self.number()?;
+                    let to_that = self.eat_words(&["to", "that"]);
+                    Outcome::PlusN { n, to_that }
+                }
             }
             "exile" => {
                 self.eat_word("it");

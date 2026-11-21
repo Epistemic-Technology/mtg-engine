@@ -3623,6 +3623,51 @@ impl Builder<'_> {
                 .push("replace you gain life: double".to_string());
             return Ok(());
         }
+        if line == "If you would gain life, you gain that much life plus 1 instead." {
+            self.statements
+                .push("replace you gain life: plus one".to_string());
+            return Ok(());
+        }
+        // CR 113.6b: works in every zone (Darksteel Colossus).
+        if let Some(c) = Regex::new(
+            r"^If (.+) would be put into a graveyard from anywhere, reveal (.+) and shuffle it into its owner's library instead\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && cap(&c, 1) == cap(&c, 2)
+        {
+            self.statements
+                .push("replace this put into a graveyard: shuffle into library".to_string());
+            return Ok(());
+        }
+        if line
+            == "If one or more +1/+1 counters would be put on a creature you control, twice that many +1/+1 counters are put on that creature instead."
+        {
+            self.statements
+                .push("replace +1/+1 counters put on creature you control: double".to_string());
+            return Ok(());
+        }
+        // "If a red source you control would deal damage to an opponent or
+        // a permanent an opponent controls, it deals that much damage plus
+        // 2 instead." (Torbran).
+        if let Some(c) = Regex::new(
+            r"^If (a|another) (red |white |blue |black |green )?source you control would deal (noncombat )?damage to an opponent or a permanent an opponent controls, it deals (double that damage|that much damage plus (\d+)) instead\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let other = if cap(&c, 1) == "another" { "other " } else { "" };
+            let color = cap(&c, 2);
+            let kind = if c.get(3).is_some() { "noncombat " } else { "" };
+            let outcome = match c.get(5) {
+                Some(n) => format!("plus {}", n.as_str()),
+                None => "double".to_string(),
+            };
+            self.statements.push(format!(
+                "replace {kind}damage from {other}{color}permanent you control to opponent and permanent an opponent controls: {outcome}"
+            ));
+            return Ok(());
+        }
         if line
             == "Enchanted creature can't attack or block, and its activated abilities can't be activated."
         {

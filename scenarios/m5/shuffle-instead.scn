@@ -1,0 +1,73 @@
+# "If this card would be put into a graveyard from anywhere, reveal it and
+# shuffle it into its owner's library instead." (CR 614.1a): the ability
+# works in every zone (CR 113.6b).
+
+scenario "shuffle instead: discarded from hand" {
+  battlefield B: 3 "Swamp"
+  hand A: "Darksteel Colossus", "Island"
+  hand B: "Mind Rot"
+  library A: "Plains", "Plains"
+  start turn 1 B
+  turn 1 B: cast "Mind Rot" targeting player A
+  run_to turn 1 end
+  assert graveyard A lacks "Darksteel Colossus"
+  assert library A contains "Darksteel Colossus"
+  assert graveyard A contains "Island"
+}
+
+scenario "shuffle instead: milled from the library" {
+  battlefield B: "Island"
+  hand B: "Thought Scour"
+  library A: "Blightsteel Colossus", "Plains", "Plains"
+  start turn 1 B
+  turn 1 B: cast "Thought Scour" targeting player A
+  run_to turn 1 end
+  assert graveyard A lacks "Blightsteel Colossus"
+  assert library A contains "Blightsteel Colossus"
+  assert graveyard A contains "Plains"
+}
+
+scenario "shuffle instead: a resolved instant goes to the library" {
+  battlefield A: 7 "Island"
+  hand A: "Nexus of Fate"
+  turn 1 A: cast "Nexus of Fate"
+  run_to turn 2 untap
+  assert turn 2
+  assert graveyard A lacks "Nexus of Fate"
+  assert library A contains "Nexus of Fate"
+}
+
+scenario "shuffle instead: a countered spell goes to the library" {
+  battlefield A: 11 "Plains"
+  battlefield B: 2 "Island"
+  hand A: "Darksteel Colossus"
+  hand B: "Counterspell"
+  turn 1 A: cast "Darksteel Colossus"
+  turn 1 B: cast "Counterspell" targeting "Darksteel Colossus"
+  run_to turn 1 end
+  assert graveyard A lacks "Darksteel Colossus"
+  assert library A contains "Darksteel Colossus"
+}
+
+scenario "shuffle instead: destroyed on the battlefield" {
+  battlefield A: "Legacy Weapon"
+  battlefield B: 2 "Mountain"
+  hand B: "Shatter"
+  start turn 1 B
+  turn 1 B: cast "Shatter" targeting "Legacy Weapon"
+  run_to turn 1 end
+  assert battlefield A lacks "Legacy Weapon"
+  assert graveyard A lacks "Legacy Weapon"
+  assert library A contains "Legacy Weapon"
+}
+
+scenario "shuffle instead: another card is put into the graveyard" {
+  battlefield A: "Darksteel Colossus", "Ornithopter"
+  battlefield B: 2 "Mountain"
+  hand B: "Shatter"
+  start turn 1 B
+  turn 1 B: cast "Shatter" targeting "Ornithopter"
+  run_to turn 1 end
+  assert graveyard A contains "Ornithopter"
+  assert battlefield A contains "Darksteel Colossus"
+}

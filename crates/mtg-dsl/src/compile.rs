@@ -3396,6 +3396,7 @@ impl Compiler<'_> {
             Affects::Players(w) => CoreAffects::Players(*w),
             Affects::Objects(f) => CoreAffects::Objects(self.filter(f)),
             Affects::YouAnd(f) => CoreAffects::YouAnd(self.filter(f)),
+            Affects::OpponentsAnd(f) => CoreAffects::OpponentsAnd(self.filter(f)),
             // A variable group: its targets to the end of the list.
             Affects::Target(i) if Some(*i) == self.many => CoreAffects::Targets(
                 u8::try_from(target_index(self.tmap, *i)).unwrap_or(u8::MAX),
@@ -3444,6 +3445,7 @@ impl Compiler<'_> {
                 whose: *whose,
                 from_battlefield: *from_battlefield,
             },
+            Replaces::ThisToGraveyard => CoreReplaces::ThisToGraveyard,
             Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
             },

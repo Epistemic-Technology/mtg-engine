@@ -1,0 +1,8 @@
+card "Blightsteel Colossus" {
+  oracle_id e80772e2-8623-4094-81a2-70828b2b151c
+  cost {12}
+  type Artifact Creature — Phyrexian Golem
+  pt 11/11
+  keywords trample, infect, indestructible
+  replace this put into a graveyard: shuffle into library
+}

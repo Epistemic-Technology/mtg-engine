@@ -1,0 +1,8 @@
+card "Twinflame Tyrant" {
+  oracle_id 321b5cc6-8df6-4292-97a0-a6a3a22f3b55
+  cost {3}{R}{R}
+  type Creature — Dragon
+  pt 3/5
+  keywords flying
+  replace damage from permanent you control to opponent and permanent an opponent controls: double
+}

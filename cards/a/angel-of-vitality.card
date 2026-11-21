@@ -1,0 +1,9 @@
+card "Angel of Vitality" {
+  oracle_id 635fe908-6f58-4c9e-ac55-0775a7c6f278
+  cost {2}{W}
+  type Creature — Angel
+  pt 2/2
+  keywords flying
+  replace you gain life: plus one
+  static this: +2/+2 as long as your life 25 or more
+}

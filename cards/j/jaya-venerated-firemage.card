@@ -1,0 +1,8 @@
+card "Jaya, Venerated Firemage" {
+  oracle_id 10a87c58-2d8b-4658-b7d6-8dcbb44a2d2f
+  cost {4}{R}
+  type Legendary Planeswalker — Jaya
+  loyalty 5
+  replace damage from other red permanent you control to any: plus 1 to that
+  loyalty -2: this deals 2 damage to any target
+}

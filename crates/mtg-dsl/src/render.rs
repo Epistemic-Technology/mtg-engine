@@ -8552,6 +8552,7 @@ fn affects_to(a: &Affects, ctx: &mut Ctx) -> String {
         Affects::Players(_) => "a player".to_string(),
         Affects::Objects(f) => filter_phrase(f, ctx.card, true),
         Affects::YouAnd(f) => format!("you and {}", filter_phrase(f, ctx.card, true)),
+        Affects::OpponentsAnd(f) => format!("an opponent or {}", filter_a(f, ctx.card)),
         Affects::Target(i) => ctx.obj(Recipient::Target(*i)),
         Affects::ThatTarget(i) => ctx.obj(Recipient::ThatTarget(*i)),
         Affects::Targets(a, n) => ctx.obj(Recipient::Targets(*a, *n)),
@@ -8856,7 +8857,7 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             Replaces::Damage {
                 from, to, combat, ..
             },
-            Outcome::Double,
+            outcome @ (Outcome::Double | Outcome::PlusN { .. }),
         ) => {
             let kind = match combat {
                 Some(true) => "combat damage",
@@ -8867,17 +8868,31 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             // "to that permanent or player", but "to you", "to this
             // creature" (Goldnight Castigator).
             let that = match to_text.strip_prefix("a ") {
-                Some(rest) => format!("that {rest}"),
-                None => to_text.clone(),
+                Some(rest) => format!(" to that {rest}"),
+                None => format!(" to {to_text}"),
+            };
+            // "it deals double that damage to that permanent or player",
+            // "it deals that much damage plus 2 instead" (Torbran):
+            // "an opponent or a permanent an opponent controls" is not
+            // named again (Twinflame Tyrant).
+            let deals = |that: &str| match outcome {
+                Outcome::PlusN { n, to_that } => {
+                    let that = if *to_that { that } else { "" };
+                    format!("that much damage plus {n}{that}")
+                }
+                _ if matches!(to, Affects::OpponentsAnd(_)) => format!("double that {kind}"),
+                _ => format!("double that {kind}{that}"),
             };
             match from {
                 None => format!(
-                    "If a source would deal {kind} to {to_text}, it deals double that {kind} to {that} instead."
+                    "If a source would deal {kind} to {to_text}, it deals {} instead.",
+                    deals(&that)
                 ),
                 // "If a source you control would deal damage to a
                 // permanent or player, it deals double that damage to that
                 // permanent or player instead." (Angrath's Marauders); "If
-                // a Giant source you control ..." (Calamity Bearer).
+                // a Giant source you control ..." (Calamity Bearer); "If
+                // another red source you control ..." (Jaya).
                 Some(Affects::Objects(f)) if f.types.is_empty() && f.any_types.is_empty() => {
                     let p = filter_a(f, ctx.card);
                     let by = if p.contains("permanent") {
@@ -8886,7 +8901,8 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                         p.replacen(" you control", " source you control", 1)
                     };
                     format!(
-                        "If {by} would deal {kind} to {to_text}, it deals double that {kind} to {that} instead."
+                        "If {by} would deal {kind} to {to_text}, it deals {} instead.",
+                        deals(&that)
                     )
                 }
                 Some(f) => {
@@ -8895,7 +8911,8 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                         other => affects_to(other, ctx),
                     };
                     format!(
-                        "If {by} would deal {kind} to {to_text}, it deals double that {kind} instead."
+                        "If {by} would deal {kind} to {to_text}, it deals {} instead.",
+                        deals("")
                     )
                 }
             }
@@ -8954,6 +8971,10 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     format!("If {subj} would gain life, {obj} gains twice that much life instead.")
                         .replace("you gains", "you gain")
                 }
+                Outcome::PlusOne => {
+                    format!("If {subj} would gain life, {obj} gains that much life plus 1 instead.")
+                        .replace("you gains", "you gain")
+                }
                 _ => format!("If {subj} would gain life, something else happens instead."),
             }
         }
@@ -9006,6 +9027,23 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             };
             format!("If {what} would be put into {gy} {from}, {instead}.")
         }
+        // The card names itself: the ability works in every zone, where it
+        // isn't "this creature" (CR 113.6b).
+        (Replaces::ThisToGraveyard, Outcome::ShuffleIntoLibrary) => {
+            let this = short_name(ctx.card);
+            format!(
+                "If {this} would be put into a graveyard from anywhere, reveal {this} and shuffle it into its owner's library instead."
+            )
+        }
+        (Replaces::PlusCounters { on }, Outcome::Double) => format!(
+            "If one or more +1/+1 counters would be put on {}, twice that many +1/+1 counters are put on that {} instead.",
+            filter_a(on, ctx.card),
+            if on.types.contains(&CardType::Creature) {
+                "creature"
+            } else {
+                "permanent"
+            }
+        ),
         (Replaces::PlusCounters { on }, Outcome::PlusOne) => format!(
             "If one or more +1/+1 counters would be put on {}, that many plus one +1/+1 counters are put on it instead.",
             filter_a(on, ctx.card)

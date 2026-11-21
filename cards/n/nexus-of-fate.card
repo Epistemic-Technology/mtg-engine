@@ -1,0 +1,7 @@
+card "Nexus of Fate" {
+  oracle_id 6c1d22d4-f28e-4041-a9b6-1575e8929b61
+  cost {5}{U}{U}
+  type Instant
+  spell: you take extra turn
+  replace this put into a graveyard: shuffle into library
+}

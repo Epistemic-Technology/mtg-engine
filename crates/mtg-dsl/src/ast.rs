@@ -2228,6 +2228,9 @@ pub enum Replaces {
         whose: Who,
         from_battlefield: bool,
     },
+    /// `this put into a graveyard`: "If ~ would be put into a graveyard
+    /// from anywhere" (CR 113.6b).
+    ThisToGraveyard,
     PlusCounters {
         on: Filter,
     },
@@ -2267,6 +2270,9 @@ pub enum Affects {
     Players(Who),
     Objects(Filter),
     YouAnd(Filter),
+    /// `opponent and permanent an opponent controls`: "an opponent or a
+    /// permanent an opponent controls".
+    OpponentsAnd(Filter),
     Target(usize),
     /// `that target 1`: the same target named again, "that creature".
     ThatTarget(usize),

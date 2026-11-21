@@ -1,0 +1,8 @@
+card "The Earth Crystal" {
+  oracle_id 5e7ef7fe-968b-4ada-9fe4-6fda0541aafc
+  cost {2}{G}{G}
+  type Legendary Artifact
+  spells green you cast cost {1} less
+  replace +1/+1 counters put on creature you control: double
+  activated {4}{G}{G}, {T}: distribute 2 +1/+1 counters among 1 to 2 target creatures you control
+}
