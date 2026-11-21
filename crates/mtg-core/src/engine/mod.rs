@@ -1189,7 +1189,9 @@ impl GameState {
                     // "another target permanent", "up to one other target
                     // artifact": also not one chosen before.
                     let another = match self.pool.base_spec(spec) {
-                        TargetSpec::OtherCreature | TargetSpec::OtherPermanent => true,
+                        TargetSpec::OtherCreature
+                        | TargetSpec::OtherPermanent
+                        | TargetSpec::AnyOther => true,
                         TargetSpec::Filtered(f) => {
                             self.pool.filter(f).relation == crate::card::Relation::Other
                         }

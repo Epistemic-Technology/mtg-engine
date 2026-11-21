@@ -1,0 +1,6 @@
+card "Dissension in the Ranks" {
+  oracle_id 717266b6-2bbc-4a04-8f30-e3eaf0283acd
+  cost {3}{R}{R}
+  type Instant
+  spell: target blocking creature fights another target blocking creature
+}

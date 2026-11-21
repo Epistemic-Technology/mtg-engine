@@ -2772,6 +2772,7 @@ impl GameState {
         };
         match spec {
             TargetSpec::Any
+            | TargetSpec::AnyOther
             | TargetSpec::Creature
             | TargetSpec::CreatureYouControl
             | TargetSpec::OtherCreature
@@ -3852,6 +3853,7 @@ impl GameState {
                     && self.player(p).lost.is_none()
                     && match spec {
                         TargetSpec::Any
+                        | TargetSpec::AnyOther
                         | TargetSpec::Player
                         | TargetSpec::PlayerOrPlaneswalker
                         | TargetSpec::PlayerOrBattle => true,
@@ -3942,6 +3944,10 @@ impl GameState {
                     // CR 115.4: "any target" is a creature, player,
                     // planeswalker, or battle.
                     TargetSpec::Any => c.is_creature() || c.is_planeswalker() || c.is_battle(),
+                    TargetSpec::AnyOther => {
+                        (c.is_creature() || c.is_planeswalker() || c.is_battle())
+                            && Some(id) != source
+                    }
                     TargetSpec::CreatureOrPlaneswalker => c.is_creature() || c.is_planeswalker(),
                     TargetSpec::PlayerOrBattle => c.is_battle(),
                     TargetSpec::PlayerOrPlaneswalker | TargetSpec::OpponentOrPlaneswalker => {

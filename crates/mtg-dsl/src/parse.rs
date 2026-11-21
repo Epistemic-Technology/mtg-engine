@@ -630,6 +630,13 @@ impl P {
         (!player).then_some(n)
     }
 
+    fn another_target(&self, spec: Target) -> R<Target> {
+        match other_target(spec) {
+            Some(t) => Ok(t),
+            None => self.fail("`another` can't qualify this target"),
+        }
+    }
+
     fn fail<T>(&self, message: impl Into<String>) -> R<T> {
         Err(ParseError {
             line: self.line(),
@@ -8444,7 +8451,11 @@ impl P {
         } else {
             self.expect_word("target")?;
             let spec = self.target_spec()?;
-            if another { another_target(spec) } else { spec }
+            if another {
+                self.another_target(spec)?
+            } else {
+                spec
+            }
         };
         let i = self.targets.len();
         self.targets.push(Target::Many {
@@ -8501,7 +8512,7 @@ impl P {
             self.expect_word("target")?;
             let mut spec = self.target_spec()?;
             if another {
-                spec = another_target(spec);
+                spec = self.another_target(spec)?;
             }
             if up_to {
                 spec = Target::UpTo(Box::new(spec));
@@ -8764,6 +8775,12 @@ impl P {
             self.targets.push(Target::Spec(TargetSpec::Any));
             return Ok(Recipient::Target(self.targets.len() - 1));
         }
+        // "any other target" (CR 115.3): not the source nor another of
+        // the ability's targets.
+        if self.eat_words(&["any", "other", "target"]) {
+            self.targets.push(Target::Spec(TargetSpec::AnyOther));
+            return Ok(Recipient::Target(self.targets.len() - 1));
+        }
         if self.at_words(&["that", "target"]) {
             self.pos += 2;
             let Some(Tok::Num(n)) = self.next() else {
@@ -8807,7 +8824,7 @@ impl P {
             }
             let mut spec = self.target_spec()?;
             if another {
-                spec = another_target(spec);
+                spec = self.another_target(spec)?;
             }
             self.targets.push(spec);
             let t = self.targets.len() - 1;
@@ -11748,13 +11765,25 @@ fn no_trigger_object(t: &Trigger) -> bool {
     }
 }
 
-fn another_target(spec: Target) -> Target {
-    match spec {
+/// `another target <spec>`: the spec with "other" (not the source, nor
+/// another of the ability's targets); `None` where the spec has no such
+/// form, so `another` is not silently dropped.
+fn other_target(spec: Target) -> Option<Target> {
+    Some(match spec {
         Target::Spec(TargetSpec::Creature) => Target::Spec(TargetSpec::OtherCreature),
+        // `another target any`: "any other target".
+        Target::Spec(TargetSpec::Any) => Target::Spec(TargetSpec::AnyOther),
         Target::Spec(TargetSpec::Permanent) => Target::Spec(TargetSpec::OtherPermanent),
         Target::Spec(TargetSpec::AttackingCreature) => Target::Filter(Filter {
             types: vec![CardType::Creature],
             attacking: true,
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        // "another target blocking creature".
+        Target::Spec(TargetSpec::BlockingCreature) => Target::Filter(Filter {
+            types: vec![CardType::Creature],
+            blocking: true,
             relation: Relation::Other,
             ..Default::default()
         }),
@@ -11800,8 +11829,8 @@ fn another_target(spec: Target) -> Target {
             who: Who::You,
             graveyards: false,
         },
-        other => other,
-    }
+        _ => return None,
+    })
 }
 
 #[cfg(test)]

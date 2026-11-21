@@ -64,10 +64,10 @@ by rejecting the form at compile time or by binding it correctly.
 - **`if teamwork, instead <other target>`** and kicker with `instead`
   on a single target always ask for both targets (Cruel Alliance, Long
   River's Pull). Gift is fixed; check whether these now work.
-- **`another target any`** drops "other" and renders "any target"
-  (Boulder Dash, Red Hulk, Pain for All).
-- **`another` on a blocking-creature target** is dropped (Dissension in
-  the Ranks).
+- **"any other target" meaning other than the enchanted creature**
+  (Pain for All: "enchanted creature deals damage ... to any other
+  target"): `another target any` excludes the source (the Aura), not
+  the creature dealing the damage. Pain for All is not in.
 - **A target filter with three alternatives** drops the third
   ("attacking, blocking, or tapped creature", Sonar Strike).
 - **`delayed this: whenever <land> is tapped for mana this turn, add

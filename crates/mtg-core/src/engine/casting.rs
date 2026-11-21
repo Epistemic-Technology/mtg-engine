@@ -4817,11 +4817,11 @@ impl GameState {
             },
             // "Move all counters from target creature onto another target
             // creature": the other target is a different creature too.
-            TargetSpec::OtherCreature | TargetSpec::OtherPermanent => {
-                let base = if s == TargetSpec::OtherCreature {
-                    TargetSpec::Creature
-                } else {
-                    TargetSpec::Permanent
+            TargetSpec::OtherCreature | TargetSpec::OtherPermanent | TargetSpec::AnyOther => {
+                let base = match s {
+                    TargetSpec::OtherCreature => TargetSpec::Creature,
+                    TargetSpec::AnyOther => TargetSpec::Any,
+                    _ => TargetSpec::Permanent,
                 };
                 self.legal_targets(p, s, source).len()
                     >= specs.iter().filter(|x| **x == s || **x == base).count()

@@ -1899,6 +1899,12 @@ announces the division as the targets are chosen, each target getting at
 least one (so no more targets than the amount, and at least one when
 there is anything to divide); a target that is illegal on resolution
 loses its share. `another target creature` excludes the source.
+`another target any` (or `any other target`) prints "any other target":
+not the source nor what the ability's other "target" words chose (CR
+115.3; `deal 2 damage to any target and deal 1 damage to another target
+any`, Boulder Dash). `another target blocking creature` prints "another
+target blocking creature". `another` before a target with no "other"
+form is an error rather than dropped.
 `deal X plus 1 damage divided among any number of targets` ("X plus 1
 damage"; also wherever a number goes). The same damage to several targets
 of one phrase prints "each of": `deal 1 damage to up to 2 target creature`

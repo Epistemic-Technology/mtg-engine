@@ -2893,6 +2893,11 @@ pub enum TargetSpec {
     /// (`CardPool::many`). One spec for the whole group, which is an
     /// ability's last; its targets fill the rest of the target list.
     Many(u16),
+    /// "any other target": as `Any`, but not the source ("he deals damage
+    /// ... to any other target") nor an object or player another of the
+    /// ability's "target" words chose (Boulder Dash's "2 damage to any
+    /// target and 1 damage to any other target").
+    AnyOther,
 }
 
 /// A variable number of targets of one kind (CR 601.2c): at least `min`,
