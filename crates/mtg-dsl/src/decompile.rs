@@ -104,6 +104,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             }
         }),
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
+        flash_if_may: false,
         flash_cleanup: def.flash_cleanup,
         pronoun: None,
         short_name: None,
@@ -203,6 +204,7 @@ impl Decompiler<'_> {
                 .collect(),
             relation: f.relation,
             enchanted: f.enchanted,
+            enchanted_permanent: false,
             paired: f.paired.then_some(false),
             no_abilities: f.no_abilities,
             dont_control: false,
@@ -599,6 +601,8 @@ impl Decompiler<'_> {
             StaticCondition::Monarch => StaticCond::Monarch,
             StaticCondition::CompletedDungeon => StaticCond::CompletedDungeon,
             StaticCondition::CityBlessing => StaticCond::CityBlessing,
+            StaticCondition::EnduringStory => StaticCond::EnduringStory,
+            StaticCondition::NoEnduringStory => StaticCond::NoEnduringStory,
             StaticCondition::MaxSpeed => StaticCond::MaxSpeed,
             StaticCondition::TotalPower(n) => StaticCond::TotalPower(*n),
             StaticCondition::DifferentPowers(n) => StaticCond::DifferentPowers(*n),
@@ -1237,6 +1241,7 @@ impl Decompiler<'_> {
             | CoreEffect::PunishEach { .. }
             | CoreEffect::DrawCastOne { .. }
             | CoreEffect::CastCipherCopy
+            | CoreEffect::CastParadigmCopy
             | CoreEffect::RevealPutCreature { .. } => {
                 unreachable!("built-in abilities and dungeon rooms only")
             }
@@ -1303,6 +1308,14 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::Populate => Effect::Populate,
+            CoreEffect::Recruit { .. } => Effect::Recruit { you: false },
+            CoreEffect::GraveyardToBattlefield { filter } => Effect::GraveyardToBattlefield {
+                filter: self.filter(filter),
+            },
+            CoreEffect::CloakTop { .. } => Effect::CloakTop,
+            CoreEffect::Airbend { what } => Effect::Airbend {
+                what: vec![r(*what)],
+            },
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
             CoreEffect::Fabricate { .. } | CoreEffect::BecomeRenowned => {
                 unreachable!("decompiled as a keyword line")
@@ -2116,6 +2129,11 @@ impl Decompiler<'_> {
             }
             AbilityDef::Triggered(t) if t.condition == Some(mtg_core::card::Condition::Evolves) => {
                 Ability::Mechanic(crate::ast::Mechanic::Evolve)
+            }
+            AbilityDef::Triggered(t)
+                if t.condition == Some(mtg_core::card::Condition::Increments) =>
+            {
+                Ability::Mechanic(crate::ast::Mechanic::Increment)
             }
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterWithCountersMay { haste, .. },

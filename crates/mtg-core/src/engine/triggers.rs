@@ -210,7 +210,12 @@ impl GameState {
                 _ => false,
             };
             if at {
-                self.delayed_triggers.remove(i);
+                // "... for the rest of the game" (paradigm) stays.
+                if dt.forever {
+                    i += 1;
+                } else {
+                    self.delayed_triggers.remove(i);
+                }
                 fired.push(PendingTrigger {
                     controller: dt.controller,
                     ability: dt.ability,
@@ -1215,6 +1220,38 @@ impl GameState {
                     && (!*instant_or_sorcery || d.is_instant() || d.is_sorcery());
                 ok.then_some((Some(*spell), Some(*player)))
             }
+            (
+                TriggerSpec::CastsNth {
+                    whose,
+                    nth: crate::card::SpellOrdinal::FirstNoncreature,
+                },
+                Event::Cast {
+                    player, spell, def, ..
+                },
+            ) => {
+                // The spells cast this turn include this one.
+                let noncreature = |d: &crate::card::CardRef| !self.pool.get(*d).is_creature();
+                let n = self
+                    .cast_this_turn
+                    .iter()
+                    .filter(|(p, d)| p == player && noncreature(d))
+                    .count();
+                (whose_ok(*whose, *player) && noncreature(def) && n == 1)
+                    .then_some((Some(*spell), Some(*player)))
+            }
+            (
+                TriggerSpec::CastsNth {
+                    whose,
+                    nth: crate::card::SpellOrdinal::FromExile,
+                },
+                Event::Cast { player, spell, .. },
+            ) => {
+                let from_exile = self
+                    .objects
+                    .get(*spell)
+                    .is_some_and(|o| o.cast.cast_from() == Some(Zone::Exile));
+                (whose_ok(*whose, *player) && from_exile).then_some((Some(*spell), Some(*player)))
+            }
             (TriggerSpec::CastsNth { whose, nth }, Event::Cast { player, spell, .. }) => {
                 let n = self.spells_this_turn[player.index().min(3)];
                 (whose_ok(*whose, *player) && nth.holds(n, self.active_player == *player))
@@ -1668,6 +1705,10 @@ impl GameState {
                 let this = self.characteristics_or_lki(source);
                 self.evolves(this.as_ref(), trigger_obj)
             }
+            Condition::Increments => {
+                let this = self.characteristics_or_lki(source);
+                self.increments(this.as_ref(), trigger_obj)
+            }
             Condition::Evoked => self
                 .objects
                 .get(source)
@@ -1711,6 +1752,7 @@ impl GameState {
             Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned()),
             Condition::NotPrepared => self.objects.get(w.source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),
+            Condition::Increments => self.increments(Some(&w.chars), trigger_obj),
             Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),
             Condition::Static(i) | Condition::While(i) => {
                 self.condition_for(self.pool.condition(i), w.controller, w.source, trigger_obj)
@@ -1729,6 +1771,19 @@ impl GameState {
             .and_then(|o| self.characteristics_or_lki(o))
             .filter(Characteristics::is_creature)
             .is_some_and(|c| c.power() > this.power() || c.toughness() > this.toughness())
+    }
+
+    /// Increment (CR 702.191a): the creature with increment is a creature
+    /// and the mana spent to cast the triggering spell is greater than its
+    /// power or its toughness.
+    fn increments(&self, this: Option<&Characteristics>, spell: Option<ObjId>) -> bool {
+        let Some(this) = this.filter(|c| c.is_creature()) else {
+            return false;
+        };
+        let spent = spell.map_or(0, |s| {
+            i64::from(self.spent_on(s).count(crate::card::SpentKind::Total))
+        });
+        spent > i64::from(this.power()) || spent > i64::from(this.toughness())
     }
 
     /// CR 702.33c: whether the object (or, once it has moved, the object it

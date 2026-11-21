@@ -1,0 +1,7 @@
+card "Chupacabra Echo" {
+  oracle_id 68c56db4-c97a-4c1b-a6f6-096392488e21
+  cost {2}{B}{B}
+  type Creature — Beast Horror Spirit
+  pt 3/2
+  label "Fathomless descent" triggered when this enters: target creature an opponent controls gets -1/-1 count where graveyard permanent card
+}

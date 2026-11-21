@@ -1,0 +1,9 @@
+card "Berta, Wise Extrapolator" {
+  oracle_id 715f0832-696c-4111-b418-d9b6da403159
+  cost {2}{G}{U}
+  type Legendary Creature — Frog Druid
+  pt 1/4
+  increment
+  triggered whenever one or more +1/+1 counters put on this: add any
+  activated {X}, {T}: create 1 "0/0 green and blue Fractal creature" and put X +1/+1 counters on that token
+}

@@ -1,0 +1,9 @@
+card "Airbender's Reversal" {
+  oracle_id 64e3791b-de99-4eed-af49-cbec218c28aa
+  cost {1}{W}
+  type Instant — Lesson
+  choose one {
+    mode: destroy target attacking creature
+    mode: airbend target creature you control
+  }
+}

@@ -21,6 +21,7 @@ use crate::scryfall::{self, Card as ScryCard};
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
 const KEYWORDS: &[&str] = &[
     "Cipher",
+    "Paradigm",
     "Banding",
     "Decayed",
     "Phasing",
@@ -198,6 +199,7 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Fabricate",
     "Renown",
     "Evolve",
+    "Increment",
     "Unleash",
     "Afterlife",
     "Extort",
@@ -216,10 +218,13 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Populate",
     "Incubate",
     "Earthbend",
+    "Recruit",
+    "Airbend",
     "Waterbend",
     "Firebending",
     "Double",
     "Ascend",
+    "Storied",
     "Venture into the dungeon",
     "Clash",
     "Learn",
@@ -280,6 +285,7 @@ const ABILITY_WORDS: &[&str] = &[
     "Infusion",
     "Renew",
     "Disappear",
+    "Fathomless descent",
     "Flurry",
     "Opus",
     "Cohort",
@@ -1454,6 +1460,9 @@ impl Templates {
             (r(r"^[Dd]ouble (.+?)'s life total$"), |c, t| {
                 Some(format!("double {} life total", recipient(cap(c, 1), t)?))
             }),
+            // CR 701.70a.
+            (r(r"^[Rr]ecruit$"), |_, _| Some("recruit".to_string())),
+            (r(r"^you recruit$"), |_, _| Some("you recruit".to_string())),
             (r(r"^[Bb]olster (\d+)$"), |c, _| {
                 Some(format!("bolster {}", cap(c, 1)))
             }),
@@ -1703,6 +1712,14 @@ impl Templates {
             (r(r"^Exile (.+)$"), |c, t| {
                 Some(format!("exile {}", recipient(cap(c, 1), t)?))
             }),
+            // CR 701.58a.
+            (r(r"^[Cc]loak the top card of your library$"), |_, _| {
+                Some("cloak top".to_string())
+            }),
+            // CR 701.65a.
+            (r(r"^[Aa]irbend (.+)$"), |c, t| {
+                Some(format!("airbend {}", recipient(cap(c, 1), t)?))
+            }),
             // A spell or legendary permanent returning itself (Molten Birth).
             (r(r"^Return ~ to its owner's hand$"), |_, _| {
                 Some("return this to its owner's hand".to_string())
@@ -1710,6 +1727,19 @@ impl Templates {
             (
                 r(r"^Return (.+?) to (?:its owner's|your|their owners') hands?$"),
                 |c, t| Some(format!("return {} to hand", recipient(cap(c, 1), t)?)),
+            ),
+            // "Return all creature cards from your graveyard to the
+            // battlefield."
+            (
+                r(
+                    r"^Return all (creature|artifact|enchantment|land|permanent) cards from your graveyard to the battlefield$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "return all {} card from your graveyard to battlefield",
+                        cap(c, 1)
+                    ))
+                },
             ),
             // "Return target creature card from your graveyard to the
             // battlefield" (Breath of Life).
@@ -2874,6 +2904,9 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever you cast your second spell each turn"
         | "Whenever you cast a spell other than your first spell each turn"
         | "Whenever you cast your first spell during each opponent's turn"
+        | "Whenever an opponent casts their first noncreature spell each turn"
+        | "Whenever you cast your first noncreature spell each turn"
+        | "Whenever you cast a spell from exile"
         | "Whenever you draw a card"
         | "Whenever you draw your second card each turn"
         | "Whenever a player draws a card"
@@ -3145,6 +3178,7 @@ fn static_condition(s: &str) -> Option<String> {
         }
         // Designations (CR 702.131, 309.7, 725).
         "you have the city's blessing" => return Some("city's blessing".to_string()),
+        "you have an enduring story" => return Some("enduring story".to_string()),
         "you've completed a dungeon" => return Some("completed dungeon".to_string()),
         "you're the monarch" => return Some("you are monarch".to_string()),
         "you gained life this turn" => return Some("gained life this turn".to_string()),
@@ -3664,6 +3698,11 @@ impl Builder<'_> {
         // CR 702.131: "Ascend" as an ability line.
         if line == "Ascend" {
             self.statements.push("ascend".to_string());
+            return Ok(());
+        }
+        // CR 702.195: "Storied".
+        if line == "Storied" {
+            self.statements.push("storied".to_string());
             return Ok(());
         }
         // "Enchanted creature has \"{T}: ...\"", "Creatures you control
@@ -4382,7 +4421,14 @@ impl Builder<'_> {
         }
         if matches!(
             line,
-            "Evolve" | "Unleash" | "Extort" | "Mentor" | "Riot" | "Retrace" | "Ingest"
+            "Evolve"
+                | "Unleash"
+                | "Extort"
+                | "Mentor"
+                | "Riot"
+                | "Retrace"
+                | "Ingest"
+                | "Increment"
         ) {
             self.statements.push(line.to_lowercase());
             return Ok(());

@@ -1,0 +1,8 @@
+card "Long Lake Nuisance" {
+  oracle_id a833fdf1-db0c-4846-8452-d3b2059c2355
+  cost {3}{U}
+  type Creature — Bird
+  pt 3/1
+  keywords flying
+  triggered when this enters: recruit
+}

@@ -3,6 +3,6 @@ card "Wayspeaker Bodyguard" {
   cost {3}{W}
   type Creature — Orc Monk
   pt 3/4
-  triggered when this enters: return target nonland noninstant nonsorcery permanent card with mana value 2 or less from your graveyard to hand
+  triggered when this enters: return target nonland permanent card with mana value 2 or less from your graveyard to hand
   label "Flurry" triggered whenever you cast your second spell each turn: tap target creature an opponent controls
 }

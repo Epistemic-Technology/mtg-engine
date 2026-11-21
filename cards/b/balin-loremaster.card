@@ -1,0 +1,8 @@
+card "Balin, Loremaster" {
+  oracle_id 0d420e41-43e9-41d6-832c-5a9f410c994e
+  cost {3}{R}{R}
+  type Legendary Creature — Dwarf Bard
+  pt 4/4
+  storied
+  triggered whenever this or Dwarf you control enters: you may discard hand; draw count where discarded this way cards; if enduring story, deal count where discarded this way damage to each opponent
+}

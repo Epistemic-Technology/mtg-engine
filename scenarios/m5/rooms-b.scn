@@ -1,0 +1,113 @@
+# Rooms (CR 709.5) the earlier Room support skipped: Defiled Crypt //
+# Cadaver Lab and Funeral Room // Awakening Hall ("Return all creature
+# cards from your graveyard to the battlefield").
+
+scenario "rooms: Funeral Room drains when a creature you control dies" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Funeral Room"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Funeral Room"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 21
+  assert life B 19
+}
+
+scenario "rooms: Awakening Hall returns all creature cards from your graveyard as it unlocks" {
+  battlefield A: 8 "Swamp", "Funeral Room"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Forest", "Lightning Bolt"
+  graveyard B: "Serra Angel"
+  turn 1 A: unlock "Awakening Hall"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Lightning Bolt"
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "rooms: Awakening Hall cast as a spell doesn't return anything until unlocked by casting" {
+  battlefield A: 8 "Swamp"
+  hand A: "Awakening Hall"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Awakening Hall"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "rooms: Cadaver Lab returns a creature card to hand as it unlocks" {
+  battlefield A: "Swamp"
+  hand A: "Cadaver Lab"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Cadaver Lab"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "rooms: Defiled Crypt makes a Horror once each turn as cards leave your graveyard" {
+  battlefield A: 5 "Swamp", "Defiled Crypt"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: unlock "Cadaver Lab"
+  turn 1 A: trigger "Defiled Crypt // Cadaver Lab" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Raise Dead" targeting "Hill Giant"
+  hand A: "Raise Dead"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert battlefield A contains 1 "Horror"
+}
+
+scenario "graveyard to battlefield: an Aura with nothing to enchant stays in the graveyard" {
+  battlefield A: 2 "Plains"
+  hand A: "Resurgent Belief"
+  graveyard A: "Glorious Anthem", "Pacifism"
+  library A: 5 "Plains"
+  turn 1 A: suspend "Resurgent Belief"
+  run_to turn 5 postcombat_main
+  assert battlefield A contains "Glorious Anthem"
+  assert graveyard A contains "Pacifism"
+}
+
+scenario "graveyard to battlefield: Resurgent Belief returns enchantments, an Aura attached to a creature" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Resurgent Belief"
+  graveyard A: "Glorious Anthem", "Pacifism", "Hill Giant"
+  library A: 5 "Plains"
+  turn 1 A: suspend "Resurgent Belief"
+  run_to turn 5 postcombat_main
+  assert battlefield A contains "Glorious Anthem"
+  assert graveyard A contains "Hill Giant"
+  assert power "Grizzly Bears" 3
+  assert attached "Pacifism" to "Grizzly Bears"
+}
+
+scenario "nonland permanent card: Sun-Blessed Healer kicked returns a cheap permanent card, not an instant" {
+  battlefield A: 4 "Plains"
+  hand A: "Sun-Blessed Healer"
+  graveyard A: "Memnite", "Shock", "Forest"
+  turn 1 A: cast "Sun-Blessed Healer" kicked
+  illegal turn 1 A: trigger "Sun-Blessed Healer" targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Memnite"
+}
+
+scenario "nonland permanent card: Sun-Blessed Healer unkicked returns nothing" {
+  battlefield A: 2 "Plains"
+  hand A: "Sun-Blessed Healer"
+  graveyard A: "Memnite"
+  turn 1 A: cast "Sun-Blessed Healer"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Memnite"
+}
+
+scenario "nonland permanent card: Wayspeaker Bodyguard returns a cheap permanent card to hand" {
+  battlefield A: 4 "Plains"
+  hand A: "Wayspeaker Bodyguard"
+  graveyard A: "Memnite", "Shock", "Forest"
+  turn 1 A: cast "Wayspeaker Bodyguard"
+  illegal turn 1 A: trigger "Wayspeaker Bodyguard" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Memnite"
+}

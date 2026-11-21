@@ -1,0 +1,9 @@
+card "Aang, the Last Airbender" {
+  oracle_id 70564c3a-858f-498e-8b92-acb3ca54ae7e
+  cost {3}{W}
+  type Legendary Creature — Human Avatar Ally
+  pt 3/2
+  keywords flying
+  triggered when this enters: airbend up to 1 another target nonland permanent
+  triggered whenever you cast Lesson spell: this gains lifelink
+}

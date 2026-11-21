@@ -628,6 +628,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Ascend) => {
                     b = b.marks(mtg_core::card::Marks::ASCEND);
                 }
+                Ability::Mechanic(Mechanic::Storied) => {
+                    b = b.marks(mtg_core::card::Marks::STORIED);
+                }
                 Ability::Mechanic(Mechanic::StartYourEngines) => {
                     b = b.marks(mtg_core::card::Marks::ENGINES);
                 }
@@ -879,6 +882,7 @@ impl Compiler<'_> {
                         | Ability::ModalBoth(_)
                         | Ability::ModalTwo(_)
                         | Ability::Spree(_)
+                        | Ability::Pawprint { .. }
                 )
             })
             .count();
@@ -949,6 +953,7 @@ impl Compiler<'_> {
                             | Mechanic::Ripple(_)
                             | Mechanic::Strive(_)
                             | Mechanic::Ascend
+                            | Mechanic::Storied
                             | Mechanic::StartYourEngines
                             | Mechanic::BecomesDay
                             | Mechanic::Daybound
@@ -1177,6 +1182,7 @@ impl Compiler<'_> {
                     .to_string(),
                 split: None,
                 split2: None,
+                more: Vec::new(),
                 name: m.name.clone(),
             });
         }
@@ -1192,6 +1198,7 @@ impl Compiler<'_> {
                     text: format!("{} and {}", a.text, b.text),
                     split: Some((0, u16::try_from(b.targets.len()).unwrap_or(u16::MAX))),
                     split2: Some((u16::try_from(a.effects.len()).unwrap_or(u16::MAX), 0)),
+                    more: Vec::new(),
                     name: None,
                 };
             }
@@ -1204,6 +1211,7 @@ impl Compiler<'_> {
                     u16::try_from(a.targets.len()).unwrap_or(u16::MAX),
                 )),
                 split2: None,
+                more: Vec::new(),
                 name: None,
             }
         };
@@ -1313,6 +1321,7 @@ impl Compiler<'_> {
                 text: String::new(),
                 split: None,
                 split2: None,
+                more: Vec::new(),
                 name: None,
             };
             for (k, p) in parts.iter().enumerate() {
@@ -1331,6 +1340,75 @@ impl Compiler<'_> {
             m.text = parts
                 .iter()
                 .map(|p| p.text.as_str())
+                .collect::<Vec<_>>()
+                .join(" and ");
+            out.push(m);
+        }
+        Ok(out)
+    }
+
+    /// "Choose up to five {P} worth of modes. You may choose the same mode
+    /// more than once." (CR 700.2d, 700.2i): every nonempty combination of
+    /// the modes, repeats allowed, whose pawprints total at most `limit`,
+    /// each mode's instances in printed order. The combinations are listed
+    /// in dictionary order of their modes' numbers (1, 1+1, 1+1+1, ...,
+    /// 1+2, ..., 2, ...).
+    fn pawprint_modes(
+        &mut self,
+        limit: u8,
+        modes: &[(u8, crate::ast::Mode)],
+    ) -> Result<Vec<CoreMode>, CompileError> {
+        fn combos(
+            weights: &[u8],
+            from: usize,
+            left: u8,
+            cur: &mut Vec<usize>,
+            out: &mut Vec<Vec<usize>>,
+        ) {
+            for i in from..weights.len() {
+                if weights[i] > left {
+                    continue;
+                }
+                cur.push(i);
+                out.push(cur.clone());
+                combos(weights, i, left - weights[i], cur, out);
+                cur.pop();
+            }
+        }
+        let singles: Vec<crate::ast::Mode> = modes.iter().map(|(_, m)| m.clone()).collect();
+        let singles = self.modes(&singles, false, false)?;
+        let weights: Vec<u8> = modes.iter().map(|(w, _)| *w).collect();
+        let mut sets = Vec::new();
+        combos(&weights, 0, limit, &mut Vec::new(), &mut sets);
+        let mut out = Vec::new();
+        for set in sets {
+            let mut m = CoreMode {
+                targets: Vec::new(),
+                effects: Vec::new(),
+                text: String::new(),
+                split: None,
+                split2: None,
+                more: Vec::new(),
+                name: None,
+            };
+            for (k, i) in set.iter().enumerate() {
+                let p = &singles[*i];
+                let at = (
+                    u16::try_from(m.effects.len()).unwrap_or(u16::MAX),
+                    u16::try_from(m.targets.len()).unwrap_or(u16::MAX),
+                );
+                match k {
+                    0 => {}
+                    1 => m.split = Some(at),
+                    2 => m.split2 = Some(at),
+                    _ => m.more.push(at),
+                }
+                m.targets.extend(p.targets.iter().copied());
+                m.effects.extend(p.effects.iter().cloned());
+            }
+            m.text = set
+                .iter()
+                .map(|i| singles[*i].text.as_str())
                 .collect::<Vec<_>>()
                 .join(" and ");
             out.push(m);
@@ -1533,6 +1611,8 @@ impl Compiler<'_> {
             StaticCond::Monarch => StaticCondition::Monarch,
             StaticCond::CompletedDungeon => StaticCondition::CompletedDungeon,
             StaticCond::CityBlessing => StaticCondition::CityBlessing,
+            StaticCond::EnduringStory => StaticCondition::EnduringStory,
+            StaticCond::NoEnduringStory => StaticCondition::NoEnduringStory,
             StaticCond::MaxSpeed => StaticCondition::MaxSpeed,
             StaticCond::TotalPower(n) => StaticCondition::TotalPower(*n),
             StaticCond::DifferentPowers(n) => StaticCondition::DifferentPowers(*n),
@@ -2076,6 +2156,19 @@ impl Compiler<'_> {
             Effect::Exile { what } => {
                 for w in what {
                     out.push(CoreEffect::Exile { what: r(*w) });
+                }
+            }
+            Effect::GraveyardToBattlefield { filter } => {
+                out.push(CoreEffect::GraveyardToBattlefield {
+                    filter: self.filter(filter),
+                });
+            }
+            Effect::CloakTop => out.push(CoreEffect::CloakTop {
+                of: CoreRecipient::You,
+            }),
+            Effect::Airbend { what } => {
+                for w in what {
+                    out.push(CoreEffect::Airbend { what: r(*w) });
                 }
             }
             Effect::ExileUntil { what } => out.push(CoreEffect::ExileLinked {
@@ -2770,6 +2863,12 @@ impl Compiler<'_> {
                         to: r(*t),
                     });
                 }
+            }
+            Effect::Recruit { .. } => {
+                let Some(token) = self.pool.lookup(HUMAN_SOLDIER) else {
+                    return self.err(format!("unknown token \"{HUMAN_SOLDIER}\""));
+                };
+                out.push(CoreEffect::Recruit { token });
             }
             Effect::Incubate(count) => {
                 let Some(token) = self.pool.lookup(INCUBATOR) else {
@@ -3594,6 +3693,9 @@ impl Compiler<'_> {
             Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true, false)?),
             Ability::ModalTwo(modes) => AbilityDef::Modal(self.modes(modes, false, true)?),
             Ability::Spree(modes) => AbilityDef::Modal(self.spree_modes(modes)?),
+            Ability::Pawprint { limit, modes } => {
+                AbilityDef::Modal(self.pawprint_modes(*limit, modes)?)
+            }
             Ability::Activated { cost, .. } if cost.discard_x => {
                 return self.err("`discard X cards` is only a spell's additional cost");
             }
@@ -3942,6 +4044,7 @@ impl Compiler<'_> {
                 | Mechanic::Ripple(_)
                 | Mechanic::Strive(_)
                 | Mechanic::Ascend
+                | Mechanic::Storied
                 | Mechanic::StartYourEngines
                 | Mechanic::BecomesDay
                 | Mechanic::Daybound
@@ -4459,6 +4562,8 @@ const AFTERLIFE_SPIRIT: &str = "1/1 white and black Spirit creature with flying"
 const GERM: &str = "0/0 black Phyrexian Germ creature";
 /// The token job select creates (CR 702.182a).
 const HERO: &str = "1/1 colorless Hero creature";
+/// The token recruit creates (CR 701.70a).
+const HUMAN_SOLDIER: &str = "1/1 white Human Soldier creature";
 /// The token Incubate creates (CR 701.53a, 111.10i).
 const INCUBATOR: &str = "Incubator";
 
@@ -4556,6 +4661,28 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // creature's power is greater than this creature's power and/or
         // that creature's toughness is greater than this creature's
         // toughness, put a +1/+1 counter on this creature."
+        // CR 702.191a: "Whenever you cast a spell, if the amount of mana
+        // spent to cast that spell is greater than this creature's power or
+        // this creature's toughness, put a +1/+1 counter on this creature."
+        Mechanic::Increment => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
+            from_graveyard: false,
+            trigger: Trigger::CastsSpell {
+                whose: Who::You,
+                noncreature: false,
+                instant_or_sorcery: false,
+                or_copy: false,
+            },
+            condition: Some(crate::ast::TrigCond::Core(
+                mtg_core::card::Condition::Increments,
+            )),
+            targets: Vec::new(),
+            effects: one(E::AddCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                count: Num::N(1),
+                to: Recipient::Source,
+            }),
+        },
         Mechanic::Evolve => Ability::Triggered {
             limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
@@ -5119,6 +5246,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Teamwork(_)
         | Mechanic::Ripple(_)
         | Mechanic::Ascend
+        | Mechanic::Storied
         | Mechanic::StartYourEngines
         | Mechanic::BecomesDay
         | Mechanic::Daybound

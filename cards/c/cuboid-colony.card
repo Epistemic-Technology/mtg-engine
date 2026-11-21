@@ -1,0 +1,8 @@
+card "Cuboid Colony" {
+  oracle_id 20f3388f-0931-4a09-bcda-96deb01e1787
+  cost {G}{U}
+  type Creature — Insect
+  pt 1/1
+  keywords flash, flying, trample
+  increment
+}

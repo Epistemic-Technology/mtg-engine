@@ -1,0 +1,8 @@
+card "Hungry Graffalon" {
+  oracle_id 9494c499-6ead-491f-aeb0-6dbfac4d960c
+  cost {3}{G}
+  type Creature — Giraffe
+  pt 3/4
+  keywords reach
+  increment
+}

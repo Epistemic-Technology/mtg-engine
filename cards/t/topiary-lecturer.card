@@ -1,0 +1,8 @@
+card "Topiary Lecturer" {
+  oracle_id 5f5fe039-4be4-42ae-9fa4-4392328aa665
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 1/2
+  increment
+  activated {T}: add {G} count equal power
+}

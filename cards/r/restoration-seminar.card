@@ -1,0 +1,7 @@
+card "Restoration Seminar" {
+  oracle_id fd0a27a9-7d7e-4a16-9dd0-0715e6c97b36
+  cost {5}{W}{W}
+  type Sorcery — Lesson
+  keywords paradigm
+  spell: return target nonland permanent card from your graveyard to battlefield
+}

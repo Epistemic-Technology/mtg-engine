@@ -1,0 +1,8 @@
+card "Great Gilded Boat" {
+  oracle_id d4607026-80b2-4fa6-99d5-694cd3b43868
+  cost {2}{U}
+  type Artifact — Vehicle
+  pt 4/4
+  triggered whenever you attack: recruit
+  crew 2
+}

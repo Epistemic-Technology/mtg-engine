@@ -1,0 +1,7 @@
+card "Decorum Dissertation" {
+  oracle_id f4c57454-d36f-4f38-b7ac-76477a516c3e
+  cost {3}{B}{B}
+  type Sorcery — Lesson
+  keywords paradigm
+  spell: target player draws two cards and loses 2 life
+}

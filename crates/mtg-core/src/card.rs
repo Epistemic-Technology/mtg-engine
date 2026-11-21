@@ -344,6 +344,11 @@ pub enum Keyword {
     /// Hexproof from a quality (CR 702.11d): a marker that one of the
     /// object's abilities is an `AbilityDef::HexproofFrom`. Not printed.
     HexproofFromFilter,
+    /// CR 702.192a: as the spell resolves it is exiled; the first time a
+    /// spell its controller controls with its name resolves, a copy of it
+    /// may be cast free at the beginning of each of their precombat main
+    /// phases for the rest of the game (`Builtin::Paradigm`).
+    Paradigm,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -398,6 +403,11 @@ pub enum Builtin {
     /// return it to the battlefield tapped under your control." (a
     /// delayed trigger about the land).
     EarthbendReturn,
+    /// CR 702.192a: paradigm's "at the beginning of each of your precombat
+    /// main phases for the rest of the game, create a copy of this object
+    /// in exile. You may cast the copy without paying its mana cost." (a
+    /// delayed trigger that stays).
+    Paradigm,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -515,7 +525,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 69] = [
+    pub const ALL: [Keyword; 70] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -585,6 +595,7 @@ impl Keyword {
         Keyword::Phasing,
         Keyword::Cipher,
         Keyword::HexproofFromFilter,
+        Keyword::Paradigm,
     ];
 
     /// The keyword as Oracle prints it.
@@ -643,6 +654,7 @@ impl Keyword {
             Keyword::Phasing => "phasing",
             Keyword::Cipher => "cipher",
             Keyword::HexproofFromFilter => "hexproof from",
+            Keyword::Paradigm => "paradigm",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -737,6 +749,7 @@ impl Subtype {
     pub const VEHICLE: Subtype = Subtype(5 + 28);
     pub const SPACECRAFT: Subtype = Subtype(5 + 29);
     pub const ROOM: Subtype = Subtype(5 + 37);
+    pub const SAGA: Subtype = Subtype(5 + 39);
     pub const SIEGE: Subtype = Subtype(5 + 47);
     /// Not interned: "is every creature type" (layer 4), held among an
     /// object's subtypes in place of its creature types; `has_subtype`
@@ -2331,6 +2344,11 @@ pub enum StaticCondition {
     CompletedDungeon,
     /// "you have the city's blessing" (CR 702.131c).
     CityBlessing,
+    /// "you have an enduring story" (CR 702.195b).
+    EnduringStory,
+    /// "unless you have an enduring story": the controller doesn't have
+    /// one.
+    NoEnduringStory,
     /// Max speed (CR 702.179e): "you have max speed", speed 4.
     MaxSpeed,
     /// "If {B} was spent to cast this spell", "if at least three red mana
@@ -4050,6 +4068,36 @@ pub enum Effect {
         count: Num,
         to: Recipient,
     },
+    /// "Return all creature cards from your graveyard to the battlefield":
+    /// every card in the controller's graveyard matching `filter` enters
+    /// under its owner's control.
+    GraveyardToBattlefield {
+        filter: ObjFilter,
+    },
+    /// Cloak (CR 701.58a): the top card of `of`'s library is put onto the
+    /// battlefield face down under the controller's control as a 2/2
+    /// creature with ward {2}; it may be turned face up for its mana cost
+    /// if it's a creature card (CR 701.58b).
+    CloakTop {
+        of: Recipient,
+    },
+    /// Paradigm's delayed trigger (CR 702.192a): a copy of the paradigm
+    /// card (`GameState::paradigms`, by the trigger's source) is made in
+    /// exile, and its controller may cast it without paying its mana cost;
+    /// not cast, it ceases to exist.
+    CastParadigmCopy,
+    /// Airbend (CR 701.65a): exile the permanent or spell; a card exiled
+    /// this way may be cast by its owner for {2} rather than its mana cost
+    /// for as long as it remains exiled.
+    Airbend {
+        what: Recipient,
+    },
+    /// Recruit (CR 701.70a): "Draw a card, then discard a card. If you
+    /// discarded a nonland card this way, create a 1/1 white Human Soldier
+    /// creature token." (`token`).
+    Recruit {
+        token: CardRef,
+    },
     /// Populate (CR 701.36a): the controller chooses a creature token they
     /// control and creates a token that's a copy of it; with none, nothing
     /// happens (CR 701.36b).
@@ -4421,6 +4469,12 @@ impl Effect {
                 | Effect::Bolster(_)
                 | Effect::Populate
                 | Effect::Fabricate { .. }
+                // The card to discard (CR 701.70a).
+                | Effect::Recruit { .. }
+                // What enters is not known until it resolves.
+                | Effect::GraveyardToBattlefield { .. }
+                | Effect::CloakTop { .. }
+                | Effect::CastParadigmCopy
         )
     }
 }
@@ -5111,6 +5165,13 @@ pub enum SpellOrdinal {
     /// "a spell during an opponent's turn": any spell cast on another
     /// player's turn.
     OnOpponentsTurn,
+    /// "their first noncreature spell each turn": a noncreature spell, the
+    /// first of its caster's noncreature spells this turn (counted by the
+    /// trigger, not by `holds`).
+    FirstNoncreature,
+    /// "a spell from exile": any spell cast from exile (checked by the
+    /// trigger, not by `holds`).
+    FromExile,
 }
 
 impl SpellOrdinal {
@@ -5118,11 +5179,12 @@ impl SpellOrdinal {
     /// on its caster's turn or not.
     pub fn holds(self, n: u8, own_turn: bool) -> bool {
         match self {
-            SpellOrdinal::First => n == 1,
+            SpellOrdinal::First | SpellOrdinal::FirstNoncreature => n == 1,
             SpellOrdinal::Second => n == 2,
             SpellOrdinal::NotFirst => n >= 2,
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
             SpellOrdinal::OnOpponentsTurn => !own_turn,
+            SpellOrdinal::FromExile => true,
         }
     }
 }
@@ -5284,6 +5346,10 @@ pub enum Condition {
     /// Evolve (CR 702.100a): the triggering creature's power is greater
     /// than the source's, or its toughness is greater than the source's.
     Evolves,
+    /// Increment (CR 702.191a): the source is a creature and the amount of
+    /// mana spent to cast the triggering spell is greater than its power or
+    /// its toughness.
+    Increments,
     /// The pool's `n`th static condition ("if you control an artifact",
     /// "if you have 5 or less life").
     Static(u16),
@@ -5795,6 +5861,10 @@ pub struct Mode {
     /// starts, as `split` for the second.
     #[serde(default)]
     pub split2: Option<(u16, u16)>,
+    /// A combination of more parts (pawprint modes chosen more than once,
+    /// CR 700.2d, 700.2i): where each part after the third starts.
+    #[serde(default)]
+    pub more: Vec<(u16, u16)>,
     /// A named mode's name ("• Smash the Chest — Destroy target
     /// artifact."), printed before its effect; it has no rules meaning.
     pub name: Option<String>,
@@ -6540,6 +6610,8 @@ impl Marks {
     pub const DAYBOUND: Marks = Marks(8);
     /// Nightbound (CR 702.145e): on its back face.
     pub const NIGHTBOUND: Marks = Marks(16);
+    /// Storied (CR 702.195a): its controller gets an enduring story.
+    pub const STORIED: Marks = Marks(32);
 
     pub const fn has(self, m: Marks) -> bool {
         self.0 & m.0 != 0
@@ -7200,7 +7272,7 @@ pub struct CardPool {
     /// Decayed's "When this creature attacks, sacrifice it at end of
     /// combat" (CR 702.147a).
     decayed: AbilityId,
-    builtins: [AbilityId; 12],
+    builtins: [AbilityId; 13],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -7286,7 +7358,7 @@ impl CardPool {
             evoke: AbilityId(0),
             exploit: AbilityId(0),
             decayed: AbilityId(0),
-            builtins: [AbilityId(0); 12],
+            builtins: [AbilityId(0); 13],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -7303,6 +7375,7 @@ impl CardPool {
         debug_assert_eq!(pool.subtype("Equipment"), Subtype::EQUIPMENT);
         debug_assert_eq!(pool.subtype("Role"), Subtype::ROLE);
         debug_assert_eq!(pool.subtype("Aura"), Subtype::AURA);
+        debug_assert_eq!(pool.subtype("Saga"), Subtype::SAGA);
         pool.prowess = pool.register(AbilityDef::Triggered(TriggeredAbility {
             limit: crate::card::TurnLimit::None,
             from_graveyard: false,
@@ -7491,6 +7564,18 @@ impl CardPool {
                     },
                     Effect::CastExiled(ExileCast::Transformed),
                 ],
+            }));
+        pool.builtins[Builtin::Paradigm as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
+                from_graveyard: false,
+                trigger: TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::PrecombatMain,
+                    whose: Who::You,
+                },
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::CastParadigmCopy],
             }));
         pool.builtins[Builtin::EarthbendReturn as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {
@@ -7705,6 +7790,7 @@ impl CardPool {
                 return false;
             };
             matches!(t.condition, Some(Condition::Static(i)) if that(i))
+                || t.condition == Some(Condition::Increments)
                 || a.all_effects().iter().any(|e| {
                     matches!(
                         e,

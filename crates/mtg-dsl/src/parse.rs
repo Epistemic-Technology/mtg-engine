@@ -177,6 +177,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["cascade"], Keyword::Cascade),
     (&["rebound"], Keyword::Rebound),
     (&["cipher"], Keyword::Cipher),
+    (&["paradigm"], Keyword::Paradigm),
     (&["exploit"], Keyword::Exploit),
     (&["delve"], Keyword::Delve),
     (
@@ -801,6 +802,7 @@ impl P {
             optional_cost: None,
             alt_cost: None,
             flash_if: None,
+            flash_if_may: false,
             flash_cleanup: false,
             pronoun: None,
             short_name: None,
@@ -1042,6 +1044,12 @@ impl P {
             "flash" if self.at_words(&["flash", "with", "cleanup", "sacrifice"]) => {
                 self.pos += 4;
                 card.flash_cleanup = true;
+                self.end_stmt()
+            }
+            "flash" if self.at_words(&["flash", "if"]) => {
+                self.pos += 2;
+                card.flash_if = Some(self.static_cond()?);
+                card.flash_if_may = true;
                 self.end_stmt()
             }
             "flash" if self.at_words(&["flash", "as", "long", "as"]) => {
@@ -1745,13 +1753,13 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Firebending(n)))
             }
-            "evolve" | "unleash" => {
+            "evolve" | "unleash" | "increment" => {
                 self.pos += 1;
                 self.end_stmt()?;
-                Ok(Ability::Mechanic(if w == "evolve" {
-                    Mechanic::Evolve
-                } else {
-                    Mechanic::Unleash
+                Ok(Ability::Mechanic(match w.as_str() {
+                    "evolve" => Mechanic::Evolve,
+                    "increment" => Mechanic::Increment,
+                    _ => Mechanic::Unleash,
                 }))
             }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
@@ -1915,6 +1923,11 @@ impl P {
                 self.pos += 1;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Ascend))
+            }
+            "storied" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Storied))
             }
             "start" if self.at_words(&["start", "your", "engines"]) => {
                 self.pos += 3;
@@ -2125,6 +2138,13 @@ impl P {
                 };
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Gift(kind)))
+            }
+            "pawprint" if self.peek_at(2) == Some(&Tok::LBrace) => {
+                self.pos += 1;
+                let limit = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+                let modes = self.pawprint_block()?;
+                self.end_stmt()?;
+                Ok(Ability::Pawprint { limit, modes })
             }
             "spree" if self.peek_at(1) == Some(&Tok::LBrace) => {
                 self.pos += 1;
@@ -2719,6 +2739,43 @@ impl P {
 
     /// `{ mode {2}: ... mode {1}: ... }` after `spree`: each mode's cost,
     /// then its effects.
+    /// `{ mode 1: ... mode 2: ... }` after `pawprint 5`: each mode with its
+    /// number of pawprints.
+    fn pawprint_block(&mut self) -> R<Vec<(u8, Mode)>> {
+        self.expect(&Tok::LBrace)?;
+        self.end_stmt()?;
+        let outer = std::mem::take(&mut self.targets);
+        let mut modes = Vec::new();
+        loop {
+            self.skip_newlines();
+            if self.peek() == Some(&Tok::RBrace) {
+                self.pos += 1;
+                break;
+            }
+            self.expect_word("mode")?;
+            let Some(w) = u8::try_from(self.number()?).ok().filter(|w| *w > 0) else {
+                return self.fail("a pawprint mode has one or more pawprints");
+            };
+            self.targets.clear();
+            self.subject = None;
+            self.revealed = false;
+            let effects = self.effects_body()?;
+            modes.push((
+                w,
+                Mode {
+                    targets: std::mem::take(&mut self.targets),
+                    effects,
+                    name: None,
+                },
+            ));
+        }
+        self.targets = outer;
+        if modes.len() < 2 {
+            return self.fail("`pawprint` takes two or more modes");
+        }
+        Ok(modes)
+    }
+
     fn spree_block(&mut self) -> R<Vec<(ManaCost, Mode)>> {
         self.expect(&Tok::LBrace)?;
         self.end_stmt()?;
@@ -3093,6 +3150,12 @@ impl P {
         }
         if self.eat_words(&["city's", "blessing"]) {
             return Ok(StaticCond::CityBlessing);
+        }
+        if self.eat_words(&["enduring", "story"]) {
+            return Ok(StaticCond::EnduringStory);
+        }
+        if self.eat_words(&["no", "enduring", "story"]) {
+            return Ok(StaticCond::NoEnduringStory);
         }
         if self.eat_words(&["max", "speed"]) {
             return Ok(StaticCond::MaxSpeed);
@@ -4170,10 +4233,10 @@ impl P {
                 }
             };
         }
-        if that {
-            return self.fail("`if that target 1` needs `is`");
-        }
-        let tense = if self.eat_word("had") {
+        let tense = if that {
+            self.expect_words(&["was"])?;
+            crate::ast::TargetTense::ThatWas
+        } else if self.eat_word("had") {
             crate::ast::TargetTense::Had
         } else {
             self.expect_words(&["was"])?;
@@ -5185,6 +5248,8 @@ impl P {
                     may: true,
                 })
             }
+            // "..., you recruit" (CR 701.70a).
+            "recruit" if subject == Recipient::You => Ok(Effect::Recruit { you: true }),
             // "... and you scry 2": an explicit "you".
             "scries" | "scry" if w == "scries" || subject == Recipient::You => {
                 let count = self.num()?;
@@ -6610,6 +6675,22 @@ impl P {
                     who: None,
                 })
             }
+            // "Return all creature cards from your graveyard to the
+            // battlefield."
+            "return"
+                if self.at_word("all")
+                    && (1..8).any(|k| {
+                        self.word_at(k).as_deref() == Some("card")
+                            && self.word_at(k + 1).as_deref() == Some("from")
+                            && self.word_at(k + 2).as_deref() == Some("your")
+                            && self.word_at(k + 3).as_deref() == Some("graveyard")
+                    }) =>
+            {
+                self.pos += 1;
+                let filter = self.filter()?;
+                self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
+                Ok(Effect::GraveyardToBattlefield { filter })
+            }
             "return" => {
                 let all = self.recipients()?;
                 let what = all[0];
@@ -6715,6 +6796,17 @@ impl P {
                     to: Recipient::Target(self.targets.len() - 1),
                 })
             }
+            "recruit" => Ok(Effect::Recruit { you: false }),
+            "cloak" if self.eat_word("top") => Ok(Effect::CloakTop),
+            // "airbend any number of other target nonland permanents you
+            // control" (CR 601.2c).
+            "airbend" => Ok(Effect::Airbend {
+                what: if self.at_many() {
+                    vec![self.many_target()?]
+                } else {
+                    self.recipients()?
+                },
+            }),
             "populate" => Ok(Effect::Populate),
             "incubate" => Ok(Effect::Incubate(self.num()?)),
             // CR 701.41a: "up to N other target creatures" on a permanent
@@ -8267,7 +8359,8 @@ impl P {
     fn at_many(&self) -> bool {
         let target = |k: usize| matches!(self.word_at(k).as_deref(), Some("target" | "targets"));
         (self.at_word("x") && target(1))
-            || (self.at_words(&["any", "number", "of"]) && target(3))
+            || (self.at_words(&["any", "number", "of"])
+                && (target(3) || (self.word_at(3).as_deref() == Some("another") && target(4))))
             || (matches!(self.peek(), Some(Tok::Num(_)))
                 && self.word_at(1).as_deref() == Some("to")
                 && matches!(self.peek_at(2), Some(Tok::Num(_)))
@@ -8289,11 +8382,14 @@ impl P {
             }
             (Num::N(a), Some(Num::N(b)))
         };
-        let target = if self.eat_word("targets") {
+        // "any number of other target nonland permanents you control".
+        let another = self.eat_word("another");
+        let target = if !another && self.eat_word("targets") {
             Target::Spec(TargetSpec::Any)
         } else {
             self.expect_word("target")?;
-            self.target_spec()?
+            let spec = self.target_spec()?;
+            if another { another_target(spec) } else { spec }
         };
         let i = self.targets.len();
         self.targets.push(Target::Many {
@@ -9181,6 +9277,16 @@ impl P {
                     f.not_types.extend([CardType::Instant, CardType::Sorcery]);
                     self.pos += 1;
                 }
+                // "a nonland permanent card" (Restoration Seminar).
+                "permanent"
+                    if matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                        && f.types.is_empty()
+                        && f.any_types.is_empty()
+                        && f.not_types == [CardType::Land] =>
+                {
+                    f.not_types = vec![CardType::Land, CardType::Instant, CardType::Sorcery];
+                    self.pos += 1;
+                }
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,
                 "andor" if consumed == 0 && !f.and_or => {
                     f.and_or = true;
@@ -9260,6 +9366,8 @@ impl P {
                 }
                 "enchanted" | "equipped" => {
                     f.enchanted = true;
+                    f.enchanted_permanent =
+                        w == "enchanted" && self.word_at(1).as_deref() == Some("permanent");
                     self.pos += 1;
                 }
                 "paired" if f.paired.is_none() => {
@@ -9942,6 +10050,9 @@ impl P {
         if self.eat_words(&["a", "spell", "during", "an", "opponent's", "turn"]) {
             return Ok(Some(SpellOrdinal::OnOpponentsTurn));
         }
+        if self.eat_words(&["a", "spell", "from", "exile"]) {
+            return Ok(Some(SpellOrdinal::FromExile));
+        }
         if self.eat_words(&["a", "spell", "other", "than"]) {
             if !(self.eat_word("your") || self.eat_word("their")) {
                 return self.unexpected("`your` or `their`");
@@ -9953,6 +10064,9 @@ impl P {
             return Ok(None);
         }
         self.pos += 1;
+        if self.eat_words(&["first", "noncreature", "spell", "each", "turn"]) {
+            return Ok(Some(SpellOrdinal::FirstNoncreature));
+        }
         let w = self.word()?;
         self.expect_word("spell")?;
         let nth = match w.as_str() {
@@ -10666,6 +10780,9 @@ impl P {
         }
         if self.eat_word("evolves") {
             return Ok(Condition::Evolves);
+        }
+        if self.eat_word("increments") {
+            return Ok(Condition::Increments);
         }
         if self.eat_word("evoked") {
             return Ok(Condition::Evoked);

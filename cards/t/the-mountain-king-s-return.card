@@ -1,0 +1,8 @@
+card "The Mountain-king's Return" {
+  oracle_id 32ad5b3e-92c0-45be-b2e4-6f1794552f36
+  cost {2}{W}
+  type Enchantment — Saga
+  triggered chapter 1: recruit
+  triggered chapter 2: return target creature card with mana value 3 or less from your graveyard to battlefield
+  triggered chapter 3: put 1 +1/+1 counters on up to one target creature
+}

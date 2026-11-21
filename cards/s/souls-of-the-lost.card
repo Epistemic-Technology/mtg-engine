@@ -1,0 +1,8 @@
+card "Souls of the Lost" {
+  oracle_id c05d5a51-8e39-4475-9743-1adc60283c5a
+  cost {1}{B}
+  type Creature — Spirit
+  additional cost discard 1 card
+  additional cost or sacrifice permanent
+  label "Fathomless descent" static this: cda pt graveyard permanent card +1
+}

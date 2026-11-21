@@ -1,0 +1,8 @@
+card "Glider Staff" {
+  oracle_id 823006a8-098c-457a-8546-77ae2457c459
+  cost {2}{W}
+  type Artifact — Equipment
+  triggered when this enters: airbend up to one target creature
+  static enchanted: +1/+1, has flying
+  equip {2}
+}

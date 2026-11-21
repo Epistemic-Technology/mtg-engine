@@ -1,0 +1,71 @@
+# Fathomless descent (an ability word, CR 207.2c): X is the number of
+# permanent cards in your graveyard (CR 110.4a: not instants or sorceries).
+
+scenario "fathomless descent: Terror Tide counts permanent cards only" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Terror Tide"
+  graveyard A: "Forest", "Memnite", "Lightning Bolt", "Shock"
+  turn 1 A: cast "Terror Tide"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+}
+
+scenario "fathomless descent: Terror Tide with an empty graveyard does nothing" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Terror Tide"
+  graveyard B: "Forest", "Memnite"
+  turn 1 A: cast "Terror Tide"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "fathomless descent: Chupacabra Echo shrinks an opponent's creature" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Chupacabra Echo"
+  graveyard A: "Forest", "Memnite"
+  turn 1 A: cast "Chupacabra Echo"
+  turn 1 A: trigger "Chupacabra Echo" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 3
+}
+
+scenario "fathomless descent: Song of Stupefaction's -X/-0 grows as the graveyard does" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Song of Stupefaction"
+  graveyard A: "Memnite"
+  library A: "Forest", "Lightning Bolt", "Island"
+  turn 1 A: cast "Song of Stupefaction" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert power "Serra Angel" 2
+  assert toughness "Serra Angel" 4
+}
+
+scenario "fathomless descent: Souls of the Lost, cast by discarding a card" {
+  battlefield A: 2 "Swamp"
+  hand A: "Souls of the Lost", "Memnite"
+  graveyard A: "Forest"
+  turn 1 A: cast "Souls of the Lost" discarding "Memnite"
+  run_to turn 1 postcombat_main
+  assert power "Souls of the Lost" 2
+  assert toughness "Souls of the Lost" 3
+}
+
+scenario "fathomless descent: Souls of the Lost, cast by sacrificing a permanent" {
+  battlefield A: 2 "Swamp", "Memnite"
+  hand A: "Souls of the Lost"
+  turn 1 A: cast "Souls of the Lost" other_cost sacrificing "Memnite"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Memnite"
+  assert power "Souls of the Lost" 1
+  assert toughness "Souls of the Lost" 2
+}

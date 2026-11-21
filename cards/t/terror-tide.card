@@ -1,0 +1,6 @@
+card "Terror Tide" {
+  oracle_id 12be58f4-1c12-4bca-8069-1f049cd8a90c
+  cost {2}{B}{B}
+  type Sorcery
+  label "Fathomless descent" spell: all creatures gets -1/-1 count where graveyard permanent card
+}

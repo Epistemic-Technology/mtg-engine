@@ -112,6 +112,9 @@ pub struct DelayedTrigger {
     /// "When that creature dies this turn": ends at cleanup if it hasn't
     /// triggered (CR 603.7c).
     pub this_turn: bool,
+    /// "... for the rest of the game" (paradigm, CR 702.192a): it stays
+    /// after it triggers.
+    pub forever: bool,
 }
 
 /// Something a spell or ability can target or an effect can act on.
@@ -338,6 +341,11 @@ pub enum AltCast {
     /// Cast transformed from the graveyard for its disturb cost (CR
     /// 702.146a): the spell is the back face.
     Disturb,
+    /// In exile: airbent (CR 701.65a), castable by its owner for {2}
+    /// rather than its mana cost for as long as it remains exiled.
+    Airbent,
+    /// Cast for {2} rather than its mana cost after it was airbent.
+    Airbend,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
@@ -393,7 +401,7 @@ impl CastInfo {
     /// Every flag and field, for the test that no two share a bit
     /// (parallel branches have twice picked the same free bit).
     #[cfg(test)]
-    const ALL: [u32; 20] = [
+    const ALL: [u32; 21] = [
         Self::KICKS_MASK,
         Self::OFFSPRING,
         Self::BARGAINED,
@@ -413,6 +421,7 @@ impl CastInfo {
         Self::BUYBACK,
         Self::EVOKED,
         Self::MODE,
+        Self::MODE_HIGH,
         Self::CAST_MASK,
     ];
 
@@ -466,6 +475,9 @@ impl CastInfo {
     /// Cast for its evoke cost (CR 702.74); kept by the permanent.
     const EVOKED: u32 = 0x08;
     const MODE: u32 = 0x07;
+    /// The mode's fourth bit (modes 8 to 15: pawprint combinations, CR
+    /// 700.2i).
+    const MODE_HIGH: u32 = 0x4000_0000;
     /// Cast at all, and from where (CR 601.2a); kept by the permanent ("if
     /// you cast it from your hand").
     const CAST_MASK: u32 = 0x1C00;
@@ -654,11 +666,15 @@ impl CastInfo {
     }
 
     pub const fn mode(self) -> u8 {
-        (self.0 & Self::MODE) as u8
+        let high = if self.0 & Self::MODE_HIGH != 0 { 8 } else { 0 };
+        (self.0 & Self::MODE) as u8 | high
     }
 
+    /// The chosen mode, 0 to 15.
     pub fn set_mode(&mut self, mode: u8) {
-        self.0 = (self.0 & !Self::MODE) | (u32::from(mode) & Self::MODE);
+        debug_assert!(mode < 16, "at most sixteen modes");
+        let high = if mode & 8 != 0 { Self::MODE_HIGH } else { 0 };
+        self.0 = (self.0 & !(Self::MODE | Self::MODE_HIGH)) | (u32::from(mode) & Self::MODE) | high;
     }
 
     pub const fn beheld(self) -> bool {
@@ -1480,6 +1496,8 @@ pub struct Designations {
     pub last_active: Option<PlayerId>,
     /// Players with the city's blessing, one bit each.
     pub blessed: u8,
+    /// Players with an enduring story (CR 702.195b), one bit each.
+    pub storied: u8,
     /// Each player's speed (CR 702.179b: 0 is "no speed").
     pub speed: [u8; 4],
     /// Players whose speed-increasing ability triggered this turn (CR
@@ -1505,6 +1523,10 @@ pub struct Designations {
 impl Designations {
     pub fn blessed(&self, p: PlayerId) -> bool {
         self.blessed & (1 << p.index().min(7)) != 0
+    }
+
+    pub fn storied(&self, p: PlayerId) -> bool {
+        self.storied & (1 << p.index().min(7)) != 0
     }
 
     pub fn speed(&self, p: PlayerId) -> u8 {
@@ -1871,6 +1893,11 @@ pub struct GameState {
     pub pending_triggers: Vec<PendingTrigger>,
     /// Delayed triggered abilities waiting for their event (CR 603.7).
     pub delayed_triggers: Vec<DelayedTrigger>,
+    /// Paradigm spells that have resolved (CR 702.192a): their controller,
+    /// the card, and the exiled card that is the source of the delayed
+    /// trigger copying it (the copy is made even if that card has left
+    /// exile).
+    pub paradigms: Vec<(PlayerId, crate::card::CardRef, ObjId)>,
     /// Battlefield objects whose definition has a triggered ability, so
     /// that events on trigger-free boards cost nothing to detect over.
     pub trigger_sources: u32,
@@ -2173,7 +2200,12 @@ impl GameState {
         else {
             return out;
         };
-        for (e, t) in m.split.into_iter().chain(m.split2) {
+        for (e, t) in m
+            .split
+            .into_iter()
+            .chain(m.split2)
+            .chain(m.more.iter().copied())
+        {
             out.push((usize::from(e), usize::from(t)));
         }
         out
@@ -3448,6 +3480,8 @@ impl GameState {
             C::Monarch => self.desig.monarch == Some(you),
             C::CompletedDungeon => self.desig.completed(you) > 0,
             C::CityBlessing => self.desig.blessed(you),
+            C::EnduringStory => self.desig.storied(you),
+            C::NoEnduringStory => !self.desig.storied(you),
             C::MaxSpeed => self.desig.speed(you) >= 4,
             C::During(crate::card::TurnTime::AttackedThisStep) => {
                 self.step == crate::turn::Step::DeclareAttackers

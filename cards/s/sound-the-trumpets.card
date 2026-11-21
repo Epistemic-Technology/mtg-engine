@@ -1,0 +1,6 @@
+card "Sound the Trumpets" {
+  oracle_id dbcf2a79-b455-43ac-9cf0-9e63708800f4
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell; if that target 1 was with mana value 2 or less, recruit
+}

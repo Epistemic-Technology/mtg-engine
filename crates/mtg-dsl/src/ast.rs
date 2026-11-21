@@ -29,6 +29,9 @@ pub enum TargetTense {
     Is,
     /// `if that target 1 is`: "If that creature is ...".
     ThatIs,
+    /// `if that target 1 was with mana value 2 or less`: "If that spell's
+    /// mana value was 2 or less", as it last existed, like `Was`.
+    ThatWas,
     /// `if target 1 had with mana value 3 or less`: "If it had mana value 3
     /// or less", as it last existed, like `Was`.
     Had,
@@ -137,6 +140,9 @@ pub struct Card {
     /// `flash as long as you control Merfolk`: "This spell has flash as
     /// long as you control a Merfolk." (CR 702.8).
     pub flash_if: Option<StaticCond>,
+    /// `flash if you control Human`: the same, printed "You may cast this
+    /// spell as though it had flash if you control a Human."
+    pub flash_if_may: bool,
     /// `flash with cleanup sacrifice`: "You may cast this spell as though
     /// it had flash. If you cast it any time a sorcery couldn't have been
     /// cast, the controller of the permanent it becomes sacrifices it at
@@ -211,6 +217,7 @@ impl Card {
             optional_cost: None,
             alt_cost: None,
             flash_if: None,
+            flash_if_may: false,
             flash_cleanup: false,
             pronoun: None,
             short_name: None,
@@ -681,6 +688,9 @@ pub struct Filter {
     pub not_keywords: Vec<Keyword>,
     pub relation: Relation,
     pub enchanted: bool,
+    /// `enchanted permanent`: printed "enchanted permanent" whatever the
+    /// Aura enchants (Song of Stupefaction, "Enchant creature or Vehicle").
+    pub enchanted_permanent: bool,
     /// `paired` (`paired named`): "as long as this creature (~) is paired
     /// with another creature, both creatures ..." (soulbond, CR 702.95b);
     /// `Some(true)` names the card.
@@ -1019,6 +1029,13 @@ pub enum Ability {
     /// `spree { mode {2}: ... mode {1}: ... }` (CR 702.172): one or more
     /// modes, each with an additional cost (at most three).
     Spree(Vec<(ManaCost, Mode)>),
+    /// `pawprint 5 { mode 1: ... mode 2: ... mode 3: ... }` (CR 700.2i):
+    /// "Choose up to five {P} worth of modes. You may choose the same mode
+    /// more than once." with each mode's number of pawprints.
+    Pawprint {
+        limit: u8,
+        modes: Vec<(u8, Mode)>,
+    },
     Activated {
         cost: Cost,
         targets: Vec<Target>,
@@ -1525,6 +1542,10 @@ pub enum Mechanic {
     /// more permanents (a permanent's static ability; an instant's or
     /// sorcery's first effect).
     Ascend,
+    /// CR 702.195: `storied`: an enduring story for the rest of the game
+    /// once you control three or more artifacts, legendaries, and/or
+    /// Sagas.
+    Storied,
     /// CR 702.179: `start your engines`: "Start your engines!", a speed of
     /// 1 for a player who has none.
     StartYourEngines,
@@ -1543,6 +1564,10 @@ pub enum Mechanic {
     Fabricate(u32),
     /// `evolve` (CR 702.100).
     Evolve,
+    /// `increment` (CR 702.191): whenever you cast a spell, if the mana
+    /// spent on it is greater than this creature's power or toughness, a
+    /// +1/+1 counter on it.
+    Increment,
     /// `renown 1` (CR 702.112).
     Renown(u32),
     /// `unleash` (CR 702.98): may enter with a +1/+1 counter; can't block
@@ -1960,6 +1985,11 @@ pub enum StaticCond {
     CompletedDungeon,
     /// `city's blessing`: "you have the city's blessing" (CR 702.131c).
     CityBlessing,
+    /// `enduring story`: "you have an enduring story" (CR 702.195b).
+    EnduringStory,
+    /// `no enduring story`: "you don't have an enduring story"; after a
+    /// static ability's `if`, "... unless you have an enduring story".
+    NoEnduringStory,
     /// `max speed`: "you have max speed" (CR 702.179e). Usually written
     /// as the ability word `label "Max speed"` instead.
     MaxSpeed,
@@ -3575,6 +3605,23 @@ pub enum Effect {
     Earthbend {
         count: Num,
         to: Recipient,
+    },
+    /// `cloak top` (CR 701.58a): "cloak the top card of your library".
+    CloakTop,
+    /// `airbend target nonland permanent` (CR 701.65a): "Airbend target
+    /// nonland permanent."
+    Airbend {
+        what: Vec<Recipient>,
+    },
+    /// `return all creature card from your graveyard to battlefield`:
+    /// "Return all creature cards from your graveyard to the battlefield."
+    GraveyardToBattlefield {
+        filter: Filter,
+    },
+    /// `recruit` (CR 701.70a): "Recruit." `you recruit` prints "you
+    /// recruit" (after a trigger naming another player).
+    Recruit {
+        you: bool,
     },
     /// `support 2` (CR 701.41a): a +1/+1 counter on each of up to N target
     /// creatures, other than the source in a triggered ability (support on

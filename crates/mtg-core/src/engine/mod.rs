@@ -607,6 +607,7 @@ impl GameState {
             targeted_by_controller: Vec::new(),
             pending_triggers: Vec::new(),
             delayed_triggers: Vec::new(),
+            paradigms: Vec::new(),
             trigger_sources: 0,
             lookback: None,
             rng,
@@ -1907,6 +1908,8 @@ impl GameState {
                     {
                         crate::state::AltCast::Free
                     }
+                    // CR 701.65a: for {2}.
+                    (Zone::Exile, crate::state::AltCast::Airbent) => crate::state::AltCast::Airbend,
                     _ => crate::state::AltCast::None,
                 };
                 // "Once each turn, you may cast ... from the top of your

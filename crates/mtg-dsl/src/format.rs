@@ -107,7 +107,12 @@ fn format_inner(card: &Card) -> String {
         let _ = writeln!(out, "  alternative cost {text}");
     }
     if let Some(c) = &card.flash_if {
-        let _ = writeln!(out, "  flash as long as {}", static_cond(c));
+        let how = if card.flash_if_may {
+            "if"
+        } else {
+            "as long as"
+        };
+        let _ = writeln!(out, "  flash {how} {}", static_cond(c));
     }
     if card.flash_cleanup {
         let _ = writeln!(out, "  flash with cleanup sacrifice");
@@ -662,6 +667,9 @@ impl Fmt {
             Effect::Earthbend { count, .. } => format!("earthbend {}", num(*count)),
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
+            Effect::Recruit { you: false } => "recruit".to_string(),
+            Effect::CloakTop => "cloak top".to_string(),
+            Effect::Recruit { you: true } => "you recruit".to_string(),
             Effect::Incubate(n) => format!("incubate {}", num(*n)),
             Effect::Discover(n) => format!("discover {n}"),
             Effect::MoveSourceCounters { .. }
@@ -1255,6 +1263,11 @@ impl Fmt {
             }
             Effect::Regenerate { to } => format!("regenerate {}", self.recipient(*to, t)),
             Effect::Exile { what } => format!("exile {}", self.recipients(what, t)),
+            Effect::Airbend { what } => format!("airbend {}", self.recipients(what, t)),
+            Effect::GraveyardToBattlefield { filter: f } => format!(
+                "return all {} card from your graveyard to battlefield",
+                filter(f)
+            ),
             Effect::ExileUntil { what } => {
                 format!("exile {} until this leaves", self.recipient(*what, t))
             }
@@ -2010,6 +2023,7 @@ impl Fmt {
                     TargetTense::Had => ("", "had"),
                     TargetTense::Is => ("", "is"),
                     TargetTense::ThatIs => ("that ", "is"),
+                    TargetTense::ThatWas => ("that ", "was"),
                 };
                 format!(
                     "if {that}target {} {verb} {}, {}{}",
@@ -2810,6 +2824,9 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.enchanted {
         words.push("enchanted".to_string());
+        if f.enchanted_permanent {
+            words.push("permanent".to_string());
+        }
     }
     match f.paired {
         Some(true) => words.push("paired named".to_string()),
@@ -2898,6 +2915,9 @@ fn filter_one(f: &Filter) -> String {
         && f.any_types.is_empty()
         && !f.enchanted
         && f.relation != Relation::This
+        // "nonland permanent card" reads as not an instant or sorcery
+        // either; a plain "nonland" stays "nonland" ("nonland card").
+        && f.not_types != [mtg_core::card::CardType::Land]
     {
         words.push("permanent".to_string());
     }
@@ -3382,6 +3402,10 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
             format!("{who} {their} first spell during each opponent's turn")
         }
         SpellOrdinal::OnOpponentsTurn => format!("{who} a spell during an opponent's turn"),
+        SpellOrdinal::FirstNoncreature => {
+            format!("{who} {their} first noncreature spell each turn")
+        }
+        SpellOrdinal::FromExile => format!("{who} a spell from exile"),
     }
 }
 
@@ -4393,6 +4417,8 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Monarch => "you are monarch".to_string(),
         StaticCond::CompletedDungeon => "completed dungeon".to_string(),
         StaticCond::CityBlessing => "city's blessing".to_string(),
+        StaticCond::EnduringStory => "enduring story".to_string(),
+        StaticCond::NoEnduringStory => "no enduring story".to_string(),
         StaticCond::MaxSpeed => "max speed".to_string(),
         StaticCond::TotalPower(n) => format!("total power {n} or more"),
         StaticCond::DifferentPowers(n) => format!("{n} different powers"),
@@ -4515,6 +4541,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
         Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
+        Ability::Pawprint { limit, modes } => {
+            let _ = writeln!(out, "{indent}pawprint {limit} {{");
+            for (w, m) in modes {
+                body(
+                    out,
+                    &format!("{indent}  "),
+                    &format!("mode {w}"),
+                    &m.effects,
+                    &m.targets,
+                    groups,
+                );
+            }
+            let _ = writeln!(out, "{indent}}}");
+        }
         Ability::Spree(modes) => {
             let _ = writeln!(out, "{indent}spree {{");
             for (c, m) in modes {
@@ -4672,6 +4712,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     head.push_str(" if this isn't prepared");
                 }
                 Some(mtg_core::card::Condition::Evolves) => head.push_str(" if evolves"),
+                Some(mtg_core::card::Condition::Increments) => head.push_str(" if increments"),
                 Some(mtg_core::card::Condition::Evoked) => head.push_str(" if evoked"),
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
                 Some(mtg_core::card::Condition::NoSpellsLastTurn) => {
@@ -4982,12 +5023,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Station => "station".to_string(),
                 crate::ast::Mechanic::Saddle(n) => format!("saddle {n}"),
                 crate::ast::Mechanic::Ascend => "ascend".to_string(),
+                crate::ast::Mechanic::Storied => "storied".to_string(),
                 crate::ast::Mechanic::StartYourEngines => "start your engines".to_string(),
                 crate::ast::Mechanic::BecomesDay => "becomes day as this enters".to_string(),
                 crate::ast::Mechanic::Daybound => "daybound".to_string(),
                 crate::ast::Mechanic::Nightbound => "nightbound".to_string(),
                 crate::ast::Mechanic::Fabricate(n) => format!("fabricate {n}"),
                 crate::ast::Mechanic::Evolve => "evolve".to_string(),
+                crate::ast::Mechanic::Increment => "increment".to_string(),
                 crate::ast::Mechanic::Renown(n) => format!("renown {n}"),
                 crate::ast::Mechanic::Unleash => "unleash".to_string(),
                 crate::ast::Mechanic::Afterlife(n) => format!("afterlife {n}"),

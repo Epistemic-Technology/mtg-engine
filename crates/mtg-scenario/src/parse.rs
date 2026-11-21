@@ -925,7 +925,7 @@ fn parse_assertion(line: &mut Line) -> Result<Assertion, ParseError> {
                 want,
             }
         }
-        "speed" | "tempted" | "ring_bearer" | "blessing" | "dungeon" | "completed" => {
+        "speed" | "tempted" | "ring_bearer" | "blessing" | "story" | "dungeon" | "completed" => {
             let p = line.player()?;
             let mut parts = Vec::new();
             while let Some(t) = line.next() {

@@ -1,0 +1,8 @@
+card "Song of Stupefaction" {
+  oracle_id 87300967-1a59-4dce-8876-f008ff3bfb0b
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature or Vehicle
+  triggered when this enters: you may mill 2 cards
+  label "Fathomless descent" static enchanted permanent: -1/-0 count where graveyard permanent card
+}

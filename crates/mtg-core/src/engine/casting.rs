@@ -265,6 +265,18 @@ impl GameState {
                     }
                     continue;
                 }
+                // CR 701.65a: an airbent card, for {2}, with its usual
+                // timing; a land can't be played this way.
+                if o.alt == AltCast::Airbent {
+                    let def = self.pool.get(o.def);
+                    let timing_ok =
+                        sorcery_timing || def.is_instant() || self.has_flash(p, def, *id);
+                    if timing_ok && !def.is_land() && self.exile_castable(p, *id, AltCast::Airbend)
+                    {
+                        options.push(Choice::Cast(*id));
+                    }
+                    continue;
+                }
                 // CR 702.170d: a plotted card, free, during its owner's
                 // main phase with the stack empty, on a later turn.
                 if o.alt == AltCast::Plotted {
@@ -3365,6 +3377,11 @@ impl GameState {
             (_, false) if o.alt == AltCast::Warp && def.warp.is_some() => {
                 def.warp.as_ref().expect("checked").requirements(x)
             }
+            // CR 701.65a: {2} rather than its mana cost (X is 0).
+            (_, false) if o.alt == AltCast::Airbend => ManaRequirement {
+                generic: 2,
+                ..ManaRequirement::default()
+            },
             (_, false) if o.alt == AltCast::Sneak && def.sneak.is_some() => {
                 def.sneak.as_ref().expect("checked").requirements(x)
             }
@@ -3593,15 +3610,19 @@ impl GameState {
         if !targets_ok || !self.some_additional_payable(p, def, card) {
             return false;
         }
-        let cost = match alt {
-            AltCast::Madness => def.madness.as_ref(),
-            AltCast::Foretell => def.foretell.as_ref(),
+        let mut req = match alt {
+            AltCast::Madness => def.madness.as_ref().map(|c| c.requirements(0)),
+            AltCast::Foretell => def.foretell.as_ref().map(|c| c.requirements(0)),
+            // CR 701.65a.
+            AltCast::Airbend => Some(ManaRequirement {
+                generic: 2,
+                ..ManaRequirement::default()
+            }),
             _ => return true,
         };
-        let Some(cost) = cost else {
+        let Some(mut req) = req.take() else {
             return false;
         };
-        let mut req = cost.requirements(0);
         adjust_generic(
             &mut req,
             self.cost_delta(p, def, card, &self.cost_changers()),
@@ -6523,6 +6544,8 @@ impl GameState {
                 self.move_object(spell, Zone::Hand, false);
             } else if obj.alt == AltCast::Hand && def.keywords.contains(Keyword::Rebound) {
                 self.rebound(spell);
+            } else if def.keywords.contains(Keyword::Paradigm) {
+                self.paradigm(spell);
             } else if !(def.keywords.contains(Keyword::Cipher)
                 && !obj.cast.copy()
                 && self.encode(spell, obj.controller))
@@ -6866,6 +6889,40 @@ impl GameState {
                 trigger_amount: 0,
             },
             this_turn: false,
+            forever: false,
+        });
+    }
+
+    /// CR 702.192a: a resolved paradigm spell is exiled; the first time a
+    /// spell its controller controls with its name resolves, a delayed
+    /// trigger copies it at the beginning of each of their precombat main
+    /// phases for the rest of the game.
+    fn paradigm(&mut self, spell: ObjId) {
+        let controller = self.objects[spell].controller;
+        let card = self.objects[spell].card;
+        let name = self.pool.get(card).name.clone();
+        let first = !self
+            .paradigms
+            .iter()
+            .any(|(p, c, _)| *p == controller && self.pool.get(*c).name == name);
+        let new = self.move_object(spell, Zone::Exile, true);
+        if !first {
+            return;
+        }
+        self.paradigms.push((controller, card, new));
+        let ability = self.pool.builtin(crate::card::Builtin::Paradigm);
+        self.delayed_triggers.push(crate::state::DelayedTrigger {
+            controller,
+            ability: crate::state::StackAbility {
+                ability,
+                source: new,
+                def: card,
+                trigger_obj: None,
+                trigger_player: None,
+                trigger_amount: 0,
+            },
+            this_turn: false,
+            forever: true,
         });
     }
 
@@ -9933,6 +9990,7 @@ impl GameState {
                             trigger_amount: 0,
                         },
                         this_turn: *this_turn,
+                        forever: false,
                     });
                     self.emit(Event::DelayedTriggerCreated {
                         source: ctx.source,
@@ -10514,6 +10572,28 @@ impl GameState {
                     }
                 }
             }
+            Effect::CastParadigmCopy => {
+                // CR 702.192a, 707.12: the copy is made in exile and may be
+                // cast free; not cast, it ceases to exist.
+                let Some(&(_, card, _)) = self.paradigms.iter().find(|(_, _, s)| *s == ctx.source)
+                else {
+                    return;
+                };
+                let p = ctx.controller;
+                let copy = self.new_object(card, p, Zone::Exile);
+                self.objects[copy].cast = self.objects[copy].cast.copied();
+                self.player_mut(p).exile.push(copy);
+                // The decision names the exiled card while it is there (the
+                // copy is new to this resolution).
+                let shown = if self.objects.contains_key(ctx.source) {
+                    ctx.source
+                } else {
+                    copy
+                };
+                if !self.offer_exile_cast_shown(copy, AltCast::Free, p, shown) {
+                    self.remove_from_game(copy);
+                }
+            }
             Effect::CastCipherCopy => {
                 // CR 707.12: the copy is made in exile and cast from there;
                 // not cast, it ceases to exist.
@@ -10779,6 +10859,134 @@ impl GameState {
                 ps.mana_pool.colored[crate::mana::Color::Red as usize] += n;
                 ps.combat_mana += n;
                 self.bump();
+            }
+            Effect::GraveyardToBattlefield { filter } => {
+                let p = ctx.controller;
+                let cards: Vec<ObjId> = self
+                    .player(p)
+                    .graveyard
+                    .iter()
+                    .copied()
+                    .filter(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.base_characteristics(o);
+                        filter.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                    })
+                    .collect();
+                for id in cards {
+                    let owner = self.objects[id].owner;
+                    // CR 303.4f: an Aura put onto the battlefield this way
+                    // is attached to an object its owner chooses that it
+                    // could enchant; with none, it stays in the graveyard.
+                    let host = match self.pool.get(self.objects[id].def).enchant() {
+                        Some(spec) => {
+                            let options: Vec<Choice> = self
+                                .battlefield
+                                .iter()
+                                .copied()
+                                .filter(|h| self.is_legal_attachment(spec, *h))
+                                .map(|h| Choice::Target(Target::Object(h)))
+                                .collect();
+                            if options.is_empty() {
+                                continue;
+                            }
+                            let k =
+                                self.choose_mid(owner, DecisionKind::ChooseCard, options.clone());
+                            match options[k] {
+                                Choice::Target(Target::Object(h)) => Some(h),
+                                _ => None,
+                            }
+                        }
+                        None => None,
+                    };
+                    let new = self.put_onto_battlefield(id, owner);
+                    if let Some(h) = host
+                        && self
+                            .objects
+                            .get(new)
+                            .is_some_and(|o| o.zone == Zone::Battlefield)
+                        && self.objects.contains_key(h)
+                    {
+                        self.objects[new].attached_to = Some(h);
+                        self.cbump();
+                    }
+                    ctx.created = Some(new);
+                }
+            }
+            Effect::CloakTop { of } => {
+                // CR 701.58a: face down as a 2/2 creature with ward {2}.
+                for t in self.recipients(ctx, *of) {
+                    let Target::Player(p) = t else { continue };
+                    let Some(&top) = self.player(p).library.last() else {
+                        continue;
+                    };
+                    self.objects[top].def = self.pool.face_down(true);
+                    let new = self.put_onto_battlefield(top, ctx.controller);
+                    ctx.created = Some(new);
+                }
+            }
+            Effect::Airbend { what } => {
+                // CR 701.65a: exile the permanents and/or spells; each card
+                // exiled this way may be cast by its owner for {2} rather
+                // than its mana cost for as long as it remains exiled. A
+                // token or a copy of a spell ceases to exist (CR 111.7,
+                // 707.10a).
+                for t in self.recipients(ctx, *what) {
+                    let Target::Object(id) = t else { continue };
+                    let Some(o) = self.objects.get(id) else {
+                        continue;
+                    };
+                    if !matches!(o.zone, Zone::Battlefield | Zone::Stack) {
+                        continue;
+                    }
+                    let card = o.kind == crate::state::ObjKind::Card
+                        && !(o.zone == Zone::Stack && o.cast.copy());
+                    let new = self.move_object(id, Zone::Exile, true);
+                    ctx.created = Some(new);
+                    if card
+                        && let Some(n) = self.objects.get_mut(new)
+                        && n.zone == Zone::Exile
+                    {
+                        n.alt = AltCast::Airbent;
+                        let owner = n.owner;
+                        self.player_mut(owner).adventures_in_exile += 1;
+                    }
+                }
+            }
+            Effect::Recruit { token } => {
+                // CR 701.70a: draw, then discard; a 1/1 white Human
+                // Soldier if the discarded card was a nonland card.
+                let effects = [
+                    Effect::DrawCards {
+                        count: crate::card::Num::N(1),
+                        who: crate::card::Recipient::You,
+                    },
+                    Effect::Discard {
+                        count: crate::card::Num::N(1),
+                        who: crate::card::Recipient::You,
+                    },
+                    Effect::IfThisWay {
+                        cond: crate::card::ThisWayCond {
+                            verb: crate::card::ThisWay::Discarded,
+                            filter: Some(Box::new(crate::card::ObjFilter {
+                                not_types: crate::card::TypeSet::of([crate::card::CardType::Land]),
+                                ..crate::card::ObjFilter::default()
+                            })),
+                            negated: false,
+                            by_you: true,
+                        },
+                        then: vec![Effect::CreateToken {
+                            token: *token,
+                            count: crate::card::Num::N(1),
+                            who: crate::card::Recipient::You,
+                            tapped: false,
+                            attached: None,
+                        }],
+                    },
+                ];
+                for e in &effects {
+                    self.apply_effect(ctx, e);
+                }
             }
             Effect::Earthbend { count, to } => {
                 // CR 701.66a: the land becomes a 0/0 creature with haste

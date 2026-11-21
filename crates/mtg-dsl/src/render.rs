@@ -994,6 +994,13 @@ struct Ctx<'a> {
     /// Rendering what winning a clash does ("If you win, that creature
     /// gets an additional +2/+2").
     in_won: bool,
+    /// Counts an earlier sentence of the ability already defined with
+    /// ", where X is ...": a later X is the same X ("Draw X cards, where X
+    /// is .... If ..., Balin deals X damage to each opponent.").
+    x_defined: Vec<crate::ast::CountExpr>,
+    /// Those the current sentence defines (several clauses of one
+    /// sentence share one ", where X is ..." at its end).
+    x_pending: Vec<crate::ast::CountExpr>,
 }
 
 impl<'a> Ctx<'a> {
@@ -1022,6 +1029,8 @@ impl<'a> Ctx<'a> {
             player_did: false,
             before_if_you_dont: false,
             in_unless: false,
+            x_defined: Vec::new(),
+            x_pending: Vec::new(),
         }
     }
 
@@ -1074,9 +1083,14 @@ impl<'a> Ctx<'a> {
                 }
                 Some(m) => count_words(*m, "one"),
             };
-            return match self.targets[i].base() {
-                Target::Spec(TargetSpec::Any) => format!("{count} targets"),
-                _ => format!("{count} target {}", self.plural_target_noun(i)),
+            if let Target::Spec(TargetSpec::Any) = self.targets[i].base() {
+                return format!("{count} targets");
+            }
+            // "any number of other target nonland permanents you control".
+            let noun = self.plural_target_noun(i);
+            return match noun.strip_prefix("other ") {
+                Some(rest) => format!("{count} other target {rest}"),
+                None => format!("{count} target {noun}"),
             };
         }
         let phrase = self.target_phrase_of(i);
@@ -2062,6 +2076,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         if is_equipment(card) {
             return "equipped creature".to_string();
         }
+        if f.enchanted_permanent {
+            return "enchanted permanent".to_string();
+        }
         return format!("enchanted {}", enchanted_subtype_noun(card));
     }
     if f.types.is_empty() && f.not_types.contains(&CardType::Planeswalker) {
@@ -2188,6 +2205,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         // `andor`: "two target artifacts and/or enchantments".
         if plural_form && f.and_or {
             noun.push(or_list(&names).replace(" or ", " and/or "));
+        } else if plural_form && f.and_list {
+            // `andlist`: "artifacts and creatures you control" (Thorin
+            // Oakenshield).
+            noun.push(or_list(&names).replace(" or ", " and "));
         } else {
             noun.push(or_list(&names));
         }
@@ -3181,6 +3202,23 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 cards_phrase(f, card, true)
             );
         }
+        // "for each creature that died under your control this turn".
+        CountExpr::DiedThisTurn(f) if f.who == Some(Who::You) => {
+            let g = Filter {
+                who: None,
+                ..f.clone()
+            };
+            (
+                format!(
+                    "{} that died under your control this turn",
+                    filter_phrase(&g, card, false)
+                ),
+                format!(
+                    "{} that died under your control this turn",
+                    filter_phrase(&g, card, true)
+                ),
+            )
+        }
         // "for each Zubera that died this turn".
         CountExpr::DiedThisTurn(f) => (
             format!("{} that died this turn", filter_phrase(f, card, false)),
@@ -3637,12 +3675,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     1,
                 );
             }
+            CountStyle::Where if ctx.x_defined.contains(&count.expr) => {}
             CountStyle::Where => {
                 let _ = write!(
                     c.tail,
                     ", where X is {}",
                     count_phrase_in(&count.expr, ctx, false)
                 );
+                ctx.x_pending.push(count.expr.clone());
             }
             // "Add an amount of {G} equal to this creature's power."
             CountStyle::Equal if matches!(e, Effect::AddManaTimes { .. }) => {
@@ -3997,6 +4037,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
+        Effect::Recruit { you: false } => Clause::imperative("recruit".to_string()),
+        Effect::CloakTop => Clause::imperative("cloak the top card of your library".to_string()),
+        Effect::GraveyardToBattlefield { filter } => Clause::imperative(format!(
+            "return all {} from your graveyard to the battlefield",
+            cards_phrase(filter, ctx.card, true)
+        )),
+        Effect::Airbend { what } => {
+            let o = if what.len() == 1 {
+                ctx.obj_all(what[0])
+            } else {
+                ctx.obj_list(what, true)
+            };
+            Clause::imperative(format!("airbend {o}"))
+        }
+        Effect::Recruit { you: true } => {
+            Clause::with_subject(Recipient::You, "you".to_string(), "recruit".to_string())
+        }
         Effect::Incubate(n) => Clause::imperative(format!("incubate {}", digits(*n))),
         Effect::Discover(n) => Clause::imperative(format!("discover {n}")),
         Effect::Soulbond { .. } => Clause::imperative("pair them".to_string()),
@@ -6862,7 +6919,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::IfTarget(n, f, inner, check) => {
             use crate::ast::TargetTense;
             let noun = ctx.target_noun[*n].clone();
-            if !matches!(check.tense, TargetTense::Was | TargetTense::Had) && !check.after {
+            if !matches!(
+                check.tense,
+                TargetTense::Was | TargetTense::Had | TargetTense::ThatWas
+            ) && !check.after
+            {
                 ctx.target_mentioned[*n] = true;
                 // "If that creature is an enchantment, Starfall deals 3
                 // damage ...": a spell names itself again.
@@ -6965,6 +7026,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (TargetTense::Is, _) if let Some((cmp, n)) = mana_value_only => {
                     format!("it has mana value {n}{}", cmp_words(cmp))
                 }
+                // "If that spell's mana value was 2 or less" (Sound the
+                // Trumpets).
+                (TargetTense::ThatWas, _) if let Some((cmp, n)) = mana_value_only => {
+                    format!("that {noun}'s mana value was {n}{}", cmp_words(cmp))
+                }
                 (TargetTense::Had, _) => format!("that {noun} had {pred}"),
                 (TargetTense::Is, _) if let Some((cmp, n)) = power_only => {
                     format!("its power is {n}{}", cmp_words(cmp))
@@ -6980,7 +7046,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (TargetTense::Was, None) if graveyard_card => {
                     format!("it was {}", card_filter_a(f, ctx.card))
                 }
-                (TargetTense::Was, _) => format!("that {noun} was {pred}"),
+                (TargetTense::Was | TargetTense::ThatWas, _) => format!("that {noun} was {pred}"),
                 // "If an opponent controls that creature".
                 (TargetTense::ThatIs, _)
                     if *f
@@ -7563,6 +7629,8 @@ fn push_suffix(out: &mut String, suffix: &str) {
 /// One sentence (no final period, lowercase start).
 #[allow(clippy::too_many_lines)]
 fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
+    let defined = std::mem::take(&mut ctx.x_pending);
+    ctx.x_defined.extend(defined);
     ctx.groups_mentioned
         .retain(|r| !matches!(r, Recipient::Group(_)));
     let eot = std::mem::replace(&mut ctx.eot_first, s.eot_first);
@@ -8461,6 +8529,10 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::NotPrepared => format!("if {} isn't prepared", ctx.source()),
         Condition::Evolves => format!(
             "if that creature has greater power or toughness than {}",
+            this_ref(ctx.card)
+        ),
+        Condition::Increments => format!(
+            "if the amount of mana you spent is greater than {}'s power or toughness",
             this_ref(ctx.card)
         ),
     }
@@ -10446,6 +10518,8 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Monarch => "you're the monarch".to_string(),
         StaticCond::CompletedDungeon => "you've completed a dungeon".to_string(),
         StaticCond::CityBlessing => "you have the city's blessing".to_string(),
+        StaticCond::EnduringStory => "you have an enduring story".to_string(),
+        StaticCond::NoEnduringStory => "you don't have an enduring story".to_string(),
         StaticCond::MaxSpeed => "you have max speed".to_string(),
         StaticCond::TotalPower(n) => {
             format!("creatures you control have total power {n} or greater")
@@ -10740,6 +10814,25 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             sentences(effects, &mut ctx)
         }
         // CR 702.172b: "+" for the bullets.
+        // CR 700.2i: "Choose up to five {P} worth of modes. You may choose
+        // the same mode more than once.\n{P} — ...".
+        Ability::Pawprint { limit, modes } => {
+            let mut out = format!(
+                "Choose up to {} {{P}} worth of modes. You may choose the same mode more than once.",
+                count_words(Num::N(u32::from(*limit)), "one")
+            );
+            for (w, m) in modes {
+                let mut ctx = Ctx::new(card, lookup, &m.targets);
+                ctx.current = Some(a);
+                let _ = write!(
+                    out,
+                    "\n{} — {}",
+                    "{P}".repeat(usize::from(*w)),
+                    sentences(&m.effects, &mut ctx)
+                );
+            }
+            out
+        }
         Ability::Spree(modes) => {
             let mut out = "Spree".to_string();
             for (c, m) in modes {
@@ -11015,6 +11108,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                                 cond = format!("it {rest}");
                             }
                         }
+                    }
+                    // "Bombur doesn't untap during your untap step unless
+                    // you have an enduring story."
+                    if *c == StaticCond::NoEnduringStory {
+                        return format!(
+                            "{} unless you have an enduring story.",
+                            body.strip_suffix('.').unwrap_or(&body)
+                        );
                     }
                     format!("{} if {cond}.", body.strip_suffix('.').unwrap_or(&body))
                 }
@@ -11317,6 +11418,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Station => "Station".to_string(),
             crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
             crate::ast::Mechanic::Ascend => "Ascend".to_string(),
+            crate::ast::Mechanic::Storied => "Storied".to_string(),
             crate::ast::Mechanic::StartYourEngines => "Start your engines!".to_string(),
             crate::ast::Mechanic::BecomesDay => format!(
                 "If it's neither day nor night, it becomes day as {} enters.",
@@ -11326,6 +11428,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Nightbound => "Nightbound".to_string(),
             crate::ast::Mechanic::Fabricate(n) => format!("Fabricate {n}"),
             crate::ast::Mechanic::Evolve => "Evolve".to_string(),
+            crate::ast::Mechanic::Increment => "Increment".to_string(),
             crate::ast::Mechanic::Renown(n) => format!("Renown {n}"),
             crate::ast::Mechanic::Unleash => "Unleash".to_string(),
             crate::ast::Mechanic::Afterlife(n) => format!("Afterlife {n}"),
@@ -11689,10 +11792,17 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     }
     // Oracle prints kicker before keywords ("Kicker {2}{G}\nReach").
     if let Some(c) = &card.flash_if {
-        lines.push(format!(
-            "This spell has flash as long as {}.",
-            static_cond_text(c, card)
-        ));
+        lines.push(if card.flash_if_may {
+            format!(
+                "You may cast this spell as though it had flash if {}.",
+                static_cond_text(c, card)
+            )
+        } else {
+            format!(
+                "This spell has flash as long as {}.",
+                static_cond_text(c, card)
+            )
+        });
     }
     if card.flash_cleanup {
         lines.push(FLASH_CLEANUP.to_string());
@@ -11738,6 +11848,7 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         if alone_pair && *k == Keyword::CantBlockAlone
             || *k == Keyword::Rebound
             || *k == Keyword::Cipher
+            || *k == Keyword::Paradigm
         {
             continue;
         }
@@ -11808,6 +11919,10 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     // And cipher (CR 702.99).
     if card.keywords.contains(&Keyword::Cipher) {
         lines.push("Cipher".to_string());
+    }
+    // And paradigm (CR 702.192).
+    if card.keywords.contains(&Keyword::Paradigm) {
+        lines.push("Paradigm".to_string());
     }
     lines.join("\n")
 }

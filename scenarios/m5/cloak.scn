@@ -1,0 +1,65 @@
+# Cloak (CR 701.58): the card is put onto the battlefield face down as a
+# 2/2 creature with ward {2}; its controller may turn it face up any time
+# they have priority for its mana cost if it's a creature card.
+
+scenario "cloak: Cryptic Coat cloaks the top card and equips it" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Cryptic Coat"
+  library A: "Hill Giant", "Island"
+  turn 1 A: cast "Cryptic Coat"
+  turn 3 A: attack "face-down creature"
+  illegal turn 3 B: block "face-down creature" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert power "face-down creature" 3
+  assert toughness "face-down creature" 2
+  assert attached "Cryptic Coat" to "face-down creature"
+  assert unknown B "Hill Giant"
+  assert life B 17
+}
+
+scenario "cloak: a cloaked creature card turns face up for its mana cost" {
+  battlefield A: 3 "Island", 4 "Mountain"
+  hand A: "Cryptic Coat"
+  library A: "Hill Giant", "Island"
+  turn 1 A: cast "Cryptic Coat"
+  turn 1 postcombat_main A: unmorph "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert power "Hill Giant" 4
+}
+
+scenario "cloak: a cloaked noncreature card can't be turned face up" {
+  battlefield A: 3 "Island", 4 "Mountain"
+  hand A: "Cryptic Coat"
+  library A: "Lightning Bolt", "Island"
+  turn 1 A: cast "Cryptic Coat"
+  illegal turn 1 postcombat_main A: unmorph "Lightning Bolt"
+  run_to turn 1 end
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "cloak: ward {2} counters an opponent's spell unless they pay" {
+  battlefield A: 3 "Island"
+  battlefield B: "Mountain"
+  hand A: "Cryptic Coat"
+  hand B: "Shock"
+  library A: "Hill Giant", "Island"
+  turn 1 A: cast "Cryptic Coat"
+  turn 1 postcombat_main B: cast "Shock" targeting "face-down creature"
+  run_to turn 1 end
+  assert battlefield A contains "face-down creature"
+  assert graveyard B contains "Shock"
+}
+
+scenario "cloak: Cryptic Coat returns to its owner's hand" {
+  battlefield A: 5 "Island"
+  hand A: "Cryptic Coat"
+  library A: "Hill Giant", "Island"
+  turn 1 A: cast "Cryptic Coat"
+  turn 1 postcombat_main A: activate "Cryptic Coat"
+  run_to turn 1 end
+  assert hand A contains "Cryptic Coat"
+  assert battlefield A contains "face-down creature"
+  assert power "face-down creature" 2
+}

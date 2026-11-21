@@ -1,0 +1,10 @@
+card "Season of the Burrow" {
+  oracle_id 8e013e51-1684-4f58-8fe1-3588b6fbb5b5
+  cost {3}{W}{W}
+  type Sorcery
+  pawprint 5 {
+    mode 1: create 1 "1/1 white Rabbit creature"
+    mode 2: exile target nonland permanent; its controller draws 1 card
+    mode 3: return target permanent card with mana value 3 or less from your graveyard to battlefield with 1 indestructible counter
+  }
+}
