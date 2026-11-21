@@ -383,6 +383,25 @@ impl GameState {
                                 }
                                 continue;
                             }
+                            // "{2}, Sacrifice an artifact or creature:
+                            // Return this card from your graveyard ...":
+                            // one option per permanent that could be
+                            // sacrificed, none without enough of them.
+                            if let Some(SacCost::Filter(f)) = &ab.cost.sacrifice {
+                                let c = self.sacrifice_candidates(p, f, *id);
+                                if c.len() < ab.cost.chosen_count() {
+                                    continue;
+                                }
+                                for s in c {
+                                    options.push(Choice::Activate {
+                                        source: *id,
+                                        ability: *a,
+                                        sacrifice: Some(s),
+                                        discard: None,
+                                    });
+                                }
+                                continue;
+                            }
                             options.push(Choice::Activate {
                                 source: *id,
                                 ability: *a,
