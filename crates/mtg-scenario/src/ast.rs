@@ -139,6 +139,9 @@ pub enum Action {
         /// `sneaked`: cast for the sneak cost (CR 702.190a), returning the
         /// unblocked attacker named by `sacrificing`.
         sneaked: bool,
+        /// `webslung`: cast for the web-slinging cost (CR 702.188a),
+        /// returning the tapped creature named by `sacrificing`.
+        webslung: bool,
         /// `alternative`: cast for the alternative cost the card's text
         /// offers (CR 118.9, "rather than pay this spell's mana cost").
         alternative: bool,

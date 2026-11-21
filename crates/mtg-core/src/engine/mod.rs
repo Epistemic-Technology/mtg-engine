@@ -1027,6 +1027,24 @@ impl GameState {
                                 });
                             }
                         }
+                        // CR 702.188a: the tapped creature web-slinging
+                        // returns.
+                        if sacrifice.is_none()
+                            && self.objects[spell].alt == crate::state::AltCast::WebSlinging
+                        {
+                            let options: Vec<Choice> = self
+                                .web_slinging_returns(caster)
+                                .into_iter()
+                                .map(Choice::Sacrifice)
+                                .collect();
+                            if !options.is_empty() {
+                                return StepResult::Decision(Decision {
+                                    player: caster,
+                                    kind: DecisionKind::ChooseSacrifice { spell },
+                                    options,
+                                });
+                            }
+                        }
                         let add = match &d.alt_cost {
                             Some(alt)
                                 if self.objects[spell].alt == crate::state::AltCast::AltCost =>
@@ -1658,6 +1676,9 @@ impl GameState {
             }
             (Flow::Priority, Choice::CastSneak(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Sneak);
+            }
+            (Flow::Priority, Choice::CastWebSlinging(card)) => {
+                self.begin_cast(player, card, crate::state::AltCast::WebSlinging);
             }
             // CR 702.180a: from the graveyard, exiled as it leaves the
             // stack (as with flashback); the creature to tap is chosen now

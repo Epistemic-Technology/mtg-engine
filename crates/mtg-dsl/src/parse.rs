@@ -1604,6 +1604,15 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::LivingWeapon))
             }
+            "web"
+                if self.at_words(&["web", "slinging"])
+                    && matches!(self.peek_at(2), Some(Tok::Sym(_))) =>
+            {
+                self.pos += 2;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::WebSlinging(c)))
+            }
             "job" if self.at_words(&["job", "select"]) => {
                 self.pos += 2;
                 self.end_stmt()?;
@@ -3025,6 +3034,16 @@ impl P {
         }
         if self.eat_words(&["not", "kicked"]) {
             return Ok(StaticCond::NotKicked);
+        }
+        for (i, w) in ["web", "he", "she", "they"].iter().enumerate() {
+            let words: &[&str] = if i == 0 {
+                &["web", "slung"]
+            } else {
+                &[w, "web", "slung"]
+            };
+            if self.eat_words(words) {
+                return Ok(StaticCond::WebSlung(u8::try_from(i).unwrap_or(0)));
+            }
         }
         for (i, w) in ["sneak", "his", "her"].iter().enumerate() {
             let words: &[&str] = if i == 0 {

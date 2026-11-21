@@ -2332,6 +2332,11 @@ pub enum StaticCondition {
     /// the permanent). The number is wording only: the pronoun for a
     /// permanent (0 "its", 1 "his", 2 "her").
     SneakPaid(u8),
+    /// "If it was cast using web-slinging" (CR 702.188): the source was
+    /// cast for its web-slinging cost (kept by the permanent). The number
+    /// is wording only: 0 "it was", 1 "he was", 2 "she was", 3 "they
+    /// were".
+    WebSlung(u8),
 }
 
 /// What a "mana spent to cast" condition or count looks at (CR 601.2h).
@@ -6008,6 +6013,11 @@ pub struct CardDef {
     /// tapped and attacking what that creature attacked.
     #[serde(default)]
     pub sneak: Option<Box<ManaCost>>,
+    /// Web-slinging (CR 702.188): cast for this cost, returning a tapped
+    /// creature its caster controls to its owner's hand, instead of its
+    /// mana cost.
+    #[serde(default)]
+    pub web_slinging: Option<Box<ManaCost>>,
     /// Harmonize (CR 702.180): cast from the graveyard for this cost,
     /// tapping up to one untapped creature its caster controls to reduce
     /// the cost by that creature's power in generic mana; exiled as it
@@ -8087,6 +8097,7 @@ impl Builder {
             dash: None,
             warp: None,
             sneak: None,
+            web_slinging: None,
             harmonize: None,
             bestow: None,
             bestow_face: None,
@@ -8322,6 +8333,13 @@ impl Builder {
     #[must_use]
     pub fn sneak(mut self, cost: ManaCost) -> Self {
         self.0.sneak = Some(Box::new(cost));
+        self
+    }
+
+    /// Web-slinging (CR 702.188).
+    #[must_use]
+    pub fn web_slinging(mut self, cost: ManaCost) -> Self {
+        self.0.web_slinging = Some(Box::new(cost));
         self
     }
 

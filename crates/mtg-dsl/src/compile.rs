@@ -480,6 +480,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Harmonize(cost)) => {
                     b = b.harmonize(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::WebSlinging(cost)) => {
+                    b = b.web_slinging(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Suspend(n, cost)) => {
                     b = b.suspend(*n, cost.clone());
                 }
@@ -895,6 +898,7 @@ impl Compiler<'_> {
                             | Mechanic::Plot(_)
                             | Mechanic::Sneak(_)
                             | Mechanic::Harmonize(_)
+                            | Mechanic::WebSlinging(_)
                             | Mechanic::Suspend(..)
                             | Mechanic::Entwine(_)
                             | Mechanic::Escape(..)
@@ -1399,6 +1403,7 @@ impl Compiler<'_> {
             StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
             StaticCond::NotKicked => StaticCondition::NotKicked,
             StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
+            StaticCond::WebSlung(p) => StaticCondition::WebSlung(*p),
             StaticCond::EvidenceCollected | StaticCond::AdditionalCostPaid => {
                 StaticCondition::OptionalCostPaid
             }
@@ -3750,6 +3755,7 @@ impl Compiler<'_> {
                 | Mechanic::Plot(_)
                 | Mechanic::Sneak(_)
                 | Mechanic::Harmonize(_)
+                | Mechanic::WebSlinging(_)
                 | Mechanic::Suspend(..)
                 | Mechanic::Entwine(_)
                 | Mechanic::Escape(..)
@@ -4883,6 +4889,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Gift(_)
         | Mechanic::Sneak(_)
         | Mechanic::Harmonize(_)
+        | Mechanic::WebSlinging(_)
         | Mechanic::Suspend(..)
         | Mechanic::Entwine(_)
         | Mechanic::Escape(..)

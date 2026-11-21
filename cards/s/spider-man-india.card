@@ -1,0 +1,8 @@
+card "Spider-Man India" {
+  oracle_id 8933297c-62f1-4df9-91b8-2d3481db77e5
+  cost {3}{G}{W}
+  type Legendary Creature — Spider Human Hero
+  pt 4/4
+  web slinging {1}{G}{W}
+  label "Pavitr's Sevā" triggered whenever you cast creature spell: put 1 +1/+1 counter on target creature you control; target 1 gains flying until end of turn
+}

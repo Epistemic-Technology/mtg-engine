@@ -245,6 +245,9 @@ pub enum Choice {
     /// Cast a card from hand for its sneak cost (CR 702.190a); the
     /// unblocked attacker to return is chosen with the costs.
     CastSneak(ObjId),
+    /// Cast a card for its web-slinging cost (CR 702.188a); the tapped
+    /// creature to return is chosen with the costs.
+    CastWebSlinging(ObjId),
     /// Cast a card from the graveyard for its harmonize cost (CR
     /// 702.180a), tapping the creature `tap` (if any) to reduce the cost
     /// by its power (chosen as the cost is announced, CR 702.180b).
@@ -379,6 +382,9 @@ impl Choice {
             Choice::CastDash(id) => format!("cast {} for its dash cost", name(id)),
             Choice::CastWarp(id) => format!("cast {} for its warp cost", name(id)),
             Choice::CastSneak(id) => format!("cast {} for its sneak cost", name(id)),
+            Choice::CastWebSlinging(id) => {
+                format!("cast {} for its web-slinging cost", name(id))
+            }
             Choice::CastHarmonize { card, tap: None } => {
                 format!("cast {} for its harmonize cost", name(card))
             }

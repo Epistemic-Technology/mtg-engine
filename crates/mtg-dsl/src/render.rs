@@ -9459,6 +9459,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("{what} was beheld")
         }
         StaticCond::NoManaSpent => "it wasn't cast or no mana was spent to cast it".to_string(),
+        StaticCond::WebSlung(p) => format!(
+            "{} cast using web-slinging",
+            match p {
+                1 => "he was",
+                2 => "she was",
+                3 => "they were",
+                _ => "it was",
+            }
+        ),
         StaticCond::SneakPaid(_) if is_spell(card) => {
             "this spell's sneak cost was paid".to_string()
         }
@@ -10609,6 +10618,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Gift(k) => format!("Gift {}", k.oracle()),
             crate::ast::Mechanic::Sneak(c) => format!("Sneak {c}"),
             crate::ast::Mechanic::Harmonize(c) => format!("Harmonize {c}"),
+            crate::ast::Mechanic::WebSlinging(c) => format!("Web-slinging {c}"),
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
             crate::ast::Mechanic::Modular(n) => format!("Modular {n}"),

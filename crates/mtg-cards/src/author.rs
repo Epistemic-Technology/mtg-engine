@@ -185,6 +185,7 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Plot",
     "Sneak",
     "Harmonize",
+    "Web-slinging",
     "Endure",
     "Spree",
     "Gift",
@@ -3844,6 +3845,14 @@ impl Builder<'_> {
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.188: "Web-slinging {W}".
+        if let Some(c) = Regex::new(r"^Web-slinging ((?:\{[0-9WUBRGCX/]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("web slinging {}", cap(&c, 1)));
             return Ok(());
         }
         // CR 702.174: "Gift a card", "Gift a tapped Fish".

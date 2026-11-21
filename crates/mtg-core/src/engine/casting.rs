@@ -184,6 +184,13 @@ impl GameState {
             if def.sneak.is_some() && self.sneak_castable(p, def, *id, &sources) {
                 options.push(Choice::CastSneak(*id));
             }
+            // CR 702.188a: cast for the web-slinging cost, a tapped
+            // creature to return.
+            if def.web_slinging.is_some()
+                && self.web_slinging_castable(p, def, *id, sorcery_timing, &sources)
+            {
+                options.push(Choice::CastWebSlinging(*id));
+            }
             // CR 702.103a: cast for the bestow cost, as an Aura spell.
             if let Some(face) = def.bestow_face
                 && self.bestow_castable(p, def, face, *id, sorcery_timing, &sources, &changers)
@@ -509,6 +516,7 @@ impl GameState {
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
             | Choice::CastSneak(id)
+            | Choice::CastWebSlinging(id)
             | Choice::CastHarmonize { card: id, .. }
             | Choice::CastAlt(id) => !(creatures && creature(id)),
             Choice::CastFaceDown(_) => !creatures,
@@ -2507,6 +2515,53 @@ impl GameState {
         }
     }
 
+    /// CR 702.188a: whether `p` may cast `id` for its web-slinging cost
+    /// now: whenever they could cast it, with a tapped creature to return.
+    #[cold]
+    #[inline(never)]
+    fn web_slinging_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+    ) -> bool {
+        let Some(cost) = &def.web_slinging else {
+            return false;
+        };
+        if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
+            || def.additional.sacrifice.is_some()
+            || def.additional_or.is_some()
+            || self.web_slinging_returns(p).is_empty()
+        {
+            return false;
+        }
+        if !self.payable_for(
+            p,
+            sources,
+            &cost.requirements(0),
+            Spend::Spell(&self.printed(self.objects[id].def)),
+        ) || !self.additional_payable(p, &def.additional, id)
+        {
+            return false;
+        }
+        match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(id))),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+        }
+    }
+
+    /// CR 702.188a: the tapped creatures `p` controls, any of which a
+    /// web-slinging cost may return to its owner's hand.
+    pub(super) fn web_slinging_returns(&self, p: PlayerId) -> Vec<ObjId> {
+        self.creatures_of(p)
+            .filter(|c| self.objects[*c].tapped)
+            .collect()
+    }
+
     /// CR 702.190a: whether `p` may cast `id` for its sneak cost now: any
     /// time they could cast an instant during their declare blockers step,
     /// with an unblocked attacker to return.
@@ -3123,6 +3178,9 @@ impl GameState {
             }
             (_, false) if o.alt == AltCast::Sneak && def.sneak.is_some() => {
                 def.sneak.as_ref().expect("checked").requirements(x)
+            }
+            (_, false) if o.alt == AltCast::WebSlinging && def.web_slinging.is_some() => {
+                def.web_slinging.as_ref().expect("checked").requirements(x)
             }
             // CR 702.180a: cast from the graveyard (as with flashback, the
             // spell is exiled as it leaves the stack).
@@ -5719,7 +5777,15 @@ impl GameState {
                 self.move_object(c, Zone::Hand, false);
             }
         }
-        let add_sacrifice = if alt.is_some() || sneak {
+        // CR 702.188a: web-slinging returns the chosen tapped creature.
+        let web = self.objects[spell].alt == AltCast::WebSlinging;
+        if web
+            && let Some(c) = sacrifice
+            && self.objects.contains_key(c)
+        {
+            self.move_object(c, Zone::Hand, false);
+        }
+        let add_sacrifice = if alt.is_some() || sneak || web {
             None
         } else {
             sacrifice

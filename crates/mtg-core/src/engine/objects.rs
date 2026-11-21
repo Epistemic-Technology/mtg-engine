@@ -375,7 +375,11 @@ impl GameState {
                 && to == Zone::Battlefield
                 && matches!(
                     old.alt,
-                    AltCast::Suspend | AltCast::Escape | AltCast::Dash | AltCast::Sneak
+                    AltCast::Suspend
+                        | AltCast::Escape
+                        | AltCast::Dash
+                        | AltCast::Sneak
+                        | AltCast::WebSlinging
                 ) {
                 old.alt
             } else {

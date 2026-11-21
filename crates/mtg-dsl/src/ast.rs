@@ -1290,6 +1290,9 @@ pub enum Mechanic {
     /// cost, tapping up to one untapped creature to reduce it by that
     /// creature's power; exiled as it leaves the stack.
     Harmonize(ManaCost),
+    /// CR 702.188: `web slinging {W}`: cast for this cost, returning a
+    /// tapped creature you control to its owner's hand.
+    WebSlinging(ManaCost),
     /// CR 702.174: `gift card`, `gift food`, `gift tapped fish`, `gift
     /// treasure`: "Gift a card" and kin.
     Gift(GiftKind),
@@ -1897,6 +1900,10 @@ pub enum StaticCond {
     /// sneak cost was paid" (an instant or sorcery), "its (his, her) sneak
     /// cost was paid" (CR 702.190). The pronoun: 0 its, 1 his, 2 her.
     SneakPaid(u8),
+    /// `web slung`, `he web slung`, `she web slung`, `they web slung`:
+    /// "it was (he was, she was, they were) cast using web-slinging" (CR
+    /// 702.188). The pronoun: 0 it, 1 he, 2 she, 3 they.
+    WebSlung(u8),
 }
 
 /// An activation restriction, in the order written and printed ("Activate

@@ -312,6 +312,9 @@ pub enum AltCast {
     /// Cast for its sneak cost (CR 702.190a); kept by the permanent, which
     /// enters tapped and attacking.
     Sneak,
+    /// Cast for its web-slinging cost (CR 702.188a); kept by the
+    /// permanent ("if it was cast using web-slinging").
+    WebSlinging,
     /// Cast from the graveyard for its harmonize cost (CR 702.180a); the
     /// spell is exiled as it leaves the stack (`CastInfo::flashback`).
     Harmonize,
@@ -2938,6 +2941,13 @@ impl GameState {
             // Judged by `condition_for`, which knows the triggering spell.
             C::ManaSpent { that: true, .. } => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
+            C::WebSlung(_) => match self.objects.get(source) {
+                Some(o) => o.alt == AltCast::WebSlinging,
+                None => self
+                    .lki
+                    .get(&source)
+                    .is_some_and(|l| l.object.alt == AltCast::WebSlinging),
+            },
             C::SneakPaid(_) => match self.objects.get(source) {
                 Some(o) => o.alt == AltCast::Sneak,
                 None => self

@@ -1114,6 +1114,7 @@ impl Runner {
                     dashed,
                     warped,
                     sneaked,
+                    webslung,
                     alternative,
                     bestowed,
                     overloaded,
@@ -1133,6 +1134,8 @@ impl Runner {
                         Choice::CastWarp(self.in_hand(a.line, d.player, name)?)
                     } else if *sneaked {
                         Choice::CastSneak(self.in_hand(a.line, d.player, name)?)
+                    } else if *webslung {
+                        Choice::CastWebSlinging(self.in_hand(a.line, d.player, name)?)
                     } else if *bestowed {
                         Choice::CastBestow(self.in_hand(a.line, d.player, name)?)
                     } else if *overloaded {
@@ -1186,6 +1189,7 @@ impl Runner {
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
             | Choice::CastSneak(id)
+            | Choice::CastWebSlinging(id)
             | Choice::CastAlt(id)
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)
@@ -2563,6 +2567,9 @@ impl Runner {
             Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
             Choice::CastWarp(id) => format!("cast {} warped", self.describe_ids(&[*id])),
             Choice::CastSneak(id) => format!("cast {} sneaked", self.describe_ids(&[*id])),
+            Choice::CastWebSlinging(id) => {
+                format!("cast {} webslung", self.describe_ids(&[*id]))
+            }
             Choice::CastAlt(id) => format!("cast {} alternative", self.describe_ids(&[*id])),
             Choice::CastBestow(id) => format!("cast {} bestowed", self.describe_ids(&[*id])),
             Choice::CastOverload(id) => {
