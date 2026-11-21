@@ -410,6 +410,9 @@ impl Fmt {
             Affects::You => "you".to_string(),
             Affects::Players(Who::Opponents) => "each opponent".to_string(),
             Affects::Players(_) => "each player".to_string(),
+            // A damage source written with its article (`a Wizard you
+            // control`).
+            Affects::Objects(f) if f.article => format!("a {}", filter(f)),
             Affects::Objects(f) => filter(f),
             Affects::YouAnd(f) => format!("you and {}", filter(f)),
             Affects::Target(i) => self.recipient(Recipient::Target(*i), targets),

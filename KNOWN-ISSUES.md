@@ -21,8 +21,9 @@ wrong thing in some case.
 - **A declined "up to N" target skips every later target.** A spell
   keeps its targets in one flat list, so a declined slot has no place
   and target choice stops there. Explosive Entry with no artifact puts
-  no counter on the creature. Repro: `scenarios/m5/declined-up-to.scn`
-  (skipped). The "choose two" pairing code also assumes a variable-size
+  no counter on the creature; Way of the Warlord's granted −4 (renders,
+  not added) would deal nothing to the player. Repro:
+  `scenarios/m5/declined-up-to.scn` (skipped). The "choose two" pairing code also assumes a variable-size
   target group comes last.
 - **A choose-two pair whose modes share a target description is not
   offered with one legal object.** Brigid's Command: "+3/+3" and

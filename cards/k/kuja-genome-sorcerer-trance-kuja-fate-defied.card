@@ -1,0 +1,14 @@
+card "Kuja, Genome Sorcerer // Trance Kuja, Fate Defied" {
+  oracle_id 3998a60d-9521-4100-8d41-3e612972a3de
+  layout transform
+  cost {2}{B}{R}
+  type Legendary Creature — Human Mutant Wizard
+  pt 3/4
+  triggered at beginning of your end step: create 1 tapped "0/1 black Wizard creature that pings"; then if you control 4 Wizard, transform this
+  face "Trance Kuja, Fate Defied" {
+    type Legendary Creature — Avatar Wizard
+    pt 4/6
+    color black red
+    label "Flare Star" replace damage from a Wizard you control to any: double
+  }
+}

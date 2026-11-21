@@ -11377,7 +11377,14 @@ impl P {
     /// A damage source: what `affects` reads, as an object (no `from any`:
     /// leave `from` out).
     fn source(&mut self) -> R<Affects> {
-        let a = self.affects()?;
+        // `a Wizard you control`: "If a Wizard you control would deal
+        // damage ..., it deals double that damage instead." (Trance Kuja),
+        // not "a Wizard source you control".
+        let article = self.eat_word("a");
+        let mut a = self.affects()?;
+        if article && let Affects::Objects(f) = &mut a {
+            f.article = true;
+        }
         if matches!(
             a,
             Affects::Any | Affects::You | Affects::Players(_) | Affects::YouAnd(_)

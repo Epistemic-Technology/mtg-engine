@@ -9119,7 +9119,9 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 // permanent or player, it deals double that damage to that
                 // permanent or player instead." (Angrath's Marauders); "If
                 // a Giant source you control ..." (Calamity Bearer).
-                Some(Affects::Objects(f)) if f.types.is_empty() && f.any_types.is_empty() => {
+                Some(Affects::Objects(f))
+                    if f.types.is_empty() && f.any_types.is_empty() && !f.article =>
+                {
                     let p = filter_a(f, ctx.card);
                     let by = if p.contains("permanent") {
                         p.replacen("permanent", "source", 1)
@@ -9718,6 +9720,20 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
                 m => Some(m.clone()),
             })
             .collect();
+        if stripped.is_empty() && plural_form {
+            // "Activated abilities of artifacts, creatures, and
+            // planeswalkers can't be activated." (Clarion Conqueror, the
+            // Null Rod wording).
+            let clause = activation.unwrap_or_default();
+            let what = subject.strip_prefix("All ").unwrap_or(&subject);
+            let what = match what.rfind(", or ") {
+                Some(i) => format!("{}, and {}", &what[..i], &what[i + 5..]),
+                None => what.replacen(" or ", " and ", 1),
+            };
+            let rest = &clause[4..];
+            let rest = rest.strip_prefix("activated abilities ").unwrap_or(rest);
+            return format!("Activated abilities of {} {rest}.", lowercase_first(&what));
+        }
         if stripped.is_empty() {
             // "Enchanted creature's activated abilities can't be activated."
             let clause = activation.unwrap_or_default();
@@ -9757,6 +9773,10 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
                     // "Artifacts you control have '{2}, Sacrifice this
                     // artifact: ...'".
                     CardType::Artifact
+                } else if filter.types == [CardType::Planeswalker] {
+                    // "Planeswalkers you control have \"[−4]: This
+                    // planeswalker deals ...\"" (Way of the Warlord).
+                    CardType::Planeswalker
                 } else if filter.types.is_empty()
                     && !filter.enchanted
                     && !filter.subtypes.is_empty()

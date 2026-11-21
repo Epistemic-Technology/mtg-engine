@@ -497,3 +497,43 @@ scenario "Selfless Police Captain enters with a +1/+1 counter" {
   run_to turn 1 postcombat_main
   assert counters "Selfless Police Captain" +1/+1 1
 }
+
+scenario "Kuja: four Wizards transform it; Trance Kuja doubles a Wizard's damage" {
+  battlefield A: "Kuja, Genome Sorcerer // Trance Kuja, Fate Defied", 2 "Prodigal Sorcerer"
+  start turn 1 A precombat_main
+  run_to turn 2
+  assert battlefield A contains "Trance Kuja, Fate Defied"
+  assert battlefield A contains "Wizard"
+  assert tapped "Wizard"
+  turn 3 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 18
+}
+
+scenario "Kuja: three Wizards, no transform; damage not doubled" {
+  battlefield A: "Kuja, Genome Sorcerer // Trance Kuja, Fate Defied", "Prodigal Sorcerer"
+  start turn 1 A precombat_main
+  run_to turn 2
+  assert battlefield A contains "Kuja, Genome Sorcerer"
+  turn 3 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 19
+}
+
+scenario "Clarion Conqueror: creatures', artifacts', and planeswalkers' abilities can't be activated" {
+  battlefield A: "Clarion Conqueror", "Prodigal Sorcerer", "Aeolipile", "Sarkhan Vol", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  illegal turn 1 A: activate "Aeolipile" targeting player B
+  illegal turn 1 A: activate "Sarkhan Vol" ability 1
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Clarion Conqueror: without it the abilities work" {
+  battlefield A: "Prodigal Sorcerer"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
