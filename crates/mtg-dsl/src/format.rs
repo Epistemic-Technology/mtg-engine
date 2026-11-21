@@ -833,6 +833,7 @@ impl Fmt {
                 random,
                 then,
                 top,
+                onto,
                 reword,
             } => {
                 let mut s = format!("dig {}", num(*count));
@@ -868,6 +869,12 @@ impl Fmt {
                 }
                 if *top {
                     s.push_str(" top");
+                }
+                if let Some(tapped) = onto {
+                    s.push_str(" onto battlefield");
+                    if *tapped {
+                        s.push_str(" tapped");
+                    }
                 }
                 s.push_str(if *rest_graveyard {
                     " rest graveyard"

@@ -10245,6 +10245,7 @@ impl GameState {
                 also,
                 random,
                 top: back_on_top,
+                onto,
             } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx) as usize;
@@ -10298,7 +10299,21 @@ impl GameState {
                 }
                 // "back on top of your library": the taken cards stay where
                 // they are, on top once the rest have gone.
-                if !*back_on_top {
+                if let Some(tapped) = *onto {
+                    // CR 110.2a: under the controller's control.
+                    for id in &taken {
+                        let new = self.put_onto_battlefield_with(
+                            *id,
+                            p,
+                            super::replace::Enter {
+                                tapped,
+                                counters: None,
+                                ..super::replace::Enter::default()
+                            },
+                        );
+                        ctx.created = Some(new);
+                    }
+                } else if !*back_on_top {
                     for id in &taken {
                         self.move_object(*id, Zone::Hand, false);
                     }

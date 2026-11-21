@@ -3480,6 +3480,10 @@ pub enum Effect {
         /// `take card may top`: "You may put one of those cards back on
         /// top of your library" (it stays there; the rest go).
         top: bool,
+        /// `take creature card may onto battlefield [tapped]`: "You may
+        /// put a creature card from among them onto the battlefield
+        /// [tapped]"; `Some(tapped)`.
+        onto: Option<bool>,
         /// `reword`, wording only: "two of them" for "two of those cards",
         /// "one of those cards" for "one of them", and "Then put the rest"
         /// after a card revealed and put into your hand.

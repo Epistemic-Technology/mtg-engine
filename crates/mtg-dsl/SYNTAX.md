@@ -1530,7 +1530,17 @@ rest" after `revealing`; `dig 3 then take card rest graveyard`: "look at the top
 cards of your library, then put one of them into your hand and the rest
 into your graveyard"; `dig 3 take card may top rest graveyard`: "You may
 put one of those cards back on top of your library. Put the rest into
-your graveyard.", the card kept stays on top), `look at top 3` ("look at
+your graveyard.", the card kept stays on top; `onto battlefield
+[tapped]` after `may`: onto the battlefield under your control instead of
+into the hand, `dig 5 take creature card may onto battlefield rest bottom
+random` "You may put a creature card from among them onto the
+battlefield. Put the rest ...", `dig 6 take 2 creature with mana value 3
+or less card may onto battlefield rest bottom` "Put up to two creature
+cards with mana value 3 or less from among them onto the battlefield. Put
+the rest ..." (`reword`: "You may put up to two ..."), `dig 5 reveal take
+land card onto battlefield rest graveyard` "Put a land card from among
+them onto the battlefield and the rest into your graveyard"; `permanent
+with mana value 5 or less` is a permanent card there), `look at top 3` ("look at
 the top three cards of your library, then put them back in any order";
 `look at top count where hand` puts "where X is the number of cards in
 your hand" before ", then put them back"; `look at top 3 of target

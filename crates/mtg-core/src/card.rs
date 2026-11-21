@@ -3795,7 +3795,11 @@ pub enum Effect {
     /// the rest on the bottom in a random order. With `top` the card taken
     /// stays on top of the library instead of going to the hand ("You may
     /// put one of those cards back on top of your library. Put the rest
-    /// into your graveyard.").
+    /// into your graveyard."). With `onto` the cards taken go onto the
+    /// battlefield under the controller's control instead, tapped with
+    /// `Some(true)` ("You may put a creature card from among them onto the
+    /// battlefield", "Put up to two land cards ... onto the battlefield
+    /// tapped").
     Dig {
         count: Num,
         filter: Option<ObjFilter>,
@@ -3806,6 +3810,8 @@ pub enum Effect {
         also: Option<ObjFilter>,
         random: bool,
         top: bool,
+        #[serde(default)]
+        onto: Option<bool>,
     },
     /// "Exile the top two cards of your library. Until the end of your next
     /// turn, you may play those cards." (impulse draw): the controller may

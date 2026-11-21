@@ -1,0 +1,6 @@
+card "Deploy the Gatewatch" {
+  oracle_id e17ea7eb-362e-4c61-97cd-537f3921bced
+  cost {4}{W}{W}
+  type Sorcery
+  spell: dig 7 take 2 planeswalker card may onto battlefield rest bottom random
+}

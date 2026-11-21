@@ -4104,6 +4104,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             random,
             then,
             top,
+            onto,
             reword,
         } => {
             let n = count_words(*count, "one");
@@ -4137,12 +4138,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else if *take == 1 {
                     card_filter_a(f, ctx.card)
                 } else {
-                    let kind = card_filter_phrase(f, ctx.card).replace(" or ", " and/or ");
+                    // "creature and/or land cards", "creature cards with
+                    // mana value 3 or less".
+                    let plural = cards_phrase(f, ctx.card, true);
+                    let kind = match plural.split_once(" cards") {
+                        Some((a, b)) => format!("{} cards{b}", a.replace(" or ", " and/or ")),
+                        None => plural,
+                    };
                     if *take == crate::ast::ANY_NUMBER {
-                        format!("any number of {kind} cards")
+                        format!("any number of {kind}")
                     } else {
                         format!(
-                            "{}{} {kind} cards",
+                            "{}{} {kind}",
                             if *optional { "up to " } else { "" },
                             count_words(Num::N(*take), "one")
                         )
@@ -4159,6 +4166,34 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let may = if *optional { "You may put" } else { "Put" };
                 return Clause::imperative(format!(
                     "{head}. {may} {w} back on top of your library. Put {}",
+                    rest("the rest")
+                ));
+            }
+            // "You may put a creature card from among them onto the
+            // battlefield. Put the rest on the bottom of your library in a
+            // random order."; "Put up to two land cards from among them
+            // onto the battlefield tapped. ..."; `reword` prints "You may
+            // put up to two ...".
+            if let Some(tapped) = onto {
+                let w = what.unwrap_or_else(|| "one of them".to_string());
+                let field = if *tapped {
+                    "onto the battlefield tapped"
+                } else {
+                    "onto the battlefield"
+                };
+                let put = if *optional
+                    && (*take == 1 || *take == crate::ast::ANY_NUMBER || *reword)
+                {
+                    "You may put"
+                } else {
+                    "Put"
+                };
+                // "Put a land card from among them onto the battlefield
+                // and the rest into your graveyard." (one sentence when
+                // not optional).
+                let join = if *optional { ". Put" } else { " and" };
+                return Clause::imperative(format!(
+                    "{head}. {put} {w} from among them {field}{join} {}",
                     rest("the rest")
                 ));
             }

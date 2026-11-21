@@ -2789,6 +2789,7 @@ impl Compiler<'_> {
                 also,
                 random,
                 top,
+                onto,
                 ..
             } => out.push(CoreEffect::Dig {
                 count: *count,
@@ -2800,6 +2801,7 @@ impl Compiler<'_> {
                 also: also.as_ref().map(|f| self.filter(f)),
                 random: *random,
                 top: *top,
+                onto: *onto,
             }),
             Effect::Modes(modes) => {
                 let modes = self.modes(modes, false, false)?;

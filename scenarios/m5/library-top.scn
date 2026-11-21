@@ -1,0 +1,62 @@
+# M5: effects on the top cards of a library: digs that put cards onto the
+# battlefield, ...
+
+scenario "dig onto battlefield: Collected Company puts up to two creatures with mana value 3 or less" {
+  battlefield A: 4 "Forest"
+  hand A: "Collected Company"
+  library A: "Hill Giant", "Grizzly Bears", "Serra Angel", "Wind Drake", "Island", "Plains", "Forest"
+  turn 1 A: cast "Collected Company"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Wind Drake"
+  assert battlefield A lacks "Hill Giant"
+  assert battlefield A lacks "Serra Angel"
+  assert hand A count 0
+  assert library A count 5
+}
+
+scenario "dig onto battlefield: Cartographer's Survey puts lands onto the battlefield tapped" {
+  battlefield A: 4 "Forest"
+  hand A: "Cartographer's Survey"
+  library A: "Island", "Grizzly Bears", "Plains", "Swamp", "Shock", "Hill Giant", "Serra Angel", "Mountain"
+  turn 1 A: cast "Cartographer's Survey"
+  run_to turn 1 end
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Plains"
+  assert battlefield A lacks "Swamp"
+  assert tapped "Island"
+  assert tapped "Plains"
+  assert library A count 6
+}
+
+scenario "dig onto battlefield: Mayael takes only a creature with power 5 or greater" {
+  battlefield A: "Mayael the Anima", "Mountain", "Forest", 4 "Plains"
+  library A: "Serra Angel", "Hill Giant", "Craw Wurm", "Island", "Plains", "Swamp"
+  turn 1 A: activate "Mayael the Anima"
+  run_to turn 1 end
+  assert battlefield A contains "Craw Wurm"
+  assert battlefield A lacks "Serra Angel"
+  assert library A count 5
+}
+
+scenario "dig onto battlefield: nothing matching leaves everything on the bottom" {
+  battlefield A: 2 "Forest", 2 "Island"
+  hand A: "Ignis Scientia"
+  library A: "Grizzly Bears", "Shock", "Hill Giant", "Serra Angel", "Wind Drake", "Divination", "Plains"
+  turn 1 A: cast "Ignis Scientia"
+  run_to turn 1 end
+  assert battlefield A lacks "Plains"
+  assert library A count 7
+}
+
+scenario "dig onto battlefield: Cavalier of Thorns puts a land onto the battlefield and the rest into the graveyard" {
+  battlefield A: 5 "Forest"
+  hand A: "Cavalier of Thorns"
+  library A: "Grizzly Bears", "Island", "Shock", "Hill Giant", "Plains", "Swamp"
+  turn 1 A: cast "Cavalier of Thorns"
+  run_to turn 1 end
+  assert battlefield A contains "Island"
+  assert untapped "Island"
+  assert graveyard A count 4
+  assert library A count 1
+}

@@ -1,0 +1,11 @@
+card "Silverback Elder" {
+  oracle_id b1a0ae56-77aa-43ad-9aa8-dc1ab779e9d9
+  cost {2}{G}{G}{G}
+  type Creature — Ape Shaman
+  pt 5/7
+  triggered whenever you cast creature spell: choose one {
+  mode: destroy target artifact or enchantment
+  mode: dig 5 take land card may onto battlefield tapped rest bottom random
+  mode: you gain 4 life
+  }
+}

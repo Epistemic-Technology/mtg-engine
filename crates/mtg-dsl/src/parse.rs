@@ -54,6 +54,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         votes: Vec::new(),
         returned: None,
         revealed: false,
+        card_filter: false,
         kicked_targets: None,
         kicked_instead: None,
     };
@@ -559,6 +560,10 @@ struct P {
     /// card`, `reveal until`): `it` / `that card` is that card in `if it
     /// is`, `put it ...`.
     revealed: bool,
+    /// Parsing the kind of card a dig takes: "permanent with mana value 5
+    /// or less" is a permanent card (CR 110.4a), its qualities before the
+    /// noun.
+    card_filter: bool,
     /// In a spell, how many targets were declared before an "if kicked"
     /// sentence declared more (CR 601.2c: those are chosen only if the
     /// spell is kicked).
@@ -6421,7 +6426,10 @@ impl P {
                 let filter = if self.eat_word("card") {
                     None
                 } else {
-                    let f = self.filter()?;
+                    self.card_filter = true;
+                    let f = self.filter();
+                    self.card_filter = false;
+                    let f = f?;
                     self.expect_word("card")?;
                     Some(f)
                 };
@@ -6436,6 +6444,13 @@ impl P {
                 let revealing = self.eat_word("revealing");
                 // `take card may top`: back on top of the library.
                 let top = self.eat_word("top");
+                // `onto battlefield [tapped]`: onto the battlefield instead
+                // of into the hand.
+                let onto = if self.eat_words(&["onto", "battlefield"]) {
+                    Some(self.eat_word("tapped"))
+                } else {
+                    None
+                };
                 self.expect_word("rest")?;
                 let rest_graveyard = if self.eat_word("graveyard") {
                     true
@@ -6457,6 +6472,7 @@ impl P {
                     also,
                     random,
                     top,
+                    onto,
                     then,
                     reword,
                 })
@@ -7831,6 +7847,7 @@ impl P {
             votes: self.votes.clone(),
             returned: self.returned,
             revealed: self.revealed,
+            card_filter: self.card_filter,
             kicked_targets: None,
             kicked_instead: None,
         };
@@ -8459,6 +8476,7 @@ impl P {
                         votes: Vec::new(),
                         returned: None,
                         revealed: false,
+                        card_filter: false,
                         kicked_targets: None,
                         kicked_instead: None,
                     };
@@ -8724,7 +8742,8 @@ impl P {
                 // "a permanent card": not an instant or sorcery (CR
                 // 110.4a).
                 "permanent"
-                    if matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                    if (matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                        || (self.card_filter && self.word_at(1).as_deref() == Some("with")))
                         && (f == Filter::default()
                             || (f.types.is_empty()
                                 && f.not_types.is_empty()
@@ -8732,6 +8751,17 @@ impl P {
                                 && !f.subtypes.is_empty())) =>
                 {
                     f.not_types = vec![CardType::Instant, CardType::Sorcery];
+                    self.pos += 1;
+                }
+                // A dig's "noncreature, nonland permanent card".
+                "permanent"
+                    if self.card_filter
+                        && matches!(self.word_at(1).as_deref(), Some("card" | "with"))
+                        && f.types.is_empty()
+                        && f.any_types.is_empty()
+                        && !f.not_types.is_empty() =>
+                {
+                    f.not_types.extend([CardType::Instant, CardType::Sorcery]);
                     self.pos += 1;
                 }
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,

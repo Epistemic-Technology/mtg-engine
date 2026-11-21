@@ -1,0 +1,6 @@
+card "Collected Company" {
+  oracle_id 0bbcb563-09b3-499d-a9cc-3a6d7501dd81
+  cost {3}{G}
+  type Instant
+  spell: dig 6 take 2 creature with mana value 3 or less card may onto battlefield rest bottom
+}
