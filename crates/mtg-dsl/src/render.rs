@@ -1530,6 +1530,9 @@ impl<'a> Ctx<'a> {
         match r {
             // "Untap them. They gain haste until end of turn."
             Recipient::Those(crate::ast::Those::Them) => "they".to_string(),
+            // "Create two 1/1 red Warrior creature tokens. They gain haste
+            // until end of turn." (Salt Road Skirmish).
+            Recipient::CreatedTokens => "they".to_string(),
             // As a subject Oracle keeps "defending player" ("defending
             // player loses 4 life").
             Recipient::DefendingPlayer => "defending player".to_string(),
@@ -8644,6 +8647,27 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                     format!("{rest} {joined}")
                 };
                 return format!("whenever {who} {}{that}", with_article(&spell_noun(&what)));
+            }
+            // `noncreature or a Dragon spell`: "a noncreature spell or a
+            // Dragon spell" (Runescale Stormbrood).
+            if base.alt_article
+                && let Some(alt) = &base.or
+                && alt.or.is_none()
+            {
+                let mut one = base.clone();
+                one.or = None;
+                one.alt_article = false;
+                let side = |g: &Filter| {
+                    let w = spells_subject(g, ctx.card);
+                    let w = w.strip_suffix(" spells").unwrap_or(&w).to_string();
+                    let w = if lower_spell_subject(g) {
+                        lowercase_first(&w)
+                    } else {
+                        w
+                    };
+                    with_article(&spell_noun(&w))
+                };
+                return format!("whenever {who} {} or {}{that}", side(&one), side(alt));
             }
             let what = spells_subject(&base, ctx.card);
             let what = what.strip_suffix(" spells").unwrap_or(&what);

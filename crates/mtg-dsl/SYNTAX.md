@@ -307,7 +307,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this becomes blocked`, `whenever this blocks or becomes blocked` | |
 | `whenever this blocks a creature with flying`, `whenever this becomes blocked by a creature`, `whenever this blocks or becomes blocked by a nonblack creature` | once for each attacker it blocks (CR 509.3b) or each creature blocking it (CR 509.3d); the other creature, which must match the filter, is "that creature"; `a creature with Equipment` prints "an equipped creature", `a creature that was dealt damage this turn` "... that has been dealt damage this turn". `... by one or more blue or black creature` ("by one or more blue and/or black creatures", CR 509.3c, 509.3e) triggers once, on the first matching pair, and "it" is the blocking or blocked creature itself (`whenever equipped creature becomes blocked by one or more colorless creature: it gains deathtouch until end of turn`) |
 | `at end of combat` | as the end of combat step begins (CR 511.2); also a delayed trigger: `delayed that creature: destroy that creature at end of combat` |
-| `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell`, `whenever a player casts a spell` | |
+| `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell`, `whenever a player casts a spell` | `whenever you cast noncreature or Dragon spell` prints "a noncreature or Dragon spell"; with the alternative's own article, `noncreature or a Dragon spell`, "a noncreature spell or a Dragon spell" (the same spells) |
 | `label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: ...` | "Magecraft — Whenever you cast or copy an instant or sorcery spell, ..." (a copy triggers it too, CR 707.10) |
 | `label "Heroic" triggered whenever you cast a spell that targets this: ...` | "Heroic — Whenever you cast a spell that targets this creature, ..." (any spell filter: `whenever you cast red spell that targets this`): the spell's targets as it is cast (CR 601.2c), so copies and abilities don't trigger it. The spell is the triggering object, but `it` in the effects is this creature, as Oracle has it ("put a +1/+1 counter on it"). |
 | `label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: ...` | "Repartee — Whenever you cast an instant or sorcery spell that targets a creature, ...": any creature among the spell's targets as it is cast (CR 601.2c). |
@@ -1791,7 +1791,8 @@ its owner's control."; `triggering card` is the card it became). After
 those tokens at beginning of the next end step` is one delayed trigger
 about each ("Sacrifice those tokens at the beginning of the next end
 step."), and `them` prints "them" (`delayed those tokens: exile them at
-beginning of the next end step`). In `delayed that token: ...`, `it` prints "it" and `that token`
+beginning of the next end step`). `those tokens gains haste` right after
+prints "They gain haste until end of turn.". In `delayed that token: ...`, `it` prints "it" and `that token`
 "that token" ("Exile that token at the beginning of the next end
 step."); both are the token. `delayed this: whenever <trigger> this turn, <effects>` triggers on
 every such event until the turn ends (CR 603.7c), as its controller's

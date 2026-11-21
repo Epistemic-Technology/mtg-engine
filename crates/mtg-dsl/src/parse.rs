@@ -4031,6 +4031,16 @@ impl P {
         if w == "any" && self.word_at(1).as_deref() == Some("target") {
             return true;
         }
+        // "They gain haste until end of turn." after creating tokens
+        // (Salt Road Skirmish).
+        if self.at_words(&["those", "tokens"])
+            && matches!(
+                self.word_at(2).as_deref(),
+                Some("gain" | "gains" | "get" | "gets")
+            )
+        {
+            return true;
+        }
         if w == "that" && matches!(self.word_at(1).as_deref(), Some("card" | "target")) {
             return true;
         }
