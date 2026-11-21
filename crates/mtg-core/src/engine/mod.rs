@@ -481,6 +481,7 @@ impl GameState {
             encoded: Vec::new(),
             turn_started_at: 0,
             x_values: Vec::new(),
+            entered_x: Vec::new(),
             ninjutsu: Vec::new(),
             bargains: Vec::new(),
             divisions: Vec::new(),
@@ -2637,6 +2638,7 @@ impl GameState {
                 }
             }
             Step::Cleanup => {
+                self.entered_x.clear();
                 self.flow = Flow::Discarding;
             }
             // CR 714.3b: as the precombat main phase begins, the active

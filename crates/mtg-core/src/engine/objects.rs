@@ -551,6 +551,13 @@ impl GameState {
             self.suspended_count = self.suspended_count.saturating_sub(1);
         }
         if old.zone == Zone::Stack && !self.x_values.is_empty() {
+            // CR 107.3m: the permanent's enters triggers keep the spell's X.
+            if to == Zone::Battlefield {
+                let x = self.x_of(id);
+                if x > 0 {
+                    self.entered_x.push((new, x));
+                }
+            }
             self.x_values.retain(|(s, _)| *s != id);
         }
         if old.zone == Zone::Stack && !self.divisions.is_empty() {

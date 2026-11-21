@@ -1,0 +1,71 @@
+# CR 107.3m: an enters triggered ability or replacement effect that refers
+# to X uses the X of the spell that became the permanent.
+
+scenario "Morlun: enters with X counters and deals X damage" {
+  battlefield A: 5 "Swamp"
+  hand A: "Morlun, Devourer of Spiders"
+  turn 1 A: cast "Morlun, Devourer of Spiders" x 3
+  turn 1 A: trigger "Morlun, Devourer of Spiders" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Morlun, Devourer of Spiders" +1/+1 3
+  assert power "Morlun, Devourer of Spiders" 5
+  assert life B 17
+}
+
+scenario "Morlun cast for X = 0 deals no damage" {
+  battlefield A: 2 "Swamp"
+  hand A: "Morlun, Devourer of Spiders"
+  turn 1 A: cast "Morlun, Devourer of Spiders"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Morlun, Devourer of Spiders"
+  assert life B 20
+}
+
+scenario "Gadwick draws X cards" {
+  battlefield A: 5 "Island"
+  hand A: "Gadwick, the Wizened"
+  turn 1 A: cast "Gadwick, the Wizened" x 2
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "Spiteful Banditry deals X damage to each creature" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Llanowar Elves"
+  hand A: "Spiteful Banditry"
+  turn 1 A: cast "Spiteful Banditry" x 2
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Ajani's Anguish deals X damage to any target" {
+  battlefield A: 4 "Mountain"
+  hand A: "Ajani's Anguish"
+  turn 1 A: cast "Ajani's Anguish" x 3
+  turn 1 A: trigger "Ajani's Anguish" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Dune Drifter returns a card with mana value X or less" {
+  battlefield A: 2 "Plains", 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Dune Drifter"
+  turn 1 A: cast "Dune Drifter" x 2
+  turn 1 A: trigger "Dune Drifter" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Dune Drifter: a card with mana value above X can't be targeted" {
+  battlefield A: 2 "Plains", 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Dune Drifter"
+  turn 1 A: cast "Dune Drifter" x 2
+  illegal turn 1 A: trigger "Dune Drifter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}

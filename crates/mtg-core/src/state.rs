@@ -1584,6 +1584,10 @@ pub struct GameState {
     /// X as chosen for spells on the stack (CR 107.3), kept off
     /// `GameObject` so the hot struct stays at 120 bytes.
     pub x_values: Vec<(ObjId, u32)>,
+    /// X of the spell each permanent was as it resolved, for its own
+    /// enters triggers (CR 107.3m; the permanent's own X is 0). Cleared
+    /// at cleanup: such a trigger resolves the turn it triggered.
+    pub entered_x: Vec<(ObjId, u32)>,
     /// Ninjutsu abilities on the stack (CR 702.49c): the card to enter
     /// attacking, and what the creature returned for the cost was
     /// attacking.

@@ -1,0 +1,10 @@
+card "Morlun, Devourer of Spiders" {
+  oracle_id 273ad15c-366a-4691-978b-d6028b57005a
+  cost {X}{B}{B}
+  type Legendary Creature — Vampire Villain
+  pt 2/1
+  pronoun he
+  keywords lifelink
+  enters with X +1/+1 counters
+  triggered when this enters: deal X damage to target opponent
+}

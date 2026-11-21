@@ -1375,6 +1375,16 @@ impl GameState {
             revealed: 0,
         });
         self.stack.push(obj);
+        // CR 107.3m: "When this creature enters, it deals X damage": the
+        // ability's X is that of the spell that became the permanent, for
+        // its targets ("with mana value X or less") and its effects.
+        if !self.entered_x.is_empty()
+            && let AbilityDef::Triggered(tr) = self.pool.ability(t.ability.ability)
+            && tr.trigger == TriggerSpec::Enters(crate::card::TriggerObj::This)
+            && let Some(&(_, x)) = self.entered_x.iter().find(|(o, _)| *o == t.ability.source)
+        {
+            self.x_values.push((obj, x));
+        }
         self.consecutive_passes = 0;
         self.bump();
         self.emit(Event::TriggerOnStack {
