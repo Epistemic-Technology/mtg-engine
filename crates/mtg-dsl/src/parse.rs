@@ -3892,6 +3892,46 @@ impl P {
             });
         }
         self.pos += 1;
+        // "unless they sacrifice a nonland permanent of their choice or
+        // discard a card" (CR 608.2d).
+        let sacrifices = |p: &Self| {
+            p.at_words(&["they", "sacrifice"])
+                || (1..5).any(|k| {
+                    matches!(p.peek_at(k), Some(Tok::Word(w)) if w == "sacrifices")
+                        && !(0..k).any(|j| {
+                            matches!(p.peek_at(j), Some(Tok::Word(w)) if w == "pays" || w == "discards")
+                        })
+                })
+        };
+        if sacrifices(self) {
+            let payer = if self.eat_words(&["they", "sacrifice"]) {
+                match self.subject {
+                    Some(s) => s,
+                    None => {
+                        return self.fail("`unless they sacrifice` needs a clause with a subject");
+                    }
+                }
+            } else {
+                let r = self.recipient()?;
+                self.expect_word("sacrifices")?;
+                r
+            };
+            let filter = self.filter()?;
+            // `else discard 1 card` (`or` would start another clause).
+            let or_discard = self.at_word("else")
+                && matches!(self.word_at(1).as_deref(), Some("discard" | "discards"))
+                && matches!(self.peek_at(2), Some(Tok::Num(1)))
+                && self.word_at(3).as_deref() == Some("card");
+            if or_discard {
+                self.pos += 4;
+            }
+            return Ok(Effect::UnlessSacrifices {
+                payer,
+                filter,
+                or_discard,
+                effect: Box::new(e),
+            });
+        }
         // "unless that player discards a card": discarding is the payment.
         let discards = |p: &Self| {
             p.at_words(&["they", "discard"])

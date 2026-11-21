@@ -1734,6 +1734,27 @@ impl Templates {
                     Some(format!("exchange control of {a} and {b}"))
                 },
             ),
+            // CR 608.2d: a punisher.
+            (
+                r(
+                    r"^(Target opponent|Each opponent) loses (\d+) life unless (?:they sacrifice|that player sacrifices) a nonland permanent of their choice or (?:discard|discards) a card$",
+                ),
+                |c, t| {
+                    let who = lowercase_first(cap(c, 1));
+                    if who == "target opponent" {
+                        *t += 1;
+                        Some(format!(
+                            "target opponent loses {} life unless they sacrifice nonland permanent else discard 1 card",
+                            cap(c, 2)
+                        ))
+                    } else {
+                        Some(format!(
+                            "each opponent loses {} life unless each opponent sacrifices nonland permanent else discards 1 card",
+                            cap(c, 2)
+                        ))
+                    }
+                },
+            ),
             // CR 613.4b.
             (
                 r(

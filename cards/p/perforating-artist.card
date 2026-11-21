@@ -1,0 +1,8 @@
+card "Perforating Artist" {
+  oracle_id a3643f66-dfa2-4275-a093-23e162496354
+  cost {1}{B}{R}
+  type Creature — Devil
+  pt 3/2
+  keywords deathtouch
+  label "Raid" triggered at beginning of your end step if attacked this turn: each opponent loses 3 life unless each opponent sacrifices nonland permanent else discards 1 card
+}

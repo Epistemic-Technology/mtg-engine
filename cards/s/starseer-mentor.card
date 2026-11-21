@@ -1,0 +1,8 @@
+card "Starseer Mentor" {
+  oracle_id 12a165c4-229b-458b-8fc7-c1b7cba35a8e
+  cost {3}{W}{B}
+  type Creature — Bat Warlock
+  pt 3/5
+  keywords flying, vigilance
+  triggered at beginning of your end step if gained or lost life this turn: target opponent loses 3 life unless they sacrifice nonland permanent else discard 1 card
+}

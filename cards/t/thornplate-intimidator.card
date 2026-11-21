@@ -1,0 +1,8 @@
+card "Thornplate Intimidator" {
+  oracle_id 33b6555e-035d-4241-a341-a9b9139ca6f0
+  cost {3}{B}
+  type Creature — Rat Rogue
+  pt 4/3
+  offspring {3}
+  triggered when this enters: target opponent loses 3 life unless they sacrifice nonland permanent else discard 1 card
+}

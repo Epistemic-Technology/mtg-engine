@@ -3502,6 +3502,15 @@ pub enum Effect {
         discard: u32,
         effect: Box<Effect>,
     },
+    /// `<clause> unless they sacrifice nonland permanent or discard 1
+    /// card`, `<clause> unless target 1 sacrifices creature`: "unless they
+    /// sacrifice a nonland permanent of their choice or discard a card".
+    UnlessSacrifices {
+        payer: Recipient,
+        filter: Filter,
+        or_discard: bool,
+        effect: Box<Effect>,
+    },
     /// `<clause> unless you <clause>`: "sacrifice it unless you discard
     /// a card at random", "... unless you return two Forests you control
     /// to their owner's hand" (the controller may act to stop it).

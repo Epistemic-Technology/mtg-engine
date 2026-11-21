@@ -2725,6 +2725,21 @@ impl Compiler<'_> {
                 self.effect(effect, &mut effects)?;
                 out.push(CoreEffect::UnlessYou { act: acts, effects });
             }
+            Effect::UnlessSacrifices {
+                payer,
+                filter,
+                or_discard,
+                effect,
+            } => {
+                let mut effects = Vec::new();
+                self.effect(effect, &mut effects)?;
+                out.push(CoreEffect::UnlessSacrifices {
+                    payer: r(*payer),
+                    filter: self.filter(filter),
+                    or_discard: *or_discard,
+                    effects,
+                });
+            }
             Effect::UnlessPays {
                 payer,
                 mana,

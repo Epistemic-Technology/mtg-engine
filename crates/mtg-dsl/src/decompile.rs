@@ -1167,6 +1167,21 @@ impl Decompiler<'_> {
                         .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
                 ),
             },
+            CoreEffect::UnlessSacrifices {
+                payer,
+                filter,
+                or_discard,
+                effects,
+            } => Effect::UnlessSacrifices {
+                payer: Self::recipient(*payer),
+                filter: self.filter(filter),
+                or_discard: *or_discard,
+                effect: Box::new(
+                    effects
+                        .first()
+                        .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
+                ),
+            },
             CoreEffect::UnlessPays {
                 payer,
                 mana,

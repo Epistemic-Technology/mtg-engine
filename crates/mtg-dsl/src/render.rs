@@ -6847,6 +6847,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let _ = write!(c.tail, " unless {who} {amount}");
             c
         }
+        // "unless they sacrifice a nonland permanent of their choice or
+        // discard a card", "unless that player sacrifices a creature of
+        // their choice".
+        Effect::UnlessSacrifices {
+            payer,
+            filter,
+            or_discard,
+            effect,
+        } => {
+            let mut c = clause(effect, ctx);
+            let what = filter_a(filter, ctx.card);
+            let (sac, disc, who) = match (payer, &c.subject) {
+                (Recipient::EachOpponent | Recipient::EachPlayer, _) => {
+                    ("sacrifices", "discards", "that player")
+                }
+                (p, Some((s, _))) if p == s => ("sacrifice", "discard", "they"),
+                _ => ("sacrifices", "discards", "that player"),
+            };
+            let or = if *or_discard {
+                format!(" or {disc} a card")
+            } else {
+                String::new()
+            };
+            let _ = write!(c.tail, " unless {who} {sac} {what} of their choice{or}");
+            c
+        }
         // "sacrifice it unless you return an artifact you control to its
         // owner's hand".
         Effect::UnlessYou { act, effect } => {

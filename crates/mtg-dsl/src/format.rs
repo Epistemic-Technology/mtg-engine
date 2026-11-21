@@ -2233,6 +2233,24 @@ impl Fmt {
             }
             Effect::Pay { mana, life } => format!("pay {}", pay_amount(mana, *life)),
             Effect::Waterbend(mana) => format!("waterbend {mana}"),
+            Effect::UnlessSacrifices {
+                payer,
+                filter: f,
+                or_discard,
+                effect,
+            } => {
+                let inner = self.effect(effect, t);
+                format!(
+                    "{inner} unless {} sacrifices {}{}",
+                    self.recipient(*payer, t),
+                    filter(f),
+                    if *or_discard {
+                        " else discards 1 card"
+                    } else {
+                        ""
+                    }
+                )
+            }
             Effect::UnlessYou { act, effect } => {
                 let inner = self.effect(effect, t);
                 let act = self.effect(act, t);

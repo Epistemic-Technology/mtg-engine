@@ -793,6 +793,16 @@ Darksteel Colossus and shuffle it into its owner's library instead.": the
 card names itself, and the ability works in every zone (CR 113.6b: hand,
 library, stack, battlefield); the card goes into the library, which is
 then shuffled.
+`target opponent loses 3 life unless they sacrifice nonland permanent
+else discard 1 card` prints "... unless they sacrifice a nonland permanent
+of their choice or discard a card" (CR 608.2d; `else`, since `or` would
+start another clause); `each opponent loses 3 life unless each opponent
+sacrifices nonland permanent else discards 1 card` prints "... unless that
+player sacrifices ... or discards a card"; `it deals 5 damage to target
+opponent unless target 1 sacrifices creature` prints "... unless that
+player sacrifices a creature of their choice". The player chooses as it
+resolves (in a scenario `choose "1"` sacrifices, `"2"` discards, `"3"`
+takes the penalty).
 `exchange control of 2 target creature` (CR 701.12) prints "Exchange
 control of two target creatures."; `exchange control of this and target
 nonland permanent`, `exchange control of target land you control and

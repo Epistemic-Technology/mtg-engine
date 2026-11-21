@@ -10030,6 +10030,68 @@ impl GameState {
                     }
                 }
             }
+            Effect::UnlessSacrifices {
+                payer,
+                filter,
+                or_discard,
+                effects,
+            } => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                    .unwrap_or_default();
+                let payers: SmallVec<[PlayerId; 2]> = self
+                    .recipients(ctx, *payer)
+                    .into_iter()
+                    .filter_map(|t| match t {
+                        Target::Player(p) => Some(p),
+                        Target::Object(_) => None,
+                    })
+                    .collect();
+                for p in payers {
+                    // CR 608.2d: the player chooses as it resolves: `Mode(0)`
+                    // sacrifices, `Mode(1)` discards, `Mode(2)` takes the
+                    // penalty.
+                    let sacrificable: Vec<Choice> = self
+                        .permanents_of(p)
+                        .filter(|id| {
+                            self.characteristics(*id).is_some_and(|c| {
+                                filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                            }) && self.status_ok(filter, *id)
+                        })
+                        .map(Choice::Sacrifice)
+                        .collect();
+                    let mut options = Vec::new();
+                    if !sacrificable.is_empty() {
+                        options.push(Choice::Mode(0));
+                    }
+                    if *or_discard && !self.player(p).hand.is_empty() {
+                        options.push(Choice::Mode(1));
+                    }
+                    options.push(Choice::Mode(2));
+                    let k = if options.len() == 1 {
+                        0
+                    } else {
+                        self.choose_mid(p, DecisionKind::ChooseOption { def }, options.clone())
+                    };
+                    match options[k] {
+                        Choice::Mode(0) => {
+                            let k = self.choose_mid(p, DecisionKind::Edict, sacrificable.clone());
+                            if let Choice::Sacrifice(id) = sacrificable[k] {
+                                self.sacrifice(id);
+                            }
+                        }
+                        Choice::Mode(1) => self.discard_n(p, 1),
+                        _ => {
+                            for e in effects {
+                                self.apply_effect(ctx, e);
+                            }
+                        }
+                    }
+                }
+            }
             Effect::Delayed {
                 ability,
                 about,

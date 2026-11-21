@@ -3647,6 +3647,16 @@ pub enum Effect {
         discard: u32,
         effects: Vec<Effect>,
     },
+    /// "... unless they sacrifice a nonland permanent of their choice or
+    /// discard a card" (a punisher, CR 608.2d): the payer may sacrifice a
+    /// permanent matching `filter` (or, with `or_discard`, discard a
+    /// card) to stop `effects`.
+    UnlessSacrifices {
+        payer: Recipient,
+        filter: ObjFilter,
+        or_discard: bool,
+        effects: Vec<Effect>,
+    },
     /// "Sacrifice it unless you discard a card at random", "... unless you
     /// return two Forests you control to their owner's hand": the
     /// controller may do `act` (CR 608.2d, chosen as it resolves); unless
@@ -4419,6 +4429,7 @@ impl Effect {
                 }
                 | Effect::Instead { .. }
                 | Effect::UnlessPays { .. }
+                | Effect::UnlessSacrifices { .. }
                 | Effect::UnlessYou { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
@@ -6198,7 +6209,8 @@ impl AbilityDef {
             | Effect::IfThisWay { then: inner, .. }
             | Effect::IfExcessDamage(inner)
             | Effect::OneOf(inner)
-            | Effect::UnlessPays { effects: inner, .. } = e
+            | Effect::UnlessPays { effects: inner, .. }
+            | Effect::UnlessSacrifices { effects: inner, .. } = e
             {
                 for i in inner {
                     walk(i, out);
