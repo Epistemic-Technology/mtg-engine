@@ -4364,6 +4364,28 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         // creature's power is greater than this creature's power and/or
         // that creature's toughness is greater than this creature's
         // toughness, put a +1/+1 counter on this creature."
+        // CR 702.191a: "Whenever you cast a spell, if the amount of mana
+        // spent to cast that spell is greater than this creature's power or
+        // this creature's toughness, put a +1/+1 counter on this creature."
+        Mechanic::Increment => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
+            from_graveyard: false,
+            trigger: Trigger::CastsSpell {
+                whose: Who::You,
+                noncreature: false,
+                instant_or_sorcery: false,
+                or_copy: false,
+            },
+            condition: Some(crate::ast::TrigCond::Core(
+                mtg_core::card::Condition::Increments,
+            )),
+            targets: Vec::new(),
+            effects: one(E::AddCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                count: Num::N(1),
+                to: Recipient::Source,
+            }),
+        },
         Mechanic::Evolve => Ability::Triggered {
             limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,

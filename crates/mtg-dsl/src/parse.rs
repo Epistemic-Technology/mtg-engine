@@ -1626,13 +1626,13 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Firebending(n)))
             }
-            "evolve" | "unleash" => {
+            "evolve" | "unleash" | "increment" => {
                 self.pos += 1;
                 self.end_stmt()?;
-                Ok(Ability::Mechanic(if w == "evolve" {
-                    Mechanic::Evolve
-                } else {
-                    Mechanic::Unleash
+                Ok(Ability::Mechanic(match w.as_str() {
+                    "evolve" => Mechanic::Evolve,
+                    "increment" => Mechanic::Increment,
+                    _ => Mechanic::Unleash,
                 }))
             }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
@@ -10145,6 +10145,9 @@ impl P {
         }
         if self.eat_word("evolves") {
             return Ok(Condition::Evolves);
+        }
+        if self.eat_word("increments") {
+            return Ok(Condition::Increments);
         }
         if self.eat_word("evoked") {
             return Ok(Condition::Evoked);

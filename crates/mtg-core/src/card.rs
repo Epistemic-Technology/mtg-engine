@@ -5090,6 +5090,10 @@ pub enum Condition {
     /// Evolve (CR 702.100a): the triggering creature's power is greater
     /// than the source's, or its toughness is greater than the source's.
     Evolves,
+    /// Increment (CR 702.191a): the source is a creature and the amount of
+    /// mana spent to cast the triggering spell is greater than its power or
+    /// its toughness.
+    Increments,
     /// The pool's `n`th static condition ("if you control an artifact",
     /// "if you have 5 or less life").
     Static(u16),
@@ -7391,6 +7395,7 @@ impl CardPool {
                 return false;
             };
             matches!(t.condition, Some(Condition::Static(i)) if that(i))
+                || t.condition == Some(Condition::Increments)
                 || a.all_effects().iter().any(|e| {
                     matches!(
                         e,

@@ -1,0 +1,8 @@
+card "Textbook Tabulator" {
+  oracle_id ebb40a50-cfbc-4ec1-9c54-26a1bc2e7a6e
+  cost {2}{U}
+  type Creature — Frog Wizard
+  pt 0/3
+  increment
+  triggered when this enters: surveil 2
+}

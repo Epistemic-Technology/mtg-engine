@@ -1,0 +1,8 @@
+card "Pensive Professor" {
+  oracle_id 4b8736e2-fc41-4a25-bb6c-7351afc40981
+  cost {1}{U}{U}
+  type Creature — Human Wizard
+  pt 0/2
+  increment
+  triggered whenever one or more +1/+1 counters put on this: draw 1 cards
+}

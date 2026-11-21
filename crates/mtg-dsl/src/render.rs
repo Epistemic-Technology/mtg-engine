@@ -7908,6 +7908,10 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
             "if that creature has greater power or toughness than {}",
             this_ref(ctx.card)
         ),
+        Condition::Increments => format!(
+            "if the amount of mana you spent is greater than {}'s power or toughness",
+            this_ref(ctx.card)
+        ),
     }
 }
 
@@ -10688,6 +10692,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Nightbound => "Nightbound".to_string(),
             crate::ast::Mechanic::Fabricate(n) => format!("Fabricate {n}"),
             crate::ast::Mechanic::Evolve => "Evolve".to_string(),
+            crate::ast::Mechanic::Increment => "Increment".to_string(),
             crate::ast::Mechanic::Renown(n) => format!("Renown {n}"),
             crate::ast::Mechanic::Unleash => "Unleash".to_string(),
             crate::ast::Mechanic::Afterlife(n) => format!("Afterlife {n}"),

@@ -1987,6 +1987,11 @@ impl Decompiler<'_> {
             AbilityDef::Triggered(t) if t.condition == Some(mtg_core::card::Condition::Evolves) => {
                 Ability::Mechanic(crate::ast::Mechanic::Evolve)
             }
+            AbilityDef::Triggered(t)
+                if t.condition == Some(mtg_core::card::Condition::Increments) =>
+            {
+                Ability::Mechanic(crate::ast::Mechanic::Increment)
+            }
             AbilityDef::Replacement(ReplacementAbility {
                 replacement: mtg_core::card::Replacement::EnterWithCountersMay { haste, .. },
                 ..

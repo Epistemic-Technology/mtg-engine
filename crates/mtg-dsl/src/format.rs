@@ -4426,6 +4426,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     head.push_str(" if this isn't prepared");
                 }
                 Some(mtg_core::card::Condition::Evolves) => head.push_str(" if evolves"),
+                Some(mtg_core::card::Condition::Increments) => head.push_str(" if increments"),
                 Some(mtg_core::card::Condition::Evoked) => head.push_str(" if evoked"),
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
                 Some(mtg_core::card::Condition::NoSpellsLastTurn) => {
@@ -4739,6 +4740,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Nightbound => "nightbound".to_string(),
                 crate::ast::Mechanic::Fabricate(n) => format!("fabricate {n}"),
                 crate::ast::Mechanic::Evolve => "evolve".to_string(),
+                crate::ast::Mechanic::Increment => "increment".to_string(),
                 crate::ast::Mechanic::Renown(n) => format!("renown {n}"),
                 crate::ast::Mechanic::Unleash => "unleash".to_string(),
                 crate::ast::Mechanic::Afterlife(n) => format!("afterlife {n}"),

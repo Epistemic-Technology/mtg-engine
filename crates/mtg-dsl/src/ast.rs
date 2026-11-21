@@ -1477,6 +1477,10 @@ pub enum Mechanic {
     Fabricate(u32),
     /// `evolve` (CR 702.100).
     Evolve,
+    /// `increment` (CR 702.191): whenever you cast a spell, if the mana
+    /// spent on it is greater than this creature's power or toughness, a
+    /// +1/+1 counter on it.
+    Increment,
     /// `renown 1` (CR 702.112).
     Renown(u32),
     /// `unleash` (CR 702.98): may enter with a +1/+1 counter; can't block

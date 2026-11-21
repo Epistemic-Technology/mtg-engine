@@ -191,6 +191,7 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Fabricate",
     "Renown",
     "Evolve",
+    "Increment",
     "Unleash",
     "Afterlife",
     "Extort",
@@ -3984,7 +3985,14 @@ impl Builder<'_> {
         }
         if matches!(
             line,
-            "Evolve" | "Unleash" | "Extort" | "Mentor" | "Riot" | "Retrace" | "Ingest"
+            "Evolve"
+                | "Unleash"
+                | "Extort"
+                | "Mentor"
+                | "Riot"
+                | "Retrace"
+                | "Ingest"
+                | "Increment"
         ) {
             self.statements.push(line.to_lowercase());
             return Ok(());

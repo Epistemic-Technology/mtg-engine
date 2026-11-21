@@ -1544,6 +1544,10 @@ impl GameState {
                 let this = self.characteristics_or_lki(source);
                 self.evolves(this.as_ref(), trigger_obj)
             }
+            Condition::Increments => {
+                let this = self.characteristics_or_lki(source);
+                self.increments(this.as_ref(), trigger_obj)
+            }
             Condition::Evoked => self
                 .objects
                 .get(source)
@@ -1587,6 +1591,7 @@ impl GameState {
             Condition::NotRenowned => self.objects.get(w.source).is_some_and(|o| !o.renowned()),
             Condition::NotPrepared => self.objects.get(w.source).is_some_and(|o| !o.prepared()),
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),
+            Condition::Increments => self.increments(Some(&w.chars), trigger_obj),
             Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),
             Condition::Static(i) | Condition::While(i) => {
                 self.condition_for(self.pool.condition(i), w.controller, w.source, trigger_obj)
@@ -1605,6 +1610,19 @@ impl GameState {
             .and_then(|o| self.characteristics_or_lki(o))
             .filter(Characteristics::is_creature)
             .is_some_and(|c| c.power() > this.power() || c.toughness() > this.toughness())
+    }
+
+    /// Increment (CR 702.191a): the creature with increment is a creature
+    /// and the mana spent to cast the triggering spell is greater than its
+    /// power or its toughness.
+    fn increments(&self, this: Option<&Characteristics>, spell: Option<ObjId>) -> bool {
+        let Some(this) = this.filter(|c| c.is_creature()) else {
+            return false;
+        };
+        let spent = spell.map_or(0, |s| {
+            i64::from(self.spent_on(s).count(crate::card::SpentKind::Total))
+        });
+        spent > i64::from(this.power()) || spent > i64::from(this.toughness())
     }
 
     /// CR 702.33c: whether the object (or, once it has moved, the object it
