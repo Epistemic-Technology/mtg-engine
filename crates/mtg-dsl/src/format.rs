@@ -1497,6 +1497,30 @@ impl Fmt {
                 }
                 s
             }
+            Effect::CastFree {
+                what,
+                filter: f,
+                max,
+                exile,
+            } => {
+                let mut s = "cast free ".to_string();
+                if let Some(r) = what {
+                    s.push_str(&self.recipient(*r, t));
+                } else {
+                    if let Some(f) = f {
+                        s.push_str(&filter(f));
+                        s.push(' ');
+                    }
+                    s.push_str("spell from hand");
+                    if let Some(n) = max {
+                        let _ = write!(s, " with mana value up to {}", num(*n));
+                    }
+                }
+                if *exile {
+                    s.push_str(" exile instead");
+                }
+                s
+            }
             Effect::LoseAllAbilities { to } => {
                 format!("{} loses all abilities", self.recipient(*to, t))
             }

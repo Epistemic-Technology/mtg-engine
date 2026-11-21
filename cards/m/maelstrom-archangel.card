@@ -1,0 +1,8 @@
+card "Maelstrom Archangel" {
+  oracle_id ac50ef98-1791-4dd4-9c1f-8cea7db7ade5
+  cost {W}{U}{B}{R}{G}
+  type Creature — Angel
+  pt 5/5
+  keywords flying
+  triggered whenever this deals combat damage to a player: cast free spell from hand
+}

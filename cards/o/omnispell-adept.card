@@ -1,0 +1,7 @@
+card "Omnispell Adept" {
+  oracle_id b575449b-591d-4357-92b7-55137fc7966a
+  cost {4}{U}
+  type Creature — Human Wizard
+  pt 3/4
+  activated {2}{U}, {T}: cast free instant or sorcery spell from hand
+}

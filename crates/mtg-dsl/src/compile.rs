@@ -2345,6 +2345,20 @@ impl Compiler<'_> {
                     });
                 }
             }
+            Effect::CastFree {
+                what,
+                filter,
+                max,
+                exile,
+            } => {
+                let filter = filter.as_ref().map(|f| self.filter(f));
+                out.push(CoreEffect::CastFree {
+                    what: what.map(r),
+                    filter,
+                    max_mv: *max,
+                    exile: *exile,
+                });
+            }
             // Layer 6 alone: an animation that only removes abilities.
             Effect::LoseAllAbilities { to } => out.push(CoreEffect::Animate {
                 to: r(*to),

@@ -5719,6 +5719,53 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
+        Effect::CastFree {
+            what,
+            filter,
+            max,
+            exile,
+        } => {
+            // CR 608.2g: "You may cast a noncreature spell from your hand
+            // without paying its mana cost."
+            #[allow(clippy::single_match_else)] // the hand's long phrase
+            let what = match what {
+                Some(r) => ctx.obj(*r),
+                None => {
+                    let noun = match filter {
+                        Some(f) => format!("{} spell", card_filter_phrase(f, ctx.card).trim()),
+                        None => "spell".to_string(),
+                    };
+                    // "a spell with mana value 4 or less from your hand",
+                    // but "a spell from your hand with mana value less
+                    // than or equal to that damage".
+                    match max {
+                        None => format!("{} from your hand", with_article(&noun)),
+                        Some(Num::ThatMuch) => format!(
+                            "{} from your hand with mana value less than or equal to that damage",
+                            with_article(&noun)
+                        ),
+                        Some(Num::Count(i)) => format!(
+                            "{} from your hand with mana value less than or equal to {}",
+                            with_article(&noun),
+                            count_phrase_in(&ctx.card.counts[usize::from(*i)].expr, ctx, false)
+                        ),
+                        Some(n) => format!(
+                            "{} with mana value {} or less from your hand",
+                            with_article(&noun),
+                            digits(*n)
+                        ),
+                    }
+                }
+            };
+            let tail = if *exile {
+                ". If that spell would be put into your graveyard, exile it instead"
+            } else {
+                ""
+            };
+            Clause::imperative(format!(
+                "you may cast {what} without paying its mana cost{tail}"
+            ))
+        }
         Effect::LoseAllAbilities { to } => {
             let s = ctx.subj(*to);
             let v = ctx.verb(*to, "loses", "lose");

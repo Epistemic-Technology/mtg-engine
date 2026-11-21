@@ -1,0 +1,8 @@
+card "Wildfire Eternal" {
+  oracle_id 195736a9-d8b0-4c74-abe9-0289aa83c67d
+  cost {3}{R}
+  type Creature — Zombie Jackal Cleric
+  pt 1/4
+  afflict 4
+  triggered whenever this attacks and isn't blocked: cast free instant or sorcery spell from hand
+}

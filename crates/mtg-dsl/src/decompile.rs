@@ -1063,6 +1063,17 @@ impl Decompiler<'_> {
                 to: r(*to),
                 twice: *twice,
             },
+            CoreEffect::CastFree {
+                what,
+                filter,
+                max_mv,
+                exile,
+            } => Effect::CastFree {
+                what: what.map(r),
+                filter: filter.as_ref().map(|f| self.filter(f)),
+                max: *max_mv,
+                exile: *exile,
+            },
             CoreEffect::Animate {
                 to,
                 types: t,

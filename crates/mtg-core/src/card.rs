@@ -3837,6 +3837,20 @@ pub enum Effect {
     DrawCastOne {
         count: u32,
     },
+    /// "You may cast a spell from your hand with mana value less than or
+    /// equal to that damage without paying its mana cost", "you may cast
+    /// target instant or sorcery card from your graveyard without paying
+    /// its mana cost" (CR 608.2g: cast as the effect finishes, timing
+    /// ignored). `what` names the card (a target); without it, the
+    /// controller chooses a card in their hand matching `filter` with mana
+    /// value at most `max_mv`. With `exile`, "If that spell would be put
+    /// into your graveyard, exile it instead."
+    CastFree {
+        what: Option<Recipient>,
+        filter: Option<ObjFilter>,
+        max_mv: Option<Num>,
+        exile: bool,
+    },
     /// "Reveal the top ten cards of your library. Put a creature card from
     /// among them onto the battlefield with three +1/+1 counters on it.
     /// ... Then shuffle." (Throne of the Dead Three): the creature is
@@ -4487,6 +4501,7 @@ impl Effect {
                 | Effect::Venture { .. }
                 | Effect::PunishEach { .. }
                 | Effect::DrawCastOne { .. }
+                | Effect::CastFree { .. }
                 | Effect::RevealPutCreature { .. }
                 // Which creature (tied for least toughness, or token) and
                 // whether to take the counters.

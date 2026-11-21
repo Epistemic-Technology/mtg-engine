@@ -3120,6 +3120,16 @@ pub enum Effect {
         /// choosing one of their own (CR 101.4).
         who: Option<Recipient>,
     },
+    /// `cast free noncreature spell from hand`, `cast free spell from hand
+    /// with mana value up to that much`, `cast free target instant or
+    /// sorcery card from your graveyard exile instead` (CR 608.2g): "you
+    /// may cast ... without paying its mana cost".
+    CastFree {
+        what: Option<Recipient>,
+        filter: Option<Filter>,
+        max: Option<Num>,
+        exile: bool,
+    },
     /// `target creature loses all abilities` (until end of turn; layer
     /// 6).
     LoseAllAbilities {

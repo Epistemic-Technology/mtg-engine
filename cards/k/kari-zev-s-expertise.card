@@ -1,0 +1,9 @@
+card "Kari Zev's Expertise" {
+  oracle_id e0de0121-6185-45c5-9d88-a415b07347e0
+  cost {1}{R}{R}
+  type Sorcery
+  spell {
+    gain control of target creature or Vehicle; untap target 1; target 1 gains haste
+    cast free spell from hand with mana value up to 2
+  }
+}

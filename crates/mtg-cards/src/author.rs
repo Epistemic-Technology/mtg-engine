@@ -1071,6 +1071,47 @@ impl Templates {
                     Some(format!("{who} gains doesn't untap"))
                 },
             ),
+            // CR 608.2g: "You may cast a noncreature spell [with mana value
+            // 4 or less] from your hand without paying its mana cost."
+            (
+                r(
+                    r"^[Yy]ou may cast an? (?:(noncreature|creature|artifact|instant|sorcery|instant or sorcery|enchantment|permanent) )?spell(?: with mana value (\d+|X) or less)? from your hand without paying its mana cost$",
+                ),
+                |c, _| {
+                    let f = cap(c, 1);
+                    let mut out = "cast free ".to_string();
+                    if !f.is_empty() {
+                        let _ = write!(out, "{f} ");
+                    }
+                    out.push_str("spell from hand");
+                    if !cap(c, 2).is_empty() {
+                        let _ = write!(out, " with mana value up to {}", cap(c, 2));
+                    }
+                    Some(out)
+                },
+            ),
+            // "You may cast target instant or sorcery card [with mana value
+            // 3 or less] from your graveyard without paying its mana cost[.
+            // If that spell would be put into your graveyard, exile it
+            // instead.]"
+            (
+                r(
+                    r"^[Yy]ou may cast target (instant or sorcery|instant|sorcery) card( with mana value \d+ or less)? from your graveyard without paying its mana cost(\x{2})?$",
+                ),
+                |c, t| {
+                    *t += 1;
+                    let exile = if cap(c, 3).is_empty() {
+                        ""
+                    } else {
+                        " exile instead"
+                    };
+                    Some(format!(
+                        "cast free target {} card{} from your graveyard{exile}",
+                        cap(c, 1),
+                        cap(c, 2)
+                    ))
+                },
+            ),
             // "It loses all abilities" (with a duration after it).
             (r(r"^(.+?) loses? all abilities$"), |c, t| {
                 let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
@@ -2512,9 +2553,12 @@ impl Templates {
                 continue;
             }
             let if_cond;
+            // "You may cast ... without paying its mana cost": the DSL's
+            // `cast free` keeps its "you may" (CR 608.2g).
             let (prefix, body) = if let Some(rest) = sentence
                 .strip_prefix("you may ")
                 .or_else(|| sentence.strip_prefix("You may "))
+                .filter(|r| !(r.starts_with("cast ") && r.contains("without paying its mana cost")))
             {
                 ("you may ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("If you do, ") {
@@ -2666,6 +2710,15 @@ fn merge_impulse(sentences: Vec<String>) -> Vec<String> {
                 _ => "you may ",
             };
             Some(format!("\u{1}{prefix}impulse {n} {when}"))
+        });
+        // "... without paying its mana cost. If that spell would be put
+        // into your graveyard, exile it instead.": one sentence, marked.
+        let merged = merged.or_else(|| {
+            let next = it.peek()?;
+            (s.ends_with("without paying its mana cost")
+                && next.trim_end_matches('.')
+                    == "If that spell would be put into your graveyard, exile it instead")
+                .then(|| format!("{s}\u{2}"))
         });
         match merged {
             Some(m) => {

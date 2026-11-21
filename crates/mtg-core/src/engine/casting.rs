@@ -3355,7 +3355,9 @@ impl GameState {
         let mut req = match (&def.flashback, o.cast.flashback()) {
             (Some(fb), true) => fb.mana.requirements(x),
             // Cast without paying its mana cost: X is 0 (CR 107.3b).
-            _ if matches!(o.alt, AltCast::Free | AltCast::Suspend) => ManaRequirement::default(),
+            _ if matches!(o.alt, AltCast::Free | AltCast::Suspend | AltCast::FreeExile) => {
+                ManaRequirement::default()
+            }
             (_, false) if o.alt == AltCast::Madness && def.madness.is_some() => {
                 def.madness.as_ref().expect("checked").requirements(x)
             }
@@ -3873,7 +3875,9 @@ impl GameState {
         }
         // CR 702.81a: retrace casts from the graveyard without exiling.
         let o = &self.objects[spell];
-        let zone = if o.cast.flashback() && !self.pool.get(o.def).retrace {
+        let zone = if (o.cast.flashback() && !self.pool.get(o.def).retrace)
+            || o.alt == AltCast::FreeExile
+        {
             Zone::Exile
         } else {
             Zone::Graveyard
@@ -4370,7 +4374,10 @@ impl GameState {
     /// increasing order.
     pub(super) fn x_options(&self, spell: ObjId) -> Vec<Choice> {
         const MAX_X: u32 = 30;
-        if matches!(self.objects[spell].alt, AltCast::Free | AltCast::Suspend) {
+        if matches!(
+            self.objects[spell].alt,
+            AltCast::Free | AltCast::Suspend | AltCast::FreeExile
+        ) {
             return vec![Choice::X(0)];
         }
         let caster = self.objects[spell].controller;
@@ -7683,6 +7690,88 @@ impl GameState {
         }
     }
 
+    /// CR 608.2g: "you may cast <a card> without paying its mana cost" as
+    /// the effect resolves: the card `what` names, or one from the
+    /// controller's hand matching `filter` with mana value at most
+    /// `max_mv`, cast as the resolution finishes.
+    fn cast_free(
+        &mut self,
+        ctx: &mut EffectCtx,
+        what: Option<Recipient>,
+        filter: Option<&crate::card::ObjFilter>,
+        max_mv: Option<crate::card::Num>,
+        exile: bool,
+    ) {
+        let p = ctx.controller;
+        let alt = if exile {
+            AltCast::FreeExile
+        } else {
+            AltCast::Free
+        };
+        let cap = max_mv.map(|n| self.eval_num(n, ctx));
+        let source = ctx.source;
+        let fits = |st: &Self, id: ObjId| -> bool {
+            let Some(o) = st.objects.get(id) else {
+                return false;
+            };
+            if !matches!(o.zone, Zone::Hand | Zone::Graveyard | Zone::Exile) {
+                return false;
+            }
+            let def = st.pool.get(o.def);
+            let mv = def.mana_cost.mana_value();
+            if cap.is_some_and(|c| mv > c) {
+                return false;
+            }
+            if let Some(f) = filter {
+                let chars = st.base_characteristics(o);
+                // The mana value isn't a characteristic `matches` sees.
+                if !(f
+                    .mana_value
+                    .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+                    && f.matches(id, p, &chars, Some(source), Some(p)))
+                {
+                    return false;
+                }
+            }
+            st.exile_castable(p, id, alt)
+        };
+        if let Some(r) = what {
+            for t in self.recipients(ctx, r) {
+                if let Target::Object(id) = t
+                    && fits(self, id)
+                {
+                    self.offer_exile_cast_by(id, alt, p);
+                }
+            }
+            return;
+        }
+        let castable: Vec<ObjId> = self
+            .player(p)
+            .hand
+            .iter()
+            .copied()
+            .filter(|id| fits(self, *id))
+            .collect();
+        if castable.is_empty() {
+            return;
+        }
+        let mut options: Vec<Choice> = castable
+            .iter()
+            .map(|id| Choice::Discard {
+                card: *id,
+                def: self.objects[*id].def,
+            })
+            .collect();
+        options.push(Choice::Done);
+        let k = self.choose_mid(p, DecisionKind::ChooseCard, options);
+        if let Some(&card) = castable.get(k) {
+            self.exile_casts
+                .get_or_insert_with(Box::default)
+                .pending
+                .push((p, card, alt));
+        }
+    }
+
     /// Mad Wizard's Lair: "Draw three cards and reveal them. You may cast
     /// one of them without paying its mana cost."
     fn draw_cast_one(&mut self, ctx: &mut EffectCtx, count: u32) {
@@ -10381,6 +10470,12 @@ impl GameState {
             }
             Effect::PunishEach { life, unless } => self.punish_each(ctx, *life, unless.as_ref()),
             Effect::DrawCastOne { count } => self.draw_cast_one(ctx, *count),
+            Effect::CastFree {
+                what,
+                filter,
+                max_mv,
+                exile,
+            } => self.cast_free(ctx, *what, filter.as_ref(), *max_mv, *exile),
             Effect::RevealPutCreature { count, counters } => {
                 self.reveal_put_creature(ctx, *count, *counters);
             }

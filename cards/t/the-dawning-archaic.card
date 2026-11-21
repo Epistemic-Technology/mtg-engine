@@ -1,0 +1,9 @@
+card "The Dawning Archaic" {
+  oracle_id a3e10b9b-9349-4b44-a46c-c825293dbd05
+  cost {10}
+  type Legendary Creature — Avatar
+  pt 7/7
+  this spell costs {1} less count each graveyard instant or sorcery
+  keywords reach
+  triggered whenever this attacks: cast free target instant or sorcery card from your graveyard exile instead
+}

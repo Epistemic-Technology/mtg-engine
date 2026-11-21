@@ -719,12 +719,11 @@ impl GameState {
                     if let Some((p, card, alt)) =
                         self.exile_casts.as_mut().and_then(|e| e.pending.pop())
                     {
-                        // From exile, or from the hand (Mad Wizard's Lair).
-                        if self
-                            .objects
-                            .get(card)
-                            .is_some_and(|o| matches!(o.zone, Zone::Exile | Zone::Hand))
-                        {
+                        // From exile, the hand (Mad Wizard's Lair), or a
+                        // graveyard (The Dawning Archaic).
+                        if self.objects.get(card).is_some_and(|o| {
+                            matches!(o.zone, Zone::Exile | Zone::Hand | Zone::Graveyard)
+                        }) {
                             // CR 712.11a: cast transformed, back face up.
                             let face = self.exile_casts.as_mut().and_then(|e| {
                                 let i = e.transformed.iter().position(|(c, _)| *c == card)?;

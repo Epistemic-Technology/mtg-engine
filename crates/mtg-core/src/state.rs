@@ -346,6 +346,10 @@ pub enum AltCast {
     Airbent,
     /// Cast for {2} rather than its mana cost after it was airbent.
     Airbend,
+    /// Cast without paying its mana cost, and exiled instead of put into
+    /// its owner's graveyard ("If that spell would be put into your
+    /// graveyard, exile it instead", CR 614.1a).
+    FreeExile,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask

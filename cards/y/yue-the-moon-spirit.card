@@ -1,0 +1,8 @@
+card "Yue, the Moon Spirit" {
+  oracle_id 961f1883-2f97-4249-90f9-416279d7a9dd
+  cost {3}{U}
+  type Legendary Creature — Spirit Ally
+  pt 3/3
+  keywords flying, vigilance
+  activated waterbend {5}, {T}: cast free noncreature spell from hand
+}

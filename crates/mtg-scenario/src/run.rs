@@ -1104,10 +1104,14 @@ impl Runner {
             // A card waiting in exile (suspend, rebound) is cast by its
             // trigger, not at priority.
             Action::Cast {
-                respond_to, name, ..
+                respond_to,
+                name,
+                from_graveyard,
+                ..
             } => {
                 respond_to.as_ref().is_none_or(|n| stack_names.contains(n))
                     && !self.waiting_in_exile(d.player, name)
+                    && (*from_graveyard || !self.waiting_in_graveyard(d, name))
             }
             _ => false,
         });
@@ -1713,6 +1717,33 @@ impl Runner {
             }
         }
         index_of(d, &Choice::Accept).unwrap_or(0)
+    }
+
+    /// A card named only in the graveyard, cast by an effect ("you may
+    /// cast target instant or sorcery card from your graveyard without
+    /// paying its mana cost") rather than at priority.
+    /// Only while nothing offers to cast it now.
+    fn waiting_in_graveyard(&self, d: &Decision, name: &str) -> bool {
+        let st = self.state();
+        let ps = st.player(d.player);
+        if ps.hand.iter().any(|id| st.name_of(*id) == name) {
+            return false;
+        }
+        let in_gy: Vec<ObjId> = ps
+            .graveyard
+            .iter()
+            .copied()
+            .filter(|id| st.name_of(*id) == name)
+            .collect();
+        !in_gy.is_empty()
+            && !d.options.iter().any(|c| match c {
+                Choice::Cast(id)
+                | Choice::CastFace { card: id, .. }
+                | Choice::CastAlt(id)
+                | Choice::CastDisturb(id)
+                | Choice::CastHarmonize { card: id, .. } => in_gy.contains(id),
+                _ => false,
+            })
     }
 
     fn waiting_in_exile(&self, p: PlayerId, name: &str) -> bool {

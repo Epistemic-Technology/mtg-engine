@@ -3806,6 +3806,34 @@ impl P {
         self.condition_suffix(s)
     }
 
+    /// After `cast free`: `target ...` (a card), or `[<filter>] spell from
+    /// hand [with mana value up to <n>]`; then `exile instead`.
+    fn cast_free(&mut self) -> R<Effect> {
+        let (what, filter, max) = if self.at_word("target") {
+            (Some(self.recipient()?), None, None)
+        } else {
+            let filter = if self.at_word("spell") {
+                None
+            } else {
+                Some(self.filter()?)
+            };
+            self.expect_words(&["spell", "from", "hand"])?;
+            let max = if self.eat_words(&["with", "mana", "value", "up", "to"]) {
+                Some(self.num()?)
+            } else {
+                None
+            };
+            (None, filter, max)
+        };
+        let exile = self.eat_words(&["exile", "instead"]);
+        Ok(Effect::CastFree {
+            what,
+            filter,
+            max,
+            exile,
+        })
+    }
+
     /// A sentence's duration after its clauses (CR 611.2b): `until your
     /// next turn`, `for as long as this remains`, `for as long as it
     /// remains tapped`, `for as long as you control this`.
@@ -4513,6 +4541,10 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per clause form
     fn clause(&mut self) -> R<Effect> {
+        // "You may cast ... without paying its mana cost" (CR 608.2g).
+        if self.eat_words(&["cast", "free"]) {
+            return self.cast_free();
+        }
         // Designations (CR 701.54, 725, 726, 701.49).
         if self.at_words(&["the", "ring", "tempts", "you"]) {
             self.pos += 4;

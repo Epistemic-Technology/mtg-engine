@@ -1329,6 +1329,21 @@ and may be written or not. A sentence that starts `until end of turn,`
 prints the duration first instead ("Until end of turn, target creature you
 control has base power and toughness 4/4 and gains flying").
 
+Casting as an effect (CR 608.2g: cast as the effect finishes, timing
+restrictions ignored): `cast free noncreature spell from hand` ("you may
+cast a noncreature spell from your hand without paying its mana cost";
+the controller chooses the card, or none), `cast free spell from hand
+with mana value up to 4` ("a spell with mana value 4 or less from your
+hand"; `up to X` likewise), `cast free spell from hand with mana value up
+to that much` ("a spell from your hand with mana value less than or equal
+to that damage"), `cast free artifact spell from hand with mana value up
+to count where ...` ("... less than or equal to the number of ..."), and
+`cast free target instant or sorcery card from your graveyard` ("you may
+cast target instant or sorcery card from your graveyard without paying
+its mana cost"). `exile instead` after either adds "If that spell would
+be put into your graveyard, exile it instead." (it is exiled as it
+resolves or is countered).
+
 Other durations (CR 611.2b) end a sentence, and whatever in it would last
 until end of turn (or "this turn") lasts that long instead: `until your
 next turn` (it ends as the controller's next turn begins: `each creature
