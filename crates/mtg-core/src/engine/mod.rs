@@ -1198,7 +1198,9 @@ impl GameState {
                     // CR 115.3: one "target" word names different objects
                     // ("two target lands"); a spliced card's targets are
                     // its own words (CR 702.47a).
-                    let seg = self.splice_segment(spell, next_target);
+                    let seg = self
+                        .splice_segment(spell, next_target)
+                        .max(self.mode_segment(spell, next_target));
                     let mut options: Vec<Choice> = self
                         .legal_targets(caster, spec, source)
                         .into_iter()
@@ -1236,7 +1238,9 @@ impl GameState {
                     let first_of_group = match many {
                         Some((have, ..)) if have > 0 => Some(next_target),
                         Some(_) => None,
-                        None => (seg..next_target).find(|&i| specs[i] == spec),
+                        None => (seg..next_target).find(|&i| {
+                            specs[i] == spec && chosen.get(i).is_some_and(|t| !t.is_none())
+                        }),
                     };
                     if let Some(first) = first_of_group
                         && matches!(
@@ -1271,9 +1275,12 @@ impl GameState {
                     }
                     if optional {
                         if options.is_empty() {
+                            // Nothing to choose: declined, and the later
+                            // targets are still chosen (CR 601.2c).
+                            self.objects[spell].targets.push(Target::none());
                             self.flow = Flow::Casting {
                                 spell,
-                                next_target: specs.len(),
+                                next_target: next_target + 1,
                                 sacrifice,
                                 discard,
                             };
@@ -2143,16 +2150,25 @@ impl GameState {
             (
                 Flow::Casting {
                     spell,
+                    next_target,
                     sacrifice,
                     discard,
-                    ..
                 },
                 Choice::Done,
             ) => {
-                // Optional targets declined: the rest are optional too.
+                // A variable group stops (it is the last spec); a declined
+                // "up to one" target keeps its slot so the later targets
+                // are still chosen (CR 601.2c).
+                let many = matches!(
+                    self.targets_of(spell).get(next_target),
+                    Some(TargetSpec::Many(_)) | None
+                );
+                if !many {
+                    self.objects[spell].targets.push(Target::none());
+                }
                 self.flow = Flow::Casting {
                     spell,
-                    next_target: usize::MAX,
+                    next_target: if many { usize::MAX } else { next_target + 1 },
                     sacrifice,
                     discard,
                 };
@@ -2649,6 +2665,17 @@ impl GameState {
 
     /// Where the part of `spell`'s targets that target `index` belongs to
     /// begins: the spell's own (0), or a spliced card's (CR 702.47a).
+    /// Where the part of a combined mode ("choose two") holding target
+    /// `index` begins: each mode's "target" words are its own (CR 115.3).
+    fn mode_segment(&self, spell: ObjId, index: usize) -> usize {
+        self.mode_splits_of(spell)
+            .into_iter()
+            .map(|(_, t)| t)
+            .filter(|&t| t <= index)
+            .max()
+            .unwrap_or(0)
+    }
+
     fn splice_segment(&self, spell: ObjId, index: usize) -> usize {
         if self.splices.is_empty() {
             return 0;

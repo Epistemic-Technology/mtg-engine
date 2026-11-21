@@ -43,3 +43,17 @@ scenario "Brigid's Command can't copy a non-Kithkin" {
   run_to turn 1 postcombat_main
   assert battlefield A contains 1 "Grizzly Bears"
 }
+
+scenario "Brigid's Command pumps and fights with the same creature" {
+  # Each mode's "target creature you control" may be the same creature
+  # (CR 115.3): the pair is offered with only one.
+  battlefield A: "Grizzly Bears", "Forest", "Plains", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Brigid's Command"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brigid's Command" mode 6 targeting "Grizzly Bears", "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert damage "Grizzly Bears" 3
+  assert graveyard B contains "Hill Giant"
+}

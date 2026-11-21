@@ -124,6 +124,24 @@ pub enum Target {
     Player(PlayerId),
 }
 
+impl Target {
+    /// A declined optional target ("up to one target artifact"): it holds
+    /// the slot so the later targets keep their places (CR 601.2c). It
+    /// names no object (a null key), is never legal, and doesn't count
+    /// toward "all its targets are illegal" (CR 608.2b).
+    #[must_use]
+    pub fn none() -> Self {
+        Target::Object(ObjId::default())
+    }
+
+    /// Whether this is a declined target's placeholder.
+    #[must_use]
+    pub fn is_none(self) -> bool {
+        use slotmap::Key as _;
+        matches!(self, Target::Object(id) if id.is_null())
+    }
+}
+
 /// `GameObject::marks` bits.
 pub const OBJ_RENOWNED: u8 = 1;
 pub const OBJ_MONSTROUS: u8 = 2;

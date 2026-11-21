@@ -288,6 +288,10 @@ impl Line {
             self.pos += 1;
             return Ok(TargetRef::Auto);
         }
+        if self.peek_ident("none") {
+            self.pos += 1;
+            return Ok(TargetRef::None);
+        }
         if self.peek_ident("player") {
             self.pos += 1;
             return Ok(TargetRef::Player(self.player()?));

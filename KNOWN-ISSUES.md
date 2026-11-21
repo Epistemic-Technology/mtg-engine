@@ -18,17 +18,10 @@ reported missing, so the next wave's features can be chosen by count.
 Cards in the corpus that pass the gate and their scenarios but do the
 wrong thing in some case.
 
-- **A declined "up to N" target skips every later target.** A spell
-  keeps its targets in one flat list, so a declined slot has no place
-  and target choice stops there. Explosive Entry with no artifact puts
-  no counter on the creature. Repro: `scenarios/m5/declined-up-to.scn`
-  (skipped). The "choose two" pairing code also assumes a variable-size
-  target group comes last.
-- **A choose-two pair whose modes share a target description is not
-  offered with one legal object.** Brigid's Command: "+3/+3" and
-  "fights" both say "target creature you control"; with one creature
-  the pair is missing, though the same creature may be chosen for each
-  (CR 115.3). Its scenario uses two creatures.
+- **A variable target group is assumed to come last.** `spec_for`
+  and the target loop treat a `TargetSpec::Many` as the final spec; a
+  "choose two" pair whose first mode has "any number of target ..."
+  would misplace the second mode's targets. No card known.
 - **Most counts read 0 in a static ability.** `per_count` in
   `crates/mtg-core/src/layers.rs` returns 0 for a list of
   "resolution-only" counts, and the gate still matches. Greatest mana
