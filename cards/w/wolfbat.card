@@ -1,0 +1,8 @@
+card "Wolfbat" {
+  oracle_id adc47a25-daab-49c7-93a5-5bbf2bc20cf9
+  cost {2}{B}
+  type Creature — Wolf Bat
+  pt 2/2
+  keywords flying
+  triggered from graveyard whenever you draw your second card each turn: you may pay {B}; if you do, return this to battlefield with 1 finality counter
+}

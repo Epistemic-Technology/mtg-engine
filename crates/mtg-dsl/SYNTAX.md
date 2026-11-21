@@ -441,7 +441,11 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `spore`, `depletion`, `quest`, `ki`, `time`, `tide`, `shield`, `age`,
 `fade`, `ice`, `level`, `lore`, `page`, `arrowhead`, `javelin`, `polyp`,
 `healing`, `mining`, `scream`, `credit`, `brick`, `currency`, `sleep`,
-`net`, `flood`, `glyph`, and the keyword counters `flying`, `first strike`, `trample`,
+`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `finality` (CR
+122.1h: a permanent with one that would be put into a graveyard from the
+battlefield is exiled instead, so it doesn't die; `return target creature
+card from your graveyard to battlefield with 1 finality counter` prints
+"... with a finality counter on it"), and the keyword counters `flying`, `first strike`, `trample`,
 `lifelink`, `deathtouch`, `reach`, `menace`, `vigilance`, `hexproof`,
 `indestructible` (CR 122.1b: the permanent has the keyword). A cost may
 `remove 1 charge counter from this` or `put 1 -1/-1 counter on this`

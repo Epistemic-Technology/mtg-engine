@@ -240,7 +240,13 @@ impl GameState {
     ) -> ObjId {
         // "If this would be put into a graveyard from anywhere, exile it
         // instead." (a disturbed card's back face, CR 702.146).
-        let to = if to == Zone::Graveyard && self.pool.get(self.objects[id].def).graveyard_exile {
+        // CR 122.1h: a permanent with a finality counter on it that would
+        // be put into a graveyard from the battlefield is exiled instead.
+        let to = if to == Zone::Graveyard
+            && (self.pool.get(self.objects[id].def).graveyard_exile
+                || (self.objects[id].zone == Zone::Battlefield
+                    && self.objects[id].counters(CounterKind::Finality) > 0))
+        {
             Zone::Exile
         } else {
             to

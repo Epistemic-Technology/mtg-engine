@@ -1,0 +1,8 @@
+card "Relentless X-ATM092" {
+  oracle_id 50994df7-300d-4e30-897a-0974dc0820ee
+  cost {6}
+  type Artifact Creature — Robot Spider
+  pt 6/5
+  can't be blocked except by 3 or more creatures
+  activated {8}, from graveyard: return this to battlefield tapped with 1 finality counter
+}
