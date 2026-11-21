@@ -1712,13 +1712,14 @@ impl GameState {
         let specs = self.pool.ability(t.ability.ability).targets().to_vec();
         // CR 603.3c: a modal triggered ability with no mode whose targets
         // can be chosen is removed.
-        let modal =
-            match self.pool.ability(t.ability.ability).effects() {
-                [crate::card::Effect::Modes(modes)] => Some(modes.iter().any(|m| {
-                    self.targets_available(t.controller, &m.targets, Some(t.ability.source))
-                })),
-                _ => None,
-            };
+        let modal = match self.pool.ability(t.ability.ability).effects() {
+            [crate::card::Effect::Modes(modes)] => Some(
+                modes
+                    .iter()
+                    .any(|m| self.mode_targets_available(t.controller, m, Some(t.ability.source))),
+            ),
+            _ => None,
+        };
         if modal == Some(false)
             || !self.targets_available_for(
                 t.controller,
@@ -1855,7 +1856,7 @@ impl GameState {
                 }
             }
         }
-        if !legal.is_empty() && legal.iter().all(|l| !l) {
+        if super::casting::all_illegal(&legal, &obj.targets) {
             self.emit(Event::Fizzle {
                 spell: id,
                 def: obj.def,

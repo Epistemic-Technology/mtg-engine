@@ -7,6 +7,6 @@ card "Zanarkand, Ancient Metropolis // Lasting Fayth" {
   face "Lasting Fayth" {
     cost {4}{G}{G}
     type Sorcery — Adventure
-    spell: create 1 "1/1 colorless Hero creature"; put count each land you control +1/+1 counters on that token
+    spell: create 1 "1/1 colorless Hero creature"; put count each land you control +1/+1 counters on it
   }
 }

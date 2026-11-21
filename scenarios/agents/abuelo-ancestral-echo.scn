@@ -1,0 +1,18 @@
+scenario "Abuelo exiles another creature you control and returns it at the next end step" {
+  battlefield A: "Abuelo, Ancestral Echo", "Hill Giant" with 1 +1/+1, "Plains", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Abuelo, Ancestral Echo" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Abuelo can't exile itself" {
+  battlefield A: "Abuelo, Ancestral Echo", "Plains", "Island", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Abuelo, Ancestral Echo" targeting "Abuelo, Ancestral Echo"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Abuelo, Ancestral Echo"
+}

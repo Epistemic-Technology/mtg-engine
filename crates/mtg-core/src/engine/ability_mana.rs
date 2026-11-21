@@ -448,6 +448,12 @@ impl GameState {
             // CR 701.61a: foraging exiles cards or sacrifices a Food, which
             // paying for a spell doesn't do on the way.
             || cost.forage
+            // Likewise blighting, collecting evidence, beholding, and
+            // revealing: costs with a choice the planner doesn't make.
+            || cost.blight > 0
+            || cost.evidence > 0
+            || cost.behold.is_some()
+            || cost.reveal_hand
             || !matches!(cost.sacrifice, None | Some(SacCost::This))
             || cost.mana.has_x()
         {

@@ -1777,7 +1777,7 @@ fn target_noun(t: &Target) -> String {
         Target::Spell(_) => "spell".to_string(),
         Target::GraveyardCard { .. } => "card".to_string(),
         Target::Spec(s) => match s {
-            TargetSpec::Any => "permanent or player".to_string(),
+            TargetSpec::Any | TargetSpec::AnyOther => "permanent or player".to_string(),
             TargetSpec::Creature
             | TargetSpec::TappedCreature
             | TargetSpec::CreatureYouControl
@@ -1856,6 +1856,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
     match s {
         TargetSpec::OnStack { .. } => unreachable!("above"),
         TargetSpec::Any => "any target",
+        TargetSpec::AnyOther => "any other target",
         TargetSpec::Creature | TargetSpec::CreatureWithSubtype(_) => "target creature",
         TargetSpec::PlayerOrPlaneswalker => "target player or planeswalker",
         TargetSpec::PlayerOrBattle => "target player or battle",
@@ -7249,9 +7250,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             .until_eot()
         }
         Effect::PlayerMay { who, inner } => {
+            let you = *who == Recipient::You;
             let who = ctx.obj(*who);
             let body = lowercase_first(&sentences(inner, ctx));
             let body = body.strip_prefix("you ").unwrap_or(&body);
+            // The player acts on their own cards ("Each player may discard
+            // their hand").
+            let body = if you {
+                body.to_string()
+            } else {
+                body.replace("your hand", "their hand")
+                    .replace("your library", "their library")
+                    .replace("your graveyard", "their graveyard")
+            };
             ctx.player_did = true;
             Clause::imperative(format!("{who} may {}", body.trim_end_matches('.')))
         }

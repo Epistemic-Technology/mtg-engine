@@ -184,7 +184,7 @@ to its other face as well.
 | `multikicker {1}{G}` | Multikicker (CR 702.33c): a kicker cost the caster may pay any number of times (offered where a kicker is, up to as many times as the mana pays for, at most 15); paid at least once, the spell is kicked (CR 702.33d), and the count `times kicked` ("for each time it was kicked", `enters with count each times kicked +1/+1 counters`) counts the payments, kept by the permanent. Prints `Multikicker {1}{G}`. |
 | `casualty 2` | Casualty (CR 702.153): as the spell is cast its caster may sacrifice a creature with power 2 or greater; when they do, a trigger copies the spell (CR 707.10), and the copy's controller may choose new targets for it. Prints `Casualty 2`. |
 | `ripple 4` | Ripple (CR 702.60): as the spell is cast, a trigger reveals the top four cards of its caster's library; each with the same name may be cast without paying its mana cost (the caster chooses), and the rest go on the bottom. Prints `Ripple 4`. |
-| `teamwork 2` | Teamwork: an optional additional cost, "tap any number of creatures you control with total power 2 or more" (the engine picks them: the weakest creature enough alone, else the strongest first). `if teamwork, ...` reads "If this spell was cast using teamwork, ...". Prints `Teamwork 2`. |
+| `teamwork 2` | Teamwork: an optional additional cost, "tap any number of creatures you control with total power 2 or more" (the engine picks them: the weakest creature enough alone, else the strongest first). `if teamwork, ...` reads "If this spell was cast using teamwork, ...". `if teamwork, instead exile target creature and you gain 3 life` (Cruel Alliance): as with the kicker, the spell cast using teamwork has the "instead" sentence's targets in place of the others (CR 601.2c), and teamwork is offered only when they exist (and required when only they do). Prints `Teamwork 2`. |
 | `splice {1}{R}` | Splice onto Arcane (CR 702.47): as its controller casts an Arcane spell, the card may be revealed from hand and this cost paid too; the spell gains the card's `spell:` effects and targets (after its own). A cost other than mana is a cost phrase: `splice sacrifice 2 Mountain`, `splice return blue creature you control`, `splice tap untapped white creature you control` ("Splice onto Arcane—Sacrifice two Mountains."); the engine picks the permanents, sparing the spell's targets. |
 | `backup 1` | Backup N (CR 702.165): "When this creature enters, put N +1/+1 counters on target creature. If that's another creature, it gains the following abilities until end of turn." The following abilities are the lines written after `backup` (keywords with `keyword ...` on their own line). |
 | `offspring {1}` | Offspring (CR 702.175): an optional additional cost (scripted like kicker); if paid, when the permanent enters, a 1/1 token copy of it (a definition of its own, keeping the mana cost). |
@@ -645,10 +645,22 @@ Cost item `2 times per turn`: "Activate no more than twice each turn."
 `that much` is the triggering event's amount ("Whenever this creature is
 dealt damage, you gain that much life": `you gain that much life`).
 Trigger `whenever this is dealt combat damage` (CR 510.2) counts only
-combat damage. In a triggered ability `toughness of it`, `power of it`,
-`mana value of it` ("its toughness") and `power of that creature` ("that
-creature's power") read the triggering object, as it last existed once it
-has left (CR 608.2h): `triggered when enchanted creature dies: its
+combat damage. In a triggered ability `it` is the triggering object, but
+after a target the ability names (other than a player) it is that target,
+as in a spell: `put 2 +1/+1 counters on target creature you control; it
+gains vigilance until end of turn`, `you lose count equal mana value of it
+life` after `return up to 1 target Vampire card ...`; `it deals` stays the
+triggering object. In a trigger with no triggering object (`at beginning
+of ...`, `whenever you gain life`, `whenever you attack`) `it` is an
+error: write `this` or `target N`. In any ability, `it` after `create 1
+"..."` (or a token copy), before another target, is that token ("Create a
+0/0 ... token. Put X +1/+1 counters on it."), as `that token` is; and
+`that player` after a target player is that player, in a triggered
+ability too ("Target player mills three cards. ... that player mills ten
+cards instead"). In a triggered ability `toughness of
+it`, `power of it`, `mana value of it` ("its toughness") and `power of
+that creature` ("that creature's power") otherwise read the triggering
+object, as it last existed once it has left (CR 608.2h): `triggered when enchanted creature dies: its
 controller loses count equal power of it life and you gain count equal
 toughness of it life`.
 `count each creature blocking it` ("for each creature blocking it", the
@@ -1138,7 +1150,7 @@ color-defining ability, CR 604.3, so the card is colorless in every zone,
 the stack included), `cda pt card types in graveyards +1`,
 `cda pt creature cards in graveyards +1`, `cda pt count Swamp you control`,
 `cda pt your life`, `cda pt domain` (a power/toughness-defining ability,
-layer 7a, counting any count a static ability can: "~'s power and
+layer 7a, counting any count a static ability can (a count only a resolving effect has, such as `drawn this turn`, `greatest power ...`, `party`, or a target's or the triggering object's, is a compile error in a static ability: it would read 0): "~'s power and
 toughness are each equal to ..."; the count is judged from its controller
 as the layer applies), `cda power count Rat you control` ("~'s power is
 equal to the number of Rats you control"; the toughness is printed, `pt
@@ -1791,7 +1803,8 @@ nontoken creature you control dies this turn, create ...". Led by
 first: `until end of turn, delayed this: whenever creature you control
 deals combat damage to a player, investigate` ("Until end of turn,
 whenever a creature you control deals combat damage to a player,
-investigate."). `delayed
+investigate."). A delayed trigger printed "Whenever" with neither is a
+compile error (it would trigger only once, CR 603.7c). `delayed
 this: when next you cast instant or sorcery spell this turn, copy that
 spell new targets` ("When you next cast an instant or sorcery spell this
 turn, copy that spell. ...", CR 603.7c) triggers only the first time,
@@ -1907,6 +1920,12 @@ announces the division as the targets are chosen, each target getting at
 least one (so no more targets than the amount, and at least one when
 there is anything to divide); a target that is illegal on resolution
 loses its share. `another target creature` excludes the source.
+`another target any` (or `any other target`) prints "any other target":
+not the source nor what the ability's other "target" words chose (CR
+115.3; `deal 2 damage to any target and deal 1 damage to another target
+any`, Boulder Dash). `another target blocking creature` prints "another
+target blocking creature". `another` before a target with no "other"
+form is an error rather than dropped.
 `deal X plus 1 damage divided among any number of targets` ("X plus 1
 damage"; also wherever a number goes). The same damage to several targets
 of one phrase prints "each of": `deal 1 damage to up to 2 target creature`

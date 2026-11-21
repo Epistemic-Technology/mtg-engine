@@ -1876,6 +1876,64 @@ pub enum CountExpr {
     Devotion(ColorSet),
 }
 
+impl CountExpr {
+    /// Whether a static ability can read this count (`layers::per_count`):
+    /// the rest exist only while an effect resolves (its targets, what it
+    /// did) and read 0 in a static ability, so the card language rejects
+    /// them there.
+    #[must_use]
+    pub fn in_static(&self) -> bool {
+        match self {
+            CountExpr::Sum(a, b) => a.in_static() && b.in_static(),
+            CountExpr::Plus(_, c) | CountExpr::Times(_, c) => c.in_static(),
+            CountExpr::Permanents(_)
+            | CountExpr::Domain
+            | CountExpr::ColorsAmongPermanents
+            | CountExpr::CardsInGraveyard(_)
+            | CountExpr::CardsInAllGraveyards(_)
+            | CountExpr::CardsInOpponentsGraveyards(_)
+            | CountExpr::SourceCounters(_)
+            | CountExpr::HostGraveyard(_)
+            | CountExpr::CardTypesInAllGraveyards
+            | CountExpr::GreatestPowerInGraveyard(_)
+            | CountExpr::GreatestManaValue
+            | CountExpr::Devotion(_)
+            | CountExpr::CardsInHand
+            | CountExpr::Life => true,
+            CountExpr::SourcePower
+            | CountExpr::TargetStat { .. }
+            | CountExpr::ThisWay(..)
+            | CountExpr::LifeLostThisWay
+            | CountExpr::ThoseObjects
+            | CountExpr::TriggerCounters(_)
+            | CountExpr::Votes(_)
+            | CountExpr::BlockingIt { .. }
+            | CountExpr::TargetManaValue(_)
+            | CountExpr::CardManaValue
+            | CountExpr::GreatestPower(_)
+            | CountExpr::DifferentlyNamed(_)
+            | CountExpr::Party(_)
+            | CountExpr::SourceToughness
+            | CountExpr::CardsDrawnThisTurn
+            | CountExpr::SpellsCastThisTurn { .. }
+            | CountExpr::OtherInstantSorceryCast { .. }
+            | CountExpr::OpponentsAttacked
+            | CountExpr::AttackedWithThisTurn
+            | CountExpr::SpentColors
+            | CountExpr::TimesKicked
+            | CountExpr::SpentTreasure
+            | CountExpr::DiedThisTurn(_)
+            | CountExpr::TriggerStat(_)
+            | CountExpr::AttachedStat(_)
+            | CountExpr::MovedStat { .. }
+            | CountExpr::TargetHand(_)
+            | CountExpr::GreatestToughness(_)
+            | CountExpr::LifeLostThisTurn
+            | CountExpr::DamageThisWay { .. } => false,
+        }
+    }
+}
+
 /// A characteristic a count reads from an object.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum Stat {
@@ -2835,6 +2893,11 @@ pub enum TargetSpec {
     /// (`CardPool::many`). One spec for the whole group, which is an
     /// ability's last; its targets fill the rest of the target list.
     Many(u16),
+    /// "any other target": as `Any`, but not the source ("he deals damage
+    /// ... to any other target") nor an object or player another of the
+    /// ability's "target" words chose (Boulder Dash's "2 damage to any
+    /// target and 1 damage to any other target").
+    AnyOther,
 }
 
 /// A variable number of targets of one kind (CR 601.2c): at least `min`,

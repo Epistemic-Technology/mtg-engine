@@ -109,3 +109,139 @@ fn load_into_adds_a_file_to_an_existing_pool() {
     let by_name: HashMap<&str, &mtg_dsl::ast::Card> = HashMap::new();
     let _ = by_name;
 }
+
+/// Load one card with `line` (an ability line) into a copy of the built-in
+/// pool (for its tokens); the error's text, if any.
+fn load_card(kind: &str, line: &str) -> Result<(), String> {
+    static POOL: std::sync::OnceLock<CardPool> = std::sync::OnceLock::new();
+    let mut pool = POOL.get_or_init(builtin_pool).clone();
+    let text = format!("card \"Test\" {{\n  cost {{1}}\n  type {kind}\n  {line}\n}}\n");
+    mtg_dsl::load_into(&mut pool, &text)
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
+fn compiles(ability: &str) -> bool {
+    load_card("Creature — Bear\n  pt 2/2", ability).is_ok()
+}
+
+/// The error a creature with `ability` gets; panics if it loads.
+fn creature_error(ability: &str) -> String {
+    load_card("Creature — Bear\n  pt 2/2", ability).unwrap_err()
+}
+
+fn spell_error(spell: &str) -> String {
+    load_card("Sorcery", &format!("spell: {spell}")).unwrap_err()
+}
+
+#[test]
+fn it_in_a_trigger_without_a_triggering_object_is_rejected() {
+    // An upkeep trigger has no triggering object for `it` to be.
+    let e =
+        creature_error("triggered at beginning of your upkeep: it deals 2 damage to each opponent");
+    assert!(e.contains("no triggering object"), "{e}");
+    assert!(compiles(
+        "triggered at beginning of your upkeep: this deals 2 damage to each opponent"
+    ));
+    assert!(compiles(
+        "triggered whenever another creature you control attacks: it gets +1/+0 until end of turn"
+    ));
+}
+
+#[test]
+fn a_delayed_triggered_mana_ability_is_an_error() {
+    // A compile error, not a panic.
+    let e = spell_error(
+        "until end of turn, delayed this: whenever Forest is tapped for mana this turn, add {G}",
+    );
+    assert!(e.contains("mana ability"), "{e}");
+}
+
+#[test]
+fn a_delayed_whenever_needs_a_duration() {
+    // CR 603.7c: without a duration it would trigger once.
+    let e = spell_error(
+        "delayed this: whenever creature you control deals combat damage to a player, draw 1 card",
+    );
+    assert!(e.contains("needs a duration"), "{e}");
+    assert!(
+        load_card(
+            "Sorcery",
+            "spell: until end of turn, delayed this: whenever creature you control deals combat damage to a player, draw 1 card"
+        )
+        .is_ok()
+    );
+}
+
+#[test]
+fn that_much_needs_an_amount() {
+    // A cast trigger's event has no amount; a damage trigger's does.
+    let e = creature_error(
+        "triggered whenever you cast noncreature spell: this deals that much damage to each opponent",
+    );
+    assert!(e.contains("no amount"), "{e}");
+    assert!(compiles(
+        "triggered whenever this is dealt damage: this deals that much damage to each opponent"
+    ));
+}
+
+#[test]
+fn a_delayed_trigger_about_tokens_cant_watch_the_source() {
+    let e = creature_error(
+        "triggered when this enters: create 2 \"1/1 white Soldier creature\"; delayed those tokens: exile those tokens when this leaves the battlefield",
+    );
+    assert!(e.contains("watch"), "{e}");
+}
+
+#[test]
+fn only_the_source_becomes_a_copy() {
+    let e =
+        spell_error("target artifact you control becomes a copy of target artifact you control");
+    assert!(e.contains("become a copy"), "{e}");
+}
+
+#[test]
+fn a_filter_with_three_alternatives_is_an_error() {
+    let e = spell_error("deal 4 damage to target attacking or blocking or tapped creature");
+    assert!(e.contains("three alternatives"), "{e}");
+}
+
+#[test]
+fn it_after_a_target_in_a_trigger_is_that_target() {
+    let card = |ability: &str| {
+        let text = format!(
+            "card \"Test\" {{\n  cost {{1}}\n  type Creature — Bear\n  pt 2/2\n  {ability}\n}}\n"
+        );
+        parse(&text).unwrap().remove(0).abilities
+    };
+    assert_eq!(
+        card(
+            "triggered whenever this attacks: return up to 1 target creature card from your graveyard to battlefield; you lose count equal mana value of it life"
+        ),
+        card(
+            "triggered whenever this attacks: return up to 1 target creature card from your graveyard to battlefield; you lose count equal mana value of target 1 life"
+        )
+    );
+    assert_eq!(
+        card(
+            "triggered whenever land you control enters: put 2 +1/+1 counters on target creature you control; it gains vigilance until end of turn"
+        ),
+        card(
+            "triggered whenever land you control enters: put 2 +1/+1 counters on target creature you control; target 1 gains vigilance until end of turn"
+        )
+    );
+}
+
+#[test]
+fn a_static_ability_rejects_a_resolution_only_count() {
+    // "the number of cards you've drawn this turn" is kept for a resolving
+    // effect; a static ability would read 0 (`CountExpr::in_static`).
+    assert!(compiles("static this: cda pt count creature you control"));
+    for line in [
+        "static this: cda pt drawn this turn",
+        "static this: cda power greatest power creature you control",
+    ] {
+        let e = creature_error(line);
+        assert!(e.contains("can't use this count"), "{line}: {e}");
+    }
+}

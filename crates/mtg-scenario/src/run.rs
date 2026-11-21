@@ -427,8 +427,16 @@ impl Runner {
                     && self
                         .pending_targets
                         .as_ref()
-                        .is_none_or(|t| index >= t.len())
+                        .is_none_or(|t| index >= t.len() || matches!(t[index], TargetRef::None))
                 {
+                    // `none`: declined; the rest stay scripted.
+                    if self
+                        .pending_targets
+                        .as_ref()
+                        .is_some_and(|t| index + 1 < t.len())
+                    {
+                        return Ok(done);
+                    }
                     self.pending_targets = None;
                     return Ok(done);
                 }
@@ -989,6 +997,12 @@ impl Runner {
             }
             return Ok(0);
         }
+        if matches!(tr, TargetRef::None) {
+            return index_of(d, &Choice::Done).ok_or_else(|| Failure {
+                line,
+                message: format!("target #{} can't be declined", index + 1),
+            });
+        }
         let t = self.target_for(d, line, tr)?;
         if index + 1 == targets.len() {
             // All chosen: a trigger that fires while the costs are paid
@@ -1359,7 +1373,10 @@ impl Runner {
                                         conspired: true,
                                         ..
                                     }
-                                ) && self.state().def_of(id).is_some_and(|d| d.gift.is_some())),
+                                ) && self
+                                    .state()
+                                    .def_of(id)
+                                    .is_some_and(|d| d.gift.is_some() || d.teamwork > 0)),
                         )?;
                         // A bestowed spell targets what it enchants; spliced
                         // cards' targets follow the spell's (CR 702.47a).
@@ -1677,6 +1694,12 @@ impl Runner {
             }
             return Ok(0);
         }
+        if matches!(tr, TargetRef::None) {
+            return index_of(d, &Choice::Done).ok_or_else(|| Failure {
+                line,
+                message: format!("target #{} can't be declined", index + 1),
+            });
+        }
         let t = self.target_for(d, line, tr)?;
         if index + 1 == targets.len() {
             // All chosen: a trigger that fires while the costs are paid
@@ -1940,7 +1963,9 @@ impl Runner {
         let mut division: Vec<(Target, u32)> = Vec::new();
         for (tr, amount) in parts {
             let t = match tr {
-                TargetRef::Auto => return fail(a.line, "`auto` is not a damage recipient"),
+                TargetRef::Auto | TargetRef::None => {
+                    return fail(a.line, "`auto` and `none` are not damage recipients");
+                }
                 TargetRef::Player(p) => Target::Player(*p),
                 TargetRef::Object(r) => {
                     let id = blockers
@@ -2288,6 +2313,11 @@ impl Runner {
                     asked = asked.max(index + 1);
                     if matches!(tr, TargetRef::Auto) {
                         0
+                    } else if matches!(tr, TargetRef::None) {
+                        match index_of(&d, &Choice::Done) {
+                            Some(k) => k,
+                            None => return Ok(true),
+                        }
                     } else {
                         let t = self.target_for(&d, line, tr)?;
                         match index_of(&d, &Choice::Target(t)) {
@@ -2296,7 +2326,17 @@ impl Runner {
                         }
                     }
                 }
-                DecisionKind::PriorityAction => return Ok(asked < targets.len()),
+                // A trailing `none` the engine declined itself (nothing
+                // legal) is never asked.
+                DecisionKind::PriorityAction => {
+                    let needed = targets.len()
+                        - targets
+                            .iter()
+                            .rev()
+                            .take_while(|t| matches!(t, TargetRef::None))
+                            .count();
+                    return Ok(asked < needed);
+                }
                 // Kicked, or the gift promised, only if scripted: either
                 // changes the spell's targets (CR 601.2c, 702.174m).
                 DecisionKind::Kicker { .. } | DecisionKind::Gift { .. } => {
@@ -2346,7 +2386,9 @@ impl Runner {
         Ok(match tr {
             TargetRef::Player(p) => Target::Player(*p),
             TargetRef::Object(r) => Target::Object(self.resolve_obj(line, r)?),
-            TargetRef::Auto => return fail(line, "`auto` cannot name a specific target"),
+            TargetRef::Auto | TargetRef::None => {
+                return fail(line, "`auto` and `none` cannot name a specific target");
+            }
         })
     }
 

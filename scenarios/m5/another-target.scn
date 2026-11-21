@@ -1,0 +1,61 @@
+# "any other target" and "another target blocking creature" (CR 115.3):
+# the second "target" word can't choose what the first chose. Both forms
+# used to drop "other" while printing it.
+
+scenario "Boulder Dash deals 2 to one target and 1 to another" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Boulder Dash"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Boulder Dash" targeting player B, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "Boulder Dash can't choose the same target twice" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Boulder Dash"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Boulder Dash" targeting "Hill Giant", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Dissension in the Ranks: one blocker fights another" {
+  battlefield A: "Llanowar Elves", "Grizzly Bears"
+  battlefield B: "Serra Angel", "Wind Drake", 5 "Mountain"
+  hand B: "Dissension in the Ranks"
+  turn 1 A: attack "Llanowar Elves", "Grizzly Bears"
+  turn 1 B: block "Llanowar Elves" with "Serra Angel"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  turn 1 declare_blockers B: cast "Dissension in the Ranks" targeting "Serra Angel", "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert damage "Serra Angel" 3
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Dissension in the Ranks can't have a blocker fight itself" {
+  battlefield A: "Llanowar Elves", "Grizzly Bears"
+  battlefield B: "Serra Angel", "Wind Drake", 5 "Mountain"
+  hand B: "Dissension in the Ranks"
+  turn 1 A: attack "Llanowar Elves", "Grizzly Bears"
+  turn 1 B: block "Llanowar Elves" with "Serra Angel"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  illegal turn 1 declare_blockers B: cast "Dissension in the Ranks" targeting "Serra Angel", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert damage "Serra Angel" 1
+  assert hand B contains "Dissension in the Ranks"
+}
+
+scenario "Dissension in the Ranks needs blocking creatures" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Serra Angel", "Wind Drake", 5 "Mountain"
+  hand B: "Dissension in the Ranks"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Serra Angel"
+  illegal turn 1 declare_blockers B: cast "Dissension in the Ranks" targeting "Serra Angel", "Wind Drake"
+  run_to turn 1 combat_damage
+}

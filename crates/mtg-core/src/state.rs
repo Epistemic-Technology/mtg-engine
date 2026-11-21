@@ -124,6 +124,24 @@ pub enum Target {
     Player(PlayerId),
 }
 
+impl Target {
+    /// A declined optional target ("up to one target artifact"): it holds
+    /// the slot so the later targets keep their places (CR 601.2c). It
+    /// names no object (a null key), is never legal, and doesn't count
+    /// toward "all its targets are illegal" (CR 608.2b).
+    #[must_use]
+    pub fn none() -> Self {
+        Target::Object(ObjId::default())
+    }
+
+    /// Whether this is a declined target's placeholder.
+    #[must_use]
+    pub fn is_none(self) -> bool {
+        use slotmap::Key as _;
+        matches!(self, Target::Object(id) if id.is_null())
+    }
+}
+
 /// `GameObject::marks` bits.
 pub const OBJ_RENOWNED: u8 = 1;
 pub const OBJ_MONSTROUS: u8 = 2;
@@ -1033,8 +1051,9 @@ pub fn targets_in<'p>(pool: &'p CardPool, o: &GameObject) -> &'p [TargetSpec] {
         Some(modes) => modes
             .get(usize::from(o.cast.mode()))
             .map_or(&[], |m| &m.targets),
-        // CR 601.2c: targets only a kicked spell has.
-        None if o.cast.kicked() => def.kicked_cast_targets(),
+        // CR 601.2c: targets only a kicked spell has (or one cast using
+        // teamwork: "If this spell was cast using teamwork, instead ...").
+        None if o.cast.kicked() || o.cast.teamwork() => def.kicked_cast_targets(),
         None => def.unkicked_cast_targets(),
     }
 }
@@ -2754,6 +2773,7 @@ impl GameState {
         };
         match spec {
             TargetSpec::Any
+            | TargetSpec::AnyOther
             | TargetSpec::Creature
             | TargetSpec::CreatureYouControl
             | TargetSpec::OtherCreature
@@ -3834,6 +3854,7 @@ impl GameState {
                     && self.player(p).lost.is_none()
                     && match spec {
                         TargetSpec::Any
+                        | TargetSpec::AnyOther
                         | TargetSpec::Player
                         | TargetSpec::PlayerOrPlaneswalker
                         | TargetSpec::PlayerOrBattle => true,
@@ -3924,6 +3945,10 @@ impl GameState {
                     // CR 115.4: "any target" is a creature, player,
                     // planeswalker, or battle.
                     TargetSpec::Any => c.is_creature() || c.is_planeswalker() || c.is_battle(),
+                    TargetSpec::AnyOther => {
+                        (c.is_creature() || c.is_planeswalker() || c.is_battle())
+                            && Some(id) != source
+                    }
                     TargetSpec::CreatureOrPlaneswalker => c.is_creature() || c.is_planeswalker(),
                     TargetSpec::PlayerOrBattle => c.is_battle(),
                     TargetSpec::PlayerOrPlaneswalker | TargetSpec::OpponentOrPlaneswalker => {

@@ -4616,6 +4616,10 @@ impl GameState {
                 && def.kicked_drops.is_some()
                 && self.players_in_game().any(|q| q != p)
                 && self.targets_available(p, def.kicked_cast_targets(), Some(id)))
+            || (def.teamwork > 0
+                && def.kicked_drops.is_some()
+                && self.teamwork_tappers(p, def.teamwork).is_some()
+                && self.targets_available(p, def.kicked_cast_targets(), Some(id)))
     }
 
     /// Whether every one of `specs` has a legal target for `p` (for an
@@ -4629,6 +4633,24 @@ impl GameState {
         self.targets_available_for(p, specs, source, None)
     }
 
+    /// `targets_available` for a mode of a modal spell or ability. A
+    /// combined mode ("choose two") is several modes' "target" words, and
+    /// one object may be chosen for each of them (CR 115.3): only targets
+    /// within one part must differ.
+    pub(super) fn mode_targets_available(
+        &self,
+        p: PlayerId,
+        m: &crate::card::Mode,
+        source: Option<ObjId>,
+    ) -> bool {
+        if m.split.is_none() {
+            return self.targets_available(p, &m.targets, source);
+        }
+        let starts = mode_target_starts(m);
+        self.plain_targets_in_parts(p, &m.targets, &starts, source)
+            && self.related_targets_available(p, &m.targets, source, None)
+    }
+
     /// `targets_available` for a triggered ability whose triggering player
     /// is `trigger_player` ("target creature that player controls").
     pub(super) fn targets_available_for(
@@ -4638,9 +4660,18 @@ impl GameState {
         source: Option<ObjId>,
         trigger_player: Option<PlayerId>,
     ) -> bool {
-        if !self.plain_targets_available(p, specs, source) {
-            return false;
-        }
+        self.plain_targets_in_parts(p, specs, &[], source)
+            && self.related_targets_available(p, specs, source, trigger_player)
+    }
+
+    /// The "that player" part of `targets_available_for`.
+    fn related_targets_available(
+        &self,
+        p: PlayerId,
+        specs: &[TargetSpec],
+        source: Option<ObjId>,
+        trigger_player: Option<PlayerId>,
+    ) -> bool {
         // "that player": some choice of the targets it relates to leaves
         // one for it.
         specs
@@ -4744,37 +4775,65 @@ impl GameState {
         }
     }
 
-    fn plain_targets_available(
+    /// `starts`: where each part of a combined mode after the first begins
+    /// (targets of different parts may be the same object).
+    fn plain_targets_in_parts(
+        &self,
+        p: PlayerId,
+        all: &[TargetSpec],
+        starts: &[usize],
+        source: Option<ObjId>,
+    ) -> bool {
+        all.iter().enumerate().all(|(i, s)| {
+            let lo = starts
+                .iter()
+                .copied()
+                .filter(|&b| b <= i)
+                .max()
+                .unwrap_or(0);
+            let hi = starts
+                .iter()
+                .copied()
+                .filter(|&b| b > i)
+                .min()
+                .unwrap_or(all.len());
+            self.plain_target_available(p, &all[lo..hi.max(lo)], *s, source)
+        })
+    }
+
+    /// Whether `s`, one of `specs`, has enough legal targets: CR 115.3,
+    /// "two target lands" needs two different lands.
+    fn plain_target_available(
         &self,
         p: PlayerId,
         specs: &[TargetSpec],
+        s: TargetSpec,
         source: Option<ObjId>,
     ) -> bool {
-        // CR 115.3: "two target lands" needs two different lands.
-        specs.iter().all(|s| match s {
+        match s {
             TargetSpec::UpTo(_) => true,
             // "One or two target creatures" needs one; X can be 0.
-            TargetSpec::Many(i) => match self.pool.many(*i).min {
+            TargetSpec::Many(i) => match self.pool.many(i).min {
                 crate::card::Num::N(n) => {
-                    n == 0 || self.legal_targets(p, *s, source).len() >= n as usize
+                    n == 0 || self.legal_targets(p, s, source).len() >= n as usize
                 }
                 _ => true,
             },
             // "Move all counters from target creature onto another target
             // creature": the other target is a different creature too.
-            TargetSpec::OtherCreature | TargetSpec::OtherPermanent => {
-                let base = if *s == TargetSpec::OtherCreature {
-                    TargetSpec::Creature
-                } else {
-                    TargetSpec::Permanent
+            TargetSpec::OtherCreature | TargetSpec::OtherPermanent | TargetSpec::AnyOther => {
+                let base = match s {
+                    TargetSpec::OtherCreature => TargetSpec::Creature,
+                    TargetSpec::AnyOther => TargetSpec::Any,
+                    _ => TargetSpec::Permanent,
                 };
-                self.legal_targets(p, *s, source).len()
-                    >= specs.iter().filter(|x| **x == *s || **x == base).count()
+                self.legal_targets(p, s, source).len()
+                    >= specs.iter().filter(|x| **x == s || **x == base).count()
             }
             _ => {
-                self.legal_targets(p, *s, source).len() >= specs.iter().filter(|x| *x == s).count()
+                self.legal_targets(p, s, source).len() >= specs.iter().filter(|x| **x == s).count()
             }
-        })
+        }
     }
 
     /// The permanents a stack object targets become its targets (CR 115.?):
@@ -4813,6 +4872,7 @@ impl GameState {
         let targets: SmallVec<[ObjId; 2]> = self.objects[obj]
             .targets
             .iter()
+            .filter(|t| !t.is_none())
             .filter_map(|t| match t {
                 Target::Object(id) => Some(*id),
                 Target::Player(_) => None,
@@ -4849,7 +4909,7 @@ impl GameState {
             let with_targets: Vec<usize> = modes
                 .iter()
                 .enumerate()
-                .filter(|(_, m)| self.targets_available(o.controller, &m.targets, source))
+                .filter(|(_, m)| self.mode_targets_available(o.controller, m, source))
                 .map(|(i, _)| i)
                 .collect();
             let other = o.cast.other_cost();
@@ -4875,7 +4935,7 @@ impl GameState {
         modes
             .iter()
             .enumerate()
-            .filter(|(_, m)| self.targets_available(o.controller, &m.targets, source))
+            .filter(|(_, m)| self.mode_targets_available(o.controller, m, source))
             .filter(|(_, m)| {
                 // Entwined, the spell costs more (CR 702.42a).
                 m.split.is_none()
@@ -6435,7 +6495,7 @@ impl GameState {
             // are illegal the spell does not resolve.
             let legal = self.targets_legal(obj.controller, specs, &obj.targets, Some(spell), None);
             // A spell whose optional targets were all declined has none.
-            if !legal.is_empty() && legal.iter().all(|l| !l) {
+            if all_illegal(&legal, &obj.targets) {
                 self.emit(Event::Fizzle {
                     spell,
                     def: obj.def,
@@ -6714,6 +6774,11 @@ impl GameState {
                 break;
             };
             let current = self.objects[copy].targets[i];
+            // A declined target stays declined (CR 707.10c changes targets,
+            // not their number).
+            if current.is_none() {
+                continue;
+            }
             let mut options = vec![Choice::Target(current)];
             options.extend(
                 self.legal_targets(controller, spec, Some(source))
@@ -7066,7 +7131,8 @@ impl GameState {
             .enumerate()
             .map_while(|(i, t)| {
                 crate::card::spec_for(specs, i).map(|spec| {
-                    self.is_legal_target_for(controller, spec, *t, source)
+                    !t.is_none()
+                        && self.is_legal_target_for(controller, spec, *t, source)
                         && self.that_player_ok(spec, *t, trigger_player, targets)
                 })
             })
@@ -9765,17 +9831,21 @@ impl GameState {
             // player decides (CR 608.2d) and acts as the one doing it; an
             // act they can't complete in full isn't offered (CR 101.3).
             Effect::PlayerMay { who, effects } => {
-                let Some(p) = self
+                // "Each player may discard their hand and draw seven
+                // cards": each player in turn order decides and acts
+                // (CR 101.4; an approximation of simultaneous actions).
+                let players: SmallVec<[PlayerId; 4]> = self
                     .recipients(ctx, *who)
                     .into_iter()
-                    .find_map(|t| match t {
+                    .filter_map(|t| match t {
                         Target::Player(p) => Some(p),
                         Target::Object(_) => None,
                     })
-                else {
+                    .collect();
+                if players.is_empty() {
                     ctx.did = false;
                     return;
-                };
+                }
                 let def = self
                     .objects
                     .get(ctx.source)
@@ -9783,26 +9853,32 @@ impl GameState {
                     .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
                     .expect("a resolving spell or its last known information exists");
                 let you = ctx.controller;
-                ctx.controller = p;
-                let possible = effects.iter().all(|e| match e {
-                    Effect::Pay { mana, life } => {
-                        (*life == 0
-                            || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX))
-                            && self.can_pay(p, &mana.requirements(0))
+                let mut any = false;
+                for p in players {
+                    ctx.controller = p;
+                    let possible = effects.iter().all(|e| match e {
+                        Effect::Pay { mana, life } => {
+                            (*life == 0
+                                || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX))
+                                && self.can_pay(p, &mana.requirements(0))
+                        }
+                        e => self.can_do(ctx, e),
+                    });
+                    let did = possible
+                        && self.choose_mid(
+                            p,
+                            DecisionKind::YouMay { def },
+                            vec![Choice::Accept, Choice::Decline],
+                        ) == 0;
+                    if did {
+                        ctx.did = true;
+                        for e in effects {
+                            self.apply_effect(ctx, e);
+                        }
                     }
-                    e => self.can_do(ctx, e),
-                });
-                ctx.did = possible
-                    && self.choose_mid(
-                        p,
-                        DecisionKind::YouMay { def },
-                        vec![Choice::Accept, Choice::Decline],
-                    ) == 0;
-                if ctx.did {
-                    for e in effects {
-                        self.apply_effect(ctx, e);
-                    }
+                    any |= did;
                 }
+                ctx.did = any;
                 ctx.controller = you;
             }
             // CR 701.67a: pay it, tapping artifacts and creatures for
@@ -12450,4 +12526,32 @@ fn plain_payment_plan(
         generic -= 1;
     }
     Some(tapped)
+}
+
+/// CR 608.2b: a spell or ability with targets, all of them now illegal,
+/// doesn't resolve. Declined optional targets (`Target::none`) are not
+/// targets; with none chosen it resolves.
+pub(super) fn all_illegal(legal: &[bool], targets: &[Target]) -> bool {
+    let mut any = false;
+    for (l, t) in legal.iter().zip(targets) {
+        if t.is_none() {
+            continue;
+        }
+        if *l {
+            return false;
+        }
+        any = true;
+    }
+    any
+}
+
+/// Where each part of a combined mode after the first begins among its
+/// targets (`Mode::split`, `split2`, `more`).
+pub(super) fn mode_target_starts(m: &crate::card::Mode) -> SmallVec<[usize; 4]> {
+    m.split
+        .into_iter()
+        .chain(m.split2)
+        .chain(m.more.iter().copied())
+        .map(|(_, t)| usize::from(t))
+        .collect()
 }

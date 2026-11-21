@@ -1,0 +1,6 @@
+card "Boulder Dash" {
+  oracle_id 30a9ad0e-1b23-41ce-bacc-3b27f78ef628
+  cost {1}{R}
+  type Sorcery
+  spell: deal 2 damage to any target and deal 1 damage to another target any
+}

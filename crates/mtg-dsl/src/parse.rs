@@ -48,6 +48,9 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         delayed_dies: false,
         in_trigger: false,
         it_source: false,
+        no_trigger_obj: false,
+        created_at: None,
+        no_trigger_amount: false,
         in_spell: false,
         group_named: false,
         subject: None,
@@ -545,6 +548,17 @@ struct P {
     /// (heroic): `it` is the source, as Oracle has it ("put a +1/+1
     /// counter on it").
     it_source: bool,
+    /// Inside a triggered ability whose event has no object ("at the
+    /// beginning of your upkeep", "whenever you gain life"): there is no
+    /// triggering object for `it` to be.
+    no_trigger_obj: bool,
+    /// An effect of this ability created one token, with this many
+    /// targets declared then: `it` after it is that token ("Create a 1/1
+    /// ... token. Put X +1/+1 counters on it.") until a target is named.
+    created_at: Option<usize>,
+    /// Inside a triggered ability whose event has no amount (a cast, a
+    /// step, life gain): `that much` would be 0.
+    no_trigger_amount: bool,
     /// Inside an instant or sorcery's own effects (`spell:`, or the modes
     /// of a modal spell): `it` after a target is that target, since the
     /// spell itself can only be the "it" that deals damage.
@@ -600,6 +614,31 @@ impl P {
             self.pos += 1;
         }
         t
+    }
+
+    /// The last target declared in this ability if it can be an object
+    /// (not "target player" or "target opponent"): what `it` after it is.
+    fn last_object_target(&self) -> Option<usize> {
+        use mtg_core::card::TargetSpec as S;
+        let n = self.targets.len().checked_sub(1)?;
+        let player = matches!(
+            self.targets[n].base(),
+            Target::Spec(
+                S::Player
+                    | S::Opponent
+                    | S::Any
+                    | S::PlayerOrPlaneswalker
+                    | S::OpponentOrPlaneswalker
+            )
+        );
+        (!player).then_some(n)
+    }
+
+    fn another_target(&self, spec: Target) -> R<Target> {
+        match other_target(spec) {
+            Some(t) => Ok(t),
+            None => self.fail("`another` can't qualify this target"),
+        }
     }
 
     fn fail<T>(&self, message: impl Into<String>) -> R<T> {
@@ -1325,6 +1364,9 @@ impl P {
         self.revealed = false;
         self.in_trigger = false;
         self.it_source = false;
+        self.no_trigger_obj = false;
+        self.created_at = None;
+        self.no_trigger_amount = false;
         self.in_spell = false;
         self.group_named = false;
         self.returned = None;
@@ -2298,6 +2340,8 @@ impl P {
                 self.it_source = matches!(&trigger, Trigger::CastsFiltered { filter, .. }
                     if filter.targeting.as_ref().and_then(|t| t.filter.as_ref())
                         .is_some_and(|f| f.relation == Relation::This));
+                self.no_trigger_obj = no_trigger_object(&trigger);
+                self.no_trigger_amount = no_trigger_amount(&trigger);
                 if when && !crate::format::natural_when(&trigger) {
                     trigger = Trigger::When(Box::new(trigger));
                 }
@@ -4486,8 +4530,23 @@ impl P {
             } else if also {
                 vec![self.sentence()?]
             } else {
+                let before = self.targets.len();
                 match self.instead_body(InsteadCond::Static(cond.clone()))? {
-                    Ok(e) => return Ok(Some(e)),
+                    // "If this spell was cast using teamwork, instead exile
+                    // target creature": the spell cast using teamwork has
+                    // these targets in place of the others, as a kicked
+                    // spell's "instead" (`Card::kicked_drops`).
+                    Ok(e) => {
+                        if cond == StaticCond::Teamwork
+                            && matches!(e, Effect::Instead { .. })
+                            && self.targets.len() > before
+                            && before > 0
+                            && self.kicked_instead.is_none()
+                        {
+                            self.kicked_instead = Some(before);
+                        }
+                        return Ok(Some(e));
+                    }
                     Err(s) => vec![s],
                 }
             };
@@ -5662,6 +5721,15 @@ impl P {
             "become" | "becomes" => {
                 self.eat_word("a");
                 if self.eat_word("copy") {
+                    // The source becomes the copy (`Effect::BecomeCopy`);
+                    // another subject ("target artifact becomes a copy of
+                    // ...") would be dropped.
+                    if !matches!(
+                        subject,
+                        Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
+                    ) {
+                        return self.fail("only `this` can become a copy");
+                    }
                     self.expect_word("of")?;
                     let of = self.recipient()?;
                     let except = self.except_clause();
@@ -7459,9 +7527,11 @@ impl P {
                     self.expect_word("of")?;
                     let of = self.recipient()?;
                     let except = self.except_clause();
+                    self.created_at = Some(self.targets.len());
                     return Ok(Effect::CreateTokenCopy { of, except });
                 }
                 let count = self.num()?;
+                self.created_at = (count == Num::N(1)).then_some(self.targets.len());
                 let tapped = self.eat_word("tapped");
                 let attacking = tapped && self.eat_words(&["and", "attacking"]);
                 let token = self.string()?;
@@ -7763,6 +7833,12 @@ impl P {
 
     fn num(&mut self) -> R<Num> {
         if self.at_words(&["that", "much"]) {
+            // The triggering event's amount: none for a cast, a step, or
+            // life gain ("If eight or more mana was spent to cast that
+            // spell, ... deals that much damage" would deal 0).
+            if self.in_trigger && !self.in_delayed && self.no_trigger_amount {
+                return self.fail("`that much`: this trigger's event has no amount");
+            }
             self.pos += 2;
             return Ok(Num::ThatMuch);
         }
@@ -7920,6 +7996,26 @@ impl P {
             return Some(CountExpr::AttachedStat(stat));
         }
         if self.in_trigger && at(0).as_deref() == Some("it") {
+            // After a target, its stat ("you lose life equal to its mana
+            // value" of the returned card).
+            if let Some(n) = self.last_object_target() {
+                self.pos += len + 1;
+                return Some(match stat {
+                    Stat::ManaValue => CountExpr::TargetManaValue {
+                        n,
+                        that: false,
+                        the_spell: false,
+                    },
+                    Stat::Power | Stat::Toughness => CountExpr::TargetStat {
+                        n,
+                        toughness: stat == Stat::Toughness,
+                        that: false,
+                    },
+                });
+            }
+            if self.no_trigger_obj {
+                return None;
+            }
             self.pos += len + 1;
             return Some(CountExpr::TriggerStat { stat, that: false });
         }
@@ -8381,6 +8477,9 @@ impl P {
             delayed_dies: self.delayed_dies,
             in_trigger: self.in_trigger,
             it_source: self.it_source,
+            no_trigger_obj: self.no_trigger_obj,
+            created_at: self.created_at,
+            no_trigger_amount: self.no_trigger_amount,
             in_spell: self.in_spell,
             group_named: self.group_named,
             subject: None,
@@ -8435,7 +8534,11 @@ impl P {
         } else {
             self.expect_word("target")?;
             let spec = self.target_spec()?;
-            if another { another_target(spec) } else { spec }
+            if another {
+                self.another_target(spec)?
+            } else {
+                spec
+            }
         };
         let i = self.targets.len();
         self.targets.push(Target::Many {
@@ -8492,7 +8595,7 @@ impl P {
             self.expect_word("target")?;
             let mut spec = self.target_spec()?;
             if another {
-                spec = another_target(spec);
+                spec = self.another_target(spec)?;
             }
             if up_to {
                 spec = Target::UpTo(Box::new(spec));
@@ -8623,7 +8726,25 @@ impl P {
             if self.in_delayed {
                 return Ok(Recipient::SameObject);
             }
+            // After "create a ... token", the token.
+            if self.created_at == Some(self.targets.len()) && !self.at_word("deals") {
+                return Ok(Recipient::CreatedObject);
+            }
             if self.in_trigger && !self.it_source {
+                // After a target the ability names, `it` is that target
+                // ("put a +1/+1 counter on target creature; it gains
+                // flying"), as in a spell; `it deals` stays the triggering
+                // object.
+                if let Some(n) = self.last_object_target()
+                    && !self.at_word("deals")
+                {
+                    return Ok(Recipient::Target(n));
+                }
+                if self.no_trigger_obj {
+                    return self.fail(
+                        "`it`: this trigger has no triggering object; write `this` or `target N`",
+                    );
+                }
                 return Ok(Recipient::TriggeringIt);
             }
             // In an instant or sorcery, `it` after a target is that
@@ -8737,6 +8858,12 @@ impl P {
             self.targets.push(Target::Spec(TargetSpec::Any));
             return Ok(Recipient::Target(self.targets.len() - 1));
         }
+        // "any other target" (CR 115.3): not the source nor another of
+        // the ability's targets.
+        if self.eat_words(&["any", "other", "target"]) {
+            self.targets.push(Target::Spec(TargetSpec::AnyOther));
+            return Ok(Recipient::Target(self.targets.len() - 1));
+        }
         if self.at_words(&["that", "target"]) {
             self.pos += 2;
             let Some(Tok::Num(n)) = self.next() else {
@@ -8780,7 +8907,7 @@ impl P {
             }
             let mut spec = self.target_spec()?;
             if another {
-                spec = another_target(spec);
+                spec = self.another_target(spec)?;
             }
             self.targets.push(spec);
             let t = self.targets.len() - 1;
@@ -8859,9 +8986,10 @@ impl P {
             return Ok(Recipient::ThatOwner(i));
         }
         // Likewise "that player" after a target player ("Target player
-        // discards two cards. ... it deals 3 damage to that player").
-        if !self.in_trigger
-            && self.at_words(&["that", "player"])
+        // discards two cards. ... it deals 3 damage to that player"), in
+        // a triggered ability too ("target player mills three cards ...
+        // that player mills ten cards instead").
+        if self.at_words(&["that", "player"])
             && self.targets.last().is_some_and(|t| {
                 matches!(
                     t,
@@ -9022,6 +9150,9 @@ impl P {
                         delayed_dies: false,
                         in_trigger: false,
                         it_source: false,
+                        no_trigger_obj: false,
+                        created_at: None,
+                        no_trigger_amount: false,
                         in_spell: false,
                         group_named: false,
                         subject: None,
@@ -9937,6 +10068,12 @@ impl P {
         }
         if consumed == 0 {
             return self.unexpected("a filter (creature you control, nonbasic land, ...)");
+        }
+        // "attacking or blocking" is itself an alternative: with another
+        // ("attacking, blocking, or tapped creature") one would be lost.
+        if or_blocking && f.or.is_some() {
+            return self
+                .fail("a filter can't have three alternatives (`attacking or blocking or ...`)");
         }
         if or_blocking && f.or.is_none() {
             let mut alt = f.clone();
@@ -11765,13 +11902,66 @@ impl P {
 }
 
 /// "another target creature": the target spec, excluding the source.
-fn another_target(spec: Target) -> Target {
-    match spec {
+/// A trigger whose event has no amount for `that much`
+/// (`trigger_amount` is the damage, the counters, or a batch's size).
+fn no_trigger_amount(t: &Trigger) -> bool {
+    match t {
+        Trigger::When(t) | Trigger::Next(t) => no_trigger_amount(t),
+        Trigger::Either(a, b) => no_trigger_amount(a) && no_trigger_amount(b),
+        Trigger::CastsSpell { .. }
+        | Trigger::CastsFiltered { .. }
+        | Trigger::CastThis { .. }
+        | Trigger::CastsNth { .. }
+        | Trigger::GainsLife { .. }
+        | Trigger::GainsLifeFirst { .. } => true,
+        t => no_trigger_object(t) && !matches!(t, Trigger::CreaturesDealCombatDamage(_)),
+    }
+}
+
+/// A trigger whose event names no object (a step, a player's life gain,
+/// day and night): its ability has no triggering object, so `it` there
+/// would denote nothing.
+fn no_trigger_object(t: &Trigger) -> bool {
+    match t {
+        Trigger::When(t) | Trigger::Next(t) => no_trigger_object(t),
+        Trigger::Either(a, b) => no_trigger_object(a) && no_trigger_object(b),
+        Trigger::State(_)
+        | Trigger::EveryStep(_)
+        | Trigger::BeginningOfStep { .. }
+        | Trigger::CreaturesYouControlAttack
+        | Trigger::GainsLife { .. }
+        | Trigger::GainsLifeFirst { .. }
+        | Trigger::DayNight
+        | Trigger::RollsDice { .. }
+        | Trigger::WinsFlip { .. }
+        | Trigger::DrawsNth { .. }
+        | Trigger::CollectsEvidence
+        | Trigger::Forages
+        | Trigger::CreaturesDealCombatDamage(_)
+        | Trigger::CommitsCrime { .. } => true,
+        _ => false,
+    }
+}
+
+/// `another target <spec>`: the spec with "other" (not the source, nor
+/// another of the ability's targets); `None` where the spec has no such
+/// form, so `another` is not silently dropped.
+fn other_target(spec: Target) -> Option<Target> {
+    Some(match spec {
         Target::Spec(TargetSpec::Creature) => Target::Spec(TargetSpec::OtherCreature),
+        // `another target any`: "any other target".
+        Target::Spec(TargetSpec::Any) => Target::Spec(TargetSpec::AnyOther),
         Target::Spec(TargetSpec::Permanent) => Target::Spec(TargetSpec::OtherPermanent),
         Target::Spec(TargetSpec::AttackingCreature) => Target::Filter(Filter {
             types: vec![CardType::Creature],
             attacking: true,
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        // "another target blocking creature".
+        Target::Spec(TargetSpec::BlockingCreature) => Target::Filter(Filter {
+            types: vec![CardType::Creature],
+            blocking: true,
             relation: Relation::Other,
             ..Default::default()
         }),
@@ -11817,8 +12007,8 @@ fn another_target(spec: Target) -> Target {
             who: Who::You,
             graveyards: false,
         },
-        other => other,
-    }
+        _ => return None,
+    })
 }
 
 #[cfg(test)]

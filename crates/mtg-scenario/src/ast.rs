@@ -101,6 +101,9 @@ pub enum TargetRef {
     /// `targeting auto`: every target takes the engine's first legal option
     /// (how `XMage`'s tests target when only one choice exists).
     Auto,
+    /// `none`: an optional ("up to one") target declined; the later
+    /// targets are still chosen (CR 601.2c).
+    None,
 }
 
 /// `targeting auto` stands for as many automatic targets as are needed.

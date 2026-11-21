@@ -1910,7 +1910,8 @@ impl Compiler<'_> {
                 let drops = matches!(
                     s.effects.as_slice(),
                     [Effect::Instead {
-                        cond: crate::ast::InsteadCond::Kicked,
+                        cond: crate::ast::InsteadCond::Kicked
+                            | crate::ast::InsteadCond::Static(crate::ast::StaticCond::Teamwork),
                         ..
                     }]
                 )
@@ -2756,7 +2757,48 @@ impl Compiler<'_> {
                 this_turn,
                 ..
             } => {
+                // CR 603.7c: a delayed trigger triggers only once unless it
+                // has a duration. One printed "Whenever ..." without "this
+                // turn" or "until end of turn" would read as recurring and
+                // fire once.
+                if !*this_turn
+                    && !matches!(trigger, Trigger::Next(_))
+                    && !crate::format::natural_when(trigger)
+                {
+                    return self.err(
+                        "a delayed `whenever` trigger needs a duration (`... this turn`, `until end of turn, ...`)",
+                    );
+                }
+                // "Exile those tokens when this leaves the battlefield"
+                // about the tokens: the trigger would watch the tokens
+                // (a delayed trigger's `this` is what it is about) while
+                // printing the source. Only "... this turn" names the
+                // object it is about ("When that creature dies this
+                // turn").
+                let this_obj = |t: &Trigger| {
+                    matches!(
+                        t,
+                        Trigger::Leaves(TriggerObj::This) | Trigger::Dies(TriggerObj::This)
+                    )
+                };
+                if !*this_turn
+                    && !matches!(about, Recipient::Source)
+                    && (this_obj(trigger) || matches!(trigger, Trigger::When(t) if this_obj(t)))
+                {
+                    return self.err(
+                        "a delayed trigger about another object can't watch `this` leave or die",
+                    );
+                }
                 let effects = self.sentences(effects)?;
+                // A delayed triggered mana ability ("whenever a land is
+                // tapped for mana this turn, add ...", CR 605.1b) has no
+                // form here.
+                if matches!(trigger, Trigger::TappedForMana(_))
+                    || matches!(trigger, Trigger::When(t) | Trigger::Next(t)
+                        if matches!(**t, Trigger::TappedForMana(_)))
+                {
+                    return self.err("a delayed trigger can't be a triggered mana ability");
+                }
                 let trigger = self.trigger(trigger);
                 let id = self
                     .pool
@@ -3499,7 +3541,17 @@ impl Compiler<'_> {
             let def = self.ability(a)?;
             return Ok(Modification::AddAbility(self.pool.register_ability(def)));
         }
-        Ok(self.modification(m))
+        let out = self.modification(m);
+        // A count only a resolving effect has (its targets, what it did)
+        // would read 0 here (`CountExpr::in_static`).
+        if let Modification::ModifyPtPer { count, .. } | Modification::CdaPt { count, .. } = &out
+            && !count.in_static()
+        {
+            return self.err(
+                "a static ability can't use this count: it exists only while an effect resolves",
+            );
+        }
+        Ok(out)
     }
 
     fn modification(&mut self, m: &Mod) -> Modification {

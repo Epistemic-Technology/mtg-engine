@@ -1,0 +1,7 @@
+card "Cruel Alliance" {
+  oracle_id 6897f9e0-f654-4c0a-9fda-2ad4e264bf9a
+  cost {2}{B}
+  type Sorcery
+  teamwork 2
+  spell: exile target creature with mana value 3 or less; if teamwork, instead exile target creature and you gain 3 life
+}

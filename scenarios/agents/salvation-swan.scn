@@ -1,0 +1,33 @@
+scenario "Salvation Swan blinks a creature and returns it with a flying counter" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Salvation Swan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Salvation Swan"
+  turn 1 A: trigger "Salvation Swan" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" flying 1
+  assert has "Grizzly Bears" flying
+}
+
+scenario "Salvation Swan has no target with only fliers" {
+  battlefield A: 4 "Plains", "Serra Angel"
+  hand A: "Salvation Swan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Salvation Swan"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A contains "Salvation Swan"
+}
+
+scenario "Another Bird entering triggers Salvation Swan" {
+  battlefield A: "Salvation Swan", "Forest", "Grizzly Bears"
+  hand A: "Birds of Paradise"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Birds of Paradise"
+  turn 1 A: trigger "Salvation Swan" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+}

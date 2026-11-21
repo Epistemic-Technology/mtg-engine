@@ -1,0 +1,14 @@
+# `it` after "create a ... token" is the token ("Create a 0/0 green and
+# blue Fractal creature token. Put X +1/+1 counters on it"), not the
+# spell or the triggering object.
+
+scenario "Leyline Invocation's Fractal gets a counter for each land" {
+  battlefield A: 6 "Forest"
+  hand A: "Leyline Invocation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Leyline Invocation"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Fractal"
+  assert counters "Fractal" +1/+1 6
+  assert power "Fractal" 6
+}

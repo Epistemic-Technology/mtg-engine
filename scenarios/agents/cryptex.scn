@@ -30,3 +30,17 @@ scenario "Cryptex can't be sacrificed with four unlock counters" {
   run_to turn 1 postcombat_main
   assert battlefield A contains "Cryptex"
 }
+
+scenario "Automatic payment doesn't use Cryptex's mana ability without collecting evidence" {
+  # Its cost collects evidence, which paying for a spell doesn't do on the
+  # way: activate it first (above).
+  battlefield A: "Cryptex"
+  hand A: "Shock"
+  graveyard A: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Cryptex"
+  assert graveyard A contains "Hill Giant"
+}

@@ -18,26 +18,10 @@ reported missing, so the next wave's features can be chosen by count.
 Cards in the corpus that pass the gate and their scenarios but do the
 wrong thing in some case.
 
-- **A declined "up to N" target skips every later target.** A spell
-  keeps its targets in one flat list, so a declined slot has no place
-  and target choice stops there. Explosive Entry with no artifact puts
-  no counter on the creature. Repro: `scenarios/m5/declined-up-to.scn`
-  (skipped). The "choose two" pairing code also assumes a variable-size
-  target group comes last.
-- **A choose-two pair whose modes share a target description is not
-  offered with one legal object.** Brigid's Command: "+3/+3" and
-  "fights" both say "target creature you control"; with one creature
-  the pair is missing, though the same creature may be chosen for each
-  (CR 115.3). Its scenario uses two creatures.
-- **Most counts read 0 in a static ability.** `per_count` in
-  `crates/mtg-core/src/layers.rs` returns 0 for a list of
-  "resolution-only" counts, and the gate still matches. Greatest mana
-  value and devotion are fixed; the rest of the list (greatest power,
-  party, differently named, cards drawn this turn, ...) has not been
-  checked against the corpus for statics that use them.
-- **A delayed "whenever" trigger written without "this turn" does not
-  fire on later events.** The `until end of turn, delayed this:` form
-  (Mistway Spy) is fixed; the general case is not.
+- **A variable target group is assumed to come last.** `spec_for`
+  and the target loop treat a `TargetSpec::Many` as the final spec; a
+  "choose two" pair whose first mode has "any number of target ..."
+  would misplace the second mode's targets. No card known.
 - **Finality counters: the exile is not a replacement choice.** It is
   applied when the zone change is performed, so another effect that
   moves a dying permanent elsewhere always wins (CR 616.1 gives the
@@ -45,10 +29,6 @@ wrong thing in some case.
 - **Destroying several groups at once is ordered, not simultaneous.**
   "All permanents attached to creatures" is destroyed first so the
   Equipment is found; other combinations may still miss objects.
-- **Automatic mana payment may skip a mana ability's non-mana cost.**
-  It knows mana, tap, life, and counter costs; forage is excluded, but
-  blight, collect evidence, and behold costs on a mana ability have not
-  been checked. Reported, not reproduced.
 - **Engine-picks-for-player approximations.** Forage as a cost (exiles
   the three oldest graveyard cards, else sacrifices a Food); several
   mechanics from the first wave have the engine choose where the player
@@ -80,40 +60,10 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **`it` in a triggered ability is the triggering object**, also after a
-  target was named ("put a counter on target creature; it gains
-  flying") and in a trigger with no triggering object (an upkeep
-  trigger's `it deals 2 damage` deals 0; an end-step trigger's `exile
-  target creature then return it` leaves it in exile). Authors must
-  write `target 1` or `this`. Seen on Spider-Man India, Eye of Jace,
-  Airbender Ascension, Abuelo, Salvation Swan.
-- **`mana value of it` in a trigger** is the source's or the triggering
-  object's, not the target's (Queen's Bay Paladin; use `mana value of
-  target 1`).
-- **`that player mills N` after a targeted player** mills the caster
-  (Exhibition Tidecaller; use `that target 1 mills`).
-- **`put counters on it` after `create`** puts none on the new token
-  (Lasting Fayth; use `on that token`).
-- **`<target> becomes a copy of <target>`** drops the first target and
-  renders the source becoming the copy (Shuri, Wakandan Inventor).
-- **`each player may discard hand and draw`** applies only to the
-  caster (Raphael's Technique); "each player may" works only for scry
-  and search.
-- **`that much` after a mana-spent check** is 0 (Tellah, Great Sage).
-- **`delayed those tokens: exile those tokens when this leaves`**
-  watches the tokens, not the source (Mysterio, Master of Illusion).
-- **`if teamwork, instead <other target>`** and kicker with `instead`
-  on a single target always ask for both targets (Cruel Alliance, Long
-  River's Pull). Gift is fixed; check whether these now work.
-- **`another target any`** drops "other" and renders "any target"
-  (Boulder Dash, Red Hulk, Pain for All).
-- **`another` on a blocking-creature target** is dropped (Dissension in
-  the Ranks).
-- **A target filter with three alternatives** drops the third
-  ("attacking, blocking, or tapped creature", Sonar Strike).
-- **`delayed this: whenever <land> is tapped for mana this turn, add
-  ...`** panics in the compiler (`compile.rs`, "a triggered mana
-  ability") where it should report an error.
+- **"any other target" meaning other than the enchanted creature**
+  (Pain for All: "enchanted creature deals damage ... to any other
+  target"): `another target any` excludes the source (the Aura), not
+  the creature dealing the damage. Pain for All is not in.
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.
@@ -172,10 +122,12 @@ named the feature; a card may need more than one.
   graveyard from anywhere (Progenitus, Darksteel Colossus, Nexus of
   Fate); token-creation replacement.
 - **Targets:** one target that is "spell or creature" / "spell or
-  permanent"; one target per opponent; targets with a total mana value;
+  permanent"; a filter with three alternatives ("attacking, blocking,
+  or tapped creature", Sonar Strike; a parse error now); one target per opponent; targets with a total mana value;
   "up to X targets" in a reflexive trigger; mixed battlefield and
   graveyard targets.
-- **Other effects:** "End the turn"; exchange control; return all
+- **Other effects:** "Exile those tokens when this leaves the
+  battlefield" (Mysterio; the old form is a compile error now); "End the turn"; exchange control; return all
   land cards from your graveyard to the battlefield; search then put
   into hand or graveyard; put a card from among milled cards onto the
   battlefield; a player choosing to act instead of a penalty ("unless
