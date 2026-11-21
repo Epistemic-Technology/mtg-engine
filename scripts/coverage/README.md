@@ -50,7 +50,13 @@ pass. Everything here is about reaching that at less cost.
    feature has landed. Stop fresh card batches when yield falls to about
    5%; that means the engine, not the authoring, is the limit.
 7. **Clean up.** Delete `target/` in finished worktrees before the next
-   wave.
+   wave, and kill wait loops finished agents left behind (`until !
+   pgrep -f "<command>"` matches its own shell and never ends).
+8. **Keep `KNOWN-ISSUES.md` current.** It is the open-issue list. Read
+   it when partitioning (wrong behaviour in accepted cards goes to an
+   agent before new features do), tell agents to delete the entries
+   they fix, and after merging add the engine bugs, wrong-meaning
+   forms, and missing features the reports name.
 
 ## Quick cross-pool backlog (no census inputs needed)
 

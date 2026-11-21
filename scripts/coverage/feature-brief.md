@@ -75,3 +75,11 @@ your reply.
    When everything is committed, delete your worktree's `target/`.
 7. Reply with: the branch name, the commit hash, what you implemented,
    the cards you added, and anything you left out or are unsure of.
+
+## Known issues
+
+`KNOWN-ISSUES.md` at the top of the repository is the open-issue list.
+Read sections 1 and 2 before you start: they name forms that pass the
+gate and mean the wrong thing. If you fix an entry, delete it in the
+same commit; if you find a new engine bug or wrong-meaning form and do
+not fix it, add an entry.
