@@ -418,7 +418,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
 
 /// The nouns a card uses for itself (`this creature`; see
 /// `render::self_noun`).
-const SELF_NOUNS: [&str; 10] = [
+pub(crate) const SELF_NOUNS: [&str; 10] = [
     "creature",
     "land",
     "artifact",

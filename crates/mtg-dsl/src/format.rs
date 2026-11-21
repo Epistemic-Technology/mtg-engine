@@ -280,7 +280,17 @@ impl Fmt {
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::EachOtherPlayer => "each other player".to_string(),
             Recipient::Source => "this".to_string(),
-            Recipient::SourceNamed => NOUN.with(|n| format!("this {}", n.borrow())),
+            // The parser takes only its own list of nouns here; the
+            // renderer prints the card's own ("this Spacecraft") whatever
+            // is written.
+            Recipient::SourceNamed => NOUN.with(|n| {
+                let n = n.borrow();
+                if crate::parse::SELF_NOUNS.contains(&n.as_str()) {
+                    format!("this {n}")
+                } else {
+                    "this permanent".to_string()
+                }
+            }),
             Recipient::SourceCard => "this card".to_string(),
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
             Recipient::TheTriggeringObject => "the creature".to_string(),
@@ -3669,7 +3679,7 @@ fn cost_text(c: &Cost) -> String {
     }
     if c.restrict.is_empty() {
         if c.sorcery && c.loyalty.is_none() {
-            parts.push("sorcery".to_string());
+            push_sorcery(&mut parts);
         }
         if c.per_turn == 1 {
             parts.push("once".to_string());
@@ -3677,7 +3687,7 @@ fn cost_text(c: &Cost) -> String {
     }
     for r in &c.restrict {
         match r {
-            Restrict::Sorcery => parts.push("sorcery".to_string()),
+            Restrict::Sorcery => push_sorcery(&mut parts),
             Restrict::Once => parts.push("once".to_string()),
             Restrict::OnceEver => parts.push("once ever".to_string()),
             Restrict::Cond(i) => parts.push(match &c.conditions[*i] {
@@ -3703,6 +3713,30 @@ fn cost_text(c: &Cost) -> String {
         "none".to_string()
     } else {
         parts.join(", ")
+    }
+}
+
+/// Writes the `sorcery` timing word of a cost. After a cost that ends in a
+/// filter ("sacrifice 3 other creature") the parser would read `, sorcery`
+/// as one more card type of that filter, so there it goes in front.
+fn push_sorcery(parts: &mut Vec<String>) {
+    let after_filter = parts.last().is_some_and(|l| {
+        [
+            "sacrifice ",
+            "discard ",
+            "exile ",
+            "tap ",
+            "return ",
+            "reveal ",
+        ]
+        .iter()
+        .any(|w| l.starts_with(w))
+            && !l.ends_with(" this")
+    });
+    if after_filter {
+        parts.insert(parts.len() - 1, "sorcery".to_string());
+    } else {
+        parts.push("sorcery".to_string());
     }
 }
 
