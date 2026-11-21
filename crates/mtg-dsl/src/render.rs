@@ -4718,6 +4718,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let v = ctx.verb(*who, "sacrifices", "sacrifice");
             Clause::with_subject(*who, s, format!("{v} {o}"))
         }
+        Effect::ExtraLandPlays(1) => {
+            Clause::imperative("you may play an additional land this turn".to_string())
+        }
+        Effect::ExtraLandPlays(n) => Clause::imperative(format!(
+            "you may play up to {} this turn",
+            additional_lands(*n)
+        )),
         Effect::NextSpellLess(n) => Clause::imperative(format!(
             "the next spell you cast this turn costs {{{n}}} less to cast"
         )),
@@ -6216,10 +6223,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             inner.source_mentioned = ctx.source_mentioned;
             let body = sentences(effects, &mut inner);
             ctx.source_mentioned |= inner.source_mentioned;
-            Clause::imperative(format!(
-                "when you do, {}",
-                lowercase_first(&body).trim_end_matches('.')
-            ))
+            // The card's name keeps its capital ("When you do,
+            // Lithobraking deals 2 damage to each creature.").
+            let body = if starts_with_name(&body, ctx.card) {
+                body.clone()
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!("when you do, {}", body.trim_end_matches('.')))
         }
         Effect::Otherwise(inner) => {
             // "Otherwise, create one of those tokens.": the token the
@@ -8771,6 +8782,8 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
             && filter.toughness.is_none()
             && filter.mana_value.is_none()
             && filter.chosen.is_none()
+            // "Creature tokens get +1/+1." (Leyline of the Meek).
+            && filter.status.token.is_none()
             && filter.relation == Relation::Any;
         let p = filter_phrase(filter, card, true);
         if bare || filter.all {
@@ -9174,6 +9187,15 @@ fn only_attacks_alone(a: &Ability) -> bool {
 /// ("\"{T}: This creature deals 1 damage to any target.\"").
 /// "Protection from multicolored", "Protection from artifacts" (CR
 /// 702.16): a protection ability from a quality other than a color.
+/// "an additional land", "two additional lands" (CR 305.2).
+fn additional_lands(n: u32) -> String {
+    if n == 1 {
+        "an additional land".to_string()
+    } else {
+        format!("{} additional lands", count_words(Num::N(n), "one"))
+    }
+}
+
 fn protection_text(f: &Filter, card: &Card) -> String {
     if *f == Filter::default() {
         "Protection from everything".to_string()
@@ -9340,6 +9362,18 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                     filter_phrase(&f, card, true)
                 )
             }
+        }
+        // "any player controls a black permanent" (Knight of Grace).
+        StaticCond::OnBattlefield {
+            filter,
+            at_least: 1,
+        } if filter.who == Some(Who::Any) => {
+            let mut f = filter.clone();
+            f.who = None;
+            format!(
+                "any player controls {}",
+                with_article(&filter_phrase(&f, card, false))
+            )
         }
         StaticCond::OnBattlefield { filter, at_least } => {
             if *at_least == 1 {
@@ -10856,6 +10890,69 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
         }
         Ability::Protection(f) => protection_text(f, card),
+        // "Hexproof from black": a color alone.
+        Ability::HexproofFrom(f)
+            if f.colors.as_ref().is_some_and(|c| c.len() == 1)
+                && *f
+                    == (Filter {
+                        colors: f.colors.clone(),
+                        ..Filter::default()
+                    }) =>
+        {
+            let c = f.colors.as_ref().map_or(String::new(), |c| {
+                format!("{:?}", c[0]).to_ascii_lowercase()
+            });
+            format!("Hexproof from {c}")
+        }
+        Ability::HexproofFrom(f) => {
+            format!(
+                "Hexproof{}",
+                &protection_text(f, card)["Protection".len()..]
+            )
+        }
+        // A legendary card names itself ("If Quicksilver is in your
+        // opening hand, ...").
+        Ability::OpeningHand => format!(
+            "If {} is in your opening hand, you may begin the game with it on the battlefield.",
+            if card.supertypes.contains(&Supertype::Legendary) {
+                short_name(card)
+            } else {
+                "this card"
+            }
+        ),
+        Ability::PlayerStatic { kind, cond } => {
+            use mtg_core::card::PlayerStaticKind as K;
+            let s = match kind {
+                K::Hexproof => "you have hexproof".to_string(),
+                K::Shroud => "you have shroud".to_string(),
+                K::OpponentsCantCastYourTurn => {
+                    "your opponents can't cast spells during your turn".to_string()
+                }
+                K::Rule(mtg_core::card::RuleKind::NoLifeGain) => {
+                    "players can't gain life".to_string()
+                }
+                K::Rule(mtg_core::card::RuleKind::DamageCantBePrevented) => {
+                    "damage can't be prevented".to_string()
+                }
+                K::ExtraLands {
+                    n,
+                    each_player: true,
+                } => format!(
+                    "each player may play {} on each of their turns",
+                    additional_lands(*n)
+                ),
+                K::ExtraLands { n, .. } => {
+                    format!(
+                        "you may play {} on each of your turns",
+                        additional_lands(*n)
+                    )
+                }
+            };
+            match cond {
+                Some(c) => format!("As long as {}, {s}.", static_cond_text(c, card)),
+                None => format!("{}.", capitalize(&s)),
+            }
+        }
         Ability::Affinity(f) => {
             let mut g = f.clone();
             g.who = None;
@@ -11157,6 +11254,7 @@ pub fn normalize(text: &str) -> String {
                 .iter()
                 .any(|k| keyword_name(*k).eq_ignore_ascii_case(p))
                 || p.to_ascii_lowercase().starts_with("protection from ")
+                || p.to_ascii_lowercase().starts_with("hexproof from ")
                 || with_param(p)
         }) || parts.iter().all(|p| typecycling(p));
         // "Protection from Spirits and from Arcane": one protection

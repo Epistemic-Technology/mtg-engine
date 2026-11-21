@@ -1,0 +1,7 @@
+card "Leyline of Lightning" {
+  oracle_id bb87ec08-bb1b-43d8-8809-92904cbba685
+  cost {2}{R}{R}
+  type Enchantment
+  opening hand
+  triggered whenever you cast a spell: you may pay {1}; if you do, deal 1 damage to target player or planeswalker
+}

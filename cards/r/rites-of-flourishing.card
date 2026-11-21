@@ -1,0 +1,7 @@
+card "Rites of Flourishing" {
+  oracle_id 7080fb43-5d93-41f5-87d3-bc1801805ea0
+  cost {2}{G}
+  type Enchantment
+  triggered at the beginning of each player's draw step: that player draws 1 card
+  additional land each player
+}

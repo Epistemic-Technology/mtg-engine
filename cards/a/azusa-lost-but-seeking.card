@@ -1,0 +1,7 @@
+card "Azusa, Lost but Seeking" {
+  oracle_id 6c2c8bf3-9bf8-4a86-89d3-3bb36260dc51
+  cost {2}{G}
+  type Legendary Creature — Human Monk
+  pt 1/2
+  additional land 2
+}

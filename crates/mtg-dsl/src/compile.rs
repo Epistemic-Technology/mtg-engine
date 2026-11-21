@@ -372,7 +372,12 @@ impl Compiler<'_> {
             .iter()
             .any(|a| matches!(a, Ability::Mechanic(Mechanic::Evoke(_))))
             .then_some(mtg_core::card::Keyword::Evoke);
-        let keywords = keywords.chain(protection).chain(evoke);
+        let hexproof_from = card
+            .abilities
+            .iter()
+            .any(|a| matches!(a, Ability::HexproofFrom(_)))
+            .then_some(mtg_core::card::Keyword::HexproofFromFilter);
+        let keywords = keywords.chain(protection).chain(evoke).chain(hexproof_from);
         // "Stonework Packbeast is also a Cleric, Rogue, Warrior, and
         // Wizard.": the types apply in every zone, so they are the card's
         // own (its static ability adds them again on the battlefield).
@@ -2020,6 +2025,7 @@ impl Compiler<'_> {
             }
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
+            Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),
             Effect::Goad { what } => out.push(CoreEffect::Goad { what: r(*what) }),
             Effect::TurnFaceUp { what } => out.push(CoreEffect::TurnFaceUp { what: r(*what) }),
@@ -3691,6 +3697,21 @@ impl Compiler<'_> {
                 })
             }
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
+            Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
+            Ability::OpeningHand => AbilityDef::OpeningHand,
+            Ability::PlayerStatic { kind, cond } => {
+                let condition = match cond {
+                    Some(c) => {
+                        let c = self.static_cond(c);
+                        Some(self.pool.intern_condition(c))
+                    }
+                    None => None,
+                };
+                AbilityDef::PlayerStatic {
+                    kind: *kind,
+                    condition,
+                }
+            }
             Ability::Mechanic(m) => match m {
                 Mechanic::Toxic(n) => AbilityDef::Toxic(*n),
                 Mechanic::CounterChoice(kinds, escapes) => {

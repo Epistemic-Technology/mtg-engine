@@ -1,0 +1,9 @@
+card "Scale the Heights" {
+  oracle_id 13d5b664-db13-406e-9956-3d9fe4177d33
+  cost {2}{G}
+  type Sorcery
+  spell {
+    put 1 +1/+1 counters on up to one target creature; you gains 2 life; play additional land this turn
+    draw 1 cards
+  }
+}

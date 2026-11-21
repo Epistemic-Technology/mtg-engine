@@ -2,6 +2,6 @@ card "Leyline of the Void" {
   oracle_id f4e32fc1-1b8d-441e-8e76-71f19f98e925
   cost {2}{B}{B}
   type Enchantment
+  opening hand
   replace card put into an opponent's graveyard: exile
-  oracle_mismatch "the opening-hand ability (CR 103.6) is not implemented"
 }

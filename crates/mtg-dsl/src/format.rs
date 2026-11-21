@@ -1132,6 +1132,8 @@ impl Fmt {
             Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
             Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
+            Effect::ExtraLandPlays(1) => "play additional land this turn".to_string(),
+            Effect::ExtraLandPlays(n) => format!("play {n} additional land this turn"),
             Effect::FaceDownSpellsLess(n) => {
                 format!("face-down spells cost {{{n}}} less this turn")
             }
@@ -3957,6 +3959,14 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::OnBattlefield {
             filter: fl,
             at_least: 1,
+        } if fl.who == Some(Who::Any) => {
+            let mut f = fl.clone();
+            f.who = None;
+            format!("any player controls {}", filter(&f))
+        }
+        StaticCond::OnBattlefield {
+            filter: fl,
+            at_least: 1,
         } => format!("on battlefield {}", filter(fl)),
         StaticCond::OnBattlefield {
             filter: fl,
@@ -4866,6 +4876,42 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(n) => format!("{n:+}"),
             };
             let _ = writeln!(out, "{indent}hand size{who} {d}");
+        }
+        Ability::HexproofFrom(f) => {
+            let _ = writeln!(out, "{indent}hexproof from {}", filter(f));
+        }
+        Ability::OpeningHand => {
+            let _ = writeln!(out, "{indent}opening hand");
+        }
+        Ability::PlayerStatic { kind, cond } => {
+            use mtg_core::card::PlayerStaticKind as K;
+            let head = match kind {
+                K::Hexproof => "you have hexproof".to_string(),
+                K::Shroud => "you have shroud".to_string(),
+                K::OpponentsCantCastYourTurn => {
+                    "opponents can't cast spells during your turn".to_string()
+                }
+                K::Rule(mtg_core::card::RuleKind::NoLifeGain) => {
+                    "players can't gain life".to_string()
+                }
+                K::Rule(mtg_core::card::RuleKind::DamageCantBePrevented) => {
+                    "damage can't be prevented".to_string()
+                }
+                K::ExtraLands { n, each_player } => format!(
+                    "additional land{}{}",
+                    if *n == 1 {
+                        String::new()
+                    } else {
+                        format!(" {n}")
+                    },
+                    if *each_player { " each player" } else { "" }
+                ),
+            };
+            let tail = cond
+                .as_ref()
+                .map(|c| format!(" as long as {}", static_cond(c)))
+                .unwrap_or_default();
+            let _ = writeln!(out, "{indent}{head}{tail}");
         }
         Ability::Protection(f) => {
             if *f == Filter::default() {

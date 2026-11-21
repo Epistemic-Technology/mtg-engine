@@ -88,7 +88,7 @@ impl GameState {
                 );
             }
             if def.is_land() {
-                if sorcery_timing && ps.lands_played_this_turn < 1 {
+                if sorcery_timing && self.may_play_another_land(p) {
                     options.push(Choice::PlayLand(*id));
                 }
                 // CR 715.3: a land with an Adventure (Midgar, City of Mako
@@ -264,7 +264,7 @@ impl GameState {
                 let def = self.pool.get(o.def);
                 // CR 715.3d: a land on an adventure is played, not cast.
                 if def.is_land() {
-                    if sorcery_timing && ps.lands_played_this_turn < 1 {
+                    if sorcery_timing && self.may_play_another_land(p) {
                         options.push(Choice::PlayLand(*id));
                     }
                     continue;
@@ -311,7 +311,7 @@ impl GameState {
                 }
                 if def.is_land() {
                     if sorcery_timing
-                        && ps.lands_played_this_turn < 1
+                        && self.may_play_another_land(p)
                         && !options.contains(&Choice::PlayLand(pe.card))
                     {
                         options.push(Choice::PlayLand(pe.card));
@@ -468,6 +468,24 @@ impl GameState {
         self.activation_options(p, sorcery_timing, &sources, &mut options);
         if !self.player_rules.is_empty() {
             self.forbid_by_player_rules(p, &mut options);
+        }
+        // "Your opponents can't cast spells during your turn."
+        if self.player_static_sources > 0 && self.cant_cast_spells(p) {
+            options.retain(|c| match c {
+                Choice::CastFace { card, face } => self.land_face(*card, *face).is_some(),
+                Choice::Cast(_)
+                | Choice::CastEvoke(_)
+                | Choice::CastDash(_)
+                | Choice::CastWarp(_)
+                | Choice::CastSneak(_)
+                | Choice::CastAlt(_)
+                | Choice::CastBestow(_)
+                | Choice::CastOverload(_)
+                | Choice::CastAwaken(_)
+                | Choice::CastDisturb(_)
+                | Choice::CastFaceDown(_) => false,
+                _ => true,
+            });
         }
         options.push(Choice::Pass);
         options
@@ -1792,7 +1810,7 @@ impl GameState {
         let face = self.pool.get(back);
         let ps = self.player(p);
         let ok = if face.is_land() {
-            sorcery_timing && ps.lands_played_this_turn < 1
+            sorcery_timing && self.may_play_another_land(p)
         } else {
             self.castable(
                 p,
@@ -8053,6 +8071,11 @@ impl GameState {
                         self.tap(id);
                     }
                 }
+            }
+            Effect::ExtraLandPlays(n) => {
+                // CR 305.2: additional land plays this turn.
+                let p = ctx.controller;
+                self.player_mut(p).extra_land_plays += *n;
             }
             Effect::NextSpellLess(n) => {
                 let i = ctx.controller.index().min(3);

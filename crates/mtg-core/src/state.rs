@@ -769,6 +769,9 @@ pub struct PlayerState {
     pub exile: Vec<ObjId>,
     pub mana_pool: ManaPool,
     pub lands_played_this_turn: u32,
+    /// Additional land plays granted this turn by resolved effects ("You
+    /// may play an additional land this turn", CR 305.2).
+    pub extra_land_plays: u32,
     /// Cards in the graveyard with flashback, so priority options skip the
     /// graveyard scan when there are none.
     pub flashback_in_graveyard: u32,
@@ -1232,6 +1235,12 @@ pub enum Flow {
     Bottoming {
         current: PlayerId,
         remaining: u8,
+    },
+    /// Before the first turn (CR 103.6a): each player in turn may begin the
+    /// game with "If this card is in your opening hand" cards on the
+    /// battlefield, one question per card; `asked` are those decided.
+    OpeningHand {
+        asked: Vec<ObjId>,
     },
     /// Perform the turn-based actions of the current step.
     BeginStep,
@@ -1768,6 +1777,10 @@ pub struct GameState {
     /// precombat main phase and state-based actions look for them only
     /// when there are any.
     pub saga_count: u32,
+    /// Battlefield permanents with a player-level static ability
+    /// (`AbilityDef::PlayerStatic`): land plays, player targeting, and
+    /// casting look for them only when there are any.
+    pub player_static_sources: u32,
     /// A cast just undone (CR 726) and the state version then: it is not
     /// offered again until something changes, so an agent can't loop on it.
     pub undone_cast: Option<(ObjId, u64)>,
@@ -2129,6 +2142,10 @@ impl GameState {
     /// Whether a "can't" effect of this kind is in force (CR 614.17).
     pub fn rule_in_force(&self, kind: RuleKind) -> bool {
         self.rules.iter().any(|r| r.kind == kind)
+            || self.player_static_sources > 0
+                && self
+                    .player_statics()
+                    .any(|(_, k)| k == crate::card::PlayerStaticKind::Rule(kind))
     }
 
     /// Whether a "can't" effect of this kind applies to `p` this turn.
@@ -2136,6 +2153,87 @@ impl GameState {
         self.player_rules
             .iter()
             .any(|r| r.player == p && r.kind == kind)
+    }
+
+    /// The player-level static abilities in force: each with its
+    /// source's controller (CR 611.3a: a condition is judged for them).
+    fn player_statics(
+        &self,
+    ) -> impl Iterator<Item = (PlayerId, crate::card::PlayerStaticKind)> + '_ {
+        self.battlefield
+            .iter()
+            .filter(|id| {
+                self.pool
+                    .get(self.objects[**id].def)
+                    .flags()
+                    .has_player_static()
+            })
+            .flat_map(move |id| {
+                let o = &self.objects[*id];
+                self.pool
+                    .get(o.def)
+                    .ability_ids
+                    .iter()
+                    .filter_map(move |a| match self.pool.ability(*a) {
+                        crate::card::AbilityDef::PlayerStatic { kind, condition }
+                            if condition.is_none_or(|c| {
+                                self.condition_now(self.pool.condition(c), o.controller, *id)
+                            }) =>
+                        {
+                            Some((o.controller, *kind))
+                        }
+                        _ => None,
+                    })
+            })
+    }
+
+    /// Whether `p` may play another land now (CR 305.2): one a turn, plus
+    /// additional plays from effects and static abilities.
+    pub fn may_play_another_land(&self, p: PlayerId) -> bool {
+        let ps = self.player(p);
+        let played = ps.lands_played_this_turn;
+        if played < 1 {
+            return true;
+        }
+        let mut allowed = 1 + ps.extra_land_plays;
+        if played < allowed {
+            return true;
+        }
+        if self.player_static_sources > 0 {
+            for (who, kind) in self.player_statics() {
+                if let crate::card::PlayerStaticKind::ExtraLands { n, each_player } = kind
+                    && (each_player || who == p)
+                {
+                    allowed += n;
+                }
+            }
+        }
+        played < allowed
+    }
+
+    /// Whether `caster`'s spells and abilities may target player `p`
+    /// ("You have hexproof", "You have shroud": CR 702.11c, 702.18c).
+    pub fn player_targetable(&self, p: PlayerId, caster: PlayerId) -> bool {
+        self.player_static_sources == 0
+            || !self.player_statics().any(|(who, kind)| {
+                who == p
+                    && match kind {
+                        crate::card::PlayerStaticKind::Shroud => true,
+                        crate::card::PlayerStaticKind::Hexproof => caster != p,
+                        _ => false,
+                    }
+            })
+    }
+
+    /// Whether `p` can't cast spells now: an opponent's "Your opponents
+    /// can't cast spells during your turn." during that opponent's turn.
+    pub fn cant_cast_spells(&self, p: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && self.active_player != p
+            && self.player_statics().any(|(who, kind)| {
+                who == self.active_player
+                    && kind == crate::card::PlayerStaticKind::OpponentsCantCastYourTurn
+            })
     }
 
     /// Whether applying an action could ask a player a question in the
@@ -3588,6 +3686,7 @@ impl GameState {
                         TargetSpec::Opponent | TargetSpec::OpponentOrPlaneswalker => p != caster,
                         _ => false,
                     }
+                    && (!targeting || self.player_targetable(p, caster))
             }
             Target::Object(id) => {
                 let Some(obj) = self.objects.get(id) else {
@@ -3751,7 +3850,20 @@ impl GameState {
                     return type_ok;
                 }
                 let hexproof_ok = (!c.has(Keyword::Hexproof) || obj.controller == caster)
-                    && !c.has(Keyword::Shroud);
+                    && !c.has(Keyword::Shroud)
+                    // CR 702.11d: "hexproof from [quality]": not by spells
+                    // or abilities an opponent controls from such sources.
+                    && (!c.has(Keyword::HexproofFromFilter)
+                        || obj.controller == caster
+                        || !source
+                            .and_then(|s| self.characteristics_or_lki(s))
+                            .is_some_and(|sc| {
+                                c.abilities.iter().any(|a| {
+                                    matches!(self.pool.ability(*a),
+                                        crate::card::AbilityDef::HexproofFrom(f)
+                                            if f.matches_characteristics(&sc))
+                                })
+                            }));
                 // CR 702.16b: protection from a quality forbids targeting by
                 // spells and abilities from sources with it.
                 let protection_ok = !c.keywords.intersects(crate::card::KeywordSet::PROTECTION)

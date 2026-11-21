@@ -1,0 +1,7 @@
+card "Aegis of the Gods" {
+  oracle_id c5bfc1b9-a55d-4608-a6f7-bb62cb8dc3c6
+  cost {1}{W}
+  type Enchantment Creature — Human Soldier
+  pt 2/1
+  you have hexproof
+}

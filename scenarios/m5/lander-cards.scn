@@ -1,0 +1,89 @@
+scenario "Biotech Specialist makes a Lander that fetches a basic land tapped" {
+  battlefield A: "Forest", "Forest", "Mountain", "Mountain"
+  hand A: "Biotech Specialist"
+  library A: "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Biotech Specialist"
+  turn 1 A: activate "Lander"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Biotech Specialist"
+  assert battlefield A lacks "Lander"
+  assert battlefield A contains "Plains"
+}
+
+scenario "Biotech Specialist: sacrificing an artifact deals 2 damage to target opponent" {
+  battlefield A: "Biotech Specialist", "Lander", "Forest", "Forest"
+  library A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Lander"
+  turn 1 A: trigger "Biotech Specialist" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Seedship Impact makes a Lander for an artifact with mana value 2 or less" {
+  battlefield A: "Forest", "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Seedship Impact"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Seedship Impact" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert battlefield A contains "Lander"
+}
+
+scenario "Seedship Impact makes no Lander for a costlier artifact" {
+  battlefield A: "Forest", "Forest"
+  battlefield B: "Juggernaut"
+  hand A: "Seedship Impact"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Seedship Impact" targeting "Juggernaut"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Juggernaut"
+  assert battlefield A lacks "Lander"
+}
+
+scenario "Lithobraking: create a Lander, sacrifice it, 2 damage to each creature" {
+  battlefield A: "Mountain", "Mountain", "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Lithobraking"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lithobraking"
+  turn 1 A: accept "Lithobraking"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert battlefield A lacks "Lander"
+}
+
+scenario "Dauntless Scrapbot exiles each opponent's graveyard and makes a Lander" {
+  battlefield A: "Plains", "Plains", "Plains"
+  graveyard B: "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  hand A: "Dauntless Scrapbot"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dauntless Scrapbot"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Lander"
+}
+
+scenario "Seedship Agrarian makes a Lander whenever it becomes tapped" {
+  battlefield A: "Seedship Agrarian"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Seedship Agrarian"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Lander"
+  assert life B 17
+}
+
+scenario "Glacier Godmaw's landfall pumps your creatures" {
+  battlefield A: "Glacier Godmaw", "Grizzly Bears"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Glacier Godmaw" 7
+}

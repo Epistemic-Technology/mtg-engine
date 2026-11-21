@@ -1,0 +1,9 @@
+card "Hugs, Grisly Guardian" {
+  oracle_id 3c5c227a-335b-4995-9821-d4269a0a233a
+  cost {X}{R}{R}{G}{G}
+  type Legendary Creature — Badger Warrior
+  pt 5/5
+  keywords trample
+  triggered when this enters: impulse X next turn first
+  additional land
+}

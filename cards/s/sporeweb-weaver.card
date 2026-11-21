@@ -1,0 +1,9 @@
+card "Sporeweb Weaver" {
+  oracle_id 2e7c3881-6fa6-4fd2-ae86-9e3a0fcecdbd
+  cost {2}{G}
+  type Creature — Spider
+  pt 1/4
+  keywords reach
+  hexproof from blue
+  triggered whenever this is dealt damage: you gain 1 life and create 1 "1/1 green Saproling creature"
+}

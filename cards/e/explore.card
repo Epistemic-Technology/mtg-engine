@@ -1,0 +1,9 @@
+card "Explore" {
+  oracle_id b8f566ea-8283-4afa-9ac8-737e26419283
+  cost {1}{G}
+  type Sorcery
+  spell {
+    play additional land this turn
+    draw 1 card
+  }
+}

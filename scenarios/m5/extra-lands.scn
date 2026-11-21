@@ -1,0 +1,83 @@
+scenario "Azusa lets you play three lands a turn" {
+  battlefield A: "Azusa, Lost but Seeking"
+  hand A: "Forest", "Island", "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: play "Island"
+  turn 1 A: play "Swamp"
+  illegal turn 1 A: play "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Swamp"
+  assert hand A contains "Mountain"
+}
+
+scenario "Without Azusa, one land a turn" {
+  hand A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  illegal turn 1 A: play "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+}
+
+scenario "Rites of Flourishing gives each player an additional land on their own turn" {
+  battlefield A: "Rites of Flourishing"
+  hand B: "Forest", "Island", "Swamp"
+  start turn 2 B precombat_main
+  turn 2 B: play "Forest"
+  turn 2 B: play "Island"
+  illegal turn 2 B: play "Swamp"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Island"
+}
+
+scenario "Explore grants an additional land this turn only" {
+  battlefield A: "Forest", "Forest"
+  hand A: "Explore", "Island", "Swamp", "Mountain"
+  library A: "Plains", "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  turn 1 A: cast "Explore"
+  turn 1 A: play "Swamp"
+  illegal turn 1 A: play "Mountain"
+  run_to turn 3 precombat_main
+  turn 3 A: play "Mountain"
+  illegal turn 3 A: play "Plains"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Swamp"
+  assert battlefield A contains "Mountain"
+}
+
+scenario "Thranduil's Company needs another Elf" {
+  battlefield A: "Thranduil's Company"
+  hand A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  illegal turn 1 A: play "Island"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+}
+
+scenario "Thranduil's Company with another Elf allows an additional land" {
+  battlefield A: "Thranduil's Company", "Llanowar Elves"
+  hand A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: play "Island"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+}
+
+scenario "Journey of Discovery: up to two additional lands this turn" {
+  battlefield A: "Forest", "Forest", "Forest"
+  hand A: "Journey of Discovery", "Island", "Swamp", "Mountain", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  turn 1 A: cast "Journey of Discovery" mode 2
+  turn 1 A: play "Swamp"
+  turn 1 A: play "Mountain"
+  illegal turn 1 A: play "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+  assert hand A contains "Plains"
+}

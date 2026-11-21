@@ -1,0 +1,9 @@
+card "Glacier Godmaw" {
+  oracle_id 300e48df-7f7f-47ff-b450-8ba7bd1b1c67
+  cost {5}{G}{G}
+  type Creature — Leviathan
+  pt 6/6
+  keywords trample
+  triggered whenever this enters: create 1 "Lander"
+  label "Landfall" triggered whenever land you control enters: each creature you control gets +1/+1 and gains vigilance, haste
+}

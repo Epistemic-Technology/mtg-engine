@@ -1,0 +1,7 @@
+card "True Believer" {
+  oracle_id 5a0cd4dd-2212-4408-819e-0cb7c150418b
+  cost {W}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  you have shroud
+}

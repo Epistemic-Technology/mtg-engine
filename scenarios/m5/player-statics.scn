@@ -1,0 +1,87 @@
+scenario "You have hexproof: opponents can't target you" {
+  battlefield A: "Leyline of Sanctity"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "You have hexproof: you can still target yourself" {
+  battlefield A: "Leyline of Sanctity", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 17
+}
+
+scenario "You have hexproof: creatures you control can still be targeted" {
+  battlefield A: "Leyline of Sanctity", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "You have shroud: even you can't target yourself" {
+  battlefield A: "Ivory Mask", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Opponents can't cast spells during your turn" {
+  battlefield A: "Dragonlord Dromoka", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  illegal turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Opponents can cast spells during their own turn" {
+  battlefield A: "Dragonlord Dromoka", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Players can't gain life" {
+  battlefield A: "Leyline of Punishment", "Plains"
+  hand A: "Healing Salve"
+  start turn 1 A precombat_main
+  life A 10
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 10
+}
+
+scenario "Without Leyline of Punishment, life is gained" {
+  battlefield A: "Plains"
+  hand A: "Healing Salve"
+  start turn 1 A precombat_main
+  life A 10
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 13
+}
+
+scenario "Voice of Victory: opponents can't cast spells during your turn" {
+  battlefield A: "Voice of Victory"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 B: cast "Shock" targeting "Voice of Victory"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Voice of Victory"
+}

@@ -66,6 +66,7 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Hexproof from",
     "Mayhem",
     "Mobilize",
     "Behold",
@@ -1031,7 +1032,7 @@ impl Templates {
             ),
             (
                 r(
-                    r"^[Cc]reate (\S+) (tapped )?(Treasure|Food|Clue|Blood|Map|Powerstone|Mutagen) tokens?$",
+                    r"^[Cc]reate (\S+) (tapped )?(Treasure|Food|Clue|Blood|Map|Powerstone|Mutagen|Lander) tokens?$",
                 ),
                 |c, _| {
                     Some(format!(
@@ -1066,7 +1067,7 @@ impl Templates {
             // creates a Treasure token".
             (
                 r(
-                    r"^(Its controller|Each player|Each opponent) creates (\S+) (Treasure|Food|Clue|Blood|Map|Powerstone) tokens?$",
+                    r"^(Its controller|Each player|Each opponent) creates (\S+) (Treasure|Food|Clue|Blood|Map|Powerstone|Lander) tokens?$",
                 ),
                 |c, t| {
                     let who = recipient(&lowercase_first(cap(c, 1)), t)?;
@@ -2080,6 +2081,8 @@ impl Templates {
         let text = text.replace("C\u{1}", "\u{1}").replace("c\u{1}", "\u{1}");
         let text = text.as_str();
         let mut out: Vec<String> = Vec::new();
+        let extra_land =
+            Regex::new(r"^[Yy]ou may play (an|up to two) additional lands? this turn$").unwrap();
         for sentence in merge_impulse(split_sentences(text)) {
             // A sentence pair `merge_impulse` already wrote as DSL.
             if let Some(dsl) = sentence.strip_prefix('\u{1}') {
@@ -2197,6 +2200,16 @@ impl Templates {
                     "delayed {who}: {} {what}{dest} at {when}",
                     cap(&c, 1).to_ascii_lowercase()
                 ));
+                continue;
+            }
+            // CR 305.2: "You may play an additional land this turn" (the
+            // "may" is the rule's, not an optional effect's).
+            if let Some(c) = extra_land.captures(&sentence) {
+                out.push(if cap(&c, 1) == "an" {
+                    "play additional land this turn".to_string()
+                } else {
+                    "play 2 additional land this turn".to_string()
+                });
                 continue;
             }
             let if_cond;
@@ -3419,7 +3432,9 @@ impl Builder<'_> {
         {
             let parts: Vec<&str> = line.split(", ").collect();
             if parts.iter().all(|p| {
-                keyword_list(p).is_some() || p.to_ascii_lowercase().starts_with("protection from ")
+                keyword_list(p).is_some()
+                    || p.to_ascii_lowercase().starts_with("protection from ")
+                    || p.to_ascii_lowercase().starts_with("hexproof from ")
             }) {
                 for p in parts {
                     let p = capitalize(p);
@@ -3767,6 +3782,55 @@ impl Builder<'_> {
         }
         if line == "You have no maximum hand size." {
             self.statements.push("hand size none".to_string());
+            return Ok(());
+        }
+        // Player-level statics and the Leylines (CR 305.2, 702.11c,
+        // 702.18c, 103.6a).
+        let player_static = match line {
+            "You have hexproof." => Some("you have hexproof"),
+            "You have shroud." => Some("you have shroud"),
+            "Your opponents can't cast spells during your turn." => {
+                Some("opponents can't cast spells during your turn")
+            }
+            "Players can't gain life." => Some("players can't gain life"),
+            "Damage can't be prevented." => Some("damage can't be prevented"),
+            "You may play an additional land on each of your turns." => Some("additional land"),
+            "You may play two additional lands on each of your turns." => Some("additional land 2"),
+            "Each player may play an additional land on each of their turns." => {
+                Some("additional land each player")
+            }
+            "If this card is in your opening hand, you may begin the game with it on the battlefield." => {
+                Some("opening hand")
+            }
+            _ => None,
+        };
+        if let Some(s) = player_static {
+            self.statements.push(s.to_string());
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(
+            r"^As long as (.+), you may play an additional land on each of your turns\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && let Some(cond) = static_condition(cap(&c, 1))
+        {
+            self.statements
+                .push(format!("additional land as long as {cond}"));
+            return Ok(());
+        }
+        // "Hexproof from black", "Hexproof from monocolored", "Hexproof
+        // from instants" (CR 702.11d).
+        if let Some(q) = line.strip_prefix("Hexproof from ")
+            && !q.contains(" and ")
+            && !q.contains(',')
+        {
+            let what = match q {
+                "white" | "blue" | "black" | "red" | "green" | "multicolored" | "monocolored"
+                | "colorless" => q.to_string(),
+                _ => singular(q),
+            };
+            self.statements.push(format!("hexproof from {what}"));
             return Ok(());
         }
         if let Some(c) = Regex::new(

@@ -1,0 +1,9 @@
+card "Wayward Swordtooth" {
+  oracle_id 3875aef0-3102-4fbf-be90-e4139f7a2348
+  cost {2}{G}
+  type Creature — Dinosaur
+  pt 5/5
+  ascend
+  additional land
+  can't attack or block unless city's blessing
+}

@@ -1,0 +1,13 @@
+card "Beorn, Reluctant Host // Till and Tend" {
+  oracle_id 288da486-393c-4995-ad02-c5093a71970d
+  layout adventure
+  cost {4}{G}
+  type Legendary Creature — Human Bear Shapeshifter
+  pt 5/5
+  keywords trample
+  face "Till and Tend" {
+    cost {1}{G}
+    type Sorcery — Adventure
+    spell: play additional land this turn
+  }
+}

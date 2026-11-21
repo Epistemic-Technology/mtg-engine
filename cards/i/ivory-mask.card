@@ -1,0 +1,6 @@
+card "Ivory Mask" {
+  oracle_id 028bc726-0e86-4c53-9648-625153ae4b01
+  cost {2}{W}{W}
+  type Enchantment
+  you have shroud
+}

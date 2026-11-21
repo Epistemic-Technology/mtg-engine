@@ -1,0 +1,8 @@
+card "Spirit of the Hearth" {
+  oracle_id 30cd69a8-7893-4075-94ca-04450ff821d3
+  cost {4}{W}{W}
+  type Creature — Cat Spirit
+  pt 4/5
+  keywords flying
+  you have hexproof
+}

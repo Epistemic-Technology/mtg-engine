@@ -1,0 +1,7 @@
+card "Dauntless Scrapbot" {
+  oracle_id b75ca527-4494-4957-b2e3-8c590df42e95
+  cost {3}
+  type Artifact Creature — Robot
+  pt 3/1
+  triggered whenever this enters: exile graveyard of each opponent; create 1 "Lander"
+}

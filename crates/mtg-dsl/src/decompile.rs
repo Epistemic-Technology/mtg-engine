@@ -52,7 +52,10 @@ fn colors(c: ColorSet) -> Vec<Color> {
 
 fn keywords(k: KeywordSet) -> Vec<mtg_core::card::Keyword> {
     k.iter()
-        .filter(|k| *k != mtg_core::card::Keyword::ProtectionFromFilter)
+        .filter(|k| {
+            *k != mtg_core::card::Keyword::ProtectionFromFilter
+                && *k != mtg_core::card::Keyword::HexproofFromFilter
+        })
         .collect()
 }
 
@@ -757,6 +760,7 @@ impl Decompiler<'_> {
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::NextSpellLess(n) => Effect::NextSpellLess(*n),
+            CoreEffect::ExtraLandPlays(n) => Effect::ExtraLandPlays(*n),
             CoreEffect::FaceDownSpellsLess(n) => Effect::FaceDownSpellsLess(*n),
             CoreEffect::Goad { what } => Effect::Goad { what: r(*what) },
             CoreEffect::TurnFaceUp { what } => Effect::TurnFaceUp { what: r(*what) },
@@ -1791,6 +1795,12 @@ impl Decompiler<'_> {
                 from_graveyard: false,
             },
             AbilityDef::Protection(f) => Ability::Protection(self.filter(f)),
+            AbilityDef::HexproofFrom(f) => Ability::HexproofFrom(self.filter(f)),
+            AbilityDef::OpeningHand => Ability::OpeningHand,
+            AbilityDef::PlayerStatic { kind, condition } => Ability::PlayerStatic {
+                kind: *kind,
+                cond: condition.map(|c| self.static_cond(self.pool.condition(c))),
+            },
             AbilityDef::AttackUnless {
                 condition,
                 attack,

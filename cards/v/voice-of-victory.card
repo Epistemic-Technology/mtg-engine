@@ -1,0 +1,8 @@
+card "Voice of Victory" {
+  oracle_id b12cbda1-ac09-49eb-96b3-a4df27bc37ea
+  cost {1}{W}
+  type Creature — Human Bard
+  pt 1/3
+  mobilize 2
+  opponents can't cast spells during your turn
+}
