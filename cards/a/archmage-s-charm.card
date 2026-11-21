@@ -1,0 +1,10 @@
+card "Archmage's Charm" {
+  oracle_id 85cbb035-25df-43bb-ae06-ab098f448b02
+  cost {U}{U}{U}
+  type Instant
+  choose one {
+    mode: counter target spell
+    mode: target player draws 2 cards
+    mode: gain control of target nonland permanent with mana value 1 or less indefinitely
+  }
+}

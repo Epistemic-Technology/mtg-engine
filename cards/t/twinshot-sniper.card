@@ -1,0 +1,9 @@
+card "Twinshot Sniper" {
+  oracle_id b72fd535-0051-4f59-9d99-75895f751006
+  cost {3}{R}
+  type Artifact Creature — Goblin Archer
+  pt 2/3
+  keywords reach
+  triggered when this enters: deal 2 damage to any target
+  label "Channel" activated {1}{R}, discard this: it deals 2 damage to any target
+}

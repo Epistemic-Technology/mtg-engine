@@ -1,0 +1,8 @@
+card "Myr Galvanizer" {
+  oracle_id e070028e-468a-41e9-9ddd-a8cd01551266
+  cost {3}
+  type Artifact Creature — Myr
+  pt 2/2
+  static other Myr creature you control: +1/+1
+  activated {1}, {T}: untap each single other Myr you control
+}

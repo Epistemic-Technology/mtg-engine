@@ -1,0 +1,8 @@
+card "Go-Shintai of Ancient Wars" {
+  oracle_id d145e4d4-a190-4c0b-8dfd-401c0111e995
+  cost {2}{R}
+  type Legendary Enchantment Creature — Shrine
+  pt 2/2
+  keywords first strike
+  triggered at beginning of your end step: you may pay {1}; when you do, deal count where Shrine you control damage to target player or planeswalker
+}

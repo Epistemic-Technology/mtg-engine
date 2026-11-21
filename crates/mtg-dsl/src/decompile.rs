@@ -262,6 +262,7 @@ impl Decompiler<'_> {
             and_list: false,
             all_word: false,
             article: false,
+            control_late: false,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             alt_article: false,
             targeting: f.targeting.as_ref().map(|t| {

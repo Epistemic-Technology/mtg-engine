@@ -1,0 +1,6 @@
+card "Entrancing Melody" {
+  oracle_id f9f82958-a7c6-4161-b0d8-fdbf7a3dd911
+  cost {X}{U}{U}
+  type Sorcery
+  spell: gain control of target creature with mana value X indefinitely
+}

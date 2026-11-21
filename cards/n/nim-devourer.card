@@ -1,0 +1,8 @@
+card "Nim Devourer" {
+  oracle_id 89075fbe-cd8a-4054-abab-fcaa2aedddfb
+  cost {3}{B}{B}
+  type Creature — Zombie
+  pt 4/1
+  static this: +1/+0 count each artifact you control
+  activated {B}{B}, from graveyard, during your upkeep: return this to battlefield then sacrifice 1 creature chosen
+}

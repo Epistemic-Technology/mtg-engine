@@ -1,0 +1,7 @@
+card "Surtland Frostpyre" {
+  oracle_id 965aa666-3919-4053-8584-b773bdd54f0b
+  type Land
+  enters tapped
+  mana {R}
+  activated {2}{U}{U}{R}, {T}, sacrifice this, sorcery: scry 2; this land deals 2 damage to each creature
+}

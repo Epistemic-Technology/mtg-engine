@@ -1,0 +1,9 @@
+card "Eldrazi Obligator" {
+  oracle_id d09402cb-cf64-493e-a82d-244b31700710
+  cost {2}{R}
+  type Creature — Eldrazi
+  pt 3/1
+  keywords devoid
+  triggered when you cast this: you may pay {1}{C}; if you do, gain control of target creature until end of turn, untap that target 1 and target 1 gains haste
+  keyword haste
+}

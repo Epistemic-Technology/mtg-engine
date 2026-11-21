@@ -776,6 +776,11 @@ pub struct Filter {
     /// dies") rather than "this creature or another creature". Wording
     /// only.
     pub article: bool,
+    /// `creature with flying an opponent controls late`: who controls it
+    /// printed after the qualities ("target creature with flying an
+    /// opponent controls") rather than before them ("target creature an
+    /// opponent controls with flying"). Wording only.
+    pub control_late: bool,
 }
 
 impl Filter {
@@ -2607,6 +2612,10 @@ pub enum Recipient {
     /// (`SameTokens`, the core `SameObject`).
     CreatedTokens,
     SameTokens,
+    /// `them` inside a delayed trigger about created tokens: those tokens
+    /// (`SameTokens`), printed "them" ("Exile them at the beginning of the
+    /// next end step").
+    SameThem,
     /// `them` after creating tokens: `those tokens` printed "them" ("Put
     /// X +1/+1 counters on each of them").
     CreatedThem,

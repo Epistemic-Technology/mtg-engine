@@ -1,0 +1,7 @@
+card "Gift of Compleation" {
+  oracle_id c00a13cc-3c2b-473f-801c-3cfcca642ac0
+  cost {1}{B}
+  type Enchantment
+  triggered when this enters: incubate 3
+  triggered whenever Phyrexian you control dies: surveil 1
+}

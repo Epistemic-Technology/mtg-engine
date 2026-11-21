@@ -1,0 +1,6 @@
+card "Solar Blaze" {
+  oracle_id 424f3d53-47e7-4212-8267-53279ea8900a
+  cost {2}{R}{W}
+  type Sorcery
+  spell: each single creature bites itself
+}

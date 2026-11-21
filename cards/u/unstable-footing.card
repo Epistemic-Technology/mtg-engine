@@ -1,0 +1,7 @@
+card "Unstable Footing" {
+  oracle_id fb901095-2ea4-4b9e-ad5a-2892894dc4c3
+  cost {R}
+  type Instant
+  kicker {3}{R}
+  spell: damage can't be prevented this turn; if kicked, it deals 5 damage to target player or planeswalker
+}

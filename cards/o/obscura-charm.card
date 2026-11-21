@@ -1,0 +1,10 @@
+card "Obscura Charm" {
+  oracle_id 884eaa3f-b6af-4f0e-b0e7-cd40666986ce
+  cost {W}{U}{B}
+  type Instant
+  choose one {
+    mode: return target multicolored noninstant nonsorcery permanent card with mana value 3 or less from your graveyard to battlefield tapped
+    mode: counter target instant or sorcery spell
+    mode: destroy target creature or planeswalker with mana value 3 or less
+  }
+}

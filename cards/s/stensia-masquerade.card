@@ -1,0 +1,8 @@
+card "Stensia Masquerade" {
+  oracle_id 88f5d146-420b-417c-bcf1-fe0e78312a74
+  cost {2}{R}
+  type Enchantment
+  static attacking creature you control: has first strike
+  triggered whenever Vampire you control deals combat damage to a player: put 1 +1/+1 counters on it
+  madness {2}{R}
+}

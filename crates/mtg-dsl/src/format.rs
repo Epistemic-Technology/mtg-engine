@@ -314,6 +314,7 @@ impl Fmt {
             }
             Recipient::CreatedObject | Recipient::SameToken => "that token".to_string(),
             Recipient::SameCard => "that card".to_string(),
+            Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "each of them".to_string(),
             Recipient::Manifested => "manifested creature".to_string(),
@@ -2831,6 +2832,9 @@ fn filter_one(f: &Filter) -> String {
         }
         Some(Who::Opponents) => words.push("an opponent controls".to_string()),
         Some(Who::Any) | None => {}
+    }
+    if f.control_late && f.who.is_some() {
+        words.push("late".to_string());
     }
     match f.that_player {
         Some(mtg_core::card::ThatPlayer::Triggering) => {

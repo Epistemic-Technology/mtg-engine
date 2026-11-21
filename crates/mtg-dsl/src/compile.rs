@@ -1739,7 +1739,8 @@ impl Compiler<'_> {
             | Recipient::SameCard
             | Recipient::SameThat
             | Recipient::SameToken
-            | Recipient::SameTokens => CoreRecipient::SameObject,
+            | Recipient::SameTokens
+            | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
             Recipient::Manifested | Recipient::CreatedObject => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
@@ -1915,7 +1916,17 @@ impl Compiler<'_> {
                 to: r(*to),
             }),
             Effect::Destroy { to, no_regen, .. } => {
-                for t in to {
+                // One destruction of all of them (CR 608.2): a group
+                // judged by what it's attached to ("all permanents
+                // attached to creatures") goes first, before destroying the
+                // hosts would unattach it.
+                let attached_to_host = |t: &Recipient| {
+                    matches!(t, Recipient::Group(i) if self.card.groups.get(usize::from(*i))
+                        .is_some_and(|f| f.status.on.is_some()))
+                };
+                let mut to = to.clone();
+                to.sort_by_key(|t| !attached_to_host(t));
+                for t in &to {
                     out.push(if *no_regen {
                         CoreEffect::DestroyNoRegen { to: r(*t) }
                     } else {

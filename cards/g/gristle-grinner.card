@@ -1,0 +1,7 @@
+card "Gristle Grinner" {
+  oracle_id 419f4648-2ace-4bd4-9ae4-8d456688c089
+  cost {4}{B}
+  type Creature — Zombie
+  pt 3/3
+  triggered whenever a creature dies: this creature gets +2/+2
+}

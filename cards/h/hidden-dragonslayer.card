@@ -1,0 +1,9 @@
+card "Hidden Dragonslayer" {
+  oracle_id 862af5c4-cb34-4bfa-a7ff-209e103defd6
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 2/1
+  keywords lifelink
+  megamorph {2}{W}
+  triggered when this is turned face up: destroy target creature with power 4 or greater an opponent controls late
+}

@@ -1,0 +1,8 @@
+card "The Cauldron of Eternity" {
+  oracle_id a7308a1f-ec46-478e-86ea-33b2ebbd995f
+  cost {10}{B}{B}
+  type Legendary Artifact
+  this spell costs {2} less count each graveyard creature
+  triggered whenever creature you control dies: put it on bottom of library
+  activated {2}{B}, {T}, pay 2 life, sorcery: return target creature card from your graveyard to battlefield
+}

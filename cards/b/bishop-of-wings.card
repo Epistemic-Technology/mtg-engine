@@ -1,0 +1,8 @@
+card "Bishop of Wings" {
+  oracle_id af4684cf-f109-44be-adfb-7c551a36635e
+  cost {W}{W}
+  type Creature — Human Cleric
+  pt 1/4
+  triggered whenever Angel you control enters: you gains 4 life
+  triggered whenever Angel you control dies: create 1 "1/1 white Spirit creature with flying"
+}

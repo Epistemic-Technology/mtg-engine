@@ -1261,6 +1261,7 @@ impl<'a> Ctx<'a> {
                 "it".to_string()
             }
             Recipient::SameCard => "that card".to_string(),
+            Recipient::SameThem => "them".to_string(),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 // "each creature and planeswalker they control": Oracle
@@ -1485,6 +1486,20 @@ impl<'a> Ctx<'a> {
             if self.card.groups.get(usize::from(i)).is_some_and(|f| f.combat_with.is_some() || f.each))
     }
 
+    /// An object, a group written `all` printed so ("sacrifice all
+    /// non-Ogre creatures you control") where `each` prints "each".
+    fn obj_written(&mut self, r: Recipient) -> String {
+        match r {
+            Recipient::Group(i)
+                if self.card.groups.get(usize::from(i)).is_some_and(|f| f.all) =>
+            {
+                self.groups_mentioned.insert(r);
+                format!("all {}", self.group_phrase(i, true))
+            }
+            _ => self.obj(r),
+        }
+    }
+
     /// A group written `each single`, printed one at a time.
     fn single_group(&self, r: Recipient) -> bool {
         matches!(r, Recipient::Group(i)
@@ -1669,6 +1684,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::CreatedTokens
                 | Recipient::CreatedThem
                 | Recipient::SameTokens
+                | Recipient::SameThem
                 | Recipient::Those(_)
         )
     }
@@ -2055,23 +2071,24 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     for s in &f.supertypes {
         words.push(format!("{s:?}").to_lowercase());
     }
-    for s in &f.not_supertypes {
-        words.push(match s {
-            Supertype::Basic => "nonbasic".to_string(),
-            Supertype::Legendary => "nonlegendary".to_string(),
-            Supertype::Snow => "nonsnow".to_string(),
-            Supertype::World => "nonworld".to_string(),
-        });
-    }
     // "noncreature, nonland card", "nonartifact, nonblack creature":
-    // several negations are listed, types before colors; "nontoken"
-    // after the types ("nonland, nontoken permanent", "nontoken,
-    // non-Angel creature").
+    // several negations are listed, supertypes first ("nonlegendary,
+    // nonland card"), types before colors; "nontoken" after the types
+    // ("nonland, nontoken permanent", "nontoken, non-Angel creature").
     let mut negs: Vec<String> = f
-        .not_types
+        .not_supertypes
         .iter()
-        .map(|t| format!("non{}", type_noun(*t)))
+        .map(|s| {
+            match s {
+                Supertype::Basic => "nonbasic",
+                Supertype::Legendary => "nonlegendary",
+                Supertype::Snow => "nonsnow",
+                Supertype::World => "nonworld",
+            }
+            .to_string()
+        })
         .collect();
+    negs.extend(f.not_types.iter().map(|t| format!("non{}", type_noun(*t))));
     if f.status.token == Some(false) && !nontoken_first {
         negs.push("nontoken".to_string());
     }
@@ -2127,7 +2144,8 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     // "creatures you control with defender": Oracle names your control
     // before the qualities (but "creatures with flying your opponents
     // control").
-    let you_first = f.who == Some(Who::You) && f.or.is_none() && !f.named_first;
+    let you_first =
+        f.who == Some(Who::You) && f.or.is_none() && !f.named_first && !f.control_late;
     if you_first {
         s.push_str(" you control");
     }
@@ -2199,6 +2217,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     // "target Aura attached to a creature".
     match f.status.on {
+        // "all permanents attached to creatures" (End Hostilities).
+        Some(mtg_core::card::OnHost::Creature) if plural_form => {
+            s.push_str(" attached to creatures");
+        }
         Some(mtg_core::card::OnHost::Creature) => s.push_str(" attached to a creature"),
         Some(mtg_core::card::OnHost::Land) => s.push_str(" attached to a land"),
         None => {}
@@ -3747,9 +3769,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     String::new(),
                 ),
             };
-            let mut c =
-                Clause::with_subject(*to, s, format!("{} {mods}", ctx.verb(*to, "gets", "get")))
-                    .until_eot();
+            // "Up to two target creatures each get +X/+X".
+            let each = if matches!(to, Recipient::Targets(..)) || ctx.is_many(*to) {
+                "each "
+            } else {
+                ""
+            };
+            let mut c = Clause::with_subject(
+                *to,
+                s,
+                format!("{each}{} {mods}", ctx.verb(*to, "gets", "get")),
+            )
+            .until_eot();
             c.tail = tail;
             c
         }
@@ -4616,7 +4647,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("remove a counter from {o}"))
         }
         Effect::RemoveAllCounters { to } => {
-            let o = ctx.obj(*to);
+            let o = ctx.obj_written(*to);
             Clause::imperative(format!("remove all counters from {o}"))
         }
         Effect::ReturnToHand { what } => {
@@ -4773,7 +4804,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         // CR 610.3: "exile target creature an opponent controls until this
         // enchantment leaves the battlefield".
         Effect::ExileUntil { what } => {
-            let o = ctx.obj(*what);
+            let o = ctx.obj_written(*what);
             if let Recipient::Target(i) = what {
                 ctx.target_noun[*i] = "card".to_string();
             }
@@ -4793,7 +4824,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("exile {whose} graveyard"))
         }
         Effect::Sacrifice { what } => {
-            let o = ctx.obj(*what);
+            let o = ctx.obj_written(*what);
             Clause::imperative(format!("sacrifice {o}"))
         }
         Effect::SacrificeBy { who, what } => {
@@ -6344,7 +6375,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "you do"
             };
             let body = sentences(inner, ctx);
-            let body = lowercase_first(&body);
+            // "If you do, Oros deals 3 damage ...".
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
             Clause::imperative(format!("if {who}, {}", body.trim_end_matches('.')))
         }
         Effect::Waterbend(mana) => Clause::imperative(format!("waterbend {mana}")),
@@ -7173,6 +7209,18 @@ fn lowercase_first(s: &str) -> String {
     }
 }
 
+/// A clause's duration after its text; a quoted ability before it drops
+/// its own period ("gain \"{T}: This creature deals 2 damage to any
+/// target\" until end of turn").
+fn push_suffix(out: &mut String, suffix: &str) {
+    if out.ends_with(".\"") {
+        out.truncate(out.len() - 2);
+        out.push('"');
+    }
+    out.push(' ');
+    out.push_str(suffix);
+}
+
 /// One sentence (no final period, lowercase start).
 fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     ctx.groups_mentioned
@@ -7257,8 +7305,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             && !s.eot_first
             && !next_shares
         {
-            out.push(' ');
-            out.push_str(suffix);
+            push_suffix(&mut out, suffix);
         }
         // "deals X damage to any target and you gain X life, where X is
         // ...": one X, explained once at the end.
@@ -7271,8 +7318,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             && i + 1 == clauses.len()
             && c.tail.starts_with(", where X is ")
         {
-            out.push(' ');
-            out.push_str(c.suffix.expect("shared"));
+            push_suffix(&mut out, c.suffix.expect("shared"));
             suffix_done = true;
         }
         if !shared_where {
@@ -7280,8 +7326,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         }
     }
     if shared_suffix && !s.eot_first && !suffix_done {
-        out.push(' ');
-        out.push_str(clauses[0].suffix.expect("shared"));
+        push_suffix(&mut out, clauses[0].suffix.expect("shared"));
     }
     out
 }
@@ -7974,7 +8019,8 @@ fn controller_first(f: &Filter, s: String) -> String {
         Some(Who::Opponents) if !f.defending => " an opponent controls",
         _ => return s,
     };
-    if f.or.is_some() {
+    // `... an opponent controls late`: where it was written.
+    if f.or.is_some() || f.control_late {
         return s;
     }
     // "target creature you control without flying" too.
@@ -8003,7 +8049,8 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
             ctx.source_mentioned = false;
             "if the gift was promised".to_string()
         }
-        Condition::Kicked => "if it was kicked".to_string(),
+        // "if he was kicked" (Josu Vess).
+        Condition::Kicked => format!("if {} was kicked", it_subj(ctx.card)),
         Condition::HadNoCounters(k) => format!("if it had no {} counters on it", counter_name(k)),
         Condition::HadCounters(k) => format!(
             "if it had {} on it",
@@ -9394,7 +9441,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::YouControl { filter, at_least } => {
             let mut f = filter.clone();
             f.who = None;
-            let what = if *at_least == 1 && f.relation == Relation::Other {
+            let what = if *at_least == 1
+                && f.relation == Relation::Other
+                && f.or.as_ref().is_some_and(|a| a.relation != f.relation)
+            {
+                // "you control another Merfolk or an Island".
+                filter_a(&f, card)
+            } else if *at_least == 1 && f.relation == Relation::Other {
                 // "you control another Goblin".
                 let mut g = f.clone();
                 crate::format::relation_any(&mut g);

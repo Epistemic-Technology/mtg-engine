@@ -1,0 +1,6 @@
+card "Gaze of Granite" {
+  oracle_id 103d9ad0-d655-4bd5-a899-e9f8869e333d
+  cost {X}{B}{B}{G}
+  type Sorcery
+  spell: destroy each single nonland permanent with mana value X or less
+}

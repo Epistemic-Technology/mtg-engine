@@ -1,0 +1,6 @@
+card "Signature Slam" {
+  oracle_id 5ae23752-47a6-4031-8398-b8f6c77cfaad
+  cost {2}{G}
+  type Instant
+  spell: put 1 +1/+1 counters on target creature you control then each single modified creature you control bites target creature you don't control
+}

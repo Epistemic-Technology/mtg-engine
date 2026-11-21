@@ -1,0 +1,8 @@
+card "Guardian of Ghirapur" {
+  oracle_id 2553ab57-ceb6-4654-a59d-bc61735da908
+  cost {2}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  triggered when this enters: exile up to 1 another target creature or artifact you control; delayed target 1: return it to battlefield at beginning of the next end step
+}

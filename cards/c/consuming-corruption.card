@@ -1,0 +1,6 @@
+card "Consuming Corruption" {
+  oracle_id 3bc0bd36-70be-4180-9fb3-b10ce054107b
+  cost {B}{B}
+  type Instant
+  spell: deal count where Swamp you control damage to target creature or planeswalker and you gain count where Swamp you control life
+}

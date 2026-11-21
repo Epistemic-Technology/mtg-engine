@@ -1,0 +1,7 @@
+card "Tattermunge Witch" {
+  oracle_id b1696989-7f00-41ec-82a4-fd10aed7a7f9
+  cost {1}{R/G}
+  type Creature — Goblin Shaman
+  pt 2/1
+  activated {R}{G}: each single blocked creature gets +1/+0 and gains trample
+}

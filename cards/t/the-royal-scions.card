@@ -1,0 +1,9 @@
+card "The Royal Scions" {
+  oracle_id 4ecde8d1-e4ec-4bd9-8a80-49885b032557
+  cost {1}{U}{R}
+  type Legendary Planeswalker — Will Rowan
+  loyalty 5
+  loyalty +1: draw 1 cards then discard 1 cards
+  loyalty +1: target creature gets +2/+0 and gains first strike, trample
+  loyalty -8: draw 4 cards; when you do, deal count equal hand damage to any target
+}

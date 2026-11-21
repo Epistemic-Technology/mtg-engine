@@ -1,0 +1,7 @@
+card "Kuldotha Flamefiend" {
+  oracle_id e93089b1-e790-402b-a994-69a7e422e4f2
+  cost {4}{R}{R}
+  type Creature — Elemental
+  pt 4/4
+  triggered when this enters: you may sacrifice 1 artifact chosen; if you do, deal 4 damage divided among any number of targets
+}

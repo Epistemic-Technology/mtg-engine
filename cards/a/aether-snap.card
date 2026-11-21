@@ -1,0 +1,6 @@
+card "Aether Snap" {
+  oracle_id 1a1a16e5-ce4f-42b8-a1c6-05dd635d83cc
+  cost {3}{B}{B}
+  type Sorcery
+  spell: remove all counters from all permanent and exile all token
+}

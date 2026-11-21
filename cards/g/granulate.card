@@ -1,0 +1,6 @@
+card "Granulate" {
+  oracle_id fdcec649-6651-4ba0-bd3f-84f16e65397d
+  cost {2}{R}{R}
+  type Sorcery
+  spell: destroy each single nonland artifact with mana value 4 or less
+}

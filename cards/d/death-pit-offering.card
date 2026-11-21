@@ -1,0 +1,7 @@
+card "Death Pit Offering" {
+  oracle_id d445032b-b243-4203-9c88-a0ac357fb9b5
+  cost {2}{B}{B}
+  type Enchantment
+  triggered when this enters: sacrifice all creature you control
+  static creature you control: +2/+2
+}

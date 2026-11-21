@@ -1,0 +1,7 @@
+card "Droning Bureaucrats" {
+  oracle_id 21dc394e-ba82-4f27-8014-9236690d10a4
+  cost {3}{W}
+  type Creature — Human Advisor
+  pt 1/4
+  activated {X}, {T}: each single creature with mana value X can't attack or block
+}

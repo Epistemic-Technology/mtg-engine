@@ -956,7 +956,19 @@ take the name after the noun: `search card named this ...`, `target card
 named this from your graveyard`, `graveyard named this` ("cards named ~ in
 your graveyard"). A face-down permanent has no name (CR 708.2). As an effect's
 recipient, `all permanent ...` prints "all permanents ... to their owners'
-hands" where `each` prints "each permanent ... to its owner's hand".
+hands" where `each` prints "each permanent ... to its owner's hand"; so
+do `sacrifice all non-Ogre creature you control`, `exile all artifact your
+opponents control until this leaves`, and `remove all counters from all
+permanent` ("all ...s" where `each` prints "each ..."). Who controls it
+prints before the qualities ("target creature an opponent controls with
+flying"); written with `late` after it, after them (`target creature
+with flying an opponent controls late`: "target creature with flying an
+opponent controls"); wording only. Negations print with commas, a
+supertype's first ("nonlegendary, nonland card", "nonland, nontoken
+permanent"); a historic target is "target historic permanent". A
+nonland permanent card names what it isn't: `nonland noninstant
+nonsorcery permanent card` ("a nonland permanent card"; `nonland
+permanent card` is a nonland card).
 
 Game-state qualifiers (`ObjFilter::status`, judged with the game state like
 `tapped`): `blocked` and `unblocked` ("target blocked creature": an
@@ -1635,7 +1647,8 @@ its owner's control."; `triggering card` is the card it became). After
 (those still on the battlefield), and `delayed those tokens: sacrifice
 those tokens at beginning of the next end step` is one delayed trigger
 about each ("Sacrifice those tokens at the beginning of the next end
-step."). In `delayed that token: ...`, `it` prints "it" and `that token`
+step."), and `them` prints "them" (`delayed those tokens: exile them at
+beginning of the next end step`). In `delayed that token: ...`, `it` prints "it" and `that token`
 "that token" ("Exile that token at the beginning of the next end
 step."); both are the token. `delayed this: whenever <trigger> this turn, <effects>` triggers on
 every such event until the turn ends (CR 603.7c), as its controller's

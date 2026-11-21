@@ -8136,6 +8136,11 @@ impl P {
         if self.in_trigger && !self.in_delayed && self.eat_words(&["the", "creature"]) {
             return Ok(Recipient::TheTriggeringObject);
         }
+        // "Exile them at the beginning of the next end step." (the
+        // tokens a delayed trigger is about).
+        if self.in_delayed && self.eat_word("them") {
+            return Ok(Recipient::SameThem);
+        }
         // "Sacrifice those tokens at the beginning of the next end step."
         if self.eat_words(&["those", "tokens"]) {
             return Ok(if self.in_delayed {
@@ -8723,6 +8728,7 @@ impl P {
                 {
                     f.who = Some(Who::Opponents);
                     self.pos += if w == "an" { 3 } else { 2 };
+                    f.control_late |= self.eat_word("late");
                 }
                 "all" => {
                     f.all = true;
@@ -8846,21 +8852,25 @@ impl P {
                 "you" if self.at_words(&["you", "control"]) => {
                     f.who = Some(Who::You);
                     self.pos += 2;
+                    f.control_late |= self.eat_word("late");
                 }
                 "defending" if self.at_words(&["defending", "player", "controls"]) => {
                     f.who = Some(Who::Opponents);
                     f.defending = true;
                     self.pos += 3;
+                    f.control_late |= self.eat_word("late");
                 }
                 "your" if self.at_words(&["your", "opponents", "control"]) => {
                     f.who = Some(Who::Opponents);
                     f.your_opponents = true;
                     self.pos += 3;
+                    f.control_late |= self.eat_word("late");
                 }
                 "you" if self.at_words(&["you", "don't", "control"]) => {
                     f.who = Some(Who::Opponents);
                     f.dont_control = true;
                     self.pos += 3;
+                    f.control_late |= self.eat_word("late");
                 }
                 "they" if self.at_words(&["they", "control"]) => {
                     f.who = Some(Who::Opponents);
@@ -9323,6 +9333,7 @@ impl P {
                                 | "Platypus"
                                 | "Walrus"
                                 | "Aurochs"
+                                | "Bolas"
                         ) || raw.ends_with("'s");
                         f.subtypes.push(if keep {
                             raw.clone()

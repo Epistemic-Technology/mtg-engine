@@ -1,0 +1,6 @@
+card "Caress of Phyrexia" {
+  oracle_id 8253fcac-0c07-41e8-afa4-34021f9ef6f4
+  cost {3}{B}{B}
+  type Sorcery
+  spell: target player draws three cards, loses 3 life and gets 3 poison counters
+}

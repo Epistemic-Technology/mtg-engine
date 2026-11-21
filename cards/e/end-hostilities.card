@@ -1,0 +1,6 @@
+card "End Hostilities" {
+  oracle_id 7b2e2c4b-b8fd-440c-8a79-de6532022745
+  cost {3}{W}{W}
+  type Sorcery
+  spell: destroy each creature and all permanent attached to creature
+}

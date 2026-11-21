@@ -1,0 +1,8 @@
+card "Blizzard Strix" {
+  oracle_id c687af9b-2159-4965-a068-ce4db1ce801c
+  cost {4}{U}
+  type Snow Creature — Bird
+  pt 3/2
+  keywords flash, flying
+  triggered when this enters if you control other snow permanent: exile target permanent other than this; delayed target 1: return that card to battlefield at beginning of the next end step
+}

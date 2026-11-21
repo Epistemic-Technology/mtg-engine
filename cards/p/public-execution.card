@@ -1,0 +1,6 @@
+card "Public Execution" {
+  oracle_id 6125f993-970c-469a-b557-23d4dc6684f4
+  cost {5}{B}
+  type Instant
+  spell: destroy target creature an opponent controls; each single other creature controller of target 1 controls gets -2/-0
+}

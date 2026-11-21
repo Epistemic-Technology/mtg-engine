@@ -1,0 +1,6 @@
+card "Cunning Evasion" {
+  oracle_id 3e56606d-562e-4c77-9769-213997fea28e
+  cost {1}{U}
+  type Enchantment
+  triggered whenever creature you control becomes blocked: you may return it to hand
+}

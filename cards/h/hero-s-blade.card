@@ -1,0 +1,8 @@
+card "Hero's Blade" {
+  oracle_id e6bcd25d-39b6-4619-8a27-9f3d87f4a17b
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +3/+2
+  triggered whenever legendary creature you control enters: you may attach this to it
+  equip {4}
+}

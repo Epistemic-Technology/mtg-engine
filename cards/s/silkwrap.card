@@ -1,0 +1,6 @@
+card "Silkwrap" {
+  oracle_id 909becbc-1d84-4e94-b589-e58438569403
+  cost {1}{W}
+  type Enchantment
+  triggered when this enters: exile target creature with mana value 3 or less an opponent controls late until this leaves
+}

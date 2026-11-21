@@ -1,0 +1,7 @@
+card "Touch the Spirit Realm" {
+  oracle_id 52f0dcbd-ccf3-4525-8e55-2d38b4991834
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: exile up to one target artifact or creature until this leaves
+  label "Channel" activated {1}{W}, discard this: exile target artifact or creature; delayed target 1: return it to battlefield at beginning of the next end step
+}

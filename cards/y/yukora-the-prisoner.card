@@ -1,0 +1,7 @@
+card "Yukora, the Prisoner" {
+  oracle_id 10026343-a8cd-4a99-b4d9-ff7611f52052
+  cost {2}{B}{B}
+  type Legendary Creature — Demon Spirit
+  pt 5/5
+  triggered when this leaves the battlefield: sacrifice all non-Ogre creature you control
+}

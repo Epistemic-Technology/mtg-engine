@@ -1,0 +1,6 @@
+card "Feral Lightning" {
+  oracle_id acd17fbf-645b-4c4d-b2c6-44127e3b743d
+  cost {3}{R}{R}{R}
+  type Sorcery
+  spell: create 3 "3/1 red Elemental creature with haste"; delayed those tokens: exile them at beginning of the next end step
+}

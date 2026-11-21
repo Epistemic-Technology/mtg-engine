@@ -1,0 +1,8 @@
+card "Moonveil Dragon" {
+  oracle_id e0cd4619-9a83-41f2-a349-358feaf2ef2f
+  cost {3}{R}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying
+  activated {R}: each single creature you control gets +1/+0
+}

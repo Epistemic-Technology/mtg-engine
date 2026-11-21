@@ -1,0 +1,8 @@
+card "Cloak and Dagger" {
+  oracle_id 73ca14bb-0586-4716-8d4c-738a93950ed5
+  cost {2}
+  type Kindred Artifact — Rogue Equipment
+  static enchanted: +2/+0, has shroud
+  triggered whenever Rogue creature enters: you may attach this to it
+  equip {3}
+}

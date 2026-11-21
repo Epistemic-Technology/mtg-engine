@@ -1,0 +1,6 @@
+card "Chastise" {
+  oracle_id b7553f3f-5de1-409c-a184-e12e40f017ab
+  cost {3}{W}
+  type Instant
+  spell: destroy target attacking creature; you gain count equal power of target 1 life
+}

@@ -1,0 +1,6 @@
+card "Consume the Meek" {
+  oracle_id c2555c38-1bfc-48c1-85aa-7e40117db78b
+  cost {3}{B}{B}
+  type Instant
+  spell: destroy each single creature with mana value 3 or less without regeneration
+}

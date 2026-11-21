@@ -868,6 +868,8 @@ fn singular(s: &str) -> String {
             "Elves" => "Elf".to_string(),
             "Dwarves" => "Dwarf".to_string(),
             "Wolves" => "Wolf".to_string(),
+            // A planeswalker type spelled with "s" in the singular.
+            "Bolas" => "Bolas".to_string(),
             other
                 if other.len() > 3
                     && other.ends_with('s')
