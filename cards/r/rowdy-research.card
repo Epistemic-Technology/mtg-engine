@@ -1,0 +1,7 @@
+card "Rowdy Research" {
+  oracle_id 1a33a5c2-5aa1-48e5-95a8-d52cdce980de
+  cost {6}{U}
+  type Instant
+  this spell costs {1} less count each creature attacked this turn
+  spell: draw 3 cards
+}

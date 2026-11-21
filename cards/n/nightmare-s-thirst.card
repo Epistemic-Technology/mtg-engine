@@ -1,0 +1,6 @@
+card "Nightmare's Thirst" {
+  oracle_id 9ecf56b9-1f36-4030-8333-1675ccc663d9
+  cost {B}
+  type Instant
+  spell: you gain 1 life; target creature gets -1/-1 count where life you gained this turn
+}

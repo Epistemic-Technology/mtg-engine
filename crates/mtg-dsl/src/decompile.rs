@@ -169,6 +169,7 @@ impl Decompiler<'_> {
                 each: false,
             },
             C::CardTypesInAllGraveyards => A::CardTypesInGraveyards,
+            C::CardTypesInGraveyard => A::CardTypesInGraveyard,
             C::Plus(n, inner) => A::Plus {
                 n: *n,
                 word: false,

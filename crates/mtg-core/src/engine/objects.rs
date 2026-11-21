@@ -913,13 +913,14 @@ impl GameState {
         }
         let (def, who) = (o.def, o.controller);
         // "If you've sacrificed an artifact this turn".
+        // "the number of permanents you've sacrificed this turn".
+        let n = &mut self.turn_log.sacrificed_n[who.index().min(3)];
+        *n = n.saturating_add(1);
         if let Some(c) = self.characteristics(id) {
             let seen = &mut self.turn_log.sacrificed[who.index().min(3)];
-            if !seen.contains_all(c.types) {
-                *seen = seen.union(c.types);
-                self.history_bump();
-            }
+            *seen = seen.union(c.types);
         }
+        self.history_bump();
         self.emit(Event::Sacrificed { obj: id, def });
         self.move_object(id, Zone::Graveyard, true);
     }

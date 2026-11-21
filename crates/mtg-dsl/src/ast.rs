@@ -454,6 +454,36 @@ pub enum CountExpr {
         colors: Vec<mtg_core::mana::Color>,
         chroma: bool,
     },
+    /// `life you gained this turn`: "the amount of life you gained this
+    /// turn"; `life you've gained this turn`: "... you've gained ...".
+    LifeGainedThisTurn {
+        ve: bool,
+    },
+    /// `card types in your graveyard`: "the number of card types among
+    /// cards in your graveyard".
+    CardTypesInGraveyard,
+    /// `counters on this` ("the number of counters on this creature"),
+    /// `counters on it`: every kind.
+    SourceAllCounters {
+        it: bool,
+    },
+    /// `permanents sacrificed this turn`: "the number of permanents
+    /// you've sacrificed this turn".
+    SacrificedThisTurn,
+    /// `two to x`: "2ˣ".
+    TwoToX,
+    /// `creature attacked this turn`: "for each creature that attacked this
+    /// turn" (any player's).
+    AttackedThisTurn,
+    /// `opponents lost life this turn`: "for each opponent who lost life
+    /// this turn".
+    OpponentsLostLife,
+    /// `opponents more cards in hand`: "for each opponent who has more
+    /// cards in hand than you".
+    OpponentsMoreCards,
+    /// `total power creature you control`: "the total power of creatures
+    /// you control" (also `total toughness`, `total mana value`).
+    Total(mtg_core::card::Stat, Filter),
 }
 
 /// What a target-dependent cost's filter names: a permanent, a spell, or a
@@ -3076,6 +3106,14 @@ pub enum Effect {
     /// "Investigate" (CR 701.16): create a Clue token; `investigate
     /// twice` ("investigate twice") does it two times.
     Investigate(u32),
+    /// `investigate count each opponents lost life this turn`
+    /// ("investigate for each opponent who lost life this turn"); `once`,
+    /// `investigate once count each ...`, prints "investigate once for
+    /// each ...".
+    InvestigateCount {
+        count: Num,
+        once: bool,
+    },
     /// `target player investigates`: another player creates the Clue
     /// ("Target player investigates.").
     Investigates(Recipient),

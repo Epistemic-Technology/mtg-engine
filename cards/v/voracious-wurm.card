@@ -1,0 +1,7 @@
+card "Voracious Wurm" {
+  oracle_id 2a249c4b-beaa-4e7f-b4f7-496d282327bd
+  cost {1}{G}
+  type Creature — Wurm
+  pt 2/2
+  enters with count where life you've gained this turn +1/+1 counters
+}

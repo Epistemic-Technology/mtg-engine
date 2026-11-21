@@ -1424,6 +1424,11 @@ impl Fmt {
             Effect::Investigates(w) => format!("{} investigates", self.recipient(*w, t)),
             Effect::Investigate(2) => "investigate twice".to_string(),
             Effect::Investigate(n) => format!("investigate {n} times"),
+            Effect::InvestigateCount { count, once } => format!(
+                "investigate {}{}",
+                if *once { "once " } else { "" },
+                num(*count)
+            ),
             Effect::PumpVar {
                 power,
                 toughness,
@@ -2624,6 +2629,18 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         ),
         CountExpr::TriggerCounters(kind) => format!("{} counters on it", kind.name()),
         CountExpr::Those(t) => those_word(*t).to_string(),
+        CountExpr::LifeGainedThisTurn { ve: false } => "life you gained this turn".to_string(),
+        CountExpr::LifeGainedThisTurn { ve: true } => "life you've gained this turn".to_string(),
+        CountExpr::CardTypesInGraveyard => "card types in your graveyard".to_string(),
+        CountExpr::SourceAllCounters { it } => {
+            format!("counters on {}", if *it { "it" } else { "this" })
+        }
+        CountExpr::SacrificedThisTurn => "permanents sacrificed this turn".to_string(),
+        CountExpr::TwoToX => "two to x".to_string(),
+        CountExpr::AttackedThisTurn => "creature attacked this turn".to_string(),
+        CountExpr::OpponentsLostLife => "opponents lost life this turn".to_string(),
+        CountExpr::OpponentsMoreCards => "opponents more cards in hand".to_string(),
+        CountExpr::Total(stat, f) => format!("total {} {}", stat_word(*stat), filter(f)),
     }
 }
 

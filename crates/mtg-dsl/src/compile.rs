@@ -1707,6 +1707,15 @@ impl Compiler<'_> {
             A::Those(_) => C::ThoseObjects,
             A::HostGraveyard(f) => C::HostGraveyard(f.as_ref().map(|f| self.filter(f))),
             A::Devotion { colors, .. } => C::Devotion(ColorSet::of(colors.iter().copied())),
+            A::LifeGainedThisTurn { .. } => C::LifeGainedThisTurn,
+            A::CardTypesInGraveyard => C::CardTypesInGraveyard,
+            A::SourceAllCounters { .. } => C::SourceAllCounters,
+            A::SacrificedThisTurn => C::SacrificedThisTurn,
+            A::TwoToX => C::TwoToX,
+            A::AttackedThisTurn => C::AttackedThisTurn,
+            A::OpponentsLostLife => C::OpponentsLostLife,
+            A::OpponentsMoreCards => C::OpponentsMoreCards,
+            A::Total(stat, f) => C::Total(*stat, self.filter(f)),
         }
     }
 
@@ -2464,18 +2473,19 @@ impl Compiler<'_> {
                 may: *may,
                 reveal: *reveal,
             }),
-            Effect::Investigate(_) | Effect::Investigates(_) => {
+            Effect::Investigate(_) | Effect::Investigates(_) | Effect::InvestigateCount { .. } => {
                 let Some(token) = self.pool.lookup("Clue") else {
                     return self.err("unknown token \"Clue\" (cards/tokens/clue.card)");
                 };
                 let (n, who) = match e {
-                    Effect::Investigates(w) => (1, r(*w)),
-                    Effect::Investigate(n) => (*n, CoreRecipient::You),
+                    Effect::Investigates(w) => (Num::N(1), r(*w)),
+                    Effect::Investigate(n) => (Num::N(*n), CoreRecipient::You),
+                    Effect::InvestigateCount { count, .. } => (*count, CoreRecipient::You),
                     _ => unreachable!(),
                 };
                 out.push(CoreEffect::CreateToken {
                     token,
-                    count: Num::N(n),
+                    count: n,
                     who,
                     tapped: false,
                     attached: None,

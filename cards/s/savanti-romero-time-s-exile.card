@@ -1,0 +1,8 @@
+card "Savanti Romero, Time's Exile" {
+  oracle_id 6074632b-4520-4ae8-bcdc-26b1eff71af9
+  cost {3}{B}{B}
+  type Legendary Creature — Demon Wizard
+  pt 4/4
+  keywords trample
+  triggered at beginning of your combat: put 1 +1/+1 counter on this; then you draw count where counters on this cards and lose count where counters on this life
+}

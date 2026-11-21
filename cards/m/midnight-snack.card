@@ -1,0 +1,7 @@
+card "Midnight Snack" {
+  oracle_id 3ddcaee9-a11e-477a-bd19-f5ee10512549
+  cost {2}{B}
+  type Enchantment
+  label "Raid" triggered at beginning of your end step if attacked this turn: create 1 "Food"
+  activated {2}{B}, sacrifice this: target opponent loses count where life you gained this turn life
+}

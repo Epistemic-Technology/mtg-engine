@@ -1,0 +1,8 @@
+card "Wojek Investigator" {
+  oracle_id ab41243d-b178-4ebe-a7ac-bea37427be99
+  cost {2}{W}
+  type Creature — Angel Detective
+  pt 2/4
+  keywords flying, vigilance
+  triggered at beginning of your upkeep: investigate once count each opponents more cards in hand
+}

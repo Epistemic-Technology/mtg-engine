@@ -7151,6 +7151,15 @@ impl P {
                 Ok(Effect::Discard { count, who: None })
             }
             "scry" => Ok(Effect::Scry(self.num()?)),
+            "investigate"
+                if self.at_words(&["count", "each"]) || self.at_words(&["once", "count"]) =>
+            {
+                let once = self.eat_word("once");
+                Ok(Effect::InvestigateCount {
+                    count: self.num()?,
+                    once,
+                })
+            }
             "investigate" => Ok(Effect::Investigate(if self.eat_word("twice") {
                 2
             } else if matches!(self.peek(), Some(Tok::Num(_))) {
@@ -7922,6 +7931,56 @@ impl P {
         }
         if self.eat_words(&["card", "types", "in", "graveyards"]) {
             return Ok(CountExpr::CardTypesInGraveyards);
+        }
+        if self.eat_words(&["card", "types", "in", "your", "graveyard"]) {
+            return Ok(CountExpr::CardTypesInGraveyard);
+        }
+        if self.eat_words(&["life", "you", "gained", "this", "turn"]) {
+            return Ok(CountExpr::LifeGainedThisTurn { ve: false });
+        }
+        if self.eat_words(&["life", "you've", "gained", "this", "turn"]) {
+            return Ok(CountExpr::LifeGainedThisTurn { ve: true });
+        }
+        if self.eat_words(&["permanents", "sacrificed", "this", "turn"]) {
+            return Ok(CountExpr::SacrificedThisTurn);
+        }
+        if self.eat_words(&["two", "to", "x"]) {
+            return Ok(CountExpr::TwoToX);
+        }
+        if self.eat_words(&["creature", "attacked", "this", "turn"]) {
+            return Ok(CountExpr::AttackedThisTurn);
+        }
+        if self.eat_words(&["opponents", "lost", "life", "this", "turn"]) {
+            return Ok(CountExpr::OpponentsLostLife);
+        }
+        if self.eat_words(&["opponents", "more", "cards", "in", "hand"]) {
+            return Ok(CountExpr::OpponentsMoreCards);
+        }
+        // `counters on this`, `counters on it`: every kind.
+        if self.eat_words(&["counters", "on"]) {
+            if self.eat_word("this") {
+                return Ok(CountExpr::SourceAllCounters { it: false });
+            }
+            self.expect_word("it")?;
+            // In a triggered ability `it` is the triggering object, which
+            // this count doesn't read.
+            if self.in_trigger && !self.it_source && !self.in_delayed {
+                return self.fail("`counters on it` counts the source's; write `counters on this`");
+            }
+            return Ok(CountExpr::SourceAllCounters { it: true });
+        }
+        // `total power creature you control`.
+        if self.eat_word("total") {
+            use mtg_core::card::Stat;
+            let stat = if self.eat_word("power") {
+                Stat::Power
+            } else if self.eat_word("toughness") {
+                Stat::Toughness
+            } else {
+                self.expect_words(&["mana", "value"])?;
+                Stat::ManaValue
+            };
+            return Ok(CountExpr::Total(stat, self.filter()?));
         }
         // `+1/+1 counters on this`, `age counters on it`.
         let at = self.pos;

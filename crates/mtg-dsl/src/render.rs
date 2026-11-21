@@ -3159,7 +3159,8 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::Dig { count, .. }
         | Effect::ExilePlayable { count, .. }
         | Effect::ExileTop { count, .. }
-        | Effect::Earthbend { count, .. } => vec![*count],
+        | Effect::Earthbend { count, .. }
+        | Effect::InvestigateCount { count, .. } => vec![*count],
         Effect::CopySpells { times, .. } => vec![*times],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
@@ -3576,6 +3577,46 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 "the damage dealt this way".to_string()
             };
         }
+        CountExpr::LifeGainedThisTurn { ve } => {
+            let you = if *ve { "you've" } else { "you" };
+            return format!("the amount of life {you} gained this turn");
+        }
+        CountExpr::CardTypesInGraveyard => (
+            "card type among cards in your graveyard".to_string(),
+            "card types among cards in your graveyard".to_string(),
+        ),
+        CountExpr::SourceAllCounters { it } => {
+            let on = if *it {
+                "it".to_string()
+            } else {
+                this_ref(card)
+            };
+            (format!("counter on {on}"), format!("counters on {on}"))
+        }
+        CountExpr::SacrificedThisTurn => (
+            "permanent you've sacrificed this turn".to_string(),
+            "permanents you've sacrificed this turn".to_string(),
+        ),
+        CountExpr::TwoToX => return "2ˣ".to_string(),
+        CountExpr::AttackedThisTurn => (
+            "creature that attacked this turn".to_string(),
+            "creatures that attacked this turn".to_string(),
+        ),
+        CountExpr::OpponentsLostLife => (
+            "opponent who lost life this turn".to_string(),
+            "opponents who lost life this turn".to_string(),
+        ),
+        CountExpr::OpponentsMoreCards => (
+            "opponent who has more cards in hand than you".to_string(),
+            "opponents who have more cards in hand than you".to_string(),
+        ),
+        CountExpr::Total(stat, f) => {
+            return format!(
+                "the total {} of {}",
+                stat_word(*stat),
+                controller_first(f, filter_phrase(f, card, true))
+            );
+        }
     };
     if each {
         format!("for each {one}")
@@ -3674,6 +3715,10 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     &format!(" cards of your library, where X is {phrase}"),
                     1,
                 );
+            }
+            // "Target player draws 2ˣ cards."
+            CountStyle::Where if count.expr == crate::ast::CountExpr::TwoToX => {
+                c.text = c.text.replacen("X ", "2ˣ ", 1);
             }
             CountStyle::Where if ctx.x_defined.contains(&count.expr) => {}
             CountStyle::Where => {
@@ -5557,6 +5602,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ctx.verb(*w, "investigates", "investigate").to_string(),
             )
         }
+        // The count's "for each ..." follows (`clause`).
+        Effect::InvestigateCount { once, .. } => Clause::imperative(if *once {
+            "investigate once".to_string()
+        } else {
+            "investigate".to_string()
+        }),
         Effect::Investigate(n) => Clause::imperative(match n {
             1 => "investigate".to_string(),
             2 => "investigate twice".to_string(),
@@ -7988,7 +8039,16 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 && f.subtypes.iter().all(|s| ctx.card.subtypes.contains(s));
             // "Whenever an enchantment you control is put into a graveyard
             // from the battlefield": only creatures die (CR 700.4).
-            let dies = if !f.types.is_empty() && !f.types.contains(&CardType::Creature) {
+            // "Whenever a Clue you control is put into a graveyard ...": a
+            // noncreature subtype, no Vehicle, names no creature either.
+            let noncreature_subtype = f.types.is_empty()
+                && !f.subtypes.is_empty()
+                && f.subtypes.iter().all(|s| {
+                    s != "Vehicle" && mtg_core::card::NONCREATURE_SUBTYPES.contains(&s.as_str())
+                });
+            let dies = if (!f.types.is_empty() && !f.types.contains(&CardType::Creature))
+                || noncreature_subtype
+            {
                 "is put into a graveyard from the battlefield"
             } else {
                 "dies"
@@ -9043,6 +9103,14 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     counters(Num::N(n), *kind),
                     it_obj(ctx.card),
                     count_phrase(expr, ctx.card, true)
+                )
+            } else if count.style == crate::ast::CountStyle::Where {
+                // "enters with X +1/+1 counters on it, where X is ...".
+                format!(
+                    "{this} enters with X {} counters on {}, where X is {}.",
+                    counter_name(*kind),
+                    it_obj(ctx.card),
+                    count_phrase(&count.expr, ctx.card, false)
                 )
             } else {
                 format!(

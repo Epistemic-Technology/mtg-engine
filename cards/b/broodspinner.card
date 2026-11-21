@@ -1,0 +1,9 @@
+card "Broodspinner" {
+  oracle_id ad50214c-4d0e-4f95-9098-fd7d64dbf7f4
+  cost {B}{G}
+  type Creature — Spider
+  pt 2/3
+  keywords reach
+  triggered when this enters: surveil 2
+  activated {4}{B}{G}, {T}, sacrifice this: create count equal card types in your graveyard "1/1 black and green Insect creature with flying"
+}

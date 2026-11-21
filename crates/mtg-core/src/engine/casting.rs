@@ -1104,6 +1104,74 @@ impl GameState {
                     .as_ref()
                     .map_or(0, |log| if *excess { log.excess } else { log.damage });
             }
+            CountExpr::LifeGainedThisTurn => {
+                return self.turn_log.life_gained[you.index().min(3)];
+            }
+            CountExpr::SacrificedThisTurn => {
+                return u32::from(self.turn_log.sacrificed_n[you.index().min(3)]);
+            }
+            // Every attacker declared this turn, by any player (CR 508.1).
+            CountExpr::AttackedThisTurn => self.attackers_this_turn.len(),
+            CountExpr::OpponentsLostLife => self
+                .players_in_game()
+                .filter(|p| *p != you && self.lost_life_this_turn & (1 << p.index().min(7)) != 0)
+                .count(),
+            CountExpr::OpponentsMoreCards => {
+                let mine = self.player(you).hand.len();
+                self.players_in_game()
+                    .filter(|p| *p != you && self.player(*p).hand.len() > mine)
+                    .count()
+            }
+            // X of the resolving spell (the source), or the source's X.
+            CountExpr::TwoToX => return 1u32 << self.x_of(ctx.source).min(31),
+            // CR 608.2h: once the source has left the battlefield, the
+            // counters it had there.
+            CountExpr::SourceAllCounters => {
+                let total = |o: &crate::state::GameObject| o.counters.iter().map(|(_, n)| *n).sum();
+                return match self.objects.get(ctx.source) {
+                    Some(o) if o.zone == Zone::Battlefield => total(o),
+                    o => self
+                        .lki
+                        .get(&ctx.source)
+                        .map(|l| total(&l.object))
+                        .or_else(|| o.map(total))
+                        .unwrap_or(0),
+                };
+            }
+            CountExpr::CardTypesInGraveyard => {
+                return self
+                    .player(you)
+                    .graveyard
+                    .iter()
+                    .map(|id| &self.objects[*id])
+                    .filter(|o| o.kind != crate::state::ObjKind::Token)
+                    .fold(crate::card::TypeSet::default(), |acc, o| {
+                        acc.union(self.pool.get(o.def).types)
+                    })
+                    .len();
+            }
+            // CR 107.1b: a negative total is 0.
+            CountExpr::Total(stat, f) => {
+                let f = &*self.chosen_filter(f, ctx);
+                let sum: i64 = self
+                    .battlefield
+                    .iter()
+                    .filter_map(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.characteristics(*id)?;
+                        (f.matches(*id, o.controller, &c, Some(ctx.source), Some(you))
+                            && self.status_ok(f, *id))
+                        .then(|| match stat {
+                            crate::card::Stat::Power => i64::from(c.power()),
+                            crate::card::Stat::Toughness => i64::from(c.toughness()),
+                            crate::card::Stat::ManaValue => {
+                                i64::from(self.pool.get(c.def).mana_cost.mana_value())
+                            }
+                        })
+                    })
+                    .sum();
+                return u32::try_from(sum.max(0)).unwrap_or(u32::MAX);
+            }
         };
         u32::try_from(n).unwrap_or(u32::MAX)
     }

@@ -1874,6 +1874,49 @@ pub enum CountExpr {
     /// chroma's "the number of red mana symbols in the mana costs of
     /// permanents you control".
     Devotion(ColorSet),
+    /// "the amount of life you gained this turn" (CR 119.3), in all,
+    /// whatever life was also lost.
+    LifeGainedThisTurn,
+    /// Card types among cards in your graveyard (CR 205.2a; Nethergoyf).
+    CardTypesInGraveyard,
+    /// Counters of every kind on the source ("the number of counters on
+    /// Savanti Romero"), as it last existed on the battlefield once it
+    /// has left (CR 608.2h).
+    SourceAllCounters,
+    /// The permanents you've sacrificed this turn (CR 701.21).
+    SacrificedThisTurn,
+    /// 2 to the power of the source's X ("draws 2ˣ cards"), capped so it
+    /// fits.
+    TwoToX,
+    /// Creatures that attacked this turn, any player's ("for each creature
+    /// that attacked this turn"; CR 508.1).
+    AttackedThisTurn,
+    /// Opponents who lost life this turn ("for each opponent who lost life
+    /// this turn"; CR 119.3).
+    OpponentsLostLife,
+    /// Opponents who have more cards in hand than you.
+    OpponentsMoreCards,
+    /// The total power, toughness, or mana value of the battlefield
+    /// permanents matching the filter ("the total power of creatures you
+    /// control"): the values as they are, negative ones included, and 0
+    /// if the sum is negative (CR 107.1b).
+    Total(Stat, ObjFilter),
+}
+
+impl CountExpr {
+    /// Whether the count reads the turn's history, so a static ability
+    /// using it must be recomputed as that changes (`history_static`).
+    pub fn reads_history(&self) -> bool {
+        match self {
+            CountExpr::LifeGainedThisTurn
+            | CountExpr::SacrificedThisTurn
+            | CountExpr::AttackedThisTurn
+            | CountExpr::OpponentsLostLife => true,
+            CountExpr::Times(_, c) | CountExpr::Plus(_, c) => c.reads_history(),
+            CountExpr::Sum(a, b) => a.reads_history() || b.reads_history(),
+            _ => false,
+        }
+    }
 }
 
 /// A characteristic a count reads from an object.
@@ -8184,6 +8227,10 @@ impl CardPool {
                     | StaticCondition::SurveilledThisTurn
                     | StaticCondition::OpponentDamagedThisTurn
                     | StaticCondition::OpponentLostLifeThisTurn
+            )) || sa.parts.iter().any(|m| matches!(
+                m,
+                Modification::ModifyPtPer { count, .. } | Modification::CdaPt { count, .. }
+                    if count.reads_history()
             )))
         });
         flags.set(

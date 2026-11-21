@@ -1041,6 +1041,55 @@ fn per_count(
                 })
                 .count()
         }
+        // "the number of counters on this creature": every kind.
+        CountExpr::SourceAllCounters => source
+            .and_then(|s| state.objects.get(s))
+            .map_or(0, |o| o.counters.iter().map(|(_, n)| *n as usize).sum()),
+        CountExpr::LifeGainedThisTurn => state.turn_log.life_gained[you.index().min(3)] as usize,
+        CountExpr::SacrificedThisTurn => {
+            usize::from(state.turn_log.sacrificed_n[you.index().min(3)])
+        }
+        CountExpr::AttackedThisTurn => state.attackers_this_turn.len(),
+        CountExpr::OpponentsLostLife => state
+            .players_in_game()
+            .filter(|p| *p != you && state.lost_life_this_turn & (1 << p.index().min(7)) != 0)
+            .count(),
+        CountExpr::OpponentsMoreCards => {
+            let mine = state.player(you).hand.len();
+            state
+                .players_in_game()
+                .filter(|p| *p != you && state.player(*p).hand.len() > mine)
+                .count()
+        }
+        CountExpr::TwoToX => {
+            let x = source.map_or(0, |s| state.x_of(s));
+            return 1i32 << x.min(30);
+        }
+        // From the mana costs as the layers have them so far, like
+        // `GreatestManaValue`.
+        CountExpr::Total(crate::card::Stat::ManaValue, f) => {
+            let f = same_filled(work, f, source);
+            work.matching(&f, source, Some(you))
+                .iter()
+                .map(|id| {
+                    state
+                        .pool
+                        .get(work.chars[work.index[id]].def)
+                        .mana_cost
+                        .mana_value() as usize
+                })
+                .sum()
+        }
+        CountExpr::CardTypesInGraveyard => state
+            .player(you)
+            .graveyard
+            .iter()
+            .map(|id| &state.objects[*id])
+            .filter(|o| o.kind != crate::state::ObjKind::Token)
+            .fold(crate::card::TypeSet::default(), |acc, o| {
+                acc.union(state.pool.get(o.def).types)
+            })
+            .len() as usize,
         CountExpr::CardTypesInAllGraveyards => state
             .players
             .iter()
@@ -1135,6 +1184,8 @@ fn per_count(
         | CountExpr::TargetHand(_)
         | CountExpr::GreatestToughness(_)
         | CountExpr::LifeLostThisTurn
+        // Power and toughness are what the layers are computing.
+        | CountExpr::Total(..)
         | CountExpr::DamageThisWay { .. } => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)

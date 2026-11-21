@@ -1,0 +1,9 @@
+card "Teysa, Opulent Oligarch" {
+  oracle_id d4f5748f-bb0e-4c48-8802-45a7ad5a80a4
+  cost {1}{W}{B}
+  type Legendary Creature — Human Advisor
+  pt 2/3
+  keywords deathtouch
+  triggered at beginning of your end step: investigate count each opponents lost life this turn
+  triggered once each turn whenever Clue you control dies: create 1 "1/1 white and black Spirit creature with flying"
+}

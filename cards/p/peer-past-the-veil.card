@@ -1,0 +1,6 @@
+card "Peer Past the Veil" {
+  oracle_id 8fb7ad08-9bb2-49f1-8ed0-8cc8abca4fe0
+  cost {2}{R}{G}
+  type Instant
+  spell: discard hand; then draw count where card types in your graveyard cards
+}

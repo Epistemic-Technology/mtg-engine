@@ -1316,7 +1316,21 @@ it"), `attached controller graveyard [<filter>]` ("the number of creature
 cards in its controller's graveyard": the controller of what the source
 is attached to), `creature target player controls` ("for each creature
 target player controls": declares the target there; `target opponent
-controls` likewise), or `andor <expr>` (the same count, printed "artifact and/or
+controls` likewise), `life you gained this turn` ("the amount of life you
+gained this turn": all the life gained, whatever was lost; `life you've
+gained this turn` prints "you've gained"), `card types in your graveyard`
+("the number of card types among cards in your graveyard"), `counters on
+this` ("the number of counters on Savanti Romero": every kind, as for
+`+1/+1 counters on this`), `permanents sacrificed this turn` ("the number of
+permanents you've sacrificed this turn"), `two to x` (`count where two to x`
+prints "2ˣ": "Target player draws 2ˣ cards."), `creature attacked this
+turn` ("for each creature that attacked this turn": any player's
+attackers), `opponents lost life this turn` ("for each opponent who lost
+life this turn"), `opponents more cards in hand` ("... who has more cards in
+hand than you"), `total power creature you control` ("the total power of
+creatures you control"; also `total toughness` and `total mana value`; a
+negative total is 0, CR 107.1b; in a static ability only `total mana value`
+counts, power and toughness reading 0), or `andor <expr>` (the same count, printed "artifact and/or
 creature card"); two clauses of one sentence with the same `count where`
 share one X ("deals X damage to any target and you gain X life, where X
 is ..."); in a static ability `-1/-1 count where hand` prints "gets -X/-X,
@@ -1481,7 +1495,10 @@ an artifact source]` (targets "you control" only the ability's
 controller's), `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
 `scry 2`, `surveil 1`, `investigate` (create a Clue token; `investigate
-twice`; `target player investigates`: that player creates it), `<who>
+twice`; `investigate count each opponents lost life this turn`:
+"investigate for each opponent who lost life this turn", `investigate once
+count each ...`: "investigate once for each ..."; `target player
+investigates`: that player creates it), `<who>
 exiles 2 cards from hand` ("Target opponent exiles two cards from their
 hand"; `from graveyard`: "a card from their graveyard"; the player
 chooses), `<who> exiles 1 creature they control` ("Target opponent

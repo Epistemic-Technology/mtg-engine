@@ -1,0 +1,14 @@
+card "Gumdrop Poisoner // Tempt with Treats" {
+  oracle_id 4f5ebbb8-f49b-488f-bb85-888aaa918bdd
+  layout adventure
+  cost {2}{B}
+  type Creature — Human Warlock
+  pt 3/2
+  keywords lifelink
+  triggered when this enters: up to one target creature gets -1/-1 count where life you gained this turn
+  face "Tempt with Treats" {
+    cost {B}
+    type Instant — Adventure
+    spell: create 1 "Food"
+  }
+}

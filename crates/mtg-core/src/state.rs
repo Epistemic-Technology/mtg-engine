@@ -1457,6 +1457,12 @@ pub struct TurnLog {
     pub cards_to_graveyard: [crate::card::TypeSet; 4],
     /// The card types among permanents each player sacrificed.
     pub sacrificed: [crate::card::TypeSet; 4],
+    /// How many permanents each player sacrificed.
+    pub sacrificed_n: [u16; 4],
+    /// Void: a nonland permanent left the battlefield (any player's).
+    pub nonland_left: bool,
+    /// Void: a spell was cast for its warp cost (CR 702.185a).
+    pub warped: bool,
 }
 
 /// Day and night (CR 731): neither until something makes it day.

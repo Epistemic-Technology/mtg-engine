@@ -1,0 +1,9 @@
+card "The Lord of the Eagles" {
+  oracle_id 3b38f314-d997-4c2a-b4c9-40dbe780993d
+  cost {7}{U}{U}
+  type Legendary Creature — Bird Noble
+  pt 8/8
+  keywords flash
+  this spell costs {1} less count where total power creature you control with flying
+  keyword flying
+}

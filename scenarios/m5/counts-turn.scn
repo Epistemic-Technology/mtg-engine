@@ -1,0 +1,259 @@
+# Counts: life gained this turn, card types among cards in your
+# graveyard, counters of every kind, permanents sacrificed this turn, 2^X,
+# creatures that attacked this turn, opponents who lost life this turn,
+# opponents with more cards in hand, and total power or mana value.
+
+scenario "Germinate Recruits makes a Cadet per life gained this turn, not net of life lost" {
+  battlefield A: 4 "Plains", "Mountain"
+  hand A: "Germinate Recruits", "Healing Salve", "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Germinate Recruits"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Cadet"
+}
+
+scenario "Germinate Recruits with no life gained makes nothing" {
+  battlefield A: 3 "Plains"
+  hand A: "Germinate Recruits"
+  turn 1 A: cast "Germinate Recruits"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Cadet"
+}
+
+scenario "Nightmare's Thirst counts the life it just gained and earlier gains" {
+  battlefield A: 2 "Swamp", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Healing Salve", "Nightmare's Thirst"
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Nightmare's Thirst" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  # 3 + 1 life gained: -4/-4 kills the 3/3.
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Fortifying Draught alone gives +2/+2" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Fortifying Draught"
+  turn 1 A: cast "Fortifying Draught" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert life A 22
+}
+
+scenario "Voracious Wurm enters with counters for the life gained this turn" {
+  battlefield A: 2 "Forest", "Plains"
+  hand A: "Healing Salve", "Voracious Wurm"
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Voracious Wurm"
+  run_to turn 1 postcombat_main
+  assert counters "Voracious Wurm" +1/+1 3
+}
+
+scenario "Hope Estheim mills each opponent by the life gained this turn" {
+  battlefield A: "Hope Estheim", "Plains"
+  hand A: "Healing Salve"
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 2 upkeep
+  assert graveyard B count 3
+}
+
+scenario "Lucid Dreams draws one card per card type in your graveyard only" {
+  battlefield A: 5 "Island"
+  graveyard A: "Grizzly Bears", "Shock", "Forest"
+  graveyard B: "Ornithopter", "Glorious Anthem"
+  hand A: "Lucid Dreams"
+  turn 1 A: cast "Lucid Dreams"
+  run_to turn 1 postcombat_main
+  # Creature, instant, land: three cards (the opponent's artifact and
+  # enchantment don't count).
+  assert hand A count 3
+}
+
+scenario "Peer Past the Veil discards first, then counts" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: "Peer Past the Veil", "Grizzly Bears", "Shock"
+  turn 1 A: cast "Peer Past the Veil"
+  run_to turn 1 postcombat_main
+  # Creature, instant (the two discarded cards), then the spell itself is
+  # still on the stack: two cards.
+  assert hand A count 2
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Savanti Romero counts counters of every kind" {
+  battlefield A: "Savanti Romero, Time's Exile" with 1 oil
+  life A 20
+  run_to turn 1 postcombat_main
+  # A +1/+1 counter joins the oil counter: two of them.
+  assert counters "Savanti Romero, Time's Exile" +1/+1 1
+  assert hand A count 2
+  assert life A 18
+}
+
+scenario "Pyre-Sledge Arsonist deals damage for each permanent sacrificed this turn" {
+  battlefield A: "Pyre-Sledge Arsonist", "Mountain", 2 "Swamp", "Carrion Feeder", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Carrion Feeder" sacrificing "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Carrion Feeder" sacrificing "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: activate "Pyre-Sledge Arsonist" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Pyre-Sledge Arsonist doesn't count an opponent's sacrifice" {
+  battlefield A: "Pyre-Sledge Arsonist", "Mountain"
+  battlefield B: "Forest"
+  hand B: "Rogue Elephant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Rogue Elephant"
+  turn 2 B: wait
+  turn 2 end A: activate "Pyre-Sledge Arsonist" targeting player B
+  run_to turn 3 upkeep
+  assert graveyard B contains "Forest"
+  assert life B 20
+}
+
+scenario "Mathemagics: X 2 draws four cards" {
+  battlefield A: 6 "Island"
+  hand A: "Mathemagics"
+  turn 1 A: cast "Mathemagics" x 2 targeting player A
+  run_to turn 1 postcombat_main
+  assert hand A count 4
+}
+
+scenario "Mathemagics: X 0 draws one card" {
+  battlefield A: 2 "Island"
+  hand A: "Mathemagics"
+  turn 1 A: cast "Mathemagics" x 0 targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+}
+
+scenario "Witchstalker Frenzy costs {1} less for each creature that attacked this turn" {
+  battlefield A: 2 "Mountain", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Witchstalker Frenzy"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 postcombat_main A: cast "Witchstalker Frenzy" targeting "Serra Angel"
+  run_to turn 1 end
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Witchstalker Frenzy counts an opponent's attackers too" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Witchstalker Frenzy"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  turn 2 end_combat A: cast "Witchstalker Frenzy" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Witchstalker Frenzy with no attackers can't be cast for two" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Witchstalker Frenzy"
+  illegal turn 1 A: cast "Witchstalker Frenzy" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Witchstalker Frenzy"
+}
+
+scenario "Teysa investigates for an opponent who lost life" {
+  battlefield A: "Teysa, Opulent Oligarch", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Clue"
+}
+
+scenario "Teysa doesn't investigate when no opponent lost life" {
+  battlefield A: "Teysa, Opulent Oligarch"
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Clue"
+}
+
+scenario "Wojek Investigator investigates when an opponent has more cards in hand" {
+  battlefield A: "Wojek Investigator"
+  hand B: "Shock", "Forest"
+  start turn 1 A untap
+  run_to turn 1 precombat_main
+  assert battlefield A contains 1 "Clue"
+}
+
+scenario "Wojek Investigator doesn't investigate on equal hands" {
+  battlefield A: "Wojek Investigator"
+  hand A: "Shock"
+  hand B: "Forest"
+  start turn 1 A untap
+  run_to turn 1 precombat_main
+  assert battlefield A lacks "Clue"
+}
+
+scenario "Ghalta costs {X} less for the total power of your creatures" {
+  battlefield A: 2 "Forest", "Hill Giant", "Craw Wurm", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Ghalta, Primal Hunger"
+  # 3 + 6 + 2 = 11 power: {12} less {10} at most (the colored part stays).
+  turn 1 A: cast "Ghalta, Primal Hunger"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ghalta, Primal Hunger"
+}
+
+scenario "Ghalta can't be cast with too little power" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  battlefield B: "Craw Wurm"
+  hand A: "Ghalta, Primal Hunger"
+  illegal turn 1 A: cast "Ghalta, Primal Hunger"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ghalta, Primal Hunger"
+}
+
+scenario "Metalwork Colossus counts noncreature artifacts' total mana value" {
+  battlefield A: 7 "Plains", "Mind Stone", "Millstone", "Ornithopter"
+  hand A: "Metalwork Colossus"
+  # Mind Stone 2 + Millstone 2 (Ornithopter is a creature): {11} less 4.
+  turn 1 A: cast "Metalwork Colossus"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Metalwork Colossus"
+}
+
+scenario "Midnight Snack drains the life gained this turn" {
+  battlefield A: "Midnight Snack", 3 "Swamp", "Plains"
+  hand A: "Healing Salve"
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 1 A: wait
+  turn 1 A: activate "Midnight Snack" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Gumdrop Poisoner shrinks a creature by the life gained this turn" {
+  battlefield A: 3 "Swamp", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Healing Salve", "Gumdrop Poisoner"
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Gumdrop Poisoner"
+  turn 1 A: trigger "Gumdrop Poisoner" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Broodspinner makes an Insect per card type in your graveyard" {
+  battlefield A: "Broodspinner", 4 "Swamp", 2 "Forest"
+  graveyard A: "Grizzly Bears", "Shock", "Ornithopter"
+  turn 1 A: activate "Broodspinner"
+  run_to turn 1 postcombat_main
+  # Creature, instant, artifact; then Broodspinner itself is in the
+  # graveyard too, a creature already counted.
+  assert battlefield A contains 3 "Insect"
+  assert has newest A "Insect" flying
+}
