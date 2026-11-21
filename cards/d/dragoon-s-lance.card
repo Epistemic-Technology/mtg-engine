@@ -1,0 +1,9 @@
+card "Dragoon's Lance" {
+  oracle_id a66c35fc-d5db-4cfd-9b85-d70b001d83d3
+  cost {1}{W}
+  type Artifact — Equipment
+  job select
+  static equipped creature: +1/+0, add subtype Knight
+  static during your turn, equipped creature: has flying
+  label "Gae Bolg" equip {4}
+}

@@ -1,0 +1,8 @@
+card "Sage's Nouliths" {
+  oracle_id 97248734-6e99-42a2-8f11-f3337b25f8ab
+  cost {1}{U}
+  type Artifact — Equipment
+  job select
+  static equipped creature: +1/+0, has ability { triggered whenever this attacks: untap target attacking creature }, add subtype Cleric
+  label "Hagneia" equip {3}
+}

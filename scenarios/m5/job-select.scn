@@ -84,6 +84,50 @@ scenario "job select: Red Mage's Rapier pumps on a noncreature spell" {
   assert is "Hero" Wizard
 }
 
+scenario "job select: Samurai's Katana, trample and haste" {
+  battlefield A: 3 "Mountain"
+  hand A: "Samurai's Katana"
+  turn 1 A: cast "Samurai's Katana"
+  turn 1 A: attack "Hero"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert is "Hero" Samurai
+  assert has "Hero" trample
+}
+
+scenario "job select: Dragoon's Lance flies only on its controller's turn" {
+  battlefield A: 2 "Plains"
+  hand A: "Dragoon's Lance"
+  turn 1 A: cast "Dragoon's Lance"
+  run_to turn 1 postcombat_main
+  assert has "Hero" flying
+  assert power "Hero" 2
+  run_to turn 2 upkeep
+  assert has not "Hero" flying
+}
+
+scenario "job select: Machinist's Arsenal counts artifacts" {
+  battlefield A: 5 "Plains", "Ornithopter"
+  hand A: "Machinist's Arsenal"
+  turn 1 A: cast "Machinist's Arsenal"
+  run_to turn 1 postcombat_main
+  # Two artifacts: the Arsenal and the Ornithopter.
+  assert power "Hero" 5
+  assert toughness "Hero" 5
+  assert is "Hero" Artificer
+}
+
+scenario "job select: Sage's Nouliths untaps an attacker" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Sage's Nouliths"
+  turn 1 A: cast "Sage's Nouliths"
+  turn 3 A: attack "Hero", "Grizzly Bears"
+  turn 3 declare_attackers A: trigger "Hero" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert tapped "Hero"
+}
+
 scenario "job select: Bard's Bow gives reach and +2/+2" {
   battlefield A: 3 "Forest"
   hand A: "Bard's Bow"
