@@ -29,10 +29,6 @@ wrong thing in some case.
 - **Destroying several groups at once is ordered, not simultaneous.**
   "All permanents attached to creatures" is destroyed first so the
   Equipment is found; other combinations may still miss objects.
-- **Automatic mana payment may skip a mana ability's non-mana cost.**
-  It knows mana, tap, life, and counter costs; forage is excluded, but
-  blight, collect evidence, and behold costs on a mana ability have not
-  been checked. Reported, not reproduced.
 - **Engine-picks-for-player approximations.** Forage as a cost (exiles
   the three oldest graveyard cards, else sacrifices a Food); several
   mechanics from the first wave have the engine choose where the player
