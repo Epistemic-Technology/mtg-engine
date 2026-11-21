@@ -4515,6 +4515,7 @@ impl GameState {
     /// CR 602.2b, 601.2g–h: pay the ability's costs. The source is tapped
     /// first so that it is not also tapped for mana; sacrifices come last,
     /// so a "sacrifice ~" source is still there to be tapped.
+    #[allow(clippy::too_many_lines)] // one step per kind of cost
     fn finish_activation(&mut self, obj: ObjId, sacrifice: Option<ObjId>, discard: Option<ObjId>) {
         let o = &self.objects[obj];
         let (controller, def) = (o.controller, o.def);

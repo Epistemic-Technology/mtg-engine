@@ -1473,13 +1473,17 @@ impl Runner {
     /// permanent (with the named sacrifice, if any). `Ok(None)` means the
     /// action did not fire this time (illegal as required, or waiting for
     /// an empty stack).
-    #[allow(clippy::too_many_arguments)] // the parts of one `activate` line
+    #[allow(
+        clippy::too_many_arguments,
+        clippy::too_many_lines,
+        clippy::many_single_char_names
+    )] // the parts of one `activate` line
     fn activation(
         &mut self,
         d: &Decision,
         a: &ScriptedAction,
         source: &str,
-        (nth, mode, x): (Option<usize>, Option<usize>, Option<u32>),
+        (nth, scripted_mode, x): (Option<usize>, Option<usize>, Option<u32>),
         sacrifice: Option<&str>,
         discard: Option<&str>,
         targets: &[TargetRef],
@@ -1571,7 +1575,7 @@ impl Runner {
                 let st = self.state();
                 let specs = match st.pool.ability(*ability).effects() {
                     [mtg_core::card::Effect::Modes(modes)] => {
-                        let Some(m) = modes.get(mode.unwrap_or(1) - 1) else {
+                        let Some(m) = modes.get(scripted_mode.unwrap_or(1) - 1) else {
                             return fail(
                                 a.line,
                                 format!("\"{source}\"'s ability has {} modes", modes.len()),
@@ -1584,7 +1588,7 @@ impl Runner {
                             m.targets.as_slice()
                         }
                     }
-                    _ if mode.is_some() => {
+                    _ if scripted_mode.is_some() => {
                         return fail(a.line, format!("\"{source}\"'s ability is not modal"));
                     }
                     _ => st.pool.ability(*ability).targets(),
@@ -1605,7 +1609,7 @@ impl Runner {
                     self.pending_targets = Some(targets.clone());
                 }
                 self.pending_x = x;
-                self.pending_mode = mode;
+                self.pending_mode = scripted_mode;
                 Ok(Some(idx_u32(idx)))
             }
         }
