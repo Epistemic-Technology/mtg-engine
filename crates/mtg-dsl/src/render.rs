@@ -1946,6 +1946,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         if is_equipment(card) {
             return "equipped creature".to_string();
         }
+        if f.enchanted_permanent {
+            return "enchanted permanent".to_string();
+        }
         return format!("enchanted {}", enchanted_subtype_noun(card));
     }
     if f.types.is_empty() && f.not_types.contains(&CardType::Planeswalker) {

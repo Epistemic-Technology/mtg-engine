@@ -8843,6 +8843,8 @@ impl P {
                 }
                 "enchanted" | "equipped" => {
                     f.enchanted = true;
+                    f.enchanted_permanent =
+                        w == "enchanted" && self.word_at(1).as_deref() == Some("permanent");
                     self.pos += 1;
                 }
                 "paired" if f.paired.is_none() => {

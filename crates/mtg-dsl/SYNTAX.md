@@ -941,7 +941,9 @@ don't control`, `white creature`, `nonblack creature`, `nonbasic land`,
 `other non-Aura enchantment`, `creature with flying`, `creature without
 flying`, `creature with no abilities`, `all Sliver creature` (a static
 ability's subject then prints "All Sliver creatures", as old Slivers do), `Goblin`, `Swamp you control`, `nonplaneswalker permanent you
-control`, `enchanted` (the permanent this is attached to), `this` (the
+control`, `enchanted` (the permanent this is attached to; `enchanted
+permanent` prints "enchanted permanent" whatever the Aura enchants, as on
+Song of Stupefaction's "Enchant creature or Vehicle"), `this` (the
 source itself, for characteristic-defining abilities).
 
 More filter words: `token` ("a token", "artifact token", CR 111.1),

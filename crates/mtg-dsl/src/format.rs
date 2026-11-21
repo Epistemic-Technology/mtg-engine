@@ -2667,6 +2667,9 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.enchanted {
         words.push("enchanted".to_string());
+        if f.enchanted_permanent {
+            words.push("permanent".to_string());
+        }
     }
     match f.paired {
         Some(true) => words.push("paired named".to_string()),

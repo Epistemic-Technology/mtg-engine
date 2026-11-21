@@ -201,6 +201,7 @@ impl Decompiler<'_> {
                 .collect(),
             relation: f.relation,
             enchanted: f.enchanted,
+            enchanted_permanent: false,
             paired: f.paired.then_some(false),
             no_abilities: f.no_abilities,
             dont_control: false,

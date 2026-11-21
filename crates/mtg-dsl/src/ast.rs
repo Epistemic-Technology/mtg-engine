@@ -672,6 +672,9 @@ pub struct Filter {
     pub not_keywords: Vec<Keyword>,
     pub relation: Relation,
     pub enchanted: bool,
+    /// `enchanted permanent`: printed "enchanted permanent" whatever the
+    /// Aura enchants (Song of Stupefaction, "Enchant creature or Vehicle").
+    pub enchanted_permanent: bool,
     /// `paired` (`paired named`): "as long as this creature (~) is paired
     /// with another creature, both creatures ..." (soulbond, CR 702.95b);
     /// `Some(true)` names the card.
