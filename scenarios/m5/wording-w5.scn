@@ -635,3 +635,17 @@ scenario "Salt Road Skirmish: two hasty Warriors, sacrificed at the end step" {
   run_to turn 2
   assert battlefield A lacks "Warrior"
 }
+
+scenario "Intimidation Campaign: each opponent loses 1, you gain 1, you draw; a crime returns it" {
+  battlefield A: "Island", "Swamp", "Plains", "Mountain"
+  hand A: "Intimidation Campaign", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Intimidation Campaign"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 21
+  assert hand A contains "Intimidation Campaign"
+  assert hand A count 2
+}

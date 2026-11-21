@@ -7976,7 +7976,11 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
                 Some(Join::Then) => ", then ",
                 Some(Join::Comma) => ", ",
                 // "discards two cards, mills a card, and loses 1 life".
-                Some(Join::And) if s.joins[..i - 1].contains(&Join::Comma) => ", and ",
+                // "each opponent loses 1 life, you gain 1 life, and you
+                // draw a card" (Intimidation Campaign).
+                Some(Join::And | Join::AndRepeat) if s.joins[..i - 1].contains(&Join::Comma) => {
+                    ", and "
+                }
                 _ => " and ",
             });
         }
