@@ -1704,7 +1704,7 @@ impl Compiler<'_> {
             A::GreatestToughness(f) => C::GreatestToughness(self.filter(f)),
             A::Sum(a, b) => C::Sum(Box::new(self.count_expr(a)), Box::new(self.count_expr(b))),
             A::LifeLostThisTurn => C::LifeLostThisTurn,
-            A::DamageThisWay { excess } => C::DamageThisWay { excess: *excess },
+            A::DamageThisWay { excess, .. } => C::DamageThisWay { excess: *excess },
             A::CardTypesInGraveyards => C::CardTypesInAllGraveyards,
             A::SourceCounters { kind, .. } => C::SourceCounters(*kind),
             A::TriggerCounters(kind) => C::TriggerCounters(*kind),

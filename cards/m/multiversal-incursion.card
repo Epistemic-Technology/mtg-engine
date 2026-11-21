@@ -1,0 +1,9 @@
+card "Multiversal Incursion" {
+  oracle_id d3678fce-6897-4f2c-bf50-243facb6581b
+  cost {5}{U}{U}
+  type Sorcery
+  spell: create token copy of each nontoken creature you control with exceptions
+  except {
+    not legendary
+  }
+}

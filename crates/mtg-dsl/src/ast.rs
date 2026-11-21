@@ -425,9 +425,12 @@ pub enum CountExpr {
     Sum(Box<CountExpr>, Box<CountExpr>),
     /// `life you lost this turn`: "the life you've lost this turn".
     LifeLostThisTurn,
-    /// `damage dealt this way`, `excess damage dealt this way`.
+    /// `damage dealt this way`, `excess damage dealt this way`;
+    /// `excess damage dealt to that creature this way` prints "the amount
+    /// of excess damage dealt to that creature this way" (wording only).
     DamageThisWay {
         excess: bool,
+        to_that: bool,
     },
     /// `card types in graveyards`: "the number of card types among cards
     /// in all graveyards".

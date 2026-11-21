@@ -7968,7 +7968,10 @@ impl P {
             return Ok(CountExpr::LifeLostThisTurn);
         }
         if self.eat_words(&["damage", "dealt", "this", "way"]) {
-            return Ok(CountExpr::DamageThisWay { excess: false });
+            return Ok(CountExpr::DamageThisWay {
+                excess: false,
+                to_that: false,
+            });
         }
         if self.eat_words(&["card", "types", "in", "graveyards"]) {
             return Ok(CountExpr::CardTypesInGraveyards);
@@ -8000,7 +8003,18 @@ impl P {
             return Ok(CountExpr::Those(t));
         }
         if self.eat_words(&["excess", "damage", "dealt", "this", "way"]) {
-            return Ok(CountExpr::DamageThisWay { excess: true });
+            return Ok(CountExpr::DamageThisWay {
+                excess: true,
+                to_that: false,
+            });
+        }
+        if self.eat_words(&[
+            "excess", "damage", "dealt", "to", "that", "creature", "this", "way",
+        ]) {
+            return Ok(CountExpr::DamageThisWay {
+                excess: true,
+                to_that: true,
+            });
         }
         if self.eat_words(&["greatest", "toughness"]) {
             return Ok(CountExpr::GreatestToughness(self.filter()?));

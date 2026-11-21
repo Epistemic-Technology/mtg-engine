@@ -2635,8 +2635,14 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::GreatestToughness(f) => format!("greatest toughness {}", filter(f)),
         CountExpr::Sum(a, b) => format!("{} plus {}", count_expr_text(a), count_expr_text(b)),
         CountExpr::LifeLostThisTurn => "life you lost this turn".to_string(),
-        CountExpr::DamageThisWay { excess: false } => "damage dealt this way".to_string(),
-        CountExpr::DamageThisWay { excess: true } => "excess damage dealt this way".to_string(),
+        CountExpr::DamageThisWay { excess: false, .. } => "damage dealt this way".to_string(),
+        CountExpr::DamageThisWay {
+            excess: true,
+            to_that: true,
+        } => "excess damage dealt to that creature this way".to_string(),
+        CountExpr::DamageThisWay { excess: true, .. } => {
+            "excess damage dealt this way".to_string()
+        }
         CountExpr::CardTypesInGraveyards => "card types in graveyards".to_string(),
         CountExpr::SourceCounters { kind, it } => format!(
             "{} counters on {}",

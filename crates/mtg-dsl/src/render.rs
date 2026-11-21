@@ -3054,8 +3054,41 @@ fn merge_token_restrictions(quoted: &mut Vec<String>) {
     }
 }
 
-#[allow(clippy::too_many_lines)] // one part of the description after another
+/// A token's description; a legendary one is named first: "Galactus, a
+/// legendary 16/16 black Elder Alien creature token with flying,
+/// trample, and \"Whenever Galactus attacks, destroy target land.\""
+/// (The Coming of Galactus).
 fn token_description(name: &str, count: Num, tapped: bool, it_has: bool, ctx: &Ctx) -> String {
+    let s = token_description_plain(name, count, tapped, it_has, ctx);
+    let Some(token) = ctx.lookup.get(name) else {
+        return s;
+    };
+    if !token.supertypes.contains(&Supertype::Legendary) || count != Num::N(1) || tapped {
+        return s;
+    }
+    let shown = token.display_name.as_deref().unwrap_or(&token.name);
+    let named = format!(" named {shown}");
+    if !s.contains(&named) {
+        return s;
+    }
+    let rest = s.replacen(&named, "", 1);
+    let rest = rest
+        .strip_prefix("a ")
+        .or_else(|| rest.strip_prefix("an "))
+        .unwrap_or(&rest)
+        .replace("this token", shown)
+        .replace("This token", shown);
+    format!("{shown}, a legendary {rest}")
+}
+
+#[allow(clippy::too_many_lines)] // one part of the description after another
+fn token_description_plain(
+    name: &str,
+    count: Num,
+    tapped: bool,
+    it_has: bool,
+    ctx: &Ctx,
+) -> String {
     let tap = if tapped { "tapped " } else { "" };
     let Some(token) = ctx.lookup.get(name) else {
         return format!(
@@ -3722,8 +3755,10 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "card type among cards in all graveyards".to_string(),
             "card types among cards in all graveyards".to_string(),
         ),
-        CountExpr::DamageThisWay { excess } => {
-            return if *excess {
+        CountExpr::DamageThisWay { excess, to_that } => {
+            return if *to_that {
+                "the amount of excess damage dealt to that creature this way".to_string()
+            } else if *excess {
                 "the excess damage dealt this way".to_string()
             } else {
                 "the damage dealt this way".to_string()
@@ -5675,7 +5710,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::CreateTokenCopy { of, except } => {
             let o = ctx.obj(*of);
-            let mut text = format!("create a token that's a copy of {o}");
+            // "For each nontoken creature you control, create a token
+            // that's a copy of that creature" (Multiversal Incursion).
+            let mut text = match o.strip_prefix("each ") {
+                Some(rest) => {
+                    let noun = if rest.contains("creature") {
+                        "creature"
+                    } else {
+                        "permanent"
+                    };
+                    format!("for each {rest}, create a token that's a copy of that {noun}")
+                }
+                None => format!("create a token that's a copy of {o}"),
+            };
             if *except {
                 let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
             }

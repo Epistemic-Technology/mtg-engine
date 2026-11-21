@@ -537,3 +537,61 @@ scenario "Clarion Conqueror: without it the abilities work" {
   run_to turn 1 postcombat_main
   assert life B 19
 }
+
+scenario "Multiversal Incursion: a nonlegendary token copy of each nontoken creature" {
+  battlefield A: 7 "Island", "Grizzly Bears", "Agent Phil Coulson"
+  hand A: "Multiversal Incursion"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Multiversal Incursion"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert battlefield A contains 2 "Agent Phil Coulson"
+}
+
+scenario "Hell to Pay: a tapped Treasure for each point of excess damage" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Hell to Pay"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hell to Pay" x 5 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains 2 "Treasure"
+  assert tapped oldest "Treasure"
+  assert tapped newest "Treasure"
+}
+
+scenario "Hell to Pay: no excess, no Treasure" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Hell to Pay"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hell to Pay" x 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "The Coming of Galactus: chapter II drains 2; chapter IV makes Galactus" {
+  battlefield A: "The Coming of Galactus" with 1 lore
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "The Coming of Galactus: Galactus attacks and destroys a land" {
+  battlefield A: "The Coming of Galactus" with 3 lore
+  battlefield B: "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Galactus"
+  assert graveyard A contains "The Coming of Galactus"
+  assert power "Galactus" 16
+  assert has "Galactus" flying
+  assert has "Galactus" trample
+  turn 3 A: attack "Galactus"
+  turn 3 declare_attackers A: trigger "Galactus" targeting "Forest"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Forest"
+  assert life B 4
+}

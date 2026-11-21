@@ -41,7 +41,11 @@ creature token named Cadet"); so is a noncreature token with no subtype
 — Aura Role` with `enchant creature` and `name "Wicked"`, keyed `"Wicked
 Role"`) prints by name too: "a Wicked Role token". If one player controls
 more than one Role on a permanent, all but the newest go to the graveyard
-(CR 303.7a, 704.5z). A token with a characteristic-defining
+(CR 303.7a, 704.5z). A legendary token (`type Legendary
+Creature — Elder Alien`) with a name of its own is named first, and its
+abilities call it by name: "Create Galactus, a legendary 16/16 black
+Elder Alien creature token with flying, trample, and \"Whenever Galactus
+attacks, destroy target land.\"" A token with a characteristic-defining
 ability prints its abilities after the sentence ("... token. It has
 \"...\"").
 
@@ -761,7 +765,10 @@ outcome `double` (`replace damage from permanent you control to any:
 double`) prints "If a source you control would deal damage to a
 permanent or player, it deals double that damage to that permanent or
 player instead." (a filter without a card type names a source;
-`replace damage to you: double` "... to you instead."). Likewise
+`replace damage to you: double` "... to you instead."; written with its
+article, `replace damage from a Wizard you control to any: double`
+prints "If a Wizard you control would deal damage to a permanent or
+player, it deals double that damage instead."). Likewise
 `replace damage from permanent you control to each opponent: prevent {
 each opponent mills that much cards }` prints "If a source you control
 would deal damage to an opponent, prevent that damage and each opponent
@@ -1220,7 +1227,9 @@ unless they're mana abilities") are restrictions like `can't attack`;
 they print last, after ", and" ("Enchanted creature can't attack or
 block, and its activated abilities can't be activated"; "and" alone after
 `doesn't untap`), or alone as "Enchanted creature's activated abilities
-can't be activated." `set subtype Treefolk` is "is a Treefolk" (it loses
+can't be activated."; on a group of several types, `static artifact,
+creature, or planeswalker: has can't activate`, "Activated abilities of
+artifacts, creatures, and planeswalkers can't be activated." `set subtype Treefolk` is "is a Treefolk" (it loses
 its other creature types, CR 205.1b); `add land all` is "is every basic
 land type in addition to its other types". A type followed by a base P/T
 is one phrase: `set subtype Treefolk, base 0/4, loses all abilities`
@@ -1478,7 +1487,10 @@ sentence: "Create a 1/1 colorless Eldrazi Scion creature token. It has
 it could enchant, no token is created, CR 303.4f), `<who> creates 2
 "Treasure"` (`its controller creates`, `each player creates`, `you
 create`: "Its controller creates two Treasure tokens"),
-`create token copy of <what> [with exceptions]`, `copy <what> [times
+`create token copy of <what> [with exceptions]` (of a group, `create
+token copy of each nontoken creature you control` prints "For each
+nontoken creature you control, create a token that's a copy of that
+creature"), `copy <what> [times
 <num>] [new targets] [with exceptions]` (CR 707.10: `copy target instant
 or sorcery spell you control new targets` prints "Copy target instant or
 sorcery spell you control. You may choose new targets for the copy.";
@@ -2099,7 +2111,9 @@ cards", `discard any number cards chosen ...`: "discard any number of
 cards, ..."; `count that many plus 1 discarded this way`: "draw that many
 cards plus one"), `count equal damage dealt this way` ("life equal to the
 damage dealt this way", CR 120.3), `count equal excess damage dealt this
-way` (CR 120.4a, and `if excess damage dealt this way, create 1
+way` (CR 120.4a; `count equal excess damage dealt to that creature this
+way` prints "equal to the amount of excess damage dealt to that creature
+this way", and `if excess damage dealt this way, create 1
 "Lander"`: "If excess damage was dealt this way, ..."; beyond lethal damage, given damage already marked, or
 beyond a planeswalker's loyalty). What the resolution or its costs moved,
 as it last existed: `toughness of the sacrificed creature` ("the

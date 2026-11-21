@@ -1,0 +1,8 @@
+token "Galactus" {
+  name "Galactus"
+  type Legendary Creature — Elder Alien
+  pt 16/16
+  color black
+  keywords flying, trample
+  triggered whenever this attacks: destroy target land
+}

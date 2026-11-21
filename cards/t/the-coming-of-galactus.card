@@ -1,0 +1,8 @@
+card "The Coming of Galactus" {
+  oracle_id e05f23ba-f2b2-4c40-83fa-8defce3cb978
+  cost {2}{B}{B}{G}
+  type Enchantment — Saga
+  triggered chapter 1: destroy up to one target nonland permanent
+  triggered chapter 2, 3: each opponent loses 2 life
+  triggered chapter 4: create 1 "Galactus"
+}
