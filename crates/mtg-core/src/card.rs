@@ -3944,6 +3944,12 @@ pub enum Effect {
         count: Num,
         to: Recipient,
     },
+    /// "Return all creature cards from your graveyard to the battlefield":
+    /// every card in the controller's graveyard matching `filter` enters
+    /// under its owner's control.
+    GraveyardToBattlefield {
+        filter: ObjFilter,
+    },
     /// Airbend (CR 701.65a): exile the permanent or spell; a card exiled
     /// this way may be cast by its owner for {2} rather than its mana cost
     /// for as long as it remains exiled.
@@ -4294,6 +4300,8 @@ impl Effect {
                 | Effect::Fabricate { .. }
                 // The card to discard (CR 701.70a).
                 | Effect::Recruit { .. }
+                // What enters is not known until it resolves.
+                | Effect::GraveyardToBattlefield { .. }
         )
     }
 }

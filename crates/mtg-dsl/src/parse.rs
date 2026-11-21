@@ -6292,6 +6292,22 @@ impl P {
                     who: None,
                 })
             }
+            // "Return all creature cards from your graveyard to the
+            // battlefield."
+            "return"
+                if self.at_word("all")
+                    && (1..8).any(|k| {
+                        self.word_at(k).as_deref() == Some("card")
+                            && self.word_at(k + 1).as_deref() == Some("from")
+                            && self.word_at(k + 2).as_deref() == Some("your")
+                            && self.word_at(k + 3).as_deref() == Some("graveyard")
+                    }) =>
+            {
+                self.pos += 1;
+                let filter = self.filter()?;
+                self.expect_words(&["card", "from", "your", "graveyard", "to", "battlefield"])?;
+                Ok(Effect::GraveyardToBattlefield { filter })
+            }
             "return" => {
                 let all = self.recipients()?;
                 let what = all[0];

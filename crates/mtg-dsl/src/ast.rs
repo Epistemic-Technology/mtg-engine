@@ -3444,6 +3444,11 @@ pub enum Effect {
     Airbend {
         what: Vec<Recipient>,
     },
+    /// `return all creature card from your graveyard to battlefield`:
+    /// "Return all creature cards from your graveyard to the battlefield."
+    GraveyardToBattlefield {
+        filter: Filter,
+    },
     /// `recruit` (CR 701.70a): "Recruit." `you recruit` prints "you
     /// recruit" (after a trigger naming another player).
     Recruit {

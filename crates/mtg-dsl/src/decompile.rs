@@ -1256,6 +1256,9 @@ impl Decompiler<'_> {
             },
             CoreEffect::Populate => Effect::Populate,
             CoreEffect::Recruit { .. } => Effect::Recruit { you: false },
+            CoreEffect::GraveyardToBattlefield { filter } => Effect::GraveyardToBattlefield {
+                filter: self.filter(filter),
+            },
             CoreEffect::Airbend { what } => Effect::Airbend {
                 what: vec![r(*what)],
             },

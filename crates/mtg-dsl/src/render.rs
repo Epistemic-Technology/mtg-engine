@@ -3845,6 +3845,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
         Effect::Recruit { you: false } => Clause::imperative("recruit".to_string()),
+        Effect::GraveyardToBattlefield { filter } => Clause::imperative(format!(
+            "return all {} from your graveyard to the battlefield",
+            cards_phrase(filter, ctx.card, true)
+        )),
         Effect::Airbend { what } => {
             let o = if what.len() == 1 {
                 ctx.obj_all(what[0])

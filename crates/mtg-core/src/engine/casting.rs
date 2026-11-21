@@ -10184,6 +10184,25 @@ impl GameState {
                 ps.combat_mana += n;
                 self.bump();
             }
+            Effect::GraveyardToBattlefield { filter } => {
+                let p = ctx.controller;
+                let cards: Vec<ObjId> = self
+                    .player(p)
+                    .graveyard
+                    .iter()
+                    .copied()
+                    .filter(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.base_characteristics(o);
+                        filter.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                    })
+                    .collect();
+                for id in cards {
+                    let owner = self.objects[id].owner;
+                    let new = self.put_onto_battlefield(id, owner);
+                    ctx.created = Some(new);
+                }
+            }
             Effect::Airbend { what } => {
                 // CR 701.65a: exile the permanents and/or spells; each card
                 // exiled this way may be cast by its owner for {2} rather

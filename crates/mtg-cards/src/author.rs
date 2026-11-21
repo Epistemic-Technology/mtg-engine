@@ -1656,6 +1656,19 @@ impl Templates {
                 r(r"^Return (.+?) to (?:its owner's|your|their owners') hands?$"),
                 |c, t| Some(format!("return {} to hand", recipient(cap(c, 1), t)?)),
             ),
+            // "Return all creature cards from your graveyard to the
+            // battlefield."
+            (
+                r(
+                    r"^Return all (creature|artifact|enchantment|land|permanent) cards from your graveyard to the battlefield$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "return all {} card from your graveyard to battlefield",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             // "Return target creature card from your graveyard to the
             // battlefield" (Breath of Life).
             (

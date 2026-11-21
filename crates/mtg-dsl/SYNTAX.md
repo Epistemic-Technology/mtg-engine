@@ -732,6 +732,10 @@ may be cast by its owner from exile for {2} rather than its mana cost, with
 its usual timing, for as long as it stays exiled (a land can't be played
 this way; a token or a copy of a spell ceases to exist). Prints "Airbend
 target nonland permanent."
+`return all creature card from your graveyard to battlefield` ("Return
+all creature cards from your graveyard to the battlefield."): every card
+in the controller's graveyard matching the filter enters under its owner's
+control.
 `recruit` (CR 701.70): the controller draws a card, then discards a
 card; if the discarded card was a nonland card, they create a 1/1 white
 Human Soldier creature token. Prints "Recruit."; `you recruit` prints

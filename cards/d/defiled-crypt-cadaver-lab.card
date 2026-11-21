@@ -1,0 +1,14 @@
+card "Defiled Crypt // Cadaver Lab" {
+  oracle_id f97de425-c7ab-4688-8606-159370d179ee
+  layout split
+  face "Defiled Crypt" {
+    cost {3}{B}
+    type Enchantment — Room
+    triggered once each turn whenever one or more cards leave your graveyard: create 1 "2/2 black Horror enchantment creature"
+  }
+  face "Cadaver Lab" {
+    cost {B}
+    type Enchantment — Room
+    triggered when you unlock this door: return target creature card from your graveyard to hand
+  }
+}
