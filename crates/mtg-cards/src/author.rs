@@ -776,10 +776,12 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         // "a nonland permanent card" (CR 110.4a): the DSL names the types
         // a permanent card isn't (`nonland permanent card` is a nonland
         // card).
-        return Some(s.replace(
-            "nonland permanent card",
-            "nonland noninstant nonsorcery permanent card",
-        ));
+        let nonperm = Regex::new(r"\b(non[a-z]+) permanent card").unwrap();
+        return Some(
+            nonperm
+                .replace_all(s, "$1 noninstant nonsorcery permanent card")
+                .into_owned(),
+        );
     }
     // "creatures of the creature type of your choice", "permanents you
     // control of that type": a group with a chosen color or type.
@@ -821,6 +823,16 @@ fn each_subject(oracle: &str, who: String) -> String {
     }
     match who.strip_prefix("each ") {
         Some(rest) if !rest.starts_with("single ") => format!("each single {rest}"),
+        _ => who,
+    }
+}
+
+/// A group object Oracle introduces with "all" where `each` prints
+/// "each" ("exile all artifacts your opponents control until ..."):
+/// `all`.
+fn all_object(oracle: &str, who: String) -> String {
+    match who.strip_prefix("each ") {
+        Some(rest) if oracle.starts_with("all ") => format!("all {rest}"),
         _ => who,
     }
 }
@@ -1654,7 +1666,10 @@ impl Templates {
                 Some(format!("{who} {verb} {} cards", number(cap(c, 3))?))
             }),
             (r(r"^Destroy (.+)$"), |c, t| {
-                Some(format!("destroy {}", recipient(cap(c, 1), t)?))
+                Some(format!(
+                    "destroy {}",
+                    each_subject(cap(c, 1), recipient(cap(c, 1), t)?)
+                ))
             }),
             // CR 610.3: "exile target creature an opponent controls until
             // this creature leaves the battlefield" (Banishing Light).
@@ -1665,7 +1680,7 @@ impl Templates {
                 |c, t| {
                     Some(format!(
                         "exile {} until this leaves",
-                        recipient(cap(c, 1), t)?
+                        all_object(cap(c, 1), recipient(cap(c, 1), t)?)
                     ))
                 },
             ),
@@ -1832,7 +1847,7 @@ impl Templates {
                 Some(format!(
                     "{} {}",
                     cap(c, 1).to_ascii_lowercase(),
-                    recipient(cap(c, 2), t)?
+                    each_subject(cap(c, 2), recipient(cap(c, 2), t)?)
                 ))
             }),
             (r(r"^Regenerate (.+)$"), |c, t| {
@@ -2902,10 +2917,18 @@ fn trigger_general(head: &str) -> Option<String> {
         return Some(format!("whenever you sacrifice {other}{}", cap(&c, 2)));
     }
     if let Some(c) = class.captures(head) {
-        let other = if cap(&c, 2) == "another" {
-            "other "
-        } else {
-            ""
+        // "Whenever a creature dies" (not "this creature or another
+        // creature"): the article is the older wording.
+        let other = match (cap(&c, 2), cap(&c, 4)) {
+            ("another", _) => "other ",
+            (a, "dies") => {
+                if a == "an" {
+                    "an "
+                } else {
+                    "a "
+                }
+            }
+            _ => "",
         };
         return Some(format!(
             "{} {other}{} {}",
@@ -4721,6 +4744,11 @@ fn wording_variants(text: &str) -> Vec<String> {
     let mut block_it_ok = false;
     for (i, line) in lines.iter().enumerate() {
         let body = line.trim_start();
+        // `label "Channel" activated ...`: the ability after its label.
+        let ability = match body.strip_prefix("label \"") {
+            Some(rest) => rest.split_once("\" ").map_or(body, |(_, b)| b),
+            None => body,
+        };
         let opener_it_ok = [
             "activated ",
             "spell",
@@ -4731,10 +4759,10 @@ fn wording_variants(text: &str) -> Vec<String> {
             "choose ",
         ]
         .iter()
-        .any(|p| body.starts_with(p))
-            || (body.starts_with("triggered when")
-                && !body.starts_with("triggered when this")
-                && !body.starts_with("triggered whenever this"));
+        .any(|p| ability.starts_with(p))
+            || (ability.starts_with("triggered when")
+                && !ability.starts_with("triggered when this")
+                && !ability.starts_with("triggered whenever this"));
         let indent = line.len() - body.len();
         if body.ends_with('{') {
             block_it_ok = opener_it_ok && !body.starts_with("triggered ");
@@ -4781,7 +4809,14 @@ fn wording_variants(text: &str) -> Vec<String> {
                     // else has been named: after a token, a target, or a
                     // moved card, "it" is that object, which `this` and
                     // `it` here are not.
-                    let before = words[start..j].join(" ");
+                    // "put a +1/+1 counter on it": `put` names nothing
+                    // before "it".
+                    let before = words[start..j]
+                        .iter()
+                        .filter(|w| !(**w == "put" && prev == "on"))
+                        .copied()
+                        .collect::<Vec<_>>()
+                        .join(" ");
                     let named = [
                         "create", "target", "that", "return", "exile", "search", "reveal", "dig",
                         "put", "attach", "copy", "mill", "discard",

@@ -1,0 +1,14 @@
+card "Invasion of Tolvada // The Broken Sky" {
+  oracle_id 7f8dad7f-a573-469f-9095-4ba3886b4f0b
+  layout transform
+  cost {3}{W}{B}
+  type Battle — Siege
+  defense 5
+  triggered when this enters: return target nonbattle noninstant nonsorcery permanent card from your graveyard to battlefield
+  face "The Broken Sky" {
+    type Enchantment
+    color black white
+    static creature token you control: +1/+0, has lifelink
+    triggered at beginning of your end step: create 1 "1/1 white and black Spirit creature with flying"
+  }
+}

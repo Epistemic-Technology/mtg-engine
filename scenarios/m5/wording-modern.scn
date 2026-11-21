@@ -1077,3 +1077,15 @@ scenario "Fabled Hero: heroic puts the counter on Fabled Hero" {
   assert counters "Fabled Hero" +1/+1 1
   assert power "Fabled Hero" 3
 }
+
+scenario "Invasion of Tolvada returns a nonbattle permanent card, not an instant" {
+  battlefield A: 3 "Plains", 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Healing Salve"
+  hand A: "Invasion of Tolvada"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Invasion of Tolvada"
+  illegal turn 1 A: trigger "Invasion of Tolvada" targeting "Healing Salve"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Healing Salve"
+}
