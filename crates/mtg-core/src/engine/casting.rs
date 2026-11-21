@@ -9716,6 +9716,30 @@ impl GameState {
                     ctx.did = false;
                     return;
                 }
+                // "You may remove a counter from this creature. When you
+                // do, ...": with no counter to remove it can't be done
+                // (Leatherhead, Swamp Stalker).
+                let no_counter = inner.iter().any(|e| {
+                    let (to, kind, n) = match e {
+                        Effect::RemoveCounterChosen { to } => (*to, None, 1),
+                        Effect::RemoveCounters { kind, count, to } => {
+                            (*to, Some(*kind), self.eval_num(*count, ctx).max(1))
+                        }
+                        _ => return false,
+                    };
+                    !self.recipients(ctx, to).into_iter().any(|t| {
+                        on_battlefield(self, t).is_some_and(|id| {
+                            self.objects[id]
+                                .counters
+                                .iter()
+                                .any(|(k, c)| kind.is_none_or(|w| w == *k) && *c >= n)
+                        })
+                    })
+                });
+                if no_counter {
+                    ctx.did = false;
+                    return;
+                }
                 let def = self
                     .objects
                     .get(ctx.source)

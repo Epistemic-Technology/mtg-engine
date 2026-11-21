@@ -1,0 +1,8 @@
+card "Kraven, Proud Predator" {
+  oracle_id 12b8b4bf-ba85-419c-8005-1ec34b2b1deb
+  cost {1}{R}{G}
+  type Legendary Creature — Human Warrior Villain
+  pt */4
+  keywords vigilance
+  label "Top of the Food Chain" static this: cda power greatest mana value
+}

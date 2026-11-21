@@ -20,3 +20,12 @@ scenario "Leatherhead removes a counter to destroy that player's artifact" {
   assert counters "Leatherhead, Swamp Stalker" hexproof 0
 }
 
+scenario "Leatherhead with no counter to remove destroys nothing" {
+  battlefield A: "Leatherhead, Swamp Stalker"
+  battlefield B: "Sol Ring"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Leatherhead, Swamp Stalker"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert battlefield B contains "Sol Ring"
+}

@@ -1063,6 +1063,39 @@ fn per_count(
         CountExpr::GreatestPowerInGraveyard(f) => {
             return state.greatest_power_in_graveyard(you, f);
         }
+        // "the greatest mana value among permanents you control" (Kraven,
+        // Proud Predator), devotion (CR 700.5): from the mana costs of
+        // the permanents as the layers have them so far (a copy effect,
+        // layer 1, gives the copy's cost).
+        CountExpr::GreatestManaValue => work
+            .ids
+            .iter()
+            .filter(|id| {
+                state.objects[**id].zone == Zone::Battlefield && work.controller_of(**id) == you
+            })
+            .map(|id| {
+                state
+                    .pool
+                    .get(work.chars[work.index[id]].def)
+                    .mana_cost
+                    .mana_value() as usize
+            })
+            .max()
+            .unwrap_or(0),
+        CountExpr::Devotion(colors) => work
+            .ids
+            .iter()
+            .filter(|id| {
+                state.objects[**id].zone == Zone::Battlefield && work.controller_of(**id) == you
+            })
+            .map(|id| {
+                state
+                    .pool
+                    .get(work.chars[work.index[id]].def)
+                    .mana_cost
+                    .devotion(*colors) as usize
+            })
+            .sum(),
         CountExpr::CardsInHand => state.player(you).hand.len(),
         CountExpr::Life => usize::try_from(state.player(you).life.max(0)).unwrap_or(0),
         CountExpr::Times(k, inner) => {
@@ -1086,8 +1119,6 @@ fn per_count(
         | CountExpr::GreatestPower(_)
         | CountExpr::DifferentlyNamed(_)
         | CountExpr::Party(_)
-        | CountExpr::GreatestManaValue
-        | CountExpr::Devotion(_)
         | CountExpr::SourceToughness
         | CountExpr::CardsDrawnThisTurn
         | CountExpr::SpellsCastThisTurn { .. }

@@ -1,0 +1,14 @@
+scenario "Kraven's power is the greatest mana value among your permanents" {
+  battlefield A: "Kraven, Proud Predator", "Forest"
+  battlefield B: "Colossal Dreadmaw"
+  start turn 1 A precombat_main
+  assert power "Kraven, Proud Predator" 3
+}
+
+scenario "Kraven counts a bigger permanent you control, not an opponent's" {
+  battlefield A: "Kraven, Proud Predator", "Colossal Dreadmaw"
+  battlefield B: "Eldrazi Devastator"
+  start turn 1 A precombat_main
+  assert power "Kraven, Proud Predator" 6
+  assert toughness "Kraven, Proud Predator" 4
+}
