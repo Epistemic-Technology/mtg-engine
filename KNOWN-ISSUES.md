@@ -50,7 +50,9 @@ wrong thing in some case.
   blight, collect evidence, and behold costs on a mana ability have not
   been checked. Reported, not reproduced.
 - **Engine-picks-for-player approximations.** Forage as a cost (exiles
-  the three oldest graveyard cards, else sacrifices a Food); several
+  the three oldest graveyard cards, else sacrifices a Food); "Remove a
+  counter from this creature" of any kind (-1/-1 counters first, then
+  kinds that don't change power or toughness, then the rest); several
   mechanics from the first wave have the engine choose where the player
   should.
 - **Token copy of a creature that has died** (Sphinx of False

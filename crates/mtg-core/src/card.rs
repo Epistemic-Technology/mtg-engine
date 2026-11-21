@@ -2646,6 +2646,14 @@ pub enum CounterKind {
     Vigilance,
     Hexproof,
     Indestructible,
+    DoubleStrike,
+    /// A named counter with no rules of its own (Myojin of Night's Reach).
+    Divinity,
+    /// Not a kind: "remove a counter from this creature" (a cost), counters
+    /// of every kind. `GameObject::counters` totals them; removing them
+    /// takes -1/-1 counters first, then kinds that don't change power or
+    /// toughness, then the rest (the engine chooses for the player).
+    Any,
 }
 
 impl Keyword {
@@ -2660,7 +2668,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 44] = [
+    pub const NAMED: [(&'static str, CounterKind); 46] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2705,6 +2713,8 @@ impl CounterKind {
         ("vigilance", CounterKind::Vigilance),
         ("hexproof", CounterKind::Hexproof),
         ("indestructible", CounterKind::Indestructible),
+        ("double strike", CounterKind::DoubleStrike),
+        ("divinity", CounterKind::Divinity),
     ];
 
     /// Power/toughness counters by their Oracle name, with what each adds
@@ -2804,6 +2814,7 @@ impl CounterKind {
             CounterKind::Vigilance => Keyword::Vigilance,
             CounterKind::Hexproof => Keyword::Hexproof,
             CounterKind::Indestructible => Keyword::Indestructible,
+            CounterKind::DoubleStrike => Keyword::DoubleStrike,
             _ => return None,
         })
     }
@@ -5581,6 +5592,19 @@ pub struct Cost {
     /// payer controls. Every waterbend cost is generic mana only.
     #[serde(default)]
     pub waterbend: bool,
+    /// "Exert this creature" (CR 701.43a): it won't untap during its
+    /// controller's next untap step.
+    #[serde(default)]
+    pub exert: bool,
+    /// "Discard your hand": every card in the payer's hand (none is
+    /// payable too).
+    #[serde(default)]
+    pub discard_hand: bool,
+    /// "As an additional cost to cast this spell, pay X life" (CR 107.3,
+    /// 119.4): X announced as the spell is cast; payable only with at
+    /// least that much life.
+    #[serde(default)]
+    pub life_x: bool,
 }
 
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
@@ -5654,6 +5678,9 @@ impl Cost {
             forage: false,
             craft: None,
             waterbend: false,
+            exert: false,
+            discard_hand: false,
+            life_x: false,
         }
     }
 

@@ -1,0 +1,9 @@
+card "Loch Mare" {
+  oracle_id 631eb3e9-a3e0-4341-ad2d-e79142ce537d
+  cost {1}{U}
+  type Creature — Horse Serpent
+  pt 4/5
+  enters with 3 -1/-1 counters
+  activated {1}{U}, remove 1 counter from this: draw 1 card
+  activated {2}{U}, remove 2 counters from this: tap target creature; put 1 stun counter on target 1
+}

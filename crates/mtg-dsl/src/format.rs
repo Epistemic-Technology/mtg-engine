@@ -2659,9 +2659,12 @@ fn cards(n: Num) -> &'static str {
 }
 
 fn counter(k: CounterKind, n: Num) -> String {
+    // `remove 1 counter from this`: any kind.
     let name = k.name();
+    let name = if k == CounterKind::Any { "" } else { name };
     format!(
-        "{name} {}",
+        "{name}{}{}",
+        if name.is_empty() { "" } else { " " },
         if n == Num::N(1) {
             "counter"
         } else {
@@ -3869,10 +3872,14 @@ fn cost_text(c: &Cost) -> String {
                 }
             }
             CostItem::Life => {
-                if c.life > 0 {
+                if c.life_x {
+                    parts.push("pay x life".to_string());
+                } else if c.life > 0 {
                     parts.push(format!("pay {} life", c.life));
                 }
             }
+            CostItem::Exert => parts.push("exert this".to_string()),
+            CostItem::DiscardHand => parts.push("discard hand".to_string()),
             CostItem::RevealHand => parts.push("reveal hand".to_string()),
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
             CostItem::Blight => {
@@ -4580,6 +4587,16 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
         Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
+        Ability::EquipOr {
+            mana,
+            other,
+            targets,
+        } => {
+            let sub = crate::render::equip_subtype(targets)
+                .map(|s| format!("{s} "))
+                .unwrap_or_default();
+            let _ = writeln!(out, "{indent}equip {sub}{mana} or {}", cost_text(other));
+        }
         Ability::Pawprint { limit, modes } => {
             let _ = writeln!(out, "{indent}pawprint {limit} {{");
             for (w, m) in modes {
@@ -4638,6 +4655,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 let sub = crate::render::equip_subtype(targets)
                     .map(|s| format!("{s} "))
                     .unwrap_or_default();
+                if crate::render::equip_full_cost(cost) {
+                    let _ = writeln!(out, "{indent}equip {sub}{}", cost_text(cost));
+                    return;
+                }
                 let once = if cost.per_turn == 1 { ", once" } else { "" };
                 let _ = writeln!(out, "{indent}equip {sub}{}{once}", cost.mana);
                 return;

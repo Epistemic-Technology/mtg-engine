@@ -4483,6 +4483,13 @@ impl GameState {
         } else {
             max_x
         };
+        // "As an additional cost to cast this spell, pay X life": no more
+        // than the caster's life (CR 119.4).
+        let max_x = if add.life_x {
+            max_x.min(u32::try_from(self.player(caster).life.max(0)).unwrap_or(0))
+        } else {
+            max_x
+        };
         // "exile X cards from your graveyard": no more than there are (an
         // activated ability's cost, or a spell's additional cost).
         let exile = match ability {
@@ -5511,8 +5518,26 @@ impl GameState {
         if cost.life > 0 {
             self.change_life(p, -i32::try_from(cost.life).unwrap_or(i32::MAX));
         }
+        // CR 107.3: "pay X life", X announced as the spell was cast.
+        if cost.life_x {
+            let x = self.x_of(this);
+            self.change_life(p, -i32::try_from(x).unwrap_or(i32::MAX));
+        }
         if let Some((k, n)) = cost.remove_counters {
             self.remove_counters(this, k, n);
+        }
+        // CR 701.43a: an exerted permanent won't untap during its
+        // controller's next untap step.
+        if cost.exert
+            && let Some(o) = self.objects.get_mut(this)
+        {
+            o.skip_untap = true;
+        }
+        if cost.discard_hand {
+            let hand: Vec<ObjId> = self.player(p).hand.iter().copied().collect();
+            for c in hand {
+                self.discard_card(p, c);
+            }
         }
         // "Put a -1/-1 counter on this creature" (CR 118.3).
         if let Some((k, n)) = cost.put_counters {

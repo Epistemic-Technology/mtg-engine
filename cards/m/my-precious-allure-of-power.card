@@ -1,0 +1,14 @@
+card "My Precious // Allure of Power" {
+  oracle_id 2e728381-6db0-4c66-883d-82d718fef833
+  layout adventure
+  cost {3}
+  type Legendary Artifact — Equipment
+  static equipped creature: has hexproof, has can't be blocked
+  equip {2}, pay 2 life
+  face "Allure of Power" {
+    cost {1}{B}
+    type Instant — Adventure
+    additional cost sacrifice creature
+    spell: draw 2 cards
+  }
+}

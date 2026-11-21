@@ -1,0 +1,8 @@
+card "Brambleback Brute" {
+  oracle_id eb25920a-3162-4838-b092-09cbd43332fd
+  cost {2}{R}
+  type Creature — Giant Warrior
+  pt 4/5
+  enters with 2 -1/-1 counters
+  activated {1}{R}, remove 1 counter from this, sorcery: target creature can't block this turn
+}

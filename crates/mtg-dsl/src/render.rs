@@ -1578,6 +1578,17 @@ impl<'a> Ctx<'a> {
             Recipient::Group(i) if self.single_group(r) => {
                 format!("each {}", self.group_phrase(i, false))
             }
+            // "Destroy all artifacts and creatures with mana value X or
+            // less": Oracle joins a group's alternative types with "and".
+            Recipient::Group(i)
+                if self
+                    .card
+                    .groups
+                    .get(usize::from(i))
+                    .is_some_and(|f| f.any_types.len() == 2) =>
+            {
+                format!("all {}", self.group_phrase(i, true)).replacen(" or ", " and ", 1)
+            }
             Recipient::Group(i) => format!("all {}", self.group_phrase(i, true)),
             other => self.obj(other),
         }
@@ -2770,10 +2781,15 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
             }
             CostItem::Life => {
-                if cost.life > 0 {
+                if cost.life_x {
+                    parts.push("Pay X life".to_string());
+                } else if cost.life > 0 {
                     parts.push(format!("Pay {} life", cost.life));
                 }
             }
+            // "Exert Basri", "Exert this creature" (CR 701.43a).
+            CostItem::Exert => parts.push(format!("Exert {}", ctx.source())),
+            CostItem::DiscardHand => parts.push("Discard your hand".to_string()),
             CostItem::RevealHand => parts.push("Reveal your hand".to_string()),
             CostItem::Energy => parts.push(format!("Pay {}", energy(cost.energy))),
             CostItem::Blight => {
@@ -2876,6 +2892,11 @@ fn counter_name(k: CounterKind) -> &'static str {
 }
 
 fn counters(n: Num, k: CounterKind) -> String {
+    // "Remove a counter from this creature", "Remove two counters from
+    // it": any kind.
+    if k == CounterKind::Any {
+        return format!("{} {}", count_words(n, "a"), plural(n, "counter"));
+    }
     // "an oil counter", "a stun counter".
     let a = if n == Num::N(1) && article(counter_name(k)) == "an" {
         "an"
@@ -10794,6 +10815,14 @@ fn restrictions_text(cost: &Cost, card: &Card) -> String {
     out
 }
 
+/// Whether an equip ability's cost is more than mana ("Equip—{2}, Pay 2
+/// life."), so it prints after a dash.
+pub(crate) fn equip_full_cost(cost: &crate::ast::Cost) -> bool {
+    cost.order
+        .iter()
+        .any(|i| !matches!(i, crate::ast::CostItem::Mana))
+}
+
 /// A static ability's text with its condition: "As long as <cond>, <text>"
 /// or "<text> as long as <cond>." ("During your turn, ..." for the turn).
 fn conditional_static(
@@ -10926,6 +10955,19 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         // CR 702.172b: "+" for the bullets.
         // CR 700.2i: "Choose up to five {P} worth of modes. You may choose
         // the same mode more than once.\n{P} — ...".
+        // "Equip—Pay {3} or discard a card."
+        Ability::EquipOr {
+            mana,
+            other,
+            targets,
+        } => {
+            let sub = equip_subtype(targets)
+                .map(|s| format!("{s} "))
+                .unwrap_or_default();
+            let mut ctx = Ctx::new(card, lookup, targets);
+            let other = lowercase_first(&cost_text(other, &mut ctx));
+            format!("Equip {sub}\u{2014}Pay {mana} or {other}.").replace(" \u{2014}", "\u{2014}")
+        }
         Ability::Pawprint { limit, modes } => {
             let mut out = format!(
                 "Choose up to {} {{P}} worth of modes. You may choose the same mode more than once.",
@@ -10979,6 +11021,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 let sub = equip_subtype(targets)
                     .map(|s| format!("{s} "))
                     .unwrap_or_default();
+                // "Equip—{2}, Pay 2 life." (CR 702.6a: any cost).
+                if equip_full_cost(cost) {
+                    let mut ctx = Ctx::new(card, lookup, targets);
+                    let once = if cost.per_turn == 1 {
+                        " Activate only once each turn."
+                    } else {
+                        ""
+                    };
+                    return format!("Equip {sub}\u{2014}{}.{once}", cost_text(cost, &mut ctx))
+                        .replace(" \u{2014}", "\u{2014}");
+                }
                 let once = if cost.per_turn == 1 {
                     ". Activate only once each turn."
                 } else {

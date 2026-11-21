@@ -1,0 +1,8 @@
+card "Hope Tender" {
+  oracle_id 6f377da9-7d7b-4407-8846-75a12b4dd72d
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 2/2
+  activated {1}, {T}: untap target land
+  activated {1}, {T}, exert this: untap two target lands
+}

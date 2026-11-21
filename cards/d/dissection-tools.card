@@ -1,0 +1,8 @@
+card "Dissection Tools" {
+  oracle_id 50de5faa-d22e-4909-a1ff-3810cfcfcb1a
+  cost {5}
+  type Artifact — Equipment
+  triggered when this enters: manifest dread, then attach to manifested creature
+  static equipped creature: +2/+2, has deathtouch, lifelink
+  equip sacrifice creature
+}

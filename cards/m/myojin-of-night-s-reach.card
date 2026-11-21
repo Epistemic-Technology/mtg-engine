@@ -1,0 +1,9 @@
+card "Myojin of Night's Reach" {
+  oracle_id 5ac65688-0a74-4dc4-b6cb-12bdf8aed01e
+  cost {5}{B}{B}{B}
+  type Legendary Creature — Spirit
+  pt 5/2
+  enters with 1 divinity counter if cast from hand
+  static this: has indestructible as long as this has 1 or more divinity counters
+  activated remove 1 divinity counter from this: each opponent discards hand
+}

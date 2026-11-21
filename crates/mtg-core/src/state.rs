@@ -744,6 +744,9 @@ impl GameObject {
     }
 
     pub fn counters(&self, kind: CounterKind) -> u32 {
+        if kind == CounterKind::Any {
+            return self.counters.iter().map(|(_, n)| *n).sum();
+        }
         self.counters
             .iter()
             .find(|(k, _)| *k == kind)

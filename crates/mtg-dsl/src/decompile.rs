@@ -382,6 +382,9 @@ impl Decompiler<'_> {
             evidence: c.evidence,
             forage: c.forage,
             waterbend: c.waterbend,
+            exert: c.exert,
+            discard_hand: c.discard_hand,
+            life_x: c.life_x,
             chosen: c.chosen,
             count: c.count,
             exile_cards: c.exile_cards.as_ref().map(|g| {

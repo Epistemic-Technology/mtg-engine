@@ -1,0 +1,7 @@
+card "Bond of Agony" {
+  oracle_id 8e7bd5ae-005a-47d8-90bc-69f48cd8793d
+  cost {X}{B}
+  type Sorcery
+  additional cost pay x life
+  spell: each other player loses X life
+}

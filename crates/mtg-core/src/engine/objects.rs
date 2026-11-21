@@ -1561,6 +1561,31 @@ impl GameState {
     }
 
     pub(super) fn remove_counters(&mut self, id: ObjId, kind: CounterKind, n: u32) {
+        // "Remove a counter from this creature": one at a time, of the kind
+        // the engine picks for the player (-1/-1 first, then kinds that
+        // don't change power or toughness, then the rest).
+        if kind == CounterKind::Any {
+            for _ in 0..n {
+                let Some(o) = self.objects.get(id) else {
+                    return;
+                };
+                let has = |k: CounterKind| o.counters(k) > 0;
+                let pick = if has(CounterKind::MinusOneMinusOne) {
+                    Some(CounterKind::MinusOneMinusOne)
+                } else {
+                    o.counters
+                        .iter()
+                        .filter(|(_, c)| *c > 0)
+                        .map(|(k, _)| *k)
+                        .min_by_key(|k| (k.pt().is_some(), *k == CounterKind::PlusOnePlusOne))
+                };
+                let Some(k) = pick else {
+                    return;
+                };
+                self.remove_counters(id, k, 1);
+            }
+            return;
+        }
         let Some(o) = self.objects.get_mut(id) else {
             return;
         };

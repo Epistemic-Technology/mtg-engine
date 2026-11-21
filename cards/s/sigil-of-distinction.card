@@ -1,0 +1,8 @@
+card "Sigil of Distinction" {
+  oracle_id 3aa3526b-bd06-417f-af29-5a9ff0844923
+  cost {X}
+  type Artifact — Equipment
+  enters with X charge counters
+  static equipped creature: +1/+1 count each charge counters on this
+  equip remove 1 charge counter from this
+}

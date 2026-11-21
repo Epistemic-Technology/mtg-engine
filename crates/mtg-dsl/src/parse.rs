@@ -2226,23 +2226,47 @@ impl P {
                     }
                     _ => Target::Spec(TargetSpec::CreatureYouControl),
                 };
-                let mana = self.mana_cost()?;
-                // "Equip {0}. Activate only once each turn."
-                let per_turn = if self.peek() == Some(&Tok::Comma) {
-                    self.pos += 1;
-                    self.expect_word("once")?;
-                    1
+                // "Equip—{2}, Pay 2 life.", "Equip—Sacrifice a creature.":
+                // a cost other than mana alone (CR 702.6a).
+                let full = matches!(self.peek(), Some(Tok::Word(_)))
+                    || (self.peek_at(1) == Some(&Tok::Comma)
+                        && self.word_at(2).as_deref() != Some("once"));
+                let cost = if full {
+                    Cost {
+                        sorcery: true,
+                        ..self.cost()?
+                    }
+                } else if self.word_at(1).as_deref() == Some("or") {
+                    // `equip {3} or discard 1 card`: two equip abilities.
+                    let mana = self.mana_cost()?;
+                    self.expect_word("or")?;
+                    let other = self.cost()?;
+                    self.end_stmt()?;
+                    return Ok(Ability::EquipOr {
+                        mana,
+                        other,
+                        targets: vec![target],
+                    });
                 } else {
-                    0
-                };
-                self.end_stmt()?;
-                Ok(Ability::Activated {
-                    cost: Cost {
+                    let mana = self.mana_cost()?;
+                    // "Equip {0}. Activate only once each turn."
+                    let per_turn = if self.peek() == Some(&Tok::Comma) {
+                        self.pos += 1;
+                        self.expect_word("once")?;
+                        1
+                    } else {
+                        0
+                    };
+                    Cost {
                         mana,
                         sorcery: true,
                         per_turn,
                         ..Default::default()
-                    },
+                    }
+                };
+                self.end_stmt()?;
+                Ok(Ability::Activated {
+                    cost,
                     targets: vec![target],
                     effects: vec![Sentence::new(vec![Effect::Attach {
                         what: Recipient::Source,
@@ -10999,7 +11023,12 @@ impl P {
                     {
                         self.pos += 1;
                         let n = self.count()?;
-                        let k = self.counter_kind()?;
+                        // `remove 1 counter from this`: any kind.
+                        let k = if self.eat_word("counter") || self.eat_word("counters") {
+                            CounterKind::Any
+                        } else {
+                            self.counter_kind()?
+                        };
                         self.expect_words(&["from", "this"])?;
                         cost.remove_counters = Some((k, n));
                         cost.order.push(CostItem::RemoveCounters);
@@ -11075,6 +11104,17 @@ impl P {
                             Some(Box::new(crate::ast::ExileCards { n, x, filter, top }));
                         cost.order.push(CostItem::ExileCards);
                     }
+                    "discard" if self.word_at(1).as_deref() == Some("hand") => {
+                        self.pos += 2;
+                        cost.discard_hand = true;
+                        cost.order.push(CostItem::DiscardHand);
+                    }
+                    // CR 701.43a: `exert this`.
+                    "exert" if self.word_at(1).as_deref() == Some("this") => {
+                        self.pos += 2;
+                        cost.exert = true;
+                        cost.order.push(CostItem::Exert);
+                    }
                     "discard" => {
                         self.pos += 1;
                         if self.eat_word("this") {
@@ -11144,6 +11184,16 @@ impl P {
                         cost.conditions.push(c);
                     }
 
+                    // "pay X life" (CR 107.3: X announced as the spell is
+                    // cast).
+                    "pay"
+                        if self.word_at(1).as_deref() == Some("x")
+                            && self.word_at(2).as_deref() == Some("life") =>
+                    {
+                        self.pos += 3;
+                        cost.life_x = true;
+                        cost.order.push(CostItem::Life);
+                    }
                     "pay" => {
                         self.pos += 1;
                         let n = self.count()?;

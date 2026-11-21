@@ -969,6 +969,10 @@ impl Compiler<'_> {
             }
             let compiled = self.ability(a)?;
             b = b.ability(compiled);
+            // "Equip—Pay {3} or discard a card.": the second equip ability.
+            if let Ability::EquipOr { other, targets, .. } = a {
+                b = b.ability(self.ability(&equip_ability(other.clone(), targets))?);
+            }
             // CR 702.98a: unleash's second static ability, "This permanent
             // can't block as long as it has a +1/+1 counter on it."
             if let Ability::Mechanic(Mechanic::Unleash) = a {
@@ -1823,6 +1827,9 @@ impl Compiler<'_> {
             evidence: c.evidence,
             forage: c.forage,
             waterbend: c.waterbend,
+            exert: c.exert,
+            discard_hand: c.discard_hand,
+            life_x: c.life_x,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -3737,6 +3744,17 @@ impl Compiler<'_> {
             Ability::Activated { cost, .. } if cost.discard_x => {
                 return self.err("`discard X cards` is only a spell's additional cost");
             }
+            // The first of the two equip abilities; the card's ability list
+            // gets the second (`equip_or_second`).
+            Ability::EquipOr { mana, targets, .. } => {
+                return self.ability(&equip_ability(
+                    Cost {
+                        mana: mana.clone(),
+                        ..Default::default()
+                    },
+                    targets,
+                ));
+            }
             Ability::Activated {
                 cost,
                 targets,
@@ -4631,6 +4649,24 @@ fn soulbond_trigger(triggering: bool) -> Ability {
 
 /// Unleash's "This permanent can't block as long as it has a +1/+1 counter
 /// on it." (CR 702.98a).
+/// An equip ability for this cost (CR 702.6a): attach to the target as a
+/// sorcery.
+fn equip_ability(cost: Cost, targets: &[Target]) -> Ability {
+    Ability::Activated {
+        cost: Cost {
+            sorcery: true,
+            ..cost
+        },
+        targets: targets.to_vec(),
+        effects: vec![Sentence::new(vec![crate::ast::Effect::Attach {
+            what: Recipient::Source,
+            to: Recipient::Target(0),
+        }])],
+        equip: true,
+        cycling: false,
+    }
+}
+
 pub(crate) fn unleash_static() -> AbilityDef {
     AbilityDef::Static(StaticAbility {
         affected: ObjFilter::this(),

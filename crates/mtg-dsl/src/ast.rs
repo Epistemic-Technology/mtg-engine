@@ -619,6 +619,13 @@ pub struct Cost {
     /// `waterbend {3}`: "Waterbend {3}" (CR 701.67a): the mana's generic
     /// part may be paid by tapping artifacts and creatures.
     pub waterbend: bool,
+    /// `exert this`: "Exert this creature" (CR 701.43a).
+    pub exert: bool,
+    /// `discard hand`: "Discard your hand".
+    pub discard_hand: bool,
+    /// `pay x life`: "pay X life" (a spell's additional cost, X announced
+    /// as it is cast).
+    pub life_x: bool,
 }
 
 /// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and
@@ -670,6 +677,10 @@ pub enum CostItem {
     Evidence,
     /// `forage`.
     Forage,
+    /// `exert this`.
+    Exert,
+    /// `discard hand`.
+    DiscardHand,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1065,6 +1076,14 @@ pub enum Ability {
     Pawprint {
         limit: u8,
         modes: Vec<(u8, Mode)>,
+    },
+    /// `equip {3} or discard 1 card`: "Equip—Pay {3} or discard a card."
+    /// (CR 702.6a): an equip ability for each cost, the player choosing
+    /// which to activate.
+    EquipOr {
+        mana: ManaCost,
+        other: Cost,
+        targets: Vec<Target>,
     },
     Activated {
         cost: Cost,

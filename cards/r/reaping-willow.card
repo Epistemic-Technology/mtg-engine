@@ -1,0 +1,9 @@
+card "Reaping Willow" {
+  oracle_id ce60402c-34cd-44fe-ae1d-4a5404298f5b
+  cost {1}{W/B}{W/B}{W/B}
+  type Creature — Treefolk Cleric
+  pt 3/6
+  keywords lifelink
+  enters with 2 -1/-1 counters
+  activated {1}{W/B}, remove 2 counters from this, sorcery: return target creature card with mana value 3 or less from your graveyard to battlefield
+}

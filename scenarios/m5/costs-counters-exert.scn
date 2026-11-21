@@ -1,0 +1,235 @@
+# Costs: "Remove a counter from this creature" (any kind), "Exert this
+# creature", "Discard your hand", "pay X life", equip with a cost other
+# than mana alone, and the double strike and divinity counters.
+
+scenario "Loch Mare removes a -1/-1 counter to draw" {
+  battlefield A: "Loch Mare" with 3 -1/-1, 2 "Island"
+  turn 1 A: activate "Loch Mare" ability 1
+  run_to turn 1 postcombat_main
+  assert counters "Loch Mare" -1/-1 2
+  assert hand A count 1
+}
+
+scenario "Loch Mare removes two counters to tap and stun" {
+  battlefield A: "Loch Mare" with 2 -1/-1, "Island", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Loch Mare" ability 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Loch Mare" -1/-1 0
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+}
+
+scenario "Loch Mare with no counters can't draw" {
+  battlefield A: "Loch Mare", 2 "Island"
+  illegal turn 1 A: activate "Loch Mare" ability 1
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Moonlit Lamenter removes a +1/+1 counter when that is all it has" {
+  battlefield A: "Moonlit Lamenter" with 1 +1/+1, 2 "Plains"
+  turn 1 A: activate "Moonlit Lamenter"
+  run_to turn 1 postcombat_main
+  assert counters "Moonlit Lamenter" +1/+1 0
+  assert hand A count 1
+}
+
+scenario "Brambleback Brute: target creature can't block" {
+  battlefield A: "Brambleback Brute" with 2 -1/-1, 2 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Brambleback Brute" targeting "Hill Giant"
+  turn 1 A: attack "Brambleback Brute"
+  run_to turn 1 postcombat_main
+  assert counters "Brambleback Brute" -1/-1 1
+  assert life B 17
+}
+
+scenario "Steward of Solidarity exerts: it doesn't untap next turn" {
+  battlefield A: "Steward of Solidarity"
+  turn 1 A: activate "Steward of Solidarity"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Warrior"
+  assert tapped "Steward of Solidarity"
+  run_to turn 5 upkeep
+  assert untapped "Steward of Solidarity"
+}
+
+scenario "Basri exerts to make a Cat" {
+  battlefield A: "Basri, Tomorrow's Champion", "Plains"
+  turn 1 A: activate "Basri, Tomorrow's Champion"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Cat"
+  assert has "Cat" lifelink
+  assert tapped "Basri, Tomorrow's Champion"
+}
+
+scenario "Fervent Paincaster's exert ability pings a creature" {
+  battlefield A: "Fervent Paincaster"
+  battlefield B: "Llanowar Elves"
+  turn 1 A: activate "Fervent Paincaster" ability 2 targeting "Llanowar Elves"
+  run_to turn 3 upkeep
+  assert graveyard B contains "Llanowar Elves"
+  assert tapped "Fervent Paincaster"
+}
+
+scenario "Slate of Ancestry discards the hand, then draws for each creature" {
+  battlefield A: "Slate of Ancestry", 4 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Shock", "Forest", "Island"
+  turn 1 A: activate "Slate of Ancestry"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 3
+  assert hand A count 2
+}
+
+scenario "Slate of Ancestry can be activated with an empty hand" {
+  battlefield A: "Slate of Ancestry", 4 "Plains", "Grizzly Bears"
+  turn 1 A: activate "Slate of Ancestry"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Toxic Deluge: pay 3 life, all creatures get -3/-3" {
+  battlefield A: 3 "Swamp", "Hill Giant"
+  battlefield B: "Craw Wurm", "Grizzly Bears"
+  hand A: "Toxic Deluge"
+  turn 1 A: cast "Toxic Deluge" x 3
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert graveyard A contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Craw Wurm"
+}
+
+scenario "Toxic Deluge: X may be all of your life (CR 119.4)" {
+  battlefield A: 3 "Swamp"
+  hand A: "Toxic Deluge"
+  life A 3
+  turn 1 A: cast "Toxic Deluge" x 3
+  run_to end
+  assert winner B
+}
+
+scenario "Bond of Agony: pay X life, each other player loses X" {
+  battlefield A: 3 "Swamp"
+  hand A: "Bond of Agony"
+  turn 1 A: cast "Bond of Agony" x 2
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert life B 18
+}
+
+scenario "Vicious Rivalry destroys artifacts and creatures with mana value X or less" {
+  battlefield A: 2 "Swamp", 2 "Forest"
+  battlefield B: "Ornithopter", "Grizzly Bears", "Hill Giant", "Mind Stone"
+  hand A: "Vicious Rivalry"
+  turn 1 A: cast "Vicious Rivalry" x 2
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert graveyard B contains "Ornithopter"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Mind Stone"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "My Precious: equip for {2} and 2 life" {
+  battlefield A: "My Precious", 2 "Swamp", "Grizzly Bears"
+  turn 1 A: activate "My Precious" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "My Precious" to "Grizzly Bears"
+  assert life A 18
+  assert has "Grizzly Bears" hexproof
+}
+
+scenario "My Precious can't be equipped with 1 life" {
+  battlefield A: "My Precious", 2 "Swamp", "Grizzly Bears"
+  life A 1
+  illegal turn 1 A: activate "My Precious" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 1
+}
+
+scenario "Demonmail Hauberk: equip by sacrificing a creature" {
+  battlefield A: "Demonmail Hauberk", "Grizzly Bears", "Llanowar Elves"
+  turn 1 A: activate "Demonmail Hauberk" sacrificing "Llanowar Elves" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Demonmail Hauberk" to "Grizzly Bears"
+  assert graveyard A contains "Llanowar Elves"
+  assert power "Grizzly Bears" 6
+}
+
+scenario "Murderer's Axe: equip by discarding a card" {
+  battlefield A: "Murderer's Axe", "Grizzly Bears"
+  hand A: "Forest"
+  turn 1 A: activate "Murderer's Axe" discarding "Forest" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Murderer's Axe" to "Grizzly Bears"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Murderer's Axe can't be equipped with an empty hand" {
+  battlefield A: "Murderer's Axe", "Grizzly Bears"
+  illegal turn 1 A: activate "Murderer's Axe" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Shredder's Armor equips only once each turn" {
+  battlefield A: "Shredder's Armor", "Grizzly Bears", "Hill Giant", "Ornithopter", "Mind Stone"
+  turn 1 A: activate "Shredder's Armor" sacrificing "Ornithopter" targeting "Hill Giant"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Shredder's Armor" sacrificing "Mind Stone" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Shredder's Armor" to "Hill Giant"
+  assert battlefield A contains "Mind Stone"
+}
+
+scenario "Mai's double strike counter gives double strike" {
+  battlefield A: "Mai, Jaded Edge", 3 "Mountain"
+  turn 1 A: activate "Mai, Jaded Edge"
+  turn 1 A: attack "Mai, Jaded Edge"
+  run_to turn 1 postcombat_main
+  assert counters "Mai, Jaded Edge" double_strike 1
+  assert has "Mai, Jaded Edge" double_strike
+  assert life B 18
+}
+
+scenario "Myojin of Night's Reach: the divinity counter makes each opponent discard their hand" {
+  battlefield A: 8 "Swamp"
+  hand A: "Myojin of Night's Reach"
+  hand B: "Shock", "Forest"
+  turn 1 A: cast "Myojin of Night's Reach"
+  turn 1 A: wait
+  turn 1 A: activate "Myojin of Night's Reach"
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert counters "Myojin of Night's Reach" divinity 0
+  assert has not "Myojin of Night's Reach" indestructible
+}
+
+scenario "Myojin of Night's Reach is indestructible with its divinity counter" {
+  battlefield A: 8 "Swamp"
+  hand A: "Myojin of Night's Reach"
+  turn 1 A: cast "Myojin of Night's Reach"
+  run_to turn 1 postcombat_main
+  assert has "Myojin of Night's Reach" indestructible
+}
+
+scenario "Bloodthorn Flail: equip for {3}" {
+  battlefield A: "Bloodthorn Flail", 3 "Swamp", "Grizzly Bears"
+  hand A: "Forest"
+  turn 1 A: activate "Bloodthorn Flail" ability 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Bloodthorn Flail" to "Grizzly Bears"
+  assert hand A contains "Forest"
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Bloodthorn Flail: equip by discarding a card instead" {
+  battlefield A: "Bloodthorn Flail", "Grizzly Bears"
+  hand A: "Forest"
+  illegal turn 1 A: activate "Bloodthorn Flail" ability 1 targeting "Grizzly Bears"
+  turn 1 A: activate "Bloodthorn Flail" ability 2 discarding "Forest" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Bloodthorn Flail" to "Grizzly Bears"
+  assert graveyard A contains "Forest"
+}

@@ -1,0 +1,8 @@
+card "Hovel Hurler" {
+  oracle_id fb9cd9d0-8eea-4aa8-bb9c-bb0aac847421
+  cost {3}{R/W}{R/W}
+  type Creature — Giant Warrior
+  pt 6/7
+  enters with 2 -1/-1 counters
+  activated {R/W}{R/W}, remove 1 counter from this, sorcery: another target creature you control gets +1/+0 and gains flying
+}

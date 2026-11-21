@@ -1,0 +1,9 @@
+card "Glen Elendra Guardian" {
+  oracle_id 97febf6b-302c-4c41-8838-eef7c7353bdc
+  cost {2}{U}
+  type Creature — Faerie Wizard
+  pt 3/4
+  keywords flash, flying
+  enters with 1 -1/-1 counter
+  activated {1}{U}, remove 1 counter from this: counter target noncreature spell; its controller draws 1 card
+}

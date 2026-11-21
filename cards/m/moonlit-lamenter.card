@@ -1,0 +1,8 @@
+card "Moonlit Lamenter" {
+  oracle_id ce009bd4-5ffb-46a4-a9dd-b9c060926467
+  cost {2}{W}
+  type Creature — Treefolk Cleric
+  pt 2/5
+  enters with 1 -1/-1 counter
+  activated {1}{W}, remove 1 counter from this, sorcery: draw 1 card
+}

@@ -1,0 +1,7 @@
+card "Bloodthorn Flail" {
+  oracle_id 01ab7724-1967-4da6-aebd-3729983d6a0e
+  cost {B}
+  type Artifact — Equipment
+  static equipped creature: +2/+1
+  equip {3} or discard 1 card
+}
