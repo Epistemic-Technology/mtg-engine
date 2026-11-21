@@ -1,0 +1,67 @@
+# Exchange control (CR 701.12): each controller gains control of the
+# other's permanent, indefinitely; nothing happens if both have the same
+# controller or if the exchange can't be completed.
+
+scenario "exchange control: Switcheroo swaps two creatures for good" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Switcheroo"
+  turn 1 A: cast "Switcheroo" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "exchange control: two creatures of the same controller stay" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Switcheroo"
+  turn 1 A: cast "Switcheroo" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "exchange control: nothing if one target is gone" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Switcheroo"
+  hand B: "Shock"
+  turn 1 A: cast "Switcheroo" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears" in response to "Switcheroo"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "exchange control: Avarice Totem gives itself away" {
+  battlefield A: "Avarice Totem", 5 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Avarice Totem" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Avarice Totem"
+}
+
+scenario "exchange control: Trade the Helm, yours and an opponent's" {
+  battlefield A: 5 "Island", "Ornithopter"
+  battlefield B: "Hill Giant"
+  hand A: "Trade the Helm"
+  turn 1 A: cast "Trade the Helm" targeting "Ornithopter", "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B contains "Ornithopter"
+}
+
+scenario "exchange control: Shifting Grift's creature and artifact modes" {
+  battlefield A: 5 "Island", "Grizzly Bears", "Ornithopter"
+  battlefield B: "Hill Giant", "Sol Ring"
+  hand A: "Shifting Grift"
+  turn 1 A: cast "Shifting Grift" mode 3 targeting "Grizzly Bears", "Hill Giant", "Ornithopter", "Sol Ring"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Sol Ring"
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield B contains "Ornithopter"
+}

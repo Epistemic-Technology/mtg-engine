@@ -1714,6 +1714,24 @@ impl Templates {
             (r(r"^Exile (.+)$"), |c, t| {
                 Some(format!("exile {}", recipient(cap(c, 1), t)?))
             }),
+            // CR 701.12a.
+            (
+                r(
+                    r"^[Ee]xchange control of two target (creature|artifact|enchantment|land|permanent)s$",
+                ),
+                |c, t| {
+                    *t += 2;
+                    Some(format!("exchange control of 2 target {}", cap(c, 1)))
+                },
+            ),
+            (
+                r(r"^[Ee]xchange control of (.+?) and (target .+)$"),
+                |c, t| {
+                    let a = recipient(cap(c, 1), t)?;
+                    let b = recipient(cap(c, 2), t)?;
+                    Some(format!("exchange control of {a} and {b}"))
+                },
+            ),
             // CR 724.1.
             (r(r"^[Ee]nd the turn$"), |_, _| {
                 Some("end the turn".to_string())

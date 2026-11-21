@@ -3632,6 +3632,12 @@ pub enum Effect {
     Airbend {
         what: Vec<Recipient>,
     },
+    /// `exchange control of 2 target creature`, `exchange control of this
+    /// and target nonland permanent` (CR 701.12): "Exchange control of two
+    /// target creatures."
+    ExchangeControl {
+        what: Vec<Recipient>,
+    },
     /// `return all creature card from your graveyard to battlefield`:
     /// "Return all creature cards from your graveyard to the battlefield."
     GraveyardToBattlefield {

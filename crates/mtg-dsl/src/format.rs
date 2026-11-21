@@ -1273,6 +1273,9 @@ impl Fmt {
             Effect::Regenerate { to } => format!("regenerate {}", self.recipient(*to, t)),
             Effect::Exile { what } => format!("exile {}", self.recipients(what, t)),
             Effect::Airbend { what } => format!("airbend {}", self.recipients(what, t)),
+            Effect::ExchangeControl { what } => {
+                format!("exchange control of {}", self.recipients(what, t))
+            }
             Effect::GraveyardToBattlefield { filter: f } => format!(
                 "return all {} card from your graveyard to battlefield",
                 filter(f)

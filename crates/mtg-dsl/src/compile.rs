@@ -2170,6 +2170,14 @@ impl Compiler<'_> {
             Effect::CloakTop => out.push(CoreEffect::CloakTop {
                 of: CoreRecipient::You,
             }),
+            Effect::ExchangeControl { what } => match what[..] {
+                [one] => out.push(CoreEffect::ExchangeControl { a: r(one), b: None }),
+                [x, y] => out.push(CoreEffect::ExchangeControl {
+                    a: r(x),
+                    b: Some(r(y)),
+                }),
+                _ => return self.err("exchange control of two permanents"),
+            },
             Effect::Airbend { what } => {
                 for w in what {
                     out.push(CoreEffect::Airbend { what: r(*w) });

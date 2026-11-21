@@ -4096,6 +4096,15 @@ pub enum Effect {
     Airbend {
         what: Recipient,
     },
+    /// Exchange control of two permanents (CR 701.12a-b): `a` and `b`, or
+    /// the two objects `a` names when `b` is `None` ("two target
+    /// creatures"). Nothing happens unless both are still on the
+    /// battlefield under different controllers; then each controller
+    /// gains control of the other's permanent indefinitely.
+    ExchangeControl {
+        a: Recipient,
+        b: Option<Recipient>,
+    },
     /// Recruit (CR 701.70a): "Draw a card, then discard a card. If you
     /// discarded a nonland card this way, create a 1/1 white Human Soldier
     /// creature token." (`token`).

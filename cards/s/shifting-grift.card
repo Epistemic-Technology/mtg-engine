@@ -1,0 +1,10 @@
+card "Shifting Grift" {
+  oracle_id 763d60ea-a0ad-4f13-b8a7-aa1515283266
+  cost {U}{U}
+  type Sorcery
+  spree {
+  mode {2}: exchange control of 2 target creature
+  mode {1}: exchange control of 2 target artifact
+  mode {1}: exchange control of 2 target enchantment
+  }
+}

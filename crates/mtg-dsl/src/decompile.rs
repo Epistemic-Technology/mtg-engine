@@ -1315,6 +1315,9 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
             },
             CoreEffect::CloakTop { .. } => Effect::CloakTop,
+            CoreEffect::ExchangeControl { a, b } => Effect::ExchangeControl {
+                what: std::iter::once(*a).chain(*b).map(r).collect(),
+            },
             CoreEffect::Airbend { what } => Effect::Airbend {
                 what: vec![r(*what)],
             },

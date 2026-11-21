@@ -6810,6 +6810,13 @@ impl P {
                 },
             }),
             "populate" => Ok(Effect::Populate),
+            "exchange" if self.eat_words(&["control", "of"]) => Ok(Effect::ExchangeControl {
+                what: if self.at_many() {
+                    vec![self.many_target()?]
+                } else {
+                    self.recipients()?
+                },
+            }),
             "end" if self.eat_words(&["the", "turn"]) => Ok(Effect::EndTurn),
             "incubate" => Ok(Effect::Incubate(self.num()?)),
             // CR 701.41a: "up to N other target creatures" on a permanent

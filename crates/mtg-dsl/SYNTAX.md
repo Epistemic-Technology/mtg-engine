@@ -790,6 +790,13 @@ Darksteel Colossus and shuffle it into its owner's library instead.": the
 card names itself, and the ability works in every zone (CR 113.6b: hand,
 library, stack, battlefield); the card goes into the library, which is
 then shuffled.
+`exchange control of 2 target creature` (CR 701.12) prints "Exchange
+control of two target creatures."; `exchange control of this and target
+nonland permanent`, `exchange control of target land you control and
+target land an opponent controls` name the two. Nothing happens unless
+both are still on the battlefield (CR 701.12a) under different
+controllers (701.12b); then each controller gains control of the other's
+permanent indefinitely.
 `end the turn` (CR 724.1) prints "End the turn.": triggered abilities
 waiting to be put on the stack cease to exist, every object on the stack
 (the resolving spell or ability too) is exiled (an ability or a copy of a

@@ -10766,6 +10766,41 @@ impl GameState {
                 self.bolster(ctx, n);
             }
             Effect::Populate => self.populate(ctx),
+            Effect::ExchangeControl { a, b } => {
+                let mut objs: SmallVec<[ObjId; 2]> = SmallVec::new();
+                for r in std::iter::once(*a).chain(*b) {
+                    for t in self.recipients(ctx, r) {
+                        match on_battlefield(self, t) {
+                            Some(id) => objs.push(id),
+                            // CR 701.12a: if the whole exchange can't be
+                            // completed, none of it happens.
+                            None => return,
+                        }
+                    }
+                }
+                let [x, y] = objs[..] else {
+                    return;
+                };
+                let (cx, cy) = (self.objects[x].controller, self.objects[y].controller);
+                // CR 701.12b: the same controller: nothing happens.
+                if cx == cy {
+                    return;
+                }
+                for (id, to) in [(x, cy), (y, cx)] {
+                    let timestamp = self.tick();
+                    self.effects.push(ContinuousEffect {
+                        source: Some(ctx.source),
+                        controller: to,
+                        timestamp,
+                        duration: Duration::Permanent,
+                        affected: Affected::Objects(smallvec::smallvec![id]),
+                        parts: smallvec::smallvec![Modification::Control],
+                    });
+                    self.control_effects += 1;
+                }
+                self.cbump();
+                self.sync_control();
+            }
             Effect::EndTurn => {
                 // CR 724.1a: triggered abilities not yet on the stack cease
                 // to exist.

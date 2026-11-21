@@ -4052,6 +4052,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "return all {} from your graveyard to the battlefield",
             cards_phrase(filter, ctx.card, true)
         )),
+        Effect::ExchangeControl { what } => {
+            let o = if what.len() == 1 {
+                ctx.obj_all(what[0])
+            } else {
+                ctx.obj_list(what, true)
+            };
+            Clause::imperative(format!("exchange control of {o}"))
+        }
         Effect::Airbend { what } => {
             let o = if what.len() == 1 {
                 ctx.obj_all(what[0])
