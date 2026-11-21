@@ -46,9 +46,6 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **`each player may discard hand and draw`** applies only to the
-  caster (Raphael's Technique); "each player may" works only for scry
-  and search.
 - **`that much` after a mana-spent check** is 0 (Tellah, Great Sage).
 - **`delayed those tokens: exile those tokens when this leaves`**
   watches the tokens, not the source (Mysterio, Master of Illusion).

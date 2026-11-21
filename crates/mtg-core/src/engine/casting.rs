@@ -9831,17 +9831,21 @@ impl GameState {
             // player decides (CR 608.2d) and acts as the one doing it; an
             // act they can't complete in full isn't offered (CR 101.3).
             Effect::PlayerMay { who, effects } => {
-                let Some(p) = self
+                // "Each player may discard their hand and draw seven
+                // cards": each player in turn order decides and acts
+                // (CR 101.4; an approximation of simultaneous actions).
+                let players: SmallVec<[PlayerId; 4]> = self
                     .recipients(ctx, *who)
                     .into_iter()
-                    .find_map(|t| match t {
+                    .filter_map(|t| match t {
                         Target::Player(p) => Some(p),
                         Target::Object(_) => None,
                     })
-                else {
+                    .collect();
+                if players.is_empty() {
                     ctx.did = false;
                     return;
-                };
+                }
                 let def = self
                     .objects
                     .get(ctx.source)
@@ -9849,26 +9853,32 @@ impl GameState {
                     .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
                     .expect("a resolving spell or its last known information exists");
                 let you = ctx.controller;
-                ctx.controller = p;
-                let possible = effects.iter().all(|e| match e {
-                    Effect::Pay { mana, life } => {
-                        (*life == 0
-                            || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX))
-                            && self.can_pay(p, &mana.requirements(0))
+                let mut any = false;
+                for p in players {
+                    ctx.controller = p;
+                    let possible = effects.iter().all(|e| match e {
+                        Effect::Pay { mana, life } => {
+                            (*life == 0
+                                || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX))
+                                && self.can_pay(p, &mana.requirements(0))
+                        }
+                        e => self.can_do(ctx, e),
+                    });
+                    let did = possible
+                        && self.choose_mid(
+                            p,
+                            DecisionKind::YouMay { def },
+                            vec![Choice::Accept, Choice::Decline],
+                        ) == 0;
+                    if did {
+                        ctx.did = true;
+                        for e in effects {
+                            self.apply_effect(ctx, e);
+                        }
                     }
-                    e => self.can_do(ctx, e),
-                });
-                ctx.did = possible
-                    && self.choose_mid(
-                        p,
-                        DecisionKind::YouMay { def },
-                        vec![Choice::Accept, Choice::Decline],
-                    ) == 0;
-                if ctx.did {
-                    for e in effects {
-                        self.apply_effect(ctx, e);
-                    }
+                    any |= did;
                 }
+                ctx.did = any;
                 ctx.controller = you;
             }
             // CR 701.67a: pay it, tapping artifacts and creatures for

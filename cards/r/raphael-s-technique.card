@@ -1,0 +1,7 @@
+card "Raphael's Technique" {
+  oracle_id f58a5f8b-254c-4206-bdbe-55a23798ed2d
+  cost {4}{R}{R}
+  type Instant
+  sneak {2}{R}
+  spell: each player may discard hand and draw 7 cards
+}
