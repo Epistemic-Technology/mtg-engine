@@ -1,0 +1,8 @@
+card "Hercules, Prince of Power" {
+  oracle_id c3a8cc79-3771-484d-84dd-1a97f8bd12c2
+  cost {2}{G}
+  type Legendary Creature — Demigod Warrior Hero
+  pt 3/3
+  pronoun he
+  power-up {4}{G}: put 1 +1/+1 counter on this; this gains vigilance, indestructible, and haste
+}

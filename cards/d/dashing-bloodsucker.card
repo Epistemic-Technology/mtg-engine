@@ -1,0 +1,7 @@
+card "Dashing Bloodsucker" {
+  oracle_id 211dca11-b633-4deb-9d51-210fd3843995
+  cost {3}{B}
+  type Creature — Vampire Warrior
+  pt 2/5
+  label "Eerie" triggered whenever enchantment you control enters and whenever you fully unlock a Room: this gets +2/+0 and gains lifelink
+}

@@ -1,0 +1,8 @@
+card "Provisions Merchant" {
+  oracle_id 2f796869-7350-4886-b210-cb5b9cb3e78a
+  cost {2}{G}{G}
+  type Creature — Beast Peasant
+  pt 3/3
+  triggered when this enters: create 1 "Food"
+  triggered whenever this attacks: you may sacrifice 1 Food chosen; if you do, each attacking creature gets +1/+1 and gains trample
+}

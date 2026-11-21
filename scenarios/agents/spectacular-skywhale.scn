@@ -1,0 +1,22 @@
+scenario "Spectacular Skywhale: a cheap instant gives +3/+0" {
+  battlefield A: "Spectacular Skywhale", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 begin_combat
+  assert power "Spectacular Skywhale" 4
+  assert toughness "Spectacular Skywhale" 4
+  assert counters "Spectacular Skywhale" +1/+1 0
+}
+
+scenario "Spectacular Skywhale: five mana spent gives three counters instead" {
+  battlefield A: "Spectacular Skywhale", 5 "Mountain"
+  hand A: "Blaze"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Blaze" x 4 targeting player B
+  run_to turn 2 begin_combat
+  assert life B 16
+  assert counters "Spectacular Skywhale" +1/+1 3
+  assert power "Spectacular Skywhale" 4
+  assert toughness "Spectacular Skywhale" 7
+}

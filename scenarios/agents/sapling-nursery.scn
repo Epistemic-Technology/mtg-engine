@@ -1,0 +1,25 @@
+scenario "sapling nursery: affinity, landfall treefolk, indestructible" {
+  battlefield A: 6 "Forest", "Grizzly Bears"
+  hand A: "Sapling Nursery", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sapling Nursery"
+  turn 1 A: play "Forest"
+  turn 1 postcombat_main A: activate "Sapling Nursery"
+  run_to turn 1 end
+  assert battlefield A contains "Treefolk"
+  assert power "Treefolk" 3
+  assert toughness "Treefolk" 4
+  assert has "Treefolk" reach
+  assert has "Treefolk" indestructible
+  assert has newest A "Forest" indestructible
+  assert has not "Grizzly Bears" indestructible
+  assert exile A contains "Sapling Nursery"
+}
+
+scenario "sapling nursery indestructible ends at end of turn" {
+  battlefield A: 2 "Forest", "Sapling Nursery"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sapling Nursery"
+  run_to turn 2 upkeep
+  assert has not oldest A "Forest" indestructible
+}

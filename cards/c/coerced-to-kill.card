@@ -1,0 +1,8 @@
+card "Coerced to Kill" {
+  oracle_id 3a007dbd-18fd-44d1-a305-7cc8dd6231eb
+  cost {3}{U}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: control
+  static enchanted: base 1/1, has deathtouch, add subtype Assassin
+}

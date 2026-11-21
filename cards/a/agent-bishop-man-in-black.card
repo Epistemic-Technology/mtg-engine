@@ -1,0 +1,7 @@
+card "Agent Bishop, Man in Black" {
+  oracle_id f33217cc-175f-45e8-bc69-801f41cb4495
+  cost {2}{W}
+  type Legendary Creature — Human Soldier
+  pt 1/2
+  triggered at beginning of your combat step: put 1 +1/+1 counter on up to 2 target creature
+}

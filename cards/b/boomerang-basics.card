@@ -1,0 +1,6 @@
+card "Boomerang Basics" {
+  oracle_id acd881eb-f3b4-4174-9fc2-e3c7c213886b
+  cost {U}
+  type Sorcery — Lesson
+  spell: return target nonland permanent to hand; if you controlled target 1, draw 1 card
+}

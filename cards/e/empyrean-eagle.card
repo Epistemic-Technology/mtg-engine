@@ -1,0 +1,8 @@
+card "Empyrean Eagle" {
+  oracle_id 270d14b2-07bc-46bc-918f-658102265ccf
+  cost {1}{W}{U}
+  type Creature — Bird Spirit
+  pt 2/3
+  keywords flying
+  static other creature you control with flying: +1/+1
+}

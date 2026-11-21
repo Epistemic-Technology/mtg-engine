@@ -1,0 +1,8 @@
+card "Sheltered by Ghosts" {
+  oracle_id d13fc657-c6fc-4394-bc70-691050550226
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+  static enchanted: +1/+0, has lifelink, has ward {2}
+}

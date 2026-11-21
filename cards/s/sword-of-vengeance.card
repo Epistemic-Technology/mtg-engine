@@ -1,0 +1,7 @@
+card "Sword of Vengeance" {
+  oracle_id e366afb3-c447-4bde-b358-41c8568142d5
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +2/+0, has first strike, vigilance, trample, haste
+  equip {3}
+}

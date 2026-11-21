@@ -1,0 +1,8 @@
+card "Sapling Nursery" {
+  oracle_id 8bcbae66-1854-480e-a449-33e5389610ab
+  cost {6}{G}{G}
+  type Enchantment
+  affinity for Forest
+  label "Landfall" triggered whenever land you control enters: create 1 "3/4 green Treefolk creature with reach"
+  activated {1}{G}, exile this: each Treefolk or Forest you control gain indestructible
+}

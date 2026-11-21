@@ -1,0 +1,44 @@
+scenario "at 2+ another artifact becomes a 2/2 flier until end of turn" {
+  battlefield A: "Synthesizer Labship" with 2 charge, "Abzan Banner"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Synthesizer Labship" targeting "Abzan Banner"
+  turn 1 A: attack "Abzan Banner"
+  run_to turn 1 declare_blockers
+  assert is "Abzan Banner" creature
+  assert power "Abzan Banner" 2
+  assert toughness "Abzan Banner" 2
+  assert has "Abzan Banner" flying
+  assert is not "Synthesizer Labship" creature
+  run_to turn 1 postcombat_main
+  assert life B 18
+  run_to turn 2 upkeep
+  assert is not "Abzan Banner" creature
+  assert has not "Abzan Banner" flying
+}
+
+scenario "below 2 counters nothing happens" {
+  battlefield A: "Synthesizer Labship" with 1 charge, "Abzan Banner"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert is not "Abzan Banner" creature
+}
+
+scenario "at 9+ it is a 4/4 flying, vigilant creature" {
+  battlefield A: "Synthesizer Labship" with 9 charge
+  start turn 1 A precombat_main
+  turn 1 A: attack "Synthesizer Labship"
+  run_to turn 1 postcombat_main
+  assert is "Synthesizer Labship" creature
+  assert has "Synthesizer Labship" flying
+  assert untapped "Synthesizer Labship"
+  assert life B 16
+}
+
+scenario "station with a creature's power" {
+  battlefield A: "Synthesizer Labship", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Synthesizer Labship"
+  run_to turn 1 postcombat_main
+  assert counters "Synthesizer Labship" charge 3
+  assert tapped "Hill Giant"
+}

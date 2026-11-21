@@ -1,0 +1,33 @@
+scenario "Bristlebud Farmer enters with two Food" {
+  battlefield A: 4 "Forest"
+  hand A: "Bristlebud Farmer"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Bristlebud Farmer"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Food"
+}
+
+scenario "Bristlebud Farmer attacks: sacrifice a Food, mill three, take a permanent card" {
+  battlefield A: "Bristlebud Farmer", "Food"
+  library A: "Lightning Bolt", "Grizzly Bears", "Shock", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Bristlebud Farmer"
+  run_to turn 2 postcombat_main
+  assert life B 15
+  assert battlefield A lacks "Food"
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+  assert graveyard A contains "Shock"
+  assert library A count 1
+}
+
+scenario "Bristlebud Farmer: declining keeps the Food and mills nothing" {
+  battlefield A: "Bristlebud Farmer", "Food"
+  library A: "Lightning Bolt", "Grizzly Bears", "Shock", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Bristlebud Farmer"
+  turn 2 declare_attackers A: decline "Bristlebud Farmer"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Food"
+  assert library A count 4
+}

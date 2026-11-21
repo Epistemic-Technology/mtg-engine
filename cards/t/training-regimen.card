@@ -1,0 +1,7 @@
+card "Training Regimen" {
+  oracle_id f44bde8b-43e9-4719-ac60-b8f0cee8df9b
+  cost {3}{G}
+  type Enchantment
+  static creature you control with +1/+1 counter: has trample
+  triggered at beginning of your combat: put 1 +1/+1 counter on target creature you control
+}

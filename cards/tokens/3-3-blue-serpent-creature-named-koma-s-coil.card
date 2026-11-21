@@ -1,0 +1,6 @@
+token "3/3 blue Serpent creature named Koma's Coil" {
+  name "Koma's Coil"
+  type Creature — Serpent
+  pt 3/3
+  color blue
+}

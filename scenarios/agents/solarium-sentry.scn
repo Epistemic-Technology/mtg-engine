@@ -1,0 +1,24 @@
+scenario "Solarium Sentry gains 2 life when an opponent casts a cheap spell" {
+  battlefield A: "Solarium Sentry"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 22
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Solarium Sentry ignores spells with mana value 3 or more and its controller's spells" {
+  battlefield A: "Solarium Sentry", 2 "Forest"
+  battlefield B: 4 "Mountain"
+  hand A: "Grizzly Bears"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life A 20
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}

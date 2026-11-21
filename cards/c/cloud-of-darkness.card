@@ -1,0 +1,8 @@
+card "Cloud of Darkness" {
+  oracle_id 525f57df-7d4d-4089-9003-4b01005558dc
+  cost {2}{B}{G}{G}
+  type Legendary Creature — Avatar
+  pt 3/3
+  keywords flying
+  label "Particle Beam" triggered when this enters: target creature an opponent controls gets -1/-1 count where graveyard permanent card
+}

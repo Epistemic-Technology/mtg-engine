@@ -1,0 +1,10 @@
+card "Blacksmith's Talent" {
+  oracle_id 9fdad42a-9db5-4d91-9e80-9d5ce19038b8
+  cost {R}
+  type Enchantment — Class
+  triggered when this enters: create 1 "colorless Equipment artifact named Sword"
+  level 2 {2}{R}
+  triggered at beginning of your combat: attach target Equipment you control to up to 1 target creature you control
+  level 3 {3}{R}
+  static during your turn, creature you control with Equipment: has double strike, haste
+}

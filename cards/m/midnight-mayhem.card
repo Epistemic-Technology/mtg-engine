@@ -1,0 +1,6 @@
+card "Midnight Mayhem" {
+  oracle_id 5236a6b5-0a96-4470-ba03-37b6d7a889bb
+  cost {2}{R}{W}
+  type Sorcery
+  spell: create 3 "1/1 red Gremlin creature"; each Gremlin you control gains menace, lifelink, and haste
+}

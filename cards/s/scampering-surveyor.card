@@ -1,0 +1,7 @@
+card "Scampering Surveyor" {
+  oracle_id 63c8f510-eba8-4f00-9f80-fbbc74801a4a
+  cost {4}
+  type Artifact Creature — Gnome
+  pt 3/2
+  triggered when this enters: search basic land card or Cave card to battlefield tapped
+}

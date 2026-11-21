@@ -1,0 +1,8 @@
+card "Champion of Dusan" {
+  oracle_id 0a427652-9745-4802-8c8f-5ae29a29b496
+  cost {2}{G}
+  type Creature — Human Warrior
+  pt 4/2
+  keywords trample
+  label "Renew" activated {1}{G}, exile this from graveyard, sorcery: put 1 +1/+1 counter and 1 trample counter on target creature
+}

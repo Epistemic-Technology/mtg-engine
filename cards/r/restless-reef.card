@@ -1,0 +1,8 @@
+card "Restless Reef" {
+  oracle_id df20f85b-5f81-4ee4-8487-55d90109ac36
+  type Land
+  enters tapped
+  activated {T}: add {U} or {B}
+  activated {2}{U}{B}: until end of turn, this becomes 4/4 blue black Shark creature with deathtouch
+  triggered whenever this attacks: target player mills 4 cards
+}

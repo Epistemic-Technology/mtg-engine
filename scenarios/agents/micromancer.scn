@@ -1,0 +1,35 @@
+scenario "micromancer: fetches an instant with mana value 1" {
+  battlefield A: 4 "Island"
+  hand A: "Micromancer"
+  library A: "Divination", "Murder", "Shock", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Micromancer"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert library A lacks "Shock"
+}
+
+scenario "micromancer: search may be declined" {
+  battlefield A: 4 "Island"
+  hand A: "Micromancer"
+  library A: "Divination", "Shock", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Micromancer"
+  turn 1 A: decline "Micromancer"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A contains "Shock"
+}
+
+scenario "micromancer: nothing with mana value 1" {
+  battlefield A: 4 "Island"
+  hand A: "Micromancer"
+  library A: "Divination", "Murder", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Micromancer"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A contains "Murder"
+  assert library A contains "Divination"
+}

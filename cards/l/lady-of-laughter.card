@@ -1,0 +1,8 @@
+card "Lady of Laughter" {
+  oracle_id 356a85d9-2570-448c-a455-f4ce915a604f
+  cost {3}{W}{W}
+  type Creature — Faerie Noble
+  pt 4/5
+  keywords flying
+  label "Celebration" triggered at beginning of your end step if 2 nonland entered this turn: draw 1 card
+}

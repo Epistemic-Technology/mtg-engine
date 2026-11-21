@@ -1,0 +1,21 @@
+scenario "sacrifice a creature, then an artifact, for two counters" {
+  battlefield A: "Bartolomé del Presidio", "Grizzly Bears", "Abzan Banner"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bartolomé del Presidio" sacrificing "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Bartolomé del Presidio" sacrificing "Abzan Banner"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Abzan Banner"
+  assert counters "Bartolomé del Presidio" +1/+1 2
+  assert power "Bartolomé del Presidio" 4
+}
+
+scenario "can't sacrifice itself or a land" {
+  battlefield A: "Bartolomé del Presidio", "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Bartolomé del Presidio" sacrificing "Bartolomé del Presidio"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bartolomé del Presidio"
+  assert battlefield A contains "Plains"
+}

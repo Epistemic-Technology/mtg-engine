@@ -1,0 +1,34 @@
+scenario "spinewoods armadillo: discard to fetch a Desert and gain 3 life" {
+  battlefield A: 2 "Forest"
+  hand A: "Spinewoods Armadillo"
+  library A: "Lightning Bolt", "Sunscorched Desert", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Spinewoods Armadillo"
+  run_to turn 1 begin_combat
+  assert hand A contains "Sunscorched Desert"
+  assert graveyard A contains "Spinewoods Armadillo"
+  assert life A 23
+  assert library A count 2
+}
+
+scenario "spinewoods armadillo: fetch a basic land" {
+  battlefield A: 2 "Forest"
+  hand A: "Spinewoods Armadillo"
+  library A: "Lightning Bolt", "Mountain", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Spinewoods Armadillo"
+  run_to turn 1 begin_combat
+  assert hand A contains "Mountain"
+  assert life A 23
+}
+
+scenario "spinewoods armadillo: ward 3 counters an unpaid opponent spell" {
+  battlefield A: "Spinewoods Armadillo"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Spinewoods Armadillo"
+  run_to turn 2 postcombat_main
+  assert damage "Spinewoods Armadillo" 0
+  assert graveyard B contains "Shock"
+}

@@ -1,0 +1,6 @@
+card "Death Begets Life" {
+  oracle_id 53e86135-3b24-4618-bcc0-af4d81e672dd
+  cost {5}{B}{G}{U}
+  type Sorcery
+  spell: destroy all andlist creature or enchantment; draw count each permanent destroyed this way cards
+}

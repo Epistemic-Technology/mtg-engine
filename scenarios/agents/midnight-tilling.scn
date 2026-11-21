@@ -1,0 +1,40 @@
+scenario "Midnight Tilling mills four and returns a permanent card" {
+  battlefield A: 2 "Forest"
+  hand A: "Midnight Tilling"
+  library A: "Lightning Bolt", "Grizzly Bears", "Forest", "Murder", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Midnight Tilling"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A count 1
+  assert graveyard A contains "Lightning Bolt"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Murder"
+  assert library A contains "Hill Giant"
+  assert library A count 1
+}
+
+scenario "Midnight Tilling cannot return a nonpermanent card" {
+  battlefield A: 2 "Forest"
+  hand A: "Midnight Tilling"
+  library A: "Lightning Bolt", "Shock", "Murder", "Giant Growth", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Midnight Tilling"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Lightning Bolt"
+  assert graveyard A count 5
+}
+
+scenario "Midnight Tilling may return nothing" {
+  battlefield A: 2 "Forest"
+  hand A: "Midnight Tilling"
+  library A: "Lightning Bolt", "Grizzly Bears", "Shock", "Murder", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Midnight Tilling"
+  turn 1 A: decline "Midnight Tilling"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Grizzly Bears"
+}

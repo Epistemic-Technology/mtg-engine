@@ -1,0 +1,7 @@
+card "Claws Out" {
+  oracle_id 499d76c1-97ff-4006-922c-be1684a7754c
+  cost {3}{W}{W}
+  type Instant
+  affinity for Cat
+  spell: all creature you control get +2/+2
+}

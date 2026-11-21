@@ -1,0 +1,13 @@
+card "Ratcatcher Trainee // Pest Problem" {
+  oracle_id ecc91e38-90fa-4d89-b262-d5f36dce5be4
+  layout adventure
+  cost {1}{R}
+  type Creature — Human Peasant
+  pt 2/1
+  static during your turn, this: has first strike
+  face "Pest Problem" {
+    cost {2}{R}
+    type Instant — Adventure
+    spell: create 2 "1/1 black Rat creature that can't block"
+  }
+}

@@ -1,0 +1,24 @@
+scenario "Koma tramples over and creates four Koma's Coil" {
+  battlefield A: "Koma, World-Eater"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Koma, World-Eater"
+  turn 1 B: block "Koma, World-Eater" with "Grizzly Bears"
+  turn 1 A: assign "Koma, World-Eater" to "Grizzly Bears" 2, player B 6
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert battlefield A contains 4 "Koma's Coil"
+  assert power oldest "Koma's Coil" 3
+  assert is oldest "Koma's Coil" blue
+}
+
+scenario "ward 4 counters Murder when unpaid" {
+  battlefield A: "Koma, World-Eater"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Koma, World-Eater"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Koma, World-Eater"
+  assert graveyard B contains "Murder"
+}

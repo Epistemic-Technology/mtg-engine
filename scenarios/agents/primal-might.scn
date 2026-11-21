@@ -1,0 +1,26 @@
+scenario "primal might pumps by X then fights" {
+  battlefield A: 4 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Primal Might"
+  turn 1 A: cast "Primal Might" x 3 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert damage "Grizzly Bears" 3
+  assert graveyard B contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "primal might with no second target only pumps" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Primal Might"
+  turn 1 A: cast "Primal Might" x 2 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert damage "Grizzly Bears" 0
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 0
+}

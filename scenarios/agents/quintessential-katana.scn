@@ -1,0 +1,30 @@
+scenario "katana attaches to an entering Ninja, which untaps and gains life on combat damage" {
+  battlefield A: "Quintessential Katana", 3 "Island"
+  hand A: "Phantom Ninja"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Phantom Ninja"
+  turn 1 A: accept "Quintessential Katana"
+  run_to turn 1 begin_combat
+  assert attached "Quintessential Katana" to "Phantom Ninja"
+  assert power "Phantom Ninja" 3
+  assert toughness "Phantom Ninja" 3
+  run_to turn 3 precombat_main
+  turn 3 A: attack "Phantom Ninja"
+  run_to turn 3 postcombat_main
+  assert life B 17
+  assert life A 22
+  assert untapped "Phantom Ninja"
+}
+
+scenario "equip onto a non-Ninja; it untaps after blocked combat damage" {
+  battlefield A: "Quintessential Katana", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Quintessential Katana" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert life A 22
+  assert untapped "Grizzly Bears"
+}

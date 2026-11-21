@@ -1,0 +1,27 @@
+scenario "fang: a card leaving the graveyard draws and drains, once each turn" {
+  battlefield A: "Fang, Fearless l'Cie", 2 "Swamp"
+  hand A: "Raise Dead", "Disentomb"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  library A: "Island", "Plains", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise Dead" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Disentomb" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Island"
+  assert hand A count 3
+  assert life A 19
+}
+
+scenario "fang: triggers again next turn" {
+  battlefield A: "Fang, Fearless l'Cie", 2 "Swamp"
+  hand A: "Raise Dead", "Disentomb"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise Dead" targeting "Grizzly Bears"
+  turn 3 A: cast "Disentomb" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert life A 18
+}

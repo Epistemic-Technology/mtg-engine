@@ -1,0 +1,24 @@
+scenario "Lady of Laughter draws a card after two nonland permanents entered" {
+  battlefield A: "Lady of Laughter", 4 "Forest"
+  hand A: "Grizzly Bears", "Grizzly Bears"
+  library A: "Island", "Hill Giant"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Grizzly Bears"
+  turn 3 A: wait
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 cleanup
+  assert hand A contains "Island"
+  assert hand A count 1
+}
+
+scenario "Lady of Laughter does not draw after one nonland permanent" {
+  battlefield A: "Lady of Laughter", 4 "Forest"
+  hand A: "Grizzly Bears", "Forest"
+  library A: "Island", "Hill Giant"
+  start turn 3 A precombat_main
+  turn 3 A: play "Forest"
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 cleanup
+  assert hand A count 0
+  assert library A contains "Island"
+}

@@ -1,0 +1,9 @@
+card "Cargo Ship" {
+  oracle_id 93e336e3-2be7-4581-8ab3-9bea422d81c3
+  cost {1}{U}
+  type Artifact — Vehicle
+  pt 2/3
+  keywords flying, vigilance
+  mana {C} only to cast artifact spell or activate of artifact
+  crew 1
+}

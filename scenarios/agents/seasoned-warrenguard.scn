@@ -1,0 +1,20 @@
+scenario "Seasoned Warrenguard gets +2/+0 attacking while you control a token" {
+  battlefield A: "Seasoned Warrenguard", "The Mechanist, Aerial Artisan", 3 "Island"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  turn 1 A: attack "Seasoned Warrenguard"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Clue"
+  assert power "Seasoned Warrenguard" 3
+  assert life B 17
+}
+
+scenario "Seasoned Warrenguard without a token stays 1/2" {
+  battlefield A: "Seasoned Warrenguard", "Knife"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Seasoned Warrenguard"
+  run_to turn 1 postcombat_main
+  assert power "Seasoned Warrenguard" 1
+  assert life B 19
+}

@@ -1,0 +1,23 @@
+scenario "Luke Cage attacking alone gets +2/+0 and indestructible" {
+  battlefield A: "Luke Cage, Power Man"
+  battlefield B: "Serra Angel"
+  start turn 2 A
+  turn 2 A: attack "Luke Cage, Power Man"
+  turn 2 B: block "Luke Cage, Power Man" with "Serra Angel"
+  run_to turn 2 combat_damage
+  assert power "Luke Cage, Power Man" 4
+  assert has "Luke Cage, Power Man" indestructible
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A contains "Luke Cage, Power Man"
+}
+
+scenario "Luke Cage attacking with another creature gets nothing" {
+  battlefield A: "Luke Cage, Power Man", "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Luke Cage, Power Man", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert power "Luke Cage, Power Man" 2
+  assert has not "Luke Cage, Power Man" indestructible
+}

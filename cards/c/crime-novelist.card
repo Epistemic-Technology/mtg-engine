@@ -1,0 +1,7 @@
+card "Crime Novelist" {
+  oracle_id 5996b1d0-7fe3-4fec-8730-9db901d887b1
+  cost {2}{R}
+  type Creature — Goblin Bard
+  pt 1/3
+  triggered whenever you sacrifice artifact: put 1 +1/+1 counter on this and add {R}
+}

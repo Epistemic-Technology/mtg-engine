@@ -1,0 +1,18 @@
+scenario "all creatures -2/-2; opponent's dying creatures are exiled, mine go to the graveyard" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears", "Serra Angel"
+  hand A: "Malicious Eclipse", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Malicious Eclipse"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert exile B contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert exile B contains "Serra Angel"
+  run_to turn 2 precombat_main
+  assert power "Hill Giant" 3
+}

@@ -1,0 +1,34 @@
+scenario "dashing bloodsucker: enchantment entering gives +2/+0 and lifelink" {
+  battlefield A: "Dashing Bloodsucker", 2 "Plains"
+  hand A: "Absolute Law"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Absolute Law"
+  turn 1 A: attack "Dashing Bloodsucker"
+  run_to turn 1 postcombat_main
+  assert power "Dashing Bloodsucker" 4
+  assert has "Dashing Bloodsucker" lifelink
+  assert life B 16
+  assert life A 24
+  run_to turn 2 upkeep
+  assert power "Dashing Bloodsucker" 2
+  assert has not "Dashing Bloodsucker" lifelink
+}
+
+scenario "dashing bloodsucker: fully unlocking a Room" {
+  battlefield A: "Dashing Bloodsucker", 6 "Mountain", "Ticket Booth"
+  start turn 1 A precombat_main
+  turn 1 A: unlock "Tunnel of Hate"
+  run_to turn 1 postcombat_main
+  assert power "Dashing Bloodsucker" 4
+  assert has "Dashing Bloodsucker" lifelink
+}
+
+scenario "dashing bloodsucker: a creature entering does nothing" {
+  battlefield A: "Dashing Bloodsucker", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Dashing Bloodsucker" 2
+  assert has not "Dashing Bloodsucker" lifelink
+}

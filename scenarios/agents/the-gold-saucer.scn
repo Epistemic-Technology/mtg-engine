@@ -1,0 +1,37 @@
+scenario "gold saucer: won flip makes a treasure" {
+  seed 1
+  battlefield A: "The Gold Saucer", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Gold Saucer" ability 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert tapped "The Gold Saucer"
+}
+
+scenario "gold saucer: lost flip makes nothing" {
+  seed 2
+  battlefield A: "The Gold Saucer", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Gold Saucer" ability 1
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Treasure"
+  assert tapped "The Gold Saucer"
+}
+
+scenario "gold saucer: sacrifice two artifacts to draw" {
+  battlefield A: "The Gold Saucer", 3 "Plains", "Ornithopter", "Darksteel Relic"
+  library A: "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Gold Saucer" ability 2 sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Ornithopter"
+  assert graveyard A contains "Darksteel Relic"
+}
+
+scenario "gold saucer: one artifact is not enough" {
+  battlefield A: "The Gold Saucer", 3 "Plains", "Ornithopter"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "The Gold Saucer" ability 2
+  run_to turn 1 postcombat_main
+}

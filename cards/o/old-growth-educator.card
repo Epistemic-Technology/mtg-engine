@@ -1,0 +1,8 @@
+card "Old-Growth Educator" {
+  oracle_id 2b7362a9-3518-4071-ab1b-40689a50e12a
+  cost {2}{B}{G}
+  type Creature — Treefolk Druid
+  pt 4/4
+  keywords reach, vigilance
+  label "Infusion" triggered when this enters: put 2 +1/+1 counters on this if gained life this turn
+}

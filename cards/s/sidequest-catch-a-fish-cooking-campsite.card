@@ -1,0 +1,12 @@
+card "Sidequest: Catch a Fish // Cooking Campsite" {
+  oracle_id bd7c328e-0380-46f8-bb85-7bf4e201b7ac
+  layout transform
+  cost {2}{W}
+  type Enchantment
+  triggered at beginning of your upkeep step: look at top card; if it is artifact or creature card, you may reveal it and put it into hand; if you put card into hand this way, create 1 "Food" and transform this
+  face "Cooking Campsite" {
+    type Land
+    mana {W}
+    activated {3}, {T}, sorcery, sacrifice artifact: put 1 +1/+1 counter on each creature you control
+  }
+}

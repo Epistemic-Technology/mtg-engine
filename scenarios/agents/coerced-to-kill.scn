@@ -1,0 +1,16 @@
+scenario "coerced to kill: steal, 1/1 deathtouch Assassin" {
+  battlefield A: 3 "Island", 2 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Coerced to Kill"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coerced to Kill" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert battlefield B lacks "Serra Angel"
+  assert power "Serra Angel" 1
+  assert toughness "Serra Angel" 1
+  assert has "Serra Angel" deathtouch
+  assert has "Serra Angel" flying
+  assert is "Serra Angel" Assassin
+  assert is "Serra Angel" Angel
+}

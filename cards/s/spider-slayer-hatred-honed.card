@@ -1,0 +1,8 @@
+card "Spider-Slayer, Hatred Honed" {
+  oracle_id ca68f436-2522-4007-87bf-2669c7743db0
+  cost {2}
+  type Legendary Artifact Creature — Human Villain
+  pt 2/1
+  triggered whenever this deals damage to Spider: destroy that creature
+  activated {6}, exile this from graveyard: create 2 tapped "1/1 colorless Robot artifact creature with flying"
+}

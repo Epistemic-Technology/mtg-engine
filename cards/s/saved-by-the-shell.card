@@ -1,0 +1,7 @@
+card "Saved by the Shell" {
+  oracle_id 7ef5c812-ad7d-4d6c-8ee5-68561e7e4bd7
+  cost {1}{G}
+  type Instant
+  this spell costs {1} less if you control Turtle
+  spell: put 1 +1/+1 counter on target creature you control; target 1 gains trample, hexproof, and indestructible
+}

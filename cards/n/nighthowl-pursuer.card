@@ -1,0 +1,8 @@
+card "Nighthowl Pursuer" {
+  oracle_id 89aa97d0-1aef-4ed8-b29c-7943bb3d0e60
+  cost {B}
+  type Creature — Wolf
+  pt 1/1
+  keywords menace
+  label "Ferocious" triggered whenever this attacks while you control creature with power 4 or greater: this creature gets +2/+2
+}

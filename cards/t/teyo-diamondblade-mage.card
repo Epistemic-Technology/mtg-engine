@@ -1,0 +1,8 @@
+card "Teyo, Diamondblade Mage" {
+  oracle_id a3bfbe1a-7831-45bd-9e42-790c28f6054c
+  cost {3}{B}
+  type Legendary Creature — Human Warlock
+  pt 3/1
+  keywords flash
+  triggered when this enters: target permanent you control gains deathtouch until end of turn; put 1 +1/+1 counter on target 1 if target 1 is creature; put 1 loyalty counter on target 1 if target 1 is planeswalker
+}

@@ -1,0 +1,24 @@
+scenario "Scalding Viper pings an opponent casting a cheap spell only" {
+  battlefield A: "Scalding Viper"
+  battlefield B: 6 "Forest", 4 "Mountain"
+  hand B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 B: wait
+  turn 2 B: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "Steam Clean bounces a nonland permanent and goes on an adventure" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Scalding Viper // Steam Clean"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Steam Clean" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Serra Angel"
+  assert exile A contains "Scalding Viper"
+}

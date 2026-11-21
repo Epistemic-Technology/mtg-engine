@@ -1,0 +1,26 @@
+scenario "restless fortress: animated, attacks, drains 2" {
+  battlefield A: "Restless Fortress", 2 "Plains", 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Restless Fortress" ability 2
+  turn 1 A: attack "Restless Fortress"
+  run_to turn 1 postcombat_main
+  assert is "Restless Fortress" creature
+  assert is "Restless Fortress" land
+  assert is "Restless Fortress" Nightmare
+  assert is "Restless Fortress" white
+  assert is "Restless Fortress" black
+  assert power "Restless Fortress" 1
+  assert toughness "Restless Fortress" 4
+  assert life B 17
+  assert life A 22
+  run_to turn 2 upkeep
+  assert is not "Restless Fortress" creature
+}
+
+scenario "restless fortress: enters tapped" {
+  hand A: "Restless Fortress"
+  start turn 1 A precombat_main
+  turn 1 A: play "Restless Fortress"
+  run_to turn 1 begin_combat
+  assert tapped "Restless Fortress"
+}

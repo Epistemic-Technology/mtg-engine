@@ -1,0 +1,6 @@
+card "Outlaws' Fury" {
+  oracle_id 5b5ef88c-f863-4f55-91fc-a63f7f3c1b3f
+  cost {2}{R}
+  type Instant
+  spell: each creature you control gets +2/+0; if you control outlaw, impulse 1 next turn first
+}

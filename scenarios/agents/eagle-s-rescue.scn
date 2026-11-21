@@ -1,0 +1,31 @@
+scenario "returns from the graveyard attached to a power-1 creature" {
+  battlefield A: "Border Guard", "Grizzly Bears", 4 "Plains"
+  graveyard A: "Eagle's Rescue"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Eagle's Rescue" targeting "Border Guard"
+  run_to turn 1 postcombat_main
+  assert attached "Eagle's Rescue" to "Border Guard"
+  assert power "Border Guard" 3
+  assert toughness "Border Guard" 6
+  assert has "Border Guard" flying
+  assert graveyard A lacks "Eagle's Rescue"
+}
+
+scenario "cast as an Aura" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  hand A: "Eagle's Rescue"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Eagle's Rescue" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+}
+
+scenario "can't return onto a creature with power 2" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  graveyard A: "Eagle's Rescue"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Eagle's Rescue" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Eagle's Rescue"
+}

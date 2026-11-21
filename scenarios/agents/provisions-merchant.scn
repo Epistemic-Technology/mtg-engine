@@ -1,0 +1,32 @@
+scenario "Provisions Merchant creates a Food as it enters" {
+  battlefield A: 4 "Forest"
+  hand A: "Provisions Merchant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Provisions Merchant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Food"
+}
+
+scenario "Provisions Merchant sacrifices a Food: attackers get +1/+1 and trample" {
+  battlefield A: "Provisions Merchant", "Grizzly Bears", "Food"
+  battlefield B: "Wind Drake"
+  start turn 2 A
+  turn 2 A: attack "Provisions Merchant", "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Wind Drake"
+  turn 2 combat_damage A: assign "Grizzly Bears" to "Wind Drake" 2, player B 1
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Food"
+  assert life B 15
+  assert graveyard B contains "Wind Drake"
+  assert power "Provisions Merchant" 4
+}
+
+scenario "Provisions Merchant declining the sacrifice gives no bonus" {
+  battlefield A: "Provisions Merchant", "Grizzly Bears", "Food"
+  start turn 2 A
+  turn 2 A: attack "Provisions Merchant", "Grizzly Bears"
+  turn 2 A: decline "Provisions Merchant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Food"
+  assert life B 15
+}

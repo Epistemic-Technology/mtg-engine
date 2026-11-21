@@ -1,0 +1,9 @@
+card "Beorn the Fierce" {
+  oracle_id 30ca8e92-5955-46a1-86c1-094a873f518f
+  cost {3}{G}{G}
+  type Legendary Creature — Bear Shapeshifter Warrior
+  pt 6/6
+  keywords trample
+  static other Bear you control: +2/+2
+  triggered at beginning of your combat: put 1 trample counter on up to 1 target creature you control; target 1 becomes Bear in addition indefinitely; then if you control 3 Bear, draw 2 cards
+}

@@ -1,0 +1,8 @@
+card "Eagle's Rescue" {
+  oracle_id 95e1c368-b58a-4e69-9583-587560ad558d
+  cost {2}{W/U}{W/U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has flying
+  activated {2}{W/U}{W/U}, from graveyard, sorcery: return this to battlefield attached to target creature you control with power 1 or less
+}

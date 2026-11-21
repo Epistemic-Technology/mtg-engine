@@ -1,0 +1,21 @@
+scenario "Knife pumps and gives first strike only during your turn" {
+  battlefield A: "Knife", "Grizzly Bears", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Knife" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert attached "Knife" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" first_strike
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" first_strike
+}
+
+scenario "Knife sacrifices to draw" {
+  battlefield A: "Knife", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Knife" ability 1
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Knife"
+  assert hand A count 1
+}

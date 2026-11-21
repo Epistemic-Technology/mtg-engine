@@ -1,0 +1,21 @@
+scenario "arni: gets +X/+0 equal to entering creature's power" {
+  battlefield A: "Arni, Renowned Champion", 4 "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Arni, Renowned Champion" 4
+  assert toughness "Arni, Renowned Champion" 5
+  run_to turn 2 upkeep
+  assert power "Arni, Renowned Champion" 1
+}
+
+scenario "arni: opponent's creature doesn't count" {
+  battlefield A: "Arni, Renowned Champion"
+  battlefield B: 4 "Mountain"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert power "Arni, Renowned Champion" 1
+}

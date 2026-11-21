@@ -1,0 +1,6 @@
+card "Heroic Reinforcements" {
+  oracle_id c442e8b0-a0a4-4839-8049-125b91b15c99
+  cost {2}{R}{W}
+  type Sorcery
+  spell: create 2 "1/1 white Soldier creature"; until end of turn, each creature you control gets +1/+1 and gains haste
+}

@@ -1,0 +1,8 @@
+card "Xande, Dark Mage" {
+  oracle_id 36b5c793-30f6-4f21-8bf6-c18d1c46d732
+  cost {2}{U}{B}
+  type Legendary Creature — Human Wizard
+  pt 3/3
+  keywords menace
+  static this: +1/+1 count each graveyard noncreature, nonland
+}

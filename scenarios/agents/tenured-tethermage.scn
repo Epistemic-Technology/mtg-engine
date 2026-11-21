@@ -1,0 +1,30 @@
+scenario "sacrifice a land for two tapped Heartwoods, then tap two artifacts for counters" {
+  battlefield A: "Mountain", "Forest", "Mountain", "Forest", "Abzan Banner"
+  hand A: "Tenured Tethermage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tenured Tethermage"
+  turn 1 A: accept "Tenured Tethermage"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Heartwood"
+  assert tapped oldest "Heartwood"
+  assert tapped newest "Heartwood"
+  assert battlefield A contains 1 "Forest"
+  assert counters "Tenured Tethermage" +1/+1 0
+  run_to turn 3 precombat_main
+  turn 3 A: activate "Tenured Tethermage"
+  run_to turn 3 postcombat_main
+  assert counters "Tenured Tethermage" +1/+1 2
+  assert power "Tenured Tethermage" 3
+}
+
+scenario "declining keeps the land and makes no tokens" {
+  battlefield A: "Mountain", "Forest", "Mountain"
+  hand A: "Tenured Tethermage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tenured Tethermage"
+  turn 1 A: decline "Tenured Tethermage"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Heartwood"
+  assert battlefield A contains 2 "Mountain"
+}

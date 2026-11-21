@@ -1,0 +1,28 @@
+scenario "draw with a toughness-4 creature" {
+  battlefield A: "Baxter Building", 4 "Plains", "Border Guard"
+  library A: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Baxter Building" ability 2
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert tapped "Baxter Building"
+}
+
+scenario "no draw without a toughness-4 creature" {
+  battlefield A: "Baxter Building", 4 "Plains", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Baxter Building" ability 2
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "four mana in any combination pays for a green spell with only Mountains" {
+  battlefield A: "Baxter Building", 4 "Mountain"
+  hand A: "Grizzly Bears", "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Baxter Building"
+  assert tapped newest "Mountain"
+}

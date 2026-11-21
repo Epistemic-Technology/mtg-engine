@@ -1,0 +1,31 @@
+scenario "Rust Harvester grows and deals damage equal to its new power" {
+  battlefield A: "Rust Harvester", 2 "Mountain"
+  graveyard A: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rust Harvester" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Rust Harvester" +1/+1 1
+  assert power "Rust Harvester" 2
+  assert life B 18
+  assert exile A contains "Ornithopter"
+  assert tapped "Rust Harvester"
+}
+
+scenario "Rust Harvester kills a creature" {
+  battlefield A: "Rust Harvester" with 1 +1/+1, 2 "Mountain"
+  battlefield B: "Hill Giant"
+  graveyard A: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rust Harvester" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Rust Harvester needs an artifact card in the graveyard" {
+  battlefield A: "Rust Harvester", 2 "Mountain"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Rust Harvester" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

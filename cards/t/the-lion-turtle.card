@@ -1,0 +1,10 @@
+card "The Lion-Turtle" {
+  oracle_id fff728a1-56f5-4e97-91e2-19aba5772909
+  cost {1}{G}{U}
+  type Legendary Creature — Elder Cat Turtle
+  pt 3/6
+  keywords reach, vigilance
+  triggered when this enters: you gain 3 life
+  can't attack or block unless 3 Lesson cards in your graveyard
+  mana any
+}

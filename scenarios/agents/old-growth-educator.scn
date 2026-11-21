@@ -1,0 +1,24 @@
+scenario "Old-Growth Educator gets two counters if you gained life this turn" {
+  battlefield A: 2 "Swamp", 2 "Forest", "Plains"
+  hand A: "Old-Growth Educator", "Healing Salve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Old-Growth Educator"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert counters "Old-Growth Educator" +1/+1 2
+  assert power "Old-Growth Educator" 6
+  assert has "Old-Growth Educator" reach
+  assert has "Old-Growth Educator" vigilance
+}
+
+scenario "Old-Growth Educator gets no counters without life gain" {
+  battlefield A: 2 "Swamp", 2 "Forest"
+  hand A: "Old-Growth Educator"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Old-Growth Educator"
+  run_to turn 1 postcombat_main
+  assert counters "Old-Growth Educator" +1/+1 0
+  assert power "Old-Growth Educator" 4
+}

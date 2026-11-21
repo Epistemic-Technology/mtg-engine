@@ -1,0 +1,7 @@
+card "Daydream" {
+  oracle_id 094c4486-6cae-4268-850e-ff0082e5ad10
+  cost {W}
+  type Sorcery
+  flashback {2}{W}
+  spell: exile target creature you control then return that card to battlefield under its owner's control with 1 +1/+1 counter
+}

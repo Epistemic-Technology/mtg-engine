@@ -1,0 +1,8 @@
+card "Tenured Tethermage" {
+  oracle_id 571cb06d-55b5-46e4-9678-1f74aca73068
+  cost {1}{R}{G}
+  type Creature — Human Artificer
+  pt 1/1
+  triggered when this enters: you may sacrifice 1 land chosen; if you do, create 2 tapped "Heartwood"
+  activated tap 2 untapped artifact you control: put 2 +1/+1 counters on this
+}

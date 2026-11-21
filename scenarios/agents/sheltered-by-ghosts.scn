@@ -1,0 +1,42 @@
+scenario "sheltered by ghosts: exiles, pumps, lifelink" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Sheltered by Ghosts"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sheltered by Ghosts" targeting "Grizzly Bears"
+  turn 1 A: trigger "Sheltered by Ghosts" targeting "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 2
+  assert has "Grizzly Bears" lifelink
+  assert life B 17
+  assert life A 23
+}
+
+scenario "sheltered by ghosts: ward counters an unpaid spell" {
+  battlefield A: "Grizzly Bears", "Sheltered by Ghosts" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+}
+
+scenario "sheltered by ghosts: exiled permanent returns when the aura leaves" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant", 3 "Mountain"
+  hand A: "Sheltered by Ghosts"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sheltered by Ghosts" targeting "Grizzly Bears"
+  turn 1 A: trigger "Sheltered by Ghosts" targeting "Hill Giant"
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Sheltered by Ghosts"
+  assert battlefield B contains "Hill Giant"
+}

@@ -1,0 +1,23 @@
+# Search decisions take the first matching card in library order.
+scenario "scampering surveyor fetches a Cave tapped" {
+  battlefield A: 4 "Plains"
+  hand A: "Scampering Surveyor"
+  library A: "Grizzly Bears", "Hidden Volcano", "Island"
+  turn 1 A: cast "Scampering Surveyor"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hidden Volcano"
+  assert tapped "Hidden Volcano"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "scampering surveyor fetches a basic land, not a creature" {
+  battlefield A: 4 "Plains"
+  hand A: "Scampering Surveyor"
+  library A: "Grizzly Bears", "Island", "Hidden Volcano"
+  turn 1 A: cast "Scampering Surveyor"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert library A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}

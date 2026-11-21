@@ -1,0 +1,13 @@
+card "Scalding Viper // Steam Clean" {
+  oracle_id 12c71296-1243-49e6-a196-8b016a7b635c
+  layout adventure
+  cost {1}{R}
+  type Creature — Elemental Snake
+  pt 2/1
+  triggered whenever an opponent casts with mana value 3 or less spell: deal 1 damage to that player
+  face "Steam Clean" {
+    cost {1}{U}
+    type Sorcery — Adventure
+    spell: return target nonland permanent to hand
+  }
+}

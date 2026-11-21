@@ -1,0 +1,28 @@
+scenario "Reptil becomes a Brontosaurus until end of turn" {
+  battlefield A: "Reptil, Dinomorpher", 3 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Reptil, Dinomorpher" ability 1
+  run_to turn 1 combat_damage
+  assert power "Reptil, Dinomorpher" 3
+  assert toughness "Reptil, Dinomorpher" 5
+  assert has "Reptil, Dinomorpher" reach
+  assert has "Reptil, Dinomorpher" vigilance
+  assert is "Reptil, Dinomorpher" Dinosaur
+  assert is "Reptil, Dinomorpher" Hero
+  assert is not "Reptil, Dinomorpher" Human
+  run_to turn 2 upkeep
+  assert power "Reptil, Dinomorpher" 1
+  assert toughness "Reptil, Dinomorpher" 2
+  assert is "Reptil, Dinomorpher" Human
+}
+
+scenario "Reptil becomes a Tyrannosaurus Rex" {
+  battlefield A: "Reptil, Dinomorpher", 6 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Reptil, Dinomorpher" ability 2
+  run_to turn 1 combat_damage
+  assert power "Reptil, Dinomorpher" 6
+  assert toughness "Reptil, Dinomorpher" 6
+  assert has "Reptil, Dinomorpher" trample
+  assert has not "Reptil, Dinomorpher" reach
+}

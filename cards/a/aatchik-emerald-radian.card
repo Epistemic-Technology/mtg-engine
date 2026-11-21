@@ -1,0 +1,8 @@
+card "Aatchik, Emerald Radian" {
+  oracle_id 405c4a7b-dbb3-48a1-9205-7dbe6e2ad363
+  cost {3}{B}{B}{G}
+  type Legendary Creature — Insect Druid
+  pt 3/3
+  triggered when this enters: create count each andor graveyard artifact or creature "1/1 green Insect creature"
+  triggered whenever other Insect you control dies: put 1 +1/+1 counter on this; each opponent loses 1 life
+}

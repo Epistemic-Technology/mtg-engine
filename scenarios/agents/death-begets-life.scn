@@ -1,0 +1,14 @@
+scenario "destroys creatures and enchantments on both sides and draws one per permanent" {
+  battlefield A: "Grizzly Bears", "Glorious Anthem", "Swamp", "Forest", "Island", 5 "Plains", "Abzan Banner"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Death Begets Life"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Death Begets Life"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Glorious Anthem"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A contains "Abzan Banner"
+  assert hand A count 4
+}

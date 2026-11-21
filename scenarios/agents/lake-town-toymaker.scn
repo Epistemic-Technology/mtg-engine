@@ -1,0 +1,32 @@
+scenario "lake-town toymaker: two cards drawn, another creature gets +3/+0 and first strike" {
+  battlefield A: "Lake-town Toymaker", "Grizzly Bears", 3 "Island"
+  hand A: "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Divination"
+  turn 2 begin_combat A: trigger "Lake-town Toymaker" targeting "Grizzly Bears"
+  run_to turn 2 declare_attackers
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+  assert has "Grizzly Bears" first_strike
+  assert power "Lake-town Toymaker" 3
+  run_to turn 3 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "lake-town toymaker: one card drawn, no trigger" {
+  battlefield A: "Lake-town Toymaker", "Grizzly Bears"
+  start turn 2 A upkeep
+  run_to turn 2 declare_attackers
+  assert hand A count 1
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" first_strike
+}
+
+scenario "lake-town toymaker: can't target itself" {
+  battlefield A: "Lake-town Toymaker", 3 "Island"
+  hand A: "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Divination"
+  run_to turn 2 declare_attackers
+  assert power "Lake-town Toymaker" 3
+}

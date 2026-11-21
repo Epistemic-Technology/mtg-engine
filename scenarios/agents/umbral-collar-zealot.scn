@@ -1,0 +1,30 @@
+scenario "umbral collar zealot: sacrifice an artifact, surveil 1" {
+  battlefield A: "Umbral Collar Zealot", "Ornithopter"
+  library A: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Umbral Collar Zealot" sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert known A "Hill Giant"
+  assert unknown A "Forest"
+  assert library A count 2
+}
+
+scenario "umbral collar zealot: sacrifice a creature, surveil keeps on top" {
+  battlefield A: "Umbral Collar Zealot", "Grizzly Bears"
+  library A: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Umbral Collar Zealot" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert library A count 2
+  assert known A "Hill Giant"
+}
+
+scenario "umbral collar zealot can't sacrifice itself" {
+  battlefield A: "Umbral Collar Zealot"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Umbral Collar Zealot" sacrificing "Umbral Collar Zealot"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Umbral Collar Zealot"
+}

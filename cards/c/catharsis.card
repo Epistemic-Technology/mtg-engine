@@ -1,0 +1,9 @@
+card "Catharsis" {
+  oracle_id 9e3303aa-2484-4832-86ac-f5ae290d02f1
+  cost {4}{R/W}{R/W}
+  type Creature — Elemental Incarnation
+  pt 3/4
+  triggered when this enters if spent {W}{W}: create 2 "1/1 green and white Kithkin creature"
+  triggered when this enters if spent {R}{R}: each creature you control gets +1/+1 and gains haste
+  evoke {R/W}{R/W}
+}

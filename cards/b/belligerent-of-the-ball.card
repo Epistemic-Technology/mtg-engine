@@ -1,0 +1,7 @@
+card "Belligerent of the Ball" {
+  oracle_id 2be2f6c8-d8df-4e5c-a0c1-7566183bbe81
+  cost {2}{R}
+  type Creature — Ogre Warrior
+  pt 3/3
+  label "Celebration" triggered at beginning of your combat if 2 nonland entered this turn: target creature you control gets +1/+0 and gains menace until end of turn
+}

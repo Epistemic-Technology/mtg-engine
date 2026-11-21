@@ -1,0 +1,8 @@
+card "Meltstrider's Resolve" {
+  oracle_id 6f9bc0c6-1792-4771-a839-95a22d9c699a
+  cost {G}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered whenever this enters: attached fights up to 1 target creature an opponent controls
+  static enchanted: +0/+2, has ability { can't be blocked by more than one creature }
+}

@@ -1,0 +1,8 @@
+card "Knife" {
+  oracle_id 7627163a-1689-446f-b5aa-a6c56aefb532
+  cost {R}
+  type Artifact — Clue Equipment
+  static during your turn, enchanted creature: +1/+0, has first strike
+  activated {2}, sacrifice this: draw 1 card
+  equip {2}
+}

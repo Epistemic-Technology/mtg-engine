@@ -1,0 +1,8 @@
+card "Hearthborn Battler" {
+  oracle_id beb02f49-95a6-49bf-b176-4e4b2ab5b651
+  cost {2}{R}
+  type Creature — Lizard Warlock
+  pt 2/3
+  keywords haste
+  triggered whenever a player casts their second spell each turn: deal 2 damage to target opponent
+}

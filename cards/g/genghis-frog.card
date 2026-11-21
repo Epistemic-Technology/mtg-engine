@@ -1,0 +1,8 @@
+card "Genghis Frog" {
+  oracle_id 1d6d0348-46ad-46ed-ae7b-d7510f0ebe70
+  cost {G}{U}
+  type Legendary Creature — Frog Mutant Rogue
+  pt 1/3
+  keywords trample
+  triggered whenever this or Mutant you control enters: create 1 "Mutagen"
+}

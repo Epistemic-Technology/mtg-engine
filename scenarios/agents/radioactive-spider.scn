@@ -1,0 +1,32 @@
+scenario "Radioactive Spider sacrifices itself to find a Spider Hero" {
+  battlefield A: "Radioactive Spider", 2 "Forest"
+  library A: "Swift Spinner", "Grizzly Bears", "Skyward Spider", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Radioactive Spider"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Skyward Spider"
+  assert hand A count 1
+  assert graveyard A contains "Radioactive Spider"
+  assert library A contains "Swift Spinner"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Radioactive Spider's ability is sorcery speed" {
+  battlefield A: "Radioactive Spider", 2 "Forest"
+  library A: "Skyward Spider", "Forest"
+  start turn 2 B upkeep
+  illegal turn 2 upkeep A: activate "Radioactive Spider"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Radioactive Spider"
+}
+
+scenario "Radioactive Spider has reach and deathtouch" {
+  battlefield A: "Radioactive Spider"
+  battlefield B: "Serra Angel"
+  start turn 2 B
+  turn 2 B: attack "Serra Angel"
+  turn 2 A: block "Serra Angel" with "Radioactive Spider"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert life A 20
+}

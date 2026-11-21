@@ -1,0 +1,7 @@
+card "Lake-town Toymaker" {
+  oracle_id 0f208cd3-7673-4380-9cb8-5b6f09966ebd
+  cost {3}{W}
+  type Creature — Human Artificer
+  pt 3/4
+  triggered at beginning of your combat if drew 2 cards this turn: another target creature you control gets +3/+0 and target 1 gains first strike
+}

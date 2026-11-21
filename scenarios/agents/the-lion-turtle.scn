@@ -1,0 +1,42 @@
+scenario "The Lion-Turtle: gain 3 life; can't attack with two Lessons in the graveyard" {
+  battlefield A: 2 "Forest", "Island"
+  hand A: "The Lion-Turtle"
+  graveyard A: "Zuko's Exile", "Start from Scratch", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "The Lion-Turtle"
+  illegal turn 4 A: attack "The Lion-Turtle"
+  run_to turn 4 postcombat_main
+  assert life A 23
+  assert life B 20
+}
+
+scenario "The Lion-Turtle attacks with three Lessons in the graveyard" {
+  battlefield A: "The Lion-Turtle"
+  graveyard A: "Zuko's Exile", "Start from Scratch", "Sokka's Haiku"
+  start turn 2 A precombat_main
+  turn 2 A: attack "The Lion-Turtle"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert untapped "The Lion-Turtle"
+}
+
+scenario "The Lion-Turtle can't block without three Lessons" {
+  battlefield A: "The Lion-Turtle"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Zuko's Exile", "Start from Scratch"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "The Lion-Turtle"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}
+
+scenario "The Lion-Turtle taps for any color" {
+  battlefield A: "The Lion-Turtle"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert tapped "The Lion-Turtle"
+}

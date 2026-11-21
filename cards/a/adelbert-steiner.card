@@ -1,0 +1,8 @@
+card "Adelbert Steiner" {
+  oracle_id 657a4500-4b47-4c78-945b-a7791af7d10e
+  cost {1}{W}
+  type Legendary Creature — Human Knight
+  pt 2/1
+  keywords lifelink
+  static this: +1/+1 count each Equipment you control
+}

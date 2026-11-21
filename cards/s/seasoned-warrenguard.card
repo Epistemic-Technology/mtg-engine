@@ -1,0 +1,7 @@
+card "Seasoned Warrenguard" {
+  oracle_id 5bf1dbb6-ed65-4968-8edd-b98e9bd19d4d
+  cost {W}
+  type Creature — Rabbit Warrior
+  pt 1/2
+  triggered whenever this attacks while you control token: this creature gets +2/+0
+}

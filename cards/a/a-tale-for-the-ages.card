@@ -1,0 +1,6 @@
+card "A Tale for the Ages" {
+  oracle_id 682a0770-8fe0-4142-aa0c-b60af3628a33
+  cost {1}{W}
+  type Enchantment
+  static creature you control with aura: +2/+2
+}

@@ -1,0 +1,22 @@
+scenario "sword of vengeance: equipped creature gets +2/+0, first strike, vigilance, trample, haste" {
+  battlefield A: "Sword of Vengeance", 3 "Plains"
+  hand A: "Grizzly Bears"
+  battlefield A: 2 "Forest"
+  battlefield B: "Wall of Wood"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: activate "Sword of Vengeance" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wall of Wood"
+  turn 1 first_strike_damage A: assign "Grizzly Bears" to "Wall of Wood" 3, player B 1
+  run_to turn 1 postcombat_main
+  assert attached "Sword of Vengeance" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert has "Grizzly Bears" first_strike
+  assert has "Grizzly Bears" vigilance
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" haste
+  assert untapped "Grizzly Bears"
+  assert life B 19
+}

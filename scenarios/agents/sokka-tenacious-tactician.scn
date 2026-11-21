@@ -1,0 +1,24 @@
+scenario "sokka: noncreature spell makes an Ally; prowess on Sokka and other Allies" {
+  battlefield A: "Sokka, Tenacious Tactician", "Stonework Puma", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 18
+  assert battlefield A contains "Ally"
+  assert power "Sokka, Tenacious Tactician" 4
+  assert has "Stonework Puma" menace
+  assert has "Ally" menace
+  assert has "Sokka, Tenacious Tactician" menace
+}
+
+scenario "sokka: creature spell makes no Ally" {
+  battlefield A: "Sokka, Tenacious Tactician", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 0 "Ally"
+  assert power "Sokka, Tenacious Tactician" 3
+  assert has not "Grizzly Bears" menace
+}

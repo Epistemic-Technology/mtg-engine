@@ -1,0 +1,8 @@
+card "Guardian of the Great Door" {
+  oracle_id 18ba355d-a25f-4a5d-b734-11739b0b86af
+  cost {W}{W}
+  type Creature — Angel
+  pt 4/4
+  additional cost tap 4 untapped artifact, creature, or land you control
+  keywords flying
+}

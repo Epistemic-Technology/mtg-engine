@@ -1,0 +1,31 @@
+scenario "Blacksmith's Talent makes a Sword, attaches it at combat, and grants double strike and haste" {
+  battlefield A: 10 "Mountain", "Forest"
+  hand A: "Blacksmith's Talent", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blacksmith's Talent"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Blacksmith's Talent"
+  turn 1 A: wait
+  turn 1 A: activate "Blacksmith's Talent"
+  turn 1 begin_combat A: trigger "Blacksmith's Talent" targeting "Sword", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Sword" to "Grizzly Bears"
+  assert has "Grizzly Bears" double_strike
+  assert life B 14
+}
+
+scenario "Blacksmith's Talent level 2 alone attaches but grants nothing" {
+  battlefield A: "Blacksmith's Talent", "Grizzly Bears", "Sword", 2 "Plains", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Blacksmith's Talent"
+  turn 1 begin_combat A: trigger "Blacksmith's Talent" targeting "Sword", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Sword" to "Grizzly Bears"
+  assert has not "Grizzly Bears" double_strike
+  assert power "Grizzly Bears" 3
+  assert life B 17
+}

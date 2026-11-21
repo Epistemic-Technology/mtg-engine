@@ -1,0 +1,7 @@
+card "Hunter's Axe" {
+  oracle_id d7d59fef-1401-464b-b1bb-ee5da92cde51
+  cost {G}
+  type Artifact — Equipment
+  static equipped creature: +2/+0, has ability { triggered whenever this attacks: this gains choice of trample or deathtouch }
+  equip {2}
+}

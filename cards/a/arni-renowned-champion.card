@@ -1,0 +1,8 @@
+card "Arni, Renowned Champion" {
+  oracle_id 1a929c4f-ae1f-44d9-a0a7-2ca2dc928dee
+  cost {3}{R}
+  type Legendary Creature — Human Berserker
+  pt 1/5
+  keywords trample
+  triggered whenever other creature you control enters: this gets +1/+0 count where power of that creature
+}

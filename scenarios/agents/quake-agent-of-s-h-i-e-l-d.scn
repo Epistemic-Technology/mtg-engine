@@ -1,0 +1,35 @@
+scenario "quake: noncreature spell taps target creature" {
+  battlefield A: "Quake, Agent of S.H.I.E.L.D.", "Mountain"
+  battlefield B: "Hill Giant", "Forest"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Quake, Agent of S.H.I.E.L.D." targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Hill Giant"
+  assert untapped "Forest"
+}
+
+scenario "quake: can tap a land" {
+  battlefield A: "Quake, Agent of S.H.I.E.L.D.", "Mountain"
+  battlefield B: "Hill Giant", "Forest"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Quake, Agent of S.H.I.E.L.D." targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert tapped "Forest"
+  assert untapped "Hill Giant"
+}
+
+scenario "quake: creature spells don't trigger it" {
+  battlefield A: "Quake, Agent of S.H.I.E.L.D.", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert untapped "Hill Giant"
+}

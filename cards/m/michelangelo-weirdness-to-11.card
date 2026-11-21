@@ -1,0 +1,8 @@
+card "Michelangelo, Weirdness to 11" {
+  oracle_id 170ab932-9d50-4ce7-9a42-08e1edce7e7c
+  cost {1}{G}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 1/1
+  triggered when this enters: create 1 "Mutagen"
+  replace +1/+1 counters put on creature you control: plus one
+}

@@ -1,0 +1,8 @@
+card "Ragnarok, Divine Deliverance" {
+  oracle_id 14b839ef-80b1-4e7d-b2fd-38e973899cde
+  type Legendary Creature — Beast Avatar
+  pt 7/6
+  color black green
+  keywords reach, vigilance, menace, trample, haste
+  triggered when this dies: destroy target permanent and return target nonlegendary noninstant nonsorcery permanent card from your graveyard to battlefield
+}

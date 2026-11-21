@@ -1,0 +1,25 @@
+scenario "Aatchik makes an Insect per artifact or creature card in your graveyard" {
+  battlefield A: 3 "Swamp", 3 "Forest"
+  hand A: "Aatchik, Emerald Radian"
+  graveyard A: "Mind Stone", "Grizzly Bears", "Hill Giant", "Forest", "Lightning Bolt"
+  graveyard B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Aatchik, Emerald Radian"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Insect"
+}
+
+scenario "Aatchik grows and drains when another Insect dies" {
+  battlefield A: 3 "Swamp", 3 "Forest", "Mountain"
+  hand A: "Aatchik, Emerald Radian", "Shock"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Aatchik, Emerald Radian"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Insect"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Insect"
+  assert counters "Aatchik, Emerald Radian" +1/+1 1
+  assert power "Aatchik, Emerald Radian" 4
+  assert life B 19
+}

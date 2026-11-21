@@ -1,0 +1,37 @@
+scenario "Golbez: an artifact entering surveils 1" {
+  battlefield A: "Golbez, Crystal Collector"
+  hand A: "Ornithopter"
+  library A: "Lightning Bolt", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ornithopter"
+  run_to turn 2 postcombat_main
+  assert known A "Lightning Bolt"
+}
+
+scenario "Golbez: four artifacts return a creature card at end step, no life loss" {
+  battlefield A: "Golbez, Crystal Collector", 4 "Clue"
+  graveyard A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 end A: trigger "Golbez, Crystal Collector" targeting "Hill Giant"
+  run_to turn 2 cleanup
+  assert hand A contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Golbez: eight artifacts also drain its power" {
+  battlefield A: "Golbez, Crystal Collector", 8 "Clue"
+  graveyard A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 end A: trigger "Golbez, Crystal Collector" targeting "Hill Giant"
+  run_to turn 2 cleanup
+  assert hand A contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "Golbez: three artifacts do nothing" {
+  battlefield A: "Golbez, Crystal Collector", 3 "Clue"
+  graveyard A: "Hill Giant"
+  start turn 2 A precombat_main
+  run_to turn 2 cleanup
+  assert graveyard A contains "Hill Giant"
+}

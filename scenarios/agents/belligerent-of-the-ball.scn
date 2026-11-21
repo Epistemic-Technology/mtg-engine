@@ -1,0 +1,28 @@
+scenario "belligerent of the ball: two nonland permanents entered, pump and menace" {
+  battlefield A: "Belligerent of the Ball", "Grizzly Bears"
+  hand A: "Ornithopter", "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Ornithopter"
+  turn 1 begin_combat A: trigger "Belligerent of the Ball" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 2
+  assert has "Grizzly Bears" menace
+  assert has not "Belligerent of the Ball" menace
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" menace
+}
+
+scenario "belligerent of the ball: one permanent entered, no trigger" {
+  battlefield A: "Belligerent of the Ball", "Grizzly Bears"
+  hand A: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" menace
+  assert power "Belligerent of the Ball" 3
+}

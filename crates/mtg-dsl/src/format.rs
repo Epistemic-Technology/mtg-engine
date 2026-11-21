@@ -2746,7 +2746,13 @@ pub fn filter(f: &Filter) -> String {
             and_list: false,
             ..f.clone()
         };
-        return format!("andlist {}", filter(&g));
+        // `destroy all andlist creature or enchantment`: the recipient
+        // parser takes `all` first (Death Begets Life).
+        let inner = filter(&g);
+        return match inner.strip_prefix("all ") {
+            Some(rest) => format!("all andlist {rest}"),
+            None => format!("andlist {inner}"),
+        };
     }
     if f.and_or {
         let g = Filter {

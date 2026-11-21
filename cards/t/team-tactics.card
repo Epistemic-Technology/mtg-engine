@@ -1,0 +1,7 @@
+card "Team Tactics" {
+  oracle_id 98b99d7c-d006-471a-8583-0468743c1597
+  cost {1}{R}
+  type Instant
+  teamwork 1
+  spell: target creature gains double strike until end of turn; if teamwork, also that target 1 gains trample until end of turn
+}

@@ -1,0 +1,8 @@
+card "Golbez, Crystal Collector" {
+  oracle_id 533d5bf9-0912-451f-a3f4-3842b0a75b1d
+  cost {U}{B}
+  type Legendary Creature — Human Wizard
+  pt 1/4
+  triggered whenever artifact you control enters: surveil 1
+  triggered at beginning of your end step if you control 4 artifact: return target creature card from your graveyard to hand; then if you control 8 artifact, each opponent loses count equal power of that target 1 life
+}

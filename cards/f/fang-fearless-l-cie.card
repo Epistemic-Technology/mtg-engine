@@ -1,0 +1,7 @@
+card "Fang, Fearless l'Cie" {
+  oracle_id 04ac8b2c-95e9-40e9-8cc0-af9b075a94c0
+  cost {2}{B}
+  type Legendary Creature — Human Warrior
+  pt 2/3
+  triggered once each turn whenever one or more cards leave your graveyard: you draw 1 card, and you lose 1 life
+}

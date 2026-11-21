@@ -1,0 +1,7 @@
+card "Lightless Evangel" {
+  oracle_id b162ccf8-e0c2-46ae-84e7-dff2b6fceec1
+  cost {1}{B}
+  type Creature — Vampire Cleric
+  pt 2/2
+  triggered whenever you sacrifice other creature or artifact: put 1 +1/+1 counter on this
+}

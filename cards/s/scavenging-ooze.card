@@ -1,0 +1,7 @@
+card "Scavenging Ooze" {
+  oracle_id 1ff25f67-36a7-4cfa-a2b1-2135b5b6fb67
+  cost {1}{G}
+  type Creature — Ooze
+  pt 2/2
+  activated {G}: exile target card from a graveyard; if target 1 was creature, put 1 +1/+1 counter on this and you gain 1 life
+}

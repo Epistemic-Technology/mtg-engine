@@ -1,0 +1,7 @@
+card "The Gold Saucer" {
+  oracle_id 93e38650-ce22-4ab9-b79d-cc7b6477c075
+  type Land — Town
+  mana {C}
+  activated {2}, {T}: flip coin; if you win the flip, create 1 "Treasure"
+  activated {3}, {T}, sacrifice 2 artifact: draw 1 card
+}

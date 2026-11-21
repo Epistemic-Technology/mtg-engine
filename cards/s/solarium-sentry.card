@@ -1,0 +1,7 @@
+card "Solarium Sentry" {
+  oracle_id afddba56-f9a0-4917-8167-c9fd17ca9954
+  cost {G}{W}
+  type Creature — Cat Soldier
+  pt 3/3
+  triggered whenever an opponent casts with mana value 2 or less spell: you gain 2 life
+}

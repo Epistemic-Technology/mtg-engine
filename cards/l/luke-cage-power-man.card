@@ -1,0 +1,8 @@
+card "Luke Cage, Power Man" {
+  oracle_id c95d1558-09a4-4dbc-b08a-fe21b47bc5d2
+  cost {3}{W}
+  type Legendary Creature — Human Hero
+  pt 2/5
+  pronoun he
+  label "Unbreakable Skin" triggered whenever this attacks alone: this gets +2/+0 and gains indestructible
+}

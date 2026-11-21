@@ -1,0 +1,7 @@
+card "Micromancer" {
+  oracle_id d2605782-09f1-4d52-b3e7-5ec1442bd9b5
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 3/3
+  triggered when this enters: you may search instant or sorcery card with mana value 1 reveal to hand
+}

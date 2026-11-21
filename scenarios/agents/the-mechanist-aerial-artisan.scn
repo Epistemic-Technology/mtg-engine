@@ -1,0 +1,27 @@
+scenario "Mechanist makes a Clue on a noncreature spell and animates it" {
+  battlefield A: "The Mechanist, Aerial Artisan", 3 "Island"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  turn 1 A: wait
+  turn 1 A: activate "The Mechanist, Aerial Artisan" targeting "Clue"
+  run_to turn 1 combat_damage
+  assert battlefield A contains "Clue"
+  assert power "Clue" 3
+  assert toughness "Clue" 1
+  assert has "Clue" flying
+  assert is "Clue" creature
+  assert is "Clue" Construct
+  assert tapped "The Mechanist, Aerial Artisan"
+  run_to turn 2 upkeep
+  assert is not "Clue" creature
+}
+
+scenario "Mechanist ignores creature spells" {
+  battlefield A: "The Mechanist, Aerial Artisan", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Clue"
+}

@@ -1,0 +1,11 @@
+scenario "adelbert steiner: +1/+1 per Equipment you control, lifelink" {
+  battlefield A: "Adelbert Steiner", "Sword of Vengeance", "No-Dachi"
+  battlefield B: "Sword of Vengeance"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Adelbert Steiner"
+  run_to turn 1 postcombat_main
+  assert power "Adelbert Steiner" 4
+  assert toughness "Adelbert Steiner" 3
+  assert life B 16
+  assert life A 24
+}

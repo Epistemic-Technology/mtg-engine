@@ -1,0 +1,8 @@
+card "Spectacular Skywhale" {
+  oracle_id 6a6b19db-cdeb-4922-8642-5d872f90e7a1
+  cost {2}{U}{R}
+  type Creature — Elemental Whale
+  pt 1/4
+  keywords flying
+  label "Opus" triggered whenever you cast an instant or sorcery spell: this gets +3/+0; if that spell spent 5 mana, put 3 +1/+1 counters on this creature instead
+}

@@ -1,0 +1,9 @@
+card "Synthesizer Labship" {
+  oracle_id a37314cf-bbbd-4003-b94d-0e6e60edfc15
+  cost {U}
+  type Artifact — Spacecraft
+  pt 4/4
+  station
+  station 2: triggered at beginning of your combat: up to 1 another target artifact you control becomes artifact creature base 2/2 and gains flying until end of turn
+  station 9: flying, vigilance
+}

@@ -184,3 +184,59 @@ named the feature; a card may need more than one.
   `Keyword::ALL`. Only `CastInfo` is checked automatically.
 - **The census scripts** (`scripts/coverage/census/`) still name Pauper
   and have not been run over the union of the three pools.
+
+## 5. Reported in the fourth wave's card batches (to be sorted)
+
+Wrong behaviour that reaches accepted cards:
+
+- **Prowess granted by a static ability never triggers.** `static other
+  Ally you control: has menace, prowess` (Sokka, Tenacious Tactician)
+  grants the keyword but a noncreature spell does not pump. Bria,
+  Riptide Rogue has the same fault. Sokka's scenario leaves that
+  assertion out.
+- **X in a cycling trigger is 0.** `cycling {X}{G}{G}` with `triggered
+  when you cycle this: ... X` (Webstrike Elite, accepted; Valor's
+  Flagship, rejected): the X paid for cycling does not reach the
+  trigger. Not yet reproduced on Webstrike Elite.
+- **"If the sacrificed permanent was <type>" may read the wrong
+  object.** On Hellish Sideswipe (rejected) it looked at what the
+  resolution destroyed, not what was sacrificed for the cost. Nasty End,
+  Falkenrath Torturer, and Foundry Helix use the condition; not checked.
+
+Forms that pass the gate with the wrong meaning:
+
+- **`<creature> bites each other creature`** damages only the first
+  creature of the group (Waltz of Rage, Nibelheim Aflame). `bites each
+  opponent` is used by accepted cards and is not known to be wrong.
+- **`you may pay {X}; when you do, ... X`**: X is never chosen and is 0
+  (`Effect::Pay` uses `requirements(0)`; Wildborn Preserver).
+- **`ward waterbend {4}`** is paid as plain {4}: creatures and
+  artifacts cannot be tapped toward it (The Unagi of Kyoshi Island).
+- **`flashback {1}{R}, behold 3 Elemental`** parses and drops the
+  behold part (Kindle the Inner Flame).
+- **Gift with `if kicked/gift, instead <targeted effect>`**: cast
+  without the gift, the spell still takes the gifted side's target and
+  can fizzle on it (Wildfire Howl). The promised side was fixed in the
+  third wave.
+- **`it` in a granted `has ability { triggered ...: untap it }`** does
+  not untap the creature; `untap this` does (Quintessential Katana).
+  Same family as the first entry of section 2.
+- **`tapped` after `create count each <filter>`** is read into the
+  filter ("for each tapped multicolored permanent", Infinite Guideline
+  Station).
+- **`return all <filter> card from your graveyard`** finds `card` only
+  within seven words of `all` (`parse.rs`), so a long filter fails to
+  parse (Raise the Past).
+
+Scenario runner: surveil's choice still cannot be scripted (Umbral
+Collar Zealot, Arid Archway); a token named in a battlefield setup line
+is still not a token.
+
+Missing features most often named (fourth wave, 299 unsupported of 400):
+wording near-misses (about 45); legendary named tokens ("create Mowu, a
+legendary ... token"); "transforms into" triggers; token-creation
+replacement; trigger doubling ("triggers an additional time"); cards
+exiled and linked to their source for later casting; giving control of
+a permanent to an opponent; "cards you own in exile"; a choice among
+three keywords or counter kinds printed with commas; void; tiered;
+"X is your speed"; non-mana kicker; teamwork "choose both instead".

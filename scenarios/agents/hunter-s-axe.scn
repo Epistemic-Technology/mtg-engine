@@ -1,0 +1,30 @@
+scenario "equipped attacker gets +2/+0 and chooses trample" {
+  battlefield A: "Hunter's Axe" on "Grizzly Bears", "Grizzly Bears"
+  battlefield B: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: choose "1"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  turn 1 A: assign "Grizzly Bears" to "Wind Drake" 2, player B 2
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert has not "Grizzly Bears" deathtouch
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Wind Drake"
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" trample
+}
+
+scenario "or chooses deathtouch" {
+  battlefield A: "Hunter's Axe" on "Grizzly Bears", "Grizzly Bears"
+  battlefield B: "Serra Angel" with 2 +1/+1
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: choose "2"
+  turn 1 B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+}

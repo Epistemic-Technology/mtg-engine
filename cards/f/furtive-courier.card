@@ -1,0 +1,8 @@
+card "Furtive Courier" {
+  oracle_id 92d24b75-419b-4068-89c1-db9945f74972
+  cost {2}{U}
+  type Creature — Merfolk Advisor
+  pt 3/2
+  static this: has can't be blocked as long as sacrificed artifact this turn
+  triggered whenever this attacks: draw 1 card then discard 1 card
+}

@@ -1,0 +1,11 @@
+scenario "A Tale for the Ages pumps enchanted creatures you control" {
+  battlefield A: "A Tale for the Ages", "Grizzly Bears", "Hill Giant", "Holy Strength" on "Grizzly Bears"
+  battlefield B: "Wind Drake", "Holy Strength" on "Wind Drake"
+  start turn 1 A precombat_main
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 6
+  assert power "Hill Giant" 3
+  assert power "Wind Drake" 3
+  assert toughness "Wind Drake" 4
+}

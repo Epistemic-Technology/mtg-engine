@@ -1,0 +1,35 @@
+scenario "counter, trample, hexproof, indestructible; Murder can't target it" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  battlefield B: 3 "Swamp"
+  hand A: "Saved by the Shell"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Saved by the Shell" targeting "Grizzly Bears"
+  illegal turn 1 postcombat_main B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" indestructible
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" trample
+}
+
+scenario "costs one less with a Turtle" {
+  battlefield A: "Grizzly Bears", "Aegis Turtle", "Forest"
+  hand A: "Saved by the Shell"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Saved by the Shell" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "without a Turtle one Forest isn't enough" {
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Saved by the Shell"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Saved by the Shell" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Saved by the Shell"
+}

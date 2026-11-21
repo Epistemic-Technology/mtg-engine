@@ -1,0 +1,20 @@
+scenario "Guardian of the Great Door taps four permanents as an additional cost" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Guardian of the Great Door"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Guardian of the Great Door"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Guardian of the Great Door"
+  assert has "Guardian of the Great Door" flying
+  assert tapped "Grizzly Bears"
+  assert battlefield A contains 5 "Plains"
+}
+
+scenario "Guardian of the Great Door can't be cast without four other permanents to tap" {
+  battlefield A: 5 "Plains"
+  hand A: "Guardian of the Great Door"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Guardian of the Great Door"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Guardian of the Great Door"
+}

@@ -1,0 +1,13 @@
+scenario "Forum Familiar turned face up returns another permanent and gets a counter" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Forum Familiar"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Forum Familiar" face_down
+  turn 2 main2 A: unmorph "Forum Familiar"
+  turn 2 main2 A: trigger "Forum Familiar" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Forum Familiar"
+  assert counters "Forum Familiar" +1/+1 1
+  assert power "Forum Familiar" 2
+}

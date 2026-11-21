@@ -1,0 +1,8 @@
+card "Rust Harvester" {
+  oracle_id 9ad956c8-71d3-436f-961e-e2dfc1d2ca70
+  cost {R}
+  type Artifact Creature — Robot
+  pt 1/1
+  keywords menace
+  activated {2}, {T}, exile artifact card from graveyard: put 1 +1/+1 counter on this then deal damage equal power to any target
+}

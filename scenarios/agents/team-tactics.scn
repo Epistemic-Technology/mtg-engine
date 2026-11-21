@@ -1,0 +1,23 @@
+scenario "Team Tactics without teamwork: double strike only" {
+  battlefield A: 2 "Mountain", "Hill Giant", "Grizzly Bears"
+  hand A: "Team Tactics"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Team Tactics" targeting "Hill Giant"
+  turn 2 A: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 14
+  assert has "Hill Giant" double_strike
+  assert has not "Hill Giant" trample
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Team Tactics with teamwork: also trample" {
+  battlefield A: 2 "Mountain", "Hill Giant", "Grizzly Bears"
+  hand A: "Team Tactics"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Team Tactics" teamwork targeting "Hill Giant"
+  run_to turn 2 begin_combat
+  assert has "Hill Giant" double_strike
+  assert has "Hill Giant" trample
+  assert tapped "Grizzly Bears"
+}

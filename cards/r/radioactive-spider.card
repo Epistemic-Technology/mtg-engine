@@ -1,0 +1,8 @@
+card "Radioactive Spider" {
+  oracle_id f15bd5c0-99ff-42c6-8eed-48de6df81b61
+  cost {G}
+  type Creature — Spider
+  pt 1/1
+  keywords reach, deathtouch
+  label "Fateful Bite" activated {2}, sorcery, sacrifice this: search Spider Hero card reveal to hand
+}

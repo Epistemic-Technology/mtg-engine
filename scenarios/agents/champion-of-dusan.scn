@@ -1,0 +1,23 @@
+scenario "renew puts a +1/+1 counter and a trample counter" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  graveyard A: "Champion of Dusan"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Champion of Dusan" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Grizzly Bears" trample 1
+  assert has "Grizzly Bears" trample
+  assert power "Grizzly Bears" 3
+  assert exile A contains "Champion of Dusan"
+}
+
+scenario "trample over a blocker" {
+  battlefield A: "Champion of Dusan"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Champion of Dusan"
+  turn 1 B: block "Champion of Dusan" with "Grizzly Bears"
+  turn 1 A: assign "Champion of Dusan" to "Grizzly Bears" 2, player B 2
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

@@ -1,0 +1,31 @@
+scenario "claws out: affinity for cats, team pump" {
+  battlefield A: 2 "Savannah Lions", "Grizzly Bears", 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Claws Out"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Claws Out"
+  run_to turn 1 postcombat_main
+  assert power oldest A "Savannah Lions" 4
+  assert toughness oldest A "Savannah Lions" 3
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert power "Hill Giant" 3
+  assert graveyard A contains "Claws Out"
+}
+
+scenario "claws out: wears off at end of turn" {
+  battlefield A: 2 "Savannah Lions", "Grizzly Bears", 3 "Plains"
+  hand A: "Claws Out"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Claws Out"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "claws out: too expensive without cats" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Claws Out"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Claws Out"
+  run_to turn 1 postcombat_main
+}

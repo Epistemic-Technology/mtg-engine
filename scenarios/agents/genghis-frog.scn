@@ -1,0 +1,25 @@
+scenario "Genghis Frog and another Mutant each create a Mutagen; a non-Mutant doesn't" {
+  battlefield A: "Forest", "Island", 3 "Swamp", 2 "Forest"
+  hand A: "Genghis Frog", "Shambling Cie'th", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Genghis Frog"
+  turn 1 A: wait
+  turn 1 A: cast "Shambling Cie'th"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Mutagen"
+  assert has "Genghis Frog" trample
+}
+
+scenario "Mutagen from Genghis Frog puts a +1/+1 counter on target creature" {
+  battlefield A: "Forest", "Island", "Plains", "Grizzly Bears"
+  hand A: "Genghis Frog"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Genghis Frog"
+  turn 1 A: wait
+  turn 1 A: activate "Mutagen" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert battlefield A lacks "Mutagen"
+}

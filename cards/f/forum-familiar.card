@@ -1,0 +1,8 @@
+card "Forum Familiar" {
+  oracle_id 7ea0012b-b90b-43d6-bb5b-e4e92452bea7
+  cost {W}
+  type Creature — Cat
+  pt 1/1
+  disguise {1}{W}
+  triggered when this is turned face up: return another target permanent you control to hand and put 1 +1/+1 counter on this creature
+}

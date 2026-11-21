@@ -1,0 +1,34 @@
+scenario "catharsis: white mana makes two Kithkin, no pump" {
+  battlefield A: 6 "Plains", "Grizzly Bears"
+  hand A: "Catharsis"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Catharsis"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Kithkin"
+  assert battlefield A contains "Catharsis"
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" haste
+}
+
+scenario "catharsis: red mana pumps and gives haste, no tokens" {
+  battlefield A: 6 "Mountain", "Grizzly Bears"
+  hand A: "Catharsis"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Catharsis"
+  turn 1 A: attack "Catharsis"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 0 "Kithkin"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert life B 16
+}
+
+scenario "catharsis: evoked with white, tokens then sacrificed" {
+  battlefield A: 2 "Plains"
+  hand A: "Catharsis"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Catharsis" evoked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Kithkin"
+  assert graveyard A contains "Catharsis"
+}

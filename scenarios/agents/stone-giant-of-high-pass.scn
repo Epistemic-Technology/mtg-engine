@@ -1,0 +1,25 @@
+scenario "Stone-Giant of High Pass makes a Stone Boulder on entering and attacking" {
+  battlefield A: 7 "Mountain"
+  hand A: "Stone-Giant of High Pass"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stone-Giant of High Pass"
+  turn 3 A: attack "Stone-Giant of High Pass"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Stone Boulder"
+  assert power "Stone Boulder" 3
+  assert toughness "Stone Boulder" 1
+  assert is "Stone Boulder" artifact
+  assert has "Stone Boulder" defender
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 2 "Stone Boulder"
+  assert life B 13
+}
+
+scenario "Stone-Giant of High Pass sacrifices an artifact to deal 4 damage" {
+  battlefield A: "Stone-Giant of High Pass", "Mind Stone", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stone-Giant of High Pass" sacrificing "Mind Stone" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Mind Stone"
+  assert life B 16
+}

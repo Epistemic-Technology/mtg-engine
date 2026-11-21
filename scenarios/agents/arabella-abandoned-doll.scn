@@ -1,0 +1,10 @@
+scenario "Arabella drains for each creature with power 2 or less" {
+  battlefield A: "Arabella, Abandoned Doll", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Arabella, Abandoned Doll"
+  run_to turn 1 declare_blockers
+  assert life B 18
+  assert life A 22
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

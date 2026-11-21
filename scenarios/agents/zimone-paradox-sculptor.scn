@@ -1,0 +1,13 @@
+scenario "Zimone puts counters on two creatures at combat, then doubles them" {
+  battlefield A: "Zimone, Paradox Sculptor", "Forest", "Island", "Grizzly Bears", "Hill Giant" with 2 -1/-1
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Zimone, Paradox Sculptor" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 postcombat_main A: activate "Zimone, Paradox Sculptor" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 2
+  assert power "Grizzly Bears" 4
+  assert counters "Hill Giant" +1/+1 0
+  assert counters "Hill Giant" -1/-1 2
+  assert power "Hill Giant" 1
+  assert tapped "Zimone, Paradox Sculptor"
+}

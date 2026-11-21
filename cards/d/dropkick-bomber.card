@@ -1,0 +1,8 @@
+card "Dropkick Bomber" {
+  oracle_id c394d4b6-cfb8-4639-90cb-a322a25c0a2f
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 2/3
+  static other Goblin you control: +1/+1
+  activated {R}: until end of turn, another target Goblin you control gains flying and gains ability { triggered when this deals combat damage: sacrifice this }
+}

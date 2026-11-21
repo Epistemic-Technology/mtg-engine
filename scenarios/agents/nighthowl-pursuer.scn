@@ -1,0 +1,22 @@
+scenario "nighthowl pursuer: ferocious attack gets +2/+2" {
+  battlefield A: "Nighthowl Pursuer", "Hill Giant"
+  hand A: "Giant Growth"
+  battlefield A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  turn 1 A: attack "Nighthowl Pursuer"
+  run_to turn 1 declare_blockers
+  assert power "Nighthowl Pursuer" 3
+  assert toughness "Nighthowl Pursuer" 3
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "nighthowl pursuer: no power 4 creature, no bonus" {
+  battlefield A: "Nighthowl Pursuer", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Nighthowl Pursuer"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert power "Nighthowl Pursuer" 1
+}

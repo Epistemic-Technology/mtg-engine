@@ -1,0 +1,32 @@
+scenario "beorn: trample counter, becomes a Bear, three Bears draw two" {
+  battlefield A: "Beorn the Fierce", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Beorn the Fierce" targeting "Hill Giant"
+  run_to turn 1 declare_attackers
+  assert counters "Hill Giant" trample 1
+  assert has "Hill Giant" trample
+  assert is "Hill Giant" Bear
+  assert is "Hill Giant" Giant
+  assert power "Hill Giant" 5
+  assert power "Grizzly Bears" 4
+  assert power "Beorn the Fierce" 6
+  assert hand A count 2
+}
+
+scenario "beorn: only two Bears, no draw" {
+  battlefield A: "Beorn the Fierce", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Beorn the Fierce" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert counters "Grizzly Bears" trample 1
+  assert hand A count 0
+}
+
+scenario "beorn: Bear-ness lasts beyond the turn" {
+  battlefield A: "Beorn the Fierce", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: trigger "Beorn the Fierce" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert is "Hill Giant" Bear
+  assert power "Hill Giant" 5
+}

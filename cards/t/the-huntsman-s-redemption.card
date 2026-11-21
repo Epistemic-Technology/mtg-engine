@@ -1,0 +1,8 @@
+card "The Huntsman's Redemption" {
+  oracle_id ae63fd5c-46ff-41fb-a1f6-6259336525c1
+  cost {2}{G}
+  type Enchantment — Saga
+  triggered chapter 1: create 1 "3/3 green Beast creature"
+  triggered chapter 2: you may sacrifice 1 creature chosen; if you do, search creature or basic land card reveal to hand
+  triggered chapter 3: up to 2 target creature each get +2/+2 and gain trample
+}

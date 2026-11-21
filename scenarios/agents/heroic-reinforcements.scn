@@ -1,0 +1,22 @@
+scenario "Heroic Reinforcements: two Soldiers, everything gets +1/+1 and haste and attacks" {
+  battlefield A: 2 "Mountain", 2 "Plains", "Grizzly Bears"
+  hand A: "Heroic Reinforcements"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Heroic Reinforcements"
+  turn 2 A: attack "Soldier", "Soldier", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" haste
+  assert life B 13
+}
+
+scenario "Heroic Reinforcements: the bonus ends at end of turn" {
+  battlefield A: 2 "Mountain", 2 "Plains", "Grizzly Bears"
+  hand A: "Heroic Reinforcements"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Heroic Reinforcements"
+  run_to turn 3 precombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" haste
+}

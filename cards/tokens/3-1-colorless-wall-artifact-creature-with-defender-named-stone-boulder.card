@@ -1,0 +1,7 @@
+token "3/1 colorless Wall artifact creature with defender named Stone Boulder" {
+  name "Stone Boulder"
+  type Artifact Creature — Wall
+  pt 3/1
+  color
+  keywords defender
+}

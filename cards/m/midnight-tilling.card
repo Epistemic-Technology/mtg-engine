@@ -1,0 +1,6 @@
+card "Midnight Tilling" {
+  oracle_id 79bc2c6d-b03d-4ceb-b468-293378ec73ae
+  cost {1}{G}
+  type Instant
+  spell: mill 4 cards then you may return 1 permanent card from among them to hand chosen
+}

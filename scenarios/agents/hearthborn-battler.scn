@@ -1,0 +1,33 @@
+scenario "my second spell this turn deals 2 to the opponent; the first doesn't" {
+  battlefield A: "Hearthborn Battler", 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Hearthborn Battler"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert damage "Hearthborn Battler" 2
+}
+
+scenario "the opponent's second spell triggers it too" {
+  battlefield A: "Hearthborn Battler"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 B: wait
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 15
+  assert life B 18
+}
+
+scenario "a single spell doesn't trigger it" {
+  battlefield A: "Hearthborn Battler", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

@@ -1,0 +1,9 @@
+card "Stone-Giant of High Pass" {
+  oracle_id cfaa8b7b-7bfc-4660-bbc7-a717e05df6ef
+  cost {5}{R}{R}
+  type Creature — Giant
+  pt 7/7
+  triggered whenever this enters or attacks: create 1 "3/1 colorless Wall artifact creature with defender named Stone Boulder"
+  activated {2}{R}, sacrifice artifact: deal 4 damage to any target
+}
+

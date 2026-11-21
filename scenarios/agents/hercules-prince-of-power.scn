@@ -1,0 +1,36 @@
+scenario "hercules powers up the turn he enters for {2} and attacks with haste" {
+  battlefield A: 5 "Forest"
+  hand A: "Hercules, Prince of Power"
+  turn 1 A: cast "Hercules, Prince of Power"
+  turn 1 A: wait
+  turn 1 A: activate "Hercules, Prince of Power"
+  turn 1 A: attack "Hercules, Prince of Power"
+  run_to turn 1 postcombat_main
+  assert counters "Hercules, Prince of Power" +1/+1 1
+  assert life B 16
+  assert has "Hercules, Prince of Power" indestructible
+  assert untapped "Hercules, Prince of Power"
+  run_to turn 2 upkeep
+  assert has not "Hercules, Prince of Power" vigilance
+  assert power "Hercules, Prince of Power" 4
+}
+
+scenario "hercules's power-up later is indestructible and only once" {
+  battlefield A: 10 "Forest", "Hercules, Prince of Power"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 A: activate "Hercules, Prince of Power"
+  turn 1 begin_combat B: cast "Lightning Bolt" targeting "Hercules, Prince of Power"
+  illegal turn 1 postcombat_main A: activate "Hercules, Prince of Power"
+  run_to turn 1 end
+  assert counters "Hercules, Prince of Power" +1/+1 1
+  assert battlefield A contains "Hercules, Prince of Power"
+  assert damage "Hercules, Prince of Power" 3
+}
+
+scenario "hercules's power-up costs the full {4}{G} after the turn he entered" {
+  battlefield A: 4 "Forest", "Hercules, Prince of Power"
+  illegal turn 1 A: activate "Hercules, Prince of Power"
+  run_to turn 1 postcombat_main
+  assert counters "Hercules, Prince of Power" +1/+1 0
+}

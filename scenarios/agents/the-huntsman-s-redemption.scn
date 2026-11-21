@@ -1,0 +1,43 @@
+scenario "huntsman's redemption chapter 1 makes a beast" {
+  battlefield A: 3 "Forest"
+  hand A: "The Huntsman's Redemption"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Huntsman's Redemption"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Beast"
+  assert power "Beast" 3
+  assert toughness "Beast" 3
+}
+
+scenario "huntsman's redemption chapter 2 sacrifices and tutors" {
+  battlefield A: "The Huntsman's Redemption" with 1 lore, "Grizzly Bears"
+  library A: "Plains", "Hill Giant", "Plains"
+  start turn 2 A
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert library A lacks "Hill Giant"
+}
+
+scenario "huntsman's redemption chapter 2 declined" {
+  battlefield A: "The Huntsman's Redemption" with 1 lore, "Grizzly Bears"
+  library A: "Plains", "Hill Giant", "Plains"
+  start turn 2 A
+  turn 2 precombat_main A: decline "The Huntsman's Redemption"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert library A contains "Hill Giant"
+}
+
+scenario "huntsman's redemption chapter 3 pumps two creatures" {
+  battlefield A: "The Huntsman's Redemption" with 2 lore, "Grizzly Bears", "Hill Giant"
+  start turn 2 A
+  turn 2 precombat_main A: trigger "The Huntsman's Redemption" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 2 declare_attackers
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert power "Hill Giant" 5
+  assert has "Hill Giant" trample
+  assert has "Grizzly Bears" trample
+  assert graveyard A contains "The Huntsman's Redemption"
+}

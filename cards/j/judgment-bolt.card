@@ -1,0 +1,6 @@
+card "Judgment Bolt" {
+  oracle_id aad9f9f2-4c6b-48d0-80bd-77b73a9ea5f1
+  cost {3}{R}
+  type Instant
+  spell: deal 5 damage to target creature and deal count where Equipment you control damage to controller of that target 1
+}

@@ -1,0 +1,28 @@
+scenario "three hasty lifelink menace Gremlins attack the turn they're made" {
+  battlefield A: 2 "Mountain", 2 "Plains", "Grizzly Bears"
+  battlefield B: "Wind Drake"
+  hand A: "Midnight Mayhem"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Midnight Mayhem"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains 3 "Gremlin"
+  assert has oldest "Gremlin" menace
+  assert has oldest "Gremlin" lifelink
+  assert has oldest "Gremlin" haste
+  assert has not "Grizzly Bears" haste
+  run_to turn 1 end
+  run_to turn 1 cleanup
+}
+
+scenario "Gremlins deal damage and gain life" {
+  battlefield A: 2 "Mountain", 2 "Plains"
+  hand A: "Midnight Mayhem"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Midnight Mayhem"
+  turn 1 A: attack "Gremlin", "Gremlin", "Gremlin"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  run_to turn 2 upkeep
+  assert has not oldest "Gremlin" lifelink
+}

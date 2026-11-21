@@ -1,0 +1,31 @@
+scenario "Restless Reef becomes a 4/4 deathtouch Shark and mills four on attack" {
+  battlefield A: "Restless Reef", 2 "Island", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  library B: "Forest", "Forest", "Forest", "Forest", "Mountain", "Mountain"
+  start turn 3 A precombat_main
+  turn 3 A: activate "Restless Reef" ability 2
+  turn 3 A: attack "Restless Reef"
+  turn 3 A: trigger "Restless Reef" targeting player B
+  turn 3 B: block "Restless Reef" with "Hill Giant"
+  run_to turn 3 declare_blockers
+  assert power "Restless Reef" 4
+  assert toughness "Restless Reef" 4
+  assert has "Restless Reef" deathtouch
+  assert is "Restless Reef" Shark
+  assert is "Restless Reef" land
+  assert graveyard B contains 4 "Forest"
+  assert library B contains 2 "Mountain"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  run_to turn 4 upkeep
+  assert is not "Restless Reef" creature
+}
+
+scenario "Restless Reef enters tapped and is not a creature" {
+  hand A: "Restless Reef"
+  start turn 1 A precombat_main
+  turn 1 A: play "Restless Reef"
+  run_to turn 1 postcombat_main
+  assert tapped "Restless Reef"
+  assert is not "Restless Reef" creature
+}

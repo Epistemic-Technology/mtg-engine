@@ -1,0 +1,34 @@
+scenario "scrabbling skullcrab: enchantment entering mills target player two" {
+  battlefield A: "Scrabbling Skullcrab", 2 "Plains"
+  hand A: "Absolute Law"
+  library B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Absolute Law"
+  turn 1 A: trigger "Scrabbling Skullcrab" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert library B contains "Serra Angel"
+}
+
+scenario "scrabbling skullcrab: fully unlocking a Room mills" {
+  battlefield A: "Scrabbling Skullcrab", 6 "Mountain", "Ticket Booth"
+  library B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: unlock "Tunnel of Hate"
+  turn 1 A: trigger "Scrabbling Skullcrab" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert library B contains "Serra Angel"
+}
+
+scenario "scrabbling skullcrab: creature entering doesn't trigger" {
+  battlefield A: "Scrabbling Skullcrab", 2 "Forest"
+  hand A: "Grizzly Bears"
+  library B: "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 0
+}

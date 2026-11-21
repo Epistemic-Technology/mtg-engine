@@ -1,0 +1,9 @@
+card "Haliya, Guided by Light" {
+  oracle_id 9b0af3ad-1b4d-4480-af91-fe9baee5d1c5
+  cost {2}{W}
+  type Legendary Creature — Human Soldier
+  pt 3/3
+  triggered whenever this or creature or artifact you control enters: you gain 1 life
+  triggered at beginning of your end step: draw 1 card if gained 3 life this turn
+  warp {W}
+}

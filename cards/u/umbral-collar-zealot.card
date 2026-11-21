@@ -1,0 +1,7 @@
+card "Umbral Collar Zealot" {
+  oracle_id 12db6263-75c2-442f-a1a5-7af7915f8f9f
+  cost {1}{B}
+  type Creature — Human Cleric
+  pt 3/2
+  activated sacrifice another creature or artifact: surveil 1
+}

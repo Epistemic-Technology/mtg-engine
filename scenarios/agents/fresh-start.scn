@@ -1,0 +1,14 @@
+scenario "Fresh Start flashed onto an attacker: -5/-0 and loses flying" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Fresh Start"
+  start turn 2 B
+  turn 2 B: attack "Serra Angel"
+  turn 2 declare_attackers A: cast "Fresh Start" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert power "Serra Angel" -1
+  assert toughness "Serra Angel" 4
+  assert has not "Serra Angel" flying
+  assert attached "Fresh Start" to "Serra Angel"
+}

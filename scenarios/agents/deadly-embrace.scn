@@ -1,0 +1,22 @@
+scenario "Deadly Embrace draws for each creature that died this turn" {
+  battlefield A: 6 "Swamp", 1 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Lightning Bolt", "Deadly Embrace"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Deadly Embrace" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+  assert hand A count 2
+}
+
+scenario "Deadly Embrace can't target your own creature" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Deadly Embrace"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Deadly Embrace" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}

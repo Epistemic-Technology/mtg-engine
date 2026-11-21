@@ -1,0 +1,26 @@
+scenario "Meltstrider's Resolve fights on entering and gives +0/+2" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Meltstrider's Resolve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Meltstrider's Resolve" targeting "Grizzly Bears"
+  turn 1 A: trigger "Meltstrider's Resolve" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 4
+  assert damage "Grizzly Bears" 3
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Meltstrider's Resolve: enchanted creature can't be blocked by more than one creature" {
+  battlefield A: "Grizzly Bears", "Meltstrider's Resolve" on "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  illegal turn 2 B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+  assert damage "Hill Giant" 2
+}

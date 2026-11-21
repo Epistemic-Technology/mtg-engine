@@ -1,0 +1,22 @@
+scenario "scavenging ooze exiles a creature card: counter and life" {
+  battlefield A: "Scavenging Ooze", 2 "Forest"
+  graveyard B: "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scavenging Ooze" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert counters "Scavenging Ooze" +1/+1 1
+  assert life A 21
+}
+
+scenario "scavenging ooze exiles a noncreature card: nothing else" {
+  battlefield A: "Scavenging Ooze", 2 "Forest"
+  graveyard B: "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scavenging Ooze" targeting "Plains"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Plains"
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Scavenging Ooze" +1/+1 0
+  assert life A 20
+}

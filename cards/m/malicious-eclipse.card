@@ -1,0 +1,6 @@
+card "Malicious Eclipse" {
+  oracle_id 5beb8d6e-d3c1-46a5-8516-d6bf66413cff
+  cost {1}{B}{B}
+  type Sorcery
+  spell: all creatures gets -2/-2; this turn, replace creature an opponent controls dies: exile
+}

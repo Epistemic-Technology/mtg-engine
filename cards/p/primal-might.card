@@ -1,0 +1,6 @@
+card "Primal Might" {
+  oracle_id 58d7b8b3-ac47-4805-8259-4ba8e70d7dc3
+  cost {X}{G}
+  type Sorcery
+  spell: target creature you control gets +1/+1 X; then target 1 fights up to one target creature you don't control
+}

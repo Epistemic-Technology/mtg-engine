@@ -1,0 +1,12 @@
+scenario "Empyrean Eagle pumps other flyers you control only" {
+  battlefield A: "Empyrean Eagle", "Wind Drake", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 combat_damage
+  assert power "Wind Drake" 3
+  assert toughness "Wind Drake" 3
+  assert power "Empyrean Eagle" 2
+  assert toughness "Empyrean Eagle" 3
+  assert power "Grizzly Bears" 2
+  assert power "Serra Angel" 4
+}

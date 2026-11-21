@@ -1,0 +1,7 @@
+card "Baxter Building" {
+  oracle_id 71bc69a5-7cec-4abd-b97d-13f8e1f9afac
+  type Land
+  mana {C}
+  activated {4}, {T}: add 4 mana any combination
+  activated {4}, {T}, if you control creature with toughness 4 or greater: draw 1 card
+}

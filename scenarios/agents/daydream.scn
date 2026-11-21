@@ -1,0 +1,31 @@
+scenario "Daydream blinks a creature with a +1/+1 counter" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Daydream"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Daydream" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert graveyard A contains "Daydream"
+}
+
+scenario "Daydream flashback from the graveyard, then it is exiled" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  graveyard A: "Daydream"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Daydream" from graveyard targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert exile A contains "Daydream"
+}
+
+scenario "Daydream can't target an opponent's creature" {
+  battlefield A: "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Daydream"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Daydream" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Daydream"
+}

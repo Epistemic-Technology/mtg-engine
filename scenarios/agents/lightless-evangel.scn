@@ -1,0 +1,24 @@
+scenario "sacrificing a creature and an artifact each add a counter" {
+  battlefield A: "Lightless Evangel", "Grizzly Bears", "Abzan Banner", "Plains", "Swamp", "Forest", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Bone Splinters"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bone Splinters" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: activate "Abzan Banner"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Abzan Banner"
+  assert counters "Lightless Evangel" +1/+1 2
+  assert power "Lightless Evangel" 4
+}
+
+scenario "a creature dying without being sacrificed adds nothing" {
+  battlefield A: "Lightless Evangel", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Lightless Evangel" +1/+1 0
+}

@@ -1,0 +1,7 @@
+card "Scrabbling Skullcrab" {
+  oracle_id 1448489c-dfb8-43aa-ae3d-ed832381c1d9
+  cost {U}
+  type Creature — Crab Skeleton
+  pt 0/3
+  label "Eerie" triggered whenever enchantment you control enters and whenever you fully unlock a Room: target player mills 2 cards
+}

@@ -1,0 +1,10 @@
+card "Koma, World-Eater" {
+  oracle_id 1ebf2142-f171-40cd-8143-15f50084b707
+  cost {3}{G}{G}{U}{U}
+  type Legendary Creature — Serpent
+  pt 8/12
+  this spell can't be countered
+  keywords trample
+  ward {4}
+  triggered whenever this deals combat damage to a player: create 4 "3/3 blue Serpent creature named Koma's Coil"
+}

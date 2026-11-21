@@ -1,0 +1,8 @@
+card "Curious Cadaver" {
+  oracle_id cc5370e0-a0e6-4958-a6f2-093a3868b575
+  cost {2}{U}{B}
+  type Creature — Zombie Detective
+  pt 3/1
+  keywords flying
+  triggered from graveyard when you sacrifice Clue: return this to hand
+}

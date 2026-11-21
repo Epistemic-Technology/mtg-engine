@@ -1,0 +1,21 @@
+scenario "Curious Cadaver returns to hand when you sacrifice a Clue" {
+  battlefield A: "Clue", 2 "Plains"
+  graveyard A: "Curious Cadaver"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Clue"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Curious Cadaver"
+  assert graveyard A lacks "Curious Cadaver"
+  assert hand A count 2
+}
+
+scenario "Curious Cadaver stays in the graveyard when a Food is sacrificed" {
+  battlefield A: "Food", 2 "Plains"
+  graveyard A: "Curious Cadaver"
+  life A 10
+  start turn 2 A precombat_main
+  turn 2 A: activate "Food"
+  run_to turn 2 postcombat_main
+  assert life A 13
+  assert graveyard A contains "Curious Cadaver"
+}

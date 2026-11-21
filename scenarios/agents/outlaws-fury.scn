@@ -1,0 +1,27 @@
+scenario "outlaws' fury with an outlaw pumps and exiles the top card to play" {
+  battlefield A: 3 "Mountain", "Amphin Cutthroat", "Grizzly Bears"
+  hand A: "Outlaws' Fury"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Outlaws' Fury"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert power "Amphin Cutthroat" 4
+  assert exile A contains "Forest"
+  assert library A lacks "Forest"
+  turn 1 postcombat_main A: play "Forest"
+  run_to turn 1 end
+  assert battlefield A contains "Forest"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "outlaws' fury without an outlaw only pumps" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Outlaws' Fury"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Outlaws' Fury"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert exile A lacks "Forest"
+  assert library A contains "Forest"
+}

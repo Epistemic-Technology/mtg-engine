@@ -1,0 +1,9 @@
+card "Bristlebud Farmer" {
+  oracle_id 3e44226b-51a2-4099-aff8-a5befab720cb
+  cost {2}{G}{G}
+  type Creature — Plant Druid
+  pt 5/5
+  keywords trample
+  triggered when this enters: create 2 "Food"
+  triggered whenever this attacks: you may sacrifice 1 Food chosen; if you do, mill 3 cards; you may put 1 permanent card from among them into hand chosen
+}

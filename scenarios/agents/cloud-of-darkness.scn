@@ -1,0 +1,26 @@
+scenario "Cloud of Darkness gives -X/-X counting only permanent cards in your graveyard" {
+  battlefield A: 3 "Forest", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Cloud of Darkness"
+  graveyard A: "Grizzly Bears", "Forest", "Shock", "Lightning Bolt"
+  graveyard B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cloud of Darkness"
+  turn 1 A: trigger "Cloud of Darkness" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert has "Cloud of Darkness" flying
+}
+
+scenario "Cloud of Darkness kills a creature with enough permanent cards" {
+  battlefield A: 3 "Forest", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Cloud of Darkness"
+  graveyard A: "Grizzly Bears", "Forest", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cloud of Darkness"
+  turn 1 A: trigger "Cloud of Darkness" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

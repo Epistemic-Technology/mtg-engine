@@ -1,0 +1,22 @@
+scenario "Judgment Bolt hits the creature for 5 and its controller per Equipment" {
+  battlefield A: 2 "Knife", 4 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Judgment Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Judgment Bolt" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Judgment Bolt with no Equipment deals nothing to the player" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Judgment Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Judgment Bolt" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert life B 20
+}

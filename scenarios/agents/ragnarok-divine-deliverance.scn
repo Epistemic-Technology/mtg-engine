@@ -1,0 +1,40 @@
+scenario "ragnarok: dies, destroys a permanent and reanimates a nonlegendary permanent card" {
+  battlefield A: "Ragnarok, Divine Deliverance", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Murder"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Ragnarok, Divine Deliverance"
+  turn 1 A: trigger "Ragnarok, Divine Deliverance" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Ragnarok, Divine Deliverance"
+}
+
+scenario "ragnarok: returns an artifact card, destroys an enchantment" {
+  battlefield A: "Ragnarok, Divine Deliverance", 3 "Swamp"
+  battlefield B: "Hill Giant", "Pacifism" on "Hill Giant"
+  hand A: "Murder"
+  graveyard A: "Xande, Dark Mage", "Sol Ring"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Ragnarok, Divine Deliverance"
+  turn 1 A: trigger "Ragnarok, Divine Deliverance" targeting "Pacifism", "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sol Ring"
+  assert graveyard B contains "Pacifism"
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Xande, Dark Mage"
+}
+
+scenario "ragnarok: with only a legendary card in the graveyard there is no trigger" {
+  battlefield A: "Ragnarok, Divine Deliverance", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Murder"
+  graveyard A: "Xande, Dark Mage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Ragnarok, Divine Deliverance"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Xande, Dark Mage"
+  assert battlefield B contains "Hill Giant"
+}

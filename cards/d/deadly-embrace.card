@@ -1,0 +1,6 @@
+card "Deadly Embrace" {
+  oracle_id 32ad99a9-b5ed-41a1-8060-22265f7c5da1
+  cost {3}{B}{B}
+  type Sorcery
+  spell: destroy target creature an opponent controls; then draw count each creature died this turn cards
+}

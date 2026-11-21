@@ -1,0 +1,19 @@
+scenario "xande: +1/+1 per noncreature, nonland card in graveyard" {
+  battlefield A: "Xande, Dark Mage"
+  graveyard A: "Lightning Bolt", "Shock", "Grizzly Bears", "Forest", "Sol Ring"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert power "Xande, Dark Mage" 6
+  assert toughness "Xande, Dark Mage" 6
+  assert has "Xande, Dark Mage" menace
+}
+
+scenario "xande: grows as an instant hits the graveyard" {
+  battlefield A: "Xande, Dark Mage", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 begin_combat
+  assert power "Xande, Dark Mage" 4
+  assert toughness "Xande, Dark Mage" 4
+}
