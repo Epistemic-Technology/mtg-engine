@@ -465,12 +465,12 @@ fn a_spell(f: &Filter, card: &Card) -> String {
                     ..g.clone()
                 } == Filter::default()
         };
-        let mut base = f.clone();
-        base.or = None;
-        if bare(&base) && bare(alt) {
+        let mut first = f.clone();
+        first.or = None;
+        if bare(&first) && bare(alt) {
             return format!(
                 "{} or {} spell",
-                with_article(&base.subtypes[0]),
+                with_article(&first.subtypes[0]),
                 alt.subtypes[0]
             );
         }
@@ -1112,7 +1112,10 @@ impl<'a> Ctx<'a> {
                 crate::format::relation_any(&mut g);
                 format!(
                     "another target {}",
-                    historic_permanent(&g, controller_first(&g, filter_phrase(&g, self.card, false)))
+                    historic_permanent(
+                        &g,
+                        controller_first(&g, filter_phrase(&g, self.card, false))
+                    )
                 )
             }
             // "target creature you control with power 2 or less".
@@ -1220,7 +1223,7 @@ impl<'a> Ctx<'a> {
             Recipient::TheTriggeringObject => "the creature".to_string(),
             Recipient::SameToken => "that token".to_string(),
             Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
-            Recipient::TriggeringCard => "that card".to_string(),
+            Recipient::TriggeringCard | Recipient::SameCard => "that card".to_string(),
             Recipient::TriggeringController { that: true } => {
                 let noun = if self.trigger_is_enchanted() {
                     enchanted_noun(self.card)
@@ -1255,13 +1258,11 @@ impl<'a> Ctx<'a> {
             }
             Recipient::SameObject if self.delayed_that => "that creature".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
-            Recipient::CreatedThem => "them".to_string(),
+            Recipient::CreatedThem | Recipient::SameThem => "them".to_string(),
             Recipient::Those(t) => crate::format::those_word(t).to_string(),
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
             }
-            Recipient::SameCard => "that card".to_string(),
-            Recipient::SameThem => "them".to_string(),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 // "each creature and planeswalker they control": Oracle
@@ -1490,9 +1491,7 @@ impl<'a> Ctx<'a> {
     /// non-Ogre creatures you control") where `each` prints "each".
     fn obj_written(&mut self, r: Recipient) -> String {
         match r {
-            Recipient::Group(i)
-                if self.card.groups.get(usize::from(i)).is_some_and(|f| f.all) =>
-            {
+            Recipient::Group(i) if self.card.groups.get(usize::from(i)).is_some_and(|f| f.all) => {
                 self.groups_mentioned.insert(r);
                 format!("all {}", self.group_phrase(i, true))
             }
@@ -2144,8 +2143,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     // "creatures you control with defender": Oracle names your control
     // before the qualities (but "creatures with flying your opponents
     // control").
-    let you_first =
-        f.who == Some(Who::You) && f.or.is_none() && !f.named_first && !f.control_late;
+    let you_first = f.who == Some(Who::You) && f.or.is_none() && !f.named_first && !f.control_late;
     if you_first {
         s.push_str(" you control");
     }
@@ -9553,7 +9551,11 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         } => format!(
             "at least {} other {} {}",
             count_words(Num::N(*at_least), "one"),
-            if *at_least == 1 { "creature" } else { "creatures" },
+            if *at_least == 1 {
+                "creature"
+            } else {
+                "creatures"
+            },
             if *block { "block" } else { "attack" }
         ),
         StaticCond::MoreCreaturesThanOpponent { attacking } => format!(

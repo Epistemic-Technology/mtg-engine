@@ -1889,8 +1889,19 @@ impl Templates {
                 },
             ),
             (
-                r(r"^Gain control of (.+?)(?: until end of turn)?$"),
-                |c, t| Some(format!("gain control of {}", recipient(cap(c, 1), t)?)),
+                r(r"^Gain control of (.+?)( until end of turn)?$"),
+                |c, t| {
+                    // No duration: for good (CR 611.2a), `indefinitely`.
+                    let forever = if cap(c, 2).is_empty() {
+                        " indefinitely"
+                    } else {
+                        ""
+                    };
+                    Some(format!(
+                        "gain control of {}{forever}",
+                        recipient(cap(c, 1), t)?
+                    ))
+                },
             ),
             (
                 r(r"^Prevent all (combat )?damage that would be dealt(?: to (.+?))? this turn$"),

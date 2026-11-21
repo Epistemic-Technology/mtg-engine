@@ -1050,3 +1050,30 @@ scenario "Jiwari: channel deals X damage to each creature without flying" {
   assert graveyard B contains "Grizzly Bears"
   assert battlefield B contains "Bog Imp"
 }
+
+scenario "Press into Service: support, then steal, untap, and haste" {
+  battlefield A: 5 "Mountain", "Grizzly Bears", "Savannah Lions"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Press into Service"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Press into Service" targeting "Grizzly Bears", "Savannah Lions", "Hill Giant"
+  run_to turn 1 declare_attackers
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Savannah Lions" +1/+1 1
+  assert battlefield A contains "Hill Giant"
+  assert untapped "Hill Giant"
+  assert has "Hill Giant" haste
+  assert has not "Grizzly Bears" haste
+  run_to turn 2 upkeep
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Fabled Hero: heroic puts the counter on Fabled Hero" {
+  battlefield A: "Fabled Hero", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Fabled Hero"
+  run_to turn 2 upkeep
+  assert counters "Fabled Hero" +1/+1 1
+  assert power "Fabled Hero" 3
+}
