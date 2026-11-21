@@ -156,6 +156,13 @@ fn a_delayed_whenever_needs_a_duration() {
 }
 
 #[test]
+fn only_the_source_becomes_a_copy() {
+    let mut pool = CardPool::new();
+    let text = "card \"Test\" {\n  cost {1}\n  type Sorcery\n  spell: target artifact you control becomes a copy of target artifact you control\n}\n";
+    assert!(mtg_dsl::load_into(&mut pool, text).is_err());
+}
+
+#[test]
 fn a_filter_with_three_alternatives_is_an_error() {
     let mut pool = CardPool::new();
     let text = "card \"Test\" {\n  cost {1}\n  type Instant\n  spell: deal 4 damage to target attacking or blocking or tapped creature\n}\n";

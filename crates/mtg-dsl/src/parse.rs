@@ -5683,6 +5683,15 @@ impl P {
             "become" | "becomes" => {
                 self.eat_word("a");
                 if self.eat_word("copy") {
+                    // The source becomes the copy (`Effect::BecomeCopy`);
+                    // another subject ("target artifact becomes a copy of
+                    // ...") would be dropped.
+                    if !matches!(
+                        subject,
+                        Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
+                    ) {
+                        return self.fail("only `this` can become a copy");
+                    }
                     self.expect_word("of")?;
                     let of = self.recipient()?;
                     let except = self.except_clause();

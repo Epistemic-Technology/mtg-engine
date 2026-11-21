@@ -46,8 +46,6 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **`<target> becomes a copy of <target>`** drops the first target and
-  renders the source becoming the copy (Shuri, Wakandan Inventor).
 - **`each player may discard hand and draw`** applies only to the
   caster (Raphael's Technique); "each player may" works only for scry
   and search.
