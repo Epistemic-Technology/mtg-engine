@@ -7494,6 +7494,14 @@ impl P {
     #[allow(clippy::too_many_lines)] // one branch per count
     fn count_expr_one(&mut self) -> R<crate::ast::CountExpr> {
         use crate::ast::CountExpr;
+        // The card revealed before: "the card's mana value", "its mana
+        // value".
+        if self.revealed && self.eat_words(&["mana", "value", "of", "the", "card"]) {
+            return Ok(CountExpr::CardManaValue(crate::ast::CardWord::TheCard));
+        }
+        if self.revealed && self.eat_words(&["its", "mana", "value"]) {
+            return Ok(CountExpr::CardManaValue(crate::ast::CardWord::Its));
+        }
         if let Some(c) = self.stat_of() {
             return Ok(c);
         }
@@ -7679,7 +7687,7 @@ impl P {
             return Ok(CountExpr::AndOr(Box::new(self.count_expr()?)));
         }
         if self.eat_words(&["mana", "value", "of", "that", "card"]) {
-            return Ok(CountExpr::CardManaValue);
+            return Ok(CountExpr::CardManaValue(crate::ast::CardWord::ThatCard));
         }
         if self.eat_words(&["mana", "value", "of"]) {
             let the_spell = self.eat_words(&["the", "spell"]);

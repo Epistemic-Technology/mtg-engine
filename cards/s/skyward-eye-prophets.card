@@ -1,0 +1,8 @@
+card "Skyward Eye Prophets" {
+  oracle_id 45bef776-121b-4489-9c46-f7b4fd4c3c0d
+  cost {3}{G}{W}{U}
+  type Creature — Human Wizard
+  pt 3/3
+  keywords vigilance
+  activated {T}: reveal top card; if it is land card, put it onto battlefield; otherwise, put it into hand
+}

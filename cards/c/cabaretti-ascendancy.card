@@ -1,0 +1,6 @@
+card "Cabaretti Ascendancy" {
+  oracle_id c35c39be-6db4-4a80-ace1-07932d1bb460
+  cost {R}{G}{W}
+  type Enchantment
+  triggered at beginning of your upkeep: look at top card; if it is creature or planeswalker card, you may reveal it and put it into hand; if you dont put it into hand, you may put it on bottom of library
+}

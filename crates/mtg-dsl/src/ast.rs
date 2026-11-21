@@ -254,6 +254,17 @@ pub enum CountStyle {
     EqualBefore,
 }
 
+/// How a count names the card revealed before (`CountExpr::CardManaValue`).
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum CardWord {
+    /// "that card's".
+    ThatCard,
+    /// "the card's".
+    TheCard,
+    /// "its".
+    Its,
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[allow(clippy::large_enum_variant)] // a syntax tree, not a hot structure
 pub enum CountExpr {
@@ -343,8 +354,9 @@ pub enum CountExpr {
         the_spell: bool,
     },
     /// `mana value of that card`: "that card's mana value", the card
-    /// revealed before.
-    CardManaValue,
+    /// revealed before; `mana value of the card`: "the card's mana
+    /// value"; `its mana value`: "its mana value".
+    CardManaValue(CardWord),
     /// `colors among permanents`: "colors among permanents you control".
     ColorsAmongPermanents,
     /// `colors spent` (converge): "colors of mana spent to cast this

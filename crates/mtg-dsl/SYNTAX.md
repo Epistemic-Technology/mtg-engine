@@ -2032,7 +2032,11 @@ way"), `put the revealed on bottom of library` ("Put the revealed cards on
 the bottom of your library in any order": in the order revealed), and with
 the revealing player as subject `then puts those revealed into graveyard`
 ("..., then puts those cards into their graveyard"). `mana value of that
-card` counts "that card's mana value" (`choose any target; ...; deal damage
+card` counts "that card's mana value" (`mana value of the card`: "the
+card's mana value"; `its mana value`: "its mana value"; `reveal top card
+and put that card into hand; you lose count equal its mana value life` is
+Dark Confidant's "reveal the top card of your library and put that card
+into your hand. You lose life equal to its mana value."; `choose any target; ...; deal damage
 equal mana value of that card to that target 1`: "Choose any target. ... deals
 damage equal to that card's mana value to that permanent or player"); `that player shuffles` is "Then that player
 shuffles." (CR 701.24).

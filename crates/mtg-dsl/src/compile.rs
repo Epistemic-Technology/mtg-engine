@@ -1537,7 +1537,7 @@ impl Compiler<'_> {
             A::OtherInstantSorceryCast { before } => C::OtherInstantSorceryCast { before: *before },
             A::SourceToughness => C::SourceToughness,
             A::TargetManaValue { n, .. } => C::TargetManaValue(target_index(self.tmap, *n)),
-            A::CardManaValue => C::CardManaValue,
+            A::CardManaValue(_) => C::CardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
             A::SpentColors(_) => C::SpentColors,
             A::TimesKicked => C::TimesKicked,

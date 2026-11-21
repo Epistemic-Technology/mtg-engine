@@ -1,0 +1,7 @@
+card "Pain Seer" {
+  oracle_id 910036e7-ae27-4adb-a314-d9760bce1eb0
+  cost {1}{B}
+  type Creature — Human Wizard
+  pt 2/2
+  label "Inspired" triggered whenever this becomes untapped: reveal top card and put that card into hand; you lose count equal mana value of that card life
+}

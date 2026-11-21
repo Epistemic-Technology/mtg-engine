@@ -1,0 +1,7 @@
+card "Wickerfolk Thresher" {
+  oracle_id fa6d7d68-34e3-4ff6-ae6c-36848974555a
+  cost {3}{G}
+  type Artifact Creature — Scarecrow
+  pt 5/4
+  label "Delirium" triggered whenever this attacks if 4 card types in your graveyard: look at top card; if it is land card, you may put it onto battlefield; if you dont put it onto battlefield, put it into hand
+}

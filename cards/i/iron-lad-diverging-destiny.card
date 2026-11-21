@@ -1,0 +1,9 @@
+card "Iron Lad, Diverging Destiny" {
+  oracle_id 3e715032-0d21-441b-b2d4-c91084728718
+  cost {2}{U}
+  type Legendary Artifact Creature — Human Hero
+  pt 2/2
+  keywords flying, vigilance
+  may look top
+  activated {T}: reveal top card; if it is artifact card, draw 1 card
+}

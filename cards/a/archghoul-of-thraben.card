@@ -1,0 +1,7 @@
+card "Archghoul of Thraben" {
+  oracle_id 575ffeb4-6d12-4f69-bcc9-15db325daac1
+  cost {2}{B}
+  type Creature — Zombie Cleric
+  pt 3/2
+  triggered whenever this or Zombie you control dies: look at top card; if it is Zombie card, you may reveal it and put it into hand; if you dont put it into hand, you may put it into graveyard
+}

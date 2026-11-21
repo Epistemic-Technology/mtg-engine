@@ -1,0 +1,7 @@
+card "Risen Reef" {
+  oracle_id 2ae71e86-4400-4a30-9077-4d57a43e7395
+  cost {1}{G}{U}
+  type Creature — Elemental
+  pt 1/1
+  triggered whenever this or Elemental you control enters: look at top card; if it is land card, you may put it onto battlefield tapped; if you dont put it onto battlefield, put it into hand
+}

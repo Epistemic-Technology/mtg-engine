@@ -1,0 +1,7 @@
+card "Augury Adept" {
+  oracle_id be5a65fd-0d06-4771-bee7-0e42cc9871da
+  cost {1}{W/U}{W/U}
+  type Creature — Kithkin Wizard
+  pt 2/2
+  triggered whenever this deals combat damage to a player: reveal top card and put that card into hand; you gain count equal its mana value life
+}
