@@ -3518,6 +3518,17 @@ impl P {
             let c = self.clause()?;
             clauses.push(self.unless_suffix(c)?);
         }
+        // "Until end of turn, whenever ..., <effects>": a delayed trigger
+        // that lasts the turn (CR 603.7c), as `whenever ... this turn`.
+        if eot_first
+            && let Some(Effect::Delayed {
+                this_turn,
+                trigger_first: true,
+                ..
+            }) = clauses.first_mut()
+        {
+            *this_turn = true;
+        }
         let s = Sentence {
             effects: clauses,
             label,

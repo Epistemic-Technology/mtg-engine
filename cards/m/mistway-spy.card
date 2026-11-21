@@ -1,0 +1,9 @@
+card "Mistway Spy" {
+  oracle_id 87ccb151-a948-4e5a-878b-0d46c921a2b7
+  cost {U}
+  type Creature — Merfolk Detective
+  pt 1/1
+  keywords flying
+  disguise {1}{U}
+  triggered when this is turned face up: until end of turn, delayed this: whenever creature you control deals combat damage to a player, investigate
+}

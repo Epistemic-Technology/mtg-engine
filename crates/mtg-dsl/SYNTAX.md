@@ -1633,7 +1633,12 @@ step."); both are the token. `delayed this: whenever <trigger> this turn, <effec
 every such event until the turn ends (CR 603.7c), as its controller's
 ability: "Whenever a creature blocks this turn, its controller loses 1
 life." (`its controller` is the triggering object's), "Whenever a
-nontoken creature you control dies this turn, create ...". `delayed
+nontoken creature you control dies this turn, create ...". Led by
+`until end of turn,` it is the same ability printed with the duration
+first: `until end of turn, delayed this: whenever creature you control
+deals combat damage to a player, investigate` ("Until end of turn,
+whenever a creature you control deals combat damage to a player,
+investigate."). `delayed
 this: when next you cast instant or sorcery spell this turn, copy that
 spell new targets` ("When you next cast an instant or sorcery spell this
 turn, copy that spell. ...", CR 603.7c) triggers only the first time,

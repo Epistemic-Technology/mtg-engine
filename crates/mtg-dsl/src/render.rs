@@ -877,6 +877,9 @@ struct Ctx<'a> {
     /// effects call "that creature" ("destroy that creature at end of
     /// combat").
     delayed_that: bool,
+    /// The sentence being rendered begins "until end of turn," (a delayed
+    /// trigger in it prints without its own "this turn").
+    eot_first: bool,
     /// The ability being rendered, for "except it has this ability".
     current: Option<&'a Ability>,
     /// The trigger of the ability, for wording that depends on it.
@@ -927,6 +930,7 @@ impl<'a> Ctx<'a> {
             groups_mentioned: HashSet::new(),
             in_delayed: false,
             delayed_that: false,
+            eot_first: false,
             current: None,
             trigger: None,
             last_token: None,
@@ -6794,7 +6798,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else if *it {
                 crate::format::this_turn_trigger(trigger).replacen("that creature", "it", 1)
             } else if *this_turn && !crate::format::about_that_creature(trigger) {
-                format!("{} this turn", trigger_text(trigger, ctx, true))
+                // "Until end of turn, whenever ...": the duration is
+                // printed first instead.
+                let t = trigger_text(trigger, ctx, true);
+                if ctx.eot_first {
+                    t
+                } else {
+                    format!("{t} this turn")
+                }
             } else if *this_turn {
                 crate::format::this_turn_trigger(trigger).to_string()
             } else {
@@ -7082,7 +7093,9 @@ fn lowercase_first(s: &str) -> String {
 fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     ctx.groups_mentioned
         .retain(|r| !matches!(r, Recipient::Group(_)));
+    let eot = std::mem::replace(&mut ctx.eot_first, s.eot_first);
     let clauses: Vec<Clause> = s.effects.iter().map(|e| clause(e, ctx)).collect();
+    ctx.eot_first = eot;
     let shared_suffix = clauses.len() > 1
         && clauses[0].suffix.is_some()
         && clauses.iter().all(|c| c.suffix == clauses[0].suffix);
