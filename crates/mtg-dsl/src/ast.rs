@@ -102,6 +102,9 @@ pub struct ManaRestriction {
 pub enum Pronoun {
     He,
     She,
+    /// `pronoun they`: a plural name ("Whenever Bebop & Rocksteady
+    /// attack or block").
+    They,
 }
 
 /// One definition: a `card`, `token`, or `emblem` block.
@@ -1766,6 +1769,9 @@ pub enum StaticCond {
     },
     /// `you control no untapped land`.
     YouControlNone(Filter),
+    /// `you control 1 or more Egg`: "you control one or more Eggs" (the
+    /// same condition as `you control Egg`).
+    YouControlOneOrMore(Filter),
     /// `you control at most 2 other land`: "you control two or fewer other
     /// lands".
     YouControlAtMost {
@@ -2912,6 +2918,9 @@ pub enum Effect {
         /// `put that target 1 onto battlefield`: "put that card onto the
         /// battlefield" (wording only).
         put: bool,
+        /// `with 2 additional +1/+1 counters`: "with two additional
+        /// +1/+1 counters on it" (wording only).
+        additional: bool,
     },
     Regenerate {
         to: Recipient,

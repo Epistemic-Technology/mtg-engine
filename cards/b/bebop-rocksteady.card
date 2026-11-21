@@ -1,0 +1,8 @@
+card "Bebop & Rocksteady" {
+  oracle_id a08b0a07-6da2-4ff6-88e5-88355dd84589
+  cost {1}{B/G}{B/G}
+  type Legendary Creature — Boar Rhino Mutant
+  pt 7/5
+  pronoun they
+  triggered whenever this attacks or blocks: you sacrifice 1 permanent unless you discard 1 card
+}

@@ -1425,6 +1425,10 @@ impl Compiler<'_> {
                 filter: self.filter(filter).who(Who::You),
                 at_least: *at_least,
             },
+            StaticCond::YouControlOneOrMore(filter) => StaticCondition::YouControl {
+                filter: self.filter(filter).who(Who::You),
+                at_least: 1,
+            },
             StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
             StaticCond::NotYourTurn => StaticCondition::NotYourTurn,
             StaticCond::CastDuringMain | StaticCond::ControlledAsCast(_) => {
@@ -2143,6 +2147,7 @@ impl Compiler<'_> {
                 under_you,
                 attached,
                 put: _,
+                additional: _,
             } => {
                 out.push(CoreEffect::ReturnToBattlefield {
                     what: r(*what),
@@ -5122,6 +5127,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         under_you: false,
                         attached: None,
                         put: false,
+                        additional: false,
                     },
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],

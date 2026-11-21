@@ -1037,7 +1037,8 @@ impl P {
                 card.pronoun = Some(match self.word()?.as_str() {
                     "he" => crate::ast::Pronoun::He,
                     "she" => crate::ast::Pronoun::She,
-                    w => return self.fail(format!("unknown pronoun `{w}` (he, she)")),
+                    "they" => crate::ast::Pronoun::They,
+                    w => return self.fail(format!("unknown pronoun `{w}` (he, she, they)")),
                 });
                 self.end_stmt()
             }
@@ -3457,6 +3458,13 @@ impl P {
             return Ok(StaticCond::YourLife { n, at_least });
         }
         if self.eat_words(&["you", "control"]) {
+            if matches!(self.peek(), Some(Tok::Num(1)))
+                && self.word_at(1).as_deref() == Some("or")
+                && self.word_at(2).as_deref() == Some("more")
+            {
+                self.pos += 3;
+                return Ok(StaticCond::YouControlOneOrMore(self.filter()?));
+            }
             let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
                 self.number()?
             } else {
@@ -6235,8 +6243,10 @@ impl P {
         let tapped = self.eat_word("tapped");
         self.eat_words(&["under", "its", "owner's", "control"]);
         let under_you = self.eat_words(&["under", "your", "control"]);
+        let mut additional = false;
         let counters = if self.eat_word("with") {
             let n = self.count()?;
+            additional = self.eat_word("additional");
             let kind = self.counter_kind()?;
             self.eat_words(&["on", "it"]);
             Some((kind, n))
@@ -6255,6 +6265,7 @@ impl P {
             under_you,
             attached,
             put,
+            additional,
         })
     }
 

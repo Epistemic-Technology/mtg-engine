@@ -833,6 +833,7 @@ fn it_obj(card: &Card) -> &'static str {
     match card.pronoun {
         Some(crate::ast::Pronoun::He) => "him",
         Some(crate::ast::Pronoun::She) => "her",
+        Some(crate::ast::Pronoun::They) => "them",
         None => "it",
     }
 }
@@ -842,8 +843,34 @@ fn it_subj(card: &Card) -> &'static str {
     match card.pronoun {
         Some(crate::ast::Pronoun::He) => "he",
         Some(crate::ast::Pronoun::She) => "she",
+        Some(crate::ast::Pronoun::They) => "they",
         None => "it",
     }
+}
+
+/// "Whenever X attacks or blocks" -> "Whenever X attack or block" for a
+/// plural-named source X.
+fn plural_subject_verbs(text: &str, name: &str) -> String {
+    let key = format!("{name} ");
+    let Some(i) = text.find(&key) else {
+        return text.to_string();
+    };
+    let (head, rest) = text.split_at(i + key.len());
+    let end = rest.find(',').unwrap_or(rest.len());
+    let (pred, tail) = rest.split_at(end);
+    let words: Vec<String> = pred
+        .split(' ')
+        .map(|w| match w {
+            "dies" => "die".to_string(),
+            "attacks" | "blocks" | "enters" | "deals" | "becomes" | "leaves" => {
+                w[..w.len() - 1].to_string()
+            }
+            "is" => "are".to_string(),
+            "has" => "have".to_string(),
+            _ => w.to_string(),
+        })
+        .collect();
+    format!("{head}{}{tail}", words.join(" "))
 }
 
 /// A character's possessive: "its", "his", "her" ("draw a card if her
@@ -852,6 +879,7 @@ fn its_poss(card: &Card) -> &'static str {
     match card.pronoun {
         Some(crate::ast::Pronoun::He) => "his",
         Some(crate::ast::Pronoun::She) => "her",
+        Some(crate::ast::Pronoun::They) => "their",
         None => "its",
     }
 }
@@ -989,6 +1017,10 @@ struct Ctx<'a> {
     /// Recipients of a pump already in the ability: another pump of the
     /// same one "gets an additional +4/+4".
     pumped: Vec<Recipient>,
+    /// Recipients of a "-X/-X" pump already in the ability: a fixed pump
+    /// of the same one after it "gets an additional -3/-3" (Faerie
+    /// Fencing).
+    pumped_x: Vec<Recipient>,
     /// A spell was just countered unless its controller paid: "If they
     /// do" follows.
     they_paid: bool,
@@ -1034,6 +1066,7 @@ impl<'a> Ctx<'a> {
             attached_by_cond: false,
             amassed: false,
             pumped: Vec::new(),
+            pumped_x: Vec::new(),
             in_won: false,
             they_paid: false,
             player_did: false,
@@ -3918,6 +3951,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 ""
             };
+            if count.is_none() {
+                ctx.pumped_x.push(same(*to));
+            }
             let mut c = Clause::with_subject(
                 *to,
                 s,
@@ -3946,7 +3982,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Recipient::ThatTarget(n) => Recipient::Target(n),
                 r => r,
             };
-            let additional = if ctx.pumped.contains(&same(*to)) {
+            let additional = if ctx.pumped_x.contains(&same(*to)) {
+                "an additional "
+            } else if ctx.pumped.contains(&same(*to)) {
                 if ctx.in_unless || ctx.in_won {
                     // "Creatures you control get +0/+1 ... They get an
                     // additional +0/+2".
@@ -5112,6 +5150,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             under_you,
             attached,
             put,
+            additional,
         } => {
             // `that card` prints "that card", `it` (inside a delayed
             // trigger) "it".
@@ -5178,7 +5217,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("return {o} to the battlefield{tapped} under its owner's control")
             };
             if let Some((kind, n)) = c {
-                let _ = write!(text, " with {} on it", counters(Num::N(*n), *kind));
+                let what = counters(Num::N(*n), *kind);
+                // "with two additional +1/+1 counters on it" (Rakdos
+                // Joins Up).
+                let what = if *additional {
+                    match what.split_once(' ') {
+                        Some((count, rest)) => format!("{count} additional {rest}"),
+                        None => what,
+                    }
+                } else {
+                    what
+                };
+                let _ = write!(text, " with {what} on it");
             }
             if let Some(a) = attached {
                 let _ = write!(text, " attached to {}", ctx.obj(*a));
@@ -10026,6 +10076,11 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             };
             format!("you control {what}")
         }
+        StaticCond::YouControlOneOrMore(filter) => {
+            let mut f = filter.clone();
+            f.who = None;
+            format!("you control one or more {}", filter_phrase(&f, card, true))
+        }
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
         StaticCond::NotYourTurn => "it's not your turn".to_string(),
         StaticCond::CastDuringMain => "you cast this spell during your main phase".to_string(),
@@ -11017,6 +11072,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 );
             }
             let mut out = capitalize(&trigger_text(trigger, &mut ctx, false));
+            // "Whenever Bebop & Rocksteady attack or block": a character
+            // with a plural name takes plural verbs.
+            if card.pronoun == Some(crate::ast::Pronoun::They) {
+                out = plural_subject_verbs(&out, &this_ref(card));
+            }
             match condition {
                 Some(crate::ast::TrigCond::Core(c)) => {
                     out.push_str(", ");

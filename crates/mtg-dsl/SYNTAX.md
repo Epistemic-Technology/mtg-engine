@@ -79,7 +79,7 @@ to its other face as well.
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `defense 5` | A battle's printed defense (CR 310.4): it enters with that many defense counters. |
 | `short_name "Ajani"` | The name a legendary card's text calls itself by when it isn't the part before a comma (CR 201.5): "put a loyalty counter on Ajani" on Ajani Resolute. The template author adds it when the text uses the name's first word alone. |
-| `pronoun he`, `pronoun she` | Wording only: after naming it, the card's text calls itself "he"/"him" or "she"/"her" instead of "it" ("Put a +1/+1 counter on Abomination. He fights up to one target creature an opponent controls."; "Morlun enters with X +1/+1 counters on him."). The template author adds it for a legendary card whose Oracle text uses those words. |
+| `pronoun he`, `pronoun she`, `pronoun they` | Wording only: after naming it, the card's text calls itself "he"/"him"/"his", "she"/"her", or "they"/"them"/"their" instead of "it" (and `they` makes a trigger about it plural: "Whenever Bebop & Rocksteady attack or block") ("Put a +1/+1 counter on Abomination. He fights up to one target creature an opponent controls."; "Morlun enters with X +1/+1 counters on him."). The template author adds it for a legendary card whose Oracle text uses those words. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
 | `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, `undying`, `flanking`, `convoke` (CR 702.51: untapped creatures may be tapped to pay {1} or one mana of their color), and `improvise` (CR 702.126: artifacts pay {1}), and `banding` (CR 702.22: attacking bands, blocked as a group, the banding player dividing the combat damage; "bands with other" is not supported), `decayed` (CR 702.147: can't block; when it attacks, it's sacrificed at end of combat), and `phasing` (CR 702.26: phases in or out before its controller untaps). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step."), `can't become untapped` (no effect or untap step untaps it, and a stun counter stays on it; granted, "Enchanted creature loses all abilities and can't become untapped."), and the blocking requirements and allowances (CR 509.1a, 509.1c) `blocks each combat if able`, `must be blocked if able`, `lure` ("All creatures able to block this creature do so."), `can block an additional creature each combat`, and `can block any number of creatures`, and `can attack as though it didn't have defender` (CR 702.3b; granted to a group, "... as though they didn't have defender"; with `can't be blocked` after it, "... and it can't be blocked") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
@@ -367,7 +367,8 @@ your turn` is one too: "Whenever a land enters during your turn".
 Static conditions: `7 cards in your graveyard` ("there are seven or more
 cards in your graveyard"), `4 card types in your graveyard`, `you control 3
 artifact` ("you control three or more artifacts"), `you control Island`
-("you control an Island"), `your turn` ("it's your turn"), `not your turn` ("it's not your turn"),
+("you control an Island"), `you control 1 or more Egg` ("you control one
+or more Eggs", the same condition), `your turn` ("it's your turn"), `not your turn` ("it's not your turn"),
 `cast during main phase` ("you cast this spell during your main phase")
 and `controlled Mount as cast` ("you controlled a Mount as you cast this
 spell"), both judged as the spell is cast and remembered by it, `attacking`,
@@ -473,7 +474,8 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 122.1h: a permanent with one that would be put into a graveyard from the
 battlefield is exiled instead, so it doesn't die; `return target creature
 card from your graveyard to battlefield with 1 finality counter` prints
-"... with a finality counter on it"), and the keyword counters `flying`, `first strike`, `trample`,
+"... with a finality counter on it"; `with 2 additional +1/+1 counters`
+prints "with two additional +1/+1 counters on it", the same counters), and the keyword counters `flying`, `first strike`, `trample`,
 `lifelink`, `deathtouch`, `reach`, `menace`, `vigilance`, `hexproof`,
 `indestructible` (CR 122.1b: the permanent has the keyword). A cost may
 `remove 1 charge counter from this` or `put 1 -1/-1 counter on this`
@@ -588,7 +590,10 @@ created prints "Otherwise, create one of those tokens."
 1 card`): the payer may discard a card of their choice to stop it.
 `if target 1 was <filter>, <sentence>`: "If that creature was a Human,
 ...", "If that creature was green or white, ...", "If that land was
-nonbasic, ..." (the target as it last existed). Without `instead`, `if
+nonbasic, ..." (the target as it last existed); a state alone prints "it":
+`if target 1 was attacking` ("If it was attacking"), `if target 1 was
+tapped` ("If it was tapped"), judged as it last existed on the
+battlefield, so a target returned to its owner's hand still counts. Without `instead`, `if
 target 1 is <filter>, <sentence>` is "If it's a Vampire, ..." and `if
 that target 1 is <filter>, ...` is "If that creature is a Goat, ..." (the
 target as it resolves, or last existed); `also` after the comma prints

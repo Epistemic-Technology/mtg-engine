@@ -127,6 +127,9 @@ fn format_inner(card: &Card) -> String {
         Some(crate::ast::Pronoun::She) => {
             let _ = writeln!(out, "  pronoun she");
         }
+        Some(crate::ast::Pronoun::They) => {
+            let _ = writeln!(out, "  pronoun they");
+        }
         None => {}
     }
     if let Some(c) = &card.cast_only {
@@ -1241,6 +1244,7 @@ impl Fmt {
                 under_you,
                 attached,
                 put,
+                additional,
             } => {
                 let mut s = if *put {
                     format!("put {} onto battlefield", self.recipient(*what, t))
@@ -1254,7 +1258,8 @@ impl Fmt {
                     s.push_str(" under your control");
                 }
                 if let Some((kind, n)) = counters {
-                    let _ = write!(s, " with {n} {}", counter(*kind, Num::N(*n)));
+                    let more = if *additional { "additional " } else { "" };
+                    let _ = write!(s, " with {n} {more}{}", counter(*kind, Num::N(*n)));
                 }
                 if let Some(a) = attached {
                     let _ = write!(s, " attached to {}", self.recipient(*a, t));
@@ -4195,6 +4200,7 @@ fn static_cond(c: &StaticCond) -> String {
             at_least,
         } => format!("defending player controls {at_least} {}", filter(fl)),
         StaticCond::YouControlNone(fl) => format!("you control no {}", filter(fl)),
+        StaticCond::YouControlOneOrMore(fl) => format!("you control 1 or more {}", filter(fl)),
         StaticCond::YouControlAtMost { filter: fl, n } => {
             format!("you control at most {n} {}", filter(fl))
         }
