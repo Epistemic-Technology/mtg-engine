@@ -2659,7 +2659,9 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever one or more creature cards leave your graveyard"
         | "Whenever you expend 4"
         | "Whenever you expend 8"
-        | "Whenever you collect evidence" => {
+        | "Whenever you collect evidence"
+        | "Whenever you commit a crime"
+        | "Whenever you commit a crime during your turn" => {
             return Some(lowercase_first(head));
         }
         "Whenever a creature dealt damage by this creature this turn dies" => {

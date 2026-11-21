@@ -1,0 +1,8 @@
+card "Slickshot Vault-Buster" {
+  oracle_id 2085642e-29be-4e13-81dc-1f2ff6c095eb
+  cost {2}{U}
+  type Creature — Human Rogue
+  pt 1/4
+  keywords vigilance
+  static this: +2/+0 as long as committed crime this turn
+}

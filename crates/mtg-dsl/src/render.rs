@@ -7333,6 +7333,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::CommitsCrime { your_turn } => format!(
+            "whenever you commit a crime{}",
+            if *your_turn { " during your turn" } else { "" }
+        ),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
         Trigger::EntersBatch(f) => format!(
             "whenever one or more {} enter",

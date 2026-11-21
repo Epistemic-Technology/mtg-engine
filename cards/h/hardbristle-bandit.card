@@ -1,0 +1,8 @@
+card "Hardbristle Bandit" {
+  oracle_id 116eea43-4235-4608-8c6a-599e860ae2f1
+  cost {1}{G}
+  type Creature — Plant Rogue
+  pt 1/1
+  activated {T}: add any
+  triggered once each turn whenever you commit a crime: untap this
+}

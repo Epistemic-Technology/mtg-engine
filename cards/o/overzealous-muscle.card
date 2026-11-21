@@ -1,0 +1,7 @@
+card "Overzealous Muscle" {
+  oracle_id 4cb63198-29b5-4607-bd4a-f449807fb764
+  cost {4}{B}
+  type Creature — Ogre Mercenary
+  pt 5/4
+  triggered whenever you commit a crime during your turn: this gains indestructible until end of turn
+}

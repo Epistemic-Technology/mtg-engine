@@ -3104,6 +3104,9 @@ impl Compiler<'_> {
             Trigger::EntersFromGraveyard(f) => TriggerSpec::EntersFromGraveyard(self.filter(f)),
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
+            Trigger::CommitsCrime { your_turn } => TriggerSpec::CommitsCrime {
+                your_turn: *your_turn,
+            },
             Trigger::YouTurnFaceUp => TriggerSpec::TurnedFaceUp(self.trigger_obj(
                 &crate::ast::TriggerObj::Filter(Filter {
                     who: Some(Who::You),

@@ -849,6 +849,11 @@ impl GameState {
             | (TriggerSpec::CollectsEvidence { whose }, Event::CollectedEvidence { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
             }
+            // CR 700.13: "Whenever you commit a crime [during your turn]".
+            (TriggerSpec::CommitsCrime { your_turn }, Event::CommittedCrime { player }) => {
+                (*player == w.controller && (!*your_turn || self.active_player == *player))
+                    .then_some((None, Some(*player)))
+            }
             // CR 122.1: "Whenever one or more +1/+1 counters are put on
             // this creature": once per event, however many counters.
             (TriggerSpec::CountersPut { what, kind }, Event::CountersAdded { obj, kind: k, .. }) => {

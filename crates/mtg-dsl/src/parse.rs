@@ -9723,6 +9723,11 @@ impl P {
         if self.eat_words(&["you", "collect", "evidence"]) {
             return Ok(Trigger::CollectsEvidence);
         }
+        // CR 700.13.
+        if self.eat_words(&["you", "commit", "a", "crime"]) {
+            let your_turn = self.eat_words(&["during", "your", "turn"]);
+            return Ok(Trigger::CommitsCrime { your_turn });
+        }
         if self.eat_words(&["you", "turn", "a", "permanent", "face", "up"]) {
             return Ok(Trigger::YouTurnFaceUp);
         }

@@ -2388,6 +2388,10 @@ pub enum Trigger {
     Expends(u8),
     /// `whenever you collect evidence` (CR 701.59).
     CollectsEvidence,
+    /// `whenever you commit a crime` (CR 700.13), `... during your turn`.
+    CommitsCrime {
+        your_turn: bool,
+    },
     /// `whenever you turn a permanent face up` (CR 708.8): a permanent you
     /// control is turned face up; it is "it".
     YouTurnFaceUp,

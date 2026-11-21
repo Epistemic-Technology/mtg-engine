@@ -2486,6 +2486,10 @@ pub enum CounterKind {
     Glyph,
     Crystal,
     Unlock,
+    Loot,
+    /// CR 122.1h: if a permanent with a finality counter on it would be
+    /// put into a graveyard from the battlefield, it is exiled instead.
+    Finality,
     /// Power/toughness counters other than +1/+1 and -1/-1 (CR 122.1a):
     /// each modifies power and toughness in layer 7c, and none annihilates
     /// with another (CR 704.5q is about +1/+1 and -1/-1 only).
@@ -2524,7 +2528,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 41] = [
+    pub const NAMED: [(&'static str, CounterKind); 43] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2556,6 +2560,8 @@ impl CounterKind {
         ("glyph", CounterKind::Glyph),
         ("crystal", CounterKind::Crystal),
         ("unlock", CounterKind::Unlock),
+        ("loot", CounterKind::Loot),
+        ("finality", CounterKind::Finality),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
         ("trample", CounterKind::Trample),
@@ -4712,6 +4718,9 @@ pub enum TriggerSpec {
     FullyUnlocks { whose: Who },
     /// "Whenever you collect evidence" (CR 701.59).
     CollectsEvidence { whose: Who },
+    /// "Whenever you commit a crime" (CR 700.13), `your_turn`: "...
+    /// during your turn". The controller is the triggering player.
+    CommitsCrime { your_turn: bool },
     /// "Whenever you gain life".
     GainsLife { whose: Who },
     /// "Whenever you gain life for the first time each turn": the life
@@ -5021,7 +5030,8 @@ impl TriggerSpec {
             | TriggerSpec::Expends(_) => WATCH_CAST,
             TriggerSpec::BecomesTarget(_)
             | TriggerSpec::TargetedByOpponent
-            | TriggerSpec::TargetedByYouFirstTime => WATCH_TARGETED,
+            | TriggerSpec::TargetedByYouFirstTime
+            | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
             TriggerSpec::BecomesAttachedTo(_) => WATCH_ATTACH,
             TriggerSpec::Discards { .. }
             | TriggerSpec::Cycles {

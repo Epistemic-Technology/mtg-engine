@@ -1627,6 +1627,9 @@ impl Decompiler<'_> {
             TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
+            TriggerSpec::CommitsCrime { your_turn } => Trigger::CommitsCrime {
+                your_turn: *your_turn,
+            },
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Next(inner) => Trigger::Next(Box::new(self.trigger(inner))),
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),

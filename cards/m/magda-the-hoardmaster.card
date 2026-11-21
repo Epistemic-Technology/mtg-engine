@@ -1,0 +1,8 @@
+card "Magda, the Hoardmaster" {
+  oracle_id 7fd2beb8-f823-4723-beec-e59b62127490
+  cost {1}{R}
+  type Legendary Creature — Dwarf Berserker
+  pt 2/2
+  triggered once each turn whenever you commit a crime: create 1 tapped "Treasure"
+  activated sacrifice 3 Treasure, sorcery: create 1 "4/4 red Scorpion Dragon creature with flying and haste"
+}

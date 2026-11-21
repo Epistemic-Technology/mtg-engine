@@ -63,6 +63,9 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
         Event::CollectedEvidence { player } => {
             format!("{} collects evidence.", who(*player, viewer))
         }
+        Event::CommittedCrime { player } => {
+            format!("{} commits a crime.", who(*player, viewer))
+        }
         Event::Unlocked { obj, door, .. } => {
             let half = state
                 .objects

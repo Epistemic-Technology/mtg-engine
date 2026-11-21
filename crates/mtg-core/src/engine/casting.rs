@@ -4359,25 +4359,36 @@ impl GameState {
     /// The permanents a stack object targets become its targets (CR 115.?):
     /// "becomes the target of a spell or ability" triggers see it.
     fn emit_targeted(&mut self, obj: ObjId) {
-        // CR 700.13a: targeting an opponent, anything an opponent
-        // controls, or a card in an opponent's graveyard is a crime.
+        self.check_crime(obj);
+        self.emit_targeted_objects(obj);
+    }
+
+    /// CR 700.13: targeting an opponent, anything an opponent controls,
+    /// or a card in an opponent's graveyard is a crime, once per spell or
+    /// ability however many such targets it has.
+    fn check_crime(&mut self, obj: ObjId) {
         let who = self.objects[obj].controller;
         let bit = 1 << who.index().min(7);
-        if self.turn_log.crime & bit == 0
-            && self.objects[obj].targets.iter().any(|t| match t {
-                Target::Player(p) => *p != who,
-                Target::Object(id) => self.objects.get(*id).is_some_and(|o| {
-                    if o.zone == Zone::Graveyard {
-                        o.owner != who
-                    } else {
-                        o.controller != who && matches!(o.zone, Zone::Battlefield | Zone::Stack)
-                    }
-                }),
-            })
-        {
-            self.turn_log.crime |= bit;
-            self.history_bump();
+        if self.objects[obj].targets.iter().any(|t| match t {
+            Target::Player(p) => *p != who,
+            Target::Object(id) => self.objects.get(*id).is_some_and(|o| {
+                if o.zone == Zone::Graveyard {
+                    o.owner != who
+                } else {
+                    o.controller != who && matches!(o.zone, Zone::Battlefield | Zone::Stack)
+                }
+            }),
+        }) {
+            if self.turn_log.crime & bit == 0 {
+                self.turn_log.crime |= bit;
+                self.history_bump();
+            }
+            self.emit(Event::CommittedCrime { player: who });
         }
+    }
+
+    /// The permanents a stack object targets become its targets.
+    fn emit_targeted_objects(&mut self, obj: ObjId) {
         let targets: SmallVec<[ObjId; 2]> = self.objects[obj]
             .targets
             .iter()
@@ -6214,7 +6225,7 @@ impl GameState {
             let source = orig.ability.map_or(copy, |sa| sa.source);
             self.choose_copy_targets(copy, controller, source);
         }
-        self.emit_targeted(copy);
+        self.emit_targeted_objects(copy);
         copy
     }
 
@@ -6315,7 +6326,7 @@ impl GameState {
             spell: copy,
             def,
         });
-        self.emit_targeted(copy);
+        self.emit_targeted_objects(copy);
         Some(copy)
     }
 
