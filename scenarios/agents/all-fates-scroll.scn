@@ -1,0 +1,8 @@
+scenario "All-Fates Scroll draws one card per differently named land" {
+  battlefield A: "All-Fates Scroll", 3 "Forest", "Plains", "Island", "Mountain", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "All-Fates Scroll"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "All-Fates Scroll"
+  assert hand A count 5
+}

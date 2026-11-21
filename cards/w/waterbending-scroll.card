@@ -1,0 +1,6 @@
+card "Waterbending Scroll" {
+  oracle_id 882d032b-db36-401a-8075-a9fabc90c53d
+  cost {1}{U}
+  type Artifact
+  activated {6}, {T}, reduced {1} each Island you control: draw 1 card
+}

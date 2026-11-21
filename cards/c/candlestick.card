@@ -1,0 +1,8 @@
+card "Candlestick" {
+  oracle_id 2f7b46c1-3d82-4fd9-9882-589315cab47b
+  cost {U}
+  type Artifact — Clue Equipment
+  static equipped: +1/+1, has ability { triggered whenever this attacks: surveil 2 }
+  activated {2}, sacrifice this: draw 1 card
+  equip {2}
+}

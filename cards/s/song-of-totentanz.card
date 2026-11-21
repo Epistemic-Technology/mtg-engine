@@ -1,0 +1,6 @@
+card "Song of Totentanz" {
+  oracle_id 5f4d0c87-7d59-41d5-9910-86765a0c144b
+  cost {X}{R}
+  type Sorcery
+  spell: create X "1/1 black Rat creature that can't block"; each creature you control gains haste
+}

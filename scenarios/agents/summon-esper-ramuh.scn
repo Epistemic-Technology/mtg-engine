@@ -1,0 +1,24 @@
+scenario "Summon: Esper Ramuh chapter I counts noncreature, nonland cards in your graveyard" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Summon: Esper Ramuh"
+  graveyard A: "Lightning Bolt", "Giant Growth", "Grizzly Bears", "Mountain"
+  graveyard B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Summon: Esper Ramuh"
+  turn 1 A: trigger "Summon: Esper Ramuh" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert counters "Summon: Esper Ramuh" lore 1
+}
+
+scenario "Summon: Esper Ramuh chapter II pumps Wizards you control" {
+  battlefield A: "Summon: Esper Ramuh" with 1 lore
+  start turn 1 A
+  run_to turn 1 postcombat_main
+  assert counters "Summon: Esper Ramuh" lore 2
+  assert power "Summon: Esper Ramuh" 4
+  assert toughness "Summon: Esper Ramuh" 3
+  run_to turn 2 precombat_main
+  assert power "Summon: Esper Ramuh" 3
+}

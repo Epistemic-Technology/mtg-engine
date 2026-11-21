@@ -1,0 +1,7 @@
+card "Gardenize" {
+  oracle_id e74a2a4c-ca3c-49e8-9b0f-b4d1bb91fb54
+  cost {1}{G}{G}
+  type Enchantment
+  triggered whenever creature you control dies: put 1 charge counter on this
+  triggered at beginning of your first main: add {G} count each charge counters on this
+}

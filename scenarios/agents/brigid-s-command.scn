@@ -1,0 +1,45 @@
+scenario "Brigid's Command copies a Kithkin and makes a Kithkin token" {
+  battlefield A: "Goldmeadow Harrier", "Forest", "Plains", "Plains"
+  hand A: "Brigid's Command"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brigid's Command" mode 1 targeting "Goldmeadow Harrier", player A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Goldmeadow Harrier"
+  assert battlefield A contains "Kithkin"
+  assert is "Kithkin" green
+  assert power "Kithkin" 1
+}
+
+scenario "Brigid's Command pumps one creature while another fights" {
+  battlefield A: "Grizzly Bears", "Goldmeadow Harrier", "Forest", "Plains", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Brigid's Command"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brigid's Command" mode 6 targeting "Goldmeadow Harrier", "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Goldmeadow Harrier" 4
+  assert graveyard A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Brigid's Command gives the opponent a token and pumps" {
+  battlefield A: "Grizzly Bears", "Forest", "Plains", "Plains"
+  hand A: "Brigid's Command"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brigid's Command" mode 4 targeting player B, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Kithkin"
+  assert battlefield A lacks "Kithkin"
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+}
+
+scenario "Brigid's Command can't copy a non-Kithkin" {
+  battlefield A: "Grizzly Bears", "Forest", "Plains", "Plains"
+  hand A: "Brigid's Command"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Brigid's Command" mode 1 targeting "Grizzly Bears", player A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+}

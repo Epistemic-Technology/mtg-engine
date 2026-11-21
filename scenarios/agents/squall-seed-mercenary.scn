@@ -1,0 +1,33 @@
+scenario "Squall attacking alone gets double strike and returns cards twice" {
+  battlefield A: "Squall, SeeD Mercenary"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Wind Drake"
+  start turn 1 A
+  turn 1 A: attack "Squall, SeeD Mercenary"
+  turn 1 first_strike_damage A: trigger "Squall, SeeD Mercenary" targeting "Grizzly Bears"
+  turn 1 combat_damage A: trigger "Squall, SeeD Mercenary" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Wind Drake"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Squall can't return a card with mana value 4" {
+  battlefield A: "Squall, SeeD Mercenary"
+  graveyard A: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Squall, SeeD Mercenary"
+  illegal turn 1 first_strike_damage A: trigger "Squall, SeeD Mercenary" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Rough Divide needs the creature to attack alone" {
+  battlefield A: "Squall, SeeD Mercenary", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Squall, SeeD Mercenary", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert has not "Squall, SeeD Mercenary" double_strike
+}

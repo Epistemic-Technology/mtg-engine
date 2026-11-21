@@ -1,0 +1,20 @@
+scenario "Road Rage counts Mounts and Vehicles" {
+  battlefield A: "Mountain", "Adventurer's Airship", "Alacrian Jaguar", "Grizzly Bears"
+  battlefield B: "Colossal Dreadmaw"
+  hand A: "Road Rage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Road Rage" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert damage "Colossal Dreadmaw" 4
+  assert graveyard A contains "Road Rage"
+}
+
+scenario "Road Rage deals 2 with no Mounts or Vehicles" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  battlefield B: "Colossal Dreadmaw"
+  hand A: "Road Rage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Road Rage" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert damage "Colossal Dreadmaw" 2
+}

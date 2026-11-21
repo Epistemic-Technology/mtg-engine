@@ -1,0 +1,9 @@
+card "Voyager Glidecar" {
+  oracle_id 8f40d73b-9106-448e-8649-5d62939f0d38
+  cost {W}
+  type Artifact — Vehicle
+  pt 2/3
+  triggered when this enters: scry 1
+  activated tap 3 other untapped creature you control: until end of turn, this becomes artifact creature and gains flying; put 1 +1/+1 counter on it
+  crew 1
+}

@@ -1,0 +1,10 @@
+card "Vigorbloom Charm" {
+  oracle_id 826f17d1-3806-4579-8b1b-2082b7b03d69
+  cost {G}{W}
+  type Instant
+  choose one {
+    mode: target permanent you control gains hexproof and indestructible
+    mode: you draw 1 card and gain 3 life
+    mode: put 1 +1/+1 counter on target creature you control; then target 1 fights target creature an opponent controls
+  }
+}

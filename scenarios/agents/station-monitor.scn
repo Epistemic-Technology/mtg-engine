@@ -1,0 +1,30 @@
+scenario "Station Monitor makes a Drone on the second spell only" {
+  battlefield A: "Station Monitor", 3 "Mountain"
+  hand A: "Shock", "Shock", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert battlefield A contains 1 "Drone"
+  assert has "Drone" flying
+  assert is "Drone" artifact
+  assert power "Drone" 1
+}
+
+scenario "Station Monitor's Drone can't block a creature without flying" {
+  battlefield A: "Station Monitor", 2 "Mountain"
+  hand A: "Shock", "Shock"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  illegal turn 2 A: block "Grizzly Bears" with "Drone"
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}

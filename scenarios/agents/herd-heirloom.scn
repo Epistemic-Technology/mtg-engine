@@ -1,0 +1,33 @@
+scenario "Herd Heirloom gives a big creature trample and a card on combat damage" {
+  battlefield A: "Herd Heirloom", "Serra Angel"
+  battlefield B: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Herd Heirloom" targeting "Serra Angel"
+  turn 1 A: attack "Serra Angel"
+  turn 1 B: block "Serra Angel" with "Wind Drake"
+  turn 1 A: assign "Serra Angel" to "Wind Drake" 2, player B 2
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Wind Drake"
+  assert hand A count 1
+  assert tapped "Herd Heirloom"
+}
+
+scenario "Herd Heirloom can't target a creature with power less than 4" {
+  battlefield A: "Herd Heirloom", "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Herd Heirloom" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has not "Hill Giant" trample
+}
+
+scenario "Herd Heirloom's mana casts creature spells only" {
+  battlefield A: "Herd Heirloom", "Forest", "Island"
+  hand A: "Grizzly Bears", "Divination"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Divination"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Herd Heirloom"
+}

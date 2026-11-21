@@ -1,0 +1,15 @@
+card "Horned Loch-Whale // Lagoon Breach" {
+  oracle_id adca3929-4ecc-45bc-932e-604bcc32550a
+  layout adventure
+  cost {4}{U}{U}
+  type Creature — Whale
+  pt 6/6
+  keywords flash
+  ward {2}
+  enters tapped unless your turn
+  face "Lagoon Breach" {
+    cost {1}{U}
+    type Instant — Adventure
+    spell: owner of target attacking creature you don't control puts it on top or bottom of library
+  }
+}

@@ -1,0 +1,8 @@
+card "Squall, SeeD Mercenary" {
+  oracle_id e2348e0e-eeca-47b5-9417-bf4470ec29bb
+  cost {2}{W}{B}
+  type Legendary Creature — Human Knight Mercenary
+  pt 3/4
+  label "Rough Divide" triggered whenever creature you control attacks alone: it gains double strike until end of turn
+  triggered whenever this deals combat damage to a player: return target permanent card with mana value 3 or less from your graveyard to battlefield
+}

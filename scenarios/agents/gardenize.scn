@@ -1,0 +1,27 @@
+scenario "Gardenize gets a charge counter when a creature you control dies" {
+  battlefield A: "Gardenize", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Gardenize" charge 1
+}
+
+scenario "Gardenize adds G for each charge counter in your first main phase" {
+  battlefield A: "Gardenize" with 2 charge
+  hand A: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Gardenize with one counter can't pay for a two-mana spell" {
+  battlefield A: "Gardenize" with 1 charge
+  hand A: "Grizzly Bears"
+  start turn 1 A
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}

@@ -1,0 +1,29 @@
+scenario "Ruby gets +2/+2 attacking with a power 4 creature" {
+  battlefield A: "Ruby, Daring Tracker", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Ruby, Daring Tracker"
+  run_to turn 1 combat_damage
+  assert power "Ruby, Daring Tracker" 3
+  assert toughness "Ruby, Daring Tracker" 4
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Ruby gets nothing without a power 4 creature" {
+  battlefield A: "Ruby, Daring Tracker", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Ruby, Daring Tracker"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert power "Ruby, Daring Tracker" 1
+}
+
+scenario "Ruby taps for mana" {
+  battlefield A: "Ruby, Daring Tracker"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Ruby, Daring Tracker"
+}

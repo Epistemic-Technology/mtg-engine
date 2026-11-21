@@ -1,0 +1,6 @@
+card "Bleachbone Verge" {
+  oracle_id 2b8144a0-08d2-4c28-9fd7-5d90f90105e4
+  type Land
+  mana {B}
+  activated {T}, if you control Plains or a Swamp: add {W}
+}

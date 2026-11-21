@@ -1,0 +1,6 @@
+card "Eye of Jace" {
+  oracle_id c8f802ad-4621-4f71-b52d-fbc55853dc88
+  cost {1}
+  type Artifact
+  triggered at beginning of your upkeep: surveil 1; then if 7 cards in your graveyard, sacrifice this, this deals 2 damage to each opponent and you gain 2 life
+}

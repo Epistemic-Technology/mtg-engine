@@ -1,0 +1,23 @@
+scenario "Knight of Doves makes a Bird when your enchantment is destroyed" {
+  battlefield A: "Knight of Doves", "Absolute Law", "Plains", "Plains"
+  hand A: "Disenchant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Disenchant" targeting "Absolute Law"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Absolute Law"
+  assert battlefield A contains 1 "Bird"
+  assert has "Bird" flying
+  assert power "Bird" 1
+  assert is "Bird" white
+}
+
+scenario "Knight of Doves ignores an opponent's enchantment" {
+  battlefield A: "Knight of Doves", "Plains", "Plains"
+  battlefield B: "Absolute Law"
+  hand A: "Disenchant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Disenchant" targeting "Absolute Law"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Absolute Law"
+  assert battlefield A lacks "Bird"
+}

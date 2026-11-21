@@ -1,0 +1,9 @@
+card "Sylvan Scavenging" {
+  oracle_id 398afdf2-4a12-430e-85c9-c68847230939
+  cost {1}{G}{G}
+  type Enchantment
+  triggered at beginning of your end step: choose one {
+    mode: put 1 +1/+1 counter on target creature you control
+    mode: create 1 "3/3 green Raccoon creature" if you control creature with power 4 or greater
+  }
+}

@@ -1,0 +1,22 @@
+scenario "Leatherhead enters with a hexproof counter" {
+  battlefield A: 4 "Forest"
+  hand A: "Leatherhead, Swamp Stalker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Leatherhead, Swamp Stalker"
+  run_to turn 1 postcombat_main
+  assert counters "Leatherhead, Swamp Stalker" hexproof 1
+  assert has "Leatherhead, Swamp Stalker" hexproof
+}
+
+scenario "Leatherhead removes a counter to destroy that player's artifact" {
+  battlefield A: "Leatherhead, Swamp Stalker" with 1 hexproof
+  battlefield B: "Sol Ring"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Leatherhead, Swamp Stalker"
+  turn 1 A: trigger "Leatherhead, Swamp Stalker" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert graveyard B contains "Sol Ring"
+  assert counters "Leatherhead, Swamp Stalker" hexproof 0
+}
+

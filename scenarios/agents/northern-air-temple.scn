@@ -1,0 +1,19 @@
+scenario "Northern Air Temple drains X equal to Shrines you control" {
+  battlefield A: "Southern Air Temple", "Swamp"
+  hand A: "Northern Air Temple"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Northern Air Temple"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Northern Air Temple drains 1 when another Shrine enters" {
+  battlefield A: "Northern Air Temple", 4 "Plains"
+  hand A: "Southern Air Temple"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Southern Air Temple"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+}

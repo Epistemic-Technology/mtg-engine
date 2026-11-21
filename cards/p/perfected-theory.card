@@ -1,0 +1,9 @@
+card "Perfected Theory" {
+  oracle_id d824a319-fa74-42e4-9cbe-dba1576d6bad
+  cost {U}
+  type Instant
+  spell: choose one {
+    mode: target creature has base power and toughness 1/1
+    mode: target creature has base power and toughness 4/5
+  }
+}

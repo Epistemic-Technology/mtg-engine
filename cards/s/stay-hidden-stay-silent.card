@@ -1,0 +1,9 @@
+card "Stay Hidden, Stay Silent" {
+  oracle_id 266561cc-d014-48cc-ba5d-fa72f3a91736
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+  activated {4}{U}{U}, sorcery: shuffle enchanted creature into library then manifest dread
+}

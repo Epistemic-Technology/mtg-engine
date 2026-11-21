@@ -1,0 +1,27 @@
+scenario "Molten-Core Maestro: small spell adds a counter but no mana" {
+  battlefield A: "Molten-Core Maestro", 3 "Island"
+  hand A: "Divination", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Molten-Core Maestro" +1/+1 1
+  assert power "Molten-Core Maestro" 3
+  assert life B 20
+}
+
+scenario "Molten-Core Maestro: five-mana spell adds {R} equal to its power" {
+  battlefield A: "Molten-Core Maestro", 5 "Mountain"
+  hand A: "Lava Axe", "Lightning Bolt", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lava Axe" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 begin_combat
+  # Lava Axe: counter (power 3), adds RRR; Bolt and Shock each add a counter too
+  assert counters "Molten-Core Maestro" +1/+1 3
+  assert life B 10
+}

@@ -1,0 +1,7 @@
+card "Spicy Oatmeal Pizza" {
+  oracle_id 9665f940-c0a4-4d3e-b889-8049cf549a4f
+  cost {2}{R}
+  type Artifact — Food
+  triggered when this enters: it deals 4 damage to any target and deal 3 damage to you
+  activated {2}, {T}, sacrifice this: you gain 3 life
+}

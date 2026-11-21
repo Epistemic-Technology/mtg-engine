@@ -1,0 +1,7 @@
+card "Herd Heirloom" {
+  oracle_id 78b6dd40-c182-4037-a4d3-9fd012b2c584
+  cost {1}{G}
+  type Artifact
+  mana any only to cast creature spell
+  activated {T}: until end of turn, target creature you control with power 4 or greater gains trample and gains ability { triggered whenever this deals combat damage to a player: draw 1 card }
+}

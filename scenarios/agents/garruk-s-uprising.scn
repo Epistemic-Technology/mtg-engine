@@ -1,0 +1,31 @@
+scenario "Garruk's Uprising draws on entering with a big creature" {
+  battlefield A: "Serra Angel", 3 "Forest"
+  hand A: "Garruk's Uprising"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Garruk's Uprising"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert has "Serra Angel" trample
+}
+
+scenario "Garruk's Uprising draws nothing on entering without a big creature" {
+  battlefield A: "Hill Giant", 3 "Forest"
+  hand A: "Garruk's Uprising"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Garruk's Uprising"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert has "Hill Giant" trample
+}
+
+scenario "Garruk's Uprising draws for a power 4 creature entering, not a smaller one" {
+  battlefield A: "Garruk's Uprising", 5 "Plains", 2 "Forest"
+  hand A: "Serra Angel", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Serra Angel"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert battlefield A contains "Grizzly Bears"
+}

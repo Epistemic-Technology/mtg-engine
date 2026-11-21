@@ -1,0 +1,9 @@
+card "Tonberry" {
+  oracle_id a26f3cbb-39b5-4688-92f7-26534613a9f3
+  cost {B}
+  type Creature — Salamander Horror
+  pt 2/1
+  enters tapped
+  enters with 1 stun counter
+  label "Chef's Knife" static during your turn, this: has first strike, deathtouch
+}

@@ -1,0 +1,26 @@
+scenario "Drag the Canal without a death only makes the Detective" {
+  battlefield A: "Island", "Swamp"
+  hand A: "Drag the Canal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Drag the Canal"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Detective"
+  assert power "Detective" 2
+  assert battlefield A lacks "Clue"
+  assert life A 20
+}
+
+scenario "Drag the Canal after a creature died gains 2, surveils, investigates" {
+  battlefield A: "Island", "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock", "Drag the Canal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Drag the Canal"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains 1 "Detective"
+  assert battlefield A contains 1 "Clue"
+  assert life A 22
+}

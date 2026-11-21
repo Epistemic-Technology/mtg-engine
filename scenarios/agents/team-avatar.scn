@@ -1,0 +1,26 @@
+scenario "team avatar pumps a lone attacker by creatures you control" {
+  battlefield A: "Team Avatar", "Grizzly Bears", "Hill Giant", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "team avatar no pump with two attackers" {
+  battlefield A: "Team Avatar", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "team avatar discarded deals damage equal to creatures you control" {
+  hand A: "Team Avatar"
+  battlefield A: 3 "Plains", 2 "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Team Avatar" targeting B "Hill Giant"
+  run_to turn 1 end
+  assert damage "Hill Giant" 2
+  assert graveyard A contains "Team Avatar"
+}

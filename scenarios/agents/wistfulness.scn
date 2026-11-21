@@ -1,0 +1,37 @@
+scenario "wistfulness evoked with green exiles an opponent's artifact" {
+  hand A: "Wistfulness"
+  battlefield A: 2 "Forest"
+  battlefield B: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wistfulness" evoked
+  turn 1 A: trigger "Wistfulness" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Ornithopter"
+  assert graveyard A contains "Wistfulness"
+  assert hand A count 0
+}
+
+scenario "wistfulness cast with blue draws two then discards one" {
+  hand A: "Wistfulness"
+  battlefield A: 5 "Island"
+  battlefield B: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wistfulness"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wistfulness"
+  assert battlefield B contains "Ornithopter"
+  assert hand A count 1
+  assert graveyard A count 1
+}
+
+scenario "wistfulness with one green and one blue does neither" {
+  hand A: "Wistfulness"
+  battlefield A: "Forest", "Island"
+  battlefield B: "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wistfulness" evoked
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Ornithopter"
+  assert hand A count 0
+  assert graveyard A count 1
+}

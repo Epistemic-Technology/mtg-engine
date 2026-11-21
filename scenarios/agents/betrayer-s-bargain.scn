@@ -1,0 +1,35 @@
+scenario "Betrayer's Bargain sacrificing a creature exiles the creature it kills" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Betrayer's Bargain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Betrayer's Bargain" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert graveyard B lacks "Hill Giant"
+}
+
+scenario "Betrayer's Bargain paying {2} instead" {
+  battlefield A: "Grizzly Bears", 4 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Betrayer's Bargain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Betrayer's Bargain" other_cost targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped newest A "Mountain"
+  assert tapped oldest A "Mountain"
+  assert exile B contains "Serra Angel"
+}
+
+scenario "Betrayer's Bargain deals 5, not enough for a 6-toughness creature" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Colossal Dreadmaw"
+  hand A: "Betrayer's Bargain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Betrayer's Bargain" sacrificing "Grizzly Bears" targeting "Colossal Dreadmaw"
+  run_to turn 1 postcombat_main
+  assert damage "Colossal Dreadmaw" 5
+  assert battlefield B contains "Colossal Dreadmaw"
+}

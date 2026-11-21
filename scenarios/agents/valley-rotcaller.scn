@@ -1,0 +1,18 @@
+scenario "Valley Rotcaller drains for each other Squirrel, Bat, Lizard, and Rat" {
+  battlefield A: "Valley Rotcaller", "Lizard, Connors's Curse", "Rat", "Grizzly Bears"
+  battlefield B: "Rat"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Valley Rotcaller"
+  run_to turn 1 declare_blockers
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Valley Rotcaller alone drains nothing" {
+  battlefield A: "Valley Rotcaller"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Valley Rotcaller"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 20
+}

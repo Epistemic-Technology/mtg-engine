@@ -1,0 +1,11 @@
+card "Brigid's Command" {
+  oracle_id 6487fc1b-5c83-4d09-94d3-175725bcb922
+  cost {1}{G}{W}
+  type Kindred Sorcery — Kithkin
+  choose two {
+    mode: create token copy of target Kithkin you control
+    mode: target player creates 1 "1/1 green and white Kithkin creature"
+    mode: target creature you control gets +3/+3
+    mode: target creature you control fights target creature an opponent controls
+  }
+}

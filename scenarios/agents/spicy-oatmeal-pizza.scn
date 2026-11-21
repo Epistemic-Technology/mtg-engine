@@ -1,0 +1,32 @@
+scenario "Spicy Oatmeal Pizza deals 4 to a target and 3 to you" {
+  battlefield A: 3 "Mountain"
+  hand A: "Spicy Oatmeal Pizza"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spicy Oatmeal Pizza"
+  turn 1 A: trigger "Spicy Oatmeal Pizza" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 17
+}
+
+scenario "Spicy Oatmeal Pizza kills a creature" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Spicy Oatmeal Pizza"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spicy Oatmeal Pizza"
+  turn 1 A: trigger "Spicy Oatmeal Pizza" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 17
+}
+
+scenario "Spicy Oatmeal Pizza sacrifices for 3 life" {
+  life A 10
+  battlefield A: "Spicy Oatmeal Pizza", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Spicy Oatmeal Pizza"
+  run_to turn 1 postcombat_main
+  assert life A 13
+  assert graveyard A contains "Spicy Oatmeal Pizza"
+}

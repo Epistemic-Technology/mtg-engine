@@ -1,0 +1,7 @@
+card "Kalastria Highborn" {
+  oracle_id 77e319da-d782-4258-bf0e-626755e5adc9
+  cost {B}{B}
+  type Creature — Vampire Shaman
+  pt 2/2
+  triggered whenever this or Vampire you control dies: you may pay {B}; if you do, target player loses 2 life and you gain 2 life
+}

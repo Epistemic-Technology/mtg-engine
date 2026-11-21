@@ -1,0 +1,25 @@
+scenario "Candlestick pumps the equipped creature and it surveils 2 when attacking" {
+  battlefield A: "Candlestick", "Grizzly Bears", 2 "Island"
+  library A: "Forest", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Candlestick" ability 2 targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Candlestick" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert life B 17
+  assert known A "Forest"
+  assert known A "Plains"
+  assert unknown A "Swamp"
+}
+
+scenario "Candlestick sacrifices to draw a card" {
+  battlefield A: "Candlestick", 2 "Island"
+  library A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Candlestick"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Candlestick"
+  assert hand A contains "Forest"
+}

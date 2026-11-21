@@ -1,0 +1,8 @@
+card "Excalibur II" {
+  oracle_id bfb6651c-e0b3-4dbd-b26a-3eeb690985fc
+  cost {1}
+  type Legendary Artifact — Equipment
+  triggered whenever you gain life: put 1 charge counter on this
+  static equipped: +1/+1 count each charge counters on this
+  equip {3}
+}

@@ -1,0 +1,11 @@
+card "Lord Skitter's Butcher" {
+  oracle_id 467f756f-75db-4748-99d3-62651776adfe
+  cost {2}{B}
+  type Creature — Rat Peasant
+  pt 2/3
+  triggered when this enters: choose one {
+    mode: create 1 "1/1 black Rat creature that can't block"
+    mode: you may sacrifice 1 another creature chosen; if you do, scry 2 then draw 1 card
+    mode: each creature you control gain menace
+  }
+}

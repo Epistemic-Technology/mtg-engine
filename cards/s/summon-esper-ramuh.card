@@ -1,0 +1,8 @@
+card "Summon: Esper Ramuh" {
+  oracle_id 0d054301-8465-4a4c-91e7-9a28dda92e57
+  cost {2}{R}{R}
+  type Enchantment Creature — Saga Wizard
+  pt 3/3
+  label "Judgment Bolt" triggered chapter 1: this creature deals damage equal graveyard noncreature nonland to target creature an opponent controls
+  triggered chapter 2, 3: each Wizard you control gets +1/+0
+}

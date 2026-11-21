@@ -1,0 +1,23 @@
+scenario "Super Shredder grows when an opponent's creature dies" {
+  battlefield A: "Super Shredder", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Super Shredder" +1/+1 1
+  assert power "Super Shredder" 2
+  assert has "Super Shredder" menace
+}
+
+scenario "Super Shredder grows when its controller's creature leaves" {
+  battlefield A: "Super Shredder", "Grizzly Bears", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Super Shredder" +1/+1 1
+  assert toughness "Super Shredder" 2
+}

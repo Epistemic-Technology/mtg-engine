@@ -1,0 +1,17 @@
+scenario "Moonshaker Cavalry pumps your creatures by the number of creatures you control" {
+  battlefield A: 8 "Plains", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Moonshaker Cavalry"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Moonshaker Cavalry"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert has "Grizzly Bears" flying
+  assert power "Hill Giant" 6
+  assert power "Moonshaker Cavalry" 9
+  assert power "Serra Angel" 4
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" flying
+}

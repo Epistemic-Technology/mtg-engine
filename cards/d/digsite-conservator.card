@@ -1,0 +1,8 @@
+card "Digsite Conservator" {
+  oracle_id ced2ae56-988a-4c60-93d0-85a2261be72c
+  cost {2}
+  type Artifact Creature — Gnome
+  pt 2/1
+  activated sacrifice this, sorcery: exile up to 4 target card from a graveyard
+  triggered when this dies: you may pay {4}; if you do, discover 4
+}

@@ -1,0 +1,7 @@
+card "Highway Robbery" {
+  oracle_id df020a47-1784-479b-9882-be77b7f30950
+  cost {1}{R}
+  type Sorcery
+  spell: you may discard 1 card chosen or sacrifice 1 land chosen; if you do, draw 2 cards
+  plot {1}{R}
+}

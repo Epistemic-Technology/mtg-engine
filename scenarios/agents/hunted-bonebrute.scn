@@ -1,0 +1,32 @@
+scenario "Hunted Bonebrute gives the opponent two Dogs" {
+  battlefield A: 3 "Swamp"
+  hand A: "Hunted Bonebrute"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hunted Bonebrute"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains 2 "Dog"
+  assert battlefield A lacks "Dog"
+  assert power B "Dog" 1
+}
+
+scenario "Hunted Bonebrute dying drains each opponent 3" {
+  battlefield A: "Hunted Bonebrute"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Hunted Bonebrute"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Hunted Bonebrute"
+  assert life B 17
+  assert life A 20
+}
+
+scenario "Hunted Bonebrute cast face down makes no Dogs" {
+  battlefield A: 3 "Swamp"
+  hand A: "Hunted Bonebrute"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hunted Bonebrute" face_down
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Dog"
+  assert battlefield A contains "face-down creature"
+}

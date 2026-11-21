@@ -1,0 +1,42 @@
+scenario "Felothar enters, sacrifices an artifact, and counters each creature" {
+  battlefield A: "Grizzly Bears", "Ornithopter", "Plains", "Swamp", "Forest"
+  hand A: "Felothar, Dawn of the Abzan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Felothar, Dawn of the Abzan"
+  turn 1 A: choose "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert counters "Felothar, Dawn of the Abzan" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Felothar, Dawn of the Abzan" 4
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Felothar's attack trigger, with trample" {
+  battlefield A: "Felothar, Dawn of the Abzan", "Grizzly Bears", "Ornithopter"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Felothar, Dawn of the Abzan"
+  turn 1 declare_attackers A: choose "Ornithopter"
+  turn 1 B: block "Felothar, Dawn of the Abzan" with "Hill Giant"
+  turn 1 combat_damage A: assign "Felothar, Dawn of the Abzan" to "Hill Giant" 3, player B 1
+  run_to turn 1 postcombat_main
+  assert counters "Felothar, Dawn of the Abzan" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has "Felothar, Dawn of the Abzan" trample
+  assert graveyard A contains "Ornithopter"
+  assert life B 19
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Felothar: declining the sacrifice puts no counters" {
+  battlefield A: "Grizzly Bears", "Ornithopter", "Plains", "Swamp", "Forest"
+  hand A: "Felothar, Dawn of the Abzan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Felothar, Dawn of the Abzan"
+  turn 1 A: decline "Felothar, Dawn of the Abzan"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert counters "Grizzly Bears" +1/+1 0
+  assert power "Felothar, Dawn of the Abzan" 3
+}

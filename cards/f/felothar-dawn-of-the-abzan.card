@@ -1,0 +1,8 @@
+card "Felothar, Dawn of the Abzan" {
+  oracle_id fd666669-ad23-4e41-b78c-1cd7b82eb8b4
+  cost {W}{B}{G}
+  type Legendary Creature — Human Warrior
+  pt 3/3
+  keywords trample
+  triggered whenever this enters or attacks: you may sacrifice 1 nonland permanent chosen; when you do, put 1 +1/+1 counter on each creature you control
+}

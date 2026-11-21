@@ -1,0 +1,24 @@
+scenario "The Prima Vista becomes a creature after a four-mana noncreature spell" {
+  battlefield A: "The Prima Vista", 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Ancestral Reminiscence"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ancestral Reminiscence"
+  turn 1 A: attack "The Prima Vista"
+  run_to turn 1 postcombat_main
+  assert is "The Prima Vista" creature
+  assert life B 15
+  run_to turn 2 precombat_main
+  assert is not "The Prima Vista" creature
+}
+
+scenario "The Prima Vista ignores a three-mana spell" {
+  battlefield A: "The Prima Vista", 3 "Island"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  illegal turn 1 A: attack "The Prima Vista"
+  run_to turn 1 postcombat_main
+  assert is not "The Prima Vista" creature
+  assert hand A count 2
+}

@@ -1,0 +1,9 @@
+card "M.O.D.O.K." {
+  oracle_id fe7cc414-42d0-4dad-8516-7a0be0860a67
+  cost {3}{B}{B}
+  type Legendary Artifact Creature — Villain
+  pt 2/2
+  keywords flying, lifelink
+  label "Mental Organism" activated pay 3 life, during your turn: this connives
+  label "Designed Only for Killing" static creature your opponents control: -1/-1
+}

@@ -1,0 +1,34 @@
+scenario "Vigorbloom Charm mode 1: hexproof and indestructible" {
+  battlefield A: "Grizzly Bears", "Forest", "Plains"
+  battlefield B: "Swamp", "Swamp", "Swamp"
+  hand A: "Vigorbloom Charm"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vigorbloom Charm" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "Vigorbloom Charm mode 2: draw and gain 3" {
+  battlefield A: "Forest", "Plains"
+  hand A: "Vigorbloom Charm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vigorbloom Charm" mode 2
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 23
+}
+
+scenario "Vigorbloom Charm mode 3: counter then fight" {
+  battlefield A: "Grizzly Bears", "Forest", "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Vigorbloom Charm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vigorbloom Charm" mode 3 targeting A "Grizzly Bears", B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters A "Grizzly Bears" +1/+1 1
+  assert damage A "Grizzly Bears" 2
+  assert power A "Grizzly Bears" 3
+  assert graveyard B contains "Grizzly Bears"
+}

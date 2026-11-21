@@ -1,0 +1,38 @@
+scenario "Arid Archway returns another Desert and surveils" {
+  battlefield A: "Sunscorched Desert"
+  hand A: "Arid Archway"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: play "Arid Archway"
+  turn 1 A: choose "Sunscorched Desert"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Sunscorched Desert"
+  assert tapped "Arid Archway"
+  # unscripted surveil keeps the card on top
+  assert library A count 2
+}
+
+scenario "Arid Archway returning a Forest doesn't surveil" {
+  battlefield A: "Forest"
+  hand A: "Arid Archway"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: play "Arid Archway"
+  turn 1 A: choose "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert battlefield A contains "Arid Archway"
+  assert graveyard A count 0
+  assert library A count 2
+}
+
+scenario "Arid Archway returning itself doesn't surveil" {
+  hand A: "Arid Archway"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: play "Arid Archway"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Arid Archway"
+  assert graveyard A count 0
+  assert library A count 2
+}

@@ -1,0 +1,55 @@
+scenario "Fire Nation Drill taps itself to destroy a creature with power 4 or less" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "The Fire Nation Drill"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Fire Nation Drill"
+  turn 1 A: trigger "The Fire Nation Drill" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert tapped "The Fire Nation Drill"
+}
+
+scenario "Fire Nation Drill can't target a creature with power 5 or more" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Craw Wurm"
+  hand A: "The Fire Nation Drill"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Fire Nation Drill"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Craw Wurm"
+}
+
+scenario "Fire Nation Drill strips hexproof from opponents' permanents" {
+  battlefield A: "The Fire Nation Drill", 4 "Swamp"
+  battlefield B: "Gladecover Scout"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Fire Nation Drill"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Gladecover Scout"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Gladecover Scout"
+}
+
+scenario "Fire Nation Drill strips indestructible from opponents' permanents" {
+  battlefield A: "The Fire Nation Drill", 4 "Swamp"
+  battlefield B: "Darksteel Myr"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Fire Nation Drill"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Darksteel Myr"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Darksteel Myr"
+}
+
+scenario "Without the Drill's ability, hexproof holds" {
+  battlefield A: "The Fire Nation Drill", 4 "Swamp"
+  battlefield B: "Gladecover Scout"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Murder" targeting "Gladecover Scout"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Gladecover Scout"
+}

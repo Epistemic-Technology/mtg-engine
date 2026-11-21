@@ -1,0 +1,36 @@
+scenario "Back on Track returns a creature card and makes a Pilot" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Hill Giant", "Lightning Bolt"
+  hand A: "Back on Track"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Back on Track" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Pilot"
+  assert power "Pilot" 1
+  assert graveyard A contains "Back on Track"
+}
+
+scenario "Back on Track returns a Vehicle that the Pilot crews" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Ballista Charger"
+  hand A: "Back on Track"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Back on Track" targeting "Ballista Charger"
+  turn 1 A: wait
+  turn 1 A: activate "Ballista Charger"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ballista Charger"
+  assert is "Ballista Charger" creature
+  assert tapped "Pilot"
+}
+
+scenario "Back on Track can't return an instant" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Lightning Bolt"
+  hand A: "Back on Track"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Back on Track" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Back on Track"
+}

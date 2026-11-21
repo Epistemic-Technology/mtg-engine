@@ -1,0 +1,8 @@
+card "Marwyn, the Preserver" {
+  oracle_id eb03f6c1-c94f-4f09-b2e9-a55ce5533653
+  cost {1}{G}
+  type Legendary Creature — Elf Druid
+  pt 3/2
+  static land you control: has hexproof
+  activated {2}: return target land card from your graveyard to hand
+}

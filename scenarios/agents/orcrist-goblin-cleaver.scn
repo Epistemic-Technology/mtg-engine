@@ -1,0 +1,30 @@
+scenario "Orcrist makes a Treasure for each creature of the chosen type" {
+  battlefield A: "Hill Giant", "Orcrist, Goblin-cleaver" on "Hill Giant", 2 "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  turn 1 combat_damage A: choose Bear
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert battlefield A contains 2 "Treasure"
+  assert power "Hill Giant" 5
+  assert has "Hill Giant" trample
+}
+
+scenario "Orcrist counts the chosen type only" {
+  battlefield A: "Hill Giant", "Orcrist, Goblin-cleaver" on "Hill Giant", 2 "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  turn 1 combat_damage A: choose Giant
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Treasure"
+}
+
+scenario "Orcrist equips for 3" {
+  battlefield A: "Orcrist, Goblin-cleaver", "Grizzly Bears", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Orcrist, Goblin-cleaver" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Orcrist, Goblin-cleaver" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}

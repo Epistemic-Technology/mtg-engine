@@ -1,0 +1,32 @@
+scenario "Aziza taps three creatures to copy an instant" {
+  battlefield A: "Aziza, Mage Tower Captain", 2 "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert tapped "Aziza, Mage Tower Captain"
+  assert tapped oldest "Grizzly Bears"
+  assert tapped newest "Grizzly Bears"
+}
+
+scenario "Aziza can decline to copy" {
+  battlefield A: "Aziza, Mage Tower Captain", 2 "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: decline "Aziza, Mage Tower Captain"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Aziza, Mage Tower Captain"
+}
+
+scenario "Aziza can't copy with fewer than three untapped creatures" {
+  battlefield A: "Aziza, Mage Tower Captain", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Grizzly Bears"
+}

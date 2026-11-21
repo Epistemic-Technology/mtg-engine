@@ -1,0 +1,6 @@
+card "Assassin's Trophy" {
+  oracle_id ac10d218-f9a6-4058-9cda-a15ca1b0b7b5
+  cost {B}{G}
+  type Instant
+  spell: destroy target permanent an opponent controls; its controller may search basic land card to battlefield
+}

@@ -1,0 +1,35 @@
+scenario "Lathliss makes a Dragon token when another nontoken Dragon enters" {
+  battlefield A: "Lathliss, Dragon Queen", 6 "Mountain"
+  hand A: "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Shivan Dragon"
+  assert battlefield A contains 1 "Dragon"
+  assert power "Dragon" 5
+  assert toughness "Dragon" 5
+  assert has "Dragon" flying
+  assert is "Dragon" red
+}
+
+scenario "Lathliss pumps only Dragons" {
+  battlefield A: "Lathliss, Dragon Queen", "Shivan Dragon", "Grizzly Bears", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Lathliss, Dragon Queen"
+  run_to turn 1 postcombat_main
+  assert power "Lathliss, Dragon Queen" 7
+  assert power "Shivan Dragon" 6
+  assert toughness "Shivan Dragon" 5
+  assert power "Grizzly Bears" 2
+  run_to turn 2 upkeep
+  assert power "Lathliss, Dragon Queen" 6
+}
+
+scenario "Lathliss ignores non-Dragons" {
+  battlefield A: "Lathliss, Dragon Queen", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Dragon"
+}

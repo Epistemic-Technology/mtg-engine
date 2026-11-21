@@ -1,0 +1,18 @@
+scenario "starry-eyed skyrider: attacking tokens fly, another target gains flying" {
+  hand A: "Raise the Alarm"
+  battlefield A: "Starry-Eyed Skyrider", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 end A: cast "Raise the Alarm"
+  run_to turn 3 precombat_main
+  assert has not oldest A "Soldier" flying
+  turn 3 A: attack "Starry-Eyed Skyrider", "Grizzly Bears", "Soldier"
+  turn 3 declare_attackers A: trigger "Starry-Eyed Skyrider" targeting "Grizzly Bears"
+  run_to turn 3 declare_blockers
+  assert has "Grizzly Bears" flying
+  assert has oldest A "Soldier" flying
+  assert has not newest A "Soldier" flying
+  illegal turn 3 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert life B 16
+}

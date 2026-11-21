@@ -1,0 +1,8 @@
+card "Glint Weaver" {
+  oracle_id eebe3fd6-afd0-4bb3-9e8f-c737497dae33
+  cost {5}{G}{G}
+  type Creature — Spider
+  pt 3/3
+  keywords reach
+  triggered when this enters: distribute 3 +1/+1 counters among 1 to 3 target creature then you gain count equal greatest toughness creature you control life
+}

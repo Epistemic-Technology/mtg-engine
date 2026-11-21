@@ -1,0 +1,8 @@
+card "Marshal of the Lost" {
+  oracle_id af762373-e159-4a36-83b5-a82b8b16fa41
+  cost {2}{W}{B}
+  type Creature — Orc Warrior
+  pt 3/3
+  keywords deathtouch
+  triggered whenever you attack: target creature gets +1/+1 count where attacking creature
+}

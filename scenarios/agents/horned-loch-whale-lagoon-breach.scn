@@ -1,0 +1,39 @@
+scenario "Lagoon Breach puts an attacker on top of its owner's library, then the Whale is cast from exile" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Horned Loch-Whale"
+  library B: "Forest", "Forest"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Lagoon Breach" targeting "Hill Giant"
+  run_to turn 2 end_combat
+  assert life A 20
+  assert library B contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+  assert exile A contains "Horned Loch-Whale"
+  turn 3 A: cast "Horned Loch-Whale"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Horned Loch-Whale"
+  assert untapped "Horned Loch-Whale"
+  assert power "Horned Loch-Whale" 6
+}
+
+scenario "Lagoon Breach can't target an attacker A controls" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Horned Loch-Whale"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_attackers A: cast "Lagoon Breach" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Horned Loch-Whale flashed in on the opponent's turn enters tapped" {
+  battlefield A: 6 "Island"
+  hand A: "Horned Loch-Whale"
+  start turn 2 B
+  turn 2 upkeep A: cast "Horned Loch-Whale"
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Horned Loch-Whale"
+  assert tapped "Horned Loch-Whale"
+}

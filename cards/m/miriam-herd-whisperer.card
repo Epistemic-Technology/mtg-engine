@@ -1,0 +1,8 @@
+card "Miriam, Herd Whisperer" {
+  oracle_id 1d88014b-8189-4a88-bee3-c2310d36f6e8
+  cost {G}{W}
+  type Legendary Creature — Human Druid
+  pt 3/2
+  static during your turn, Mount or Vehicle you control: has hexproof
+  triggered whenever Mount or Vehicle you control attacks: put 1 +1/+1 counter on it
+}

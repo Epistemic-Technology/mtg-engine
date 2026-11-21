@@ -1,0 +1,31 @@
+scenario "A Realm Reborn lets other permanents tap for any color" {
+  battlefield A: "A Realm Reborn", "Grizzly Bears", "Ornithopter"
+  hand A: "Shock", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert tapped "Grizzly Bears"
+  assert tapped "Ornithopter"
+}
+
+scenario "A Realm Reborn doesn't give itself the ability" {
+  battlefield A: "A Realm Reborn"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "A Realm Reborn doesn't help the opponent" {
+  battlefield A: "A Realm Reborn"
+  battlefield B: "Grizzly Bears"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 20
+}

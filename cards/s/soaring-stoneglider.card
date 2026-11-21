@@ -1,0 +1,9 @@
+card "Soaring Stoneglider" {
+  oracle_id 62d18d2b-fa68-49cd-b62d-803728ddfa8b
+  cost {2}{W}
+  type Creature — Elephant Cleric
+  pt 4/3
+  additional cost exile 2 cards from graveyard
+  additional cost or {1}{W}
+  keywords flying, vigilance
+}

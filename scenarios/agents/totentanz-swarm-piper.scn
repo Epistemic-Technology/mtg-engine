@@ -1,0 +1,41 @@
+scenario "totentanz: nontoken creature dies makes a rat; rat gains deathtouch attacking" {
+  battlefield A: "Totentanz, Swarm Piper", "Grizzly Bears", "Swamp", "Mountain"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain", "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Rat"
+  turn 3 A: attack "Rat"
+  turn 3 B: block "Rat" with "Hill Giant"
+  turn 3 declare_blockers A: activate "Totentanz, Swarm Piper" targeting "Rat"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A lacks "Rat"
+  assert battlefield A contains "Totentanz, Swarm Piper"
+}
+
+scenario "totentanz itself dying makes a rat, token dying does not" {
+  battlefield A: "Totentanz, Swarm Piper"
+  hand B: "Lightning Bolt", "Shock"
+  battlefield B: 2 "Mountain"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Totentanz, Swarm Piper"
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting "Rat"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Totentanz, Swarm Piper"
+  assert battlefield A lacks "Rat"
+}
+
+scenario "totentanz rat can't block" {
+  battlefield A: "Totentanz, Swarm Piper", "Grizzly Bears"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain", "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 A: block "Hill Giant" with "Rat"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}

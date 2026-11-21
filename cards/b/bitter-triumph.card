@@ -1,0 +1,8 @@
+card "Bitter Triumph" {
+  oracle_id 776341cb-d2ec-423f-9250-92dc8bd8d503
+  cost {1}{B}
+  type Instant
+  additional cost discard 1 card
+  additional cost or pay 3 life
+  spell: destroy target creature or planeswalker
+}

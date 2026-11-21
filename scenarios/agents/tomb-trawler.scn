@@ -1,0 +1,25 @@
+scenario "Tomb Trawler puts a graveyard card on the bottom of the library" {
+  battlefield A: "Tomb Trawler", 2 "Island"
+  graveyard A: "Hill Giant", "Shock"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tomb Trawler" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A lacks "Hill Giant"
+  assert graveyard A contains "Shock"
+  assert library A count 3
+  run_to turn 5 precombat_main
+  assert hand A contains "Forest"
+  assert hand A contains "Plains"
+  assert hand A lacks "Hill Giant"
+  assert library A contains "Hill Giant"
+}
+
+scenario "Tomb Trawler can't target an opponent's graveyard" {
+  battlefield A: "Tomb Trawler", 2 "Island"
+  graveyard B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Tomb Trawler" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

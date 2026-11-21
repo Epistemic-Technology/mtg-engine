@@ -1,0 +1,34 @@
+scenario "Bitter Triumph discards a card to destroy a creature" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Bitter Triumph", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bitter Triumph" discarding "Forest" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert graveyard A contains "Forest"
+  assert life A 20
+}
+
+scenario "Bitter Triumph pays 3 life instead" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Bitter Triumph", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bitter Triumph" other_cost targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand A contains "Forest"
+  assert life A 17
+}
+
+scenario "Bitter Triumph with an empty hand pays life" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Bitter Triumph"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bitter Triumph" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 17
+}

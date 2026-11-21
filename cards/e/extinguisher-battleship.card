@@ -1,0 +1,9 @@
+card "Extinguisher Battleship" {
+  oracle_id cce3dcc3-57bb-4b95-8b70-337c67bb3c4e
+  cost {8}
+  type Artifact — Spacecraft
+  pt 10/10
+  triggered when this enters: destroy target noncreature permanent; then this creature deals 4 damage to each creature
+  station
+  station 5: flying, trample
+}

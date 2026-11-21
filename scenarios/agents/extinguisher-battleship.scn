@@ -1,0 +1,26 @@
+scenario "Extinguisher Battleship destroys a noncreature permanent then deals 4 to each creature" {
+  battlefield A: 8 "Plains", "Grizzly Bears"
+  battlefield B: "Mind Stone", "Hill Giant", "Starwinder"
+  hand A: "Extinguisher Battleship"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Extinguisher Battleship"
+  turn 1 A: trigger "Extinguisher Battleship" targeting "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Extinguisher Battleship"
+  assert graveyard B contains "Mind Stone"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains "Starwinder"
+  assert damage "Starwinder" 4
+}
+
+scenario "Extinguisher Battleship at 5+ charge is a flying trample creature" {
+  battlefield A: "Extinguisher Battleship", "Craw Wurm"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Extinguisher Battleship"
+  run_to turn 1 postcombat_main
+  assert counters "Extinguisher Battleship" charge 6
+  assert is "Extinguisher Battleship" creature
+  assert has "Extinguisher Battleship" flying
+  assert has "Extinguisher Battleship" trample
+}

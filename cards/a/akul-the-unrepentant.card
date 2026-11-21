@@ -1,0 +1,8 @@
+card "Akul the Unrepentant" {
+  oracle_id d6b56d6d-e2f6-47f5-a9d1-cd0e17f94a0d
+  cost {B}{B}{R}{R}
+  type Legendary Creature — Scorpion Dragon Rogue
+  pt 5/5
+  keywords flying, trample
+  activated sorcery, sacrifice 3 other creature, once: you may put creature card from hand onto battlefield
+}

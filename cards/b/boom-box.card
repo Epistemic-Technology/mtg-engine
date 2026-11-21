@@ -1,0 +1,6 @@
+card "Boom Box" {
+  oracle_id b0fdf2e0-3025-4919-a9dc-d33100e487fd
+  cost {2}
+  type Artifact
+  activated {6}, {T}, sacrifice this: destroy up to 1 target artifact and up to 1 target creature and up to 1 target land
+}

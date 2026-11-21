@@ -1,0 +1,7 @@
+card "The Echoverse Fulcrum" {
+  oracle_id c04197ad-d2f3-499f-b863-bed0c869519c
+  cost {2}
+  type Legendary Artifact
+  triggered when this enters: draw 1 card then discard 1 card
+  activated {5}, {T}, exile this, sorcery: destroy all creature
+}

@@ -1,0 +1,41 @@
+scenario "Dreadmaw's Ire pumps an attacker that then destroys an artifact" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Boom Box"
+  hand A: "Dreadmaw's Ire"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: cast "Dreadmaw's Ire" targeting "Grizzly Bears"
+  turn 1 combat_damage A: trigger "Grizzly Bears" targeting "Boom Box"
+  run_to turn 1 end_combat
+  assert life B 16
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert graveyard B contains "Boom Box"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" trample
+}
+
+scenario "Dreadmaw's Ire trample carries over a blocker" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Dreadmaw's Ire"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: cast "Dreadmaw's Ire" targeting "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Ornithopter"
+  turn 1 combat_damage A: assign "Grizzly Bears" to "Ornithopter" 2, player B 2
+  run_to turn 1 end_combat
+  assert life B 18
+  assert graveyard B contains "Ornithopter"
+}
+
+scenario "Dreadmaw's Ire needs an attacking creature" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Dreadmaw's Ire"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Dreadmaw's Ire" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Dreadmaw's Ire"
+}

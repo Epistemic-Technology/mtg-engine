@@ -1,0 +1,9 @@
+card "Ruby, Daring Tracker" {
+  oracle_id 5d1b0eee-3a7a-4f22-a40d-7658a368962a
+  cost {R}{G}
+  type Legendary Creature — Human Scout
+  pt 1/2
+  keywords haste
+  triggered whenever this attacks while you control creature with power 4 or greater: this creature gets +2/+2
+  mana {R} or {G}
+}

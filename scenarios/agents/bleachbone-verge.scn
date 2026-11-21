@@ -1,0 +1,28 @@
+scenario "bleachbone verge taps for white with a swamp" {
+  hand A: "Raise the Alarm"
+  battlefield A: "Bleachbone Verge", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+  assert tapped "Bleachbone Verge"
+}
+
+scenario "bleachbone verge no white without plains or swamp" {
+  hand A: "Raise the Alarm"
+  battlefield A: "Bleachbone Verge", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Raise the Alarm"
+}
+
+scenario "bleachbone verge taps for black" {
+  hand A: "Murder"
+  battlefield A: "Bleachbone Verge", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

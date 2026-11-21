@@ -1,0 +1,13 @@
+scenario "Mockingbird grows when you target a creature you control" {
+  battlefield A: "Mockingbird, Ace Agent", "Grizzly Bears", "Forest", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Giant Growth", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Mockingbird, Ace Agent" +1/+1 1
+  assert power "Grizzly Bears" 5
+  assert damage "Hill Giant" 2
+}

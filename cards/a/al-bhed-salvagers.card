@@ -1,0 +1,7 @@
+card "Al Bhed Salvagers" {
+  oracle_id 43f81514-e812-4e17-9b1a-704c136d8ffd
+  cost {2}{B}
+  type Creature — Human Artificer Warrior
+  pt 2/3
+  triggered whenever this or creature or artifact you control dies: target opponent loses 1 life and you gain 1 life
+}

@@ -1,0 +1,27 @@
+scenario "Daily Bugle Building gives a legendary creature menace" {
+  battlefield A: "Daily Bugle Building", "Isamaru, Hound of Konda", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Daily Bugle Building" ability 2 targeting "Isamaru, Hound of Konda"
+  run_to turn 1 begin_combat
+  assert has "Isamaru, Hound of Konda" menace
+  assert tapped "Daily Bugle Building"
+  run_to turn 2 upkeep
+  assert has not "Isamaru, Hound of Konda" menace
+}
+
+scenario "Daily Bugle Building can't target a nonlegendary creature" {
+  battlefield A: "Daily Bugle Building", "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Daily Bugle Building" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has not "Grizzly Bears" menace
+}
+
+scenario "Daily Bugle Building filters {1} into a colored mana" {
+  battlefield A: "Daily Bugle Building", "Plains"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

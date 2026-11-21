@@ -1,0 +1,8 @@
+card "Stegron the Dinosaur Man" {
+  oracle_id 5c94b616-8edf-465c-b316-4599df95c52a
+  cost {4}{R}
+  type Legendary Creature — Dinosaur Villain
+  pt 5/4
+  keywords menace
+  label "Dinosaur Formula" activated {1}{R}, discard this: until end of turn, target creature you control gets +3/+1 and becomes Dinosaur in addition
+}

@@ -1,0 +1,6 @@
+card "Invasive Maneuvers" {
+  oracle_id 4c376349-1a50-4215-8a40-f702da81eb7b
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to target creature; it deals 5 damage instead if you control Spacecraft
+}

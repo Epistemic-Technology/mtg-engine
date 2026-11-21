@@ -1,0 +1,10 @@
+card "Hunted Bonebrute" {
+  oracle_id c1d9c41a-0941-4b7e-b8a6-890d30386458
+  cost {2}{B}
+  type Creature — Skeleton Beast
+  pt 6/2
+  keywords menace
+  triggered when this enters: target opponent creates 2 "1/1 white Dog creature"
+  triggered when this dies: each opponent loses 3 life
+  disguise {1}{B}
+}

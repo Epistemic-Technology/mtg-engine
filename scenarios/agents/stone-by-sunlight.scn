@@ -1,0 +1,28 @@
+scenario "stone by sunlight destroys a creature with power 4 or greater" {
+  hand A: "Stone by Sunlight"
+  battlefield A: 2 "Plains"
+  battlefield B: "Craw Wurm", "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Stone by Sunlight" mode 1 targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  turn 1 postcombat_main A: cast "Stone by Sunlight" mode 1 targeting "Craw Wurm"
+  run_to turn 1 end
+  assert graveyard B contains "Craw Wurm"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "stone by sunlight makes a creature an indestructible artifact" {
+  hand A: "Stone by Sunlight", "Shock"
+  battlefield A: 2 "Plains", "Mountain", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stone by Sunlight" mode 2 targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert is "Grizzly Bears" artifact
+  assert is "Grizzly Bears" creature
+  assert has "Grizzly Bears" indestructible
+  run_to turn 2 upkeep
+  assert is not "Grizzly Bears" artifact
+}

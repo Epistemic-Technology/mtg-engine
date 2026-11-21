@@ -1,0 +1,9 @@
+card "Shardmage's Rescue" {
+  oracle_id 406247ee-2b86-4068-b5fa-65cdc83a82f4
+  cost {W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature you control
+  static as long as this is that entered this turn, enchanted: has hexproof
+  static enchanted: +1/+1
+}

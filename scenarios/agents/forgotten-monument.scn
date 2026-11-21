@@ -1,0 +1,21 @@
+scenario "Forgotten Monument lets another Cave make colored mana for 1 life" {
+  battlefield A: "Forgotten Monument", "Promising Vein"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert life A 19
+  assert tapped "Forgotten Monument"
+  assert tapped "Promising Vein"
+}
+
+scenario "Forgotten Monument does not grant the ability to itself" {
+  battlefield A: "Forgotten Monument", "Island"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert life A 20
+}

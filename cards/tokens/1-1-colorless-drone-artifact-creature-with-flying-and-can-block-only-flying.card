@@ -1,0 +1,8 @@
+token "1/1 colorless Drone artifact creature with flying and can block only flying" {
+  name "Drone"
+  type Artifact Creature — Drone
+  pt 1/1
+  color
+  keywords flying
+  can block only creature with flying
+}

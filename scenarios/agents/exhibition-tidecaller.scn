@@ -1,0 +1,35 @@
+scenario "Exhibition Tidecaller mills three for a cheap spell" {
+  battlefield A: "Exhibition Tidecaller", 3 "Island"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  turn 1 A: trigger "Exhibition Tidecaller" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 3
+  assert library B count 37
+  assert hand A count 2
+}
+
+scenario "Exhibition Tidecaller mills ten when five mana was spent" {
+  battlefield A: "Exhibition Tidecaller", 5 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Blaze"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blaze" x 4 targeting "Serra Angel"
+  turn 1 A: trigger "Exhibition Tidecaller" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 11
+  assert graveyard B contains "Serra Angel"
+  assert graveyard A count 1
+}
+
+scenario "Exhibition Tidecaller can target its controller" {
+  battlefield A: "Exhibition Tidecaller", 3 "Island"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  turn 1 A: trigger "Exhibition Tidecaller" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A count 4
+  assert graveyard B count 0
+}

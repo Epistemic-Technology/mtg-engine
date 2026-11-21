@@ -1,0 +1,12 @@
+scenario "marshal of the lost pumps target by number of attackers" {
+  battlefield A: "Marshal of the Lost", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Marshal of the Lost", "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Marshal of the Lost" targeting "Hill Giant"
+  run_to turn 1 declare_blockers
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 5
+  assert power "Grizzly Bears" 2
+  run_to turn 1 postcombat_main
+  assert life B 15
+}

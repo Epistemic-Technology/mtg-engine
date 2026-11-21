@@ -1,0 +1,7 @@
+card "Daily Bugle Building" {
+  oracle_id 483e0c6c-8131-486c-b482-cc3396c9786b
+  type Land
+  mana {C}
+  activated {1}, {T}: add any
+  label "Smear Campaign" activated {1}, {T}, sorcery: target legendary creature gains menace
+}

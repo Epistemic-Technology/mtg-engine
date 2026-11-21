@@ -1,0 +1,36 @@
+scenario "Al Bhed Salvagers drains when another creature you control dies" {
+  battlefield A: "Al Bhed Salvagers", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Al Bhed Salvagers drains when a noncreature artifact you control dies" {
+  battlefield A: "Al Bhed Salvagers", "Mind Stone", "Mountain", "Mountain"
+  hand A: "Shatter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shatter" targeting "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Mind Stone"
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Al Bhed Salvagers drains when it dies itself, not for an opponent's creature" {
+  battlefield A: "Al Bhed Salvagers", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Al Bhed Salvagers"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Al Bhed Salvagers"
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 19
+  assert life A 21
+}

@@ -1,0 +1,8 @@
+card "Restless Prairie" {
+  oracle_id c071257a-63e7-48d0-a677-0b396a09b624
+  type Land
+  enters tapped
+  activated {T}: add {G} or {W}
+  activated {2}{G}{W}: this becomes 3/3 green white Llama creature until end of turn
+  triggered whenever this attacks: each other creature you control gets +1/+1 until end of turn
+}

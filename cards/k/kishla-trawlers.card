@@ -1,0 +1,7 @@
+card "Kishla Trawlers" {
+  oracle_id 09277185-fccd-4747-aa79-f569c581022a
+  cost {2}{U}
+  type Creature — Human Citizen
+  pt 3/2
+  triggered when this enters: you may exile 1 creature card from your graveyard chosen; when you do, return target instant or sorcery card from your graveyard to hand
+}

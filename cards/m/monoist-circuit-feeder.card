@@ -1,0 +1,8 @@
+card "Monoist Circuit-Feeder" {
+  oracle_id de70a6bb-32ed-4a89-a522-c2a71f08fb02
+  cost {4}{B}{B}
+  type Artifact Creature — Nautilus
+  pt 4/4
+  keywords flying
+  triggered when this enters: until end of turn, target creature you control gets +1/+0 count where artifact you control and target creature an opponent controls gets -0/-1 count where artifact you control
+}

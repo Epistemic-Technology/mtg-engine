@@ -1,0 +1,8 @@
+card "Mister Fantastic, Reed Richards" {
+  oracle_id 7fa5237e-dd79-4646-b935-cb8c6ee803ab
+  cost {3}{U}
+  type Legendary Creature — Human Scientist Hero
+  pt 2/4
+  keywords reach
+  triggered whenever one or more token you control enter: you may draw 1 card
+}

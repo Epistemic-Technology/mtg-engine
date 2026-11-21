@@ -1,0 +1,8 @@
+card "Betrayer's Bargain" {
+  oracle_id bfb3d862-d92d-4a4f-9a22-671b55d954fd
+  cost {1}{R}
+  type Instant
+  additional cost sacrifice creature or enchantment
+  additional cost or {2}
+  spell: deal 5 damage to target creature; this turn, replace target 1 dies: exile
+}

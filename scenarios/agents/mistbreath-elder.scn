@@ -1,0 +1,26 @@
+scenario "Mistbreath Elder returns another creature and grows" {
+  battlefield A: "Mistbreath Elder", "Grizzly Bears"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Mistbreath Elder"
+  assert counters "Mistbreath Elder" +1/+1 1
+  assert power "Mistbreath Elder" 3
+}
+
+scenario "Mistbreath Elder with no other creature may return itself" {
+  battlefield A: "Mistbreath Elder"
+  start turn 1 A
+  turn 1 upkeep A: accept "Mistbreath Elder"
+  run_to turn 1 precombat_main
+  assert hand A contains "Mistbreath Elder"
+}
+
+scenario "Mistbreath Elder may stay when it can't return another creature" {
+  battlefield A: "Mistbreath Elder"
+  start turn 1 A
+  turn 1 upkeep A: decline "Mistbreath Elder"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Mistbreath Elder"
+  assert counters "Mistbreath Elder" +1/+1 0
+}

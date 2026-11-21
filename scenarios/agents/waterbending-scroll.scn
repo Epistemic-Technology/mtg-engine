@@ -1,0 +1,26 @@
+scenario "Waterbending Scroll costs {1} less for each Island" {
+  battlefield A: "Waterbending Scroll", 4 "Island"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Waterbending Scroll"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+  assert tapped "Waterbending Scroll"
+}
+
+scenario "Waterbending Scroll can't be activated without enough mana" {
+  battlefield A: "Waterbending Scroll", 2 "Island", "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Waterbending Scroll"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Waterbending Scroll is free with six Islands" {
+  battlefield A: "Waterbending Scroll", 6 "Island" tapped
+  start turn 1 A precombat_main
+  turn 1 A: activate "Waterbending Scroll"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}

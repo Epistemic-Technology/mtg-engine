@@ -1,0 +1,26 @@
+scenario "Cosmic Spider-Man gives other Spiders its keywords at the beginning of combat" {
+  battlefield A: "Cosmic Spider-Man", "Ancient Spider", "Grizzly Bears"
+  battlefield B: "Ancient Spider"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert has A "Ancient Spider" flying
+  assert has A "Ancient Spider" trample
+  assert has A "Ancient Spider" lifelink
+  assert has A "Ancient Spider" haste
+  assert has not "Grizzly Bears" flying
+  assert has not B "Ancient Spider" lifelink
+  run_to turn 2 precombat_main
+  assert has not A "Ancient Spider" lifelink
+}
+
+scenario "Cosmic Spider-Man attacks with haste and lifelink" {
+  battlefield B: "Plains"
+  hand A: "Cosmic Spider-Man"
+  battlefield A: "Plains", "Island", "Swamp", "Mountain", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cosmic Spider-Man"
+  turn 1 A: attack "Cosmic Spider-Man"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 25
+}

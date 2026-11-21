@@ -1,0 +1,18 @@
+scenario "Starwinder draws cards equal to combat damage dealt by each creature" {
+  battlefield A: "Starwinder", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Starwinder", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 11
+  assert hand A count 9
+}
+
+scenario "Starwinder's draw is optional" {
+  battlefield A: "Starwinder", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 A: decline "Starwinder"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert hand A count 0
+}

@@ -1,0 +1,10 @@
+card "Leatherhead, Swamp Stalker" {
+  oracle_id ee9b606a-a1fe-43c8-84d0-9bf7b012cc75
+  cost {2}{G}{G}
+  type Legendary Creature — Crocodile Mutant Rogue
+  pt 5/4
+  pronoun she
+  keywords trample
+  enters with 1 hexproof counter
+  triggered whenever this deals combat damage to a player: you may remove 1 counter from this; when you do, destroy target artifact or enchantment that player controls
+}

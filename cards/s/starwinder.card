@@ -1,0 +1,8 @@
+card "Starwinder" {
+  oracle_id face2dc0-37ba-4efe-b900-b5521567c943
+  cost {5}{U}{U}
+  type Creature — Leviathan
+  pt 7/7
+  triggered whenever creature you control deals combat damage to a player: you may draw that much cards
+  warp {2}{U}{U}
+}

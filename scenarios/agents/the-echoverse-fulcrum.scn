@@ -1,0 +1,32 @@
+scenario "The Echoverse Fulcrum loots as it enters" {
+  battlefield A: 2 "Island"
+  hand A: "The Echoverse Fulcrum", "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Echoverse Fulcrum"
+  turn 1 precombat_main A: discard "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert hand A count 1
+}
+
+scenario "The Echoverse Fulcrum exiles itself to destroy all creatures" {
+  battlefield A: "The Echoverse Fulcrum", "Grizzly Bears", 5 "Island"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Echoverse Fulcrum"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert exile A contains "The Echoverse Fulcrum"
+}
+
+scenario "The Echoverse Fulcrum's ability is sorcery speed" {
+  battlefield A: "The Echoverse Fulcrum", 5 "Island"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 begin_combat A: activate "The Echoverse Fulcrum"
+  run_to turn 1 declare_attackers
+  assert battlefield B contains "Hill Giant"
+}

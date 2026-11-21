@@ -1,0 +1,17 @@
+scenario "Unflinching Courage gives +2/+2, trample and lifelink" {
+  battlefield A: "Grizzly Bears", "Forest", "Plains", "Forest"
+  battlefield B: "Llanowar Elves"
+  hand A: "Unflinching Courage"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Unflinching Courage" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Llanowar Elves"
+  turn 2 A: assign "Grizzly Bears" to "Llanowar Elves" 1, player B 3
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert graveyard B contains "Llanowar Elves"
+  assert life B 17
+  assert life A 24
+}

@@ -1,0 +1,6 @@
+card "Forgotten Monument" {
+  oracle_id 71393988-ad6f-43fd-9978-c0de15ae8e87
+  type Land — Cave
+  mana {C}
+  static other Cave you control: has ability { activated {T}, pay 1 life: add any }
+}

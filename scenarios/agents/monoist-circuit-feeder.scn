@@ -1,0 +1,26 @@
+scenario "Monoist Circuit-Feeder's X counts artifacts you control, itself included" {
+  battlefield A: "Ornithopter", "Grizzly Bears", 6 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Monoist Circuit-Feeder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Monoist Circuit-Feeder"
+  turn 1 A: trigger "Monoist Circuit-Feeder" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert toughness "Hill Giant" 1
+  assert power "Hill Giant" 3
+  assert has "Monoist Circuit-Feeder" flying
+}
+
+scenario "Monoist Circuit-Feeder can shrink a creature to death, and it wears off" {
+  battlefield A: "Ornithopter", "Grizzly Bears", 6 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Monoist Circuit-Feeder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Monoist Circuit-Feeder"
+  turn 1 A: trigger "Monoist Circuit-Feeder" targeting A "Grizzly Bears", B "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert graveyard B contains "Grizzly Bears"
+  assert power A "Grizzly Bears" 2
+}

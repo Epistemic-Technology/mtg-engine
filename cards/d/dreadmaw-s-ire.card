@@ -1,0 +1,6 @@
+card "Dreadmaw's Ire" {
+  oracle_id 781d6981-d389-4677-9eaf-9c46c9192ed6
+  cost {R}
+  type Instant
+  spell: until end of turn, target attacking creature gets +2/+2 and gains trample and gains ability { triggered whenever this deals combat damage to a player: destroy target artifact that player controls }
+}

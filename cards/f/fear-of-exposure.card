@@ -1,0 +1,8 @@
+card "Fear of Exposure" {
+  oracle_id abec56eb-7b3d-4bd8-93c7-bd7049c859c3
+  cost {2}{G}
+  type Enchantment Creature — Nightmare
+  pt 5/4
+  additional cost tap 2 untapped creature or land you control
+  keywords trample
+}

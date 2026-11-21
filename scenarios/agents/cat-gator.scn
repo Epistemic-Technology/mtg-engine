@@ -1,0 +1,22 @@
+scenario "cat-gator deals damage equal to swamps, with lifelink" {
+  hand A: "Cat-Gator"
+  battlefield A: 6 "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cat-Gator"
+  turn 1 A: trigger "Cat-Gator" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert life A 26
+}
+
+scenario "cat-gator hits a creature" {
+  hand A: "Cat-Gator"
+  battlefield A: 7 "Swamp"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cat-Gator"
+  turn 1 A: trigger "Cat-Gator" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert life A 27
+}

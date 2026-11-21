@@ -1,0 +1,18 @@
+card "Miles Morales // Ultimate Spider-Man" {
+  oracle_id be48c721-bdc6-4f2c-96d6-82d934b31615
+  layout modal_dfc
+  cost {1}{G}
+  type Legendary Creature — Human Citizen Hero
+  pt 1/2
+  triggered when this enters: put 1 +1/+1 counter on up to 2 target creature
+  activated {3}{R}{G}{W}, sorcery: transform this
+  face "Ultimate Spider-Man" {
+    cost {3}{R}{G}{W}
+    type Legendary Creature — Spider Human Hero
+    pt 4/3
+    pronoun he
+    keywords first strike, haste
+    label "Camouflage" activated {2}: put 1 +1/+1 counter on this; this gains hexproof and becomes colorless
+    triggered whenever you attack: double the number of each kind of counter on each andlist Spider or legendary creature you control
+  }
+}

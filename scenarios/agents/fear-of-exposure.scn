@@ -1,0 +1,29 @@
+scenario "Fear of Exposure taps two creatures as its extra cost" {
+  battlefield A: 3 "Forest", "Grizzly Bears", "Hill Giant"
+  hand A: "Fear of Exposure"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fear of Exposure"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Fear of Exposure"
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert has "Fear of Exposure" trample
+}
+
+scenario "Fear of Exposure can't be cast with only four lands" {
+  battlefield A: 4 "Forest"
+  hand A: "Fear of Exposure"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Fear of Exposure"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Fear of Exposure"
+}
+
+scenario "Fear of Exposure can tap lands for its extra cost" {
+  battlefield A: 5 "Forest"
+  hand A: "Fear of Exposure"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fear of Exposure"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Fear of Exposure"
+}

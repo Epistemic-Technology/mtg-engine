@@ -1,0 +1,7 @@
+card "Ruthless Negotiation" {
+  oracle_id a82ea8f2-e576-46cd-aa08-9c98d6029db4
+  cost {B}
+  type Sorcery
+  spell: target opponent exiles 1 card from hand; if cast from graveyard, draw 1 card
+  flashback {4}{B}
+}

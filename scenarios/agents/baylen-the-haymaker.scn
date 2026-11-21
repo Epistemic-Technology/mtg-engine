@@ -1,0 +1,55 @@
+scenario "Baylen taps four tokens for three counters and trample" {
+  battlefield A: "Baylen, the Haymaker", 4 "Plains"
+  hand A: "Raise the Alarm", "Raise the Alarm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: wait
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: wait
+  turn 1 A: activate "Baylen, the Haymaker" ability 3
+  run_to turn 1 postcombat_main
+  assert counters "Baylen, the Haymaker" +1/+1 3
+  assert power "Baylen, the Haymaker" 7
+  assert toughness "Baylen, the Haymaker" 6
+  assert has "Baylen, the Haymaker" trample
+  run_to turn 2 untap
+  assert has not "Baylen, the Haymaker" trample
+}
+
+scenario "Baylen taps three tokens to draw a card" {
+  battlefield A: "Baylen, the Haymaker", 4 "Plains"
+  hand A: "Raise the Alarm", "Raise the Alarm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: wait
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: wait
+  turn 1 A: activate "Baylen, the Haymaker" ability 2
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Baylen's tokens pay for a spell" {
+  battlefield A: "Baylen, the Haymaker", 2 "Plains", "Forest"
+  hand A: "Raise the Alarm", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: wait
+  turn 1 A: activate "Baylen, the Haymaker" sacrificing "Soldier"
+  turn 1 A: choose green
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Forest"
+}
+
+scenario "Baylen can't draw with only two tokens" {
+  battlefield A: "Baylen, the Haymaker", 2 "Plains"
+  hand A: "Raise the Alarm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Baylen, the Haymaker" ability 2
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

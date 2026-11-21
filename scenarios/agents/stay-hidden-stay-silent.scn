@@ -1,0 +1,28 @@
+scenario "Stay Hidden, Stay Silent taps the creature and keeps it tapped" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Stay Hidden, Stay Silent"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stay Hidden, Stay Silent" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert attached "Stay Hidden, Stay Silent" to "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+}
+
+scenario "Stay Hidden, Stay Silent shuffles the creature away and manifests dread" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant" tapped
+  battlefield A: "Stay Hidden, Stay Silent" on "Hill Giant"
+  library A: "Grizzly Bears", "Forest", "Plains"
+  library B: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stay Hidden, Stay Silent"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert library B contains "Hill Giant"
+  assert battlefield A contains "face-down creature"
+  assert graveyard A count 2
+  assert library A count 1
+}

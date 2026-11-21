@@ -1,0 +1,9 @@
+card "Baylen, the Haymaker" {
+  oracle_id 73dc28a7-37ac-4b16-aa00-967c9c44d979
+  cost {R}{G}{W}
+  type Legendary Creature — Rabbit Warrior
+  pt 4/3
+  activated tap 2 untapped token you control: add any
+  activated tap 3 untapped token you control: draw 1 card
+  activated tap 4 untapped token you control: put 3 +1/+1 counters on this; it gains trample
+}

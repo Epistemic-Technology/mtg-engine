@@ -1,0 +1,30 @@
+scenario "M.O.D.O.K. connives for 3 life" {
+  battlefield A: "M.O.D.O.K."
+  library A: "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "M.O.D.O.K."
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "M.O.D.O.K." +1/+1 1
+  assert power "M.O.D.O.K." 3
+}
+
+scenario "M.O.D.O.K. can't connive on the opponent's turn" {
+  battlefield A: "M.O.D.O.K."
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: activate "M.O.D.O.K."
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "M.O.D.O.K. shrinks the opponent's creatures" {
+  battlefield A: "M.O.D.O.K.", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Wind Drake"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power B "Hill Giant" 2
+  assert toughness B "Hill Giant" 2
+  assert power B "Wind Drake" 1
+  assert power A "Grizzly Bears" 2
+}

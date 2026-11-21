@@ -1,0 +1,9 @@
+card "Gandalf, Spark Starter" {
+  oracle_id cd1a9d87-4c91-4456-8d88-19e0d6e0b200
+  cost {4}{R}{R}
+  type Legendary Creature — Avatar Wizard
+  pt 4/3
+  pronoun he
+  keywords reach
+  triggered when this enters: deal 3 damage divided among 1 to 3 targets
+}

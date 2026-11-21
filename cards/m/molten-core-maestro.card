@@ -1,0 +1,8 @@
+card "Molten-Core Maestro" {
+  oracle_id 485233bf-dc4b-4f31-8dfb-5054aee70c08
+  cost {1}{R}
+  type Creature — Goblin Bard
+  pt 2/2
+  keywords menace
+  label "Opus" triggered whenever you cast an instant or sorcery spell: put 1 +1/+1 counter on this; if that spell spent 5 mana, add {R} count equal power
+}

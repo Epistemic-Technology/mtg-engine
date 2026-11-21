@@ -1,0 +1,7 @@
+card "Station Monitor" {
+  oracle_id 94e8791b-e72f-4aed-b761-826779337168
+  cost {W}{U}
+  type Creature — Lizard Artificer
+  pt 2/2
+  triggered whenever you cast your second spell each turn: create 1 "1/1 colorless Drone artifact creature with flying and can block only flying"
+}

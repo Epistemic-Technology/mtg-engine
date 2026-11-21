@@ -1,0 +1,8 @@
+card "Redrock Sentinel" {
+  oracle_id 51a6819d-c8fb-4f52-ab0c-4ae845728ed2
+  cost {3}
+  type Artifact Creature — Golem
+  pt 2/4
+  keywords defender
+  activated {2}, {T}, sacrifice land: draw 1 card and create 1 "Treasure"
+}

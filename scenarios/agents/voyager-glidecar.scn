@@ -1,0 +1,36 @@
+scenario "voyager glidecar: tap three creatures to animate with flying and a counter" {
+  battlefield A: "Voyager Glidecar", 3 "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Voyager Glidecar" ability 1
+  run_to turn 1 begin_combat
+  assert is "Voyager Glidecar" creature
+  assert has "Voyager Glidecar" flying
+  assert counters "Voyager Glidecar" +1/+1 1
+  assert power "Voyager Glidecar" 3
+  assert toughness "Voyager Glidecar" 4
+  turn 1 A: attack "Voyager Glidecar"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  run_to turn 2 upkeep
+  assert is not "Voyager Glidecar" creature
+  assert counters "Voyager Glidecar" +1/+1 1
+}
+
+scenario "voyager glidecar needs three other untapped creatures" {
+  battlefield A: "Voyager Glidecar", 2 "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Voyager Glidecar" ability 1
+  run_to turn 1 postcombat_main
+  assert is not "Voyager Glidecar" creature
+}
+
+scenario "voyager glidecar enters and scries 1" {
+  hand A: "Voyager Glidecar"
+  battlefield A: "Plains"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Voyager Glidecar"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Voyager Glidecar"
+  assert known A "Island"
+}

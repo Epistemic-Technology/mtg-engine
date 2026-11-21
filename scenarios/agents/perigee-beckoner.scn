@@ -1,0 +1,26 @@
+scenario "Perigee Beckoner pumps another creature you control" {
+  battlefield A: "Grizzly Bears", 5 "Swamp"
+  hand A: "Perigee Beckoner"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Perigee Beckoner"
+  turn 1 A: trigger "Perigee Beckoner" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert power "Perigee Beckoner" 4
+}
+
+scenario "Perigee Beckoner's granted ability returns the creature tapped" {
+  battlefield A: "Grizzly Bears", 2 "Swamp", "Mountain"
+  hand A: "Perigee Beckoner", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Perigee Beckoner" warped
+  turn 1 A: trigger "Perigee Beckoner" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+  assert graveyard A lacks "Grizzly Bears"
+}

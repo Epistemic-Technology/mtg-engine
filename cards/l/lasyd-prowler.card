@@ -1,0 +1,8 @@
+card "Lasyd Prowler" {
+  oracle_id f780d6f6-540b-4773-8a48-e56e95c2d39e
+  cost {2}{G}{G}
+  type Creature — Snake Ranger
+  pt 5/5
+  triggered when this enters: you may you mill count equal land you control cards
+  label "Renew" activated {1}{G}, exile this from graveyard, sorcery: put count where graveyard land +1/+1 counters on target creature
+}

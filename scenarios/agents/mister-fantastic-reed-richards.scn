@@ -1,0 +1,29 @@
+scenario "Mister Fantastic draws once when two tokens enter together" {
+  battlefield A: "Mister Fantastic, Reed Richards", 4 "Plains"
+  hand A: "Allied Reinforcements"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Allied Reinforcements"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Knight Ally"
+  assert hand A count 1
+}
+
+scenario "Mister Fantastic's draw is optional" {
+  battlefield A: "Mister Fantastic, Reed Richards", 4 "Plains"
+  hand A: "Allied Reinforcements"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Allied Reinforcements"
+  turn 1 A: decline "Mister Fantastic, Reed Richards"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Mister Fantastic ignores nontoken creatures" {
+  battlefield A: "Mister Fantastic, Reed Richards", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+}

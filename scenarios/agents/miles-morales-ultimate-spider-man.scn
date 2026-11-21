@@ -1,0 +1,44 @@
+scenario "Miles Morales puts a counter on each of up to two target creatures" {
+  battlefield A: "Grizzly Bears", "Forest", "Mountain"
+  hand A: "Miles Morales // Ultimate Spider-Man"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Miles Morales"
+  turn 1 A: trigger "Miles Morales" targeting "Grizzly Bears", "Miles Morales"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Miles Morales" +1/+1 1
+}
+
+scenario "Miles Morales transforms at sorcery speed" {
+  battlefield A: "Miles Morales // Ultimate Spider-Man", "Mountain", "Forest", "Plains", 3 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Miles Morales"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ultimate Spider-Man"
+  assert has "Ultimate Spider-Man" haste
+}
+
+scenario "Ultimate Spider-Man doubles counters on Spiders and legendary creatures when you attack" {
+  battlefield A: "Miles Morales // Ultimate Spider-Man", "Mountain", "Forest", "Plains", 3 "Island"
+  battlefield A: "Ancient Spider" with 2 +1/+1, "Isamaru, Hound of Konda" with 1 +1/+1, "Grizzly Bears" with 1 +1/+1
+  start turn 1 A precombat_main
+  turn 1 A: activate "Miles Morales"
+  turn 1 A: attack "Ultimate Spider-Man"
+  run_to turn 1 declare_blockers
+  assert counters "Ancient Spider" +1/+1 4
+  assert counters "Isamaru, Hound of Konda" +1/+1 2
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Ultimate Spider-Man's camouflage" {
+  battlefield A: "Miles Morales // Ultimate Spider-Man", "Mountain", "Forest", "Plains", 5 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Miles Morales"
+  turn 1 A: wait
+  turn 1 A: activate "Ultimate Spider-Man"
+  run_to turn 1 begin_combat
+  assert counters "Ultimate Spider-Man" +1/+1 1
+  assert has "Ultimate Spider-Man" hexproof
+  assert is not "Ultimate Spider-Man" red
+  assert is not "Ultimate Spider-Man" green
+}

@@ -1,0 +1,8 @@
+card "Greed's Gambit" {
+  oracle_id 0868ebbb-2fe9-4f53-9697-acad8cda5ec1
+  cost {3}{B}
+  type Enchantment
+  triggered when this enters: you draw 3 cards, gain 6 life and create 3 "2/1 black Bat creature with flying"
+  triggered at beginning of your end step: you discard 1 card, lose 2 life and sacrifices 1 creature
+  triggered when this leaves the battlefield: you discard 3 cards, lose 6 life and sacrifices 3 creature
+}

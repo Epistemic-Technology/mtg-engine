@@ -1,0 +1,8 @@
+card "Orcrist, Goblin-cleaver" {
+  oracle_id cc65821a-1893-4087-b461-35cf9fd26c71
+  cost {3}
+  type Legendary Artifact — Equipment
+  static equipped: +2/+2, has trample
+  triggered whenever equipped creature deals combat damage to a player: choose creature type; create count each creature you control of that type "Treasure"
+  equip {3}
+}

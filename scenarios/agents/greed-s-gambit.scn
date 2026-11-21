@@ -1,0 +1,32 @@
+scenario "greed's gambit enters: draw 3, gain 6, three 2/1 bats; end step costs" {
+  hand A: "Greed's Gambit"
+  battlefield A: 4 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Greed's Gambit"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert life A 26
+  assert battlefield A contains 3 "Bat"
+  assert power newest A "Bat" 2
+  assert has newest A "Bat" flying
+  run_to turn 2 upkeep
+  assert life A 24
+  assert hand A count 2
+  assert battlefield A contains 2 "Bat"
+}
+
+scenario "greed's gambit leaving: discard 3, lose 6, sacrifice 3" {
+  hand A: "Greed's Gambit", "Disenchant"
+  battlefield A: 4 "Swamp", 2 "Plains", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Greed's Gambit"
+  turn 1 A: wait
+  turn 1 A: cast "Disenchant" targeting "Greed's Gambit"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert hand A count 0
+  assert battlefield A lacks "Greed's Gambit"
+  assert battlefield A contains 1 "Bat"
+  assert graveyard A contains "Grizzly Bears"
+
+}

@@ -1,0 +1,8 @@
+card "Cat-Gator" {
+  oracle_id 349e6b9e-40a8-49bc-9cd3-4a22f5363fa5
+  cost {6}{B}
+  type Creature — Fish Crocodile
+  pt 3/2
+  keywords lifelink
+  triggered when this enters: it deals damage equal Swamp you control to any target
+}

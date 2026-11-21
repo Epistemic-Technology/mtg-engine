@@ -1,0 +1,6 @@
+card "Back on Track" {
+  oracle_id aaf46eaf-2e01-46ac-b79d-6b70739d11c2
+  cost {4}{B}
+  type Sorcery
+  spell: return target creature or Vehicle card from your graveyard to battlefield; create 1 "1/1 colorless Pilot creature with saddles and crews plus 2"
+}

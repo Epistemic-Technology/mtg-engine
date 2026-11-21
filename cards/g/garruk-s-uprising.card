@@ -1,0 +1,8 @@
+card "Garruk's Uprising" {
+  oracle_id 3127ae9b-a7a7-43ec-89d7-688f8445b33d
+  cost {2}{G}
+  type Enchantment
+  triggered when this enters if you control creature with power 4 or greater: draw 1 card
+  static creature you control: has trample
+  triggered whenever creature you control with power 4 or greater enters: draw 1 card
+}

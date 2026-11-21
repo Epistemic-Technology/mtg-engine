@@ -1,0 +1,7 @@
+card "Exhibition Tidecaller" {
+  oracle_id d32c9439-4c97-412b-83cc-6d9acb48be3c
+  cost {U}
+  type Creature — Djinn Wizard
+  pt 0/2
+  label "Opus" triggered whenever you cast instant or sorcery spell: target player mills 3 cards; if that spell spent 5 mana, that target 1 mills 10 cards instead
+}

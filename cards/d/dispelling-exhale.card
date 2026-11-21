@@ -1,0 +1,7 @@
+card "Dispelling Exhale" {
+  oracle_id dd3a4b64-0987-4e9b-a18d-c54365438857
+  cost {1}{U}
+  type Instant
+  additional cost may behold Dragon
+  spell: counter target spell unless its controller pays {2}; if beheld, counter that target 1 unless its controller pays {4} instead
+}

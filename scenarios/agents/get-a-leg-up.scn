@@ -1,0 +1,14 @@
+scenario "Get a Leg Up pumps by the number of creatures you control and grants reach" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Forest"
+  battlefield B: "Craw Wurm"
+  hand A: "Get a Leg Up"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Get a Leg Up" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" reach
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" reach
+}

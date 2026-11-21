@@ -1,0 +1,21 @@
+scenario "Leering Onlooker exiles itself from the graveyard for two tapped Bats" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Leering Onlooker"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Leering Onlooker"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Bat"
+  assert tapped oldest A "Bat"
+  assert tapped newest A "Bat"
+  assert has oldest A "Bat" flying
+  assert exile A contains "Leering Onlooker"
+  assert graveyard A lacks "Leering Onlooker"
+}
+
+scenario "Leering Onlooker's ability doesn't work from the battlefield" {
+  battlefield A: "Leering Onlooker", 4 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Leering Onlooker"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Leering Onlooker"
+}

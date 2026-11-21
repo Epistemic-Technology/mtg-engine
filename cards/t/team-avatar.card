@@ -1,0 +1,7 @@
+card "Team Avatar" {
+  oracle_id f95f7b0c-2dd6-46e1-ae02-f51d275e7120
+  cost {2}{W}
+  type Enchantment
+  triggered whenever creature you control attacks alone: it gets +1/+1 count where creature you control
+  activated {2}{W}, discard this: it deals damage equal creature you control to target creature
+}

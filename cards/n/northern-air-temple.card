@@ -1,0 +1,7 @@
+card "Northern Air Temple" {
+  oracle_id 28a2ad5b-d637-4634-8d4b-889e1fc88319
+  cost {B}
+  type Legendary Enchantment — Shrine
+  triggered when this enters: each opponent loses count where Shrine you control life and you gain count where Shrine you control life
+  triggered whenever other Shrine you control enters: each opponent loses 1 life and you gain 1 life
+}

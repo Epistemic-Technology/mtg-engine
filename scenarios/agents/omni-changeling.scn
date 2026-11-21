@@ -1,0 +1,27 @@
+scenario "Omni-Changeling enters as a copy with changeling" {
+  battlefield A: "Serra Angel", 5 "Island"
+  hand A: "Omni-Changeling"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Omni-Changeling"
+  turn 1 A: copy "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Serra Angel"
+  assert power newest A "Serra Angel" 4
+  assert has newest A "Serra Angel" flying
+  assert is newest A "Serra Angel" Goblin
+  assert is not oldest A "Serra Angel" Goblin
+}
+
+scenario "Omni-Changeling can copy an opponent's creature, paid with convoke" {
+  battlefield A: 2 "Grizzly Bears", 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Omni-Changeling"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Omni-Changeling"
+  turn 1 A: copy B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert power A "Hill Giant" 3
+  assert tapped oldest "Grizzly Bears"
+  assert tapped newest "Grizzly Bears"
+}

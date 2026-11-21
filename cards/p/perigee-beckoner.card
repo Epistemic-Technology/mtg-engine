@@ -1,0 +1,8 @@
+card "Perigee Beckoner" {
+  oracle_id e0a35a44-e56d-434e-8043-43d5031b2e84
+  cost {4}{B}
+  type Creature — Horror
+  pt 4/5
+  triggered when this enters: until end of turn, another target creature you control gets +2/+0 and target 1 gains ability { triggered whenever this dies: return this to battlefield tapped }
+  warp {1}{B}
+}

@@ -1,0 +1,35 @@
+scenario "Digsite Conservator exiles up to four cards from one graveyard" {
+  battlefield A: "Digsite Conservator"
+  graveyard B: "Shock", "Lightning Bolt", "Grizzly Bears", "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Digsite Conservator" targeting "Shock", "Lightning Bolt", "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Digsite Conservator"
+  assert exile B contains "Shock"
+  assert exile B contains "Lightning Bolt"
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert graveyard B contains "Forest"
+}
+
+scenario "Digsite Conservator dying lets you pay 4 to discover 4" {
+  battlefield A: "Digsite Conservator", 4 "Plains"
+  library A: "Forest", "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Digsite Conservator"
+  run_to turn 1 postcombat_main
+  assert tapped newest A "Plains"
+  assert exile A lacks "Hill Giant"
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Digsite Conservator: declining the payment discovers nothing" {
+  battlefield A: "Digsite Conservator", 4 "Plains"
+  library A: "Forest", "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Digsite Conservator"
+  turn 1 A: decline "Digsite Conservator"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Hill Giant"
+  assert library A count 3
+}

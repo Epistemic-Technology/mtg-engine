@@ -1,0 +1,9 @@
+card "Technodrome" {
+  oracle_id 51c0b46c-c379-420a-a4a4-d18724c759aa
+  cost {2}
+  type Artifact Creature — Construct
+  pt 3/3
+  keywords reach, trample
+  can't attack or block unless this is with power 6 or greater
+  activated {T}, sacrifice other artifact: draw 1 card; put 1 +1/+1 counter on this
+}

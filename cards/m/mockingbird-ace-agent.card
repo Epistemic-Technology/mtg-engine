@@ -1,0 +1,8 @@
+card "Mockingbird, Ace Agent" {
+  oracle_id 1fd00656-83ba-4feb-b089-224007936b99
+  cost {3}{W}
+  type Legendary Creature — Human Spy Hero
+  pt 2/2
+  keywords double strike
+  triggered whenever you cast spell that targets creature you control: put 1 +1/+1 counter on this
+}

@@ -1,0 +1,9 @@
+card "Lizard, Connors's Curse" {
+  oracle_id 48d1b217-b068-468c-bc6c-4bef9e44cc6e
+  cost {2}{G}{G}
+  type Legendary Creature — Lizard Villain
+  pt 5/5
+  short_name "Lizard, Connors's Curse"
+  keywords trample
+  label "Lizard Formula" triggered when this enters: up to 1 another target creature loses all abilities and becomes green Lizard creature base 4/4 indefinitely
+}

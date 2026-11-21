@@ -1,0 +1,37 @@
+scenario "Kishla Trawlers exiles a creature card to return an instant" {
+  battlefield A: 3 "Island"
+  graveyard A: "Grizzly Bears", "Lightning Bolt", "Divination"
+  hand A: "Kishla Trawlers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kishla Trawlers"
+  turn 1 A: trigger "Kishla Trawlers" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert hand A contains "Lightning Bolt"
+  assert graveyard A contains "Divination"
+  assert graveyard A lacks "Lightning Bolt"
+}
+
+scenario "Kishla Trawlers returns nothing if no creature card is exiled" {
+  battlefield A: 3 "Island"
+  graveyard A: "Grizzly Bears", "Lightning Bolt"
+  hand A: "Kishla Trawlers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kishla Trawlers"
+  turn 1 A: decline "Kishla Trawlers"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+  assert hand A count 0
+}
+
+scenario "Kishla Trawlers needs a creature card to exile" {
+  battlefield A: 3 "Island"
+  graveyard A: "Lightning Bolt"
+  hand A: "Kishla Trawlers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kishla Trawlers"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lightning Bolt"
+  assert hand A count 0
+}

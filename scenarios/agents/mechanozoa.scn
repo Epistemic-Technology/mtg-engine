@@ -1,0 +1,39 @@
+scenario "Mechanozoa taps and stuns an opponent's creature" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Mechanozoa"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mechanozoa"
+  turn 1 A: trigger "Mechanozoa" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 0
+  assert battlefield A contains "Mechanozoa"
+}
+
+scenario "Mechanozoa warped stuns an artifact and is exiled at end step" {
+  battlefield A: 3 "Island"
+  battlefield B: "Ornithopter"
+  hand A: "Mechanozoa"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mechanozoa" warped
+  turn 1 A: trigger "Mechanozoa" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert tapped "Ornithopter"
+  assert counters "Ornithopter" stun 1
+  run_to turn 2 upkeep
+  assert exile A contains "Mechanozoa"
+}
+
+scenario "Mechanozoa can't target its controller's creature" {
+  battlefield A: 6 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Mechanozoa"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mechanozoa"
+  illegal turn 1 A: trigger "Mechanozoa" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert counters "Grizzly Bears" stun 0
+  assert counters "Hill Giant" stun 1
+}

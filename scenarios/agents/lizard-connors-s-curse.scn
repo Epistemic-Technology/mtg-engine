@@ -1,0 +1,29 @@
+scenario "Lizard, Connors's Curse turns a creature into a vanilla 4/4 Lizard" {
+  battlefield A: 2 "Forest", 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Lizard, Connors's Curse"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lizard, Connors's Curse"
+  turn 1 A: trigger "Lizard, Connors's Curse" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 4
+  assert toughness "Serra Angel" 4
+  assert has not "Serra Angel" flying
+  assert has not "Serra Angel" vigilance
+  assert is "Serra Angel" green
+  assert is "Serra Angel" Lizard
+  assert is not "Serra Angel" Angel
+  assert power "Lizard, Connors's Curse" 5
+}
+
+scenario "Lizard, Connors's Curse's effect lasts past the turn" {
+  battlefield A: 2 "Forest", 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lizard, Connors's Curse"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lizard, Connors's Curse"
+  turn 1 A: trigger "Lizard, Connors's Curse" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert is "Grizzly Bears" Lizard
+}

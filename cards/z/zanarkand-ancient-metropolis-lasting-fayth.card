@@ -1,0 +1,12 @@
+card "Zanarkand, Ancient Metropolis // Lasting Fayth" {
+  oracle_id 5f2b3ea8-99ee-47a4-8a1c-4b27478d524c
+  layout adventure
+  type Land — Town
+  enters tapped
+  mana {G}
+  face "Lasting Fayth" {
+    cost {4}{G}{G}
+    type Sorcery — Adventure
+    spell: create 1 "1/1 colorless Hero creature"; put count each land you control +1/+1 counters on that token
+  }
+}

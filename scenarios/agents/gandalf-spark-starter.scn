@@ -1,0 +1,24 @@
+scenario "Gandalf divides 3 damage among targets" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Gandalf, Spark Starter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gandalf, Spark Starter"
+  turn 1 A: trigger "Gandalf, Spark Starter" targeting "Grizzly Bears", "Hill Giant", player B
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert damage "Hill Giant" 1
+  assert life B 19
+}
+
+scenario "Gandalf can put all 3 on one target" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Gandalf, Spark Starter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gandalf, Spark Starter"
+  turn 1 A: trigger "Gandalf, Spark Starter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}

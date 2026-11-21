@@ -1,0 +1,43 @@
+scenario "Soaring Stoneglider exiles two cards from the graveyard as its extra cost" {
+  battlefield A: 3 "Plains"
+  hand A: "Soaring Stoneglider"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Soaring Stoneglider"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Soaring Stoneglider"
+  assert exile A contains "Grizzly Bears"
+  assert exile A contains "Hill Giant"
+  assert has "Soaring Stoneglider" flying
+  assert has "Soaring Stoneglider" vigilance
+}
+
+scenario "Soaring Stoneglider pays {1}{W} more with an empty graveyard" {
+  battlefield A: 5 "Plains"
+  hand A: "Soaring Stoneglider"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Soaring Stoneglider"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Soaring Stoneglider"
+  assert tapped newest A "Plains"
+  assert tapped oldest A "Plains"
+}
+
+scenario "Soaring Stoneglider can't be cast for three with one graveyard card" {
+  battlefield A: 3 "Plains"
+  hand A: "Soaring Stoneglider"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Soaring Stoneglider"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Soaring Stoneglider"
+}
+
+scenario "Soaring Stoneglider needs five mana without graveyard cards" {
+  battlefield A: 4 "Plains"
+  hand A: "Soaring Stoneglider"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Soaring Stoneglider"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Soaring Stoneglider"
+}

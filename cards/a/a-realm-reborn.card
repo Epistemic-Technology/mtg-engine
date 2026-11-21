@@ -1,0 +1,6 @@
+card "A Realm Reborn" {
+  oracle_id fd230ab5-874e-4827-9b5c-6d39d079cee6
+  cost {4}{G}{G}
+  type Enchantment
+  static other permanent you control: has ability { mana any }
+}

@@ -1,0 +1,39 @@
+scenario "kalastria highborn dying: pay B, target player loses 2 and you gain 2" {
+  battlefield A: "Kalastria Highborn", "Swamp"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Kalastria Highborn"
+  turn 2 A: trigger "Kalastria Highborn" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Kalastria Highborn"
+  assert life B 18
+  assert life A 22
+  assert tapped "Swamp"
+}
+
+scenario "kalastria highborn: another vampire dies" {
+  battlefield A: "Kalastria Highborn", "Skyshroud Vampire", "Swamp"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Skyshroud Vampire"
+  turn 2 A: trigger "Kalastria Highborn" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Skyshroud Vampire"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "kalastria highborn: declining to pay does nothing" {
+  battlefield A: "Kalastria Highborn", "Swamp"
+  hand B: "Lightning Bolt"
+  battlefield B: "Mountain"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Kalastria Highborn"
+  turn 2 A: decline "Kalastria Highborn"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert life A 20
+  assert untapped "Swamp"
+}

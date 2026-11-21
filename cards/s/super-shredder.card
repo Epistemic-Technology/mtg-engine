@@ -1,0 +1,8 @@
+card "Super Shredder" {
+  oracle_id b7ee76bf-d15a-489e-8f05-414788f8f649
+  cost {1}{B}
+  type Legendary Creature — Mutant Ninja Human
+  pt 1/1
+  keywords menace
+  triggered whenever other permanent leaves the battlefield: put 1 +1/+1 counter on this
+}

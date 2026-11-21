@@ -1,0 +1,6 @@
+card "Get a Leg Up" {
+  oracle_id a80519c4-f778-4b8e-9920-64013e98c95b
+  cost {G}
+  type Instant
+  spell: until end of turn, target creature gets +1/+1 count each creature you control and gains reach
+}

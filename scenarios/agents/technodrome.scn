@@ -1,0 +1,27 @@
+scenario "Technodrome can't attack with power below 6" {
+  battlefield A: "Technodrome" with 2 +1/+1
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Technodrome"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Technodrome attacks with power 6" {
+  battlefield A: "Technodrome" with 3 +1/+1
+  start turn 1 A precombat_main
+  turn 1 A: attack "Technodrome"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}
+
+scenario "Technodrome sacrifices another artifact to draw and grow" {
+  battlefield A: "Technodrome", "Ornithopter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Technodrome" sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert hand A count 1
+  assert counters "Technodrome" +1/+1 1
+  assert power "Technodrome" 4
+  assert tapped "Technodrome"
+}

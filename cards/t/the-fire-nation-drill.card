@@ -1,0 +1,10 @@
+card "The Fire Nation Drill" {
+  oracle_id 3d4b9d71-4275-4c18-a4dc-9aad234eb92c
+  cost {2}{B}{B}
+  type Legendary Artifact — Vehicle
+  pt 6/3
+  keywords trample
+  triggered when this enters: you may tap this; when you do, destroy target creature with power 4 or less
+  activated {1}: each permanent your opponents control loses hexproof and indestructible
+  crew 2
+}

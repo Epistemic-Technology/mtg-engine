@@ -1,0 +1,6 @@
+card "Drag the Canal" {
+  oracle_id 0c0ffb66-94db-4ba9-afde-c5b4fbf09578
+  cost {U}{B}
+  type Instant
+  spell: create 1 "2/2 white and blue Detective creature"; if creature died this turn, you gain 2 life, surveil 2, then investigate
+}

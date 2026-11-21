@@ -1,0 +1,8 @@
+card "Dream Spoilers" {
+  oracle_id 07c3e91c-3593-4797-b7be-ef4fb2913cef
+  cost {3}{B}
+  type Creature — Faerie Warlock
+  pt 2/2
+  keywords flying
+  triggered whenever you cast a spell during an opponent's turn: up to 1 target creature an opponent controls gets -1/-1
+}

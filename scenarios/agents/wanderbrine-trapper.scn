@@ -1,0 +1,28 @@
+scenario "Wanderbrine Trapper taps another creature to tap an opponent's creature" {
+  battlefield A: "Wanderbrine Trapper", "Grizzly Bears", "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Wanderbrine Trapper" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Wanderbrine Trapper"
+  assert tapped "Grizzly Bears"
+  assert tapped "Plains"
+}
+
+scenario "Wanderbrine Trapper needs another untapped creature" {
+  battlefield A: "Wanderbrine Trapper", "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Wanderbrine Trapper" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "Wanderbrine Trapper can't target your own creature" {
+  battlefield A: "Wanderbrine Trapper", "Grizzly Bears", "Serra Angel", "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Wanderbrine Trapper" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert untapped "Serra Angel"
+}

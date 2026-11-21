@@ -1,0 +1,22 @@
+scenario "Assassin's Trophy destroys and its controller fetches a basic land" {
+  battlefield A: "Swamp", "Forest"
+  battlefield B: "Serra Angel"
+  library B: "Grizzly Bears", "Mountain", "Plains"
+  hand A: "Assassin's Trophy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Assassin's Trophy" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Mountain"
+  assert library B count 2
+  assert battlefield A lacks "Mountain"
+}
+
+scenario "Assassin's Trophy can't target your own permanent" {
+  battlefield A: "Swamp", "Forest", "Grizzly Bears"
+  hand A: "Assassin's Trophy"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Assassin's Trophy" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}

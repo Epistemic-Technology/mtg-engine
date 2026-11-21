@@ -1,0 +1,10 @@
+scenario "Jumbo Cactuar gets +9999/+0 when it attacks" {
+  battlefield A: "Jumbo Cactuar"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Jumbo Cactuar"
+  run_to turn 1 combat_damage
+  assert power "Jumbo Cactuar" 10000
+  assert toughness "Jumbo Cactuar" 7
+  run_to turn 1 postcombat_main
+  assert winner A
+}

@@ -1,0 +1,21 @@
+scenario "Emil makes a Fractal with a counter per differently named land" {
+  battlefield A: "Emil, Vastlands Roamer", 2 "Forest", "Island", "Mountain", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Emil, Vastlands Roamer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Fractal"
+  assert counters "Fractal" +1/+1 4
+  assert power "Fractal" 4
+  assert toughness "Fractal" 4
+  assert has "Fractal" trample
+  assert tapped "Emil, Vastlands Roamer"
+}
+
+scenario "Emil gives trample only to creatures with +1/+1 counters" {
+  battlefield A: "Emil, Vastlands Roamer", "Grizzly Bears" with 1 +1/+1, "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" trample
+  assert has not "Hill Giant" trample
+  assert has not "Emil, Vastlands Roamer" trample
+}

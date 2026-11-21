@@ -1,0 +1,23 @@
+scenario "School Daze: Do Homework draws three" {
+  battlefield A: 5 "Island"
+  hand A: "School Daze"
+  start turn 1 A precombat_main
+  turn 1 A: cast "School Daze" mode 1
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A contains "School Daze"
+}
+
+scenario "School Daze: Fight Crime counters a spell and draws one" {
+  battlefield A: 5 "Island"
+  battlefield B: "Mountain"
+  hand A: "School Daze"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "School Daze" mode 2 targeting "Shock" in response to "Shock"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Shock"
+  assert hand A count 1
+}

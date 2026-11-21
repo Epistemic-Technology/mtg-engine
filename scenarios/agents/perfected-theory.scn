@@ -1,0 +1,23 @@
+scenario "Perfected Theory mode 1 makes a creature 1/1" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Perfected Theory"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Perfected Theory" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert graveyard A contains "Perfected Theory"
+}
+
+scenario "Perfected Theory mode 2 makes a creature 4/5 until end of turn" {
+  battlefield A: "Island", "Grizzly Bears"
+  hand A: "Perfected Theory"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Perfected Theory" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 5
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+}

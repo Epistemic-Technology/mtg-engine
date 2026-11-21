@@ -1,0 +1,22 @@
+scenario "Restless Prairie animates and pumps other attackers" {
+  battlefield A: "Restless Prairie", 2 "Forest", 2 "Plains", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Restless Prairie" ability 2
+  turn 2 A: attack "Restless Prairie", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert is "Restless Prairie" creature
+  assert is "Restless Prairie" land
+  assert is "Restless Prairie" "Llama"
+  assert power "Restless Prairie" 3
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert life B 14
+}
+
+scenario "Restless Prairie enters tapped" {
+  hand A: "Restless Prairie"
+  start turn 1 A precombat_main
+  turn 1 A: play "Restless Prairie"
+  run_to turn 1 postcombat_main
+  assert tapped "Restless Prairie"
+}

@@ -1,0 +1,9 @@
+card "Defend the Rider" {
+  oracle_id 561af57d-d43d-4d98-9ef6-18a0843f22ae
+  cost {G}
+  type Instant
+  choose one {
+    mode: target permanent you control gains hexproof, indestructible
+    mode: create 1 "1/1 colorless Pilot creature with saddles and crews plus 2"
+  }
+}

@@ -1,0 +1,30 @@
+scenario "Akul puts a creature card from hand onto the battlefield" {
+  battlefield A: "Akul the Unrepentant", "Grizzly Bears", "Wind Drake", "Hill Giant"
+  hand A: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Akul the Unrepentant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Wind Drake"
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Akul the Unrepentant"
+}
+
+scenario "Akul needs three other creatures" {
+  battlefield A: "Akul the Unrepentant", "Grizzly Bears", "Wind Drake"
+  hand A: "Serra Angel"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Akul the Unrepentant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Serra Angel"
+}
+
+scenario "Akul only as a sorcery" {
+  battlefield A: "Akul the Unrepentant", "Grizzly Bears", "Wind Drake", "Hill Giant"
+  hand A: "Serra Angel"
+  start turn 2 B precombat_main
+  illegal turn 2 A: activate "Akul the Unrepentant"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Serra Angel"
+}

@@ -1,0 +1,15 @@
+scenario "Lasting Fayth makes a Hero with a counter per land, then the land is played from exile" {
+  battlefield A: 6 "Forest"
+  hand A: "Zanarkand, Ancient Metropolis // Lasting Fayth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lasting Fayth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hero"
+  assert counters "Hero" +1/+1 6
+  assert power "Hero" 7
+  assert exile A contains "Zanarkand, Ancient Metropolis"
+  turn 3 A: play "Zanarkand, Ancient Metropolis"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Zanarkand, Ancient Metropolis"
+  assert tapped "Zanarkand, Ancient Metropolis"
+}

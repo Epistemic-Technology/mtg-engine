@@ -1,0 +1,20 @@
+scenario "Invasive Maneuvers deals 3 damage" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Invasive Maneuvers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Invasive Maneuvers" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 3
+}
+
+scenario "Invasive Maneuvers deals 5 damage with a Spacecraft" {
+  battlefield A: 2 "Mountain", "Atmospheric Greenhouse"
+  battlefield B: "Serra Angel"
+  hand A: "Invasive Maneuvers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Invasive Maneuvers" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}

@@ -1,0 +1,6 @@
+card "Road Rage" {
+  oracle_id da052082-b440-4abb-9c69-05d4d13e5fd2
+  cost {R}
+  type Instant
+  spell: deal count where plus 2 Mount or Vehicle you control damage to target creature or planeswalker
+}

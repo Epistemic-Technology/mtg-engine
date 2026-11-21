@@ -1,0 +1,9 @@
+card "Wistfulness" {
+  oracle_id e5e8fce4-c97a-4ae4-9583-003c565e3bd6
+  cost {3}{G/U}{G/U}
+  type Creature — Elemental Incarnation
+  pt 6/5
+  triggered when this enters if spent {G}{G}: exile target artifact or enchantment an opponent controls
+  triggered when this enters if spent {U}{U}: draw 2 cards then discard 1 card
+  evoke {G/U}{G/U}
+}

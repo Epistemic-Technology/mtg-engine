@@ -1,0 +1,32 @@
+scenario "Boom Box destroys an artifact, a creature, and a land" {
+  battlefield A: "Boom Box", 6 "Mountain"
+  battlefield B: "Ornithopter", "Grizzly Bears", "Forest", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Boom Box" targeting "Ornithopter", "Grizzly Bears", "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Forest"
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Boom Box"
+}
+
+scenario "Boom Box may destroy only an artifact" {
+  battlefield A: "Boom Box", 6 "Mountain"
+  battlefield B: "Ornithopter", "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Boom Box" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield B contains "Forest"
+}
+
+scenario "Boom Box needs six mana" {
+  battlefield A: "Boom Box", 5 "Mountain"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Boom Box" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Boom Box"
+}

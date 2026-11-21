@@ -1,0 +1,30 @@
+scenario "Tonberry enters tapped with a stun counter" {
+  battlefield A: "Swamp"
+  hand A: "Tonberry"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tonberry"
+  run_to turn 1 postcombat_main
+  assert tapped "Tonberry"
+  assert counters "Tonberry" stun 1
+  assert has "Tonberry" deathtouch
+  assert has "Tonberry" first_strike
+}
+
+scenario "Tonberry lacks first strike and deathtouch on the opponent's turn" {
+  battlefield A: "Tonberry"
+  start turn 2 B precombat_main
+  run_to turn 2 postcombat_main
+  assert has not "Tonberry" deathtouch
+  assert has not "Tonberry" first_strike
+}
+
+scenario "Tonberry kills an attacker-blocking Hill Giant on its turn" {
+  battlefield A: "Tonberry"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Tonberry"
+  turn 1 B: block "Tonberry" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Tonberry"
+}

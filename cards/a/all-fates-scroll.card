@@ -1,0 +1,7 @@
+card "All-Fates Scroll" {
+  oracle_id cef5361a-a189-4e05-a8b8-fc764aed73b9
+  cost {3}
+  type Artifact
+  mana any
+  activated {7}, {T}, sacrifice this: draw count where differently named land you control cards
+}

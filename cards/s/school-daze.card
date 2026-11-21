@@ -1,0 +1,9 @@
+card "School Daze" {
+  oracle_id af2275ea-1085-4145-aa6b-36924d53d88a
+  cost {3}{U}{U}
+  type Instant
+  choose one {
+    mode "Do Homework": draw 3 cards
+    mode "Fight Crime": counter target spell; draw 1 card
+  }
+}

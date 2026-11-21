@@ -1,0 +1,24 @@
+scenario "Dream Spoilers shrinks an opponent's creature when you cast on their turn" {
+  battlefield A: "Dream Spoilers", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 2 B upkeep
+  turn 2 upkeep A: cast "Lightning Bolt" targeting player B
+  turn 2 upkeep A: trigger "Dream Spoilers" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert life B 17
+  assert power "Grizzly Bears" 1
+  assert toughness "Grizzly Bears" 1
+}
+
+scenario "Dream Spoilers doesn't trigger on your own turn" {
+  battlefield A: "Dream Spoilers", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert power "Grizzly Bears" 2
+  assert stack count 0
+}

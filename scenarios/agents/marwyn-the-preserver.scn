@@ -1,0 +1,32 @@
+scenario "Marwyn returns a land card from the graveyard to hand" {
+  battlefield A: "Marwyn, the Preserver", 2 "Forest"
+  graveyard A: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Marwyn, the Preserver" targeting "Mountain"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Mountain"
+  assert graveyard A lacks "Mountain"
+  assert tapped oldest "Forest"
+  assert tapped newest "Forest"
+}
+
+scenario "Marwyn gives lands you control hexproof" {
+  battlefield A: "Marwyn, the Preserver", "Forest"
+  battlefield B: 4 "Mountain"
+  hand B: "Stone Rain"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Stone Rain" targeting A "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Forest"
+  assert hand B contains "Stone Rain"
+}
+
+scenario "Marwyn does not protect opponents' lands" {
+  battlefield A: "Marwyn, the Preserver", "Forest"
+  battlefield B: 4 "Mountain"
+  hand B: "Stone Rain"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Stone Rain" targeting B "Mountain"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Mountain"
+}

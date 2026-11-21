@@ -1,0 +1,8 @@
+card "Leering Onlooker" {
+  oracle_id 06a37f16-c929-4b89-bf18-1b3f8f472eef
+  cost {1}{B}
+  type Creature — Vampire
+  pt 1/3
+  keywords flying
+  activated {2}{B}{B}, exile this from graveyard: create 2 tapped "1/1 black Bat creature with flying"
+}

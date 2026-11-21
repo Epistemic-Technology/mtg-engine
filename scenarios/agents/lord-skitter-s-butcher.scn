@@ -1,0 +1,24 @@
+scenario "Lord Skitter's Butcher makes a Rat that can't block" {
+  battlefield A: 3 "Swamp"
+  hand A: "Lord Skitter's Butcher"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lord Skitter's Butcher"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Rat"
+  assert power "Rat" 1
+  assert toughness "Rat" 1
+  assert is "Rat" black
+  assert battlefield A contains "Lord Skitter's Butcher"
+}
+
+scenario "Lord Skitter's Butcher's Rat can't block" {
+  battlefield A: 3 "Swamp"
+  hand A: "Lord Skitter's Butcher"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lord Skitter's Butcher"
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Rat"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}

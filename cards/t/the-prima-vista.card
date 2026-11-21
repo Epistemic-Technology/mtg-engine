@@ -1,0 +1,9 @@
+card "The Prima Vista" {
+  oracle_id a09d9754-a321-4018-a237-e613e915b642
+  cost {4}{U}
+  type Legendary Artifact — Vehicle
+  pt 5/3
+  keywords flying
+  triggered whenever you cast a noncreature spell if that spell spent 4 mana: this becomes artifact creature until end of turn
+  crew 2
+}

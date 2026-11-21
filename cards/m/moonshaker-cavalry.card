@@ -1,0 +1,8 @@
+card "Moonshaker Cavalry" {
+  oracle_id b3f16f34-d78c-4b61-821b-05fc6bd0da37
+  cost {5}{W}{W}{W}
+  type Creature — Spirit Knight
+  pt 6/6
+  keywords flying
+  triggered when this enters: each creature you control gains flying and gets +1/+1 count where creature you control
+}

@@ -1,0 +1,19 @@
+scenario "Eye of Jace with seven cards in graveyard pays off" {
+  battlefield A: "Eye of Jace"
+  graveyard A: 7 "Shock"
+  start turn 1 A untap
+  run_to turn 1 draw
+  assert graveyard A contains "Eye of Jace"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Eye of Jace with few cards in graveyard only surveils" {
+  battlefield A: "Eye of Jace"
+  graveyard A: 3 "Shock"
+  start turn 1 A untap
+  run_to turn 1 draw
+  assert battlefield A contains "Eye of Jace"
+  assert life B 20
+  assert life A 20
+}

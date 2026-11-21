@@ -1,0 +1,14 @@
+scenario "Excalibur II gains a charge counter on life gain and pumps per counter" {
+  battlefield A: "Grizzly Bears", "Excalibur II" with 1 charge, 4 "Plains"
+  hand A: "Healing Salve"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Excalibur II" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert counters "Excalibur II" charge 2
+  assert attached "Excalibur II" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}

@@ -1,0 +1,7 @@
+card "Tomb Trawler" {
+  oracle_id d22d3934-8437-4a18-81c1-4e9c501846ca
+  cost {2}
+  type Artifact Creature — Golem
+  pt 0/4
+  activated {2}: put target card from your graveyard on bottom of library
+}

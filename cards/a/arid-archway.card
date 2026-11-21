@@ -1,0 +1,7 @@
+card "Arid Archway" {
+  oracle_id 3be3d7e6-7860-438a-b8c8-ef154c18c163
+  type Land — Desert
+  enters tapped
+  triggered when this enters: return 1 land you control to hand chosen; if other Desert was returned this way, surveil 1
+  activated {T}: add {C}{C}
+}
