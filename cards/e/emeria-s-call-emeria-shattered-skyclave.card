@@ -1,0 +1,12 @@
+card "Emeria's Call // Emeria, Shattered Skyclave" {
+  oracle_id 6ec2a242-9068-4ee2-8ac8-8341cc570f56
+  layout modal_dfc
+  cost {4}{W}{W}{W}
+  type Sorcery
+  spell: create 2 "4/4 white Angel Warrior creature with flying"; each non-Angel creature you control gains indestructible until your next turn
+  face "Emeria, Shattered Skyclave" {
+    type Land
+    enters tapped unless pay 3 life
+    mana {W}
+  }
+}

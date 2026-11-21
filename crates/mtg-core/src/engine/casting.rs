@@ -426,6 +426,25 @@ impl GameState {
                 options.push(Choice::Cast(*id));
             }
         }
+        // CR 702.180a: a card given harmonize, its harmonize cost its mana
+        // cost.
+        for id in &self.granted_harmonize {
+            let Some(o) = self.objects.get(*id) else {
+                continue;
+            };
+            let def = self.pool.get(o.def);
+            if o.zone == Zone::Graveyard && o.owner == p && def.harmonize.is_none() {
+                self.harmonize_options(
+                    p,
+                    def,
+                    *id,
+                    sorcery_timing,
+                    &sources,
+                    &changers,
+                    &mut options,
+                );
+            }
+        }
         // CR 702.34a: instants and sorceries with flashback may be cast
         // from the graveyard for their flashback cost.
         if ps.flashback_in_graveyard > 0 {
@@ -1794,9 +1813,8 @@ impl GameState {
         changers: &[ObjId],
         options: &mut Vec<Choice>,
     ) {
-        let Some(cost) = def.harmonize.as_deref() else {
-            return;
-        };
+        // Its own harmonize cost, or one given to it: its mana cost.
+        let cost = def.harmonize.as_deref().unwrap_or(&def.mana_cost);
         if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
             || !self.additional_payable(p, &def.additional, id)
         {
@@ -1895,7 +1913,8 @@ impl GameState {
         {
             adjust_generic(&mut req, tc.0);
         }
-        let helped = Keyword::helps_pay(def.keywords) || def.additional.waterbend;
+        let keywords = self.spell_keywords(p, def, id).0;
+        let helped = Keyword::helps_pay(keywords) || def.additional.waterbend;
         let restricted = match (self.restricted_mana_sources, &def.printed) {
             (0, _) | (_, None) => None,
             (_, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c)),
@@ -1903,7 +1922,7 @@ impl GameState {
         let all = if helped || restricted.is_some() {
             let mut all = restricted.unwrap_or_else(|| sources.clone());
             if helped {
-                all.extend(self.helper_sources(p, def));
+                all.extend(self.helper_sources(p, def, keywords));
             }
             Some(all)
         } else {
@@ -2395,12 +2414,17 @@ impl GameState {
     /// paying one mana of its color, or generic) and untapped artifacts
     /// (generic) that may be tapped to help cast `def`; after mana
     /// sources, so they are used last.
-    pub(super) fn helper_sources(&self, p: PlayerId, def: &crate::card::CardDef) -> Sources {
-        let convoke = def.keywords.contains(Keyword::Convoke);
-        let improvise = def.keywords.contains(Keyword::Improvise);
+    pub(super) fn helper_sources(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        keywords: KeywordSet,
+    ) -> Sources {
+        let convoke = keywords.contains(Keyword::Convoke);
+        let improvise = keywords.contains(Keyword::Improvise);
         let mut out = Sources::new();
         // CR 702.66a: each card exiled from the graveyard pays for {1}.
-        if def.keywords.contains(Keyword::Delve) {
+        if keywords.contains(Keyword::Delve) {
             for id in &self.player(p).graveyard {
                 out.push((*id, Mana::Colorless));
             }
@@ -2475,8 +2499,9 @@ impl GameState {
             s = all;
         }
         let def = self.pool.get(o.def);
-        if Keyword::helps_pay(def.keywords) || def.additional.waterbend {
-            s.extend(self.helper_sources(o.controller, def));
+        let keywords = self.spell_keywords(o.controller, def, spell).0;
+        if Keyword::helps_pay(keywords) || def.additional.waterbend {
+            s.extend(self.helper_sources(o.controller, def, keywords));
         }
         s
     }
@@ -2602,40 +2627,102 @@ impl GameState {
             let n = sc.per.saturating_mul(self.eval_num(sc.times, &ctx));
             d -= i32::try_from(n).unwrap_or(i32::MAX);
         }
-        let Some(chars) = def.printed.as_ref() else {
-            return d;
-        };
         for src in changers {
             let o = &self.objects[*src];
             for a in &self.pool.get(o.def).ability_ids {
-                if let AbilityDef::CostChange(cc) = self.pool.ability(*a) {
-                    let whose = match cc.whose {
-                        crate::card::Who::Any => true,
-                        crate::card::Who::You => p == o.controller,
-                        crate::card::Who::Opponents => p != o.controller,
-                    };
-                    // "Creature spells you cast with mana value 6 or
-                    // greater": the mana value isn't a characteristic
-                    // `matches` sees.
-                    let mv_ok = cc
-                        .spells
-                        .mana_value
-                        .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)));
-                    if whose
-                        && mv_ok
-                        && cc
-                            .spells
-                            .matches(id, p, chars, Some(*src), Some(o.controller))
-                        && cc.cond.is_none_or(|i| {
-                            self.condition_now(self.pool.condition(i), o.controller, *src)
-                        })
-                    {
-                        d += cc.generic;
+                if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
+                    && self.cost_change_applies(cc, p, def, id, *src)
+                {
+                    d += cc.generic;
+                    // CR 702.41a: affinity, given to the spell.
+                    if let Some(f) = cc.grant.as_ref().and_then(|g| g.affinity.as_ref()) {
+                        let n = self
+                            .permanents_of(p)
+                            .filter(|q| {
+                                self.characteristics(*q)
+                                    .is_some_and(|c| f.matches(*q, p, &c, Some(*src), Some(p)))
+                            })
+                            .count();
+                        d -= i32::try_from(n).unwrap_or(i32::MAX);
                     }
                 }
             }
         }
         d
+    }
+
+    /// Whether the cost change (or grant) `cc` of `src` applies to `def`,
+    /// the card or spell `id` that `p` casts.
+    fn cost_change_applies(
+        &self,
+        cc: &crate::card::CostChange,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        src: ObjId,
+    ) -> bool {
+        let Some(chars) = def.printed.as_ref() else {
+            return false;
+        };
+        let o = &self.objects[src];
+        let whose = match cc.whose {
+            crate::card::Who::Any => true,
+            crate::card::Who::You => p == o.controller,
+            crate::card::Who::Opponents => p != o.controller,
+        };
+        // "Instant and sorcery spells you cast from your hand have
+        // cascade": from the hand, or cast from it.
+        let from_ok = cc.grant.as_ref().is_none_or(|g| {
+            !g.from_hand
+                || self.objects.get(id).is_some_and(|c| match c.zone {
+                    Zone::Stack => c.cast.cast_from() == Some(Zone::Hand),
+                    z => z == Zone::Hand,
+                })
+        });
+        // "Creature spells you cast with mana value 6 or greater": the
+        // mana value isn't a characteristic `matches` sees.
+        let mv_ok = cc
+            .spells
+            .mana_value
+            .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)));
+        whose
+            && from_ok
+            && mv_ok
+            && cc
+                .spells
+                .matches(id, p, chars, Some(src), Some(o.controller))
+            && cc
+                .cond
+                .is_none_or(|i| self.condition_now(self.pool.condition(i), o.controller, src))
+    }
+
+    /// The keywords `def` has as the spell (or card) `id` that `p` casts:
+    /// its own, and those static abilities give it ("Spells you cast have
+    /// delve"); and whether it has storm.
+    pub(super) fn spell_keywords(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+    ) -> (KeywordSet, bool) {
+        let mut kw = def.keywords;
+        let mut storm = def.storm;
+        if self.cost_change_sources == 0 {
+            return (kw, storm);
+        }
+        for src in self.cost_changers() {
+            let o = &self.objects[src];
+            for a in &self.pool.get(o.def).ability_ids {
+                if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
+                    && let Some(g) = &cc.grant
+                    && self.cost_change_applies(cc, p, def, id, src)
+                {
+                    kw = kw.union(g.keywords);
+                    storm |= g.storm;
+                }
+            }
+        }
+        (kw, storm)
     }
 
     /// Cards in `p`'s hand that could be discarded for a cost of `source`
@@ -3355,7 +3442,9 @@ impl GameState {
         let mut req = match (&def.flashback, o.cast.flashback()) {
             (Some(fb), true) => fb.mana.requirements(x),
             // Cast without paying its mana cost: X is 0 (CR 107.3b).
-            _ if matches!(o.alt, AltCast::Free | AltCast::Suspend) => ManaRequirement::default(),
+            _ if matches!(o.alt, AltCast::Free | AltCast::Suspend | AltCast::FreeExile) => {
+                ManaRequirement::default()
+            }
             (_, false) if o.alt == AltCast::Madness && def.madness.is_some() => {
                 def.madness.as_ref().expect("checked").requirements(x)
             }
@@ -3393,9 +3482,11 @@ impl GameState {
             }
             // CR 702.180a: cast from the graveyard (as with flashback, the
             // spell is exiled as it leaves the stack).
-            _ if o.alt == AltCast::Harmonize && def.harmonize.is_some() => {
-                def.harmonize.as_ref().expect("checked").requirements(x)
-            }
+            _ if o.alt == AltCast::Harmonize => def
+                .harmonize
+                .as_deref()
+                .unwrap_or(&def.mana_cost)
+                .requirements(x),
             (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
                 def.overload.as_ref().expect("checked").requirements(x)
             }
@@ -3873,7 +3964,9 @@ impl GameState {
         }
         // CR 702.81a: retrace casts from the graveyard without exiling.
         let o = &self.objects[spell];
-        let zone = if o.cast.flashback() && !self.pool.get(o.def).retrace {
+        let zone = if (o.cast.flashback() && !self.pool.get(o.def).retrace)
+            || o.alt == AltCast::FreeExile
+        {
             Zone::Exile
         } else {
             Zone::Graveyard
@@ -4370,7 +4463,10 @@ impl GameState {
     /// increasing order.
     pub(super) fn x_options(&self, spell: ObjId) -> Vec<Choice> {
         const MAX_X: u32 = 30;
-        if matches!(self.objects[spell].alt, AltCast::Free | AltCast::Suspend) {
+        if matches!(
+            self.objects[spell].alt,
+            AltCast::Free | AltCast::Suspend | AltCast::FreeExile
+        ) {
             return vec![Choice::X(0)];
         }
         let caster = self.objects[spell].controller;
@@ -6280,8 +6376,10 @@ impl GameState {
             let ability = self.pool.builtin(crate::card::Builtin::Ripple);
             self.queue_builtin(caster, ability, spell, def_ref);
         }
-        // CR 702.85a: cascade triggers as the spell is cast.
-        if def.keywords.contains(Keyword::Cascade) {
+        // CR 702.85a: cascade triggers as the spell is cast (its own, or
+        // given: "Instant and sorcery spells you cast have cascade").
+        let (keywords, storm) = self.spell_keywords(caster, def, spell);
+        if keywords.contains(Keyword::Cascade) {
             let ability = self.pool.builtin(crate::card::Builtin::Cascade);
             self.queue_builtin(caster, ability, spell, def_ref);
         }
@@ -6292,7 +6390,7 @@ impl GameState {
         let mut copies = self.objects.get(spell).map_or(0, |o| {
             usize::from(o.cast.conspired() || o.cast.casualty()) + o.cast.replicated() as usize
         });
-        if def.storm {
+        if storm {
             copies += self.cast_this_turn.len().saturating_sub(1);
         }
         if copies > 0 {
@@ -7751,6 +7849,88 @@ impl GameState {
         }
     }
 
+    /// CR 608.2g: "you may cast <a card> without paying its mana cost" as
+    /// the effect resolves: the card `what` names, or one from the
+    /// controller's hand matching `filter` with mana value at most
+    /// `max_mv`, cast as the resolution finishes.
+    fn cast_free(
+        &mut self,
+        ctx: &mut EffectCtx,
+        what: Option<Recipient>,
+        filter: Option<&crate::card::ObjFilter>,
+        max_mv: Option<crate::card::Num>,
+        exile: bool,
+    ) {
+        let p = ctx.controller;
+        let alt = if exile {
+            AltCast::FreeExile
+        } else {
+            AltCast::Free
+        };
+        let cap = max_mv.map(|n| self.eval_num(n, ctx));
+        let source = ctx.source;
+        let fits = |st: &Self, id: ObjId| -> bool {
+            let Some(o) = st.objects.get(id) else {
+                return false;
+            };
+            if !matches!(o.zone, Zone::Hand | Zone::Graveyard | Zone::Exile) {
+                return false;
+            }
+            let def = st.pool.get(o.def);
+            let mv = def.mana_cost.mana_value();
+            if cap.is_some_and(|c| mv > c) {
+                return false;
+            }
+            if let Some(f) = filter {
+                let chars = st.base_characteristics(o);
+                // The mana value isn't a characteristic `matches` sees.
+                if !(f
+                    .mana_value
+                    .is_none_or(|(cmp, n)| cmp.holds(mv, u32::from(n)))
+                    && f.matches(id, p, &chars, Some(source), Some(p)))
+                {
+                    return false;
+                }
+            }
+            st.exile_castable(p, id, alt)
+        };
+        if let Some(r) = what {
+            for t in self.recipients(ctx, r) {
+                if let Target::Object(id) = t
+                    && fits(self, id)
+                {
+                    self.offer_exile_cast_by(id, alt, p);
+                }
+            }
+            return;
+        }
+        let castable: Vec<ObjId> = self
+            .player(p)
+            .hand
+            .iter()
+            .copied()
+            .filter(|id| fits(self, *id))
+            .collect();
+        if castable.is_empty() {
+            return;
+        }
+        let mut options: Vec<Choice> = castable
+            .iter()
+            .map(|id| Choice::Discard {
+                card: *id,
+                def: self.objects[*id].def,
+            })
+            .collect();
+        options.push(Choice::Done);
+        let k = self.choose_mid(p, DecisionKind::ChooseCard, options);
+        if let Some(&card) = castable.get(k) {
+            self.exile_casts
+                .get_or_insert_with(Box::default)
+                .pending
+                .push((p, card, alt));
+        }
+    }
+
     /// Mad Wizard's Lair: "Draw three cards and reveal them. You may cast
     /// one of them without paying its mana cost."
     fn draw_cast_one(&mut self, ctx: &mut EffectCtx, count: u32) {
@@ -7984,6 +8164,61 @@ impl GameState {
         self.shuffle_library(p);
     }
 
+    /// CR 611.2b: inside an `Effect::Lasting`, an effect that would last
+    /// until end of turn lasts its duration instead; `id` is the object it
+    /// affects (the source's, for an effect on no object).
+    #[inline]
+    fn lasting_or(&mut self, duration: Duration, ctx: &EffectCtx, id: ObjId) -> Duration {
+        let Some(l) = self.lasting else {
+            return duration;
+        };
+        if duration != Duration::UntilEndOfTurn {
+            return duration;
+        }
+        let d = match l {
+            crate::card::Lasting::YourNextTurn => Duration::UntilYourNextTurn(ctx.controller),
+            crate::card::Lasting::SourceOnBattlefield => Duration::WhileOnBattlefield(ctx.source),
+            crate::card::Lasting::WhileTapped => Duration::WhileTapped(id),
+            crate::card::Lasting::YouControlSource => {
+                Duration::WhileControlled(ctx.source, ctx.controller)
+            }
+        };
+        if d.linked() {
+            self.linked_durations += 1;
+        }
+        d
+    }
+
+    /// CR 611.2b: the effects of `Effect::Lasting`. A duration linked to
+    /// the source does nothing if the source has already left the
+    /// battlefield (or its controller no longer controls it).
+    fn apply_lasting(
+        &mut self,
+        ctx: &mut EffectCtx,
+        lasting: crate::card::Lasting,
+        effects: &[Effect],
+    ) {
+        let source_ok = || {
+            self.objects
+                .get(ctx.source)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
+        };
+        match lasting {
+            crate::card::Lasting::SourceOnBattlefield if !source_ok() => return,
+            crate::card::Lasting::YouControlSource
+                if !source_ok() || self.objects[ctx.source].controller != ctx.controller =>
+            {
+                return;
+            }
+            _ => {}
+        }
+        let outer = self.lasting.replace(lasting);
+        for e in effects {
+            self.apply_effect(ctx, e);
+        }
+        self.lasting = outer;
+    }
+
     /// Store an "until end of turn" effect on one object (CR 611.2a, 611.2c).
     fn effect_until_end_of_turn(
         &mut self,
@@ -8003,6 +8238,7 @@ impl GameState {
         parts: SmallVec<[Modification; 2]>,
         duration: Duration,
     ) {
+        let duration = self.lasting_or(duration, ctx, id);
         let timestamp = self.tick();
         self.effects.push(ContinuousEffect {
             source: Some(ctx.source),
@@ -8703,9 +8939,10 @@ impl GameState {
                 self.bump();
             }
             Effect::Rule(kind) => {
+                let duration = self.lasting_or(Duration::UntilEndOfTurn, ctx, ctx.source);
                 self.rules.push(RuleEffect {
                     kind: *kind,
-                    duration: Duration::UntilEndOfTurn,
+                    duration,
                 });
                 self.bump();
             }
@@ -8814,6 +9051,9 @@ impl GameState {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
                         self.eot_grants += 1;
+                        if self.lasting.is_some() {
+                            self.lasting_grants += 1;
+                        }
                         self.effect_until_end_of_turn(
                             ctx,
                             id,
@@ -8931,7 +9171,7 @@ impl GameState {
                     }
                 }
             }
-            Effect::GrantFlashback { to } => {
+            Effect::GrantFlashback { to, harmonize } => {
                 for t in self.recipients(ctx, *to) {
                     if let Target::Object(id) = t
                         && self
@@ -8939,7 +9179,11 @@ impl GameState {
                             .get(id)
                             .is_some_and(|o| o.zone == Zone::Graveyard)
                     {
-                        self.granted_flashback.push(id);
+                        if *harmonize {
+                            self.granted_harmonize.push(id);
+                        } else {
+                            self.granted_flashback.push(id);
+                        }
                     }
                 }
             }
@@ -10414,6 +10658,7 @@ impl GameState {
                     self.effect_on(ctx, id, parts.clone(), d);
                 }
             }
+            Effect::Lasting { lasting, effects } => self.apply_lasting(ctx, *lasting, effects),
             Effect::CopySpell => self.copy_spell(ctx),
             Effect::CopySpells {
                 what,
@@ -10505,6 +10750,12 @@ impl GameState {
             }
             Effect::PunishEach { life, unless } => self.punish_each(ctx, *life, unless.as_ref()),
             Effect::DrawCastOne { count } => self.draw_cast_one(ctx, *count),
+            Effect::CastFree {
+                what,
+                filter,
+                max_mv,
+                exile,
+            } => self.cast_free(ctx, *what, filter.as_ref(), *max_mv, *exile),
             Effect::RevealPutCreature { count, counters } => {
                 self.reveal_put_creature(ctx, *count, *counters);
             }
@@ -12381,12 +12632,13 @@ impl GameState {
             .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
             .expect("a resolving spell or its last known information exists");
         let timestamp = self.tick();
+        let duration = self.lasting_or(Duration::UntilEndOfTurn, ctx, ctx.source);
         self.replacements.push(ReplacementEffect {
             source: Some(ctx.source),
             def,
             controller: ctx.controller,
             timestamp,
-            duration: Duration::UntilEndOfTurn,
+            duration,
             ability: r.clone(),
             target,
             remaining,

@@ -1,0 +1,7 @@
+card "Daring Waverider" {
+  oracle_id e4d52559-7624-48b2-96ba-e52ada6c507a
+  cost {4}{U}{U}
+  type Creature — Otter Wizard
+  pt 4/4
+  triggered when this enters: cast free target instant or sorcery card with mana value 4 or less from your graveyard exile instead
+}

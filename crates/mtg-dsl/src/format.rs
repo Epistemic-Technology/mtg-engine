@@ -558,7 +558,10 @@ impl Fmt {
             out.push_str("then ");
         }
         if s.eot_first {
-            out.push_str("until end of turn, ");
+            out.push_str(match s.lasting {
+                Some(mtg_core::card::Lasting::YourNextTurn) => "until your next turn, ",
+                _ => "until end of turn, ",
+            });
         }
         for (i, e) in s.effects.iter().enumerate() {
             if i > 0 {
@@ -583,6 +586,16 @@ impl Fmt {
                 }
             }
             out.push_str(&self.effect(e, targets));
+        }
+        if !s.eot_first
+            && let Some(l) = s.lasting
+        {
+            out.push_str(match l {
+                mtg_core::card::Lasting::YourNextTurn => " until your next turn",
+                mtg_core::card::Lasting::SourceOnBattlefield => " for as long as this remains",
+                mtg_core::card::Lasting::WhileTapped => " for as long as it remains tapped",
+                mtg_core::card::Lasting::YouControlSource => " for as long as you control this",
+            });
         }
         out
     }
@@ -1022,9 +1035,14 @@ impl Fmt {
                 s
             }
             Effect::SwitchPt { to } => format!("switch pt of {}", self.recipient(*to, t)),
-            Effect::GrantFlashback { to, that_card } => format!(
-                "{} gains flashback{}",
+            Effect::GrantFlashback {
+                to,
+                that_card,
+                harmonize,
+            } => format!(
+                "{} gains {}{}",
                 self.recipient(*to, t),
+                if *harmonize { "harmonize" } else { "flashback" },
                 if *that_card { " that card" } else { "" }
             ),
             Effect::ProtectionOr { to, filter: f } => format!(
@@ -1511,6 +1529,33 @@ impl Fmt {
                     let _ = write!(s, " and {} {}", num(b.0), filter(&b.1));
                 }
                 s
+            }
+            Effect::CastFree {
+                what,
+                filter: f,
+                max,
+                exile,
+            } => {
+                let mut s = "cast free ".to_string();
+                if let Some(r) = what {
+                    s.push_str(&self.recipient(*r, t));
+                } else {
+                    if let Some(f) = f {
+                        s.push_str(&filter(f));
+                        s.push(' ');
+                    }
+                    s.push_str("spell from hand");
+                    if let Some(n) = max {
+                        let _ = write!(s, " with mana value up to {}", num(*n));
+                    }
+                }
+                if *exile {
+                    s.push_str(" exile instead");
+                }
+                s
+            }
+            Effect::LoseAllAbilities { to } => {
+                format!("{} loses all abilities", self.recipient(*to, t))
             }
             Effect::Strip { keywords: ks, to } => {
                 format!("{} loses {}", self.recipient(*to, t), keywords(ks))
@@ -5000,6 +5045,32 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 out,
                 "{indent}{head}spells{subject}{whose} cost {{{}}} {more}",
                 generic.unsigned_abs()
+            );
+        }
+        Ability::SpellsHave {
+            filter: f,
+            from_hand,
+            keywords: ks,
+            storm,
+            affinity,
+        } => {
+            let subject = if *f == Filter::default() {
+                String::new()
+            } else {
+                format!(" {}", filter(f))
+            };
+            let from = if *from_hand { " from hand" } else { "" };
+            let mut items: Vec<String> = ks.iter().map(|k| keywords(&[*k])).collect();
+            if *storm {
+                items.push("storm".to_string());
+            }
+            if let Some(a) = affinity {
+                items.push(format!("affinity for {}", filter(a)));
+            }
+            let _ = writeln!(
+                out,
+                "{indent}spells{subject} you cast{from} have {}",
+                items.join(" and ")
             );
         }
         Ability::CondCost { delta, cond } => {

@@ -128,6 +128,7 @@ to its other face as well.
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
 | `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as this enters choose land type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12; `land type` is "a basic land type"): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen`, `has protection from chosen color`, `set land chosen`, `add chosen type`, and filters `of chosen color` / `of chosen type`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). |
 | `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". `static during turns other than yours, spells you cast cost {1} less` (or `during your turn`) applies only then: "During turns other than yours, spells you cast cost {1} less to cast." A mana value prints after who casts them: `spells creature with mana value 6 or greater you cast cost {2} less` is "Creature spells you cast with mana value 6 or greater cost {2} less to cast." `static as long as spell number 2 this turn, spells you cast cost {1} less` is "The second spell you cast each turn costs {1} less to cast." (the spell would be your second this turn: you've cast exactly one before it). A keyword quality prints after "spells": `spells creature with flying you cast cost {1} less` is "Creature spells with flying you cast cost {1} less to cast." |
+| `spells you cast have delve`, `spells instant or sorcery you cast have storm`, `spells instant or sorcery you cast from hand have cascade`, `spells you cast have affinity for artifact`, `spells creature you cast have convoke`, `spells noncreature you cast have improvise` | "Spells you cast have delve.", "Instant and sorcery spells you cast have storm.", "... you cast from your hand have cascade.", "Spells you cast have affinity for artifacts.": the controller's matching spells have the keyword while they are cast (convoke, improvise, delve, cascade, storm; affinity for <filter> is {1} less for each such permanent the caster controls). Several join with `and`. |
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
 | `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything`, `protection from creature your opponents control` | Protection from a quality other than a color (CR 702.16); colors are keywords. A controller in the quality is judged from the protected object's controller ("protection from creatures your opponents control": its own creatures still may block and target it). Consecutive protections print as one line, "Protection from Spirits and from Arcane" (the gate splits such a line into one protection each, CR 702.16g); in a list of granted keywords, "has protection from green and from blue". |
@@ -1417,6 +1418,46 @@ and may be written or not. A sentence that starts `until end of turn,`
 prints the duration first instead ("Until end of turn, target creature you
 control has base power and toughness 4/4 and gains flying").
 
+Casting as an effect (CR 608.2g: cast as the effect finishes, timing
+restrictions ignored): `cast free noncreature spell from hand` ("you may
+cast a noncreature spell from your hand without paying its mana cost";
+the controller chooses the card, or none), `cast free spell from hand
+with mana value up to 4` ("a spell with mana value 4 or less from your
+hand"; `up to X` likewise), `cast free spell from hand with mana value up
+to that much` ("a spell from your hand with mana value less than or equal
+to that damage"), `cast free artifact spell from hand with mana value up
+to count where ...` ("... less than or equal to the number of ..."), and
+`cast free target instant or sorcery card from your graveyard` ("you may
+cast target instant or sorcery card from your graveyard without paying
+its mana cost"). `exile instead` after either adds "If that spell would
+be put into your graveyard, exile it instead." (it is exiled as it
+resolves or is countered).
+
+Other durations (CR 611.2b) end a sentence, and whatever in it would last
+until end of turn (or "this turn") lasts that long instead: `until your
+next turn` (it ends as the controller's next turn begins: `each creature
+your opponents control gets -3/-0 until your next turn`, "Creatures your
+opponents control get -3/-0 until your next turn"; `until your next turn,
+up to 1 target creature gets -5/-0` prints it first), `for as long as this
+remains` ("for as long as this creature remains on the battlefield", "...
+The Wondrous Wasp remains ..."), `for as long as you control this` ("for as
+long as you control this creature"), and `for as long as it remains tapped`
+(each affected permanent, while it stays tapped). The last three end when
+the source leaves the battlefield or changes control, or the permanent
+untaps (checked with the state-based actions), and do nothing if that has
+already happened as the effect would begin. `gain control of target
+creature for as long as you control this`, `that target 1 can't attack or
+block for as long as you control this` ("That creature can't attack or
+block for as long as ..."), `prevent all damage from up to 1 target
+creature this turn for as long as this remains` ("Prevent all damage that
+would be dealt by up to one target creature for as long as this Saga
+remains on the battlefield"). Clauses for these: `target 1 loses all
+abilities` ("It loses all abilities", layer 6), `that target 1 gains
+doesn't untap` ("That creature doesn't untap during its controller's untap
+step"; plural "Those creatures don't untap during their controllers' untap
+steps"), and `target 1 gains can't activate` ("Its activated abilities
+can't be activated").
+
 Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`,
 `<who> draws 2 cards`, `<who> discards 2 cards`, `<who> mills 20 cards`,
 `<what> gets +3/+3`, `<what> gains flying`, `<what> can't block` (this
@@ -1774,7 +1815,9 @@ flashback until end of turn. The flashback cost is equal to its mana
 cost."; `gains flashback that card`: "... equal to that card's mana
 cost.": its owner may cast it from the graveyard for its mana cost this
 turn, with its usual timing, and it is exiled as it leaves the stack, CR
-702.34a), `put land card from hand onto battlefield [tapped]` ("put a land
+702.34a; `gains harmonize`: "... gains harmonize until end of turn. Its
+harmonize cost is equal to its mana cost.", cast that way this turn,
+tapping up to one creature to reduce it, CR 702.180a), `put land card from hand onto battlefield [tapped]` ("put a land
 card from your hand onto the battlefield"; `put creature card and land
 card from hand onto battlefield`: "put a creature card and/or a land card
 from your hand onto the battlefield", a choice of each in turn), `<what> doesn't untap next

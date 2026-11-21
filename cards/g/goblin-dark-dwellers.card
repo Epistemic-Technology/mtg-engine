@@ -1,0 +1,8 @@
+card "Goblin Dark-Dwellers" {
+  oracle_id bab0ab8d-74d2-49a3-b258-b93d19925d99
+  cost {3}{R}{R}
+  type Creature — Goblin
+  pt 4/4
+  keywords menace
+  triggered when this enters: cast free target instant or sorcery card with mana value 3 or less from your graveyard exile instead
+}

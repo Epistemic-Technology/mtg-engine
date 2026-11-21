@@ -1,0 +1,9 @@
+card "Sram's Expertise" {
+  oracle_id 5cd17347-5558-46f9-b8bb-ae5deeb1f229
+  cost {2}{W}{W}
+  type Sorcery
+  spell {
+    create 3 "1/1 colorless Servo artifact creature"
+    cast free spell from hand with mana value up to 3
+  }
+}

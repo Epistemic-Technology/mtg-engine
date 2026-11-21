@@ -1,0 +1,8 @@
+card "Mycosynth Golem" {
+  oracle_id ebcd864a-b7dd-4330-89e1-80576a9437ec
+  cost {11}
+  type Artifact Creature — Golem
+  pt 4/5
+  affinity for artifact
+  spells artifact creature you cast have affinity for artifact
+}

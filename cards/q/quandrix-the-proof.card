@@ -1,0 +1,8 @@
+card "Quandrix, the Proof" {
+  oracle_id 2cbccc46-bdef-4dfb-90a4-0278c5c8488a
+  cost {4}{G}{U}
+  type Legendary Creature — Elder Dragon
+  pt 6/6
+  keywords flying, trample, cascade
+  spells instant or sorcery you cast from hand have cascade
+}

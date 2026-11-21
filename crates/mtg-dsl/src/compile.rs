@@ -1967,6 +1967,12 @@ impl Compiler<'_> {
             for e in &s.effects {
                 self.effect(e, &mut out)?;
             }
+            // CR 611.2b: "... until your next turn", "... for as long as
+            // this creature remains on the battlefield".
+            if let Some(lasting) = s.lasting {
+                let effects = out.split_off(start);
+                out.push(CoreEffect::Lasting { lasting, effects });
+            }
             prev = Some((start, s));
         }
         Ok(out)
@@ -2362,6 +2368,32 @@ impl Compiler<'_> {
                     });
                 }
             }
+            Effect::CastFree {
+                what,
+                filter,
+                max,
+                exile,
+            } => {
+                let filter = filter.as_ref().map(|f| self.filter(f));
+                out.push(CoreEffect::CastFree {
+                    what: what.map(r),
+                    filter,
+                    max_mv: *max,
+                    exile: *exile,
+                });
+            }
+            // Layer 6 alone: an animation that only removes abilities.
+            Effect::LoseAllAbilities { to } => out.push(CoreEffect::Animate {
+                to: r(*to),
+                types: TypeSet::of([]),
+                subtypes: self.subtypes(&[]),
+                pt: None,
+                colors: None,
+                keywords: KeywordSet::NONE,
+                indefinite: false,
+                loses_abilities: true,
+                in_addition: false,
+            }),
             Effect::Strip { keywords, to } => out.push(CoreEffect::Strip {
                 keywords: KeywordSet::of(keywords.iter().copied()),
                 to: r(*to),
@@ -3127,8 +3159,11 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Modes(modes));
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
-            Effect::GrantFlashback { to, .. } => {
-                out.push(CoreEffect::GrantFlashback { to: r(*to) });
+            Effect::GrantFlashback { to, harmonize, .. } => {
+                out.push(CoreEffect::GrantFlashback {
+                    to: r(*to),
+                    harmonize: *harmonize,
+                });
             }
             // One or the other, chosen as it resolves (CR 608.2d).
             Effect::ProtectionOr { to, filter } => {
@@ -4084,8 +4119,27 @@ impl Compiler<'_> {
                     whose: *whose,
                     generic: *generic,
                     cond,
+                    grant: None,
                 })
             }
+            Ability::SpellsHave {
+                filter,
+                from_hand,
+                keywords,
+                storm,
+                affinity,
+            } => AbilityDef::CostChange(mtg_core::card::CostChange {
+                spells: self.filter(filter),
+                whose: Who::You,
+                generic: 0,
+                cond: None,
+                grant: Some(Box::new(mtg_core::card::SpellGrant {
+                    keywords: KeywordSet::of(keywords.iter().copied()),
+                    storm: *storm,
+                    affinity: affinity.as_ref().map(|f| self.filter(f)),
+                    from_hand: *from_hand,
+                })),
+            }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
             Ability::OpeningHand => AbilityDef::OpeningHand,
@@ -4768,6 +4822,7 @@ fn extort(i: u8) -> Ability {
         label: None,
         para: false,
         eot_first: false,
+        lasting: None,
         then_first: false,
         joins: vec![Join::And],
     };
@@ -4924,6 +4979,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 label: None,
                 para: false,
                 eot_first: false,
+                lasting: None,
                 then_first: false,
                 joins: vec![Join::Then],
             }],
@@ -5243,6 +5299,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 label: None,
                 para: false,
                 eot_first: false,
+                lasting: None,
                 then_first: false,
                 joins: vec![Join::Then],
             }],
@@ -5287,6 +5344,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 label: None,
                 para: false,
                 eot_first: false,
+                lasting: None,
                 then_first: false,
                 joins: vec![Join::And, Join::And],
             }],

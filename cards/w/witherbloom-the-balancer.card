@@ -1,0 +1,9 @@
+card "Witherbloom, the Balancer" {
+  oracle_id fbb04a21-e513-4317-aac8-fa6df91c3438
+  cost {6}{B}{G}
+  type Legendary Creature — Elder Dragon
+  pt 5/5
+  affinity for creature
+  keywords flying, deathtouch
+  spells instant or sorcery you cast have affinity for creature
+}

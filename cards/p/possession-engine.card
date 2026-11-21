@@ -1,0 +1,8 @@
+card "Possession Engine" {
+  oracle_id ab7c0256-eea9-4e0d-932d-c25460eed836
+  cost {3}{U}{U}
+  type Artifact — Vehicle
+  pt 5/5
+  triggered when this enters: gain control of target creature an opponent controls for as long as you control this; that target 1 can't attack or block for as long as you control this
+  crew 3
+}

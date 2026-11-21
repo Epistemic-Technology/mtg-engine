@@ -2644,6 +2644,12 @@ impl P {
         } else {
             Who::Any
         };
+        // "Instant and sorcery spells you cast [from your hand] have
+        // storm".
+        let from_hand = whose == Who::You && self.eat_words(&["from", "hand"]);
+        if whose == Who::You && cond.is_none() && self.eat_word("have") {
+            return self.spells_have(filter, from_hand);
+        }
         self.expect_word("cost")?;
         let n = i32::try_from(self.mana_cost()?.mana_value()).unwrap_or(0);
         let generic = if self.eat_word("less") {
@@ -3754,6 +3760,7 @@ impl P {
     }
 
     /// Clauses joined by `and`.
+    #[allow(clippy::too_many_lines)] // one branch per join and duration
     fn sentence(&mut self) -> R<Sentence> {
         // `label "Hellbent" ...`: an ability word (CR 207.2c) before an
         // "instead" sentence.
@@ -3785,7 +3792,14 @@ impl P {
         // "Then that player discards a card.": a sentence led by "then".
         let then_first = self.eat_word("then");
         // "until end of turn, <clauses>": the duration printed first.
-        let eot_first = self.eat_words(&["until", "end", "of", "turn"]);
+        let mut lasting = None;
+        let eot_first = if self.eat_words(&["until", "your", "next", "turn"]) {
+            // "Until your next turn, <clauses>" (CR 611.2b).
+            lasting = Some(mtg_core::card::Lasting::YourNextTurn);
+            true
+        } else {
+            self.eat_words(&["until", "end", "of", "turn"])
+        };
         if eot_first && self.peek() == Some(&Tok::Comma) {
             self.pos += 1;
         }
@@ -3845,9 +3859,15 @@ impl P {
             let c = self.clause()?;
             clauses.push(self.unless_suffix(c)?);
         }
+        // `<clauses> until your next turn`, `... for as long as this
+        // remains` (CR 611.2b).
+        if lasting.is_none() {
+            lasting = self.lasting_suffix();
+        }
         // "Until end of turn, whenever ..., <effects>": a delayed trigger
         // that lasts the turn (CR 603.7c), as `whenever ... this turn`.
         if eot_first
+            && lasting.is_none()
             && let Some(Effect::Delayed {
                 this_turn,
                 trigger_first: true,
@@ -3861,10 +3881,101 @@ impl P {
             label,
             para: false,
             eot_first,
+            lasting,
             then_first,
             joins,
         };
         self.condition_suffix(s)
+    }
+
+    /// After `cast free`: `target ...` (a card), or `[<filter>] spell from
+    /// hand [with mana value up to <n>]`; then `exile instead`.
+    fn cast_free(&mut self) -> R<Effect> {
+        let (what, filter, max) = if self.at_word("target") {
+            (Some(self.recipient()?), None, None)
+        } else {
+            let filter = if self.at_word("spell") {
+                None
+            } else {
+                Some(self.filter()?)
+            };
+            self.expect_words(&["spell", "from", "hand"])?;
+            let max = if self.eat_words(&["with", "mana", "value", "up", "to"]) {
+                Some(self.num()?)
+            } else {
+                None
+            };
+            (None, filter, max)
+        };
+        let exile = self.eat_words(&["exile", "instead"]);
+        Ok(Effect::CastFree {
+            what,
+            filter,
+            max,
+            exile,
+        })
+    }
+
+    /// After `spells <filter> you cast [from hand] have`: convoke,
+    /// improvise, delve, cascade, `storm`, `affinity for <filter>`.
+    fn spells_have(&mut self, filter: Filter, from_hand: bool) -> R<Ability> {
+        let mut keywords = Vec::new();
+        let mut storm = false;
+        let mut affinity = None;
+        loop {
+            if self.eat_word("storm") {
+                storm = true;
+            } else if self.eat_words(&["affinity", "for"]) {
+                affinity = Some(self.filter()?);
+            } else {
+                match self.keyword() {
+                    Some(
+                        k @ (Keyword::Convoke
+                        | Keyword::Improvise
+                        | Keyword::Delve
+                        | Keyword::Cascade),
+                    ) => keywords.push(k),
+                    _ => return self.fail(
+                        "spells can have convoke, improvise, delve, cascade, storm, or affinity",
+                    ),
+                }
+            }
+            if self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+                continue;
+            }
+            if !self.eat_word("and") {
+                break;
+            }
+        }
+        self.end_stmt()?;
+        Ok(Ability::SpellsHave {
+            filter,
+            from_hand,
+            keywords,
+            storm,
+            affinity,
+        })
+    }
+
+    /// A sentence's duration after its clauses (CR 611.2b): `until your
+    /// next turn`, `for as long as this remains`, `for as long as it
+    /// remains tapped`, `for as long as you control this`.
+    fn lasting_suffix(&mut self) -> Option<mtg_core::card::Lasting> {
+        use mtg_core::card::Lasting;
+        if self.eat_words(&["until", "your", "next", "turn"]) {
+            return Some(Lasting::YourNextTurn);
+        }
+        if self.eat_words(&["for", "as", "long", "as", "this", "remains"]) {
+            return Some(Lasting::SourceOnBattlefield);
+        }
+        if self.eat_words(&["for", "as", "long", "as", "it", "remains", "tapped"]) {
+            return Some(Lasting::WhileTapped);
+        }
+        if self.eat_words(&["for", "as", "long", "as", "you", "control", "this"]) {
+            return Some(Lasting::YouControlSource);
+        }
+        None
     }
 
     /// A condition after a whole sentence: `<sentence> instead if <cond>`
@@ -4610,6 +4721,10 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per clause form
     fn clause(&mut self) -> R<Effect> {
+        // "You may cast ... without paying its mana cost" (CR 608.2g).
+        if self.eat_words(&["cast", "free"]) {
+            return self.cast_free();
+        }
         // Designations (CR 701.54, 725, 726, 701.49).
         if self.at_words(&["the", "ring", "tempts", "you"]) {
             self.pos += 4;
@@ -4953,13 +5068,15 @@ impl P {
                     to: subject,
                 })
             }
-            "gain" | "gains" if self.at_word("flashback") => {
+            "gain" | "gains" if self.at_word("flashback") || self.at_word("harmonize") => {
+                let harmonize = self.at_word("harmonize");
                 self.pos += 1;
                 let that_card = self.eat_words(&["that", "card"]);
                 self.until_end_of_turn();
                 Ok(Effect::GrantFlashback {
                     to: subject,
                     that_card,
+                    harmonize,
                 })
             }
             "gain" | "gains" => {
@@ -5042,6 +5159,15 @@ impl P {
                     amount,
                     who: subject,
                 })
+            }
+            // "loses all abilities" alone (layer 6).
+            "lose" | "loses"
+                if self.at_words(&["all", "abilities"])
+                    && !self.at_words(&["all", "abilities", "and"]) =>
+            {
+                self.pos += 2;
+                self.until_end_of_turn();
+                Ok(Effect::LoseAllAbilities { to: subject })
             }
             "lose" | "loses" if self.keyword_ahead() => {
                 let mut keywords = Vec::new();

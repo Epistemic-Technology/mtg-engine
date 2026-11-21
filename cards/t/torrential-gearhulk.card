@@ -1,0 +1,8 @@
+card "Torrential Gearhulk" {
+  oracle_id a6395447-677d-4c39-8eda-2d57e527c94e
+  cost {4}{U}{U}
+  type Artifact Creature — Construct
+  pt 5/6
+  keywords flash
+  triggered when this enters: cast free target instant card from your graveyard exile instead
+}

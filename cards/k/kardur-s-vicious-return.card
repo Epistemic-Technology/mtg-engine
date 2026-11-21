@@ -1,0 +1,8 @@
+card "Kardur's Vicious Return" {
+  oracle_id 6ca1d5ca-cc97-4783-9c0a-f47097f35ba8
+  cost {2}{B}{R}
+  type Enchantment — Saga
+  triggered chapter 1: you may sacrifice 1 creature chosen; when you do, deal 3 damage to any target
+  triggered chapter 2: each player discards 1 cards
+  triggered chapter 3: return target creature card from your graveyard to battlefield; put 1 +1/+1 counters on target 1; target 1 gains haste until your next turn
+}

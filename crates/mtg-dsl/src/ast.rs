@@ -1102,6 +1102,18 @@ pub enum Ability {
         /// less`: only while the condition holds, printed first.
         cond: Option<StaticCond>,
     },
+    /// `spells instant or sorcery you cast have storm`, `spells you cast
+    /// have delve`, `spells instant or sorcery you cast from hand have
+    /// cascade`, `spells you cast have affinity for artifact`: what the
+    /// controller's matching spells have (convoke, improvise, delve,
+    /// cascade, storm, affinity).
+    SpellsHave {
+        filter: Filter,
+        from_hand: bool,
+        keywords: Vec<Keyword>,
+        storm: bool,
+        affinity: Option<Filter>,
+    },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."
     SelfCost {
@@ -2150,8 +2162,14 @@ pub struct Sentence {
     /// Starts a new paragraph (a new line of Oracle text).
     pub para: bool,
     /// Printed "Until end of turn, ..." with the duration first (Water
-    /// Wings) rather than after each clause.
+    /// Wings) rather than after each clause; with `lasting`, that duration
+    /// first ("Until your next turn, ...").
     pub eot_first: bool,
+    /// `... until your next turn`, `... for as long as this remains`, `...
+    /// for as long as it remains tapped`, `... for as long as you control
+    /// this` (CR 611.2b): what lasts until end of turn lasts this long
+    /// instead.
+    pub lasting: Option<mtg_core::card::Lasting>,
     /// Printed "Then ..." (`then` before the sentence): "Then that player
     /// discards a card."
     pub then_first: bool,
@@ -2205,6 +2223,7 @@ impl Sentence {
             label: None,
             para: false,
             eot_first: false,
+            lasting: None,
             then_first: false,
             joins,
         }
@@ -3191,6 +3210,21 @@ pub enum Effect {
         /// choosing one of their own (CR 101.4).
         who: Option<Recipient>,
     },
+    /// `cast free noncreature spell from hand`, `cast free spell from hand
+    /// with mana value up to that much`, `cast free target instant or
+    /// sorcery card from your graveyard exile instead` (CR 608.2g): "you
+    /// may cast ... without paying its mana cost".
+    CastFree {
+        what: Option<Recipient>,
+        filter: Option<Filter>,
+        max: Option<Num>,
+        exile: bool,
+    },
+    /// `target creature loses all abilities` (until end of turn; layer
+    /// 6).
+    LoseAllAbilities {
+        to: Recipient,
+    },
     /// `target creature loses flying`: until end of turn.
     Strip {
         keywords: Vec<Keyword>,
@@ -4041,6 +4075,9 @@ pub enum Effect {
     GrantFlashback {
         to: Recipient,
         that_card: bool,
+        /// `gains harmonize`: "... gains harmonize until end of turn. Its
+        /// harmonize cost is equal to its mana cost."
+        harmonize: bool,
     },
     /// `target permanent you control gains protection from artifact or
     /// from color of choice`: "gains protection from artifacts or from the

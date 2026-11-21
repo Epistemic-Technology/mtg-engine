@@ -920,6 +920,33 @@ struct Templates {
     rules: Vec<Rule>,
 }
 
+/// A sentence's duration other than "until end of turn" (CR 611.2b): the
+/// sentence without it, whether it came first, and the DSL's words for
+/// it.
+fn lasting_split(s: &str) -> Option<(String, bool, &'static str)> {
+    let s = s.trim_end_matches('.');
+    if let Some(rest) = s.strip_prefix("Until your next turn, ") {
+        return Some((capitalize(rest), true, "until your next turn"));
+    }
+    let this = r"(?:~|this (?:creature|artifact|enchantment|Saga|Vehicle|Equipment|permanent|land|planeswalker))";
+    let re = Regex::new(&format!(
+        r"^(.+?) (until your next turn|for as long as {this} remains on the battlefield|for as long as you control {this}|for as long as it remains tapped)$"
+    ))
+    .ok()?;
+    let c = re.captures(s)?;
+    let d = cap(&c, 2);
+    let lasting = if d == "until your next turn" {
+        "until your next turn"
+    } else if d.ends_with("remains on the battlefield") {
+        "for as long as this remains"
+    } else if d.ends_with("remains tapped") {
+        "for as long as it remains tapped"
+    } else {
+        "for as long as you control this"
+    };
+    Some((cap(&c, 1).to_string(), false, lasting))
+}
+
 fn cap<'a>(c: &'a regex::Captures, i: usize) -> &'a str {
     c.get(i).map_or("", |m| m.as_str())
 }
@@ -1035,6 +1062,63 @@ impl Templates {
                     Some(format!("{who} {verb} {what} of choice"))
                 },
             ),
+            // "That creature doesn't untap during its controller's untap
+            // step" (with a duration after it, CR 611.2b).
+            (
+                r(
+                    r"^(.+?) (?:doesn't untap during its controller's untap step|don't untap during their controllers' untap steps)$",
+                ),
+                |c, t| {
+                    let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
+                    Some(format!("{who} gains doesn't untap"))
+                },
+            ),
+            // CR 608.2g: "You may cast a noncreature spell [with mana value
+            // 4 or less] from your hand without paying its mana cost."
+            (
+                r(
+                    r"^[Yy]ou may cast an? (?:(noncreature|creature|artifact|instant|sorcery|instant or sorcery|enchantment|permanent) )?spell(?: with mana value (\d+|X) or less)? from your hand without paying its mana cost$",
+                ),
+                |c, _| {
+                    let f = cap(c, 1);
+                    let mut out = "cast free ".to_string();
+                    if !f.is_empty() {
+                        let _ = write!(out, "{f} ");
+                    }
+                    out.push_str("spell from hand");
+                    if !cap(c, 2).is_empty() {
+                        let _ = write!(out, " with mana value up to {}", cap(c, 2));
+                    }
+                    Some(out)
+                },
+            ),
+            // "You may cast target instant or sorcery card [with mana value
+            // 3 or less] from your graveyard without paying its mana cost[.
+            // If that spell would be put into your graveyard, exile it
+            // instead.]"
+            (
+                r(
+                    r"^[Yy]ou may cast target (instant or sorcery|instant|sorcery) card( with mana value \d+ or less)? from your graveyard without paying its mana cost(\x{2})?$",
+                ),
+                |c, t| {
+                    *t += 1;
+                    let exile = if cap(c, 3).is_empty() {
+                        ""
+                    } else {
+                        " exile instead"
+                    };
+                    Some(format!(
+                        "cast free target {} card{} from your graveyard{exile}",
+                        cap(c, 1),
+                        cap(c, 2)
+                    ))
+                },
+            ),
+            // "It loses all abilities" (with a duration after it).
+            (r(r"^(.+?) loses? all abilities$"), |c, t| {
+                let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
+                Some(format!("{who} loses all abilities"))
+            }),
             (
                 r(r"^(.+?) gains? ([a-z ,]+?)(?: until end of turn)?$"),
                 |c, t| {
@@ -2137,6 +2221,32 @@ impl Templates {
     }
 
     fn sentence(&self, s: &str, targets: &mut usize) -> Option<String> {
+        if let Some(out) = self.sentence_rules(s, targets) {
+            return Some(out);
+        }
+        // CR 611.2b: "Until your next turn, <sentence>", "<sentence> until
+        // your next turn", "<sentence> for as long as this creature
+        // remains on the battlefield": the sentence, with its duration.
+        let (inner, first, lasting) = lasting_split(s)?;
+        let before = *targets;
+        // "can't attack or block", "prevent all damage it would deal":
+        // the one-turn forms, with "this turn".
+        let out = self.sentence_rules(&inner, targets).or_else(|| {
+            *targets = before;
+            self.sentence_rules(&format!("{inner} this turn"), targets)
+        });
+        let Some(out) = out.filter(|o| !o.contains(';') && !o.contains("until end of turn")) else {
+            *targets = before;
+            return None;
+        };
+        Some(if first {
+            format!("{lasting}, {out}")
+        } else {
+            format!("{out} {lasting}")
+        })
+    }
+
+    fn sentence_rules(&self, s: &str, targets: &mut usize) -> Option<String> {
         // The first rule that matches and makes something; a rule that
         // matches but declines leaves the next one a chance.
         for (re, f) in &self.rules {
@@ -2497,9 +2607,12 @@ impl Templates {
                 continue;
             }
             let if_cond;
+            // "You may cast ... without paying its mana cost": the DSL's
+            // `cast free` keeps its "you may" (CR 608.2g).
             let (prefix, body) = if let Some(rest) = sentence
                 .strip_prefix("you may ")
                 .or_else(|| sentence.strip_prefix("You may "))
+                .filter(|r| !(r.starts_with("cast ") && r.contains("without paying its mana cost")))
             {
                 ("you may ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("If you do, ") {
@@ -2651,6 +2764,15 @@ fn merge_impulse(sentences: Vec<String>) -> Vec<String> {
                 _ => "you may ",
             };
             Some(format!("\u{1}{prefix}impulse {n} {when}"))
+        });
+        // "... without paying its mana cost. If that spell would be put
+        // into your graveyard, exile it instead.": one sentence, marked.
+        let merged = merged.or_else(|| {
+            let next = it.peek()?;
+            (s.ends_with("without paying its mana cost")
+                && next.trim_end_matches('.')
+                    == "If that spell would be put into your graveyard, exile it instead")
+                .then(|| format!("{s}\u{2}"))
         });
         match merged {
             Some(m) => {
@@ -4653,6 +4775,56 @@ impl Builder<'_> {
                 cap(&c, 3),
                 cap(&c, 4)
             ));
+            return Ok(());
+        }
+        // "Instant and sorcery spells you cast [from your hand] have
+        // storm." (convoke, improvise, delve, cascade, affinity for ...).
+        if let Some(c) = Regex::new(
+            r"^(?:(.+) )?[Ss]pells you cast( from your hand)? have (convoke|improvise|delve|cascade|storm|affinity for (artifacts|creatures|enchantments|Auras))\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            // "Instant and sorcery spells" (types lowercase), "Sliver
+            // spells" (a subtype keeps its capital).
+            let subject = cap(&c, 1).replace(" and ", " or ");
+            let typed = subject.split(' ').next().is_some_and(|w| {
+                matches!(
+                    w,
+                    "Instant"
+                        | "Sorcery"
+                        | "Creature"
+                        | "Artifact"
+                        | "Enchantment"
+                        | "Noncreature"
+                        | "Nonartifact"
+                        | "Permanent"
+                        | "Multicolored"
+                        | "Colorless"
+                        | "Legendary"
+                )
+            });
+            let subject = if typed {
+                lowercase_first(&subject)
+            } else {
+                subject
+            };
+            let subject = if subject.is_empty() {
+                String::new()
+            } else {
+                format!(" {}", singular(&subject))
+            };
+            let from = if cap(&c, 2).is_empty() {
+                ""
+            } else {
+                " from hand"
+            };
+            let what = match cap(&c, 4) {
+                "" => cap(&c, 3).to_string(),
+                kind => format!("affinity for {}", singular(kind)),
+            };
+            self.statements
+                .push(format!("spells{subject} you cast{from} have {what}"));
             return Ok(());
         }
         if let Some(c) = Regex::new(

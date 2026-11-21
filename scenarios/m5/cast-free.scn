@@ -1,0 +1,135 @@
+# "You may cast ... without paying its mana cost" as an effect (CR
+# 608.2g): the spell is cast as the effect finishes, ignoring timing
+# restrictions; a mana-value bound limits which card may be chosen.
+
+scenario "cast free: Buster Sword casts a spell from hand with mana value up to the damage" {
+  battlefield A: "Grizzly Bears", "Buster Sword" on "Grizzly Bears"
+  hand A: "Serra Angel"
+  library A: "Island"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 combat_damage A: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert battlefield A contains "Serra Angel"
+  assert hand A contains "Island"
+}
+
+scenario "cast free: Buster Sword won't cast a spell with greater mana value" {
+  battlefield A: "Grizzly Bears", "Buster Sword" on "Grizzly Bears"
+  hand A: "Shivan Dragon"
+  library A: "Island"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert hand A contains "Shivan Dragon"
+  assert battlefield A lacks "Shivan Dragon"
+}
+
+scenario "cast free: Yue casts a noncreature spell, not a creature spell" {
+  battlefield A: "Yue, the Moon Spirit", 5 "Island"
+  hand A: "Divination", "Serra Angel"
+  library A: "Plains", "Plains", "Plains"
+  turn 1 A: activate "Yue, the Moon Spirit"
+  illegal turn 1 A: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 3
+  assert tapped "Yue, the Moon Spirit"
+}
+
+scenario "cast free: The Dawning Archaic casts a graveyard instant, then exiles it" {
+  battlefield A: "The Dawning Archaic"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: attack "The Dawning Archaic"
+  turn 1 A: trigger "The Dawning Archaic" targeting "Lightning Bolt"
+  turn 1 declare_attackers A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 10
+  assert exile A contains "Lightning Bolt"
+  assert graveyard A lacks "Lightning Bolt"
+}
+
+scenario "cast free: a countered free spell is exiled too" {
+  battlefield A: "The Dawning Archaic"
+  battlefield B: 2 "Island"
+  graveyard A: "Lightning Bolt"
+  hand B: "Counterspell"
+  turn 1 A: attack "The Dawning Archaic"
+  turn 1 A: trigger "The Dawning Archaic" targeting "Lightning Bolt"
+  turn 1 declare_attackers A: cast "Lightning Bolt" targeting player B
+  turn 1 declare_attackers B: cast "Counterspell" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "cast free: Daring Waverider casts a sorcery at instant speed from the graveyard" {
+  battlefield A: 6 "Island"
+  graveyard A: "Divination"
+  hand A: "Daring Waverider"
+  library A: "Plains", "Plains"
+  turn 1 A: cast "Daring Waverider"
+  turn 1 A: trigger "Daring Waverider" targeting "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert exile A contains "Divination"
+  assert battlefield A contains "Daring Waverider"
+}
+
+scenario "cast free: Electrodominance casts a sorcery at instant speed, mana value up to X" {
+  battlefield A: 5 "Mountain"
+  hand A: "Electrodominance", "Divination"
+  library A: "Plains", "Plains", "Plains"
+  turn 2 A: cast "Electrodominance" x 3 targeting player B
+  turn 2 A: choose "Divination"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}
+
+scenario "cast free: Electrodominance's bound keeps out a greater mana value" {
+  battlefield A: 4 "Mountain"
+  hand A: "Electrodominance", "Divination"
+  library A: "Plains", "Plains", "Plains"
+  turn 2 A: cast "Electrodominance" x 2 targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert hand A contains "Divination"
+}
+
+scenario "cast free: Goblin Dark-Dwellers recasts a cheap instant and exiles it" {
+  battlefield A: 5 "Mountain"
+  graveyard A: "Lightning Bolt"
+  hand A: "Goblin Dark-Dwellers"
+  turn 1 A: cast "Goblin Dark-Dwellers"
+  turn 1 A: trigger "Goblin Dark-Dwellers" targeting "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "cast free: Torrential Gearhulk targets only an instant card" {
+  battlefield A: 6 "Island"
+  graveyard A: "Divination", "Lightning Bolt"
+  hand A: "Torrential Gearhulk"
+  turn 1 A: cast "Torrential Gearhulk"
+  turn 1 A: trigger "Torrential Gearhulk" targeting "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert exile A contains "Lightning Bolt"
+  assert graveyard A contains "Divination"
+}
+
+scenario "cast free: Torrential Gearhulk has no target with only a sorcery card" {
+  battlefield A: 6 "Island"
+  graveyard A: "Divination"
+  hand A: "Torrential Gearhulk"
+  library A: "Plains", "Plains"
+  turn 1 A: cast "Torrential Gearhulk"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 0
+}

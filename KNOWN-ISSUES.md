@@ -69,6 +69,11 @@ by rejecting the form at compile time or by binding it correctly.
   (Pain for All: "enchanted creature deals damage ... to any other
   target"): `another target any` excludes the source (the Aura), not
   the creature dealing the damage. Pain for All is not in.
+- **`you gains shroud` / `you gains hexproof` / `you gains protection
+  from ...`** render "You gain shroud until end of turn" but do nothing:
+  `Effect::Grant` applies only to permanents (Seht's Tiger, Gilded
+  Light). Blossoming Calm ("You gain hexproof until your next turn") is
+  left out for this.
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.
@@ -81,19 +86,24 @@ named the feature; a card may need more than one.
 - **Wording near-misses, about 50 cards.** The DSL expresses the card
   and the renderer is a few words off. Listed with the differing words
   in the batch reports (`RENDER:` lines).
-- **"Until your next turn"** durations on effects and delayed triggers
-  (Rootwise Survivor, For the Common Good, Garruk, Hydro-Man).
-- **"For as long as ..." durations:** "this remains on the battlefield",
-  "it remains tapped", "you control this" (The Wondrous Wasp, Old Fat
-  Spider, Braided Net, Gwen Stacy, Lightning).
-- **Casting a card without paying its mana cost as an effect**, also
-  mid-resolution and with a mana-value bound (Malcolm, Ugin, Collector's
-  Cage, Tinybones, Lady Octopus, Maralen, Chandra Torch of Defiance,
-  Breaching Dragonstorm).
-- **Granting a keyword to spells or cards in other zones:** delve,
-  affinity, cascade, storm, convoke to spells you cast; mayhem,
-  harmonize, embalm, jump-start to graveyard cards (Teval, Witherbloom,
-  Quandrix, Prismari, Eirdu, Norman Osborn, Songcrafter Mage).
+- **Durations still missing** (the sentence forms are in): a delayed
+  trigger lasting "until your next turn" (Garruk, Jace Architect of
+  Thought, Vraska the Unseen), "becomes a copy of ... until your next
+  turn", cost changes and "can't cast" rules until your next turn,
+  "for as long as it has a flood counter on it", "for as long as this
+  Equipment remains attached to it".
+- **Free casts still missing** (`cast free` from the hand or a target
+  card is in): the discarded card (Malcolm), cards exiled by the effect
+  or "with this" (Ugin's -11, Maralen, Collector's Cage's hideaway),
+  "equal to" or "lesser" mana-value bounds (Brain in a Jar, Press the
+  Enemy), cards in an opponent's graveyard (Memory Plunder), and "once
+  each turn" permissions (Zaffai, One with the Multiverse).
+- **Graveyard keyword grants still missing** (`gains harmonize` and the
+  spells-you-cast grants are in): static grants to graveyard cards
+  (Iroh's flashback, Green Goblin's mayhem, Festival of Embers), embalm
+  until end of turn (Cursecloth Wrappings), "flashback {0} instead if
+  saddled" (Archmage's Newt), and cost changes for spells cast from a
+  graveyard.
 - **Tapped and attacking, what is left:** "It enters tapped and
   attacking that player" as its own sentence (Shark Shredder), a card
   with mana value X or less (Kinscaer Sentry), token copies tapped and

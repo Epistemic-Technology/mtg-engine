@@ -1,0 +1,6 @@
+card "Inspiring Statuary" {
+  oracle_id 78b2b68d-6e27-49f3-8373-6e19faf6f679
+  cost {3}
+  type Artifact
+  spells nonartifact you cast have improvise
+}

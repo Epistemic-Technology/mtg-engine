@@ -1,0 +1,8 @@
+card "Rootwise Survivor" {
+  oracle_id e42a6880-7ca6-498d-abc9-fb7ccd08b111
+  cost {3}{G}{G}
+  type Creature — Human Survivor
+  pt 3/4
+  keywords haste
+  label "Survival" triggered at beginning of your second main if this is tapped: put 3 +1/+1 counters on up to 1 target land you control; that target 1 becomes 0/0 Elemental creature in addition indefinitely; target 1 gains haste until your next turn
+}

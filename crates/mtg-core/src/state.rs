@@ -364,6 +364,10 @@ pub enum AltCast {
     Airbent,
     /// Cast for {2} rather than its mana cost after it was airbent.
     Airbend,
+    /// Cast without paying its mana cost, and exiled instead of put into
+    /// its owner's graveyard ("If that spell would be put into your
+    /// graveyard, exile it instead", CR 614.1a).
+    FreeExile,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
@@ -932,6 +936,28 @@ pub enum Duration {
     /// Until the given player's next turn begins (CR 611.2b): "until your
     /// next turn".
     UntilYourNextTurn(PlayerId),
+    /// "For as long as this creature remains on the battlefield" (CR
+    /// 611.2b): while that object is on the battlefield.
+    WhileOnBattlefield(ObjId),
+    /// "For as long as it remains tapped" (CR 611.2b): while that object
+    /// is a tapped permanent.
+    WhileTapped(ObjId),
+    /// "For as long as you control this creature" (CR 611.2b): while that
+    /// object is on the battlefield under that player's control.
+    WhileControlled(ObjId, PlayerId),
+}
+
+impl Duration {
+    /// Durations that end when an object leaves, untaps, or changes
+    /// control: checked with the state-based actions.
+    pub const fn linked(self) -> bool {
+        matches!(
+            self,
+            Duration::WhileOnBattlefield(_)
+                | Duration::WhileTapped(_)
+                | Duration::WhileControlled(..)
+        )
+    }
 }
 
 /// What a stored continuous effect applies to.
@@ -1755,6 +1781,9 @@ pub struct GameState {
     /// (`Effect::GrantFlashback`), castable for their mana cost while
     /// they stay there.
     pub granted_flashback: Vec<ObjId>,
+    /// Graveyard cards given harmonize until end of turn, castable for
+    /// their mana cost (as their harmonize cost) while they stay there.
+    pub granted_harmonize: Vec<ObjId>,
     /// The spells cast this turn, by caster ("if you've cast a noncreature
     /// spell this turn"); inline, so copying the state rarely allocates.
     pub cast_this_turn: SmallVec<[(PlayerId, crate::card::CardRef); 4]>,
@@ -1874,6 +1903,16 @@ pub struct GameState {
     /// may have activated or triggered abilities its definition lacks.
     pub grant_sources: u32,
     pub eot_grants: u32,
+    /// Grants made with a duration longer than the turn ("until your next
+    /// turn", "for as long as ..."): `eot_grants` starts each turn here.
+    pub lasting_grants: u32,
+    /// The duration a resolving `Effect::Lasting` gives the effects it
+    /// creates in place of "until end of turn" (CR 611.2b).
+    pub lasting: Option<crate::card::Lasting>,
+    /// Effects whose duration is linked to an object
+    /// (`Duration::linked`): while nonzero the state-based actions end
+    /// those whose object left, untapped, or changed control.
+    pub linked_durations: u32,
     pub mid: MidDecision,
     pub lki: IdMap<LastKnown>,
     /// What the resolving spell or ability has done so far, for "this

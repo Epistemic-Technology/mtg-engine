@@ -2050,6 +2050,21 @@ pub enum BlockRule {
     BlocksAdditional(u8),
 }
 
+/// A duration other than "until end of turn" for the continuous effects
+/// an `Effect::Lasting` creates (CR 611.2b).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Lasting {
+    /// "until your next turn": ends as its controller's next turn begins.
+    YourNextTurn,
+    /// "for as long as this creature remains on the battlefield".
+    SourceOnBattlefield,
+    /// "for as long as it remains tapped": each affected object, while it
+    /// stays tapped.
+    WhileTapped,
+    /// "for as long as you control this creature".
+    YouControlSource,
+}
+
 /// How long cards exiled by an impulse effect stay playable.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum PlayUntil {
@@ -3864,6 +3879,15 @@ pub enum Effect {
         to: Recipient,
         parts: Vec<Modification>,
     },
+    /// "<effects> until your next turn", "... for as long as this creature
+    /// remains on the battlefield" (CR 611.2b): the effects, each
+    /// continuous effect they would create until end of turn lasting
+    /// `lasting` instead. One whose duration is linked to the source does
+    /// nothing if the source has already left (CR 611.2b).
+    Lasting {
+        lasting: Lasting,
+        effects: Vec<Effect>,
+    },
     /// Copy the source spell (CR 707.10), as it is on the stack or as it
     /// last existed there; its controller may choose new targets for the
     /// copy (CR 707.10c). Conspire's trigger (`Builtin::Conspire`).
@@ -3900,6 +3924,20 @@ pub enum Effect {
     /// paying its mana cost." (Mad Wizard's Lair).
     DrawCastOne {
         count: u32,
+    },
+    /// "You may cast a spell from your hand with mana value less than or
+    /// equal to that damage without paying its mana cost", "you may cast
+    /// target instant or sorcery card from your graveyard without paying
+    /// its mana cost" (CR 608.2g: cast as the effect finishes, timing
+    /// ignored). `what` names the card (a target); without it, the
+    /// controller chooses a card in their hand matching `filter` with mana
+    /// value at most `max_mv`. With `exile`, "If that spell would be put
+    /// into your graveyard, exile it instead."
+    CastFree {
+        what: Option<Recipient>,
+        filter: Option<ObjFilter>,
+        max_mv: Option<Num>,
+        exile: bool,
     },
     /// "Reveal the top ten cards of your library. Put a creature card from
     /// among them onto the battlefield with three +1/+1 counters on it.
@@ -4325,6 +4363,9 @@ pub enum Effect {
     /// 400.7).
     GrantFlashback {
         to: Recipient,
+        /// "... gains harmonize until end of turn. Its harmonize cost is
+        /// equal to its mana cost." (CR 702.180a) instead.
+        harmonize: bool,
     },
     /// "gains all creature types until end of turn" (`all`), "loses all
     /// creature types until end of turn" (layer 4).
@@ -4570,6 +4611,7 @@ impl Effect {
                 | Effect::Venture { .. }
                 | Effect::PunishEach { .. }
                 | Effect::DrawCastOne { .. }
+                | Effect::CastFree { .. }
                 | Effect::RevealPutCreature { .. }
                 // Which creature (tied for least toughness, or token) and
                 // whether to take the counters.
@@ -6043,6 +6085,27 @@ pub struct CostChange {
     /// ("During turns other than yours, spells you cast cost {1} less").
     #[serde(default)]
     pub cond: Option<u16>,
+    /// "Spells you cast have delve" (`generic` 0): what the matching
+    /// spells have besides.
+    #[serde(default)]
+    pub grant: Option<Box<SpellGrant>>,
+}
+
+/// What a static ability gives the spells its controller casts (CR
+/// 702.51 convoke, 702.66 delve, 702.126 improvise, 702.85 cascade,
+/// 702.40 storm, 702.41 affinity): "Instant and sorcery spells you cast
+/// have storm", "... from your hand have cascade", "Spells you cast have
+/// affinity for artifacts".
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct SpellGrant {
+    /// Convoke, improvise, delve, cascade.
+    pub keywords: KeywordSet,
+    pub storm: bool,
+    /// Affinity for these: {1} less for each such permanent the caster
+    /// controls.
+    pub affinity: Option<ObjFilter>,
+    /// Only spells cast from their caster's hand.
+    pub from_hand: bool,
 }
 
 /// "This spell costs {1} less to cast for each artifact you control"
@@ -6372,6 +6435,7 @@ impl AbilityDef {
             | Effect::IfThisWay { then: inner, .. }
             | Effect::IfExcessDamage(inner)
             | Effect::OneOf(inner)
+            | Effect::Lasting { effects: inner, .. }
             | Effect::UnlessPays { effects: inner, .. }
             | Effect::UnlessSacrifices { effects: inner, .. } = e
             {
@@ -7168,7 +7232,8 @@ impl DefFlags {
                         Keyword::Decayed,
                     ]
                     .into_iter()
-                    .any(|k| ks.contains(k)),
+                    .any(|k| ks.contains(k))
+                        || ks.intersects(KeywordSet::TRIGGERED),
                     _ => false,
                 }))
             }),

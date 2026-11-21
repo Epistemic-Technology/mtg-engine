@@ -664,6 +664,13 @@ impl Decompiler<'_> {
     fn sentences(&self, effects: &[CoreEffect]) -> Vec<Sentence> {
         let mut out = Vec::new();
         for e in effects {
+            // CR 611.2b: one sentence with its duration.
+            if let CoreEffect::Lasting { lasting, effects } = e {
+                let mut s = Sentence::new(effects.iter().map(|e| self.effect(e)).collect());
+                s.lasting = Some(*lasting);
+                out.push(s);
+                continue;
+            }
             if let CoreEffect::Instead { cond, base, alt } = e {
                 out.extend(self.sentences(base));
                 let cond = match cond {
@@ -1080,6 +1087,30 @@ impl Decompiler<'_> {
                 to: r(*to),
                 twice: *twice,
             },
+            CoreEffect::CastFree {
+                what,
+                filter,
+                max_mv,
+                exile,
+            } => Effect::CastFree {
+                what: what.map(r),
+                filter: filter.as_ref().map(|f| self.filter(f)),
+                max: *max_mv,
+                exile: *exile,
+            },
+            CoreEffect::Animate {
+                to,
+                types: t,
+                subtypes,
+                pt: None,
+                colors: None,
+                keywords: kws,
+                indefinite: false,
+                loses_abilities: true,
+                in_addition: false,
+            } if t.is_empty() && subtypes.is_empty() && kws.is_empty() => {
+                Effect::LoseAllAbilities { to: r(*to) }
+            }
             CoreEffect::Animate {
                 to,
                 types: t,
@@ -1286,6 +1317,7 @@ impl Decompiler<'_> {
                 unreachable!("built-in abilities and dungeon rooms only")
             }
             CoreEffect::Ascend => unreachable!("ascend is decompiled as a keyword line"),
+            CoreEffect::Lasting { .. } => unreachable!("a sentence's duration, by `sentences`"),
             CoreEffect::Explore { what } => Effect::Explore {
                 what: Self::recipient(*what),
                 twice: false,
@@ -1556,9 +1588,10 @@ impl Decompiler<'_> {
                 blocker: Self::recipient(*blocker),
                 attacker: Self::recipient(*attacker),
             },
-            CoreEffect::GrantFlashback { to } => Effect::GrantFlashback {
+            CoreEffect::GrantFlashback { to, harmonize } => Effect::GrantFlashback {
                 to: Self::recipient(*to),
                 that_card: false,
+                harmonize: *harmonize,
             },
             CoreEffect::SwitchPt { to } => Effect::SwitchPt {
                 to: Self::recipient(*to),
@@ -2077,6 +2110,16 @@ impl Decompiler<'_> {
                 toughness: *toughness,
                 plus: *plus,
             },
+            AbilityDef::CostChange(c) if c.grant.is_some() => {
+                let g = c.grant.as_deref().expect("checked");
+                Ability::SpellsHave {
+                    filter: self.filter(&c.spells),
+                    from_hand: g.from_hand,
+                    keywords: keywords(g.keywords),
+                    storm: g.storm,
+                    affinity: g.affinity.as_ref().map(|f| self.filter(f)),
+                }
+            }
             AbilityDef::CostChange(c) => Ability::CostChange {
                 filter: self.filter(&c.spells),
                 whose: c.whose,

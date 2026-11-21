@@ -9,6 +9,51 @@ use crate::ids::{ObjId, PlayerId};
 use crate::state::{Flow, GameResult, GameState, Lookback, LossReason, Zone};
 
 impl GameState {
+    /// CR 611.2b: end the effects whose duration is linked to an object
+    /// that is no longer on the battlefield, tapped, or under the same
+    /// control. Whether any ended.
+    #[cold]
+    #[inline(never)]
+    fn expire_linked(&mut self) -> bool {
+        use crate::state::Duration;
+        let holds = |st: &GameState, d: Duration| {
+            let on = |id| st.objects.get(id).filter(|o| o.zone == Zone::Battlefield);
+            match d {
+                Duration::WhileOnBattlefield(id) => on(id).is_some(),
+                Duration::WhileTapped(id) => on(id).is_some_and(|o| o.tapped),
+                Duration::WhileControlled(id, p) => on(id).is_some_and(|o| o.controller == p),
+                _ => true,
+            }
+        };
+        let before = self.effects.len() + self.replacements.len() + self.rules.len();
+        let mut live = 0u32;
+        let effects = std::mem::take(&mut self.effects);
+        self.effects = effects
+            .into_iter()
+            .filter(|e| holds(self, e.duration))
+            .inspect(|e| live += u32::from(e.duration.linked()))
+            .collect();
+        let replacements = std::mem::take(&mut self.replacements);
+        self.replacements = replacements
+            .into_iter()
+            .filter(|e| holds(self, e.duration))
+            .inspect(|e| live += u32::from(e.duration.linked()))
+            .collect();
+        let rules = std::mem::take(&mut self.rules);
+        self.rules = rules
+            .into_iter()
+            .filter(|e| holds(self, e.duration))
+            .inspect(|e| live += u32::from(e.duration.linked()))
+            .collect();
+        self.linked_durations = live;
+        if self.effects.len() + self.replacements.len() + self.rules.len() == before {
+            return false;
+        }
+        self.bump();
+        self.cbump();
+        true
+    }
+
     /// CR 702.95e: unpair creatures no longer both creatures on the
     /// battlefield under one controller. Whether any pair broke.
     #[cold]
@@ -81,6 +126,11 @@ impl GameState {
             // consequences are settled before anything else is checked.
             self.sync_control();
             let mut acted = false;
+            // CR 611.2b: "for as long as ..." effects whose object left,
+            // untapped, or changed control have ended.
+            if self.linked_durations > 0 && self.expire_linked() {
+                self.sync_control();
+            }
             // 704.5a, 704.5b, 704.5c
             for i in 0..self.num_players() {
                 let p = PlayerId(u8::try_from(i).unwrap_or(0));

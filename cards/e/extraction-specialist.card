@@ -1,0 +1,8 @@
+card "Extraction Specialist" {
+  oracle_id 4164034a-5e59-4e40-a150-2c1000b0bd0d
+  cost {2}{W}
+  type Creature — Human Rogue
+  pt 3/2
+  keywords lifelink
+  triggered when this enters: return target creature card with mana value 2 or less from your graveyard to battlefield; that target 1 can't attack or block for as long as you control this
+}

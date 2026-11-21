@@ -1,0 +1,7 @@
+card "Time of Ice" {
+  oracle_id 93e0fd89-8a0d-4d97-aa22-aafe83d53515
+  cost {3}{U}
+  type Enchantment — Saga
+  triggered chapter 1, 2: tap target creature an opponent controls; target 1 gains doesn't untap for as long as you control this
+  triggered chapter 3: return all tapped creature to hand
+}

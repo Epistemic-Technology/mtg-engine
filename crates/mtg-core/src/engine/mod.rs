@@ -523,6 +523,7 @@ impl GameState {
             discarded_this_turn: 0,
             mayhem_discarded: Vec::new(),
             granted_flashback: Vec::new(),
+            granted_harmonize: Vec::new(),
             cast_this_turn: smallvec::SmallVec::new(),
             turn_log: crate::state::TurnLog::default(),
             desig: crate::state::Designations::default(),
@@ -589,6 +590,9 @@ impl GameState {
             attack_rule_sources: 0,
             grant_sources: 0,
             eot_grants: 0,
+            lasting_grants: 0,
+            lasting: None,
+            linked_durations: 0,
             undone_cast: None,
             face_down_count: 0,
             room_count: 0,
@@ -717,12 +721,11 @@ impl GameState {
                     if let Some((p, card, alt)) =
                         self.exile_casts.as_mut().and_then(|e| e.pending.pop())
                     {
-                        // From exile, or from the hand (Mad Wizard's Lair).
-                        if self
-                            .objects
-                            .get(card)
-                            .is_some_and(|o| matches!(o.zone, Zone::Exile | Zone::Hand))
-                        {
+                        // From exile, the hand (Mad Wizard's Lair), or a
+                        // graveyard (The Dawning Archaic).
+                        if self.objects.get(card).is_some_and(|o| {
+                            matches!(o.zone, Zone::Exile | Zone::Hand | Zone::Graveyard)
+                        }) {
                             // CR 712.11a: cast transformed, back face up.
                             let face = self.exile_casts.as_mut().and_then(|e| {
                                 let i = e.transformed.iter().position(|(c, _)| *c == card)?;
@@ -3060,6 +3063,7 @@ impl GameState {
             .retain(|e| e.duration != Duration::UntilEndOfTurn);
         self.player_rules.clear();
         self.granted_flashback.clear();
+        self.granted_harmonize.clear();
         // CR 603.7c: "when that creature dies this turn" ends unfired.
         if !self.delayed_triggers.is_empty() {
             self.delayed_triggers.retain(|d| !d.this_turn);
@@ -3305,7 +3309,7 @@ impl GameState {
                     });
                 }
             }
-            self.eot_grants = 0;
+            self.eot_grants = self.lasting_grants;
             self.desig.last_active = Some(self.active_player);
             self.desig.sped = 0;
             // CR 500.7: an extra turn comes directly after this one, the
@@ -3329,6 +3333,12 @@ impl GameState {
             let ends = Duration::UntilYourNextTurn(self.active_player);
             if self.effects.iter().any(|e| e.duration == ends) {
                 self.effects.retain(|e| e.duration != ends);
+            }
+            if self.replacements.iter().any(|e| e.duration == ends) {
+                self.replacements.retain(|e| e.duration != ends);
+            }
+            if self.rules.iter().any(|e| e.duration == ends) {
+                self.rules.retain(|e| e.duration != ends);
             }
             if !self.goads.is_empty() {
                 let p = self.active_player;

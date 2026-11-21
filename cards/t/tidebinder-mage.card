@@ -1,0 +1,7 @@
+card "Tidebinder Mage" {
+  oracle_id f881378b-b539-4ea8-981d-e01ee82af105
+  cost {U}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  triggered when this enters: tap target red or green creature an opponent controls; that target 1 gains doesn't untap for as long as you control this
+}

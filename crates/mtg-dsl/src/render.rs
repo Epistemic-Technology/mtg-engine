@@ -958,6 +958,9 @@ struct Ctx<'a> {
     /// The sentence being rendered begins "until end of turn," (a delayed
     /// trigger in it prints without its own "this turn").
     eot_first: bool,
+    /// The sentence being rendered lasts this long instead of the turn
+    /// ("until your next turn", CR 611.2b).
+    lasting: Option<String>,
     /// The ability being rendered, for "except it has this ability".
     current: Option<&'a Ability>,
     /// The trigger of the ability, for wording that depends on it.
@@ -1020,6 +1023,7 @@ impl<'a> Ctx<'a> {
             in_delayed: false,
             delayed_that: false,
             eot_first: false,
+            lasting: None,
             current: None,
             trigger: None,
             last_token: None,
@@ -4864,7 +4868,28 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::with_subject(*to, s, format!("{verb} all creature types")).until_eot()
         }
-        Effect::GrantFlashback { to, that_card } => {
+        Effect::GrantFlashback {
+            to,
+            that_card,
+            harmonize: true,
+        } => {
+            // "Target instant or sorcery card in your graveyard gains
+            // harmonize until end of turn. Its harmonize cost is equal to
+            // its mana cost."
+            let s = ctx
+                .subj(*to)
+                .replacen(" from your graveyard", " in your graveyard", 1);
+            let its = if *that_card { "That card's" } else { "Its" };
+            Clause::with_subject(
+                *to,
+                s,
+                format!(
+                    "{} harmonize until end of turn. {its} harmonize cost is equal to its mana cost",
+                    ctx.verb(*to, "gains", "gain")
+                ),
+            )
+        }
+        Effect::GrantFlashback { to, that_card, .. } => {
             // "Target instant or sorcery card in your graveyard gains
             // flashback until end of turn. The flashback cost is equal to
             // its mana cost."
@@ -5331,6 +5356,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     .collect();
                 return Clause::with_subject(*to, s, list(&parts));
             }
+            // "That creature doesn't untap during its controller's untap
+            // step for as long as you control this creature".
+            if keywords.as_slice() == [Keyword::DoesntUntap] {
+                let v = ctx.verb(
+                    *to,
+                    "doesn't untap during its controller's untap step",
+                    "don't untap during their controllers' untap steps",
+                );
+                let mut c = Clause::with_subject(*to, s, v.to_string());
+                c.suffix = Some("this turn");
+                return c;
+            }
+            // "Its activated abilities can't be activated for as long as it
+            // remains tapped" (CR 602.5).
+            if keywords.len() == 1 && is_activation_bar(keywords[0]) {
+                let mut c =
+                    Clause::imperative(format!("{} {}", possessive(&s), &keywords[0].name()[4..]));
+                c.suffix = Some("this turn");
+                return c;
+            }
             if keywords.iter().all(|k| is_restriction(*k)) {
                 let mut c = Clause::with_subject(*to, s, restriction_phrase(keywords));
                 c.suffix = Some("this turn");
@@ -5746,6 +5791,58 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ctx.verb(*who, "sacrifices", "sacrifice")
                 ),
             )
+        }
+        Effect::CastFree {
+            what,
+            filter,
+            max,
+            exile,
+        } => {
+            // CR 608.2g: "You may cast a noncreature spell from your hand
+            // without paying its mana cost."
+            #[allow(clippy::single_match_else)] // the hand's long phrase
+            let what = match what {
+                Some(r) => ctx.obj(*r),
+                None => {
+                    let noun = match filter {
+                        Some(f) => format!("{} spell", card_filter_phrase(f, ctx.card).trim()),
+                        None => "spell".to_string(),
+                    };
+                    // "a spell with mana value 4 or less from your hand",
+                    // but "a spell from your hand with mana value less
+                    // than or equal to that damage".
+                    match max {
+                        None => format!("{} from your hand", with_article(&noun)),
+                        Some(Num::ThatMuch) => format!(
+                            "{} from your hand with mana value less than or equal to that damage",
+                            with_article(&noun)
+                        ),
+                        Some(Num::Count(i)) => format!(
+                            "{} from your hand with mana value less than or equal to {}",
+                            with_article(&noun),
+                            count_phrase_in(&ctx.card.counts[usize::from(*i)].expr, ctx, false)
+                        ),
+                        Some(n) => format!(
+                            "{} with mana value {} or less from your hand",
+                            with_article(&noun),
+                            digits(*n)
+                        ),
+                    }
+                }
+            };
+            let tail = if *exile {
+                ". If that spell would be put into your graveyard, exile it instead"
+            } else {
+                ""
+            };
+            Clause::imperative(format!(
+                "you may cast {what} without paying its mana cost{tail}"
+            ))
+        }
+        Effect::LoseAllAbilities { to } => {
+            let s = ctx.subj(*to);
+            let v = ctx.verb(*to, "loses", "lose");
+            Clause::with_subject(*to, s, format!("{v} all abilities")).until_eot()
         }
         Effect::Strip { keywords, to } => {
             let s = ctx.subj(*to);
@@ -7759,6 +7856,8 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     ctx.groups_mentioned
         .retain(|r| !matches!(r, Recipient::Group(_)));
     let eot = std::mem::replace(&mut ctx.eot_first, s.eot_first);
+    let lasting = s.lasting.map(|l| lasting_text(l, ctx));
+    let outer_lasting = std::mem::replace(&mut ctx.lasting, lasting.clone());
     let clauses: Vec<Clause> = s
         .effects
         .iter()
@@ -7781,6 +7880,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         })
         .collect();
     ctx.eot_first = eot;
+    ctx.lasting = outer_lasting;
     // Two pumps of different recipients each keep their duration
     // ("target creature an opponent controls gets -2/-2 until end of turn
     // and target creature you control gets +2/+2 until end of turn").
@@ -7795,12 +7895,25 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         && !pumps_apart
         && clauses[0].suffix.is_some()
         && clauses.iter().all(|c| c.suffix == clauses[0].suffix);
+    // CR 611.2b: a duration other than "until end of turn" in its place.
+    let sfx = |x: &'static str| -> String {
+        match &lasting {
+            Some(t) if x == EOT || x == "this turn" => t.clone(),
+            _ => x.to_string(),
+        }
+    };
     let mut out = String::new();
     if s.then_first {
         out.push_str("then ");
     }
     if s.eot_first {
-        out.push_str("until end of turn, ");
+        match &lasting {
+            Some(t) => {
+                out.push_str(t);
+                out.push_str(", ");
+            }
+            None => out.push_str("until end of turn, "),
+        }
     }
     let mut prev_subject: Option<Recipient> = None;
     let mut suffix_done = false;
@@ -7860,7 +7973,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             && !s.eot_first
             && !next_shares
         {
-            push_suffix(&mut out, suffix);
+            push_suffix(&mut out, &sfx(suffix));
         }
         // "deals X damage to any target and you gain X life, where X is
         // ...": one X, explained once at the end.
@@ -7873,7 +7986,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             && i + 1 == clauses.len()
             && c.tail.starts_with(", where X is ")
         {
-            push_suffix(&mut out, c.suffix.expect("shared"));
+            push_suffix(&mut out, &sfx(c.suffix.expect("shared")));
             suffix_done = true;
         }
         if !shared_where {
@@ -7881,9 +7994,34 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         }
     }
     if shared_suffix && !s.eot_first && !suffix_done {
-        push_suffix(&mut out, clauses[0].suffix.expect("shared"));
+        push_suffix(&mut out, &sfx(clauses[0].suffix.expect("shared")));
+    }
+    // "It loses all abilities for as long as ...": no clause printed a
+    // duration of its own.
+    if let Some(t) = &lasting
+        && !s.eot_first
+        && !out.contains(t.as_str())
+    {
+        push_suffix(&mut out, t);
     }
     out
+}
+
+/// A sentence's duration (CR 611.2b): "until your next turn", "for as
+/// long as this creature remains on the battlefield".
+fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
+    use mtg_core::card::Lasting;
+    match l {
+        Lasting::YourNextTurn => "until your next turn".to_string(),
+        Lasting::SourceOnBattlefield => {
+            format!(
+                "for as long as {} remains on the battlefield",
+                ctx.source_name()
+            )
+        }
+        Lasting::WhileTapped => "for as long as it remains tapped".to_string(),
+        Lasting::YouControlSource => format!("for as long as you control {}", ctx.source_name()),
+    }
 }
 
 /// Sentences as text: each capitalized and terminated, paragraphs on new
@@ -8790,7 +8928,12 @@ fn damage_source(a: &Affects, ctx: &mut Ctx) -> String {
 /// "Prevent all [combat] damage that would be dealt ..." (CR 615): an
 /// effect a spell creates (`this_turn`) or a static ability.
 fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
-    let turn = if this_turn { " this turn" } else { "" };
+    let lasting = ctx.lasting.as_ref().map(|t| format!(" {t}"));
+    let turn = match &lasting {
+        Some(t) if this_turn => t.as_str(),
+        _ if this_turn => " this turn",
+        _ => "",
+    };
     let (Replaces::Damage { combat, .. } | Replaces::DamageToAndBy { combat, .. }) = r else {
         unreachable!("a damage event")
     };
@@ -11208,11 +11351,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     if !f.types.is_empty() =>
                 {
                     out.push_str(", if ");
-                    out.push_str(&static_cond_text(c, card).replacen(
-                        "it's",
-                        "this permanent is",
-                        1,
-                    ));
+                    // A legendary permanent by its name ("if Hydro-Man is a
+                    // creature").
+                    let this = if card.kind != Kind::Token
+                        && card.supertypes.contains(&Supertype::Legendary)
+                    {
+                        format!("{} is", short_name(card))
+                    } else {
+                        "this permanent is".to_string()
+                    };
+                    out.push_str(&static_cond_text(c, card).replacen("it's", &this, 1));
                     ctx.source_mentioned = true;
                 }
                 // "At the beginning of each end step, if this creature was
@@ -11448,6 +11596,31 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             } else {
                 format!("{head}{}", lowercase_first(&body))
             }
+        }
+        // "Instant and sorcery spells you cast have storm."
+        Ability::SpellsHave {
+            filter,
+            from_hand,
+            keywords,
+            storm,
+            affinity,
+        } => {
+            let mut items: Vec<String> = keywords
+                .iter()
+                .map(|k| keyword_name(*k).to_string())
+                .collect();
+            if *storm {
+                items.push("storm".to_string());
+            }
+            if let Some(a) = affinity {
+                items.push(format!("affinity for {}", filter_phrase(a, card, true)));
+            }
+            let from = if *from_hand { " from your hand" } else { "" };
+            format!(
+                "{} you cast{from} have {}.",
+                cost_spells_subject(filter, card),
+                list(&items)
+            )
         }
         Ability::CondCost { delta, cond } => format!(
             "This spell costs {{{}}} {} to cast if {}.",

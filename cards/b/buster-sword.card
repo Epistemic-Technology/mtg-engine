@@ -1,0 +1,8 @@
+card "Buster Sword" {
+  oracle_id 5e060d58-4d6e-425c-b7d4-727669fcce5b
+  cost {3}
+  type Artifact — Equipment
+  static equipped: +3/+2
+  triggered whenever equipped creature deals combat damage to a player: draw 1 card, then cast free spell from hand with mana value up to that much
+  equip {2}
+}

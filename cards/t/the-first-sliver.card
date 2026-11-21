@@ -1,0 +1,8 @@
+card "The First Sliver" {
+  oracle_id 55e4d4b2-1bd8-4c29-a21a-c014a974b715
+  cost {W}{U}{B}{R}{G}
+  type Legendary Creature — Sliver
+  pt 7/7
+  keywords cascade
+  spells Sliver you cast have cascade
+}

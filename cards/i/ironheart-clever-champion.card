@@ -1,0 +1,8 @@
+card "Ironheart, Clever Champion" {
+  oracle_id df3d5b86-7b75-4df9-8985-7159cde12261
+  cost {4}{U}
+  type Legendary Artifact Creature — Human Hero
+  pt 3/4
+  keywords improvise, flying
+  spells noncreature you cast have improvise
+}
