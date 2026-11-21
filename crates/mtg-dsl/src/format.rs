@@ -907,6 +907,11 @@ impl Fmt {
                 s
             }
             Effect::SwitchPt { to } => format!("switch pt of {}", self.recipient(*to, t)),
+            Effect::GrantFlashback { to, that_card } => format!(
+                "{} gains flashback{}",
+                self.recipient(*to, t),
+                if *that_card { " that card" } else { "" }
+            ),
             Effect::ProtectionOr { to, filter: f } => format!(
                 "{} gains protection from {} or from color of choice",
                 self.recipient(*to, t),

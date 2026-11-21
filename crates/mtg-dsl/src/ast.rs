@@ -3668,6 +3668,15 @@ pub enum Effect {
     SwitchPt {
         to: Recipient,
     },
+    /// `target instant or sorcery card from your graveyard gains
+    /// flashback`: "Target instant or sorcery card in your graveyard gains
+    /// flashback until end of turn. The flashback cost is equal to its
+    /// mana cost." (`that_card`, `gains flashback that card`: "... equal
+    /// to that card's mana cost.").
+    GrantFlashback {
+        to: Recipient,
+        that_card: bool,
+    },
     /// `target permanent you control gains protection from artifact or
     /// from color of choice`: "gains protection from artifacts or from the
     /// color of your choice until end of turn" (CR 702.16): the controller

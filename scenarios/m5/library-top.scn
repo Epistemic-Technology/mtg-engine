@@ -196,6 +196,51 @@ scenario "discard then draw: Heartwarming Redemption draws that many plus one" {
   assert life A 13
 }
 
+scenario "granted flashback: Snapcaster Mage's target is cast for its mana cost and exiled" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Snapcaster Mage"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Snapcaster Mage"
+  turn 1 A: trigger "Snapcaster Mage" targeting "Lightning Bolt"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert exile A contains "Lightning Bolt"
+  assert graveyard A lacks "Lightning Bolt"
+}
+
+scenario "granted flashback: the card can't be cast from the graveyard without it" {
+  battlefield A: 2 "Island", "Mountain"
+  graveyard A: "Lightning Bolt"
+  illegal turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 end
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "granted flashback: it ends with the turn" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Snapcaster Mage"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Snapcaster Mage"
+  turn 1 A: trigger "Snapcaster Mage" targeting "Lightning Bolt"
+  illegal turn 2 upkeep A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 2 draw
+  assert life B 20
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "granted flashback: it needs the card's mana cost" {
+  battlefield A: 2 "Island"
+  hand A: "Snapcaster Mage"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Snapcaster Mage"
+  turn 1 A: trigger "Snapcaster Mage" targeting "Lightning Bolt"
+  illegal turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 end
+  assert graveyard A contains "Lightning Bolt"
+}
+
 scenario "play from top: Johann's permission returns the next turn" {
   battlefield A: "Johann, Apprentice Sorcerer", 4 "Mountain"
   library A: "Shock", "Lightning Bolt", "Island", "Island"

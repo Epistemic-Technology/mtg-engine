@@ -4562,6 +4562,15 @@ impl P {
                     to: subject,
                 })
             }
+            "gain" | "gains" if self.at_word("flashback") => {
+                self.pos += 1;
+                let that_card = self.eat_words(&["that", "card"]);
+                self.until_end_of_turn();
+                Ok(Effect::GrantFlashback {
+                    to: subject,
+                    that_card,
+                })
+            }
             "gain" | "gains" => {
                 if self.at_word("control") {
                     self.pos += 1;

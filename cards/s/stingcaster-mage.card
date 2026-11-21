@@ -1,0 +1,8 @@
+card "Stingcaster Mage" {
+  oracle_id 056b651e-e0e2-4333-9235-d1ffe8fcca29
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 2/1
+  keywords haste
+  triggered when this enters: target instant or sorcery card from your graveyard gains flashback
+}

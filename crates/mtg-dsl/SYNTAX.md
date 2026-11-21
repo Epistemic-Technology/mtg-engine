@@ -1554,7 +1554,13 @@ them back in any order": the looker knows the cards where they are),
 `return 1 land you control chosen` ("return a land you control to its
 owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of
-turn"), `put land card from hand onto battlefield [tapped]` ("put a land
+turn"), `target instant or sorcery card from your graveyard gains
+flashback` ("Target instant or sorcery card in your graveyard gains
+flashback until end of turn. The flashback cost is equal to its mana
+cost."; `gains flashback that card`: "... equal to that card's mana
+cost.": its owner may cast it from the graveyard for its mana cost this
+turn, with its usual timing, and it is exiled as it leaves the stack, CR
+702.34a), `put land card from hand onto battlefield [tapped]` ("put a land
 card from your hand onto the battlefield"; `put creature card and land
 card from hand onto battlefield`: "put a creature card and/or a land card
 from your hand onto the battlefield", a choice of each in turn), `<what> doesn't untap next

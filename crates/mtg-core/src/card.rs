@@ -4058,6 +4058,15 @@ pub enum Effect {
     SwitchPt {
         to: Recipient,
     },
+    /// "Target instant or sorcery card in your graveyard gains flashback
+    /// until end of turn. The flashback cost is equal to its mana cost."
+    /// (CR 702.34a): its owner may cast it from the graveyard for its mana
+    /// cost this turn, and it is exiled as it leaves the stack. The grant
+    /// stays with the card only while it stays in the graveyard (CR
+    /// 400.7).
+    GrantFlashback {
+        to: Recipient,
+    },
     /// "gains all creature types until end of turn" (`all`), "loses all
     /// creature types until end of turn" (layer 4).
     CreatureTypes {

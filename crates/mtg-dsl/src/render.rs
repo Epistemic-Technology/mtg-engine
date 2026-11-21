@@ -4450,6 +4450,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::with_subject(*to, s, format!("{verb} all creature types")).until_eot()
         }
+        Effect::GrantFlashback { to, that_card } => {
+            // "Target instant or sorcery card in your graveyard gains
+            // flashback until end of turn. The flashback cost is equal to
+            // its mana cost."
+            let s = ctx.subj(*to).replacen(" from your graveyard", " in your graveyard", 1);
+            let its = if *that_card { "that card's" } else { "its" };
+            Clause::with_subject(
+                *to,
+                s,
+                format!(
+                    "{} flashback until end of turn. The flashback cost is equal to {its} mana cost",
+                    ctx.verb(*to, "gains", "gain")
+                ),
+            )
+        }
         Effect::SwitchPt { to } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("switch {o}'s power and toughness")).until_eot()

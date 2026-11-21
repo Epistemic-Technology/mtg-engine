@@ -1665,6 +1665,10 @@ pub struct GameState {
     /// Cards with mayhem discarded this turn, as the graveyard objects
     /// they became (castable for their mayhem cost until the turn ends).
     pub mayhem_discarded: Vec<ObjId>,
+    /// Graveyard cards given flashback until end of turn
+    /// (`Effect::GrantFlashback`), castable for their mana cost while
+    /// they stay there.
+    pub granted_flashback: Vec<ObjId>,
     /// The spells cast this turn, by caster ("if you've cast a noncreature
     /// spell this turn"); inline, so copying the state rarely allocates.
     pub cast_this_turn: SmallVec<[(PlayerId, crate::card::CardRef); 4]>,

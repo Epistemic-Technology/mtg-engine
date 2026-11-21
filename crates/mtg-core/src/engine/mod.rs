@@ -510,6 +510,7 @@ impl GameState {
             left_this_turn: 0,
             discarded_this_turn: 0,
             mayhem_discarded: Vec::new(),
+            granted_flashback: Vec::new(),
             cast_this_turn: smallvec::SmallVec::new(),
             turn_log: crate::state::TurnLog::default(),
             desig: crate::state::Designations::default(),
@@ -1775,7 +1776,8 @@ impl GameState {
                 // flashback.
                 let o = &self.objects[id];
                 let gdef = self.pool.get(o.def);
-                let escape = gdef.flashback.is_none();
+                // Flashback granted until end of turn: for its mana cost.
+                let escape = gdef.flashback.is_none() && !self.granted_flashback.contains(&id);
                 // Mayhem: a card discarded this turn, cast for its mayhem
                 // cost (a card with escape too uses escape only when it
                 // wasn't discarded this turn).
@@ -2786,6 +2788,7 @@ impl GameState {
         self.rules
             .retain(|e| e.duration != Duration::UntilEndOfTurn);
         self.player_rules.clear();
+        self.granted_flashback.clear();
         // CR 603.7c: "when that creature dies this turn" ends unfired.
         if !self.delayed_triggers.is_empty() {
             self.delayed_triggers.retain(|d| !d.this_turn);

@@ -365,6 +365,22 @@ impl GameState {
                 options.push(Choice::Cast(top));
             }
         }
+        // CR 702.34a: a card given flashback ("The flashback cost is
+        // equal to its mana cost"), with its usual timing.
+        for id in &self.granted_flashback {
+            let Some(o) = self.objects.get(*id) else {
+                continue;
+            };
+            if o.zone != Zone::Graveyard || o.owner != p || options.contains(&Choice::Cast(*id)) {
+                continue;
+            }
+            let def = self.pool.get(o.def);
+            if def.flashback.is_none()
+                && self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers)
+            {
+                options.push(Choice::Cast(*id));
+            }
+        }
         // CR 702.34a: instants and sorceries with flashback may be cast
         // from the graveyard for their flashback cost.
         if ps.flashback_in_graveyard > 0 {
@@ -8304,6 +8320,18 @@ impl GameState {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
                         self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
+                    }
+                }
+            }
+            Effect::GrantFlashback { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Target::Object(id) = t
+                        && self
+                            .objects
+                            .get(id)
+                            .is_some_and(|o| o.zone == Zone::Graveyard)
+                    {
+                        self.granted_flashback.push(id);
                     }
                 }
             }
