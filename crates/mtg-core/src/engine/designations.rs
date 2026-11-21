@@ -248,6 +248,32 @@ impl GameState {
         true
     }
 
+    /// CR 702.195a: an enduring story, for the rest of the game, if `p`
+    /// controls three or more permanents that are artifacts, Sagas, and/or
+    /// legendary.
+    pub(super) fn storied(&mut self, p: PlayerId) -> bool {
+        if self.desig.storied(p) {
+            return false;
+        }
+        let n = self
+            .permanents_of(p)
+            .filter(|id| {
+                self.characteristics(*id).is_some_and(|c| {
+                    c.types.contains(crate::card::CardType::Artifact)
+                        || c.supertypes.contains(crate::card::Supertype::Legendary)
+                        || c.subtypes.contains(&crate::card::Subtype::SAGA)
+                })
+            })
+            .count();
+        if n < 3 {
+            return false;
+        }
+        self.desig.storied |= Self::bit(p);
+        self.cbump();
+        self.emit(Event::EnduringStory { player: p });
+        true
+    }
+
     /// The state-based parts of ascend (CR 702.131b) and start your
     /// engines! (CR 702.179a): permanents with them give their controllers
     /// the city's blessing and a speed of 1.
@@ -284,6 +310,9 @@ impl GameState {
                 acted = true;
             }
             if m.has(Marks::ASCEND) && self.ascend(p) {
+                acted = true;
+            }
+            if m.has(Marks::STORIED) && self.storied(p) {
                 acted = true;
             }
         }

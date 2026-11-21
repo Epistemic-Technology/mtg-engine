@@ -554,6 +554,8 @@ impl Decompiler<'_> {
             StaticCondition::Monarch => StaticCond::Monarch,
             StaticCondition::CompletedDungeon => StaticCond::CompletedDungeon,
             StaticCondition::CityBlessing => StaticCond::CityBlessing,
+            StaticCondition::EnduringStory => StaticCond::EnduringStory,
+            StaticCondition::NoEnduringStory => StaticCond::NoEnduringStory,
             StaticCondition::MaxSpeed => StaticCond::MaxSpeed,
             StaticCondition::TotalPower(n) => StaticCond::TotalPower(*n),
             StaticCondition::DifferentPowers(n) => StaticCond::DifferentPowers(*n),

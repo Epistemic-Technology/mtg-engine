@@ -732,6 +732,7 @@ impl Subtype {
     pub const VEHICLE: Subtype = Subtype(5 + 28);
     pub const SPACECRAFT: Subtype = Subtype(5 + 29);
     pub const ROOM: Subtype = Subtype(5 + 37);
+    pub const SAGA: Subtype = Subtype(5 + 39);
     pub const SIEGE: Subtype = Subtype(5 + 47);
     /// Not interned: "is every creature type" (layer 4), held among an
     /// object's subtypes in place of its creature types; `has_subtype`
@@ -2300,6 +2301,11 @@ pub enum StaticCondition {
     CompletedDungeon,
     /// "you have the city's blessing" (CR 702.131c).
     CityBlessing,
+    /// "you have an enduring story" (CR 702.195b).
+    EnduringStory,
+    /// "unless you have an enduring story": the controller doesn't have
+    /// one.
+    NoEnduringStory,
     /// Max speed (CR 702.179e): "you have max speed", speed 4.
     MaxSpeed,
     /// "If {B} was spent to cast this spell", "if at least three red mana
@@ -6282,6 +6288,8 @@ impl Marks {
     pub const DAYBOUND: Marks = Marks(8);
     /// Nightbound (CR 702.145e): on its back face.
     pub const NIGHTBOUND: Marks = Marks(16);
+    /// Storied (CR 702.195a): its controller gets an enduring story.
+    pub const STORIED: Marks = Marks(32);
 
     pub const fn has(self, m: Marks) -> bool {
         self.0 & m.0 != 0
@@ -7014,6 +7022,7 @@ impl CardPool {
         debug_assert_eq!(pool.subtype("Equipment"), Subtype::EQUIPMENT);
         debug_assert_eq!(pool.subtype("Role"), Subtype::ROLE);
         debug_assert_eq!(pool.subtype("Aura"), Subtype::AURA);
+        debug_assert_eq!(pool.subtype("Saga"), Subtype::SAGA);
         pool.prowess = pool.register(AbilityDef::Triggered(TriggeredAbility {
             limit: crate::card::TurnLimit::None,
             from_graveyard: false,

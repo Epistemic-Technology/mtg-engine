@@ -1,0 +1,8 @@
+card "Ori, Keeper of Songs" {
+  oracle_id 69cc089a-abd3-4edb-bc79-f02daac70837
+  cost {2}{W}
+  type Legendary Creature — Dwarf Bard
+  pt 3/3
+  storied
+  static as long as enduring story, this: +1/+0, has vigilance
+}

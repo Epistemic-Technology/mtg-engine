@@ -338,6 +338,10 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             "{} the city's blessing.",
             verb(*player, viewer, "get", "gets")
         ),
+        Event::EnduringStory { player } => format!(
+            "{} an enduring story.",
+            verb(*player, viewer, "have", "has")
+        ),
         Event::PlayerLost { player, reason } => {
             format!("{} ({reason:?}).", verb(*player, viewer, "lose", "loses"))
         }

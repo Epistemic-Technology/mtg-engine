@@ -215,6 +215,7 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Firebending",
     "Double",
     "Ascend",
+    "Storied",
     "Venture into the dungeon",
     "Clash",
     "Learn",
@@ -2897,6 +2898,7 @@ fn static_condition(s: &str) -> Option<String> {
         }
         // Designations (CR 702.131, 309.7, 725).
         "you have the city's blessing" => return Some("city's blessing".to_string()),
+        "you have an enduring story" => return Some("enduring story".to_string()),
         "you've completed a dungeon" => return Some("completed dungeon".to_string()),
         "you're the monarch" => return Some("you are monarch".to_string()),
         "you gained life this turn" => return Some("gained life this turn".to_string()),
@@ -3349,6 +3351,11 @@ impl Builder<'_> {
         // CR 702.131: "Ascend" as an ability line.
         if line == "Ascend" {
             self.statements.push("ascend".to_string());
+            return Ok(());
+        }
+        // CR 702.195: "Storied".
+        if line == "Storied" {
+            self.statements.push("storied".to_string());
             return Ok(());
         }
         // "Enchanted creature has \"{T}: ...\"", "Creatures you control

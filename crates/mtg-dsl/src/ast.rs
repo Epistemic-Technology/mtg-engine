@@ -1459,6 +1459,10 @@ pub enum Mechanic {
     /// more permanents (a permanent's static ability; an instant's or
     /// sorcery's first effect).
     Ascend,
+    /// CR 702.195: `storied`: an enduring story for the rest of the game
+    /// once you control three or more artifacts, legendaries, and/or
+    /// Sagas.
+    Storied,
     /// CR 702.179: `start your engines`: "Start your engines!", a speed of
     /// 1 for a player who has none.
     StartYourEngines,
@@ -1867,6 +1871,11 @@ pub enum StaticCond {
     CompletedDungeon,
     /// `city's blessing`: "you have the city's blessing" (CR 702.131c).
     CityBlessing,
+    /// `enduring story`: "you have an enduring story" (CR 702.195b).
+    EnduringStory,
+    /// `no enduring story`: "you don't have an enduring story"; after a
+    /// static ability's `if`, "... unless you have an enduring story".
+    NoEnduringStory,
     /// `max speed`: "you have max speed" (CR 702.179e). Usually written
     /// as the ability word `label "Max speed"` instead.
     MaxSpeed,

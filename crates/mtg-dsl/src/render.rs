@@ -913,6 +913,13 @@ struct Ctx<'a> {
     /// Rendering what winning a clash does ("If you win, that creature
     /// gets an additional +2/+2").
     in_won: bool,
+    /// Counts an earlier sentence of the ability already defined with
+    /// ", where X is ...": a later X is the same X ("Draw X cards, where X
+    /// is .... If ..., Balin deals X damage to each opponent.").
+    x_defined: Vec<crate::ast::CountExpr>,
+    /// Those the current sentence defines (several clauses of one
+    /// sentence share one ", where X is ..." at its end).
+    x_pending: Vec<crate::ast::CountExpr>,
 }
 
 impl<'a> Ctx<'a> {
@@ -940,6 +947,8 @@ impl<'a> Ctx<'a> {
             player_did: false,
             before_if_you_dont: false,
             in_unless: false,
+            x_defined: Vec::new(),
+            x_pending: Vec::new(),
         }
     }
 
@@ -2052,6 +2061,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         // `andor`: "two target artifacts and/or enchantments".
         if plural_form && f.and_or {
             noun.push(or_list(&names).replace(" or ", " and/or "));
+        } else if plural_form && f.and_list {
+            // `andlist`: "artifacts and creatures you control" (Thorin
+            // Oakenshield).
+            noun.push(or_list(&names).replace(" or ", " and "));
         } else {
             noun.push(or_list(&names));
         }
@@ -3474,12 +3487,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     1,
                 );
             }
+            CountStyle::Where if ctx.x_defined.contains(&count.expr) => {}
             CountStyle::Where => {
                 let _ = write!(
                     c.tail,
                     ", where X is {}",
                     count_phrase_in(&count.expr, ctx, false)
                 );
+                ctx.x_pending.push(count.expr.clone());
             }
             // "Add an amount of {G} equal to this creature's power."
             CountStyle::Equal if matches!(e, Effect::AddManaTimes { .. }) => {
@@ -7094,6 +7109,8 @@ fn lowercase_first(s: &str) -> String {
 
 /// One sentence (no final period, lowercase start).
 fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
+    let defined = std::mem::take(&mut ctx.x_pending);
+    ctx.x_defined.extend(defined);
     ctx.groups_mentioned
         .retain(|r| !matches!(r, Recipient::Group(_)));
     let clauses: Vec<Clause> = s.effects.iter().map(|e| clause(e, ctx)).collect();
@@ -9815,6 +9832,8 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Monarch => "you're the monarch".to_string(),
         StaticCond::CompletedDungeon => "you've completed a dungeon".to_string(),
         StaticCond::CityBlessing => "you have the city's blessing".to_string(),
+        StaticCond::EnduringStory => "you have an enduring story".to_string(),
+        StaticCond::NoEnduringStory => "you don't have an enduring story".to_string(),
         StaticCond::MaxSpeed => "you have max speed".to_string(),
         StaticCond::TotalPower(n) => {
             format!("creatures you control have total power {n} or greater")
@@ -10385,6 +10404,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             }
                         }
                     }
+                    // "Bombur doesn't untap during your untap step unless
+                    // you have an enduring story."
+                    if *c == StaticCond::NoEnduringStory {
+                        return format!(
+                            "{} unless you have an enduring story.",
+                            body.strip_suffix('.').unwrap_or(&body)
+                        );
+                    }
                     format!("{} if {cond}.", body.strip_suffix('.').unwrap_or(&body))
                 }
                 Some(c) => {
@@ -10683,6 +10710,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Station => "Station".to_string(),
             crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
             crate::ast::Mechanic::Ascend => "Ascend".to_string(),
+            crate::ast::Mechanic::Storied => "Storied".to_string(),
             crate::ast::Mechanic::StartYourEngines => "Start your engines!".to_string(),
             crate::ast::Mechanic::BecomesDay => format!(
                 "If it's neither day nor night, it becomes day as {} enters.",

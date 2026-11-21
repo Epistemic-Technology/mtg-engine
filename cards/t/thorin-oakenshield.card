@@ -1,0 +1,9 @@
+card "Thorin Oakenshield" {
+  oracle_id bdd41af0-bbd1-4ecd-a699-99f006f5e5ce
+  cost {R}{W}
+  type Legendary Creature — Dwarf Noble
+  pt 3/2
+  keywords trample
+  storied
+  static as long as enduring story, andlist artifact or creature you control: has ward {1}
+}

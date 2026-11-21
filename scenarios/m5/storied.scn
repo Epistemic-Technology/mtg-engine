@@ -1,0 +1,121 @@
+# Storied (CR 702.195): any time you control three or more permanents that
+# are artifacts, Sagas, and/or legendary and you don't have an enduring
+# story, you have an enduring story for the rest of the game.
+
+scenario "storied: three artifacts and legendaries give an enduring story" {
+  battlefield A: "Ori, Keeper of Songs", 2 "Ornithopter"
+  run_to turn 1 precombat_main
+  assert story A yes
+  assert story B no
+  assert power "Ori, Keeper of Songs" 4
+  assert has "Ori, Keeper of Songs" vigilance
+}
+
+scenario "storied: two aren't enough" {
+  battlefield A: "Ori, Keeper of Songs", "Ornithopter", "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert story A no
+  assert power "Ori, Keeper of Songs" 3
+  assert has not "Ori, Keeper of Songs" vigilance
+}
+
+scenario "storied: the story lasts after the permanents leave" {
+  battlefield A: "Ori, Keeper of Songs", 2 "Ornithopter"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting oldest "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Ornithopter"
+  assert story A yes
+  assert power "Ori, Keeper of Songs" 4
+}
+
+scenario "storied: a Saga counts, and the third permanent entering gives the story" {
+  battlefield A: "Óin the Brave", "Ornithopter", 3 "Plains"
+  hand A: "The Mountain-king's Return", "Shock"
+  library A: "Island", "Island"
+  turn 1 A: cast "The Mountain-king's Return"
+  turn 1 precombat_main A: discard "Island"
+  run_to turn 1 postcombat_main
+  assert story A yes
+  assert power "Óin the Brave" 2
+  assert has "Óin the Brave" haste
+}
+
+scenario "storied: an opponent's permanents don't count" {
+  battlefield A: "Ori, Keeper of Songs", "Ornithopter"
+  battlefield B: 2 "Ornithopter"
+  run_to turn 1 precombat_main
+  assert story A no
+}
+
+scenario "storied: Bombur doesn't untap without an enduring story" {
+  battlefield A: "Bombur, Gentle Dreamer"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Bombur, Gentle Dreamer"
+  run_to turn 4 precombat_main
+  assert life B 15
+  assert tapped "Bombur, Gentle Dreamer"
+}
+
+scenario "storied: Bombur untaps with one" {
+  battlefield A: "Bombur, Gentle Dreamer", 2 "Ornithopter"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Bombur, Gentle Dreamer"
+  run_to turn 4 precombat_main
+  assert life B 15
+  assert untapped "Bombur, Gentle Dreamer"
+}
+
+scenario "storied: Thorin gives artifacts and creatures ward {1}" {
+  battlefield A: "Thorin Oakenshield", 2 "Ornithopter", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+}
+
+scenario "storied: Fíli's creatures get +1/+1 and a Dwarf entering makes a Dwarf" {
+  battlefield A: "Fíli the Pathfinder", 2 "Ornithopter", 4 "Mountain"
+  hand A: "Bombur, Gentle Dreamer"
+  turn 1 A: cast "Bombur, Gentle Dreamer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Dwarf"
+  assert power "Dwarf" 3
+  assert power "Fíli the Pathfinder" 3
+}
+
+scenario "storied: Balin discards the hand, draws that many, and deals that much with a story" {
+  battlefield A: 2 "Ornithopter", 5 "Mountain"
+  hand A: "Balin, Loremaster", "Shock", "Island", "Forest"
+  library A: "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Balin, Loremaster"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A contains "Shock"
+  assert life B 17
+}
+
+scenario "storied: Balin without a story deals no damage" {
+  battlefield A: 5 "Mountain"
+  hand A: "Balin, Loremaster", "Shock", "Island"
+  library A: "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Balin, Loremaster"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert life B 20
+}
+
+scenario "storied: Balin's discard may be declined" {
+  battlefield A: 2 "Ornithopter", 5 "Mountain"
+  hand A: "Balin, Loremaster", "Shock", "Island"
+  library A: "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Balin, Loremaster"
+  turn 1 precombat_main A: decline "Balin, Loremaster"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains "Shock"
+  assert life B 20
+}

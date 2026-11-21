@@ -1449,6 +1449,8 @@ pub struct Designations {
     pub last_active: Option<PlayerId>,
     /// Players with the city's blessing, one bit each.
     pub blessed: u8,
+    /// Players with an enduring story (CR 702.195b), one bit each.
+    pub storied: u8,
     /// Each player's speed (CR 702.179b: 0 is "no speed").
     pub speed: [u8; 4],
     /// Players whose speed-increasing ability triggered this turn (CR
@@ -1474,6 +1476,10 @@ pub struct Designations {
 impl Designations {
     pub fn blessed(&self, p: PlayerId) -> bool {
         self.blessed & (1 << p.index().min(7)) != 0
+    }
+
+    pub fn storied(&self, p: PlayerId) -> bool {
+        self.storied & (1 << p.index().min(7)) != 0
     }
 
     pub fn speed(&self, p: PlayerId) -> u8 {
@@ -3229,6 +3235,8 @@ impl GameState {
             C::Monarch => self.desig.monarch == Some(you),
             C::CompletedDungeon => self.desig.completed(you) > 0,
             C::CityBlessing => self.desig.blessed(you),
+            C::EnduringStory => self.desig.storied(you),
+            C::NoEnduringStory => !self.desig.storied(you),
             C::MaxSpeed => self.desig.speed(you) >= 4,
             C::During(crate::card::TurnTime::AttackedThisStep) => {
                 self.step == crate::turn::Step::DeclareAttackers

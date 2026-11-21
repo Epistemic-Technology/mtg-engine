@@ -599,6 +599,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Ascend) => {
                     b = b.marks(mtg_core::card::Marks::ASCEND);
                 }
+                Ability::Mechanic(Mechanic::Storied) => {
+                    b = b.marks(mtg_core::card::Marks::STORIED);
+                }
                 Ability::Mechanic(Mechanic::StartYourEngines) => {
                     b = b.marks(mtg_core::card::Marks::ENGINES);
                 }
@@ -918,6 +921,7 @@ impl Compiler<'_> {
                             | Mechanic::Ripple(_)
                             | Mechanic::Strive(_)
                             | Mechanic::Ascend
+                            | Mechanic::Storied
                             | Mechanic::StartYourEngines
                             | Mechanic::BecomesDay
                             | Mechanic::Daybound
@@ -1473,6 +1477,8 @@ impl Compiler<'_> {
             StaticCond::Monarch => StaticCondition::Monarch,
             StaticCond::CompletedDungeon => StaticCondition::CompletedDungeon,
             StaticCond::CityBlessing => StaticCondition::CityBlessing,
+            StaticCond::EnduringStory => StaticCondition::EnduringStory,
+            StaticCond::NoEnduringStory => StaticCondition::NoEnduringStory,
             StaticCond::MaxSpeed => StaticCondition::MaxSpeed,
             StaticCond::TotalPower(n) => StaticCondition::TotalPower(*n),
             StaticCond::DifferentPowers(n) => StaticCondition::DifferentPowers(*n),
@@ -3761,6 +3767,7 @@ impl Compiler<'_> {
                 | Mechanic::Ripple(_)
                 | Mechanic::Strive(_)
                 | Mechanic::Ascend
+                | Mechanic::Storied
                 | Mechanic::StartYourEngines
                 | Mechanic::BecomesDay
                 | Mechanic::Daybound
@@ -4923,6 +4930,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Teamwork(_)
         | Mechanic::Ripple(_)
         | Mechanic::Ascend
+        | Mechanic::Storied
         | Mechanic::StartYourEngines
         | Mechanic::BecomesDay
         | Mechanic::Daybound

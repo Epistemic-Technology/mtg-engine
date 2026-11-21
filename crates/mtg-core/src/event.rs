@@ -345,6 +345,10 @@ pub enum Event {
     CityBlessing {
         player: PlayerId,
     },
+    /// A player got an enduring story (CR 702.195).
+    EnduringStory {
+        player: PlayerId,
+    },
     GameOver {
         result: GameResult,
     },

@@ -174,7 +174,8 @@ Setup: `speed A: 3` gives a starting speed (CR 702.179). Assertions:
 `assert monarch A` (or `none`), `assert initiative B`, `assert daynight
 day` (`night`, `neither`), `assert speed A 2`, `assert tempted A 1` (times
 the Ring has tempted A), `assert ring_bearer A "Grizzly Bears"` (or
-`none`), `assert blessing A yes` (or `no`), `assert dungeon A "Lost Mine
+`none`), `assert blessing A yes` (or `no`), `assert story A yes` (an enduring
+story, CR 702.195), `assert dungeon A "Lost Mine
 of Phandelver" "Goblin Lair"` (or `none`), `assert completed A 1`. A
 dungeon, an arrow out of a room, and the choice between "lose life" and
 "unless they ..." are `choose "2"` (1-based) choices; the Ring-bearer is

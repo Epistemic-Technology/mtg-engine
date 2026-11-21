@@ -1796,6 +1796,11 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Ascend))
             }
+            "storied" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Storied))
+            }
             "start" if self.at_words(&["start", "your", "engines"]) => {
                 self.pos += 3;
                 self.end_stmt()?;
@@ -2948,6 +2953,12 @@ impl P {
         }
         if self.eat_words(&["city's", "blessing"]) {
             return Ok(StaticCond::CityBlessing);
+        }
+        if self.eat_words(&["enduring", "story"]) {
+            return Ok(StaticCond::EnduringStory);
+        }
+        if self.eat_words(&["no", "enduring", "story"]) {
+            return Ok(StaticCond::NoEnduringStory);
         }
         if self.eat_words(&["max", "speed"]) {
             return Ok(StaticCond::MaxSpeed);

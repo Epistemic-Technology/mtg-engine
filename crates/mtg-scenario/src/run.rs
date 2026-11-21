@@ -2763,6 +2763,7 @@ fn designation(st: &GameState, key: &str, p: Option<PlayerId>) -> String {
             .ring_bearer(p)
             .map_or("none".to_string(), |b| st.name_of(b).to_string()),
         "blessing" => if d.blessed(p) { "yes" } else { "no" }.to_string(),
+        "story" => if d.storied(p) { "yes" } else { "no" }.to_string(),
         "completed" => d.completed(p).to_string(),
         "dungeon" => d.dungeon(p).map_or("none".to_string(), |m| {
             let def = st.pool.get(st.objects[m.obj].def);
