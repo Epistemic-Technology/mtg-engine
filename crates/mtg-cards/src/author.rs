@@ -21,6 +21,7 @@ use crate::scryfall::{self, Card as ScryCard};
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
 const KEYWORDS: &[&str] = &[
     "Cipher",
+    "Paradigm",
     "Banding",
     "Decayed",
     "Phasing",

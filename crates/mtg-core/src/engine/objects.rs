@@ -465,6 +465,7 @@ impl GameState {
                     trigger_amount: 0,
                 },
                 this_turn: false,
+                forever: false,
             });
         }
         if old.zone == Zone::Battlefield {

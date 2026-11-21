@@ -190,7 +190,12 @@ impl GameState {
                 _ => false,
             };
             if at {
-                self.delayed_triggers.remove(i);
+                // "... for the rest of the game" (paradigm) stays.
+                if dt.forever {
+                    i += 1;
+                } else {
+                    self.delayed_triggers.remove(i);
+                }
                 fired.push(PendingTrigger {
                     controller: dt.controller,
                     ability: dt.ability,

@@ -341,6 +341,11 @@ pub enum Keyword {
     /// CR 702.99: as the spell resolves, its card may be exiled encoded on
     /// a creature its controller controls (`GameState::encoded`).
     Cipher,
+    /// CR 702.192a: as the spell resolves it is exiled; the first time a
+    /// spell its controller controls with its name resolves, a copy of it
+    /// may be cast free at the beginning of each of their precombat main
+    /// phases for the rest of the game (`Builtin::Paradigm`).
+    Paradigm,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -395,6 +400,11 @@ pub enum Builtin {
     /// return it to the battlefield tapped under your control." (a
     /// delayed trigger about the land).
     EarthbendReturn,
+    /// CR 702.192a: paradigm's "at the beginning of each of your precombat
+    /// main phases for the rest of the game, create a copy of this object
+    /// in exile. You may cast the copy without paying its mana cost." (a
+    /// delayed trigger that stays).
+    Paradigm,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -512,7 +522,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 68] = [
+    pub const ALL: [Keyword; 69] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -581,6 +591,7 @@ impl Keyword {
         Keyword::Decayed,
         Keyword::Phasing,
         Keyword::Cipher,
+        Keyword::Paradigm,
     ];
 
     /// The keyword as Oracle prints it.
@@ -638,6 +649,7 @@ impl Keyword {
             Keyword::Decayed => "decayed",
             Keyword::Phasing => "phasing",
             Keyword::Cipher => "cipher",
+            Keyword::Paradigm => "paradigm",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -3957,6 +3969,11 @@ pub enum Effect {
     CloakTop {
         of: Recipient,
     },
+    /// Paradigm's delayed trigger (CR 702.192a): a copy of the paradigm
+    /// card (`GameState::paradigms`, by the trigger's source) is made in
+    /// exile, and its controller may cast it without paying its mana cost;
+    /// not cast, it ceases to exist.
+    CastParadigmCopy,
     /// Airbend (CR 701.65a): exile the permanent or spell; a card exiled
     /// this way may be cast by its owner for {2} rather than its mana cost
     /// for as long as it remains exiled.
@@ -4310,6 +4327,7 @@ impl Effect {
                 // What enters is not known until it resolves.
                 | Effect::GraveyardToBattlefield { .. }
                 | Effect::CloakTop { .. }
+                | Effect::CastParadigmCopy
         )
     }
 }
@@ -6946,7 +6964,7 @@ pub struct CardPool {
     /// Decayed's "When this creature attacks, sacrifice it at end of
     /// combat" (CR 702.147a).
     decayed: AbilityId,
-    builtins: [AbilityId; 12],
+    builtins: [AbilityId; 13],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -7031,7 +7049,7 @@ impl CardPool {
             evoke: AbilityId(0),
             exploit: AbilityId(0),
             decayed: AbilityId(0),
-            builtins: [AbilityId(0); 12],
+            builtins: [AbilityId(0); 13],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -7237,6 +7255,18 @@ impl CardPool {
                     },
                     Effect::CastExiled(ExileCast::Transformed),
                 ],
+            }));
+        pool.builtins[Builtin::Paradigm as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
+                from_graveyard: false,
+                trigger: TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::PrecombatMain,
+                    whose: Who::You,
+                },
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::CastParadigmCopy],
             }));
         pool.builtins[Builtin::EarthbendReturn as usize] =
             pool.register(AbilityDef::Triggered(TriggeredAbility {

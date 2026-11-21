@@ -112,6 +112,9 @@ pub struct DelayedTrigger {
     /// "When that creature dies this turn": ends at cleanup if it hasn't
     /// triggered (CR 603.7c).
     pub this_turn: bool,
+    /// "... for the rest of the game" (paradigm, CR 702.192a): it stays
+    /// after it triggers.
+    pub forever: bool,
 }
 
 /// Something a spell or ability can target or an effect can act on.
@@ -1825,6 +1828,11 @@ pub struct GameState {
     pub pending_triggers: Vec<PendingTrigger>,
     /// Delayed triggered abilities waiting for their event (CR 603.7).
     pub delayed_triggers: Vec<DelayedTrigger>,
+    /// Paradigm spells that have resolved (CR 702.192a): their controller,
+    /// the card, and the exiled card that is the source of the delayed
+    /// trigger copying it (the copy is made even if that card has left
+    /// exile).
+    pub paradigms: Vec<(PlayerId, crate::card::CardRef, ObjId)>,
     /// Battlefield objects whose definition has a triggered ability, so
     /// that events on trigger-free boards cost nothing to detect over.
     pub trigger_sources: u32,

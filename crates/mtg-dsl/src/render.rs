@@ -11072,6 +11072,7 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         if alone_pair && *k == Keyword::CantBlockAlone
             || *k == Keyword::Rebound
             || *k == Keyword::Cipher
+            || *k == Keyword::Paradigm
         {
             continue;
         }
@@ -11142,6 +11143,10 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     // And cipher (CR 702.99).
     if card.keywords.contains(&Keyword::Cipher) {
         lines.push("Cipher".to_string());
+    }
+    // And paradigm (CR 702.192).
+    if card.keywords.contains(&Keyword::Paradigm) {
+        lines.push("Paradigm".to_string());
     }
     lines.join("\n")
 }

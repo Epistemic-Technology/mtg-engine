@@ -6081,6 +6081,8 @@ impl GameState {
                 self.move_object(spell, Zone::Hand, false);
             } else if obj.alt == AltCast::Hand && def.keywords.contains(Keyword::Rebound) {
                 self.rebound(spell);
+            } else if def.keywords.contains(Keyword::Paradigm) {
+                self.paradigm(spell);
             } else if !(def.keywords.contains(Keyword::Cipher)
                 && !obj.cast.copy()
                 && self.encode(spell, obj.controller))
@@ -6422,6 +6424,40 @@ impl GameState {
                 trigger_amount: 0,
             },
             this_turn: false,
+            forever: false,
+        });
+    }
+
+    /// CR 702.192a: a resolved paradigm spell is exiled; the first time a
+    /// spell its controller controls with its name resolves, a delayed
+    /// trigger copies it at the beginning of each of their precombat main
+    /// phases for the rest of the game.
+    fn paradigm(&mut self, spell: ObjId) {
+        let controller = self.objects[spell].controller;
+        let card = self.objects[spell].card;
+        let name = self.pool.get(card).name.clone();
+        let first = !self
+            .paradigms
+            .iter()
+            .any(|(p, c, _)| *p == controller && self.pool.get(*c).name == name);
+        let new = self.move_object(spell, Zone::Exile, true);
+        if !first {
+            return;
+        }
+        self.paradigms.push((controller, card, new));
+        let ability = self.pool.builtin(crate::card::Builtin::Paradigm);
+        self.delayed_triggers.push(crate::state::DelayedTrigger {
+            controller,
+            ability: crate::state::StackAbility {
+                ability,
+                source: new,
+                def: card,
+                trigger_obj: None,
+                trigger_player: None,
+                trigger_amount: 0,
+            },
+            this_turn: false,
+            forever: true,
         });
     }
 
@@ -9399,6 +9435,7 @@ impl GameState {
                             trigger_amount: 0,
                         },
                         this_turn: *this_turn,
+                        forever: false,
                     });
                     self.emit(Event::DelayedTriggerCreated {
                         source: ctx.source,
@@ -9916,6 +9953,28 @@ impl GameState {
                     if let Target::Player(p) = t {
                         self.shuffle_library(p);
                     }
+                }
+            }
+            Effect::CastParadigmCopy => {
+                // CR 702.192a, 707.12: the copy is made in exile and may be
+                // cast free; not cast, it ceases to exist.
+                let Some(&(_, card, _)) = self.paradigms.iter().find(|(_, _, s)| *s == ctx.source)
+                else {
+                    return;
+                };
+                let p = ctx.controller;
+                let copy = self.new_object(card, p, Zone::Exile);
+                self.objects[copy].cast = self.objects[copy].cast.copied();
+                self.player_mut(p).exile.push(copy);
+                // The decision names the exiled card while it is there (the
+                // copy is new to this resolution).
+                let shown = if self.objects.contains_key(ctx.source) {
+                    ctx.source
+                } else {
+                    copy
+                };
+                if !self.offer_exile_cast_shown(copy, AltCast::Free, p, shown) {
+                    self.remove_from_game(copy);
                 }
             }
             Effect::CastCipherCopy => {

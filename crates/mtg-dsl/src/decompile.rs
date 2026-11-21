@@ -1194,6 +1194,7 @@ impl Decompiler<'_> {
             | CoreEffect::PunishEach { .. }
             | CoreEffect::DrawCastOne { .. }
             | CoreEffect::CastCipherCopy
+            | CoreEffect::CastParadigmCopy
             | CoreEffect::RevealPutCreature { .. } => {
                 unreachable!("built-in abilities and dungeon rooms only")
             }

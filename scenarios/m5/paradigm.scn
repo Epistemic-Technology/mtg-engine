@@ -1,0 +1,72 @@
+# Paradigm (CR 702.192a): the spell is exiled as it resolves; the first
+# time a spell you control with its name resolves, at the beginning of each
+# of your precombat main phases for the rest of the game a copy of it is
+# made in exile and you may cast the copy without paying its mana cost.
+
+scenario "paradigm: the spell is exiled and copied at each of your precombat main phases" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  hand A: "Germination Practicum"
+  library A: 10 "Forest"
+  library B: 10 "Island"
+  turn 1 A: cast "Germination Practicum"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 2
+  assert exile A contains "Germination Practicum"
+  assert graveyard A lacks "Germination Practicum"
+  run_to turn 3 begin_combat
+  assert counters "Grizzly Bears" +1/+1 4
+  assert exile A contains 1 "Germination Practicum"
+  run_to turn 5 begin_combat
+  assert counters "Grizzly Bears" +1/+1 6
+}
+
+scenario "paradigm: not at an opponent's precombat main phase" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  hand A: "Germination Practicum"
+  library A: 10 "Forest"
+  library B: 10 "Island"
+  turn 1 A: cast "Germination Practicum"
+  run_to turn 2 end
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "paradigm: a second spell with the name doesn't make a second copy each turn" {
+  battlefield A: 10 "Forest", "Grizzly Bears"
+  hand A: "Germination Practicum", "Germination Practicum"
+  library A: 10 "Forest"
+  library B: 10 "Island"
+  turn 1 A: cast "Germination Practicum"
+  turn 1 A: wait
+  turn 1 A: cast "Germination Practicum"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 4
+  assert exile A contains 2 "Germination Practicum"
+  run_to turn 3 begin_combat
+  assert counters "Grizzly Bears" +1/+1 6
+}
+
+scenario "paradigm: Decorum Dissertation's copy targets as it is cast" {
+  battlefield A: 5 "Swamp"
+  hand A: "Decorum Dissertation"
+  library A: 10 "Swamp"
+  library B: 10 "Island"
+  turn 1 A: cast "Decorum Dissertation" targeting player A
+  turn 3 precombat_main A: cast "Decorum Dissertation" targeting player B
+  run_to turn 3 begin_combat
+  assert life A 18
+  assert life B 18
+  # One draw step and two cards.
+  assert hand B count 3
+}
+
+scenario "paradigm: Restoration Seminar returns a nonland permanent card" {
+  battlefield A: 7 "Plains"
+  hand A: "Restoration Seminar"
+  graveyard A: "Serra Angel", "Forest"
+  library A: 10 "Plains"
+  illegal turn 1 A: cast "Restoration Seminar" targeting "Forest"
+  turn 1 A: cast "Restoration Seminar" targeting "Serra Angel"
+  run_to turn 1 end
+  assert battlefield A contains "Serra Angel"
+  assert exile A contains "Restoration Seminar"
+}

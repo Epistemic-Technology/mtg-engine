@@ -176,6 +176,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["cascade"], Keyword::Cascade),
     (&["rebound"], Keyword::Rebound),
     (&["cipher"], Keyword::Cipher),
+    (&["paradigm"], Keyword::Paradigm),
     (&["exploit"], Keyword::Exploit),
     (&["delve"], Keyword::Delve),
     (
@@ -8779,6 +8780,16 @@ impl P {
                                 && !f.subtypes.is_empty())) =>
                 {
                     f.not_types = vec![CardType::Instant, CardType::Sorcery];
+                    self.pos += 1;
+                }
+                // "a nonland permanent card" (Restoration Seminar).
+                "permanent"
+                    if matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                        && f.types.is_empty()
+                        && f.any_types.is_empty()
+                        && f.not_types == [CardType::Land] =>
+                {
+                    f.not_types = vec![CardType::Land, CardType::Instant, CardType::Sorcery];
                     self.pos += 1;
                 }
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,

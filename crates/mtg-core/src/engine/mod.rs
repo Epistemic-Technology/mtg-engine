@@ -590,6 +590,7 @@ impl GameState {
             targeted_by_controller: Vec::new(),
             pending_triggers: Vec::new(),
             delayed_triggers: Vec::new(),
+            paradigms: Vec::new(),
             trigger_sources: 0,
             lookback: None,
             rng,
