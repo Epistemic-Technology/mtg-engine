@@ -128,6 +128,38 @@ scenario "noncombat damage: Whiplash Wordsmith without" {
   assert has not "Whiplash Wordsmith" flying
 }
 
+scenario "combat damage batch: artifact creatures only" {
+  battlefield A: "Thopter Spy Network", "Ornithopter", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}
+
+scenario "combat damage batch: an artifact creature draws" {
+  battlefield A: "Thopter Spy Network", "Bronze Sable", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Bronze Sable"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "combat damage batch: Keeper of Fables, a non-Human" {
+  battlefield A: "Keeper of Fables", "Grizzly Bears", "Keeper of Fables"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Keeper of Fables"
+  run_to turn 2 postcombat_main
+  assert hand A count 2
+}
+
+scenario "combat damage batch: Rooftop Bypass, nontoken" {
+  battlefield A: "Rooftop Bypass", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Assassin"
+}
+
 scenario "noncombat damage: Niv-Mizzet draws that many" {
   battlefield A: "Niv-Mizzet, Visionary", "Mountain"
   hand A: "Lightning Bolt"

@@ -405,7 +405,8 @@ life this turn`, `gained or lost life this turn`, `descended this turn`
 graveyard from anywhere), `surveilled this turn` ("you've surveilled this
 turn"), `counter put this turn` ("a +1/+1 counter was put on a permanent
 under your control this turn"), `opponent dealt noncombat damage this turn` ("an opponent has been dealt
-noncombat damage this turn"), `resolution 2` ("this is the second time
+noncombat damage this turn"; `opponent was dealt ...`: "an opponent was
+dealt ..."), `resolution 2` ("this is the second time
 this ability has resolved this turn": the resolving ability's source has
 resolved it that many times this turn, this time included; `resolution 2
 again` prints "it's the second time", for "you gain 1 life if resolution

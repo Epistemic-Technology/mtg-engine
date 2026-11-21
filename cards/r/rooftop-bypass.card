@@ -1,0 +1,6 @@
+card "Rooftop Bypass" {
+  oracle_id ba0d177f-c8e9-4db3-b5cf-40ed2b63e111
+  cost {1}{U}{B}
+  type Enchantment
+  triggered whenever one or more nontoken creature you control deal combat damage to a player: create 1 "1/1 black Assassin creature with menace"
+}
