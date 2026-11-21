@@ -2858,6 +2858,7 @@ impl Compiler<'_> {
                 to: r(*to),
             }),
             Effect::Populate => out.push(CoreEffect::Populate),
+            Effect::EndTurn => out.push(CoreEffect::EndTurn),
             // CR 701.41a: one counter on each target.
             Effect::Support(to) => {
                 for t in to {

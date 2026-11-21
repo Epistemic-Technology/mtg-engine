@@ -10766,6 +10766,23 @@ impl GameState {
                 self.bolster(ctx, n);
             }
             Effect::Populate => self.populate(ctx),
+            Effect::EndTurn => {
+                // CR 724.1a: triggered abilities not yet on the stack cease
+                // to exist.
+                self.pending_triggers.clear();
+                // CR 724.1b: every object on the stack is exiled, the
+                // resolving one included; an ability or a copy of a spell
+                // ceases to exist.
+                for id in self.stack.clone().into_iter().rev() {
+                    let o = &self.objects[id];
+                    if o.kind == ObjKind::Ability || o.cast.copy() {
+                        self.remove_from_game(id);
+                    } else {
+                        self.move_object(id, Zone::Exile, true);
+                    }
+                }
+                self.end_turn = true;
+            }
             Effect::Incubate { count, token } => {
                 // CR 701.53a: it enters with the counters (CR 122.6).
                 let n = self.eval_num(*count, ctx);

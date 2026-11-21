@@ -1309,6 +1309,7 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::Populate => Effect::Populate,
+            CoreEffect::EndTurn => Effect::EndTurn,
             CoreEffect::Recruit { .. } => Effect::Recruit { you: false },
             CoreEffect::GraveyardToBattlefield { filter } => Effect::GraveyardToBattlefield {
                 filter: self.filter(filter),

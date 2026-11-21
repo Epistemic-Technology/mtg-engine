@@ -1,0 +1,6 @@
+card "Ultima" {
+  oracle_id c9a45c28-826e-4e6e-8adc-1368ea1af11a
+  cost {3}{W}{W}
+  type Sorcery
+  spell: destroy each andlist artifact or creature; end the turn
+}

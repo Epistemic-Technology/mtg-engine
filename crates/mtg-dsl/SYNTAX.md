@@ -790,6 +790,13 @@ Darksteel Colossus and shuffle it into its owner's library instead.": the
 card names itself, and the ability works in every zone (CR 113.6b: hand,
 library, stack, battlefield); the card goes into the library, which is
 then shuffled.
+`end the turn` (CR 724.1) prints "End the turn.": triggered abilities
+waiting to be put on the stack cease to exist, every object on the stack
+(the resolving spell or ability too) is exiled (an ability or a copy of a
+spell ceases to exist), and once the resolution is over the game skips to
+the cleanup step (no end step; creatures leave combat; damage wears off,
+"until end of turn" effects end, and the active player discards to seven
+there).
 `cloak top` (CR 701.58): "cloak the top card of your library": the card
 enters face down under the controller's control as a nameless 2/2 creature
 with ward {2} (`that token` is it afterwards: `cloak top, then attach to

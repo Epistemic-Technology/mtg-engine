@@ -6810,6 +6810,7 @@ impl P {
                 },
             }),
             "populate" => Ok(Effect::Populate),
+            "end" if self.eat_words(&["the", "turn"]) => Ok(Effect::EndTurn),
             "incubate" => Ok(Effect::Incubate(self.num()?)),
             // CR 701.41a: "up to N other target creatures" on a permanent
             // (its triggered ability), "up to N target creatures" on a

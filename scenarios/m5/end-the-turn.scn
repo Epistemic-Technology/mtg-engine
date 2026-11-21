@@ -1,0 +1,76 @@
+# "End the turn." (CR 724.1): triggered abilities waiting to be put on the
+# stack cease to exist, every object on the stack is exiled (the resolving
+# spell too), and the game skips to the cleanup step: no end step, damage
+# wears off, "until end of turn" effects end, the active player discards
+# down to seven.
+
+scenario "end the turn: Time Stop exiles the spells on the stack" {
+  battlefield A: 6 "Island"
+  battlefield B: "Mountain"
+  hand A: "Time Stop"
+  hand B: "Lightning Bolt"
+  start turn 1 B
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 A: cast "Time Stop" in response to "Lightning Bolt"
+  run_to turn 2 untap
+  assert life A 20
+  assert exile B contains "Lightning Bolt"
+  assert exile A contains "Time Stop"
+  assert graveyard A lacks "Time Stop"
+  assert turn 2
+}
+
+scenario "end the turn: combat and the rest of the turn are skipped" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Time Stop"
+  start turn 1 B
+  turn 1 B: attack "Hill Giant"
+  turn 1 declare_attackers A: cast "Time Stop"
+  run_to turn 2 upkeep
+  assert life A 20
+  assert turn 2
+}
+
+scenario "end the turn: Ultima destroys, and the dies triggers cease to exist" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  battlefield B: "Blood Artist", "Hill Giant"
+  hand A: "Ultima"
+  turn 1 A: cast "Ultima"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Blood Artist"
+  assert graveyard B contains "Hill Giant"
+  assert exile A contains "Ultima"
+  assert life A 20
+  assert life B 20
+}
+
+scenario "end the turn: damage wears off and until end of turn effects end" {
+  battlefield A: "Sundial of the Infinite", "Island", "Forest", "Mountain", "Hill Giant"
+  hand A: "Giant Growth", "Shock"
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: activate "Sundial of the Infinite"
+  run_to turn 2 upkeep
+  assert damage "Hill Giant" 0
+  assert power "Hill Giant" 3
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "end the turn: the active player discards down to seven" {
+  battlefield A: "Sundial of the Infinite", "Island"
+  hand A: 9 "Plains"
+  turn 1 A: activate "Sundial of the Infinite"
+  run_to turn 2 upkeep
+  assert hand A count 7
+}
+
+scenario "end the turn: Sundial only during its controller's turn" {
+  battlefield A: "Sundial of the Infinite", "Island"
+  battlefield B: "Hill Giant"
+  start turn 1 B
+  illegal turn 1 A: activate "Sundial of the Infinite"
+  run_to turn 1 end
+  assert untapped "Sundial of the Infinite"
+}

@@ -3648,6 +3648,8 @@ pub enum Effect {
     Support(Vec<Recipient>),
     /// `populate` (CR 701.36).
     Populate,
+    /// `end the turn` (CR 724.1).
+    EndTurn,
     /// `incubate 2` (CR 701.53): the token is "Incubator".
     Incubate(Num),
     /// `discover 4` (CR 701.57).

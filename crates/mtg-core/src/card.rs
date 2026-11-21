@@ -4106,6 +4106,10 @@ pub enum Effect {
     /// control and creates a token that's a copy of it; with none, nothing
     /// happens (CR 701.36b).
     Populate,
+    /// "End the turn." (CR 724.1): triggered abilities waiting to be put
+    /// on the stack cease to exist, every object on the stack (this spell
+    /// included) is exiled, and the game skips to the cleanup step.
+    EndTurn,
     /// Incubate N (CR 701.53a): create `token` (an Incubator, a
     /// double-faced token, CR 111.10i) entering with N +1/+1 counters.
     Incubate {

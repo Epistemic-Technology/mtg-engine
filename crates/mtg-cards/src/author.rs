@@ -1714,6 +1714,10 @@ impl Templates {
             (r(r"^Exile (.+)$"), |c, t| {
                 Some(format!("exile {}", recipient(cap(c, 1), t)?))
             }),
+            // CR 724.1.
+            (r(r"^[Ee]nd the turn$"), |_, _| {
+                Some("end the turn".to_string())
+            }),
             // CR 701.58a.
             (r(r"^[Cc]loak the top card of your library$"), |_, _| {
                 Some("cloak top".to_string())

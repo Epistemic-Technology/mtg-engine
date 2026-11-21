@@ -1909,6 +1909,9 @@ pub struct GameState {
     pub flow: Flow,
     /// Set when a cleanup step must repeat (CR 514.3a).
     pub cleanup_repeat: bool,
+    /// Set by a resolving "End the turn." (CR 724.1): once the resolution
+    /// is over, the game skips to the cleanup step.
+    pub end_turn: bool,
     /// Extra turns to come (CR 500.7), the next last: each player takes
     /// them directly after the current turn, the most recently created
     /// first.

@@ -675,6 +675,7 @@ impl Fmt {
             Effect::Earthbend { count, .. } => format!("earthbend {}", num(*count)),
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
+            Effect::EndTurn => "end the turn".to_string(),
             Effect::Recruit { you: false } => "recruit".to_string(),
             Effect::CloakTop => "cloak top".to_string(),
             Effect::Recruit { you: true } => "you recruit".to_string(),
