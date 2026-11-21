@@ -48,6 +48,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         delayed_dies: false,
         in_trigger: false,
         it_source: false,
+        no_trigger_obj: false,
         in_spell: false,
         group_named: false,
         subject: None,
@@ -545,6 +546,10 @@ struct P {
     /// (heroic): `it` is the source, as Oracle has it ("put a +1/+1
     /// counter on it").
     it_source: bool,
+    /// Inside a triggered ability whose event has no object ("at the
+    /// beginning of your upkeep", "whenever you gain life"): there is no
+    /// triggering object for `it` to be.
+    no_trigger_obj: bool,
     /// Inside an instant or sorcery's own effects (`spell:`, or the modes
     /// of a modal spell): `it` after a target is that target, since the
     /// spell itself can only be the "it" that deals damage.
@@ -600,6 +605,24 @@ impl P {
             self.pos += 1;
         }
         t
+    }
+
+    /// The last target declared in this ability if it can be an object
+    /// (not "target player" or "target opponent"): what `it` after it is.
+    fn last_object_target(&self) -> Option<usize> {
+        use mtg_core::card::TargetSpec as S;
+        let n = self.targets.len().checked_sub(1)?;
+        let player = matches!(
+            self.targets[n].base(),
+            Target::Spec(
+                S::Player
+                    | S::Opponent
+                    | S::Any
+                    | S::PlayerOrPlaneswalker
+                    | S::OpponentOrPlaneswalker
+            )
+        );
+        (!player).then_some(n)
     }
 
     fn fail<T>(&self, message: impl Into<String>) -> R<T> {
@@ -1325,6 +1348,7 @@ impl P {
         self.revealed = false;
         self.in_trigger = false;
         self.it_source = false;
+        self.no_trigger_obj = false;
         self.in_spell = false;
         self.group_named = false;
         self.returned = None;
@@ -2272,6 +2296,7 @@ impl P {
                 self.it_source = matches!(&trigger, Trigger::CastsFiltered { filter, .. }
                     if filter.targeting.as_ref().and_then(|t| t.filter.as_ref())
                         .is_some_and(|f| f.relation == Relation::This));
+                self.no_trigger_obj = no_trigger_object(&trigger);
                 if when && !crate::format::natural_when(&trigger) {
                     trigger = Trigger::When(Box::new(trigger));
                 }
@@ -7874,6 +7899,26 @@ impl P {
             return Some(CountExpr::AttachedStat(stat));
         }
         if self.in_trigger && at(0).as_deref() == Some("it") {
+            // After a target, its stat ("you lose life equal to its mana
+            // value" of the returned card).
+            if let Some(n) = self.last_object_target() {
+                self.pos += len + 1;
+                return Some(match stat {
+                    Stat::ManaValue => CountExpr::TargetManaValue {
+                        n,
+                        that: false,
+                        the_spell: false,
+                    },
+                    Stat::Power | Stat::Toughness => CountExpr::TargetStat {
+                        n,
+                        toughness: stat == Stat::Toughness,
+                        that: false,
+                    },
+                });
+            }
+            if self.no_trigger_obj {
+                return None;
+            }
             self.pos += len + 1;
             return Some(CountExpr::TriggerStat { stat, that: false });
         }
@@ -8335,6 +8380,7 @@ impl P {
             delayed_dies: self.delayed_dies,
             in_trigger: self.in_trigger,
             it_source: self.it_source,
+            no_trigger_obj: self.no_trigger_obj,
             in_spell: self.in_spell,
             group_named: self.group_named,
             subject: None,
@@ -8578,6 +8624,20 @@ impl P {
                 return Ok(Recipient::SameObject);
             }
             if self.in_trigger && !self.it_source {
+                // After a target the ability names, `it` is that target
+                // ("put a +1/+1 counter on target creature; it gains
+                // flying"), as in a spell; `it deals` stays the triggering
+                // object.
+                if let Some(n) = self.last_object_target()
+                    && !self.at_word("deals")
+                {
+                    return Ok(Recipient::Target(n));
+                }
+                if self.no_trigger_obj {
+                    return self.fail(
+                        "`it`: this trigger has no triggering object; write `this` or `target N`",
+                    );
+                }
                 return Ok(Recipient::TriggeringIt);
             }
             // In an instant or sorcery, `it` after a target is that
@@ -8976,6 +9036,7 @@ impl P {
                         delayed_dies: false,
                         in_trigger: false,
                         it_source: false,
+                        no_trigger_obj: false,
                         in_spell: false,
                         group_named: false,
                         subject: None,
@@ -11647,6 +11708,31 @@ impl P {
 }
 
 /// "another target creature": the target spec, excluding the source.
+/// A trigger whose event names no object (a step, a player's life gain,
+/// day and night): its ability has no triggering object, so `it` there
+/// would denote nothing.
+fn no_trigger_object(t: &Trigger) -> bool {
+    match t {
+        Trigger::When(t) | Trigger::Next(t) => no_trigger_object(t),
+        Trigger::Either(a, b) => no_trigger_object(a) && no_trigger_object(b),
+        Trigger::State(_)
+        | Trigger::EveryStep(_)
+        | Trigger::BeginningOfStep { .. }
+        | Trigger::CreaturesYouControlAttack
+        | Trigger::GainsLife { .. }
+        | Trigger::GainsLifeFirst { .. }
+        | Trigger::DayNight
+        | Trigger::RollsDice { .. }
+        | Trigger::WinsFlip { .. }
+        | Trigger::DrawsNth { .. }
+        | Trigger::CollectsEvidence
+        | Trigger::Forages
+        | Trigger::CreaturesDealCombatDamage(_)
+        | Trigger::CommitsCrime { .. } => true,
+        _ => false,
+    }
+}
+
 fn another_target(spec: Target) -> Target {
     match spec {
         Target::Spec(TargetSpec::Creature) => Target::Spec(TargetSpec::OtherCreature),

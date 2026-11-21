@@ -1,17 +1,51 @@
-# `it` in a triggered ability is the triggering object.
+# `it` in a triggered ability after a target the ability names is that
+# target ("put two +1/+1 counters on target creature you control; it
+# gains vigilance"), not the triggering object.
 
-scenario "Eiganjo Exemplar: the Samurai attacking alone gets +1/+1" {
-  battlefield A: "Eiganjo Exemplar"
-  turn 1 A: attack "Eiganjo Exemplar"
-  run_to turn 1 combat_damage
-  assert power "Eiganjo Exemplar" 3
-  assert toughness "Eiganjo Exemplar" 2
+scenario "Thranduil's Company: the target gains vigilance, not the land" {
+  battlefield A: "Thranduil's Company", "Grizzly Bears"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: trigger "Thranduil's Company" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert has "Grizzly Bears" vigilance
+  assert has not "Thranduil's Company" vigilance
 }
 
-scenario "Glory Bearers: another attacking creature gets +0/+1, not Glory Bearers" {
-  battlefield A: "Glory Bearers", "Grizzly Bears"
-  turn 1 A: attack "Grizzly Bears", "Glory Bearers"
-  run_to turn 1 combat_damage
-  assert toughness "Grizzly Bears" 3
-  assert toughness "Glory Bearers" 4
+scenario "Sparring Regimen untaps the attacking creature it targets" {
+  battlefield A: "Sparring Regimen", "Grizzly Bears"
+  start turn 3 A
+  turn 3 A: attack "Grizzly Bears"
+  turn 3 A: trigger "Sparring Regimen" targeting "Grizzly Bears"
+  run_to turn 3 declare_blockers
+  assert counters "Grizzly Bears" +1/+1 1
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Lodestone Needle taps its target and puts stun counters on it" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Lodestone Needle"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lodestone Needle"
+  turn 1 A: trigger "Lodestone Needle" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 2
+  assert counters "Lodestone Needle" stun 0
+}
+
+scenario "Goatnapper takes control of the Goat it untaps" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Mountain Goat" tapped
+  hand A: "Goatnapper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goatnapper"
+  turn 1 A: trigger "Goatnapper" targeting "Mountain Goat"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain Goat"
+  assert untapped "Mountain Goat"
+  assert has "Mountain Goat" haste
 }

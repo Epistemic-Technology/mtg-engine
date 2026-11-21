@@ -53,16 +53,6 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **`it` in a triggered ability is the triggering object**, also after a
-  target was named ("put a counter on target creature; it gains
-  flying") and in a trigger with no triggering object (an upkeep
-  trigger's `it deals 2 damage` deals 0; an end-step trigger's `exile
-  target creature then return it` leaves it in exile). Authors must
-  write `target 1` or `this`. Seen on Spider-Man India, Eye of Jace,
-  Airbender Ascension, Abuelo, Salvation Swan.
-- **`mana value of it` in a trigger** is the source's or the triggering
-  object's, not the target's (Queen's Bay Paladin; use `mana value of
-  target 1`).
 - **`that player mills N` after a targeted player** mills the caster
   (Exhibition Tidecaller; use `that target 1 mills`).
 - **`put counters on it` after `create`** puts none on the new token

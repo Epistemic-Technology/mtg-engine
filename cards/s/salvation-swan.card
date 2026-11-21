@@ -1,0 +1,8 @@
+card "Salvation Swan" {
+  oracle_id 0f68ae67-1671-4281-8b6b-3e52fdd4915f
+  cost {3}{W}
+  type Creature — Bird Cleric
+  pt 3/3
+  keywords flash, flying
+  triggered whenever this or Bird you control enters: exile up to 1 target creature you control without flying; delayed target 1: return it to battlefield with 1 flying counter at beginning of the next end step
+}

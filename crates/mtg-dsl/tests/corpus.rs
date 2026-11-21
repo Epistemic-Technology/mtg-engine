@@ -117,6 +117,46 @@ fn compiles(ability: &str) -> bool {
 }
 
 #[test]
+fn it_in_a_trigger_without_a_triggering_object_is_rejected() {
+    // An upkeep trigger has no triggering object for `it` to be.
+    assert!(!compiles(
+        "triggered at beginning of your upkeep: it deals 2 damage to each opponent"
+    ));
+    assert!(compiles(
+        "triggered at beginning of your upkeep: this deals 2 damage to each opponent"
+    ));
+    assert!(compiles(
+        "triggered whenever another creature you control attacks: it gets +1/+0 until end of turn"
+    ));
+}
+
+#[test]
+fn it_after_a_target_in_a_trigger_is_that_target() {
+    let card = |ability: &str| {
+        let text = format!(
+            "card \"Test\" {{\n  cost {{1}}\n  type Creature — Bear\n  pt 2/2\n  {ability}\n}}\n"
+        );
+        parse(&text).unwrap().remove(0).abilities
+    };
+    assert_eq!(
+        card(
+            "triggered whenever this attacks: return up to 1 target creature card from your graveyard to battlefield; you lose count equal mana value of it life"
+        ),
+        card(
+            "triggered whenever this attacks: return up to 1 target creature card from your graveyard to battlefield; you lose count equal mana value of target 1 life"
+        )
+    );
+    assert_eq!(
+        card(
+            "triggered whenever land you control enters: put 2 +1/+1 counters on target creature you control; it gains vigilance until end of turn"
+        ),
+        card(
+            "triggered whenever land you control enters: put 2 +1/+1 counters on target creature you control; target 1 gains vigilance until end of turn"
+        )
+    );
+}
+
+#[test]
 fn a_static_ability_rejects_a_resolution_only_count() {
     // "the number of cards you've drawn this turn" is kept for a resolving
     // effect; a static ability would read 0 (`CountExpr::in_static`).

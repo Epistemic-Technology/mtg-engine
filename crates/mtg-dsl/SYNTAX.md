@@ -635,10 +635,17 @@ Cost item `2 times per turn`: "Activate no more than twice each turn."
 `that much` is the triggering event's amount ("Whenever this creature is
 dealt damage, you gain that much life": `you gain that much life`).
 Trigger `whenever this is dealt combat damage` (CR 510.2) counts only
-combat damage. In a triggered ability `toughness of it`, `power of it`,
-`mana value of it` ("its toughness") and `power of that creature` ("that
-creature's power") read the triggering object, as it last existed once it
-has left (CR 608.2h): `triggered when enchanted creature dies: its
+combat damage. In a triggered ability `it` is the triggering object, but
+after a target the ability names (other than a player) it is that target,
+as in a spell: `put 2 +1/+1 counters on target creature you control; it
+gains vigilance until end of turn`, `you lose count equal mana value of it
+life` after `return up to 1 target Vampire card ...`; `it deals` stays the
+triggering object. In a trigger with no triggering object (`at beginning
+of ...`, `whenever you gain life`, `whenever you attack`) `it` is an
+error: write `this` or `target N`. In a triggered ability `toughness of
+it`, `power of it`, `mana value of it` ("its toughness") and `power of
+that creature` ("that creature's power") otherwise read the triggering
+object, as it last existed once it has left (CR 608.2h): `triggered when enchanted creature dies: its
 controller loses count equal power of it life and you gain count equal
 toughness of it life`.
 `count each creature blocking it` ("for each creature blocking it", the
