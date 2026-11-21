@@ -1,0 +1,8 @@
+card "Goblin Engineer" {
+  oracle_id c1d6cce8-085f-42cb-8b0c-b6fbbf88b16a
+  cost {1}{R}
+  type Creature — Goblin Artificer
+  pt 1/2
+  triggered when this enters: you may search artifact card to graveyard
+  activated {R}, {T}, sacrifice artifact: return target artifact card with mana value 3 or less from your graveyard to battlefield
+}

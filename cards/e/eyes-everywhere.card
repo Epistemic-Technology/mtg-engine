@@ -1,0 +1,7 @@
+card "Eyes Everywhere" {
+  oracle_id 7d0a1ae5-cd93-4789-9666-fc7bbbc6b613
+  cost {2}{U}
+  type Enchantment
+  triggered at beginning of your upkeep: scry 1
+  activated {5}{U}, sorcery: exchange control of this and target nonland permanent
+}

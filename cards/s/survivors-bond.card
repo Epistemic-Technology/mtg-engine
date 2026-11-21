@@ -1,0 +1,9 @@
+card "Survivors' Bond" {
+  oracle_id ff53c3a0-988a-40a4-b5f9-e5a4b634f5eb
+  cost {1}{G}
+  type Sorcery
+  choose one or both {
+    mode: return target Human creature card from your graveyard to hand
+    mode: return target non-Human creature card from your graveyard to hand
+  }
+}

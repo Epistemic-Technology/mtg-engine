@@ -1,0 +1,15 @@
+card "Carnivorous Cultivator // Enroot" {
+  oracle_id db655c5a-06f6-42bc-8180-d9ca1c1d939a
+  layout prepare
+  cost {1}{G}
+  type Creature — Elf Warlock
+  pt 2/3
+  keywords deathtouch
+  enters prepared
+  triggered whenever this deals combat damage to a player: return target land card from your graveyard to hand
+  face "Enroot" {
+    cost {G}
+    type Sorcery
+    spell: search land card to graveyard
+  }
+}

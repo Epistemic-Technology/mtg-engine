@@ -1,0 +1,10 @@
+card "Cleric Class" {
+  oracle_id f0ead7f5-5c82-40fd-8e89-3e3c5d31fbad
+  cost {W}
+  type Enchantment — Class
+  replace you gain life: plus one
+  level 2 {3}{W}
+  triggered whenever you gain life: put 1 +1/+1 counters on target creature you control
+  level 3 {4}{W}
+  triggered when this becomes level 3: return target creature card from your graveyard to battlefield; you gain count equal toughness of that target 1 life
+}

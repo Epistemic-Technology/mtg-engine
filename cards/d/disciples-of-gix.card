@@ -1,0 +1,7 @@
+card "Disciples of Gix" {
+  oracle_id cb7e451b-a9d2-4f50-9651-b5df34e34d99
+  cost {4}{B}{B}
+  type Creature — Phyrexian Human
+  pt 4/4
+  triggered when this enters: search up to 3 artifact card to graveyard
+}

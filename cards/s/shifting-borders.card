@@ -1,0 +1,7 @@
+card "Shifting Borders" {
+  oracle_id b377f717-d0c2-4db5-aba2-fa4bfa35de0f
+  cost {3}{U}
+  type Instant — Arcane
+  spell: exchange control of 2 target land
+  splice {3}{U}
+}

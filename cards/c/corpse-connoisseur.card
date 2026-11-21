@@ -1,0 +1,8 @@
+card "Corpse Connoisseur" {
+  oracle_id f39e2611-c837-4ad7-b3a8-1ee48b74777c
+  cost {4}{B}
+  type Creature — Zombie Wizard
+  pt 3/3
+  triggered when this enters: you may search creature card to graveyard that card
+  unearth {3}{B}
+}

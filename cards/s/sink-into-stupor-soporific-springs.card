@@ -1,0 +1,12 @@
+card "Sink into Stupor // Soporific Springs" {
+  oracle_id bcc6eece-75ea-494c-b33a-d4477d504e0b
+  layout modal_dfc
+  cost {1}{U}{U}
+  type Instant
+  spell: return target spell or nonland permanent an opponent controls to hand
+  face "Soporific Springs" {
+    type Land
+    enters tapped unless pay 3 life
+    mana {U}
+  }
+}

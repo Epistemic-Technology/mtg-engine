@@ -1,0 +1,6 @@
+card "Buried Alive" {
+  oracle_id 8203c621-a1a0-4865-8c9a-0d4064c86107
+  cost {2}{B}
+  type Sorcery
+  spell: search up to 3 creature card to graveyard
+}
