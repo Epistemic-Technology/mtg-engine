@@ -1252,8 +1252,7 @@ impl Decompiler<'_> {
             },
             CoreEffect::Populate => Effect::Populate,
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
-            CoreEffect::Fabricate { .. }
-            | CoreEffect::BecomeRenowned => {
+            CoreEffect::Fabricate { .. } | CoreEffect::BecomeRenowned => {
                 unreachable!("decompiled as a keyword line")
             }
             CoreEffect::ExileTop { who, count } => Effect::ExileTop {

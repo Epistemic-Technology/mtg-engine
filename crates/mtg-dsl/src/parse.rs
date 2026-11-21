@@ -3895,7 +3895,10 @@ impl P {
                 self.expect_words(&["on", "bottom", "of", "library"])?;
                 CardDest::LibraryBottom
             };
-            Some((dest, dest == CardDest::LibraryBottom && self.eat_word("random")))
+            Some((
+                dest,
+                dest == CardDest::LibraryBottom && self.eat_word("random"),
+            ))
         } else {
             None
         };
@@ -8906,10 +8909,11 @@ impl P {
                 // A dig's "noncreature, nonland permanent card".
                 "permanent"
                     if self.card_filter
-                        && matches!(self.word_at(1).as_deref(), Some("card" | "with"))
+                        && self.word_at(1).as_deref() == Some("with")
                         && f.types.is_empty()
                         && f.any_types.is_empty()
-                        && !f.not_types.is_empty() =>
+                        && !f.not_types.is_empty()
+                        && !f.not_types.contains(&CardType::Instant) =>
                 {
                     f.not_types.extend([CardType::Instant, CardType::Sorcery]);
                     self.pos += 1;

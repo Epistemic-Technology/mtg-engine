@@ -686,7 +686,10 @@ fn top_spells(f: &Filter, card: &Card) -> String {
             s
         };
         // "with mana value 4 or greater spells": the qualities follow.
-        match s.strip_prefix("with ").and_then(|r| r.strip_suffix(" spells")) {
+        match s
+            .strip_prefix("with ")
+            .and_then(|r| r.strip_suffix(" spells"))
+        {
             Some(q) => format!("spells with {q}"),
             None => s,
         }
@@ -694,7 +697,10 @@ fn top_spells(f: &Filter, card: &Card) -> String {
     if let Some(alt) = &f.or {
         let (b, a) = crate::format::factor_qualifiers(f, alt);
         let (b, a) = (one(&b), one(&a));
-        if let (Some(x), Some(y)) = (b.strip_prefix("spells with "), a.strip_prefix("spells with ")) {
+        if let (Some(x), Some(y)) = (
+            b.strip_prefix("spells with "),
+            a.strip_prefix("spells with "),
+        ) {
             return format!("spells with {x} or {y}");
         }
         return format!("{b} and {a}");
@@ -3890,13 +3896,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let what = if one {
                 format!("the top card of {whose} library")
             } else {
-                format!("the top {} cards of {whose} library", count_words(*count, "one"))
+                format!(
+                    "the top {} cards of {whose} library",
+                    count_words(*count, "one")
+                )
             };
             match who {
                 None => Clause::imperative(format!("exile {what}")),
                 Some(w) => {
                     let s = ctx.subj(*w);
-                    Clause::with_subject(*w, s, format!("{} {what}", ctx.verb(*w, "exiles", "exile")))
+                    Clause::with_subject(
+                        *w,
+                        s,
+                        format!("{} {what}", ctx.verb(*w, "exiles", "exile")),
+                    )
                 }
             }
         }
@@ -4348,8 +4361,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else {
                     "onto the battlefield"
                 };
-                let put = if *optional
-                    && (*take == 1 || *take == crate::ast::ANY_NUMBER || *reword)
+                let put = if *optional && (*take == 1 || *take == crate::ast::ANY_NUMBER || *reword)
                 {
                     "You may put"
                 } else {
@@ -4601,7 +4613,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // "Target instant or sorcery card in your graveyard gains
             // flashback until end of turn. The flashback cost is equal to
             // its mana cost."
-            let s = ctx.subj(*to).replacen(" from your graveyard", " in your graveyard", 1);
+            let s = ctx
+                .subj(*to)
+                .replacen(" from your graveyard", " in your graveyard", 1);
             let its = if *that_card { "that card's" } else { "its" };
             Clause::with_subject(
                 *to,

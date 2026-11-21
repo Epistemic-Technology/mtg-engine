@@ -1093,13 +1093,15 @@ impl Runner {
                     let choice = if let Some(c) = self.face_in_hand(d.player, name) {
                         c
                     } else {
-                        Choice::PlayLand(match self
-                            .playable_in_exile(d.player, name, true)
-                            .or_else(|| self.top_of_library(d.player, name))
-                        {
-                            Some(id) if self.in_hand(a.line, d.player, name).is_err() => id,
-                            _ => self.in_hand(a.line, d.player, name)?,
-                        })
+                        Choice::PlayLand(
+                            match self
+                                .playable_in_exile(d.player, name, true)
+                                .or_else(|| self.top_of_library(d.player, name))
+                            {
+                                Some(id) if self.in_hand(a.line, d.player, name).is_err() => id,
+                                _ => self.in_hand(a.line, d.player, name)?,
+                            },
+                        )
                     };
                     (name, choice, None, None, (None, None, None, false))
                 }

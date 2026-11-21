@@ -2323,9 +2323,9 @@ impl GameState {
                 } else {
                     // The mana value isn't a characteristic `matches` sees.
                     spells.as_ref().is_some_and(|f| {
-                        f.mana_value
-                            .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)))
-                            && f.matches(card, p, &chars, Some(*src), Some(p))
+                        f.mana_value.is_none_or(|(cmp, n)| {
+                            cmp.holds(def.mana_cost.mana_value(), u32::from(n))
+                        }) && f.matches(card, p, &chars, Some(*src), Some(p))
                     })
                 };
                 if ok && !(*once && self.activated_once.contains(&(*src, *a))) {
@@ -9919,7 +9919,8 @@ impl GameState {
                             continue;
                         }
                         let c = self.base_characteristics(o);
-                        if filter.matches(new, o.owner, &c, Some(ctx.source), Some(ctx.controller)) {
+                        if filter.matches(new, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                        {
                             ctx.created = Some(new);
                             break;
                         }
@@ -10542,7 +10543,14 @@ impl GameState {
                 // when it's already the controller's.
                 let own_ends = if self.active_player == p { 2 } else { 1 };
                 let n = self.eval_num(*count, ctx) as usize;
-                let top: Vec<ObjId> = self.player(lib).library.iter().rev().take(n).copied().collect();
+                let top: Vec<ObjId> = self
+                    .player(lib)
+                    .library
+                    .iter()
+                    .rev()
+                    .take(n)
+                    .copied()
+                    .collect();
                 // "Choose one of them.": only that one may be played. The
                 // choice names the cards as they were before they moved,
                 // the objects the resolution began with; they are exiled

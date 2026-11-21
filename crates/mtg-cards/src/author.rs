@@ -1932,6 +1932,7 @@ impl Templates {
 
     /// The dig paragraphs ("Look at the top N cards of your library. ...
     /// Put the rest ..."), with whatever follows authored as usual.
+    #[allow(clippy::too_many_lines)] // one arm per dig wording
     fn dig(&self, text: &str, targets: &mut usize) -> Result<Option<String>, Skip> {
         let text = capitalize(text);
         let rest_of = |s: &str| -> &'static str {
