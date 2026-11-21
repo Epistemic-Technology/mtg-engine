@@ -635,8 +635,13 @@ impl GameState {
                     if kind == CounterKind::PlusOnePlusOne {
                         self.turn_log.counter_put_by |= 1 << by.index().min(7);
                     }
-                    if self.characteristics(new).is_some_and(|c| c.is_creature()) {
-                        self.turn_log.any_counter_put_by |= 1 << by.index().min(7);
+                    // Asked once per player each turn (the cache was bumped
+                    // as it entered).
+                    let bit = 1 << by.index().min(7);
+                    if self.turn_log.any_counter_put_by & bit == 0
+                        && self.characteristics(new).is_some_and(|c| c.is_creature())
+                    {
+                        self.turn_log.any_counter_put_by |= bit;
                     }
                     self.emit(Event::CountersAdded {
                         obj: new,
@@ -1458,11 +1463,16 @@ impl GameState {
             self.turn_log.counter_put |= 1 << o.controller.index().min(7);
             self.turn_log.counter_put_by |= 1 << by.index().min(7);
         }
-        // "if you put a counter on a creature this turn".
-        if self.characteristics(id).is_some_and(|c| c.is_creature()) {
-            self.turn_log.any_counter_put_by |= 1 << by.index().min(7);
-        }
         self.cbump();
+        // "if you put a counter on a creature this turn": asked once per
+        // player each turn, after the bump (the counters may change what
+        // the permanent is).
+        let bit = 1 << by.index().min(7);
+        if self.turn_log.any_counter_put_by & bit == 0
+            && self.characteristics(id).is_some_and(|c| c.is_creature())
+        {
+            self.turn_log.any_counter_put_by |= bit;
+        }
         self.emit(Event::CountersAdded {
             obj: id,
             kind,

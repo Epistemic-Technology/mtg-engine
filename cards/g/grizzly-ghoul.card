@@ -1,0 +1,8 @@
+card "Grizzly Ghoul" {
+  oracle_id 86783f8d-26c9-4b8c-a697-ab6facafeb67
+  cost {2}{B}{G}
+  type Creature — Zombie Bear
+  pt 4/3
+  keywords trample
+  enters with count each creature died this turn +1/+1 counters
+}

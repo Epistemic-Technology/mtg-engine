@@ -1,0 +1,153 @@
+# Template-authored cards with "an opponent controls more lands than
+# you", creatures that died this turn, void, and two static conditions
+# joined by "and".
+
+scenario "Weathered Wayfarer searches when an opponent has more lands" {
+  battlefield A: "Weathered Wayfarer", "Plains"
+  battlefield B: 2 "Forest"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: activate "Weathered Wayfarer"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+}
+
+scenario "Weathered Wayfarer can't activate on equal lands" {
+  battlefield A: "Weathered Wayfarer", "Plains"
+  battlefield B: "Forest"
+  illegal turn 1 A: activate "Weathered Wayfarer"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Gift of Estates fetches three Plains when behind on lands" {
+  battlefield A: 2 "Plains"
+  battlefield B: 3 "Forest"
+  library A: "Plains", "Plains", "Plains", "Island"
+  hand A: "Gift of Estates"
+  turn 1 A: cast "Gift of Estates"
+  run_to turn 1 postcombat_main
+  assert hand A contains 3 "Plains"
+}
+
+scenario "Gift of Estates does nothing when not behind" {
+  battlefield A: 2 "Plains"
+  battlefield B: 2 "Forest"
+  library A: "Plains", "Plains"
+  hand A: "Gift of Estates"
+  turn 1 A: cast "Gift of Estates"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Knight of the White Orchid fetches a Plains when behind on lands" {
+  battlefield A: 2 "Plains"
+  battlefield B: 3 "Forest"
+  library A: "Island", "Plains"
+  hand A: "Knight of the White Orchid"
+  turn 1 A: cast "Knight of the White Orchid"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Plains"
+}
+
+scenario "Sunstar Expansionist makes a Lander when behind on lands" {
+  battlefield A: 2 "Plains"
+  battlefield B: 3 "Forest"
+  hand A: "Sunstar Expansionist"
+  turn 1 A: cast "Sunstar Expansionist"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Lander"
+}
+
+scenario "Grizzly Ghoul enters with a counter for each creature that died this turn" {
+  battlefield A: 2 "Swamp", 2 "Forest", "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Shock", "Grizzly Ghoul"
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Ghoul"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Ghoul" +1/+1 1
+}
+
+scenario "Diregraf Rebirth costs full price when no creature died" {
+  battlefield A: 2 "Swamp", 2 "Forest"
+  graveyard A: "Hill Giant"
+  hand A: "Diregraf Rebirth"
+  illegal turn 1 A: cast "Diregraf Rebirth" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Diregraf Rebirth costs {1} less for each creature that died this turn" {
+  battlefield A: "Swamp", "Forest", "Mountain", "Swamp"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  hand A: "Shock", "Diregraf Rebirth", "Lightning Bolt"
+  battlefield A: "Mountain"
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Diregraf Rebirth" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Bloodline Recollector becomes prepared after three creatures died" {
+  battlefield A: "Bloodline Recollector", 3 "Mountain", "Swamp"
+  battlefield B: "Llanowar Elves", "Grizzly Bears", "Ornithopter"
+  hand A: "Shock", "Lightning Bolt", "Shock"
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Ornithopter"
+  turn 3 A: cast "Ancestral Craving" targeting player A
+  run_to turn 3 postcombat_main
+  # The turn's draw and three more.
+  assert hand A count 4
+  assert life A 17
+}
+
+scenario "Interceptor Mechan grows with void" {
+  battlefield A: "Interceptor Mechan", "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  run_to turn 2 upkeep
+  assert counters "Interceptor Mechan" +1/+1 1
+}
+
+scenario "Lagomos tutors only after five creatures died" {
+  battlefield A: "Lagomos, Hand of Hatred"
+  library A: "Grizzly Bears", "Hill Giant"
+  illegal turn 1 A: activate "Lagomos, Hand of Hatred"
+  run_to turn 1 end
+}
+
+scenario "Blood Baron of Vizkopa: 30 or more life and an opponent at 10 or less" {
+  battlefield A: "Blood Baron of Vizkopa"
+  life A 30
+  life B 10
+  run_to turn 1 precombat_main
+  assert power "Blood Baron of Vizkopa" 10
+  assert has "Blood Baron of Vizkopa" flying
+}
+
+scenario "Blood Baron of Vizkopa: only one of the two conditions" {
+  battlefield A: "Blood Baron of Vizkopa"
+  life A 30
+  life B 11
+  run_to turn 1 precombat_main
+  assert power "Blood Baron of Vizkopa" 4
+  assert has not "Blood Baron of Vizkopa" flying
+}
+
+scenario "Blood Baron of Vizkopa loses the bonus as life changes" {
+  battlefield A: "Blood Baron of Vizkopa", "Mountain"
+  hand A: "Shock"
+  life A 30
+  life B 12
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Blood Baron of Vizkopa" 10
+}

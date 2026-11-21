@@ -1,0 +1,9 @@
+card "Interceptor Mechan" {
+  oracle_id ded2b1b7-8c12-4f6f-a3be-a8f7b62b0819
+  cost {2}{B}{R}
+  type Artifact Creature — Robot
+  pt 2/2
+  keywords flying
+  triggered when this enters: return target artifact or creature card from your graveyard to hand
+  label "Void" triggered at beginning of your end step if void: put 1 +1/+1 counters on this
+}

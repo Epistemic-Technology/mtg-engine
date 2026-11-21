@@ -1,0 +1,8 @@
+card "Diregraf Rebirth" {
+  oracle_id 1920254f-0f65-4426-aabc-f3807476b67b
+  cost {3}{B}{G}
+  type Sorcery
+  this spell costs {1} less count each creature died this turn
+  spell: return target creature card from your graveyard to battlefield
+  flashback {5}{B}{G}
+}

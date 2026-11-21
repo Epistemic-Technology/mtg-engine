@@ -1,0 +1,13 @@
+card "Bloodline Recollector // Ancestral Craving" {
+  oracle_id c8e9a7e1-28ae-40e3-8715-1bb0aa2057c7
+  layout prepare
+  cost {1}{B}
+  type Creature — Vampire Warlock
+  pt 2/2
+  triggered at beginning of every end step if 3 creatures died this turn: this becomes prepared
+  face "Ancestral Craving" {
+    cost {B}
+    type Instant
+    spell: target player draws three cards and loses 3 life
+  }
+}

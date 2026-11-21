@@ -1,0 +1,14 @@
+card "Emeritus of Woe // Demonic Tutor" {
+  oracle_id 93056597-b964-421f-be2f-e92abef1c2a4
+  layout prepare
+  cost {3}{B}
+  type Creature — Vampire Warlock
+  pt 5/4
+  enters prepared
+  triggered at beginning of your end step if 2 creatures died this turn: this becomes prepared
+  face "Demonic Tutor" {
+    cost {1}{B}
+    type Sorcery
+    spell: search card to hand that card
+  }
+}
