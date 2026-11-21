@@ -1,0 +1,8 @@
+card "Leyline Axe" {
+  oracle_id 4f597675-0f6d-438c-990c-337171927a5e
+  cost {4}
+  type Artifact — Equipment
+  opening hand
+  static equipped creature: +1/+1, has double strike, trample
+  equip {3}
+}

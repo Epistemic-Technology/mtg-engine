@@ -1,0 +1,10 @@
+card "Journey of Discovery" {
+  oracle_id 1c586d8a-9d1a-48a7-bb3e-9b2c0c329f8d
+  cost {2}{G}
+  type Sorcery
+  choose one {
+    mode: search up to 2 basic land card reveal to hand
+    mode: play 2 additional land this turn
+  }
+  entwine {2}{G}
+}

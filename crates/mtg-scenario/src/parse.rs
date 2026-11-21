@@ -378,6 +378,10 @@ fn parse_statement(line: &mut Line, sc: &mut Scenario) -> Result<(), ParseError>
         "seed" => {
             sc.setup.seed = Some(u64::from(line.unsigned()?));
         }
+        "opening" => {
+            line.keyword("hand")?;
+            sc.setup.opening_hand = true;
+        }
         "life" => {
             let p = line.player()?;
             let n = line.number()?;

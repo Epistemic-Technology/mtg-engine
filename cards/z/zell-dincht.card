@@ -1,0 +1,9 @@
+card "Zell Dincht" {
+  oracle_id f207ce73-e4cd-4dfc-b3b9-5704f5148959
+  cost {2}{R}
+  type Legendary Creature — Human Monk
+  pt 0/3
+  additional land
+  static this: +1/+0 count each land you control
+  triggered at beginning of your end step: return 1 land you control chosen
+}

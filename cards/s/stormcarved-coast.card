@@ -1,0 +1,6 @@
+card "Stormcarved Coast" {
+  oracle_id 4722105b-0085-4bb8-bca1-9de0d3eb5600
+  type Land
+  enters tapped unless you control 2 other land
+  mana {U} or {R}
+}

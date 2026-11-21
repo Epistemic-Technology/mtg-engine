@@ -490,6 +490,40 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                     )
             })
         }),
+        // "as long as any player controls a black permanent": the filter
+        // names no controller.
+        StaticCondition::OnBattlefield { filter, at_least } => {
+            work.ids
+                .iter()
+                .filter(|id| {
+                    work.on_battlefield(**id)
+                        && filter.matches(
+                            **id,
+                            work.controller_of(**id),
+                            &work.chars[work.index[*id]],
+                            Some(source),
+                            Some(you),
+                        )
+                })
+                .count()
+                >= *at_least as usize
+        }
+        StaticCondition::YouControlAtMost { filter, n } => {
+            work.ids
+                .iter()
+                .filter(|id| {
+                    work.on_battlefield(**id)
+                        && filter.matches(
+                            **id,
+                            work.controller_of(**id),
+                            &work.chars[work.index[*id]],
+                            Some(source),
+                            Some(you),
+                        )
+                })
+                .count()
+                <= *n as usize
+        }
         StaticCondition::YouControlNone(filter) => !work.ids.iter().any(|id| {
             work.on_battlefield(*id)
                 && filter
@@ -506,7 +540,6 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         // Judged as attackers are declared, or as a permanent enters; not
         // by a static ability.
         StaticCondition::DefenderControls { .. }
-        | StaticCondition::OnBattlefield { .. }
         | StaticCondition::DefenderPoisoned
         | StaticCondition::OthersInCombat { .. }
         | StaticCondition::MoreCreaturesThanOpponent { .. }
@@ -1162,6 +1195,12 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
                 crate::card::AbilityDef::Protection(_)
             ) {
                 c.keywords = c.keywords.with(crate::card::Keyword::ProtectionFromFilter);
+            }
+            if matches!(
+                state.pool.ability(*a),
+                crate::card::AbilityDef::HexproofFrom(_)
+            ) {
+                c.keywords = c.keywords.with(crate::card::Keyword::HexproofFromFilter);
             }
         }
         Modification::RemoveKeywords(k) => c.keywords = c.keywords.difference(*k),

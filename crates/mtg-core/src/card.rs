@@ -341,6 +341,9 @@ pub enum Keyword {
     /// CR 702.99: as the spell resolves, its card may be exiled encoded on
     /// a creature its controller controls (`GameState::encoded`).
     Cipher,
+    /// Hexproof from a quality (CR 702.11d): a marker that one of the
+    /// object's abilities is an `AbilityDef::HexproofFrom`. Not printed.
+    HexproofFromFilter,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -512,7 +515,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 68] = [
+    pub const ALL: [Keyword; 69] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -581,6 +584,7 @@ impl Keyword {
         Keyword::Decayed,
         Keyword::Phasing,
         Keyword::Cipher,
+        Keyword::HexproofFromFilter,
     ];
 
     /// The keyword as Oracle prints it.
@@ -638,6 +642,7 @@ impl Keyword {
             Keyword::Decayed => "decayed",
             Keyword::Phasing => "phasing",
             Keyword::Cipher => "cipher",
+            Keyword::HexproofFromFilter => "hexproof from",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -2115,6 +2120,12 @@ pub enum StaticCondition {
     },
     /// "you control no untapped lands": fewer than one.
     YouControlNone(ObjFilter),
+    /// "you control two or fewer other lands" (the fast lands): at most
+    /// `n` permanents matching the filter.
+    YouControlAtMost {
+        filter: ObjFilter,
+        n: u32,
+    },
     /// "you control an Urza's Mine and an Urza's Power-Plant": at least
     /// one permanent matching each filter.
     YouControlEach(Vec<ObjFilter>),
@@ -3365,6 +3376,10 @@ pub enum Effect {
     /// generic mana; several such effects add up, and that one spell uses
     /// them all up.
     NextSpellLess(u32),
+    /// "You may play an additional land this turn." (CR 305.2): the
+    /// controller may play `n` more lands this turn ("up to two additional
+    /// lands").
+    ExtraLandPlays(u32),
     /// "Face-down spells you cast this turn cost {1} less to cast." (CR
     /// 601.2f): the controller's face-down spells (CR 702.37c) this turn.
     FaceDownSpellsLess(u32),
@@ -4407,6 +4422,28 @@ pub enum ChoiceKind {
     /// One of these basic land types: all five for "the basic land type
     /// of your choice", or "a Plains or an Island".
     LandType(ColorSet),
+}
+
+/// What a player-level static ability does (`AbilityDef::PlayerStatic`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum PlayerStaticKind {
+    /// "You may play an additional land on each of your turns." (CR
+    /// 305.2): `n` more land plays on the controller's turns; with
+    /// `each_player`, on each player's own turns ("Each player may play an
+    /// additional land on each of their turns.").
+    ExtraLands { n: u32, each_player: bool },
+    /// "You have hexproof." (CR 702.11c): the controller can't be the
+    /// target of spells or abilities their opponents control.
+    Hexproof,
+    /// "You have shroud." (CR 702.18c): the controller can't be the target
+    /// of spells or abilities.
+    Shroud,
+    /// "Your opponents can't cast spells during your turn." (CR 101.2).
+    OpponentsCantCastYourTurn,
+    /// A rule for the whole game while the source is on the battlefield:
+    /// "Players can't gain life.", "Damage can't be prevented." (CR
+    /// 614.17; `GameState::rule_in_force`).
+    Rule(RuleKind),
 }
 
 /// Effects that modify the rules rather than objects (CR 613.11, 614.17).
@@ -5679,6 +5716,23 @@ pub enum AbilityDef {
     /// Toxic N (CR 702.164): combat damage this deals to a player also
     /// gives them N poison counters.
     Toxic(u32),
+    /// Hexproof from what matches the filter ("hexproof from black",
+    /// "from monocolored", "from instants"), judged on the targeting
+    /// source's characteristics (CR 702.11d): spells and abilities an
+    /// opponent controls from such sources can't target it. The object
+    /// also has `Keyword::HexproofFromFilter`.
+    HexproofFrom(ObjFilter),
+    /// A static ability of its controller as a player: "You have
+    /// hexproof.", "You may play an additional land on each of your
+    /// turns." `condition`: "As long as ..." (a pool condition, judged
+    /// for the controller, CR 611.3a).
+    PlayerStatic {
+        kind: PlayerStaticKind,
+        condition: Option<u16>,
+    },
+    /// "If this card is in your opening hand, you may begin the game with
+    /// it on the battlefield." (CR 103.6a; the Leylines).
+    OpeningHand,
     /// "You have no maximum hand size" (`delta` None), "Your maximum hand
     /// size is increased by one" (CR 402.2); `whose` from the controller.
     HandSize {
@@ -5751,6 +5805,9 @@ impl AbilityDef {
             | AbilityDef::AsTurnedFaceUp { .. }
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
+            | AbilityDef::HexproofFrom(_)
+            | AbilityDef::PlayerStatic { .. }
+            | AbilityDef::OpeningHand
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -5780,6 +5837,9 @@ impl AbilityDef {
             | AbilityDef::AsTurnedFaceUp { .. }
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
+            | AbilityDef::HexproofFrom(_)
+            | AbilityDef::PlayerStatic { .. }
+            | AbilityDef::OpeningHand
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -6386,6 +6446,9 @@ impl DefFlags {
     /// A Saga with chapter abilities (`CardDef::final_chapter`, CR 714):
     /// the precombat main phase and state-based actions then look.
     const SAGA: u32 = 33_554_432;
+    /// A player-level static ability (`AbilityDef::PlayerStatic`): land
+    /// plays, player targeting, and casting then look for such sources.
+    const PLAYER_STATIC: u32 = 67_108_864;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -6498,6 +6561,10 @@ impl DefFlags {
 
     pub const fn has_saga(self) -> bool {
         self.has(DefFlags::SAGA)
+    }
+
+    pub const fn has_player_static(self) -> bool {
+        self.has(DefFlags::PLAYER_STATIC)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -7811,6 +7878,12 @@ impl CardPool {
             .max()
             .unwrap_or(0);
         flags.set(DefFlags::SAGA, def.final_chapter > 0);
+        flags.set(
+            DefFlags::PLAYER_STATIC,
+            def.abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::PlayerStatic { .. })),
+        );
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
             def: r,

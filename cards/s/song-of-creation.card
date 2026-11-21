@@ -1,0 +1,8 @@
+card "Song of Creation" {
+  oracle_id 75b73eb2-dafd-43db-9e96-7e1995d9849f
+  cost {1}{G}{U}{R}
+  type Enchantment
+  additional land
+  triggered whenever you cast a spell: draw 2 cards
+  triggered at beginning of your end step: discard hand
+}

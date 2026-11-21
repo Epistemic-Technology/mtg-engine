@@ -1,0 +1,8 @@
+card "Leyline of Vitality" {
+  oracle_id cbf2b19e-32a3-489f-9979-ba2748c52845
+  cost {2}{G}{G}
+  type Enchantment
+  opening hand
+  static creature you control: +0/+1
+  triggered whenever creature you control enters: you may you gain 1 life
+}

@@ -1,0 +1,6 @@
+token "4/4 red and white Golem artifact creature" {
+  name "Golem"
+  type Artifact Creature — Golem
+  pt 4/4
+  color red white
+}

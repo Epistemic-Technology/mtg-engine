@@ -1,0 +1,6 @@
+card "Overgrown Farmland" {
+  oracle_id 709d2f10-1585-48c3-9058-ddd5f62f0452
+  type Land
+  enters tapped unless you control 2 other land
+  mana {G} or {W}
+}

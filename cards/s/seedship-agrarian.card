@@ -1,0 +1,8 @@
+card "Seedship Agrarian" {
+  oracle_id 003d9c17-5d5c-469f-ad87-d78faf55e025
+  cost {3}{G}
+  type Creature — Insect Scientist
+  pt 3/3
+  triggered whenever this becomes tapped: create 1 "Lander"
+  label "Landfall" triggered whenever land you control enters: put 1 +1/+1 counter on this
+}

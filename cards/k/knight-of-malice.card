@@ -1,0 +1,9 @@
+card "Knight of Malice" {
+  oracle_id b89d912a-65a0-4bc9-9e1d-ff8317458a72
+  cost {1}{B}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike
+  hexproof from white
+  static this: +1/+0 as long as any player controls white permanent
+}

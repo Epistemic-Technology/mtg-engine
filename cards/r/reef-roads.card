@@ -1,0 +1,7 @@
+card "Reef Roads" {
+  oracle_id 32438050-5ae7-4c19-bcaf-5a07a673e0e0
+  type Land
+  enters tapped unless you control Mount or Vehicle
+  mana {U}
+  activated {1}{U}, {T}, sacrifice this, sorcery: create 1 "1/1 colorless Pilot creature with saddles and crews plus 2"
+}

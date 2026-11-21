@@ -1,0 +1,8 @@
+card "Teyo, the Shieldmage" {
+  oracle_id cda93cf5-da51-4117-b461-f4448aa2d16c
+  cost {2}{W}
+  type Legendary Planeswalker — Teyo
+  loyalty 5
+  you have hexproof
+  loyalty -2: create 1 "0/3 white Wall creature with defender"
+}

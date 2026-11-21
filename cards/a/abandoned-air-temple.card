@@ -1,0 +1,7 @@
+card "Abandoned Air Temple" {
+  oracle_id 9575d7ce-f26d-4b90-87a3-6329e9799572
+  type Land
+  enters tapped unless you control basic land
+  mana {W}
+  activated {3}{W}, {T}: put 1 +1/+1 counters on each creature you control
+}

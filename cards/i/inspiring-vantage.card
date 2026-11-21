@@ -1,0 +1,6 @@
+card "Inspiring Vantage" {
+  oracle_id 3f17c60e-923a-4392-9da8-87d9ded009b7
+  type Land
+  enters tapped unless you control at most 2 other land
+  mana {R} or {W}
+}

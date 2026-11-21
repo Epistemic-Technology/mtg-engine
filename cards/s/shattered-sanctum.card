@@ -1,0 +1,6 @@
+card "Shattered Sanctum" {
+  oracle_id c854ecb0-cc60-4c48-a9aa-7f2348a7a8c6
+  type Land
+  enters tapped unless you control 2 other land
+  mana {W} or {B}
+}

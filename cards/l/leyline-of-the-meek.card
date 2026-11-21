@@ -1,0 +1,7 @@
+card "Leyline of the Meek" {
+  oracle_id 971f7b30-0088-4e12-bc1a-262acc7f5f90
+  cost {2}{W}{W}
+  type Enchantment
+  opening hand
+  static token creature: +1/+1
+}

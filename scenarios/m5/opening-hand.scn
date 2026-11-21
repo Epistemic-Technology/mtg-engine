@@ -1,0 +1,55 @@
+scenario "A Leyline in the opening hand may begin the game on the battlefield" {
+  opening hand
+  hand A: "Leyline of Sanctity", "Grizzly Bears"
+  turn 1 A: accept "Leyline of Sanctity"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Leyline of Sanctity"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Declining leaves the Leyline in hand" {
+  opening hand
+  hand A: "Leyline of Sanctity"
+  turn 1 A: decline "Leyline of Sanctity"
+  run_to turn 1 precombat_main
+  assert hand A contains "Leyline of Sanctity"
+  assert battlefield A lacks "Leyline of Sanctity"
+}
+
+scenario "Each player may begin with their own Leylines" {
+  opening hand
+  hand A: "Leyline of Vitality"
+  hand B: "Leyline of Punishment", "Leyline of the Meek"
+  turn 1 A: accept "Leyline of Vitality"
+  turn 1 B: accept "Leyline of Punishment"
+  turn 1 B: decline "Leyline of the Meek"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Leyline of Vitality"
+  assert battlefield B contains "Leyline of Punishment"
+  assert hand B contains "Leyline of the Meek"
+}
+
+scenario "Without the opening-hand step a Leyline is an ordinary card in hand" {
+  hand A: "Leyline of Sanctity"
+  run_to turn 1 precombat_main
+  assert hand A contains "Leyline of Sanctity"
+}
+
+scenario "A Leyline cast normally" {
+  battlefield A: "Plains", "Plains", "Plains", "Plains"
+  hand A: "Leyline of Sanctity"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Leyline of Sanctity"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Leyline of Sanctity"
+}
+
+scenario "Leyline Axe begins the game on the battlefield and can be equipped" {
+  opening hand
+  hand A: "Leyline Axe"
+  battlefield A: "Grizzly Bears", "Plains", "Plains", "Plains"
+  turn 1 A: accept "Leyline Axe"
+  turn 1 A: activate "Leyline Axe" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+}

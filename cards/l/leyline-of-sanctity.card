@@ -1,0 +1,7 @@
+card "Leyline of Sanctity" {
+  oracle_id 492e0e6c-8c27-4376-938b-f8a8b6205810
+  cost {2}{W}{W}
+  type Enchantment
+  opening hand
+  you have hexproof
+}

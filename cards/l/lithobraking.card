@@ -1,0 +1,6 @@
+card "Lithobraking" {
+  oracle_id 118c4be1-2204-4133-a80e-990ef96c7e35
+  cost {2}{R}
+  type Instant
+  spell: create 1 "Lander"; then you may you sacrifice 1 artifact; when you do, deal 2 damage to each creature
+}

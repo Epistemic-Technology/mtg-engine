@@ -1,0 +1,75 @@
+scenario "Hexproof from blue: an opponent's blue spell can't target it" {
+  battlefield A: "Sporeweb Weaver"
+  battlefield B: "Island", "Island"
+  hand B: "Unsummon"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Unsummon" targeting "Sporeweb Weaver"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Sporeweb Weaver"
+}
+
+scenario "Hexproof from blue: an opponent's red spell can target it" {
+  battlefield A: "Sporeweb Weaver"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Sporeweb Weaver"
+  run_to turn 2 postcombat_main
+  assert damage "Sporeweb Weaver" 2
+  assert life A 21
+}
+
+scenario "Hexproof from blue: its controller's blue spell can target it" {
+  battlefield A: "Sporeweb Weaver", "Island"
+  hand A: "Unsummon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Unsummon" targeting "Sporeweb Weaver"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Sporeweb Weaver"
+}
+
+scenario "Hexproof from monocolored: a monocolored spell can't target it" {
+  battlefield A: "General Ferrous Rokiric"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Shock" targeting "General Ferrous Rokiric"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "General Ferrous Rokiric"
+}
+
+scenario "Hexproof from monocolored: a multicolored spell can target it" {
+  battlefield A: "General Ferrous Rokiric"
+  battlefield B: "Mountain", "Plains"
+  hand B: "Lightning Helix"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Helix" targeting "General Ferrous Rokiric"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "General Ferrous Rokiric"
+}
+
+scenario "Knight of Grace: hexproof from black against an opponent's black spell" {
+  battlefield A: "Knight of Grace"
+  battlefield B: "Swamp", "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  illegal turn 2 B: cast "Murder" targeting "Knight of Grace"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Knight of Grace"
+}
+
+scenario "Knight of Grace gets +1/+0 while any player controls a black permanent" {
+  battlefield A: "Knight of Grace"
+  battlefield B: "Vampire Nighthawk"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Knight of Grace" 3
+}
+
+scenario "Knight of Grace without a black permanent" {
+  battlefield A: "Knight of Grace"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Knight of Grace" 2
+}

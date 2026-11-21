@@ -681,6 +681,7 @@ impl GameState {
             self.banding_sources += d(flags.has_banding());
             self.room_count += d(flags.has_room());
             self.saga_count += d(flags.has_saga());
+            self.player_static_sources += d(flags.has_player_static());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
@@ -702,6 +703,7 @@ impl GameState {
             self.banding_sources -= d(flags.has_banding());
             self.room_count -= d(flags.has_room());
             self.saga_count -= d(flags.has_saga());
+            self.player_static_sources -= d(flags.has_player_static());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
             self.control_dirty |= flags.has_control_static();

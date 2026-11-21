@@ -66,6 +66,10 @@ pub struct SetupSpec {
     /// `start turn N P [step]`.
     pub start: Option<(u32, PlayerId, Step)>,
     pub seed: Option<u64>,
+    /// `opening hand`: before play begins, each player may put cards
+    /// with "If this card is in your opening hand, ..." from their hand
+    /// onto the battlefield (CR 103.6a).
+    pub opening_hand: bool,
 }
 
 #[derive(Clone, Debug)]

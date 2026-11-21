@@ -1,0 +1,9 @@
+card "Knight of Grace" {
+  oracle_id 7b51a979-47e0-4b98-8ec5-8064c83422e1
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike
+  hexproof from black
+  static this: +1/+0 as long as any player controls black permanent
+}

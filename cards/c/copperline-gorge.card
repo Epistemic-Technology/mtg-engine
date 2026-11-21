@@ -1,0 +1,6 @@
+card "Copperline Gorge" {
+  oracle_id a05f641c-15c9-43dc-ae0d-1ea372fd33d5
+  type Land
+  enters tapped unless you control at most 2 other land
+  mana {R} or {G}
+}

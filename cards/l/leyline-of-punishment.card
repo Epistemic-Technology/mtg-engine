@@ -1,0 +1,8 @@
+card "Leyline of Punishment" {
+  oracle_id 2608df54-dfbe-417d-aef5-49afbdfb03da
+  cost {2}{R}{R}
+  type Enchantment
+  opening hand
+  players can't gain life
+  damage can't be prevented
+}

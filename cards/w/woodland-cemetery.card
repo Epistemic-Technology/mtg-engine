@@ -1,0 +1,6 @@
+card "Woodland Cemetery" {
+  oracle_id c9fe1383-1331-4a58-a45a-3320250221a9
+  type Land
+  enters tapped unless you control Swamp or a Forest
+  mana {B} or {G}
+}

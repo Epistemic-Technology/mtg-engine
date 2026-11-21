@@ -1,0 +1,8 @@
+card "Giant Cindermaw" {
+  oracle_id bd0c0e85-ff24-46c9-a547-4f633355c131
+  cost {2}{R}
+  type Creature — Dinosaur Beast
+  pt 4/3
+  keywords trample
+  players can't gain life
+}

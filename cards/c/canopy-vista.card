@@ -1,0 +1,5 @@
+card "Canopy Vista" {
+  oracle_id dcb7e046-f01b-497c-88e5-57794eb30ce5
+  type Land — Forest Plains
+  enters tapped unless you control 2 basic land
+}

@@ -1,0 +1,6 @@
+card "Darkslick Shores" {
+  oracle_id a2b48695-f7d7-42ce-a8a0-2a723428542a
+  type Land
+  enters tapped unless you control at most 2 other land
+  mana {U} or {B}
+}

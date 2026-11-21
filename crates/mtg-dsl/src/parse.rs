@@ -954,7 +954,7 @@ impl P {
                 }
                 self.end_stmt()
             }
-            "additional" => {
+            "additional" if !self.at_words(&["additional", "land"]) => {
                 self.pos += 1;
                 self.expect_word("cost")?;
                 // `additional cost or {3}`: the other of two (CR 601.2b).
@@ -1286,6 +1286,18 @@ impl P {
         }
     }
 
+    /// The rest of a player-level static ability: an optional `as long as
+    /// <condition>`.
+    fn player_static(&mut self, kind: mtg_core::card::PlayerStaticKind) -> R<Ability> {
+        let cond = if self.eat_words(&["as", "long", "as"]) {
+            Some(self.static_cond()?)
+        } else {
+            None
+        };
+        self.end_stmt()?;
+        Ok(Ability::PlayerStatic { kind, cond })
+    }
+
     #[allow(clippy::too_many_lines)]
     fn ability(&mut self) -> R<Ability> {
         self.targets.clear();
@@ -1312,6 +1324,61 @@ impl P {
                 Ok(Ability::XManaColor(c))
             }
             "spells" => self.cost_change(None),
+            "hexproof" if self.word_at(1).as_deref() == Some("from") => {
+                self.pos += 2;
+                let filter = self.filter()?;
+                self.end_stmt()?;
+                Ok(Ability::HexproofFrom(filter))
+            }
+            "opening" if self.at_words(&["opening", "hand"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::OpeningHand)
+            }
+            "you" if self.at_words(&["you", "have", "hexproof"]) => {
+                self.pos += 3;
+                self.player_static(mtg_core::card::PlayerStaticKind::Hexproof)
+            }
+            "you" if self.at_words(&["you", "have", "shroud"]) => {
+                self.pos += 3;
+                self.player_static(mtg_core::card::PlayerStaticKind::Shroud)
+            }
+            "opponents"
+                if self.at_words(&[
+                    "opponents",
+                    "can't",
+                    "cast",
+                    "spells",
+                    "during",
+                    "your",
+                    "turn",
+                ]) =>
+            {
+                self.pos += 7;
+                self.player_static(mtg_core::card::PlayerStaticKind::OpponentsCantCastYourTurn)
+            }
+            "players" if self.at_words(&["players", "can't", "gain", "life"]) => {
+                self.pos += 4;
+                self.player_static(mtg_core::card::PlayerStaticKind::Rule(
+                    mtg_core::card::RuleKind::NoLifeGain,
+                ))
+            }
+            "damage" if self.at_words(&["damage", "can't", "be", "prevented"]) => {
+                self.pos += 4;
+                self.player_static(mtg_core::card::PlayerStaticKind::Rule(
+                    mtg_core::card::RuleKind::DamageCantBePrevented,
+                ))
+            }
+            "additional" if self.at_words(&["additional", "land"]) => {
+                self.pos += 2;
+                let n = if matches!(self.peek(), Some(Tok::Num(_))) {
+                    self.number()?
+                } else {
+                    1
+                };
+                let each_player = self.eat_words(&["each", "player"]);
+                self.player_static(mtg_core::card::PlayerStaticKind::ExtraLands { n, each_player })
+            }
             // CR 716.2a: a Class's level ability.
             "level" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                 self.pos += 1;
@@ -3146,6 +3213,16 @@ impl P {
             self.expect_word("player")?;
             return Ok(StaticCond::MoreCreaturesThanOpponent { attacking });
         }
+        // "any player controls a black permanent": on the battlefield,
+        // worded by controller.
+        if self.eat_words(&["any", "player", "controls"]) {
+            let mut filter = self.filter()?;
+            filter.who = Some(Who::Any);
+            return Ok(StaticCond::OnBattlefield {
+                filter,
+                at_least: 1,
+            });
+        }
         if self.eat_words(&["on", "battlefield"]) {
             let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
                 self.number()?
@@ -3167,6 +3244,11 @@ impl P {
         }
         if self.eat_words(&["you", "control", "no"]) {
             return Ok(StaticCond::YouControlNone(self.filter()?));
+        }
+        if self.eat_words(&["you", "control", "at", "most"]) {
+            let n = self.number()?;
+            let filter = self.filter()?;
+            return Ok(StaticCond::YouControlAtMost { filter, n });
         }
         if self.eat_word("enchanted") {
             return Ok(StaticCond::Enchanted);
@@ -6569,6 +6651,19 @@ impl P {
             "sacrifice" => {
                 let what = self.recipient()?;
                 Ok(Effect::Sacrifice { what })
+            }
+            "play"
+                if self.at_word("additional")
+                    || matches!(self.peek(), Some(Tok::Num(_)))
+                        && self.word_at(1).as_deref() == Some("additional") =>
+            {
+                let n = if matches!(self.peek(), Some(Tok::Num(_))) {
+                    self.number()?
+                } else {
+                    1
+                };
+                self.expect_words(&["additional", "land", "this", "turn"])?;
+                Ok(Effect::ExtraLandPlays(n))
             }
             "next" if self.at_word("spell") => {
                 self.expect_words(&["spell", "costs"])?;

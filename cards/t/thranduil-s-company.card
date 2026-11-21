@@ -1,0 +1,8 @@
+card "Thranduil's Company" {
+  oracle_id 2c195485-83f9-424f-854a-50c4f5b04182
+  cost {2}{G}{U}
+  type Creature — Elf Soldier
+  pt 3/4
+  additional land as long as you control other Elf
+  label "Landfall" triggered whenever land you control enters: put 2 +1/+1 counters on target creature you control; it gains vigilance until end of turn
+}

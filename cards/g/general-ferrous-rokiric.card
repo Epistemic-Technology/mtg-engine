@@ -1,0 +1,8 @@
+card "General Ferrous Rokiric" {
+  oracle_id 64c15098-f893-44f2-bf7f-162db8ab80e9
+  cost {1}{R}{W}
+  type Legendary Creature — Human Soldier
+  pt 3/1
+  hexproof from monocolored
+  triggered whenever you cast multicolored spell: create 1 "4/4 red and white Golem artifact creature"
+}

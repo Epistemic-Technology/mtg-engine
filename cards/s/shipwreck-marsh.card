@@ -1,0 +1,6 @@
+card "Shipwreck Marsh" {
+  oracle_id 5f42b67f-87fd-4f98-a0e8-0c8313f4bbc8
+  type Land
+  enters tapped unless you control 2 other land
+  mana {U} or {B}
+}

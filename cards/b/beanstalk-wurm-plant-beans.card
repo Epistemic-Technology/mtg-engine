@@ -1,0 +1,13 @@
+card "Beanstalk Wurm // Plant Beans" {
+  oracle_id a2192c80-c48f-44e2-807c-2f9ee1aa1152
+  layout adventure
+  cost {4}{G}
+  type Creature — Plant Wurm
+  pt 5/4
+  keywords reach
+  face "Plant Beans" {
+    cost {1}{G}
+    type Sorcery — Adventure
+    spell: play additional land this turn
+  }
+}

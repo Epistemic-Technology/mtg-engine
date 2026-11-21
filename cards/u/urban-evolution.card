@@ -1,0 +1,6 @@
+card "Urban Evolution" {
+  oracle_id c715e525-fc3a-4cab-94a0-04e0a22a5013
+  cost {3}{G}{U}
+  type Sorcery
+  spell: draw 3 cards; play additional land this turn
+}

@@ -1,0 +1,6 @@
+card "Wastewood Verge" {
+  oracle_id c6e0574c-3e2b-4c40-b17a-05bce3d49309
+  type Land
+  mana {G}
+  activated {T}, if you control Swamp or a Forest: add {B}
+}

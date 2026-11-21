@@ -1,0 +1,6 @@
+card "Glacial Fortress" {
+  oracle_id 027dd013-baa7-4111-b3c9-f4d1414e9c45
+  type Land
+  enters tapped unless you control Plains or a Island
+  mana {W} or {U}
+}

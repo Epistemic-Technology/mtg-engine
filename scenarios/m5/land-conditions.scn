@@ -1,0 +1,126 @@
+scenario "A fast land enters untapped with two other lands" {
+  battlefield A: "Plains", "Mountain"
+  hand A: "Inspiring Vantage"
+  start turn 1 A precombat_main
+  turn 1 A: play "Inspiring Vantage"
+  run_to turn 1 postcombat_main
+  assert untapped "Inspiring Vantage"
+}
+
+scenario "A fast land enters tapped with three other lands" {
+  battlefield A: "Plains", "Mountain", "Mountain"
+  hand A: "Inspiring Vantage"
+  start turn 1 A precombat_main
+  turn 1 A: play "Inspiring Vantage"
+  run_to turn 1 postcombat_main
+  assert tapped "Inspiring Vantage"
+}
+
+scenario "A fast land as your first land enters untapped" {
+  hand A: "Blooming Marsh"
+  start turn 1 A precombat_main
+  turn 1 A: play "Blooming Marsh"
+  run_to turn 1 postcombat_main
+  assert untapped "Blooming Marsh"
+}
+
+scenario "A fast land counts only your own lands" {
+  battlefield A: "Plains", "Mountain"
+  battlefield B: "Swamp", "Swamp", "Swamp"
+  hand A: "Inspiring Vantage"
+  start turn 1 A precombat_main
+  turn 1 A: play "Inspiring Vantage"
+  run_to turn 1 postcombat_main
+  assert untapped "Inspiring Vantage"
+}
+
+scenario "A check land enters untapped with either named type" {
+  battlefield A: "Plains"
+  hand A: "Clifftop Retreat"
+  start turn 1 A precombat_main
+  turn 1 A: play "Clifftop Retreat"
+  run_to turn 1 postcombat_main
+  assert untapped "Clifftop Retreat"
+}
+
+scenario "A check land enters tapped without either named type" {
+  battlefield A: "Island", "Swamp"
+  hand A: "Clifftop Retreat"
+  start turn 1 A precombat_main
+  turn 1 A: play "Clifftop Retreat"
+  run_to turn 1 postcombat_main
+  assert tapped "Clifftop Retreat"
+}
+
+scenario "A battle land enters untapped with two basic lands" {
+  battlefield A: "Forest", "Island"
+  hand A: "Canopy Vista"
+  start turn 1 A precombat_main
+  turn 1 A: play "Canopy Vista"
+  run_to turn 1 postcombat_main
+  assert untapped "Canopy Vista"
+}
+
+scenario "A battle land enters tapped with one basic land" {
+  battlefield A: "Forest", "Inspiring Vantage"
+  hand A: "Canopy Vista"
+  start turn 1 A precombat_main
+  turn 1 A: play "Canopy Vista"
+  run_to turn 1 postcombat_main
+  assert tapped "Canopy Vista"
+}
+
+scenario "A slow land enters tapped with one other land" {
+  battlefield A: "Plains"
+  hand A: "Deserted Beach"
+  start turn 1 A precombat_main
+  turn 1 A: play "Deserted Beach"
+  run_to turn 1 postcombat_main
+  assert tapped "Deserted Beach"
+}
+
+scenario "A basic-land check enters untapped with a basic land" {
+  battlefield A: "Swamp"
+  hand A: "Abandoned Air Temple"
+  start turn 1 A precombat_main
+  turn 1 A: play "Abandoned Air Temple"
+  run_to turn 1 postcombat_main
+  assert untapped "Abandoned Air Temple"
+}
+
+scenario "A basic-land check enters tapped with only nonbasic lands" {
+  battlefield A: "Inspiring Vantage"
+  hand A: "Abandoned Air Temple"
+  start turn 1 A precombat_main
+  turn 1 A: play "Abandoned Air Temple"
+  run_to turn 1 postcombat_main
+  assert tapped "Abandoned Air Temple"
+}
+
+scenario "A Verge taps for its second color with a Swamp or a Mountain" {
+  battlefield A: "Blazemire Verge", "Swamp"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "A Verge without a Swamp or a Mountain taps only for its first color" {
+  battlefield A: "Blazemire Verge", "Island"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Giant Cindermaw: players can't gain life" {
+  battlefield A: "Giant Cindermaw", "Plains"
+  hand A: "Healing Salve"
+  start turn 1 A precombat_main
+  life A 10
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 10
+}

@@ -230,6 +230,7 @@ impl Runner {
             step,
             seed: sc.setup.seed.unwrap_or(0),
             logging: true,
+            opening_hand: sc.setup.opening_hand,
         };
         let actions: Vec<ScriptedAction> = sc
             .statements

@@ -1,0 +1,6 @@
+card "Drowned Catacomb" {
+  oracle_id 819fc966-434e-470f-91e9-a38df974ad17
+  type Land
+  enters tapped unless you control Island or a Swamp
+  mana {U} or {B}
+}

@@ -69,6 +69,9 @@ pub struct Setup {
     pub step: Step,
     pub seed: u64,
     pub logging: bool,
+    /// Ask about "If this card is in your opening hand, ..." cards in the
+    /// hands set up before play begins (CR 103.6a).
+    pub opening_hand: bool,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -273,6 +276,7 @@ impl Engine {
                 state.banding_sources += u32::from(def.flags().has_banding());
                 state.room_count += u32::from(def.flags().has_room());
                 state.saga_count += u32::from(def.flags().has_saga());
+                state.player_static_sources += u32::from(def.flags().has_player_static());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -299,7 +303,11 @@ impl Engine {
             turn: setup.turn_number,
             player: setup.active_player,
         });
-        state.flow = Flow::BeginStep;
+        state.flow = if setup.opening_hand {
+            Flow::OpeningHand { asked: Vec::new() }
+        } else {
+            Flow::BeginStep
+        };
         let mut engine = Engine {
             state,
             current: StepResult::Over(GameResult::Draw),
@@ -537,6 +545,7 @@ impl GameState {
                     energy: 0,
                     adventures_in_exile: 0,
                     lands_played_this_turn: 0,
+                    extra_land_plays: 0,
                     flashback_in_graveyard: 0,
                     max_hand_size: 7,
                     drew_from_empty_library: false,
@@ -578,6 +587,7 @@ impl GameState {
             face_down_count: 0,
             room_count: 0,
             saga_count: 0,
+            player_static_sources: 0,
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
             this_way: None,
@@ -643,7 +653,7 @@ impl GameState {
                         });
                         let next = self.next_player(current);
                         if next == self.starting_player {
-                            self.begin_game();
+                            self.flow = Flow::OpeningHand { asked: Vec::new() };
                         } else {
                             self.flow = Flow::Bottoming {
                                 current: next,
@@ -663,6 +673,26 @@ impl GameState {
                         kind: DecisionKind::Bottom,
                         options,
                     });
+                }
+                Flow::OpeningHand { asked } => {
+                    // CR 103.6a: after mulligans, starting with the starting
+                    // player, each player may put cards with such an
+                    // ability from their opening hand onto the battlefield.
+                    if let Some((player, card)) = self.next_opening_hand_card(&asked) {
+                        return StepResult::Decision(Decision {
+                            player,
+                            kind: DecisionKind::YouMay {
+                                def: self.objects[card].def,
+                            },
+                            options: vec![Choice::Accept, Choice::Decline],
+                        });
+                    }
+                    if self.turn_number == 0 {
+                        self.begin_game();
+                    } else {
+                        // A set-up position: play begins at its step.
+                        self.flow = Flow::BeginStep;
+                    }
                 }
                 Flow::BeginStep => self.begin_step(),
                 Flow::Priority => {
@@ -1616,6 +1646,15 @@ impl GameState {
                     };
                 }
             }
+            (Flow::OpeningHand { mut asked }, c @ (Choice::Accept | Choice::Decline)) => {
+                if let Some((_, card)) = self.next_opening_hand_card(&asked) {
+                    asked.push(card);
+                    if c == Choice::Accept {
+                        self.move_object(card, Zone::Battlefield, true);
+                    }
+                }
+                self.flow = Flow::OpeningHand { asked };
+            }
             (Flow::Bottoming { current, remaining }, Choice::Bottom(id)) => {
                 self.move_object(id, Zone::Library, false);
                 self.flow = Flow::Bottoming {
@@ -2514,6 +2553,29 @@ impl GameState {
 
     // ----- game start and turn structure -----------------------------------------
 
+    /// The next card a player may begin the game with on the battlefield
+    /// (CR 103.6a), in turn order from the starting player, skipping those
+    /// already asked about.
+    fn next_opening_hand_card(&self, asked: &[ObjId]) -> Option<(PlayerId, ObjId)> {
+        let mut p = self.starting_player;
+        for _ in 0..self.num_players() {
+            for id in &self.player(p).hand {
+                if !asked.contains(id)
+                    && self
+                        .pool
+                        .get(self.objects[*id].def)
+                        .abilities
+                        .iter()
+                        .any(|a| matches!(a, crate::card::AbilityDef::OpeningHand))
+                {
+                    return Some((p, *id));
+                }
+            }
+            p = self.next_player(p);
+        }
+        None
+    }
+
     fn begin_game(&mut self) {
         self.turn_number = 1;
         self.active_player = self.starting_player;
@@ -2570,6 +2632,9 @@ impl GameState {
                 }
                 self.untap_all(active);
                 self.player_mut(active).lands_played_this_turn = 0;
+                for p in 0..self.num_players() {
+                    self.players[p].extra_land_plays = 0;
+                }
                 self.flow = Flow::EndStep;
             }
             Step::Draw => {

@@ -1,0 +1,8 @@
+card "Mina and Denn, Wildborn" {
+  oracle_id e091718c-0c26-46d9-b694-f95effbac3e5
+  cost {2}{R}{G}
+  type Legendary Creature — Elf Ally
+  pt 4/4
+  additional land
+  activated {R}{G}, return land you control: target creature gains trample
+}

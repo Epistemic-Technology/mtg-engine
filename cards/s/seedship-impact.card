@@ -1,0 +1,6 @@
+card "Seedship Impact" {
+  oracle_id c6d89c4a-351f-4d63-ba57-b978a695191e
+  cost {1}{G}
+  type Instant
+  spell: destroy target artifact or enchantment; if target 1 was with mana value 2 or less, create 1 "Lander"
+}

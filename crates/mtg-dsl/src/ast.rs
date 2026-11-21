@@ -1080,6 +1080,21 @@ pub enum Ability {
     /// "Protection from artifacts" (CR 702.16), a quality other than a
     /// color (those are keywords).
     Protection(Filter),
+    /// `hexproof from black`, `hexproof from multicolored`, `hexproof from
+    /// instant`: "Hexproof from black" (CR 702.11d).
+    HexproofFrom(Filter),
+    /// `you have hexproof`, `you have shroud`, `opponents can't cast spells
+    /// during your turn`, `additional land`, `additional land 2`,
+    /// `additional land each player`: a static ability of the controller
+    /// as a player; `as long as <condition>` after it is its condition
+    /// ("As long as you control another Elf, you may play ...").
+    PlayerStatic {
+        kind: mtg_core::card::PlayerStaticKind,
+        cond: Option<StaticCond>,
+    },
+    /// `opening hand`: "If this card is in your opening hand, you may begin
+    /// the game with it on the battlefield." (CR 103.6a).
+    OpeningHand,
     /// A keyword ability with a number or cost, printed as the keyword
     /// ("Bushido 2", "Echo {2}{R}") and compiled to what it stands for.
     Mechanic(Mechanic),
@@ -1665,6 +1680,12 @@ pub enum StaticCond {
     },
     /// `you control no untapped land`.
     YouControlNone(Filter),
+    /// `you control at most 2 other land`: "you control two or fewer other
+    /// lands".
+    YouControlAtMost {
+        filter: Filter,
+        n: u32,
+    },
     /// `you control Urza's Mine and Urza's Power-Plant`: "you control an
     /// Urza's Mine and an Urza's Power-Plant".
     YouControlEach(Vec<Filter>),
@@ -2771,6 +2792,10 @@ pub enum Effect {
     /// `next spell costs {1} less`: "the next spell you cast this turn
     /// costs {1} less to cast".
     NextSpellLess(u32),
+    /// `play additional land this turn`, `play 2 additional land this
+    /// turn`: "You may play an additional land this turn.", "You may play
+    /// up to two additional lands this turn." (CR 305.2).
+    ExtraLandPlays(u32),
     /// `face-down spells cost {1} less this turn`: "face-down spells you
     /// cast this turn cost {1} less to cast".
     FaceDownSpellsLess(u32),

@@ -1,0 +1,6 @@
+card "Hinterland Harbor" {
+  oracle_id fb5a3403-7f0b-406c-8c4f-d693be010ca6
+  type Land
+  enters tapped unless you control Forest or a Island
+  mana {G} or {U}
+}

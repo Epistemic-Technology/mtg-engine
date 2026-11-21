@@ -1,0 +1,6 @@
+card "Rootbound Crag" {
+  oracle_id 9516c4c1-d72d-434f-97e1-6a862434a169
+  type Land
+  enters tapped unless you control Mountain or a Forest
+  mana {R} or {G}
+}
