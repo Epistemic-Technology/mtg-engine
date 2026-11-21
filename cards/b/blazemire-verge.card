@@ -1,0 +1,6 @@
+card "Blazemire Verge" {
+  oracle_id 977c2f33-b622-4172-9efb-7f523becd32b
+  type Land
+  mana {B}
+  activated {T}, if you control Swamp or a Mountain: add {R}
+}

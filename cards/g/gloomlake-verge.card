@@ -1,0 +1,6 @@
+card "Gloomlake Verge" {
+  oracle_id d71bda4c-3dee-4398-8fd0-f77d8743b887
+  type Land
+  mana {U}
+  activated {T}, if you control Island or a Swamp: add {B}
+}

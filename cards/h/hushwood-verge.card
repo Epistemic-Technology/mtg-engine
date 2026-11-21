@@ -1,0 +1,6 @@
+card "Hushwood Verge" {
+  oracle_id cce328b9-6100-417e-9ddf-808bbe3e3bc5
+  type Land
+  mana {G}
+  activated {T}, if you control Forest or a Plains: add {W}
+}

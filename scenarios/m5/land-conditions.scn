@@ -96,3 +96,31 @@ scenario "A basic-land check enters tapped with only nonbasic lands" {
   run_to turn 1 postcombat_main
   assert tapped "Abandoned Air Temple"
 }
+
+scenario "A Verge taps for its second color with a Swamp or a Mountain" {
+  battlefield A: "Blazemire Verge", "Swamp"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "A Verge without a Swamp or a Mountain taps only for its first color" {
+  battlefield A: "Blazemire Verge", "Island"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Giant Cindermaw: players can't gain life" {
+  battlefield A: "Giant Cindermaw", "Plains"
+  hand A: "Healing Salve"
+  start turn 1 A precombat_main
+  life A 10
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 10
+}
