@@ -1105,7 +1105,8 @@ fn per_count(
         }
         // Resolution-only counts: nothing in a static ability (they would
         // read the characteristics being computed, or a resolving spell's
-        // targets).
+        // targets). The card language rejects them in a static ability
+        // (`CountExpr::in_static`), so none reaches here from a card.
         CountExpr::SourcePower
         | CountExpr::TargetStat { .. }
         | CountExpr::ThisWay(..)

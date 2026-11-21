@@ -1128,7 +1128,7 @@ color-defining ability, CR 604.3, so the card is colorless in every zone,
 the stack included), `cda pt card types in graveyards +1`,
 `cda pt creature cards in graveyards +1`, `cda pt count Swamp you control`,
 `cda pt your life`, `cda pt domain` (a power/toughness-defining ability,
-layer 7a, counting any count a static ability can: "~'s power and
+layer 7a, counting any count a static ability can (a count only a resolving effect has, such as `drawn this turn`, `greatest power ...`, `party`, or a target's or the triggering object's, is a compile error in a static ability: it would read 0): "~'s power and
 toughness are each equal to ..."; the count is judged from its controller
 as the layer applies), `cda power count Rat you control` ("~'s power is
 equal to the number of Rats you control"; the toughness is printed, `pt

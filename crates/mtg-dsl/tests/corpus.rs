@@ -109,3 +109,22 @@ fn load_into_adds_a_file_to_an_existing_pool() {
     let by_name: HashMap<&str, &mtg_dsl::ast::Card> = HashMap::new();
     let _ = by_name;
 }
+
+fn compiles(ability: &str) -> bool {
+    let mut pool = CardPool::new();
+    let text = format!("card \"Test\" {{\n  cost {{1}}\n  type Creature — Bear\n  {ability}\n}}\n");
+    mtg_dsl::load_into(&mut pool, &text).is_ok()
+}
+
+#[test]
+fn a_static_ability_rejects_a_resolution_only_count() {
+    // "the number of cards you've drawn this turn" is kept for a resolving
+    // effect; a static ability would read 0 (`CountExpr::in_static`).
+    assert!(compiles("static this: cda pt count creature you control"));
+    for line in [
+        "static this: cda pt drawn this turn",
+        "static this: cda power greatest power creature you control",
+    ] {
+        assert!(!compiles(line), "{line}");
+    }
+}

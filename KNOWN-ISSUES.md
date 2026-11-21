@@ -22,12 +22,6 @@ wrong thing in some case.
   and the target loop treat a `TargetSpec::Many` as the final spec; a
   "choose two" pair whose first mode has "any number of target ..."
   would misplace the second mode's targets. No card known.
-- **Most counts read 0 in a static ability.** `per_count` in
-  `crates/mtg-core/src/layers.rs` returns 0 for a list of
-  "resolution-only" counts, and the gate still matches. Greatest mana
-  value and devotion are fixed; the rest of the list (greatest power,
-  party, differently named, cards drawn this turn, ...) has not been
-  checked against the corpus for statics that use them.
 - **A delayed "whenever" trigger written without "this turn" does not
   fire on later events.** The `until end of turn, delayed this:` form
   (Mistway Spy) is fixed; the general case is not.

@@ -3468,7 +3468,17 @@ impl Compiler<'_> {
             let def = self.ability(a)?;
             return Ok(Modification::AddAbility(self.pool.register_ability(def)));
         }
-        Ok(self.modification(m))
+        let out = self.modification(m);
+        // A count only a resolving effect has (its targets, what it did)
+        // would read 0 here (`CountExpr::in_static`).
+        if let Modification::ModifyPtPer { count, .. } | Modification::CdaPt { count, .. } = &out
+            && !count.in_static()
+        {
+            return self.err(
+                "a static ability can't use this count: it exists only while an effect resolves",
+            );
+        }
+        Ok(out)
     }
 
     fn modification(&mut self, m: &Mod) -> Modification {
