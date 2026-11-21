@@ -1107,11 +1107,17 @@ impl Runner {
                 respond_to,
                 name,
                 from_graveyard,
+                harmonized,
+                disturbed,
+                alternative,
                 ..
             } => {
+                // A graveyard cast of its own (flashback, harmonize,
+                // disturb, an alternative cost) is made at priority.
+                let own = *from_graveyard || *harmonized || *disturbed || *alternative;
                 respond_to.as_ref().is_none_or(|n| stack_names.contains(n))
                     && !self.waiting_in_exile(d.player, name)
-                    && (*from_graveyard || !self.waiting_in_graveyard(d, name))
+                    && (own || !self.waiting_in_graveyard(d, name))
             }
             _ => false,
         });

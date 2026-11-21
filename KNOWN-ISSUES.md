@@ -123,14 +123,18 @@ named the feature; a card may need more than one.
   turn", cost changes and "can't cast" rules until your next turn,
   "for as long as it has a flood counter on it", "for as long as this
   Equipment remains attached to it".
-- **Casting a card without paying its mana cost as an effect**, also
-  mid-resolution and with a mana-value bound (Malcolm, Ugin, Collector's
-  Cage, Tinybones, Lady Octopus, Maralen, Chandra Torch of Defiance,
-  Breaching Dragonstorm).
-- **Granting a keyword to spells or cards in other zones:** delve,
-  affinity, cascade, storm, convoke to spells you cast; mayhem,
-  harmonize, embalm, jump-start to graveyard cards (Teval, Witherbloom,
-  Quandrix, Prismari, Eirdu, Norman Osborn, Songcrafter Mage).
+- **Free casts still missing** (`cast free` from the hand or a target
+  card is in): the discarded card (Malcolm), cards exiled by the effect
+  or "with this" (Ugin's -11, Maralen, Collector's Cage's hideaway),
+  "equal to" or "lesser" mana-value bounds (Brain in a Jar, Press the
+  Enemy), cards in an opponent's graveyard (Memory Plunder), and "once
+  each turn" permissions (Zaffai, One with the Multiverse).
+- **Graveyard keyword grants still missing** (`gains harmonize` and the
+  spells-you-cast grants are in): static grants to graveyard cards
+  (Iroh's flashback, Green Goblin's mayhem, Festival of Embers), embalm
+  until end of turn (Cursecloth Wrappings), "flashback {0} instead if
+  saddled" (Archmage's Newt), and cost changes for spells cast from a
+  graveyard.
 - **Tapped and attacking:** tokens, cards from hand, cards from a
   graveyard (Fire Navy Trebuchet, Kinscaer Sentry, Shark Shredder,
   Summoner's Grimoire).
