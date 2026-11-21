@@ -1102,6 +1102,25 @@ impl GameState {
                     && (!*instant_or_sorcery || d.is_instant() || d.is_sorcery());
                 ok.then_some((Some(*spell), Some(*player)))
             }
+            (
+                TriggerSpec::CastsNth {
+                    whose,
+                    nth: crate::card::SpellOrdinal::FirstNoncreature,
+                },
+                Event::Cast {
+                    player, spell, def, ..
+                },
+            ) => {
+                // The spells cast this turn include this one.
+                let noncreature = |d: &crate::card::CardRef| !self.pool.get(*d).is_creature();
+                let n = self
+                    .cast_this_turn
+                    .iter()
+                    .filter(|(p, d)| p == player && noncreature(d))
+                    .count();
+                (whose_ok(*whose, *player) && noncreature(def) && n == 1)
+                    .then_some((Some(*spell), Some(*player)))
+            }
             (TriggerSpec::CastsNth { whose, nth }, Event::Cast { player, spell, .. }) => {
                 let n = self.spells_this_turn[player.index().min(3)];
                 (whose_ok(*whose, *player) && nth.holds(n, self.active_player == *player))

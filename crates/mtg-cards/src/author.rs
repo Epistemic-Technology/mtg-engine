@@ -2652,6 +2652,8 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever you cast your second spell each turn"
         | "Whenever you cast a spell other than your first spell each turn"
         | "Whenever you cast your first spell during each opponent's turn"
+        | "Whenever an opponent casts their first noncreature spell each turn"
+        | "Whenever you cast your first noncreature spell each turn"
         | "Whenever you draw a card"
         | "Whenever you draw your second card each turn"
         | "Whenever a player draws a card"

@@ -3223,6 +3223,9 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
             format!("{who} {their} first spell during each opponent's turn")
         }
         SpellOrdinal::OnOpponentsTurn => format!("{who} a spell during an opponent's turn"),
+        SpellOrdinal::FirstNoncreature => {
+            format!("{who} {their} first noncreature spell each turn")
+        }
     }
 }
 

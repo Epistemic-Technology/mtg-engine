@@ -122,3 +122,21 @@ scenario "recruit: Bard's Company has no flash without a Human" {
   illegal turn 1 end A: cast "Bard's Company"
   run_to turn 2 upkeep
 }
+
+scenario "recruit: The Queen of Dale, on an opponent's first noncreature spell only" {
+  battlefield A: "The Queen of Dale"
+  battlefield B: 4 "Mountain"
+  hand A: "Shock"
+  hand B: "Raging Goblin", "Lightning Bolt", "Shock"
+  library A: "Forest", "Island", "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Raging Goblin"
+  turn 2 precombat_main B: cast "Lightning Bolt" targeting player A
+  turn 2 precombat_main A: discard "Shock"
+  turn 2 postcombat_main B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert life A 15
+  assert battlefield A contains 1 "Human Soldier"
+  assert hand A contains "Forest"
+  assert hand A count 1
+}

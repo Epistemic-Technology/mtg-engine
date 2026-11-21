@@ -9501,6 +9501,9 @@ impl P {
             return Ok(None);
         }
         self.pos += 1;
+        if self.eat_words(&["first", "noncreature", "spell", "each", "turn"]) {
+            return Ok(Some(SpellOrdinal::FirstNoncreature));
+        }
         let w = self.word()?;
         self.expect_word("spell")?;
         let nth = match w.as_str() {

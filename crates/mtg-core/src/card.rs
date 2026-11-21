@@ -4919,6 +4919,10 @@ pub enum SpellOrdinal {
     /// "a spell during an opponent's turn": any spell cast on another
     /// player's turn.
     OnOpponentsTurn,
+    /// "their first noncreature spell each turn": a noncreature spell, the
+    /// first of its caster's noncreature spells this turn (counted by the
+    /// trigger, not by `holds`).
+    FirstNoncreature,
 }
 
 impl SpellOrdinal {
@@ -4931,6 +4935,7 @@ impl SpellOrdinal {
             SpellOrdinal::NotFirst => n >= 2,
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
             SpellOrdinal::OnOpponentsTurn => !own_turn,
+            SpellOrdinal::FirstNoncreature => n == 1,
         }
     }
 }

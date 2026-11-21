@@ -1,0 +1,7 @@
+card "The Queen of Dale" {
+  oracle_id a2ec1dd0-86c7-423d-b562-ed95b79bf8f7
+  cost {1}{W}
+  type Legendary Creature — Human Noble
+  pt 2/1
+  triggered whenever an opponent casts their first noncreature spell each turn: you recruit
+}
