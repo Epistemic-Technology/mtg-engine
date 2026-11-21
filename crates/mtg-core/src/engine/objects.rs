@@ -1102,6 +1102,12 @@ impl GameState {
             let new = self.move_object(top, Zone::Hand, false);
             let n = &mut self.drawn_this_turn[p.index().min(3)];
             *n = n.saturating_add(1);
+            // The move bumped before the count changed, and what it ran
+            // may have cached characteristics since ("as long as you've
+            // drawn two or more cards this turn").
+            if self.turn_static_sources > 0 {
+                self.cbump();
+            }
             self.emit(Event::Draw {
                 player: p,
                 card: new,
@@ -1740,6 +1746,12 @@ impl GameState {
             .filter(|a| self.objects[*a].attached_to == Some(id))
             .collect();
         self.remove_from_combat(id);
+        // The board counts are of the battlefield list, which it leaves.
+        let (flags, legend) = {
+            let o = &self.objects[id];
+            (self.flags_of(o), self.pool.get(o.def).is_legendary())
+        };
+        self.count_sources(flags, legend, false);
         self.battlefield.retain(|x| *x != id);
         self.objects[id].zone = Zone::PhasedOut;
         self.phased_out.push(crate::state::PhasedOut {
@@ -1778,6 +1790,11 @@ impl GameState {
             if let Some(o) = self.objects.get_mut(*id) {
                 o.zone = Zone::Battlefield;
                 self.battlefield.push(*id);
+                let (flags, legend) = {
+                    let o = &self.objects[*id];
+                    (self.flags_of(o), self.pool.get(o.def).is_legendary())
+                };
+                self.count_sources(flags, legend, true);
             }
         }
         if !back.is_empty() {

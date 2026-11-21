@@ -177,8 +177,46 @@ pub fn compute_entering(state: &GameState, obj: ObjId, controller: PlayerId) -> 
     }
 }
 
+#[cfg(debug_assertions)]
+thread_local! {
+    /// Whether a layer pass is running on this thread (debug builds).
+    static IN_PASS: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Debug builds: fails at once, by name, when something inside the layer
+/// pass asks for finished characteristics (`GameState::characteristics`)
+/// while the cache is invalid. That call starts another pass, which asks
+/// again: unbounded recursion and a stack overflow in a release build.
+/// Code run by the pass must read the pass's own working characteristics
+/// (`Work::chars`).
+#[cfg(debug_assertions)]
+struct PassGuard;
+
+#[cfg(debug_assertions)]
+impl PassGuard {
+    fn enter() -> PassGuard {
+        IN_PASS.with(|f| {
+            assert!(
+                !f.replace(true),
+                "layers::compute re-entered: code inside the layer pass asked for finished \
+                 characteristics; read the pass's working characteristics instead"
+            );
+        });
+        PassGuard
+    }
+}
+
+#[cfg(debug_assertions)]
+impl Drop for PassGuard {
+    fn drop(&mut self) {
+        IN_PASS.with(|f| f.set(false));
+    }
+}
+
 #[allow(clippy::too_many_lines)] // the layer loop
 fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
+    #[cfg(debug_assertions)]
+    let _guard = PassGuard::enter();
     // Fast path: nothing can modify anything.
     let plain = |id: &ObjId| {
         let o = &state.objects[*id];
@@ -360,7 +398,9 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
     let state = work.state;
     let you = work.controller_of(source);
     match cond {
-        StaticCondition::CardsInGraveyard(n) => state.player(you).graveyard.len() >= *n as usize,
+        // A token waiting on the state-based check is not a card (CR
+        // 111.8, 704.5d).
+        StaticCondition::CardsInGraveyard(n) => state.cards_in_graveyard(you) >= *n as usize,
         StaticCondition::UnlockedDoors(n) => state.unlocked_doors(you) >= *n,
         // Permanents still on the battlefield are judged with the
         // characteristics worked out so far, the rest as they last existed.

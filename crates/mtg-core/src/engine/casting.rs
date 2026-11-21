@@ -12479,9 +12479,13 @@ impl GameState {
         let Some(Target::Object(id)) = ctx.targets.get(usize::from(n)).copied() else {
             return false;
         };
-        let controller = match self.lki.get(&id) {
-            Some(l) if self.characteristics(id).is_none() => l.object.controller,
-            _ => self.objects[id].controller,
+        // A declined "up to one" target (`Target::none()`) or one that
+        // left with no last known information matches nothing.
+        let controller = match (self.lki.get(&id), self.objects.get(id)) {
+            (Some(l), _) if self.characteristics(id).is_none() => l.object.controller,
+            (_, Some(o)) => o.controller,
+            (Some(l), None) => l.object.controller,
+            (None, None) => return false,
         };
         // "If it was dealt damage this turn": the damage marked on it, as
         // it last existed if it has left (CR 608.2h).

@@ -266,7 +266,8 @@ impl GameState {
             for id in tokens_gone {
                 self.remove_from_zone_list(id);
                 self.objects.remove(id);
-                self.bump();
+                // A graveyard it sat in feeds characteristics (threshold).
+                self.cbump();
                 acted = true;
             }
             for id in unattach {
@@ -276,8 +277,20 @@ impl GameState {
                 acted = true;
             }
             for id in unbestow {
+                // The board counts follow the definition it has now.
+                let (old_flags, old_legend) = {
+                    let o = &self.objects[id];
+                    (self.flags_of(o), self.pool.get(o.def).is_legendary())
+                };
+                self.count_sources(old_flags, old_legend, false);
                 let o = &mut self.objects[id];
                 o.def = o.card;
+                let (flags, legend) = {
+                    let o = &self.objects[id];
+                    (self.flags_of(o), self.pool.get(o.def).is_legendary())
+                };
+                self.count_sources(flags, legend, true);
+                let o = &mut self.objects[id];
                 let was_attached = o.attached_to.take().is_some();
                 self.cbump();
                 if was_attached {

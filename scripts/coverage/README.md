@@ -45,7 +45,11 @@ pass. Everything here is about reaching that at less cost.
    which `Co-Authored-By` line to use.
 5. **Merge, then verify behaviour.** After each merge check that both
    sides' scenarios still exercise their feature. Run the random-deck
-   fuzz and the bench once per wave, with no agents running.
+   fuzz and the bench once per wave, with no agents running. Run the
+   fuzz with a debug build as well (`cargo build -p mtg-cli`, then
+   `scripts/fuzz-random.sh target/debug/mtg 150`): only a debug build
+   checks the characteristics cache against a fresh pass, the board
+   counts against the battlefield, and re-entry into the layer pass.
 6. **Retry.** Give card agents only the cards whose reported missing
    feature has landed. Stop fresh card batches when yield falls to about
    5%; that means the engine, not the authoring, is the limit.

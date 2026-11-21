@@ -3262,6 +3262,11 @@ impl GameState {
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
             self.next_spell_less = [0; 4];
             self.drawn_this_turn = [0; 4];
+            // "As long as you've drawn two or more cards this turn" and
+            // the other this-turn statics start over (CR 611.3a).
+            if self.turn_static_sources > 0 {
+                self.cbump();
+            }
             self.mana_spent_this_turn = [0; 4];
             self.mana_spent_before_cast = [0; 4];
             self.life_lost_this_turn = [0; 4];

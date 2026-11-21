@@ -2489,11 +2489,25 @@ impl GameState {
                         d.has_mid_choice()
                             || (self.legendary_count == 1 && d.is_legendary())
                             || (replacers >= 1 && d.modifies_entering())
-                            || (choosers
+                            // A spell that makes a token copy or returns
+                            // a card to the battlefield (Self-Reflection
+                            // copying a legendary creature) is judged like
+                            // an ability that does.
+                            || ((choosers || replacers >= 1 || self.legendary_count >= 1)
                                 && d.ability_ids.iter().any(|a| self.pool.ability_enters(*a)))
                     }
                 }
             })
+    }
+
+    /// The cards in `p`'s graveyard: a token there until the next
+    /// state-based check is not a card (CR 111.8, 704.5d).
+    pub fn cards_in_graveyard(&self, p: PlayerId) -> usize {
+        self.player(p)
+            .graveyard
+            .iter()
+            .filter(|id| self.objects[**id].kind != ObjKind::Token)
+            .count()
     }
 
     /// Current characteristics of an object, computed through the layers
@@ -3140,7 +3154,7 @@ impl GameState {
                 .count()
         };
         match cond {
-            C::CardsInGraveyard(n) => self.player(you).graveyard.len() >= *n as usize,
+            C::CardsInGraveyard(n) => self.cards_in_graveyard(you) >= *n as usize,
             C::UnlockedDoors(n) => self.unlocked_doors(you) >= *n,
             C::AttackedWith(f) => self.attacked_with(you, f),
             C::EnteredWith { filter, .. } => self.entered_with(you, filter, source),
