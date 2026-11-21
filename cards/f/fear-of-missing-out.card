@@ -1,0 +1,8 @@
+card "Fear of Missing Out" {
+  oracle_id 236ce592-1321-4a7c-b695-fd84496f8924
+  cost {1}{R}
+  type Enchantment Creature — Nightmare
+  pt 2/3
+  triggered when this enters: discard 1 card then draw 1 card
+  label "Delirium" triggered whenever this attacks for the first time each turn if 4 card types in your graveyard: untap target creature; after this phase, additional combat phase
+}

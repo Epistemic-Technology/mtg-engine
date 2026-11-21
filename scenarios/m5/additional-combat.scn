@@ -40,6 +40,39 @@ scenario "additional combat: Waves of Aggression" {
   assert life B 16
 }
 
+scenario "additional combat: Éomer after a legendary attacker dies" {
+  battlefield A: "Éomer, Marshal of Rohan", "Isamaru, Hound of Konda"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Éomer, Marshal of Rohan", "Isamaru, Hound of Konda"
+  turn 2 B: block "Isamaru, Hound of Konda" with "Hill Giant"
+  turn 2 declare_attackers combat 2 A: attack "Éomer, Marshal of Rohan"
+  run_to turn 3 upkeep
+  assert graveyard A contains "Isamaru, Hound of Konda"
+  assert life B 12
+}
+
+scenario "additional combat: Fear of Missing Out with delirium" {
+  battlefield A: "Fear of Missing Out"
+  graveyard A: "Shock", "Forest", "Ornithopter", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Fear of Missing Out"
+  turn 2 A: trigger "Fear of Missing Out" targeting "Fear of Missing Out"
+  turn 2 declare_attackers combat 2 A: attack "Fear of Missing Out"
+  illegal turn 2 declare_attackers combat 3 A: attack "Fear of Missing Out"
+  run_to turn 3 upkeep
+  assert life B 16
+}
+
+scenario "additional combat: Fear of Missing Out without delirium" {
+  battlefield A: "Fear of Missing Out", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Fear of Missing Out"
+  illegal turn 2 declare_attackers combat 2 A: attack "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert life B 18
+}
+
 scenario "additional combat: one combat without it" {
   battlefield A: "Grizzly Bears"
   start turn 2 A precombat_main

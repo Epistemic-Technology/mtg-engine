@@ -1,0 +1,8 @@
+card "Éomer, Marshal of Rohan" {
+  oracle_id b2d95950-18b3-463f-94f4-299e420751dc
+  cost {2}{R}{R}
+  type Legendary Creature — Human Knight
+  pt 4/4
+  keywords haste
+  triggered once each turn whenever one or more other attacking legendary creature you control die: untap all creature you control; after this phase, additional combat phase
+}
