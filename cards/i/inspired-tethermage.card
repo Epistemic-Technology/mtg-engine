@@ -1,0 +1,8 @@
+card "Inspired Tethermage" {
+  oracle_id 80c2784b-f27d-4a51-9380-171eb32b961d
+  cost {2}{G}
+  type Creature — Elf Warrior
+  pt 3/2
+  triggered whenever you put one or more loyalty counters on planeswalker: put 1 +1/+1 counter on this
+  activated {6}: empower Jace 2
+}

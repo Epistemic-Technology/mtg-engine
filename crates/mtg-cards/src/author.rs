@@ -1863,7 +1863,7 @@ impl Templates {
             }),
             (
                 r(
-                    r"^Put (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? on (.+)$",
+                    r"^Put (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|supply|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? on (.+)$",
                 ),
                 |c, t| {
                     Some(format!(
@@ -1876,7 +1876,7 @@ impl Templates {
             ),
             (
                 r(
-                    r"^Remove (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? from (.+)$",
+                    r"^Remove (\S+) ([+-]\d/[+-]\d|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|arrowhead|javelin|polyp|healing|mining|scream|credit|brick|currency|sleep|net|flood|glyph|loot|supply|finality|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? from (.+)$",
                 ),
                 |c, t| {
                     Some(format!(
@@ -2853,6 +2853,18 @@ fn trigger_general(head: &str) -> Option<String> {
         "Whenever you attack" => Some("whenever you attack"),
         "Whenever one or more creatures you control attack" => {
             Some("whenever one or more creatures you control attack")
+        }
+        "Whenever you put one or more +1/+1 counters on a creature you control" => {
+            Some("whenever you put one or more +1/+1 counters on creature you control")
+        }
+        "Whenever you put one or more +1/+1 counters on a creature" => {
+            Some("whenever you put one or more +1/+1 counters on creature")
+        }
+        "Whenever you put one or more -1/-1 counters on a creature" => {
+            Some("whenever you put one or more -1/-1 counters on creature")
+        }
+        "Whenever you put one or more +1/+1 counters on this creature" => {
+            Some("whenever you put one or more +1/+1 counters on this")
         }
         "Whenever one or more +1/+1 counters are put on this creature" => {
             Some("whenever one or more +1/+1 counters put on this")

@@ -1,0 +1,7 @@
+token "1/1 green Snake creature with deathtouch" {
+  name "Snake"
+  type Creature — Snake
+  pt 1/1
+  color green
+  keywords deathtouch
+}

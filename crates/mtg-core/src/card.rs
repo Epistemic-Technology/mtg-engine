@@ -2058,6 +2058,8 @@ pub enum StaticCondition {
     YourMainPhase,
     YourCombatPhase,
     FirstCombatPhase,
+    /// "you've put one or more +1/+1 counters on a creature this turn".
+    PutCounterThisTurn,
     /// "as long as it's attacking" (the source).
     SourceAttacking,
     /// "as long as it attacked a battle this turn" (the source, CR
@@ -2499,6 +2501,7 @@ pub enum CounterKind {
     Crystal,
     Unlock,
     Loot,
+    Supply,
     /// CR 122.1h: if a permanent with a finality counter on it would be
     /// put into a graveyard from the battlefield, it is exiled instead.
     Finality,
@@ -2540,7 +2543,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 43] = [
+    pub const NAMED: [(&'static str, CounterKind); 44] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2573,6 +2576,7 @@ impl CounterKind {
         ("crystal", CounterKind::Crystal),
         ("unlock", CounterKind::Unlock),
         ("loot", CounterKind::Loot),
+        ("supply", CounterKind::Supply),
         ("finality", CounterKind::Finality),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
@@ -4926,6 +4930,15 @@ pub enum TriggerSpec {
     /// 122.1): once per instruction putting counters of that kind on it,
     /// however many.
     CountersPut { what: TriggerObj, kind: CounterKind },
+    /// "Whenever you put one or more +1/+1 counters on a creature you
+    /// control", "... counters on a Goblin, Orc, or Army you control"
+    /// (`kind` `None`: any kind): once per permanent counters are put on
+    /// by one instruction of a spell or ability its controller controls
+    /// (CR 122.6); their number is the trigger's amount ("that many").
+    YouPutCounters {
+        what: TriggerObj,
+        kind: Option<CounterKind>,
+    },
     /// "Whenever you expend 4" (CR 700.14): as the controller spends their
     /// `n`th total mana to cast spells during a turn, judged as the spell
     /// that paid it becomes cast.
@@ -5081,7 +5094,9 @@ impl TriggerSpec {
             | TriggerSpec::CollectsEvidence { .. }
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
-            TriggerSpec::CountersPut { .. } | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
+            TriggerSpec::CountersPut { .. }
+            | TriggerSpec::YouPutCounters { .. }
+            | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
         }
     }
 }
@@ -7808,6 +7823,7 @@ impl CardPool {
                 StaticCondition::GainedLifeThisTurn { .. }
                     | StaticCondition::LifeGainedThisTurn(_)
                     | StaticCondition::CrimeThisTurn
+                    | StaticCondition::PutCounterThisTurn
                     | StaticCondition::LeftGraveyardThisTurn
                     | StaticCondition::CardToGraveyardThisTurn(_)
                     | StaticCondition::SacrificedThisTurn(_)

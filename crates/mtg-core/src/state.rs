@@ -1386,6 +1386,9 @@ pub struct TurnLog {
     pub surveilled: u8,
     /// Players who had a +1/+1 counter put on a permanent they control.
     pub counter_put: u8,
+    /// Players who put a +1/+1 counter on a creature ("if you've put one
+    /// or more +1/+1 counters on a creature this turn").
+    pub counter_put_by: u8,
     /// Players under whose control a face-down creature entered the
     /// battlefield (CR 708.3).
     pub face_down_entered: u8,
@@ -1829,6 +1832,10 @@ pub struct GameState {
     /// them directly after the current turn, the most recently created
     /// first.
     pub extra_turns: Vec<PlayerId>,
+    /// The controller of the spell or ability whose effect is being
+    /// applied: who puts counters it puts ("Whenever you put one or more
+    /// +1/+1 counters on a creature", CR 122.6).
+    pub effect_controller: Option<PlayerId>,
     /// While extra turns run: whose regular turn comes after them.
     pub resume_player: Option<PlayerId>,
     /// Additional phases added after the current phase (CR 500.8), each
@@ -3234,6 +3241,7 @@ impl GameState {
             C::Night => self.desig.day_night == DayNight::Night,
             C::LifeGainedThisTurn(n) => self.turn_log.life_gained[you.index().min(3)] >= *n,
             C::CrimeThisTurn => self.turn_log.crime & (1 << you.index().min(7)) != 0,
+            C::PutCounterThisTurn => self.turn_log.counter_put_by & (1 << you.index().min(7)) != 0,
             C::LeftGraveyardThisTurn => {
                 self.turn_log.left_graveyard & (1 << you.index().min(7)) != 0
             }

@@ -1,0 +1,8 @@
+card "Hapatra, Vizier of Poisons" {
+  oracle_id a8ddea1c-8d80-49c1-a5b4-630d5e51d66e
+  cost {B}{G}
+  type Legendary Creature — Human Cleric
+  pt 2/2
+  triggered whenever this deals combat damage to a player: you may put 1 -1/-1 counter on target creature
+  triggered whenever you put one or more -1/-1 counters on creature: create 1 "1/1 green Snake creature with deathtouch"
+}

@@ -604,12 +604,19 @@ impl GameState {
         if to == Zone::Battlefield && self.objects[new].counters.iter().any(|(_, n)| *n > 0) {
             let entered: SmallVec<[(CounterKind, u32); 2]> =
                 self.objects[new].counters.iter().copied().collect();
+            let by = self
+                .effect_controller
+                .unwrap_or(self.objects[new].controller);
             for (kind, n) in entered {
                 if n > 0 {
+                    if kind == CounterKind::PlusOnePlusOne {
+                        self.turn_log.counter_put_by |= 1 << by.index().min(7);
+                    }
                     self.emit(Event::CountersAdded {
                         obj: new,
                         kind,
                         n,
+                        by,
                         before: 0,
                     });
                 }
@@ -1411,14 +1418,17 @@ impl GameState {
         }
         let before = o.counters(kind);
         o.add_counters(kind, n);
+        let by = self.effect_controller.unwrap_or(o.controller);
         if kind == CounterKind::PlusOnePlusOne {
             self.turn_log.counter_put |= 1 << o.controller.index().min(7);
+            self.turn_log.counter_put_by |= 1 << by.index().min(7);
         }
         self.cbump();
         self.emit(Event::CountersAdded {
             obj: id,
             kind,
             n,
+            by,
             before,
         });
     }

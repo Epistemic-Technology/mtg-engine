@@ -191,6 +191,9 @@ pub enum Event {
         obj: ObjId,
         kind: CounterKind,
         n: u32,
+        /// Who put them (CR 122.6): the controller of the effect, or of
+        /// the permanent for counters it enters with or puts as a cost.
+        by: PlayerId,
         /// How many of that kind it had before (a Saga's chapters, CR
         /// 714.2c).
         before: u32,

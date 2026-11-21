@@ -1840,6 +1840,9 @@ pub enum StaticCond {
     YourMainPhase,
     YourCombatPhase,
     FirstCombatPhase,
+    /// `put counter this turn`: "you've put one or more +1/+1 counters on
+    /// a creature this turn".
+    PutCounterThisTurn,
     /// `card left your graveyard this turn`: "one or more cards left your
     /// graveyard this turn".
     LeftGraveyardThisTurn,
@@ -2276,6 +2279,13 @@ pub enum Trigger {
     CountersPut {
         obj: TriggerObj,
         kind: CounterKind,
+    },
+    /// `whenever you put one or more +1/+1 counters on creature you
+    /// control`: "Whenever you put one or more +1/+1 counters on a creature
+    /// you control"; `... one or more counters on ...` (any kind).
+    YouPutCounters {
+        obj: TriggerObj,
+        kind: Option<CounterKind>,
     },
     /// `whenever Aura becomes attached to this`: "Whenever an Aura becomes
     /// attached to this creature".

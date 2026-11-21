@@ -537,6 +537,7 @@ impl Decompiler<'_> {
             StaticCondition::YourMainPhase => StaticCond::YourMainPhase,
             StaticCondition::YourCombatPhase => StaticCond::YourCombatPhase,
             StaticCondition::FirstCombatPhase => StaticCond::FirstCombatPhase,
+            StaticCondition::PutCounterThisTurn => StaticCond::PutCounterThisTurn,
             StaticCondition::LeftGraveyardThisTurn => StaticCond::LeftGraveyardThisTurn,
             StaticCondition::SacrificedThisTurn(t) => StaticCond::SacrificedThisTurn(
                 crate::render::CARD_TYPES
@@ -1592,6 +1593,10 @@ impl Decompiler<'_> {
             TriggerSpec::BecomesAttachedTo(f) => Trigger::BecomesAttachedTo(self.filter(f)),
             TriggerSpec::BecomesUntapped(o) => Trigger::BecomesUntapped(self.trigger_obj(o)),
             TriggerSpec::CountersPut { what, kind } => Trigger::CountersPut {
+                obj: self.trigger_obj(what),
+                kind: *kind,
+            },
+            TriggerSpec::YouPutCounters { what, kind } => Trigger::YouPutCounters {
                 obj: self.trigger_obj(what),
                 kind: *kind,
             },

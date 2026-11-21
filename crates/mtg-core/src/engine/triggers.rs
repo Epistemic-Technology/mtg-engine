@@ -44,6 +44,7 @@ impl GameState {
         let watchers = self.watchers(event);
         let event_amount = match event {
             Event::Damage { amount, .. } => *amount,
+            Event::CountersAdded { n, .. } => *n,
             _ => 0,
         };
         let mut fired: SmallVec<[PendingTrigger; 2]> = SmallVec::new();
@@ -860,6 +861,20 @@ impl GameState {
             | (TriggerSpec::CollectsEvidence { whose }, Event::CollectedEvidence { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
             }
+            // CR 122.6: "Whenever you put one or more +1/+1 counters on a
+            // creature you control": counters its controller's effect put.
+            (
+                TriggerSpec::YouPutCounters { what, kind },
+                Event::CountersAdded {
+                    obj, kind: k, by, ..
+                },
+            ) => {
+                if *by != w.controller || kind.is_some_and(|kind| kind != *k) {
+                    return None;
+                }
+                let p = on_battlefield(what, *obj)?;
+                Some((Some(*obj), Some(p)))
+            }
             // CR 700.13: "Whenever you commit a crime [during your turn]".
             (TriggerSpec::CommitsCrime { your_turn }, Event::CommittedCrime { player }) => {
                 (*player == w.controller && (!*your_turn || self.active_player == *player))
@@ -883,6 +898,7 @@ impl GameState {
                     kind: crate::card::CounterKind::Lore,
                     n,
                     before,
+                    ..
                 },
             ) => (*obj == w.source && chapters_crossed(*mask, *before, *n) != 0)
                 .then_some((Some(*obj), Some(w.controller))),

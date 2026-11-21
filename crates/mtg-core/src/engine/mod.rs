@@ -597,6 +597,7 @@ impl GameState {
             flow: Flow::BeginStep,
             cleanup_repeat: false,
             extra_turns: Vec::new(),
+            effect_controller: None,
             resume_player: None,
             extra_phases: Vec::new(),
             resume_step: None,

@@ -293,6 +293,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this becomes targeted` | "Whenever this creature becomes the target of a spell or ability" (`when` prints "When") |
 | `whenever this becomes tapped`, `whenever this becomes untapped` | |
 | `whenever one or more +1/+1 counters put on this` | "Whenever one or more +1/+1 counters are put on this creature" (CR 122.1): once per instruction putting counters of that kind on it (adapt, a spell), however many |
+| `whenever you put one or more +1/+1 counters on creature you control`, `whenever you put one or more -1/-1 counters on this`, `whenever you put one or more counters on Goblin, Orc, or Army you control` | "Whenever you put one or more +1/+1 counters on a creature you control" (CR 122.6): counters a spell or ability you control puts (or that a permanent you control enters with, or a cost you pay puts), once for each permanent they go on; without a kind, counters of any kind. `that much` / `that many` is how many were put |
 | `whenever Aura becomes attached to this` | "Whenever an Aura becomes attached to this creature" (CR 701.3a; an Aura entering attached too); the object attached is the triggering object |
 | `whenever enchanted land is tapped for mana: add {G}` | "Whenever enchanted land is tapped for mana, its controller adds an additional {G}." (`enchanted Forest` for an Aura with `enchant Forest`). A triggered mana ability (CR 605.1b): its effects may only add mana (`add any`, `add {G}{G}`, `add 2 mana any combination`, `add chosen`, `add {G} count each Elf on battlefield`), for the tapped permanent's controller, and it resolves at once when the permanent is tapped for mana by a mana ability (CR 605.4a), whether paying a cost or activated by hand. Payment counts the extra mana as part of what the permanent makes. `whenever land you control is tapped for mana: add {G}` prints "Whenever you tap a land for mana, add {G}." |
 | `whenever this is dealt damage` | (enrage) |
@@ -401,7 +402,9 @@ life this turn`, `gained or lost life this turn`, `descended this turn`
 ("you descended this turn", CR 700.11: a permanent card was put into your
 graveyard from anywhere), `surveilled this turn` ("you've surveilled this
 turn"), `counter put this turn` ("a +1/+1 counter was put on a permanent
-under your control this turn"), `face-down creature entered this turn`
+under your control this turn"), `put counter this turn` ("you've put
+one or more +1/+1 counters on a creature this turn": a spell or ability
+you control put them, CR 122.6), `face-down creature entered this turn`
 ("a face-down creature entered the battlefield under your control this
 turn", CR 708.3), `another creature entered this turn`
 ("another creature entered the battlefield under your control this
@@ -442,7 +445,7 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `spore`, `depletion`, `quest`, `ki`, `time`, `tide`, `shield`, `age`,
 `fade`, `ice`, `level`, `lore`, `page`, `arrowhead`, `javelin`, `polyp`,
 `healing`, `mining`, `scream`, `credit`, `brick`, `currency`, `sleep`,
-`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `finality` (CR
+`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `finality` (CR
 122.1h: a permanent with one that would be put into a graveyard from the
 battlefield is exiled instead, so it doesn't die; `return target creature
 card from your graveyard to battlefield with 1 finality counter` prints

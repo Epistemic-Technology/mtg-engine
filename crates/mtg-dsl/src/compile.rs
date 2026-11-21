@@ -1463,6 +1463,7 @@ impl Compiler<'_> {
             StaticCond::YourMainPhase => StaticCondition::YourMainPhase,
             StaticCond::YourCombatPhase => StaticCondition::YourCombatPhase,
             StaticCond::FirstCombatPhase => StaticCondition::FirstCombatPhase,
+            StaticCond::PutCounterThisTurn => StaticCondition::PutCounterThisTurn,
             StaticCond::LeftGraveyardThisTurn => StaticCondition::LeftGraveyardThisTurn,
             StaticCond::CardToGraveyardThisTurn(t) => StaticCondition::CardToGraveyardThisTurn(
                 mtg_core::card::TypeSet::of(t.iter().copied()),
@@ -3061,6 +3062,10 @@ impl Compiler<'_> {
             Trigger::TappedForMana(_) => unreachable!("a triggered mana ability"),
             Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
             Trigger::CountersPut { obj, kind } => TriggerSpec::CountersPut {
+                what: self.trigger_obj(obj),
+                kind: *kind,
+            },
+            Trigger::YouPutCounters { obj, kind } => TriggerSpec::YouPutCounters {
                 what: self.trigger_obj(obj),
                 kind: *kind,
             },

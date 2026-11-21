@@ -1,0 +1,8 @@
+card "Earth Kingdom General" {
+  oracle_id e43c31ee-1bac-4f96-8b74-334b3238ab73
+  cost {3}{G}
+  type Creature — Human Soldier Ally
+  pt 2/2
+  triggered when this enters: earthbend 2
+  triggered do once each turn whenever you put one or more +1/+1 counters on creature: you may you gain that much life
+}

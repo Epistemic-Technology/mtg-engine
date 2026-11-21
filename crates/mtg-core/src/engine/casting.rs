@@ -7394,6 +7394,13 @@ impl GameState {
 
     #[allow(clippy::too_many_lines)] // one arm per effect kind
     pub(super) fn apply_effect(&mut self, ctx: &mut EffectCtx, effect: &Effect) {
+        let outer = self.effect_controller.replace(ctx.controller);
+        self.apply_effect_now(ctx, effect);
+        self.effect_controller = outer;
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn apply_effect_now(&mut self, ctx: &mut EffectCtx, effect: &Effect) {
         let on_battlefield = |st: &GameState, t: Target| match t {
             Target::Object(id) => st
                 .objects

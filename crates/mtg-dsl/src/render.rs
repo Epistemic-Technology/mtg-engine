@@ -7706,6 +7706,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             counter_name(*kind),
             trigger_subject(obj, ctx)
         ),
+        Trigger::YouPutCounters { obj, kind } => format!(
+            "whenever you put one or more {}counters on {}",
+            kind.map_or(String::new(), |k| format!("{} ", counter_name(k))),
+            trigger_subject(obj, ctx)
+        ),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_subject(o, ctx)),
         Trigger::DealtCombatDamage(o) => {
             format!(
@@ -9832,6 +9837,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::YourMainPhase => "it's your main phase".to_string(),
         StaticCond::YourCombatPhase => "it's your combat phase".to_string(),
         StaticCond::FirstCombatPhase => "it's the first combat phase of the turn".to_string(),
+        StaticCond::PutCounterThisTurn => {
+            "you've put one or more +1/+1 counters on a creature this turn".to_string()
+        }
         StaticCond::LeftGraveyardThisTurn => "a card left your graveyard this turn".to_string(),
         StaticCond::SacrificedThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();

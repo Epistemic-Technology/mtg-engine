@@ -2720,6 +2720,9 @@ impl P {
         if self.eat_words(&["first", "combat", "phase"]) {
             return Ok(StaticCond::FirstCombatPhase);
         }
+        if self.eat_words(&["put", "counter", "this", "turn"]) {
+            return Ok(StaticCond::PutCounterThisTurn);
+        }
         if self.eat_words(&["not", "your", "turn"]) {
             return Ok(StaticCond::NotYourTurn);
         }
@@ -9796,6 +9799,24 @@ impl P {
         }
         if self.eat_words(&["you", "collect", "evidence"]) {
             return Ok(Trigger::CollectsEvidence);
+        }
+        // CR 122.6: "you put one or more +1/+1 counters on a creature you
+        // control".
+        if self.eat_words(&["you", "put", "one", "or", "more"]) {
+            let kind = if self.eat_word("counters") {
+                None
+            } else {
+                let k = self.counter_kind()?;
+                self.eat_word("counters");
+                Some(k)
+            };
+            self.expect_word("on")?;
+            let obj = if self.eat_word("this") {
+                TriggerObj::This
+            } else {
+                TriggerObj::Filter(self.filter()?)
+            };
+            return Ok(Trigger::YouPutCounters { obj, kind });
         }
         // CR 700.13.
         if self.eat_words(&["you", "commit", "a", "crime"]) {

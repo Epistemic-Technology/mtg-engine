@@ -1,0 +1,8 @@
+card "Sigardian Paladin" {
+  oracle_id 472756f7-7fb8-4630-be14-d78bb9c99157
+  cost {2}{G}{W}
+  type Creature — Human Knight
+  pt 4/4
+  static as long as put counter this turn, this: has trample, lifelink
+  activated {1}{G}{W}: target creature you control with +1/+1 counter gains trample and lifelink until end of turn
+}

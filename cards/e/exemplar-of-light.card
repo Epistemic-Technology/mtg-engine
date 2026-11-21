@@ -1,0 +1,9 @@
+card "Exemplar of Light" {
+  oracle_id 9ad730b5-8950-4215-9319-387e2970dd22
+  cost {2}{W}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  triggered whenever you gain life: put 1 +1/+1 counter on this
+  triggered once each turn whenever you put one or more +1/+1 counters on this: draw 1 card
+}
