@@ -2723,6 +2723,17 @@ impl Compiler<'_> {
                 kind: *kind,
                 count: *count,
             }),
+            Effect::ExileUntilCard { who, filter } => out.push(CoreEffect::ExileUntilCard {
+                who: who.map_or(CoreRecipient::You, r),
+                filter: self.filter(filter),
+            }),
+            Effect::MayPlayCard {
+                until, cast, free, ..
+            } => out.push(CoreEffect::MayPlayCard {
+                until: *until,
+                cast: *cast,
+                free: *free,
+            }),
             Effect::RevealUntil { who, filter } => out.push(CoreEffect::RevealUntil {
                 who: r(who.unwrap_or(Recipient::You)),
                 filter: self.filter(filter),
@@ -2760,8 +2771,15 @@ impl Compiler<'_> {
             Effect::DiscardIt => out.push(CoreEffect::PutCard {
                 what: mtg_core::card::CardSet::It,
                 to: mtg_core::card::CardDest::Graveyard,
+                random: false,
             }),
-            Effect::PutCard { what, to, .. } => {
+            Effect::PutCard {
+                what,
+                to,
+                random,
+                rest,
+                ..
+            } => {
                 use crate::ast::CardWords;
                 use mtg_core::card::CardSet;
                 out.push(CoreEffect::PutCard {
@@ -2773,7 +2791,17 @@ impl Compiler<'_> {
                         CardWords::OtherRevealed => CardSet::OtherRevealed,
                     },
                     to: *to,
+                    random: *random,
                 });
+                // "... and the rest on the bottom of your library in a
+                // random order": the other revealed cards.
+                if let Some((to, random)) = rest {
+                    out.push(CoreEffect::PutCard {
+                        what: CardSet::OtherRevealed,
+                        to: *to,
+                        random: *random,
+                    });
+                }
             }
             Effect::ExileTop { count, who } => out.push(CoreEffect::ExileTop {
                 who: who.map_or(CoreRecipient::You, r),

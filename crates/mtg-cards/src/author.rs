@@ -1955,7 +1955,54 @@ impl Templates {
             r"^Reveal the top (\w+) cards of your library\. Put all (.+?) cards revealed this way into your hand and the rest (into your graveyard|on the bottom of your library in (?:any|a random) order)\.?\s*(.*)$",
         )
         .unwrap();
-        let (dsl, tail) = if let Some(c) = may.captures(&text) {
+        // "You may put a creature card from among them onto the
+        // battlefield [tapped]. Put the rest on the bottom ..."
+        let onto = Regex::new(
+            r"^(Look at|Reveal) the top (\w+) cards of your library\. You may put (an? .+?) card from among them onto the battlefield( tapped)?\. Put the rest (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
+        )
+        .unwrap();
+        // "Put two of them into your hand and the rest ...".
+        let several = Regex::new(
+            r"^Look at the top (\w+) cards of your library\. Put (two|three) of them into your hand and the rest (on the bottom of your library(?: in any order| in a random order)?|into your graveyard)\.?\s*(.*)$",
+        )
+        .unwrap();
+        // "Put one into your hand and the other into your graveyard."
+        let short = Regex::new(
+            r"^Look at the top two cards of your library\. Put one into your hand and the other (on the bottom of your library|into your graveyard)\.?\s*(.*)$",
+        )
+        .unwrap();
+        let (dsl, tail) = if let Some(c) = onto.captures(&text) {
+            let n = number(cap(&c, 2)).ok_or_else(|| Skip::Sentence(text.clone()))?;
+            let reveal_top = if cap(&c, 1) == "Reveal" {
+                " reveal"
+            } else {
+                ""
+            };
+            let what = cap(&c, 3)
+                .trim_start_matches("an ")
+                .trim_start_matches("a ")
+                .to_string();
+            let tapped = if c.get(4).is_some() { " tapped" } else { "" };
+            (
+                format!(
+                    "dig {n}{reveal_top} take {what} card may onto battlefield{tapped} rest {}",
+                    rest_of(cap(&c, 5))
+                ),
+                cap(&c, 6).to_string(),
+            )
+        } else if let Some(c) = several.captures(&text) {
+            let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(text.clone()))?;
+            let k = number(cap(&c, 2)).ok_or_else(|| Skip::Sentence(text.clone()))?;
+            (
+                format!("dig {n} take {k} card rest {} reword", rest_of(cap(&c, 3))),
+                cap(&c, 4).to_string(),
+            )
+        } else if let Some(c) = short.captures(&text) {
+            (
+                format!("dig 2 take card rest {} short", rest_of(cap(&c, 1))),
+                cap(&c, 2).to_string(),
+            )
+        } else if let Some(c) = may.captures(&text) {
             let n = number(cap(&c, 2)).ok_or_else(|| Skip::Sentence(text.clone()))?;
             let reveal_top = if cap(&c, 1) == "Reveal" {
                 " reveal"
@@ -2039,6 +2086,21 @@ impl Templates {
         // creature card from among them ..." and the other dig forms.
         if let Some(out) = self.dig(text, targets)? {
             return Ok(out);
+        }
+        // CR 702.34a: "Target instant or sorcery card in your graveyard
+        // gains flashback until end of turn. The flashback cost is equal
+        // to its mana cost."
+        if let Some(c) = Regex::new(
+            r"^[Tt]arget instant or sorcery card in your graveyard gains flashback until end of turn\. The flashback cost is equal to (its|that card's) mana cost\.?$",
+        )
+        .unwrap()
+        .captures(text)
+        {
+            *targets += 1;
+            let that = if cap(&c, 1) == "its" { "" } else { " that card" };
+            return Ok(format!(
+                "target instant or sorcery card from your graveyard gains flashback{that}"
+            ));
         }
         // "Target creature gains \"...\" until end of turn."
         if let Some(c) = Regex::new(r#"^(.+?) gains? "(.+)" until end of turn\.?$"#)
@@ -3337,6 +3399,45 @@ impl Builder<'_> {
         // CR 401.2: information only.
         if line == "You may look at the top card of your library any time." {
             self.statements.push("may look top".to_string());
+            return Ok(());
+        }
+        if line == "Play with the top card of your library revealed." {
+            self.statements.push("top revealed".to_string());
+            return Ok(());
+        }
+        if line == "Players play with the top card of their libraries revealed." {
+            self.statements.push("top revealed players".to_string());
+            return Ok(());
+        }
+        // CR 601.3: "You may play lands and cast creature spells from the
+        // top of your library."
+        if let Some(c) = Regex::new(
+            r"^You may (play lands|cast (?:(\w+) )?spells|play lands and cast (?:(\w+) )?spells) from the top of your library\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let what = cap(&c, 1);
+            let kind = c.get(2).or_else(|| c.get(3)).map(|m| m.as_str());
+            let lands = what.starts_with("play lands");
+            let spells = what.contains("spells");
+            let mut s = "play from top".to_string();
+            if lands {
+                s.push_str(" lands");
+            }
+            if spells {
+                s.push_str(if lands { " and spells" } else { " spells" });
+                if let Some(k) = kind {
+                    let k = match k {
+                        "Ally" | "artifact" | "creature" | "instant" | "sorcery" | "enchantment"
+                        | "Goblin" | "Elf" | "Bird" | "Angel" | "Spider" | "noncreature" => k,
+                        _ => return Err(Skip::Sentence(line.to_string())),
+                    };
+                    s.push(' ');
+                    s.push_str(k);
+                }
+            }
+            self.statements.push(s);
             return Ok(());
         }
         // CR 702.131: "Ascend" as an ability line.

@@ -715,6 +715,36 @@ impl Fmt {
                     self.recipient(*to, t)
                 ),
             },
+            Effect::ExileUntilCard { who, filter: f } => match who {
+                None => format!("exile until {} card", filter(f)),
+                Some(w) => format!("{} exiles until {} card", self.recipient(*w, t), filter(f)),
+            },
+            Effect::MayPlayCard {
+                until,
+                cast,
+                free,
+                first,
+                it,
+            } => {
+                let mut s = format!(
+                    "may {} {} {}",
+                    if *cast { "cast" } else { "play" },
+                    if *it { "it" } else { "that card" },
+                    match until {
+                        mtg_core::card::PlayUntil::ThisTurn => "this turn",
+                        mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
+                        mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
+                        mtg_core::card::PlayUntil::Forever => "forever",
+                    }
+                );
+                if *first {
+                    s.push_str(" first");
+                }
+                if *free {
+                    s.push_str(" free");
+                }
+                s
+            }
             Effect::RevealUntil { who, filter: f } => match who {
                 None => format!("reveal until {} card", filter(f)),
                 Some(w) => {
@@ -772,6 +802,8 @@ impl Fmt {
                 to,
                 who,
                 that_player,
+                random,
+                rest,
             } => {
                 use crate::ast::CardWords;
                 use mtg_core::card::CardDest;
@@ -791,6 +823,22 @@ impl Fmt {
                     CardDest::Battlefield { tapped: true } => "onto battlefield tapped",
                     CardDest::LibraryBottom => "on bottom of library",
                 };
+                let dest = |to: &CardDest| match to {
+                    CardDest::Hand => "into hand",
+                    CardDest::Graveyard => "into graveyard",
+                    CardDest::Battlefield { .. } => "onto battlefield",
+                    CardDest::LibraryBottom => "on bottom of library",
+                };
+                let mut d = d.to_string();
+                if *random {
+                    d.push_str(" random");
+                }
+                if let Some((to, random)) = rest {
+                    let _ = write!(d, " and the rest {}", dest(to));
+                    if *random {
+                        d.push_str(" random");
+                    }
+                }
                 match who {
                     None => format!("put {w} {d}"),
                     Some(r) => format!("{} puts {w} {d}", self.recipient(*r, t)),
@@ -854,6 +902,8 @@ impl Fmt {
                 then,
                 top,
                 onto,
+                that_card,
+                short,
                 reword,
             } => {
                 let mut s = format!("dig {}", num(*count));
@@ -887,6 +937,9 @@ impl Fmt {
                 if *revealing {
                     s.push_str(" revealing");
                 }
+                if *that_card {
+                    s.push_str(" that card");
+                }
                 if *top {
                     s.push_str(" top");
                 }
@@ -906,6 +959,9 @@ impl Fmt {
                 }
                 if *reword {
                     s.push_str(" reword");
+                }
+                if *short {
+                    s.push_str(" short");
                 }
                 s
             }

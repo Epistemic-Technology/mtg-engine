@@ -1792,6 +1792,17 @@ impl GameState {
                     }
                     // CR 702.170d: without paying its mana cost.
                     (Zone::Exile, crate::state::AltCast::Plotted) => crate::state::AltCast::Free,
+                    // "You may cast that card without paying its mana
+                    // cost."
+                    (Zone::Exile, _)
+                        if self.exile_casts.as_ref().is_some_and(|e| {
+                            e.playable
+                                .iter()
+                                .any(|pe| pe.card == id && pe.player == player && pe.free)
+                        }) =>
+                    {
+                        crate::state::AltCast::Free
+                    }
                     _ => crate::state::AltCast::None,
                 };
                 // "Once each turn, you may cast ... from the top of your

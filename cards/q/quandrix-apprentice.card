@@ -1,0 +1,7 @@
+card "Quandrix Apprentice" {
+  oracle_id 92116bbd-c7ad-4033-8d98-3ea09fea8ae7
+  cost {G}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: dig 3 take land card may revealing that card rest bottom
+}

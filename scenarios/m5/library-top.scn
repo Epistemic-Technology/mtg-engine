@@ -353,6 +353,96 @@ scenario "look at the top card: Into the Wilds leaves a nonland card" {
   assert library A count 1
 }
 
+scenario "reveal until, the rest on the bottom: Evolutionary Leap" {
+  battlefield A: "Evolutionary Leap", "Forest", "Grizzly Bears"
+  library A: "Island", "Shock", "Hill Giant", "Plains"
+  turn 1 A: activate "Evolutionary Leap" sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Hill Giant"
+  assert hand A count 1
+  assert library A count 3
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "reveal until, onto the battlefield tapped: Clifftop Lookout" {
+  battlefield A: 3 "Forest"
+  hand A: "Clifftop Lookout"
+  library A: "Shock", "Grizzly Bears", "Island", "Plains"
+  turn 1 A: cast "Clifftop Lookout"
+  run_to turn 1 end
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert library A count 3
+}
+
+scenario "dig: Codecracker Hound puts one into the hand and the other into the graveyard" {
+  battlefield A: 3 "Island"
+  hand A: "Codecracker Hound"
+  library A: "Shock", "Grizzly Bears", "Plains"
+  turn 1 A: cast "Codecracker Hound"
+  run_to turn 1 end
+  assert hand A count 1
+  assert graveyard A count 1
+  assert library A count 1
+}
+
+scenario "exile until nonland: Territorial Bruntar casts the card this turn" {
+  battlefield A: "Territorial Bruntar", 2 "Mountain"
+  hand A: "Forest"
+  library A: "Island", "Plains", "Lightning Bolt", "Swamp"
+  turn 1 A: play "Forest"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert exile A contains "Island"
+  assert exile A contains "Plains"
+  assert library A count 1
+}
+
+scenario "exile until nonland: the permission ends with the turn" {
+  battlefield A: "Territorial Bruntar", 2 "Mountain"
+  hand A: "Forest"
+  library A: "Lightning Bolt", "Swamp", "Swamp", "Swamp"
+  turn 1 A: play "Forest"
+  illegal turn 2 upkeep A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 draw
+  assert exile A contains "Lightning Bolt"
+  assert life B 20
+}
+
+scenario "exile until nonland: Stolen Goods casts the opponent's card free this turn" {
+  battlefield A: 4 "Island"
+  hand A: "Stolen Goods"
+  library B: "Forest", "Hill Giant", "Island"
+  turn 1 A: cast "Stolen Goods" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert exile B contains "Forest"
+}
+
+scenario "exile from the graveyard: Scholar of Combustion casts it until the end of your next turn" {
+  battlefield A: 4 "Mountain"
+  hand A: "Scholar of Combustion"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Scholar of Combustion"
+  turn 1 A: trigger "Scholar of Combustion" targeting "Lightning Bolt"
+  turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 end
+  assert life B 17
+}
+
+scenario "play from top: Elven Chorus casts a creature from the top with its own mana" {
+  battlefield A: "Elven Chorus", "Llanowar Elves", "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
 scenario "play from top: Johann's permission returns the next turn" {
   battlefield A: "Johann, Apprentice Sorcerer", 4 "Mountain"
   library A: "Shock", "Lightning Bolt", "Island", "Island"

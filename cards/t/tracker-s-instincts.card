@@ -1,0 +1,7 @@
+card "Tracker's Instincts" {
+  oracle_id 1bc7c38b-9571-4395-be90-922f92816987
+  cost {1}{G}
+  type Sorcery
+  spell: dig 4 reveal take creature card rest graveyard
+  flashback {2}{U}
+}

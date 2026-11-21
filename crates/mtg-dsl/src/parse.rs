@@ -3884,11 +3884,28 @@ impl P {
             self.expect_words(&["on", "bottom", "of", "library"])?;
             CardDest::LibraryBottom
         };
+        let random = to == CardDest::LibraryBottom && self.eat_word("random");
+        // `and the rest on bottom of library random`.
+        let rest = if self.eat_words(&["and", "the", "rest"]) {
+            let dest = if self.eat_words(&["into", "hand"]) {
+                CardDest::Hand
+            } else if self.eat_words(&["into", "graveyard"]) {
+                CardDest::Graveyard
+            } else {
+                self.expect_words(&["on", "bottom", "of", "library"])?;
+                CardDest::LibraryBottom
+            };
+            Some((dest, dest == CardDest::LibraryBottom && self.eat_word("random")))
+        } else {
+            None
+        };
         Ok(Effect::PutCard {
             what,
             to,
             who,
             that_player,
+            random,
+            rest,
         })
     }
 
@@ -5054,6 +5071,16 @@ impl P {
             }
             // "Target opponent exiles two cards from their hand", "exiles
             // a creature they control".
+            "exiles" if self.at_word("until") => {
+                self.pos += 1;
+                self.revealed = true;
+                let filter = self.filter()?;
+                self.expect_word("card")?;
+                Ok(Effect::ExileUntilCard {
+                    who: Some(subject),
+                    filter,
+                })
+            }
             "exiles" if self.at_word("top") => {
                 self.pos += 1;
                 let count = self.num()?;
@@ -5753,6 +5780,22 @@ impl P {
         })
     }
 
+    /// How long an impulse permission lasts: `this turn`, `next turn`,
+    /// `next end step`, `forever`.
+    fn play_until(&mut self) -> R<mtg_core::card::PlayUntil> {
+        Ok(if self.eat_words(&["this", "turn"]) {
+            mtg_core::card::PlayUntil::ThisTurn
+        } else if self.eat_words(&["next", "turn"]) {
+            mtg_core::card::PlayUntil::EndOfYourNextTurn
+        } else if self.eat_words(&["next", "end", "step"]) {
+            mtg_core::card::PlayUntil::YourNextEndStep
+        } else if self.eat_word("forever") {
+            mtg_core::card::PlayUntil::Forever
+        } else {
+            return self.unexpected("`this turn`, `next turn`, `next end step`, or `forever`");
+        })
+    }
+
     /// `unless you discard <filter> card` / `unless they discard ...` after
     /// a discard: `None` (nothing consumed) if that doesn't follow.
     fn discard_unless(&mut self) -> R<Option<Filter>> {
@@ -6356,6 +6399,13 @@ impl P {
                 if self.eat_words(&["all", "graveyards"]) {
                     return Ok(Effect::ExileAllGraveyards);
                 }
+                // `exile until nonland card`.
+                if self.eat_word("until") {
+                    self.revealed = true;
+                    let filter = self.filter()?;
+                    self.expect_word("card")?;
+                    return Ok(Effect::ExileUntilCard { who: None, filter });
+                }
                 // `exile top 3 cards`: from the top of your library.
                 if self.at_word("top")
                     && (matches!(self.peek_at(1), Some(Tok::Num(_)))
@@ -6452,18 +6502,7 @@ impl P {
             "discover" => Ok(Effect::Discover(self.count()?)),
             "impulse" => {
                 let count = self.num()?;
-                let until = if self.eat_words(&["this", "turn"]) {
-                    mtg_core::card::PlayUntil::ThisTurn
-                } else if self.eat_words(&["next", "turn"]) {
-                    mtg_core::card::PlayUntil::EndOfYourNextTurn
-                } else if self.eat_words(&["next", "end", "step"]) {
-                    mtg_core::card::PlayUntil::YourNextEndStep
-                } else if self.eat_word("forever") {
-                    mtg_core::card::PlayUntil::Forever
-                } else {
-                    return self
-                        .unexpected("`this turn`, `next turn`, `next end step`, or `forever`");
-                };
+                let until = self.play_until()?;
                 let first = self.eat_word("first");
                 let it = self.eat_word("it");
                 let choose = self.eat_word("choose");
@@ -6515,6 +6554,7 @@ impl P {
                 };
                 let optional = self.eat_word("may");
                 let revealing = self.eat_word("revealing");
+                let that_card = revealing && self.eat_words(&["that", "card"]);
                 // `take card may top`: back on top of the library.
                 let top = self.eat_word("top");
                 // `onto battlefield [tapped]`: onto the battlefield instead
@@ -6533,6 +6573,7 @@ impl P {
                 };
                 let random = !rest_graveyard && self.eat_word("random");
                 let reword = self.eat_word("reword");
+                let short = self.eat_word("short");
                 Ok(Effect::Dig {
                     count,
                     filter,
@@ -6546,6 +6587,8 @@ impl P {
                     random,
                     top,
                     onto,
+                    that_card,
+                    short,
                     then,
                     reword,
                 })
@@ -6585,6 +6628,28 @@ impl P {
                 let filter = self.filter()?;
                 self.expect_word("card")?;
                 Ok(Effect::RevealUntil { who: None, filter })
+            }
+            // `may cast that card this turn [first] [free]`.
+            "may"
+                if (self.at_word("play") || self.at_word("cast"))
+                    && (self.word_at(1).as_deref() == Some("it")
+                        || self.word_at(1).as_deref() == Some("that")) =>
+            {
+                let cast = self.word()? == "cast";
+                let it = self.eat_word("it");
+                if !it {
+                    self.expect_words(&["that", "card"])?;
+                }
+                let until = self.play_until()?;
+                let first = self.eat_word("first");
+                let free = self.eat_word("free");
+                Ok(Effect::MayPlayCard {
+                    until,
+                    cast,
+                    free,
+                    first,
+                    it,
+                })
             }
             "face-down" if self.at_words(&["spells", "cost"]) => {
                 self.pos += 2;

@@ -3513,6 +3513,12 @@ pub enum Effect {
         /// put a creature card from among them onto the battlefield
         /// [tapped]"; `Some(tapped)`.
         onto: Option<bool>,
+        /// `revealing that card`, wording only: "... and put that card
+        /// into your hand".
+        that_card: bool,
+        /// `short`, wording only: "Put one into your hand and the other
+        /// ..." (without "of them").
+        short: bool,
         /// `reword`, wording only: "two of them" for "two of those cards",
         /// "one of those cards" for "one of them", and "Then put the rest"
         /// after a card revealed and put into your hand.
@@ -3540,6 +3546,25 @@ pub enum Effect {
         who: Option<Recipient>,
         look: bool,
         of: bool,
+    },
+    /// `exile until nonland card`: "exile cards from the top of your
+    /// library until you exile a nonland card"; `<who> exiles until
+    /// nonland card`: "... until they exile a nonland card". The matching
+    /// card is `that card` after it.
+    ExileUntilCard {
+        who: Option<Recipient>,
+        filter: Filter,
+    },
+    /// `may cast that card this turn`: "You may cast that card this
+    /// turn."; `may play that card next turn first`: "Until the end of
+    /// your next turn, you may play that card."; `free`: "... without
+    /// paying its mana cost"; `it`: "it" for "that card".
+    MayPlayCard {
+        until: mtg_core::card::PlayUntil,
+        cast: bool,
+        free: bool,
+        first: bool,
+        it: bool,
     },
     /// `reveal until nonland card` ("reveal cards from the top of your
     /// library until you reveal a nonland card"), `<who> reveals until
@@ -3611,6 +3636,13 @@ pub enum Effect {
         /// `into graveyard of that player`: "into that player's
         /// graveyard" (the card's owner's, where it goes anyway).
         that_player: bool,
+        /// `on bottom of library random`: "in a random order".
+        random: bool,
+        /// `put that card into hand and the rest on bottom of library
+        /// random`: "Put that card into your hand and the rest on the
+        /// bottom of your library in a random order." (the other revealed
+        /// cards still in the library; `true`: in a random order).
+        rest: Option<(mtg_core::card::CardDest, bool)>,
     },
     /// `impulse 2 next turn first`: "Exile the top two cards of your
     /// library. Until the end of your next turn, you may play those

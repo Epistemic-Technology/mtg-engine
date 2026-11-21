@@ -1,0 +1,9 @@
+card "The Regalia" {
+  oracle_id 27a7610e-acbe-4a2b-9f61-81b383eb20a5
+  cost {4}
+  type Legendary Artifact — Vehicle
+  pt 4/4
+  keywords haste
+  triggered whenever this attacks: reveal until land card; put that card onto battlefield tapped and the rest on bottom of library random
+  crew 1
+}

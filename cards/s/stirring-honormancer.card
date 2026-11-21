@@ -1,0 +1,7 @@
+card "Stirring Honormancer" {
+  oracle_id 3bcf54f8-fcd7-4ec0-b011-92b367411cdb
+  cost {2}{W}{W/B}{B}
+  type Creature — Rhino Bard
+  pt 4/5
+  triggered when this enters: dig count where creature you control take card rest graveyard reword
+}

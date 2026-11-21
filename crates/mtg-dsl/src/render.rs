@@ -4017,6 +4017,55 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let v = ctx.verb(*who, "shuffles", "shuffle");
             Clause::with_subject(*who, subject, v.to_string())
         }
+        Effect::ExileUntilCard { who, filter } => {
+            let pred = card_filter_a(filter, ctx.card);
+            match who {
+                None => Clause::imperative(format!(
+                    "exile cards from the top of your library until you exile {pred}"
+                )),
+                Some(w) => {
+                    let subject = ctx.subj(*w);
+                    let v = ctx.verb(*w, "exiles", "exile");
+                    Clause::with_subject(
+                        *w,
+                        subject,
+                        format!("{v} cards from the top of their library until they exile {pred}"),
+                    )
+                }
+            }
+        }
+        Effect::MayPlayCard {
+            until,
+            cast,
+            free,
+            first,
+            it,
+        } => {
+            use mtg_core::card::PlayUntil;
+            let what = if *it { "it" } else { "that card" };
+            let verb = if *cast { "cast" } else { "play" };
+            let free = if *free {
+                " without paying its mana cost"
+            } else {
+                ""
+            };
+            if *first {
+                let when = match until {
+                    PlayUntil::ThisTurn => "Until end of turn",
+                    PlayUntil::EndOfYourNextTurn => "Until the end of your next turn",
+                    PlayUntil::YourNextEndStep | PlayUntil::Forever => "Until your next end step",
+                };
+                Clause::imperative(format!("{when}, you may {verb} {what}{free}"))
+            } else {
+                let when = match until {
+                    PlayUntil::ThisTurn => " this turn",
+                    PlayUntil::EndOfYourNextTurn => " until the end of your next turn",
+                    PlayUntil::YourNextEndStep => " until your next end step",
+                    PlayUntil::Forever => "",
+                };
+                Clause::imperative(format!("you may {verb} {what}{free}{when}"))
+            }
+        }
         Effect::RevealUntil { who, filter } => {
             let pred = card_filter_a(filter, ctx.card);
             match who {
@@ -4097,6 +4146,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             to,
             who,
             that_player,
+            random,
+            rest,
         } => {
             use crate::ast::CardWords;
             use mtg_core::card::CardDest;
@@ -4119,10 +4170,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 CardDest::Graveyard => format!("into {whose} graveyard"),
                 CardDest::Battlefield { tapped: false } => "onto the battlefield".to_string(),
                 CardDest::Battlefield { tapped: true } => "onto the battlefield tapped".to_string(),
+                CardDest::LibraryBottom if *random => {
+                    format!("on the bottom of {whose} library in a random order")
+                }
                 CardDest::LibraryBottom if many => {
                     format!("on the bottom of {whose} library in any order")
                 }
                 CardDest::LibraryBottom => format!("on the bottom of {whose} library"),
+            };
+            // "Put that card into your hand and the rest on the bottom of
+            // your library in a random order."
+            let dest = match rest {
+                Some((to, random)) => {
+                    let r = match to {
+                        CardDest::Hand => format!("into {whose} hand"),
+                        CardDest::Graveyard => format!("into {whose} graveyard"),
+                        CardDest::Battlefield { .. } => "onto the battlefield".to_string(),
+                        CardDest::LibraryBottom if *random => {
+                            format!("on the bottom of {whose} library in a random order")
+                        }
+                        CardDest::LibraryBottom => {
+                            format!("on the bottom of {whose} library in any order")
+                        }
+                    };
+                    format!("{dest} and the rest {r}")
+                }
+                None => dest,
             };
             match who {
                 None => Clause::imperative(format!("put {words} {dest}")),
@@ -4189,6 +4262,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             then,
             top,
             onto,
+            that_card,
+            short,
             reword,
         } => {
             let n = count_words(*count, "one");
@@ -4240,7 +4315,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     }
                 }
             });
-            let it = if several { "the revealed cards" } else { "it" };
+            let it = if several && *that_card {
+                "them"
+            } else if several {
+                "the revealed cards"
+            } else if *that_card {
+                "that card"
+            } else {
+                "it"
+            };
             // "You may put one of those cards back on top of your library.
             // Put the rest into your graveyard."
             if *top {
@@ -4340,6 +4423,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (Some(w), false, false) => format!(
                     "Put {w} from among them into your hand and {}",
                     rest("the rest")
+                ),
+                // "Put one into your hand and the other into your
+                // graveyard."
+                (None, _, _) if *short => format!(
+                    "Put one into your hand and {}",
+                    rest(if two { "the other" } else { "the rest" })
                 ),
                 (None, _, _) => format!(
                     "Put one of {} into your hand and {}",
@@ -7140,6 +7229,7 @@ fn lowercase_first(s: &str) -> String {
             first,
             "Target"
                 | "Reveal"
+                | "Exile"
                 | "Draw"
                 | "This"
                 | "That"

@@ -1,0 +1,8 @@
+card "Codecracker Hound" {
+  oracle_id ae791b61-5825-4987-a8c2-80813758d3f7
+  cost {2}{U}
+  type Creature — Dog
+  pt 2/1
+  triggered when this enters: dig 2 take card rest graveyard short
+  warp {2}{U}
+}

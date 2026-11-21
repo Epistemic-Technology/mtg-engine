@@ -1,0 +1,7 @@
+card "Nessian Wanderer" {
+  oracle_id 45703364-660a-4e73-a467-5ee47d936c1a
+  cost {1}{G}
+  type Creature — Satyr Scout
+  pt 1/3
+  label "Constellation" triggered whenever enchantment you control enters: dig 3 take land card may revealing that card rest bottom random
+}

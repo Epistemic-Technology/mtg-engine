@@ -1,0 +1,7 @@
+card "House Cartographer" {
+  oracle_id 76d93d50-4fc1-4ed4-a6dc-5fb193286b54
+  cost {1}{G}
+  type Creature — Human Scout Survivor
+  pt 2/2
+  label "Survival" triggered at beginning of your second main if this is tapped: reveal until land card; put that card into hand and the rest on bottom of library random
+}

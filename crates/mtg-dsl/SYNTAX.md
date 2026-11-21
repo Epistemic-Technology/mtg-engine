@@ -1541,7 +1541,9 @@ rest" after `revealing`; `dig 3 then take card rest graveyard`: "look at the top
 cards of your library, then put one of them into your hand and the rest
 into your graveyard"; `dig 3 take card may top rest graveyard`: "You may
 put one of those cards back on top of your library. Put the rest into
-your graveyard.", the card kept stays on top; `onto battlefield
+your graveyard.", the card kept stays on top; `revealing that card`
+prints "put that card into your hand" ("put them" for several), `short`
+"Put one into your hand and the other ..."; `onto battlefield
 [tapped]` after `may`: onto the battlefield under your control instead of
 into the hand, `dig 5 take creature card may onto battlefield rest bottom
 random` "You may put a creature card from among them onto the
@@ -2013,7 +2015,20 @@ cards from the top of your library until you reveal a nonland card" (`its
 controller reveals until land card`: "Its controller reveals cards from
 the top of their library until they reveal a land card"); the revealed
 cards stay in the library, the last one (the card that matched, if any)
-is `that card`, and with no match the whole library is revealed.
+is `that card`, and with no match the whole library is revealed. `exile until
+nonland card` is "exile cards from the top of your library until you
+exile a nonland card" (`target opponent exiles until nonland card`:
+"Target opponent exiles cards from the top of their library until they
+exile a nonland card"): the cards stay exiled and the matching one is
+`that card`. `may cast that card this turn` ("You may cast that card this
+turn."; `may play that card next turn first`: "Until the end of your next
+turn, you may play that card."; `free`: "... without paying its mana
+cost"; `it` for "it"; the durations are impulse's) lets the controller
+play or cast the resolution's card from exile, also after `exile target
+... card from your graveyard`. `put that card into hand and the rest on
+bottom of library random` is "Put that card into your hand and the rest
+on the bottom of your library in a random order." (the other revealed
+cards; `random` after any `on bottom of library` shuffles them first).
 
 After either, `if it is land card, <sentence>` is "If it's a land card,
 ...", `if it isnt land card, ...` "If it isn't a land card, ...", `if

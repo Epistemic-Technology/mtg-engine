@@ -1,0 +1,8 @@
+card "Clifftop Lookout" {
+  oracle_id 446db5a4-21b0-44c1-b12b-d365313dd67a
+  cost {2}{G}
+  type Creature — Frog Scout
+  pt 1/2
+  keywords reach
+  triggered when this enters: reveal until land card; put that card onto battlefield tapped and the rest on bottom of library random
+}

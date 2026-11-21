@@ -1,0 +1,8 @@
+card "Spinner of Souls" {
+  oracle_id 6883e79e-0b4f-4fb8-aee3-a3905246a408
+  cost {2}{G}
+  type Creature — Spider Spirit
+  pt 4/3
+  keywords reach
+  triggered whenever another nontoken creature you control dies: you may reveal until creature card; put that card into hand and the rest on bottom of library random
+}

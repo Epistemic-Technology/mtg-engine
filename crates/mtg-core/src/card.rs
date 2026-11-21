@@ -3861,6 +3861,28 @@ pub enum Effect {
         who: Recipient,
         look: bool,
     },
+    /// "Exile cards from the top of your library until you exile a
+    /// nonland card" ("Target opponent exiles cards from the top of their
+    /// library until they exile a nonland card"): the recipient player
+    /// exiles from the top until a card matching `filter` is exiled or the
+    /// library runs out. The cards stay exiled; the matching card is the
+    /// resolution's card ("that card").
+    ExileUntilCard {
+        who: Recipient,
+        filter: ObjFilter,
+    },
+    /// "You may cast that card this turn.", "Until the end of your next
+    /// turn, you may play that card.", "Until end of turn, you may cast
+    /// that card without paying its mana cost.": the resolution's card, in
+    /// exile, may be played by the controller for as long as `until`
+    /// says, paying its costs with the usual timing (CR 601.3); with
+    /// `cast`, only cast (not played as a land); with `free`, without
+    /// paying its mana cost (CR 118.9).
+    MayPlayCard {
+        until: PlayUntil,
+        cast: bool,
+        free: bool,
+    },
     /// "Reveal cards from the top of your library until you reveal a land
     /// card" (CR 701.20): the recipient player reveals from the top until a
     /// card matching `filter` is revealed or the library runs out. The
@@ -3915,9 +3937,14 @@ pub enum Effect {
     /// moves the resolution's card or revealed cards still in the library
     /// they were revealed from (CR 400.7: one that has moved is a new
     /// object). A card put into a hand keeps what players knew of it.
+    /// With `random`, cards put on the bottom of a library go in a
+    /// random order ("and the rest on the bottom of your library in a
+    /// random order").
     PutCard {
         what: CardSet,
         to: CardDest,
+        #[serde(default)]
+        random: bool,
     },
     /// Adapt N (CR 701.46): if the source has no +1/+1 counters, it gets
     /// N.

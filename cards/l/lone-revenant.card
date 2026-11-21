@@ -1,0 +1,8 @@
+card "Lone Revenant" {
+  oracle_id 5d814b0b-82e8-4145-87e1-4fed44d16465
+  cost {3}{U}{U}
+  type Creature — Spirit
+  pt 4/4
+  keywords hexproof
+  triggered whenever this deals combat damage to a player if you control no other creatures: dig 4 take card rest bottom
+}

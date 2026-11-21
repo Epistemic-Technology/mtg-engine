@@ -1,0 +1,8 @@
+card "Elven Chorus" {
+  oracle_id 4d5df2d9-06bf-4bec-9be0-dabe75a858fb
+  cost {3}{G}
+  type Enchantment
+  may look top
+  play from top spells creature
+  static creature you control: has ability { mana any }
+}

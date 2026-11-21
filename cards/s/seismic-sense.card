@@ -1,0 +1,6 @@
+card "Seismic Sense" {
+  oracle_id 9d586c74-b1dd-4fcb-a24a-c703d250fa63
+  cost {G}
+  type Sorcery — Lesson
+  spell: dig count where land you control take creature or land card may revealing rest bottom random
+}

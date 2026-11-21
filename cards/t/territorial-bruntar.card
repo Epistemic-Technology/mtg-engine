@@ -1,0 +1,8 @@
+card "Territorial Bruntar" {
+  oracle_id 03f04c2c-1036-497e-8b13-06c61b0b0ba6
+  cost {4}{R}{R}
+  type Creature — Beast
+  pt 6/6
+  keywords reach
+  label "Landfall" triggered whenever land you control enters: exile until nonland card; may cast that card this turn
+}

@@ -311,10 +311,22 @@ impl GameState {
                 }
                 if def.is_land() {
                     if sorcery_timing
+                        && !pe.cast_only
                         && ps.lands_played_this_turn < 1
                         && !options.contains(&Choice::PlayLand(pe.card))
                     {
                         options.push(Choice::PlayLand(pe.card));
+                    }
+                    continue;
+                }
+                // "... without paying its mana cost", with its usual
+                // timing.
+                if pe.free {
+                    if (sorcery_timing || def.is_instant() || self.has_flash(p, def, pe.card))
+                        && self.exile_castable(p, pe.card, AltCast::Free)
+                        && !options.contains(&Choice::Cast(pe.card))
+                    {
+                        options.push(Choice::Cast(pe.card));
                     }
                     continue;
                 }
@@ -9892,6 +9904,47 @@ impl GameState {
                     }
                 }
             }
+            Effect::ExileUntilCard { who, filter } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    ctx.created = None;
+                    while let Some(top) = self.player(p).library.last().copied() {
+                        let new = self.move_object(top, Zone::Exile, true);
+                        let Some(o) = self.objects.get(new) else {
+                            break;
+                        };
+                        if o.zone != Zone::Exile {
+                            continue;
+                        }
+                        let c = self.base_characteristics(o);
+                        if filter.matches(new, o.owner, &c, Some(ctx.source), Some(ctx.controller)) {
+                            ctx.created = Some(new);
+                            break;
+                        }
+                    }
+                }
+            }
+            Effect::MayPlayCard { until, cast, free } => {
+                let p = ctx.controller;
+                let own_ends = if self.active_player == p { 2 } else { 1 };
+                if let Some(id) = ctx.created
+                    && self.objects.get(id).is_some_and(|o| o.zone == Zone::Exile)
+                {
+                    self.exile_casts
+                        .get_or_insert_with(Box::default)
+                        .playable
+                        .push(crate::state::PlayableExile {
+                            card: id,
+                            player: p,
+                            until: *until,
+                            own_ends,
+                            cast_only: *cast,
+                            free: *free,
+                        });
+                }
+            }
             Effect::RevealUntil { who, filter } => {
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
@@ -9963,7 +10016,7 @@ impl GameState {
                     }
                 }
             }
-            Effect::PutCard { what, to } => self.put_card(ctx, *what, *to),
+            Effect::PutCard { what, to, random } => self.put_card(ctx, *what, *to, *random),
             Effect::RevealCard => {
                 if let Some(id) = ctx.created.filter(|id| self.objects.contains_key(*id)) {
                     if self.objects[id].zone == Zone::Hand {
@@ -10463,6 +10516,8 @@ impl GameState {
                                 player: owner,
                                 until: crate::card::PlayUntil::Forever,
                                 own_ends: crate::state::WARP_LATER,
+                                cast_only: true,
+                                free: false,
                             });
                     }
                 }
@@ -10519,6 +10574,8 @@ impl GameState {
                             player: p,
                             until: *until,
                             own_ends,
+                            cast_only: false,
+                            free: false,
                         });
                 }
             }
@@ -10925,7 +10982,7 @@ impl GameState {
 
     /// `Effect::PutCard`: move the resolution's card, or its revealed
     /// cards still in their library, to `to`.
-    fn put_card(&mut self, ctx: &mut EffectCtx, what: CardSet, to: CardDest) {
+    fn put_card(&mut self, ctx: &mut EffectCtx, what: CardSet, to: CardDest, random: bool) {
         let cards: Vec<ObjId> = match what {
             CardSet::It => ctx.created.into_iter().collect(),
             CardSet::Revealed => ctx.revealed.clone(),
@@ -10936,6 +10993,10 @@ impl GameState {
                 .filter(|id| Some(*id) != ctx.created)
                 .collect(),
         };
+        let mut cards = cards;
+        if random {
+            rand::seq::SliceRandom::shuffle(cards.as_mut_slice(), &mut self.rng);
+        }
         let mut last = None;
         for id in cards {
             let Some(o) = self.objects.get(id) else {

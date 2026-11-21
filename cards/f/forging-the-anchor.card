@@ -1,0 +1,6 @@
+card "Forging the Anchor" {
+  oracle_id 17c5b5c9-5c58-46dc-b0a7-a635b9997bb8
+  cost {2}{U}
+  type Sorcery
+  spell: dig 5 take any artifact card may revealing rest bottom random
+}

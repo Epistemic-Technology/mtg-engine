@@ -268,6 +268,10 @@ pub struct PlayableExile {
     /// end before the permission does. `WARP_LATER` with `Forever`: not
     /// until a later turn (CR 702.185a).
     pub own_ends: u8,
+    /// "you may cast that card": a spell only, not a land play.
+    pub cast_only: bool,
+    /// "... without paying its mana cost".
+    pub free: bool,
 }
 
 /// How a spell was cast (on the stack; `Suspend` stays with the permanent

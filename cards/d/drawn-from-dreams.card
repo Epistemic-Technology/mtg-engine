@@ -1,0 +1,6 @@
+card "Drawn from Dreams" {
+  oracle_id 77acdc13-e1b5-4a6c-9be1-b987e8256f10
+  cost {2}{U}{U}
+  type Sorcery
+  spell: dig 7 take 2 card rest bottom random reword
+}

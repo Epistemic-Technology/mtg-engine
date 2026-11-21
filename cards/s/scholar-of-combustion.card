@@ -1,0 +1,7 @@
+card "Scholar of Combustion" {
+  oracle_id ebae61bf-6e8c-4cc9-8071-b63e781f6530
+  cost {3}{R}
+  type Creature — Human Wizard
+  pt 3/2
+  triggered when this enters: exile up to 1 target instant or sorcery card from your graveyard; may cast that card next turn
+}

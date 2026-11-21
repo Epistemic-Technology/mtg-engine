@@ -1307,6 +1307,20 @@ impl Decompiler<'_> {
                 kind: *kind,
                 count: *count,
             },
+            CoreEffect::ExileUntilCard { who, filter } => Effect::ExileUntilCard {
+                who: match who {
+                    CoreRecipient::You => None,
+                    w => Some(Self::recipient(*w)),
+                },
+                filter: self.filter(filter),
+            },
+            CoreEffect::MayPlayCard { until, cast, free } => Effect::MayPlayCard {
+                until: *until,
+                cast: *cast,
+                free: *free,
+                first: false,
+                it: false,
+            },
             CoreEffect::RevealUntil { who, filter } => Effect::RevealUntil {
                 who: match r(*who) {
                     Recipient::You => None,
@@ -1329,7 +1343,9 @@ impl Decompiler<'_> {
             },
             CoreEffect::RevealCard => Effect::RevealIt,
             CoreEffect::DrawReveal => Effect::DrawReveal,
-            CoreEffect::PutCard { what, to } => Effect::PutCard {
+            CoreEffect::PutCard { what, to, random } => Effect::PutCard {
+                random: *random,
+                rest: None,
                 what: match what {
                     mtg_core::card::CardSet::It => crate::ast::CardWords::It,
                     mtg_core::card::CardSet::Revealed => crate::ast::CardWords::AllRevealed,
@@ -1378,6 +1394,8 @@ impl Decompiler<'_> {
                 then: false,
                 top: *top,
                 onto: *onto,
+                that_card: false,
+                short: false,
                 reword: false,
             },
             CoreEffect::Modes(modes) => Effect::Modes(modes.iter().map(|m| self.mode(m)).collect()),
