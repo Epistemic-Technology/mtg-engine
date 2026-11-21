@@ -2752,3 +2752,26 @@ static ability while the gate matches. Per-game throughput fell 4.0%
 this wave (mono-red mirror, pinned best of five: 3,678 to 3,531
 games/s). Coverage: 89.6% of Pauper, 60.3% of Standard, 57.1% of Modern;
 gate 15,519 match; 7,556 scenarios pass; random-deck fuzz clean.
+
+Status 2026-11-21, later: the fourth wave. Open issues now live in
+`KNOWN-ISSUES.md` (wrong behaviour in accepted cards; forms that pass
+the gate with the wrong meaning; missing features by cards reported),
+which agents read, prune, and extend. Ten card batches accepted 96 of
+400 (24%, down from 28%: the misses share few reasons now). Six feature
+agents: the open bugs (declined "up to N" targets keep a slot; `it`
+after a target in a trigger means the target, which corrected six
+accepted cards; several wrong-meaning forms are compile errors now);
+batched and new triggers, "triggers an additional time", tapped and
+attacking (74 cards); replacement effects, "spell or permanent"
+targets, end the turn, exchange control (54); "until your next turn"
+and "for as long as" durations, free casts as an effect, keywords given
+to spells (47); counts, joined conditions, and non-mana costs (80);
+wording (36). The fuzz, run with a debug build for the first time,
+found five older faults the release fuzz had not: a stale cache on a
+draw-count static and on a token in a graveyard, phasing and unbestow
+not recounting the board's sources, and a missing snapshot before a
+spell copies a legendary creature. Debug builds now fail by name if the
+layer pass is re-entered (the cause of two stack overflows). Per-game
+throughput fell about 2% (3,615 to 3,560 games/s). Coverage: 89.8% of
+Pauper, 65.6% of Standard, 58.8% of Modern; gate 15,915 match; 8,209
+scenarios pass; fuzz clean in release and debug builds.
