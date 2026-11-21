@@ -103,6 +103,31 @@ scenario "nth resolution: Vito gains, then drains" {
   assert life B 14
 }
 
+scenario "nth resolution: Soulbright Flamekin's third time adds eight red" {
+  battlefield A: "Soulbright Flamekin", 6 "Plains"
+  hand A: "Hill Giant"
+  turn 1 A: activate "Soulbright Flamekin" targeting "Soulbright Flamekin"
+  turn 1 A: wait
+  turn 1 A: activate "Soulbright Flamekin" targeting "Soulbright Flamekin"
+  turn 1 A: wait
+  turn 1 A: activate "Soulbright Flamekin" targeting "Soulbright Flamekin"
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "nth resolution: Soulbright Flamekin twice adds nothing" {
+  battlefield A: "Soulbright Flamekin", 4 "Plains"
+  hand A: "Hill Giant"
+  turn 1 A: activate "Soulbright Flamekin" targeting "Soulbright Flamekin"
+  turn 1 A: wait
+  turn 1 A: activate "Soulbright Flamekin" targeting "Soulbright Flamekin"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+}
+
 scenario "nth resolution: Rumor Gatherer draws instead of scrying" {
   battlefield A: "Rumor Gatherer", 2 "Plains"
   hand A: "Brave-Kin Duo", "Brave-Kin Duo"

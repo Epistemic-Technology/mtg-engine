@@ -1,0 +1,7 @@
+card "Soulbright Flamekin" {
+  oracle_id 7ea8426a-3b66-4fd0-9863-2b68d379671f
+  cost {1}{R}
+  type Creature — Elemental Shaman
+  pt 2/1
+  activated {2}: target creature gains trample until end of turn; if resolution 3, you may add {R}{R}{R}{R}{R}{R}{R}{R}
+}
