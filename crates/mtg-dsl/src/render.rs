@@ -1918,11 +1918,13 @@ fn enters_tapped_with(card: &Card, i: usize) -> Option<String> {
             event: Replaces::Enters,
             outcome: Outcome::EnterTapped,
             then: t1,
+            ..
         }),
         Some(Ability::Replacement(Replacement {
             event: Replaces::Enters,
             outcome: Outcome::EnterWithCounters { kind, n },
             then: t2,
+            ..
         })),
     ) = (&card.abilities[i], card.abilities.get(i + 1))
     else {
@@ -9026,6 +9028,33 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 _ => "something else happens instead",
             };
             format!("If {what} would be put into {gy} {from}, {instead}.")
+        }
+        // CR 614.1a, 111.1: "If one or more tokens would be created under
+        // your control, twice that many of those tokens are created
+        // instead." (Mondrak); "If an effect would create ..." (Parallel
+        // Lives).
+        (Replaces::CreateTokens { creature, effect }, Outcome::Double) => {
+            let c = if *creature { "creature " } else { "" };
+            if *effect {
+                format!(
+                    "If an effect would create one or more {c}tokens under your control, it creates twice that many of those tokens instead."
+                )
+            } else {
+                format!(
+                    "If one or more {c}tokens would be created under your control, twice that many of those tokens are created instead."
+                )
+            }
+        }
+        // "those tokens plus a 1/1 green Frog creature token are created
+        // instead" (Quina).
+        (Replaces::CreateTokens { creature, .. }, Outcome::PlusToken { that_many, .. }) => {
+            let c = if *creature { "creature " } else { "" };
+            let n = if *that_many { Num::ThatMuch } else { Num::N(1) };
+            let desc =
+                token_description(r.token.as_deref().unwrap_or_default(), n, false, false, ctx);
+            format!(
+                "If one or more {c}tokens would be created under your control, those tokens plus {desc} are created instead."
+            )
         }
         // The card names itself: the ability works in every zone, where it
         // isn't "this creature" (CR 113.6b).

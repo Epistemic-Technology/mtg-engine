@@ -1,0 +1,82 @@
+# Token-creation replacement effects (CR 111.1, 614.1a): "twice that many
+# of those tokens", "those tokens plus a 1/1 green Frog creature token".
+# Each applies once to one creation event.
+
+scenario "tokens plus a Frog: Quina adds one Frog to a two-token event" {
+  battlefield A: "Quina, Qu Gourmet", 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Soldier"
+  assert battlefield A contains 1 "Frog"
+}
+
+scenario "tokens plus a Frog: a noncreature token too" {
+  battlefield A: "Quina, Qu Gourmet", "Mountain"
+  hand A: "Strike It Rich"
+  turn 1 A: cast "Strike It Rich"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Treasure"
+  assert battlefield A contains 1 "Frog"
+}
+
+scenario "twice that many: Parallel Lives doubles tokens" {
+  battlefield A: "Parallel Lives", 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 end
+  assert battlefield A contains 4 "Soldier"
+}
+
+scenario "twice that many: two doublers make four times as many" {
+  battlefield A: "Parallel Lives", "Anointed Procession", 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 end
+  assert battlefield A contains 8 "Soldier"
+}
+
+scenario "twice that many: the Frog Quina adds is doubled as well" {
+  battlefield A: "Quina, Qu Gourmet", "Mondrak, Glory Dominus", 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 end
+  assert battlefield A contains 4 "Soldier"
+  assert battlefield A contains 2 "Frog"
+}
+
+scenario "twice that many: token copies" {
+  battlefield A: "Mondrak, Glory Dominus", 3 "Island", "Grizzly Bears"
+  hand A: "Cackling Counterpart"
+  turn 1 A: cast "Cackling Counterpart" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Grizzly Bears"
+}
+
+scenario "twice that many: not an opponent's tokens" {
+  battlefield A: "Parallel Lives"
+  battlefield B: 2 "Plains"
+  hand B: "Raise the Alarm"
+  start turn 1 B
+  turn 1 B: cast "Raise the Alarm"
+  run_to turn 1 end
+  assert battlefield B contains 2 "Soldier"
+}
+
+scenario "creature tokens plus a Soldier: Queen Allenal" {
+  battlefield A: "Queen Allenal of Ruadach", 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Soldier"
+  assert power "Queen Allenal of Ruadach" 4
+}
+
+scenario "creature tokens plus a Soldier: not for a Treasure" {
+  battlefield A: "Queen Allenal of Ruadach", "Mountain"
+  hand A: "Strike It Rich"
+  turn 1 A: cast "Strike It Rich"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Treasure"
+  assert battlefield A lacks "Soldier"
+}

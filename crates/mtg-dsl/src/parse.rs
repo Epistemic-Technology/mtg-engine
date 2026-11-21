@@ -2338,6 +2338,7 @@ impl P {
                     event: Replaces::Enters,
                     outcome: Outcome::EnterTappedUnlessPay(n),
                     then: Vec::new(),
+                    token: None,
                 }))
             }
             "enters" if self.at_words(&["enters", "tapped", "if", "not", "your", "turn"]) => {
@@ -2407,6 +2408,7 @@ impl P {
                     event: Replaces::Enters,
                     outcome,
                     then: Vec::new(),
+                    token: None,
                 }))
             }
             "label" => {
@@ -7614,6 +7616,7 @@ impl P {
                         None => Outcome::Prevent,
                     },
                     then: Vec::new(),
+                    token: None,
                 }))
             }
             "players" => {
@@ -11153,11 +11156,29 @@ impl P {
     fn replacement_inline(&mut self) -> R<Replacement> {
         let event = self.replaces()?;
         self.expect(&Tok::Colon)?;
-        let outcome = self.outcome()?;
+        // `plus "1/1 green Frog creature"`, `plus that many "..."`: tokens
+        // created as well (Quina, Chatterfang).
+        let mut token = None;
+        let outcome = if self.at_word("plus")
+            && (matches!(self.peek_at(1), Some(Tok::Str(_)))
+                || self.at_words(&["plus", "that", "many"]))
+        {
+            self.pos += 1;
+            let that_many = self.eat_words(&["that", "many"]);
+            token = Some(self.string()?);
+            self.eat_word("instead");
+            Outcome::PlusToken {
+                token: mtg_core::card::CardRef::default(),
+                that_many,
+            }
+        } else {
+            self.outcome()?
+        };
         Ok(Replacement {
             event,
             outcome,
             then: Vec::new(),
+            token,
         })
     }
 
@@ -11183,6 +11204,17 @@ impl P {
             return Ok(Replaces::Dies {
                 to: Affects::Target(n - 1),
             });
+        }
+        // `tokens created under your control` (CR 111.1); `by an effect`
+        // for the older wording.
+        if self.at_words(&["tokens", "created"])
+            || self.at_words(&["creature", "tokens", "created"])
+        {
+            let creature = self.eat_word("creature");
+            self.pos += 2;
+            self.expect_words(&["under", "your", "control"])?;
+            let effect = self.eat_words(&["by", "an", "effect"]);
+            return Ok(Replaces::CreateTokens { creature, effect });
         }
         // `this put into a graveyard` (CR 113.6b: from anywhere).
         if self.eat_words(&["this", "put", "into", "a", "graveyard"]) {

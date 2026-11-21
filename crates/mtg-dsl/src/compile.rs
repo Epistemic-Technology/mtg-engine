@@ -3446,6 +3446,10 @@ impl Compiler<'_> {
                 from_battlefield: *from_battlefield,
             },
             Replaces::ThisToGraveyard => CoreReplaces::ThisToGraveyard,
+            Replaces::CreateTokens { creature, effect } => CoreReplaces::CreateTokens {
+                creature: *creature,
+                effect: *effect,
+            },
             Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
             },
@@ -3457,9 +3461,17 @@ impl Compiler<'_> {
             },
             Replaces::Enters => CoreReplaces::Enters,
         };
+        let mut replacement = r.outcome;
+        if let mtg_core::card::Replacement::PlusToken { token, .. } = &mut replacement {
+            let name = r.token.as_deref().unwrap_or_default();
+            let Some(t) = self.pool.lookup(name) else {
+                return self.err(format!("unknown token \"{name}\""));
+            };
+            *token = t;
+        }
         Ok(ReplacementAbility {
             replaces,
-            replacement: r.outcome,
+            replacement,
             then: self.sentences(&r.then)?,
         })
     }
@@ -4860,6 +4872,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             },
             outcome: mtg_core::card::Replacement::PreventNext(Num::N(*n)),
             then: Vec::new(),
+            token: None,
         }),
         // CR 702.39a: "Whenever this creature attacks, you may have target
         // creature defending player controls untap and block this creature

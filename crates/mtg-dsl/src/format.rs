@@ -536,6 +536,11 @@ impl Fmt {
                 s
             }
             Replaces::ThisToGraveyard => "this put into a graveyard".to_string(),
+            Replaces::CreateTokens { creature, effect } => format!(
+                "{}tokens created under your control{}",
+                if *creature { "creature " } else { "" },
+                if *effect { " by an effect" } else { "" }
+            ),
             Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
             Replaces::Destroy { to } => format!("destroy {}", self.affects(to, targets)),
             Replaces::Dies { to } => format!("{} dies", self.affects(to, targets)),
@@ -2659,6 +2664,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::Prevent => "prevent".to_string(),
         Outcome::PreventNext(n) => format!("prevent next {}", num(*n)),
         Outcome::Double => "double".to_string(),
+        Outcome::PlusToken { .. } => "plus \"\"".to_string(),
         Outcome::ShuffleIntoLibrary => "shuffle into library".to_string(),
         Outcome::PlusOne => "plus one".to_string(),
         Outcome::PlusN { n, to_that } => {
@@ -4747,6 +4753,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             };
             let head = match (&rep.event, &rep.outcome) {
                 (Replaces::Enters, o) => format!("enters {}", outcome(o)),
+                (event, Outcome::PlusToken { that_many, .. }) => format!(
+                    "replace {}: plus {}\"{}\"",
+                    fmt.replaces(event, &[]),
+                    if *that_many { "that many " } else { "" },
+                    rep.token.as_deref().unwrap_or_default()
+                ),
                 (event, o) => format!("replace {}: {}", fmt.replaces(event, &[]), outcome(o)),
             };
             if rep.then.is_empty() {

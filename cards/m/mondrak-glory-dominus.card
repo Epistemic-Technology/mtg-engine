@@ -1,0 +1,8 @@
+card "Mondrak, Glory Dominus" {
+  oracle_id fe83087d-c6c1-40be-9295-baaa1c6b2db1
+  cost {2}{W}{W}
+  type Legendary Creature — Phyrexian Horror
+  pt 4/4
+  replace tokens created under your control: double
+  activated {1}{W/P}{W/P}, sacrifice 2 other artifact or creature: put 1 indestructible counters on this
+}

@@ -9254,14 +9254,20 @@ impl GameState {
                 ctx.created_tokens.clear();
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        for _ in 0..self.eval_num(*count, ctx) {
-                            // "then attach this Equipment to it".
-                            let id = self.create_token_with(*token, p, *tapped);
-                            if let Some(h) = host {
-                                self.attach(id, h);
+                        let n = self.eval_num(*count, ctx);
+                        // CR 614.1a: token-creation replacement effects.
+                        for (def, k) in self.tokens_to_create(p, *token, n) {
+                            for _ in 0..k {
+                                // "then attach this Equipment to it".
+                                let id = self.create_token_with(def, p, *tapped && def == *token);
+                                if def == *token
+                                    && let Some(h) = host
+                                {
+                                    self.attach(id, h);
+                                }
+                                ctx.created = Some(id);
+                                ctx.created_tokens.push(id);
                             }
-                            ctx.created = Some(id);
-                            ctx.created_tokens.push(id);
                         }
                     }
                 }
@@ -11477,8 +11483,19 @@ impl GameState {
                 let recipients = self.recipients(ctx, *of);
                 for t in recipients {
                     if let Some(id) = on_battlefield(self, t) {
-                        let new = self.create_token_copy(id, ctx.controller, x);
-                        ctx.created = Some(new);
+                        // CR 614.1a: token-creation replacement effects
+                        // ("twice that many of those tokens").
+                        let def = self.objects[id].def;
+                        for (d, k) in self.tokens_to_create(ctx.controller, def, 1) {
+                            for _ in 0..k {
+                                let new = if d == def {
+                                    self.create_token_copy(id, ctx.controller, x)
+                                } else {
+                                    self.create_token(d, ctx.controller)
+                                };
+                                ctx.created = Some(new);
+                            }
+                        }
                     }
                 }
             }

@@ -1,0 +1,9 @@
+card "Exalted Sunborn" {
+  oracle_id 43febbcd-ecbe-4edb-ad90-7fc6dc381d05
+  cost {3}{W}{W}
+  type Creature — Angel Wizard
+  pt 4/5
+  keywords flying, lifelink
+  replace tokens created under your control: double
+  warp {1}{W}
+}

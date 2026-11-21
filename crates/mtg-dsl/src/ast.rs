@@ -2197,6 +2197,9 @@ pub struct Replacement {
     pub event: Replaces,
     pub outcome: Outcome,
     pub then: Vec<Sentence>,
+    /// The token an outcome `plus "<token>"` adds (`Outcome::PlusToken`,
+    /// whose `CardRef` the compiler fills in).
+    pub token: Option<String>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -2227,6 +2230,13 @@ pub enum Replaces {
     ToGraveyard {
         whose: Who,
         from_battlefield: bool,
+    },
+    /// `tokens created under your control`, `creature tokens created
+    /// under your control`; `effect` (`... by an effect`) prints "If an
+    /// effect would create one or more tokens under your control".
+    CreateTokens {
+        creature: bool,
+        effect: bool,
     },
     /// `this put into a graveyard`: "If ~ would be put into a graveyard
     /// from anywhere" (CR 113.6b).

@@ -270,6 +270,85 @@ impl GameState {
         }
     }
 
+    /// The tokens to create when `n` tokens of `def` would be created under
+    /// `p`'s control (CR 111.1, 614.1a): "twice that many of those tokens"
+    /// (Parallel Lives), "those tokens plus a 1/1 green Frog creature
+    /// token" (Quina). One event per effect: each applicable static
+    /// ability of a permanent `p` controls applies once. Of the orders the
+    /// player may choose (CR 616.1), the added tokens come first, so a
+    /// doubling effect doubles them too.
+    pub(super) fn tokens_to_create(
+        &mut self,
+        p: PlayerId,
+        def: CardRef,
+        n: u32,
+    ) -> SmallVec<[(CardRef, u32); 2]> {
+        let mut out: SmallVec<[(CardRef, u32); 2]> = smallvec![(def, n)];
+        if self.replacement_sources == 0 || n == 0 {
+            return out;
+        }
+        let mut found: SmallVec<[(CardRef, Replacement, bool); 2]> = SmallVec::new();
+        let granted = self.grant_sources > 0;
+        for id in &self.battlefield {
+            let o = &self.objects[*id];
+            if o.controller != p || (!granted && !self.flags_of(o).has_replacements()) {
+                continue;
+            }
+            let Some(c) = self.characteristics(*id) else {
+                continue;
+            };
+            for ability in c.abilities.iter().copied() {
+                if let AbilityDef::Replacement(ReplacementAbility {
+                    replaces: Replaces::CreateTokens { creature, .. },
+                    replacement,
+                    ..
+                }) = self.pool.ability(ability)
+                {
+                    found.push((o.def, *replacement, *creature));
+                }
+            }
+        }
+        if found.is_empty() {
+            return out;
+        }
+        let is_creature = |state: &GameState, d: CardRef| {
+            state
+                .pool
+                .get(d)
+                .types
+                .contains(crate::card::CardType::Creature)
+        };
+        if !found.iter().any(|(_, _, creature)| !*creature) && !is_creature(self, def) {
+            return out;
+        }
+        found.sort_by_key(|(_, r, _)| matches!(r, Replacement::Double));
+        for (by, r, creature) in found {
+            let total: u32 = out
+                .iter()
+                .filter(|(d, _)| !creature || is_creature(self, *d))
+                .map(|(_, k)| *k)
+                .sum();
+            if total == 0 {
+                continue;
+            }
+            match r {
+                Replacement::Double => {
+                    for (d, k) in &mut out {
+                        if !creature || is_creature(self, *d) {
+                            *k = k.saturating_mul(2);
+                        }
+                    }
+                }
+                Replacement::PlusToken { token, that_many } => {
+                    out.push((token, if that_many { total } else { 1 }));
+                }
+                _ => continue,
+            }
+            self.emit(Event::Replaced { by });
+        }
+        out
+    }
+
     /// Every replacement or prevention effect that applies to `ev` and has
     /// not yet applied, in a stable order: battlefield statics, the
     /// entering permanent's own, then stored effects.

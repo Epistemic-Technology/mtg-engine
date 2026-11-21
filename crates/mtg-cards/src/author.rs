@@ -3623,6 +3623,21 @@ impl Builder<'_> {
                 .push("replace you gain life: double".to_string());
             return Ok(());
         }
+        // CR 614.1a, 111.1: token doublers.
+        if line
+            == "If one or more tokens would be created under your control, twice that many of those tokens are created instead."
+        {
+            self.statements
+                .push("replace tokens created under your control: double".to_string());
+            return Ok(());
+        }
+        if line
+            == "If an effect would create one or more tokens under your control, it creates twice that many of those tokens instead."
+        {
+            self.statements
+                .push("replace tokens created under your control by an effect: double".to_string());
+            return Ok(());
+        }
         if line == "If you would gain life, you gain that much life plus 1 instead." {
             self.statements
                 .push("replace you gain life: plus one".to_string());

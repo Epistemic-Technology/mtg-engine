@@ -1,0 +1,6 @@
+card "Anointed Procession" {
+  oracle_id 7246d45b-2185-4cdd-981b-5419b7d52bce
+  cost {3}{W}
+  type Enchantment
+  replace tokens created under your control by an effect: double
+}

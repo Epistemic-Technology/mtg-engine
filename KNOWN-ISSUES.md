@@ -57,6 +57,11 @@ wrong thing in some case.
   Conclusions, Gruff Triplets): not supported; neither card is in.
 - **Thousand-Year Storm:** the "cast before it this turn" count has an
   edge case with spells cast while it is on the stack.
+- **Token-creation replacements apply only to `create` and `create
+  token copy` effects.** Amass, fabricate, incubate, populate, offspring,
+  embalm and other token makers ignore Parallel Lives, Quina, and the
+  like; the replacements' order is fixed (added tokens, then doubling)
+  rather than chosen (CR 616.1).
 - **Reflexive trigger on a token:** "it" may read the token where the
   text means the triggering object.
 

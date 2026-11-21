@@ -1840,6 +1840,10 @@ impl Decompiler<'_> {
                     from_battlefield: *from_battlefield,
                 },
                 CoreReplaces::ThisToGraveyard => Replaces::ThisToGraveyard,
+                CoreReplaces::CreateTokens { creature, effect } => Replaces::CreateTokens {
+                    creature: *creature,
+                    effect: *effect,
+                },
                 CoreReplaces::PlusCounters { on } => Replaces::PlusCounters {
                     on: self.filter(on),
                 },
@@ -1853,6 +1857,12 @@ impl Decompiler<'_> {
             },
             outcome: r.replacement,
             then: self.sentences(&r.then),
+            token: match r.replacement {
+                mtg_core::card::Replacement::PlusToken { token, .. } => {
+                    Some(self.pool.get(token).name.clone())
+                }
+                _ => None,
+            },
         }
     }
 

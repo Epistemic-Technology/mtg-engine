@@ -770,6 +770,20 @@ life plus 1 instead."; for counters, `replace +1/+1 counters put on
 creature you control: double` prints "If one or more +1/+1 counters would
 be put on a creature you control, twice that many +1/+1 counters are put
 on that creature instead." (also the counters it enters with, CR 122.6).
+Token creation (CR 111.1, 614.1a): `replace tokens created under your
+control: double` prints "If one or more tokens would be created under your
+control, twice that many of those tokens are created instead." (`... by
+an effect: double` is the older "If an effect would create one or more
+tokens under your control, it creates twice that many of those tokens
+instead."); `replace creature tokens created under your control: plus
+"1/1 white Soldier creature"` prints "If one or more creature tokens would
+be created under your control, those tokens plus a 1/1 white Soldier
+creature token are created instead." (`plus that many "..."`: "plus that
+many ... tokens"). Each applies once to each `create` or `create token
+copy` effect's tokens for one player; tokens added this way come before
+doubling, so a doubler doubles them too (the order is the player's choice,
+CR 616.1). Other token makers (amass, fabricate, incubate, populate, ...)
+aren't replaced yet.
 `replace this put into a graveyard: shuffle into library` prints "If
 Darksteel Colossus would be put into a graveyard from anywhere, reveal
 Darksteel Colossus and shuffle it into its owner's library instead.": the

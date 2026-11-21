@@ -1,0 +1,6 @@
+card "Parallel Lives" {
+  oracle_id 84dc94b2-95fb-4d53-aaa2-191cb645639f
+  cost {3}{G}
+  type Enchantment
+  replace tokens created under your control by an effect: double
+}
