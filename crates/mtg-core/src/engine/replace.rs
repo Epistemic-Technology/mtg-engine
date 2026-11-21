@@ -352,6 +352,7 @@ impl GameState {
     /// Every replacement or prevention effect that applies to `ev` and has
     /// not yet applied, in a stable order: battlefield statics, the
     /// entering permanent's own, then stored effects.
+    #[allow(clippy::too_many_lines)] // one block per place effects come from
     fn candidates(&self, ev: &Proposed, applied: &Applied) -> Vec<Candidate> {
         let mut out = Vec::new();
         if self.replacement_sources > 0 {

@@ -7736,7 +7736,7 @@ impl GameState {
     /// declining before anything is found is not searching at all, and
     /// the library isn't shuffled. With `reveal`, a card put into a hand
     /// is known to every player (CR 701.20) until it moves.
-    #[allow(clippy::too_many_arguments)]
+    #[allow(clippy::too_many_arguments, clippy::too_many_lines)] // one arm per destination
     fn search_library(
         &mut self,
         ctx: &mut EffectCtx,

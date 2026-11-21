@@ -3859,6 +3859,7 @@ impl P {
 
     /// `<clause> unless you pay {2}` / `unless they pay 2 life` / `unless
     /// <recipient> pays {2}`.
+    #[allow(clippy::too_many_lines)] // one block per kind of payment
     fn unless_suffix(&mut self, e: Effect) -> R<Effect> {
         if !self.at_word("unless") {
             return Ok(e);
