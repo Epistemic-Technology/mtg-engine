@@ -1,0 +1,7 @@
+card "Long River's Pull" {
+  oracle_id f1993767-1d07-49c8-b8dc-04ec9840a999
+  cost {U}{U}
+  type Instant
+  gift card
+  spell: counter target creature spell; if kicked, instead counter target spell
+}

@@ -963,10 +963,24 @@ impl GameState {
                         self.flow = Flow::Priority;
                         continue;
                     };
+                    // "If this spell was cast using teamwork, instead ...
+                    // target ...": without targets for the spell cast
+                    // without it, teamwork must be used (CR 601.2c).
+                    let def = self.pool.get(obj.def);
+                    let without = def.kicked_drops.is_none()
+                        || self.targets_available(
+                            obj.controller,
+                            def.unkicked_cast_targets(),
+                            Some(spell),
+                        );
+                    let mut options = vec![Choice::Accept];
+                    if without {
+                        options.push(Choice::Decline);
+                    }
                     return StepResult::Decision(Decision {
                         player: obj.controller,
                         kind: DecisionKind::Teamwork { spell },
-                        options: vec![Choice::Accept, Choice::Decline],
+                        options,
                     });
                 }
                 Flow::ChoosingOptionalCost { spell } => {
@@ -2564,8 +2578,13 @@ impl GameState {
     fn after_casualty(&self, spell: ObjId) -> Flow {
         // Teamwork, with creatures to tap.
         let o = &self.objects[spell];
-        let n = self.pool.get(o.def).teamwork;
-        if n > 0 && self.teamwork_tappers(o.controller, n).is_some() {
+        let def = self.pool.get(o.def);
+        let n = def.teamwork;
+        if n > 0
+            && self.teamwork_tappers(o.controller, n).is_some()
+            && (def.kicked_drops.is_none()
+                || self.targets_available(o.controller, def.kicked_cast_targets(), Some(spell)))
+        {
             return Flow::ChoosingTeamwork { spell };
         }
         self.after_teamwork(spell)

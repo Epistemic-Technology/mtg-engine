@@ -61,9 +61,6 @@ by rejecting the form at compile time or by binding it correctly.
 - **`that much` after a mana-spent check** is 0 (Tellah, Great Sage).
 - **`delayed those tokens: exile those tokens when this leaves`**
   watches the tokens, not the source (Mysterio, Master of Illusion).
-- **`if teamwork, instead <other target>`** and kicker with `instead`
-  on a single target always ask for both targets (Cruel Alliance, Long
-  River's Pull). Gift is fixed; check whether these now work.
 - **"any other target" meaning other than the enchanted creature**
   (Pain for All: "enchanted creature deals damage ... to any other
   target"): `another target any` excludes the source (the Aura), not

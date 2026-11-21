@@ -4498,8 +4498,23 @@ impl P {
             } else if also {
                 vec![self.sentence()?]
             } else {
+                let before = self.targets.len();
                 match self.instead_body(InsteadCond::Static(cond.clone()))? {
-                    Ok(e) => return Ok(Some(e)),
+                    // "If this spell was cast using teamwork, instead exile
+                    // target creature": the spell cast using teamwork has
+                    // these targets in place of the others, as a kicked
+                    // spell's "instead" (`Card::kicked_drops`).
+                    Ok(e) => {
+                        if cond == StaticCond::Teamwork
+                            && matches!(e, Effect::Instead { .. })
+                            && self.targets.len() > before
+                            && before > 0
+                            && self.kicked_instead.is_none()
+                        {
+                            self.kicked_instead = Some(before);
+                        }
+                        return Ok(Some(e));
+                    }
                     Err(s) => vec![s],
                 }
             };

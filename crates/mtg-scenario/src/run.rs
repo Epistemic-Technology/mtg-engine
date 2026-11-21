@@ -1373,7 +1373,10 @@ impl Runner {
                                         conspired: true,
                                         ..
                                     }
-                                ) && self.state().def_of(id).is_some_and(|d| d.gift.is_some())),
+                                ) && self
+                                    .state()
+                                    .def_of(id)
+                                    .is_some_and(|d| d.gift.is_some() || d.teamwork > 0)),
                         )?;
                         // A bestowed spell targets what it enchants; spliced
                         // cards' targets follow the spell's (CR 702.47a).

@@ -4616,6 +4616,10 @@ impl GameState {
                 && def.kicked_drops.is_some()
                 && self.players_in_game().any(|q| q != p)
                 && self.targets_available(p, def.kicked_cast_targets(), Some(id)))
+            || (def.teamwork > 0
+                && def.kicked_drops.is_some()
+                && self.teamwork_tappers(p, def.teamwork).is_some()
+                && self.targets_available(p, def.kicked_cast_targets(), Some(id)))
     }
 
     /// Whether every one of `specs` has a legal target for `p` (for an

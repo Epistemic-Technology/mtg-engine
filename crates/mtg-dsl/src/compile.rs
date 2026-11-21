@@ -1909,7 +1909,8 @@ impl Compiler<'_> {
                 let drops = matches!(
                     s.effects.as_slice(),
                     [Effect::Instead {
-                        cond: crate::ast::InsteadCond::Kicked,
+                        cond: crate::ast::InsteadCond::Kicked
+                            | crate::ast::InsteadCond::Static(crate::ast::StaticCond::Teamwork),
                         ..
                     }]
                 )
