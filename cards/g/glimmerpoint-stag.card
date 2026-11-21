@@ -4,5 +4,5 @@ card "Glimmerpoint Stag" {
   type Creature — Elk
   pt 3/3
   keywords vigilance
-  triggered when this enters: exile another target permanent; delayed target 1: return it to battlefield at beginning of the next end step
+  triggered when this enters: exile another target permanent; delayed target 1: return that card to battlefield at beginning of the next end step
 }

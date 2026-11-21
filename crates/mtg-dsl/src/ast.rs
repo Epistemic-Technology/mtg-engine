@@ -767,6 +767,15 @@ pub struct Filter {
     /// after "each" ("put a +1/+1 counter on each Pest, Bat, and Spider
     /// you control"); wording only.
     pub and_list: bool,
+    /// `every other creature`: a group printed with "all" as an effect's
+    /// subject ("all other creatures get -2/-2"); otherwise as `all`.
+    /// Wording only.
+    pub all_word: bool,
+    /// `whenever a creature dies`: written with its article, a trigger's
+    /// subject that could be the source prints so ("Whenever a creature
+    /// dies") rather than "this creature or another creature". Wording
+    /// only.
+    pub article: bool,
 }
 
 impl Filter {
@@ -2581,6 +2590,10 @@ pub enum Recipient {
     EachCreatureYouControl,
     EachPermanentYouControl,
     SameObject,
+    /// `that card` inside a delayed trigger: the object it is about
+    /// (`SameObject`), returned as "that card" ("Return that card to the
+    /// battlefield ..."), where `it` prints "it".
+    SameCard,
     /// `that creature` inside a delayed trigger about a target: the object
     /// the trigger is about (`SameObject`), printed "that creature".
     SameThat,

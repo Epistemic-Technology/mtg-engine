@@ -1,0 +1,10 @@
+card "Gollum the Abandoned" {
+  oracle_id 8d88facd-cf7e-498e-ab6b-6bd021316162
+  cost {1}{B}
+  type Legendary Creature — Halfling Horror
+  pt 2/2
+  short_name "Gollum"
+  keywords can't block
+  triggered when this enters: exile up to one target card from an opponent's graveyard; each opponent loses 2 life
+  activated {2}, sacrifice artifact or creature, from graveyard, sorcery: return this to hand
+}

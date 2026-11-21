@@ -1,0 +1,7 @@
+card "Cornered Crook" {
+  oracle_id 4477eeab-a51a-4dc2-9c97-83f2551d8b54
+  cost {4}{R}
+  type Creature — Lizard Warrior
+  pt 5/4
+  triggered when this enters: you may sacrifice 1 artifact chosen; when you do, this deals 3 damage to any target
+}

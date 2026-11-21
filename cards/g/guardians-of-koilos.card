@@ -1,0 +1,7 @@
+card "Guardians of Koilos" {
+  oracle_id 8f593bed-4be8-403d-bce2-fb769658e673
+  cost {5}
+  type Artifact Creature — Construct
+  pt 4/4
+  triggered when this enters: you may return another target historic you control to hand
+}

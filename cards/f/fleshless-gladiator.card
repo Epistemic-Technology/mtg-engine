@@ -1,0 +1,7 @@
+card "Fleshless Gladiator" {
+  oracle_id 8e33d6e5-30a2-48b4-826c-09aa75bbba27
+  cost {1}{B}
+  type Creature — Phyrexian Skeleton
+  pt 2/2
+  label "Corrupted" activated {2}{B}, from graveyard, if opponent poison 3 or more: return this to battlefield tapped; you lose 1 life
+}

@@ -1,0 +1,8 @@
+card "Trailblazer's Torch" {
+  oracle_id 1cdac498-3c94-48d6-b94c-1d98697370ea
+  cost {4}
+  type Artifact — Equipment
+  triggered when this enters: take initiative
+  triggered whenever equipped creature becomes blocked: it deals 2 damage to each creature blocking it
+  equip {1}
+}

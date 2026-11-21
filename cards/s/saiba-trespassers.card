@@ -1,0 +1,7 @@
+card "Saiba Trespassers" {
+  oracle_id d5cdfa86-a234-4ddd-bfa0-4a3bc51eebce
+  cost {4}{U}
+  type Artifact Creature — Moonfolk Rogue
+  pt 3/5
+  label "Channel" activated {3}{U}, discard this: tap up to two target creatures you don't control; targets 1 to 2 doesn't untap next untap step
+}

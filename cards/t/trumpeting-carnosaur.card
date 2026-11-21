@@ -1,0 +1,9 @@
+card "Trumpeting Carnosaur" {
+  oracle_id f2ef8bda-373d-4387-900d-0f1b6ccf72e9
+  cost {4}{R}{R}
+  type Creature — Dinosaur
+  pt 7/6
+  keywords trample
+  triggered when this enters: discover 5
+  activated {2}{R}, discard this: it deals 3 damage to target creature or planeswalker
+}

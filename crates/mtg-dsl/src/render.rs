@@ -450,6 +450,31 @@ fn lower_spell_subject(f: &Filter) -> bool {
 }
 
 fn a_spell(f: &Filter, card: &Card) -> String {
+    // "a Lesson or Shrine spell": two creature or card types alone share
+    // the article and the noun (`Lesson spell or Shrine spell` prints each
+    // whole).
+    if let Some(alt) = &f.or
+        && !f.alt_article
+        && alt.or.is_none()
+    {
+        let bare = |g: &Filter| {
+            g.subtypes.len() == 1
+                && Filter {
+                    subtypes: Vec::new(),
+                    or: None,
+                    ..g.clone()
+                } == Filter::default()
+        };
+        let mut base = f.clone();
+        base.or = None;
+        if bare(&base) && bare(alt) {
+            return format!(
+                "{} or {} spell",
+                with_article(&base.subtypes[0]),
+                alt.subtypes[0]
+            );
+        }
+    }
     if let Some(alt) = &f.or {
         let (b, a) = crate::format::factor_qualifiers(f, alt);
         return format!("{} or {}", a_spell(&b, card), a_spell(&a, card));
@@ -860,6 +885,16 @@ fn is_equipment(card: &Card) -> bool {
     card.subtypes.iter().any(|s| s == "Equipment")
 }
 
+/// A historic target on the battlefield is a "historic permanent" (CR
+/// 700.6): "another target historic permanent you control".
+fn historic_permanent(f: &Filter, phrase: String) -> String {
+    if f.subtypes == [crate::ast::HISTORIC] && f.types.is_empty() && f.any_types.is_empty() {
+        phrase.replacen("historic", "historic permanent", 1)
+    } else {
+        phrase
+    }
+}
+
 /// Rendering state for one ability's text.
 #[allow(clippy::struct_excessive_bools)] // independent mention flags
 struct Ctx<'a> {
@@ -1056,6 +1091,12 @@ impl<'a> Ctx<'a> {
     }
 
     /// Whether a recipient is a variable target group (CR 601.2c).
+    /// "each " after a variable group of targets ("any number of target
+    /// players each discard a card").
+    fn each_many(&self, r: Recipient) -> &'static str {
+        if self.is_many(r) { "each " } else { "" }
+    }
+
     fn is_many(&self, r: Recipient) -> bool {
         matches!(r, Recipient::Target(i) | Recipient::ThatTarget(i)
             if matches!(self.targets.get(i), Some(Target::Many { .. })))
@@ -1071,13 +1112,13 @@ impl<'a> Ctx<'a> {
                 crate::format::relation_any(&mut g);
                 format!(
                     "another target {}",
-                    controller_first(&g, filter_phrase(&g, self.card, false))
+                    historic_permanent(&g, controller_first(&g, filter_phrase(&g, self.card, false)))
                 )
             }
             // "target creature you control with power 2 or less".
             Target::Filter(f) => format!(
                 "target {}",
-                controller_first(f, filter_phrase(f, self.card, false))
+                historic_permanent(f, controller_first(f, filter_phrase(f, self.card, false)))
             ),
             Target::Spell(f) => self.spell_target_phrase(f),
             Target::GraveyardCard {
@@ -1219,6 +1260,7 @@ impl<'a> Ctx<'a> {
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
             }
+            Recipient::SameCard => "that card".to_string(),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 // "each creature and planeswalker they control": Oracle
@@ -1412,6 +1454,13 @@ impl<'a> Ctx<'a> {
             Recipient::Group(i) => {
                 if !self.groups_mentioned.insert(r) {
                     "they".to_string()
+                } else if self
+                    .card
+                    .groups
+                    .get(usize::from(i))
+                    .is_some_and(|f| f.all_word)
+                {
+                    format!("all {}", self.group_phrase(i, true))
                 } else if self.each_group(r) {
                     format!("each {}", self.group_phrase(i, false))
                 } else {
@@ -1436,12 +1485,23 @@ impl<'a> Ctx<'a> {
             if self.card.groups.get(usize::from(i)).is_some_and(|f| f.combat_with.is_some() || f.each))
     }
 
+    /// A group written `each single`, printed one at a time.
+    fn single_group(&self, r: Recipient) -> bool {
+        matches!(r, Recipient::Group(i)
+            if self.card.groups.get(usize::from(i)).is_some_and(|f| f.each))
+    }
+
     /// Objects of destruction and exile ("all creatures").
     fn obj_all(&mut self, r: Recipient) -> String {
         match r {
             Recipient::EachCreature => "all creatures".to_string(),
             Recipient::EachCreatureYouControl => "all creatures you control".to_string(),
             Recipient::EachPermanentYouControl => "all permanents you control".to_string(),
+            // `each single`: "Destroy each creature with mana value 3 or
+            // less."
+            Recipient::Group(i) if self.single_group(r) => {
+                format!("each {}", self.group_phrase(i, false))
+            }
             Recipient::Group(i) => format!("all {}", self.group_phrase(i, true)),
             other => self.obj(other),
         }
@@ -1585,6 +1645,10 @@ impl<'a> Ctx<'a> {
         let items: Vec<String> = rs
             .iter()
             .map(|r| match r {
+                // `each single`: "untap each other creature you control".
+                Recipient::Group(i) if self.single_group(*r) => {
+                    format!("each {}", self.group_phrase(*i, false))
+                }
                 Recipient::Group(i) => format!("all {}", self.group_phrase(*i, true)),
                 other => self.obj(*other),
             })
@@ -2000,15 +2064,17 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         });
     }
     // "noncreature, nonland card", "nonartifact, nonblack creature":
-    // several negations are listed, types before colors.
-    if f.status.token == Some(false) && !nontoken_first {
-        words.push("nontoken".to_string());
-    }
+    // several negations are listed, types before colors; "nontoken"
+    // after the types ("nonland, nontoken permanent", "nontoken,
+    // non-Angel creature").
     let mut negs: Vec<String> = f
         .not_types
         .iter()
         .map(|t| format!("non{}", type_noun(*t)))
         .collect();
+    if f.status.token == Some(false) && !nontoken_first {
+        negs.push("nontoken".to_string());
+    }
     negs.extend(
         f.not_colors
             .iter()
@@ -4318,9 +4384,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::SkipNextUntap { to, steps } => {
             let s = match *to {
                 // "Tap up to two target creatures. Those creatures don't
-                // untap ...".
+                // untap ...", named again without who controls them.
                 Recipient::Targets(a, _) if ctx.target_mentioned[a] => {
-                    format!("those {}", ctx.plural_target_noun(a))
+                    let n = ctx.plural_target_noun(a);
+                    let n = [" you don't control", " an opponent controls"]
+                        .iter()
+                        .find_map(|c| n.strip_suffix(c))
+                        .unwrap_or(&n);
+                    format!("those {n}")
                 }
                 // "Each attacking creature doesn't untap ..." (Tangle).
                 Recipient::Group(i) if !ctx.groups_mentioned.contains(to) => {
@@ -4456,7 +4527,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 *who,
                 s,
                 format!(
-                    "{} {} life",
+                    "{}{} {} life",
+                    ctx.each_many(*who),
                     ctx.verb(*who, "loses", "lose"),
                     digits(*amount)
                 ),
@@ -4480,7 +4552,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 None => Clause::imperative(format!("draw {what}")),
                 Some(w) => {
                     let s = ctx.subj(*w);
-                    Clause::with_subject(*w, s, format!("{} {what}", ctx.verb(*w, "draws", "draw")))
+                    let each = ctx.each_many(*w);
+                    Clause::with_subject(
+                        *w,
+                        s,
+                        format!("{each}{} {what}", ctx.verb(*w, "draws", "draw")),
+                    )
                 }
             }
         }
@@ -4490,7 +4567,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 None => Clause::imperative(format!("mill {what}")),
                 Some(w) => {
                     let s = ctx.subj(*w);
-                    Clause::with_subject(*w, s, format!("{} {what}", ctx.verb(*w, "mills", "mill")))
+                    let each = ctx.each_many(*w);
+                    Clause::with_subject(
+                        *w,
+                        s,
+                        format!("{each}{} {what}", ctx.verb(*w, "mills", "mill")),
+                    )
                 }
             }
         }
@@ -4599,8 +4681,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             attached,
             put,
         } => {
+            // `that card` prints "that card", `it` (inside a delayed
+            // trigger) "it".
             let o = match what {
-                Recipient::SameObject | Recipient::CreatedObject => "that card".to_string(),
+                Recipient::SameCard | Recipient::CreatedObject => "that card".to_string(),
                 other => ctx.obj(*other),
             };
             // A card from your own graveyard is yours: Oracle drops "under
@@ -5429,6 +5513,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             returns,
         } => {
             use mtg_core::card::ChooseAct;
+            // After another permanent is sacrificed, "it" would be that
+            // one: the source is named again ("you may sacrifice an
+            // artifact. When you do, this creature deals 3 damage",
+            // Cornered Crook).
+            if *act == ChooseAct::Sacrifice {
+                ctx.source_mentioned = false;
+            }
             let one = *count == Num::N(1) && !*up_to;
             let n = if *up_to {
                 format!("up to {}", count_words(*count, "one"))
@@ -5852,10 +5943,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 None => Clause::imperative(format!("discard {what}")),
                 Some(w) => {
                     let s = ctx.subj(*w);
+                    let each = ctx.each_many(*w);
                     Clause::with_subject(
                         *w,
                         s,
-                        format!("{} {what}", ctx.verb(*w, "discards", "discard")),
+                        format!("{each}{} {what}", ctx.verb(*w, "discards", "discard")),
                     )
                 }
             }
@@ -6216,10 +6308,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             inner.source_mentioned = ctx.source_mentioned;
             let body = sentences(effects, &mut inner);
             ctx.source_mentioned |= inner.source_mentioned;
-            Clause::imperative(format!(
-                "when you do, {}",
-                lowercase_first(&body).trim_end_matches('.')
-            ))
+            // "When you do, General Traag deals 4 damage".
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!("when you do, {}", body.trim_end_matches('.')))
         }
         Effect::Otherwise(inner) => {
             // "Otherwise, create one of those tokens.": the token the
@@ -7083,7 +7178,18 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     ctx.groups_mentioned
         .retain(|r| !matches!(r, Recipient::Group(_)));
     let clauses: Vec<Clause> = s.effects.iter().map(|e| clause(e, ctx)).collect();
+    // Two pumps of different recipients each keep their duration
+    // ("target creature an opponent controls gets -2/-2 until end of turn
+    // and target creature you control gets +2/+2 until end of turn").
+    let pumps_apart = clauses
+        .iter()
+        .filter(|c| c.text.starts_with("get"))
+        .map(|c| c.subject.as_ref().map(|(r, _)| *r))
+        .collect::<Vec<_>>()
+        .windows(2)
+        .any(|w| w[0] != w[1]);
     let shared_suffix = clauses.len() > 1
+        && !pumps_apart
         && clauses[0].suffix.is_some()
         && clauses.iter().all(|c| c.suffix == clauses[0].suffix);
     let mut out = String::new();
@@ -7120,7 +7226,10 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             None => prev_subject = None,
         }
         // "deals 1 damage to any target and 1 damage to you".
-        let text = if same_subject
+        let text = if same_subject && c.text.starts_with("each ") {
+            // "each mill a card and lose 1 life".
+            &c.text["each ".len()..]
+        } else if same_subject
             && c.text.starts_with("deals ")
             && clauses[i - 1].text.starts_with("deals ")
         {
@@ -7135,9 +7244,18 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             &c.text
         };
         out.push_str(text);
+        // "creatures you control get +1/+0 and gain haste until end of
+        // turn": the same subject's clauses share one duration.
+        let next_shares = clauses.get(i + 1).is_some_and(|d| {
+            s.joins.get(i) == Some(&Join::And)
+                && d.suffix == c.suffix
+                && d.subject.as_ref().map(|(r, _)| *r) == prev_subject
+                && c.subject.is_some()
+        });
         if let Some(suffix) = c.suffix
             && !shared_suffix
             && !s.eot_first
+            && !next_shares
         {
             out.push(' ');
             out.push_str(suffix);
@@ -7354,8 +7472,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Enters(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
             format!("whenever {} enters", trigger_subject(o, ctx))
         }
+        // "When this Vehicle dies" (CR 700.4: put into a graveyard from
+        // the battlefield).
         Trigger::Dies(TriggerObj::This) => {
-            if ctx.card.types.contains(&CardType::Creature) {
+            if ctx.card.types.contains(&CardType::Creature)
+                || ctx.card.subtypes.iter().any(|s| s == "Vehicle")
+            {
                 format!("when {} dies", this(ctx))
             } else {
                 format!(
@@ -7367,7 +7489,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Dies(TriggerObj::Filter(f)) => {
             // "When enchanted creature dies", "Whenever a creature dies" on
             // an Aura: the filter can't be the card itself.
-            let can_be_self = f.types.iter().all(|t| ctx.card.types.contains(t));
+            // "Whenever an Angel you control dies" on an enchantment: nor
+            // a subtype the card lacks.
+            let can_be_self = f.types.iter().all(|t| ctx.card.types.contains(t))
+                && f.subtypes.iter().all(|s| ctx.card.subtypes.contains(s));
             // "Whenever an enchantment you control is put into a graveyard
             // from the battlefield": only creatures die (CR 700.4).
             let dies = if !f.types.is_empty() && !f.types.contains(&CardType::Creature) {
@@ -7394,6 +7519,8 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 // "Whenever a nonland creature you control dies" (Beifong's
                 // Bounty Hunters).
                 || f.not_types.contains(&CardType::Land)
+                // `whenever a creature dies`: the older wording.
+                || f.article
             {
                 format!("whenever {} {dies}", trigger_filter_a(f, ctx.card))
             } else {
@@ -7453,10 +7580,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever you attack with {} or more creatures",
             count_words(Num::N(u32::from(*min)), "one")
         ),
+        // "Whenever Sokka and at least one other creature attack".
         Trigger::AttacksWith { this: true, min } => format!(
-            "whenever {} and at least {} other creatures attack",
+            "whenever {} and at least {} other {} attack",
             this(ctx),
-            count_words(Num::N(u32::from(min.saturating_sub(1))), "one")
+            count_words(Num::N(u32::from(min.saturating_sub(1))), "one"),
+            if *min == 2 { "creature" } else { "creatures" }
         ),
         Trigger::AttacksUnblocked(o) => {
             format!(
@@ -9369,8 +9498,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::OthersInCombat {
             at_least, block, ..
         } => format!(
-            "at least {} other creatures {}",
+            "at least {} other {} {}",
             count_words(Num::N(*at_least), "one"),
+            if *at_least == 1 { "creature" } else { "creatures" },
             if *block { "block" } else { "attack" }
         ),
         StaticCond::MoreCreaturesThanOpponent { attacking } => format!(

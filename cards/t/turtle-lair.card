@@ -1,0 +1,7 @@
+card "Turtle Lair" {
+  oracle_id eb002bbc-08df-4bf0-bea3-46494ad261b6
+  type Land
+  mana {C}
+  mana any only to cast Ninja or Turtle spell
+  activated {3}, {T}: target Ninja or Turtle can't be blocked
+}

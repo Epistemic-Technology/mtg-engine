@@ -313,6 +313,7 @@ impl Fmt {
                 "it".to_string()
             }
             Recipient::CreatedObject | Recipient::SameToken => "that token".to_string(),
+            Recipient::SameCard => "that card".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
             Recipient::CreatedThem => "each of them".to_string(),
             Recipient::Manifested => "manifested creature".to_string(),
@@ -2644,7 +2645,9 @@ pub fn filter(f: &Filter) -> String {
 #[allow(clippy::too_many_lines)] // one clause per qualifier
 fn filter_one(f: &Filter) -> String {
     let mut words: Vec<String> = Vec::new();
-    if f.all {
+    if f.all_word {
+        words.push("every".to_string());
+    } else if f.all {
         words.push("all".to_string());
     }
     if f.each {
@@ -3089,6 +3092,15 @@ pub fn attacking_or_blocking(base: &Filter, alt: &Filter) -> Option<Filter> {
 fn trigger_obj(o: &TriggerObj) -> String {
     match o {
         TriggerObj::This => "this".to_string(),
+        TriggerObj::Filter(f) if f.article => {
+            let s = filter(f);
+            let a = if s.starts_with(['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']) {
+                "an"
+            } else {
+                "a"
+            };
+            format!("{a} {s}")
+        }
         TriggerObj::Filter(f) => filter(f),
         TriggerObj::ThisOr(f) => format!("this or {}", filter(f)),
     }
@@ -4174,12 +4186,13 @@ fn restricted_mana(m: Mana, r: &crate::ast::ManaRestriction) -> String {
     // Each side of an alternative whole: "Elemental spell or Chandra
     // planeswalker spell".
     let spells = r.spells.as_ref().map(|f| match &f.or {
-        Some(alt) => {
+        Some(alt) if f.alt_article => {
             let mut base = f.clone();
             base.or = None;
+            base.alt_article = false;
             format!("cast {} spell or {} spell", filter(&base), filter(alt))
         }
-        None => format!("cast {} spell", filter(f)),
+        _ => format!("cast {} spell", filter(f)),
     });
     let of = r
         .ability_source

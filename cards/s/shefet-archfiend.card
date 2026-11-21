@@ -1,0 +1,9 @@
+card "Shefet Archfiend" {
+  oracle_id 06355d3f-a82d-4f12-a399-016a12824795
+  cost {5}{B}{B}
+  type Creature — Demon
+  pt 5/5
+  keywords flying
+  triggered when this enters: every other creature gets -2/-2
+  cycling {2}
+}

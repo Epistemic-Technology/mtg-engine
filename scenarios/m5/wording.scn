@@ -1,0 +1,480 @@
+# Cards whose Oracle wording the renderer now prints exactly: each
+# scenario checks that the wording means what the card does.
+
+scenario "Shefet Archfiend: all other creatures get -2/-2, not itself" {
+  battlefield A: 7 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Shefet Archfiend"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shefet Archfiend"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert toughness "Hill Giant" 1
+  assert power "Shefet Archfiend" 5
+  assert toughness "Shefet Archfiend" 5
+}
+
+scenario "Artistic Process: the Elemental token gains haste" {
+  battlefield A: 5 "Mountain"
+  hand A: "Artistic Process"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Artistic Process" mode 3
+  run_to turn 1 declare_attackers
+  assert has "Elemental" haste
+}
+
+scenario "Artistic Process: 2 damage to each creature you don't control" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Wind Drake", "Hill Giant"
+  hand A: "Artistic Process"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Artistic Process" mode 2
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert damage "Hill Giant" 2
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Sun-Blessed Healer kicked returns a nonland permanent card" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Grizzly Bears"
+  hand A: "Sun-Blessed Healer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sun-Blessed Healer" kicked
+  turn 1 A: trigger "Sun-Blessed Healer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Sun-Blessed Healer can't return an instant card" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Healing Salve"
+  hand A: "Sun-Blessed Healer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sun-Blessed Healer" kicked
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Healing Salve"
+  assert battlefield A contains "Sun-Blessed Healer"
+}
+
+scenario "Wayspeaker Bodyguard returns a permanent card, not an instant" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Grizzly Bears", "Healing Salve"
+  hand A: "Wayspeaker Bodyguard"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wayspeaker Bodyguard"
+  illegal turn 1 A: trigger "Wayspeaker Bodyguard" targeting "Healing Salve"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Healing Salve"
+}
+
+scenario "Gurmag Rakshasa: -2/-2 and +2/+2 until end of turn" {
+  battlefield A: 6 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Gurmag Rakshasa"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gurmag Rakshasa"
+  turn 1 A: trigger "Gurmag Rakshasa" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert power "Grizzly Bears" 4
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 3
+  assert power "Grizzly Bears" 2
+}
+
+scenario "White Lotus Hideout: its colored mana casts a Lesson" {
+  battlefield A: "White Lotus Hideout", "Wastes"
+  hand A: "Shared Roots"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shared Roots"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shared Roots"
+}
+
+scenario "White Lotus Hideout: its restricted mana can't cast a creature" {
+  battlefield A: "White Lotus Hideout", "Wastes"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Turtle Lair: its colored mana casts a Ninja" {
+  battlefield A: "Turtle Lair", "Wastes"
+  hand A: "Saiba Cryptomancer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Saiba Cryptomancer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Saiba Cryptomancer"
+}
+
+scenario "Turtle Lair: its restricted mana can't cast Opt" {
+  battlefield A: "Turtle Lair"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Opt"
+}
+
+scenario "Bartz and Boko: each other Bird bites the target" {
+  battlefield A: 5 "Forest", "Zodiac Rooster"
+  battlefield B: "Craw Wurm"
+  hand A: "Bartz and Boko"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bartz and Boko"
+  run_to turn 1 postcombat_main
+  assert damage "Craw Wurm" 2
+}
+
+scenario "Tinybones Joins Up: the targeted players each discard a card" {
+  battlefield A: "Swamp"
+  hand A: "Tinybones Joins Up"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tinybones Joins Up"
+  turn 1 A: trigger "Tinybones Joins Up" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Tinybones Joins Up: a legendary creature makes each target mill and lose 1 life" {
+  battlefield A: "Tinybones Joins Up", "Plains"
+  hand A: "Isamaru, Hound of Konda"
+  library B: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Isamaru, Hound of Konda"
+  turn 1 A: trigger "Tinybones Joins Up" targeting player A, player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 19
+  assert life A 19
+}
+
+scenario "Sokka draws when it attacks with another creature" {
+  battlefield A: "Sokka, Lateral Strategist", "Grizzly Bears"
+  library A: "Forest", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Sokka, Lateral Strategist", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Sokka doesn't draw attacking alone" {
+  battlefield A: "Sokka, Lateral Strategist", "Grizzly Bears"
+  library A: "Forest", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Sokka, Lateral Strategist"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Cornered Crook: sacrificing an artifact deals 3 damage" {
+  battlefield A: 5 "Mountain", "Ornithopter"
+  hand A: "Cornered Crook"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cornered Crook"
+  turn 1 A: trigger "Cornered Crook" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert life B 17
+}
+
+scenario "Cornered Crook: no sacrifice, no damage" {
+  battlefield A: 5 "Mountain", "Ornithopter"
+  hand A: "Cornered Crook"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cornered Crook"
+  turn 1 A: decline "Cornered Crook"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert life B 20
+}
+
+scenario "General Traag: sacrificing another artifact deals 4 damage" {
+  battlefield A: 5 "Mountain", "Ornithopter"
+  battlefield B: "Air Elemental"
+  hand A: "General Traag, Heart of Stone"
+  start turn 1 A precombat_main
+  turn 1 A: cast "General Traag, Heart of Stone"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert graveyard B contains "Air Elemental"
+  assert battlefield A contains "General Traag, Heart of Stone"
+}
+
+scenario "Kavaron: creatures you control get +1/+0 and haste until end of turn" {
+  battlefield A: "Kavaron, Memorial World" with 12 charge, 2 "Mountain", "Forest", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kavaron, Memorial World" ability 2 sacrificing "Forest"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Robot"
+  assert power "Robot" 3
+  assert has "Robot" haste
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" haste
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Gollum the Abandoned returns from the graveyard by sacrificing a creature" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  graveyard A: "Gollum the Abandoned"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gollum the Abandoned" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Gollum the Abandoned"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Gollum the Abandoned needs an artifact or creature to sacrifice" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Gollum the Abandoned"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Gollum the Abandoned"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Gollum the Abandoned"
+}
+
+scenario "Gollum the Abandoned: only as a sorcery" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  graveyard A: "Gollum the Abandoned"
+  start turn 2 B precombat_main
+  illegal turn 2 A: activate "Gollum the Abandoned"
+  run_to turn 2 end
+  assert graveyard A contains "Gollum the Abandoned"
+}
+
+scenario "Fire Nation Warship: when it dies, create a Clue" {
+  battlefield A: "Fire Nation Warship"
+  battlefield B: 2 "Mountain"
+  hand B: "Shatter"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shatter" targeting "Fire Nation Warship"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Fire Nation Warship"
+  assert battlefield A contains "Clue"
+}
+
+scenario "Exdeath transforms with six permanent cards in the graveyard" {
+  battlefield A: "Exdeath, Void Warlock"
+  graveyard A: 6 "Grizzly Bears", "Opt"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert battlefield A contains "Neo Exdeath, Dimension's End"
+  assert power "Neo Exdeath, Dimension's End" 6
+}
+
+scenario "Exdeath doesn't transform with instants making up the count" {
+  battlefield A: "Exdeath, Void Warlock"
+  graveyard A: 5 "Grizzly Bears", 3 "Opt"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert battlefield A contains "Exdeath, Void Warlock"
+}
+
+scenario "Skyskipper Duo blinks a creature you control until the next end step" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  hand A: "Skyskipper Duo"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Skyskipper Duo"
+  turn 1 A: trigger "Skyskipper Duo" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Explosive Getaway: the exiled creature returns after the damage" {
+  battlefield A: 3 "Mountain", 2 "Plains", "Hill Giant"
+  battlefield B: "Air Elemental"
+  hand A: "Explosive Getaway"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Explosive Getaway" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Air Elemental"
+  assert exile A contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Hill Giant"
+  assert damage "Hill Giant" 0
+}
+
+scenario "Wiccan exiles a nonland permanent until the next end step" {
+  battlefield A: "Wiccan, Rising Magician", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  turn 1 A: trigger "Wiccan, Rising Magician" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Wiccan can't exile a land" {
+  battlefield A: "Wiccan, Rising Magician", "Island"
+  battlefield B: "Forest", "Hill Giant"
+  hand A: "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  illegal turn 1 A: trigger "Wiccan, Rising Magician" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Forest"
+}
+
+scenario "Gideon's Memorial from hand deals 4 damage to an attacking creature" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Air Elemental"
+  hand A: "Gideon's Memorial"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Air Elemental"
+  turn 2 declare_attackers A: activate "Gideon's Memorial" targeting "Air Elemental"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Air Elemental"
+  assert graveyard A contains "Gideon's Memorial"
+  assert life A 20
+}
+
+scenario "Trumpeting Carnosaur from hand deals 3 damage" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Trumpeting Carnosaur"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Trumpeting Carnosaur" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Trumpeting Carnosaur"
+}
+
+scenario "Agatha's Champion bargained fights the target" {
+  battlefield A: 5 "Forest", "Ornithopter"
+  battlefield B: "Hill Giant"
+  hand A: "Agatha's Champion"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Agatha's Champion" sacrificing "Ornithopter"
+  turn 1 A: trigger "Agatha's Champion" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert damage "Agatha's Champion" 3
+}
+
+scenario "Agatha's Champion not bargained doesn't fight" {
+  battlefield A: 5 "Forest", "Ornithopter"
+  battlefield B: "Hill Giant"
+  hand A: "Agatha's Champion"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Agatha's Champion"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Agatha's Champion" 0
+}
+
+scenario "Trailblazer's Torch: the equipped creature deals 2 damage to each blocker" {
+  battlefield A: "Grizzly Bears", "Trailblazer's Torch" on "Grizzly Bears"
+  battlefield B: "Wind Drake", "Llanowar Elves"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Wind Drake"
+  turn 2 B: block "Grizzly Bears" with "Llanowar Elves"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert graveyard B contains "Llanowar Elves"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Fleshless Gladiator returns tapped from the graveyard, and you lose 1 life" {
+  poison B: 3
+  battlefield A: 3 "Swamp"
+  graveyard A: "Fleshless Gladiator"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Fleshless Gladiator"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Fleshless Gladiator"
+  assert tapped "Fleshless Gladiator"
+  assert life A 19
+}
+
+scenario "Fleshless Gladiator needs an opponent with three poison counters" {
+  poison B: 2
+  battlefield A: 3 "Swamp"
+  graveyard A: "Fleshless Gladiator"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Fleshless Gladiator"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Fleshless Gladiator"
+}
+
+scenario "Festercreep: all other creatures get -1/-1, not Festercreep" {
+  battlefield A: "Festercreep" with 1 +1/+1, 2 "Swamp", "Llanowar Elves"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Festercreep"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Llanowar Elves"
+  assert power "Grizzly Bears" 1
+  assert graveyard A contains "Festercreep"
+}
+
+scenario "Guardians of Koilos returns another historic permanent" {
+  battlefield A: 5 "Wastes", "Ornithopter", "Grizzly Bears"
+  hand A: "Guardians of Koilos"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Guardians of Koilos"
+  illegal turn 1 A: trigger "Guardians of Koilos" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ornithopter"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Copperhorn Scout untaps each other creature you control" {
+  battlefield A: "Copperhorn Scout", "Grizzly Bears" tapped
+  battlefield B: "Hill Giant" tapped
+  start turn 2 A precombat_main
+  turn 2 A: attack "Copperhorn Scout"
+  run_to turn 2 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert tapped "Copperhorn Scout"
+  assert tapped "Hill Giant"
+}
+
+scenario "Phyrexian Vivisector: a creature you control dies, scry 1" {
+  battlefield A: "Phyrexian Vivisector", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  library A: "Forest", "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert known A "Forest"
+}
+
+scenario "Phyrexian Vivisector: an opponent's creature dying doesn't scry" {
+  battlefield A: "Phyrexian Vivisector"
+  battlefield B: "Mountain", "Grizzly Bears"
+  hand B: "Lightning Bolt"
+  library A: "Forest", "Island"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert unknown A "Forest"
+}
+
+scenario "Saiba Trespassers: channel taps two creatures that don't untap" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Saiba Trespassers"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Saiba Trespassers" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  run_to turn 4 precombat_main
+  assert untapped "Grizzly Bears"
+}

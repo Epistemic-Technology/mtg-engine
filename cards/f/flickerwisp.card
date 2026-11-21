@@ -4,5 +4,5 @@ card "Flickerwisp" {
   type Creature — Elemental
   pt 3/1
   keywords flying
-  triggered whenever this enters: exile another target permanent; delayed target 1: return it to battlefield at beginning of the next end step
+  triggered whenever this enters: exile another target permanent; delayed target 1: return that card to battlefield at beginning of the next end step
 }

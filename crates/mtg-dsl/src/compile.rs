@@ -1736,6 +1736,7 @@ impl Compiler<'_> {
             Recipient::EachCreatureYouControl => CoreRecipient::EachCreatureYouControl,
             Recipient::EachPermanentYouControl => CoreRecipient::EachPermanentYouControl,
             Recipient::SameObject
+            | Recipient::SameCard
             | Recipient::SameThat
             | Recipient::SameToken
             | Recipient::SameTokens => CoreRecipient::SameObject,

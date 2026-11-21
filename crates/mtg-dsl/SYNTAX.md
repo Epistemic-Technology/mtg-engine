@@ -99,7 +99,7 @@ to its other face as well.
 |---|---|
 | `mana {G}` / `mana {W} or {U}` / `mana any` / `mana {U} or chosen` | "{T}: Add {G}." A mana ability (CR 605); `any` is "one mana of any color", `chosen` "one mana of the chosen color" (the color chosen as the permanent entered; none chosen, no mana). Basic land types grant theirs intrinsically. |
 | `mana any, sacrifice this` | "{T}, Sacrifice this artifact: Add one mana of any color." (Treasure, Lotus Petal). Payment uses such sources after all others. |
-| `mana {C} only to cast instant or sorcery spell`, `mana any only to cast creature spell`, `mana {U} only to cast artifact spell or activate`, `mana {R} only to cast artifact spell or to activate`, `mana {C} only to activate or cast artifact spell`, `mana {R} only to cast Elemental spell or Chandra planeswalker spell`, `mana {U} not to cast nonartifact spell` | "{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell.", "... only to cast an artifact spell or activate an ability.", "... or to activate an ability.", "... only to activate an ability or cast an artifact spell.", "This mana can't be spent to cast a nonartifact spell." Restricted mana (CR 106.6): one kind of mana; the engine taps the source only to pay for what the restriction allows (any activated ability for `activate`; for `not to cast`, other spells and any activated ability, though not costs an effect asks for), so its mana is spent at once and never sits in the pool. |
+| `mana {C} only to cast instant or sorcery spell`, `mana any only to cast creature spell`, `mana {U} only to cast artifact spell or activate`, `mana {R} only to cast artifact spell or to activate`, `mana {C} only to activate or cast artifact spell`, `mana {R} only to cast Elemental spell or Chandra planeswalker spell`, `mana any only to cast Lesson or Shrine spell`, `mana {U} not to cast nonartifact spell` | "{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell.", "... only to cast an artifact spell or activate an ability.", "... or to activate an ability.", "... only to activate an ability or cast an artifact spell.", "This mana can't be spent to cast a nonartifact spell." Two alternatives each written with `spell` print whole ("an Elemental spell or a Chandra planeswalker spell"); two types alone with one `spell`, `Lesson or Shrine spell`, share it ("a Lesson or Shrine spell"). Restricted mana (CR 106.6): one kind of mana; the engine taps the source only to pay for what the restriction allows (any activated ability for `activate`; for `not to cast`, other spells and any activated ability, though not costs an effect asks for), so its mana is spent at once and never sits in the pool. |
 | `mana {U} only to cast artifact spell or activate of artifact`, `mana {U} only to foretell or cast instant or sorcery spell` | "Spend this mana only to cast an artifact spell or activate an ability of an artifact source." (`of <filter>` after `activate`: only abilities of matching sources, cards in hand and graveyard included); "Spend this mana only to foretell a card from your hand or cast an instant or sorcery spell." (the foretell special action's {2}, CR 702.143a). |
 | `spend only black mana on x` | "Spend only black mana on X." (CR 107.3): the X in the spell's cost is paid with that color only. After an activated ability with {X} (`activated {X}: deal X damage to each creature and each player` then `spend only black mana on x`), it is that ability's X, printed in its paragraph (Crypt Rats). |
 | `cycling {2}`, `cycling pay 2 life` | Cycling (CR 702.29): "{2}, Discard this card: Draw a card.", activated from the hand. A cost other than mana prints "Cycling—Pay 2 life." (activated only with that much life, CR 119.4). |
@@ -266,7 +266,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | Trigger | Oracle |
 |---|---|
 | `when this enters`, `whenever other creature enters` | enters the battlefield |
-| `when this dies`, `whenever creature dies`, `whenever creature you control dies` | dies; for a noncreature, "is put into a graveyard from the battlefield". A filter without `other` includes the source ("this creature or another creature"). |
+| `when this dies`, `whenever creature dies`, `whenever creature you control dies`, `whenever a creature dies` | dies; for a noncreature other than a Vehicle, "is put into a graveyard from the battlefield". A filter without `other` includes the source ("this creature or another creature"), unless the card can't match it (an enchantment's `whenever Angel you control dies`: "Whenever an Angel you control dies"); written with its article it prints the older wording, "Whenever a creature dies" (wording only). |
 | `at beginning of your upkeep`, `at beginning of each draw step`, `at beginning of the end step` | beginning of a step; steps: `untap`, `upkeep`, `draw`, `combat`, `end` |
 | `at beginning of every upkeep` | "At the beginning of each upkeep" (werewolves' wording) |
 | `at beginning of enchanted controller's upkeep`, `at beginning of enchanted controller's end step` | "At the beginning of the upkeep of enchanted creature's controller" (the noun from the Aura's enchant restriction): the step of whoever controls what the source is attached to, judged as the step begins; that permanent is `that creature`, its controller `that player` |
@@ -999,7 +999,12 @@ enchanted creature gains hexproof` ("When this Aura enters, if enchanted
 creature has toxic, that creature gains hexproof until end of turn."; an
 Aura spell enters attached to its target, CR 303.4f, so the condition
 sees it). A group written `each single <filter>` prints one at a time
-("Each other creature you control with toxic gains toxic 1"). `creature
+("Each other creature you control with toxic gains toxic 1"), also as
+an object ("Destroy each creature with mana value 3 or less.", `untap
+each single other creature you control`). A group written `every
+<filter>` prints "all" as a subject too (`every other creature gets
+-2/-2`: "all other creatures get -2/-2"; `all` alone prints the plural
+without it); wording only. `creature
 with aura or enchantment creature` is two alternatives: a type followed by
 another starts a filter of its own. In a static ability's subject these
 qualifiers are re-judged only when characteristics change, so they belong
@@ -1612,7 +1617,10 @@ triggered ability, CR 603.7; write the trigger first, then a comma, then the
 effects, to print it that way); `at beginning of the next turn's upkeep`
 also works ("Draw a card at the beginning of the next turn's upkeep"), and
 `at end of combat` ("destroy it at end of combat"). Inside a delayed ability `it` is the object
-the ability is about; in one about `that creature` (the triggering object),
+the ability is about, and so is `that card`, which prints so where `it`
+prints "it" (`delayed target 1: return that card to battlefield at
+beginning of the next end step`: "Return that card to the battlefield
+under its owner's control ..."; `return it`: "Return it ..."); in one about `that creature` (the triggering object),
 `that creature` is that object too, only while it is the same object
 (CR 603.7c), and prints "that creature"; in one about a target, `that
 creature` is the object too. `delayed target 1: when that creature dies

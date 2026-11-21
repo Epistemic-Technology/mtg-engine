@@ -1,0 +1,8 @@
+card "Bartz and Boko" {
+  oracle_id 2d995c47-e548-4fc4-9182-fef46af20ca5
+  cost {3}{G}{G}
+  type Legendary Creature — Human Bird
+  pt 4/3
+  affinity for Bird
+  triggered when this enters: each single other Bird you control bites target creature an opponent controls
+}

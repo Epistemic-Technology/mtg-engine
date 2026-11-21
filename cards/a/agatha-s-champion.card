@@ -1,0 +1,9 @@
+card "Agatha's Champion" {
+  oracle_id debdfab7-454f-4fec-9ee8-aa5b570ea7fb
+  cost {4}{G}
+  type Creature — Human Knight
+  pt 4/4
+  bargain
+  keyword trample
+  triggered when this enters if bargained: it fights up to one target creature you don't control
+}

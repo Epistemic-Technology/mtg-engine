@@ -1257,6 +1257,10 @@ impl P {
             let alt = self.filter()?;
             self.expect_word("spell")?;
             f.or = Some(Box::new(alt));
+            // Each side with its own article ("a Dragon spell or an Omen
+            // spell"), against `Lesson or Shrine spell` ("a Lesson or
+            // Shrine spell").
+            f.alt_article = true;
         }
         let (abilities, wording) = if self.eat_words(&["or", "to", "activate"]) {
             (true, SpendWording::CastFirstTo)
@@ -3760,7 +3764,7 @@ impl P {
         if w == "that" && matches!(self.word_at(1).as_deref(), Some("card" | "target")) {
             return true;
         }
-        if w == "each" || w == "all" {
+        if w == "each" || w == "all" || w == "every" {
             return true;
         }
         RECIPIENTS.iter().any(|(ws, _)| self.at_words(ws))
@@ -8162,7 +8166,7 @@ impl P {
         if self.at_words(&["that", "card"]) {
             self.pos += 2;
             return Ok(if self.in_delayed {
-                Recipient::SameObject
+                Recipient::SameCard
             } else {
                 Recipient::CreatedObject
             });
@@ -8372,10 +8376,12 @@ impl P {
             })?));
         }
         // "each <filter>" / "all <filter>": every matching permanent.
-        if self.at_word("each") || self.at_word("all") {
+        if self.at_word("each") || self.at_word("all") || self.at_word("every") {
             // "Return all permanents ... to their owners' hands" against
-            // "Return each ... to its owner's hand".
-            let all = self.eat_word("all");
+            // "Return each ... to its owner's hand"; `every`: "all" as a
+            // subject too.
+            let every = self.eat_word("every");
+            let all = every || self.eat_word("all");
             self.eat_word("each");
             // `each single other creature you control with toxic gains
             // toxic 1`: printed one at a time, "Each other creature ...
@@ -8383,6 +8389,7 @@ impl P {
             let single = !all && self.eat_word("single");
             let mut f = self.filter()?;
             f.all |= all;
+            f.all_word |= every;
             f.each = single;
             let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
                 i
@@ -8719,6 +8726,11 @@ impl P {
                 }
                 "all" => {
                     f.all = true;
+                    self.pos += 1;
+                }
+                "every" => {
+                    f.all = true;
+                    f.all_word = true;
                     self.pos += 1;
                 }
                 // "a permanent card": not an instant or sorcery (CR
@@ -9437,7 +9449,13 @@ impl P {
             }
             return Ok(TriggerObj::This);
         }
-        Ok(TriggerObj::Filter(self.filter()?))
+        // `whenever a creature dies`: the article is the older wording.
+        let article = matches!(self.word_at(0).as_deref(), Some("a" | "an"));
+        let mut f = self.filter()?;
+        if article && self.at_word("dies") {
+            f.article = true;
+        }
+        Ok(TriggerObj::Filter(f))
     }
 
     /// The rest of `blocks a creature`, `becomes blocked by a creature`:

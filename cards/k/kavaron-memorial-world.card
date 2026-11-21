@@ -1,0 +1,8 @@
+card "Kavaron, Memorial World" {
+  oracle_id 4fa826ca-d361-4391-ad0d-989ebcfa4a91
+  type Land — Planet
+  enters tapped
+  mana {R}
+  station
+  station 12: activated {1}{R}, {T}, sacrifice land: create 1 "2/2 colorless Robot artifact creature" then each creature you control gets +1/+0 and gains haste
+}

@@ -618,6 +618,10 @@ fn count_expr(s: &str) -> Option<String> {
         .strip_suffix(" cards in your graveyard")
         .or_else(|| s.strip_suffix(" card in your graveyard"))
     {
+        // "permanent cards" (CR 110.4a): `graveyard permanent card`.
+        if f == "permanent" || f.ends_with(" permanent") {
+            return Some(format!("graveyard {f} card"));
+        }
         return Some(format!("graveyard {}", singular(f)));
     }
     if let Some(f) = s.strip_suffix(" on the battlefield") {
@@ -769,7 +773,13 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
     // check decide whether it is one the engine knows.
     if s.starts_with("target ") || s.starts_with("another target ") {
         *targets += 1;
-        return Some(s.to_string());
+        // "a nonland permanent card" (CR 110.4a): the DSL names the types
+        // a permanent card isn't (`nonland permanent card` is a nonland
+        // card).
+        return Some(s.replace(
+            "nonland permanent card",
+            "nonland noninstant nonsorcery permanent card",
+        ));
     }
     // "creatures of the creature type of your choice", "permanents you
     // control of that type": a group with a chosen color or type.
@@ -800,6 +810,30 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         return Some(format!("target {targets}"));
     }
     None
+}
+
+/// A group subject Oracle introduces with "each" and a singular verb
+/// ("each other Bird you control deals damage equal to its power"):
+/// `each single`, which prints one at a time.
+fn each_subject(oracle: &str, who: String) -> String {
+    if !(oracle.starts_with("each ") || oracle.starts_with("Each ")) {
+        return who;
+    }
+    match who.strip_prefix("each ") {
+        Some(rest) if !rest.starts_with("single ") => format!("each single {rest}"),
+        _ => who,
+    }
+}
+
+/// A group subject Oracle introduces with "all" ("all other creatures
+/// get -2/-2"): `every`, which prints it.
+fn all_subject(oracle: &str, who: String) -> String {
+    match who.strip_prefix("each ") {
+        Some(rest) if oracle.starts_with("all ") || oracle.starts_with("All ") => {
+            format!("every {rest}")
+        }
+        _ => who,
+    }
 }
 
 /// The count of a variable target group in DSL form and the rest of the
@@ -913,7 +947,7 @@ impl Templates {
                     r"^(.+?) gets? ([+-]\d+/[+-]\d+)(?: and gains? ([a-z ,]+?))?(?: until end of turn)?$",
                 ),
                 |c, t| {
-                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
                     let mut s = format!("{who} gets {}", cap(c, 2));
                     if !cap(c, 3).is_empty() {
                         let _ = write!(s, " and gains {}", keyword_list(cap(c, 3))?);
@@ -978,7 +1012,7 @@ impl Templates {
                     if cap(c, 2).ends_with(" life") {
                         return None;
                     }
-                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    let who = all_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
                     Some(format!("{who} gains {}", keyword_list(cap(c, 2))?))
                 },
             ),
@@ -1586,14 +1620,14 @@ impl Templates {
             (
                 r(r"^(.+?) deals damage to itself equal to its power$"),
                 |c, t| {
-                    let a = recipient(&subject(cap(c, 1)), t)?;
+                    let a = each_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
                     Some(format!("{a} bites itself"))
                 },
             ),
             (
                 r(r"^(.+?) deals damage equal to its power to (.+)$"),
                 |c, t| {
-                    let a = recipient(&subject(cap(c, 1)), t)?;
+                    let a = each_subject(cap(c, 1), recipient(&subject(cap(c, 1)), t)?);
                     let b = recipient(cap(c, 2), t)?;
                     Some(format!("{a} bites {b}"))
                 },
@@ -2177,8 +2211,9 @@ impl Templates {
                 } else {
                     return Err(Skip::Sentence(sentence));
                 };
+                // `that card` prints so; `it` prints "it".
                 let what = match obj {
-                    "that card" | "that token" => "it",
+                    "that token" => "it",
                     "~" => "this creature",
                     "them" => "those tokens",
                     o => o,
@@ -2288,6 +2323,14 @@ impl Templates {
                 && let Some(rest) = e.strip_prefix("this ")
             {
                 e = format!("this {noun} {rest}");
+            }
+            // "Create a 3/3 ... token with flying. It gains haste until
+            // end of turn." (Artistic Process): "it" is the token.
+            if body.starts_with("It ")
+                && out.last().is_some_and(|l| l.contains("create 1 "))
+                && let Some(rest) = e.strip_prefix("this ")
+            {
+                e = format!("that token {rest}");
             }
             out.push(format!("{prefix}{e}"));
         }
@@ -4287,6 +4330,8 @@ impl Builder<'_> {
         if let Some((cost, rest)) = line.split_once(": ")
             && let Some(mut cost) = cost_text(cost)
         {
+            // Where the cost ends and its restrictions begin.
+            let base_len = cost.len();
             let rest = match rest.strip_suffix(" Activate only once each turn.") {
                 Some(r) => {
                     cost.push_str(", once");
@@ -4359,8 +4404,13 @@ impl Builder<'_> {
                 _ => None,
             };
             if let Some(effect) = from_graveyard {
-                self.statements
-                    .push(format!("{word} {cost}, from graveyard: {effect}"));
+                // The restrictions after `from graveyard`: a cost's list
+                // of alternatives ("sacrifice artifact or creature")
+                // would take a restriction after it as one more.
+                let (base, restrictions) = cost.split_at(base_len);
+                self.statements.push(format!(
+                    "{word} {base}, from graveyard{restrictions}: {effect}"
+                ));
                 return Ok(());
             }
             let mut targets = 0;
@@ -4730,6 +4780,9 @@ fn wording_variants(text: &str) -> Vec<String> {
                     }
                 }
                 "this" if next == "creature" => alts.push(String::new()),
+                // "{1}{W}, Discard this card: It deals 4 damage ...": the
+                // source, named "it" where `it` is the source.
+                "deal" if it_ok && prev.ends_with(':') => alts.push("it deals".to_string()),
                 _ => {}
             }
             for alt in alts {
@@ -5109,6 +5162,10 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         }
     }
     if rendered != expected {
+        // `MTG_AUTHOR_SHOW=1`: print the near miss's card file.
+        if std::env::var_os("MTG_AUTHOR_SHOW").is_some() {
+            eprintln!("{text}");
+        }
         return Err(Skip::Mismatch {
             rendered,
             oracle: expected,

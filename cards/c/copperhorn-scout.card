@@ -1,0 +1,7 @@
+card "Copperhorn Scout" {
+  oracle_id 3d2ea1a3-72af-48bc-a8f1-98facc2eebd0
+  cost {G}
+  type Creature — Elf Scout
+  pt 1/1
+  triggered whenever this attacks: untap each single other creature you control
+}

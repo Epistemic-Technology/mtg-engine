@@ -5,7 +5,7 @@ card "Kykar, Zephyr Awakener" {
   pt 3/4
   keywords flying
   triggered whenever you cast a noncreature spell: choose one {
-    mode: exile another target creature you control; delayed target 1: return it to battlefield at beginning of the next end step
+    mode: exile another target creature you control; delayed target 1: return that card to battlefield at beginning of the next end step
     mode: create 1 "1/1 white Spirit creature with flying"
   }
 }

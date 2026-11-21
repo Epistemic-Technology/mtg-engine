@@ -1,0 +1,9 @@
+card "Explosive Getaway" {
+  oracle_id c844cc98-b8b9-447d-92ee-64f4a4906e7c
+  cost {3}{R}{W}
+  type Sorcery
+  spell {
+    exile up to one target artifact or creature; delayed target 1: return it to battlefield at beginning of the next end step
+    deal 4 damage to each creature
+  }
+}

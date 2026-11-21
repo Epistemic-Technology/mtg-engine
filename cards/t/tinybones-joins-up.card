@@ -1,0 +1,7 @@
+card "Tinybones Joins Up" {
+  oracle_id 3d2bd4f6-174d-411a-b930-9161aeefd33a
+  cost {B}
+  type Legendary Enchantment
+  triggered when this enters: any number of target players each discards 1 cards
+  triggered whenever legendary creature you control enters: any number of target players each mill a card and loses 1 life
+}
