@@ -1,0 +1,7 @@
+card "Gloom Ripper" {
+  oracle_id 78e1beca-840d-47b2-8759-cc31454fdf5a
+  cost {3}{B}{B}
+  type Creature — Elf Assassin
+  pt 4/4
+  triggered when this enters: target creature you control gets +1/+0 count where Elf you control plus graveyard Elf and up to one target creature an opponent controls gets -0/-1 count where Elf you control plus graveyard Elf
+}

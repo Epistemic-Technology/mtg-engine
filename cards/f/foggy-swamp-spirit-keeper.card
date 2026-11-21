@@ -1,0 +1,8 @@
+card "Foggy Swamp Spirit Keeper" {
+  oracle_id faecfb8d-2f63-4b98-a842-b11448f0d538
+  cost {1}{U}{B}
+  type Creature — Human Druid Ally
+  pt 2/4
+  keywords lifelink
+  triggered whenever you draw your second card each turn: create 1 "1/1 colorless Spirit creature that can't block or be blocked by non-Spirits"
+}

@@ -1,0 +1,8 @@
+card "Finneas, Ace Archer" {
+  oracle_id 69924636-138e-4baa-a378-0fd7df5b847d
+  cost {G}{W}
+  type Legendary Creature — Rabbit Archer
+  pt 2/2
+  keywords reach, vigilance
+  triggered whenever this attacks: put 1 +1/+1 counter on each other token creature or Rabbit creature you control; then if total power 10 or more, draw 1 card
+}

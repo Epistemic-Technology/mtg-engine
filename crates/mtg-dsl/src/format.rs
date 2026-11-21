@@ -2001,11 +2001,18 @@ impl Fmt {
                 self.line(inner, t)
             ),
             Effect::IfTarget(n, f, inner, check)
-                if check.tense == crate::ast::TargetTense::Was
-                    && *f == Filter::controlled_by_you() =>
+                if matches!(
+                    check.tense,
+                    crate::ast::TargetTense::Was | crate::ast::TargetTense::ThatWas
+                ) && *f == Filter::controlled_by_you() =>
             {
                 format!(
-                    "if you controlled target {}, {}",
+                    "if you controlled {}target {}, {}",
+                    if check.tense == crate::ast::TargetTense::ThatWas {
+                        "that "
+                    } else {
+                        ""
+                    },
                     n + 1,
                     self.line(inner, t)
                 )

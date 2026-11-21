@@ -30,7 +30,11 @@ a Treasure token". Other tokens print described: their keywords and
 keyword abilities bare, their restrictions and other abilities quoted ("a
 1/1 colorless Phyrexian Mite artifact creature token with toxic 1 and
 \"This token can't block.\""; "a 0/1 colorless Eldrazi Spawn creature
-token with \"Sacrifice this token: Add {C}.\""), and a creature token
+token with \"Sacrifice this token: Add {C}.\""; `can't attack alone, can't
+block alone` is one quotation, "This token can't attack or block
+alone.", and so are `can't block non-Spirit creature` and `can't be
+blocked by non-Spirit creature`, "This token can't block or be blocked by
+non-Spirit creatures."), and a creature token
 whose name is not its subtypes is named ("a 2/2 colorless Wizard Soldier
 creature token named Cadet"); so is an Equipment token, its abilities quoted without their final period and its equip ability last ("a colorless Equipment artifact token named Axe with \"Equipped creature gets +1/+0\" and equip {2}"). A Role token (CR 111.10j–r: an `Enchantment
 — Aura Role` with `enchant creature` and `name "Wicked"`, keyed `"Wicked
@@ -665,7 +669,9 @@ and `also` goes after its subject ("If you control an Equipment,
 Misthios's Fury also deals 2 damage ...", "that creature also gains
 trample"). `if you controlled target 1, draw 1 card`: "If you controlled
 that permanent, draw a card.", its controller as it last existed (CR
-608.2h). `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
+608.2h); the target's own noun prints ("If you controlled that
+artifact"), and `if you controlled that target 1, ...` prints "that
+permanent" whatever the target is (Kellan, Inquisitive Prodigy). `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
 unless opponent life 10 or less` prints "you lose 1 life unless an
 opponent has 10 or less life": the clause happens only if the condition
 doesn't hold as it resolves. Conditions
@@ -1000,7 +1006,12 @@ ability's subject then prints "All Sliver creatures", as old Slivers do), `Gobli
 control`, `enchanted` (the permanent this is attached to; `enchanted
 permanent` prints "enchanted permanent" whatever the Aura enchants, as on
 Song of Stupefaction's "Enchant creature or Vehicle"), `this` (the
-source itself, for characteristic-defining abilities).
+source itself, for characteristic-defining abilities). Two alternatives
+sharing two or more colors print the colors after the types: `blue or
+red creature or blue or red planeswalker` is "creature or planeswalker
+that's blue or red"; `other token creature or Rabbit creature you
+control` is "other creature you control that's a token or a Rabbit"
+(write `token creature`: a bare `token` is any token, a Treasure too).
 
 More filter words: `token` ("a token", "artifact token", CR 111.1),
 `nontoken`, `tapped`, `untapped`, `attacking`, `blocking`,
@@ -1932,7 +1943,9 @@ exists), both checked as targets are chosen and again on resolution (CR
 removed (CR 603.3d). `target creature other than enchanted` ("target
 creature other than enchanted creature"): not what the source is attached
 to. `target creature other than this` ("target creature other than this
-creature") is `target other creature` worded after the noun. A group or count of what a target player controls declares that
+creature") is `target other creature` worded after the noun; so is
+`each creature you control other than this` ("each creature you control
+other than this creature"). A group or count of what a target player controls declares that
 target in its filter: `each creature target player controls gets -2/-2`
 ("Creatures target player controls get -2/-2 until end of turn"), `you
 gain count each 2 creature target player controls life`; `target opponent
@@ -2072,7 +2085,9 @@ Human, ...`, `if the sacrificed permanent was artifact, ...`, `if the
 discarded card wasn't land card, ...`, and as an "instead": `if the
 sacrificed creature was legendary, draw 3 cards instead`. Counts: `count
 each 2 enchantment destroyed this way` ("2 life for each enchantment
-destroyed this way"), `count equal life lost this way` ("life equal to the
+destroyed this way"; `count each permanent returned this way` prints
+"for each permanent returned to its owner's hand this way"), `count equal
+life lost this way` ("life equal to the
 life lost this way"), `count that many discarded this way` ("draw that
 many cards"; `discard up to 2 cards chosen then draw count that many
 discarded this way cards`: "discard up to two cards, then draw that many

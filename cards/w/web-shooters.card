@@ -1,0 +1,7 @@
+card "Web-Shooters" {
+  oracle_id ec528198-a38a-4ef7-9804-78a25c94ecc1
+  cost {1}{W}
+  type Artifact — Equipment
+  static enchanted: +1/+1, has reach, has ability { triggered whenever this attacks: tap target creature an opponent controls }
+  equip {2}
+}

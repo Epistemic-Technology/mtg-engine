@@ -2051,6 +2051,63 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     {
         return format!("attacking or {}", filter_phrase_one(alt, card, plural_form));
     }
+    // "creature or planeswalker that's blue or red" (Terminal
+    // Criticism): two or more colors both types share, after the types.
+    if !plural_form
+        && alt.or.is_none()
+        && base.colors.as_ref().is_some_and(|cs| cs.len() > 1)
+        && base.colors == alt.colors
+        && !base.types.is_empty()
+        && !alt.types.is_empty()
+    {
+        let mut b = base.clone();
+        b.colors = None;
+        let mut a = (**alt).clone();
+        a.colors = None;
+        if (Filter {
+            types: Vec::new(),
+            ..b.clone()
+        }) == Filter::default()
+            && (Filter {
+                types: Vec::new(),
+                ..a.clone()
+            }) == Filter::default()
+        {
+            let colors: Vec<String> = base
+                .colors
+                .iter()
+                .flatten()
+                .map(|c| color_name(*c).to_string())
+                .collect();
+            return format!(
+                "{} or {} that's {}",
+                filter_phrase_one(&b, card, false),
+                filter_phrase_one(&a, card, false),
+                or_list(&colors)
+            );
+        }
+    }
+    // "each other creature you control that's a token or a Rabbit"
+    // (Finneas, Ace Archer): a token, or a creature of one subtype.
+    if !plural_form
+        && alt.or.is_none()
+        && base.status.token == Some(true)
+        && base.subtypes.is_empty()
+        && alt.subtypes.len() == 1
+        && alt.status.token.is_none()
+    {
+        let mut b = base.clone();
+        b.status.token = None;
+        let mut a = (**alt).clone();
+        let sub = a.subtypes.remove(0);
+        if a == b {
+            return format!(
+                "{} that's a token or {}",
+                filter_phrase_one(&b, card, false),
+                with_article(&sub)
+            );
+        }
+    }
     // "creatures with flying or reach".
     if let Some(k) = crate::format::keyword_alternative(&base, alt) {
         let one = filter_phrase_one(&base, card, plural_form);
@@ -2958,6 +3015,35 @@ fn merge_protections(items: Vec<String>) -> Vec<String> {
     out
 }
 
+/// A token's quoted restrictions that Oracle prints as one: "This token
+/// can't attack or block alone." (Toby, Beastie Befriender), "This token
+/// can't block or be blocked by non-Spirit creatures." (Foggy Swamp
+/// Spirit Keeper).
+fn merge_token_restrictions(quoted: &mut Vec<String>) {
+    let mut i = 0;
+    while i + 1 < quoted.len() {
+        let merged = match (quoted[i].as_str(), quoted[i + 1].as_str()) {
+            ("This token can't attack alone.", "This token can't block alone.") => {
+                Some("This token can't attack or block alone.".to_string())
+            }
+            (a, b) => match (
+                a.strip_prefix("This token can't block "),
+                b.strip_prefix("This token can't be blocked by "),
+            ) {
+                (Some(x), Some(y)) if x == y => {
+                    Some(format!("This token can't block or be blocked by {x}"))
+                }
+                _ => None,
+            },
+        };
+        if let Some(m) = merged {
+            quoted[i] = m;
+            quoted.remove(i + 1);
+        }
+        i += 1;
+    }
+}
+
 #[allow(clippy::too_many_lines)] // one part of the description after another
 fn token_description(name: &str, count: Num, tapped: bool, it_has: bool, ctx: &Ctx) -> String {
     let tap = if tapped { "tapped " } else { "" };
@@ -3078,6 +3164,7 @@ fn token_description(name: &str, count: Num, tapped: bool, it_has: bool, ctx: &C
             _ => quoted.push(ability_text(token, a, ctx.lookup)),
         }
     }
+    merge_token_restrictions(&mut quoted);
     // Keywords alone print before the name ("a 1/1 green Insect creature
     // token with flying named Butterfly"); quoted abilities after it.
     if let Some(named) = &named
@@ -3394,6 +3481,15 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             // "the number of cards shuffled into your library this way".
             let verb = match verb {
                 mtg_core::card::ThisWay::Shuffled => "shuffled into your library",
+                // "for each permanent returned to its owner's hand this
+                // way" (Wanderwine Farewell): permanents, any player's.
+                mtg_core::card::ThisWay::PutInHand
+                    if filter
+                        .as_ref()
+                        .is_some_and(|f| filter_phrase(f, card, false) == "permanent") =>
+                {
+                    "returned to its owner's hand"
+                }
                 v => crate::ast::this_way_word(*v),
             };
             match filter {
@@ -4722,7 +4818,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*to);
             // "Target creature can't be blocked this turn except by
             // artifact creatures and/or red creatures."
-            if let Ability::BlockRule(r) = ability.as_ref() {
+            // After "Until end of turn," the rule is quoted: "gains
+            // \"This creature can't be blocked by more than one
+            // creature.\"" (Full Steam Ahead).
+            if let Ability::BlockRule(r) = ability.as_ref()
+                && !ctx.eot_first
+            {
                 return Clause::with_subject(*to, s, block_rule_phrase(r, ctx.card, true));
             }
             // "gains toxic 1 until end of turn": a keyword ability, bare.
@@ -7131,6 +7232,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 (TargetTense::Was, _) if *f == Filter::controlled_by_you() => {
                     format!("you controlled that {noun}")
+                }
+                (TargetTense::ThatWas, _) if *f == Filter::controlled_by_you() => {
+                    "you controlled that permanent".to_string()
                 }
                 // "If it was a creature card" (Carrion Locust): an exiled
                 // graveyard card, as it last existed.
@@ -9705,13 +9809,17 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
     }
     // "has menace and \"Whenever ...\"", "has trample and ward {1}": one
     // "has" for both.
+    // "gets +1/+1 and has reach and \"Whenever ...\"" (Web-Shooters): a
+    // quoted ability joins too, except after a new base P/T ("is a Dragon
+    // with base power and toughness 4/4, flying, and \"...\"").
+    let base_pt = mods.iter().any(|m| matches!(m, Mod::SetPt { .. }));
     for i in 1..parts.len() {
         let keyword_grant =
             matches!(&mods[i], Mod::AddAbility(a) if granted_keyword(a, card).is_some());
         if (parts[i].starts_with("has \"") || keyword_grant) && parts[i - 1].starts_with("has ") {
             // A bare keyword joins the "has" before it as one part ("gets
             // +4/+4 and has trample and ward {1}"), marked to merge below.
-            let mark = if keyword_grant { "\u{1}" } else { "" };
+            let mark = if keyword_grant || !base_pt { "\u{1}" } else { "" };
             let mut rest = parts[i]["has ".len()..].to_string();
             // "has protection from instants and from sorceries" (Sword
             // of Wealth and Power): one "protection" for both.

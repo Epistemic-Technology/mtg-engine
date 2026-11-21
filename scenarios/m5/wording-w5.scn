@@ -208,3 +208,199 @@ scenario "Faerie Fencing: with a Faerie, an additional -3/-3" {
   assert power "Craw Wurm" 3
   assert toughness "Craw Wurm" 1
 }
+
+scenario "Toby, Beastie Befriender: the Beast can't attack alone" {
+  battlefield A: 3 "Plains"
+  hand A: "Toby, Beastie Befriender"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Toby, Beastie Befriender"
+  run_to turn 1 postcombat_main
+  assert power "Beast" 4
+  turn 3 A: attack "Beast"
+  run_to turn 3 postcombat_main
+  assert life B 20
+}
+
+scenario "Toby, Beastie Befriender: the Beast attacks with Toby" {
+  battlefield A: 3 "Plains"
+  hand A: "Toby, Beastie Befriender"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Toby, Beastie Befriender"
+  turn 3 A: attack "Beast", "Toby, Beastie Befriender"
+  run_to turn 3 postcombat_main
+  assert life B 15
+}
+
+scenario "Foggy Swamp Spirit Keeper: the second card makes a Spirit that can't block non-Spirits" {
+  battlefield A: "Foggy Swamp Spirit Keeper", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Opt", "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Spirit"
+  run_to turn 3 precombat_main
+  assert battlefield A lacks "Spirit"
+  turn 3 A: cast "Opt"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Spirit"
+  turn 4 B: attack "Grizzly Bears"
+  illegal turn 4 A: block "Grizzly Bears" with "Spirit"
+  run_to turn 4 postcombat_main
+  assert life A 18
+}
+
+scenario "Kellan: destroying your own artifact draws a card" {
+  battlefield A: "Kellan, Inquisitive Prodigy // Tail the Suspect", "Aeolipile"
+  battlefield B: "Obelisk of Grixis"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Kellan, Inquisitive Prodigy"
+  turn 2 declare_attackers A: trigger "Kellan, Inquisitive Prodigy" targeting "Aeolipile"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Aeolipile"
+  assert hand A count 1
+}
+
+scenario "Kellan: destroying an opponent's artifact draws nothing" {
+  battlefield A: "Kellan, Inquisitive Prodigy // Tail the Suspect", "Aeolipile"
+  battlefield B: "Obelisk of Grixis"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Kellan, Inquisitive Prodigy"
+  turn 2 declare_attackers A: trigger "Kellan, Inquisitive Prodigy" targeting "Obelisk of Grixis"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Obelisk of Grixis"
+  assert hand A count 0
+}
+
+scenario "Tail the Suspect: a Clue and an additional land this turn" {
+  battlefield A: "Forest", "Island"
+  hand A: "Kellan, Inquisitive Prodigy // Tail the Suspect", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tail the Suspect"
+  turn 1 A: play "Forest"
+  turn 1 A: play "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Clue"
+  assert battlefield A contains "Plains"
+  assert battlefield A contains 2 "Forest"
+}
+
+scenario "Terminal Criticism destroys a blue creature, not a green one" {
+  battlefield A: "Swamp", "Swamp"
+  battlefield B: "Coral Merfolk", "Grizzly Bears"
+  hand A: "Terminal Criticism"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Terminal Criticism" targeting "Grizzly Bears"
+  turn 1 A: cast "Terminal Criticism" targeting "Coral Merfolk"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Coral Merfolk"
+  assert life A 21
+}
+
+scenario "Terminal Criticism destroys a red planeswalker" {
+  battlefield A: "Swamp", "Swamp"
+  battlefield B: "Sarkhan Vol"
+  hand A: "Terminal Criticism"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Terminal Criticism" targeting "Sarkhan Vol"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Sarkhan Vol"
+}
+
+scenario "Finneas: counters on the other Rabbits and creature tokens" {
+  battlefield A: "Finneas, Ace Archer", "Brave-Kin Duo", "Grizzly Bears", 2 "Plains"
+  hand A: "Raise the Alarm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: attack "Finneas, Ace Archer"
+  run_to turn 1 postcombat_main
+  assert counters "Brave-Kin Duo" +1/+1 1
+  assert counters oldest "Soldier" +1/+1 1
+  assert counters newest "Soldier" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+  assert counters "Finneas, Ace Archer" +1/+1 0
+  # Total power 2 + 2 + 2 + 2 + 2 = 10 after the counters: a card.
+  assert hand A count 1
+}
+
+scenario "Dawnstrike Vanguard: counters on each other creature, two tapped" {
+  battlefield A: "Dawnstrike Vanguard", "Grizzly Bears" tapped, "Hill Giant" tapped
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Dawnstrike Vanguard" +1/+1 0
+}
+
+scenario "Dawnstrike Vanguard: one tapped creature, no counters" {
+  battlefield A: "Dawnstrike Vanguard", "Grizzly Bears" tapped, "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Gloom Ripper: X counts Elves you control and Elf cards in your graveyard" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  graveyard A: "Defiant Elf"
+  hand A: "Gloom Ripper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gloom Ripper"
+  turn 1 A: trigger "Gloom Ripper" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Wanderwine Farewell: a Merfolk for each permanent returned" {
+  battlefield A: 7 "Island", "Coral Merfolk"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Wanderwine Farewell"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wanderwine Farewell" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert battlefield A contains 2 "Merfolk"
+}
+
+scenario "Wanderwine Farewell: no Merfolk, no tokens" {
+  battlefield A: 7 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Wanderwine Farewell"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wanderwine Farewell" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert battlefield A lacks "Merfolk"
+}
+
+scenario "Web-Shooters: +1/+1, reach, and an attack trigger that taps" {
+  battlefield A: "Grizzly Bears", "Web-Shooters" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  run_to turn 2 begin_combat
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" reach
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: trigger "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert tapped "Hill Giant"
+  assert life B 17
+}
+
+scenario "Full Steam Ahead: +2/+2, trample, and at most one blocker" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Coral Merfolk"
+  hand A: "Full Steam Ahead"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Full Steam Ahead"
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Coral Merfolk"
+  illegal turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert has "Grizzly Bears" trample
+  assert power "Grizzly Bears" 4
+}

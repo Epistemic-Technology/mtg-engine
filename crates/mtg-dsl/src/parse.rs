@@ -4649,8 +4649,12 @@ impl P {
         }
         // `if you controlled target 1, ...`: "If you controlled that
         // permanent, ...", its controller as it last existed (CR 608.2h).
-        if self.at_words(&["if", "you", "controlled", "target"]) {
-            self.pos += 4;
+        // `if you controlled that target 1, ...`: "If you controlled that
+        // permanent" whatever the target's noun (Kellan, Inquisitive
+        // Prodigy).
+        let permanent = self.at_words(&["if", "you", "controlled", "that", "target"]);
+        if permanent || self.at_words(&["if", "you", "controlled", "target"]) {
+            self.pos += if permanent { 5 } else { 4 };
             let n = self.number()? as usize;
             if n == 0 || n > self.targets.len() {
                 return self.fail(format!("target {n} has not been declared"));
@@ -4663,7 +4667,14 @@ impl P {
                 n - 1,
                 Filter::controlled_by_you(),
                 vec![s],
-                crate::ast::TargetCheck::default(),
+                crate::ast::TargetCheck {
+                    tense: if permanent {
+                        crate::ast::TargetTense::ThatWas
+                    } else {
+                        crate::ast::TargetCheck::default().tense
+                    },
+                    ..crate::ast::TargetCheck::default()
+                },
             ));
         }
         // "If excess damage was dealt this way, ..." (CR 120.4a).
@@ -8866,6 +8877,10 @@ impl P {
                         && self.word_at(ws.len() + 1).as_deref() == Some("planeswalker")
                         || self.word_at(ws.len()).as_deref() == Some("they")
                         && self.word_at(ws.len() + 1).as_deref() == Some("control")
+                        // "each creature you control other than this
+                        // creature" (Dawnstrike Vanguard).
+                        || self.word_at(ws.len()).as_deref() == Some("other")
+                        && self.word_at(ws.len() + 1).as_deref() == Some("than")
                         || (self.word_at(ws.len()).as_deref() == Some("blocking")
                         && matches!(self.word_at(ws.len() + 1).as_deref(), Some("this" | "it" | "or")))
                         // "each creature target player controls".

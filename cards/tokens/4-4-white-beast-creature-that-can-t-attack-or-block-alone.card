@@ -1,0 +1,7 @@
+token "4/4 white Beast creature that can't attack or block alone" {
+  name "Beast"
+  type Creature — Beast
+  pt 4/4
+  color white
+  keywords can't attack alone, can't block alone
+}
