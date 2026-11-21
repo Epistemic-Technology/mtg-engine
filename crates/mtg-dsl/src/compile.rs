@@ -2011,6 +2011,11 @@ impl Compiler<'_> {
                     out.push(CoreEffect::Exile { what: r(*w) });
                 }
             }
+            Effect::Airbend { what } => {
+                for w in what {
+                    out.push(CoreEffect::Airbend { what: r(*w) });
+                }
+            }
             Effect::ExileUntil { what } => out.push(CoreEffect::ExileLinked {
                 what: r(*what),
                 until: true,

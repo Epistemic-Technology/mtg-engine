@@ -1123,6 +1123,7 @@ impl Fmt {
             }
             Effect::Regenerate { to } => format!("regenerate {}", self.recipient(*to, t)),
             Effect::Exile { what } => format!("exile {}", self.recipients(what, t)),
+            Effect::Airbend { what } => format!("airbend {}", self.recipients(what, t)),
             Effect::ExileUntil { what } => {
                 format!("exile {} until this leaves", self.recipient(*what, t))
             }
@@ -3226,6 +3227,7 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
         SpellOrdinal::FirstNoncreature => {
             format!("{who} {their} first noncreature spell each turn")
         }
+        SpellOrdinal::FromExile => format!("{who} a spell from exile"),
     }
 }
 

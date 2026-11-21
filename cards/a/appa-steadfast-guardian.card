@@ -1,0 +1,9 @@
+card "Appa, Steadfast Guardian" {
+  oracle_id 03c141ca-11e4-4927-a6bd-980ee1203c73
+  cost {2}{W}{W}
+  type Legendary Creature — Bison Ally
+  pt 3/4
+  keywords flash, flying
+  triggered when this enters: airbend any number of target other nonland permanent you control
+  triggered whenever you cast a spell from exile: create 1 "1/1 white Ally creature"
+}

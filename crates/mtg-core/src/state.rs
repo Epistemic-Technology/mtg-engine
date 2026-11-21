@@ -324,6 +324,11 @@ pub enum AltCast {
     /// Cast transformed from the graveyard for its disturb cost (CR
     /// 702.146a): the spell is the back face.
     Disturb,
+    /// In exile: airbent (CR 701.65a), castable by its owner for {2}
+    /// rather than its mana cost for as long as it remains exiled.
+    Airbent,
+    /// Cast for {2} rather than its mana cost after it was airbent.
+    Airbend,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask

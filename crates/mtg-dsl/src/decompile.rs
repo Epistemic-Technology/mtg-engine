@@ -1255,6 +1255,9 @@ impl Decompiler<'_> {
             },
             CoreEffect::Populate => Effect::Populate,
             CoreEffect::Recruit { .. } => Effect::Recruit { you: false },
+            CoreEffect::Airbend { what } => Effect::Airbend {
+                what: vec![r(*what)],
+            },
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
             CoreEffect::Fabricate { .. }
             | CoreEffect::BecomeRenowned

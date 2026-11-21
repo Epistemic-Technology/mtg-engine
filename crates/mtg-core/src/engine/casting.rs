@@ -244,6 +244,18 @@ impl GameState {
                     }
                     continue;
                 }
+                // CR 701.65a: an airbent card, for {2}, with its usual
+                // timing; a land can't be played this way.
+                if o.alt == AltCast::Airbent {
+                    let def = self.pool.get(o.def);
+                    let timing_ok =
+                        sorcery_timing || def.is_instant() || self.has_flash(p, def, *id);
+                    if timing_ok && !def.is_land() && self.exile_castable(p, *id, AltCast::Airbend)
+                    {
+                        options.push(Choice::Cast(*id));
+                    }
+                    continue;
+                }
                 // CR 702.170d: a plotted card, free, during its owner's
                 // main phase with the stack empty, on a later turn.
                 if o.alt == AltCast::Plotted {
@@ -3039,6 +3051,11 @@ impl GameState {
             (_, false) if o.alt == AltCast::Warp && def.warp.is_some() => {
                 def.warp.as_ref().expect("checked").requirements(x)
             }
+            // CR 701.65a: {2} rather than its mana cost (X is 0).
+            (_, false) if o.alt == AltCast::Airbend => ManaRequirement {
+                generic: 2,
+                ..ManaRequirement::default()
+            },
             (_, false) if o.alt == AltCast::Sneak && def.sneak.is_some() => {
                 def.sneak.as_ref().expect("checked").requirements(x)
             }
@@ -3250,15 +3267,19 @@ impl GameState {
         if !targets_ok || !self.some_additional_payable(p, def, card) {
             return false;
         }
-        let cost = match alt {
-            AltCast::Madness => def.madness.as_ref(),
-            AltCast::Foretell => def.foretell.as_ref(),
+        let mut req = match alt {
+            AltCast::Madness => def.madness.as_ref().map(|c| c.requirements(0)),
+            AltCast::Foretell => def.foretell.as_ref().map(|c| c.requirements(0)),
+            // CR 701.65a.
+            AltCast::Airbend => Some(ManaRequirement {
+                generic: 2,
+                ..ManaRequirement::default()
+            }),
             _ => return true,
         };
-        let Some(cost) = cost else {
+        let Some(mut req) = req.take() else {
             return false;
         };
-        let mut req = cost.requirements(0);
         adjust_generic(
             &mut req,
             self.cost_delta(p, def, card, &self.cost_changers()),
@@ -10162,6 +10183,34 @@ impl GameState {
                 ps.mana_pool.colored[crate::mana::Color::Red as usize] += n;
                 ps.combat_mana += n;
                 self.bump();
+            }
+            Effect::Airbend { what } => {
+                // CR 701.65a: exile the permanents and/or spells; each card
+                // exiled this way may be cast by its owner for {2} rather
+                // than its mana cost for as long as it remains exiled. A
+                // token or a copy of a spell ceases to exist (CR 111.7,
+                // 707.10a).
+                for t in self.recipients(ctx, *what) {
+                    let Target::Object(id) = t else { continue };
+                    let Some(o) = self.objects.get(id) else {
+                        continue;
+                    };
+                    if !matches!(o.zone, Zone::Battlefield | Zone::Stack) {
+                        continue;
+                    }
+                    let card = o.kind == crate::state::ObjKind::Card
+                        && !(o.zone == Zone::Stack && o.cast.copy());
+                    let new = self.move_object(id, Zone::Exile, true);
+                    ctx.created = Some(new);
+                    if card
+                        && let Some(n) = self.objects.get_mut(new)
+                        && n.zone == Zone::Exile
+                    {
+                        n.alt = AltCast::Airbent;
+                        let owner = n.owner;
+                        self.player_mut(owner).adventures_in_exile += 1;
+                    }
+                }
             }
             Effect::Recruit { token } => {
                 // CR 701.70a: draw, then discard; a 1/1 white Human

@@ -1121,6 +1121,19 @@ impl GameState {
                 (whose_ok(*whose, *player) && noncreature(def) && n == 1)
                     .then_some((Some(*spell), Some(*player)))
             }
+            (
+                TriggerSpec::CastsNth {
+                    whose,
+                    nth: crate::card::SpellOrdinal::FromExile,
+                },
+                Event::Cast { player, spell, .. },
+            ) => {
+                let from_exile = self
+                    .objects
+                    .get(*spell)
+                    .is_some_and(|o| o.cast.cast_from() == Some(Zone::Exile));
+                (whose_ok(*whose, *player) && from_exile).then_some((Some(*spell), Some(*player)))
+            }
             (TriggerSpec::CastsNth { whose, nth }, Event::Cast { player, spell, .. }) => {
                 let n = self.spells_this_turn[player.index().min(3)];
                 (whose_ok(*whose, *player) && nth.holds(n, self.active_player == *player))

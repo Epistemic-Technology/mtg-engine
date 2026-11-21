@@ -211,6 +211,7 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Incubate",
     "Earthbend",
     "Recruit",
+    "Airbend",
     "Waterbend",
     "Firebending",
     "Double",
@@ -276,6 +277,7 @@ const ABILITY_WORDS: &[&str] = &[
     "Infusion",
     "Renew",
     "Disappear",
+    "Fathomless descent",
     "Flurry",
     "Opus",
     "Cohort",
@@ -1642,6 +1644,10 @@ impl Templates {
             (r(r"^Exile (.+)$"), |c, t| {
                 Some(format!("exile {}", recipient(cap(c, 1), t)?))
             }),
+            // CR 701.65a.
+            (r(r"^[Aa]irbend (.+)$"), |c, t| {
+                Some(format!("airbend {}", recipient(cap(c, 1), t)?))
+            }),
             // A spell or legendary permanent returning itself (Molten Birth).
             (r(r"^Return ~ to its owner's hand$"), |_, _| {
                 Some("return this to its owner's hand".to_string())
@@ -2656,6 +2662,7 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever you cast your first spell during each opponent's turn"
         | "Whenever an opponent casts their first noncreature spell each turn"
         | "Whenever you cast your first noncreature spell each turn"
+        | "Whenever you cast a spell from exile"
         | "Whenever you draw a card"
         | "Whenever you draw your second card each turn"
         | "Whenever a player draws a card"

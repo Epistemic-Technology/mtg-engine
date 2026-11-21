@@ -1,0 +1,8 @@
+card "Airbender Ascension" {
+  oracle_id c4d2fdf9-637d-4e97-ae33-45f2d27bf8cd
+  cost {1}{W}
+  type Enchantment
+  triggered when this enters: airbend up to one target creature
+  triggered whenever creature you control enters: put 1 quest counter on this
+  triggered at beginning of your end step if this has 4 or more quest counters: exile up to one target creature you control then return target 1 to battlefield
+}

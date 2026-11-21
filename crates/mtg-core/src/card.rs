@@ -3944,6 +3944,12 @@ pub enum Effect {
         count: Num,
         to: Recipient,
     },
+    /// Airbend (CR 701.65a): exile the permanent or spell; a card exiled
+    /// this way may be cast by its owner for {2} rather than its mana cost
+    /// for as long as it remains exiled.
+    Airbend {
+        what: Recipient,
+    },
     /// Recruit (CR 701.70a): "Draw a card, then discard a card. If you
     /// discarded a nonland card this way, create a 1/1 white Human Soldier
     /// creature token." (`token`).
@@ -4929,6 +4935,9 @@ pub enum SpellOrdinal {
     /// first of its caster's noncreature spells this turn (counted by the
     /// trigger, not by `holds`).
     FirstNoncreature,
+    /// "a spell from exile": any spell cast from exile (checked by the
+    /// trigger, not by `holds`).
+    FromExile,
 }
 
 impl SpellOrdinal {
@@ -4942,6 +4951,7 @@ impl SpellOrdinal {
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
             SpellOrdinal::OnOpponentsTurn => !own_turn,
             SpellOrdinal::FirstNoncreature => n == 1,
+            SpellOrdinal::FromExile => true,
         }
     }
 }

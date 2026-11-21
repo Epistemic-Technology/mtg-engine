@@ -3436,6 +3436,11 @@ pub enum Effect {
         count: Num,
         to: Recipient,
     },
+    /// `airbend target nonland permanent` (CR 701.65a): "Airbend target
+    /// nonland permanent."
+    Airbend {
+        what: Vec<Recipient>,
+    },
     /// `recruit` (CR 701.70a): "Recruit." `you recruit` prints "you
     /// recruit" (after a trigger naming another player).
     Recruit {

@@ -1788,6 +1788,8 @@ impl GameState {
                     }
                     // CR 702.170d: without paying its mana cost.
                     (Zone::Exile, crate::state::AltCast::Plotted) => crate::state::AltCast::Free,
+                    // CR 701.65a: for {2}.
+                    (Zone::Exile, crate::state::AltCast::Airbent) => crate::state::AltCast::Airbend,
                     _ => crate::state::AltCast::None,
                 };
                 let spell = self.begin_cast(player, id, alt);

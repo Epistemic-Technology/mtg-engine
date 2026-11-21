@@ -542,7 +542,11 @@ impl GameState {
             }
         }
         if old.zone == Zone::Exile
-            && (old.cast.adventure() || matches!(old.alt, AltCast::Foretold | AltCast::Plotted))
+            && (old.cast.adventure()
+                || matches!(
+                    old.alt,
+                    AltCast::Foretold | AltCast::Plotted | AltCast::Airbent
+                ))
         {
             let n = &mut self.player_mut(old.owner).adventures_in_exile;
             *n = n.saturating_sub(1);

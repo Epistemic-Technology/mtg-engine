@@ -1,0 +1,9 @@
+card "Airbending Lesson" {
+  oracle_id e101b744-9175-4aa5-bf80-d6944359e538
+  cost {2}{W}
+  type Instant — Lesson
+  spell {
+    airbend target nonland permanent
+    draw 1 cards
+  }
+}

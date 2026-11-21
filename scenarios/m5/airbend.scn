@@ -1,0 +1,163 @@
+# Airbend (CR 701.65a): exile the permanents and/or spells; for each card
+# exiled this way, for as long as it remains exiled, its owner may cast it
+# by paying {2} rather than its mana cost.
+
+scenario "airbend: the permanent is exiled and its owner may cast it for {2}" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Serra Angel", 2 "Mountain"
+  hand A: "Airbending Lesson"
+  library A: "Island", "Island"
+  turn 1 A: cast "Airbending Lesson" targeting "Serra Angel"
+  turn 2 B: cast "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert exile B lacks "Serra Angel"
+  assert hand A contains "Island"
+  assert tapped B "Mountain"
+}
+
+scenario "airbend: without {2} it stays in exile" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Serra Angel", "Mountain"
+  hand A: "Airbending Lesson"
+  turn 1 A: cast "Airbending Lesson" targeting "Serra Angel"
+  illegal turn 2 B: cast "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert exile B contains "Serra Angel"
+}
+
+scenario "airbend: only the owner may cast it" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Airbending Lesson"
+  turn 1 A: cast "Airbending Lesson" targeting "Serra Angel"
+  illegal turn 1 postcombat_main A: cast "Serra Angel"
+  run_to turn 1 end
+  assert exile B contains "Serra Angel"
+}
+
+scenario "airbend: a creature card is cast with its usual timing" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Serra Angel", 2 "Mountain"
+  hand A: "Airbending Lesson"
+  turn 1 A: cast "Airbending Lesson" targeting "Serra Angel"
+  illegal turn 1 end B: cast "Serra Angel"
+  run_to turn 2 upkeep
+  assert exile B contains "Serra Angel"
+}
+
+scenario "airbend: a card with flash may be cast any time" {
+  battlefield A: 3 "Plains"
+  battlefield B: 2 "Mountain", "Appa, Steadfast Guardian"
+  hand A: "Airbending Lesson"
+  library A: "Island", "Island"
+  turn 1 A: cast "Airbending Lesson" targeting "Appa, Steadfast Guardian"
+  turn 1 end B: cast "Appa, Steadfast Guardian"
+  run_to turn 2 upkeep
+  assert battlefield B contains "Appa, Steadfast Guardian"
+}
+
+scenario "airbend: a token ceases to exist" {
+  battlefield A: 3 "Plains"
+  battlefield B: 3 "Mountain"
+  hand A: "Airbending Lesson"
+  hand B: "Goblin Instigator"
+  library A: "Island", "Island"
+  start turn 1 B
+  turn 1 B: cast "Goblin Instigator"
+  turn 2 A: cast "Airbending Lesson" targeting B "Goblin"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Goblin Instigator"
+  assert battlefield B lacks "Goblin"
+  assert exile B lacks "Goblin"
+}
+
+scenario "airbend: a land can't be played from exile" {
+  battlefield A: 2 "Plains", "Dryad Arbor"
+  hand A: "Airbender's Reversal"
+  turn 1 A: cast "Airbender's Reversal" mode 2 targeting "Dryad Arbor"
+  illegal turn 1 postcombat_main A: play "Dryad Arbor"
+  illegal turn 1 postcombat_main A: cast "Dryad Arbor"
+  run_to turn 1 end
+  assert exile A contains "Dryad Arbor"
+}
+
+scenario "airbend: Aang airbends up to one other nonland permanent, not itself" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Aang, the Last Airbender"
+  turn 1 A: cast "Aang, the Last Airbender"
+  illegal turn 1 A: trigger "Aang, the Last Airbender" targeting "Aang, the Last Airbender"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Aang, the Last Airbender"
+}
+
+scenario "airbend: Aang exiles the target" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Aang, the Last Airbender"
+  turn 1 A: cast "Aang, the Last Airbender"
+  turn 1 A: trigger "Aang, the Last Airbender" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Serra Angel"
+}
+
+scenario "airbend: Appa airbends your own permanents and makes Allies as they are cast from exile" {
+  battlefield A: "Memnite", "Grizzly Bears", 6 "Plains"
+  hand A: "Appa, Steadfast Guardian"
+  turn 1 A: cast "Appa, Steadfast Guardian"
+  turn 1 A: trigger "Appa, Steadfast Guardian" targeting "Memnite", "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert exile A contains "Memnite"
+  assert battlefield A contains 1 "Ally"
+}
+
+scenario "airbend: Appa can't airbend itself" {
+  battlefield A: 4 "Plains", "Memnite"
+  hand A: "Appa, Steadfast Guardian"
+  turn 1 A: cast "Appa, Steadfast Guardian"
+  illegal turn 1 A: trigger "Appa, Steadfast Guardian" targeting "Appa, Steadfast Guardian"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Appa, Steadfast Guardian"
+}
+
+scenario "airbend: casting from the hand doesn't make an Ally" {
+  battlefield A: "Appa, Steadfast Guardian", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Ally"
+}
+
+scenario "airbend: Glider Staff airbends up to one creature" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Glider Staff"
+  turn 1 A: cast "Glider Staff"
+  turn 1 A: trigger "Glider Staff" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "airbend: Airbender Ascension counts entering creatures and blinks at four" {
+  battlefield A: "Airbender Ascension" with 3 quest, "Grizzly Bears" with 2 +1/+1, 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 end A: trigger "Airbender Ascension" targeting oldest "Grizzly Bears"
+  run_to turn 1 cleanup
+  # The returning creature is a new object entering: a fifth counter.
+  assert counters "Airbender Ascension" quest 5
+  assert exile A lacks "Grizzly Bears"
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert counters newest "Grizzly Bears" +1/+1 0
+  assert counters oldest "Grizzly Bears" +1/+1 0
+}
+
+scenario "airbend: Airbender Ascension does nothing with three quest counters" {
+  battlefield A: "Airbender Ascension" with 3 quest, "Grizzly Bears" with 2 +1/+1
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 2
+}

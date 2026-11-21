@@ -6380,6 +6380,15 @@ impl P {
                 })
             }
             "recruit" => Ok(Effect::Recruit { you: false }),
+            // "airbend any number of other target nonland permanents you
+            // control" (CR 601.2c).
+            "airbend" => Ok(Effect::Airbend {
+                what: if self.at_many() {
+                    vec![self.many_target()?]
+                } else {
+                    self.recipients()?
+                },
+            }),
             "populate" => Ok(Effect::Populate),
             "incubate" => Ok(Effect::Incubate(self.num()?)),
             // CR 701.41a: "up to N other target creatures" on a permanent
@@ -9500,6 +9509,9 @@ impl P {
         use mtg_core::card::SpellOrdinal;
         if self.eat_words(&["a", "spell", "during", "an", "opponent's", "turn"]) {
             return Ok(Some(SpellOrdinal::OnOpponentsTurn));
+        }
+        if self.eat_words(&["a", "spell", "from", "exile"]) {
+            return Ok(Some(SpellOrdinal::FromExile));
         }
         if self.eat_words(&["a", "spell", "other", "than"]) {
             if !(self.eat_word("your") || self.eat_word("their")) {

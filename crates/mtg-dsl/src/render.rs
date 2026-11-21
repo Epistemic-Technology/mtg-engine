@@ -1003,7 +1003,15 @@ impl<'a> Ctx<'a> {
             };
             return match self.targets[i].base() {
                 Target::Spec(TargetSpec::Any) => format!("{count} targets"),
-                _ => format!("{count} target {}", self.plural_target_noun(i)),
+                // "any number of other target nonland permanents you
+                // control".
+                _ => {
+                    let noun = self.plural_target_noun(i);
+                    match noun.strip_prefix("other ") {
+                        Some(rest) => format!("{count} other target {rest}"),
+                        None => format!("{count} target {noun}"),
+                    }
+                }
             };
         }
         let phrase = self.target_phrase_of(i);
@@ -3834,6 +3842,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
         Effect::Recruit { you: false } => Clause::imperative("recruit".to_string()),
+        Effect::Airbend { what } => {
+            let o = if what.len() == 1 {
+                ctx.obj_all(what[0])
+            } else {
+                ctx.obj_list(what, true)
+            };
+            Clause::imperative(format!("airbend {o}"))
+        }
         Effect::Recruit { you: true } => {
             Clause::with_subject(Recipient::You, "you".to_string(), "recruit".to_string())
         }

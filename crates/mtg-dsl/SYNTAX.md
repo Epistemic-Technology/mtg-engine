@@ -300,7 +300,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever you cast artifact spell`, `whenever a player casts Goblin spell`, `whenever an opponent casts multicolored spell` | a cast trigger with any filter |
 | `whenever this becomes targeted by opponent` | "... becomes the target of a spell or ability an opponent controls" (ward's trigger) |
 | `whenever you cast with mana value 4 or greater spell` | "Whenever you cast a spell with mana value 4 or greater" (a filter's "with" qualities print after "spell"; likewise `counter target with mana value 4 or less spell`) |
-| `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn`, `whenever you cast a spell during an opponent's turn` | the spell's place among those its caster cast this turn (or only that it was cast on another player's turn) |
+| `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn`, `whenever you cast a spell during an opponent's turn`, `whenever an opponent casts their first noncreature spell each turn`, `whenever you cast a spell from exile` | the spell's place among those its caster cast this turn (or only that it was cast on another player's turn; the first noncreature one among their noncreature spells; or that it was cast from exile) |
 | `when you cycle this` | "When you cycle this card" (CR 702.29d): triggers from the card itself as its cycling ability is activated, so it resolves before the draw; the card is "it" ("it deals 6 damage to any target") |
 | `whenever you cycle a card`, `whenever you cycle another card`, `whenever you cycle or discard a card` | cycling a card (CR 702.29); `or discard` triggers once per card discarded, cycling included |
 | `whenever this or Ally you control enters`, `whenever this or creature you control with power 4 or greater dies` | "Whenever this creature or another Ally you control enters"; the filter includes the source, and Oracle names the source again ("this creature") |
@@ -724,6 +724,14 @@ each opponent mills that much cards }` prints "If a source you control
 would deal damage to an opponent, prevent that damage and each opponent
 mills that many cards." (`that much` is the prevented damage).
 `replace damage to you: double` "... to you instead."; `replace damage permanent you control of chosen type would deal: double` is the newer "Double all damage that sources you control of the chosen type would deal.").
+`airbend target nonland permanent` (CR 701.65), `airbend up to one
+another target creature`, `airbend any number of target other nonland
+permanent you control` ("any number of other target nonland permanents you
+control"): exiles the permanents (or spells); each card exiled this way
+may be cast by its owner from exile for {2} rather than its mana cost, with
+its usual timing, for as long as it stays exiled (a land can't be played
+this way; a token or a copy of a spell ceases to exist). Prints "Airbend
+target nonland permanent."
 `recruit` (CR 701.70): the controller draws a card, then discards a
 card; if the discarded card was a nonland card, they create a 1/1 white
 Human Soldier creature token. Prints "Recruit."; `you recruit` prints
