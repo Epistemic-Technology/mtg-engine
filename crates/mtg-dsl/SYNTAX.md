@@ -1072,7 +1072,8 @@ becomes the creature type of your choice in addition to its other types"
 owner's hand instead" (`replace <affects> dies: hand`). `has
 ward {2}` and `has toxic 1` grant those keyword abilities bare
 ("Enchanted creature gets +4/+4 and has trample and ward {1}."; CR 702.21,
-702.164); as an effect, `<what> gains toxic 1` ("gains toxic 1 until end
+702.164); `has ward pay 2 life` grants a ward whose cost isn't mana,
+quoted ('Artifacts you control have "Ward—Pay 2 life."'); as an effect, `<what> gains toxic 1` ("gains toxic 1 until end
 of turn"). Toxic values add up (CR 702.164c). `add color black, add
 subtype Zombie` together print "is a black Zombie in addition to its other
 colors and types". Lure among other modifications prints "all creatures

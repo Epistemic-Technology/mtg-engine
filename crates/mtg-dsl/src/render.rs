@@ -9232,6 +9232,8 @@ fn granted_keyword(a: &Ability, card: &Card) -> Option<String> {
             let t = protection_text(f, card);
             Some(format!("p{}", &t[1..]))
         }
+        // 'have "Ward—Pay 2 life."': quoted.
+        Ability::Mechanic(crate::ast::Mechanic::WardCost(_)) => None,
         _ => crate::format::granted_mechanic(a),
     }
 }

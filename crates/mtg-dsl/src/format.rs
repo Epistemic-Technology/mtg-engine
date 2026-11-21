@@ -4938,6 +4938,9 @@ fn spent_cond(kind: mtg_core::card::SpentKind, at_least: u8) -> String {
 pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
     match a {
         Ability::Mechanic(crate::ast::Mechanic::Ward(c)) => Some(format!("ward {c}")),
+        Ability::Mechanic(crate::ast::Mechanic::WardCost(c)) => {
+            Some(format!("ward {}", cost_text(c)))
+        }
         Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => Some(format!("toxic {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Poisonous(n)) => Some(format!("poisonous {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Frenzy(n)) => Some(format!("frenzy {n}")),

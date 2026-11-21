@@ -3947,7 +3947,9 @@ impl GameState {
         // activated, Wizard's Rockets, and isn't asked.)
         let has_x = matches!(
             self.pool.ability(ability),
-            AbilityDef::Activated(a) if a.cost.mana.has_x() && !a.is_mana_ability()
+            AbilityDef::Activated(a) if (a.cost.mana.has_x()
+                || a.cost.exile_cards.as_ref().is_some_and(|g| g.x))
+                && !a.is_mana_ability()
         );
         self.flow = if has_x {
             crate::state::Flow::ChoosingX {
@@ -4032,8 +4034,13 @@ impl GameState {
         } else {
             max_x
         };
-        // "exile X cards from your graveyard": no more than there are.
-        let max_x = match &add.exile_cards {
+        // "exile X cards from your graveyard": no more than there are (an
+        // activated ability's cost, or a spell's additional cost).
+        let exile = match ability {
+            Some((_, a)) => &a.cost.exile_cards,
+            None => &add.exile_cards,
+        };
+        let max_x = match exile {
             Some(g) if g.x => {
                 let n = self
                     .exile_candidates(caster, g.filter.as_ref(), spell)
@@ -4567,7 +4574,19 @@ impl GameState {
             for c in tapped_paid {
                 s.note_tapped_for_cost(c);
             }
-            s.pay_other_costs(controller, &ab.cost, sa.source, sacrifice, discard);
+            // "Exile X artifact cards from your graveyard": as many as the
+            // X announced (CR 602.2b, 601.2b).
+            if let Some(g) = &ab.cost.exile_cards
+                && g.x
+            {
+                let mut cost = ab.cost.clone();
+                if let Some(g) = &mut cost.exile_cards {
+                    g.n = s.x_of(obj);
+                }
+                s.pay_other_costs(controller, &cost, sa.source, sacrifice, discard);
+            } else {
+                s.pay_other_costs(controller, &ab.cost, sa.source, sacrifice, discard);
+            }
         });
         self.emit(Event::Activated {
             obj,
