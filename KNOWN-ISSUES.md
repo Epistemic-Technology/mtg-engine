@@ -59,6 +59,20 @@ wrong thing in some case.
   edge case with spells cast while it is on the stack.
 - **Reflexive trigger on a token:** "it" may read the token where the
   text means the triggering object.
+- **"Triggers an additional time" looks at the battlefield as it is.**
+  Teysa Karlov or Drivnod dying together with the creature whose death
+  triggers doesn't double it (they should, looking back, CR 603.10a).
+- **Batched triggers batch until a player gets priority.** Two separate
+  discards in one resolution ("discard a card, then ... discard a card")
+  make one "whenever you discard one or more cards" trigger counting
+  both, where they are two events.
+- **"Whenever you activate an ability of a creature" misses automatic
+  mana payment:** the engine taps a creature's mana ability to pay a
+  cost without activating it as an ability, so it doesn't trigger (CR
+  605.3a says it should). No card in the corpus uses the trigger yet.
+- **An until-end-of-turn grant of a triggered keyword** ("gains prowess
+  until end of turn") may not trigger: only static grants are counted as
+  granting abilities. Not reproduced; no such card yet.
 
 ## 2. Forms that pass the gate with the wrong meaning
 
@@ -125,15 +139,21 @@ named the feature; a card may need more than one.
   affinity, cascade, storm, convoke to spells you cast; mayhem,
   harmonize, embalm, jump-start to graveyard cards (Teval, Witherbloom,
   Quandrix, Prismari, Eirdu, Norman Osborn, Songcrafter Mage).
-- **Tapped and attacking:** tokens, cards from hand, cards from a
-  graveyard (Fire Navy Trebuchet, Kinscaer Sentry, Shark Shredder,
-  Summoner's Grimoire).
-- **Batched and new triggers:** "whenever you discard one or more
-  cards", "whenever you gain or lose life", "whenever you scry or
-  surveil", "whenever you tap an untapped creature an opponent
-  controls", "whenever a creature you control explores", "whenever you
-  sacrifice one or more Foods", "a triggered ability triggers an
-  additional time", third spell each turn, "transforms into".
+- **Tapped and attacking, what is left:** "It enters tapped and
+  attacking that player" as its own sentence (Shark Shredder), a card
+  with mana value X or less (Kinscaer Sentry), token copies tapped and
+  attacking (Grub, Sauron), one token per opponent attacking that player
+  (Adeline), "that many" attacking tokens (Basri Ket).
+- **Triggers, what is left:** "whenever a player taps a basic land for
+  mana, that player adds one mana of any type that land produced"
+  (Lavaleaper: what the land produced isn't recorded); "a loyalty ability
+  of a Chandra planeswalker" (a source filter on `activates`); "whenever
+  you attack with one or more creatures, ... that many" (the attackers'
+  number); "If you gaining life (drawing a card, ...) causes a triggered
+  ability to trigger" (other `TriggerCause`s); "whenever you scry"
+  alone; "a Shaman or another Wizard" prints "other" (Harmonic Prodigy).
+  Elrond, Moon-Reader's trigger is in; its "return those cards" delayed
+  return of a group of targets is not.
 - **Counts:** total mana value / total power / total toughness, life
   gained this turn, creatures that died (under your control) this turn,
   counters of every kind on a permanent, mana spent on the triggering
@@ -163,8 +183,8 @@ named the feature; a card may need more than one.
   name / a number / odd or even; "can't lose the game"; win-the-game
   effects; set base power and toughness to a variable; attack tax;
   "must be blocked".
-- **Mechanics not yet in:** tiered, devour, battle cry, exhaust-ability
-  triggers, harness, hideaway, double strike and divinity counters,
+- **Mechanics not yet in:** tiered, devour, battle cry, harness,
+  hideaway, double strike and divinity counters,
   meld, the Everywhere land token, "when this land enters untapped".
 - **Scenario runner:** `trigger` cannot take `dividing`; surveil cannot
   be scripted; tokens named in a battlefield setup line are not tokens
