@@ -1,0 +1,10 @@
+card "Fatehold Charm" {
+  oracle_id 313aee0e-4090-4589-b323-a4edbda21c68
+  cost {W}{U}
+  type Instant
+  spell: choose one {
+    mode: draw 1 cards; empower jace 2
+    mode: return target spell or creature to hand
+    mode: each creature you control gets +1/+2
+  }
+}

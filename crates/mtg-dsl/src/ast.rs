@@ -946,6 +946,9 @@ pub enum Target {
     Filter(Filter),
     /// `target instant spell`: a spell matching the filter.
     Spell(Filter),
+    /// `target spell or creature`, `target spell or permanent`: one target
+    /// that is a spell or a permanent matching the filter (CR 115.1).
+    SpellOr(Filter),
     /// `target card from a graveyard`, `target instant card from your
     /// graveyard`: a card in a graveyard (whose: `Any`, `You`, `Opponents`).
     /// `graveyards`: `from graveyards` ("up to two target cards from

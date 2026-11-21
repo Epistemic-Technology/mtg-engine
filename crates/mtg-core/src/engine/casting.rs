@@ -5090,14 +5090,16 @@ impl GameState {
             }
             return out;
         }
-        if spec.is_spell() {
+        if spec.is_spell() || matches!(spec, TargetSpec::SpellOr(_)) {
             for id in &self.stack {
                 let t = Target::Object(*id);
                 if Some(*id) != source && self.is_legal_target_for(caster, spec, t, source) {
                     out.push(t);
                 }
             }
-            return out;
+            if spec.is_spell() {
+                return out;
+            }
         }
         for id in &self.battlefield {
             let t = Target::Object(*id);
@@ -8072,7 +8074,8 @@ impl GameState {
                             || (o.zone == Zone::Exile
                                 && *what == crate::card::Recipient::ExiledCard)
                             || (o.zone == Zone::Stack
-                                && id == ctx.source
+                                && (id == ctx.source
+                                    || matches!(what, crate::card::Recipient::Target(_)))
                                 && o.kind != ObjKind::Ability)
                     });
                     if in_zone {

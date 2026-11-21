@@ -1,0 +1,10 @@
+card "Brutal Expulsion" {
+  oracle_id 71d178b3-e5ca-4576-83f7-8dce74758acd
+  cost {2}{U}{R}
+  type Instant
+  keywords devoid
+  choose one or both {
+    mode: return target spell or creature to hand
+    mode: deal 2 damage to target creature or planeswalker; this turn, replace target 1 dies: exile
+  }
+}

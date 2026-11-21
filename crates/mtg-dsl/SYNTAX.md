@@ -956,7 +956,11 @@ control of target creature." (no duration).
 Filters may have an alternative: `creature or Vehicle`, `land or
 nonblack creature`, `attacking or blocking creature`, `Bear, Spider, or
 Wolf you control`. A spell target may say what the spell targets:
-`target spell that targets you or a permanent you control`. A group of
+`target spell that targets you or a permanent you control`. One target
+may be a spell or a permanent (CR 115.1): `target spell or creature`,
+`target spell or permanent with mana value 1 or greater` (the filter's
+other qualities apply to the spell too); `return target spell or
+creature to hand` returns a spell from the stack to its owner's hand. A group of
 targets can be one subject: `up to 2 target creature gets +2/+0`
 ("Up to two target creatures each get +2/+0"), later `targets 1 to 2`. A trailing
 `you control`, a leading `another`, and a type after two subtypes

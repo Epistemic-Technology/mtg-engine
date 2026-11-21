@@ -1,0 +1,6 @@
+card "Jeskai Revelation" {
+  oracle_id 61b6b1d1-4350-41c1-ac47-835b2831f24a
+  cost {4}{U}{R}{W}
+  type Instant
+  spell: return target spell or permanent to hand; this deals 4 damage to any target; create 2 "1/1 white Monk creature with prowess"; draw 2 cards; you gain 4 life
+}

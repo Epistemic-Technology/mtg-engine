@@ -1724,6 +1724,10 @@ impl Compiler<'_> {
                 let f = self.filter(f);
                 TargetSpec::SpellFiltered(self.pool.intern_filter(f))
             }
+            Target::SpellOr(f) => {
+                let f = self.filter(f);
+                TargetSpec::SpellOr(self.pool.intern_filter(f))
+            }
             Target::GraveyardCard {
                 filter,
                 who,

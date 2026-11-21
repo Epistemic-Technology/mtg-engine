@@ -235,6 +235,7 @@ impl Fmt {
                         }
                         Target::Filter(f) => format!("target {}", filter(f)),
                         Target::Spell(f) => spell_target(f),
+                        Target::SpellOr(f) => format!("target spell or {}", filter(f)),
                         Target::GraveyardCard {
                             filter: f,
                             who,
@@ -4544,9 +4545,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let phrase = match t.base() {
                 Target::Spec(s) => target_phrase(*s).replace("target ", ""),
                 Target::CreatureOfSubtype(sub) => format!("{sub} creature"),
-                Target::Filter(f) | Target::Spell(f) | Target::GraveyardCard { filter: f, .. } => {
-                    filter(f)
-                }
+                Target::Filter(f)
+                | Target::Spell(f)
+                | Target::SpellOr(f)
+                | Target::GraveyardCard { filter: f, .. } => filter(f),
                 Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
             };
             let _ = writeln!(out, "{indent}enchant {phrase}");

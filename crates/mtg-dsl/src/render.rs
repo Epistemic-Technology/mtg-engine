@@ -1185,6 +1185,7 @@ impl<'a> Ctx<'a> {
                 historic_permanent(f, controller_first(f, filter_phrase(f, self.card, false)))
             ),
             Target::Spell(f) => self.spell_target_phrase(f),
+            Target::SpellOr(f) => format!("target spell or {}", filter_phrase(f, self.card, false)),
             Target::GraveyardCard {
                 filter,
                 who,
@@ -1683,6 +1684,7 @@ impl<'a> Ctx<'a> {
             Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
             Target::Filter(f) => filter_phrase(f, self.card, true),
             Target::Spell(f) => format!("{} spells", filter_phrase(f, self.card, false)),
+            Target::SpellOr(f) => format!("spells and/or {}", filter_phrase(f, self.card, true)),
             Target::GraveyardCard {
                 filter,
                 who,
@@ -1770,6 +1772,8 @@ fn target_noun(t: &Target) -> String {
         Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
         Target::CreatureOfSubtype(_) => "creature".to_string(),
         Target::Spell(_) => "spell".to_string(),
+        Target::SpellOr(f) if f.types == [CardType::Creature] => "spell or creature".to_string(),
+        Target::SpellOr(_) => "spell or permanent".to_string(),
         Target::GraveyardCard { .. } => "card".to_string(),
         Target::Spec(s) => match s {
             TargetSpec::Any => "permanent or player".to_string(),
@@ -1809,6 +1813,7 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::SpellFiltered(_)
             | TargetSpec::OnStack { spells: true, .. } => "spell".to_string(),
             TargetSpec::OnStack { .. } => "ability".to_string(),
+            TargetSpec::SpellOr(_) => "spell or permanent".to_string(),
         },
         Target::Filter(f) => {
             if f.types.contains(&CardType::Creature) {
@@ -1869,6 +1874,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::NonlegendaryCreatureYouControl => "target nonlegendary creature you control",
         TargetSpec::CreatureCardInYourGraveyard => "target creature card from your graveyard",
         TargetSpec::Spell | TargetSpec::SpellFiltered(_) => "target spell",
+        TargetSpec::SpellOr(_) => "target spell or permanent",
         TargetSpec::CreatureSpell => "target creature spell",
         TargetSpec::NoncreatureSpell => "target noncreature spell",
         TargetSpec::Opponent => "target opponent",
@@ -10861,7 +10867,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
             Target::Spec(s) => format!("Enchant {}", target_phrase(*s).replace("target ", "")),
             Target::CreatureOfSubtype(sub) => format!("Enchant {sub} creature"),
-            Target::Filter(f) | Target::Spell(f) | Target::GraveyardCard { filter: f, .. } => {
+            Target::Filter(f)
+            | Target::Spell(f)
+            | Target::SpellOr(f)
+            | Target::GraveyardCard { filter: f, .. } => {
                 format!("Enchant {}", filter_phrase(f, card, false))
             }
         },

@@ -2815,6 +2815,10 @@ pub enum TargetSpec {
     /// A spell matching the filter ("target instant spell", "target
     /// artifact or enchantment spell"); judged on its characteristics.
     SpellFiltered(u16),
+    /// One target that is a spell or a battlefield object matching the
+    /// pool's `n`th filter ("target spell or creature", "target spell or
+    /// permanent", CR 115.1).
+    SpellOr(u16),
     /// A card in a graveyard matching the filter ("target card from a
     /// graveyard", "target instant card from your graveyard"); `who` is
     /// whose graveyard, judged from the caster. Several such targets of

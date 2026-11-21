@@ -1,0 +1,6 @@
+card "Unsubstantiate" {
+  oracle_id c387f46f-ad91-4964-8dc6-acefe537fe3c
+  cost {1}{U}
+  type Instant
+  spell: return target spell or creature to hand
+}

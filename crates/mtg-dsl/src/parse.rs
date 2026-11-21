@@ -8961,6 +8961,16 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one check per target form
     fn target_spec(&mut self) -> R<Target> {
+        // "target spell or creature" (CR 115.1).
+        if self.at_words(&["spell", "or"])
+            && !matches!(
+                self.word_at(2).as_deref(),
+                Some("ability" | "abilities" | "activated" | "triggered")
+            )
+        {
+            self.pos += 2;
+            return Ok(Target::SpellOr(self.filter()?));
+        }
         for (ws, spec) in TARGETS {
             if self.at_words_plural(ws) {
                 // "creature you don't control", "creature with flying",

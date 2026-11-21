@@ -689,8 +689,10 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         "all creatures",
         "this",
     ];
-    const TARGETS: [&str; 18] = [
+    const TARGETS: [&str; 20] = [
         "any target",
+        "target spell or creature",
+        "target spell or permanent",
         "target creature",
         "target player",
         "target land",
