@@ -1,0 +1,8 @@
+card "Ordeal of Nylea" {
+  oracle_id 5fff2bf4-9e26-4815-9bf6-672ed7e55b96
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature attacks: put 1 +1/+1 counter on it; then if attached is with 3 or more +1/+1 counters, sacrifice this
+  triggered when you sacrifice this: search up to 2 basic land card to battlefield tapped
+}

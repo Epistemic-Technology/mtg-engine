@@ -1,0 +1,8 @@
+card "Hulkling, Burgeoning Bruiser" {
+  oracle_id 03c934a6-be57-480d-8c84-4e46d9ccb406
+  cost {2}{G}
+  type Legendary Creature — Kree Skrull Hero
+  pt 2/3
+  keywords vigilance
+  triggered whenever another creature you control enters if evolves: put 1 +1/+1 counters on this
+}

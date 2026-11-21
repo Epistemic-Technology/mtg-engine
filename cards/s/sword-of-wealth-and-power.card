@@ -1,0 +1,8 @@
+card "Sword of Wealth and Power" {
+  oracle_id b3a80545-9a8a-46b2-9d8c-b0d66fb68a5d
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +2/+2, has protection from instant, has protection from sorcery
+  triggered whenever equipped creature deals combat damage to player: create 1 "Treasure"; delayed this: when next you cast instant or sorcery spell this turn, copy that spell new targets
+  equip {2}
+}

@@ -11919,7 +11919,21 @@ impl GameState {
                 .objects
                 .get(id)
                 .is_some_and(|o| o.zone == Zone::Battlefield)
-                && self.status_ok(filter, id)))
+                && self.status_ok(filter, id))
+            // "If it was tapped", "If it was attacking": as it last
+            // existed on the battlefield (CR 608.2h).
+            || (filter.status.counter.is_none()
+                && filter.status.suspected.is_none()
+                && self
+                    .objects
+                    .get(id)
+                    .is_none_or(|o| o.zone != Zone::Battlefield)
+                && self.lki.get(&id).is_some_and(|l| {
+                    l.object.zone == Zone::Battlefield
+                        && filter.tapped.is_none_or(|t| l.object.tapped == t)
+                        && (!filter.attacking || l.attacking)
+                        && (!filter.blocking || l.blocking)
+                })))
     }
 
     /// Apply a resolving object's effects in order. For a "both" mode

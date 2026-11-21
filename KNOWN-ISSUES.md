@@ -100,6 +100,10 @@ by rejecting the form at compile time or by binding it correctly.
 - **`delayed this: whenever <land> is tapped for mana this turn, add
   ...`** panics in the compiler (`compile.rs`, "a triggered mana
   ability") where it should report an error.
+- **`when this enters and whenever this attacks while saddled`**
+  applies `while saddled` to both events, so the enters half needs the
+  Mount saddled (Autarch Mammoth; not added). A trigger condition
+  belongs to one event of an `Either`.
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.

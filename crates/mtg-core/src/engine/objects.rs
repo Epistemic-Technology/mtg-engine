@@ -300,12 +300,21 @@ impl GameState {
             }
         }
         let old_flags = self.flags_of(&old);
+        let (attacking, blocking) = match &self.combat {
+            Some(c) if old.zone == Zone::Battlefield => (
+                c.attackers.iter().any(|a| a.id == id),
+                c.blocked_by(id).is_some(),
+            ),
+            _ => (false, false),
+        };
         self.lki.insert(
             id,
             LastKnown {
                 object: old.clone(),
                 characteristics,
                 moved_to: None,
+                attacking,
+                blocking,
             },
         );
         // Locked-in effects stop applying to the object (CR 611.2c);

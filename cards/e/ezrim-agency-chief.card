@@ -1,0 +1,9 @@
+card "Ezrim, Agency Chief" {
+  oracle_id ddcd8a0a-7ac3-4400-a16f-8bb5aa50994e
+  cost {1}{W}{W}{U}{U}
+  type Legendary Creature — Archon Detective
+  pt 5/5
+  keywords flying
+  triggered whenever this enters: investigate 2 times
+  activated {1}, sacrifice 1 artifact: this gains choice of vigilance or lifelink or hexproof until end of turn
+}
