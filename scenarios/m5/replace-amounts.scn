@@ -1,0 +1,154 @@
+# Replacement effects that change an amount (CR 614.1a): "that much life
+# plus 1", "that much damage plus N", "double that damage" to an opponent
+# or a permanent an opponent controls, and twice that many +1/+1 counters.
+
+scenario "plus one life: Angel of Vitality adds 1 to each life gain" {
+  battlefield A: "Angel of Vitality", 2 "Plains"
+  hand A: "Revitalize"
+  turn 1 A: cast "Revitalize"
+  run_to turn 1 end
+  assert life A 24
+}
+
+scenario "plus one life: two Angels of Vitality add 2" {
+  battlefield A: 2 "Angel of Vitality", 2 "Plains"
+  hand A: "Revitalize"
+  turn 1 A: cast "Revitalize"
+  run_to turn 1 end
+  assert life A 25
+}
+
+scenario "plus one life: only its controller's life gain" {
+  battlefield A: "Angel of Vitality"
+  battlefield B: 2 "Plains"
+  hand B: "Revitalize"
+  start turn 1 B
+  turn 1 B: cast "Revitalize"
+  run_to turn 1 end
+  assert life B 23
+}
+
+scenario "double: Twinflame Tyrant doubles damage to an opponent" {
+  battlefield A: "Twinflame Tyrant", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 16
+}
+
+scenario "double: Twinflame Tyrant doubles damage to an opponent's creature" {
+  battlefield A: "Twinflame Tyrant", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "double: not damage to its controller's own creature" {
+  battlefield A: "Twinflame Tyrant", "Mountain", "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting A "Hill Giant"
+  run_to turn 1 end
+  assert damage "Hill Giant" 2
+}
+
+scenario "double: not an opponent's source" {
+  battlefield A: "Twinflame Tyrant"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 B
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 end
+  assert life A 18
+}
+
+scenario "plus 2: Torbran adds 2 to a red source's damage to an opponent" {
+  battlefield A: "Torbran, Thane of Red Fell", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 16
+}
+
+scenario "plus 2: Torbran adds to its red creatures' combat damage" {
+  battlefield A: "Torbran, Thane of Red Fell", "Raging Goblin", "Grizzly Bears"
+  turn 1 A: attack "Raging Goblin", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "plus 2: Torbran doesn't add to damage to its controller's creatures" {
+  battlefield A: "Torbran, Thane of Red Fell", "Mountain", "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting A "Hill Giant"
+  run_to turn 1 end
+  assert damage "Hill Giant" 2
+}
+
+scenario "plus 1: Tomik adds to noncombat damage only" {
+  battlefield A: "Tomik, Izzet Sparkmage", "Mountain", "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "plus 1 to that: Embermaw Hellion adds to another red source, any recipient" {
+  battlefield A: "Embermaw Hellion", "Mountain", "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting A "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "plus 1 to that: not Embermaw Hellion's own damage" {
+  battlefield A: "Embermaw Hellion"
+  turn 1 A: attack "Embermaw Hellion"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "plus 1 to that: Jaya's own damage isn't increased, another red source's is" {
+  battlefield A: "Jaya, Venerated Firemage", "Mountain"
+  hand A: "Shock"
+  turn 1 A: activate "Jaya, Venerated Firemage" targeting player B
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 15
+}
+
+scenario "twice that many: Branching Evolution doubles +1/+1 counters" {
+  battlefield A: "Branching Evolution", "Forest", "Grizzly Bears"
+  hand A: "Battlegrowth"
+  turn 1 A: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "twice that many: counters a creature enters with" {
+  battlefield A: "Branching Evolution", 4 "Plains"
+  hand A: "Walking Ballista"
+  turn 1 A: cast "Walking Ballista" x 2
+  run_to turn 1 end
+  assert counters "Walking Ballista" +1/+1 4
+}
+
+scenario "twice that many: not an opponent's creature" {
+  battlefield A: "Branching Evolution"
+  battlefield B: "Forest", "Grizzly Bears"
+  hand B: "Battlegrowth"
+  start turn 1 B
+  turn 1 B: cast "Battlegrowth" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "twice that many: The Earth Crystal doubles distributed counters" {
+  battlefield A: "The Earth Crystal", 6 "Forest", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "The Earth Crystal" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 2
+  assert counters "Hill Giant" +1/+1 2
+}

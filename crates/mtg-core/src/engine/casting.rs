@@ -5150,14 +5150,16 @@ impl GameState {
             }
             return out;
         }
-        if spec.is_spell() {
+        if spec.is_spell() || matches!(spec, TargetSpec::SpellOr(_)) {
             for id in &self.stack {
                 let t = Target::Object(*id);
                 if Some(*id) != source && self.is_legal_target_for(caster, spec, t, source) {
                     out.push(t);
                 }
             }
-            return out;
+            if spec.is_spell() {
+                return out;
+            }
         }
         for id in &self.battlefield {
             let t = Target::Object(*id);
@@ -7800,7 +7802,7 @@ impl GameState {
     /// declining before anything is found is not searching at all, and
     /// the library isn't shuffled. With `reveal`, a card put into a hand
     /// is known to every player (CR 701.20) until it moves.
-    #[allow(clippy::too_many_arguments)]
+    #[allow(clippy::too_many_arguments, clippy::too_many_lines)] // one arm per destination
     fn search_library(
         &mut self,
         ctx: &mut EffectCtx,
@@ -7895,6 +7897,27 @@ impl GameState {
                     ctx.created = Some(new);
                 }
                 SearchTo::TopOfLibrary => top.push(id),
+                SearchTo::Graveyard => {
+                    self.move_object(id, Zone::Graveyard, true);
+                }
+                SearchTo::HandOrGraveyard => {
+                    let def = self
+                        .objects
+                        .get(ctx.source)
+                        .map(|o| o.def)
+                        .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                        .unwrap_or_default();
+                    let k = self.choose_mid(
+                        p,
+                        DecisionKind::ChooseOption { def },
+                        vec![Choice::Mode(0), Choice::Mode(1)],
+                    );
+                    let zone = if k == 0 { Zone::Hand } else { Zone::Graveyard };
+                    let new = self.move_object(id, zone, true);
+                    if reveal && zone == Zone::Hand {
+                        self.reveal_in_hand(new);
+                    }
+                }
             }
         }
         self.shuffle_library(p);
@@ -8138,7 +8161,8 @@ impl GameState {
                             || (o.zone == Zone::Exile
                                 && *what == crate::card::Recipient::ExiledCard)
                             || (o.zone == Zone::Stack
-                                && id == ctx.source
+                                && (id == ctx.source
+                                    || matches!(what, crate::card::Recipient::Target(_)))
                                 && o.kind != ObjKind::Ability)
                     });
                     if in_zone {
@@ -9320,14 +9344,20 @@ impl GameState {
                 ctx.created_tokens.clear();
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        for _ in 0..self.eval_num(*count, ctx) {
-                            // "then attach this Equipment to it".
-                            let id = self.create_token_with(*token, p, *tapped);
-                            if let Some(h) = host {
-                                self.attach(id, h);
+                        let n = self.eval_num(*count, ctx);
+                        // CR 614.1a: token-creation replacement effects.
+                        for (def, k) in self.tokens_to_create(p, *token, n) {
+                            for _ in 0..k {
+                                // "then attach this Equipment to it".
+                                let id = self.create_token_with(def, p, *tapped && def == *token);
+                                if def == *token
+                                    && let Some(h) = host
+                                {
+                                    self.attach(id, h);
+                                }
+                                ctx.created = Some(id);
+                                ctx.created_tokens.push(id);
                             }
-                            ctx.created = Some(id);
-                            ctx.created_tokens.push(id);
                         }
                     }
                 }
@@ -9761,6 +9791,23 @@ impl GameState {
                     );
                 }
             }
+            Effect::SetBasePtVar { to, n } => {
+                // CR 608.2h: the value is locked in as the effect resolves.
+                let v = i32::try_from(self.eval_num(*n, ctx)).unwrap_or(i32::MAX);
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    self.effect_until_end_of_turn(
+                        ctx,
+                        id,
+                        smallvec::smallvec![Modification::SetPt {
+                            power: PtValue::Fixed(v),
+                            toughness: PtValue::Fixed(v),
+                        }],
+                    );
+                }
+            }
             Effect::YouMay(inner) => {
                 // "Do this only once each turn.": done already, it isn't
                 // offered (`TurnLimit::Do`).
@@ -10056,6 +10103,68 @@ impl GameState {
                 if !paid {
                     for e in effects {
                         self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::UnlessSacrifices {
+                payer,
+                filter,
+                or_discard,
+                effects,
+            } => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                    .unwrap_or_default();
+                let payers: SmallVec<[PlayerId; 2]> = self
+                    .recipients(ctx, *payer)
+                    .into_iter()
+                    .filter_map(|t| match t {
+                        Target::Player(p) => Some(p),
+                        Target::Object(_) => None,
+                    })
+                    .collect();
+                for p in payers {
+                    // CR 608.2d: the player chooses as it resolves: `Mode(0)`
+                    // sacrifices, `Mode(1)` discards, `Mode(2)` takes the
+                    // penalty.
+                    let sacrificable: Vec<Choice> = self
+                        .permanents_of(p)
+                        .filter(|id| {
+                            self.characteristics(*id).is_some_and(|c| {
+                                filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                            }) && self.status_ok(filter, *id)
+                        })
+                        .map(Choice::Sacrifice)
+                        .collect();
+                    let mut options = Vec::new();
+                    if !sacrificable.is_empty() {
+                        options.push(Choice::Mode(0));
+                    }
+                    if *or_discard && !self.player(p).hand.is_empty() {
+                        options.push(Choice::Mode(1));
+                    }
+                    options.push(Choice::Mode(2));
+                    let k = if options.len() == 1 {
+                        0
+                    } else {
+                        self.choose_mid(p, DecisionKind::ChooseOption { def }, options.clone())
+                    };
+                    match options[k] {
+                        Choice::Mode(0) => {
+                            let k = self.choose_mid(p, DecisionKind::Edict, sacrificable.clone());
+                            if let Choice::Sacrifice(id) = sacrificable[k] {
+                                self.sacrifice(id);
+                            }
+                        }
+                        Choice::Mode(1) => self.discard_n(p, 1),
+                        _ => {
+                            for e in effects {
+                                self.apply_effect(ctx, e);
+                            }
+                        }
                     }
                 }
             }
@@ -10836,6 +10945,58 @@ impl GameState {
                 self.bolster(ctx, n);
             }
             Effect::Populate => self.populate(ctx),
+            Effect::ExchangeControl { a, b } => {
+                let mut objs: SmallVec<[ObjId; 2]> = SmallVec::new();
+                for r in std::iter::once(*a).chain(*b) {
+                    for t in self.recipients(ctx, r) {
+                        match on_battlefield(self, t) {
+                            Some(id) => objs.push(id),
+                            // CR 701.12a: if the whole exchange can't be
+                            // completed, none of it happens.
+                            None => return,
+                        }
+                    }
+                }
+                let [x, y] = objs[..] else {
+                    return;
+                };
+                let (cx, cy) = (self.objects[x].controller, self.objects[y].controller);
+                // CR 701.12b: the same controller: nothing happens.
+                if cx == cy {
+                    return;
+                }
+                for (id, to) in [(x, cy), (y, cx)] {
+                    let timestamp = self.tick();
+                    self.effects.push(ContinuousEffect {
+                        source: Some(ctx.source),
+                        controller: to,
+                        timestamp,
+                        duration: Duration::Permanent,
+                        affected: Affected::Objects(smallvec::smallvec![id]),
+                        parts: smallvec::smallvec![Modification::Control],
+                    });
+                    self.control_effects += 1;
+                }
+                self.cbump();
+                self.sync_control();
+            }
+            Effect::EndTurn => {
+                // CR 724.1a: triggered abilities not yet on the stack cease
+                // to exist.
+                self.pending_triggers.clear();
+                // CR 724.1b: every object on the stack is exiled, the
+                // resolving one included; an ability or a copy of a spell
+                // ceases to exist.
+                for id in self.stack.clone().into_iter().rev() {
+                    let o = &self.objects[id];
+                    if o.kind == ObjKind::Ability || o.cast.copy() {
+                        self.remove_from_game(id);
+                    } else {
+                        self.move_object(id, Zone::Exile, true);
+                    }
+                }
+                self.end_turn = true;
+            }
             Effect::Incubate { count, token } => {
                 // CR 701.53a: it enters with the counters (CR 122.6).
                 let n = self.eval_num(*count, ctx);
@@ -11561,8 +11722,19 @@ impl GameState {
                 let recipients = self.recipients(ctx, *of);
                 for t in recipients {
                     if let Some(id) = on_battlefield(self, t) {
-                        let new = self.create_token_copy(id, ctx.controller, x);
-                        ctx.created = Some(new);
+                        // CR 614.1a: token-creation replacement effects
+                        // ("twice that many of those tokens").
+                        let def = self.objects[id].def;
+                        for (d, k) in self.tokens_to_create(ctx.controller, def, 1) {
+                            for _ in 0..k {
+                                let new = if d == def {
+                                    self.create_token_copy(id, ctx.controller, x)
+                                } else {
+                                    self.create_token(d, ctx.controller)
+                                };
+                                ctx.created = Some(new);
+                            }
+                        }
                     }
                 }
             }

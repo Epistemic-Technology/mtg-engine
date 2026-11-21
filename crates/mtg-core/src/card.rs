@@ -2077,6 +2077,11 @@ pub enum SearchTo {
     /// "put one onto the battlefield tapped and the other into your hand"
     /// (Cultivate): the searcher chooses which.
     BattlefieldAndHand,
+    /// "put that card into your graveyard" (Vile Entomber).
+    Graveyard,
+    /// "put it into your hand or graveyard" (Dina's Guidance): the
+    /// searcher chooses, for each card.
+    HandOrGraveyard,
 }
 
 /// A static ability (CR 604) that generates a continuous effect while its
@@ -2873,6 +2878,10 @@ pub enum TargetSpec {
     /// A spell matching the filter ("target instant spell", "target
     /// artifact or enchantment spell"); judged on its characteristics.
     SpellFiltered(u16),
+    /// One target that is a spell or a battlefield object matching the
+    /// pool's `n`th filter ("target spell or creature", "target spell or
+    /// permanent", CR 115.1).
+    SpellOr(u16),
     /// A card in a graveyard matching the filter ("target card from a
     /// graveyard", "target instant card from your graveyard"); `who` is
     /// whose graveyard, judged from the caster. Several such targets of
@@ -3701,6 +3710,16 @@ pub enum Effect {
         discard: u32,
         effects: Vec<Effect>,
     },
+    /// "... unless they sacrifice a nonland permanent of their choice or
+    /// discard a card" (a punisher, CR 608.2d): the payer may sacrifice a
+    /// permanent matching `filter` (or, with `or_discard`, discard a
+    /// card) to stop `effects`.
+    UnlessSacrifices {
+        payer: Recipient,
+        filter: ObjFilter,
+        or_discard: bool,
+        effects: Vec<Effect>,
+    },
     /// "Sacrifice it unless you discard a card at random", "... unless you
     /// return two Forests you control to their owner's hand": the
     /// controller may do `act` (CR 608.2d, chosen as it resolves); unless
@@ -3734,6 +3753,12 @@ pub enum Effect {
         to: Recipient,
         power: i32,
         toughness: i32,
+    },
+    /// "have base power and toughness X/X until end of turn" (layer 7b):
+    /// both `n`, evaluated as the effect resolves (Biomass Mutation).
+    SetBasePtVar {
+        to: Recipient,
+        n: Num,
     },
     /// Create a delayed triggered ability (CR 603.7) about the recipient:
     /// `ability` is a registered triggered ability (see
@@ -4155,6 +4180,15 @@ pub enum Effect {
     Airbend {
         what: Recipient,
     },
+    /// Exchange control of two permanents (CR 701.12a-b): `a` and `b`, or
+    /// the two objects `a` names when `b` is `None` ("two target
+    /// creatures"). Nothing happens unless both are still on the
+    /// battlefield under different controllers; then each controller
+    /// gains control of the other's permanent indefinitely.
+    ExchangeControl {
+        a: Recipient,
+        b: Option<Recipient>,
+    },
     /// Recruit (CR 701.70a): "Draw a card, then discard a card. If you
     /// discarded a nonland card this way, create a 1/1 white Human Soldier
     /// creature token." (`token`).
@@ -4165,6 +4199,10 @@ pub enum Effect {
     /// control and creates a token that's a copy of it; with none, nothing
     /// happens (CR 701.36b).
     Populate,
+    /// "End the turn." (CR 724.1): triggered abilities waiting to be put
+    /// on the stack cease to exist, every object on the stack (this spell
+    /// included) is exiled, and the game skips to the cleanup step.
+    EndTurn,
     /// Incubate N (CR 701.53a): create `token` (an Incubator, a
     /// double-faced token, CR 111.10i) entering with N +1/+1 counters.
     Incubate {
@@ -4459,6 +4497,7 @@ impl Effect {
                 }
                 | Effect::Instead { .. }
                 | Effect::UnlessPays { .. }
+                | Effect::UnlessSacrifices { .. }
                 | Effect::UnlessYou { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
@@ -4694,6 +4733,9 @@ pub enum PlayerStaticKind {
     Shroud,
     /// "Your opponents can't cast spells during your turn." (CR 101.2).
     OpponentsCantCastYourTurn,
+    /// "You can't lose the game and your opponents can't win the game."
+    /// (CR 104.3a-b, 104.2b; Platinum Angel).
+    CantLose,
     /// A rule for the whole game while the source is on the battlefield:
     /// "Players can't gain life.", "Damage can't be prevented." (CR
     /// 614.17; `GameState::rule_in_force`).
@@ -4736,6 +4778,9 @@ pub enum Affects {
     /// The controller and objects matching a filter ("you and creatures
     /// you control").
     YouAnd(ObjFilter),
+    /// An opponent of the controller or an object matching a filter ("an
+    /// opponent or a permanent an opponent controls").
+    OpponentsAnd(ObjFilter),
     /// The spell's `n`th chosen target, locked in when the effect is
     /// created (stored effects only).
     Target(usize),
@@ -4795,6 +4840,9 @@ pub enum Replaces {
     /// A card would be put into a graveyard owned by `whose`, from anywhere
     /// or only from the battlefield.
     ToGraveyard { whose: Who, from_battlefield: bool },
+    /// The ability's own card would be put into a graveyard from anywhere
+    /// (Progenitus): the ability functions in every zone (CR 113.6b).
+    ThisToGraveyard,
     /// +1/+1 counters would be put on a permanent matching `on`, including
     /// as it enters (CR 122.6).
     PlusCounters { on: ObjFilter },
@@ -4806,6 +4854,10 @@ pub enum Replaces {
     Dies { to: Affects },
     /// How this permanent itself enters the battlefield (CR 614.1c).
     Enters,
+    /// One or more tokens (`creature`: creature tokens) would be created
+    /// under the controller's control (CR 111.1, 614.1a). `effect` prints
+    /// the older "If an effect would create ..." (rendering only).
+    CreateTokens { creature: bool, effect: bool },
 }
 
 /// What happens instead.
@@ -4819,10 +4871,20 @@ pub enum Replacement {
     PreventNext(Num),
     /// Double the damage or life.
     Double,
-    /// That many plus one counters.
+    /// That many plus one counters; that much life plus 1.
     PlusOne,
+    /// "those tokens plus a 1/1 green Frog creature token are created
+    /// instead" (Quina); `that_many`: "plus that many ... tokens"
+    /// (Chatterfang).
+    PlusToken { token: CardRef, that_many: bool },
+    /// "it deals that much damage plus 2 instead" (Torbran); `to_that`
+    /// prints "to that permanent or player" after it (rendering only).
+    PlusN { n: u32, to_that: bool },
     /// Put the card into this zone instead.
     Instead(crate::state::Zone),
+    /// Reveal the card and shuffle it into its owner's library instead
+    /// (Darksteel Colossus).
+    ShuffleIntoLibrary,
     /// Draw two cards instead of one.
     DrawTwo,
     /// The player wins the game instead.
@@ -6310,7 +6372,8 @@ impl AbilityDef {
             | Effect::IfThisWay { then: inner, .. }
             | Effect::IfExcessDamage(inner)
             | Effect::OneOf(inner)
-            | Effect::UnlessPays { effects: inner, .. } = e
+            | Effect::UnlessPays { effects: inner, .. }
+            | Effect::UnlessSacrifices { effects: inner, .. } = e
             {
                 for i in inner {
                     walk(i, out);

@@ -1,0 +1,6 @@
+card "Switcheroo" {
+  oracle_id 68227969-39cf-42cf-b3b8-cf8a04647d7e
+  cost {4}{U}
+  type Sorcery
+  spell: exchange control of 2 target creature
+}

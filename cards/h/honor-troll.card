@@ -1,0 +1,9 @@
+card "Honor Troll" {
+  oracle_id 98c059ed-d749-4f66-bda1-6352976198f0
+  cost {2}{G}
+  type Creature — Troll Druid
+  pt 2/3
+  keywords vigilance
+  replace you gain life: plus one
+  static this: +2/+1 as long as your life 25 or more
+}

@@ -1,0 +1,8 @@
+card "Tomik, Izzet Sparkmage" {
+  oracle_id 16604fee-cd8d-41e4-8269-3c7ff756613d
+  cost {1}{R}
+  type Legendary Creature — Human Wizard
+  pt 1/2
+  keywords prowess
+  replace noncombat damage from permanent you control to opponent and permanent an opponent controls: plus 1
+}

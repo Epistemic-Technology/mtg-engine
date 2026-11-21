@@ -1424,6 +1424,10 @@ impl P {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Hexproof)
             }
+            "you" if self.at_words(&["you", "can't", "lose", "the", "game"]) => {
+                self.pos += 5;
+                self.player_static(mtg_core::card::PlayerStaticKind::CantLose)
+            }
             "you" if self.at_words(&["you", "have", "shroud"]) => {
                 self.pos += 3;
                 self.player_static(mtg_core::card::PlayerStaticKind::Shroud)
@@ -2408,6 +2412,7 @@ impl P {
                     event: Replaces::Enters,
                     outcome: Outcome::EnterTappedUnlessPay(n),
                     then: Vec::new(),
+                    token: None,
                 }))
             }
             "enters" if self.at_words(&["enters", "tapped", "if", "not", "your", "turn"]) => {
@@ -2477,6 +2482,7 @@ impl P {
                     event: Replaces::Enters,
                     outcome,
                     then: Vec::new(),
+                    token: None,
                 }))
             }
             "label" => {
@@ -3923,6 +3929,7 @@ impl P {
 
     /// `<clause> unless you pay {2}` / `unless they pay 2 life` / `unless
     /// <recipient> pays {2}`.
+    #[allow(clippy::too_many_lines)] // one block per kind of payment
     fn unless_suffix(&mut self, e: Effect) -> R<Effect> {
         if !self.at_word("unless") {
             return Ok(e);
@@ -3956,6 +3963,46 @@ impl P {
             });
         }
         self.pos += 1;
+        // "unless they sacrifice a nonland permanent of their choice or
+        // discard a card" (CR 608.2d).
+        let sacrifices = |p: &Self| {
+            p.at_words(&["they", "sacrifice"])
+                || (1..5).any(|k| {
+                    matches!(p.peek_at(k), Some(Tok::Word(w)) if w == "sacrifices")
+                        && !(0..k).any(|j| {
+                            matches!(p.peek_at(j), Some(Tok::Word(w)) if w == "pays" || w == "discards")
+                        })
+                })
+        };
+        if sacrifices(self) {
+            let payer = if self.eat_words(&["they", "sacrifice"]) {
+                match self.subject {
+                    Some(s) => s,
+                    None => {
+                        return self.fail("`unless they sacrifice` needs a clause with a subject");
+                    }
+                }
+            } else {
+                let r = self.recipient()?;
+                self.expect_word("sacrifices")?;
+                r
+            };
+            let filter = self.filter()?;
+            // `else discard 1 card` (`or` would start another clause).
+            let or_discard = self.at_word("else")
+                && matches!(self.word_at(1).as_deref(), Some("discard" | "discards"))
+                && matches!(self.peek_at(2), Some(Tok::Num(1)))
+                && self.word_at(3).as_deref() == Some("card");
+            if or_discard {
+                self.pos += 4;
+            }
+            return Ok(Effect::UnlessSacrifices {
+                payer,
+                filter,
+                or_discard,
+                effect: Box::new(e),
+            });
+        }
         // "unless that player discards a card": discarding is the payment.
         let discards = |p: &Self| {
             p.at_words(&["they", "discard"])
@@ -5473,6 +5520,11 @@ impl P {
             }
             "has" | "have" => {
                 self.expect_words(&["base", "power", "and", "toughness"])?;
+                if !matches!(self.peek(), Some(Tok::Pt { .. })) {
+                    let n = self.num()?;
+                    self.until_end_of_turn();
+                    return Ok(Effect::SetBasePtVar { to: subject, n });
+                }
                 let Some(Tok::Pt {
                     power,
                     toughness,
@@ -6920,6 +6972,14 @@ impl P {
                 },
             }),
             "populate" => Ok(Effect::Populate),
+            "exchange" if self.eat_words(&["control", "of"]) => Ok(Effect::ExchangeControl {
+                what: if self.at_many() {
+                    vec![self.many_target()?]
+                } else {
+                    self.recipients()?
+                },
+            }),
+            "end" if self.eat_words(&["the", "turn"]) => Ok(Effect::EndTurn),
             "incubate" => Ok(Effect::Incubate(self.num()?)),
             // CR 701.41a: "up to N other target creatures" on a permanent
             // (its triggered ability), "up to N target creatures" on a
@@ -7322,7 +7382,9 @@ impl P {
                 }
                 let reveal = self.eat_word("reveal");
                 self.expect_word("to")?;
-                let to = if self.eat_word("hand") {
+                let to = if self.eat_words(&["hand", "or", "graveyard"]) {
+                    mtg_core::card::SearchTo::HandOrGraveyard
+                } else if self.eat_word("hand") {
                     mtg_core::card::SearchTo::Hand
                 } else if self.eat_word("battlefield") {
                     let tapped = self.eat_word("tapped");
@@ -7333,8 +7395,10 @@ impl P {
                     }
                 } else if self.eat_word("top") {
                     mtg_core::card::SearchTo::TopOfLibrary
+                } else if self.eat_word("graveyard") {
+                    mtg_core::card::SearchTo::Graveyard
                 } else {
-                    return self.unexpected("`hand`, `battlefield`, or `top`");
+                    return self.unexpected("`hand`, `battlefield`, `graveyard`, or `top`");
                 };
                 let that_card = self.eat_words(&["that", "card"]);
                 Ok(Effect::Search {
@@ -7730,6 +7794,7 @@ impl P {
                         None => Outcome::Prevent,
                     },
                     then: Vec::new(),
+                    token: None,
                 }))
             }
             "players" => {
@@ -9132,6 +9197,16 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one check per target form
     fn target_spec(&mut self) -> R<Target> {
+        // "target spell or creature" (CR 115.1).
+        if self.at_words(&["spell", "or"])
+            && !matches!(
+                self.word_at(2).as_deref(),
+                Some("ability" | "abilities" | "activated" | "triggered")
+            )
+        {
+            self.pos += 2;
+            return Ok(Target::SpellOr(self.filter()?));
+        }
         for (ws, spec) in TARGETS {
             if self.at_words_plural(ws) {
                 // "creature you don't control", "creature with flying",
@@ -9235,7 +9310,10 @@ impl P {
             // "Beast creature you control" goes on as a filter.
             && !matches!(
                 self.word_at(2).as_deref(),
-                Some("you" | "an" | "your" | "defending" | "with" | "without" | "or" | "that")
+                Some(
+                    "you" | "an" | "your" | "defending" | "with" | "without" | "or" | "that"
+                        | "card" | "cards"
+                )
             )
         {
             let sub = sub.clone();
@@ -10129,6 +10207,10 @@ impl P {
         if self.at_words(&["you", "and"]) {
             self.pos += 2;
             return Ok(Affects::YouAnd(self.filter()?));
+        }
+        if self.at_words(&["opponent", "and"]) {
+            self.pos += 2;
+            return Ok(Affects::OpponentsAnd(self.filter()?));
         }
         if self.eat_word("you") {
             return Ok(Affects::You);
@@ -11404,11 +11486,29 @@ impl P {
     fn replacement_inline(&mut self) -> R<Replacement> {
         let event = self.replaces()?;
         self.expect(&Tok::Colon)?;
-        let outcome = self.outcome()?;
+        // `plus "1/1 green Frog creature"`, `plus that many "..."`: tokens
+        // created as well (Quina, Chatterfang).
+        let mut token = None;
+        let outcome = if self.at_word("plus")
+            && (matches!(self.peek_at(1), Some(Tok::Str(_)))
+                || self.at_words(&["plus", "that", "many"]))
+        {
+            self.pos += 1;
+            let that_many = self.eat_words(&["that", "many"]);
+            token = Some(self.string()?);
+            self.eat_word("instead");
+            Outcome::PlusToken {
+                token: mtg_core::card::CardRef::default(),
+                that_many,
+            }
+        } else {
+            self.outcome()?
+        };
         Ok(Replacement {
             event,
             outcome,
             then: Vec::new(),
+            token,
         })
     }
 
@@ -11434,6 +11534,22 @@ impl P {
             return Ok(Replaces::Dies {
                 to: Affects::Target(n - 1),
             });
+        }
+        // `tokens created under your control` (CR 111.1); `by an effect`
+        // for the older wording.
+        if self.at_words(&["tokens", "created"])
+            || self.at_words(&["creature", "tokens", "created"])
+        {
+            let creature = self.eat_word("creature");
+            self.pos += 2;
+            self.expect_words(&["under", "your", "control"])?;
+            let effect = self.eat_words(&["by", "an", "effect"]);
+            return Ok(Replaces::CreateTokens { creature, effect });
+        }
+        // `this put into a graveyard` (CR 113.6b: from anywhere).
+        if self.eat_words(&["this", "put", "into", "a", "graveyard"]) {
+            self.eat_words(&["from", "anywhere"]);
+            return Ok(Replaces::ThisToGraveyard);
         }
         // `this dies`: "If this creature would die, exile it instead."
         if self.eat_words(&["this", "dies"]) {
@@ -11603,11 +11719,22 @@ impl P {
                 }
             }
             "double" => Outcome::Double,
+            // "reveal it and shuffle it into its owner's library instead".
+            "shuffle" => {
+                self.eat_words(&["into", "library"]);
+                Outcome::ShuffleIntoLibrary
+            }
             // "return it to its owner's hand instead".
             "hand" => Outcome::Instead(Zone::Hand),
             "plus" => {
-                self.expect_word("one")?;
-                Outcome::PlusOne
+                if self.eat_word("one") {
+                    Outcome::PlusOne
+                } else {
+                    // `plus 2`, `plus 1 to that`: damage (Torbran, Jaya).
+                    let n = self.number()?;
+                    let to_that = self.eat_words(&["to", "that"]);
+                    Outcome::PlusN { n, to_that }
+                }
             }
             "exile" => {
                 self.eat_word("it");

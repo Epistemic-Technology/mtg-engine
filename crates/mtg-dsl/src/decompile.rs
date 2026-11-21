@@ -287,6 +287,7 @@ impl Decompiler<'_> {
             }
             TargetSpec::Filtered(i) => Target::Filter(self.filter(self.pool.filter(i))),
             TargetSpec::SpellFiltered(i) => Target::Spell(self.filter(self.pool.filter(i))),
+            TargetSpec::SpellOr(i) => Target::SpellOr(self.filter(self.pool.filter(i))),
             TargetSpec::GraveyardCard {
                 filter,
                 who,
@@ -1189,6 +1190,21 @@ impl Decompiler<'_> {
                         .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
                 ),
             },
+            CoreEffect::UnlessSacrifices {
+                payer,
+                filter,
+                or_discard,
+                effects,
+            } => Effect::UnlessSacrifices {
+                payer: Self::recipient(*payer),
+                filter: self.filter(filter),
+                or_discard: *or_discard,
+                effect: Box::new(
+                    effects
+                        .first()
+                        .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
+                ),
+            },
             CoreEffect::UnlessPays {
                 payer,
                 mana,
@@ -1206,6 +1222,7 @@ impl Decompiler<'_> {
                         .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
                 ),
             },
+            CoreEffect::SetBasePtVar { to, n } => Effect::SetBasePtVar { to: r(*to), n: *n },
             CoreEffect::SetBasePt {
                 to,
                 power,
@@ -1332,11 +1349,15 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::Populate => Effect::Populate,
+            CoreEffect::EndTurn => Effect::EndTurn,
             CoreEffect::Recruit { .. } => Effect::Recruit { you: false },
             CoreEffect::GraveyardToBattlefield { filter } => Effect::GraveyardToBattlefield {
                 filter: self.filter(filter),
             },
             CoreEffect::CloakTop { .. } => Effect::CloakTop,
+            CoreEffect::ExchangeControl { a, b } => Effect::ExchangeControl {
+                what: std::iter::once(*a).chain(*b).map(r).collect(),
+            },
             CoreEffect::Airbend { what } => Effect::Airbend {
                 what: vec![r(*what)],
             },
@@ -1854,6 +1875,7 @@ impl Decompiler<'_> {
             CoreAffects::Players(w) => Affects::Players(*w),
             CoreAffects::Objects(f) => Affects::Objects(self.filter(f)),
             CoreAffects::YouAnd(f) => Affects::YouAnd(self.filter(f)),
+            CoreAffects::OpponentsAnd(f) => Affects::OpponentsAnd(self.filter(f)),
             CoreAffects::Target(i) => Affects::Target(*i),
             CoreAffects::Targets(a, u8::MAX) => Affects::Target(usize::from(*a)),
             CoreAffects::Targets(a, n) => Affects::Targets(usize::from(*a), usize::from(*n)),
@@ -1891,6 +1913,11 @@ impl Decompiler<'_> {
                     whose: *whose,
                     from_battlefield: *from_battlefield,
                 },
+                CoreReplaces::ThisToGraveyard => Replaces::ThisToGraveyard,
+                CoreReplaces::CreateTokens { creature, effect } => Replaces::CreateTokens {
+                    creature: *creature,
+                    effect: *effect,
+                },
                 CoreReplaces::PlusCounters { on } => Replaces::PlusCounters {
                     on: self.filter(on),
                 },
@@ -1904,6 +1931,12 @@ impl Decompiler<'_> {
             },
             outcome: r.replacement,
             then: self.sentences(&r.then),
+            token: match r.replacement {
+                mtg_core::card::Replacement::PlusToken { token, .. } => {
+                    Some(self.pool.get(token).name.clone())
+                }
+                _ => None,
+            },
         }
     }
 

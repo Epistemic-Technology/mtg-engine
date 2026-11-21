@@ -1,0 +1,8 @@
+card "Herald of Eternal Dawn" {
+  oracle_id 4080f7e3-06d3-4d3d-9929-4e826cb66713
+  cost {4}{W}{W}{W}
+  type Creature — Angel
+  pt 6/6
+  keywords flash, flying
+  you can't lose the game
+}

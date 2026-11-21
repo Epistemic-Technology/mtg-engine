@@ -1190,6 +1190,7 @@ impl<'a> Ctx<'a> {
                 historic_permanent(f, controller_first(f, filter_phrase(f, self.card, false)))
             ),
             Target::Spell(f) => self.spell_target_phrase(f),
+            Target::SpellOr(f) => format!("target spell or {}", filter_phrase(f, self.card, false)),
             Target::GraveyardCard {
                 filter,
                 who,
@@ -1688,6 +1689,7 @@ impl<'a> Ctx<'a> {
             Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
             Target::Filter(f) => filter_phrase(f, self.card, true),
             Target::Spell(f) => format!("{} spells", filter_phrase(f, self.card, false)),
+            Target::SpellOr(f) => format!("spells and/or {}", filter_phrase(f, self.card, true)),
             Target::GraveyardCard {
                 filter,
                 who,
@@ -1775,6 +1777,8 @@ fn target_noun(t: &Target) -> String {
         Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
         Target::CreatureOfSubtype(_) => "creature".to_string(),
         Target::Spell(_) => "spell".to_string(),
+        Target::SpellOr(f) if f.types == [CardType::Creature] => "spell or creature".to_string(),
+        Target::SpellOr(_) => "spell or permanent".to_string(),
         Target::GraveyardCard { .. } => "card".to_string(),
         Target::Spec(s) => match s {
             TargetSpec::Any | TargetSpec::AnyOther => "permanent or player".to_string(),
@@ -1814,6 +1818,7 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::SpellFiltered(_)
             | TargetSpec::OnStack { spells: true, .. } => "spell".to_string(),
             TargetSpec::OnStack { .. } => "ability".to_string(),
+            TargetSpec::SpellOr(_) => "spell or permanent".to_string(),
         },
         Target::Filter(f) => {
             if f.types.contains(&CardType::Creature) {
@@ -1875,6 +1880,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::NonlegendaryCreatureYouControl => "target nonlegendary creature you control",
         TargetSpec::CreatureCardInYourGraveyard => "target creature card from your graveyard",
         TargetSpec::Spell | TargetSpec::SpellFiltered(_) => "target spell",
+        TargetSpec::SpellOr(_) => "target spell or permanent",
         TargetSpec::CreatureSpell => "target creature spell",
         TargetSpec::NoncreatureSpell => "target noncreature spell",
         TargetSpec::Opponent => "target opponent",
@@ -1924,11 +1930,13 @@ fn enters_tapped_with(card: &Card, i: usize) -> Option<String> {
             event: Replaces::Enters,
             outcome: Outcome::EnterTapped,
             then: t1,
+            ..
         }),
         Some(Ability::Replacement(Replacement {
             event: Replaces::Enters,
             outcome: Outcome::EnterWithCounters { kind, n },
             then: t2,
+            ..
         })),
     ) = (&card.abilities[i], card.abilities.get(i + 1))
     else {
@@ -4043,12 +4051,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
+        Effect::EndTurn => Clause::imperative("end the turn".to_string()),
         Effect::Recruit { you: false } => Clause::imperative("recruit".to_string()),
         Effect::CloakTop => Clause::imperative("cloak the top card of your library".to_string()),
         Effect::GraveyardToBattlefield { filter } => Clause::imperative(format!(
             "return all {} from your graveyard to the battlefield",
             cards_phrase(filter, ctx.card, true)
         )),
+        Effect::ExchangeControl { what } => {
+            let o = if what.len() == 1 {
+                ctx.obj_all(what[0])
+            } else {
+                ctx.obj_list(what, true)
+            };
+            Clause::imperative(format!("exchange control of {o}"))
+        }
         Effect::Airbend { what } => {
             let o = if what.len() == 1 {
                 ctx.obj_all(what[0])
@@ -6298,6 +6315,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 mtg_core::card::SearchTo::TopOfLibrary => {
                     let _ = write!(text, "then shuffle and put {it} on top");
                 }
+                // "put that card into your graveyard" (Vile Entomber).
+                mtg_core::card::SearchTo::Graveyard => {
+                    let gy = hand.replace("hand", "graveyard");
+                    let _ = write!(text, "{put} {pron} into {gy}, then {shuffle}");
+                }
+                mtg_core::card::SearchTo::HandOrGraveyard => {
+                    let gy = hand.replace("hand", "hand or graveyard");
+                    let _ = write!(text, "{put} {pron} into {gy}, then {shuffle}");
+                }
             }
             match who {
                 Some(w) if *w != Recipient::You => {
@@ -6864,6 +6890,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let _ = write!(c.tail, " unless {who} {amount}");
             c
         }
+        // "unless they sacrifice a nonland permanent of their choice or
+        // discard a card", "unless that player sacrifices a creature of
+        // their choice".
+        Effect::UnlessSacrifices {
+            payer,
+            filter,
+            or_discard,
+            effect,
+        } => {
+            let mut c = clause(effect, ctx);
+            let what = filter_a(filter, ctx.card);
+            let (sac, disc, who) = match (payer, &c.subject) {
+                (Recipient::EachOpponent | Recipient::EachPlayer, _) => {
+                    ("sacrifices", "discards", "that player")
+                }
+                (p, Some((s, _))) if p == s => ("sacrifice", "discard", "they"),
+                _ => ("sacrifices", "discards", "that player"),
+            };
+            let or = if *or_discard {
+                format!(" or {disc} a card")
+            } else {
+                String::new()
+            };
+            let _ = write!(c.tail, " unless {who} {sac} {what} of their choice{or}");
+            c
+        }
         // "sacrifice it unless you return an artifact you control to its
         // owner's hand".
         Effect::UnlessYou { act, effect } => {
@@ -7225,6 +7277,24 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 kicked_text(ctx.card),
                 body.trim_end_matches('.')
             ))
+        }
+        Effect::SetBasePtVar { to, n } => {
+            let s = ctx.subj(*to);
+            let each = if matches!(to, Recipient::Targets(..)) {
+                "each "
+            } else {
+                ""
+            };
+            let v = digits(*n);
+            Clause::with_subject(
+                *to,
+                s,
+                format!(
+                    "{each}{} base power and toughness {v}/{v}",
+                    ctx.verb(*to, "has", "have")
+                ),
+            )
+            .until_eot()
         }
         Effect::SetBasePt {
             to,
@@ -8647,6 +8717,7 @@ fn affects_to(a: &Affects, ctx: &mut Ctx) -> String {
         Affects::Players(_) => "a player".to_string(),
         Affects::Objects(f) => filter_phrase(f, ctx.card, true),
         Affects::YouAnd(f) => format!("you and {}", filter_phrase(f, ctx.card, true)),
+        Affects::OpponentsAnd(f) => format!("an opponent or {}", filter_a(f, ctx.card)),
         Affects::Target(i) => ctx.obj(Recipient::Target(*i)),
         Affects::ThatTarget(i) => ctx.obj(Recipient::ThatTarget(*i)),
         Affects::Targets(a, n) => ctx.obj(Recipient::Targets(*a, *n)),
@@ -8951,7 +9022,7 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             Replaces::Damage {
                 from, to, combat, ..
             },
-            Outcome::Double,
+            outcome @ (Outcome::Double | Outcome::PlusN { .. }),
         ) => {
             let kind = match combat {
                 Some(true) => "combat damage",
@@ -8962,17 +9033,31 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             // "to that permanent or player", but "to you", "to this
             // creature" (Goldnight Castigator).
             let that = match to_text.strip_prefix("a ") {
-                Some(rest) => format!("that {rest}"),
-                None => to_text.clone(),
+                Some(rest) => format!(" to that {rest}"),
+                None => format!(" to {to_text}"),
+            };
+            // "it deals double that damage to that permanent or player",
+            // "it deals that much damage plus 2 instead" (Torbran):
+            // "an opponent or a permanent an opponent controls" is not
+            // named again (Twinflame Tyrant).
+            let deals = |that: &str| match outcome {
+                Outcome::PlusN { n, to_that } => {
+                    let that = if *to_that { that } else { "" };
+                    format!("that much damage plus {n}{that}")
+                }
+                _ if matches!(to, Affects::OpponentsAnd(_)) => format!("double that {kind}"),
+                _ => format!("double that {kind}{that}"),
             };
             match from {
                 None => format!(
-                    "If a source would deal {kind} to {to_text}, it deals double that {kind} to {that} instead."
+                    "If a source would deal {kind} to {to_text}, it deals {} instead.",
+                    deals(&that)
                 ),
                 // "If a source you control would deal damage to a
                 // permanent or player, it deals double that damage to that
                 // permanent or player instead." (Angrath's Marauders); "If
-                // a Giant source you control ..." (Calamity Bearer).
+                // a Giant source you control ..." (Calamity Bearer); "If
+                // another red source you control ..." (Jaya).
                 Some(Affects::Objects(f)) if f.types.is_empty() && f.any_types.is_empty() => {
                     let p = filter_a(f, ctx.card);
                     let by = if p.contains("permanent") {
@@ -8981,7 +9066,8 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                         p.replacen(" you control", " source you control", 1)
                     };
                     format!(
-                        "If {by} would deal {kind} to {to_text}, it deals double that {kind} to {that} instead."
+                        "If {by} would deal {kind} to {to_text}, it deals {} instead.",
+                        deals(&that)
                     )
                 }
                 Some(f) => {
@@ -8990,7 +9076,8 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                         other => affects_to(other, ctx),
                     };
                     format!(
-                        "If {by} would deal {kind} to {to_text}, it deals double that {kind} instead."
+                        "If {by} would deal {kind} to {to_text}, it deals {} instead.",
+                        deals("")
                     )
                 }
             }
@@ -9049,6 +9136,10 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     format!("If {subj} would gain life, {obj} gains twice that much life instead.")
                         .replace("you gains", "you gain")
                 }
+                Outcome::PlusOne => {
+                    format!("If {subj} would gain life, {obj} gains that much life plus 1 instead.")
+                        .replace("you gains", "you gain")
+                }
                 _ => format!("If {subj} would gain life, something else happens instead."),
             }
         }
@@ -9101,6 +9192,50 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             };
             format!("If {what} would be put into {gy} {from}, {instead}.")
         }
+        // CR 614.1a, 111.1: "If one or more tokens would be created under
+        // your control, twice that many of those tokens are created
+        // instead." (Mondrak); "If an effect would create ..." (Parallel
+        // Lives).
+        (Replaces::CreateTokens { creature, effect }, Outcome::Double) => {
+            let c = if *creature { "creature " } else { "" };
+            if *effect {
+                format!(
+                    "If an effect would create one or more {c}tokens under your control, it creates twice that many of those tokens instead."
+                )
+            } else {
+                format!(
+                    "If one or more {c}tokens would be created under your control, twice that many of those tokens are created instead."
+                )
+            }
+        }
+        // "those tokens plus a 1/1 green Frog creature token are created
+        // instead" (Quina).
+        (Replaces::CreateTokens { creature, .. }, Outcome::PlusToken { that_many, .. }) => {
+            let c = if *creature { "creature " } else { "" };
+            let n = if *that_many { Num::ThatMuch } else { Num::N(1) };
+            let desc =
+                token_description(r.token.as_deref().unwrap_or_default(), n, false, false, ctx);
+            format!(
+                "If one or more {c}tokens would be created under your control, those tokens plus {desc} are created instead."
+            )
+        }
+        // The card names itself: the ability works in every zone, where it
+        // isn't "this creature" (CR 113.6b).
+        (Replaces::ThisToGraveyard, Outcome::ShuffleIntoLibrary) => {
+            let this = short_name(ctx.card);
+            format!(
+                "If {this} would be put into a graveyard from anywhere, reveal {this} and shuffle it into its owner's library instead."
+            )
+        }
+        (Replaces::PlusCounters { on }, Outcome::Double) => format!(
+            "If one or more +1/+1 counters would be put on {}, twice that many +1/+1 counters are put on that {} instead.",
+            filter_a(on, ctx.card),
+            if on.types.contains(&CardType::Creature) {
+                "creature"
+            } else {
+                "permanent"
+            }
+        ),
         (Replaces::PlusCounters { on }, Outcome::PlusOne) => format!(
             "If one or more +1/+1 counters would be put on {}, that many plus one +1/+1 counters are put on it instead.",
             filter_a(on, ctx.card)
@@ -10889,7 +11024,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
             Target::Spec(s) => format!("Enchant {}", target_phrase(*s).replace("target ", "")),
             Target::CreatureOfSubtype(sub) => format!("Enchant {sub} creature"),
-            Target::Filter(f) | Target::Spell(f) | Target::GraveyardCard { filter: f, .. } => {
+            Target::Filter(f)
+            | Target::Spell(f)
+            | Target::SpellOr(f)
+            | Target::GraveyardCard { filter: f, .. } => {
                 format!("Enchant {}", filter_phrase(f, card, false))
             }
         },
@@ -11799,6 +11937,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let s = match kind {
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::CantLose => {
+                    "you can't lose the game and your opponents can't win the game".to_string()
+                }
                 K::OpponentsCantCastYourTurn => {
                     "your opponents can't cast spells during your turn".to_string()
                 }

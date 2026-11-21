@@ -37,6 +37,11 @@ wrong thing in some case.
   Conclusions, Gruff Triplets): not supported; neither card is in.
 - **Thousand-Year Storm:** the "cast before it this turn" count has an
   edge case with spells cast while it is on the stack.
+- **Token-creation replacements apply only to `create` and `create
+  token copy` effects.** Amass, fabricate, incubate, populate, offspring,
+  embalm and other token makers ignore Parallel Lives, Quina, and the
+  like; the replacements' order is fixed (added tokens, then doubling)
+  rather than chosen (CR 616.1).
 - **Reflexive trigger on a token:** "it" may read the token where the
   text means the triggering object.
 - **"Triggers an additional time" looks at the battlefield as it is.**
@@ -116,27 +121,30 @@ named the feature; a card may need more than one.
 - **Costs:** remove a counter of any kind; equip with a non-mana or a
   choice of costs; "pay X life"; "discard your hand"; exert in an
   activated cost; mana abilities that cost life.
-- **Replacement effects:** "that much plus 1 instead"; doubling life
-  loss or counters of any kind; damage doubled to "an opponent or a
-  permanent an opponent controls"; shuffle into library instead of the
-  graveyard from anywhere (Progenitus, Darksteel Colossus, Nexus of
-  Fate); token-creation replacement.
-- **Targets:** one target that is "spell or creature" / "spell or
-  permanent"; a filter with three alternatives ("attacking, blocking,
-  or tapped creature", Sonar Strike; a parse error now); one target per opponent; targets with a total mana value;
-  "up to X targets" in a reflexive trigger; mixed battlefield and
-  graveyard targets.
-- **Other effects:** "Exile those tokens when this leaves the
-  battlefield" (Mysterio; the old form is a compile error now); "End the turn"; exchange control; return all
-  land cards from your graveyard to the battlefield; search then put
-  into hand or graveyard; put a card from among milled cards onto the
-  battlefield; a player choosing to act instead of a penalty ("unless
-  they sacrifice ..."); pile splitting (Fact or Fiction); choose a card
-  name / a number / odd or even; "can't lose the game"; win-the-game
-  effects; set base power and toughness to a variable; attack tax;
-  "must be blocked".
-- **Mechanics not yet in:** tiered, devour, battle cry, harness,
-  hideaway, double strike and divinity counters,
+- **Replacement effects:** doubling life loss (Bloodletter of
+  Aclazotz) or counters of any kind (Doubling Season, Vorinclex, Loading
+  Zone); "that much damage plus N" from a filter the renderer can't name
+  as a source ("a red or artifact source", "a Lizard, Mouse, Otter, or
+  Raccoon you control"); "an additional Food token" (Peregrin Took);
+  replacing a token with another (Divine Visitation). Progenitus needs
+  protection from everything.
+- **Targets:** one target per opponent ("for each opponent, ... target
+  ... that player controls": Lich's Relic, the Primordials); targets with
+  a total mana value; "up to X targets" in a reflexive trigger; mixed
+  battlefield and graveyard targets; targets that share a card type or
+  compare with another target (Shifting Loyalties, Puca's Mischief,
+  Daring Thief); a filter with three alternatives ("attacking,
+  blocking, or tapped creature", Sonar Strike; a parse error now).
+- **Other effects:** "exile those tokens when this leaves the
+  battlefield" (Mysterio; the old form is a compile error now); return all land cards from your graveyard to the
+  battlefield tapped; put a card from among milled cards onto the
+  battlefield; pile splitting (Fact or Fiction); choose a card name / a
+  number / odd or even; win-the-game effects with a condition; a variable
+  base power and toughness inside "becomes" (Fractalize) or from another
+  creature (Sita Varma), base power alone (Turtle-Duck); attack tax;
+  "must be blocked"; "unless they sacrifice another ..." (Torment of
+  Venom).
+- **Mechanics not yet in:** tiered, devour, battle cry, harness, hideaway, double strike and divinity counters,
   meld, the Everywhere land token, "when this land enters untapped".
 - **Scenario runner:** `trigger` cannot take `dividing`; surveil cannot
   be scripted; tokens named in a battlefield setup line are not tokens

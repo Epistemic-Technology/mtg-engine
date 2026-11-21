@@ -946,6 +946,9 @@ pub enum Target {
     Filter(Filter),
     /// `target instant spell`: a spell matching the filter.
     Spell(Filter),
+    /// `target spell or creature`, `target spell or permanent`: one target
+    /// that is a spell or a permanent matching the filter (CR 115.1).
+    SpellOr(Filter),
     /// `target card from a graveyard`, `target instant card from your
     /// graveyard`: a card in a graveyard (whose: `Any`, `You`, `Opponents`).
     /// `graveyards`: `from graveyards` ("up to two target cards from
@@ -2213,6 +2216,9 @@ pub struct Replacement {
     pub event: Replaces,
     pub outcome: Outcome,
     pub then: Vec<Sentence>,
+    /// The token an outcome `plus "<token>"` adds (`Outcome::PlusToken`,
+    /// whose `CardRef` the compiler fills in).
+    pub token: Option<String>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -2244,6 +2250,16 @@ pub enum Replaces {
         whose: Who,
         from_battlefield: bool,
     },
+    /// `tokens created under your control`, `creature tokens created
+    /// under your control`; `effect` (`... by an effect`) prints "If an
+    /// effect would create one or more tokens under your control".
+    CreateTokens {
+        creature: bool,
+        effect: bool,
+    },
+    /// `this put into a graveyard`: "If ~ would be put into a graveyard
+    /// from anywhere" (CR 113.6b).
+    ThisToGraveyard,
     PlusCounters {
         on: Filter,
     },
@@ -2283,6 +2299,9 @@ pub enum Affects {
     Players(Who),
     Objects(Filter),
     YouAnd(Filter),
+    /// `opponent and permanent an opponent controls`: "an opponent or a
+    /// permanent an opponent controls".
+    OpponentsAnd(Filter),
     Target(usize),
     /// `that target 1`: the same target named again, "that creature".
     ThatTarget(usize),
@@ -3542,6 +3561,15 @@ pub enum Effect {
         discard: u32,
         effect: Box<Effect>,
     },
+    /// `<clause> unless they sacrifice nonland permanent or discard 1
+    /// card`, `<clause> unless target 1 sacrifices creature`: "unless they
+    /// sacrifice a nonland permanent of their choice or discard a card".
+    UnlessSacrifices {
+        payer: Recipient,
+        filter: Filter,
+        or_discard: bool,
+        effect: Box<Effect>,
+    },
     /// `<clause> unless you <clause>`: "sacrifice it unless you discard
     /// a card at random", "... unless you return two Forests you control
     /// to their owner's hand" (the controller may act to stop it).
@@ -3554,6 +3582,12 @@ pub enum Effect {
         to: Recipient,
         power: i32,
         toughness: i32,
+    },
+    /// `<what> has base power and toughness X`: "... have base power and
+    /// toughness X/X until end of turn" (Biomass Mutation).
+    SetBasePtVar {
+        to: Recipient,
+        n: Num,
     },
     /// A delayed triggered ability (CR 603.7) about `about`; `trigger_first`
     /// records whether the text puts the trigger before the effects.
@@ -3672,6 +3706,12 @@ pub enum Effect {
     Airbend {
         what: Vec<Recipient>,
     },
+    /// `exchange control of 2 target creature`, `exchange control of this
+    /// and target nonland permanent` (CR 701.12): "Exchange control of two
+    /// target creatures."
+    ExchangeControl {
+        what: Vec<Recipient>,
+    },
     /// `return all creature card from your graveyard to battlefield`:
     /// "Return all creature cards from your graveyard to the battlefield."
     GraveyardToBattlefield {
@@ -3688,6 +3728,8 @@ pub enum Effect {
     Support(Vec<Recipient>),
     /// `populate` (CR 701.36).
     Populate,
+    /// `end the turn` (CR 724.1).
+    EndTurn,
     /// `incubate 2` (CR 701.53): the token is "Incubator".
     Incubate(Num),
     /// `discover 4` (CR 701.57).

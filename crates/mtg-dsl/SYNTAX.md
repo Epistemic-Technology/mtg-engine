@@ -195,7 +195,7 @@ to its other face as well.
 | `as turned face up put 4 +1/+1 counters`, `as enters or turned face up put count where other creature you control +1/+1 counters` | "As this creature is turned face up, put four +1/+1 counters on it.", "As this creature enters or is turned face up, put X +1/+1 counters on it, where X is the number of other creatures you control." CR 708.11: the counters are put on while it turns face up (by its cost or by an effect), before "turned face up" triggers look; with `enters or` it also enters with them (CR 614.1c, the count judged as it enters). |
 | `may look face-down`, `may look face-down opponents`, `may look top`, `may look top face-down` | "You may look at face-down creatures you don't control any time." ("... your opponents control ...", the same in a two-player game), "You may look at the top card of your library any time.", "You may look at the top card of your library and at face-down creatures you don't control any time." Information only (CR 401.2, 708.5): the controller's view shows those cards. |
 | `additional land`, `additional land 2`, `additional land each player`, `additional land as long as you control other Elf` | "You may play an additional land on each of your turns.", "You may play two additional lands on each of your turns.", "Each player may play an additional land on each of their turns.", "As long as you control another Elf, you may play an additional land on each of your turns." (CR 305.2): more land plays on its controller's turns (each player's own turns with `each player`), while the condition holds. The effect `play additional land this turn` ("You may play an additional land this turn.") and `play 2 additional land this turn` ("You may play up to two additional lands this turn.") add plays for the rest of the turn. |
-| `you have hexproof`, `you have shroud`, `opponents can't cast spells during your turn`, `players can't gain life`, `damage can't be prevented` | Static abilities about players: "You have hexproof." (CR 702.11c: spells and abilities your opponents control can't target you), "You have shroud." (CR 702.18c: no spell or ability can target you), "Your opponents can't cast spells during your turn.", "Players can't gain life.", "Damage can't be prevented." (CR 614.17). `as long as <condition>` may follow any of them. |
+| `you have hexproof`, `you have shroud`, `opponents can't cast spells during your turn`, `players can't gain life`, `damage can't be prevented` | Static abilities about players: "You have hexproof." (CR 702.11c: spells and abilities your opponents control can't target you), "You have shroud." (CR 702.18c: no spell or ability can target you), "Your opponents can't cast spells during your turn.", "Players can't gain life.", "Damage can't be prevented." (CR 614.17). `you can't lose the game` prints "You can't lose the game and your opponents can't win the game.": the controller doesn't lose for the state-based actions of CR 704.5a-c while it applies, and an effect that would make an opponent win does nothing. `as long as <condition>` may follow any of them. |
 | `hexproof from black`, `hexproof from monocolored`, `hexproof from instant` | "Hexproof from black" (CR 702.11d): this permanent can't be the target of spells or abilities your opponents control from sources matching the filter (a color, `multicolored`, `monocolored`, a card type: "instants", "planeswalkers"). In a keyword line ("Flying, hexproof from multicolored") write the keywords first, then this line. |
 | `trigger again Ninja creature you control`, `trigger again other Elemental you control`, `trigger again permanent you control when permanent enters the battlefield`, `trigger again permanent you control when artifact or creature enters`, `trigger again permanent you control when creature dies`, `trigger again permanent you control when creature attacks` | CR 603.2d: "If a triggered ability of a Ninja creature you control triggers, that ability triggers an additional time." ("it triggers" after `other`, as Twinflame Travelers prints); with `when ... enters`, only when that permanent entering caused it ("If a permanent entering the battlefield causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time.", `the battlefield` printed where written); `when creature dies` ("If a creature dying causes ...", the creature judged as it last existed) and `when creature attacks` ("If a creature attacking causes ...") likewise. Only such abilities on the battlefield as the event happens count (one dying with the creature doesn't). Each such ability adds one more instance; each instance is put on the stack with its own targets and choices |
 | `opening hand` | "If this card is in your opening hand, you may begin the game with it on the battlefield." (CR 103.6a; a legendary card names itself: "If Quicksilver is in your opening hand, ..."). After mulligans, starting with the starting player, each player is asked about each such card in their hand. |
@@ -525,7 +525,10 @@ a black Demon in addition to its other colors and types"), `up to 2
 target creature each has base power and toughness 3/3, gains flying, and
 becomes blue Illusion in addition` ("... each have base power and
 toughness 3/3, gain flying, and become blue Illusions in addition to
-their other colors and types"). Chosen as the
+their other colors and types"). A number in place of N/N sets both:
+`each creature you control has base power and toughness X` prints
+"Creatures you control have base power and toughness X/X until end of
+turn." (X fixed as the effect resolves, CR 608.2h). Chosen as the
 effect resolves (CR 608.2d), once for all its recipients: `target creature
 becomes color of choice`, `target creature gains protection from color of
 choice`, `target land becomes land type of choice` ("the basic land type of
@@ -777,6 +780,65 @@ each opponent mills that much cards }` prints "If a source you control
 would deal damage to an opponent, prevent that damage and each opponent
 mills that many cards." (`that much` is the prevented damage).
 `replace damage to you: double` "... to you instead."; `replace damage permanent you control of chosen type would deal: double` is the newer "Double all damage that sources you control of the chosen type would deal.").
+The recipient `opponent and <filter>` is "an opponent or <a filter>":
+`replace damage from permanent you control to opponent and permanent an
+opponent controls: double` prints "If a source you control would deal
+damage to an opponent or a permanent an opponent controls, it deals double
+that damage instead." (Twinflame Tyrant). The damage outcome `plus 2`
+adds that much (CR 614.1a): `replace damage from red permanent you
+control to opponent and permanent an opponent controls: plus 2` prints
+"..., it deals that much damage plus 2 instead." (Torbran); `plus 1 to
+that` adds "to that permanent or player" (`replace damage from other red
+permanent you control to any: plus 1 to that`, Jaya). For life, `replace
+you gain life: plus one` prints "If you would gain life, you gain that much
+life plus 1 instead."; for counters, `replace +1/+1 counters put on
+creature you control: double` prints "If one or more +1/+1 counters would
+be put on a creature you control, twice that many +1/+1 counters are put
+on that creature instead." (also the counters it enters with, CR 122.6).
+Token creation (CR 111.1, 614.1a): `replace tokens created under your
+control: double` prints "If one or more tokens would be created under your
+control, twice that many of those tokens are created instead." (`... by
+an effect: double` is the older "If an effect would create one or more
+tokens under your control, it creates twice that many of those tokens
+instead."); `replace creature tokens created under your control: plus
+"1/1 white Soldier creature"` prints "If one or more creature tokens would
+be created under your control, those tokens plus a 1/1 white Soldier
+creature token are created instead." (`plus that many "..."`: "plus that
+many ... tokens"). Each applies once to each `create` or `create token
+copy` effect's tokens for one player; tokens added this way come before
+doubling, so a doubler doubles them too (the order is the player's choice,
+CR 616.1). Other token makers (amass, fabricate, incubate, populate, ...)
+aren't replaced yet.
+`replace this put into a graveyard: shuffle into library` prints "If
+Darksteel Colossus would be put into a graveyard from anywhere, reveal
+Darksteel Colossus and shuffle it into its owner's library instead.": the
+card names itself, and the ability works in every zone (CR 113.6b: hand,
+library, stack, battlefield); the card goes into the library, which is
+then shuffled.
+`target opponent loses 3 life unless they sacrifice nonland permanent
+else discard 1 card` prints "... unless they sacrifice a nonland permanent
+of their choice or discard a card" (CR 608.2d; `else`, since `or` would
+start another clause); `each opponent loses 3 life unless each opponent
+sacrifices nonland permanent else discards 1 card` prints "... unless that
+player sacrifices ... or discards a card"; `it deals 5 damage to target
+opponent unless target 1 sacrifices creature` prints "... unless that
+player sacrifices a creature of their choice". The player chooses as it
+resolves (in a scenario `choose "1"` sacrifices, `"2"` discards, `"3"`
+takes the penalty).
+`exchange control of 2 target creature` (CR 701.12) prints "Exchange
+control of two target creatures."; `exchange control of this and target
+nonland permanent`, `exchange control of target land you control and
+target land an opponent controls` name the two. Nothing happens unless
+both are still on the battlefield (CR 701.12a) under different
+controllers (701.12b); then each controller gains control of the other's
+permanent indefinitely.
+`end the turn` (CR 724.1) prints "End the turn.": triggered abilities
+waiting to be put on the stack cease to exist, every object on the stack
+(the resolving spell or ability too) is exiled (an ability or a copy of a
+spell ceases to exist), and once the resolution is over the game skips to
+the cleanup step (no end step; creatures leave combat; damage wears off,
+"until end of turn" effects end, and the active player discards to seven
+there).
 `cloak top` (CR 701.58): "cloak the top card of your library": the card
 enters face down under the controller's control as a nameless 2/2 creature
 with ward {2} (`that token` is it afterwards: `cloak top, then attach to
@@ -943,7 +1005,11 @@ control of target creature." (no duration).
 Filters may have an alternative: `creature or Vehicle`, `land or
 nonblack creature`, `attacking or blocking creature`, `Bear, Spider, or
 Wolf you control`. A spell target may say what the spell targets:
-`target spell that targets you or a permanent you control`. A group of
+`target spell that targets you or a permanent you control`. One target
+may be a spell or a permanent (CR 115.1): `target spell or creature`,
+`target spell or permanent with mana value 1 or greater` (the filter's
+other qualities apply to the spell too); `return target spell or
+creature to hand` returns a spell from the stack to its owner's hand. A group of
 targets can be one subject: `up to 2 target creature gets +2/+0`
 ("Up to two target creatures each get +2/+0"), later `targets 1 to 2`. A trailing
 `you control`, a leading `another`, and a type after two subtypes
@@ -1559,7 +1625,12 @@ hand` / `... or Gate card ...`: "a basic land card or a Gate card",
 cards"; `search instant card or a with flash card ...`: "an instant card
 or a card with flash"; `search Rebel permanent card with mana value 3 or
 less to battlefield`: the mana value after the noun, `permanent card`
-not an instant or sorcery (CR 110.4a); `reveal to hand that card`:
+not an instant or sorcery (CR 110.4a); `search card to graveyard that
+card` ("Search your library for a card, put that card into your
+graveyard, then shuffle."); `search creature card reveal to hand or
+graveyard` ("..., reveal it, put it into your hand or graveyard, then
+shuffle.": the searcher chooses, `choose "1"` hand or `choose "2"`
+graveyard in a scenario); `reveal to hand that card`:
 "reveal that card, put it into your hand"; `search up to 2 basic land
 card reveal to battlefield tapped and hand that card`: "reveal those
 cards, put one onto the battlefield tapped and the other into your

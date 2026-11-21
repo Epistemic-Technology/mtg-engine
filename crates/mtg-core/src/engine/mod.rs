@@ -614,6 +614,7 @@ impl GameState {
             next_timestamp: 1,
             flow: Flow::BeginStep,
             cleanup_repeat: false,
+            end_turn: false,
             extra_turns: Vec::new(),
             effect_controller: None,
             resume_player: None,
@@ -1742,6 +1743,10 @@ impl GameState {
                         self.resolve_top();
                         self.priority = self.active_player;
                         self.flow = Flow::Priority;
+                        if self.end_turn {
+                            self.end_turn = false;
+                            self.skip_to_cleanup();
+                        }
                     }
                 } else {
                     self.priority = self.next_player_in_game(player);
@@ -3013,6 +3018,24 @@ impl GameState {
             }
         }
         usize::try_from(n.max(0)).unwrap_or(0)
+    }
+
+    /// CR 724.1d: after "End the turn." the current step ends and the game
+    /// skips straight to the cleanup step, creatures leaving combat; the
+    /// end step (and its triggers, CR 724.1e) is skipped.
+    fn skip_to_cleanup(&mut self) {
+        for p in &mut self.players {
+            p.mana_pool.empty();
+            p.combat_mana = 0;
+        }
+        if self.combat.take().is_some() {
+            self.combat_bump();
+        }
+        self.extra_phases.clear();
+        self.resume_step = None;
+        self.cleanup_repeat = false;
+        self.step = Step::Cleanup;
+        self.flow = Flow::BeginStep;
     }
 
     fn finish_cleanup(&mut self) {

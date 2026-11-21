@@ -168,6 +168,9 @@ enum Outcome {
     Events(SmallVec<[Proposed; 2]>),
     /// The event does not happen.
     Nothing,
+    /// The event, then its player shuffles their library (a card shuffled
+    /// into its owner's library instead, CR 701.20a).
+    ThenShuffle(Proposed, PlayerId),
 }
 
 type Applied = SmallVec<[Key; 4]>;
@@ -199,8 +202,27 @@ impl GameState {
         if self.replacement_sources > 0 || !self.replacements.is_empty() {
             return true;
         }
-        matches!(ev, Proposed::ZoneChange { obj, to: Zone::Battlefield, .. }
-            if self.objects.get(*obj).is_some_and(|o| self.flags_of(o).has(crate::card::DefFlags::MODIFIES_ENTERING_FLAG)))
+        match ev {
+            Proposed::ZoneChange {
+                obj,
+                to: Zone::Battlefield,
+                ..
+            } => self.objects.get(*obj).is_some_and(|o| {
+                self.flags_of(o)
+                    .has(crate::card::DefFlags::MODIFIES_ENTERING_FLAG)
+            }),
+            // "If this card would be put into a graveyard from anywhere"
+            // functions in every zone (CR 113.6b).
+            Proposed::ZoneChange {
+                obj,
+                to: Zone::Graveyard,
+                ..
+            } => self
+                .objects
+                .get(*obj)
+                .is_some_and(|o| self.flags_of(o).has_replacements()),
+            _ => false,
+        }
     }
 
     fn propose_with(&mut self, mut ev: Proposed, applied: &mut Applied) -> Option<ObjId> {
@@ -238,13 +260,99 @@ impl GameState {
                     return last;
                 }
                 Outcome::Nothing => return None,
+                Outcome::ThenShuffle(e, p) => {
+                    let mut a = applied.clone();
+                    let new = self.propose_with(e, &mut a);
+                    self.shuffle_library(p);
+                    return new;
+                }
             }
         }
+    }
+
+    /// The tokens to create when `n` tokens of `def` would be created under
+    /// `p`'s control (CR 111.1, 614.1a): "twice that many of those tokens"
+    /// (Parallel Lives), "those tokens plus a 1/1 green Frog creature
+    /// token" (Quina). One event per effect: each applicable static
+    /// ability of a permanent `p` controls applies once. Of the orders the
+    /// player may choose (CR 616.1), the added tokens come first, so a
+    /// doubling effect doubles them too.
+    pub(super) fn tokens_to_create(
+        &mut self,
+        p: PlayerId,
+        def: CardRef,
+        n: u32,
+    ) -> SmallVec<[(CardRef, u32); 2]> {
+        let mut out: SmallVec<[(CardRef, u32); 2]> = smallvec![(def, n)];
+        if self.replacement_sources == 0 || n == 0 {
+            return out;
+        }
+        let mut found: SmallVec<[(CardRef, Replacement, bool); 2]> = SmallVec::new();
+        let granted = self.grant_sources > 0;
+        for id in &self.battlefield {
+            let o = &self.objects[*id];
+            if o.controller != p || (!granted && !self.flags_of(o).has_replacements()) {
+                continue;
+            }
+            let Some(c) = self.characteristics(*id) else {
+                continue;
+            };
+            for ability in c.abilities.iter().copied() {
+                if let AbilityDef::Replacement(ReplacementAbility {
+                    replaces: Replaces::CreateTokens { creature, .. },
+                    replacement,
+                    ..
+                }) = self.pool.ability(ability)
+                {
+                    found.push((o.def, *replacement, *creature));
+                }
+            }
+        }
+        if found.is_empty() {
+            return out;
+        }
+        let is_creature = |state: &GameState, d: CardRef| {
+            state
+                .pool
+                .get(d)
+                .types
+                .contains(crate::card::CardType::Creature)
+        };
+        if !found.iter().any(|(_, _, creature)| !*creature) && !is_creature(self, def) {
+            return out;
+        }
+        found.sort_by_key(|(_, r, _)| matches!(r, Replacement::Double));
+        for (by, r, creature) in found {
+            let total: u32 = out
+                .iter()
+                .filter(|(d, _)| !creature || is_creature(self, *d))
+                .map(|(_, k)| *k)
+                .sum();
+            if total == 0 {
+                continue;
+            }
+            match r {
+                Replacement::Double => {
+                    for (d, k) in &mut out {
+                        if !creature || is_creature(self, *d) {
+                            *k = k.saturating_mul(2);
+                        }
+                    }
+                }
+                Replacement::PlusToken { token, that_many } => {
+                    out.push((token, if that_many { total } else { 1 }));
+                }
+                _ => continue,
+            }
+            self.emit(Event::Replaced { by });
+        }
+        out
     }
 
     /// Every replacement or prevention effect that applies to `ev` and has
     /// not yet applied, in a stable order: battlefield statics, the
     /// entering permanent's own, then stored effects.
+    #[allow(clippy::too_many_lines)] // one block per place effects come from
     fn candidates(&self, ev: &Proposed, applied: &Applied) -> Vec<Candidate> {
         let mut out = Vec::new();
         if self.replacement_sources > 0 {
@@ -317,6 +425,38 @@ impl GameState {
                             ability: r.clone(),
                         });
                     }
+                }
+            }
+        }
+        // CR 113.6b: "if this card would be put into a graveyard from
+        // anywhere" works off the battlefield too (on it, it was found
+        // above).
+        if let Proposed::ZoneChange {
+            obj,
+            to: Zone::Graveyard,
+            ..
+        } = ev
+            && let Some(o) = self.objects.get(*obj)
+            && o.zone != Zone::Battlefield
+            && self.flags_of(o).has_replacements()
+            && let Some(c) = self.characteristics(*obj)
+        {
+            for ability in c.abilities.iter().copied() {
+                let AbilityDef::Replacement(r) = self.pool.ability(ability) else {
+                    continue;
+                };
+                let key = Key::Ability {
+                    source: *obj,
+                    ability,
+                };
+                if matches!(r.replaces, Replaces::ThisToGraveyard) && !applied.contains(&key) {
+                    out.push(Candidate {
+                        key,
+                        def: o.def,
+                        source: *obj,
+                        controller: o.owner,
+                        ability: r.clone(),
+                    });
                 }
             }
         }
@@ -428,6 +568,14 @@ impl GameState {
                 whose_ok(*whose, o.owner) && (!*from_battlefield || o.zone == Zone::Battlefield)
             }),
             (
+                Replaces::ThisToGraveyard,
+                Proposed::ZoneChange {
+                    obj,
+                    to: Zone::Graveyard,
+                    ..
+                },
+            ) => *obj == source,
+            (
                 Replaces::PlusCounters { on },
                 Proposed::AddCounters {
                     obj,
@@ -530,6 +678,10 @@ impl GameState {
                 target == Target::Player(controller)
                     || matches!(target, Target::Object(id) if self.filter_matches(f, id, source, controller))
             }
+            Affects::OpponentsAnd(f) => match target {
+                Target::Player(p) => p != controller,
+                Target::Object(id) => self.filter_matches(f, id, source, controller),
+            },
             Affects::Target(_) | Affects::Targets(..) | Affects::DamagedThisWay => {
                 locked == Some(target)
             }
@@ -557,7 +709,7 @@ impl GameState {
             Affects::Any => true,
             Affects::This => src == source,
             Affects::You | Affects::Players(_) => false,
-            Affects::Objects(f) | Affects::YouAnd(f) => {
+            Affects::Objects(f) | Affects::YouAnd(f) | Affects::OpponentsAnd(f) => {
                 self.source_matches(f, src, source, controller)
             }
             Affects::Target(_) | Affects::Targets(..) | Affects::DamagedThisWay => {
@@ -914,11 +1066,68 @@ impl GameState {
                     combat,
                 })
             }
+            (
+                Replacement::PlusN { n, .. },
+                Proposed::Damage {
+                    source,
+                    target,
+                    amount,
+                    combat,
+                },
+            ) => {
+                self.emit(Event::Replaced { by: c.def });
+                Outcome::Event(Proposed::Damage {
+                    source,
+                    target,
+                    amount: amount.saturating_add(n),
+                    combat,
+                })
+            }
+            // "twice that many +1/+1 counters are put on that creature
+            // instead" (Branching Evolution), also as it enters (CR 122.6).
+            (Replacement::Double, Proposed::AddCounters { obj, kind, n }) => {
+                self.emit(Event::Replaced { by: c.def });
+                Outcome::Event(Proposed::AddCounters {
+                    obj,
+                    kind,
+                    n: n.saturating_mul(2),
+                })
+            }
+            (
+                Replacement::Double,
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => {
+                self.emit(Event::Replaced { by: c.def });
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter: Enter {
+                        counters: enter.counters.map(|(k, n)| (k, n.saturating_mul(2))),
+                        ..enter
+                    },
+                })
+            }
             (Replacement::Double, Proposed::GainLife { player, amount }) => {
                 self.emit(Event::Replaced { by: c.def });
                 Outcome::Event(Proposed::GainLife {
                     player,
                     amount: amount.saturating_mul(2),
+                })
+            }
+            // "you gain that much life plus 1 instead" (Angel of Vitality).
+            (Replacement::PlusOne, Proposed::GainLife { player, amount }) => {
+                self.emit(Event::Replaced { by: c.def });
+                Outcome::Event(Proposed::GainLife {
+                    player,
+                    amount: amount.saturating_add(1),
                 })
             }
             (Replacement::PlusOne, Proposed::AddCounters { obj, kind, n }) => {
@@ -969,6 +1178,30 @@ impl GameState {
                     controller,
                     enter,
                 })
+            }
+            // "reveal this card and shuffle it into its owner's library
+            // instead" (Darksteel Colossus).
+            (
+                Replacement::ShuffleIntoLibrary,
+                Proposed::ZoneChange {
+                    obj,
+                    controller,
+                    enter,
+                    ..
+                },
+            ) => {
+                self.emit(Event::Replaced { by: c.def });
+                let owner = self.objects[obj].owner;
+                Outcome::ThenShuffle(
+                    Proposed::ZoneChange {
+                        obj,
+                        to: Zone::Library,
+                        to_top: true,
+                        controller,
+                        enter,
+                    },
+                    owner,
+                )
             }
             (Replacement::DrawTwo, Proposed::Draw { player }) => {
                 self.emit(Event::Replaced { by: c.def });
@@ -1323,6 +1556,13 @@ impl GameState {
     /// CR 104.2b: an effect makes `winner` win; every opponent leaves the
     /// game.
     pub(super) fn win_game(&mut self, winner: PlayerId) {
+        // "Your opponents can't win the game" (Platinum Angel).
+        if self
+            .players_in_game()
+            .any(|p| p != winner && self.cant_lose(p))
+        {
+            return;
+        }
         self.emit(Event::PlayerWon { player: winner });
         let losers: Vec<PlayerId> = self.players_in_game().filter(|p| *p != winner).collect();
         for p in losers {

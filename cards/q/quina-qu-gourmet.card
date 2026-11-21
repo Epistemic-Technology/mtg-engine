@@ -1,0 +1,8 @@
+card "Quina, Qu Gourmet" {
+  oracle_id 2acb15bd-6c89-4ff3-ab32-beac67e9c88a
+  cost {2}{G}
+  type Legendary Creature — Qu
+  pt 2/3
+  replace tokens created under your control: plus "1/1 green Frog creature"
+  activated {2}, sacrifice Frog: put 1 +1/+1 counters on this
+}

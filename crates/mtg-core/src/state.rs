@@ -1928,6 +1928,9 @@ pub struct GameState {
     pub flow: Flow,
     /// Set when a cleanup step must repeat (CR 514.3a).
     pub cleanup_repeat: bool,
+    /// Set by a resolving "End the turn." (CR 724.1): once the resolution
+    /// is over, the game skips to the cleanup step.
+    pub end_turn: bool,
     /// Extra turns to come (CR 500.7), the next last: each player takes
     /// them directly after the current turn, the most recently created
     /// first.
@@ -2338,6 +2341,15 @@ impl GameState {
                         _ => false,
                     }
             })
+    }
+
+    /// Whether `p` can't lose the game, and their opponents can't win it
+    /// ("You can't lose the game and your opponents can't win the game.").
+    pub fn cant_lose(&self, p: PlayerId) -> bool {
+        self.player_static_sources > 0
+            && self
+                .player_statics()
+                .any(|(who, kind)| who == p && kind == crate::card::PlayerStaticKind::CantLose)
     }
 
     /// Whether `p` can't cast spells now: an opponent's "Your opponents
@@ -2812,6 +2824,7 @@ impl GameState {
             | TargetSpec::PlayerOrBattle
             | TargetSpec::OpponentOrPlaneswalker
             | TargetSpec::SpellFiltered(_)
+            | TargetSpec::SpellOr(_)
             | TargetSpec::GraveyardCard { .. }
             | TargetSpec::UpTo(_)
             | TargetSpec::Many(_)
@@ -3915,6 +3928,22 @@ impl GameState {
                                 .is_some_and(|c| c.types.contains(t))
                         });
                 }
+                // "target spell or creature": a spell, or a permanent
+                // judged like `Filtered` below.
+                // Its qualities other than the permanent's card types apply
+                // to the spell too ("target spell or permanent with mana
+                // value 1 or greater").
+                if let TargetSpec::SpellOr(f) = spec
+                    && obj.zone == Zone::Stack
+                {
+                    if obj.kind == ObjKind::Ability {
+                        return false;
+                    }
+                    let mut f = self.pool.filter(f).clone();
+                    f.types = crate::card::TypeSet::default();
+                    let c = self.base_characteristics(obj);
+                    return f.matches(id, obj.controller, &c, source, Some(caster));
+                }
                 if spec.is_spell() {
                     if obj.zone != Zone::Stack || obj.kind == ObjKind::Ability {
                         return false;
@@ -4001,7 +4030,7 @@ impl GameState {
                                 .as_ref()
                                 .is_some_and(|cb| cb.blocked_by(id).is_some())
                     }
-                    TargetSpec::Filtered(f) => {
+                    TargetSpec::Filtered(f) | TargetSpec::SpellOr(f) => {
                         let f = self.source_filter(self.pool.filter(f), source, x);
                         f.matches(id, obj.controller, &c, source, Some(caster))
                             && self.status_ok(&f, id)

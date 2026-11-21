@@ -689,8 +689,10 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         "all creatures",
         "this",
     ];
-    const TARGETS: [&str; 18] = [
+    const TARGETS: [&str; 20] = [
         "any target",
+        "target spell or creature",
+        "target spell or permanent",
         "target creature",
         "target player",
         "target land",
@@ -1334,7 +1336,7 @@ impl Templates {
             ),
             (
                 r(
-                    r"^Search your library for (a|an|up to \S+) (basic land|land|Plains|Island|Swamp|Mountain|Forest|creature|artifact|enchantment|instant|sorcery)? ?cards?, (reveal (?:it|them), )?(?:put (it|them|that card) (into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
+                    r"^Search your library for (a|an|up to \S+) (basic land|land|Plains|Island|Swamp|Mountain|Forest|creature|artifact|enchantment|instant|sorcery)? ?cards?, (reveal (?:it|them), )?(?:put (it|them|that card) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
                 ),
                 |c, _| {
                     let n = cap(c, 1);
@@ -1355,6 +1357,8 @@ impl Templates {
                     }
                     t.push_str(match cap(c, 5) {
                         "into your hand" => " to hand",
+                        "into your hand or graveyard" => " to hand or graveyard",
+                        "into your graveyard" => " to graveyard",
                         "onto the battlefield tapped" => " to battlefield tapped",
                         "onto the battlefield" => " to battlefield",
                         _ => " to top",
@@ -1711,6 +1715,56 @@ impl Templates {
             ),
             (r(r"^Exile (.+)$"), |c, t| {
                 Some(format!("exile {}", recipient(cap(c, 1), t)?))
+            }),
+            // CR 701.12a.
+            (
+                r(
+                    r"^[Ee]xchange control of two target (creature|artifact|enchantment|land|permanent)s$",
+                ),
+                |c, t| {
+                    *t += 2;
+                    Some(format!("exchange control of 2 target {}", cap(c, 1)))
+                },
+            ),
+            (
+                r(r"^[Ee]xchange control of (.+?) and (target .+)$"),
+                |c, t| {
+                    let a = recipient(cap(c, 1), t)?;
+                    let b = recipient(cap(c, 2), t)?;
+                    Some(format!("exchange control of {a} and {b}"))
+                },
+            ),
+            // CR 608.2d: a punisher.
+            (
+                r(
+                    r"^(Target opponent|Each opponent) loses (\d+) life unless (?:they sacrifice|that player sacrifices) a nonland permanent of their choice or (?:discard|discards) a card$",
+                ),
+                |c, t| {
+                    let who = lowercase_first(cap(c, 1));
+                    if who == "target opponent" {
+                        *t += 1;
+                        Some(format!(
+                            "target opponent loses {} life unless they sacrifice nonland permanent else discard 1 card",
+                            cap(c, 2)
+                        ))
+                    } else {
+                        Some(format!(
+                            "each opponent loses {} life unless each opponent sacrifices nonland permanent else discards 1 card",
+                            cap(c, 2)
+                        ))
+                    }
+                },
+            ),
+            // CR 613.4b.
+            (
+                r(
+                    r"^[Cc]reatures you control have base power and toughness X/X until end of turn$",
+                ),
+                |_, _| Some("each creature you control has base power and toughness X".to_string()),
+            ),
+            // CR 724.1.
+            (r(r"^[Ee]nd the turn$"), |_, _| {
+                Some("end the turn".to_string())
             }),
             // CR 701.58a.
             (r(r"^[Cc]loak the top card of your library$"), |_, _| {
@@ -3665,6 +3719,66 @@ impl Builder<'_> {
                 .push("replace you gain life: double".to_string());
             return Ok(());
         }
+        // CR 614.1a, 111.1: token doublers.
+        if line
+            == "If one or more tokens would be created under your control, twice that many of those tokens are created instead."
+        {
+            self.statements
+                .push("replace tokens created under your control: double".to_string());
+            return Ok(());
+        }
+        if line
+            == "If an effect would create one or more tokens under your control, it creates twice that many of those tokens instead."
+        {
+            self.statements
+                .push("replace tokens created under your control by an effect: double".to_string());
+            return Ok(());
+        }
+        if line == "If you would gain life, you gain that much life plus 1 instead." {
+            self.statements
+                .push("replace you gain life: plus one".to_string());
+            return Ok(());
+        }
+        // CR 113.6b: works in every zone (Darksteel Colossus).
+        if let Some(c) = Regex::new(
+            r"^If (.+) would be put into a graveyard from anywhere, reveal (.+) and shuffle it into its owner's library instead\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && cap(&c, 1) == cap(&c, 2)
+        {
+            self.statements
+                .push("replace this put into a graveyard: shuffle into library".to_string());
+            return Ok(());
+        }
+        if line
+            == "If one or more +1/+1 counters would be put on a creature you control, twice that many +1/+1 counters are put on that creature instead."
+        {
+            self.statements
+                .push("replace +1/+1 counters put on creature you control: double".to_string());
+            return Ok(());
+        }
+        // "If a red source you control would deal damage to an opponent or
+        // a permanent an opponent controls, it deals that much damage plus
+        // 2 instead." (Torbran).
+        if let Some(c) = Regex::new(
+            r"^If (a|another) (red |white |blue |black |green )?source you control would deal (noncombat )?damage to an opponent or a permanent an opponent controls, it deals (double that damage|that much damage plus (\d+)) instead\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let other = if cap(&c, 1) == "another" { "other " } else { "" };
+            let color = cap(&c, 2);
+            let kind = if c.get(3).is_some() { "noncombat " } else { "" };
+            let outcome = match c.get(5) {
+                Some(n) => format!("plus {}", n.as_str()),
+                None => "double".to_string(),
+            };
+            self.statements.push(format!(
+                "replace {kind}damage from {other}{color}permanent you control to opponent and permanent an opponent controls: {outcome}"
+            ));
+            return Ok(());
+        }
         if line
             == "Enchanted creature can't attack or block, and its activated abilities can't be activated."
         {
@@ -4160,6 +4274,9 @@ impl Builder<'_> {
         // 702.18c, 103.6a).
         let player_static = match line {
             "You have hexproof." => Some("you have hexproof"),
+            "You can't lose the game and your opponents can't win the game." => {
+                Some("you can't lose the game")
+            }
             "You have shroud." => Some("you have shroud"),
             "Your opponents can't cast spells during your turn." => {
                 Some("opponents can't cast spells during your turn")

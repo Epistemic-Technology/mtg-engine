@@ -1,0 +1,7 @@
+card "Trade the Helm" {
+  oracle_id c478fb5c-9fde-400d-a2cd-f8c4fa6b957a
+  cost {4}{U}
+  type Sorcery
+  spell: exchange control of target artifact or creature you control and target artifact or creature an opponent controls
+  cycling {2}
+}

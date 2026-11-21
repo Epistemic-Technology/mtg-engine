@@ -1,0 +1,7 @@
+card "Legacy Weapon" {
+  oracle_id aa1a248d-2f76-4f15-b065-08f299af07b9
+  cost {7}
+  type Legendary Artifact
+  activated {W}{U}{B}{R}{G}: exile target permanent
+  replace this put into a graveyard: shuffle into library
+}

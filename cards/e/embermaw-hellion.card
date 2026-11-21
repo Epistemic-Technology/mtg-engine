@@ -1,0 +1,8 @@
+card "Embermaw Hellion" {
+  oracle_id 01c39670-3677-49df-a4f6-e5062e0909d5
+  cost {3}{R}{R}
+  type Creature — Hellion
+  pt 4/5
+  keywords trample
+  replace damage from other red permanent you control to any: plus 1 to that
+}

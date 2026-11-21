@@ -235,6 +235,7 @@ impl Fmt {
                         }
                         Target::Filter(f) => format!("target {}", filter(f)),
                         Target::Spell(f) => spell_target(f),
+                        Target::SpellOr(f) => format!("target spell or {}", filter(f)),
                         Target::GraveyardCard {
                             filter: f,
                             who,
@@ -408,6 +409,7 @@ impl Fmt {
             Affects::Players(_) => "each player".to_string(),
             Affects::Objects(f) => filter(f),
             Affects::YouAnd(f) => format!("you and {}", filter(f)),
+            Affects::OpponentsAnd(f) => format!("opponent and {}", filter(f)),
             Affects::Target(i) => self.recipient(Recipient::Target(*i), targets),
             Affects::ThatTarget(i) => self.recipient(Recipient::ThatTarget(*i), targets),
             Affects::Targets(a, n) => self.recipient(Recipient::Targets(*a, *n), targets),
@@ -534,6 +536,12 @@ impl Fmt {
                 }
                 s
             }
+            Replaces::ThisToGraveyard => "this put into a graveyard".to_string(),
+            Replaces::CreateTokens { creature, effect } => format!(
+                "{}tokens created under your control{}",
+                if *creature { "creature " } else { "" },
+                if *effect { " by an effect" } else { "" }
+            ),
             Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
             Replaces::Destroy { to } => format!("destroy {}", self.affects(to, targets)),
             Replaces::Dies { to } => format!("{} dies", self.affects(to, targets)),
@@ -565,7 +573,9 @@ impl Fmt {
                 // player" would declare a second target).
                 if let Effect::CreatureTypes { to, all } = e
                     && matches!(&s.effects[i - 1],
-                        Effect::Pump { to: p, .. } | Effect::SetBasePt { to: p, .. } if p == to)
+                        Effect::Pump { to: p, .. }
+                        | Effect::SetBasePt { to: p, .. }
+                        | Effect::SetBasePtVar { to: p, .. } if p == to)
                 {
                     out.push_str(if *all { "gains" } else { "loses" });
                     out.push_str(" all creature types");
@@ -667,6 +677,7 @@ impl Fmt {
             Effect::Earthbend { count, .. } => format!("earthbend {}", num(*count)),
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
+            Effect::EndTurn => "end the turn".to_string(),
             Effect::Recruit { you: false } => "recruit".to_string(),
             Effect::CloakTop => "cloak top".to_string(),
             Effect::Recruit { you: true } => "you recruit".to_string(),
@@ -1273,6 +1284,9 @@ impl Fmt {
             Effect::Regenerate { to } => format!("regenerate {}", self.recipient(*to, t)),
             Effect::Exile { what } => format!("exile {}", self.recipients(what, t)),
             Effect::Airbend { what } => format!("airbend {}", self.recipients(what, t)),
+            Effect::ExchangeControl { what } => {
+                format!("exchange control of {}", self.recipients(what, t))
+            }
             Effect::GraveyardToBattlefield { filter: f } => format!(
                 "return all {} card from your graveyard to battlefield",
                 filter(f)
@@ -1747,6 +1761,8 @@ impl Fmt {
                     mtg_core::card::SearchTo::BattlefieldAndHand => {
                         " to battlefield tapped and hand"
                     }
+                    mtg_core::card::SearchTo::Graveyard => " to graveyard",
+                    mtg_core::card::SearchTo::HandOrGraveyard => " to hand or graveyard",
                 });
                 if *that_card {
                     t.push_str(" that card");
@@ -2231,6 +2247,24 @@ impl Fmt {
             }
             Effect::Pay { mana, life } => format!("pay {}", pay_amount(mana, *life)),
             Effect::Waterbend(mana) => format!("waterbend {mana}"),
+            Effect::UnlessSacrifices {
+                payer,
+                filter: f,
+                or_discard,
+                effect,
+            } => {
+                let inner = self.effect(effect, t);
+                format!(
+                    "{inner} unless {} sacrifices {}{}",
+                    self.recipient(*payer, t),
+                    filter(f),
+                    if *or_discard {
+                        " else discards 1 card"
+                    } else {
+                        ""
+                    }
+                )
+            }
             Effect::UnlessYou { act, effect } => {
                 let inner = self.effect(effect, t);
                 let act = self.effect(act, t);
@@ -2272,6 +2306,11 @@ impl Fmt {
                 };
                 format!("{inner} unless {who} {amount}")
             }
+            Effect::SetBasePtVar { to, n } => format!(
+                "{} has base power and toughness {}",
+                self.recipient(*to, t),
+                num(*n)
+            ),
             Effect::SetBasePt {
                 to,
                 power,
@@ -2671,7 +2710,12 @@ fn outcome(o: &Outcome) -> String {
         Outcome::Prevent => "prevent".to_string(),
         Outcome::PreventNext(n) => format!("prevent next {}", num(*n)),
         Outcome::Double => "double".to_string(),
+        Outcome::PlusToken { .. } => "plus \"\"".to_string(),
+        Outcome::ShuffleIntoLibrary => "shuffle into library".to_string(),
         Outcome::PlusOne => "plus one".to_string(),
+        Outcome::PlusN { n, to_that } => {
+            format!("plus {n}{}", if *to_that { " to that" } else { "" })
+        }
         Outcome::Instead(mtg_core::state::Zone::Hand) => "hand".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
@@ -4590,9 +4634,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let phrase = match t.base() {
                 Target::Spec(s) => target_phrase(*s).replace("target ", ""),
                 Target::CreatureOfSubtype(sub) => format!("{sub} creature"),
-                Target::Filter(f) | Target::Spell(f) | Target::GraveyardCard { filter: f, .. } => {
-                    filter(f)
-                }
+                Target::Filter(f)
+                | Target::Spell(f)
+                | Target::SpellOr(f)
+                | Target::GraveyardCard { filter: f, .. } => filter(f),
                 Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
             };
             let _ = writeln!(out, "{indent}enchant {phrase}");
@@ -4799,6 +4844,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             };
             let head = match (&rep.event, &rep.outcome) {
                 (Replaces::Enters, o) => format!("enters {}", outcome(o)),
+                (event, Outcome::PlusToken { that_many, .. }) => format!(
+                    "replace {}: plus {}\"{}\"",
+                    fmt.replaces(event, &[]),
+                    if *that_many { "that many " } else { "" },
+                    rep.token.as_deref().unwrap_or_default()
+                ),
                 (event, o) => format!("replace {}: {}", fmt.replaces(event, &[]), outcome(o)),
             };
             if rep.then.is_empty() {
@@ -5287,6 +5338,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let head = match kind {
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
+                K::CantLose => "you can't lose the game".to_string(),
                 K::OpponentsCantCastYourTurn => {
                     "opponents can't cast spells during your turn".to_string()
                 }

@@ -1,0 +1,7 @@
+card "Torbran, Thane of Red Fell" {
+  oracle_id 8c3495bf-02e7-4ad9-949d-92eb3d2b662a
+  cost {1}{R}{R}{R}
+  type Legendary Creature — Dwarf Noble
+  pt 2/4
+  replace damage from red permanent you control to opponent and permanent an opponent controls: plus 2
+}

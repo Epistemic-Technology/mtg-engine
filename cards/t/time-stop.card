@@ -1,0 +1,6 @@
+card "Time Stop" {
+  oracle_id 55bc6a7e-2356-48f0-a93a-8bf19044ee4b
+  cost {4}{U}{U}
+  type Instant
+  spell: end the turn
+}

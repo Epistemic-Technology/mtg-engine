@@ -1,0 +1,6 @@
+card "Branching Evolution" {
+  oracle_id 28fe909b-06e0-424c-9f75-c824a25f5865
+  cost {2}{G}
+  type Enchantment
+  replace +1/+1 counters put on creature you control: double
+}

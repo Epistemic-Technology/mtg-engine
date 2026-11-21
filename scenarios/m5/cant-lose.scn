@@ -1,0 +1,45 @@
+# "You can't lose the game and your opponents can't win the game." (CR
+# 104.3, 104.2b): the controller doesn't lose for 0 life, an empty-library
+# draw, or poison while the permanent stays; once it's gone, the
+# state-based action applies.
+
+scenario "can't lose: at 0 life with Platinum Angel" {
+  life A 2
+  battlefield A: "Platinum Angel"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 B
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 upkeep
+  assert life A -1
+  assert not game_over
+}
+
+scenario "can't lose: losing once the Angel is gone" {
+  life A 2
+  battlefield A: "Platinum Angel"
+  battlefield B: 3 "Mountain"
+  hand B: "Lightning Bolt", "Shatter"
+  start turn 1 B
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 B: wait
+  turn 1 B: cast "Shatter" targeting "Platinum Angel"
+  run_to end
+  assert winner B
+}
+
+scenario "can't lose: drawing from an empty library" {
+  battlefield A: "Herald of Eternal Dawn"
+  library A:
+  start turn 1 B
+  run_to turn 2 precombat_main
+  assert not game_over
+}
+
+scenario "can't win: an opponent's Laboratory Maniac" {
+  battlefield A: "Herald of Eternal Dawn"
+  battlefield B: "Laboratory Maniac"
+  library B:
+  run_to turn 2 precombat_main
+  assert not game_over
+}

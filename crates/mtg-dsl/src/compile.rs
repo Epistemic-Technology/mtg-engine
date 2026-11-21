@@ -1725,6 +1725,10 @@ impl Compiler<'_> {
                 let f = self.filter(f);
                 TargetSpec::SpellFiltered(self.pool.intern_filter(f))
             }
+            Target::SpellOr(f) => {
+                let f = self.filter(f);
+                TargetSpec::SpellOr(self.pool.intern_filter(f))
+            }
             Target::GraveyardCard {
                 filter,
                 who,
@@ -2172,6 +2176,14 @@ impl Compiler<'_> {
             Effect::CloakTop => out.push(CoreEffect::CloakTop {
                 of: CoreRecipient::You,
             }),
+            Effect::ExchangeControl { what } => match what[..] {
+                [one] => out.push(CoreEffect::ExchangeControl { a: r(one), b: None }),
+                [x, y] => out.push(CoreEffect::ExchangeControl {
+                    a: r(x),
+                    b: Some(r(y)),
+                }),
+                _ => return self.err("exchange control of two permanents"),
+            },
             Effect::Airbend { what } => {
                 for w in what {
                     out.push(CoreEffect::Airbend { what: r(*w) });
@@ -2724,6 +2736,21 @@ impl Compiler<'_> {
                 self.effect(effect, &mut effects)?;
                 out.push(CoreEffect::UnlessYou { act: acts, effects });
             }
+            Effect::UnlessSacrifices {
+                payer,
+                filter,
+                or_discard,
+                effect,
+            } => {
+                let mut effects = Vec::new();
+                self.effect(effect, &mut effects)?;
+                out.push(CoreEffect::UnlessSacrifices {
+                    payer: r(*payer),
+                    filter: self.filter(filter),
+                    or_discard: *or_discard,
+                    effects,
+                });
+            }
             Effect::UnlessPays {
                 payer,
                 mana,
@@ -2740,6 +2767,9 @@ impl Compiler<'_> {
                     discard: *discard,
                     effects,
                 });
+            }
+            Effect::SetBasePtVar { to, n } => {
+                out.push(CoreEffect::SetBasePtVar { to: r(*to), n: *n });
             }
             Effect::SetBasePt {
                 to,
@@ -2906,6 +2936,7 @@ impl Compiler<'_> {
                 to: r(*to),
             }),
             Effect::Populate => out.push(CoreEffect::Populate),
+            Effect::EndTurn => out.push(CoreEffect::EndTurn),
             // CR 701.41a: one counter on each target.
             Effect::Support(to) => {
                 for t in to {
@@ -3469,6 +3500,7 @@ impl Compiler<'_> {
             Affects::Players(w) => CoreAffects::Players(*w),
             Affects::Objects(f) => CoreAffects::Objects(self.filter(f)),
             Affects::YouAnd(f) => CoreAffects::YouAnd(self.filter(f)),
+            Affects::OpponentsAnd(f) => CoreAffects::OpponentsAnd(self.filter(f)),
             // A variable group: its targets to the end of the list.
             Affects::Target(i) if Some(*i) == self.many => CoreAffects::Targets(
                 u8::try_from(target_index(self.tmap, *i)).unwrap_or(u8::MAX),
@@ -3517,6 +3549,11 @@ impl Compiler<'_> {
                 whose: *whose,
                 from_battlefield: *from_battlefield,
             },
+            Replaces::ThisToGraveyard => CoreReplaces::ThisToGraveyard,
+            Replaces::CreateTokens { creature, effect } => CoreReplaces::CreateTokens {
+                creature: *creature,
+                effect: *effect,
+            },
             Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
             },
@@ -3528,9 +3565,17 @@ impl Compiler<'_> {
             },
             Replaces::Enters => CoreReplaces::Enters,
         };
+        let mut replacement = r.outcome;
+        if let mtg_core::card::Replacement::PlusToken { token, .. } = &mut replacement {
+            let name = r.token.as_deref().unwrap_or_default();
+            let Some(t) = self.pool.lookup(name) else {
+                return self.err(format!("unknown token \"{name}\""));
+            };
+            *token = t;
+        }
         Ok(ReplacementAbility {
             replaces,
-            replacement: r.outcome,
+            replacement,
             then: self.sentences(&r.then)?,
         })
     }
@@ -4954,6 +4999,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             },
             outcome: mtg_core::card::Replacement::PreventNext(Num::N(*n)),
             then: Vec::new(),
+            token: None,
         }),
         // CR 702.39a: "Whenever this creature attacks, you may have target
         // creature defending player controls untap and block this creature

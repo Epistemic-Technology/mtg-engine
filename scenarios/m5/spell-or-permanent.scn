@@ -1,0 +1,105 @@
+# One target that is a spell or a permanent (CR 115.1): "target spell or
+# creature", "target spell or permanent". A spell returned to its owner's
+# hand leaves the stack and doesn't resolve.
+
+scenario "spell or creature: Unsubstantiate returns a spell to its owner's hand" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Mountain"
+  hand A: "Unsubstantiate"
+  hand B: "Hill Giant"
+  start turn 1 B
+  turn 1 B: cast "Hill Giant"
+  turn 1 A: cast "Unsubstantiate" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "spell or creature: Unsubstantiate returns a creature" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Unsubstantiate"
+  turn 1 A: cast "Unsubstantiate" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+}
+
+scenario "spell or creature: not a noncreature permanent" {
+  battlefield A: 2 "Island"
+  battlefield B: "Forest"
+  hand A: "Unsubstantiate"
+  illegal turn 1 A: cast "Unsubstantiate" targeting "Forest"
+  run_to turn 1 end
+  assert battlefield B contains "Forest"
+}
+
+scenario "spell or permanent: Venser returns a spell, which doesn't resolve" {
+  battlefield A: 4 "Island"
+  battlefield B: "Mountain"
+  hand A: "Venser, Shaper Savant"
+  hand B: "Lightning Bolt"
+  start turn 1 B
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 A: cast "Venser, Shaper Savant" in response to "Lightning Bolt"
+  turn 1 A: trigger "Venser, Shaper Savant" targeting "Lightning Bolt"
+  run_to turn 1 end
+  assert life A 20
+  assert hand B contains "Lightning Bolt"
+  assert battlefield A contains "Venser, Shaper Savant"
+}
+
+scenario "spell or permanent: Venser returns a land" {
+  battlefield A: 4 "Island"
+  battlefield B: "Forest"
+  hand A: "Venser, Shaper Savant"
+  turn 1 A: cast "Venser, Shaper Savant"
+  turn 1 A: trigger "Venser, Shaper Savant" targeting "Forest"
+  run_to turn 1 end
+  assert hand B contains "Forest"
+}
+
+scenario "spell or permanent with mana value 1 or greater: not a land" {
+  battlefield A: 3 "Island"
+  battlefield B: "Forest"
+  hand A: "Divide by Zero"
+  illegal turn 1 A: cast "Divide by Zero" targeting "Forest"
+  run_to turn 1 end
+  assert battlefield B contains "Forest"
+}
+
+scenario "spell or permanent with mana value 1 or greater: a spell" {
+  battlefield A: 3 "Island"
+  battlefield B: 4 "Mountain"
+  hand A: "Divide by Zero"
+  hand B: "Hill Giant"
+  start turn 1 B
+  turn 1 B: cast "Hill Giant"
+  turn 1 A: cast "Divide by Zero" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+}
+
+scenario "spell or creature: Fatehold Charm's second mode" {
+  battlefield A: "Plains", "Island"
+  battlefield B: "Mountain"
+  hand A: "Fatehold Charm"
+  hand B: "Lightning Bolt"
+  start turn 1 B
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 A: cast "Fatehold Charm" mode 2 targeting "Lightning Bolt"
+  run_to turn 1 end
+  assert life A 20
+  assert hand B contains "Lightning Bolt"
+}
+
+scenario "spell or permanent: Jeskai Revelation returns a permanent and does the rest" {
+  battlefield A: 5 "Island", "Mountain", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Jeskai Revelation"
+  turn 1 A: cast "Jeskai Revelation" targeting "Hill Giant", player B
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+  assert life B 16
+  assert life A 24
+  assert battlefield A contains 2 "Monk"
+}

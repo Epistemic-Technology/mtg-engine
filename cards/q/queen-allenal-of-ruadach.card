@@ -1,0 +1,7 @@
+card "Queen Allenal of Ruadach" {
+  oracle_id 5f04d4b0-2c75-4f2d-97d5-96220b624b17
+  cost {G}{W}{W}
+  type Legendary Creature — Elf Noble
+  static this: cda pt count creature you control
+  replace creature tokens created under your control: plus "1/1 white Soldier creature"
+}

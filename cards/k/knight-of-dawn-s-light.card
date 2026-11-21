@@ -1,0 +1,9 @@
+card "Knight of Dawn's Light" {
+  oracle_id 801e55c7-f8a1-4a90-81cb-3ad7022290ba
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike
+  replace you gain life: plus one
+  activated {1}{W}: this gets +1/+1
+}

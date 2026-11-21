@@ -1,0 +1,87 @@
+# "... loses 3 life unless they sacrifice a nonland permanent of their
+# choice or discard a card" (CR 608.2d): the player chooses as it
+# resolves: `choose "1"` sacrifices, `choose "2"` discards, `choose "3"`
+# takes the penalty (offered only when they can do one of the others).
+
+scenario "unless they sacrifice: with nothing to give up, they lose the life" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Forest"
+  hand A: "Thornplate Intimidator"
+  turn 1 A: cast "Thornplate Intimidator"
+  turn 1 A: trigger "Thornplate Intimidator" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "unless they sacrifice: a nonland permanent" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Forest", "Hill Giant"
+  hand A: "Thornplate Intimidator"
+  hand B: "Island"
+  turn 1 A: cast "Thornplate Intimidator"
+  turn 1 A: trigger "Thornplate Intimidator" targeting player B
+  turn 1 B: choose "1"
+  run_to turn 1 end
+  assert life B 20
+  assert graveyard B contains "Hill Giant"
+  assert hand B contains "Island"
+}
+
+scenario "unless they sacrifice: or discard a card" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Forest", "Hill Giant"
+  hand A: "Thornplate Intimidator"
+  hand B: "Island"
+  turn 1 A: cast "Thornplate Intimidator"
+  turn 1 A: trigger "Thornplate Intimidator" targeting player B
+  turn 1 B: choose "2"
+  run_to turn 1 end
+  assert life B 20
+  assert battlefield B contains "Hill Giant"
+  assert graveyard B contains "Island"
+}
+
+scenario "unless they sacrifice: or take the life loss" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Forest", "Hill Giant"
+  hand A: "Thornplate Intimidator"
+  hand B: "Island"
+  turn 1 A: cast "Thornplate Intimidator"
+  turn 1 A: trigger "Thornplate Intimidator" targeting player B
+  turn 1 B: choose "3"
+  run_to turn 1 end
+  assert life B 17
+  assert battlefield B contains "Hill Giant"
+  assert hand B contains "Island"
+}
+
+scenario "unless that player sacrifices a creature: Demanding Dragon" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Demanding Dragon"
+  turn 1 A: cast "Demanding Dragon"
+  turn 1 A: trigger "Demanding Dragon" targeting player B
+  turn 1 B: choose "1"
+  run_to turn 1 end
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "unless that player sacrifices a creature: or takes 5" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Demanding Dragon"
+  turn 1 A: cast "Demanding Dragon"
+  turn 1 A: trigger "Demanding Dragon" targeting player B
+  turn 1 B: choose "3"
+  run_to turn 1 end
+  assert life B 15
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "unless that player sacrifices: Perforating Artist's raid" {
+  battlefield A: "Perforating Artist"
+  turn 1 A: attack "Perforating Artist"
+  run_to turn 2 untap
+  assert life B 14
+}

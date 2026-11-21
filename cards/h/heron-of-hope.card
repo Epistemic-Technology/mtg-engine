@@ -1,0 +1,9 @@
+card "Heron of Hope" {
+  oracle_id f297648b-0dda-4c58-a3eb-fdabdfb42177
+  cost {3}{W}
+  type Creature — Bird
+  pt 2/3
+  keywords flying
+  replace you gain life: plus one
+  activated {1}{W}: this gains lifelink
+}
