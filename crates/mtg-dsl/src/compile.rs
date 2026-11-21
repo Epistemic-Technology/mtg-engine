@@ -3076,8 +3076,11 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Modes(modes));
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
-            Effect::GrantFlashback { to, .. } => {
-                out.push(CoreEffect::GrantFlashback { to: r(*to) });
+            Effect::GrantFlashback { to, harmonize, .. } => {
+                out.push(CoreEffect::GrantFlashback {
+                    to: r(*to),
+                    harmonize: *harmonize,
+                });
             }
             // One or the other, chosen as it resolves (CR 608.2d).
             Effect::ProtectionOr { to, filter } => {

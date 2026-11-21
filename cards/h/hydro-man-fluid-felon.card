@@ -1,0 +1,9 @@
+card "Hydro-Man, Fluid Felon" {
+  oracle_id a93a8edf-2879-4cae-b3b9-b46298270823
+  cost {U}{U}
+  type Legendary Creature — Elemental Villain
+  pt 2/2
+  pronoun he
+  triggered whenever you cast blue spell if this is creature: this gets +1/+1
+  triggered at beginning of your end step: untap this; until your next turn, this becomes land and this gains ability { mana {U} }
+}

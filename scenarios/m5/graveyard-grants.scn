@@ -1,0 +1,28 @@
+# A cast-from-graveyard keyword given to a card in a graveyard until end
+# of turn: harmonize (CR 702.180a), its cost the card's mana cost.
+
+scenario "granted harmonize: Songcrafter Mage's card is cast from the graveyard, tapping a creature" {
+  battlefield A: "Grizzly Bears", 3 "Island", "Mountain", "Forest"
+  graveyard A: "Divination"
+  hand A: "Songcrafter Mage"
+  library A: "Plains", "Plains"
+  turn 1 A: cast "Songcrafter Mage"
+  turn 1 A: trigger "Songcrafter Mage" targeting "Divination"
+  turn 1 A: cast "Divination" harmonized tapping "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert exile A contains "Divination"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "granted harmonize: it lasts only the turn" {
+  battlefield A: 3 "Island", "Mountain", "Forest"
+  graveyard A: "Divination"
+  hand A: "Songcrafter Mage"
+  library A: "Plains", "Plains", "Plains"
+  turn 1 A: cast "Songcrafter Mage"
+  turn 1 A: trigger "Songcrafter Mage" targeting "Divination"
+  illegal turn 3 A: cast "Divination" harmonized
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Divination"
+}

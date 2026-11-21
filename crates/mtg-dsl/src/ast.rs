@@ -3974,6 +3974,9 @@ pub enum Effect {
     GrantFlashback {
         to: Recipient,
         that_card: bool,
+        /// `gains harmonize`: "... gains harmonize until end of turn. Its
+        /// harmonize cost is equal to its mana cost."
+        harmonize: bool,
     },
     /// `target permanent you control gains protection from artifact or
     /// from color of choice`: "gains protection from artifacts or from the

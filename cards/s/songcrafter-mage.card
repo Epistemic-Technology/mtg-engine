@@ -1,0 +1,8 @@
+card "Songcrafter Mage" {
+  oracle_id 13f0863f-ae54-4bea-8f01-7f3891797577
+  cost {G}{U}{R}
+  type Creature — Human Bard
+  pt 3/2
+  keywords flash
+  triggered when this enters: target instant or sorcery card from your graveyard gains harmonize
+}

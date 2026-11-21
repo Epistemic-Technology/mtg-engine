@@ -1712,7 +1712,9 @@ flashback until end of turn. The flashback cost is equal to its mana
 cost."; `gains flashback that card`: "... equal to that card's mana
 cost.": its owner may cast it from the graveyard for its mana cost this
 turn, with its usual timing, and it is exiled as it leaves the stack, CR
-702.34a), `put land card from hand onto battlefield [tapped]` ("put a land
+702.34a; `gains harmonize`: "... gains harmonize until end of turn. Its
+harmonize cost is equal to its mana cost.", cast that way this turn,
+tapping up to one creature to reduce it, CR 702.180a), `put land card from hand onto battlefield [tapped]` ("put a land
 card from your hand onto the battlefield"; `put creature card and land
 card from hand onto battlefield`: "put a creature card and/or a land card
 from your hand onto the battlefield", a choice of each in turn), `<what> doesn't untap next

@@ -4930,13 +4930,15 @@ impl P {
                     to: subject,
                 })
             }
-            "gain" | "gains" if self.at_word("flashback") => {
+            "gain" | "gains" if self.at_word("flashback") || self.at_word("harmonize") => {
+                let harmonize = self.at_word("harmonize");
                 self.pos += 1;
                 let that_card = self.eat_words(&["that", "card"]);
                 self.until_end_of_turn();
                 Ok(Effect::GrantFlashback {
                     to: subject,
                     that_card,
+                    harmonize,
                 })
             }
             "gain" | "gains" => {

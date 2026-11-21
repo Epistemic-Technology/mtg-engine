@@ -4262,6 +4262,9 @@ pub enum Effect {
     /// 400.7).
     GrantFlashback {
         to: Recipient,
+        /// "... gains harmonize until end of turn. Its harmonize cost is
+        /// equal to its mana cost." (CR 702.180a) instead.
+        harmonize: bool,
     },
     /// "gains all creature types until end of turn" (`all`), "loses all
     /// creature types until end of turn" (layer 4).

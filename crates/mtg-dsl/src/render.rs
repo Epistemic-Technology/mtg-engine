@@ -4845,7 +4845,28 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::with_subject(*to, s, format!("{verb} all creature types")).until_eot()
         }
-        Effect::GrantFlashback { to, that_card } => {
+        Effect::GrantFlashback {
+            to,
+            that_card,
+            harmonize: true,
+        } => {
+            // "Target instant or sorcery card in your graveyard gains
+            // harmonize until end of turn. Its harmonize cost is equal to
+            // its mana cost."
+            let s = ctx
+                .subj(*to)
+                .replacen(" from your graveyard", " in your graveyard", 1);
+            let its = if *that_card { "That card's" } else { "Its" };
+            Clause::with_subject(
+                *to,
+                s,
+                format!(
+                    "{} harmonize until end of turn. {its} harmonize cost is equal to its mana cost",
+                    ctx.verb(*to, "gains", "gain")
+                ),
+            )
+        }
+        Effect::GrantFlashback { to, that_card, .. } => {
             // "Target instant or sorcery card in your graveyard gains
             // flashback until end of turn. The flashback cost is equal to
             // its mana cost."
@@ -11097,11 +11118,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     if !f.types.is_empty() =>
                 {
                     out.push_str(", if ");
-                    out.push_str(&static_cond_text(c, card).replacen(
-                        "it's",
-                        "this permanent is",
-                        1,
-                    ));
+                    // A legendary permanent by its name ("if Hydro-Man is a
+                    // creature").
+                    let this = if card.kind != Kind::Token
+                        && card.supertypes.contains(&Supertype::Legendary)
+                    {
+                        format!("{} is", short_name(card))
+                    } else {
+                        "this permanent is".to_string()
+                    };
+                    out.push_str(&static_cond_text(c, card).replacen("it's", &this, 1));
                     ctx.source_mentioned = true;
                 }
                 // "At the beginning of each end step, if this creature was

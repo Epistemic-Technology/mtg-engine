@@ -1024,9 +1024,14 @@ impl Fmt {
                 s
             }
             Effect::SwitchPt { to } => format!("switch pt of {}", self.recipient(*to, t)),
-            Effect::GrantFlashback { to, that_card } => format!(
-                "{} gains flashback{}",
+            Effect::GrantFlashback {
+                to,
+                that_card,
+                harmonize,
+            } => format!(
+                "{} gains {}{}",
                 self.recipient(*to, t),
+                if *harmonize { "harmonize" } else { "flashback" },
                 if *that_card { " that card" } else { "" }
             ),
             Effect::ProtectionOr { to, filter: f } => format!(

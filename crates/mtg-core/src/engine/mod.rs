@@ -523,6 +523,7 @@ impl GameState {
             discarded_this_turn: 0,
             mayhem_discarded: Vec::new(),
             granted_flashback: Vec::new(),
+            granted_harmonize: Vec::new(),
             cast_this_turn: smallvec::SmallVec::new(),
             turn_log: crate::state::TurnLog::default(),
             desig: crate::state::Designations::default(),
@@ -2991,6 +2992,7 @@ impl GameState {
             .retain(|e| e.duration != Duration::UntilEndOfTurn);
         self.player_rules.clear();
         self.granted_flashback.clear();
+        self.granted_harmonize.clear();
         // CR 603.7c: "when that creature dies this turn" ends unfired.
         if !self.delayed_triggers.is_empty() {
             self.delayed_triggers.retain(|d| !d.this_turn);

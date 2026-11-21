@@ -426,6 +426,25 @@ impl GameState {
                 options.push(Choice::Cast(*id));
             }
         }
+        // CR 702.180a: a card given harmonize, its harmonize cost its mana
+        // cost.
+        for id in &self.granted_harmonize {
+            let Some(o) = self.objects.get(*id) else {
+                continue;
+            };
+            let def = self.pool.get(o.def);
+            if o.zone == Zone::Graveyard && o.owner == p && def.harmonize.is_none() {
+                self.harmonize_options(
+                    p,
+                    def,
+                    *id,
+                    sorcery_timing,
+                    &sources,
+                    &changers,
+                    &mut options,
+                );
+            }
+        }
         // CR 702.34a: instants and sorceries with flashback may be cast
         // from the graveyard for their flashback cost.
         if ps.flashback_in_graveyard > 0 {
@@ -1794,9 +1813,8 @@ impl GameState {
         changers: &[ObjId],
         options: &mut Vec<Choice>,
     ) {
-        let Some(cost) = def.harmonize.as_deref() else {
-            return;
-        };
+        // Its own harmonize cost, or one given to it: its mana cost.
+        let cost = def.harmonize.as_deref().unwrap_or(&def.mana_cost);
         if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
             || !self.additional_payable(p, &def.additional, id)
         {
@@ -3464,9 +3482,11 @@ impl GameState {
             }
             // CR 702.180a: cast from the graveyard (as with flashback, the
             // spell is exiled as it leaves the stack).
-            _ if o.alt == AltCast::Harmonize && def.harmonize.is_some() => {
-                def.harmonize.as_ref().expect("checked").requirements(x)
-            }
+            _ if o.alt == AltCast::Harmonize => def
+                .harmonize
+                .as_deref()
+                .unwrap_or(&def.mana_cost)
+                .requirements(x),
             (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
                 def.overload.as_ref().expect("checked").requirements(x)
             }
@@ -9061,7 +9081,7 @@ impl GameState {
                     }
                 }
             }
-            Effect::GrantFlashback { to } => {
+            Effect::GrantFlashback { to, harmonize } => {
                 for t in self.recipients(ctx, *to) {
                     if let Target::Object(id) = t
                         && self
@@ -9069,7 +9089,11 @@ impl GameState {
                             .get(id)
                             .is_some_and(|o| o.zone == Zone::Graveyard)
                     {
-                        self.granted_flashback.push(id);
+                        if *harmonize {
+                            self.granted_harmonize.push(id);
+                        } else {
+                            self.granted_flashback.push(id);
+                        }
                     }
                 }
             }

@@ -1543,9 +1543,10 @@ impl Decompiler<'_> {
                 blocker: Self::recipient(*blocker),
                 attacker: Self::recipient(*attacker),
             },
-            CoreEffect::GrantFlashback { to } => Effect::GrantFlashback {
+            CoreEffect::GrantFlashback { to, harmonize } => Effect::GrantFlashback {
                 to: Self::recipient(*to),
                 that_card: false,
+                harmonize: *harmonize,
             },
             CoreEffect::SwitchPt { to } => Effect::SwitchPt {
                 to: Self::recipient(*to),

@@ -344,3 +344,27 @@ scenario "for as long as you control: Time of Ice keeps creatures tapped, then r
   assert hand B contains "Hill Giant"
   assert hand B contains "Grizzly Bears"
 }
+
+scenario "until your next turn: Hydro-Man is a land tapping for {U} through the opponent's turn" {
+  battlefield A: "Hydro-Man, Fluid Felon"
+  hand A: "Opt"
+  library A: "Island", "Island", "Island"
+  run_to turn 1 cleanup
+  assert is "Hydro-Man, Fluid Felon" land
+  assert is not "Hydro-Man, Fluid Felon" creature
+  turn 2 A: cast "Opt"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Opt"
+  assert tapped "Hydro-Man, Fluid Felon"
+  run_to turn 3 precombat_main
+  assert is "Hydro-Man, Fluid Felon" creature
+}
+
+scenario "Hydro-Man gets +1/+1 for a blue spell only while a creature" {
+  battlefield A: "Hydro-Man, Fluid Felon", "Island"
+  hand A: "Opt"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert power "Hydro-Man, Fluid Felon" 3
+}

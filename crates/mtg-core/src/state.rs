@@ -1762,6 +1762,9 @@ pub struct GameState {
     /// (`Effect::GrantFlashback`), castable for their mana cost while
     /// they stay there.
     pub granted_flashback: Vec<ObjId>,
+    /// Graveyard cards given harmonize until end of turn, castable for
+    /// their mana cost (as their harmonize cost) while they stay there.
+    pub granted_harmonize: Vec<ObjId>,
     /// The spells cast this turn, by caster ("if you've cast a noncreature
     /// spell this turn"); inline, so copying the state rarely allocates.
     pub cast_this_turn: SmallVec<[(PlayerId, crate::card::CardRef); 4]>,
