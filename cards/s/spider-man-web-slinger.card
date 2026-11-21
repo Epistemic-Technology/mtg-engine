@@ -1,0 +1,7 @@
+card "Spider-Man, Web-Slinger" {
+  oracle_id 505231d8-714f-4c5b-a635-d1662bd18a78
+  cost {2}{W}
+  type Legendary Creature — Spider Human Hero
+  pt 3/3
+  web slinging {W}
+}

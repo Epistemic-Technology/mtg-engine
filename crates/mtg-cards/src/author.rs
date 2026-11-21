@@ -67,6 +67,7 @@ const KEYWORDS: &[&str] = &[
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
     "Hexproof from",
+    "Job select",
     "Mayhem",
     "Mobilize",
     "Behold",
@@ -184,6 +185,11 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Warp",
     "Plot",
     "Sneak",
+    "Harmonize",
+    "Web-slinging",
+    "Forage",
+    "Impending",
+    "Endure",
     "Spree",
     "Gift",
     "Freerunning",
@@ -1487,6 +1493,15 @@ impl Templates {
             (r(r"^Amass (\w+) (\w+)$"), |c, _| {
                 Some(format!("amass {} {}", cap(c, 1), number(cap(c, 2))?))
             }),
+            // CR 701.61a: "you may forage. If you do, ...".
+            (r(r"^(?:[Yy]ou )?[Ff]orage$"), |_, _| {
+                Some("forage".to_string())
+            }),
+            // CR 701.63a: "it endures 2", "Anafenza endures 2".
+            (
+                r(r"^(?:It|it|This creature|this creature|~) endures (\d+)$"),
+                |c, t| (*t == 0).then(|| format!("this endures {}", cap(c, 1))),
+            ),
             (r(r"^(It|This creature|~) explores$"), |_, t| {
                 (*t == 0).then(|| "this explores".to_string())
             }),
@@ -2482,6 +2497,9 @@ fn cost_text(s: &str) -> Option<String> {
             format!("waterbend {mana}")
         } else if part == "Discard a card" {
             "discard 1 card".to_string()
+        } else if part == "Forage" {
+            // CR 701.61a.
+            "forage".to_string()
         } else if let Some(n) = part
             .strip_prefix("Collect evidence ")
             .filter(|n| n.chars().all(|c| c.is_ascii_digit()))
@@ -2631,7 +2649,9 @@ fn trigger_text(head: &str) -> Option<String> {
             "when this enters or dies"
         }
         "Whenever this creature enters or dies" => "whenever this enters or dies",
-        "Whenever this creature enters or attacks" => "whenever this enters or attacks",
+        // "this permanent": a card with impending (CR 702.176a).
+        "Whenever this creature enters or attacks"
+        | "Whenever this permanent enters or attacks" => "whenever this enters or attacks",
         "When this creature leaves the battlefield" => "when this leaves the battlefield",
         "When this creature enters or leaves the battlefield"
         | "When this artifact enters or leaves the battlefield" => {
@@ -2672,7 +2692,8 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever one or more creature cards leave your graveyard"
         | "Whenever you expend 4"
         | "Whenever you expend 8"
-        | "Whenever you collect evidence" => {
+        | "Whenever you collect evidence"
+        | "Whenever you forage" => {
             return Some(lowercase_first(head));
         }
         "Whenever a creature dealt damage by this creature this turn dies" => {
@@ -3670,6 +3691,16 @@ impl Builder<'_> {
             self.statements.push(format!("equip {{{}}}", cap(&c, 1)));
             return Ok(());
         }
+        // A flavor word before equip ("Perseus's Bow — Equip {6}", job
+        // select Equipment).
+        if let Some(c) = Regex::new(r#"^([A-Z][^"—]*) — Equip \{(\d+)\}$"#)
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("label \"{}\" equip {{{}}}", cap(&c, 1), cap(&c, 2)));
+            return Ok(());
+        }
         if let Some(c) = Regex::new(r"^\{T\}: Add ((?:\{[WUBRGC]\})(?: or \{[WUBRGC]\})*)\.$")
             .unwrap()
             .captures(line)
@@ -3922,12 +3953,29 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Freerunning|Multikicker|Transmute|Disturb) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Harmonize|Freerunning|Multikicker|Transmute|Disturb) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.176: "Impending 4—{1}{U}{U}".
+        if let Some(c) = Regex::new(r"^Impending (\d+)—((?:\{[0-9WUBRGCX/]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("impending {} {}", cap(&c, 1), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.188: "Web-slinging {W}".
+        if let Some(c) = Regex::new(r"^Web-slinging ((?:\{[0-9WUBRGCX/]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("web slinging {}", cap(&c, 1)));
             return Ok(());
         }
         // CR 702.174: "Gift a card", "Gift a tapped Fish".
@@ -4062,6 +4110,10 @@ impl Builder<'_> {
         }
         if line == "Living weapon" {
             self.statements.push("living weapon".to_string());
+            return Ok(());
+        }
+        if line == "Job select" {
+            self.statements.push("job select".to_string());
             return Ok(());
         }
         if line == "Bargain" {
@@ -4300,9 +4352,20 @@ impl Builder<'_> {
             };
             let mut mods = Vec::new();
             let gets = Regex::new(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
-            for part in cap(&c, 2).split(" and ") {
+            // "gets +2/+2, has reach, and is a Bard in addition to its
+            // other types" (job select Equipment): a list of three.
+            let body = cap(&c, 2);
+            let parts: Vec<&str> = if body.ends_with(" in addition to its other types") {
+                Regex::new(r",? and |, ").unwrap().split(body).collect()
+            } else {
+                body.split(" and ").collect()
+            };
+            let subtype = Regex::new(r"^is an? ([A-Z][a-z]+) in addition to its other types$").unwrap();
+            for part in parts {
                 if let Some(c2) = gets.captures(part) {
                     mods.push(cap(&c2, 1).to_string());
+                } else if let Some(c2) = subtype.captures(part) {
+                    mods.push(format!("add subtype {}", cap(&c2, 1)));
                 } else if let Some(rest) = part.strip_prefix("has ").or_else(|| part.strip_prefix("have ")) {
                     let ks = keyword_list(rest).ok_or_else(|| Skip::Sentence(line.to_string()))?;
                     mods.push(format!("has {ks}"));
@@ -4933,6 +4996,12 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         if !KEYWORDS.contains(&k.as_str())
             && !TEMPLATED_TAGS.contains(&k.as_str())
             && !ABILITY_WORDS.contains(&k.as_str())
+            // A flavor word before equip ("Hagneia — Equip {3}") is tagged
+            // as a keyword; the line is templated as a labeled equip.
+            && !s
+                .oracle_text
+                .as_deref()
+                .is_some_and(|t| t.contains(&format!("{k} \u{2014} Equip {{")))
         {
             return Err(Skip::Keyword(k.clone()));
         }

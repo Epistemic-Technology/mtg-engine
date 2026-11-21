@@ -491,6 +491,7 @@ impl GameState {
             x_values: Vec::new(),
             entered_x: Vec::new(),
             ninjutsu: Vec::new(),
+            harmonized: Vec::new(),
             bargains: Vec::new(),
             divisions: Vec::new(),
             pairs: Vec::new(),
@@ -1060,6 +1061,24 @@ impl GameState {
                         {
                             let options: Vec<Choice> = self
                                 .unblocked_attackers(caster)
+                                .into_iter()
+                                .map(Choice::Sacrifice)
+                                .collect();
+                            if !options.is_empty() {
+                                return StepResult::Decision(Decision {
+                                    player: caster,
+                                    kind: DecisionKind::ChooseSacrifice { spell },
+                                    options,
+                                });
+                            }
+                        }
+                        // CR 702.188a: the tapped creature web-slinging
+                        // returns.
+                        if sacrifice.is_none()
+                            && self.objects[spell].alt == crate::state::AltCast::WebSlinging
+                        {
+                            let options: Vec<Choice> = self
+                                .web_slinging_returns(caster)
                                 .into_iter()
                                 .map(Choice::Sacrifice)
                                 .collect();
@@ -1711,6 +1730,25 @@ impl GameState {
             }
             (Flow::Priority, Choice::CastSneak(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Sneak);
+            }
+            (Flow::Priority, Choice::CastImpending(card)) => {
+                self.begin_cast(player, card, crate::state::AltCast::Impending);
+            }
+            (Flow::Priority, Choice::CastWebSlinging(card)) => {
+                self.begin_cast(player, card, crate::state::AltCast::WebSlinging);
+            }
+            // CR 702.180a: from the graveyard, exiled as it leaves the
+            // stack (as with flashback); the creature to tap is chosen now
+            // (CR 702.180b) and its power comes off the cost.
+            (Flow::Priority, Choice::CastHarmonize { card, tap }) => {
+                let power = tap
+                    .and_then(|c| self.characteristics(c))
+                    .map_or(0, |c| u32::try_from(c.power.max(0)).unwrap_or(0));
+                let spell = self.begin_cast(player, card, crate::state::AltCast::Harmonize);
+                self.objects[spell].cast.set_flashback(true);
+                if let Some(c) = tap {
+                    self.harmonized.push((spell, c, power));
+                }
             }
             (Flow::Priority, Choice::CastWarp(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Warp);
@@ -2848,6 +2886,7 @@ impl GameState {
             self.x_values.retain(|(id, _)| *id != spell);
             self.divisions.retain(|(id, _)| *id != spell);
             self.bargains.retain(|(id, _)| *id != spell);
+            self.harmonized.retain(|(id, ..)| *id != spell);
             self.splices.retain(|s| s.spell != spell);
             let card = self.move_object(spell, back, false);
             self.give_priority(controller);

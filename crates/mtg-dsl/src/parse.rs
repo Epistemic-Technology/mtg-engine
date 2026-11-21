@@ -1671,6 +1671,27 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::LivingWeapon))
             }
+            "impending" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Impending(n, c)))
+            }
+            "web"
+                if self.at_words(&["web", "slinging"])
+                    && matches!(self.peek_at(2), Some(Tok::Sym(_))) =>
+            {
+                self.pos += 2;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::WebSlinging(c)))
+            }
+            "job" if self.at_words(&["job", "select"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::JobSelect))
+            }
             "extort" | "mentor" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -1726,9 +1747,9 @@ impl P {
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "mayhem" | "foretell" | "plot" | "sneak"
-            | "entwine" | "ninjutsu" | "scavenge" | "dash" | "warp" | "embalm" | "eternalize"
-            | "offspring" | "bestow" | "splice" | "strive" | "overload" | "surge"
-            | "freerunning" | "spectacle" | "replicate" | "encore" | "multikicker"
+            | "harmonize" | "entwine" | "ninjutsu" | "scavenge" | "dash" | "warp" | "embalm"
+            | "eternalize" | "offspring" | "bestow" | "splice" | "strive" | "overload"
+            | "surge" | "freerunning" | "spectacle" | "replicate" | "encore" | "multikicker"
             | "transmute" | "disturb"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
@@ -1747,6 +1768,7 @@ impl P {
                     "foretell" => Mechanic::Foretell(c),
                     "plot" => Mechanic::Plot(c),
                     "sneak" => Mechanic::Sneak(c),
+                    "harmonize" => Mechanic::Harmonize(c),
                     "entwine" => Mechanic::Entwine(c),
                     "megamorph" => Mechanic::Megamorph(c),
                     "disguise" => Mechanic::Disguise(c),
@@ -3094,6 +3116,19 @@ impl P {
         }
         if self.eat_words(&["not", "kicked"]) {
             return Ok(StaticCond::NotKicked);
+        }
+        if self.eat_word("impending") {
+            return Ok(StaticCond::Impending);
+        }
+        for (i, w) in ["web", "he", "she", "they"].iter().enumerate() {
+            let words: &[&str] = if i == 0 {
+                &["web", "slung"]
+            } else {
+                &[w, "web", "slung"]
+            };
+            if self.eat_words(words) {
+                return Ok(StaticCond::WebSlung(u8::try_from(i).unwrap_or(0)));
+            }
         }
         for (i, w) in ["sneak", "his", "her"].iter().enumerate() {
             let words: &[&str] = if i == 0 {
@@ -5331,6 +5366,10 @@ impl P {
                     who: subject,
                 })
             }
+            "endures" => Ok(Effect::Endure {
+                what: subject,
+                count: self.num()?,
+            }),
             "explores" => Ok(Effect::Explore {
                 what: subject,
                 twice: self.eat_word("twice"),
@@ -6646,6 +6685,7 @@ impl P {
             "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
             "blight" => Ok(Effect::Blight(self.count()?)),
             "collect" if self.eat_word("evidence") => Ok(Effect::CollectEvidence(self.count()?)),
+            "forage" => Ok(Effect::Forage),
             "waterbend" => Ok(Effect::Waterbend(self.mana_cost()?)),
             "manifest" => {
                 self.eat_words(&["the", "top", "card", "of", "your", "library"]);
@@ -9845,6 +9885,9 @@ impl P {
         if self.eat_words(&["you", "collect", "evidence"]) {
             return Ok(Trigger::CollectsEvidence);
         }
+        if self.eat_words(&["you", "forage"]) {
+            return Ok(Trigger::Forages);
+        }
         if self.eat_words(&["you", "turn", "a", "permanent", "face", "up"]) {
             return Ok(Trigger::YouTurnFaceUp);
         }
@@ -10541,6 +10584,12 @@ impl P {
                         self.pos += 1;
                         cost.blight = self.count()?;
                         cost.order.push(CostItem::Blight);
+                    }
+                    // CR 701.61a: `forage`.
+                    "forage" => {
+                        self.pos += 1;
+                        cost.forage = true;
+                        cost.order.push(CostItem::Forage);
                     }
                     "collect"
                         if self.word_at(1).as_deref() == Some("evidence")

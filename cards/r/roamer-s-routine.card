@@ -1,0 +1,7 @@
+card "Roamer's Routine" {
+  oracle_id cf2355f3-11d2-4b03-b663-9fad6b07e4b2
+  cost {2}{G}
+  type Sorcery
+  spell: search basic land card to battlefield tapped
+  harmonize {4}{G}
+}

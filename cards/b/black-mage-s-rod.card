@@ -1,0 +1,8 @@
+card "Black Mage's Rod" {
+  oracle_id 909b3d90-5762-461b-b49a-004a9e72733d
+  cost {1}{B}
+  type Artifact — Equipment
+  job select
+  static equipped creature: +1/+0, has ability { triggered whenever you cast noncreature spell: deal 1 damage to each opponent }, add subtype Wizard
+  equip {3}
+}

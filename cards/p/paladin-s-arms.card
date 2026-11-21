@@ -1,0 +1,8 @@
+card "Paladin's Arms" {
+  oracle_id 22076484-e9d5-4f33-8cf3-b9b427436b05
+  cost {2}{W}
+  type Artifact — Equipment
+  job select
+  static equipped creature: +2/+1, has ward {1}, add subtype Knight
+  label "Lightbringer and Hero's Shield" equip {4}
+}

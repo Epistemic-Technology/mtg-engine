@@ -525,6 +525,18 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let impending = if line.peek_ident("impending") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
+            let webslung = if line.peek_ident("webslung") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let warped = if line.peek_ident("warped") {
                 line.pos += 1;
                 true
@@ -566,6 +578,18 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                 true
             } else {
                 false
+            };
+            let harmonized = if line.peek_ident("harmonized") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
+            let tapping = if harmonized && line.peek_ident("tapping") {
+                line.pos += 1;
+                Some(line.string()?)
+            } else {
+                None
             };
             // A promised gift is kept as the kicker flag (CR 702.174): its
             // targets count like a kicked spell's.
@@ -677,11 +701,15 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     dashed,
                     warped,
                     sneaked,
+                    webslung,
+                    impending,
                     alternative,
                     bestowed,
                     overloaded,
                     awakened,
                     disturbed,
+                    harmonized,
+                    tapping,
                     conspired,
                     splice,
                     other_cost,

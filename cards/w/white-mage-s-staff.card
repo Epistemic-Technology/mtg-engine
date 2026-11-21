@@ -1,0 +1,8 @@
+card "White Mage's Staff" {
+  oracle_id af1acf07-39e2-441e-a1e0-1db535535e2e
+  cost {1}{W}
+  type Artifact — Equipment
+  job select
+  static equipped creature: +1/+1, has ability { triggered whenever this attacks: you gain 1 life }, add subtype Cleric
+  equip {3}
+}

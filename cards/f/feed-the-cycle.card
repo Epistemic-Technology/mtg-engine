@@ -1,0 +1,8 @@
+card "Feed the Cycle" {
+  oracle_id c338eedb-9b70-4b77-b5d6-8ea74b7bea3e
+  cost {1}{B}
+  type Instant
+  additional cost forage
+  additional cost or {B}
+  spell: destroy target creature or planeswalker
+}

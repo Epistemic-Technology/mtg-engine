@@ -1,0 +1,8 @@
+card "Machinist's Arsenal" {
+  oracle_id e7fff34e-9b80-4a67-a917-fd9efddb5a1f
+  cost {4}{W}
+  type Artifact — Equipment
+  job select
+  static equipped creature: +2/+2 count each artifact you control, add subtype Artificer
+  label "Machina" equip {4}
+}

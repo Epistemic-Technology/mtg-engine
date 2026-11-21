@@ -1,0 +1,10 @@
+card "Silk, Web Weaver" {
+  oracle_id 50477dc8-9a2a-41eb-984d-c9e1e78e08a2
+  cost {2}{G}{W}
+  type Legendary Creature — Spider Human Hero
+  pt 3/5
+  short_name "Silk"
+  web slinging {1}{G}{W}
+  triggered whenever you cast creature spell: create 1 "1/1 green and white Human Citizen creature"
+  activated {3}{G}{W}: each creature you control gets +2/+2 and gains vigilance until end of turn
+}

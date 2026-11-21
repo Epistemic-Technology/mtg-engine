@@ -1,0 +1,9 @@
+card "Thornvault Forager" {
+  oracle_id 7b18cfad-a1cf-46c2-bcdd-7762c13d50e5
+  cost {1}{G}
+  type Creature — Squirrel Ranger
+  pt 2/2
+  mana {G}
+  activated {T}, forage: add 2 mana any combination
+  activated {3}{G}, {T}: search Squirrel card reveal to hand
+}

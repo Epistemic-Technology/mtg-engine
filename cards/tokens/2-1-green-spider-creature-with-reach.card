@@ -1,0 +1,7 @@
+token "2/1 green Spider creature with reach" {
+  name "Spider"
+  type Creature — Spider
+  pt 2/1
+  color green
+  keywords reach
+}

@@ -312,6 +312,16 @@ pub enum AltCast {
     /// Cast for its sneak cost (CR 702.190a); kept by the permanent, which
     /// enters tapped and attacking.
     Sneak,
+    /// Cast for its impending cost (CR 702.176a); kept by the permanent,
+    /// which enters with time counters and isn't a creature while it has
+    /// one.
+    Impending,
+    /// Cast for its web-slinging cost (CR 702.188a); kept by the
+    /// permanent ("if it was cast using web-slinging").
+    WebSlinging,
+    /// Cast from the graveyard for its harmonize cost (CR 702.180a); the
+    /// spell is exiled as it leaves the stack (`CastInfo::flashback`).
+    Harmonize,
     /// Cast for the alternative cost its own text offers (CR 118.9, "rather
     /// than pay this spell's mana cost").
     AltCost,
@@ -1604,6 +1614,10 @@ pub struct GameState {
     /// attacking, and what the creature returned for the cost was
     /// attacking.
     pub ninjutsu: Vec<(ObjId, Target)>,
+    /// Spells being cast for their harmonize cost (CR 702.180a), the
+    /// creature chosen to tap, and its power then: the generic mana the
+    /// cost is reduced by.
+    pub harmonized: Vec<(ObjId, ObjId, u32)>,
     /// Bargained spells being cast (CR 702.166a) and the permanent to
     /// sacrifice as their costs are paid.
     pub bargains: Vec<(ObjId, ObjId)>,
@@ -2803,6 +2817,36 @@ impl GameState {
             .collect()
     }
 
+    /// The cards in `p`'s graveyard a forage could exile (CR 701.61a),
+    /// other than `except`, oldest first.
+    pub fn forage_cards(&self, p: PlayerId, except: ObjId) -> Vec<ObjId> {
+        self.player(p)
+            .graveyard
+            .iter()
+            .copied()
+            .filter(|id| *id != except)
+            .collect()
+    }
+
+    /// The Foods `p` controls a forage could sacrifice (CR 701.61a).
+    pub fn forage_foods(&self, p: PlayerId) -> Vec<ObjId> {
+        let Some(food) = self.pool.subtype_lookup("Food") else {
+            return Vec::new();
+        };
+        self.permanents_of(p)
+            .filter(|id| {
+                self.characteristics(*id)
+                    .is_some_and(|c| c.has_subtype(food))
+            })
+            .collect()
+    }
+
+    /// Whether `p` can forage (CR 701.61a): three other cards in their
+    /// graveyard, or a Food.
+    pub fn forage_payable(&self, p: PlayerId, except: ObjId) -> bool {
+        self.forage_cards(p, except).len() >= 3 || !self.forage_foods(p).is_empty()
+    }
+
     /// Whether `p` can collect evidence `n` (CR 701.59b): the cards in
     /// their graveyard have total mana value `n` or greater.
     pub fn evidence_payable(&self, p: PlayerId, n: u32, except: ObjId) -> bool {
@@ -2821,6 +2865,7 @@ impl GameState {
     pub fn other_costs_payable(&self, p: PlayerId, c: &crate::card::Cost, except: ObjId) -> bool {
         !(c.blight > 0 && self.creatures_of(p).next().is_none())
             && self.evidence_payable(p, c.evidence, except)
+            && (!c.forage || self.forage_payable(p, except))
             && c.craft
                 .as_deref()
                 .is_none_or(|f| !self.craft_candidates(p, f, except).is_empty())
@@ -3037,6 +3082,16 @@ impl GameState {
             // Judged by `condition_for`, which knows the triggering spell.
             C::ManaSpent { that: true, .. } => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
+            C::Impending => self.objects.get(source).is_some_and(|o| {
+                o.alt == AltCast::Impending && o.counters(crate::card::CounterKind::Time) > 0
+            }),
+            C::WebSlung(_) => match self.objects.get(source) {
+                Some(o) => o.alt == AltCast::WebSlinging,
+                None => self
+                    .lki
+                    .get(&source)
+                    .is_some_and(|l| l.object.alt == AltCast::WebSlinging),
+            },
             C::SneakPaid(_) => match self.objects.get(source) {
                 Some(o) => o.alt == AltCast::Sneak,
                 None => self

@@ -1,0 +1,7 @@
+card "Channeled Dragonfire" {
+  oracle_id 91179937-6f55-4d1b-8f06-2efe1c8fea7a
+  cost {R}
+  type Sorcery
+  spell: deal 2 damage to any target
+  harmonize {5}{R}{R}
+}

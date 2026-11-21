@@ -445,6 +445,9 @@ impl GameState {
             || cost.discard > 0
             || cost.discard_x
             || cost.exile_cards.is_some()
+            // CR 701.61a: foraging exiles cards or sacrifices a Food, which
+            // paying for a spell doesn't do on the way.
+            || cost.forage
             || !matches!(cost.sacrifice, None | Some(SacCost::This))
             || cost.mana.has_x()
         {

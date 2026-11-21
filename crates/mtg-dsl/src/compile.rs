@@ -497,6 +497,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Sneak(cost)) => {
                     b = b.sneak(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Harmonize(cost)) => {
+                    b = b.harmonize(cost.clone());
+                }
+                Ability::Mechanic(Mechanic::WebSlinging(cost)) => {
+                    b = b.web_slinging(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Suspend(n, cost)) => {
                     b = b.suspend(*n, cost.clone());
                 }
@@ -514,6 +520,9 @@ impl Compiler<'_> {
                 }
                 Ability::Mechanic(Mechanic::Vanishing(n)) => {
                     b = b.vanishing(*n);
+                }
+                Ability::Mechanic(Mechanic::Impending(n, cost)) => {
+                    b = b.impending(*n, cost.clone());
                 }
                 Ability::Mechanic(Mechanic::Morph(cost)) => {
                     b = b.morph(cost.clone(), mtg_core::card::MorphKind::Morph);
@@ -911,6 +920,8 @@ impl Compiler<'_> {
                             | Mechanic::Foretell(_)
                             | Mechanic::Plot(_)
                             | Mechanic::Sneak(_)
+                            | Mechanic::Harmonize(_)
+                            | Mechanic::WebSlinging(_)
                             | Mechanic::Suspend(..)
                             | Mechanic::Entwine(_)
                             | Mechanic::Escape(..)
@@ -957,6 +968,21 @@ impl Compiler<'_> {
             // can't block as long as it has a +1/+1 counter on it."
             if let Ability::Mechanic(Mechanic::Unleash) = a {
                 b = b.ability(unleash_static());
+            }
+            // CR 702.176a: impending's "As long as this permanent's
+            // impending cost was paid and it has a time counter on it, it's
+            // not a creature": its other card types replace its own.
+            if let Ability::Mechanic(Mechanic::Impending(..)) = a {
+                b = b.ability(AbilityDef::Static(StaticAbility {
+                    affected: ObjFilter::this(),
+                    parts: vec![Modification::SetTypes(mtg_core::card::TypeSet::of(
+                        card.types
+                            .iter()
+                            .copied()
+                            .filter(|t| *t != mtg_core::card::CardType::Creature),
+                    ))],
+                    condition: Some(StaticCondition::Impending),
+                }));
             }
             // CR 702.95a: soulbond's second trigger, "Whenever another
             // creature you control enters, ... you may pair that creature
@@ -1418,7 +1444,9 @@ impl Compiler<'_> {
             StaticCond::Beheld => StaticCondition::Beheld,
             StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
             StaticCond::NotKicked => StaticCondition::NotKicked,
+            StaticCond::Impending => StaticCondition::Impending,
             StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
+            StaticCond::WebSlung(p) => StaticCondition::WebSlung(*p),
             StaticCond::EvidenceCollected | StaticCond::AdditionalCostPaid => {
                 StaticCondition::OptionalCostPaid
             }
@@ -1670,6 +1698,7 @@ impl Compiler<'_> {
             energy: c.energy,
             blight: c.blight,
             evidence: c.evidence,
+            forage: c.forage,
             waterbend: c.waterbend,
             chosen: c.chosen,
             life: c.life,
@@ -2651,6 +2680,23 @@ impl Compiler<'_> {
                 }
             }
             Effect::PhaseOut { what } => out.push(CoreEffect::PhaseOut { what: r(*what) }),
+            Effect::Endure { what, count } => {
+                // CR 701.63a: an N/N white Spirit; X/X is a 0/0 made that
+                // size as it resolves.
+                let n = match count {
+                    Num::N(n) => *n,
+                    _ => 0,
+                };
+                let key = format!("{n}/{n} white Spirit creature");
+                let Some(token) = self.pool.lookup(&key) else {
+                    return self.err(format!("unknown token \"{key}\""));
+                };
+                out.push(CoreEffect::Endure {
+                    what: r(*what),
+                    count: *count,
+                    token,
+                });
+            }
             Effect::Amass { kind, count } => {
                 // "Amass Zombies 2": a Zombie Army token.
                 let key = format!("0/0 black {} Army creature", kind.trim_end_matches('s'));
@@ -2677,6 +2723,7 @@ impl Compiler<'_> {
             Effect::ManifestDread => out.push(CoreEffect::ManifestDread),
             Effect::Blight(n) => out.push(CoreEffect::Blight(*n)),
             Effect::CollectEvidence(n) => out.push(CoreEffect::CollectEvidence(*n)),
+            Effect::Forage => out.push(CoreEffect::Forage),
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
             Effect::Bolster(n) => out.push(CoreEffect::Bolster(*n)),
             Effect::Monstrosity(n) => out.push(CoreEffect::Monstrosity(*n)),
@@ -3134,6 +3181,7 @@ impl Compiler<'_> {
             Trigger::EntersFromGraveyard(f) => TriggerSpec::EntersFromGraveyard(self.filter(f)),
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
+            Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
             Trigger::YouTurnFaceUp => TriggerSpec::TurnedFaceUp(self.trigger_obj(
                 &crate::ast::TriggerObj::Filter(Filter {
                     who: Some(Who::You),
@@ -3773,6 +3821,8 @@ impl Compiler<'_> {
                 | Mechanic::Foretell(_)
                 | Mechanic::Plot(_)
                 | Mechanic::Sneak(_)
+                | Mechanic::Harmonize(_)
+                | Mechanic::WebSlinging(_)
                 | Mechanic::Suspend(..)
                 | Mechanic::Entwine(_)
                 | Mechanic::Escape(..)
@@ -4304,6 +4354,8 @@ const SERVO: &str = "1/1 colorless Servo artifact creature";
 const AFTERLIFE_SPIRIT: &str = "1/1 white and black Spirit creature with flying";
 /// The token living weapon creates (CR 702.92a).
 const GERM: &str = "0/0 black Phyrexian Germ creature";
+/// The token job select creates (CR 702.182a).
+const HERO: &str = "1/1 colorless Hero creature";
 /// The token Incubate creates (CR 701.53a, 111.10i).
 const INCUBATOR: &str = "Incubator";
 
@@ -4471,7 +4523,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         },
         // CR 702.92a: "When this Equipment enters, create a 0/0 black
         // Phyrexian Germ creature token, then attach this Equipment to it."
-        Mechanic::LivingWeapon => Ability::Triggered {
+        // CR 702.182a: job select likewise, a "1/1 colorless Hero creature".
+        Mechanic::LivingWeapon | Mechanic::JobSelect => Ability::Triggered {
             limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::Enters(TriggerObj::This),
@@ -4480,7 +4533,12 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             effects: vec![Sentence {
                 effects: vec![
                     E::CreateToken {
-                        token: GERM.to_string(),
+                        token: if matches!(m, Mechanic::JobSelect) {
+                            HERO
+                        } else {
+                            GERM
+                        }
+                        .to_string(),
                         count: Num::N(1),
                         tapped: false,
                         who: None,
@@ -4699,6 +4757,24 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             ],
         },
         Mechanic::Soulbond => soulbond_trigger(false),
+        // CR 702.176a: "At the beginning of your end step, if this
+        // permanent's impending cost was paid and it has a time counter on
+        // it, remove a time counter from it."
+        Mechanic::Impending(..) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
+            from_graveyard: false,
+            trigger: Trigger::BeginningOfStep {
+                step: mtg_core::turn::Step::End,
+                whose: Who::You,
+            },
+            condition: Some(crate::ast::TrigCond::Static(StaticCond::Impending)),
+            targets: Vec::new(),
+            effects: vec![Sentence::new(vec![E::RemoveCounters {
+                kind: mtg_core::card::CounterKind::Time,
+                count: Num::N(1),
+                to: Recipient::Source,
+            }])],
+        },
         // CR 702.24a.
         Mechanic::CumulativeUpkeep(cost) => Ability::Triggered {
             limit: mtg_core::card::TurnLimit::None,
@@ -4897,6 +4973,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Plot(_)
         | Mechanic::Gift(_)
         | Mechanic::Sneak(_)
+        | Mechanic::Harmonize(_)
+        | Mechanic::WebSlinging(_)
         | Mechanic::Suspend(..)
         | Mechanic::Entwine(_)
         | Mechanic::Escape(..)

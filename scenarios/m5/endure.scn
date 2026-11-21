@@ -1,0 +1,105 @@
+# Endure (CR 701.63): "To [endure N], that permanent's controller creates
+# an N/N white Spirit creature token unless they put N +1/+1 counters on
+# that permanent." `choose "1"` puts the counters, `choose "2"` creates the
+# token; unscripted, the counters.
+
+scenario "endure: counters on the permanent" {
+  battlefield A: 6 "Forest"
+  hand A: "Dusyut Earthcarver"
+  turn 1 A: cast "Dusyut Earthcarver"
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert counters "Dusyut Earthcarver" +1/+1 3
+  assert power "Dusyut Earthcarver" 7
+  assert battlefield A lacks "Spirit"
+}
+
+scenario "endure: or an N/N white Spirit token" {
+  battlefield A: 6 "Forest"
+  hand A: "Dusyut Earthcarver"
+  turn 1 A: cast "Dusyut Earthcarver"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert counters "Dusyut Earthcarver" +1/+1 0
+  assert power "Dusyut Earthcarver" 4
+  assert battlefield A contains 1 "Spirit"
+  assert power "Spirit" 3
+  assert toughness "Spirit" 3
+  assert is "Spirit" white
+}
+
+scenario "endure: unscripted, the counters" {
+  battlefield A: 2 "Plains"
+  hand A: "Fortress Kin-Guard"
+  turn 1 A: cast "Fortress Kin-Guard"
+  run_to turn 1 postcombat_main
+  assert counters "Fortress Kin-Guard" +1/+1 1
+}
+
+scenario "endure: a permanent that has left the battlefield makes the token" {
+  battlefield A: "Anafenza, Unyielding Lineage", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand B: "Pyroclasm"
+  turn 2 B: cast "Pyroclasm"
+  run_to turn 2 postcombat_main
+  # Both die at once; Anafenza's trigger sees the Bears die (CR 603.10a)
+  # and, Anafenza gone, its controller creates the 2/2 Spirit.
+  assert graveyard A contains "Anafenza, Unyielding Lineage"
+  assert battlefield A contains 1 "Spirit"
+  assert power "Spirit" 2
+}
+
+scenario "endure: Anafenza endures when another nontoken creature dies" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Anafenza, Unyielding Lineage"
+  hand B: "Shock"
+  turn 1 A: cast "Anafenza, Unyielding Lineage"
+  turn 1 begin_combat B: cast "Shock" targeting "Grizzly Bears"
+  turn 1 begin_combat A: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Spirit"
+  assert power "Spirit" 2
+  assert counters "Anafenza, Unyielding Lineage" +1/+1 0
+}
+
+scenario "endure: on entering and on attacking" {
+  battlefield A: 5 "Forest"
+  hand A: "Inspirited Vanguard"
+  turn 1 A: cast "Inspirited Vanguard"
+  turn 1 A: choose "2"
+  turn 3 A: attack "Inspirited Vanguard"
+  turn 3 declare_attackers A: choose "1"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains 1 "Spirit"
+  assert counters "Inspirited Vanguard" +1/+1 2
+  assert life B 15
+}
+
+scenario "endure: Sinkhole Surveyor loses a life as it endures" {
+  battlefield A: "Sinkhole Surveyor"
+  turn 1 A: attack "Sinkhole Surveyor"
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert counters "Sinkhole Surveyor" +1/+1 1
+  assert life B 18
+}
+
+scenario "endure: Descendant of Storms only if the cost is paid" {
+  battlefield A: "Descendant of Storms", 2 "Plains"
+  turn 1 A: attack "Descendant of Storms"
+  turn 1 declare_attackers A: accept "Descendant of Storms"
+  turn 1 declare_attackers A: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Spirit"
+  assert counters "Descendant of Storms" +1/+1 0
+}
+
+scenario "endure: Descendant of Storms declined, nothing" {
+  battlefield A: "Descendant of Storms", 2 "Plains"
+  turn 1 A: attack "Descendant of Storms"
+  turn 1 declare_attackers A: decline "Descendant of Storms"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Spirit"
+  assert counters "Descendant of Storms" +1/+1 0
+}

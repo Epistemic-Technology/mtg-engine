@@ -1,0 +1,7 @@
+card "Mammoth Bellow" {
+  oracle_id 6f2e4607-bece-42ba-a2a3-5dc50f246793
+  cost {2}{G}{U}{R}
+  type Sorcery
+  spell: create 1 "5/5 green Elephant creature"
+  harmonize {5}{G}{U}{R}
+}

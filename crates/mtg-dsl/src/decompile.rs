@@ -374,6 +374,7 @@ impl Decompiler<'_> {
             energy: c.energy,
             blight: c.blight,
             evidence: c.evidence,
+            forage: c.forage,
             waterbend: c.waterbend,
             chosen: c.chosen,
             count: c.count,
@@ -501,7 +502,9 @@ impl Decompiler<'_> {
             StaticCondition::Beheld => StaticCond::Beheld,
             StaticCondition::NoManaSpent => StaticCond::NoManaSpent,
             StaticCondition::NotKicked => StaticCond::NotKicked,
+            StaticCondition::Impending => StaticCond::Impending,
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
+            StaticCondition::WebSlung(p) => StaticCond::WebSlung(*p),
             StaticCondition::OptionalCostPaid => StaticCond::EvidenceCollected,
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
             StaticCondition::Saddled => StaticCond::Saddled,
@@ -1231,6 +1234,10 @@ impl Decompiler<'_> {
             CoreEffect::PhaseOut { what } => Effect::PhaseOut {
                 what: Self::recipient(*what),
             },
+            CoreEffect::Endure { what, count, .. } => Effect::Endure {
+                what: Self::recipient(*what),
+                count: *count,
+            },
             CoreEffect::Amass { count, token } => Effect::Amass {
                 kind: format!("{}s", self.pool.get(*token).name.trim_end_matches(" Army")),
                 count: *count,
@@ -1241,6 +1248,7 @@ impl Decompiler<'_> {
             CoreEffect::ManifestDread => Effect::ManifestDread,
             CoreEffect::Blight(n) => Effect::Blight(*n),
             CoreEffect::CollectEvidence(n) => Effect::CollectEvidence(*n),
+            CoreEffect::Forage => Effect::Forage,
             CoreEffect::CastExiled(_)
             | CoreEffect::SuspendTick
             | CoreEffect::CopySpell
@@ -1660,6 +1668,7 @@ impl Decompiler<'_> {
             TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
+            TriggerSpec::Forages { .. } => Trigger::Forages,
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Next(inner) => Trigger::Next(Box::new(self.trigger(inner))),
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),

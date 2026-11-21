@@ -1,0 +1,7 @@
+card "Inspirited Vanguard" {
+  oracle_id db756a16-3db6-4bde-bbc2-ecee3ee9d9d3
+  cost {4}{G}
+  type Creature — Human Soldier
+  pt 3/2
+  triggered whenever this enters or attacks: this endures 2
+}

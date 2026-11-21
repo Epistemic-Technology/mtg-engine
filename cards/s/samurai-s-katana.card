@@ -1,0 +1,8 @@
+card "Samurai's Katana" {
+  oracle_id 9b8b5812-73bd-453e-bdff-aad1fafa9226
+  cost {2}{R}
+  type Artifact — Equipment
+  job select
+  static equipped creature: +2/+2, has trample, haste, add subtype Samurai
+  label "Murasame" equip {5}
+}

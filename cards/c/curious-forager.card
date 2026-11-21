@@ -1,0 +1,7 @@
+card "Curious Forager" {
+  oracle_id 30af656a-99ab-4e0a-81fe-3cdb0ea6a0cc
+  cost {2}{G}
+  type Creature — Squirrel Druid
+  pt 3/2
+  triggered when this enters: you may forage; when you do, return target permanent card from your graveyard to hand
+}

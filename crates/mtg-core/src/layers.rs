@@ -472,6 +472,11 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             let have = state.objects.get(source).map_or(0, |o| o.counters(*kind));
             if *at_least { have >= *n } else { have <= *n }
         }
+        // CR 702.176a: cast for its impending cost, with a time counter.
+        StaticCondition::Impending => state.objects.get(source).is_some_and(|o| {
+            o.alt == crate::state::AltCast::Impending
+                && o.counters(crate::card::CounterKind::Time) > 0
+        }),
         StaticCondition::OpponentPoisonAtLeast(n) => state
             .players_in_game()
             .any(|p| p != you && state.player(p).poison >= *n),

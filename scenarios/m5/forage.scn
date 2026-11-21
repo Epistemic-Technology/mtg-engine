@@ -1,0 +1,131 @@
+# Forage (CR 701.61a): "Exile three cards from your graveyard or sacrifice
+# a Food." As an effect the player chooses when both are possible
+# (`choose "1"` the cards, `choose "2"` a Food); as a cost the engine
+# exiles the three oldest cards if it can, else sacrifices a Food.
+
+scenario "forage: exile three cards from the graveyard" {
+  battlefield A: 4 "Forest"
+  hand A: "Treetop Sentries"
+  graveyard A: "Island", "Island", "Swamp"
+  library A: 5 "Island"
+  turn 1 A: cast "Treetop Sentries"
+  turn 1 A: accept "Treetop Sentries"
+  run_to turn 1 postcombat_main
+  assert exile A count 3
+  assert graveyard A count 0
+  assert hand A count 1
+}
+
+scenario "forage: or sacrifice a Food" {
+  battlefield A: 4 "Forest", "Food"
+  hand A: "Treetop Sentries"
+  library A: 5 "Island"
+  turn 1 A: cast "Treetop Sentries"
+  turn 1 A: accept "Treetop Sentries"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Food"
+  assert hand A count 1
+}
+
+scenario "forage: both possible, the player chooses the Food" {
+  battlefield A: 4 "Forest", "Food"
+  hand A: "Treetop Sentries"
+  graveyard A: "Island", "Island", "Swamp"
+  library A: 5 "Island"
+  turn 1 A: cast "Treetop Sentries"
+  turn 1 A: accept "Treetop Sentries"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Food"
+  assert graveyard A count 4
+  assert hand A count 1
+}
+
+scenario "forage: neither possible, so no draw" {
+  battlefield A: 4 "Forest"
+  hand A: "Treetop Sentries"
+  graveyard A: "Island", "Island"
+  library A: 5 "Island"
+  turn 1 A: cast "Treetop Sentries"
+  turn 1 A: accept "Treetop Sentries"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 2
+  assert hand A count 0
+}
+
+scenario "forage: declined, nothing" {
+  battlefield A: 2 "Forest"
+  hand A: "Bushy Bodyguard"
+  graveyard A: "Island", "Island", "Swamp"
+  turn 1 A: cast "Bushy Bodyguard"
+  turn 1 A: decline "Bushy Bodyguard"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 3
+  assert counters "Bushy Bodyguard" +1/+1 0
+}
+
+scenario "forage: Bushy Bodyguard's counters" {
+  battlefield A: 2 "Forest", "Food"
+  hand A: "Bushy Bodyguard"
+  turn 1 A: cast "Bushy Bodyguard"
+  turn 1 A: accept "Bushy Bodyguard"
+  run_to turn 1 postcombat_main
+  assert counters "Bushy Bodyguard" +1/+1 2
+  assert battlefield A lacks "Food"
+}
+
+scenario "forage: Curious Forager's reflexive trigger returns a permanent card" {
+  battlefield A: 3 "Forest"
+  hand A: "Curious Forager"
+  graveyard A: "Island", "Island", "Swamp", "Grizzly Bears"
+  turn 1 A: cast "Curious Forager"
+  turn 1 A: accept "Curious Forager"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "forage: whenever you forage, Corpseberry Cultivator grows" {
+  battlefield A: "Corpseberry Cultivator", "Food"
+  turn 1 begin_combat A: accept "Corpseberry Cultivator"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Food"
+  assert counters "Corpseberry Cultivator" +1/+1 1
+}
+
+scenario "forage: an additional cost, forage or pay {B}" {
+  battlefield A: 2 "Swamp", "Food"
+  battlefield B: "Hill Giant"
+  hand A: "Feed the Cycle"
+  turn 1 A: cast "Feed the Cycle" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A lacks "Food"
+}
+
+scenario "forage: the other additional cost, {B}" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Feed the Cycle"
+  turn 1 A: cast "Feed the Cycle" other_cost targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "forage: can't forage, can't pay that cost" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Feed the Cycle"
+  illegal turn 1 A: cast "Feed the Cycle" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "forage: a mana ability's cost" {
+  battlefield A: "Thornvault Forager", "Food"
+  hand A: "Mind Stone"
+  turn 1 A: activate "Thornvault Forager" ability 1
+  turn 1 A: cast "Mind Stone"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mind Stone"
+  assert battlefield A lacks "Food"
+}

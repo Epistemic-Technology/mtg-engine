@@ -1160,11 +1160,15 @@ impl Runner {
                     dashed,
                     warped,
                     sneaked,
+                    webslung,
+                    impending,
                     alternative,
                     bestowed,
                     overloaded,
                     awakened,
                     disturbed,
+                    harmonized,
+                    tapping,
                     ..
                 } => {
                     let choice = if *face_down {
@@ -1177,12 +1181,24 @@ impl Runner {
                         Choice::CastWarp(self.in_hand(a.line, d.player, name)?)
                     } else if *sneaked {
                         Choice::CastSneak(self.in_hand(a.line, d.player, name)?)
+                    } else if *impending {
+                        Choice::CastImpending(self.in_hand(a.line, d.player, name)?)
+                    } else if *webslung {
+                        Choice::CastWebSlinging(self.in_hand(a.line, d.player, name)?)
                     } else if *bestowed {
                         Choice::CastBestow(self.in_hand(a.line, d.player, name)?)
                     } else if *overloaded {
                         Choice::CastOverload(self.in_hand(a.line, d.player, name)?)
                     } else if *awakened {
                         Choice::CastAwaken(self.in_hand(a.line, d.player, name)?)
+                    } else if *harmonized {
+                        Choice::CastHarmonize {
+                            card: self.in_graveyard(a.line, d.player, name)?,
+                            tap: match tapping {
+                                Some(t) => Some(self.creature_of(a.line, d.player, t, &[])?),
+                                None => None,
+                            },
+                        }
                     } else if *disturbed {
                         Choice::CastDisturb(self.in_graveyard(a.line, d.player, name)?)
                     } else if *alternative {
@@ -1222,11 +1238,14 @@ impl Runner {
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
             | Choice::CastSneak(id)
+            | Choice::CastWebSlinging(id)
+            | Choice::CastImpending(id)
             | Choice::CastAlt(id)
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)
             | Choice::CastAwaken(id)
-            | Choice::CastDisturb(id)) = option
+            | Choice::CastDisturb(id)
+            | Choice::CastHarmonize { card: id, .. }) = option
             else {
                 unreachable!()
             };
@@ -2640,6 +2659,7 @@ impl Runner {
         )
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per choice kind
     fn describe_choice(&self, c: &Choice) -> String {
         match c {
             Choice::Keep => "keep".into(),
@@ -2657,6 +2677,12 @@ impl Runner {
             Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
             Choice::CastWarp(id) => format!("cast {} warped", self.describe_ids(&[*id])),
             Choice::CastSneak(id) => format!("cast {} sneaked", self.describe_ids(&[*id])),
+            Choice::CastImpending(id) => {
+                format!("cast {} impending", self.describe_ids(&[*id]))
+            }
+            Choice::CastWebSlinging(id) => {
+                format!("cast {} webslung", self.describe_ids(&[*id]))
+            }
             Choice::CastAlt(id) => format!("cast {} alternative", self.describe_ids(&[*id])),
             Choice::CastBestow(id) => format!("cast {} bestowed", self.describe_ids(&[*id])),
             Choice::CastOverload(id) => {
@@ -2664,6 +2690,14 @@ impl Runner {
             }
             Choice::CastAwaken(id) => format!("cast {} awakened", self.describe_ids(&[*id])),
             Choice::CastDisturb(id) => format!("cast {} disturbed", self.describe_ids(&[*id])),
+            Choice::CastHarmonize { card, tap } => match tap {
+                Some(c) => format!(
+                    "cast {} harmonized tapping {}",
+                    self.describe_ids(&[*card]),
+                    self.describe_ids(&[*c])
+                ),
+                None => format!("cast {} harmonized", self.describe_ids(&[*card])),
+            },
             Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
             Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
             Choice::Plot(id) => format!("plot {}", self.describe_ids(&[*id])),

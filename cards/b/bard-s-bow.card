@@ -1,0 +1,8 @@
+card "Bard's Bow" {
+  oracle_id 4aceb786-960d-4719-9de8-79dffd491a51
+  cost {2}{G}
+  type Artifact — Equipment
+  job select
+  static equipped creature: +2/+2, has reach, add subtype Bard
+  label "Perseus's Bow" equip {6}
+}

@@ -184,6 +184,27 @@ impl GameState {
             if def.sneak.is_some() && self.sneak_castable(p, def, *id, &sources) {
                 options.push(Choice::CastSneak(*id));
             }
+            // CR 702.188a: cast for the web-slinging cost, a tapped
+            // creature to return.
+            if def.web_slinging.is_some()
+                && self.web_slinging_castable(p, def, *id, sorcery_timing, &sources)
+            {
+                options.push(Choice::CastWebSlinging(*id));
+            }
+            // CR 702.176a: cast for the impending cost.
+            if let Some(imp) = def.impending.as_deref()
+                && (sorcery_timing || self.has_flash(p, def, *id))
+                && self.payable_for(
+                    p,
+                    &sources,
+                    &imp.1.requirements(0),
+                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                )
+                && self.additional_payable(p, &def.additional, *id)
+                && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
+            {
+                options.push(Choice::CastImpending(*id));
+            }
             // CR 702.103a: cast for the bestow cost, as an Aura spell.
             if let Some(face) = def.bestow_face
                 && self.bestow_castable(p, def, face, *id, sorcery_timing, &sources, &changers)
@@ -398,6 +419,19 @@ impl GameState {
                 {
                     options.push(Choice::CastDisturb(*id));
                 }
+                // CR 702.180a: cast for the harmonize cost, tapping up to
+                // one untapped creature.
+                if def.harmonize.is_some() {
+                    self.harmonize_options(
+                        p,
+                        def,
+                        *id,
+                        sorcery_timing,
+                        &sources,
+                        &changers,
+                        &mut options,
+                    );
+                }
                 if def.flashback.is_none() {
                     if (def.escape.is_some() && self.escape_castable(p, *id, sorcery_timing))
                         || (def.mayhem.is_some() && self.mayhem_castable(p, *id, sorcery_timing))
@@ -514,6 +548,9 @@ impl GameState {
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
             | Choice::CastSneak(id)
+            | Choice::CastWebSlinging(id)
+            | Choice::CastImpending(id)
+            | Choice::CastHarmonize { card: id, .. }
             | Choice::CastAlt(id) => !(creatures && creature(id)),
             Choice::CastFaceDown(_) => !creatures,
             Choice::CastFace { card, face } => {
@@ -1664,6 +1701,74 @@ impl GameState {
         self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
     }
 
+    /// CR 702.180a: the ways `p` may cast `id` from their graveyard for
+    /// its harmonize cost now: tapping no creature, or one untapped
+    /// creature they control with power above 0 (its power off the
+    /// generic mana, and it no longer a mana source), each if the rest
+    /// can be paid.
+    #[cold]
+    #[inline(never)]
+    #[allow(clippy::too_many_arguments)] // the parts precomputed once per listing
+    fn harmonize_options(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+        options: &mut Vec<Choice>,
+    ) {
+        let Some(cost) = def.harmonize.as_deref() else {
+            return;
+        };
+        if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
+            || !self.additional_payable(p, &def.additional, id)
+        {
+            return;
+        }
+        let targets_ok = match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(id))),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+        };
+        if !targets_ok {
+            return;
+        }
+        let mut req = cost.requirements(0);
+        if def.self_cost.is_some()
+            || def.cond_cost.is_some()
+            || !changers.is_empty()
+            || self.next_spell_less[p.index().min(3)] > 0
+        {
+            adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
+        }
+        let printed = self.printed(self.objects[id].def);
+        if self.payable_for(p, sources, &req, Spend::Spell(&printed)) {
+            options.push(Choice::CastHarmonize {
+                card: id,
+                tap: None,
+            });
+        }
+        let tappers: Vec<(ObjId, i16)> = self
+            .creatures_of(p)
+            .filter(|c| !self.objects[*c].tapped)
+            .filter_map(|c| Some((c, self.characteristics(c)?.power)))
+            .filter(|(_, power)| *power > 0)
+            .collect();
+        for (c, power) in tappers {
+            let mut r = req;
+            adjust_generic(&mut r, -i32::from(power));
+            if self.payable_for(p, &without(sources, &[c]), &r, Spend::Spell(&printed)) {
+                options.push(Choice::CastHarmonize {
+                    card: id,
+                    tap: Some(c),
+                });
+            }
+        }
+    }
+
     /// Whether `p` could cast `def` (the card `id`, or one of its faces)
     /// now: timing, mana, additional costs, and targets (CR 601.2).
     #[inline]
@@ -2014,6 +2119,46 @@ impl GameState {
     /// engine picking them: the greatest mana values first, then dropping
     /// the smallest picks the total doesn't need. Sparing what the spell or
     /// ability being paid for targets. Whether it was done.
+    /// CR 701.61a: `p` forages: exiles three cards from their graveyard
+    /// (the oldest, other than `except`) or sacrifices a Food. With both
+    /// possible, `ask` (the source's definition, as an effect resolves)
+    /// lets them choose (`choose "1"` the cards, `choose "2"` a Food);
+    /// paying a cost, the engine exiles the cards. Whether they foraged.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn forage(
+        &mut self,
+        p: PlayerId,
+        except: ObjId,
+        ask: Option<crate::card::CardRef>,
+    ) -> bool {
+        let cards = self.forage_cards(p, except);
+        let foods = self.forage_foods(p);
+        let can_exile = cards.len() >= 3;
+        if !can_exile && foods.is_empty() {
+            return false;
+        }
+        let exile = match ask {
+            Some(def) if can_exile && !foods.is_empty() => {
+                self.choose_mid(
+                    p,
+                    DecisionKind::ChooseOption { def },
+                    vec![Choice::Mode(0), Choice::Mode(1)],
+                ) == 0
+            }
+            _ => can_exile,
+        };
+        if exile {
+            for id in cards.into_iter().take(3) {
+                self.move_object(id, Zone::Exile, true);
+            }
+        } else {
+            self.sacrifice(foods[0]);
+        }
+        self.emit(Event::Foraged { player: p });
+        true
+    }
+
     pub(super) fn collect_evidence(&mut self, p: PlayerId, n: u32, except: ObjId) -> bool {
         if !self.evidence_payable(p, n, except) {
             return false;
@@ -2444,6 +2589,53 @@ impl GameState {
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
             None => self.spell_targets_available(p, def, id),
         }
+    }
+
+    /// CR 702.188a: whether `p` may cast `id` for its web-slinging cost
+    /// now: whenever they could cast it, with a tapped creature to return.
+    #[cold]
+    #[inline(never)]
+    fn web_slinging_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+    ) -> bool {
+        let Some(cost) = &def.web_slinging else {
+            return false;
+        };
+        if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
+            || def.additional.sacrifice.is_some()
+            || def.additional_or.is_some()
+            || self.web_slinging_returns(p).is_empty()
+        {
+            return false;
+        }
+        if !self.payable_for(
+            p,
+            sources,
+            &cost.requirements(0),
+            Spend::Spell(&self.printed(self.objects[id].def)),
+        ) || !self.additional_payable(p, &def.additional, id)
+        {
+            return false;
+        }
+        match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(id))),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+        }
+    }
+
+    /// CR 702.188a: the tapped creatures `p` controls, any of which a
+    /// web-slinging cost may return to its owner's hand.
+    pub(super) fn web_slinging_returns(&self, p: PlayerId) -> Vec<ObjId> {
+        self.creatures_of(p)
+            .filter(|c| self.objects[*c].tapped)
+            .collect()
     }
 
     /// CR 702.190a: whether `p` may cast `id` for its sneak cost now: any
@@ -3063,6 +3255,17 @@ impl GameState {
             (_, false) if o.alt == AltCast::Sneak && def.sneak.is_some() => {
                 def.sneak.as_ref().expect("checked").requirements(x)
             }
+            (_, false) if o.alt == AltCast::Impending && def.impending.is_some() => {
+                def.impending.as_ref().expect("checked").1.requirements(x)
+            }
+            (_, false) if o.alt == AltCast::WebSlinging && def.web_slinging.is_some() => {
+                def.web_slinging.as_ref().expect("checked").requirements(x)
+            }
+            // CR 702.180a: cast from the graveyard (as with flashback, the
+            // spell is exiled as it leaves the stack).
+            _ if o.alt == AltCast::Harmonize && def.harmonize.is_some() => {
+                def.harmonize.as_ref().expect("checked").requirements(x)
+            }
             (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
                 def.overload.as_ref().expect("checked").requirements(x)
             }
@@ -3175,6 +3378,12 @@ impl GameState {
             && self.target_fits(&tc.1, *t, o.controller, spell)
         {
             adjust_generic(&mut req, tc.0);
+        }
+        // CR 702.180a: reduced by the tapped creature's power.
+        if o.alt == AltCast::Harmonize
+            && let Some((_, _, power)) = self.harmonized.iter().find(|(s, ..)| *s == spell)
+        {
+            adjust_generic(&mut req, -i32::try_from(*power).unwrap_or(i32::MAX));
         }
         req
     }
@@ -5104,6 +5313,9 @@ impl GameState {
         if cost.evidence > 0 {
             self.collect_evidence(p, cost.evidence, this);
         }
+        if cost.forage {
+            self.forage(p, this, None);
+        }
         // CR 702.167a: craft's materials, a graveyard card first.
         if let Some(f) = cost.craft.as_deref()
             && let Some(m) = self.craft_candidates(p, f, this).first().copied()
@@ -5630,6 +5842,18 @@ impl GameState {
             }
             sacrifice = None;
         }
+        // CR 702.180b: the creature chosen for harmonize is tapped as the
+        // total cost is paid, before the mana.
+        if let Some(i) = self.harmonized.iter().position(|(s, ..)| *s == spell) {
+            let (_, c, _) = self.harmonized.swap_remove(i);
+            if self
+                .objects
+                .get(c)
+                .is_some_and(|o| o.zone == Zone::Battlefield && !o.tapped)
+            {
+                self.tap(c);
+            }
+        }
         // Expend (CR 700.14): the mana spent to cast spells this turn,
         // counted as the cost's mana symbols.
         let i = caster.index().min(3);
@@ -5696,7 +5920,15 @@ impl GameState {
                 self.move_object(c, Zone::Hand, false);
             }
         }
-        let add_sacrifice = if alt.is_some() || sneak {
+        // CR 702.188a: web-slinging returns the chosen tapped creature.
+        let web = self.objects[spell].alt == AltCast::WebSlinging;
+        if web
+            && let Some(c) = sacrifice
+            && self.objects.contains_key(c)
+        {
+            self.move_object(c, Zone::Hand, false);
+        }
+        let add_sacrifice = if alt.is_some() || sneak || web {
             None
         } else {
             sacrifice
@@ -6129,6 +6361,20 @@ impl GameState {
                 self.choose_copy_on_entering(spell);
                 if obj.alt == AltCast::Sneak {
                     self.enter_sneaking(spell, obj.controller);
+                } else if obj.alt == AltCast::Impending
+                    && let Some(n) = def.impending.as_deref().map(|i| i.0)
+                {
+                    // CR 702.176a: "it enters with N time counters".
+                    self.put_onto_battlefield_with(
+                        spell,
+                        obj.controller,
+                        super::replace::Enter {
+                            tapped: false,
+                            counters: Some((CounterKind::Time, n)),
+                            haste: false,
+                            prepared: false,
+                        },
+                    );
                 } else {
                     self.put_onto_battlefield(spell, obj.controller);
                 }
@@ -9804,6 +10050,26 @@ impl GameState {
                     }
                 }
             }
+            Effect::Endure { what, count, token } => {
+                let n = self.eval_num(*count, ctx);
+                // A source that has left the battlefield still endures:
+                // its last controller creates the token.
+                if *what == Recipient::Source
+                    && self
+                        .objects
+                        .get(ctx.source)
+                        .is_none_or(|o| o.zone != Zone::Battlefield)
+                {
+                    let id = ctx.source;
+                    self.endure(ctx, id, n, *token);
+                    return;
+                }
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.endure(ctx, id, n, *token);
+                    }
+                }
+            }
             Effect::Amass { count, token } => {
                 let n = self.eval_num(*count, ctx);
                 let p = ctx.controller;
@@ -10509,6 +10775,14 @@ impl GameState {
             Effect::CollectEvidence(n) => {
                 ctx.did = self.collect_evidence(ctx.controller, *n, ctx.source);
             }
+            Effect::Forage => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| &l.object))
+                    .map(|o| o.def);
+                ctx.did = self.forage(ctx.controller, ctx.source, def);
+            }
             Effect::ReturnTransformed => {
                 // CR 702.167a, 712.14: the card exiled to pay the cost
                 // returns with its back face up, under its owner's control.
@@ -10756,6 +11030,63 @@ impl GameState {
             }
         }
         won
+    }
+
+    /// CR 701.63a: `id` endures `n`: its controller chooses `n` +1/+1
+    /// counters on it (`choose "1"`) or an `n`/`n` white Spirit token
+    /// (`choose "2"`). One that has left the battlefield gets no
+    /// counters; its last controller creates the token. Endure 0 does
+    /// nothing (CR 701.63b).
+    #[cold]
+    #[inline(never)]
+    fn endure(&mut self, ctx: &mut EffectCtx, id: ObjId, n: u32, token: crate::card::CardRef) {
+        if n == 0 {
+            return;
+        }
+        let here = self
+            .objects
+            .get(id)
+            .filter(|o| o.zone == Zone::Battlefield)
+            .map(|o| o.controller);
+        let Some(p) = here.or_else(|| self.lki.get(&id).map(|l| l.object.controller)) else {
+            return;
+        };
+        let def = self
+            .objects
+            .get(ctx.source)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| &l.object))
+            .map_or(token, |o| o.def);
+        let counters = here.is_some()
+            && self.choose_mid(
+                p,
+                DecisionKind::ChooseOption { def },
+                vec![Choice::Mode(0), Choice::Mode(1)],
+            ) == 0;
+        if counters {
+            self.add_counters(id, CounterKind::PlusOnePlusOne, n);
+            return;
+        }
+        let new = self.create_token_with(token, p, false);
+        // An X/X Spirit: the 0/0 made that size.
+        if self.objects.contains_key(new)
+            && self
+                .pool
+                .get(token)
+                .printed
+                .is_some_and(|c| u32::try_from(c.power).ok() != Some(n))
+        {
+            let size = i32::try_from(n).unwrap_or(i32::MAX);
+            self.effect_on(
+                ctx,
+                new,
+                smallvec::smallvec![Modification::SetPt {
+                    power: PtValue::Fixed(size),
+                    toughness: PtValue::Fixed(size),
+                }],
+                Duration::Permanent,
+            );
+        }
+        ctx.created = Some(new);
     }
 
     fn explore(&mut self, ctx: &EffectCtx, id: ObjId) {

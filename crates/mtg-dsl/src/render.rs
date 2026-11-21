@@ -792,6 +792,15 @@ pub fn self_noun(card: &Card) -> String {
     if card.kind == Kind::Token {
         return "token".to_string();
     }
+    // CR 702.176a: a creature with impending isn't always a creature
+    // ("Whenever this permanent enters or attacks").
+    if card
+        .abilities
+        .iter()
+        .any(|a| matches!(a, Ability::Mechanic(crate::ast::Mechanic::Impending(..))))
+    {
+        return "permanent".to_string();
+    }
     if card.types.contains(&CardType::Creature) {
         return "creature".to_string();
     }
@@ -2497,6 +2506,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
         CostItem::ExileCards,
         CostItem::Blight,
         CostItem::Evidence,
+        CostItem::Forage,
     ];
     let order: &[CostItem] = if cost.order.is_empty() {
         &default_order
@@ -2651,6 +2661,11 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             CostItem::Evidence => {
                 if cost.evidence > 0 {
                     parts.push(format!("Collect evidence {}", cost.evidence));
+                }
+            }
+            CostItem::Forage => {
+                if cost.forage {
+                    parts.push("Forage".to_string());
                 }
             }
         }
@@ -3793,6 +3808,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::ManifestDread => Clause::imperative("manifest dread".to_string()),
         Effect::Blight(n) => Clause::imperative(format!("blight {n}")),
         Effect::CollectEvidence(n) => Clause::imperative(format!("collect evidence {n}")),
+        Effect::Forage => Clause::imperative("forage".to_string()),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
         Effect::Monstrosity(n) => Clause::imperative(format!("monstrosity {}", digits(*n))),
@@ -4435,6 +4451,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::PhaseOut { what } => {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "phases out".to_string())
+        }
+        Effect::Endure { what, count } => {
+            let s = ctx.subj(*what);
+            Clause::with_subject(*what, s, format!("endures {}", digits(*count)))
         }
         Effect::Amass { kind, count } => {
             ctx.amassed = true;
@@ -7117,7 +7137,27 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     ctx.groups_mentioned
         .retain(|r| !matches!(r, Recipient::Group(_)));
     let eot = std::mem::replace(&mut ctx.eot_first, s.eot_first);
-    let clauses: Vec<Clause> = s.effects.iter().map(|e| clause(e, ctx)).collect();
+    let clauses: Vec<Clause> = s
+        .effects
+        .iter()
+        .enumerate()
+        .map(|(i, e)| {
+            // "you lose 1 life and this creature endures 1": after another
+            // clause Oracle names the source again (Sinkhole Surveyor).
+            if i > 0
+                && matches!(
+                    e,
+                    Effect::Endure {
+                        what: Recipient::Source,
+                        ..
+                    }
+                )
+            {
+                ctx.source_mentioned = false;
+            }
+            clause(e, ctx)
+        })
+        .collect();
     ctx.eot_first = eot;
     let shared_suffix = clauses.len() > 1
         && clauses[0].suffix.is_some()
@@ -7369,6 +7409,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::Forages => "whenever you forage".to_string(),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
         Trigger::EntersBatch(f) => format!(
             "whenever one or more {} enter",
@@ -9105,7 +9146,13 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
     let mut body = if split {
         format!("{subject} {}. It {}", parts[0], parts[1..].join(" and "))
     } else {
+        // A quoted ability before the end of the list drops its period:
+        // "has \"Whenever ..., draw a card,\" and is a Rogue", "has
+        // \"... until end of turn\" and is a Wizard" (Job select
+        // Equipment).
         format!("{subject} {}", list(&parts))
+            .replace(".\", ", ",\" ")
+            .replace(".\" and ", "\" and ")
     };
     if let Some(clause) = activation {
         // Oracle joins it with ", and", except after "doesn't untap during
@@ -9477,6 +9524,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Kicked => "it was kicked".to_string(),
         StaticCond::NotKicked if has_gift(card) => "the gift wasn't promised".to_string(),
         StaticCond::NotKicked => format!("this {} wasn't kicked", kicked_noun(card)),
+        StaticCond::Impending => {
+            "this permanent's impending cost was paid and it has a time counter on it".to_string()
+        }
         StaticCond::Bargained
             if card.types.iter().any(|t| {
                 matches!(
@@ -9499,6 +9549,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("{what} was beheld")
         }
         StaticCond::NoManaSpent => "it wasn't cast or no mana was spent to cast it".to_string(),
+        StaticCond::WebSlung(p) => format!(
+            "{} cast using web-slinging",
+            match p {
+                1 => "he was",
+                2 => "she was",
+                3 => "they were",
+                _ => "it was",
+            }
+        ),
         StaticCond::SneakPaid(_) if is_spell(card) => {
             "this spell's sneak cost was paid".to_string()
         }
@@ -10648,6 +10707,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Plot(c) => format!("Plot {c}"),
             crate::ast::Mechanic::Gift(k) => format!("Gift {}", k.oracle()),
             crate::ast::Mechanic::Sneak(c) => format!("Sneak {c}"),
+            crate::ast::Mechanic::Harmonize(c) => format!("Harmonize {c}"),
+            crate::ast::Mechanic::WebSlinging(c) => format!("Web-slinging {c}"),
+            crate::ast::Mechanic::Impending(n, c) => format!("Impending {n}\u{2014}{c}"),
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
             crate::ast::Mechanic::Modular(n) => format!("Modular {n}"),
@@ -10765,6 +10827,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Mentor => "Mentor".to_string(),
             crate::ast::Mechanic::Riot => "Riot".to_string(),
             crate::ast::Mechanic::LivingWeapon => "Living weapon".to_string(),
+            crate::ast::Mechanic::JobSelect => "Job select".to_string(),
             crate::ast::Mechanic::Retrace => "Retrace".to_string(),
             crate::ast::Mechanic::Ingest => "Ingest".to_string(),
             crate::ast::Mechanic::Reinforce(n, c) => format!("Reinforce {n}\u{2014}{c}"),

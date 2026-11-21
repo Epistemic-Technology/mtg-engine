@@ -54,6 +54,10 @@ pub enum Event {
     CollectedEvidence {
         player: PlayerId,
     },
+    /// A player foraged (CR 701.61a).
+    Foraged {
+        player: PlayerId,
+    },
     GameStart {
         starting_player: PlayerId,
     },
@@ -380,7 +384,8 @@ impl Event {
             Event::DayNight { .. }
             | Event::Unlocked { .. }
             | Event::StageChanged { .. }
-            | Event::CollectedEvidence { .. } => WATCH_DESIG,
+            | Event::CollectedEvidence { .. }
+            | Event::Foraged { .. } => WATCH_DESIG,
             Event::Sacrificed { .. } => WATCH_SACRIFICE,
             Event::CountersAdded { .. } => WATCH_COUNTERS,
             _ => 0,

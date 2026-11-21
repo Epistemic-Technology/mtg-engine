@@ -1,0 +1,7 @@
+card "Descendant of Storms" {
+  oracle_id ca773c52-ca64-463c-99cf-e71b59d2cff7
+  cost {W}
+  type Creature — Human Soldier
+  pt 2/1
+  triggered whenever this attacks: you may pay {1}{W}; if you do, this endures 1
+}

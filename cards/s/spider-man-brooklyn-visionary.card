@@ -1,0 +1,9 @@
+card "Spider-Man, Brooklyn Visionary" {
+  oracle_id 2ca85872-9436-4515-af50-c13e59605627
+  cost {4}{G}
+  type Legendary Creature — Spider Human Hero
+  pt 4/3
+  short_name "Spider-Man"
+  web slinging {2}{G}
+  triggered when this enters: search basic land card to battlefield tapped
+}

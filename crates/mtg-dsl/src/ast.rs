@@ -569,6 +569,8 @@ pub struct Cost {
     pub behold: Option<Box<Behold>>,
     /// `collect evidence 3`: "Collect evidence 3" (CR 701.59a).
     pub evidence: u32,
+    /// `forage`: "Forage" (CR 701.61a).
+    pub forage: bool,
     /// `waterbend {3}`: "Waterbend {3}" (CR 701.67a): the mana's generic
     /// part may be paid by tapping artifacts and creatures.
     pub waterbend: bool,
@@ -621,6 +623,8 @@ pub enum CostItem {
     Behold,
     /// `collect evidence 3`.
     Evidence,
+    /// `forage`.
+    Forage,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1305,6 +1309,17 @@ pub enum Mechanic {
     /// for this cost and an unblocked attacker returned to hand; the
     /// permanent enters tapped and attacking.
     Sneak(ManaCost),
+    /// CR 702.180: `harmonize {4}{R}`: cast from the graveyard for this
+    /// cost, tapping up to one untapped creature to reduce it by that
+    /// creature's power; exiled as it leaves the stack.
+    Harmonize(ManaCost),
+    /// CR 702.188: `web slinging {W}`: cast for this cost, returning a
+    /// tapped creature you control to its owner's hand.
+    WebSlinging(ManaCost),
+    /// CR 702.176: `impending 4 {1}{U}{U}`: cast for this cost, it enters
+    /// with N time counters and isn't a creature while it has one; at
+    /// the beginning of your end step a time counter is removed.
+    Impending(u32, ManaCost),
     /// CR 702.174: `gift card`, `gift food`, `gift tapped fish`, `gift
     /// treasure`: "Gift a card" and kin.
     Gift(GiftKind),
@@ -1514,6 +1529,9 @@ pub enum Mechanic {
     /// `living weapon` (CR 702.92): when this Equipment enters, a 0/0
     /// black Phyrexian Germ token, then attach this to it.
     LivingWeapon,
+    /// `job select` (CR 702.182): when this Equipment enters, a 1/1
+    /// colorless Hero token, then attach this to it.
+    JobSelect,
     /// `retrace` (CR 702.81): cast from your graveyard by discarding a land
     /// card in addition to its other costs.
     Retrace,
@@ -1915,6 +1933,13 @@ pub enum StaticCond {
     /// sneak cost was paid" (an instant or sorcery), "its (his, her) sneak
     /// cost was paid" (CR 702.190). The pronoun: 0 its, 1 his, 2 her.
     SneakPaid(u8),
+    /// `web slung`, `he web slung`, `she web slung`, `they web slung`:
+    /// "it was (he was, she was, they were) cast using web-slinging" (CR
+    /// 702.188). The pronoun: 0 it, 1 he, 2 she, 3 they.
+    WebSlung(u8),
+    /// `impending`: "this permanent's impending cost was paid and it has
+    /// a time counter on it" (CR 702.176a).
+    Impending,
 }
 
 /// An activation restriction, in the order written and printed ("Activate
@@ -2413,6 +2438,8 @@ pub enum Trigger {
     Expends(u8),
     /// `whenever you collect evidence` (CR 701.59).
     CollectsEvidence,
+    /// `whenever you forage` (CR 701.61).
+    Forages,
     /// `whenever you turn a permanent face up` (CR 708.8): a permanent you
     /// control is turned face up; it is "it".
     YouTurnFaceUp,
@@ -3389,6 +3416,13 @@ pub enum Effect {
         what: Recipient,
         twice: bool,
     },
+    /// `this endures 2`, `that creature endures X` (CR 701.63): "endures
+    /// N": N +1/+1 counters on it or an N/N white Spirit token, as its
+    /// controller chooses.
+    Endure {
+        what: Recipient,
+        count: Num,
+    },
     /// `target creature phases out` (CR 702.26).
     PhaseOut {
         what: Recipient,
@@ -3423,6 +3457,9 @@ pub enum Effect {
         who: Recipient,
         n: u32,
     },
+    /// `forage` (CR 701.61): exile three cards from your graveyard or
+    /// sacrifice a Food.
+    Forage,
     /// `collect evidence 4` (CR 701.59).
     CollectEvidence(u32),
     /// `blight 2` (CR 701.68).

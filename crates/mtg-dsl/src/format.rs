@@ -636,6 +636,9 @@ impl Fmt {
                 if *twice { " twice" } else { "" }
             ),
             Effect::PhaseOut { what } => format!("{} phases out", self.recipient(*what, t)),
+            Effect::Endure { what, count } => {
+                format!("{} endures {}", self.recipient(*what, t), num(*count))
+            }
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
             Effect::EmpowerJace { count } => format!("empower jace {}", num(*count)),
             Effect::CreatedAttack => String::new(),
@@ -644,6 +647,7 @@ impl Fmt {
             Effect::ManifestDread => "manifest dread".to_string(),
             Effect::Blight(n) => format!("blight {n}"),
             Effect::CollectEvidence(n) => format!("collect evidence {n}"),
+            Effect::Forage => "forage".to_string(),
             Effect::Adapt(n) => format!("adapt {n}"),
             Effect::Bolster(n) => format!("bolster {}", num(*n)),
             Effect::Monstrosity(n) => format!("monstrosity {}", num(*n)),
@@ -3530,6 +3534,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::Forages => "whenever you forage".to_string(),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
         Trigger::EntersBatch(f) => format!("whenever one or more {} enter", filter(f)),
         Trigger::LeavesBatch { filter: f, dies } => format!(
@@ -3555,6 +3560,7 @@ fn cost_text(c: &Cost) -> String {
         CostItem::ExileCards,
         CostItem::Blight,
         CostItem::Evidence,
+        CostItem::Forage,
     ];
     let order: &[CostItem] = if c.order.is_empty() {
         &default_order
@@ -3680,6 +3686,11 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Evidence => {
                 if c.evidence > 0 {
                     parts.push(format!("collect evidence {}", c.evidence));
+                }
+            }
+            CostItem::Forage => {
+                if c.forage {
+                    parts.push("forage".to_string());
                 }
             }
         }
@@ -4072,6 +4083,16 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Saddled => "saddled".to_string(),
         StaticCond::NoManaSpent => "no mana spent".to_string(),
         StaticCond::NotKicked => "not kicked".to_string(),
+        StaticCond::Impending => "impending".to_string(),
+        StaticCond::WebSlung(p) => format!(
+            "{}web slung",
+            match p {
+                1 => "he ",
+                2 => "she ",
+                3 => "they ",
+                _ => "",
+            }
+        ),
         StaticCond::SneakPaid(p) => format!(
             "{}sneak paid",
             match p {
@@ -4713,6 +4734,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Plot(c) => format!("plot {c}"),
                 crate::ast::Mechanic::Gift(k) => format!("gift {}", k.words()),
                 crate::ast::Mechanic::Sneak(c) => format!("sneak {c}"),
+                crate::ast::Mechanic::Harmonize(c) => format!("harmonize {c}"),
+                crate::ast::Mechanic::WebSlinging(c) => format!("web slinging {c}"),
+                crate::ast::Mechanic::Impending(n, c) => format!("impending {n} {c}"),
                 crate::ast::Mechanic::Suspend(n, c) => format!("suspend {n} {c}"),
                 crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),
                 crate::ast::Mechanic::Modular(n) => format!("modular {n}"),
@@ -4788,6 +4812,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Mentor => "mentor".to_string(),
                 crate::ast::Mechanic::Riot => "riot".to_string(),
                 crate::ast::Mechanic::LivingWeapon => "living weapon".to_string(),
+                crate::ast::Mechanic::JobSelect => "job select".to_string(),
                 crate::ast::Mechanic::Retrace => "retrace".to_string(),
                 crate::ast::Mechanic::Ingest => "ingest".to_string(),
                 crate::ast::Mechanic::Reinforce(n, c) => format!("reinforce {n} {c}"),

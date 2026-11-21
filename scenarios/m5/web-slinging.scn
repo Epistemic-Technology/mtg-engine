@@ -1,0 +1,92 @@
+# Web-slinging (CR 702.188): "You may cast this spell by paying [cost] and
+# returning a tapped creature you control to its owner's hand rather than
+# paying its mana cost." `webslung sacrificing "X"` returns X.
+
+scenario "web-slinging: a tapped creature returns, the spell costs less" {
+  battlefield A: "Plains", "Grizzly Bears"
+  hand A: "Spider-Man, Web-Slinger"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Spider-Man, Web-Slinger" webslung sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Spider-Man, Web-Slinger"
+  assert hand A contains "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "web-slinging: an untapped creature can't be returned" {
+  battlefield A: "Plains", "Grizzly Bears"
+  hand A: "Spider-Man, Web-Slinger"
+  illegal turn 1 A: cast "Spider-Man, Web-Slinger" webslung sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Spider-Man, Web-Slinger"
+}
+
+scenario "web-slinging: not without a tapped creature" {
+  battlefield A: 3 "Plains"
+  hand A: "Spider-Man, Web-Slinger"
+  illegal turn 1 A: cast "Spider-Man, Web-Slinger" webslung
+  run_to turn 1 postcombat_main
+  assert hand A contains "Spider-Man, Web-Slinger"
+}
+
+scenario "web-slinging: a creature spell only at sorcery speed" {
+  battlefield A: "Plains", "Grizzly Bears"
+  hand A: "Spider-Man, Web-Slinger"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers A: cast "Spider-Man, Web-Slinger" webslung sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Spider-Man, Web-Slinger"
+}
+
+scenario "web-slinging: Spiders-Man's bonus only when cast using web-slinging" {
+  battlefield A: 6 "Forest", "Grizzly Bears"
+  hand A: "Spiders-Man, Heroic Horde"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Spiders-Man, Heroic Horde" webslung sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 23
+  assert battlefield A contains 2 "Spider"
+  assert power oldest "Spider" 2
+}
+
+scenario "web-slinging: Spiders-Man cast for its mana cost, no bonus" {
+  battlefield A: 2 "Forest"
+  hand A: "Spiders-Man, Heroic Horde"
+  turn 1 A: cast "Spiders-Man, Heroic Horde"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert battlefield A lacks "Spider"
+}
+
+scenario "web-slinging: Spider-Man, Brooklyn Visionary fetches a land" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Spider-Man, Brooklyn Visionary"
+  library A: "Forest"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Spider-Man, Brooklyn Visionary" webslung sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains 4 "Forest"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "web-slinging: Silk makes a Citizen for each creature spell" {
+  battlefield A: 3 "Forest", "Plains", "Grizzly Bears"
+  hand A: "Silk, Web Weaver", "Llanowar Elves"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Silk, Web Weaver" webslung sacrificing "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Human Citizen"
+}
+
+scenario "web-slinging: Spider-Man India counters and flying on a creature spell" {
+  battlefield A: 4 "Forest", "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Spider-Man India", "Llanowar Elves"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Spider-Man India" webslung sacrificing "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Llanowar Elves"
+  turn 1 postcombat_main A: trigger "Spider-Man India" targeting "Hill Giant"
+  run_to turn 1 end
+  assert counters "Hill Giant" +1/+1 1
+  assert has "Hill Giant" flying
+}

@@ -2343,6 +2343,15 @@ pub enum StaticCondition {
     /// the permanent). The number is wording only: the pronoun for a
     /// permanent (0 "its", 1 "his", 2 "her").
     SneakPaid(u8),
+    /// "If it was cast using web-slinging" (CR 702.188): the source was
+    /// cast for its web-slinging cost (kept by the permanent). The number
+    /// is wording only: 0 "it was", 1 "he was", 2 "she was", 3 "they
+    /// were".
+    WebSlung(u8),
+    /// "As long as this permanent's impending cost was paid and it has a
+    /// time counter on it" (CR 702.176a): impending's static ability and
+    /// end step trigger.
+    Impending,
 }
 
 /// What a "mana spent to cast" condition or count looks at (CR 601.2h).
@@ -3770,6 +3779,16 @@ pub enum Effect {
     Explore {
         what: Recipient,
     },
+    /// The recipient permanent endures `count` (CR 701.63): its
+    /// controller puts that many +1/+1 counters on it or creates a
+    /// `count`/`count` white Spirit creature token (`token`; for a count
+    /// not known until it resolves, a 0/0 Spirit given that base power
+    /// and toughness). Endure 0 does nothing (CR 701.63b).
+    Endure {
+        what: Recipient,
+        count: Num,
+        token: CardRef,
+    },
     /// "Target creature phases out" (CR 702.26b): it phases in before its
     /// controller untaps during their next untap step.
     PhaseOut {
@@ -4043,6 +4062,10 @@ pub enum Effect {
     /// them); with too little there, nothing is exiled and it isn't done
     /// (701.59b).
     CollectEvidence(u32),
+    /// "Forage" (CR 701.61a): exile three cards from your graveyard or
+    /// sacrifice a Food, as the controller chooses; "If you do" sees
+    /// whether they could.
+    Forage,
     /// Craft's effect (CR 702.167a): "Return this card transformed under
     /// its owner's control": the source's card, exiled by the cost, onto
     /// the battlefield with its back face up (CR 712.14).
@@ -4238,6 +4261,7 @@ impl Effect {
                 | Effect::DiscardRandom { .. }
                 | Effect::DiscardChosen { .. }
                 | Effect::Explore { .. }
+                | Effect::Endure { .. }
                 | Effect::PutFromHand { .. }
                 | Effect::Dig { .. }
                 | Effect::ManifestDread
@@ -4263,6 +4287,7 @@ impl Effect {
                 | Effect::IfThisWay { .. }
                 | Effect::IfExcessDamage(_)
                 | Effect::ChooseAct { .. }
+                | Effect::Forage
                 | Effect::OneOf(_)
                 | Effect::DiscardUnless { .. }
                 // A source of the controller's choice (CR 609.7a).
@@ -4749,6 +4774,8 @@ pub enum TriggerSpec {
     FullyUnlocks { whose: Who },
     /// "Whenever you collect evidence" (CR 701.59).
     CollectsEvidence { whose: Who },
+    /// "Whenever you forage" (CR 701.61).
+    Forages { whose: Who },
     /// "Whenever you gain life".
     GainsLife { whose: Who },
     /// "Whenever you gain life for the first time each turn": the life
@@ -5071,6 +5098,7 @@ impl TriggerSpec {
             | TriggerSpec::BecomesStage(_)
             | TriggerSpec::FullyUnlocks { .. }
             | TriggerSpec::CollectsEvidence { .. }
+            | TriggerSpec::Forages { .. }
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
             TriggerSpec::CountersPut { .. } | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
@@ -5257,6 +5285,11 @@ pub struct Cost {
     /// "Collect evidence N" (CR 701.59a): exile cards with total mana value
     /// N or greater from the payer's graveyard (the engine picks them).
     pub evidence: u32,
+    /// "Forage" (CR 701.61a): exile three cards from the payer's graveyard
+    /// or sacrifice a Food (the engine picks: the three oldest cards if
+    /// there are three, else a Food).
+    #[serde(default)]
+    pub forage: bool,
     /// Craft's materials (CR 702.167a): "Exile another artifact you
     /// control or an artifact card from your graveyard": one permanent the
     /// payer controls or card in their graveyard matching the filter,
@@ -5337,6 +5370,7 @@ impl Cost {
             blight: 0,
             behold: None,
             evidence: 0,
+            forage: false,
             craft: None,
             waterbend: false,
         }
@@ -6057,6 +6091,23 @@ pub struct CardDef {
     /// tapped and attacking what that creature attacked.
     #[serde(default)]
     pub sneak: Option<Box<ManaCost>>,
+    /// Web-slinging (CR 702.188): cast for this cost, returning a tapped
+    /// creature its caster controls to its owner's hand, instead of its
+    /// mana cost.
+    #[serde(default)]
+    pub web_slinging: Option<Box<ManaCost>>,
+    /// Impending N—[cost] (CR 702.176): cast for this cost instead of its
+    /// mana cost, the permanent enters with N time counters; it isn't a
+    /// creature while it has one (an ordinary static ability with the
+    /// condition `Impending`).
+    #[serde(default)]
+    pub impending: Option<Box<(u32, ManaCost)>>,
+    /// Harmonize (CR 702.180): cast from the graveyard for this cost,
+    /// tapping up to one untapped creature its caster controls to reduce
+    /// the cost by that creature's power in generic mana; exiled as it
+    /// leaves the stack.
+    #[serde(default)]
+    pub harmonize: Option<Box<ManaCost>>,
     /// Bestow (CR 702.103): an alternative cost; the spell is then an Aura
     /// with enchant creature (`bestow_face`), and the permanent becomes a
     /// creature again when it isn't attached.
@@ -6762,6 +6813,7 @@ impl CardDef {
     /// otherwise.
     pub fn graveyard_active(&self) -> bool {
         self.flashback.is_some()
+            || self.harmonize.is_some()
             || self.disturb.is_some()
             || self.escape.is_some()
             || self.mayhem.is_some()
@@ -8122,6 +8174,7 @@ fn bestowed_aura(def: &CardDef) -> CardDef {
 pub struct Builder(CardDef);
 
 impl Builder {
+    #[allow(clippy::too_many_lines)] // one line per field
     pub fn new(name: &str, cost: &str) -> Self {
         Builder(CardDef {
             hand_static: false,
@@ -8168,6 +8221,9 @@ impl Builder {
             dash: None,
             warp: None,
             sneak: None,
+            web_slinging: None,
+            impending: None,
+            harmonize: None,
             bestow: None,
             bestow_face: None,
             overload: None,
@@ -8402,6 +8458,27 @@ impl Builder {
     #[must_use]
     pub fn sneak(mut self, cost: ManaCost) -> Self {
         self.0.sneak = Some(Box::new(cost));
+        self
+    }
+
+    /// Impending N (CR 702.176).
+    #[must_use]
+    pub fn impending(mut self, n: u32, cost: ManaCost) -> Self {
+        self.0.impending = Some(Box::new((n, cost)));
+        self
+    }
+
+    /// Web-slinging (CR 702.188).
+    #[must_use]
+    pub fn web_slinging(mut self, cost: ManaCost) -> Self {
+        self.0.web_slinging = Some(Box::new(cost));
+        self
+    }
+
+    /// Harmonize (CR 702.180).
+    #[must_use]
+    pub fn harmonize(mut self, cost: ManaCost) -> Self {
+        self.0.harmonize = Some(Box::new(cost));
         self
     }
 
