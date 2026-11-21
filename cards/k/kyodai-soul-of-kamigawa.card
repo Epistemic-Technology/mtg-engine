@@ -1,0 +1,9 @@
+card "Kyodai, Soul of Kamigawa" {
+  oracle_id d89bd776-8489-4c34-94ea-db1b088d9379
+  cost {3}{W}
+  type Legendary Creature — Dragon Spirit
+  pt 3/3
+  keywords flash, flying
+  triggered when this enters: another target permanent gains indestructible for as long as you control this
+  activated {W}{U}{B}{R}{G}: this gets +5/+5
+}

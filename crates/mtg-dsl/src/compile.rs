@@ -1961,6 +1961,12 @@ impl Compiler<'_> {
             for e in &s.effects {
                 self.effect(e, &mut out)?;
             }
+            // CR 611.2b: "... until your next turn", "... for as long as
+            // this creature remains on the battlefield".
+            if let Some(lasting) = s.lasting {
+                let effects = out.split_off(start);
+                out.push(CoreEffect::Lasting { lasting, effects });
+            }
             prev = Some((start, s));
         }
         Ok(out)
@@ -2339,6 +2345,18 @@ impl Compiler<'_> {
                     });
                 }
             }
+            // Layer 6 alone: an animation that only removes abilities.
+            Effect::LoseAllAbilities { to } => out.push(CoreEffect::Animate {
+                to: r(*to),
+                types: TypeSet::of([]),
+                subtypes: self.subtypes(&[]),
+                pt: None,
+                colors: None,
+                keywords: KeywordSet::NONE,
+                indefinite: false,
+                loses_abilities: true,
+                in_addition: false,
+            }),
             Effect::Strip { keywords, to } => out.push(CoreEffect::Strip {
                 keywords: KeywordSet::of(keywords.iter().copied()),
                 to: r(*to),
@@ -4629,6 +4647,7 @@ fn extort(i: u8) -> Ability {
         label: None,
         para: false,
         eot_first: false,
+        lasting: None,
         then_first: false,
         joins: vec![Join::And],
     };
@@ -4783,6 +4802,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 label: None,
                 para: false,
                 eot_first: false,
+                lasting: None,
                 then_first: false,
                 joins: vec![Join::Then],
             }],
@@ -5101,6 +5121,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 label: None,
                 para: false,
                 eot_first: false,
+                lasting: None,
                 then_first: false,
                 joins: vec![Join::Then],
             }],
@@ -5144,6 +5165,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 label: None,
                 para: false,
                 eot_first: false,
+                lasting: None,
                 then_first: false,
                 joins: vec![Join::And, Join::And],
             }],

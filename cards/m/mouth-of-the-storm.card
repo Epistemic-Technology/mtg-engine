@@ -1,0 +1,9 @@
+card "Mouth of the Storm" {
+  oracle_id 832fbb1f-0ff5-4d6c-b1ee-2231923a6f64
+  cost {6}{U}
+  type Creature — Elemental
+  pt 6/6
+  keywords flying
+  ward {2}
+  triggered when this enters: each creature your opponents control gets -3/-0 until your next turn
+}

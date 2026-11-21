@@ -1,0 +1,8 @@
+card "Aegis Angel" {
+  oracle_id 5902e074-7154-4fc7-8776-b87e8b1925e7
+  cost {4}{W}{W}
+  type Creature — Angel
+  pt 5/5
+  keywords flying
+  triggered when this enters: another target permanent gains indestructible for as long as you control this
+}

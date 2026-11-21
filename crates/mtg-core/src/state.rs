@@ -914,6 +914,28 @@ pub enum Duration {
     /// Until the given player's next turn begins (CR 611.2b): "until your
     /// next turn".
     UntilYourNextTurn(PlayerId),
+    /// "For as long as this creature remains on the battlefield" (CR
+    /// 611.2b): while that object is on the battlefield.
+    WhileOnBattlefield(ObjId),
+    /// "For as long as it remains tapped" (CR 611.2b): while that object
+    /// is a tapped permanent.
+    WhileTapped(ObjId),
+    /// "For as long as you control this creature" (CR 611.2b): while that
+    /// object is on the battlefield under that player's control.
+    WhileControlled(ObjId, PlayerId),
+}
+
+impl Duration {
+    /// Durations that end when an object leaves, untaps, or changes
+    /// control: checked with the state-based actions.
+    pub const fn linked(self) -> bool {
+        matches!(
+            self,
+            Duration::WhileOnBattlefield(_)
+                | Duration::WhileTapped(_)
+                | Duration::WhileControlled(..)
+        )
+    }
 }
 
 /// What a stored continuous effect applies to.
@@ -1855,6 +1877,16 @@ pub struct GameState {
     /// may have activated or triggered abilities its definition lacks.
     pub grant_sources: u32,
     pub eot_grants: u32,
+    /// Grants made with a duration longer than the turn ("until your next
+    /// turn", "for as long as ..."): `eot_grants` starts each turn here.
+    pub lasting_grants: u32,
+    /// The duration a resolving `Effect::Lasting` gives the effects it
+    /// creates in place of "until end of turn" (CR 611.2b).
+    pub lasting: Option<crate::card::Lasting>,
+    /// Effects whose duration is linked to an object
+    /// (`Duration::linked`): while nonzero the state-based actions end
+    /// those whose object left, untapped, or changed control.
+    pub linked_durations: u32,
     pub mid: MidDecision,
     pub lki: IdMap<LastKnown>,
     /// What the resolving spell or ability has done so far, for "this

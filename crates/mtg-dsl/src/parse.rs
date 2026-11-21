@@ -3678,6 +3678,7 @@ impl P {
     }
 
     /// Clauses joined by `and`.
+    #[allow(clippy::too_many_lines)] // one branch per join and duration
     fn sentence(&mut self) -> R<Sentence> {
         // `label "Hellbent" ...`: an ability word (CR 207.2c) before an
         // "instead" sentence.
@@ -3709,7 +3710,14 @@ impl P {
         // "Then that player discards a card.": a sentence led by "then".
         let then_first = self.eat_word("then");
         // "until end of turn, <clauses>": the duration printed first.
-        let eot_first = self.eat_words(&["until", "end", "of", "turn"]);
+        let mut lasting = None;
+        let eot_first = if self.eat_words(&["until", "your", "next", "turn"]) {
+            // "Until your next turn, <clauses>" (CR 611.2b).
+            lasting = Some(mtg_core::card::Lasting::YourNextTurn);
+            true
+        } else {
+            self.eat_words(&["until", "end", "of", "turn"])
+        };
         if eot_first && self.peek() == Some(&Tok::Comma) {
             self.pos += 1;
         }
@@ -3769,9 +3777,15 @@ impl P {
             let c = self.clause()?;
             clauses.push(self.unless_suffix(c)?);
         }
+        // `<clauses> until your next turn`, `... for as long as this
+        // remains` (CR 611.2b).
+        if lasting.is_none() {
+            lasting = self.lasting_suffix();
+        }
         // "Until end of turn, whenever ..., <effects>": a delayed trigger
         // that lasts the turn (CR 603.7c), as `whenever ... this turn`.
         if eot_first
+            && lasting.is_none()
             && let Some(Effect::Delayed {
                 this_turn,
                 trigger_first: true,
@@ -3785,10 +3799,31 @@ impl P {
             label,
             para: false,
             eot_first,
+            lasting,
             then_first,
             joins,
         };
         self.condition_suffix(s)
+    }
+
+    /// A sentence's duration after its clauses (CR 611.2b): `until your
+    /// next turn`, `for as long as this remains`, `for as long as it
+    /// remains tapped`, `for as long as you control this`.
+    fn lasting_suffix(&mut self) -> Option<mtg_core::card::Lasting> {
+        use mtg_core::card::Lasting;
+        if self.eat_words(&["until", "your", "next", "turn"]) {
+            return Some(Lasting::YourNextTurn);
+        }
+        if self.eat_words(&["for", "as", "long", "as", "this", "remains"]) {
+            return Some(Lasting::SourceOnBattlefield);
+        }
+        if self.eat_words(&["for", "as", "long", "as", "it", "remains", "tapped"]) {
+            return Some(Lasting::WhileTapped);
+        }
+        if self.eat_words(&["for", "as", "long", "as", "you", "control", "this"]) {
+            return Some(Lasting::YouControlSource);
+        }
+        None
     }
 
     /// A condition after a whole sentence: `<sentence> instead if <cond>`
@@ -4904,6 +4939,15 @@ impl P {
                     amount,
                     who: subject,
                 })
+            }
+            // "loses all abilities" alone (layer 6).
+            "lose" | "loses"
+                if self.at_words(&["all", "abilities"])
+                    && !self.at_words(&["all", "abilities", "and"]) =>
+            {
+                self.pos += 2;
+                self.until_end_of_turn();
+                Ok(Effect::LoseAllAbilities { to: subject })
             }
             "lose" | "loses" if self.keyword_ahead() => {
                 let mut keywords = Vec::new();

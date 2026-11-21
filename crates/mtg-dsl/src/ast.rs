@@ -2131,8 +2131,14 @@ pub struct Sentence {
     /// Starts a new paragraph (a new line of Oracle text).
     pub para: bool,
     /// Printed "Until end of turn, ..." with the duration first (Water
-    /// Wings) rather than after each clause.
+    /// Wings) rather than after each clause; with `lasting`, that duration
+    /// first ("Until your next turn, ...").
     pub eot_first: bool,
+    /// `... until your next turn`, `... for as long as this remains`, `...
+    /// for as long as it remains tapped`, `... for as long as you control
+    /// this` (CR 611.2b): what lasts until end of turn lasts this long
+    /// instead.
+    pub lasting: Option<mtg_core::card::Lasting>,
     /// Printed "Then ..." (`then` before the sentence): "Then that player
     /// discards a card."
     pub then_first: bool,
@@ -2186,6 +2192,7 @@ impl Sentence {
             label: None,
             para: false,
             eot_first: false,
+            lasting: None,
             then_first: false,
             joins,
         }
@@ -3112,6 +3119,11 @@ pub enum Effect {
         /// returns a creature they control to its owner's hand", each
         /// choosing one of their own (CR 101.4).
         who: Option<Recipient>,
+    },
+    /// `target creature loses all abilities` (until end of turn; layer
+    /// 6).
+    LoseAllAbilities {
+        to: Recipient,
     },
     /// `target creature loses flying`: until end of turn.
     Strip {

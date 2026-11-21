@@ -1992,6 +1992,21 @@ pub enum BlockRule {
     BlocksAdditional(u8),
 }
 
+/// A duration other than "until end of turn" for the continuous effects
+/// an `Effect::Lasting` creates (CR 611.2b).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Lasting {
+    /// "until your next turn": ends as its controller's next turn begins.
+    YourNextTurn,
+    /// "for as long as this creature remains on the battlefield".
+    SourceOnBattlefield,
+    /// "for as long as it remains tapped": each affected object, while it
+    /// stays tapped.
+    WhileTapped,
+    /// "for as long as you control this creature".
+    YouControlSource,
+}
+
 /// How long cards exiled by an impulse effect stay playable.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum PlayUntil {
@@ -3775,6 +3790,15 @@ pub enum Effect {
     UntilYourNextTurn {
         to: Recipient,
         parts: Vec<Modification>,
+    },
+    /// "<effects> until your next turn", "... for as long as this creature
+    /// remains on the battlefield" (CR 611.2b): the effects, each
+    /// continuous effect they would create until end of turn lasting
+    /// `lasting` instead. One whose duration is linked to the source does
+    /// nothing if the source has already left (CR 611.2b).
+    Lasting {
+        lasting: Lasting,
+        effects: Vec<Effect>,
     },
     /// Copy the source spell (CR 707.10), as it is on the stack or as it
     /// last existed there; its controller may choose new targets for the
@@ -6147,6 +6171,7 @@ impl AbilityDef {
             | Effect::IfThisWay { then: inner, .. }
             | Effect::IfExcessDamage(inner)
             | Effect::OneOf(inner)
+            | Effect::Lasting { effects: inner, .. }
             | Effect::UnlessPays { effects: inner, .. } = e
             {
                 for i in inner {

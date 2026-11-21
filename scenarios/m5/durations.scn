@@ -1,0 +1,346 @@
+# Durations other than "until end of turn" (CR 611.2b): "until your next
+# turn" ends as the controller's next turn begins; "for as long as ..."
+# ends when the object leaves, untaps, or changes control, and does
+# nothing if that has already happened when the effect would begin.
+
+scenario "until your next turn: Mouth of the Storm's -3/-0 lasts through the opponent's turn" {
+  battlefield A: 7 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Mouth of the Storm"
+  turn 1 A: cast "Mouth of the Storm"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 precombat_main
+  assert power "Hill Giant" 0
+  run_to turn 2 postcombat_main
+  assert life A 20
+  run_to turn 3 upkeep
+  assert power "Hill Giant" 3
+}
+
+scenario "until your next turn: a creature that enters later is unaffected (CR 611.2c)" {
+  battlefield A: 7 "Island"
+  battlefield B: "Hill Giant", 2 "Forest"
+  hand A: "Mouth of the Storm"
+  hand B: "Grizzly Bears"
+  turn 1 A: cast "Mouth of the Storm"
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert power "Hill Giant" 0
+}
+
+scenario "until your next turn: Fear of Falling's target gets -2/-0 and loses flying" {
+  battlefield A: "Fear of Falling"
+  battlefield B: "Serra Angel"
+  turn 1 A: attack "Fear of Falling"
+  turn 1 A: trigger "Fear of Falling" targeting "Serra Angel"
+  run_to turn 2 precombat_main
+  assert power "Serra Angel" 2
+  assert has not "Serra Angel" flying
+  assert life B 16
+  run_to turn 3 upkeep
+  assert power "Serra Angel" 4
+  assert has "Serra Angel" flying
+}
+
+scenario "until your next turn: Azure Beastbinder's creature loses all abilities and is 2/2" {
+  battlefield A: "Azure Beastbinder"
+  battlefield B: "Serra Angel"
+  turn 1 A: attack "Azure Beastbinder"
+  turn 1 A: trigger "Azure Beastbinder" targeting "Serra Angel"
+  run_to turn 2 precombat_main
+  assert no_abilities "Serra Angel"
+  assert power "Serra Angel" 2
+  assert toughness "Serra Angel" 2
+  run_to turn 3 upkeep
+  assert has "Serra Angel" flying
+  assert power "Serra Angel" 4
+}
+
+scenario "until your next turn: Azure Beastbinder's noncreature target only loses its abilities" {
+  battlefield A: "Azure Beastbinder"
+  battlefield B: "Prodigal Sorcerer"
+  turn 1 A: attack "Azure Beastbinder"
+  turn 1 A: trigger "Azure Beastbinder" targeting "Prodigal Sorcerer"
+  illegal turn 2 B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 2 postcombat_main
+  assert power "Prodigal Sorcerer" 2
+  assert toughness "Prodigal Sorcerer" 2
+  assert life A 20
+}
+
+scenario "until your next turn: Rootwise Survivor's land keeps haste through the next turn" {
+  battlefield A: "Rootwise Survivor", "Forest"
+  turn 1 A: attack "Rootwise Survivor"
+  turn 1 postcombat_main A: trigger "Rootwise Survivor" targeting "Forest"
+  run_to turn 1 end
+  assert counters "Forest" +1/+1 3
+  assert is "Forest" creature
+  assert power "Forest" 3
+  assert has "Forest" haste
+  run_to turn 2 precombat_main
+  assert has "Forest" haste
+  run_to turn 3 upkeep
+  assert has not "Forest" haste
+  assert is "Forest" creature
+}
+
+scenario "for as long as: The Wondrous Wasp's target loses all abilities while the Wasp remains" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel", "Mountain"
+  hand A: "The Wondrous Wasp"
+  hand B: "Shock"
+  turn 1 A: cast "The Wondrous Wasp"
+  turn 1 A: trigger "The Wondrous Wasp" targeting "Serra Angel"
+  run_to turn 1 end
+  assert tapped "Serra Angel"
+  assert no_abilities "Serra Angel"
+  turn 2 B: cast "Shock" targeting "The Wondrous Wasp"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "The Wondrous Wasp"
+  assert has "Serra Angel" flying
+}
+
+scenario "for as long as: Old Fat Spider's prevention lasts while the Saga remains" {
+  battlefield A: "Old Fat Spider Can't See Me" with 1 lore
+  battlefield B: "Hill Giant"
+  turn 1 A: trigger "Old Fat Spider Can't See Me" targeting "Hill Giant"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert counters "Old Fat Spider Can't See Me" lore 2
+}
+
+scenario "for as long as: the effect does nothing if the Saga left before it resolved" {
+  battlefield A: "Old Fat Spider Can't See Me" with 1 lore
+  battlefield B: "Hill Giant", 2 "Forest"
+  hand B: "Naturalize"
+  turn 1 A: trigger "Old Fat Spider Can't See Me" targeting "Hill Giant"
+  turn 1 B: cast "Naturalize" targeting "Old Fat Spider Can't See Me" in response to "Old Fat Spider Can't See Me"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Old Fat Spider Can't See Me"
+  assert life A 17
+}
+
+scenario "for as long as: the prevention ends when the Saga leaves" {
+  battlefield A: "Old Fat Spider Can't See Me" with 1 lore
+  battlefield B: "Hill Giant", 2 "Forest"
+  hand B: "Naturalize"
+  turn 1 A: trigger "Old Fat Spider Can't See Me" targeting "Hill Giant"
+  turn 2 B: cast "Naturalize" targeting "Old Fat Spider Can't See Me"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+scenario "for as long as: Old Fat Spider's hexproof, then cards" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Old Fat Spider Can't See Me"
+  hand B: "Shock"
+  turn 1 A: cast "Old Fat Spider Can't See Me"
+  turn 1 A: trigger "Old Fat Spider Can't See Me" targeting "Grizzly Bears"
+  illegal turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 8 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 7 postcombat_main
+  assert graveyard A contains "Old Fat Spider Can't See Me"
+  assert hand A count 5
+  run_to turn 8 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "for as long as it remains tapped: Braided Net stops activations until the permanent untaps" {
+  battlefield A: "Braided Net // Braided Quipu" with 3 net
+  battlefield B: "Prodigal Sorcerer"
+  turn 1 A: activate "Braided Net" targeting "Prodigal Sorcerer"
+  run_to turn 1 end
+  assert tapped "Prodigal Sorcerer"
+  assert counters "Braided Net" net 2
+  turn 2 upkeep B: activate "Prodigal Sorcerer" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 19
+}
+
+scenario "for as long as it remains tapped: its abilities without {T} can't be activated either" {
+  battlefield A: "Braided Net // Braided Quipu" with 3 net
+  battlefield B: "Furnace Whelp", "Mountain"
+  turn 1 A: activate "Braided Net" targeting "Furnace Whelp"
+  illegal turn 1 end B: activate "Furnace Whelp"
+  turn 2 B: activate "Furnace Whelp"
+  run_to turn 2 postcombat_main
+  assert power "Furnace Whelp" 3
+}
+
+scenario "for as long as you control: Possession Engine's creature returns when the Engine leaves" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Possession Engine"
+  hand B: "Shatter"
+  turn 1 A: cast "Possession Engine"
+  turn 1 A: trigger "Possession Engine" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  illegal turn 3 A: attack "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "for as long as you control: the stolen creature goes back when the Engine is destroyed" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant", 2 "Mountain"
+  hand A: "Possession Engine"
+  hand B: "Shatter"
+  turn 1 A: cast "Possession Engine"
+  turn 1 A: trigger "Possession Engine" targeting "Hill Giant"
+  turn 2 B: cast "Shatter" targeting "Possession Engine"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Possession Engine"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "for as long as you control: Dungeon Geists keeps its target tapped" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Dungeon Geists"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Dungeon Geists"
+  turn 1 A: trigger "Dungeon Geists" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  assert untapped "Dungeon Geists"
+  turn 2 B: cast "Lightning Bolt" targeting "Dungeon Geists"
+  run_to turn 4 precombat_main
+  assert graveyard A contains "Dungeon Geists"
+  assert untapped "Hill Giant"
+}
+
+scenario "for as long as you control: Tidebinder Mage's green creature stays tapped" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Tidebinder Mage"
+  turn 1 A: cast "Tidebinder Mage"
+  turn 1 A: trigger "Tidebinder Mage" targeting "Grizzly Bears"
+  run_to turn 4 precombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "for as long as you control: Ty Lee's creature untaps once Ty Lee leaves" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears", "Mountain"
+  hand A: "Ty Lee, Chi Blocker"
+  hand B: "Shock"
+  turn 1 A: cast "Ty Lee, Chi Blocker"
+  turn 1 A: trigger "Ty Lee, Chi Blocker" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert tapped "Grizzly Bears"
+  turn 2 B: cast "Shock" targeting "Ty Lee, Chi Blocker"
+  run_to turn 4 precombat_main
+  assert untapped "Grizzly Bears"
+}
+
+scenario "for as long as you control: Extraction Specialist's returned creature can't attack" {
+  battlefield A: 3 "Plains"
+  graveyard A: "Grizzly Bears"
+  hand A: "Extraction Specialist"
+  turn 1 A: cast "Extraction Specialist"
+  turn 1 A: trigger "Extraction Specialist" targeting "Grizzly Bears"
+  illegal turn 3 A: attack "Grizzly Bears"
+  turn 3 A: attack "Extraction Specialist"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "for as long as you control: Aegis Angel's indestructible" {
+  battlefield A: 6 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Aegis Angel"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Aegis Angel"
+  turn 1 A: trigger "Aegis Angel" targeting "Grizzly Bears"
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "for as long as you control: Kyodai's indestructible ends when Kyodai leaves" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand A: "Kyodai, Soul of Kamigawa"
+  hand B: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Kyodai, Soul of Kamigawa"
+  turn 1 A: trigger "Kyodai, Soul of Kamigawa" targeting "Grizzly Bears"
+  turn 2 B: cast "Lightning Bolt" targeting "Kyodai, Soul of Kamigawa"
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Kyodai, Soul of Kamigawa"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "until your next turn: Bond of Revival's creature has haste" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Bond of Revival"
+  turn 1 A: cast "Bond of Revival" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 2 precombat_main
+  assert life B 17
+  assert has "Hill Giant" haste
+  run_to turn 3 upkeep
+  assert has not "Hill Giant" haste
+}
+
+scenario "until your next turn: Kardur's Vicious Return III returns a hasty creature with a counter" {
+  battlefield A: "Kardur's Vicious Return" with 2 lore
+  graveyard A: "Hill Giant"
+  turn 1 A: trigger "Kardur's Vicious Return" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+  assert life B 16
+}
+
+scenario "until your next turn: Emeria's Call's non-Angel creatures are indestructible" {
+  battlefield A: 7 "Plains", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand A: "Emeria's Call // Emeria, Shattered Skyclave"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Emeria's Call"
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains 2 "Angel Warrior"
+  assert has not newest A "Angel Warrior" indestructible
+  run_to turn 3 upkeep
+  assert has not "Grizzly Bears" indestructible
+}
+
+scenario "until your next turn: Mu Yanling's +1 shrinks an attacker through the opponent's turn" {
+  battlefield A: "Mu Yanling, Celestial Wind"
+  battlefield B: "Serra Angel"
+  turn 1 A: activate "Mu Yanling, Celestial Wind" targeting "Serra Angel"
+  turn 2 B: attack "Serra Angel" at "Mu Yanling, Celestial Wind"
+  run_to turn 2 postcombat_main
+  assert counters "Mu Yanling, Celestial Wind" loyalty 6
+  assert power "Serra Angel" -1
+  assert life A 20
+}
+
+scenario "for as long as you control: Time of Ice keeps creatures tapped, then returns them" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Time of Ice"
+  turn 1 A: cast "Time of Ice"
+  turn 1 A: trigger "Time of Ice" targeting "Hill Giant"
+  turn 3 A: trigger "Time of Ice" targeting "Grizzly Bears"
+  run_to turn 4 precombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Grizzly Bears"
+  run_to turn 5 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+}

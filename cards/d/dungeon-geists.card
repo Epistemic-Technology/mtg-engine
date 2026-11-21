@@ -1,0 +1,8 @@
+card "Dungeon Geists" {
+  oracle_id ab5ebae2-cd77-4a7d-a93b-8042cd486429
+  cost {2}{U}{U}
+  type Creature — Spirit
+  pt 3/3
+  keywords flying
+  triggered when this enters: tap target creature an opponent controls; that target 1 gains doesn't untap for as long as you control this
+}

@@ -1,0 +1,8 @@
+card "Old Fat Spider Can't See Me" {
+  oracle_id e4402d21-bb7f-4777-bc8d-b24bf2faccb0
+  cost {2}{U}
+  type Enchantment — Saga
+  triggered chapter 1: target creature you control gains hexproof for as long as this remains
+  triggered chapter 2: prevent all damage from up to 1 target creature this turn for as long as this remains
+  triggered chapter 3, 4: draw 1 card
+}

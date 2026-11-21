@@ -663,6 +663,13 @@ impl Decompiler<'_> {
     fn sentences(&self, effects: &[CoreEffect]) -> Vec<Sentence> {
         let mut out = Vec::new();
         for e in effects {
+            // CR 611.2b: one sentence with its duration.
+            if let CoreEffect::Lasting { lasting, effects } = e {
+                let mut s = Sentence::new(effects.iter().map(|e| self.effect(e)).collect());
+                s.lasting = Some(*lasting);
+                out.push(s);
+                continue;
+            }
             if let CoreEffect::Instead { cond, base, alt } = e {
                 out.extend(self.sentences(base));
                 let cond = match cond {
@@ -1060,6 +1067,19 @@ impl Decompiler<'_> {
                 to,
                 types: t,
                 subtypes,
+                pt: None,
+                colors: None,
+                keywords: kws,
+                indefinite: false,
+                loses_abilities: true,
+                in_addition: false,
+            } if t.is_empty() && subtypes.is_empty() && kws.is_empty() => {
+                Effect::LoseAllAbilities { to: r(*to) }
+            }
+            CoreEffect::Animate {
+                to,
+                types: t,
+                subtypes,
                 pt,
                 colors: c,
                 keywords: kws,
@@ -1246,6 +1266,7 @@ impl Decompiler<'_> {
                 unreachable!("built-in abilities and dungeon rooms only")
             }
             CoreEffect::Ascend => unreachable!("ascend is decompiled as a keyword line"),
+            CoreEffect::Lasting { .. } => unreachable!("a sentence's duration, by `sentences`"),
             CoreEffect::Explore { what } => Effect::Explore {
                 what: Self::recipient(*what),
                 twice: false,

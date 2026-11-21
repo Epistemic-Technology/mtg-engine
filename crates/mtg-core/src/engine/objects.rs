@@ -1132,6 +1132,10 @@ impl GameState {
             if self.tap_static_sources > 0 {
                 self.cbump();
             }
+            // CR 611.2b: "for as long as it remains tapped" may end.
+            if self.linked_durations > 0 {
+                self.sba_touch();
+            }
             self.emit(Event::Untapped { obj: id });
         }
     }

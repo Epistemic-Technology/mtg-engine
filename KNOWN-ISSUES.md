@@ -91,6 +91,11 @@ by rejecting the form at compile time or by binding it correctly.
 - **`if teamwork, instead <other target>`** and kicker with `instead`
   on a single target always ask for both targets (Cruel Alliance, Long
   River's Pull). Gift is fixed; check whether these now work.
+- **`you gains shroud` / `you gains hexproof` / `you gains protection
+  from ...`** render "You gain shroud until end of turn" but do nothing:
+  `Effect::Grant` applies only to permanents (Seht's Tiger, Gilded
+  Light). Blossoming Calm ("You gain hexproof until your next turn") is
+  left out for this.
 - **`another target any`** drops "other" and renders "any target"
   (Boulder Dash, Red Hulk, Pain for All).
 - **`another` on a blocking-creature target** is dropped (Dissension in
@@ -112,11 +117,12 @@ named the feature; a card may need more than one.
 - **Wording near-misses, about 50 cards.** The DSL expresses the card
   and the renderer is a few words off. Listed with the differing words
   in the batch reports (`RENDER:` lines).
-- **"Until your next turn"** durations on effects and delayed triggers
-  (Rootwise Survivor, For the Common Good, Garruk, Hydro-Man).
-- **"For as long as ..." durations:** "this remains on the battlefield",
-  "it remains tapped", "you control this" (The Wondrous Wasp, Old Fat
-  Spider, Braided Net, Gwen Stacy, Lightning).
+- **Durations still missing** (the sentence forms are in): a delayed
+  trigger lasting "until your next turn" (Garruk, Jace Architect of
+  Thought, Vraska the Unseen), "becomes a copy of ... until your next
+  turn", cost changes and "can't cast" rules until your next turn,
+  "for as long as it has a flood counter on it", "for as long as this
+  Equipment remains attached to it".
 - **Casting a card without paying its mana cost as an effect**, also
   mid-resolution and with a mana-value bound (Malcolm, Ugin, Collector's
   Cage, Tinybones, Lady Octopus, Maralen, Chandra Torch of Defiance,

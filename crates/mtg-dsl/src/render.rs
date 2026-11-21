@@ -958,6 +958,9 @@ struct Ctx<'a> {
     /// The sentence being rendered begins "until end of turn," (a delayed
     /// trigger in it prints without its own "this turn").
     eot_first: bool,
+    /// The sentence being rendered lasts this long instead of the turn
+    /// ("until your next turn", CR 611.2b).
+    lasting: Option<String>,
     /// The ability being rendered, for "except it has this ability".
     current: Option<&'a Ability>,
     /// The trigger of the ability, for wording that depends on it.
@@ -1016,6 +1019,7 @@ impl<'a> Ctx<'a> {
             in_delayed: false,
             delayed_that: false,
             eot_first: false,
+            lasting: None,
             current: None,
             trigger: None,
             last_token: None,
@@ -5293,6 +5297,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     .collect();
                 return Clause::with_subject(*to, s, list(&parts));
             }
+            // "That creature doesn't untap during its controller's untap
+            // step for as long as you control this creature".
+            if keywords.as_slice() == [Keyword::DoesntUntap] {
+                let v = ctx.verb(
+                    *to,
+                    "doesn't untap during its controller's untap step",
+                    "don't untap during their controllers' untap steps",
+                );
+                let mut c = Clause::with_subject(*to, s, v.to_string());
+                c.suffix = Some("this turn");
+                return c;
+            }
+            // "Its activated abilities can't be activated for as long as it
+            // remains tapped" (CR 602.5).
+            if keywords.len() == 1 && is_activation_bar(keywords[0]) {
+                let mut c =
+                    Clause::imperative(format!("{} {}", possessive(&s), &keywords[0].name()[4..]));
+                c.suffix = Some("this turn");
+                return c;
+            }
             if keywords.iter().all(|k| is_restriction(*k)) {
                 let mut c = Clause::with_subject(*to, s, restriction_phrase(keywords));
                 c.suffix = Some("this turn");
@@ -5694,6 +5718,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ctx.verb(*who, "sacrifices", "sacrifice")
                 ),
             )
+        }
+        Effect::LoseAllAbilities { to } => {
+            let s = ctx.subj(*to);
+            let v = ctx.verb(*to, "loses", "lose");
+            Clause::with_subject(*to, s, format!("{v} all abilities")).until_eot()
         }
         Effect::Strip { keywords, to } => {
             let s = ctx.subj(*to);
@@ -7634,6 +7663,8 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     ctx.groups_mentioned
         .retain(|r| !matches!(r, Recipient::Group(_)));
     let eot = std::mem::replace(&mut ctx.eot_first, s.eot_first);
+    let lasting = s.lasting.map(|l| lasting_text(l, ctx));
+    let outer_lasting = std::mem::replace(&mut ctx.lasting, lasting.clone());
     let clauses: Vec<Clause> = s
         .effects
         .iter()
@@ -7656,6 +7687,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         })
         .collect();
     ctx.eot_first = eot;
+    ctx.lasting = outer_lasting;
     // Two pumps of different recipients each keep their duration
     // ("target creature an opponent controls gets -2/-2 until end of turn
     // and target creature you control gets +2/+2 until end of turn").
@@ -7670,12 +7702,25 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         && !pumps_apart
         && clauses[0].suffix.is_some()
         && clauses.iter().all(|c| c.suffix == clauses[0].suffix);
+    // CR 611.2b: a duration other than "until end of turn" in its place.
+    let sfx = |x: &'static str| -> String {
+        match &lasting {
+            Some(t) if x == EOT || x == "this turn" => t.clone(),
+            _ => x.to_string(),
+        }
+    };
     let mut out = String::new();
     if s.then_first {
         out.push_str("then ");
     }
     if s.eot_first {
-        out.push_str("until end of turn, ");
+        match &lasting {
+            Some(t) => {
+                out.push_str(t);
+                out.push_str(", ");
+            }
+            None => out.push_str("until end of turn, "),
+        }
     }
     let mut prev_subject: Option<Recipient> = None;
     let mut suffix_done = false;
@@ -7735,7 +7780,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             && !s.eot_first
             && !next_shares
         {
-            push_suffix(&mut out, suffix);
+            push_suffix(&mut out, &sfx(suffix));
         }
         // "deals X damage to any target and you gain X life, where X is
         // ...": one X, explained once at the end.
@@ -7748,7 +7793,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             && i + 1 == clauses.len()
             && c.tail.starts_with(", where X is ")
         {
-            push_suffix(&mut out, c.suffix.expect("shared"));
+            push_suffix(&mut out, &sfx(c.suffix.expect("shared")));
             suffix_done = true;
         }
         if !shared_where {
@@ -7756,9 +7801,34 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         }
     }
     if shared_suffix && !s.eot_first && !suffix_done {
-        push_suffix(&mut out, clauses[0].suffix.expect("shared"));
+        push_suffix(&mut out, &sfx(clauses[0].suffix.expect("shared")));
+    }
+    // "It loses all abilities for as long as ...": no clause printed a
+    // duration of its own.
+    if let Some(t) = &lasting
+        && !s.eot_first
+        && !out.contains(t.as_str())
+    {
+        push_suffix(&mut out, t);
     }
     out
+}
+
+/// A sentence's duration (CR 611.2b): "until your next turn", "for as
+/// long as this creature remains on the battlefield".
+fn lasting_text(l: mtg_core::card::Lasting, ctx: &Ctx) -> String {
+    use mtg_core::card::Lasting;
+    match l {
+        Lasting::YourNextTurn => "until your next turn".to_string(),
+        Lasting::SourceOnBattlefield => {
+            format!(
+                "for as long as {} remains on the battlefield",
+                ctx.source_name()
+            )
+        }
+        Lasting::WhileTapped => "for as long as it remains tapped".to_string(),
+        Lasting::YouControlSource => format!("for as long as you control {}", ctx.source_name()),
+    }
 }
 
 /// Sentences as text: each capitalized and terminated, paragraphs on new
@@ -8624,7 +8694,12 @@ fn damage_source(a: &Affects, ctx: &mut Ctx) -> String {
 /// "Prevent all [combat] damage that would be dealt ..." (CR 615): an
 /// effect a spell creates (`this_turn`) or a static ability.
 fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
-    let turn = if this_turn { " this turn" } else { "" };
+    let lasting = ctx.lasting.as_ref().map(|t| format!(" {t}"));
+    let turn = match &lasting {
+        Some(t) if this_turn => t.as_str(),
+        _ if this_turn => " this turn",
+        _ => "",
+    };
     let (Replaces::Damage { combat, .. } | Replaces::DamageToAndBy { combat, .. }) = r else {
         unreachable!("a damage event")
     };

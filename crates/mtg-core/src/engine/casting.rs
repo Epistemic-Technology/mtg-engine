@@ -7895,6 +7895,61 @@ impl GameState {
         self.shuffle_library(p);
     }
 
+    /// CR 611.2b: inside an `Effect::Lasting`, an effect that would last
+    /// until end of turn lasts its duration instead; `id` is the object it
+    /// affects (the source's, for an effect on no object).
+    #[inline]
+    fn lasting_or(&mut self, duration: Duration, ctx: &EffectCtx, id: ObjId) -> Duration {
+        let Some(l) = self.lasting else {
+            return duration;
+        };
+        if duration != Duration::UntilEndOfTurn {
+            return duration;
+        }
+        let d = match l {
+            crate::card::Lasting::YourNextTurn => Duration::UntilYourNextTurn(ctx.controller),
+            crate::card::Lasting::SourceOnBattlefield => Duration::WhileOnBattlefield(ctx.source),
+            crate::card::Lasting::WhileTapped => Duration::WhileTapped(id),
+            crate::card::Lasting::YouControlSource => {
+                Duration::WhileControlled(ctx.source, ctx.controller)
+            }
+        };
+        if d.linked() {
+            self.linked_durations += 1;
+        }
+        d
+    }
+
+    /// CR 611.2b: the effects of `Effect::Lasting`. A duration linked to
+    /// the source does nothing if the source has already left the
+    /// battlefield (or its controller no longer controls it).
+    fn apply_lasting(
+        &mut self,
+        ctx: &mut EffectCtx,
+        lasting: crate::card::Lasting,
+        effects: &[Effect],
+    ) {
+        let source_ok = || {
+            self.objects
+                .get(ctx.source)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
+        };
+        match lasting {
+            crate::card::Lasting::SourceOnBattlefield if !source_ok() => return,
+            crate::card::Lasting::YouControlSource
+                if !source_ok() || self.objects[ctx.source].controller != ctx.controller =>
+            {
+                return;
+            }
+            _ => {}
+        }
+        let outer = self.lasting.replace(lasting);
+        for e in effects {
+            self.apply_effect(ctx, e);
+        }
+        self.lasting = outer;
+    }
+
     /// Store an "until end of turn" effect on one object (CR 611.2a, 611.2c).
     fn effect_until_end_of_turn(
         &mut self,
@@ -7914,6 +7969,7 @@ impl GameState {
         parts: SmallVec<[Modification; 2]>,
         duration: Duration,
     ) {
+        let duration = self.lasting_or(duration, ctx, id);
         let timestamp = self.tick();
         self.effects.push(ContinuousEffect {
             source: Some(ctx.source),
@@ -8613,9 +8669,10 @@ impl GameState {
                 self.bump();
             }
             Effect::Rule(kind) => {
+                let duration = self.lasting_or(Duration::UntilEndOfTurn, ctx, ctx.source);
                 self.rules.push(RuleEffect {
                     kind: *kind,
-                    duration: Duration::UntilEndOfTurn,
+                    duration,
                 });
                 self.bump();
             }
@@ -8724,6 +8781,9 @@ impl GameState {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
                         self.eot_grants += 1;
+                        if self.lasting.is_some() {
+                            self.lasting_grants += 1;
+                        }
                         self.effect_until_end_of_turn(
                             ctx,
                             id,
@@ -10229,6 +10289,7 @@ impl GameState {
                     self.effect_on(ctx, id, parts.clone(), d);
                 }
             }
+            Effect::Lasting { lasting, effects } => self.apply_lasting(ctx, *lasting, effects),
             Effect::CopySpell => self.copy_spell(ctx),
             Effect::CopySpells {
                 what,
@@ -12125,12 +12186,13 @@ impl GameState {
             .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
             .expect("a resolving spell or its last known information exists");
         let timestamp = self.tick();
+        let duration = self.lasting_or(Duration::UntilEndOfTurn, ctx, ctx.source);
         self.replacements.push(ReplacementEffect {
             source: Some(ctx.source),
             def,
             controller: ctx.controller,
             timestamp,
-            duration: Duration::UntilEndOfTurn,
+            duration,
             ability: r.clone(),
             target,
             remaining,

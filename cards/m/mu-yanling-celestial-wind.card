@@ -1,0 +1,9 @@
+card "Mu Yanling, Celestial Wind" {
+  oracle_id 5f39accf-62fd-407a-a147-781210569d33
+  cost {4}{U}{U}
+  type Legendary Planeswalker — Yanling
+  loyalty 5
+  loyalty +1: until your next turn, up to one target creature gets -5/-0
+  loyalty -3: return up to two target creatures to hand
+  loyalty -7: each creature you control with flying gets +5/+5
+}

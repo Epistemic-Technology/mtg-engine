@@ -1,0 +1,8 @@
+card "The Wondrous Wasp" {
+  oracle_id 5ad8963b-8091-4787-9147-20a1fe7bf0fb
+  cost {1}{U}
+  type Legendary Creature — Human Hero
+  pt 2/1
+  keywords flash, flying
+  label "Wasp's Sting" triggered when this enters: tap up to 1 target creature; target 1 loses all abilities for as long as this remains
+}

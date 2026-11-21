@@ -1,0 +1,14 @@
+card "Braided Net // Braided Quipu" {
+  oracle_id 86ef06b3-2049-494d-9ecb-ca14766d3b68
+  layout transform
+  cost {2}{U}
+  type Artifact
+  enters with 3 net counters
+  activated {T}, remove 1 net counter from this: tap another target nonland permanent; target 1 gains can't activate for as long as it remains tapped
+  craft with artifact {1}{U}
+  face "Braided Quipu" {
+    type Artifact
+    color blue
+    activated {3}{U}, {T}: draw count each artifact you control cards, then put this into library 3 from top
+  }
+}

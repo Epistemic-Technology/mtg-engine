@@ -1,0 +1,8 @@
+card "Ty Lee, Chi Blocker" {
+  oracle_id 081ad4e3-cda3-41cc-890f-412611dc9ea0
+  cost {2}{U}
+  type Legendary Creature — Human Performer Ally
+  pt 2/1
+  keywords flash, prowess
+  triggered when this enters: tap up to one target creature; target 1 gains doesn't untap for as long as you control this
+}

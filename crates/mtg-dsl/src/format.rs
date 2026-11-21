@@ -550,7 +550,10 @@ impl Fmt {
             out.push_str("then ");
         }
         if s.eot_first {
-            out.push_str("until end of turn, ");
+            out.push_str(match s.lasting {
+                Some(mtg_core::card::Lasting::YourNextTurn) => "until your next turn, ",
+                _ => "until end of turn, ",
+            });
         }
         for (i, e) in s.effects.iter().enumerate() {
             if i > 0 {
@@ -573,6 +576,16 @@ impl Fmt {
                 }
             }
             out.push_str(&self.effect(e, targets));
+        }
+        if !s.eot_first
+            && let Some(l) = s.lasting
+        {
+            out.push_str(match l {
+                mtg_core::card::Lasting::YourNextTurn => " until your next turn",
+                mtg_core::card::Lasting::SourceOnBattlefield => " for as long as this remains",
+                mtg_core::card::Lasting::WhileTapped => " for as long as it remains tapped",
+                mtg_core::card::Lasting::YouControlSource => " for as long as you control this",
+            });
         }
         out
     }
@@ -1483,6 +1496,9 @@ impl Fmt {
                     let _ = write!(s, " and {} {}", num(b.0), filter(&b.1));
                 }
                 s
+            }
+            Effect::LoseAllAbilities { to } => {
+                format!("{} loses all abilities", self.recipient(*to, t))
             }
             Effect::Strip { keywords: ks, to } => {
                 format!("{} loses {}", self.recipient(*to, t), keywords(ks))

@@ -1,0 +1,9 @@
+card "Azure Beastbinder" {
+  oracle_id 7bb51602-60e8-4730-b11c-2870d6b42e20
+  cost {1}{U}
+  type Creature — Rat Rogue
+  pt 1/3
+  keywords vigilance
+  can't be blocked by creature with power 2 or greater
+  triggered whenever this attacks: up to 1 target artifact, creature, or planeswalker an opponent controls loses all abilities until your next turn; if target 1 is creature, also target 1 has base power and toughness 2/2 until your next turn
+}

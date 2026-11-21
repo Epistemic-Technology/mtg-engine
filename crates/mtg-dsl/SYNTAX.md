@@ -1329,6 +1329,31 @@ and may be written or not. A sentence that starts `until end of turn,`
 prints the duration first instead ("Until end of turn, target creature you
 control has base power and toughness 4/4 and gains flying").
 
+Other durations (CR 611.2b) end a sentence, and whatever in it would last
+until end of turn (or "this turn") lasts that long instead: `until your
+next turn` (it ends as the controller's next turn begins: `each creature
+your opponents control gets -3/-0 until your next turn`, "Creatures your
+opponents control get -3/-0 until your next turn"; `until your next turn,
+up to 1 target creature gets -5/-0` prints it first), `for as long as this
+remains` ("for as long as this creature remains on the battlefield", "...
+The Wondrous Wasp remains ..."), `for as long as you control this` ("for as
+long as you control this creature"), and `for as long as it remains tapped`
+(each affected permanent, while it stays tapped). The last three end when
+the source leaves the battlefield or changes control, or the permanent
+untaps (checked with the state-based actions), and do nothing if that has
+already happened as the effect would begin. `gain control of target
+creature for as long as you control this`, `that target 1 can't attack or
+block for as long as you control this` ("That creature can't attack or
+block for as long as ..."), `prevent all damage from up to 1 target
+creature this turn for as long as this remains` ("Prevent all damage that
+would be dealt by up to one target creature for as long as this Saga
+remains on the battlefield"). Clauses for these: `target 1 loses all
+abilities` ("It loses all abilities", layer 6), `that target 1 gains
+doesn't untap` ("That creature doesn't untap during its controller's untap
+step"; plural "Those creatures don't untap during their controllers' untap
+steps"), and `target 1 gains can't activate` ("Its activated abilities
+can't be activated").
+
 Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`,
 `<who> draws 2 cards`, `<who> discards 2 cards`, `<who> mills 20 cards`,
 `<what> gets +3/+3`, `<what> gains flying`, `<what> can't block` (this
