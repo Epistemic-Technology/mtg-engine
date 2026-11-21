@@ -65,11 +65,6 @@ by rejecting the form at compile time or by binding it correctly.
   (Pain for All: "enchanted creature deals damage ... to any other
   target"): `another target any` excludes the source (the Aura), not
   the creature dealing the damage. Pain for All is not in.
-- **A target filter with three alternatives** drops the third
-  ("attacking, blocking, or tapped creature", Sonar Strike).
-- **`delayed this: whenever <land> is tapped for mana this turn, add
-  ...`** panics in the compiler (`compile.rs`, "a triggered mana
-  ability") where it should report an error.
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.
@@ -122,7 +117,8 @@ named the feature; a card may need more than one.
   graveyard from anywhere (Progenitus, Darksteel Colossus, Nexus of
   Fate); token-creation replacement.
 - **Targets:** one target that is "spell or creature" / "spell or
-  permanent"; one target per opponent; targets with a total mana value;
+  permanent"; a filter with three alternatives ("attacking, blocking,
+  or tapped creature", Sonar Strike; a parse error now); one target per opponent; targets with a total mana value;
   "up to X targets" in a reflexive trigger; mixed battlefield and
   graveyard targets.
 - **Other effects:** "End the turn"; exchange control; return all

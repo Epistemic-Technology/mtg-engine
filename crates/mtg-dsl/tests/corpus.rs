@@ -131,6 +131,22 @@ fn it_in_a_trigger_without_a_triggering_object_is_rejected() {
 }
 
 #[test]
+fn a_delayed_triggered_mana_ability_is_an_error() {
+    let mut pool = CardPool::new();
+    let text = "card \"Test\" {\n  cost {1}\n  type Sorcery\n  spell: until end of turn, delayed this: whenever Forest is tapped for mana this turn, add {G}\n}\n";
+    // A parse or compile error, not a panic.
+    let e = mtg_dsl::load_into(&mut pool, text).map(|_| ()).unwrap_err();
+    assert!(e.to_string().contains("mana ability"), "{e}");
+}
+
+#[test]
+fn a_filter_with_three_alternatives_is_an_error() {
+    let mut pool = CardPool::new();
+    let text = "card \"Test\" {\n  cost {1}\n  type Instant\n  spell: deal 4 damage to target attacking or blocking or tapped creature\n}\n";
+    assert!(mtg_dsl::load_into(&mut pool, text).is_err());
+}
+
+#[test]
 fn it_after_a_target_in_a_trigger_is_that_target() {
     let card = |ability: &str| {
         let text = format!(

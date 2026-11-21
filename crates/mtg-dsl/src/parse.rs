@@ -10000,6 +10000,12 @@ impl P {
         if consumed == 0 {
             return self.unexpected("a filter (creature you control, nonbasic land, ...)");
         }
+        // "attacking or blocking" is itself an alternative: with another
+        // ("attacking, blocking, or tapped creature") one would be lost.
+        if or_blocking && f.or.is_some() {
+            return self
+                .fail("a filter can't have three alternatives (`attacking or blocking or ...`)");
+        }
         if or_blocking && f.or.is_none() {
             let mut alt = f.clone();
             alt.attacking = false;

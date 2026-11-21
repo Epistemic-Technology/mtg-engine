@@ -2748,6 +2748,15 @@ impl Compiler<'_> {
                 ..
             } => {
                 let effects = self.sentences(effects)?;
+                // A delayed triggered mana ability ("whenever a land is
+                // tapped for mana this turn, add ...", CR 605.1b) has no
+                // form here.
+                if matches!(trigger, Trigger::TappedForMana(_))
+                    || matches!(trigger, Trigger::When(t) | Trigger::Next(t)
+                        if matches!(**t, Trigger::TappedForMana(_)))
+                {
+                    return self.err("a delayed trigger can't be a triggered mana ability");
+                }
                 let trigger = self.trigger(trigger);
                 let id = self
                     .pool
