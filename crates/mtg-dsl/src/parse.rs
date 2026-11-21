@@ -6258,9 +6258,15 @@ impl P {
     fn battlefield_tail(&mut self, what: Recipient, put: bool) -> R<Effect> {
         self.eat_word("the");
         self.expect_word("battlefield")?;
-        let tapped = self.eat_word("tapped");
+        let mut tapped = self.eat_word("tapped");
+        let mut attacking = tapped && self.eat_words(&["and", "attacking"]);
         self.eat_words(&["under", "its", "owner's", "control"]);
         let under_you = self.eat_words(&["under", "your", "control"]);
+        // "onto the battlefield under your control tapped and attacking".
+        if !tapped && self.eat_words(&["tapped", "and", "attacking"]) {
+            tapped = true;
+            attacking = true;
+        }
         let counters = if self.eat_word("with") {
             let n = self.count()?;
             let kind = self.counter_kind()?;
@@ -6281,6 +6287,7 @@ impl P {
             under_you,
             attached,
             put,
+            attacking,
         })
     }
 
@@ -6569,10 +6576,12 @@ impl P {
                 };
                 self.expect_words(&["from", "hand", "onto", "battlefield"])?;
                 let tapped = self.eat_word("tapped");
+                let attacking = tapped && self.eat_words(&["and", "attacking"]);
                 Ok(Effect::PutFromHand {
                     filter,
                     tapped,
                     also,
+                    attacking,
                 })
             }
             "put"

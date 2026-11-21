@@ -2144,6 +2144,7 @@ impl Compiler<'_> {
                 under_you,
                 attached,
                 put: _,
+                attacking,
             } => {
                 out.push(CoreEffect::ReturnToBattlefield {
                     what: r(*what),
@@ -2152,6 +2153,9 @@ impl Compiler<'_> {
                     under_you: *under_you,
                     attached: attached.map(r),
                 });
+                if *attacking {
+                    out.push(CoreEffect::EnteredAttack);
+                }
             }
             Effect::Regenerate { to } => out.push(CoreEffect::Regenerate { to: r(*to) }),
             Effect::Exile { what } => {
@@ -3123,12 +3127,16 @@ impl Compiler<'_> {
                 filter,
                 tapped,
                 also,
+                attacking,
             } => {
                 for f in std::iter::once(filter).chain(also) {
                     out.push(CoreEffect::PutFromHand {
                         filter: self.filter(f),
                         tapped: *tapped,
                     });
+                    if *attacking {
+                        out.push(CoreEffect::EnteredAttack);
+                    }
                 }
             }
             Effect::IfThisWay(c, inner) => {
@@ -5156,6 +5164,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         under_you: false,
                         attached: None,
                         put: false,
+                        attacking: false,
                     },
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],

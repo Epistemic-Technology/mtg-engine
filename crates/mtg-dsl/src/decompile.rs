@@ -712,6 +712,18 @@ impl Decompiler<'_> {
                 *attacking = true;
                 continue;
             }
+            // "... onto the battlefield tapped and attacking".
+            if matches!(e, CoreEffect::EnteredAttack)
+                && let Some(
+                    Effect::ReturnToBattlefield { attacking, .. }
+                    | Effect::PutFromHand { attacking, .. },
+                ) = out
+                    .last_mut()
+                    .and_then(|s: &mut Sentence| s.effects.last_mut())
+            {
+                *attacking = true;
+                continue;
+            }
             out.push(Sentence::new(vec![self.effect(e)]));
         }
         out
@@ -798,6 +810,7 @@ impl Decompiler<'_> {
                 under_you: *under_you,
                 attached: attached.map(r),
                 put: false,
+                attacking: false,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {
@@ -1287,6 +1300,7 @@ impl Decompiler<'_> {
             | CoreEffect::Exploit
             | CoreEffect::EnterAttacking
             | CoreEffect::CreatedAttack
+            | CoreEffect::EnteredAttack
             | CoreEffect::ReturnTransformed
             | CoreEffect::BecomeSaddled => {
                 unreachable!("built-in abilities only")
@@ -1536,6 +1550,7 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
                 tapped: *tapped,
                 also: None,
+                attacking: false,
             },
             CoreEffect::IfThisWay { cond, then } => {
                 Effect::IfThisWay(self.this_way_cond(cond), self.sentences(then))

@@ -1121,12 +1121,17 @@ impl Fmt {
                 filter: f,
                 tapped,
                 also,
+                attacking,
             } => format!(
                 "put {} card{} from hand onto battlefield{}",
                 filter(f),
                 also.as_ref()
                     .map_or_else(String::new, |g| format!(" and {} card", filter(g))),
-                if *tapped { " tapped" } else { "" }
+                match (*tapped, *attacking) {
+                    (true, true) => " tapped and attacking",
+                    (true, false) => " tapped",
+                    _ => "",
+                }
             ),
             Effect::AddEnergy { count, who } => {
                 let v = if *who == Recipient::You {
@@ -1241,6 +1246,7 @@ impl Fmt {
                 under_you,
                 attached,
                 put,
+                attacking,
             } => {
                 let mut s = if *put {
                     format!("put {} onto battlefield", self.recipient(*what, t))
@@ -1249,6 +1255,9 @@ impl Fmt {
                 };
                 if *tapped {
                     s.push_str(" tapped");
+                }
+                if *attacking {
+                    s.push_str(" and attacking");
                 }
                 if *under_you {
                     s.push_str(" under your control");

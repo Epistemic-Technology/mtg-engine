@@ -1,0 +1,8 @@
+card "Phoenix Chick" {
+  oracle_id 40bb7b6b-a75d-4b59-ba45-a5801dcd59a1
+  cost {R}
+  type Creature — Phoenix
+  pt 1/1
+  keywords flying, haste, can't block
+  triggered from graveyard whenever you attack with 3 or more creatures: you may pay {R}{R}; if you do, return this to battlefield tapped and attacking with 1 +1/+1 counter
+}

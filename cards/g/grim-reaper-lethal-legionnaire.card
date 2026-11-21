@@ -1,0 +1,7 @@
+card "Grim Reaper, Lethal Legionnaire" {
+  oracle_id edf429a8-6a4d-4d2a-b0ca-c0c72a0698a3
+  cost {3}{B}
+  type Legendary Creature — Human Villain
+  pt 3/4
+  triggered whenever this attacks: you may pay {3}{B}; when you do, return target creature card from your graveyard to battlefield tapped and attacking with 1 finality counter
+}

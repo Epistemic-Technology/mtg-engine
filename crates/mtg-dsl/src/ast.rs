@@ -2960,6 +2960,8 @@ pub enum Effect {
         /// `put that target 1 onto battlefield`: "put that card onto the
         /// battlefield" (wording only).
         put: bool,
+        /// `... to battlefield tapped and attacking` (CR 508.4).
+        attacking: bool,
     },
     Regenerate {
         to: Recipient,
@@ -4015,6 +4017,8 @@ pub enum Effect {
         filter: Filter,
         tapped: bool,
         also: Option<Filter>,
+        /// `... onto battlefield tapped and attacking` (CR 508.4).
+        attacking: bool,
     },
     /// `each opponent gets 1 poison counter`.
     AddPoison {

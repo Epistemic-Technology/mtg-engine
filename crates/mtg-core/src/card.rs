@@ -4345,6 +4345,11 @@ pub enum Effect {
     /// tokens", CR 508.4: never declared as attackers), what the source
     /// is attacking, or else an opponent.
     CreatedAttack,
+    /// "... onto the battlefield tapped and attacking" (CR 508.4): the
+    /// permanent the resolution just put onto the battlefield (from a hand
+    /// or a graveyard) is attacking what the source is attacking, or else
+    /// an opponent.
+    EnteredAttack,
     /// Saddle's effect (CR 702.171a): the source becomes saddled until end
     /// of turn.
     BecomeSaddled,

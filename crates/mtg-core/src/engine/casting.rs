@@ -11389,7 +11389,7 @@ impl GameState {
                     self.bump();
                 }
             }
-            Effect::CreatedAttack => {
+            Effect::CreatedAttack | Effect::EnteredAttack => {
                 let defender = self
                     .combat
                     .as_ref()
@@ -11400,8 +11400,13 @@ impl GameState {
                             .find(|q| *q != ctx.controller)
                             .map(Target::Player)
                     });
+                let entered: Vec<ObjId> = if matches!(effect, Effect::EnteredAttack) {
+                    ctx.created.into_iter().collect()
+                } else {
+                    ctx.created_tokens.to_vec()
+                };
                 if let Some(d) = defender {
-                    for id in ctx.created_tokens.clone() {
+                    for id in entered {
                         if self
                             .objects
                             .get(id)

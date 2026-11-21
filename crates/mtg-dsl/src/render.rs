@@ -4871,6 +4871,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             filter,
             tapped,
             also,
+            attacking,
         } => {
             let one = |f: &Filter| {
                 if *f == Filter::default() {
@@ -4886,7 +4887,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!(
                 "put {what} from your hand onto the battlefield{}",
-                if *tapped { " tapped" } else { "" }
+                match (*tapped, *attacking) {
+                    (true, true) => " tapped and attacking",
+                    (true, false) => " tapped",
+                    _ => "",
+                }
             ))
         }
         Effect::Explore { what, twice } => {
@@ -5095,6 +5100,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             under_you,
             attached,
             put,
+            attacking,
         } => {
             // `that card` prints "that card", `it` (inside a delayed
             // trigger) "it".
@@ -5132,11 +5138,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ctx.target_noun[*i] = "creature".to_string();
                 }
             }
-            let tapped = if *tapped { " tapped" } else { "" };
+            let tapped = match (*tapped, *attacking) {
+                (true, true) => " tapped and attacking",
+                (true, false) => " tapped",
+                _ => "",
+            };
             // Activated from the graveyard: "Return this card from your
             // graveyard to the battlefield tapped."
             let from_graveyard = *what == Recipient::Source && works_from_graveyard(ctx.current);
-            let mut text = if from_graveyard {
+            let mut text = if *attacking && (others || (*put && *under_you)) {
+                // "put target creature card from defending player's
+                // graveyard onto the battlefield under your control tapped
+                // and attacking".
+                format!("put {o} onto the battlefield under your control{tapped}")
+            } else if from_graveyard {
                 format!("return this card from your graveyard to the battlefield{tapped}")
             } else if others || (*put && *under_you) {
                 format!("put {o} onto the battlefield{tapped} under your control")

@@ -1464,7 +1464,12 @@ Equipment to the amassed Army"), `create 2 "Soldier"`,
 `create 1 tapped and attacking "..."` ("create a ... token that's tapped
 and attacking", "... tokens that are tapped and attacking": CR 508.4, never
 declared as attackers; they attack what the source is attacking, else an
-opponent),
+opponent; likewise `put Soldier creature card from hand onto battlefield
+tapped and attacking`, `return target creature card from your graveyard to
+battlefield tapped and attacking`, `return this to battlefield tapped and
+attacking` from the graveyard, and `put target 1 onto battlefield under your
+control tapped and attacking` ("... onto the battlefield under your control
+tapped and attacking"),
 `create 1 "Eldrazi Scion" it has` (the token's abilities after the
 sentence: "Create a 1/1 colorless Eldrazi Scion creature token. It has
 \"Sacrifice this token: Add {C}.\""; "They have" for more than one),
