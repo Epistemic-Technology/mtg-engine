@@ -199,6 +199,19 @@ impl Line {
             .or_else(|_| self.fail(format!("expected a non-negative number, found {n}")))
     }
 
+    /// `mode N` (1-based), if present.
+    fn mode(&mut self) -> Result<Option<usize>, ParseError> {
+        if !self.peek_ident("mode") {
+            return Ok(None);
+        }
+        self.pos += 1;
+        let n = self.count()?;
+        if n == 0 {
+            return self.fail("modes are numbered from 1");
+        }
+        Ok(Some(n))
+    }
+
     fn count(&mut self) -> Result<usize, ParseError> {
         let n = self.number()?;
         usize::try_from(n).or_else(|_| self.fail(format!("expected a count, found {n}")))
@@ -724,6 +737,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
         "discard" => (Action::Discard(line.string()?), Some(Step::Cleanup)),
         "trigger" => {
             let source = line.string()?;
+            let mode = line.mode()?;
             let mut targets = Vec::new();
             if line.peek_ident("targeting") {
                 line.pos += 1;
@@ -736,7 +750,14 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     }
                 }
             }
-            (Action::Trigger { source, targets }, None)
+            (
+                Action::Trigger {
+                    source,
+                    mode,
+                    targets,
+                },
+                None,
+            )
         }
         "apply" => (Action::Apply(line.string()?), None),
         "unmorph" => (Action::TurnFaceUp(line.string()?), None),
@@ -757,6 +778,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 None
             };
+            let mode = line.mode()?;
             let x = if line.peek_ident("x") {
                 line.pos += 1;
                 Some(u32::try_from(line.count()?).unwrap_or(u32::MAX))
@@ -791,6 +813,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                 Action::Activate {
                     source,
                     ability,
+                    mode,
                     x,
                     sacrifice,
                     discard,

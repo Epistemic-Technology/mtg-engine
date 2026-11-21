@@ -166,3 +166,14 @@ scenario "modal trigger: Aven Surveyor's first mode" {
   run_to turn 1 postcombat_main
   assert power "Aven Surveyor" 3
 }
+
+scenario "modal trigger: Aven Surveyor's second mode returns a creature" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Aven Surveyor"
+  turn 1 A: cast "Aven Surveyor"
+  turn 1 A: trigger "Aven Surveyor" mode 2 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert power "Aven Surveyor" 2
+}

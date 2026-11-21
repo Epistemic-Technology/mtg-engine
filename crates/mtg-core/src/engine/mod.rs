@@ -1538,7 +1538,7 @@ impl GameState {
                         options,
                     });
                 }
-                Flow::ChoosingMode { spell } => {
+                Flow::ChoosingMode { spell, .. } => {
                     let player = self.objects[spell].controller;
                     let options = self.mode_options(spell);
                     if options.is_empty() {
@@ -1778,7 +1778,11 @@ impl GameState {
                 self.cbump();
                 let def = self.pool.get(face_def);
                 self.flow = if def.modes().is_some() {
-                    Flow::ChoosingMode { spell }
+                    Flow::ChoosingMode {
+                        spell,
+                        sacrifice: None,
+                        discard: None,
+                    }
                 } else {
                     self.after_mode(spell)
                 };
@@ -1853,11 +1857,30 @@ impl GameState {
                 }
                 self.give_priority(player);
             }
-            (Flow::ChoosingMode { spell }, Choice::Mode(i)) => {
+            (
+                Flow::ChoosingMode {
+                    spell,
+                    sacrifice,
+                    discard,
+                },
+                Choice::Mode(i),
+            ) => {
                 self.objects[spell]
                     .cast
                     .set_mode(u8::try_from(i).unwrap_or(0));
-                self.flow = self.after_mode(spell);
+                // An activated ability goes on to X and its mode's targets
+                // with what its cost chose (CR 602.2b).
+                let activated = self.objects[spell].ability.is_some_and(|a| {
+                    matches!(
+                        self.pool.ability(a.ability),
+                        crate::card::AbilityDef::Activated(_)
+                    )
+                });
+                self.flow = if activated {
+                    self.after_activated_mode(spell, sacrifice, discard)
+                } else {
+                    self.after_mode(spell)
+                };
             }
             (
                 Flow::ChoosingX {
@@ -2216,7 +2239,11 @@ impl GameState {
             self.objects[spell].cast.set_as_cast();
         }
         self.flow = if def.modes().is_some() {
-            Flow::ChoosingMode { spell }
+            Flow::ChoosingMode {
+                spell,
+                sacrifice: None,
+                discard: None,
+            }
         } else {
             self.after_mode(spell)
         };
@@ -2255,6 +2282,35 @@ impl GameState {
             }
         }
         out
+    }
+
+    fn after_activated_mode(
+        &self,
+        spell: ObjId,
+        sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
+    ) -> Flow {
+        let has_x = self.objects[spell].ability.is_some_and(|a| {
+            matches!(
+                self.pool.ability(a.ability),
+                crate::card::AbilityDef::Activated(ab) if ab.cost.mana.has_x()
+                    || ab.cost.exile_cards.as_ref().is_some_and(|g| g.x)
+            )
+        });
+        if has_x {
+            Flow::ChoosingX {
+                spell,
+                sacrifice,
+                discard,
+            }
+        } else {
+            Flow::Casting {
+                spell,
+                next_target: 0,
+                sacrifice,
+                discard,
+            }
+        }
     }
 
     fn after_mode(&self, spell: ObjId) -> Flow {

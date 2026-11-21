@@ -3617,6 +3617,14 @@ impl GameState {
                 if !self.targets_available(p, &ab.targets, Some(id)) {
                     continue;
                 }
+                // A modal ability needs a mode it can choose (CR 700.2).
+                if let [crate::card::Effect::Modes(modes)] = ab.effects.as_slice()
+                    && !modes
+                        .iter()
+                        .any(|m| self.targets_available(p, &m.targets, Some(id)))
+                {
+                    continue;
+                }
                 if ab.cost.crew > 0 && self.crew_power(p, id, ab.saddles()) < ab.cost.crew {
                     continue;
                 }
@@ -3951,7 +3959,19 @@ impl GameState {
                 || a.cost.exile_cards.as_ref().is_some_and(|g| g.x))
                 && !a.is_mana_ability()
         );
-        self.flow = if has_x {
+        // CR 602.2b, 601.2b: a modal activated ability's mode is chosen
+        // first.
+        let modal = matches!(
+            self.pool.ability(ability).effects(),
+            [crate::card::Effect::Modes(_)]
+        );
+        self.flow = if modal {
+            crate::state::Flow::ChoosingMode {
+                spell: obj,
+                sacrifice,
+                discard,
+            }
+        } else if has_x {
             crate::state::Flow::ChoosingX {
                 spell: obj,
                 sacrifice,

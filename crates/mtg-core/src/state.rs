@@ -1271,6 +1271,9 @@ pub enum Flow {
     /// its targets.
     ChoosingMode {
         spell: ObjId,
+        /// An activated ability's: what its cost chose (as `ChoosingX`).
+        sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
     },
     /// Choosing X for a spell being cast (CR 601.2b), after the mode and
     /// before targets, or for an activated ability with {X} in its cost

@@ -198,6 +198,9 @@ pub enum Action {
     /// its targets are chosen, use these.
     Trigger {
         source: String,
+        /// `mode N` (1-based) for a modal triggered ability (CR 700.2,
+        /// 603.3c).
+        mode: Option<usize>,
         targets: Vec<TargetRef>,
     },
     /// `apply "Source"`: when several replacement or prevention effects
@@ -212,6 +215,8 @@ pub enum Action {
         source: String,
         /// `ability N` (1-based among the permanent's activated abilities).
         ability: Option<usize>,
+        /// `mode N` (1-based) for a modal activated ability (CR 700.2).
+        mode: Option<usize>,
         /// `x N` for an ability with {X} in its cost (CR 602.2b).
         x: Option<u32>,
         sacrifice: Option<String>,

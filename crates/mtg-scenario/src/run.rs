@@ -440,7 +440,7 @@ impl Runner {
             DecisionKind::OrderTriggers => Ok(self.order_triggers(d, pos)),
             DecisionKind::ChooseReplacement => Ok(self.choose_replacement(d, pos)),
             DecisionKind::LegendRule => Ok(self.keep_legend(d, pos)),
-            DecisionKind::ChooseMode { .. } => self.choose_mode(d),
+            DecisionKind::ChooseMode { .. } => self.choose_mode(d, pos),
             DecisionKind::ChooseX { .. }
             | DecisionKind::Replicate { .. }
             | DecisionKind::Multikicker { .. } => self.choose_x(d),
@@ -653,7 +653,12 @@ impl Runner {
 
     /// The mode of the modal spell being cast: the one scripted with
     /// `mode N`, else the engine's first option.
-    fn choose_mode(&mut self, d: &Decision) -> Res<ChoiceId> {
+    fn choose_mode(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
+        if self.pending_mode.is_none()
+            && let DecisionKind::ChooseMode { spell } = d.kind
+        {
+            self.pending_mode = self.trigger_mode(d, spell, pos);
+        }
         let Some(m) = self.pending_mode.take() else {
             return Ok(0);
         };
@@ -665,6 +670,37 @@ impl Runner {
                 self.describe_options(d)
             ),
         })
+    }
+
+    /// The mode scripted for a modal triggered ability put on the stack
+    /// without an ordering decision: its `trigger "Source" mode N` line's
+    /// (fired now if it scripts no targets; otherwise as its targets are
+    /// chosen).
+    fn trigger_mode(&mut self, d: &Decision, ability: ObjId, pos: Position) -> Option<usize> {
+        let st = self.state();
+        let o = st.objects.get(ability)?;
+        if o.kind != ObjKind::Ability {
+            return None;
+        }
+        let source = o
+            .ability
+            .map(|a| st.name_of_or_lki(a.source).to_string())
+            .unwrap_or_default();
+        let idxs = self.matching(
+            d.player,
+            pos,
+            true,
+            |a| matches!(a, Action::Trigger { source: s, .. } if *s == source),
+        );
+        let i = *idxs.first()?;
+        let Action::Trigger { mode, targets, .. } = &self.actions[i].action else {
+            unreachable!()
+        };
+        let mode = *mode;
+        if targets.is_empty() {
+            self.fired[i] = true;
+        }
+        mode
     }
 
     /// A "you may" of `def`: the first unfired scripted `accept`/`decline`
@@ -844,7 +880,12 @@ impl Runner {
         let idxs = self.matching(d.player, pos, true, |a| matches!(a, Action::Trigger { .. }));
         for i in idxs {
             let a = self.actions[i].clone();
-            let Action::Trigger { source, targets } = &a.action else {
+            let Action::Trigger {
+                source,
+                targets,
+                mode,
+            } = &a.action
+            else {
                 unreachable!()
             };
             let found = d.options.iter().position(|c| match c {
@@ -858,6 +899,9 @@ impl Runner {
             if let Some(idx) = found {
                 self.fired[i] = true;
                 self.pending_targets = (!targets.is_empty()).then(|| targets.clone());
+                if mode.is_some() {
+                    self.pending_mode = *mode;
+                }
                 return idx_u32(idx);
             }
         }
@@ -1067,6 +1111,7 @@ impl Runner {
             if let Action::Activate {
                 source,
                 ability,
+                mode,
                 x,
                 sacrifice,
                 discard,
@@ -1077,7 +1122,7 @@ impl Runner {
                     d,
                     &a,
                     source,
-                    (*ability, *x),
+                    (*ability, *mode, *x),
                     sacrifice.as_deref(),
                     discard.as_deref(),
                     targets,
@@ -1434,7 +1479,7 @@ impl Runner {
         d: &Decision,
         a: &ScriptedAction,
         source: &str,
-        (nth, x): (Option<usize>, Option<u32>),
+        (nth, mode, x): (Option<usize>, Option<usize>, Option<u32>),
         sacrifice: Option<&str>,
         discard: Option<&str>,
         targets: &[TargetRef],
@@ -1521,7 +1566,29 @@ impl Runner {
                 let Choice::Activate { ability, .. } = &d.options[idx] else {
                     unreachable!()
                 };
-                let specs = self.state().pool.ability(*ability).targets();
+                // A modal ability's targets are the chosen mode's (the
+                // first, unscripted).
+                let st = self.state();
+                let specs = match st.pool.ability(*ability).effects() {
+                    [mtg_core::card::Effect::Modes(modes)] => {
+                        let Some(m) = modes.get(mode.unwrap_or(1) - 1) else {
+                            return fail(
+                                a.line,
+                                format!("\"{source}\"'s ability has {} modes", modes.len()),
+                            );
+                        };
+                        // Unscripted targets: the engine's first options.
+                        if targets.is_empty() {
+                            &[]
+                        } else {
+                            m.targets.as_slice()
+                        }
+                    }
+                    _ if mode.is_some() => {
+                        return fail(a.line, format!("\"{source}\"'s ability is not modal"));
+                    }
+                    _ => st.pool.ability(*ability).targets(),
+                };
                 let (needed, optional, more) =
                     (specs.len(), optional_count(specs), unbounded(specs));
                 let targets = expand_auto(targets, needed);
@@ -1538,6 +1605,7 @@ impl Runner {
                     self.pending_targets = Some(targets.clone());
                 }
                 self.pending_x = x;
+                self.pending_mode = mode;
                 Ok(Some(idx_u32(idx)))
             }
         }

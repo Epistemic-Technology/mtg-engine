@@ -1393,7 +1393,11 @@ impl GameState {
             def,
         });
         self.flow = if modal.is_some() {
-            Flow::ChoosingMode { spell: obj }
+            Flow::ChoosingMode {
+                spell: obj,
+                sacrifice: None,
+                discard: None,
+            }
         } else if specs.is_empty() {
             Flow::Priority
         } else {

@@ -22,3 +22,20 @@ scenario "cannot enchant a land" {
   assert hand A contains "Quiet Disrepair"
   assert battlefield B contains "Mountain"
 }
+
+scenario "the upkeep trigger's second mode gains 2 life" {
+  battlefield A: "Ornithopter", "Quiet Disrepair" on "Ornithopter"
+  start turn 3 A
+  turn 3 upkeep A: trigger "Quiet Disrepair" mode 2
+  run_to turn 3 precombat_main
+  assert life A 22
+  assert battlefield A contains "Ornithopter"
+}
+
+scenario "the upkeep trigger's first mode destroys the enchanted artifact" {
+  battlefield A: "Ornithopter", "Quiet Disrepair" on "Ornithopter"
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert life A 20
+  assert graveyard A contains "Ornithopter"
+}
