@@ -565,6 +565,8 @@ pub struct Cost {
     pub behold: Option<Box<Behold>>,
     /// `collect evidence 3`: "Collect evidence 3" (CR 701.59a).
     pub evidence: u32,
+    /// `forage`: "Forage" (CR 701.61a).
+    pub forage: bool,
     /// `waterbend {3}`: "Waterbend {3}" (CR 701.67a): the mana's generic
     /// part may be paid by tapping artifacts and creatures.
     pub waterbend: bool,
@@ -617,6 +619,8 @@ pub enum CostItem {
     Behold,
     /// `collect evidence 3`.
     Evidence,
+    /// `forage`.
+    Forage,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -2402,6 +2406,8 @@ pub enum Trigger {
     Expends(u8),
     /// `whenever you collect evidence` (CR 701.59).
     CollectsEvidence,
+    /// `whenever you forage` (CR 701.61).
+    Forages,
     /// `whenever you turn a permanent face up` (CR 708.8): a permanent you
     /// control is turned face up; it is "it".
     YouTurnFaceUp,
@@ -3415,6 +3421,9 @@ pub enum Effect {
         who: Recipient,
         n: u32,
     },
+    /// `forage` (CR 701.61): exile three cards from your graveyard or
+    /// sacrifice a Food.
+    Forage,
     /// `collect evidence 4` (CR 701.59).
     CollectEvidence(u32),
     /// `blight 2` (CR 701.68).

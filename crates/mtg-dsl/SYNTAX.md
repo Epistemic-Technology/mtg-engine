@@ -802,6 +802,16 @@ the greatest mana values first, then it drops the smallest picks the total
 doesn't need, sparing what the spell or ability targets. Trigger `whenever
 you collect evidence`.
 
+Forage (CR 701.61): `forage` is an effect ("exile three cards from your
+graveyard or sacrifice a Food": with both possible the controller chooses,
+`choose "1"` the cards, `choose "2"` a Food; with neither, nothing happens
+and `if you do` after `you may forage` fails), a cost (`{2}, forage: ...`
+prints "{2}, Forage: ..."; `additional cost forage` / `additional cost or
+{B}` prints "As an additional cost to cast this spell, forage or pay
+{B}."), where the engine exiles the three oldest other cards if it can and
+otherwise sacrifices a Food, and the trigger `whenever you forage`. A mana
+ability with a forage cost is activated on its own, not while paying.
+
 Suspect (CR 701.60): `suspect target creature`, `suspect this`, `suspect
 enchanted creature` (a suspected permanent has menace and "This creature
 can't block" for as long as it's suspected, CR 701.60c; it stops being

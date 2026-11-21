@@ -4043,6 +4043,10 @@ pub enum Effect {
     /// them); with too little there, nothing is exiled and it isn't done
     /// (701.59b).
     CollectEvidence(u32),
+    /// "Forage" (CR 701.61a): exile three cards from your graveyard or
+    /// sacrifice a Food, as the controller chooses; "If you do" sees
+    /// whether they could.
+    Forage,
     /// Craft's effect (CR 702.167a): "Return this card transformed under
     /// its owner's control": the source's card, exiled by the cost, onto
     /// the battlefield with its back face up (CR 712.14).
@@ -4264,6 +4268,7 @@ impl Effect {
                 | Effect::IfThisWay { .. }
                 | Effect::IfExcessDamage(_)
                 | Effect::ChooseAct { .. }
+                | Effect::Forage
                 | Effect::OneOf(_)
                 | Effect::DiscardUnless { .. }
                 // A source of the controller's choice (CR 609.7a).
@@ -4728,6 +4733,8 @@ pub enum TriggerSpec {
     FullyUnlocks { whose: Who },
     /// "Whenever you collect evidence" (CR 701.59).
     CollectsEvidence { whose: Who },
+    /// "Whenever you forage" (CR 701.61).
+    Forages { whose: Who },
     /// "Whenever you gain life".
     GainsLife { whose: Who },
     /// "Whenever you gain life for the first time each turn": the life
@@ -5050,6 +5057,7 @@ impl TriggerSpec {
             | TriggerSpec::BecomesStage(_)
             | TriggerSpec::FullyUnlocks { .. }
             | TriggerSpec::CollectsEvidence { .. }
+            | TriggerSpec::Forages { .. }
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
             TriggerSpec::CountersPut { .. } | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
@@ -5236,6 +5244,11 @@ pub struct Cost {
     /// "Collect evidence N" (CR 701.59a): exile cards with total mana value
     /// N or greater from the payer's graveyard (the engine picks them).
     pub evidence: u32,
+    /// "Forage" (CR 701.61a): exile three cards from the payer's graveyard
+    /// or sacrifice a Food (the engine picks: the three oldest cards if
+    /// there are three, else a Food).
+    #[serde(default)]
+    pub forage: bool,
     /// Craft's materials (CR 702.167a): "Exile another artifact you
     /// control or an artifact card from your graveyard": one permanent the
     /// payer controls or card in their graveyard matching the filter,
@@ -5316,6 +5329,7 @@ impl Cost {
             blight: 0,
             behold: None,
             evidence: 0,
+            forage: false,
             craft: None,
             waterbend: false,
         }

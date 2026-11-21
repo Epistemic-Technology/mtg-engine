@@ -1,0 +1,8 @@
+card "Treetop Sentries" {
+  oracle_id 5bf5739a-6322-4e6e-b41e-e7bdbb11b1ce
+  cost {3}{G}
+  type Creature — Squirrel Archer
+  pt 2/4
+  keywords reach
+  triggered when this enters: you may forage; if you do, draw 1 card
+}

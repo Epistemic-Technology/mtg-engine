@@ -637,6 +637,7 @@ impl Fmt {
             Effect::ManifestDread => "manifest dread".to_string(),
             Effect::Blight(n) => format!("blight {n}"),
             Effect::CollectEvidence(n) => format!("collect evidence {n}"),
+            Effect::Forage => "forage".to_string(),
             Effect::Adapt(n) => format!("adapt {n}"),
             Effect::Bolster(n) => format!("bolster {}", num(*n)),
             Effect::Monstrosity(n) => format!("monstrosity {}", num(*n)),
@@ -3516,6 +3517,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::Forages => "whenever you forage".to_string(),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
         Trigger::EntersBatch(f) => format!("whenever one or more {} enter", filter(f)),
         Trigger::LeavesBatch { filter: f, dies } => format!(
@@ -3541,6 +3543,7 @@ fn cost_text(c: &Cost) -> String {
         CostItem::ExileCards,
         CostItem::Blight,
         CostItem::Evidence,
+        CostItem::Forage,
     ];
     let order: &[CostItem] = if c.order.is_empty() {
         &default_order
@@ -3666,6 +3669,11 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Evidence => {
                 if c.evidence > 0 {
                     parts.push(format!("collect evidence {}", c.evidence));
+                }
+            }
+            CostItem::Forage => {
+                if c.forage {
+                    parts.push("forage".to_string());
                 }
             }
         }

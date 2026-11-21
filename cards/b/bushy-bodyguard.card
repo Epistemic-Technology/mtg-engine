@@ -1,0 +1,8 @@
+card "Bushy Bodyguard" {
+  oracle_id 5436bb0d-b5c7-43a9-8b3f-67cdc0dd0381
+  cost {1}{G}
+  type Creature — Squirrel Warrior
+  pt 2/1
+  offspring {2}
+  triggered when this enters: you may forage; if you do, put 2 +1/+1 counters on this
+}

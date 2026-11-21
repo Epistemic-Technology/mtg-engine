@@ -2084,6 +2084,46 @@ impl GameState {
     /// engine picking them: the greatest mana values first, then dropping
     /// the smallest picks the total doesn't need. Sparing what the spell or
     /// ability being paid for targets. Whether it was done.
+    /// CR 701.61a: `p` forages: exiles three cards from their graveyard
+    /// (the oldest, other than `except`) or sacrifices a Food. With both
+    /// possible, `ask` (the source's definition, as an effect resolves)
+    /// lets them choose (`choose "1"` the cards, `choose "2"` a Food);
+    /// paying a cost, the engine exiles the cards. Whether they foraged.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn forage(
+        &mut self,
+        p: PlayerId,
+        except: ObjId,
+        ask: Option<crate::card::CardRef>,
+    ) -> bool {
+        let cards = self.forage_cards(p, except);
+        let foods = self.forage_foods(p);
+        let can_exile = cards.len() >= 3;
+        if !can_exile && foods.is_empty() {
+            return false;
+        }
+        let exile = match ask {
+            Some(def) if can_exile && !foods.is_empty() => {
+                self.choose_mid(
+                    p,
+                    DecisionKind::ChooseOption { def },
+                    vec![Choice::Mode(0), Choice::Mode(1)],
+                ) == 0
+            }
+            _ => can_exile,
+        };
+        if exile {
+            for id in cards.into_iter().take(3) {
+                self.move_object(id, Zone::Exile, true);
+            }
+        } else {
+            self.sacrifice(foods[0]);
+        }
+        self.emit(Event::Foraged { player: p });
+        true
+    }
+
     pub(super) fn collect_evidence(&mut self, p: PlayerId, n: u32, except: ObjId) -> bool {
         if !self.evidence_payable(p, n, except) {
             return false;
@@ -5173,6 +5213,9 @@ impl GameState {
         }
         if cost.evidence > 0 {
             self.collect_evidence(p, cost.evidence, this);
+        }
+        if cost.forage {
+            self.forage(p, this, None);
         }
         // CR 702.167a: craft's materials, a graveyard card first.
         if let Some(f) = cost.craft.as_deref()
@@ -10595,6 +10638,14 @@ impl GameState {
             }
             Effect::CollectEvidence(n) => {
                 ctx.did = self.collect_evidence(ctx.controller, *n, ctx.source);
+            }
+            Effect::Forage => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| &l.object))
+                    .map(|o| o.def);
+                ctx.did = self.forage(ctx.controller, ctx.source, def);
             }
             Effect::ReturnTransformed => {
                 // CR 702.167a, 712.14: the card exiled to pay the cost

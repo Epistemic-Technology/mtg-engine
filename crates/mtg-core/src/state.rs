@@ -2708,6 +2708,36 @@ impl GameState {
             .collect()
     }
 
+    /// The cards in `p`'s graveyard a forage could exile (CR 701.61a),
+    /// other than `except`, oldest first.
+    pub fn forage_cards(&self, p: PlayerId, except: ObjId) -> Vec<ObjId> {
+        self.player(p)
+            .graveyard
+            .iter()
+            .copied()
+            .filter(|id| *id != except)
+            .collect()
+    }
+
+    /// The Foods `p` controls a forage could sacrifice (CR 701.61a).
+    pub fn forage_foods(&self, p: PlayerId) -> Vec<ObjId> {
+        let Some(food) = self.pool.subtype_lookup("Food") else {
+            return Vec::new();
+        };
+        self.permanents_of(p)
+            .filter(|id| {
+                self.characteristics(*id)
+                    .is_some_and(|c| c.has_subtype(food))
+            })
+            .collect()
+    }
+
+    /// Whether `p` can forage (CR 701.61a): three other cards in their
+    /// graveyard, or a Food.
+    pub fn forage_payable(&self, p: PlayerId, except: ObjId) -> bool {
+        self.forage_cards(p, except).len() >= 3 || !self.forage_foods(p).is_empty()
+    }
+
     /// Whether `p` can collect evidence `n` (CR 701.59b): the cards in
     /// their graveyard have total mana value `n` or greater.
     pub fn evidence_payable(&self, p: PlayerId, n: u32, except: ObjId) -> bool {
@@ -2726,6 +2756,7 @@ impl GameState {
     pub fn other_costs_payable(&self, p: PlayerId, c: &crate::card::Cost, except: ObjId) -> bool {
         !(c.blight > 0 && self.creatures_of(p).next().is_none())
             && self.evidence_payable(p, c.evidence, except)
+            && (!c.forage || self.forage_payable(p, except))
             && c.craft
                 .as_deref()
                 .is_none_or(|f| !self.craft_candidates(p, f, except).is_empty())

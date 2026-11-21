@@ -846,7 +846,8 @@ impl GameState {
             }
             (TriggerSpec::WinsFlip { whose }, Event::FlippedCoin { player, won: true })
             | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. })
-            | (TriggerSpec::CollectsEvidence { whose }, Event::CollectedEvidence { player }) => {
+            | (TriggerSpec::CollectsEvidence { whose }, Event::CollectedEvidence { player })
+            | (TriggerSpec::Forages { whose }, Event::Foraged { player }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))
             }
             // CR 122.1: "Whenever one or more +1/+1 counters are put on

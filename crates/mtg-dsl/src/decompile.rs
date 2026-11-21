@@ -349,6 +349,7 @@ impl Decompiler<'_> {
             energy: c.energy,
             blight: c.blight,
             evidence: c.evidence,
+            forage: c.forage,
             waterbend: c.waterbend,
             chosen: c.chosen,
             count: c.count,
@@ -1216,6 +1217,7 @@ impl Decompiler<'_> {
             CoreEffect::ManifestDread => Effect::ManifestDread,
             CoreEffect::Blight(n) => Effect::Blight(*n),
             CoreEffect::CollectEvidence(n) => Effect::CollectEvidence(*n),
+            CoreEffect::Forage => Effect::Forage,
             CoreEffect::CastExiled(_)
             | CoreEffect::SuspendTick
             | CoreEffect::CopySpell
@@ -1632,6 +1634,7 @@ impl Decompiler<'_> {
             TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
+            TriggerSpec::Forages { .. } => Trigger::Forages,
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Next(inner) => Trigger::Next(Box::new(self.trigger(inner))),
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),

@@ -6569,6 +6569,7 @@ impl P {
             "manifest" if self.eat_word("dread") => Ok(Effect::ManifestDread),
             "blight" => Ok(Effect::Blight(self.count()?)),
             "collect" if self.eat_word("evidence") => Ok(Effect::CollectEvidence(self.count()?)),
+            "forage" => Ok(Effect::Forage),
             "waterbend" => Ok(Effect::Waterbend(self.mana_cost()?)),
             "manifest" => {
                 self.eat_words(&["the", "top", "card", "of", "your", "library"]);
@@ -9752,6 +9753,9 @@ impl P {
         if self.eat_words(&["you", "collect", "evidence"]) {
             return Ok(Trigger::CollectsEvidence);
         }
+        if self.eat_words(&["you", "forage"]) {
+            return Ok(Trigger::Forages);
+        }
         if self.eat_words(&["you", "turn", "a", "permanent", "face", "up"]) {
             return Ok(Trigger::YouTurnFaceUp);
         }
@@ -10448,6 +10452,12 @@ impl P {
                         self.pos += 1;
                         cost.blight = self.count()?;
                         cost.order.push(CostItem::Blight);
+                    }
+                    // CR 701.61a: `forage`.
+                    "forage" => {
+                        self.pos += 1;
+                        cost.forage = true;
+                        cost.order.push(CostItem::Forage);
                     }
                     "collect"
                         if self.word_at(1).as_deref() == Some("evidence")

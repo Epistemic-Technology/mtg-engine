@@ -2486,6 +2486,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
         CostItem::ExileCards,
         CostItem::Blight,
         CostItem::Evidence,
+        CostItem::Forage,
     ];
     let order: &[CostItem] = if cost.order.is_empty() {
         &default_order
@@ -2640,6 +2641,11 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             CostItem::Evidence => {
                 if cost.evidence > 0 {
                     parts.push(format!("Collect evidence {}", cost.evidence));
+                }
+            }
+            CostItem::Forage => {
+                if cost.forage {
+                    parts.push("Forage".to_string());
                 }
             }
         }
@@ -3781,6 +3787,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::ManifestDread => Clause::imperative("manifest dread".to_string()),
         Effect::Blight(n) => Clause::imperative(format!("blight {n}")),
         Effect::CollectEvidence(n) => Clause::imperative(format!("collect evidence {n}")),
+        Effect::Forage => Clause::imperative("forage".to_string()),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Bolster(n) => Clause::imperative(format!("bolster {}", digits(*n))),
         Effect::Monstrosity(n) => Clause::imperative(format!("monstrosity {}", digits(*n))),
@@ -7357,6 +7364,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         ),
         Trigger::Expends(n) => format!("whenever you expend {n}"),
         Trigger::CollectsEvidence => "whenever you collect evidence".to_string(),
+        Trigger::Forages => "whenever you forage".to_string(),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
         Trigger::EntersBatch(f) => format!(
             "whenever one or more {} enter",

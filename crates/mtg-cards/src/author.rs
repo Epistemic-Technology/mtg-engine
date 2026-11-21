@@ -186,6 +186,7 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Sneak",
     "Harmonize",
     "Web-slinging",
+    "Forage",
     "Endure",
     "Spree",
     "Gift",
@@ -1490,6 +1491,10 @@ impl Templates {
             (r(r"^Amass (\w+) (\w+)$"), |c, _| {
                 Some(format!("amass {} {}", cap(c, 1), number(cap(c, 2))?))
             }),
+            // CR 701.61a: "you may forage. If you do, ...".
+            (r(r"^(?:[Yy]ou )?[Ff]orage$"), |_, _| {
+                Some("forage".to_string())
+            }),
             // CR 701.63a: "it endures 2", "Anafenza endures 2".
             (
                 r(r"^(?:It|it|This creature|this creature|~) endures (\d+)$"),
@@ -2478,6 +2483,9 @@ fn cost_text(s: &str) -> Option<String> {
             format!("waterbend {mana}")
         } else if part == "Discard a card" {
             "discard 1 card".to_string()
+        } else if part == "Forage" {
+            // CR 701.61a.
+            "forage".to_string()
         } else if let Some(n) = part
             .strip_prefix("Collect evidence ")
             .filter(|n| n.chars().all(|c| c.is_ascii_digit()))

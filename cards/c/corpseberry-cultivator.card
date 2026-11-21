@@ -1,0 +1,8 @@
+card "Corpseberry Cultivator" {
+  oracle_id 5ded56df-c7d5-4043-85df-410f47219faa
+  cost {1}{B/G}{B/G}
+  type Creature — Squirrel Warlock
+  pt 2/3
+  triggered at beginning of your combat: you may forage
+  triggered whenever you forage: put 1 +1/+1 counter on this
+}

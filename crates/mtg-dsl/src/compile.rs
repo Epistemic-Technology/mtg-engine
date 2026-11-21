@@ -1655,6 +1655,7 @@ impl Compiler<'_> {
             energy: c.energy,
             blight: c.blight,
             evidence: c.evidence,
+            forage: c.forage,
             waterbend: c.waterbend,
             chosen: c.chosen,
             life: c.life,
@@ -2678,6 +2679,7 @@ impl Compiler<'_> {
             Effect::ManifestDread => out.push(CoreEffect::ManifestDread),
             Effect::Blight(n) => out.push(CoreEffect::Blight(*n)),
             Effect::CollectEvidence(n) => out.push(CoreEffect::CollectEvidence(*n)),
+            Effect::Forage => out.push(CoreEffect::Forage),
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
             Effect::Bolster(n) => out.push(CoreEffect::Bolster(*n)),
             Effect::Monstrosity(n) => out.push(CoreEffect::Monstrosity(*n)),
@@ -3130,6 +3132,7 @@ impl Compiler<'_> {
             Trigger::EntersFromGraveyard(f) => TriggerSpec::EntersFromGraveyard(self.filter(f)),
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
+            Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
             Trigger::YouTurnFaceUp => TriggerSpec::TurnedFaceUp(self.trigger_obj(
                 &crate::ast::TriggerObj::Filter(Filter {
                     who: Some(Who::You),
