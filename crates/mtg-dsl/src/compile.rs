@@ -853,6 +853,7 @@ impl Compiler<'_> {
                         | Ability::ModalBoth(_)
                         | Ability::ModalTwo(_)
                         | Ability::Spree(_)
+                        | Ability::Pawprint { .. }
                 )
             })
             .count();
@@ -1135,6 +1136,7 @@ impl Compiler<'_> {
                     .to_string(),
                 split: None,
                 split2: None,
+                more: Vec::new(),
                 name: m.name.clone(),
             });
         }
@@ -1150,6 +1152,7 @@ impl Compiler<'_> {
                     text: format!("{} and {}", a.text, b.text),
                     split: Some((0, u16::try_from(b.targets.len()).unwrap_or(u16::MAX))),
                     split2: Some((u16::try_from(a.effects.len()).unwrap_or(u16::MAX), 0)),
+                    more: Vec::new(),
                     name: None,
                 };
             }
@@ -1162,6 +1165,7 @@ impl Compiler<'_> {
                     u16::try_from(a.targets.len()).unwrap_or(u16::MAX),
                 )),
                 split2: None,
+                more: Vec::new(),
                 name: None,
             }
         };
@@ -1271,6 +1275,7 @@ impl Compiler<'_> {
                 text: String::new(),
                 split: None,
                 split2: None,
+                more: Vec::new(),
                 name: None,
             };
             for (k, p) in parts.iter().enumerate() {
@@ -1289,6 +1294,75 @@ impl Compiler<'_> {
             m.text = parts
                 .iter()
                 .map(|p| p.text.as_str())
+                .collect::<Vec<_>>()
+                .join(" and ");
+            out.push(m);
+        }
+        Ok(out)
+    }
+
+    /// "Choose up to five {P} worth of modes. You may choose the same mode
+    /// more than once." (CR 700.2d, 700.2i): every nonempty combination of
+    /// the modes, repeats allowed, whose pawprints total at most `limit`,
+    /// each mode's instances in printed order. The combinations are listed
+    /// in dictionary order of their modes' numbers (1, 1+1, 1+1+1, ...,
+    /// 1+2, ..., 2, ...).
+    fn pawprint_modes(
+        &mut self,
+        limit: u8,
+        modes: &[(u8, crate::ast::Mode)],
+    ) -> Result<Vec<CoreMode>, CompileError> {
+        fn combos(
+            weights: &[u8],
+            from: usize,
+            left: u8,
+            cur: &mut Vec<usize>,
+            out: &mut Vec<Vec<usize>>,
+        ) {
+            for i in from..weights.len() {
+                if weights[i] > left {
+                    continue;
+                }
+                cur.push(i);
+                out.push(cur.clone());
+                combos(weights, i, left - weights[i], cur, out);
+                cur.pop();
+            }
+        }
+        let singles: Vec<crate::ast::Mode> = modes.iter().map(|(_, m)| m.clone()).collect();
+        let singles = self.modes(&singles, false, false)?;
+        let weights: Vec<u8> = modes.iter().map(|(w, _)| *w).collect();
+        let mut sets = Vec::new();
+        combos(&weights, 0, limit, &mut Vec::new(), &mut sets);
+        let mut out = Vec::new();
+        for set in sets {
+            let mut m = CoreMode {
+                targets: Vec::new(),
+                effects: Vec::new(),
+                text: String::new(),
+                split: None,
+                split2: None,
+                more: Vec::new(),
+                name: None,
+            };
+            for (k, i) in set.iter().enumerate() {
+                let p = &singles[*i];
+                let at = (
+                    u16::try_from(m.effects.len()).unwrap_or(u16::MAX),
+                    u16::try_from(m.targets.len()).unwrap_or(u16::MAX),
+                );
+                match k {
+                    0 => {}
+                    1 => m.split = Some(at),
+                    2 => m.split2 = Some(at),
+                    _ => m.more.push(at),
+                }
+                m.targets.extend(p.targets.iter().copied());
+                m.effects.extend(p.effects.iter().cloned());
+            }
+            m.text = set
+                .iter()
+                .map(|i| singles[*i].text.as_str())
                 .collect::<Vec<_>>()
                 .join(" and ");
             out.push(m);
@@ -3449,6 +3523,9 @@ impl Compiler<'_> {
             Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true, false)?),
             Ability::ModalTwo(modes) => AbilityDef::Modal(self.modes(modes, false, true)?),
             Ability::Spree(modes) => AbilityDef::Modal(self.spree_modes(modes)?),
+            Ability::Pawprint { limit, modes } => {
+                AbilityDef::Modal(self.pawprint_modes(*limit, modes)?)
+            }
             Ability::Activated { cost, .. } if cost.discard_x => {
                 return self.err("`discard X cards` is only a spell's additional cost");
             }

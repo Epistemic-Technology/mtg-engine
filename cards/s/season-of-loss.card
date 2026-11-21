@@ -1,0 +1,10 @@
+card "Season of Loss" {
+  oracle_id 31b5d0ad-3a4d-4f43-b0a9-c9f7a362680f
+  cost {3}{B}{B}
+  type Sorcery
+  pawprint 5 {
+    mode 1: each player sacrifices 1 creature
+    mode 2: draw count each creature you control died this turn cards
+    mode 3: each opponent loses count where graveyard creature life
+  }
+}

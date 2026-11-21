@@ -4281,6 +4281,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
         Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
+        Ability::Pawprint { limit, modes } => {
+            let _ = writeln!(out, "{indent}pawprint {limit} {{");
+            for (w, m) in modes {
+                body(
+                    out,
+                    &format!("{indent}  "),
+                    &format!("mode {w}"),
+                    &m.effects,
+                    &m.targets,
+                    groups,
+                );
+            }
+            let _ = writeln!(out, "{indent}}}");
+        }
         Ability::Spree(modes) => {
             let _ = writeln!(out, "{indent}spree {{");
             for (c, m) in modes {

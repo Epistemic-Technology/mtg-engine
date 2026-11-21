@@ -5649,6 +5649,10 @@ pub struct Mode {
     /// starts, as `split` for the second.
     #[serde(default)]
     pub split2: Option<(u16, u16)>,
+    /// A combination of more parts (pawprint modes chosen more than once,
+    /// CR 700.2d, 700.2i): where each part after the third starts.
+    #[serde(default)]
+    pub more: Vec<(u16, u16)>,
     /// A named mode's name ("• Smash the Chest — Destroy target
     /// artifact."), printed before its effect; it has no rules meaning.
     pub name: Option<String>,

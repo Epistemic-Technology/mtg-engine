@@ -1,0 +1,84 @@
+# "Choose up to five {P} worth of modes. You may choose the same mode more
+# than once." (CR 700.2d, 700.2i). The modes of a pawprint spell are every
+# combination whose pawprints total at most five, in dictionary order of
+# their modes ({P}, {P}{P}, {P}{P}{P} here): 1 = 1, 2 = 1+1, 3 = 1+1+1,
+# 4 = 1+1+1+1, 5 = 1+1+1+1+1, 6 = 1+1+1+2, 7 = 1+1+2, 8 = 1+1+3, 9 = 1+2,
+# 10 = 1+2+2, 11 = 1+3, 12 = 2, 13 = 2+2, 14 = 2+3, 15 = 3.
+
+scenario "pawprint: the same mode five times" {
+  battlefield A: 5 "Plains"
+  hand A: "Season of the Burrow"
+  turn 1 A: cast "Season of the Burrow" mode 5
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 5 "Rabbit"
+}
+
+scenario "pawprint: a two-pawprint mode twice, each with its own target" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Season of the Burrow"
+  library B: 5 "Island"
+  turn 1 A: cast "Season of the Burrow" mode 13 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert hand B count 2
+  assert battlefield A lacks "Rabbit"
+}
+
+scenario "pawprint: two different modes, in printed order" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Season of the Burrow"
+  graveyard A: "Grizzly Bears"
+  library B: 5 "Island"
+  turn 1 A: cast "Season of the Burrow" mode 14 targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert hand B count 1
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" indestructible 1
+}
+
+scenario "pawprint: one mode and two of another" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Season of the Burrow"
+  library B: 5 "Island"
+  turn 1 A: cast "Season of the Burrow" mode 7 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Rabbit"
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "pawprint: no combination is worth more than five pawprints" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Season of the Burrow"
+  graveyard A: "Memnite", "Grizzly Bears"
+  illegal turn 1 A: cast "Season of the Burrow" mode 16 targeting "Memnite", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "pawprint: Season of Loss, two sacrifices then a draw for each of your creatures that died" {
+  battlefield A: 5 "Swamp", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel", "Memnite"
+  hand A: "Season of Loss"
+  library A: 5 "Swamp"
+  turn 1 A: cast "Season of Loss" mode 7
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+  assert graveyard B contains "Memnite"
+  assert hand A count 2
+}
+
+scenario "pawprint: Season of Loss drains for creature cards in your graveyard" {
+  battlefield A: 5 "Swamp"
+  hand A: "Season of Loss"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Forest"
+  turn 1 A: cast "Season of Loss" mode 15
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

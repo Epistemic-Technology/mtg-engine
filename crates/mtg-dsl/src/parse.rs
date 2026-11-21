@@ -2010,6 +2010,13 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Gift(kind)))
             }
+            "pawprint" if self.peek_at(2) == Some(&Tok::LBrace) => {
+                self.pos += 1;
+                let limit = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+                let modes = self.pawprint_block()?;
+                self.end_stmt()?;
+                Ok(Ability::Pawprint { limit, modes })
+            }
             "spree" if self.peek_at(1) == Some(&Tok::LBrace) => {
                 self.pos += 1;
                 let modes = self.spree_block()?;
@@ -2597,6 +2604,43 @@ impl P {
 
     /// `{ mode {2}: ... mode {1}: ... }` after `spree`: each mode's cost,
     /// then its effects.
+    /// `{ mode 1: ... mode 2: ... }` after `pawprint 5`: each mode with its
+    /// number of pawprints.
+    fn pawprint_block(&mut self) -> R<Vec<(u8, Mode)>> {
+        self.expect(&Tok::LBrace)?;
+        self.end_stmt()?;
+        let outer = std::mem::take(&mut self.targets);
+        let mut modes = Vec::new();
+        loop {
+            self.skip_newlines();
+            if self.peek() == Some(&Tok::RBrace) {
+                self.pos += 1;
+                break;
+            }
+            self.expect_word("mode")?;
+            let Some(w) = u8::try_from(self.number()?).ok().filter(|w| *w > 0) else {
+                return self.fail("a pawprint mode has one or more pawprints");
+            };
+            self.targets.clear();
+            self.subject = None;
+            self.revealed = false;
+            let effects = self.effects_body()?;
+            modes.push((
+                w,
+                Mode {
+                    targets: std::mem::take(&mut self.targets),
+                    effects,
+                    name: None,
+                },
+            ));
+        }
+        self.targets = outer;
+        if modes.len() < 2 {
+            return self.fail("`pawprint` takes two or more modes");
+        }
+        Ok(modes)
+    }
+
     fn spree_block(&mut self) -> R<Vec<(ManaCost, Mode)>> {
         self.expect(&Tok::LBrace)?;
         self.end_stmt()?;

@@ -3054,6 +3054,23 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 cards_phrase(f, card, true)
             );
         }
+        // "for each creature that died under your control this turn".
+        CountExpr::DiedThisTurn(f) if f.who == Some(Who::You) => {
+            let g = Filter {
+                who: None,
+                ..f.clone()
+            };
+            (
+                format!(
+                    "{} that died under your control this turn",
+                    filter_phrase(&g, card, false)
+                ),
+                format!(
+                    "{} that died under your control this turn",
+                    filter_phrase(&g, card, true)
+                ),
+            )
+        }
         // "for each Zubera that died this turn".
         CountExpr::DiedThisTurn(f) => (
             format!("{} that died this turn", filter_phrase(f, card, false)),
@@ -10152,6 +10169,25 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             sentences(effects, &mut ctx)
         }
         // CR 702.172b: "+" for the bullets.
+        // CR 700.2i: "Choose up to five {P} worth of modes. You may choose
+        // the same mode more than once.\n{P} — ...".
+        Ability::Pawprint { limit, modes } => {
+            let mut out = format!(
+                "Choose up to {} {{P}} worth of modes. You may choose the same mode more than once.",
+                count_words(Num::N(u32::from(*limit)), "one")
+            );
+            for (w, m) in modes {
+                let mut ctx = Ctx::new(card, lookup, &m.targets);
+                ctx.current = Some(a);
+                let _ = write!(
+                    out,
+                    "\n{} — {}",
+                    "{P}".repeat(usize::from(*w)),
+                    sentences(&m.effects, &mut ctx)
+                );
+            }
+            out
+        }
         Ability::Spree(modes) => {
             let mut out = "Spree".to_string();
             for (c, m) in modes {

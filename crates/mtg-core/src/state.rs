@@ -387,7 +387,7 @@ impl CastInfo {
     /// Every flag and field, for the test that no two share a bit
     /// (parallel branches have twice picked the same free bit).
     #[cfg(test)]
-    const ALL: [u32; 20] = [
+    const ALL: [u32; 21] = [
         Self::KICKS_MASK,
         Self::OFFSPRING,
         Self::BARGAINED,
@@ -407,6 +407,7 @@ impl CastInfo {
         Self::BUYBACK,
         Self::EVOKED,
         Self::MODE,
+        Self::MODE_HIGH,
         Self::CAST_MASK,
     ];
 
@@ -460,6 +461,9 @@ impl CastInfo {
     /// Cast for its evoke cost (CR 702.74); kept by the permanent.
     const EVOKED: u32 = 0x08;
     const MODE: u32 = 0x07;
+    /// The mode's fourth bit (modes 8 to 15: pawprint combinations, CR
+    /// 700.2i).
+    const MODE_HIGH: u32 = 0x4000_0000;
     /// Cast at all, and from where (CR 601.2a); kept by the permanent ("if
     /// you cast it from your hand").
     const CAST_MASK: u32 = 0x1C00;
@@ -648,11 +652,15 @@ impl CastInfo {
     }
 
     pub const fn mode(self) -> u8 {
-        (self.0 & Self::MODE) as u8
+        let high = if self.0 & Self::MODE_HIGH != 0 { 8 } else { 0 };
+        (self.0 & Self::MODE) as u8 | high
     }
 
+    /// The chosen mode, 0 to 15.
     pub fn set_mode(&mut self, mode: u8) {
-        self.0 = (self.0 & !Self::MODE) | (u32::from(mode) & Self::MODE);
+        debug_assert!(mode < 16, "at most sixteen modes");
+        let high = if mode & 8 != 0 { Self::MODE_HIGH } else { 0 };
+        self.0 = (self.0 & !(Self::MODE | Self::MODE_HIGH)) | (u32::from(mode) & Self::MODE) | high;
     }
 
     pub const fn beheld(self) -> bool {
@@ -2115,7 +2123,12 @@ impl GameState {
         else {
             return out;
         };
-        for (e, t) in m.split.into_iter().chain(m.split2) {
+        for (e, t) in m
+            .split
+            .into_iter()
+            .chain(m.split2)
+            .chain(m.more.iter().copied())
+        {
             out.push((usize::from(e), usize::from(t)));
         }
         out
