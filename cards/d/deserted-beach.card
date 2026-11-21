@@ -1,0 +1,6 @@
+card "Deserted Beach" {
+  oracle_id f0ec8681-da50-466b-8cdd-1dc710deccd9
+  type Land
+  enters tapped unless you control 2 other land
+  mana {W} or {U}
+}

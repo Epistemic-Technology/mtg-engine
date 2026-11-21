@@ -1,0 +1,5 @@
+card "Sunken Hollow" {
+  oracle_id cd2c90ac-2b04-461c-92f3-939871b6b6a3
+  type Land — Island Swamp
+  enters tapped unless you control 2 basic land
+}

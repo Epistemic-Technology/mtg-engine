@@ -1,0 +1,7 @@
+card "Cori Mountain Monastery" {
+  oracle_id 35c60b66-8c85-432e-90fe-99c19d21ed15
+  type Land
+  enters tapped unless you control Plains or a Island
+  mana {R}
+  activated {3}{R}, {T}: impulse 1 next turn first
+}

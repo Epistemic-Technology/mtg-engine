@@ -3168,6 +3168,11 @@ impl P {
         if self.eat_words(&["you", "control", "no"]) {
             return Ok(StaticCond::YouControlNone(self.filter()?));
         }
+        if self.eat_words(&["you", "control", "at", "most"]) {
+            let n = self.number()?;
+            let filter = self.filter()?;
+            return Ok(StaticCond::YouControlAtMost { filter, n });
+        }
         if self.eat_word("enchanted") {
             return Ok(StaticCond::Enchanted);
         }

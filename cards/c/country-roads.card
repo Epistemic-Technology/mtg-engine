@@ -1,0 +1,7 @@
+card "Country Roads" {
+  oracle_id c5a39f76-dd1b-442c-9f52-08561ecb91ad
+  type Land
+  enters tapped unless you control Mount or Vehicle
+  mana {W}
+  activated {1}{W}, {T}, sacrifice this, sorcery: create 1 "1/1 colorless Pilot creature with saddles and crews plus 2"
+}

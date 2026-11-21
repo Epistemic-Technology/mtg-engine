@@ -1,0 +1,6 @@
+card "Dragonskull Summit" {
+  oracle_id 63398c02-6fb1-481d-9d9f-81063532fbc0
+  type Land
+  enters tapped unless you control Swamp or a Mountain
+  mana {B} or {R}
+}

@@ -1,0 +1,6 @@
+card "Rockfall Vale" {
+  oracle_id 185c70c1-8403-4ae5-b45d-3679d4ee092a
+  type Land
+  enters tapped unless you control 2 other land
+  mana {R} or {G}
+}

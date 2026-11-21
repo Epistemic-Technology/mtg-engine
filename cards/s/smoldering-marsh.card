@@ -1,0 +1,5 @@
+card "Smoldering Marsh" {
+  oracle_id 390f1b56-264e-4336-83be-dc1fe79bfdcf
+  type Land — Swamp Mountain
+  enters tapped unless you control 2 basic land
+}

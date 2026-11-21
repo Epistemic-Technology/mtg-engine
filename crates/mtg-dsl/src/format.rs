@@ -3947,6 +3947,9 @@ fn static_cond(c: &StaticCond) -> String {
             at_least,
         } => format!("defending player controls {at_least} {}", filter(fl)),
         StaticCond::YouControlNone(fl) => format!("you control no {}", filter(fl)),
+        StaticCond::YouControlAtMost { filter: fl, n } => {
+            format!("you control at most {n} {}", filter(fl))
+        }
         StaticCond::YouControlEach(fs) => format!(
             "you control {}",
             fs.iter().map(filter).collect::<Vec<_>>().join(" and ")

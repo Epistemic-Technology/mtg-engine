@@ -1665,6 +1665,12 @@ pub enum StaticCond {
     },
     /// `you control no untapped land`.
     YouControlNone(Filter),
+    /// `you control at most 2 other land`: "you control two or fewer other
+    /// lands".
+    YouControlAtMost {
+        filter: Filter,
+        n: u32,
+    },
     /// `you control Urza's Mine and Urza's Power-Plant`: "you control an
     /// Urza's Mine and an Urza's Power-Plant".
     YouControlEach(Vec<Filter>),

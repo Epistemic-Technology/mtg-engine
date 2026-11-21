@@ -1,0 +1,6 @@
+card "Haunted Ridge" {
+  oracle_id e2a37967-4212-4553-9f77-bcb613405807
+  type Land
+  enters tapped unless you control 2 other land
+  mana {B} or {R}
+}

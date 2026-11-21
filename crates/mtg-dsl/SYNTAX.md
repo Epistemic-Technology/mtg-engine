@@ -359,6 +359,9 @@ attacking" when the subject is something else), `opponent life 10 or
 less` ("an opponent has 10 or less life"), `your life 30 or more`,
 `player life 13 or less` ("a player has 13 or less life"), `defending
 player controls Island`, `you control no untapped land`, `you control
+at most 2 other land` ("you control two or fewer other lands": the fast
+lands), `you control Mountain or a Plains` ("you control a Mountain or a
+Plains"), `you control 2 basic land`, `you control
 other Goblin` ("you control another Goblin"), `you control Urza's Mine and
 Urza's Power-Plant` ("you control an Urza's Mine and an Urza's
 Power-Plant": one of each), `attacked this turn` (raid),

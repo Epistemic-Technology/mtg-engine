@@ -1,0 +1,6 @@
+card "Isolated Chapel" {
+  oracle_id 7e5d9efe-48a9-434b-bb09-056e0e09cc9a
+  type Land
+  enters tapped unless you control Plains or a Swamp
+  mana {W} or {B}
+}

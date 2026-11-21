@@ -1,0 +1,6 @@
+card "Spirebluff Canal" {
+  oracle_id eb0d8093-5f93-4b25-9384-08f9731bfb28
+  type Land
+  enters tapped unless you control at most 2 other land
+  mana {U} or {R}
+}

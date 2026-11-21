@@ -2115,6 +2115,12 @@ pub enum StaticCondition {
     },
     /// "you control no untapped lands": fewer than one.
     YouControlNone(ObjFilter),
+    /// "you control two or fewer other lands" (the fast lands): at most
+    /// `n` permanents matching the filter.
+    YouControlAtMost {
+        filter: ObjFilter,
+        n: u32,
+    },
     /// "you control an Urza's Mine and an Urza's Power-Plant": at least
     /// one permanent matching each filter.
     YouControlEach(Vec<ObjFilter>),

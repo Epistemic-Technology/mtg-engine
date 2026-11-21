@@ -2985,6 +2985,25 @@ fn static_condition(s: &str) -> Option<String> {
             number(cap(&c, 1))?
         ));
     }
+    // The fast lands: "you control two or fewer other lands".
+    let fewer = Regex::new(r"^you control (\S+) or fewer ([a-zA-Z ]+)$").unwrap();
+    if let Some(c) = fewer.captures(s) {
+        let f = control_filter(&singular(cap(&c, 2)))?;
+        return Some(format!("you control at most {} {f}", number(cap(&c, 1))?));
+    }
+    // The check lands: "you control a Mountain or a Plains".
+    let either = Regex::new(r"^you control an? ([A-Z][a-z]+) or an? ([A-Z][a-z]+)$").unwrap();
+    if let Some(c) = either.captures(s) {
+        let (a, b) = (cap(&c, 1), cap(&c, 2));
+        if ["Plains", "Island", "Swamp", "Mountain", "Forest"].contains(&a)
+            && ["Plains", "Island", "Swamp", "Mountain", "Forest"].contains(&b)
+        {
+            return Some(format!("you control {a} or a {b}"));
+        }
+    }
+    if s == "you control a Mount or Vehicle" {
+        return Some("you control Mount or Vehicle".to_string());
+    }
     let control = Regex::new(r"^you control (\S+) or more ([a-zA-Z ]+)$").unwrap();
     if let Some(c) = control.captures(s) {
         let f = control_filter(&singular(cap(&c, 2)))?;
@@ -3015,6 +3034,15 @@ fn control_filter(s: &str) -> Option<String> {
         "Equipment",
     ];
     if OK.contains(&s) {
+        return Some(s.to_string());
+    }
+    // "two or more basic lands", "two or more other lands", "three or more
+    // other Mountains" (land entry conditions).
+    if let Some(rest) = s
+        .strip_prefix("basic ")
+        .or_else(|| s.strip_prefix("other "))
+        && OK.contains(&rest)
+    {
         return Some(s.to_string());
     }
     // "a Treefolk", "an Otter": one subtype.

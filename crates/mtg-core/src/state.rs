@@ -2842,6 +2842,7 @@ impl GameState {
                 count(filter, you) >= *at_least as usize
             }
             C::YouControlNone(filter) => count(filter, you) == 0,
+            C::YouControlAtMost { filter, n } => count(filter, you) <= *n as usize,
             C::YouControlEach(filters) => filters.iter().all(|f| count(f, you) > 0),
             C::DefenderControls {
                 filter,

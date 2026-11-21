@@ -1,0 +1,6 @@
+card "Razorverge Thicket" {
+  oracle_id 94f6c407-e665-4032-be13-a01e40c1f306
+  type Land
+  enters tapped unless you control at most 2 other land
+  mana {G} or {W}
+}

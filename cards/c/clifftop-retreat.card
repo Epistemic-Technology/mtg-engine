@@ -1,0 +1,6 @@
+card "Clifftop Retreat" {
+  oracle_id d7faa3c8-46cf-46b2-bfa4-89000307cf18
+  type Land
+  enters tapped unless you control Mountain or a Plains
+  mana {R} or {W}
+}

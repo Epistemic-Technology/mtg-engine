@@ -1368,6 +1368,10 @@ impl Compiler<'_> {
             StaticCond::YouControlNone(filter) | StaticCond::YouDontControl(filter) => {
                 StaticCondition::YouControlNone(self.filter(filter).who(Who::You))
             }
+            StaticCond::YouControlAtMost { filter, n } => StaticCondition::YouControlAtMost {
+                filter: self.filter(filter).who(Who::You),
+                n: *n,
+            },
             StaticCond::YouControlEach(filters) => StaticCondition::YouControlEach(
                 filters
                     .iter()

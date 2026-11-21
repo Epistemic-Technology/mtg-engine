@@ -1,0 +1,6 @@
+card "Botanical Sanctum" {
+  oracle_id 88f8f683-738e-48f3-afff-c8f73f1033a2
+  type Land
+  enters tapped unless you control at most 2 other land
+  mana {G} or {U}
+}

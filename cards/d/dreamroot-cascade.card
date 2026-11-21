@@ -1,0 +1,6 @@
+card "Dreamroot Cascade" {
+  oracle_id dd8538e6-cd5f-4a88-aff5-eb5e76ce8ddb
+  type Land
+  enters tapped unless you control 2 other land
+  mana {G} or {U}
+}

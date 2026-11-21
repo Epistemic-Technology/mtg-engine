@@ -425,6 +425,10 @@ impl Decompiler<'_> {
                 }
             }
             StaticCondition::YouControlNone(f) => StaticCond::YouControlNone(unowned(f)),
+            StaticCondition::YouControlAtMost { filter, n } => StaticCond::YouControlAtMost {
+                filter: unowned(filter),
+                n: *n,
+            },
             StaticCondition::YouControlEach(fs) => {
                 StaticCond::YouControlEach(fs.iter().map(&unowned).collect())
             }

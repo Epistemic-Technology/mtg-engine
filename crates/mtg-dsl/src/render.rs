@@ -9382,6 +9382,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             f.who = None;
             format!("you control no {}", filter_phrase(&f, card, true))
         }
+        StaticCond::YouControlAtMost { filter, n } => {
+            let mut f = filter.clone();
+            f.who = None;
+            format!(
+                "you control {} or fewer {}",
+                count_words(Num::N(*n), "one"),
+                filter_phrase(&f, card, true)
+            )
+        }
         // "you control an Urza's Mine and an Urza's Power-Plant".
         StaticCond::YouControlEach(filters) => {
             let all: Vec<String> = filters

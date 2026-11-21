@@ -1,0 +1,6 @@
+card "Seachrome Coast" {
+  oracle_id 9e7a240d-dc33-47ac-9f17-77fab4c1c340
+  type Land
+  enters tapped unless you control at most 2 other land
+  mana {W} or {U}
+}

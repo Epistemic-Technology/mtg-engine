@@ -1,0 +1,6 @@
+card "Blooming Marsh" {
+  oracle_id 66fa2326-1b5d-41fb-b919-83bf9f383577
+  type Land
+  enters tapped unless you control at most 2 other land
+  mana {B} or {G}
+}

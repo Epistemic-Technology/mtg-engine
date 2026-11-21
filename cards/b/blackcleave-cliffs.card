@@ -1,0 +1,6 @@
+card "Blackcleave Cliffs" {
+  oracle_id 5ad94412-6f79-4c5d-bbd4-4ef5779a7b6d
+  type Land
+  enters tapped unless you control at most 2 other land
+  mana {B} or {R}
+}

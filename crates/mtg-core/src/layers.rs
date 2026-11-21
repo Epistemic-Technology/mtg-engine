@@ -490,6 +490,22 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                     )
             })
         }),
+        StaticCondition::YouControlAtMost { filter, n } => {
+            work.ids
+                .iter()
+                .filter(|id| {
+                    work.on_battlefield(**id)
+                        && filter.matches(
+                            **id,
+                            work.controller_of(**id),
+                            &work.chars[work.index[*id]],
+                            Some(source),
+                            Some(you),
+                        )
+                })
+                .count()
+                <= *n as usize
+        }
         StaticCondition::YouControlNone(filter) => !work.ids.iter().any(|id| {
             work.on_battlefield(*id)
                 && filter

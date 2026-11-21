@@ -1,0 +1,7 @@
+card "Wild Roads" {
+  oracle_id 36fbc8ba-bb4c-4e5e-9031-78c36e376851
+  type Land
+  enters tapped unless you control Mount or Vehicle
+  mana {G}
+  activated {1}{G}, {T}, sacrifice this, sorcery: create 1 "1/1 colorless Pilot creature with saddles and crews plus 2"
+}

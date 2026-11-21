@@ -1,0 +1,7 @@
+card "Foul Roads" {
+  oracle_id d4e4c8a5-e97b-4295-a403-d17834f73502
+  type Land
+  enters tapped unless you control Mount or Vehicle
+  mana {B}
+  activated {1}{B}, {T}, sacrifice this, sorcery: create 1 "1/1 colorless Pilot creature with saddles and crews plus 2"
+}

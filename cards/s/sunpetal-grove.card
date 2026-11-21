@@ -1,0 +1,6 @@
+card "Sunpetal Grove" {
+  oracle_id 402ec768-76fb-474e-ae74-babc90d833c4
+  type Land
+  enters tapped unless you control Forest or a Plains
+  mana {G} or {W}
+}

@@ -1,0 +1,5 @@
+card "Prairie Stream" {
+  oracle_id 5330e24a-8568-446e-840a-594cd08bd1bc
+  type Land — Plains Island
+  enters tapped unless you control 2 basic land
+}

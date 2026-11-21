@@ -1,0 +1,7 @@
+card "Kishla Village" {
+  oracle_id 4eb428ab-f5b0-46ca-98dd-b3466a91ef97
+  type Land
+  enters tapped unless you control Island or a Swamp
+  mana {G}
+  activated {3}{G}, {T}: surveil 2
+}

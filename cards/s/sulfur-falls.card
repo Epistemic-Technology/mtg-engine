@@ -1,0 +1,6 @@
+card "Sulfur Falls" {
+  oracle_id 6a6c5e17-6465-4a1f-9d63-8a3ce2edc522
+  type Land
+  enters tapped unless you control Island or a Mountain
+  mana {U} or {R}
+}
