@@ -720,6 +720,17 @@ impl GameState {
                 let p = on_battlefield(what, *attacker)?;
                 Some((Some(*attacker), Some(p)))
             }
+            // The attacker is recorded as it is declared, before the event.
+            (TriggerSpec::AttacksFirstTime(what), Event::Attack { attacker, .. }) => {
+                let p = on_battlefield(what, *attacker)?;
+                (self
+                    .attackers_this_turn
+                    .iter()
+                    .filter(|id| **id == *attacker)
+                    .count()
+                    <= 1)
+                    .then_some((Some(*attacker), Some(p)))
+            }
             (TriggerSpec::AttacksWith { this, min }, Event::Attack { attacker, .. }) => {
                 // Once per declaration: on the source's own attack, or on
                 // the first attacker declared.

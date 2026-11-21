@@ -1460,6 +1460,9 @@ impl Compiler<'_> {
             StaticCond::Night => StaticCondition::Night,
             StaticCond::LifeGainedThisTurn(n) => StaticCondition::LifeGainedThisTurn(*n),
             StaticCond::CrimeThisTurn => StaticCondition::CrimeThisTurn,
+            StaticCond::YourMainPhase => StaticCondition::YourMainPhase,
+            StaticCond::YourCombatPhase => StaticCondition::YourCombatPhase,
+            StaticCond::FirstCombatPhase => StaticCondition::FirstCombatPhase,
             StaticCond::LeftGraveyardThisTurn => StaticCondition::LeftGraveyardThisTurn,
             StaticCond::CardToGraveyardThisTurn(t) => StaticCondition::CardToGraveyardThisTurn(
                 mtg_core::card::TypeSet::of(t.iter().copied()),
@@ -2833,6 +2836,16 @@ impl Compiler<'_> {
                 what: *what,
             }),
             Effect::SkipNextUntap { to, .. } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
+            Effect::ExtraTurns { who, n } => out.push(CoreEffect::ExtraTurns {
+                who: r(*who),
+                n: *n,
+            }),
+            Effect::AdditionalPhases { combats, main, .. } => {
+                out.push(CoreEffect::AdditionalPhases {
+                    combats: *combats,
+                    main: *main,
+                });
+            }
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });
             }
@@ -2970,6 +2983,7 @@ impl Compiler<'_> {
             },
             Trigger::AttachedStep(step) => TriggerSpec::AttachedControllersStep(*step),
             Trigger::Attacks(o) => TriggerSpec::Attacks(self.trigger_obj(o)),
+            Trigger::AttacksFirstTime(o) => TriggerSpec::AttacksFirstTime(self.trigger_obj(o)),
             Trigger::AttacksBattle(o) => TriggerSpec::AttacksBattle(self.trigger_obj(o)),
             Trigger::UnlocksDoor => TriggerSpec::UnlocksDoor { door: 0 },
             Trigger::BecomesLevel(n) => TriggerSpec::BecomesStage(n - 1),

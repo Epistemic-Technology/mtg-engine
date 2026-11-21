@@ -1825,6 +1825,22 @@ pub struct GameState {
     pub flow: Flow,
     /// Set when a cleanup step must repeat (CR 514.3a).
     pub cleanup_repeat: bool,
+    /// Extra turns to come (CR 500.7), the next last: each player takes
+    /// them directly after the current turn, the most recently created
+    /// first.
+    pub extra_turns: Vec<PlayerId>,
+    /// While extra turns run: whose regular turn comes after them.
+    pub resume_player: Option<PlayerId>,
+    /// Additional phases added after the current phase (CR 500.8), each
+    /// by the step that begins it (`BeginningOfCombat` or
+    /// `PostcombatMain`, CR 505.1a), in the order they come.
+    pub extra_phases: Vec<Step>,
+    /// While additional phases run: the step the turn goes on with after
+    /// them (what would have followed the phase they were added after).
+    pub resume_step: Option<Step>,
+    /// Combat phases begun this turn ("if it's the first combat phase of
+    /// the turn").
+    pub combats_this_turn: u8,
     pub result: Option<GameResult>,
     pub log: Vec<Event>,
     pub logging: bool,
@@ -2446,6 +2462,9 @@ impl GameState {
         if q.blocked_this_turn && !self.blockers_this_turn.contains(&id) {
             return false;
         }
+        if q.attacked_this_turn && !self.attackers_this_turn.contains(&id) {
+            return false;
+        }
         if q.modified
             && !self.modified(
                 id,
@@ -2871,6 +2890,13 @@ impl GameState {
             C::YourTurn => self.active_player == you,
             C::SourceAttackedBattle => self.battle_attackers_this_turn.contains(&source),
             C::NotYourTurn => self.active_player != you,
+            C::YourMainPhase => self.active_player == you && self.step.is_main(),
+            C::YourCombatPhase => {
+                self.active_player == you && self.step.phase() == crate::turn::Phase::Combat
+            }
+            C::FirstCombatPhase => {
+                self.step.phase() == crate::turn::Phase::Combat && self.combats_this_turn <= 1
+            }
             C::SourceAttacking => self
                 .combat
                 .as_ref()

@@ -1,0 +1,7 @@
+card "Waves of Aggression" {
+  oracle_id 10991b1a-7dd3-4fbf-a4c8-200dc62fc605
+  cost {3}{R/W}{R/W}
+  type Sorcery
+  spell: untap all creature that attacked this turn; after this main phase, additional combat phase then main phase
+  retrace
+}

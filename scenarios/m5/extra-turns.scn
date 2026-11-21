@@ -1,0 +1,164 @@
+# Extra turns (CR 500.7): "Take an extra turn after this one." The extra
+# turn comes directly after this one; several come most recently created
+# first. Turn numbers keep counting.
+
+scenario "extra turn: you take the next turn" {
+  battlefield A: 2 "Island", 3 "Mountain", "Grizzly Bears"
+  hand A: "Time Warp", "Forest"
+  library A: "Plains", "Plains", "Plains"
+  turn 1 A: cast "Time Warp" targeting player A
+  turn 2 A: play "Forest"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Forest"
+  assert life B 18
+  assert hand A count 1
+}
+
+scenario "extra turn: after it, the opponent's turn as usual" {
+  battlefield A: 2 "Island", 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Time Warp"
+  hand B: "Forest"
+  turn 1 A: cast "Time Warp" targeting player A
+  turn 3 B: play "Forest"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Forest"
+}
+
+scenario "extra turn: the opponent can be given the turn" {
+  battlefield A: 2 "Island", 3 "Mountain"
+  hand A: "Time Warp"
+  hand B: "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Time Warp" targeting player B
+  turn 3 B: play "Forest"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Forest"
+}
+
+scenario "extra turn: no extra turn, no land for A on turn 2" {
+  battlefield A: 2 "Island", 3 "Mountain"
+  hand A: "Forest"
+  illegal turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Forest"
+}
+
+scenario "extra turn: two extra turns" {
+  battlefield A: 10 "Island"
+  hand A: "Time Stretch", "Forest", "Swamp"
+  turn 1 A: cast "Time Stretch" targeting player A
+  turn 2 A: play "Forest"
+  turn 3 A: play "Swamp"
+  run_to turn 4 upkeep
+  assert battlefield A contains "Forest"
+  assert battlefield A contains "Swamp"
+}
+
+scenario "extra turn: an activated ability" {
+  battlefield A: "Magistrate's Scepter" with 3 charge
+  hand A: "Forest"
+  turn 1 A: activate "Magistrate's Scepter" ability 2
+  turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Forest"
+  assert counters "Magistrate's Scepter" charge 0
+}
+
+scenario "extra turn: exile the spell" {
+  battlefield A: 6 "Island"
+  hand A: "Part the Waterveil", "Forest"
+  turn 1 A: cast "Part the Waterveil"
+  turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert exile A contains "Part the Waterveil"
+  assert battlefield A contains "Forest"
+}
+
+scenario "extra turn: Stitch in Time loses the flip" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Stitch in Time", "Forest"
+  seed 2
+  turn 1 A: cast "Stitch in Time"
+  illegal turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+}
+
+scenario "extra turn: Stitch in Time wins the flip" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Stitch in Time", "Forest"
+  seed 1
+  turn 1 A: cast "Stitch in Time"
+  turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Forest"
+}
+
+scenario "extra turn: Beacon of Tomorrows shuffles itself away" {
+  battlefield A: 8 "Island"
+  hand A: "Beacon of Tomorrows", "Forest"
+  turn 1 A: cast "Beacon of Tomorrows" targeting player A
+  turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Forest"
+  assert graveyard A lacks "Beacon of Tomorrows"
+  assert library A contains "Beacon of Tomorrows"
+}
+
+scenario "extra turn: Alrund's Epiphany makes birds" {
+  battlefield A: 7 "Island"
+  hand A: "Alrund's Epiphany", "Forest"
+  turn 1 A: cast "Alrund's Epiphany"
+  turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Bird"
+  assert exile A contains "Alrund's Epiphany"
+}
+
+scenario "extra turn: Temporal Trespass with delve" {
+  battlefield A: 3 "Island"
+  graveyard A: 8 "Plains"
+  hand A: "Temporal Trespass", "Forest"
+  turn 1 A: cast "Temporal Trespass"
+  turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Forest"
+  assert exile A contains "Temporal Trespass"
+}
+
+scenario "extra turn: Time Sieve" {
+  battlefield A: "Time Sieve", 5 "Ornithopter"
+  hand A: "Forest"
+  turn 1 A: activate "Time Sieve"
+  turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Forest"
+  assert graveyard A count 5
+}
+
+scenario "extra turn: Teferi's ultimate" {
+  battlefield A: "Teferi, Timebender" with 9 loyalty
+  hand A: "Forest"
+  turn 1 A: activate "Teferi, Timebender" ability 3
+  turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Forest"
+  assert graveyard A contains "Teferi, Timebender"
+}
+
+scenario "extra turn: Karn's Temporal Sundering for the opponent" {
+  battlefield A: 6 "Island", "Isamaru, Hound of Konda"
+  battlefield B: "Grizzly Bears"
+  hand A: "Karn's Temporal Sundering"
+  hand B: "Forest"
+  hand B: "Swamp"
+  turn 1 A: cast "Karn's Temporal Sundering" targeting player B, "Grizzly Bears"
+  turn 2 B: play "Forest"
+  turn 3 B: play "Swamp"
+  run_to turn 3 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert battlefield B contains "Forest"
+  assert battlefield B contains "Swamp"
+  assert exile A contains "Karn's Temporal Sundering"
+}

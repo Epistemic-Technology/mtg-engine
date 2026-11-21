@@ -1,0 +1,14 @@
+card "Response // Resurgence" {
+  oracle_id ae93854b-c808-44cb-b0be-7d1035c597d7
+  layout split
+  face "Response" {
+    cost {R/W}{R/W}
+    type Instant
+    spell: this deals 5 damage to target attacking or blocking creature
+  }
+  face "Resurgence" {
+    cost {3}{R}{W}
+    type Sorcery
+    spell: each creature you control gains first strike and vigilance until end of turn; after this main phase, additional combat phase then main phase
+  }
+}

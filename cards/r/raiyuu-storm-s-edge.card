@@ -1,0 +1,8 @@
+card "Raiyuu, Storm's Edge" {
+  oracle_id 9028f726-50c7-49f3-8386-e584415dcba2
+  cost {2}{R}{W}
+  type Legendary Creature — Human Samurai
+  pt 3/3
+  keywords first strike
+  triggered whenever Samurai or Warrior you control attacks alone: untap it; if first combat phase, additional combat phase after this phase
+}

@@ -8233,6 +8233,29 @@ impl GameState {
                     }
                 }
             }
+            // CR 500.7: the most recently created extra turn comes first,
+            // so each goes on top of the stack of turns to come.
+            Effect::ExtraTurns { who, n } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        for _ in 0..*n {
+                            self.extra_turns.push(p);
+                        }
+                    }
+                }
+            }
+            // CR 500.8: added directly after the current phase; phases
+            // added later come before those added earlier.
+            Effect::AdditionalPhases { combats, main } => {
+                let mut added: SmallVec<[crate::turn::Step; 4]> = SmallVec::new();
+                for _ in 0..*combats {
+                    added.push(crate::turn::Step::BeginningOfCombat);
+                }
+                if *main {
+                    added.push(crate::turn::Step::PostcombatMain);
+                }
+                self.extra_phases.splice(0..0, added);
+            }
             Effect::SkipNextUntap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {

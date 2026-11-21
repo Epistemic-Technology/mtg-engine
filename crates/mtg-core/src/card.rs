@@ -1145,6 +1145,10 @@ pub struct StatusQuals {
     /// "that blocked this turn": it was declared as a blocker this turn
     /// (CR 509.1).
     pub blocked_this_turn: bool,
+    /// "that attacked this turn": it was declared as an attacker this turn
+    /// (CR 508.1).
+    #[serde(default)]
+    pub attacked_this_turn: bool,
     /// "dealt damage by this creature this turn": the source dealt damage
     /// to it this turn (`GameState::damaged_by_this_turn`). Judged only by
     /// dies triggers ("Whenever a creature dealt damage by this creature
@@ -1213,6 +1217,7 @@ impl StatusQuals {
             || self.entered_this_turn
             || self.dealt_damage
             || self.blocked_this_turn
+            || self.attacked_this_turn
             || self.damaged_by_source
             || self.mana_value_x
             || self.spent_colors
@@ -2046,6 +2051,13 @@ pub enum StaticCondition {
     /// "during turns other than yours": it isn't the controller's turn.
     /// The turn change bumps the characteristics cache, as for `YourTurn`.
     NotYourTurn,
+    /// "it's your main phase" (CR 505.1), "it's your combat phase" (CR
+    /// 506.1), and "it's the first combat phase of the turn": for effects
+    /// that add phases (`Effect::AdditionalPhases`), judged as they
+    /// resolve.
+    YourMainPhase,
+    YourCombatPhase,
+    FirstCombatPhase,
     /// "as long as it's attacking" (the source).
     SourceAttacking,
     /// "as long as it attacked a battle this turn" (the source, CR
@@ -4075,6 +4087,24 @@ pub enum Effect {
     SkipNextUntap {
         to: Recipient,
     },
+    /// "Take an extra turn after this one", "Target player takes two extra
+    /// turns after this one" (CR 500.7): each recipient player takes `n`
+    /// extra turns directly after this one, the most recently created
+    /// first.
+    ExtraTurns {
+        who: Recipient,
+        n: u8,
+    },
+    /// "After this phase, there is an additional combat phase", "After
+    /// this main phase, there is an additional combat phase followed by an
+    /// additional main phase", "there are two additional combat phases"
+    /// (CR 500.8): `combats` combat phases, then a main phase if `main`,
+    /// added directly after the current phase, before phases added
+    /// earlier.
+    AdditionalPhases {
+        combats: u8,
+        main: bool,
+    },
     /// "That creature can't be regenerated this turn" (CR 701.15): no
     /// regeneration shield replaces its destruction this turn.
     CantBeRegenerated {
@@ -4676,6 +4706,10 @@ pub enum TriggerSpec {
     AttachedControllersStep(crate::turn::Step),
     /// "Whenever ~ attacks" / "Whenever a creature you control attacks".
     Attacks(TriggerObj),
+    /// "Whenever ~ attacks for the first time each turn": the attacking
+    /// creature hadn't attacked before this turn (an additional combat
+    /// phase, CR 500.8).
+    AttacksFirstTime(TriggerObj),
     /// "Whenever ~ blocks".
     Blocks(TriggerObj),
     /// "Whenever a creature you control attacks alone" (exalted, CR
@@ -4999,6 +5033,7 @@ impl TriggerSpec {
                 WATCH_STEP_BEGIN
             }
             TriggerSpec::Attacks(_)
+            | TriggerSpec::AttacksFirstTime(_)
             | TriggerSpec::AttacksBattle(_)
             | TriggerSpec::AttacksAlone(_)
             | TriggerSpec::AttacksWith { .. } => WATCH_ATTACK,

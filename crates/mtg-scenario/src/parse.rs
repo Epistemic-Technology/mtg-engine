@@ -482,6 +482,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
     } else {
         None
     };
+    let combat = if line.peek_ident("combat") {
+        line.pos += 1;
+        Some(u8::try_from(line.unsigned()?).unwrap_or(u8::MAX))
+    } else {
+        None
+    };
     let player = line.player()?;
     line.colon()?;
     let verb = line.ident()?;
@@ -843,6 +849,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
         line: line.no,
         turn,
         step: explicit_step.or(default_step),
+        combat,
         player,
         action,
         illegal,

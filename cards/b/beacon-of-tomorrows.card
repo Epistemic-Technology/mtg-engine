@@ -1,0 +1,6 @@
+card "Beacon of Tomorrows" {
+  oracle_id 85909caa-d2ad-4487-b9b7-6ac60a14b833
+  cost {6}{U}{U}
+  type Sorcery
+  spell: target player takes extra turn; shuffle this into library
+}

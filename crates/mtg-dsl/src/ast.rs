@@ -1834,6 +1834,12 @@ pub enum StaticCond {
     LifeGainedThisTurn(u32),
     /// `committed crime this turn`: "you've committed a crime this turn".
     CrimeThisTurn,
+    /// `your main phase`: "it's your main phase"; `your combat phase`:
+    /// "it's your combat phase"; `first combat phase`: "it's the first
+    /// combat phase of the turn".
+    YourMainPhase,
+    YourCombatPhase,
+    FirstCombatPhase,
     /// `card left your graveyard this turn`: "one or more cards left your
     /// graveyard this turn".
     LeftGraveyardThisTurn,
@@ -2175,6 +2181,8 @@ pub enum Trigger {
     CreaturesYouControlAttack,
     /// `whenever this attacks and isn't blocked`.
     AttacksUnblocked(TriggerObj),
+    /// `whenever this attacks for the first time each turn`.
+    AttacksFirstTime(TriggerObj),
     /// `whenever this becomes blocked`.
     BecomesBlocked(TriggerObj),
     /// `whenever this blocks or becomes blocked`.
@@ -3611,6 +3619,30 @@ pub enum Effect {
     SkipNextUntap {
         to: Recipient,
         steps: bool,
+    },
+    /// `you take extra turn`: "Take an extra turn after this one."; `target
+    /// player takes 2 extra turns`: "Target player takes two extra turns
+    /// after this one." (CR 500.7).
+    ExtraTurns {
+        who: Recipient,
+        n: u8,
+    },
+    /// `after this phase, additional combat phase`: "After this phase,
+    /// there is an additional combat phase."; `after this main phase,
+    /// additional combat phase then main phase` ("... followed by an
+    /// additional main phase"), `after this main phase, 2 additional
+    /// combat phases` ("there are two additional combat phases"); the
+    /// trailing order `additional combat phase after this phase then main
+    /// phase` ("there is an additional combat phase after this phase
+    /// followed by an additional main phase", after an `if`). CR 500.8.
+    AdditionalPhases {
+        combats: u8,
+        main: bool,
+        /// "After this phase, there is ..." rather than "there is ...
+        /// after this phase".
+        leading: bool,
+        /// "this main phase" rather than "this phase" (wording only).
+        main_phase: bool,
     },
     /// `that creature can't be regenerated`: "That creature can't be
     /// regenerated this turn."

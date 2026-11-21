@@ -41,7 +41,10 @@ illegal turn <N> [<step>] <player>: <action>
 ```
 
 An action fires the first time its player is offered a matching decision
-during that turn and step. `illegal` inverts the check: the action must
+during that turn and step. With additional combat phases (CR 500.8),
+`turn 2 declare_attackers combat 2 A: attack "X"` fires only in the
+turn's second combat phase (counted from 1; any combat step, and the
+main phase that follows it until the next combat begins). `illegal` inverts the check: the action must
 *not* be among the legal options when the point is reached; the default
 choice is taken instead. Either way the point must be reached, or the
 scenario fails. An `illegal` cast or activation with `targeting` also

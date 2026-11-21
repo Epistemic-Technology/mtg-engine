@@ -1,0 +1,6 @@
+card "Time Warp" {
+  oracle_id dbd6a94b-62ff-4a10-9d52-bdd90b26e425
+  cost {3}{U}{U}
+  type Sorcery
+  spell: target player takes extra turn
+}

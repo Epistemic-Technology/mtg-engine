@@ -1,0 +1,6 @@
+card "Time Stretch" {
+  oracle_id 72e56963-a9dd-44dc-a4d3-992b4d89dd28
+  cost {8}{U}{U}
+  type Sorcery
+  spell: target player takes 2 extra turns
+}

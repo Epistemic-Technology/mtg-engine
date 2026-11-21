@@ -1,0 +1,91 @@
+# Additional combat phases (CR 500.8): "After this phase, there is an
+# additional combat phase" adds a combat phase directly after the current
+# phase; "... followed by an additional main phase" adds a main phase
+# after it (CR 505.1a: a postcombat main phase). Phases added later come
+# before those added earlier. `combat 2` scripts the turn's second combat.
+
+scenario "additional combat: Relentless Assault attacks twice" {
+  battlefield A: 2 "Mountain", 2 "Mountain", "Grizzly Bears"
+  hand A: "Relentless Assault", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 postcombat_main A: cast "Relentless Assault"
+  turn 2 declare_attackers combat 2 A: attack "Grizzly Bears"
+  turn 2 postcombat_main combat 2 A: play "Forest"
+  run_to turn 2 end
+  assert life B 16
+  assert battlefield A contains "Forest"
+}
+
+scenario "additional combat: cast before combat, the regular combat still follows" {
+  battlefield A: 4 "Mountain", "Serra Angel"
+  hand A: "Relentless Assault"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Relentless Assault"
+  turn 2 declare_attackers A: attack "Serra Angel"
+  turn 2 declare_attackers combat 2 A: attack "Serra Angel"
+  illegal turn 2 declare_attackers combat 3 A: attack "Serra Angel"
+  run_to turn 3 upkeep
+  assert life B 12
+}
+
+scenario "additional combat: Waves of Aggression" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  hand A: "Waves of Aggression"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 postcombat_main A: cast "Waves of Aggression"
+  turn 2 declare_attackers combat 2 A: attack "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert life B 16
+}
+
+scenario "additional combat: one combat without it" {
+  battlefield A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  illegal turn 2 declare_attackers combat 2 A: attack "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert life B 18
+}
+
+scenario "additional combat: Aurelia untaps and attacks again" {
+  battlefield A: "Aurelia, the Warleader", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Aurelia, the Warleader", "Grizzly Bears"
+  turn 2 declare_attackers combat 2 A: attack "Aurelia, the Warleader", "Grizzly Bears"
+  run_to turn 2 end
+  assert life B 10
+}
+
+scenario "additional combat: Aurelia triggers only the first time" {
+  battlefield A: "Aurelia, the Warleader", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Aurelia, the Warleader", "Grizzly Bears"
+  turn 2 declare_attackers combat 2 A: attack "Aurelia, the Warleader", "Grizzly Bears"
+  illegal turn 2 declare_attackers combat 3 A: attack "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert life B 10
+}
+
+scenario "additional combat: Raiyuu in the first combat only" {
+  battlefield A: "Raiyuu, Storm's Edge"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Raiyuu, Storm's Edge"
+  turn 2 declare_attackers combat 2 A: attack "Raiyuu, Storm's Edge"
+  illegal turn 2 declare_attackers combat 3 A: attack "Raiyuu, Storm's Edge"
+  run_to turn 3 upkeep
+  assert life B 14
+}
+
+scenario "additional combat: Resurgence before combat, vigilance for both" {
+  battlefield A: 3 "Plains", 2 "Mountain", "Grizzly Bears"
+  hand A: "Resurgence"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Resurgence"
+  turn 2 declare_attackers A: attack "Grizzly Bears"
+  turn 2 declare_attackers combat 2 A: attack "Grizzly Bears"
+  run_to turn 2 end
+  assert life B 16
+  assert untapped "Grizzly Bears"
+}

@@ -278,6 +278,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever you gain life first time each turn` | "Whenever you gain life for the first time each turn": the gain that starts the life you gained this turn (one of several simultaneous lifelink gains) |
 | `whenever you roll dice`, `whenever you win a coin flip` | "Whenever you roll one or more dice" (once per roll, CR 706), "Whenever you win a coin flip" (CR 705.2) |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
+| `whenever this attacks for the first time each turn` | the attacking creature hadn't attacked yet this turn (with additional combat phases, CR 500.8) |
 | `whenever you attack`, `whenever you attack with 3 or more creatures`, `label "Battalion" triggered whenever this and at least 2 other creatures attack` | once as the controller declares attackers (CR 508.1m), if at least that many attack (battalion: this creature among them); "Whenever this creature and at least two other creatures attack"; `whenever one or more creatures you control attack` is the same trigger in the older wording |
 | `whenever this attacks and isn't blocked` | as blockers are declared, for an attacking creature no creature blocks (CR 509.1h) |
 | `whenever this becomes blocked`, `whenever this blocks or becomes blocked` | |
@@ -972,7 +973,9 @@ word `enchanted` is the permanent this is attached to), `that entered this
 turn` (its timestamp is from this turn, CR 613.7e; `as long as this is that
 entered this turn` prints "As long as this creature entered this turn"),
 `that dealt damage this turn` (it was the source of damage this turn),
-`that blocked this turn` (declared as a blocker this turn), `dealt damage
+`that blocked this turn` (declared as a blocker this turn), `that
+attacked this turn` (declared as an attacker this turn: "Untap all
+creatures that attacked this turn."), `dealt damage
 this turn` (`damaged` printed "creature dealt damage this turn"), `dealt
 damage by this this turn` ("a creature dealt damage by this creature this
 turn": the source dealt it damage this turn; only a dies trigger's subject,
@@ -1343,7 +1346,21 @@ loses life equal to that card's mana value"), `<who> skips next draw
 step` ("Target player skips their next draw step", CR 500.11), `<who>
 skips next combat phase` ("Target opponent skips their next combat
 phase"; `... combat phase this turn`: only a combat phase of this turn;
-the main phase after it still happens),
+the main phase after it still happens), `<who> takes extra turn` ("Take
+an extra turn after this one." for `you take extra turn`; `target player
+takes 2 extra turns`: "... two extra turns after this one", CR 500.7: the
+most recently created extra turn comes first), `after this phase,
+additional combat phase` ("After this phase, there is an additional
+combat phase.", CR 500.8: added directly after the current phase, before
+phases added earlier; `after this main phase, additional combat phase
+then main phase` adds "... followed by an additional main phase", `after
+this main phase, 2 additional combat phases` "there are two additional
+combat phases"; after an `if`, the trailing order `if your main phase,
+additional combat phase after this phase then main phase` prints "If it's
+your main phase, there is an additional combat phase after this phase
+followed by an additional main phase"; the conditions `your main phase`,
+`your combat phase`, and `first combat phase` are "it's your main phase",
+"it's your combat phase", "it's the first combat phase of the turn"),
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>` (this: "attach this Equipment to ..."),
 `attach <what> to <what>` ("Attach target Equipment you control to target

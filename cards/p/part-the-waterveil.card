@@ -1,0 +1,7 @@
+card "Part the Waterveil" {
+  oracle_id 54dd35ee-6f89-460d-9370-72bc3fa6840a
+  cost {4}{U}{U}
+  type Sorcery
+  spell: you take extra turn; exile this
+  awaken 6 {6}{U}{U}{U}
+}

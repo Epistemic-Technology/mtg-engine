@@ -411,6 +411,13 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::YourTurn => state.active_player == you,
         StaticCondition::SourceAttackedBattle => state.battle_attackers_this_turn.contains(&source),
         StaticCondition::NotYourTurn => state.active_player != you,
+        StaticCondition::YourMainPhase => state.active_player == you && state.step.is_main(),
+        StaticCondition::YourCombatPhase => {
+            state.active_player == you && state.step.phase() == crate::turn::Phase::Combat
+        }
+        StaticCondition::FirstCombatPhase => {
+            state.step.phase() == crate::turn::Phase::Combat && state.combats_this_turn <= 1
+        }
         StaticCondition::SourceAttacking => state
             .combat
             .as_ref()

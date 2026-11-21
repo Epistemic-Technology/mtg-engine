@@ -2196,6 +2196,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.blocked_this_turn {
         s.push_str(" that blocked this turn");
     }
+    if f.status.attacked_this_turn {
+        s.push_str(" that attacked this turn");
+    }
     // "a creature dealt damage by this creature this turn".
     if f.status.damaged_by_source {
         let _ = write!(s, " dealt damage by {} this turn", this_ref(card));
@@ -4314,6 +4317,47 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::AssignsNoCombatDamage { to } => {
             let s = ctx.subj(*to);
             Clause::with_subject(*to, s, "assigns no combat damage this turn".to_string())
+        }
+        Effect::ExtraTurns { who, n } => {
+            let turns = if *n == 1 {
+                "an extra turn".to_string()
+            } else {
+                format!("{} extra turns", count_words(Num::N(u32::from(*n)), "one"))
+            };
+            if *who == Recipient::You {
+                Clause::imperative(format!("take {turns} after this one"))
+            } else {
+                let s = ctx.subj(*who);
+                let v = ctx.verb(*who, "takes", "take");
+                Clause::with_subject(*who, s, format!("{v} {turns} after this one"))
+            }
+        }
+        // CR 500.8.
+        Effect::AdditionalPhases {
+            combats,
+            main,
+            leading,
+            main_phase,
+        } => {
+            let there = if *combats == 1 {
+                "there is an additional combat phase".to_string()
+            } else {
+                format!(
+                    "there are {} additional combat phases",
+                    count_words(Num::N(u32::from(*combats)), "one")
+                )
+            };
+            let then = if *main {
+                " followed by an additional main phase"
+            } else {
+                ""
+            };
+            if *leading {
+                let m = if *main_phase { "main " } else { "" };
+                Clause::imperative(format!("after this {m}phase, {there}{then}"))
+            } else {
+                Clause::imperative(format!("{there} after this phase{then}"))
+            }
         }
         Effect::SkipNextUntap { to, steps } => {
             let s = match *to {
@@ -7443,6 +7487,14 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             }
         }
         Trigger::Attacks(TriggerObj::This) => format!("whenever {} attacks", this(ctx)),
+        Trigger::AttacksFirstTime(TriggerObj::This) => format!(
+            "whenever {} attacks for the first time each turn",
+            this(ctx)
+        ),
+        Trigger::AttacksFirstTime(o) => format!(
+            "whenever {} attacks for the first time each turn",
+            trigger_subject(o, ctx)
+        ),
         Trigger::Attacks(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
             format!("whenever {} attacks", trigger_subject(o, ctx))
         }
@@ -9777,6 +9829,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("you've gained {n} or more life this turn")
         }
         StaticCond::CrimeThisTurn => "you've committed a crime this turn".to_string(),
+        StaticCond::YourMainPhase => "it's your main phase".to_string(),
+        StaticCond::YourCombatPhase => "it's your combat phase".to_string(),
+        StaticCond::FirstCombatPhase => "it's the first combat phase of the turn".to_string(),
         StaticCond::LeftGraveyardThisTurn => "a card left your graveyard this turn".to_string(),
         StaticCond::SacrificedThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
