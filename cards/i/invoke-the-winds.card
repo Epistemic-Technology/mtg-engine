@@ -1,0 +1,6 @@
+card "Invoke the Winds" {
+  oracle_id 721c3255-953c-49cd-a5dd-852c3d09eae4
+  cost {1}{U}{U}{U}{U}
+  type Sorcery
+  spell: gain control of target artifact or creature indefinitely; untap target 1
+}

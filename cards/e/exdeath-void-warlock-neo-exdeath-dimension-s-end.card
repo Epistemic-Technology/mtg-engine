@@ -1,0 +1,16 @@
+card "Exdeath, Void Warlock // Neo Exdeath, Dimension's End" {
+  oracle_id 98c9d798-8c48-4a2d-a076-ce17d31df6f5
+  layout transform
+  cost {1}{B}{G}
+  type Legendary Creature — Spirit Warlock
+  pt 3/3
+  triggered when this enters: you gain 3 life
+  triggered at beginning of your end step if 6 permanent cards in your graveyard: transform this
+  face "Neo Exdeath, Dimension's End" {
+    type Legendary Creature — Spirit Avatar
+    pt */3
+    color black green
+    keywords trample
+    static this: cda power graveyard permanent card
+  }
+}

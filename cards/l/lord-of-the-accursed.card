@@ -1,0 +1,8 @@
+card "Lord of the Accursed" {
+  oracle_id 3f372107-6c52-4f1f-8bf0-7b3fa21b2cae
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/3
+  static other Zombie you control: +1/+1
+  activated {1}{B}, {T}: every Zombie gains menace
+}

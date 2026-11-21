@@ -1,0 +1,7 @@
+card "Smogsteed Rider" {
+  oracle_id a23cb875-2ef8-4457-81eb-e66b67a3c477
+  cost {2}{B}{B}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered whenever this attacks: each single other attacking creature gains fear
+}

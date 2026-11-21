@@ -1,0 +1,7 @@
+card "Elegant Entourage" {
+  oracle_id e049eb22-a01a-463e-8de9-705d6eaf84e2
+  cost {3}{G}
+  type Creature — Elf Druid
+  pt 4/4
+  label "Alliance" triggered whenever other creature you control enters: target creature other than this gets +1/+1 and gains trample
+}

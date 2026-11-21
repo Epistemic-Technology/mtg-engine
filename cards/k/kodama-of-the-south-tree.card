@@ -1,0 +1,7 @@
+card "Kodama of the South Tree" {
+  oracle_id 655ff78d-3e77-4c97-a1e2-bd6a3c65cd77
+  cost {2}{G}{G}
+  type Legendary Creature — Spirit
+  pt 4/4
+  triggered whenever you cast Spirit or Arcane spell: each single other creature you control gets +1/+1 and gains trample
+}

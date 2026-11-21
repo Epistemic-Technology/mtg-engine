@@ -1,0 +1,7 @@
+card "White Lotus Hideout" {
+  oracle_id 2cdbfda3-98fc-4108-b551-c7049168924e
+  type Land
+  mana {C}
+  mana any only to cast Lesson or Shrine spell
+  activated {1}, {T}: add any
+}

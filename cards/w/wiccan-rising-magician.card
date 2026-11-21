@@ -1,0 +1,8 @@
+card "Wiccan, Rising Magician" {
+  oracle_id fc17b7a3-7711-4449-80bd-692e8ed9087d
+  cost {4}{U}
+  type Legendary Creature — Mutant Warlock Hero
+  pt 4/4
+  keywords flying
+  triggered whenever you cast a noncreature spell: exile another target nonland, nontoken permanent; delayed target 1: return that card to battlefield at beginning of the next end step
+}

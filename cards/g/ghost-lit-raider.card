@@ -1,0 +1,8 @@
+card "Ghost-Lit Raider" {
+  oracle_id 3d772c44-a756-406d-a83f-f671a81513b0
+  cost {2}{R}
+  type Creature — Spirit
+  pt 2/1
+  activated {2}{R}, {T}: deal 2 damage to target creature
+  label "Channel" activated {3}{R}, discard this: it deals 4 damage to target creature
+}

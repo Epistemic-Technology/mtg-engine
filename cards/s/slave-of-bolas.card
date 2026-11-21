@@ -1,0 +1,6 @@
+card "Slave of Bolas" {
+  oracle_id 07190a8b-2a59-45b3-9fbf-505161698a9c
+  cost {3}{U/R}{B}
+  type Sorcery
+  spell: gain control of target creature indefinitely; untap that creature; target 1 gains haste; delayed target 1: sacrifice it at beginning of the next end step
+}

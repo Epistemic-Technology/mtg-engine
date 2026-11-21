@@ -1,0 +1,10 @@
+card "Josu Vess, Lich Knight" {
+  oracle_id 974a46f9-aa84-4b34-bee5-c635166e5841
+  cost {2}{B}{B}
+  type Legendary Creature — Zombie Knight
+  pt 4/5
+  pronoun he
+  kicker {5}{B}
+  keyword menace
+  triggered when this enters if kicked: create 8 "2/2 black Zombie Knight creature with menace"
+}

@@ -1,0 +1,9 @@
+card "Press into Service" {
+  oracle_id a729a684-9171-4ca9-83ad-1d199afad7bb
+  cost {4}{R}
+  type Sorcery
+  spell {
+    support 2
+    gain control of target creature; untap that creature; target 3 gains haste
+  }
+}

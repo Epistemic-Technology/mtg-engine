@@ -1,0 +1,8 @@
+card "Mortarpod" {
+  oracle_id 77248a76-373c-48fc-939f-aa378ab57f7c
+  cost {2}
+  type Artifact — Equipment
+  living weapon
+  static enchanted: +0/+1, has ability { activated sacrifice this: this creature deals 1 damage to any target }
+  equip {2}
+}

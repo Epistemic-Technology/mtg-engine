@@ -1,0 +1,9 @@
+card "Dross Harvester" {
+  oracle_id 5520ada0-f173-4b5e-a0b8-a5938a1c0a4b
+  cost {1}{B}{B}
+  type Creature — Horror
+  pt 4/4
+  keywords protection from white
+  triggered at beginning of your end step: you lose 4 life
+  triggered whenever a creature dies: you gain 2 life
+}

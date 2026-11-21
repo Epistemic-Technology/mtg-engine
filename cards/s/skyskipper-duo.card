@@ -1,0 +1,8 @@
+card "Skyskipper Duo" {
+  oracle_id a50db36c-948b-4132-a5e5-84aab1f42612
+  cost {4}{U}
+  type Creature — Bird Frog
+  pt 3/3
+  keywords flying
+  triggered when this enters: exile up to 1 another target creature you control; delayed target 1: return it to battlefield at beginning of the next end step
+}

@@ -1,0 +1,8 @@
+card "Fabled Hero" {
+  oracle_id f9fd9b1c-4c00-4db7-bbfe-7fd5d8bb9258
+  cost {1}{W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords double strike
+  label "Heroic" triggered whenever you cast a spell that targets this: put 1 +1/+1 counters on it
+}

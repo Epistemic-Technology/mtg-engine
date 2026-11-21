@@ -404,6 +404,25 @@ impl GameState {
                                 }
                                 continue;
                             }
+                            // "{2}, Sacrifice an artifact or creature:
+                            // Return this card from your graveyard ...":
+                            // one option per permanent that could be
+                            // sacrificed, none without enough of them.
+                            if let Some(SacCost::Filter(f)) = &ab.cost.sacrifice {
+                                let c = self.sacrifice_candidates(p, f, *id);
+                                if c.len() < ab.cost.chosen_count() {
+                                    continue;
+                                }
+                                for s in c {
+                                    options.push(Choice::Activate {
+                                        source: *id,
+                                        ability: *a,
+                                        sacrifice: Some(s),
+                                        discard: None,
+                                    });
+                                }
+                                continue;
+                            }
                             options.push(Choice::Activate {
                                 source: *id,
                                 ability: *a,
@@ -4353,22 +4372,32 @@ impl GameState {
     /// group (CR 601.2d), as it is being cast; `None` if it divides
     /// nothing.
     pub(super) fn divided_total(&self, spell: ObjId) -> Option<u32> {
-        let amount = self.effects_of(spell).iter().find_map(|e| match e {
-            Effect::DealDamageDivided { amount, .. } => Some(*amount),
-            Effect::DistributeCounters { count, .. } => Some(*count),
-            // "Prevent the next 4 damage that would be dealt this turn to
-            // any number of targets, divided as you choose" (Remedy).
-            Effect::CreateReplacement(crate::card::ReplacementAbility {
-                replaces:
-                    Replaces::Damage {
-                        to: Affects::Targets(_, u8::MAX),
-                        ..
-                    },
-                replacement: Replacement::PreventNext(n),
-                ..
-            }) => Some(*n),
-            _ => None,
-        })?;
+        // "you may sacrifice an artifact. If you do, this creature deals 4
+        // damage divided as you choose among any number of targets"
+        // (Kuldotha Flamefiend): the division is announced with the
+        // targets all the same.
+        fn find(effects: &[Effect]) -> Option<crate::card::Num> {
+            effects.iter().find_map(|e| match e {
+                Effect::YouMay(inner) | Effect::IfYouDo(inner) | Effect::IfKicked(inner) => {
+                    find(inner)
+                }
+                Effect::DealDamageDivided { amount, .. } => Some(*amount),
+                Effect::DistributeCounters { count, .. } => Some(*count),
+                // "Prevent the next 4 damage that would be dealt this turn
+                // to any number of targets, divided as you choose" (Remedy).
+                Effect::CreateReplacement(crate::card::ReplacementAbility {
+                    replaces:
+                        Replaces::Damage {
+                            to: Affects::Targets(_, u8::MAX),
+                            ..
+                        },
+                    replacement: Replacement::PreventNext(n),
+                    ..
+                }) => Some(*n),
+                _ => None,
+            })
+        }
+        let amount = find(self.effects_of(spell))?;
         let o = &self.objects[spell];
         let ctx = EffectCtx {
             source: o.ability.map_or(spell, |a| a.source),
@@ -7400,7 +7429,7 @@ impl GameState {
         f: &'f crate::card::ObjFilter,
         ctx: &EffectCtx,
     ) -> std::borrow::Cow<'f, crate::card::ObjFilter> {
-        if !f.chosen && f.same.is_none() {
+        if !f.chosen && f.same.is_none() && !f.status.mana_value_x {
             return std::borrow::Cow::Borrowed(f);
         }
         let mut g = if f.chosen {
@@ -7408,6 +7437,15 @@ impl GameState {
         } else {
             f.clone()
         };
+        // "Destroy each artifact with mana value X or less": X of the
+        // resolving spell or ability (CR 107.3); unfilled, the filter
+        // wouldn't restrict the mana value at all.
+        if g.status.mana_value_x {
+            g.status.mana_value_x = false;
+            g.mana_value = g
+                .mana_value
+                .map(|(cmp, _)| (cmp, u8::try_from(ctx.x).unwrap_or(u8::MAX)));
+        }
         if let Some(same) = g.same {
             // "named Food Fight" in an ability Food Fight grants names the
             // granting card, not the permanent that has the ability.
@@ -8275,6 +8313,21 @@ impl GameState {
                     let py = self.characteristics(y).map_or(0, |c| c.power.max(0));
                     self.deal_damage(x, Target::Object(y), u32::try_from(px).unwrap_or(0), false);
                     self.deal_damage(y, Target::Object(x), u32::try_from(py).unwrap_or(0), false);
+                }
+            }
+            // "Each creature deals damage to itself equal to its power"
+            // (Solar Blaze): each one its own recipient.
+            Effect::Bite { source, to, twice } if source == to => {
+                let sources: SmallVec<[ObjId; 2]> = self
+                    .recipients(ctx, *source)
+                    .into_iter()
+                    .filter_map(|t| on_battlefield(self, t))
+                    .collect();
+                for x in sources {
+                    let p = self.characteristics(x).map_or(0, |c| c.power.max(0));
+                    let p = u32::try_from(p).unwrap_or(0);
+                    let p = if *twice { p.saturating_mul(2) } else { p };
+                    self.deal_damage(x, Target::Object(x), p, false);
                 }
             }
             Effect::Bite { source, to, twice } => {

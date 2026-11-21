@@ -1,0 +1,6 @@
+card "Phalanx Tactics" {
+  oracle_id 9962a9cc-6e9f-461e-a9d3-8c28ec34caf1
+  cost {1}{W}
+  type Instant
+  spell: target creature you control gets +2/+1; each single other creature you control gets +1/+1
+}

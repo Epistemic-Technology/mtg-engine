@@ -1,0 +1,8 @@
+card "General Traag, Heart of Stone" {
+  oracle_id ade54bb7-3df8-4578-add8-1f85afee57ab
+  cost {3}{R}{R}
+  type Legendary Artifact Creature — Elemental Soldier
+  pt 4/3
+  keywords trample
+  triggered when this enters: you may sacrifice 1 another artifact chosen; when you do, this deals 4 damage to target creature
+}

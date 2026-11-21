@@ -1,0 +1,7 @@
+card "Rampage of the Valkyries" {
+  oracle_id 49039519-62db-4605-b600-cef6f34c893f
+  cost {3}{W}{B}
+  type Enchantment
+  triggered when this enters: create 1 "4/4 white Angel creature with flying and vigilance"
+  triggered whenever Angel you control dies: each other player sacrifices 1 creature
+}

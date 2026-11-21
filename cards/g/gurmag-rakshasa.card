@@ -1,0 +1,8 @@
+card "Gurmag Rakshasa" {
+  oracle_id 2be43acc-a815-44bc-8803-d702e553fbc1
+  cost {4}{B}{B}
+  type Creature — Demon
+  pt 5/5
+  keywords menace
+  triggered when this enters: target creature an opponent controls gets -2/-2 until end of turn and target creature you control gets +2/+2
+}

@@ -1,0 +1,7 @@
+card "Rakish Heir" {
+  oracle_id 3318c391-7aa1-4550-88a0-b29d8dca28b7
+  cost {2}{R}
+  type Creature — Vampire
+  pt 2/2
+  triggered whenever Vampire you control deals combat damage to a player: put 1 +1/+1 counters on it
+}

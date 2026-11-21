@@ -1,0 +1,8 @@
+card "Judith, the Scourge Diva" {
+  oracle_id c01516e0-eec3-4370-b935-7674982e8850
+  cost {1}{B}{R}
+  type Legendary Creature — Human Shaman
+  pt 2/2
+  static other creature you control: +1/+0
+  triggered whenever a nontoken creature you control dies: deal 1 damage to any target
+}

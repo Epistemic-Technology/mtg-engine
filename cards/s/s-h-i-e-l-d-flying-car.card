@@ -4,6 +4,6 @@ card "S.H.I.E.L.D. Flying Car" {
   type Artifact — Vehicle
   pt 3/3
   keywords flash, flying
-  triggered when this enters: exile up to one target creature you control; delayed target 1: return it to battlefield at beginning of the next end step
+  triggered when this enters: exile up to one target creature you control; delayed target 1: return that card to battlefield at beginning of the next end step
   crew 1
 }

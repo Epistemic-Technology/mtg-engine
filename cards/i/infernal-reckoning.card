@@ -1,0 +1,6 @@
+card "Infernal Reckoning" {
+  oracle_id 32aa920c-0d91-4bc9-803c-d13857688d10
+  cost {B}
+  type Instant
+  spell: exile target colorless creature; you gain count equal power of target 1 life
+}

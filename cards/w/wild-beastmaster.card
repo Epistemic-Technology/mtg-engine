@@ -1,0 +1,7 @@
+card "Wild Beastmaster" {
+  oracle_id 52058c39-4edf-40f5-af18-e6de93f302a3
+  cost {2}{G}
+  type Creature — Human Shaman
+  pt 1/1
+  triggered whenever this attacks: each single other creature you control gets +1/+1 count where power
+}

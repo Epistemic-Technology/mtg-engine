@@ -1,0 +1,8 @@
+card "Stormrider Rig" {
+  oracle_id 51c7beca-ca19-4a4d-9512-0255146a9cd0
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+1
+  triggered whenever creature you control enters: you may attach this to it
+  equip {2}
+}

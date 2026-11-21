@@ -1,0 +1,9 @@
+card "Jace, Memory Adept" {
+  oracle_id 4a4dc133-541f-456b-a95f-3d707e1c95e9
+  cost {3}{U}{U}
+  type Legendary Planeswalker — Jace
+  loyalty 4
+  loyalty +1: draw 1 cards; target player mills 1 cards
+  loyalty 0: target player mills 10 cards
+  loyalty -7: any number of target players each draws 20 cards
+}

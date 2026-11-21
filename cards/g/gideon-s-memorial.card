@@ -1,0 +1,8 @@
+card "Gideon's Memorial" {
+  oracle_id c8f08704-7330-4fa9-b456-2e96aa252a2c
+  cost {1}{W}
+  type Legendary Artifact
+  static creature token you control: +1/+0, has vigilance
+  mana any only to cast planeswalker spell
+  activated {1}{W}, discard this: it deals 4 damage to target attacking or blocking creature
+}

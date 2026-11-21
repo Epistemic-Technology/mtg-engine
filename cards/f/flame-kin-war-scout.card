@@ -1,0 +1,7 @@
+card "Flame-Kin War Scout" {
+  oracle_id b00171b4-d1be-47e9-9293-ea57092f196b
+  cost {3}{R}
+  type Creature — Elemental Scout
+  pt 2/4
+  triggered when other creature enters: sacrifice this; if you do, this creature deals 4 damage to that creature
+}

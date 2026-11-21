@@ -1,0 +1,7 @@
+card "Spitting Slug" {
+  oracle_id 77af5e31-ac4d-4112-9138-e12abb5ce144
+  cost {1}{G}{G}
+  type Creature — Slug
+  pt 2/4
+  triggered whenever this blocks or becomes blocked: you may pay {1}{G}; if you do, this creature gains first strike; otherwise, each creature blocking or blocked by this gains first strike
+}

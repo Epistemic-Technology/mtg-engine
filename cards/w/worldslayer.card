@@ -1,0 +1,7 @@
+card "Worldslayer" {
+  oracle_id 31be715f-9ad3-435c-9e52-e108fe96b969
+  cost {5}
+  type Artifact — Equipment
+  triggered whenever equipped creature deals combat damage to a player: destroy all permanent other than this
+  equip {5}
+}

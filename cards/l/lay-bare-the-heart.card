@@ -1,0 +1,6 @@
+card "Lay Bare the Heart" {
+  oracle_id 910f4339-9125-45b7-929f-57e1adb6ac3c
+  cost {1}{B}
+  type Sorcery
+  spell: target opponent reveals hand discarding nonlegendary nonland card
+}

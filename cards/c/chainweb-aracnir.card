@@ -1,0 +1,10 @@
+card "Chainweb Aracnir" {
+  oracle_id c45423ad-1920-46f7-bcc1-ecade5880821
+  cost {G}
+  type Creature — Spider
+  pt 1/2
+  keywords reach
+  triggered when this enters: this bites target creature with flying an opponent controls late
+  escape {3}{G}{G} exile 4
+  escapes with 3 +1/+1 counters
+}

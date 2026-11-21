@@ -1,0 +1,7 @@
+card "Akoum Stonewaker" {
+  oracle_id 36d1a46e-44ac-4a65-a93c-8d6ab5c31cbf
+  cost {1}{R}
+  type Creature — Human Shaman
+  pt 2/1
+  label "Landfall" triggered whenever land you control enters: you may pay {2}{R}; if you do, create 1 "3/1 red Elemental creature with trample and haste"; delayed that token: exile that token at beginning of the next end step
+}

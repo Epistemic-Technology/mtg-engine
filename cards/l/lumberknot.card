@@ -1,0 +1,8 @@
+card "Lumberknot" {
+  oracle_id 6a9d6f32-c4a6-41ea-8188-235ea064dc53
+  cost {2}{G}{G}
+  type Creature — Treefolk
+  pt 1/1
+  keywords hexproof
+  triggered whenever a creature dies: put 1 +1/+1 counters on this creature
+}

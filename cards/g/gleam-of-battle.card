@@ -1,0 +1,6 @@
+card "Gleam of Battle" {
+  oracle_id 19f23d9e-0c05-4028-9c64-60b9a20020f9
+  cost {4}{R}{W}
+  type Enchantment
+  triggered whenever creature you control attacks: put 1 +1/+1 counters on it
+}

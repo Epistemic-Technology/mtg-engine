@@ -1,0 +1,6 @@
+card "Aligned Hedron Network" {
+  oracle_id 5a399467-abb7-4f33-962d-8bef5aa9ebf3
+  cost {4}
+  type Artifact
+  triggered when this enters: exile all creature with power 5 or greater until this leaves
+}

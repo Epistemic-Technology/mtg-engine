@@ -1,0 +1,8 @@
+card "Jiwari, the Earth Aflame" {
+  oracle_id 03199a9e-3a52-42af-8027-50b455a054d4
+  cost {3}{R}{R}
+  type Legendary Creature — Spirit
+  pt 3/3
+  activated {X}{R}, {T}: deal X damage to target creature without flying
+  label "Channel" activated {X}{R}{R}{R}, discard this: it deals X damage to each creature without flying
+}

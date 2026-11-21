@@ -1,0 +1,6 @@
+card "Evacuation" {
+  oracle_id fdd94383-b573-439a-8e1c-925af887c5a6
+  cost {3}{U}{U}
+  type Instant
+  spell: return all creature to their owners' hands
+}

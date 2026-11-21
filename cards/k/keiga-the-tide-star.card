@@ -1,0 +1,8 @@
+card "Keiga, the Tide Star" {
+  oracle_id 521b1598-58c6-47a0-a7b3-021d70bf2b05
+  cost {5}{U}
+  type Legendary Creature — Dragon Spirit
+  pt 5/5
+  keywords flying
+  triggered when this dies: gain control of target creature indefinitely
+}

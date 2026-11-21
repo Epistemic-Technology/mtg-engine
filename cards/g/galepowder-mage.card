@@ -4,5 +4,5 @@ card "Galepowder Mage" {
   type Creature — Kithkin Wizard
   pt 3/3
   keywords flying
-  triggered whenever this attacks: exile another target creature; delayed target 1: return it to battlefield at beginning of the next end step
+  triggered whenever this attacks: exile another target creature; delayed target 1: return that card to battlefield at beginning of the next end step
 }

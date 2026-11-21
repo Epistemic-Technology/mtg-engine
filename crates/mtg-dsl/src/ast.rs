@@ -775,6 +775,20 @@ pub struct Filter {
     /// after "each" ("put a +1/+1 counter on each Pest, Bat, and Spider
     /// you control"); wording only.
     pub and_list: bool,
+    /// `every other creature`: a group printed with "all" as an effect's
+    /// subject ("all other creatures get -2/-2"); otherwise as `all`.
+    /// Wording only.
+    pub all_word: bool,
+    /// `whenever a creature dies`: written with its article, a trigger's
+    /// subject that could be the source prints so ("Whenever a creature
+    /// dies") rather than "this creature or another creature". Wording
+    /// only.
+    pub article: bool,
+    /// `creature with flying an opponent controls late`: who controls it
+    /// printed after the qualities ("target creature with flying an
+    /// opponent controls") rather than before them ("target creature an
+    /// opponent controls with flying"). Wording only.
+    pub control_late: bool,
 }
 
 impl Filter {
@@ -2680,6 +2694,10 @@ pub enum Recipient {
     EachCreatureYouControl,
     EachPermanentYouControl,
     SameObject,
+    /// `that card` inside a delayed trigger: the object it is about
+    /// (`SameObject`), returned as "that card" ("Return that card to the
+    /// battlefield ..."), where `it` prints "it".
+    SameCard,
     /// `that creature` inside a delayed trigger about a target: the object
     /// the trigger is about (`SameObject`), printed "that creature".
     SameThat,
@@ -2693,6 +2711,10 @@ pub enum Recipient {
     /// (`SameTokens`, the core `SameObject`).
     CreatedTokens,
     SameTokens,
+    /// `them` inside a delayed trigger about created tokens: those tokens
+    /// (`SameTokens`), printed "them" ("Exile them at the beginning of the
+    /// next end step").
+    SameThem,
     /// `them` after creating tokens: `those tokens` printed "them" ("Put
     /// X +1/+1 counters on each of them").
     CreatedThem,

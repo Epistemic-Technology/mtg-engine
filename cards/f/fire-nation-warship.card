@@ -1,0 +1,9 @@
+card "Fire Nation Warship" {
+  oracle_id 987aab63-a889-400f-a3bd-feaef978b407
+  cost {3}
+  type Artifact — Vehicle
+  pt 4/4
+  keywords reach
+  triggered when this dies: create 1 "Clue"
+  crew 2
+}

@@ -1,0 +1,8 @@
+card "Festercreep" {
+  oracle_id 0f7f841a-1913-4396-9c94-bbd49dfdb9d1
+  cost {1}{B}
+  type Creature — Elemental
+  pt 0/0
+  enters with 1 +1/+1 counters
+  activated {1}{B}, remove 1 +1/+1 counters from this: every other creature gets -1/-1
+}

@@ -1,0 +1,9 @@
+card "Sun-Blessed Healer" {
+  oracle_id 1729c6f2-2452-4fbc-a1bc-3e625f2ad8e1
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 3/1
+  kicker {1}{W}
+  keyword lifelink
+  triggered when this enters if kicked: return target nonland noninstant nonsorcery permanent card with mana value 2 or less from your graveyard to battlefield
+}

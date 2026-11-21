@@ -1,0 +1,7 @@
+card "Kumena's Speaker" {
+  oracle_id 68b26aeb-4952-4ca1-9b4a-82bdca16461b
+  cost {G}
+  type Creature — Merfolk Shaman
+  pt 1/1
+  static this: +1/+1 as long as you control another Merfolk or an Island
+}

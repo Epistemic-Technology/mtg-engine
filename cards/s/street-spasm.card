@@ -1,0 +1,7 @@
+card "Street Spasm" {
+  oracle_id 95385d84-550c-4d6c-a889-62bdbc1d518d
+  cost {X}{R}
+  type Instant
+  spell: deal X damage to target creature without flying you don't control late
+  overload {X}{X}{R}{R}
+}

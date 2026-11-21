@@ -1,0 +1,8 @@
+card "Indebted Samurai" {
+  oracle_id fee392d9-a961-4f41-81ba-ab1b87c931fa
+  cost {3}{W}
+  type Creature — Human Samurai
+  pt 2/3
+  bushido 1
+  triggered whenever a Samurai you control dies: you may put 1 +1/+1 counters on this creature
+}

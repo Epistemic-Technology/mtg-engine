@@ -1,0 +1,8 @@
+card "Furystoke Giant" {
+  oracle_id 0cc62807-aeb4-4dfb-b001-4e40bf703497
+  cost {3}{R}{R}
+  type Creature — Giant Warrior
+  pt 3/3
+  triggered when this enters: each other creature you control gains ability { activated {T}: deal 2 damage to any target }
+  keyword persist
+}

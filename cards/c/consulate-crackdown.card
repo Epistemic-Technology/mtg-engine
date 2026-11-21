@@ -1,0 +1,6 @@
+card "Consulate Crackdown" {
+  oracle_id 128f7e5a-17e0-4069-a185-c9f874c7d234
+  cost {3}{W}{W}
+  type Enchantment
+  triggered when this enters: exile all artifact your opponents control until this leaves
+}

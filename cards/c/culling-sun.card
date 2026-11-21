@@ -1,0 +1,6 @@
+card "Culling Sun" {
+  oracle_id e41d9b3a-0712-4174-8c5c-224065a63b16
+  cost {2}{W}{W}{B}
+  type Sorcery
+  spell: destroy each single creature with mana value 3 or less
+}

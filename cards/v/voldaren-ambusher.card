@@ -1,0 +1,7 @@
+card "Voldaren Ambusher" {
+  oracle_id 897f666e-0dda-4577-a3d7-792e3ac2f460
+  cost {2}{R}
+  type Creature — Vampire Archer
+  pt 2/2
+  triggered when this enters if opponent lost life this turn: it deals count where Vampire you control damage to up to one target creature or planeswalker
+}

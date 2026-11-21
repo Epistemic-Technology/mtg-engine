@@ -1,0 +1,8 @@
+card "Obsidian Battle-Axe" {
+  oracle_id e015ea73-8260-4dd7-9531-7d5cbff9a1e7
+  cost {3}
+  type Kindred Artifact — Warrior Equipment
+  static enchanted: +2/+1, has haste
+  triggered whenever Warrior creature enters: you may attach this to it
+  equip {3}
+}
