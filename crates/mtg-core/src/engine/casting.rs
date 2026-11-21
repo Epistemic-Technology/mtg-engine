@@ -10258,7 +10258,41 @@ impl GameState {
                     .collect();
                 for id in cards {
                     let owner = self.objects[id].owner;
+                    // CR 303.4f: an Aura put onto the battlefield this way
+                    // is attached to an object its owner chooses that it
+                    // could enchant; with none, it stays in the graveyard.
+                    let host = match self.pool.get(self.objects[id].def).enchant() {
+                        Some(spec) => {
+                            let options: Vec<Choice> = self
+                                .battlefield
+                                .iter()
+                                .copied()
+                                .filter(|h| self.is_legal_attachment(spec, *h))
+                                .map(|h| Choice::Target(Target::Object(h)))
+                                .collect();
+                            if options.is_empty() {
+                                continue;
+                            }
+                            let k =
+                                self.choose_mid(owner, DecisionKind::ChooseCard, options.clone());
+                            match options[k] {
+                                Choice::Target(Target::Object(h)) => Some(h),
+                                _ => None,
+                            }
+                        }
+                        None => None,
+                    };
                     let new = self.put_onto_battlefield(id, owner);
+                    if let Some(h) = host
+                        && self
+                            .objects
+                            .get(new)
+                            .is_some_and(|o| o.zone == Zone::Battlefield)
+                        && self.objects.contains_key(h)
+                    {
+                        self.objects[new].attached_to = Some(h);
+                        self.cbump();
+                    }
                     ctx.created = Some(new);
                 }
             }

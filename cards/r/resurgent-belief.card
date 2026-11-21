@@ -1,0 +1,7 @@
+card "Resurgent Belief" {
+  oracle_id 0fcfef04-a954-4423-82b0-c70dc64a8fbc
+  type Sorcery
+  color white
+  suspend 2 {1}{W}
+  spell: return all enchantment card from your graveyard to battlefield
+}

@@ -58,3 +58,56 @@ scenario "rooms: Defiled Crypt makes a Horror once each turn as cards leave your
   assert hand A contains "Hill Giant"
   assert battlefield A contains 1 "Horror"
 }
+
+scenario "graveyard to battlefield: an Aura with nothing to enchant stays in the graveyard" {
+  battlefield A: 2 "Plains"
+  hand A: "Resurgent Belief"
+  graveyard A: "Glorious Anthem", "Pacifism"
+  library A: 5 "Plains"
+  turn 1 A: suspend "Resurgent Belief"
+  run_to turn 5 postcombat_main
+  assert battlefield A contains "Glorious Anthem"
+  assert graveyard A contains "Pacifism"
+}
+
+scenario "graveyard to battlefield: Resurgent Belief returns enchantments, an Aura attached to a creature" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Resurgent Belief"
+  graveyard A: "Glorious Anthem", "Pacifism", "Hill Giant"
+  library A: 5 "Plains"
+  turn 1 A: suspend "Resurgent Belief"
+  run_to turn 5 postcombat_main
+  assert battlefield A contains "Glorious Anthem"
+  assert graveyard A contains "Hill Giant"
+  assert power "Grizzly Bears" 3
+  assert attached "Pacifism" to "Grizzly Bears"
+}
+
+scenario "nonland permanent card: Sun-Blessed Healer kicked returns a cheap permanent card, not an instant" {
+  battlefield A: 4 "Plains"
+  hand A: "Sun-Blessed Healer"
+  graveyard A: "Memnite", "Shock", "Forest"
+  turn 1 A: cast "Sun-Blessed Healer" kicked
+  illegal turn 1 A: trigger "Sun-Blessed Healer" targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Memnite"
+}
+
+scenario "nonland permanent card: Sun-Blessed Healer unkicked returns nothing" {
+  battlefield A: 2 "Plains"
+  hand A: "Sun-Blessed Healer"
+  graveyard A: "Memnite"
+  turn 1 A: cast "Sun-Blessed Healer"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Memnite"
+}
+
+scenario "nonland permanent card: Wayspeaker Bodyguard returns a cheap permanent card to hand" {
+  battlefield A: 4 "Plains"
+  hand A: "Wayspeaker Bodyguard"
+  graveyard A: "Memnite", "Shock", "Forest"
+  turn 1 A: cast "Wayspeaker Bodyguard"
+  illegal turn 1 A: trigger "Wayspeaker Bodyguard" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Memnite"
+}
