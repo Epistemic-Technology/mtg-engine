@@ -1,0 +1,7 @@
+card "Jalira, Master Polymorphist" {
+  oracle_id 62ad15f1-ee51-4991-8e52-06a3cbd8f395
+  cost {3}{U}
+  type Legendary Creature — Human Wizard
+  pt 2/2
+  activated {2}{U}, {T}, sacrifice another creature: reveal until nonlegendary creature card; put that card onto battlefield and the rest on bottom of library random
+}

@@ -1,0 +1,7 @@
+card "Storm the Festival" {
+  oracle_id 5d03188b-fbc4-4e16-9fe6-db98dbdb7f68
+  cost {3}{G}{G}{G}
+  type Sorcery
+  spell: dig 5 take 2 permanent with mana value 5 or less card may onto battlefield rest bottom random reword
+  flashback {7}{G}{G}{G}
+}

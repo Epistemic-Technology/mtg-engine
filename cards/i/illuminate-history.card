@@ -1,0 +1,6 @@
+card "Illuminate History" {
+  oracle_id c7c1e7cf-0be2-4129-9bdf-0862be2fba7f
+  cost {2}{R}{R}
+  type Sorcery — Lesson
+  spell: discard any number cards chosen then draw count that many discarded this way cards; then if 7 cards in your graveyard, create 1 "3/2 red and white Spirit creature"
+}

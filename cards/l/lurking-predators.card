@@ -1,0 +1,6 @@
+card "Lurking Predators" {
+  oracle_id 15fbb7b1-c62d-4f82-9f35-2c10299779f4
+  cost {4}{G}{G}
+  type Enchantment
+  triggered whenever an opponent casts a spell: reveal top card; if it is creature card, put it onto battlefield; otherwise, you may put that card on bottom of library
+}

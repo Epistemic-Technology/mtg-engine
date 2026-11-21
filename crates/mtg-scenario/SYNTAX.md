@@ -108,6 +108,9 @@ targets and assertions must be unambiguous: qualify with `A`/`B` if both
 players control one, and with `oldest`/`newest` if one player controls
 several (`newest A "Serra Angel"`). A name that is not on the battlefield
 is looked up in graveyards, for "target creature card in your graveyard".
+A `cast` or `play` of a card not in the hand or playable from exile takes
+the top card of the player's library of that name, for "You may cast
+creature spells from the top of your library".
 A target that names an object that is not a legal choice falls back to
 an ability on the stack from a source of that name, for "target
 activated ability" (`cast "Rust" targeting "Aeolipile"`).

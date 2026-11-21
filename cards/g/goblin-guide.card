@@ -1,0 +1,8 @@
+card "Goblin Guide" {
+  oracle_id 51d9564b-44fc-4de1-9119-09d7b4089378
+  cost {R}
+  type Creature — Goblin Scout
+  pt 2/2
+  keywords haste
+  triggered whenever this attacks: defending player reveals top card; if it is land card, that player puts it into hand
+}

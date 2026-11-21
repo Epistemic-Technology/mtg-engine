@@ -1304,11 +1304,16 @@ impl Decompiler<'_> {
             },
             CoreEffect::Populate => Effect::Populate,
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
-            CoreEffect::Fabricate { .. }
-            | CoreEffect::BecomeRenowned
-            | CoreEffect::ExileTop { .. } => {
+            CoreEffect::Fabricate { .. } | CoreEffect::BecomeRenowned => {
                 unreachable!("decompiled as a keyword line")
             }
+            CoreEffect::ExileTop { who, count } => Effect::ExileTop {
+                count: *count,
+                who: match who {
+                    CoreRecipient::You => None,
+                    w => Some(Self::recipient(*w)),
+                },
+            },
             CoreEffect::Discover(n) => Effect::Discover(*n),
             CoreEffect::Soulbond { triggering } => Effect::Soulbond {
                 triggering: *triggering,
@@ -1353,6 +1358,20 @@ impl Decompiler<'_> {
                 kind: *kind,
                 count: *count,
             },
+            CoreEffect::ExileUntilCard { who, filter } => Effect::ExileUntilCard {
+                who: match who {
+                    CoreRecipient::You => None,
+                    w => Some(Self::recipient(*w)),
+                },
+                filter: self.filter(filter),
+            },
+            CoreEffect::MayPlayCard { until, cast, free } => Effect::MayPlayCard {
+                until: *until,
+                cast: *cast,
+                free: *free,
+                first: false,
+                it: false,
+            },
             CoreEffect::RevealUntil { who, filter } => Effect::RevealUntil {
                 who: match r(*who) {
                     Recipient::You => None,
@@ -1375,7 +1394,9 @@ impl Decompiler<'_> {
             },
             CoreEffect::RevealCard => Effect::RevealIt,
             CoreEffect::DrawReveal => Effect::DrawReveal,
-            CoreEffect::PutCard { what, to } => Effect::PutCard {
+            CoreEffect::PutCard { what, to, random } => Effect::PutCard {
+                random: *random,
+                rest: None,
                 what: match what {
                     mtg_core::card::CardSet::It => crate::ast::CardWords::It,
                     mtg_core::card::CardSet::Revealed => crate::ast::CardWords::AllRevealed,
@@ -1385,11 +1406,19 @@ impl Decompiler<'_> {
                 who: None,
                 that_player: false,
             },
-            CoreEffect::ExilePlayable { count, until } => Effect::ExilePlayable {
+            CoreEffect::ExilePlayable {
+                count,
+                until,
+                choose,
+                from,
+            } => Effect::ExilePlayable {
                 count: *count,
                 until: *until,
                 first: *until != mtg_core::card::PlayUntil::YourNextEndStep,
                 it: false,
+                choose: *choose,
+                from: from.map(Self::recipient),
+                this_way: false,
             },
             CoreEffect::Dig {
                 count,
@@ -1401,6 +1430,7 @@ impl Decompiler<'_> {
                 also,
                 random,
                 top,
+                onto,
             } => Effect::Dig {
                 count: *count,
                 filter: filter.as_ref().map(|f| self.filter(f)),
@@ -1408,12 +1438,15 @@ impl Decompiler<'_> {
                 all: *all,
                 rest_graveyard: *rest_graveyard,
                 reveal_top: false,
-                revealing: *optional,
+                revealing: *optional && onto.is_none(),
                 take: *take,
                 also: also.as_ref().map(|f| self.filter(f)),
                 random: *random,
                 then: false,
                 top: *top,
+                onto: *onto,
+                that_card: false,
+                short: false,
                 reword: false,
             },
             CoreEffect::Modes(modes) => match self.modal_two(modes) {
@@ -1464,6 +1497,10 @@ impl Decompiler<'_> {
             CoreEffect::CantBlockThis { blocker, attacker } => Effect::CantBlockThis {
                 blocker: Self::recipient(*blocker),
                 attacker: Self::recipient(*attacker),
+            },
+            CoreEffect::GrantFlashback { to } => Effect::GrantFlashback {
+                to: Self::recipient(*to),
+                that_card: false,
             },
             CoreEffect::SwitchPt { to } => Effect::SwitchPt {
                 to: Self::recipient(*to),
@@ -1902,6 +1939,16 @@ impl Decompiler<'_> {
                 kind: *kind,
                 n: *n,
             },
+            AbilityDef::PlayFromTop {
+                lands,
+                spells,
+                once,
+            } => Ability::PlayFromTop {
+                lands: *lands,
+                spells: spells.as_ref().map(|f| self.filter(f)),
+                once: *once,
+            },
+            AbilityDef::TopRevealed { players } => Ability::TopRevealed { players: *players },
             AbilityDef::MayLook {
                 top,
                 face_down,
@@ -2042,7 +2089,16 @@ impl Decompiler<'_> {
                 Ability::Mechanic(crate::ast::Mechanic::Fabricate(*count))
             }
             AbilityDef::Triggered(t)
-                if matches!(t.effects.as_slice(), [CoreEffect::ExileTop { .. }]) =>
+                if matches!(
+                    t.effects.as_slice(),
+                    [CoreEffect::ExileTop {
+                        who: CoreRecipient::TriggeringPlayer,
+                        count: mtg_core::card::Num::N(1),
+                    }]
+                ) && matches!(
+                    t.trigger,
+                    TriggerSpec::DealsCombatDamageToPlayer(mtg_core::card::TriggerObj::This)
+                ) =>
             {
                 Ability::Mechanic(crate::ast::Mechanic::Ingest)
             }

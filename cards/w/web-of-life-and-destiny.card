@@ -1,0 +1,7 @@
+card "Web of Life and Destiny" {
+  oracle_id 33d556c5-1bb4-49bb-88c2-627311eb8c9b
+  cost {6}{G}{G}
+  type Enchantment
+  keywords convoke
+  triggered at beginning of your combat: dig 5 take creature card may onto battlefield rest bottom random
+}

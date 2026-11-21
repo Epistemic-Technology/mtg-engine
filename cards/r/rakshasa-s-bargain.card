@@ -1,0 +1,6 @@
+card "Rakshasa's Bargain" {
+  oracle_id d87be8c6-7a1f-4db8-ada1-b1a030f03877
+  cost {2/B}{2/G}{2/U}
+  type Instant
+  spell: dig 4 take 2 card rest graveyard reword
+}

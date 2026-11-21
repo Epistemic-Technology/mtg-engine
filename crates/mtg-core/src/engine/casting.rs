@@ -333,9 +333,21 @@ impl GameState {
                 if def.is_land() {
                     if sorcery_timing
                         && self.may_play_another_land(p)
+                        && !pe.cast_only
                         && !options.contains(&Choice::PlayLand(pe.card))
                     {
                         options.push(Choice::PlayLand(pe.card));
+                    }
+                    continue;
+                }
+                // "... without paying its mana cost", with its usual
+                // timing.
+                if pe.free {
+                    if (sorcery_timing || def.is_instant() || self.has_flash(p, def, pe.card))
+                        && self.exile_castable(p, pe.card, AltCast::Free)
+                        && !options.contains(&Choice::Cast(pe.card))
+                    {
+                        options.push(Choice::Cast(pe.card));
                     }
                     continue;
                 }
@@ -368,6 +380,38 @@ impl GameState {
                 {
                     options.push(Choice::Cast(pe.card));
                 }
+            }
+        }
+        // CR 601.3, 305.1: the top card of the library, by a permanent's
+        // permission ("You may cast creature spells from the top of your
+        // library").
+        if self.top_play_sources > 0
+            && let Some(&top) = ps.library.last()
+            && !self.top_permissions(p, top).is_empty()
+        {
+            let def = self.pool.get(self.objects[top].def);
+            if def.is_land() {
+                if sorcery_timing && ps.lands_played_this_turn < 1 {
+                    options.push(Choice::PlayLand(top));
+                }
+            } else if self.castable(p, def, top, sorcery_timing, &sources, &pool, &changers) {
+                options.push(Choice::Cast(top));
+            }
+        }
+        // CR 702.34a: a card given flashback ("The flashback cost is
+        // equal to its mana cost"), with its usual timing.
+        for id in &self.granted_flashback {
+            let Some(o) = self.objects.get(*id) else {
+                continue;
+            };
+            if o.zone != Zone::Graveyard || o.owner != p || options.contains(&Choice::Cast(*id)) {
+                continue;
+            }
+            let def = self.pool.get(o.def);
+            if def.flashback.is_none()
+                && self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers)
+            {
+                options.push(Choice::Cast(*id));
             }
         }
         // CR 702.34a: instants and sorceries with flashback may be cast
@@ -2426,6 +2470,56 @@ impl GameState {
     }
 
     /// Permanents with a static ability that changes what spells cost.
+    /// CR 601.3, 305.1: the permissions `p` has to play `card`, the top
+    /// card of their library, from permanents they control
+    /// (`AbilityDef::PlayFromTop`): each (source, ability, once each
+    /// turn). A once-each-turn permission already used this turn is left
+    /// out.
+    pub(super) fn top_permissions(
+        &self,
+        p: PlayerId,
+        card: ObjId,
+    ) -> SmallVec<[(ObjId, crate::card::AbilityId, bool); 2]> {
+        let mut out = SmallVec::new();
+        if self.top_play_sources == 0 || self.player(p).library.last() != Some(&card) {
+            return out;
+        }
+        let o = &self.objects[card];
+        let def = self.pool.get(o.def);
+        let land = def.is_land();
+        let chars = self.base_characteristics(o);
+        for src in &self.battlefield {
+            let s = &self.objects[*src];
+            if s.controller != p || !self.flags_of(s).has_top_play() {
+                continue;
+            }
+            for a in &self.pool.get(s.def).ability_ids {
+                let AbilityDef::PlayFromTop {
+                    lands,
+                    spells,
+                    once,
+                } = self.pool.ability(*a)
+                else {
+                    continue;
+                };
+                let ok = if land {
+                    *lands
+                } else {
+                    // The mana value isn't a characteristic `matches` sees.
+                    spells.as_ref().is_some_and(|f| {
+                        f.mana_value.is_none_or(|(cmp, n)| {
+                            cmp.holds(def.mana_cost.mana_value(), u32::from(n))
+                        }) && f.matches(card, p, &chars, Some(*src), Some(p))
+                    })
+                };
+                if ok && !(*once && self.activated_once.contains(&(*src, *a))) {
+                    out.push((*src, *a, *once));
+                }
+            }
+        }
+        out
+    }
+
     pub(super) fn cost_changers(&self) -> SmallVec<[ObjId; 2]> {
         if self.cost_change_sources == 0 {
             return SmallVec::new();
@@ -7992,12 +8086,17 @@ impl GameState {
                     }
                 }
             }
-            Effect::ExileTop { who } => {
+            Effect::ExileTop { who, count } => {
+                let n = self.eval_num(*count, ctx);
                 for t in self.recipients(ctx, *who) {
-                    if let Target::Player(p) = t
-                        && let Some(top) = self.player(p).library.last().copied()
-                    {
-                        self.move_object(top, Zone::Exile, true);
+                    if let Target::Player(p) = t {
+                        for _ in 0..n {
+                            let Some(top) = self.player(p).library.last().copied() else {
+                                break;
+                            };
+                            let new = self.move_object(top, Zone::Exile, true);
+                            ctx.created = Some(new);
+                        }
                     }
                 }
             }
@@ -8682,6 +8781,18 @@ impl GameState {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
                         self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
+                    }
+                }
+            }
+            Effect::GrantFlashback { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Target::Object(id) = t
+                        && self
+                            .objects
+                            .get(id)
+                            .is_some_and(|o| o.zone == Zone::Graveyard)
+                    {
+                        self.granted_flashback.push(id);
                     }
                 }
             }
@@ -10257,6 +10368,48 @@ impl GameState {
                     }
                 }
             }
+            Effect::ExileUntilCard { who, filter } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    ctx.created = None;
+                    while let Some(top) = self.player(p).library.last().copied() {
+                        let new = self.move_object(top, Zone::Exile, true);
+                        let Some(o) = self.objects.get(new) else {
+                            break;
+                        };
+                        if o.zone != Zone::Exile {
+                            continue;
+                        }
+                        let c = self.base_characteristics(o);
+                        if filter.matches(new, o.owner, &c, Some(ctx.source), Some(ctx.controller))
+                        {
+                            ctx.created = Some(new);
+                            break;
+                        }
+                    }
+                }
+            }
+            Effect::MayPlayCard { until, cast, free } => {
+                let p = ctx.controller;
+                let own_ends = if self.active_player == p { 2 } else { 1 };
+                if let Some(id) = ctx.created
+                    && self.objects.get(id).is_some_and(|o| o.zone == Zone::Exile)
+                {
+                    self.exile_casts
+                        .get_or_insert_with(Box::default)
+                        .playable
+                        .push(crate::state::PlayableExile {
+                            card: id,
+                            player: p,
+                            until: *until,
+                            own_ends,
+                            cast_only: *cast,
+                            free: *free,
+                        });
+                }
+            }
             Effect::RevealUntil { who, filter } => {
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
@@ -10328,7 +10481,7 @@ impl GameState {
                     }
                 }
             }
-            Effect::PutCard { what, to } => self.put_card(ctx, *what, *to),
+            Effect::PutCard { what, to, random } => self.put_card(ctx, *what, *to, *random),
             Effect::RevealCard => {
                 if let Some(id) = ctx.created.filter(|id| self.objects.contains_key(*id)) {
                     if self.objects[id].zone == Zone::Hand {
@@ -10709,6 +10862,7 @@ impl GameState {
                 also,
                 random,
                 top: back_on_top,
+                onto,
             } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx) as usize;
@@ -10762,7 +10916,21 @@ impl GameState {
                 }
                 // "back on top of your library": the taken cards stay where
                 // they are, on top once the rest have gone.
-                if !*back_on_top {
+                if let Some(tapped) = *onto {
+                    // CR 110.2a: under the controller's control.
+                    for id in &taken {
+                        let new = self.put_onto_battlefield_with(
+                            *id,
+                            p,
+                            super::replace::Enter {
+                                tapped,
+                                counters: None,
+                                ..super::replace::Enter::default()
+                            },
+                        );
+                        ctx.created = Some(new);
+                    }
+                } else if !*back_on_top {
                     for id in &taken {
                         self.move_object(*id, Zone::Hand, false);
                     }
@@ -10813,31 +10981,74 @@ impl GameState {
                                 player: owner,
                                 until: crate::card::PlayUntil::Forever,
                                 own_ends: crate::state::WARP_LATER,
+                                cast_only: true,
+                                free: false,
                             });
                     }
                 }
             }
-            Effect::ExilePlayable { count, until } => {
+            Effect::ExilePlayable {
+                count,
+                until,
+                choose,
+                from,
+            } => {
                 let p = ctx.controller;
+                // "Target opponent exiles the top card of their library":
+                // their library; the permission is still the controller's.
+                let lib = match from {
+                    Some(w) => match self.recipients(ctx, *w).first() {
+                        Some(Target::Player(q)) => *q,
+                        _ => return,
+                    },
+                    None => p,
+                };
                 // "Until the end of your next turn": through this turn too
                 // when it's already the controller's.
                 let own_ends = if self.active_player == p { 2 } else { 1 };
-                for _ in 0..self.eval_num(*count, ctx) {
-                    let Some(top) = self.player(p).library.last().copied() else {
-                        break;
-                    };
-                    let new = self.move_object(top, Zone::Exile, true);
-                    if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
-                        self.exile_casts
-                            .get_or_insert_with(Box::default)
-                            .playable
-                            .push(crate::state::PlayableExile {
-                                card: new,
-                                player: p,
-                                until: *until,
-                                own_ends,
-                            });
+                let n = self.eval_num(*count, ctx) as usize;
+                let top: Vec<ObjId> = self
+                    .player(lib)
+                    .library
+                    .iter()
+                    .rev()
+                    .take(n)
+                    .copied()
+                    .collect();
+                // "Choose one of them.": only that one may be played. The
+                // choice names the cards as they were before they moved,
+                // the objects the resolution began with; they are exiled
+                // all the same.
+                let chosen = if *choose && top.len() > 1 {
+                    let options: Vec<Choice> = top
+                        .iter()
+                        .map(|id| Choice::Target(Target::Object(*id)))
+                        .collect();
+                    Some(top[self.choose_mid(p, DecisionKind::ChooseCard, options)])
+                } else {
+                    None
+                };
+                let mut exiled: Vec<ObjId> = Vec::new();
+                for id in top {
+                    let new = self.move_object(id, Zone::Exile, true);
+                    if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile)
+                        && chosen.is_none_or(|c| c == id)
+                    {
+                        exiled.push(new);
                     }
+                }
+                for new in exiled {
+                    self.exile_casts
+                        .get_or_insert_with(Box::default)
+                        .playable
+                        .push(crate::state::PlayableExile {
+                            card: new,
+                            player: p,
+                            until: *until,
+                            own_ends,
+                            cast_only: false,
+                            free: false,
+                        });
                 }
             }
             Effect::Manifest => {
@@ -11308,7 +11519,7 @@ impl GameState {
 
     /// `Effect::PutCard`: move the resolution's card, or its revealed
     /// cards still in their library, to `to`.
-    fn put_card(&mut self, ctx: &mut EffectCtx, what: CardSet, to: CardDest) {
+    fn put_card(&mut self, ctx: &mut EffectCtx, what: CardSet, to: CardDest, random: bool) {
         let cards: Vec<ObjId> = match what {
             CardSet::It => ctx.created.into_iter().collect(),
             CardSet::Revealed => ctx.revealed.clone(),
@@ -11319,6 +11530,10 @@ impl GameState {
                 .filter(|id| Some(*id) != ctx.created)
                 .collect(),
         };
+        let mut cards = cards;
+        if random {
+            rand::seq::SliceRandom::shuffle(cards.as_mut_slice(), &mut self.rng);
+        }
         let mut last = None;
         for id in cards {
             let Some(o) = self.objects.get(id) else {

@@ -1,0 +1,6 @@
+card "Call of the Wild" {
+  oracle_id 882ee72e-2149-4778-a81c-8bf09beb5d66
+  cost {2}{G}{G}
+  type Enchantment
+  activated {2}{G}{G}: reveal top card; if it is creature card, put it onto battlefield; otherwise, put it into graveyard
+}

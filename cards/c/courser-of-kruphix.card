@@ -1,0 +1,9 @@
+card "Courser of Kruphix" {
+  oracle_id 46779609-4fa7-4fd2-b5b4-7d4d749339e6
+  cost {1}{G}{G}
+  type Enchantment Creature — Centaur
+  pt 2/4
+  top revealed
+  play from top lands
+  label "Landfall" triggered whenever land you control enters: you gain 1 life
+}

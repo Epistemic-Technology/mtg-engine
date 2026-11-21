@@ -1,0 +1,6 @@
+card "Scrying Sheets" {
+  oracle_id 0f98e055-ab61-4314-aae8-9d3c19f66acf
+  type Snow Land
+  activated {T}: add {C}
+  activated {1}{S}, {T}: look at top card; if that card is snow, you may reveal it and put it into hand
+}

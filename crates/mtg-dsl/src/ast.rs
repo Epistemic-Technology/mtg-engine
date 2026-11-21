@@ -254,6 +254,17 @@ pub enum CountStyle {
     EqualBefore,
 }
 
+/// How a count names the card revealed before (`CountExpr::CardManaValue`).
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum CardWord {
+    /// "that card's".
+    ThatCard,
+    /// "the card's".
+    TheCard,
+    /// "its".
+    Its,
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[allow(clippy::large_enum_variant)] // a syntax tree, not a hot structure
 pub enum CountExpr {
@@ -343,12 +354,9 @@ pub enum CountExpr {
         the_spell: bool,
     },
     /// `mana value of that card`: "that card's mana value", the card
-    /// revealed before; `its mana value` (`its`): "its mana value", the
-    /// same card (Darkstar Augur's "put that card into your hand. You lose
-    /// life equal to its mana value.").
-    CardManaValue {
-        its: bool,
-    },
+    /// revealed before; `mana value of the card`: "the card's mana
+    /// value"; `its mana value`: "its mana value".
+    CardManaValue(CardWord),
     /// `colors among permanents`: "colors among permanents you control".
     ColorsAmongPermanents,
     /// `colors spent` (converge): "colors of mana spent to cast this
@@ -1174,6 +1182,23 @@ pub enum Ability {
         top: bool,
         face_down: bool,
         opponents: bool,
+    },
+    /// `play from top lands`: "You may play lands from the top of your
+    /// library."; `play from top spells creature`: "You may cast creature
+    /// spells from the top of your library."; `play from top lands and
+    /// spells`: "You may play lands and cast spells ..."; `play from top
+    /// once spells instant or sorcery`: "Once each turn, you may cast an
+    /// instant or sorcery spell from the top of your library." (CR 601.3).
+    PlayFromTop {
+        lands: bool,
+        spells: Option<Filter>,
+        once: bool,
+    },
+    /// `top revealed`: "Play with the top card of your library
+    /// revealed."; `top revealed players`: "Players play with the top card
+    /// of their libraries revealed."
+    TopRevealed {
+        players: bool,
     },
     /// `as turned face up put 4 +1/+1 counters`: "As this creature is
     /// turned face up, put four +1/+1 counters on it." (CR 708.11);
@@ -3615,6 +3640,16 @@ pub enum Effect {
         /// `take card may top`: "You may put one of those cards back on
         /// top of your library" (it stays there; the rest go).
         top: bool,
+        /// `take creature card may onto battlefield [tapped]`: "You may
+        /// put a creature card from among them onto the battlefield
+        /// [tapped]"; `Some(tapped)`.
+        onto: Option<bool>,
+        /// `revealing that card`, wording only: "... and put that card
+        /// into your hand".
+        that_card: bool,
+        /// `short`, wording only: "Put one into your hand and the other
+        /// ..." (without "of them").
+        short: bool,
         /// `reword`, wording only: "two of them" for "two of those cards",
         /// "one of those cards" for "one of them", and "Then put the rest"
         /// after a card revealed and put into your hand.
@@ -3642,6 +3677,25 @@ pub enum Effect {
         who: Option<Recipient>,
         look: bool,
         of: bool,
+    },
+    /// `exile until nonland card`: "exile cards from the top of your
+    /// library until you exile a nonland card"; `<who> exiles until
+    /// nonland card`: "... until they exile a nonland card". The matching
+    /// card is `that card` after it.
+    ExileUntilCard {
+        who: Option<Recipient>,
+        filter: Filter,
+    },
+    /// `may cast that card this turn`: "You may cast that card this
+    /// turn."; `may play that card next turn first`: "Until the end of
+    /// your next turn, you may play that card."; `free`: "... without
+    /// paying its mana cost"; `it`: "it" for "that card".
+    MayPlayCard {
+        until: mtg_core::card::PlayUntil,
+        cast: bool,
+        free: bool,
+        first: bool,
+        it: bool,
     },
     /// `reveal until nonland card` ("reveal cards from the top of your
     /// library until you reveal a nonland card"), `<who> reveals until
@@ -3713,6 +3767,13 @@ pub enum Effect {
         /// `into graveyard of that player`: "into that player's
         /// graveyard" (the card's owner's, where it goes anyway).
         that_player: bool,
+        /// `on bottom of library random`: "in a random order".
+        random: bool,
+        /// `put that card into hand and the rest on bottom of library
+        /// random`: "Put that card into your hand and the rest on the
+        /// bottom of your library in a random order." (the other revealed
+        /// cards still in the library; `true`: in a random order).
+        rest: Option<(mtg_core::card::CardDest, bool)>,
     },
     /// `impulse 2 next turn first`: "Exile the top two cards of your
     /// library. Until the end of your next turn, you may play those
@@ -3725,6 +3786,20 @@ pub enum Effect {
         /// The duration before "you may play".
         first: bool,
         it: bool,
+        /// `choose`: "Choose one of them. ... you may play that card."
+        choose: bool,
+        /// `of target opponent`: "Target opponent exiles the top card of
+        /// their library. You may play that card this turn."
+        from: Option<Recipient>,
+        /// `this way`: "you may play cards exiled this way".
+        this_way: bool,
+    },
+    /// `exile top 3 cards`: "Exile the top three cards of your library."
+    /// (`exile top 1 card`: "the top card"); `each opponent exiles top 1
+    /// card`: "Each opponent exiles the top card of their library."
+    ExileTop {
+        count: Num,
+        who: Option<Recipient>,
     },
     /// `choose one { mode: ... }` as a triggered ability's effect: "When
     /// this creature enters, choose one —" (CR 603.3c).
@@ -3809,6 +3884,15 @@ pub enum Effect {
     /// and toughness until end of turn."
     SwitchPt {
         to: Recipient,
+    },
+    /// `target instant or sorcery card from your graveyard gains
+    /// flashback`: "Target instant or sorcery card in your graveyard gains
+    /// flashback until end of turn. The flashback cost is equal to its
+    /// mana cost." (`that_card`, `gains flashback that card`: "... equal
+    /// to that card's mana cost.").
+    GrantFlashback {
+        to: Recipient,
+        that_card: bool,
     },
     /// `target permanent you control gains protection from artifact or
     /// from color of choice`: "gains protection from artifacts or from the

@@ -1,0 +1,7 @@
+card "Elvish Rejuvenator" {
+  oracle_id 71d14755-b81d-4aec-b94d-1637884a5844
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  triggered when this enters: dig 5 take land card may onto battlefield tapped rest bottom random
+}

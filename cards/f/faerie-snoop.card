@@ -1,0 +1,9 @@
+card "Faerie Snoop" {
+  oracle_id b759e8a6-8dd0-48ce-8816-e45b35a79895
+  cost {1}{U}{B}
+  type Creature — Faerie Detective
+  pt 1/4
+  keywords flying
+  disguise {1}{U/B}{U/B}
+  triggered when this is turned face up: dig 2 take card rest graveyard short
+}

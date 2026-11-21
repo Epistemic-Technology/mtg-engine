@@ -1,0 +1,6 @@
+card "Shadow Prophecy" {
+  oracle_id 620f3851-493d-496e-880a-4a9dee074e79
+  cost {2}{B}
+  type Instant
+  label "Domain" spell: dig count where domain take 2 card may rest graveyard; you lose 2 life
+}

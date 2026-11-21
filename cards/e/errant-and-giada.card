@@ -1,0 +1,9 @@
+card "Errant and Giada" {
+  oracle_id 24697554-02fa-48ba-b51d-6bba3f85c293
+  cost {1}{W}{U}
+  type Legendary Creature — Human Angel
+  pt 2/3
+  keywords flash, flying
+  may look top
+  play from top spells with flash or flying
+}

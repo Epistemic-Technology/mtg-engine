@@ -1,0 +1,9 @@
+card "Fathom Feeder" {
+  oracle_id 0767fb65-a621-494b-97a4-f23a4c8b4bec
+  cost {U}{B}
+  type Creature — Eldrazi Drone
+  pt 1/1
+  keywords devoid, deathtouch
+  ingest
+  activated {3}{U}{B}: draw 1 card; each opponent exiles top 1 card
+}

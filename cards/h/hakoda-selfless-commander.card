@@ -1,0 +1,10 @@
+card "Hakoda, Selfless Commander" {
+  oracle_id de3a469a-e38b-456b-994d-abec1b010e42
+  cost {3}{W}
+  type Legendary Creature — Human Warrior Ally
+  pt 3/5
+  keywords vigilance
+  may look top
+  play from top spells Ally
+  activated sacrifice this: each creature you control gets +0/+5 and gains indestructible
+}

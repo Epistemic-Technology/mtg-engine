@@ -1,0 +1,6 @@
+card "Flashback" {
+  oracle_id 02070488-9203-4304-9392-a111d20218c5
+  cost {R}
+  type Instant
+  spell: target instant or sorcery card from your graveyard gains flashback
+}

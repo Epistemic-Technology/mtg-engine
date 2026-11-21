@@ -1,0 +1,6 @@
+card "United Battlefront" {
+  oracle_id 892a83a0-a3cb-4cfb-9106-4008e4e75c0f
+  cost {3}{W}
+  type Sorcery
+  spell: dig 7 take 2 noncreature, nonland permanent with mana value 3 or less card may onto battlefield rest bottom random
+}

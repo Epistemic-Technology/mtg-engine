@@ -1,0 +1,6 @@
+card "Cartographer's Survey" {
+  oracle_id e05029b4-552d-4691-a5c4-885284fb1636
+  cost {3}{G}
+  type Sorcery
+  spell: dig 7 take 2 land card may onto battlefield tapped rest bottom random
+}

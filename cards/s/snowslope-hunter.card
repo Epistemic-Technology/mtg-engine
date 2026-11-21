@@ -1,0 +1,7 @@
+card "Snowslope Hunter" {
+  oracle_id fdf7f144-56e4-4f88-b81a-b85473922355
+  cost {2}{R}
+  type Creature — Goblin Ranger
+  pt 2/3
+  activated sacrifice another creature or artifact, during your turn, once: impulse 1 next turn it
+}

@@ -1597,7 +1597,7 @@ impl Compiler<'_> {
             A::OtherInstantSorceryCast { before } => C::OtherInstantSorceryCast { before: *before },
             A::SourceToughness => C::SourceToughness,
             A::TargetManaValue { n, .. } => C::TargetManaValue(target_index(self.tmap, *n)),
-            A::CardManaValue { .. } => C::CardManaValue,
+            A::CardManaValue(_) => C::CardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
             A::SpentColors(_) => C::SpentColors,
             A::TimesKicked => C::TimesKicked,
@@ -2815,6 +2815,17 @@ impl Compiler<'_> {
                 kind: *kind,
                 count: *count,
             }),
+            Effect::ExileUntilCard { who, filter } => out.push(CoreEffect::ExileUntilCard {
+                who: who.map_or(CoreRecipient::You, r),
+                filter: self.filter(filter),
+            }),
+            Effect::MayPlayCard {
+                until, cast, free, ..
+            } => out.push(CoreEffect::MayPlayCard {
+                until: *until,
+                cast: *cast,
+                free: *free,
+            }),
             Effect::RevealUntil { who, filter } => out.push(CoreEffect::RevealUntil {
                 who: r(who.unwrap_or(Recipient::You)),
                 filter: self.filter(filter),
@@ -2852,8 +2863,15 @@ impl Compiler<'_> {
             Effect::DiscardIt => out.push(CoreEffect::PutCard {
                 what: mtg_core::card::CardSet::It,
                 to: mtg_core::card::CardDest::Graveyard,
+                random: false,
             }),
-            Effect::PutCard { what, to, .. } => {
+            Effect::PutCard {
+                what,
+                to,
+                random,
+                rest,
+                ..
+            } => {
                 use crate::ast::CardWords;
                 use mtg_core::card::CardSet;
                 out.push(CoreEffect::PutCard {
@@ -2865,11 +2883,33 @@ impl Compiler<'_> {
                         CardWords::OtherRevealed => CardSet::OtherRevealed,
                     },
                     to: *to,
+                    random: *random,
                 });
+                // "... and the rest on the bottom of your library in a
+                // random order": the other revealed cards.
+                if let Some((to, random)) = rest {
+                    out.push(CoreEffect::PutCard {
+                        what: CardSet::OtherRevealed,
+                        to: *to,
+                        random: *random,
+                    });
+                }
             }
-            Effect::ExilePlayable { count, until, .. } => out.push(CoreEffect::ExilePlayable {
+            Effect::ExileTop { count, who } => out.push(CoreEffect::ExileTop {
+                who: who.map_or(CoreRecipient::You, r),
+                count: *count,
+            }),
+            Effect::ExilePlayable {
+                count,
+                until,
+                choose,
+                from,
+                ..
+            } => out.push(CoreEffect::ExilePlayable {
                 count: *count,
                 until: *until,
+                choose: *choose,
+                from: from.map(r),
             }),
             Effect::Dig {
                 count,
@@ -2881,6 +2921,7 @@ impl Compiler<'_> {
                 also,
                 random,
                 top,
+                onto,
                 ..
             } => out.push(CoreEffect::Dig {
                 count: *count,
@@ -2892,6 +2933,7 @@ impl Compiler<'_> {
                 also: also.as_ref().map(|f| self.filter(f)),
                 random: *random,
                 top: *top,
+                onto: *onto,
             }),
             Effect::Modes(modes) => {
                 let modes = self.modes(modes, false, false)?;
@@ -2903,6 +2945,9 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Modes(modes));
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
+            Effect::GrantFlashback { to, .. } => {
+                out.push(CoreEffect::GrantFlashback { to: r(*to) });
+            }
             // One or the other, chosen as it resolves (CR 608.2d).
             Effect::ProtectionOr { to, filter } => {
                 let mut list = Vec::new();
@@ -4269,6 +4314,7 @@ impl Compiler<'_> {
                     targets: Vec::new(),
                     effects: vec![CoreEffect::ExileTop {
                         who: CoreRecipient::TriggeringPlayer,
+                        count: mtg_core::card::Num::N(1),
                     }],
                 }),
                 // CR 702.101a: "Whenever you cast a spell, you may pay
@@ -4367,6 +4413,16 @@ impl Compiler<'_> {
             Ability::AsTurnedFaceUp { kind, n, .. } => {
                 AbilityDef::AsTurnedFaceUp { kind: *kind, n: *n }
             }
+            Ability::PlayFromTop {
+                lands,
+                spells,
+                once,
+            } => AbilityDef::PlayFromTop {
+                lands: *lands,
+                spells: spells.as_ref().map(|f| self.filter(f)),
+                once: *once,
+            },
+            Ability::TopRevealed { players } => AbilityDef::TopRevealed { players: *players },
             Ability::MayLook {
                 top,
                 face_down,

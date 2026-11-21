@@ -1,0 +1,6 @@
+card "Fomori Vault" {
+  oracle_id 622a53bd-d894-422c-a606-7126041afa02
+  type Land
+  activated {T}: add {C}
+  activated {3}, {T}, discard 1 card: dig count where artifact you control take card rest bottom random reword
+}

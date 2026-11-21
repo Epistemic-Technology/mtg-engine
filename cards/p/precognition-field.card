@@ -1,0 +1,8 @@
+card "Precognition Field" {
+  oracle_id 9c3e4bd4-2e1e-4103-adc3-f9ccc259dcdf
+  cost {3}{U}
+  type Enchantment
+  may look top
+  play from top spells instant or sorcery
+  activated {3}: exile top 1 card
+}

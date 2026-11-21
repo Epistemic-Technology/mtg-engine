@@ -1,0 +1,10 @@
+card "Sigarda, Font of Blessings" {
+  oracle_id 5fe07a76-f261-4f16-8a15-571bed707261
+  cost {2}{G}{W}
+  type Legendary Creature — Angel
+  pt 4/4
+  keywords flying
+  static other permanent you control: has hexproof
+  may look top
+  play from top spells Angel or Human
+}

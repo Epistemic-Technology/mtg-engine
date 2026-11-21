@@ -1,0 +1,8 @@
+card "Shigeki, Jukai Visionary" {
+  oracle_id cbad3570-5417-42e6-b3ef-f42194098314
+  cost {1}{G}
+  type Legendary Enchantment Creature — Snake Druid
+  pt 1/3
+  activated {1}{G}, {T}, return this: dig 4 reveal take land card may onto battlefield tapped rest graveyard
+  label "Channel" activated {X}{X}{G}{G}, discard this: return X target nonlegendary card from your graveyard to hand
+}

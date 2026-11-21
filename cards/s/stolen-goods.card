@@ -1,0 +1,6 @@
+card "Stolen Goods" {
+  oracle_id 9294d4d3-0df0-4070-9261-06f15b758a0d
+  cost {3}{U}
+  type Sorcery
+  spell: target opponent exiles until nonland card; may cast that card this turn first free
+}

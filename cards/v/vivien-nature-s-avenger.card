@@ -1,0 +1,10 @@
+card "Vivien, Nature's Avenger" {
+  oracle_id 5513b150-c08f-4f3e-8e41-fd7b43d00b78
+  cost {4}{G}{G}
+  type Legendary Planeswalker — Vivien
+  loyalty 3
+  loyalty 3
+  loyalty +1: put 3 +1/+1 counters on up to 1 target creature
+  loyalty -1: reveal until creature card; put that card into hand and the rest on bottom of library random
+  loyalty -6: target creature gets +10/+10 and gains trample
+}

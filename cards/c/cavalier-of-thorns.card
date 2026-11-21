@@ -1,0 +1,9 @@
+card "Cavalier of Thorns" {
+  oracle_id 96b909ab-55f1-4cde-a675-2504de3da772
+  cost {2}{G}{G}{G}
+  type Creature — Elemental Knight
+  pt 5/6
+  keywords reach
+  triggered when this enters: dig 5 reveal take land card onto battlefield rest graveyard
+  triggered when this dies: you may exile this; if you do, put another target card from your graveyard on top of library
+}

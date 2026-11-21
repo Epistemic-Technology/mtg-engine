@@ -1,0 +1,6 @@
+card "Vivien's Arkbow" {
+  oracle_id efe3204d-2013-47a1-ad68-adfbb2d0be8f
+  cost {1}{G}
+  type Legendary Artifact
+  activated {X}, {T}, discard 1 card: dig X take creature with mana value X or less card may onto battlefield rest bottom random
+}

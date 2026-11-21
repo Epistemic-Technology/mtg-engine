@@ -107,6 +107,19 @@ impl GameState {
         (top, face_down)
     }
 
+    /// Whether the top card of `owner`'s library is revealed ("Play with
+    /// the top card of your library revealed.", `AbilityDef::TopRevealed`).
+    pub fn top_revealed(&self, owner: PlayerId) -> bool {
+        self.battlefield.iter().any(|id| {
+            let o = &self.objects[*id];
+            self.flags_of(o).has_top_play()
+                && self.pool.get(o.def).ability_ids.iter().any(|a| {
+                    matches!(self.pool.ability(*a), crate::card::AbilityDef::TopRevealed { players }
+                        if *players || o.controller == owner)
+                })
+        })
+    }
+
     /// The card a face-down permanent is, if `viewer` may know it: its
     /// controller may look at it (CR 708.5), as may a player who looked at
     /// it ("Look at target face-down creature") or who may look at
@@ -135,6 +148,9 @@ impl GameState {
                     || (o.owner == viewer
                         && self.player(viewer).library.last() == Some(&id)
                         && self.may_look(viewer).0)
+                    || (self.top_play_sources > 0
+                        && self.player(o.owner).library.last() == Some(&id)
+                        && self.top_revealed(o.owner))
             }
             _ => Self::seen_by(o, viewer),
         }

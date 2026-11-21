@@ -1,0 +1,7 @@
+card "Dark Confidant" {
+  oracle_id 2068185c-1b50-47d0-aa3f-bf505d199428
+  cost {1}{B}
+  type Creature — Human Wizard
+  pt 2/1
+  triggered at beginning of your upkeep: reveal top card and put that card into hand; you lose count equal its mana value life
+}

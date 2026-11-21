@@ -1,0 +1,7 @@
+card "Ruin Raider" {
+  oracle_id d6a837d0-d4f9-45ed-bbd7-5e37a9ca3b56
+  cost {2}{B}
+  type Creature — Orc Pirate
+  pt 3/2
+  label "Raid" triggered at beginning of your end step if attacked this turn: reveal top card and put that card into hand; you lose count equal mana value of the card life
+}

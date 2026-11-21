@@ -1,0 +1,7 @@
+card "Mayael the Anima" {
+  oracle_id 7f546d54-584d-4bec-8fbb-1ea2f8ab277e
+  cost {R}{G}{W}
+  type Legendary Creature — Elf Shaman
+  pt 2/3
+  activated {3}{R}{G}{W}, {T}: dig 5 take creature with power 5 or greater card may onto battlefield rest bottom
+}

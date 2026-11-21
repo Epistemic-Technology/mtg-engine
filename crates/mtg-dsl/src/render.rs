@@ -699,6 +699,40 @@ fn cost_spells_subject(f: &Filter, card: &Card) -> String {
     subject
 }
 
+/// What a permission to cast from the top of a library covers:
+/// "creature spells", "Spider spells and noncreature spells", "spells
+/// with mana value 4 or greater", "spells with flash or flying".
+fn top_spells(f: &Filter, card: &Card) -> String {
+    let one = |g: &Filter| {
+        let s = cost_spells_subject(g, card);
+        let s = if lower_spell_subject(g) {
+            lowercase_first(&s)
+        } else {
+            s
+        };
+        // "with mana value 4 or greater spells": the qualities follow.
+        match s
+            .strip_prefix("with ")
+            .and_then(|r| r.strip_suffix(" spells"))
+        {
+            Some(q) => format!("spells with {q}"),
+            None => s,
+        }
+    };
+    if let Some(alt) = &f.or {
+        let (b, a) = crate::format::factor_qualifiers(f, alt);
+        let (b, a) = (one(&b), one(&a));
+        if let (Some(x), Some(y)) = (
+            b.strip_prefix("spells with "),
+            a.strip_prefix("spells with "),
+        ) {
+            return format!("spells with {x} or {y}");
+        }
+        return format!("{b} and {a}");
+    }
+    one(f)
+}
+
 fn spells_subject(f: &Filter, card: &Card) -> String {
     if *f == Filter::default() {
         return "Spells".to_string();
@@ -3102,6 +3136,8 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::CreateToken { count, .. }
         | Effect::EmpowerJace { count }
         | Effect::Dig { count, .. }
+        | Effect::ExilePlayable { count, .. }
+        | Effect::ExileTop { count, .. }
         | Effect::Earthbend { count, .. } => vec![*count],
         Effect::CopySpells { times, .. } => vec![*times],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
@@ -3318,8 +3354,14 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             )
         }
         CountExpr::SourceToughness => return "its toughness".to_string(),
-        CountExpr::CardManaValue { its: false } => return "that card's mana value".to_string(),
-        CountExpr::CardManaValue { its: true } => return "its mana value".to_string(),
+        CountExpr::CardManaValue(w) => {
+            return match w {
+                crate::ast::CardWord::ThatCard => "that card's mana value",
+                crate::ast::CardWord::TheCard => "the card's mana value",
+                crate::ast::CardWord::Its => "its mana value",
+            }
+            .to_string();
+        }
         CountExpr::TargetManaValue {
             that, the_spell, ..
         } => {
@@ -3582,7 +3624,12 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             // "look at the top X cards of your library, where X is ...
             // . Put two of those cards into your hand ...".
-            CountStyle::Where if matches!(e, Effect::Dig { .. }) => {
+            CountStyle::Where
+                if matches!(
+                    e,
+                    Effect::Dig { .. } | Effect::ExilePlayable { .. } | Effect::ExileTop { .. }
+                ) =>
+            {
                 let phrase = count_phrase_in(&count.expr, ctx, false);
                 c.text = c.text.replacen(
                     " cards of your library",
@@ -3623,8 +3670,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     count_phrase_in(&count.expr, ctx, false)
                 );
             }
-            // "then draw that many cards".
-            CountStyle::ThatMany => c.text = c.text.replacen("X ", "that many ", 1),
+            // "then draw that many cards"; `count that many plus 1
+            // discarded this way`: "then draw that many cards plus one".
+            CountStyle::ThatMany => {
+                c.text = c.text.replacen("X ", "that many ", 1);
+                if let crate::ast::CountExpr::Plus { n, .. } = &count.expr {
+                    let _ = write!(c.text, " plus {}", count_words(Num::N(*n), "one"));
+                }
+            }
             // "unless its controller pays {2} for each Wizard on the
             // battlefield", "{2} plus an additional {1} for each Faerie you
             // control".
@@ -3962,23 +4015,66 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "becomes prepared".to_string())
         }
+        Effect::ExileTop { count, who } => {
+            let one = *count == Num::N(1);
+            let whose = if who.is_some() { "their" } else { "your" };
+            let what = if one {
+                format!("the top card of {whose} library")
+            } else {
+                format!(
+                    "the top {} cards of {whose} library",
+                    count_words(*count, "one")
+                )
+            };
+            match who {
+                None => Clause::imperative(format!("exile {what}")),
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    Clause::with_subject(
+                        *w,
+                        s,
+                        format!("{} {what}", ctx.verb(*w, "exiles", "exile")),
+                    )
+                }
+            }
+        }
         Effect::ExilePlayable {
             count,
             until,
             first,
             it,
+            choose,
+            from,
+            this_way,
         } => {
             use mtg_core::card::PlayUntil;
             let one = *count == Num::N(1);
+            let whose = if from.is_some() { "their" } else { "your" };
+            let exile = if from.is_some() { "exiles" } else { "exile" };
             let head = if one {
-                "exile the top card of your library".to_string()
+                format!("{exile} the top card of {whose} library")
+            } else if *count == Num::ThatMuch {
+                // "exile that many cards from the top of your library".
+                format!("{exile} that many cards from the top of {whose} library")
             } else {
                 format!(
-                    "exile the top {} cards of your library",
+                    "{exile} the top {} cards of {whose} library",
                     count_words(*count, "one")
                 )
             };
-            let what = match (one, *it) {
+            let head = match from {
+                Some(w) => format!("{} {head}", ctx.subj(*w)),
+                None => head,
+            };
+            // "Choose one of them. Until the end of your next turn, you may
+            // play that card."
+            let head = if *choose {
+                format!("{head}. Choose one of them")
+            } else {
+                head
+            };
+            let what = match (one || *choose, *it) {
+                _ if *this_way => "cards exiled this way",
                 (true, true) => "it",
                 (true, false) => "that card",
                 // "You may play them until the end of your next turn."
@@ -4058,6 +4154,55 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let subject = ctx.subj(*who);
             let v = ctx.verb(*who, "shuffles", "shuffle");
             Clause::with_subject(*who, subject, v.to_string())
+        }
+        Effect::ExileUntilCard { who, filter } => {
+            let pred = card_filter_a(filter, ctx.card);
+            match who {
+                None => Clause::imperative(format!(
+                    "exile cards from the top of your library until you exile {pred}"
+                )),
+                Some(w) => {
+                    let subject = ctx.subj(*w);
+                    let v = ctx.verb(*w, "exiles", "exile");
+                    Clause::with_subject(
+                        *w,
+                        subject,
+                        format!("{v} cards from the top of their library until they exile {pred}"),
+                    )
+                }
+            }
+        }
+        Effect::MayPlayCard {
+            until,
+            cast,
+            free,
+            first,
+            it,
+        } => {
+            use mtg_core::card::PlayUntil;
+            let what = if *it { "it" } else { "that card" };
+            let verb = if *cast { "cast" } else { "play" };
+            let free = if *free {
+                " without paying its mana cost"
+            } else {
+                ""
+            };
+            if *first {
+                let when = match until {
+                    PlayUntil::ThisTurn => "Until end of turn",
+                    PlayUntil::EndOfYourNextTurn => "Until the end of your next turn",
+                    PlayUntil::YourNextEndStep | PlayUntil::Forever => "Until your next end step",
+                };
+                Clause::imperative(format!("{when}, you may {verb} {what}{free}"))
+            } else {
+                let when = match until {
+                    PlayUntil::ThisTurn => " this turn",
+                    PlayUntil::EndOfYourNextTurn => " until the end of your next turn",
+                    PlayUntil::YourNextEndStep => " until your next end step",
+                    PlayUntil::Forever => "",
+                };
+                Clause::imperative(format!("you may {verb} {what}{free}{when}"))
+            }
         }
         Effect::RevealUntil { who, filter } => {
             let pred = card_filter_a(filter, ctx.card);
@@ -4139,6 +4284,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             to,
             who,
             that_player,
+            random,
+            rest,
         } => {
             use crate::ast::CardWords;
             use mtg_core::card::CardDest;
@@ -4161,10 +4308,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 CardDest::Graveyard => format!("into {whose} graveyard"),
                 CardDest::Battlefield { tapped: false } => "onto the battlefield".to_string(),
                 CardDest::Battlefield { tapped: true } => "onto the battlefield tapped".to_string(),
+                CardDest::LibraryBottom if *random => {
+                    format!("on the bottom of {whose} library in a random order")
+                }
                 CardDest::LibraryBottom if many => {
                     format!("on the bottom of {whose} library in any order")
                 }
                 CardDest::LibraryBottom => format!("on the bottom of {whose} library"),
+            };
+            // "Put that card into your hand and the rest on the bottom of
+            // your library in a random order."
+            let dest = match rest {
+                Some((to, random)) => {
+                    let r = match to {
+                        CardDest::Hand => format!("into {whose} hand"),
+                        CardDest::Graveyard => format!("into {whose} graveyard"),
+                        CardDest::Battlefield { .. } => "onto the battlefield".to_string(),
+                        CardDest::LibraryBottom if *random => {
+                            format!("on the bottom of {whose} library in a random order")
+                        }
+                        CardDest::LibraryBottom => {
+                            format!("on the bottom of {whose} library in any order")
+                        }
+                    };
+                    format!("{dest} and the rest {r}")
+                }
+                None => dest,
             };
             match who {
                 None => Clause::imperative(format!("put {words} {dest}")),
@@ -4230,6 +4399,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             random,
             then,
             top,
+            onto,
+            that_card,
+            short,
             reword,
         } => {
             let n = count_words(*count, "one");
@@ -4263,19 +4435,33 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else if *take == 1 {
                     card_filter_a(f, ctx.card)
                 } else {
-                    let kind = card_filter_phrase(f, ctx.card).replace(" or ", " and/or ");
+                    // "creature and/or land cards", "creature cards with
+                    // mana value 3 or less".
+                    let plural = cards_phrase(f, ctx.card, true);
+                    let kind = match plural.split_once(" cards") {
+                        Some((a, b)) => format!("{} cards{b}", a.replace(" or ", " and/or ")),
+                        None => plural,
+                    };
                     if *take == crate::ast::ANY_NUMBER {
-                        format!("any number of {kind} cards")
+                        format!("any number of {kind}")
                     } else {
                         format!(
-                            "{}{} {kind} cards",
+                            "{}{} {kind}",
                             if *optional { "up to " } else { "" },
                             count_words(Num::N(*take), "one")
                         )
                     }
                 }
             });
-            let it = if several { "the revealed cards" } else { "it" };
+            let it = if several && *that_card {
+                "them"
+            } else if several {
+                "the revealed cards"
+            } else if *that_card {
+                "that card"
+            } else {
+                "it"
+            };
             // "You may put one of those cards back on top of your library.
             // Put the rest into your graveyard."
             if *top {
@@ -4288,8 +4474,43 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     rest("the rest")
                 ));
             }
+            // "You may put a creature card from among them onto the
+            // battlefield. Put the rest on the bottom of your library in a
+            // random order."; "Put up to two land cards from among them
+            // onto the battlefield tapped. ..."; `reword` prints "You may
+            // put up to two ...".
+            if let Some(tapped) = onto {
+                let w = what.unwrap_or_else(|| "one of them".to_string());
+                let field = if *tapped {
+                    "onto the battlefield tapped"
+                } else {
+                    "onto the battlefield"
+                };
+                let put = if *optional && (*take == 1 || *take == crate::ast::ANY_NUMBER || *reword)
+                {
+                    "You may put"
+                } else {
+                    "Put"
+                };
+                // "Put a land card from among them onto the battlefield
+                // and the rest into your graveyard." (one sentence when
+                // not optional).
+                let join = if *optional { ". Put" } else { " and" };
+                return Clause::imperative(format!(
+                    "{head}. {put} {w} from among them {field}{join} {}",
+                    rest("the rest")
+                ));
+            }
             if filter.is_none() && *take != 1 {
                 let k = count_words(Num::N(*take), "one");
+                // "Put up to two of them into your hand and the rest into
+                // your graveyard."
+                if *optional {
+                    return Clause::imperative(format!(
+                        "{head}. Put up to {k} of them into your hand and {}",
+                        rest("the rest")
+                    ));
+                }
                 // "Put two of them into your hand and the other into your
                 // graveyard." (Dark Bargain): one card left over.
                 if *count == Num::N(*take + 1) {
@@ -4339,6 +4560,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (Some(w), false, false) => format!(
                     "Put {w} from among them into your hand and {}",
                     rest("the rest")
+                ),
+                // "Put one into your hand and the other into your
+                // graveyard."
+                (None, _, _) if *short => format!(
+                    "Put one into your hand and {}",
+                    rest(if two { "the other" } else { "the rest" })
                 ),
                 (None, _, _) => format!(
                     "Put one of {} into your hand and {}",
@@ -4556,6 +4783,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ctx.verb(*to, "loses", "lose")
             };
             Clause::with_subject(*to, s, format!("{verb} all creature types")).until_eot()
+        }
+        Effect::GrantFlashback { to, that_card } => {
+            // "Target instant or sorcery card in your graveyard gains
+            // flashback until end of turn. The flashback cost is equal to
+            // its mana cost."
+            let s = ctx
+                .subj(*to)
+                .replacen(" from your graveyard", " in your graveyard", 1);
+            let its = if *that_card { "that card's" } else { "its" };
+            Clause::with_subject(
+                *to,
+                s,
+                format!(
+                    "{} flashback until end of turn. The flashback cost is equal to {its} mana cost",
+                    ctx.verb(*to, "gains", "gain")
+                ),
+            )
         }
         Effect::SwitchPt { to } => {
             let o = ctx.obj(*to);
@@ -5637,7 +5881,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ctx.source_mentioned = false;
             }
             let one = *count == Num::N(1) && !*up_to;
-            let n = if *up_to {
+            let n = if *count == Num::N(crate::ast::ANY_NUMBER) {
+                "any number of".to_string()
+            } else if *up_to {
                 format!("up to {}", count_words(*count, "one"))
             } else {
                 count_words(*count, "a")
@@ -7219,6 +7465,7 @@ fn lowercase_first(s: &str) -> String {
             first,
             "Target"
                 | "Reveal"
+                | "Exile"
                 | "Draw"
                 | "This"
                 | "That"
@@ -11191,6 +11438,34 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 format!("as though its power were {plus} greater")
             };
             format!("This {} {verb} {how}.", self_noun(card))
+        }
+        Ability::PlayFromTop {
+            lands,
+            spells,
+            once,
+        } => {
+            let spells = spells.as_ref().map(|f| {
+                if *once {
+                    a_spell(f, card)
+                } else {
+                    top_spells(f, card)
+                }
+            });
+            let what = match (*lands, spells) {
+                (true, None) => "play lands".to_string(),
+                (true, Some(s)) => format!("play lands and cast {s}"),
+                (false, Some(s)) => format!("cast {s}"),
+                (false, None) => String::new(),
+            };
+            let once = if *once { "Once each turn, you" } else { "You" };
+            format!("{once} may {what} from the top of your library.")
+        }
+        Ability::TopRevealed { players } => {
+            if *players {
+                "Players play with the top card of their libraries revealed.".to_string()
+            } else {
+                "Play with the top card of your library revealed.".to_string()
+            }
         }
         Ability::MayLook {
             top,

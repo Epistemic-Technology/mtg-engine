@@ -2980,6 +2980,11 @@ pub enum Num {
 }
 
 impl Num {
+    /// One (a serde default).
+    pub const fn one() -> Num {
+        Num::N(1)
+    }
+
     /// The value without game state: a count is 0 here (see
     /// `GameState::eval_num`).
     pub const fn eval(self, x: u32) -> u32 {
@@ -3100,9 +3105,13 @@ pub enum Effect {
         who: Recipient,
     },
     /// The recipient player exiles the top card of their library (ingest,
-    /// CR 702.115a).
+    /// CR 702.115a), or the top `count` cards ("Exile the top three cards
+    /// of your library.", "Each opponent exiles the top card of their
+    /// library.").
     ExileTop {
         who: Recipient,
+        #[serde(default = "Num::one")]
+        count: Num,
     },
     /// The controller gets an emblem (CR 114) with this definition's
     /// abilities, in the command zone.
@@ -3857,7 +3866,11 @@ pub enum Effect {
     /// the rest on the bottom in a random order. With `top` the card taken
     /// stays on top of the library instead of going to the hand ("You may
     /// put one of those cards back on top of your library. Put the rest
-    /// into your graveyard.").
+    /// into your graveyard."). With `onto` the cards taken go onto the
+    /// battlefield under the controller's control instead, tapped with
+    /// `Some(true)` ("You may put a creature card from among them onto the
+    /// battlefield", "Put up to two land cards ... onto the battlefield
+    /// tapped").
     Dig {
         count: Num,
         filter: Option<ObjFilter>,
@@ -3868,15 +3881,25 @@ pub enum Effect {
         also: Option<ObjFilter>,
         random: bool,
         top: bool,
+        #[serde(default)]
+        onto: Option<bool>,
     },
     /// "Exile the top two cards of your library. Until the end of your next
     /// turn, you may play those cards." (impulse draw): the controller may
     /// play the exiled cards, paying their costs and following the usual
     /// timing rules and land-play allowance (CR 305.2, 601.3), for as long
     /// as `until` says.
+    /// With `choose`, "Choose one of them.": only the card the
+    /// controller chooses may be played. With `from`, the cards come from
+    /// that player's library ("Target opponent exiles the top card of
+    /// their library. You may play that card this turn.").
     ExilePlayable {
         count: Num,
         until: PlayUntil,
+        #[serde(default)]
+        choose: bool,
+        #[serde(default)]
+        from: Option<Recipient>,
     },
     /// "Look at the top three cards of your library, then put them back in
     /// any order" (the engine keeps the order). `who` owns the library
@@ -3899,6 +3922,28 @@ pub enum Effect {
     RevealTop {
         who: Recipient,
         look: bool,
+    },
+    /// "Exile cards from the top of your library until you exile a
+    /// nonland card" ("Target opponent exiles cards from the top of their
+    /// library until they exile a nonland card"): the recipient player
+    /// exiles from the top until a card matching `filter` is exiled or the
+    /// library runs out. The cards stay exiled; the matching card is the
+    /// resolution's card ("that card").
+    ExileUntilCard {
+        who: Recipient,
+        filter: ObjFilter,
+    },
+    /// "You may cast that card this turn.", "Until the end of your next
+    /// turn, you may play that card.", "Until end of turn, you may cast
+    /// that card without paying its mana cost.": the resolution's card, in
+    /// exile, may be played by the controller for as long as `until`
+    /// says, paying its costs with the usual timing (CR 601.3); with
+    /// `cast`, only cast (not played as a land); with `free`, without
+    /// paying its mana cost (CR 118.9).
+    MayPlayCard {
+        until: PlayUntil,
+        cast: bool,
+        free: bool,
     },
     /// "Reveal cards from the top of your library until you reveal a land
     /// card" (CR 701.20): the recipient player reveals from the top until a
@@ -3954,9 +3999,14 @@ pub enum Effect {
     /// moves the resolution's card or revealed cards still in the library
     /// they were revealed from (CR 400.7: one that has moved is a new
     /// object). A card put into a hand keeps what players knew of it.
+    /// With `random`, cards put on the bottom of a library go in a
+    /// random order ("and the rest on the bottom of your library in a
+    /// random order").
     PutCard {
         what: CardSet,
         to: CardDest,
+        #[serde(default)]
+        random: bool,
     },
     /// Adapt N (CR 701.46): if the source has no +1/+1 counters, it gets
     /// N.
@@ -4118,6 +4168,15 @@ pub enum Effect {
     SwitchPt {
         to: Recipient,
     },
+    /// "Target instant or sorcery card in your graveyard gains flashback
+    /// until end of turn. The flashback cost is equal to its mana cost."
+    /// (CR 702.34a): its owner may cast it from the graveyard for its mana
+    /// cost this turn, and it is exiled as it leaves the stack. The grant
+    /// stays with the card only while it stays in the graveyard (CR
+    /// 400.7).
+    GrantFlashback {
+        to: Recipient,
+    },
     /// "gains all creature types until end of turn" (`all`), "loses all
     /// creature types until end of turn" (layer 4).
     CreatureTypes {
@@ -4274,6 +4333,8 @@ impl Effect {
                 | Effect::IfCondition(..)
                 | Effect::IfTarget { .. }
                 | Effect::IfCard { .. }
+                // "Choose one of them."
+                | Effect::ExilePlayable { choose: true, .. }
                 // A card put onto the battlefield is not known until it
                 // resolves: it can meet its namesake or a replacement.
                 | Effect::PutCard {
@@ -5870,6 +5931,24 @@ pub enum AbilityDef {
         face_down: bool,
         opponents: bool,
     },
+    /// "You may play lands from the top of your library." (`lands`), "You
+    /// may cast creature spells from the top of your library." (`spells`,
+    /// the spells' filter), or both: the controller may play the top card
+    /// of their library as though it were in their hand, paying its costs
+    /// and following the usual timing and land-play rules (CR 601.3,
+    /// 305.1). With `once`, "Once each turn, you may cast ...": one spell
+    /// a turn by this permanent's permission.
+    PlayFromTop {
+        lands: bool,
+        spells: Option<ObjFilter>,
+        once: bool,
+    },
+    /// "Play with the top card of your library revealed." (`players`:
+    /// "Players play with the top card of their libraries revealed."):
+    /// every player knows that top card while it stays there (CR 401.2).
+    TopRevealed {
+        players: bool,
+    },
     /// "As this creature is turned face up, put four +1/+1 counters on
     /// it." (CR 708.11: applied while it is being turned face up, before
     /// "turned face up" triggers look). "As this creature enters or is
@@ -5917,6 +5996,8 @@ impl AbilityDef {
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
+            | AbilityDef::PlayFromTop { .. }
+            | AbilityDef::TopRevealed { .. }
             | AbilityDef::AsTurnedFaceUp { .. }
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
@@ -5949,6 +6030,8 @@ impl AbilityDef {
             | AbilityDef::HandSize { .. }
             | AbilityDef::ExtraVote { .. }
             | AbilityDef::MayLook { .. }
+            | AbilityDef::PlayFromTop { .. }
+            | AbilityDef::TopRevealed { .. }
             | AbilityDef::AsTurnedFaceUp { .. }
             | AbilityDef::CrewsAs { .. }
             | AbilityDef::Toxic(_)
@@ -6581,6 +6664,10 @@ impl DefFlags {
     /// A player-level static ability (`AbilityDef::PlayerStatic`): land
     /// plays, player targeting, and casting then look for such sources.
     const PLAYER_STATIC: u32 = 67_108_864;
+    /// Playing from or revealing the top of a library
+    /// (`AbilityDef::PlayFromTop`, `TopRevealed`): priority then looks
+    /// at the top card.
+    const TOP_PLAY: u32 = 134_217_728;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -6699,6 +6786,10 @@ impl DefFlags {
         self.has(DefFlags::PLAYER_STATIC)
     }
 
+    pub const fn has_top_play(self) -> bool {
+        self.has(DefFlags::TOP_PLAY)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     #[allow(clippy::too_many_lines)] // one flag per hot-path fact
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
@@ -6794,6 +6885,15 @@ impl DefFlags {
             abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::CostChange(_))),
+        );
+        flags.set(
+            DefFlags::TOP_PLAY,
+            abilities.iter().any(|a| {
+                matches!(
+                    a,
+                    AbilityDef::PlayFromTop { .. } | AbilityDef::TopRevealed { .. }
+                )
+            }),
         );
         // Cipher asks whether to encode as the spell resolves (CR 702.99a).
         flags.set(

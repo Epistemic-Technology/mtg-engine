@@ -1,0 +1,6 @@
+card "Evolutionary Leap" {
+  oracle_id 44cf5ef4-2b0f-4d9d-bf87-8835424721d0
+  cost {1}{G}
+  type Enchantment
+  activated {G}, sacrifice creature: reveal until creature card; put that card into hand and the rest on bottom of library random
+}

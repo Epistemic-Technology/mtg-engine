@@ -1,0 +1,7 @@
+card "Fireglass Mentor" {
+  oracle_id b173245e-2009-48ff-ac42-5f28d12aec79
+  cost {B}{R}
+  type Creature — Lizard Warlock
+  pt 2/1
+  triggered at beginning of your second main if opponent lost life this turn: impulse 2 this turn first choose
+}

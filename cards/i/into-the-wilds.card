@@ -1,0 +1,6 @@
+card "Into the Wilds" {
+  oracle_id 70d6cd9c-6311-4d8e-b74a-8edc11d1c05e
+  cost {3}{G}
+  type Enchantment
+  triggered at beginning of your upkeep: look at top card; if it is land card, you may put it onto battlefield
+}

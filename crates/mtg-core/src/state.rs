@@ -268,6 +268,10 @@ pub struct PlayableExile {
     /// end before the permission does. `WARP_LATER` with `Forever`: not
     /// until a later turn (CR 702.185a).
     pub own_ends: u8,
+    /// "you may cast that card": a spell only, not a land play.
+    pub cast_only: bool,
+    /// "... without paying its mana cost".
+    pub free: bool,
 }
 
 /// How a spell was cast (on the stack; `Suspend` stays with the permanent
@@ -1706,6 +1710,10 @@ pub struct GameState {
     /// Cards with mayhem discarded this turn, as the graveyard objects
     /// they became (castable for their mayhem cost until the turn ends).
     pub mayhem_discarded: Vec<ObjId>,
+    /// Graveyard cards given flashback until end of turn
+    /// (`Effect::GrantFlashback`), castable for their mana cost while
+    /// they stay there.
+    pub granted_flashback: Vec<ObjId>,
     /// The spells cast this turn, by caster ("if you've cast a noncreature
     /// spell this turn"); inline, so copying the state rarely allocates.
     pub cast_this_turn: SmallVec<[(PlayerId, crate::card::CardRef); 4]>,
@@ -1805,6 +1813,10 @@ pub struct GameState {
     /// Room permanents on the battlefield (CR 709.5): priority looks for
     /// locked doors to unlock only when there are any.
     pub room_count: u32,
+    /// Permanents on the battlefield that let their controller play from
+    /// the top of the library or reveal it (`DefFlags::TOP_PLAY`):
+    /// priority and the views look only when there are any.
+    pub top_play_sources: u32,
     /// Sagas with chapter abilities on the battlefield (CR 714): the
     /// precombat main phase and state-based actions look for them only
     /// when there are any.

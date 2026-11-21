@@ -1,0 +1,9 @@
+card "Garruk's Horde" {
+  oracle_id b9da511e-a57f-43c2-aa97-902f3b4c55fb
+  cost {5}{G}{G}
+  type Creature — Beast
+  pt 7/7
+  keywords trample
+  top revealed
+  play from top spells creature
+}

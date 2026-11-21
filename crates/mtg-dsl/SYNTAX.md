@@ -195,6 +195,8 @@ to its other face as well.
 | `you have hexproof`, `you have shroud`, `opponents can't cast spells during your turn`, `players can't gain life`, `damage can't be prevented` | Static abilities about players: "You have hexproof." (CR 702.11c: spells and abilities your opponents control can't target you), "You have shroud." (CR 702.18c: no spell or ability can target you), "Your opponents can't cast spells during your turn.", "Players can't gain life.", "Damage can't be prevented." (CR 614.17). `as long as <condition>` may follow any of them. |
 | `hexproof from black`, `hexproof from monocolored`, `hexproof from instant` | "Hexproof from black" (CR 702.11d): this permanent can't be the target of spells or abilities your opponents control from sources matching the filter (a color, `multicolored`, `monocolored`, a card type: "instants", "planeswalkers"). In a keyword line ("Flying, hexproof from multicolored") write the keywords first, then this line. |
 | `opening hand` | "If this card is in your opening hand, you may begin the game with it on the battlefield." (CR 103.6a; a legendary card names itself: "If Quicksilver is in your opening hand, ..."). After mulligans, starting with the starting player, each player is asked about each such card in their hand. |
+| `play from top lands`, `play from top spells creature`, `play from top lands and spells`, `play from top once spells instant or sorcery` | "You may play lands from the top of your library.", "You may cast creature spells from the top of your library.", "You may play lands and cast spells from the top of your library.", "Once each turn, you may cast an instant or sorcery spell from the top of your library." (CR 601.3, 305.1): the controller may play the top card of their library, paying its costs, with the usual timing and a land only with a land play left. The spells' filter is any filter (`Spider or noncreature`: "Spider spells and noncreature spells"; `with mana value 4 or greater`: "spells with mana value 4 or greater"; `with flash or flying`); `once` allows one spell a turn by that permanent's permission. |
+| `top revealed`, `top revealed players` | "Play with the top card of your library revealed.", "Players play with the top card of their libraries revealed.": every player knows that top card (CR 401.2). |
 | `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
 | `except { ... }` | What this card's copy effects add (CR 707.9b): `not legendary` ("it isn't legendary"; "the copy isn't legendary" for a spell copy), `types Artifact` and `subtypes Illusion` ("it's an artifact in addition to its other types", "it's a Vehicle artifact ..." together), `keywords haste`, and ability lines ("it has haste and \"At the beginning of the end step, sacrifice this token.\"": on an instant or sorcery, `this` in them is the token). They are part of the copy's copiable values; the legend rule reads its supertypes. A token copy of a creature that has left the battlefield ("When this creature dies, if it's not a token, create a token that's a copy of it"; `if this is nontoken`) is made as it last existed. |
 
@@ -1520,7 +1522,16 @@ the usual timing permissions and a land only with a land play left, CR
 305.2, 601.3; `impulse 1 this turn` is "You may play that card this
 turn.", `first` puts the duration first ("Until end of turn, you may
 play that card."), `it` prints "it" for "that card", and `next end step`
-is "until your next end step", which ends as that step begins),
+is "until your next end step", which ends as that step begins; `choose`
+adds "Choose one of them." and only that card may be played, `this way`
+prints "cards exiled this way", `of target opponent` takes the cards from
+that player's library ("Target opponent exiles the top card of their
+library. You may play that card this turn.", the permission still yours),
+a count `count where ...` prints "the top X cards of your library, where
+X is ...", and `that much` "exile that many cards from the top of your
+library"), `exile top 3 cards` ("Exile the top three cards of your
+library."; `exile top 1 card`: "the top card"; `each opponent exiles top 1
+card`: "Each opponent exiles the top card of their library."),
 `counter target spell`, `counter target spell unless its controller pays {3}`,
 `... pays {X}` (the spell's X), `... pays {X} count each hand` ("{1} for
 each card in your hand"; `count each 2 Wizard on battlefield` is "{2} for
@@ -1602,7 +1613,19 @@ rest" after `revealing`; `dig 3 then take card rest graveyard`: "look at the top
 cards of your library, then put one of them into your hand and the rest
 into your graveyard"; `dig 3 take card may top rest graveyard`: "You may
 put one of those cards back on top of your library. Put the rest into
-your graveyard.", the card kept stays on top), `look at top 3` ("look at
+your graveyard.", the card kept stays on top; `revealing that card`
+prints "put that card into your hand" ("put them" for several), `short`
+"Put one into your hand and the other ..."; `onto battlefield
+[tapped]` after `may`: onto the battlefield under your control instead of
+into the hand, `dig 5 take creature card may onto battlefield rest bottom
+random` "You may put a creature card from among them onto the
+battlefield. Put the rest ...", `dig 6 take 2 creature with mana value 3
+or less card may onto battlefield rest bottom` "Put up to two creature
+cards with mana value 3 or less from among them onto the battlefield. Put
+the rest ..." (`reword`: "You may put up to two ..."), `dig 5 reveal take
+land card onto battlefield rest graveyard` "Put a land card from among
+them onto the battlefield and the rest into your graveyard"; `permanent
+with mana value 5 or less` is a permanent card there), `look at top 3` ("look at
 the top three cards of your library, then put them back in any order";
 `look at top count where hand` puts "where X is the number of cards in
 your hand" before ", then put them back"; `look at top 3 of target
@@ -1614,7 +1637,13 @@ them back in any order": the looker knows the cards where they are),
 `return 1 land you control chosen` ("return a land you control to its
 owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of
-turn"), `put land card from hand onto battlefield [tapped]` ("put a land
+turn"), `target instant or sorcery card from your graveyard gains
+flashback` ("Target instant or sorcery card in your graveyard gains
+flashback until end of turn. The flashback cost is equal to its mana
+cost."; `gains flashback that card`: "... equal to that card's mana
+cost.": its owner may cast it from the graveyard for its mana cost this
+turn, with its usual timing, and it is exiled as it leaves the stack, CR
+702.34a), `put land card from hand onto battlefield [tapped]` ("put a land
 card from your hand onto the battlefield"; `put creature card and land
 card from hand onto battlefield`: "put a creature card and/or a land card
 from your hand onto the battlefield", a choice of each in turn), `<what> doesn't untap next
@@ -2008,7 +2037,11 @@ sacrificed creature was legendary, draw 3 cards instead`. Counts: `count
 each 2 enchantment destroyed this way` ("2 life for each enchantment
 destroyed this way"), `count equal life lost this way` ("life equal to the
 life lost this way"), `count that many discarded this way` ("draw that
-many cards"), `count equal damage dealt this way` ("life equal to the
+many cards"; `discard up to 2 cards chosen then draw count that many
+discarded this way cards`: "discard up to two cards, then draw that many
+cards", `discard any number cards chosen ...`: "discard any number of
+cards, ..."; `count that many plus 1 discarded this way`: "draw that many
+cards plus one"), `count equal damage dealt this way` ("life equal to the
 damage dealt this way", CR 120.3), `count equal excess damage dealt this
 way` (CR 120.4a, and `if excess damage dealt this way, create 1
 "Lander"`: "If excess damage was dealt this way, ..."; beyond lethal damage, given damage already marked, or
@@ -2063,7 +2096,20 @@ cards from the top of your library until you reveal a nonland card" (`its
 controller reveals until land card`: "Its controller reveals cards from
 the top of their library until they reveal a land card"); the revealed
 cards stay in the library, the last one (the card that matched, if any)
-is `that card`, and with no match the whole library is revealed.
+is `that card`, and with no match the whole library is revealed. `exile until
+nonland card` is "exile cards from the top of your library until you
+exile a nonland card" (`target opponent exiles until nonland card`:
+"Target opponent exiles cards from the top of their library until they
+exile a nonland card"): the cards stay exiled and the matching one is
+`that card`. `may cast that card this turn` ("You may cast that card this
+turn."; `may play that card next turn first`: "Until the end of your next
+turn, you may play that card."; `free`: "... without paying its mana
+cost"; `it` for "it"; the durations are impulse's) lets the controller
+play or cast the resolution's card from exile, also after `exile target
+... card from your graveyard`. `put that card into hand and the rest on
+bottom of library random` is "Put that card into your hand and the rest
+on the bottom of your library in a random order." (the other revealed
+cards; `random` after any `on bottom of library` shuffles them first).
 
 After either, `if it is land card, <sentence>` is "If it's a land card,
 ...", `if it isnt land card, ...` "If it isn't a land card, ...", `if
@@ -2082,7 +2128,11 @@ way"), `put the revealed on bottom of library` ("Put the revealed cards on
 the bottom of your library in any order": in the order revealed), and with
 the revealing player as subject `then puts those revealed into graveyard`
 ("..., then puts those cards into their graveyard"). `mana value of that
-card` counts "that card's mana value" (`choose any target; ...; deal damage
+card` counts "that card's mana value" (`mana value of the card`: "the
+card's mana value"; `its mana value`: "its mana value"; `reveal top card
+and put that card into hand; you lose count equal its mana value life` is
+Dark Confidant's "reveal the top card of your library and put that card
+into your hand. You lose life equal to its mana value."; `choose any target; ...; deal damage
 equal mana value of that card to that target 1`: "Choose any target. ... deals
 damage equal to that card's mana value to that permanent or player"),
 and `its mana value` counts the same card printed "its mana value"

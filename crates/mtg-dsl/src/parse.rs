@@ -54,6 +54,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         votes: Vec::new(),
         returned: None,
         revealed: false,
+        card_filter: false,
         kicked_targets: None,
         kicked_instead: None,
     };
@@ -559,6 +560,10 @@ struct P {
     /// card`, `reveal until`): `it` / `that card` is that card in `if it
     /// is`, `put it ...`.
     revealed: bool,
+    /// Parsing the kind of card a dig takes: "permanent with mana value 5
+    /// or less" is a permanent card (CR 110.4a), its qualities before the
+    /// noun.
+    card_filter: bool,
     /// In a spell, how many targets were declared before an "if kicked"
     /// sentence declared more (CR 601.2c: those are chosen only if the
     /// spell is kicked).
@@ -1508,6 +1513,35 @@ impl P {
                     face_down,
                     opponents,
                 })
+            }
+            "play" if self.at_words(&["play", "from", "top"]) => {
+                self.pos += 3;
+                let once = self.eat_word("once");
+                let lands = self.eat_word("lands");
+                let spells = if (!lands || self.eat_word("and")) && self.eat_word("spells") {
+                    if self.at_stmt_end() {
+                        Some(Filter::default())
+                    } else {
+                        Some(self.filter()?)
+                    }
+                } else {
+                    None
+                };
+                if !lands && spells.is_none() {
+                    return self.fail("expected `lands` or `spells`".to_string());
+                }
+                self.end_stmt()?;
+                Ok(Ability::PlayFromTop {
+                    lands,
+                    spells,
+                    once,
+                })
+            }
+            "top" if self.at_words(&["top", "revealed"]) => {
+                self.pos += 2;
+                let players = self.eat_word("players");
+                self.end_stmt()?;
+                Ok(Ability::TopRevealed { players })
             }
             "extra" if self.word_at(1).as_deref() == Some("vote") => {
                 self.pos += 2;
@@ -4015,11 +4049,31 @@ impl P {
             self.expect_words(&["on", "bottom", "of", "library"])?;
             CardDest::LibraryBottom
         };
+        let random = to == CardDest::LibraryBottom && self.eat_word("random");
+        // `and the rest on bottom of library random`.
+        let rest = if self.eat_words(&["and", "the", "rest"]) {
+            let dest = if self.eat_words(&["into", "hand"]) {
+                CardDest::Hand
+            } else if self.eat_words(&["into", "graveyard"]) {
+                CardDest::Graveyard
+            } else {
+                self.expect_words(&["on", "bottom", "of", "library"])?;
+                CardDest::LibraryBottom
+            };
+            Some((
+                dest,
+                dest == CardDest::LibraryBottom && self.eat_word("random"),
+            ))
+        } else {
+            None
+        };
         Ok(Effect::PutCard {
             what,
             to,
             who,
             that_player,
+            random,
+            rest,
         })
     }
 
@@ -4698,6 +4752,15 @@ impl P {
                     to: subject,
                 })
             }
+            "gain" | "gains" if self.at_word("flashback") => {
+                self.pos += 1;
+                let that_card = self.eat_words(&["that", "card"]);
+                self.until_end_of_turn();
+                Ok(Effect::GrantFlashback {
+                    to: subject,
+                    that_card,
+                })
+            }
             "gain" | "gains" => {
                 if self.at_word("control") {
                     self.pos += 1;
@@ -5181,6 +5244,25 @@ impl P {
             }
             // "Target opponent exiles two cards from their hand", "exiles
             // a creature they control".
+            "exiles" if self.at_word("until") => {
+                self.pos += 1;
+                self.revealed = true;
+                let filter = self.filter()?;
+                self.expect_word("card")?;
+                Ok(Effect::ExileUntilCard {
+                    who: Some(subject),
+                    filter,
+                })
+            }
+            "exiles" if self.at_word("top") => {
+                self.pos += 1;
+                let count = self.num()?;
+                self.cards_word()?;
+                Ok(Effect::ExileTop {
+                    count,
+                    who: Some(subject),
+                })
+            }
             "exiles" => {
                 let count = if self.eat_word("a") || self.eat_word("an") {
                     Num::N(1)
@@ -5758,8 +5840,13 @@ impl P {
     fn chosen_act(&mut self) -> R<Effect> {
         use mtg_core::card::ChooseAct;
         let verb = self.word()?;
-        let up_to = self.eat_words(&["up", "to"]);
-        let count = self.num()?;
+        // `discard any number cards chosen`: "discard any number of
+        // cards".
+        let (up_to, count) = if self.eat_words(&["any", "number"]) {
+            (true, Num::N(crate::ast::ANY_NUMBER))
+        } else {
+            (self.eat_words(&["up", "to"]), self.num()?)
+        };
         let card_filter = |p: &mut Self| -> R<Filter> {
             let f = if p.at_word("card") || p.at_word("cards") {
                 Filter::default()
@@ -5883,6 +5970,22 @@ impl P {
             among_those,
             this_way,
             returns,
+        })
+    }
+
+    /// How long an impulse permission lasts: `this turn`, `next turn`,
+    /// `next end step`, `forever`.
+    fn play_until(&mut self) -> R<mtg_core::card::PlayUntil> {
+        Ok(if self.eat_words(&["this", "turn"]) {
+            mtg_core::card::PlayUntil::ThisTurn
+        } else if self.eat_words(&["next", "turn"]) {
+            mtg_core::card::PlayUntil::EndOfYourNextTurn
+        } else if self.eat_words(&["next", "end", "step"]) {
+            mtg_core::card::PlayUntil::YourNextEndStep
+        } else if self.eat_word("forever") {
+            mtg_core::card::PlayUntil::Forever
+        } else {
+            return self.unexpected("`this turn`, `next turn`, `next end step`, or `forever`");
         })
     }
 
@@ -6534,6 +6637,24 @@ impl P {
                 if self.eat_words(&["all", "graveyards"]) {
                     return Ok(Effect::ExileAllGraveyards);
                 }
+                // `exile until nonland card`.
+                if self.eat_word("until") {
+                    self.revealed = true;
+                    let filter = self.filter()?;
+                    self.expect_word("card")?;
+                    return Ok(Effect::ExileUntilCard { who: None, filter });
+                }
+                // `exile top 3 cards`: from the top of your library.
+                if self.at_word("top")
+                    && (matches!(self.peek_at(1), Some(Tok::Num(_)))
+                        || self.word_at(1).as_deref() == Some("count")
+                        || self.word_at(1).as_deref() == Some("X"))
+                {
+                    self.pos += 1;
+                    let count = self.num()?;
+                    self.cards_word()?;
+                    return Ok(Effect::ExileTop { count, who: None });
+                }
                 if self.eat_words(&["graveyard", "of"]) {
                     let who = self.recipient()?;
                     return Ok(Effect::ExileGraveyard { who });
@@ -6619,25 +6740,24 @@ impl P {
             "discover" => Ok(Effect::Discover(self.count()?)),
             "impulse" => {
                 let count = self.num()?;
-                let until = if self.eat_words(&["this", "turn"]) {
-                    mtg_core::card::PlayUntil::ThisTurn
-                } else if self.eat_words(&["next", "turn"]) {
-                    mtg_core::card::PlayUntil::EndOfYourNextTurn
-                } else if self.eat_words(&["next", "end", "step"]) {
-                    mtg_core::card::PlayUntil::YourNextEndStep
-                } else if self.eat_word("forever") {
-                    mtg_core::card::PlayUntil::Forever
-                } else {
-                    return self
-                        .unexpected("`this turn`, `next turn`, `next end step`, or `forever`");
-                };
+                let until = self.play_until()?;
                 let first = self.eat_word("first");
                 let it = self.eat_word("it");
+                let choose = self.eat_word("choose");
+                let this_way = self.eat_words(&["this", "way"]);
+                let from = if self.eat_word("of") {
+                    Some(self.recipient()?)
+                } else {
+                    None
+                };
                 Ok(Effect::ExilePlayable {
                     count,
                     until,
                     first,
                     it,
+                    choose,
+                    from,
+                    this_way,
                 })
             }
             "dig" => {
@@ -6656,7 +6776,10 @@ impl P {
                 let filter = if self.eat_word("card") {
                     None
                 } else {
-                    let f = self.filter()?;
+                    self.card_filter = true;
+                    let f = self.filter();
+                    self.card_filter = false;
+                    let f = f?;
                     self.expect_word("card")?;
                     Some(f)
                 };
@@ -6669,8 +6792,16 @@ impl P {
                 };
                 let optional = self.eat_word("may");
                 let revealing = self.eat_word("revealing");
+                let that_card = revealing && self.eat_words(&["that", "card"]);
                 // `take card may top`: back on top of the library.
                 let top = self.eat_word("top");
+                // `onto battlefield [tapped]`: onto the battlefield instead
+                // of into the hand.
+                let onto = if self.eat_words(&["onto", "battlefield"]) {
+                    Some(self.eat_word("tapped"))
+                } else {
+                    None
+                };
                 self.expect_word("rest")?;
                 let rest_graveyard = if self.eat_word("graveyard") {
                     true
@@ -6680,6 +6811,7 @@ impl P {
                 };
                 let random = !rest_graveyard && self.eat_word("random");
                 let reword = self.eat_word("reword");
+                let short = self.eat_word("short");
                 Ok(Effect::Dig {
                     count,
                     filter,
@@ -6692,6 +6824,9 @@ impl P {
                     also,
                     random,
                     top,
+                    onto,
+                    that_card,
+                    short,
                     then,
                     reword,
                 })
@@ -6731,6 +6866,28 @@ impl P {
                 let filter = self.filter()?;
                 self.expect_word("card")?;
                 Ok(Effect::RevealUntil { who: None, filter })
+            }
+            // `may cast that card this turn [first] [free]`.
+            "may"
+                if (self.at_word("play") || self.at_word("cast"))
+                    && (self.word_at(1).as_deref() == Some("it")
+                        || self.word_at(1).as_deref() == Some("that")) =>
+            {
+                let cast = self.word()? == "cast";
+                let it = self.eat_word("it");
+                if !it {
+                    self.expect_words(&["that", "card"])?;
+                }
+                let until = self.play_until()?;
+                let first = self.eat_word("first");
+                let free = self.eat_word("free");
+                Ok(Effect::MayPlayCard {
+                    until,
+                    cast,
+                    free,
+                    first,
+                    it,
+                })
             }
             "face-down" if self.at_words(&["spells", "cost"]) => {
                 self.pos += 2;
@@ -7547,6 +7704,10 @@ impl P {
     /// consumed) otherwise.
     fn this_way_count(&mut self) -> R<Option<crate::ast::CountExpr>> {
         use crate::ast::CountExpr;
+        // `plus 1 discarded this way`: the prefix form, read by the caller.
+        if self.at_word("plus") {
+            return Ok(None);
+        }
         if self.eat_words(&["life", "lost", "this", "way"]) {
             return Ok(Some(CountExpr::LifeLostThisWay));
         }
@@ -7650,6 +7811,14 @@ impl P {
     #[allow(clippy::too_many_lines)] // one branch per count
     fn count_expr_one(&mut self) -> R<crate::ast::CountExpr> {
         use crate::ast::CountExpr;
+        // The card revealed before: "the card's mana value", "its mana
+        // value".
+        if self.revealed && self.eat_words(&["mana", "value", "of", "the", "card"]) {
+            return Ok(CountExpr::CardManaValue(crate::ast::CardWord::TheCard));
+        }
+        if self.revealed && self.eat_words(&["its", "mana", "value"]) {
+            return Ok(CountExpr::CardManaValue(crate::ast::CardWord::Its));
+        }
         if let Some(c) = self.stat_of() {
             return Ok(c);
         }
@@ -7835,10 +8004,7 @@ impl P {
             return Ok(CountExpr::AndOr(Box::new(self.count_expr()?)));
         }
         if self.eat_words(&["mana", "value", "of", "that", "card"]) {
-            return Ok(CountExpr::CardManaValue { its: false });
-        }
-        if self.eat_words(&["its", "mana", "value"]) {
-            return Ok(CountExpr::CardManaValue { its: true });
+            return Ok(CountExpr::CardManaValue(crate::ast::CardWord::ThatCard));
         }
         if self.eat_words(&["mana", "value", "of"]) {
             let the_spell = self.eat_words(&["the", "spell"]);
@@ -8083,6 +8249,7 @@ impl P {
             votes: self.votes.clone(),
             returned: self.returned,
             revealed: self.revealed,
+            card_filter: self.card_filter,
             kicked_targets: None,
             kicked_instead: None,
         };
@@ -8719,6 +8886,7 @@ impl P {
                         votes: Vec::new(),
                         returned: None,
                         revealed: false,
+                        card_filter: false,
                         kicked_targets: None,
                         kicked_instead: None,
                     };
@@ -8990,7 +9158,8 @@ impl P {
                 // "a permanent card": not an instant or sorcery (CR
                 // 110.4a).
                 "permanent"
-                    if matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                    if (matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                        || (self.card_filter && self.word_at(1).as_deref() == Some("with")))
                         && (f == Filter::default()
                             || (f.types.is_empty()
                                 && f.not_types.is_empty()
@@ -8998,6 +9167,18 @@ impl P {
                                 && !f.subtypes.is_empty())) =>
                 {
                     f.not_types = vec![CardType::Instant, CardType::Sorcery];
+                    self.pos += 1;
+                }
+                // A dig's "noncreature, nonland permanent card".
+                "permanent"
+                    if self.card_filter
+                        && self.word_at(1).as_deref() == Some("with")
+                        && f.types.is_empty()
+                        && f.any_types.is_empty()
+                        && !f.not_types.is_empty()
+                        && !f.not_types.contains(&CardType::Instant) =>
+                {
+                    f.not_types.extend([CardType::Instant, CardType::Sorcery]);
                     self.pos += 1;
                 }
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,

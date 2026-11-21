@@ -731,6 +731,36 @@ impl Fmt {
                     self.recipient(*to, t)
                 ),
             },
+            Effect::ExileUntilCard { who, filter: f } => match who {
+                None => format!("exile until {} card", filter(f)),
+                Some(w) => format!("{} exiles until {} card", self.recipient(*w, t), filter(f)),
+            },
+            Effect::MayPlayCard {
+                until,
+                cast,
+                free,
+                first,
+                it,
+            } => {
+                let mut s = format!(
+                    "may {} {} {}",
+                    if *cast { "cast" } else { "play" },
+                    if *it { "it" } else { "that card" },
+                    match until {
+                        mtg_core::card::PlayUntil::ThisTurn => "this turn",
+                        mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
+                        mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
+                        mtg_core::card::PlayUntil::Forever => "forever",
+                    }
+                );
+                if *first {
+                    s.push_str(" first");
+                }
+                if *free {
+                    s.push_str(" free");
+                }
+                s
+            }
             Effect::RevealUntil { who, filter: f } => match who {
                 None => format!("reveal until {} card", filter(f)),
                 Some(w) => {
@@ -788,6 +818,8 @@ impl Fmt {
                 to,
                 who,
                 that_player,
+                random,
+                rest,
             } => {
                 use crate::ast::CardWords;
                 use mtg_core::card::CardDest;
@@ -807,6 +839,22 @@ impl Fmt {
                     CardDest::Battlefield { tapped: true } => "onto battlefield tapped",
                     CardDest::LibraryBottom => "on bottom of library",
                 };
+                let dest = |to: &CardDest| match to {
+                    CardDest::Hand => "into hand",
+                    CardDest::Graveyard => "into graveyard",
+                    CardDest::Battlefield { .. } => "onto battlefield",
+                    CardDest::LibraryBottom => "on bottom of library",
+                };
+                let mut d = d.to_string();
+                if *random {
+                    d.push_str(" random");
+                }
+                if let Some((to, random)) = rest {
+                    let _ = write!(d, " and the rest {}", dest(to));
+                    if *random {
+                        d.push_str(" random");
+                    }
+                }
                 match who {
                     None => format!("put {w} {d}"),
                     Some(r) => format!("{} puts {w} {d}", self.recipient(*r, t)),
@@ -817,6 +865,9 @@ impl Fmt {
                 until,
                 first,
                 it,
+                choose,
+                from,
+                this_way,
             } => {
                 let mut s = format!(
                     "impulse {} {}",
@@ -834,7 +885,24 @@ impl Fmt {
                 if *it {
                     s.push_str(" it");
                 }
+                if *choose {
+                    s.push_str(" choose");
+                }
+                if *this_way {
+                    s.push_str(" this way");
+                }
+                if let Some(w) = from {
+                    let _ = write!(s, " of {}", self.recipient(*w, t));
+                }
                 s
+            }
+            Effect::ExileTop { count, who } => {
+                let n = num(*count);
+                let cs = if *count == Num::N(1) { "card" } else { "cards" };
+                match who {
+                    None => format!("exile top {n} {cs}"),
+                    Some(w) => format!("{} exiles top {n} {cs}", self.recipient(*w, t)),
+                }
             }
             Effect::Dig {
                 count,
@@ -849,6 +917,9 @@ impl Fmt {
                 random,
                 then,
                 top,
+                onto,
+                that_card,
+                short,
                 reword,
             } => {
                 let mut s = format!("dig {}", num(*count));
@@ -882,8 +953,17 @@ impl Fmt {
                 if *revealing {
                     s.push_str(" revealing");
                 }
+                if *that_card {
+                    s.push_str(" that card");
+                }
                 if *top {
                     s.push_str(" top");
+                }
+                if let Some(tapped) = onto {
+                    s.push_str(" onto battlefield");
+                    if *tapped {
+                        s.push_str(" tapped");
+                    }
                 }
                 s.push_str(if *rest_graveyard {
                     " rest graveyard"
@@ -895,6 +975,9 @@ impl Fmt {
                 }
                 if *reword {
                     s.push_str(" reword");
+                }
+                if *short {
+                    s.push_str(" short");
                 }
                 s
             }
@@ -920,6 +1003,11 @@ impl Fmt {
                 s
             }
             Effect::SwitchPt { to } => format!("switch pt of {}", self.recipient(*to, t)),
+            Effect::GrantFlashback { to, that_card } => format!(
+                "{} gains flashback{}",
+                self.recipient(*to, t),
+                if *that_card { " that card" } else { "" }
+            ),
             Effect::ProtectionOr { to, filter: f } => format!(
                 "{} gains protection from {} or from color of choice",
                 self.recipient(*to, t),
@@ -1966,7 +2054,11 @@ impl Fmt {
                 returns,
             } => {
                 use mtg_core::card::ChooseAct;
-                let n = format!("{}{}", if *up_to { "up to " } else { "" }, num(*count));
+                let n = if *count == Num::N(crate::ast::ANY_NUMBER) {
+                    "any number".to_string()
+                } else {
+                    format!("{}{}", if *up_to { "up to " } else { "" }, num(*count))
+                };
                 let unfiltered = *f == Filter::default();
                 let f = filter(f);
                 let cs = cards(*count);
@@ -2451,8 +2543,12 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             "other instant and sorcery spells cast before it this turn".to_string()
         }
         CountExpr::SourceToughness => "toughness".to_string(),
-        CountExpr::CardManaValue { its: false } => "mana value of that card".to_string(),
-        CountExpr::CardManaValue { its: true } => "its mana value".to_string(),
+        CountExpr::CardManaValue(w) => match w {
+            crate::ast::CardWord::ThatCard => "mana value of that card",
+            crate::ast::CardWord::TheCard => "mana value of the card",
+            crate::ast::CardWord::Its => "its mana value",
+        }
+        .to_string(),
         CountExpr::TargetManaValue { n, that, the_spell } => format!(
             "mana value of {}target {}",
             if *the_spell {
@@ -5008,6 +5104,36 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 if *top { " top" } else { "" },
                 if *face_down { " face-down" } else { "" },
                 if *opponents { " opponents" } else { "" }
+            );
+        }
+        Ability::PlayFromTop {
+            lands,
+            spells,
+            once,
+        } => {
+            let mut s = format!("{indent}play from top");
+            if *once {
+                s.push_str(" once");
+            }
+            if *lands {
+                s.push_str(" lands");
+            }
+            if let Some(f) = spells {
+                if *lands {
+                    s.push_str(" and");
+                }
+                s.push_str(" spells");
+                if *f != Filter::default() {
+                    let _ = write!(s, " {}", filter(f));
+                }
+            }
+            let _ = writeln!(out, "{s}");
+        }
+        Ability::TopRevealed { players } => {
+            let _ = writeln!(
+                out,
+                "{indent}top revealed{}",
+                if *players { " players" } else { "" }
             );
         }
         Ability::ExtraVote { optional } => {

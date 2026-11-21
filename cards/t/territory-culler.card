@@ -1,0 +1,8 @@
+card "Territory Culler" {
+  oracle_id a075a37b-beb6-409d-b5b6-d291921cdef0
+  cost {4}{G}
+  type Creature — Eldrazi
+  pt 7/5
+  keywords devoid, reach
+  label "Landfall" triggered whenever land you control enters: look at top card; if it is creature card, you may reveal it and put it into hand; if you dont put it into hand, you may put it into graveyard
+}

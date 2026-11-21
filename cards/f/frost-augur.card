@@ -1,0 +1,7 @@
+card "Frost Augur" {
+  oracle_id 85aedc9f-df35-49bc-88c8-23efda9a4b1b
+  cost {U}
+  type Snow Creature — Human Wizard
+  pt 1/2
+  activated {S}, {T}: look at top card; if it is snow card, you may reveal it and put it into hand
+}

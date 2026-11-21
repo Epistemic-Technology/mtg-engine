@@ -1,0 +1,7 @@
+card "Recruitment Officer" {
+  oracle_id 97dfc025-afc2-42d8-a20a-f29d60754a2e
+  cost {W}
+  type Creature — Human Soldier
+  pt 2/1
+  activated {3}{W}: dig 4 take creature with mana value 3 or less card may revealing rest bottom random
+}

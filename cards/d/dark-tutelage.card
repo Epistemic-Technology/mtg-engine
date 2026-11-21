@@ -1,0 +1,6 @@
+card "Dark Tutelage" {
+  oracle_id 0c6ce7c9-316b-4171-a8fa-ca26af1eecb7
+  cost {2}{B}
+  type Enchantment
+  triggered at beginning of your upkeep: reveal top card and put that card into hand; you lose count equal its mana value life
+}

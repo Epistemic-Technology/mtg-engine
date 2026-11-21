@@ -277,6 +277,7 @@ impl Engine {
                 state.room_count += u32::from(def.flags().has_room());
                 state.saga_count += u32::from(def.flags().has_saga());
                 state.player_static_sources += u32::from(def.flags().has_player_static());
+                state.top_play_sources += u32::from(def.flags().has_top_play());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -521,6 +522,7 @@ impl GameState {
             left_this_turn: 0,
             discarded_this_turn: 0,
             mayhem_discarded: Vec::new(),
+            granted_flashback: Vec::new(),
             cast_this_turn: smallvec::SmallVec::new(),
             turn_log: crate::state::TurnLog::default(),
             desig: crate::state::Designations::default(),
@@ -590,6 +592,7 @@ impl GameState {
             undone_cast: None,
             face_down_count: 0,
             room_count: 0,
+            top_play_sources: 0,
             saga_count: 0,
             player_static_sources: 0,
             mid: crate::state::MidDecision::default(),
@@ -1877,7 +1880,8 @@ impl GameState {
                 // flashback.
                 let o = &self.objects[id];
                 let gdef = self.pool.get(o.def);
-                let escape = gdef.flashback.is_none();
+                // Flashback granted until end of turn: for its mana cost.
+                let escape = gdef.flashback.is_none() && !self.granted_flashback.contains(&id);
                 // Mayhem: a card discarded this turn, cast for its mayhem
                 // cost (a card with escape too uses escape only when it
                 // wasn't discarded this turn).
@@ -1892,8 +1896,30 @@ impl GameState {
                     }
                     // CR 702.170d: without paying its mana cost.
                     (Zone::Exile, crate::state::AltCast::Plotted) => crate::state::AltCast::Free,
+                    // "You may cast that card without paying its mana
+                    // cost."
+                    (Zone::Exile, _)
+                        if self.exile_casts.as_ref().is_some_and(|e| {
+                            e.playable
+                                .iter()
+                                .any(|pe| pe.card == id && pe.player == player && pe.free)
+                        }) =>
+                    {
+                        crate::state::AltCast::Free
+                    }
                     _ => crate::state::AltCast::None,
                 };
+                // "Once each turn, you may cast ... from the top of your
+                // library": that permission is used unless another lets
+                // the card be cast.
+                if self.objects[id].zone == Zone::Library {
+                    let perms = self.top_permissions(player, id);
+                    if !perms.iter().any(|(_, _, once)| !*once)
+                        && let Some((src, a, _)) = perms.first()
+                    {
+                        self.activated_once.push((*src, *a));
+                    }
+                }
                 let spell = self.begin_cast(player, id, alt);
                 self.objects[spell].cast.set_flashback(flashback);
             }
@@ -2959,6 +2985,7 @@ impl GameState {
         self.rules
             .retain(|e| e.duration != Duration::UntilEndOfTurn);
         self.player_rules.clear();
+        self.granted_flashback.clear();
         // CR 603.7c: "when that creature dies this turn" ends unfired.
         if !self.delayed_triggers.is_empty() {
             self.delayed_triggers.retain(|d| !d.this_turn);

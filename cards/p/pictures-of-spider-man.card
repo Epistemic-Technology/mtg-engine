@@ -1,0 +1,7 @@
+card "Pictures of Spider-Man" {
+  oracle_id 4fd74a8c-a4e7-4988-ae02-9a73ab6ec89e
+  cost {2}{G}
+  type Artifact
+  triggered when this enters: dig 5 take 2 creature card may revealing that card rest bottom random
+  activated {1}, {T}, sacrifice this: create 1 "Treasure"
+}

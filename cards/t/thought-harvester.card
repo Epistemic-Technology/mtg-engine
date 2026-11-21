@@ -1,0 +1,8 @@
+card "Thought Harvester" {
+  oracle_id 13f9a845-d0e9-4790-99e0-b857204ad1da
+  cost {3}{U}
+  type Creature — Eldrazi Drone
+  pt 2/4
+  keywords devoid, flying
+  triggered whenever you cast colorless spell: target opponent exiles top 1 card
+}

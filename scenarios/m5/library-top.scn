@@ -1,0 +1,454 @@
+# M5: effects on the top cards of a library: digs that put cards onto the
+# battlefield, ...
+
+scenario "dig onto battlefield: Collected Company puts up to two creatures with mana value 3 or less" {
+  battlefield A: 4 "Forest"
+  hand A: "Collected Company"
+  library A: "Hill Giant", "Grizzly Bears", "Serra Angel", "Wind Drake", "Island", "Plains", "Forest"
+  turn 1 A: cast "Collected Company"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Wind Drake"
+  assert battlefield A lacks "Hill Giant"
+  assert battlefield A lacks "Serra Angel"
+  assert hand A count 0
+  assert library A count 5
+}
+
+scenario "dig onto battlefield: Cartographer's Survey puts lands onto the battlefield tapped" {
+  battlefield A: 4 "Forest"
+  hand A: "Cartographer's Survey"
+  library A: "Island", "Grizzly Bears", "Plains", "Swamp", "Shock", "Hill Giant", "Serra Angel", "Mountain"
+  turn 1 A: cast "Cartographer's Survey"
+  run_to turn 1 end
+  assert battlefield A contains "Island"
+  assert battlefield A contains "Plains"
+  assert battlefield A lacks "Swamp"
+  assert tapped "Island"
+  assert tapped "Plains"
+  assert library A count 6
+}
+
+scenario "dig onto battlefield: Mayael takes only a creature with power 5 or greater" {
+  battlefield A: "Mayael the Anima", "Mountain", "Forest", 4 "Plains"
+  library A: "Serra Angel", "Hill Giant", "Craw Wurm", "Island", "Plains", "Swamp"
+  turn 1 A: activate "Mayael the Anima"
+  run_to turn 1 end
+  assert battlefield A contains "Craw Wurm"
+  assert battlefield A lacks "Serra Angel"
+  assert library A count 5
+}
+
+scenario "dig onto battlefield: nothing matching leaves everything on the bottom" {
+  battlefield A: 2 "Forest", 2 "Island"
+  hand A: "Ignis Scientia"
+  library A: "Grizzly Bears", "Shock", "Hill Giant", "Serra Angel", "Wind Drake", "Divination", "Plains"
+  turn 1 A: cast "Ignis Scientia"
+  run_to turn 1 end
+  assert battlefield A lacks "Plains"
+  assert library A count 7
+}
+
+scenario "dig onto battlefield: Cavalier of Thorns puts a land onto the battlefield and the rest into the graveyard" {
+  battlefield A: 5 "Forest"
+  hand A: "Cavalier of Thorns"
+  library A: "Grizzly Bears", "Island", "Shock", "Hill Giant", "Plains", "Swamp"
+  turn 1 A: cast "Cavalier of Thorns"
+  run_to turn 1 end
+  assert battlefield A contains "Island"
+  assert untapped "Island"
+  assert graveyard A count 4
+  assert library A count 1
+}
+
+scenario "play from top: Courser of Kruphix plays a land from the top of the library" {
+  battlefield A: "Courser of Kruphix"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 end
+  assert battlefield A contains "Forest"
+  assert life A 21
+  assert library A count 1
+}
+
+scenario "play from top: Courser of Kruphix needs a land play left" {
+  battlefield A: "Courser of Kruphix"
+  hand A: "Plains"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Plains"
+  illegal turn 1 A: play "Forest"
+  run_to turn 1 end
+  assert library A count 2
+}
+
+scenario "play from top: Courser of Kruphix doesn't cast spells, and its top card is revealed" {
+  battlefield A: "Courser of Kruphix", 2 "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert library A count 2
+  assert known B "Grizzly Bears"
+}
+
+scenario "play from top: without a revealing permanent the top card is unknown" {
+  battlefield A: "Glarb, Calamity's Augur", 2 "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  run_to turn 1 end
+  assert unknown B "Grizzly Bears"
+}
+
+scenario "play from top: Garruk's Horde casts a creature spell but not an instant" {
+  battlefield A: "Garruk's Horde", 2 "Forest", 2 "Mountain"
+  library A: "Grizzly Bears", "Lightning Bolt", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert library A count 2
+  assert life B 20
+}
+
+scenario "play from top: a creature spell from the top keeps sorcery timing" {
+  battlefield A: "Garruk's Horde", 2 "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 2 B precombat_main
+  illegal turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 end
+  assert library A count 2
+}
+
+scenario "play from top: Future Sight plays a land, then casts the spell below it" {
+  battlefield A: "Future Sight", 2 "Mountain"
+  library A: "Forest", "Lightning Bolt", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Forest"
+  assert life B 17
+}
+
+scenario "play from top: Glarb casts spells with mana value 4 or greater only" {
+  battlefield A: "Glarb, Calamity's Augur", 4 "Forest"
+  library A: "Grizzly Bears", "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert library A count 3
+}
+
+scenario "play from top: Johann casts one instant or sorcery from the top each turn" {
+  battlefield A: "Johann, Apprentice Sorcerer", 4 "Mountain"
+  library A: "Shock", "Lightning Bolt", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert library A count 2
+}
+
+scenario "discard then draw: Cavalier of Flame discards any number of cards and draws that many" {
+  battlefield A: 5 "Mountain"
+  hand A: "Cavalier of Flame", "Shock", "Island", "Forest"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Plains"
+  turn 1 A: cast "Cavalier of Flame"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Island"
+  turn 1 A: choose done
+  run_to turn 1 end
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Island"
+  assert hand A contains "Forest"
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert hand A count 3
+}
+
+scenario "discard then draw: Sokka discards none and draws none" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Sokka, Bold Boomeranger", "Shock"
+  library A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Sokka, Bold Boomeranger"
+  turn 1 A: choose done
+  run_to turn 1 end
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert library A count 2
+}
+
+scenario "discard then draw: Heartwarming Redemption draws that many plus one" {
+  battlefield A: 3 "Mountain", "Plains"
+  hand A: "Heartwarming Redemption", "Shock", "Island"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Plains"
+  life A 10
+  turn 1 A: cast "Heartwarming Redemption"
+  run_to turn 1 end
+  assert graveyard A contains "Shock"
+  assert hand A count 3
+  assert life A 13
+}
+
+scenario "granted flashback: Snapcaster Mage's target is cast for its mana cost and exiled" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Snapcaster Mage"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Snapcaster Mage"
+  turn 1 A: trigger "Snapcaster Mage" targeting "Lightning Bolt"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert exile A contains "Lightning Bolt"
+  assert graveyard A lacks "Lightning Bolt"
+}
+
+scenario "granted flashback: the card can't be cast from the graveyard without it" {
+  battlefield A: 2 "Island", "Mountain"
+  graveyard A: "Lightning Bolt"
+  illegal turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 end
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "granted flashback: it ends with the turn" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Snapcaster Mage"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Snapcaster Mage"
+  turn 1 A: trigger "Snapcaster Mage" targeting "Lightning Bolt"
+  illegal turn 2 upkeep A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 2 draw
+  assert life B 20
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "granted flashback: it needs the card's mana cost" {
+  battlefield A: 2 "Island"
+  hand A: "Snapcaster Mage"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Snapcaster Mage"
+  turn 1 A: trigger "Snapcaster Mage" targeting "Lightning Bolt"
+  illegal turn 1 A: cast "Lightning Bolt" from graveyard targeting player B
+  run_to turn 1 end
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "impulse choose one: only the chosen card may be played (Mishra's Research Desk)" {
+  battlefield A: "Mishra's Research Desk", 3 "Mountain"
+  library A: "Shock", "Lightning Bolt", "Island"
+  turn 1 A: activate "Mishra's Research Desk"
+  turn 1 A: choose "Lightning Bolt"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  illegal turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert exile A contains "Shock"
+}
+
+scenario "impulse from an opponent's library: Ornate Kanzashi" {
+  battlefield A: "Ornate Kanzashi", 3 "Mountain"
+  library B: "Lightning Bolt", "Island"
+  turn 1 A: activate "Ornate Kanzashi" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert graveyard B contains "Lightning Bolt"
+  assert library B count 1
+}
+
+scenario "impulse from an opponent's library: its owner can't play it" {
+  battlefield A: "Ornate Kanzashi", 2 "Mountain"
+  battlefield B: "Mountain"
+  library B: "Lightning Bolt", "Island", "Island"
+  turn 1 A: activate "Ornate Kanzashi" targeting player B
+  illegal turn 1 end B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 cleanup
+  assert life A 20
+  assert exile B contains "Lightning Bolt"
+}
+
+scenario "exile the top card: Precognition Field" {
+  battlefield A: "Precognition Field", 3 "Island"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: activate "Precognition Field"
+  run_to turn 1 end
+  assert exile A contains "Grizzly Bears"
+  assert library A count 1
+}
+
+scenario "exile the top cards of each opponent's library: Fathom Feeder" {
+  battlefield A: "Fathom Feeder", 2 "Island", 2 "Swamp", "Plains"
+  library A: "Plains", "Plains"
+  library B: "Grizzly Bears", "Island"
+  turn 1 A: activate "Fathom Feeder"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "reveal the top card and put it into the hand: Dark Confidant loses its mana value" {
+  battlefield A: "Dark Confidant"
+  library A: "Hill Giant", "Island", "Island"
+  start turn 3 A
+  run_to turn 3 draw
+  assert hand A contains "Hill Giant"
+  assert life A 16
+  assert known B "Hill Giant"
+}
+
+scenario "reveal the top card and put it into the hand: a land costs no life" {
+  battlefield A: "Dark Confidant"
+  library A: "Forest", "Island", "Island"
+  start turn 3 A
+  run_to turn 3 draw
+  assert hand A contains "Forest"
+  assert life A 20
+}
+
+scenario "reveal the top card: Goblin Guide gives the defending player a land" {
+  battlefield A: "Goblin Guide"
+  library B: "Forest", "Island"
+  start turn 2 A
+  turn 2 A: attack "Goblin Guide"
+  run_to turn 2 postcombat_main
+  assert hand B contains "Forest"
+  assert life B 18
+}
+
+scenario "reveal the top card: Goblin Guide's nonland card stays on top" {
+  battlefield A: "Goblin Guide"
+  library B: "Grizzly Bears", "Island"
+  start turn 2 A
+  turn 2 A: attack "Goblin Guide"
+  run_to turn 2 postcombat_main
+  assert hand B count 0
+  assert library B count 2
+}
+
+scenario "look at the top card: Into the Wilds puts a land onto the battlefield" {
+  battlefield A: "Into the Wilds"
+  library A: "Forest", "Island"
+  start turn 3 A
+  run_to turn 3 draw
+  assert battlefield A contains "Forest"
+}
+
+scenario "look at the top card: Into the Wilds leaves a nonland card" {
+  battlefield A: "Into the Wilds"
+  library A: "Grizzly Bears", "Island"
+  start turn 3 A
+  run_to turn 3 draw
+  assert battlefield A lacks "Grizzly Bears"
+  assert hand A contains "Grizzly Bears"
+  assert library A count 1
+}
+
+scenario "reveal until, the rest on the bottom: Evolutionary Leap" {
+  battlefield A: "Evolutionary Leap", "Forest", "Grizzly Bears"
+  library A: "Island", "Shock", "Hill Giant", "Plains"
+  turn 1 A: activate "Evolutionary Leap" sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Hill Giant"
+  assert hand A count 1
+  assert library A count 3
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "reveal until, onto the battlefield tapped: Clifftop Lookout" {
+  battlefield A: 3 "Forest"
+  hand A: "Clifftop Lookout"
+  library A: "Shock", "Grizzly Bears", "Island", "Plains"
+  turn 1 A: cast "Clifftop Lookout"
+  run_to turn 1 end
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert library A count 3
+}
+
+scenario "dig: Codecracker Hound puts one into the hand and the other into the graveyard" {
+  battlefield A: 3 "Island"
+  hand A: "Codecracker Hound"
+  library A: "Shock", "Grizzly Bears", "Plains"
+  turn 1 A: cast "Codecracker Hound"
+  run_to turn 1 end
+  assert hand A count 1
+  assert graveyard A count 1
+  assert library A count 1
+}
+
+scenario "exile until nonland: Territorial Bruntar casts the card this turn" {
+  battlefield A: "Territorial Bruntar", 2 "Mountain"
+  hand A: "Forest"
+  library A: "Island", "Plains", "Lightning Bolt", "Swamp"
+  turn 1 A: play "Forest"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert exile A contains "Island"
+  assert exile A contains "Plains"
+  assert library A count 1
+}
+
+scenario "exile until nonland: the permission ends with the turn" {
+  battlefield A: "Territorial Bruntar", 2 "Mountain"
+  hand A: "Forest"
+  library A: "Lightning Bolt", "Swamp", "Swamp", "Swamp"
+  turn 1 A: play "Forest"
+  illegal turn 2 upkeep A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 draw
+  assert exile A contains "Lightning Bolt"
+  assert life B 20
+}
+
+scenario "exile until nonland: Stolen Goods casts the opponent's card free this turn" {
+  battlefield A: 4 "Island"
+  hand A: "Stolen Goods"
+  library B: "Forest", "Hill Giant", "Island"
+  turn 1 A: cast "Stolen Goods" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert exile B contains "Forest"
+}
+
+scenario "exile from the graveyard: Scholar of Combustion casts it until the end of your next turn" {
+  battlefield A: 4 "Mountain"
+  hand A: "Scholar of Combustion"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Scholar of Combustion"
+  turn 1 A: trigger "Scholar of Combustion" targeting "Lightning Bolt"
+  turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 end
+  assert life B 17
+}
+
+scenario "play from top: Elven Chorus casts a creature from the top with its own mana" {
+  battlefield A: "Elven Chorus", "Llanowar Elves", "Forest"
+  library A: "Grizzly Bears", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "play from top: Johann's permission returns the next turn" {
+  battlefield A: "Johann, Apprentice Sorcerer", 4 "Mountain"
+  library A: "Shock", "Lightning Bolt", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  turn 2 upkeep A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 draw
+  assert life B 15
+}
