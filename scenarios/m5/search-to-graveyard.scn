@@ -1,0 +1,67 @@
+# A search that puts the card into the graveyard (Vile Entomber), or into
+# the hand or the graveyard as the searcher chooses (Dina's Guidance).
+
+scenario "search to graveyard: Vile Entomber" {
+  battlefield A: 4 "Swamp"
+  hand A: "Vile Entomber"
+  library A: "Hill Giant", "Hill Giant"
+  turn 1 A: cast "Vile Entomber"
+  run_to turn 1 end
+  assert graveyard A contains 1 "Hill Giant"
+  assert library A contains 1 "Hill Giant"
+  assert hand A lacks "Hill Giant"
+}
+
+scenario "search to hand or graveyard: the hand" {
+  battlefield A: "Swamp", "Forest", "Forest"
+  hand A: "Dina's Guidance"
+  library A: "Plains", "Hill Giant", "Plains"
+  turn 1 A: cast "Dina's Guidance"
+  turn 1 A: choose "1"
+  run_to turn 1 end
+  assert hand A contains "Hill Giant"
+  assert graveyard A lacks "Hill Giant"
+}
+
+scenario "search to hand or graveyard: the graveyard" {
+  battlefield A: "Swamp", "Forest", "Forest"
+  hand A: "Dina's Guidance"
+  library A: "Plains", "Hill Giant", "Plains"
+  turn 1 A: cast "Dina's Guidance"
+  turn 1 A: choose "2"
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+  assert hand A lacks "Hill Giant"
+}
+
+# A graveyard target with a subtype and a card type ("target Zombie
+# creature card from your graveyard").
+scenario "graveyard target: Deadly Plot returns a Zombie creature card tapped" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Zombie Goliath", "Hill Giant"
+  hand A: "Deadly Plot"
+  turn 1 A: cast "Deadly Plot" mode 2 targeting "Zombie Goliath"
+  run_to turn 1 end
+  assert battlefield A contains "Zombie Goliath"
+  assert tapped "Zombie Goliath"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "graveyard target: Deadly Plot can't return a non-Zombie" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Deadly Plot"
+  illegal turn 1 A: cast "Deadly Plot" mode 2 targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "search to hand or graveyard: only a creature card" {
+  battlefield A: "Swamp", "Forest", "Forest"
+  hand A: "Dina's Guidance"
+  library A: "Plains", "Plains"
+  turn 1 A: cast "Dina's Guidance"
+  run_to turn 1 end
+  assert library A contains 2 "Plains"
+  assert graveyard A contains "Dina's Guidance"
+}

@@ -2019,6 +2019,11 @@ pub enum SearchTo {
     /// "put one onto the battlefield tapped and the other into your hand"
     /// (Cultivate): the searcher chooses which.
     BattlefieldAndHand,
+    /// "put that card into your graveyard" (Vile Entomber).
+    Graveyard,
+    /// "put it into your hand or graveyard" (Dina's Guidance): the
+    /// searcher chooses, for each card.
+    HandOrGraveyard,
 }
 
 /// A static ability (CR 604) that generates a continuous effect while its

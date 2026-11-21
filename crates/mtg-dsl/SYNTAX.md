@@ -1581,7 +1581,12 @@ hand` / `... or Gate card ...`: "a basic land card or a Gate card",
 cards"; `search instant card or a with flash card ...`: "an instant card
 or a card with flash"; `search Rebel permanent card with mana value 3 or
 less to battlefield`: the mana value after the noun, `permanent card`
-not an instant or sorcery (CR 110.4a); `reveal to hand that card`:
+not an instant or sorcery (CR 110.4a); `search card to graveyard that
+card` ("Search your library for a card, put that card into your
+graveyard, then shuffle."); `search creature card reveal to hand or
+graveyard` ("..., reveal it, put it into your hand or graveyard, then
+shuffle.": the searcher chooses, `choose "1"` hand or `choose "2"`
+graveyard in a scenario); `reveal to hand that card`:
 "reveal that card, put it into your hand"; `search up to 2 basic land
 card reveal to battlefield tapped and hand that card`: "reveal those
 cards, put one onto the battlefield tapped and the other into your

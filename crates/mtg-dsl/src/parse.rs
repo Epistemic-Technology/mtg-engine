@@ -7224,7 +7224,9 @@ impl P {
                 }
                 let reveal = self.eat_word("reveal");
                 self.expect_word("to")?;
-                let to = if self.eat_word("hand") {
+                let to = if self.eat_words(&["hand", "or", "graveyard"]) {
+                    mtg_core::card::SearchTo::HandOrGraveyard
+                } else if self.eat_word("hand") {
                     mtg_core::card::SearchTo::Hand
                 } else if self.eat_word("battlefield") {
                     let tapped = self.eat_word("tapped");
@@ -7235,8 +7237,10 @@ impl P {
                     }
                 } else if self.eat_word("top") {
                     mtg_core::card::SearchTo::TopOfLibrary
+                } else if self.eat_word("graveyard") {
+                    mtg_core::card::SearchTo::Graveyard
                 } else {
-                    return self.unexpected("`hand`, `battlefield`, or `top`");
+                    return self.unexpected("`hand`, `battlefield`, `graveyard`, or `top`");
                 };
                 let that_card = self.eat_words(&["that", "card"]);
                 Ok(Effect::Search {
@@ -9083,7 +9087,10 @@ impl P {
             // "Beast creature you control" goes on as a filter.
             && !matches!(
                 self.word_at(2).as_deref(),
-                Some("you" | "an" | "your" | "defending" | "with" | "without" | "or" | "that")
+                Some(
+                    "you" | "an" | "your" | "defending" | "with" | "without" | "or" | "that"
+                        | "card" | "cards"
+                )
             )
         {
             let sub = sub.clone();

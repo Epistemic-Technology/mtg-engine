@@ -1,0 +1,6 @@
+card "Dina's Guidance" {
+  oracle_id a9abed25-9256-4fc7-8afb-edb4286e18f4
+  cost {1}{B}{G}
+  type Instant
+  spell: search creature card reveal to hand or graveyard
+}

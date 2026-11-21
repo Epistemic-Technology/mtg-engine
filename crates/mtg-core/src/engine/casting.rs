@@ -7831,6 +7831,27 @@ impl GameState {
                     ctx.created = Some(new);
                 }
                 SearchTo::TopOfLibrary => top.push(id),
+                SearchTo::Graveyard => {
+                    self.move_object(id, Zone::Graveyard, true);
+                }
+                SearchTo::HandOrGraveyard => {
+                    let def = self
+                        .objects
+                        .get(ctx.source)
+                        .map(|o| o.def)
+                        .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                        .unwrap_or_default();
+                    let k = self.choose_mid(
+                        p,
+                        DecisionKind::ChooseOption { def },
+                        vec![Choice::Mode(0), Choice::Mode(1)],
+                    );
+                    let zone = if k == 0 { Zone::Hand } else { Zone::Graveyard };
+                    let new = self.move_object(id, zone, true);
+                    if reveal && zone == Zone::Hand {
+                        self.reveal_in_hand(new);
+                    }
+                }
             }
         }
         self.shuffle_library(p);

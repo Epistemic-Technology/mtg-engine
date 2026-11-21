@@ -1336,7 +1336,7 @@ impl Templates {
             ),
             (
                 r(
-                    r"^Search your library for (a|an|up to \S+) (basic land|land|Plains|Island|Swamp|Mountain|Forest|creature|artifact|enchantment|instant|sorcery)? ?cards?, (reveal (?:it|them), )?(?:put (it|them|that card) (into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
+                    r"^Search your library for (a|an|up to \S+) (basic land|land|Plains|Island|Swamp|Mountain|Forest|creature|artifact|enchantment|instant|sorcery)? ?cards?, (reveal (?:it|them), )?(?:put (it|them|that card) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
                 ),
                 |c, _| {
                     let n = cap(c, 1);
@@ -1357,6 +1357,8 @@ impl Templates {
                     }
                     t.push_str(match cap(c, 5) {
                         "into your hand" => " to hand",
+                        "into your hand or graveyard" => " to hand or graveyard",
+                        "into your graveyard" => " to graveyard",
                         "onto the battlefield tapped" => " to battlefield tapped",
                         "onto the battlefield" => " to battlefield",
                         _ => " to top",

@@ -1745,6 +1745,8 @@ impl Fmt {
                     mtg_core::card::SearchTo::BattlefieldAndHand => {
                         " to battlefield tapped and hand"
                     }
+                    mtg_core::card::SearchTo::Graveyard => " to graveyard",
+                    mtg_core::card::SearchTo::HandOrGraveyard => " to hand or graveyard",
                 });
                 if *that_card {
                     t.push_str(" that card");

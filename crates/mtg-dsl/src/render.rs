@@ -6280,6 +6280,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 mtg_core::card::SearchTo::TopOfLibrary => {
                     let _ = write!(text, "then shuffle and put {it} on top");
                 }
+                // "put that card into your graveyard" (Vile Entomber).
+                mtg_core::card::SearchTo::Graveyard => {
+                    let gy = hand.replace("hand", "graveyard");
+                    let _ = write!(text, "{put} {pron} into {gy}, then {shuffle}");
+                }
+                mtg_core::card::SearchTo::HandOrGraveyard => {
+                    let gy = hand.replace("hand", "hand or graveyard");
+                    let _ = write!(text, "{put} {pron} into {gy}, then {shuffle}");
+                }
             }
             match who {
                 Some(w) if *w != Recipient::You => {

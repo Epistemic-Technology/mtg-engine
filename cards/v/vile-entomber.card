@@ -1,0 +1,8 @@
+card "Vile Entomber" {
+  oracle_id 556dd333-4066-41f7-98f6-41794754de71
+  cost {2}{B}{B}
+  type Creature — Zombie Warlock
+  pt 2/2
+  keywords deathtouch
+  triggered when this enters: search card to graveyard that card
+}
