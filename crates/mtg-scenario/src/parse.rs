@@ -550,6 +550,18 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let harmonized = if line.peek_ident("harmonized") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
+            let tapping = if harmonized && line.peek_ident("tapping") {
+                line.pos += 1;
+                Some(line.string()?)
+            } else {
+                None
+            };
             // A promised gift is kept as the kicker flag (CR 702.174): its
             // targets count like a kicked spell's.
             let gift = line.peek_ident("gift");
@@ -665,6 +677,8 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     overloaded,
                     awakened,
                     disturbed,
+                    harmonized,
+                    tapping,
                     conspired,
                     splice,
                     other_cost,

@@ -1119,6 +1119,8 @@ impl Runner {
                     overloaded,
                     awakened,
                     disturbed,
+                    harmonized,
+                    tapping,
                     ..
                 } => {
                     let choice = if *face_down {
@@ -1137,6 +1139,14 @@ impl Runner {
                         Choice::CastOverload(self.in_hand(a.line, d.player, name)?)
                     } else if *awakened {
                         Choice::CastAwaken(self.in_hand(a.line, d.player, name)?)
+                    } else if *harmonized {
+                        Choice::CastHarmonize {
+                            card: self.in_graveyard(a.line, d.player, name)?,
+                            tap: match tapping {
+                                Some(t) => Some(self.creature_of(a.line, d.player, t, &[])?),
+                                None => None,
+                            },
+                        }
                     } else if *disturbed {
                         Choice::CastDisturb(self.in_graveyard(a.line, d.player, name)?)
                     } else if *alternative {
@@ -1180,7 +1190,8 @@ impl Runner {
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)
             | Choice::CastAwaken(id)
-            | Choice::CastDisturb(id)) = option
+            | Choice::CastDisturb(id)
+            | Choice::CastHarmonize { card: id, .. }) = option
             else {
                 unreachable!()
             };
@@ -2534,6 +2545,7 @@ impl Runner {
         )
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per choice kind
     fn describe_choice(&self, c: &Choice) -> String {
         match c {
             Choice::Keep => "keep".into(),
@@ -2558,6 +2570,14 @@ impl Runner {
             }
             Choice::CastAwaken(id) => format!("cast {} awakened", self.describe_ids(&[*id])),
             Choice::CastDisturb(id) => format!("cast {} disturbed", self.describe_ids(&[*id])),
+            Choice::CastHarmonize { card, tap } => match tap {
+                Some(c) => format!(
+                    "cast {} harmonized tapping {}",
+                    self.describe_ids(&[*card]),
+                    self.describe_ids(&[*c])
+                ),
+                None => format!("cast {} harmonized", self.describe_ids(&[*card])),
+            },
             Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
             Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
             Choice::Plot(id) => format!("plot {}", self.describe_ids(&[*id])),

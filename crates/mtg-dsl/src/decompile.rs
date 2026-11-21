@@ -1201,6 +1201,10 @@ impl Decompiler<'_> {
             CoreEffect::PhaseOut { what } => Effect::PhaseOut {
                 what: Self::recipient(*what),
             },
+            CoreEffect::Endure { what, count, .. } => Effect::Endure {
+                what: Self::recipient(*what),
+                count: *count,
+            },
             CoreEffect::Amass { count, token } => Effect::Amass {
                 kind: format!("{}s", self.pool.get(*token).name.trim_end_matches(" Army")),
                 count: *count,

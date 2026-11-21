@@ -1,0 +1,7 @@
+card "Fortress Kin-Guard" {
+  oracle_id fa3ed0f6-e44e-433d-80d3-824de5e6135a
+  cost {1}{W}
+  type Creature — Dog Soldier
+  pt 1/2
+  triggered when this enters: this endures 1
+}

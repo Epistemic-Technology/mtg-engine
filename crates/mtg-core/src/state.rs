@@ -312,6 +312,9 @@ pub enum AltCast {
     /// Cast for its sneak cost (CR 702.190a); kept by the permanent, which
     /// enters tapped and attacking.
     Sneak,
+    /// Cast from the graveyard for its harmonize cost (CR 702.180a); the
+    /// spell is exiled as it leaves the stack (`CastInfo::flashback`).
+    Harmonize,
     /// Cast for the alternative cost its own text offers (CR 118.9, "rather
     /// than pay this spell's mana cost").
     AltCost,
@@ -1588,6 +1591,10 @@ pub struct GameState {
     /// attacking, and what the creature returned for the cost was
     /// attacking.
     pub ninjutsu: Vec<(ObjId, Target)>,
+    /// Spells being cast for their harmonize cost (CR 702.180a), the
+    /// creature chosen to tap, and its power then: the generic mana the
+    /// cost is reduced by.
+    pub harmonized: Vec<(ObjId, ObjId, u32)>,
     /// Bargained spells being cast (CR 702.166a) and the permanent to
     /// sacrifice as their costs are paid.
     pub bargains: Vec<(ObjId, ObjId)>,

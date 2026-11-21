@@ -1,0 +1,8 @@
+card "Kin-Tree Nurturer" {
+  oracle_id ad28a1f9-8893-4693-9464-c32ed760f6b1
+  cost {2}{B}
+  type Creature — Human Druid
+  pt 2/1
+  keywords lifelink
+  triggered when this enters: this endures 1
+}

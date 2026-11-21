@@ -154,6 +154,11 @@ pub enum Action {
         /// `disturbed`: cast transformed from the graveyard for the
         /// disturb cost (CR 702.146a).
         disturbed: bool,
+        /// `harmonized`, `harmonized tapping "Grizzly Bears"`: cast from
+        /// the graveyard for the harmonize cost (CR 702.180a), tapping
+        /// that creature to reduce it by its power.
+        harmonized: bool,
+        tapping: Option<String>,
         /// `conspired`: conspire the spell (CR 702.78a), tapping two
         /// creatures the engine picks.
         conspired: bool,

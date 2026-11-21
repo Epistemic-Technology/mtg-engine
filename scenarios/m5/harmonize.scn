@@ -1,0 +1,153 @@
+# Harmonize (CR 702.180): "You may cast this card from your graveyard by
+# paying [cost] and tapping up to one untapped creature you control rather
+# than paying this spell's mana cost", its cost reduced by that creature's
+# power in generic mana, and the card exiled as it leaves the stack. The
+# creature is chosen as the cost is announced (CR 702.180b); `harmonized
+# tapping "X"` taps X.
+
+scenario "harmonize: cast from the graveyard for the full cost, then exiled" {
+  battlefield A: 6 "Island"
+  graveyard A: "Unending Whisper"
+  library A: 5 "Island"
+  turn 1 A: cast "Unending Whisper" harmonized
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert exile A contains "Unending Whisper"
+  assert graveyard A lacks "Unending Whisper"
+}
+
+scenario "harmonize: a tapped creature's power comes off the generic mana" {
+  battlefield A: 3 "Island", "Hill Giant"
+  graveyard A: "Unending Whisper"
+  library A: 5 "Island"
+  turn 1 A: cast "Unending Whisper" harmonized tapping "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert hand A count 1
+  assert exile A contains "Unending Whisper"
+}
+
+scenario "harmonize: not without the mana the creature leaves to pay" {
+  battlefield A: 2 "Island", "Hill Giant"
+  graveyard A: "Unending Whisper"
+  illegal turn 1 A: cast "Unending Whisper" harmonized tapping "Hill Giant"
+  illegal turn 1 A: cast "Unending Whisper" harmonized
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Unending Whisper"
+  assert untapped "Hill Giant"
+}
+
+scenario "harmonize: a tapped creature can't be tapped for it" {
+  battlefield A: 3 "Island", "Hill Giant"
+  graveyard A: "Unending Whisper"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 postcombat_main A: cast "Unending Whisper" harmonized tapping "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Unending Whisper"
+}
+
+scenario "harmonize: a sorcery only at sorcery speed" {
+  battlefield A: 6 "Island"
+  graveyard A: "Unending Whisper"
+  illegal turn 1 begin_combat A: cast "Unending Whisper" harmonized
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Unending Whisper"
+}
+
+scenario "harmonize: not cast from the graveyard otherwise" {
+  battlefield A: 6 "Island"
+  graveyard A: "Unending Whisper"
+  illegal turn 1 A: cast "Unending Whisper" from graveyard
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Unending Whisper"
+}
+
+scenario "harmonize: cast from the hand, it goes to the graveyard as usual" {
+  battlefield A: "Island"
+  hand A: "Unending Whisper"
+  library A: 5 "Island"
+  turn 1 A: cast "Unending Whisper"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Unending Whisper"
+}
+
+scenario "harmonize: Wild Ride with a target, tapping a creature" {
+  battlefield A: 3 "Mountain", "Grizzly Bears", "Raging Goblin"
+  graveyard A: "Wild Ride"
+  turn 1 A: cast "Wild Ride" harmonized tapping "Grizzly Bears" targeting "Raging Goblin"
+  turn 1 A: attack "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert exile A contains "Wild Ride"
+}
+
+scenario "harmonize: X in the cost, the reduction off the whole generic part" {
+  battlefield A: 4 "Forest", "Hill Giant"
+  graveyard A: "Nature's Rhythm"
+  library A: "Grizzly Bears"
+  turn 1 A: cast "Nature's Rhythm" harmonized tapping "Hill Giant" x 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert exile A contains "Nature's Rhythm"
+}
+
+scenario "harmonize: a countered harmonized spell is exiled" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: 2 "Island"
+  graveyard A: "Channeled Dragonfire"
+  hand B: "Counterspell"
+  turn 1 A: cast "Channeled Dragonfire" harmonized tapping "Grizzly Bears" targeting player B
+  turn 1 B: cast "Counterspell" targeting "Channeled Dragonfire"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert exile A contains "Channeled Dragonfire"
+}
+
+scenario "harmonize: Mammoth Bellow makes an Elephant from the graveyard" {
+  battlefield A: 3 "Forest", "Island", "Mountain", 2 "Hill Giant"
+  graveyard A: "Mammoth Bellow"
+  turn 1 A: cast "Mammoth Bellow" harmonized tapping "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Elephant"
+  assert power "Elephant" 5
+}
+
+scenario "harmonize: Ureni's Rebuff bounces a creature" {
+  battlefield A: 3 "Island", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Ureni's Rebuff"
+  turn 1 A: cast "Ureni's Rebuff" harmonized tapping "Hill Giant" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "harmonize: Roamer's Routine fetches a basic land tapped" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  graveyard A: "Roamer's Routine"
+  library A: "Forest"
+  turn 1 A: cast "Roamer's Routine" harmonized tapping "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Forest"
+  assert exile A contains "Roamer's Routine"
+}
+
+scenario "harmonize: Winternight Stories, keeping a creature card to discard" {
+  battlefield A: 2 "Island", "Hill Giant"
+  graveyard A: "Winternight Stories"
+  library A: "Island", "Island", "Grizzly Bears"
+  turn 1 A: cast "Winternight Stories" harmonized tapping "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "harmonize: Synchronized Charge, counters and then vigilance and trample" {
+  battlefield A: 2 "Forest", "Hill Giant", "Grizzly Bears", "Raging Goblin"
+  graveyard A: "Synchronized Charge"
+  turn 1 A: cast "Synchronized Charge" harmonized tapping "Hill Giant" targeting "Grizzly Bears", "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has "Grizzly Bears" trample
+  assert has "Raging Goblin" vigilance
+  assert has not "Hill Giant" trample
+}

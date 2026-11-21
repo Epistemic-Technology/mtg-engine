@@ -66,6 +66,7 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Job select",
     "Mayhem",
     "Mobilize",
     "Behold",
@@ -183,6 +184,8 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Warp",
     "Plot",
     "Sneak",
+    "Harmonize",
+    "Endure",
     "Spree",
     "Gift",
     "Freerunning",
@@ -1486,6 +1489,11 @@ impl Templates {
             (r(r"^Amass (\w+) (\w+)$"), |c, _| {
                 Some(format!("amass {} {}", cap(c, 1), number(cap(c, 2))?))
             }),
+            // CR 701.63a: "it endures 2", "Anafenza endures 2".
+            (
+                r(r"^(?:It|it|This creature|this creature|~) endures (\d+)$"),
+                |c, t| (*t == 0).then(|| format!("this endures {}", cap(c, 1))),
+            ),
             (r(r"^(It|This creature|~) explores$"), |_, t| {
                 (*t == 0).then(|| "this explores".to_string())
             }),
@@ -3830,7 +3838,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Freerunning|Multikicker|Transmute|Disturb) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Mayhem|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Warp|Embalm|Eternalize|Offspring|Bestow|Overload|Surge|Spectacle|Replicate|Encore|Plot|Sneak|Harmonize|Freerunning|Multikicker|Transmute|Disturb) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
@@ -3970,6 +3978,10 @@ impl Builder<'_> {
         }
         if line == "Living weapon" {
             self.statements.push("living weapon".to_string());
+            return Ok(());
+        }
+        if line == "Job select" {
+            self.statements.push("job select".to_string());
             return Ok(());
         }
         if line == "Bargain" {
@@ -4208,9 +4220,20 @@ impl Builder<'_> {
             };
             let mut mods = Vec::new();
             let gets = Regex::new(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
-            for part in cap(&c, 2).split(" and ") {
+            // "gets +2/+2, has reach, and is a Bard in addition to its
+            // other types" (job select Equipment): a list of three.
+            let body = cap(&c, 2);
+            let parts: Vec<&str> = if body.ends_with(" in addition to its other types") {
+                Regex::new(r",? and |, ").unwrap().split(body).collect()
+            } else {
+                body.split(" and ").collect()
+            };
+            let subtype = Regex::new(r"^is an? ([A-Z][a-z]+) in addition to its other types$").unwrap();
+            for part in parts {
                 if let Some(c2) = gets.captures(part) {
                     mods.push(cap(&c2, 1).to_string());
+                } else if let Some(c2) = subtype.captures(part) {
+                    mods.push(format!("add subtype {}", cap(&c2, 1)));
                 } else if let Some(rest) = part.strip_prefix("has ").or_else(|| part.strip_prefix("have ")) {
                     let ks = keyword_list(rest).ok_or_else(|| Skip::Sentence(line.to_string()))?;
                     mods.push(format!("has {ks}"));

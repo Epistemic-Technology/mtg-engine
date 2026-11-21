@@ -398,6 +398,19 @@ impl GameState {
                 {
                     options.push(Choice::CastDisturb(*id));
                 }
+                // CR 702.180a: cast for the harmonize cost, tapping up to
+                // one untapped creature.
+                if def.harmonize.is_some() {
+                    self.harmonize_options(
+                        p,
+                        def,
+                        *id,
+                        sorcery_timing,
+                        &sources,
+                        &changers,
+                        &mut options,
+                    );
+                }
                 if def.flashback.is_none() {
                     if (def.escape.is_some() && self.escape_castable(p, *id, sorcery_timing))
                         || (def.mayhem.is_some() && self.mayhem_castable(p, *id, sorcery_timing))
@@ -496,6 +509,7 @@ impl GameState {
             | Choice::CastDash(id)
             | Choice::CastWarp(id)
             | Choice::CastSneak(id)
+            | Choice::CastHarmonize { card: id, .. }
             | Choice::CastAlt(id) => !(creatures && creature(id)),
             Choice::CastFaceDown(_) => !creatures,
             Choice::CastFace { card, face } => {
@@ -1642,6 +1656,74 @@ impl GameState {
             adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
         }
         self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
+    }
+
+    /// CR 702.180a: the ways `p` may cast `id` from their graveyard for
+    /// its harmonize cost now: tapping no creature, or one untapped
+    /// creature they control with power above 0 (its power off the
+    /// generic mana, and it no longer a mana source), each if the rest
+    /// can be paid.
+    #[cold]
+    #[inline(never)]
+    #[allow(clippy::too_many_arguments)] // the parts precomputed once per listing
+    fn harmonize_options(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+        options: &mut Vec<Choice>,
+    ) {
+        let Some(cost) = def.harmonize.as_deref() else {
+            return;
+        };
+        if !(sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
+            || !self.additional_payable(p, &def.additional, id)
+        {
+            return;
+        }
+        let targets_ok = match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(id))),
+            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+        };
+        if !targets_ok {
+            return;
+        }
+        let mut req = cost.requirements(0);
+        if def.self_cost.is_some()
+            || def.cond_cost.is_some()
+            || !changers.is_empty()
+            || self.next_spell_less[p.index().min(3)] > 0
+        {
+            adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
+        }
+        let printed = self.printed(self.objects[id].def);
+        if self.payable_for(p, sources, &req, Spend::Spell(&printed)) {
+            options.push(Choice::CastHarmonize {
+                card: id,
+                tap: None,
+            });
+        }
+        let tappers: Vec<(ObjId, i16)> = self
+            .creatures_of(p)
+            .filter(|c| !self.objects[*c].tapped)
+            .filter_map(|c| Some((c, self.characteristics(c)?.power)))
+            .filter(|(_, power)| *power > 0)
+            .collect();
+        for (c, power) in tappers {
+            let mut r = req;
+            adjust_generic(&mut r, -i32::from(power));
+            if self.payable_for(p, &without(sources, &[c]), &r, Spend::Spell(&printed)) {
+                options.push(Choice::CastHarmonize {
+                    card: id,
+                    tap: Some(c),
+                });
+            }
+        }
     }
 
     /// Whether `p` could cast `def` (the card `id`, or one of its faces)
@@ -3042,6 +3124,11 @@ impl GameState {
             (_, false) if o.alt == AltCast::Sneak && def.sneak.is_some() => {
                 def.sneak.as_ref().expect("checked").requirements(x)
             }
+            // CR 702.180a: cast from the graveyard (as with flashback, the
+            // spell is exiled as it leaves the stack).
+            _ if o.alt == AltCast::Harmonize && def.harmonize.is_some() => {
+                def.harmonize.as_ref().expect("checked").requirements(x)
+            }
             (_, false) if o.alt == AltCast::Overload && def.overload.is_some() => {
                 def.overload.as_ref().expect("checked").requirements(x)
             }
@@ -3154,6 +3241,12 @@ impl GameState {
             && self.target_fits(&tc.1, *t, o.controller, spell)
         {
             adjust_generic(&mut req, tc.0);
+        }
+        // CR 702.180a: reduced by the tapped creature's power.
+        if o.alt == AltCast::Harmonize
+            && let Some((_, _, power)) = self.harmonized.iter().find(|(s, ..)| *s == spell)
+        {
+            adjust_generic(&mut req, -i32::try_from(*power).unwrap_or(i32::MAX));
         }
         req
     }
@@ -5547,6 +5640,18 @@ impl GameState {
                 self.tap(c);
             }
             sacrifice = None;
+        }
+        // CR 702.180b: the creature chosen for harmonize is tapped as the
+        // total cost is paid, before the mana.
+        if let Some(i) = self.harmonized.iter().position(|(s, ..)| *s == spell) {
+            let (_, c, _) = self.harmonized.swap_remove(i);
+            if self
+                .objects
+                .get(c)
+                .is_some_and(|o| o.zone == Zone::Battlefield && !o.tapped)
+            {
+                self.tap(c);
+            }
         }
         // Expend (CR 700.14): the mana spent to cast spells this turn,
         // counted as the cost's mana symbols.
@@ -9700,6 +9805,26 @@ impl GameState {
                     }
                 }
             }
+            Effect::Endure { what, count, token } => {
+                let n = self.eval_num(*count, ctx);
+                // A source that has left the battlefield still endures:
+                // its last controller creates the token.
+                if *what == Recipient::Source
+                    && self
+                        .objects
+                        .get(ctx.source)
+                        .is_none_or(|o| o.zone != Zone::Battlefield)
+                {
+                    let id = ctx.source;
+                    self.endure(ctx, id, n, *token);
+                    return;
+                }
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.endure(ctx, id, n, *token);
+                    }
+                }
+            }
             Effect::Amass { count, token } => {
                 let n = self.eval_num(*count, ctx);
                 let p = ctx.controller;
@@ -10652,6 +10777,63 @@ impl GameState {
             }
         }
         won
+    }
+
+    /// CR 701.63a: `id` endures `n`: its controller chooses `n` +1/+1
+    /// counters on it (`choose "1"`) or an `n`/`n` white Spirit token
+    /// (`choose "2"`). One that has left the battlefield gets no
+    /// counters; its last controller creates the token. Endure 0 does
+    /// nothing (CR 701.63b).
+    #[cold]
+    #[inline(never)]
+    fn endure(&mut self, ctx: &mut EffectCtx, id: ObjId, n: u32, token: crate::card::CardRef) {
+        if n == 0 {
+            return;
+        }
+        let here = self
+            .objects
+            .get(id)
+            .filter(|o| o.zone == Zone::Battlefield)
+            .map(|o| o.controller);
+        let Some(p) = here.or_else(|| self.lki.get(&id).map(|l| l.object.controller)) else {
+            return;
+        };
+        let def = self
+            .objects
+            .get(ctx.source)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| &l.object))
+            .map_or(token, |o| o.def);
+        let counters = here.is_some()
+            && self.choose_mid(
+                p,
+                DecisionKind::ChooseOption { def },
+                vec![Choice::Mode(0), Choice::Mode(1)],
+            ) == 0;
+        if counters {
+            self.add_counters(id, CounterKind::PlusOnePlusOne, n);
+            return;
+        }
+        let new = self.create_token_with(token, p, false);
+        // An X/X Spirit: the 0/0 made that size.
+        if self.objects.contains_key(new)
+            && self
+                .pool
+                .get(token)
+                .printed
+                .is_some_and(|c| u32::try_from(c.power).ok() != Some(n))
+        {
+            let size = i32::try_from(n).unwrap_or(i32::MAX);
+            self.effect_on(
+                ctx,
+                new,
+                smallvec::smallvec![Modification::SetPt {
+                    power: PtValue::Fixed(size),
+                    toughness: PtValue::Fixed(size),
+                }],
+                Duration::Permanent,
+            );
+        }
+        ctx.created = Some(new);
     }
 
     fn explore(&mut self, ctx: &EffectCtx, id: ObjId) {

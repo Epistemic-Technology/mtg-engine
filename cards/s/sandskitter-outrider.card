@@ -1,0 +1,8 @@
+card "Sandskitter Outrider" {
+  oracle_id eae480fe-d9fe-4dbe-8b78-b65f398b0af3
+  cost {3}{B}
+  type Creature — Goblin Soldier
+  pt 2/1
+  keywords menace
+  triggered when this enters: this endures 2
+}

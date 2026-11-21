@@ -1,0 +1,8 @@
+card "Warrior's Sword" {
+  oracle_id a339961e-3555-467f-a4f8-c5eaac7e7ed1
+  cost {3}{R}
+  type Artifact — Equipment
+  job select
+  static equipped creature: +3/+2, add subtype Warrior
+  equip {5}
+}

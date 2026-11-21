@@ -201,7 +201,8 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::CastAlt(_)
         | Choice::CastOverload(_)
         | Choice::CastAwaken(_)
-        | Choice::CastDisturb(_) => 38,
+        | Choice::CastDisturb(_)
+        | Choice::CastHarmonize { .. } => 38,
         Choice::CastBestow(_) => 39,
         Choice::Unlock { .. } => 40,
     }
@@ -420,6 +421,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::CastOverload(id)
             | Choice::CastAwaken(id)
             | Choice::CastDisturb(id)
+            | Choice::CastHarmonize { card: id, .. }
             | Choice::Suspend(id)
             | Choice::Unlock { obj: id, .. }
             | Choice::Foretell(id)

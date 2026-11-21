@@ -1286,6 +1286,10 @@ pub enum Mechanic {
     /// for this cost and an unblocked attacker returned to hand; the
     /// permanent enters tapped and attacking.
     Sneak(ManaCost),
+    /// CR 702.180: `harmonize {4}{R}`: cast from the graveyard for this
+    /// cost, tapping up to one untapped creature to reduce it by that
+    /// creature's power; exiled as it leaves the stack.
+    Harmonize(ManaCost),
     /// CR 702.174: `gift card`, `gift food`, `gift tapped fish`, `gift
     /// treasure`: "Gift a card" and kin.
     Gift(GiftKind),
@@ -1495,6 +1499,9 @@ pub enum Mechanic {
     /// `living weapon` (CR 702.92): when this Equipment enters, a 0/0
     /// black Phyrexian Germ token, then attach this to it.
     LivingWeapon,
+    /// `job select` (CR 702.182): when this Equipment enters, a 1/1
+    /// colorless Hero token, then attach this to it.
+    JobSelect,
     /// `retrace` (CR 702.81): cast from your graveyard by discarding a land
     /// card in addition to its other costs.
     Retrace,
@@ -3359,6 +3366,13 @@ pub enum Effect {
     Explore {
         what: Recipient,
         twice: bool,
+    },
+    /// `this endures 2`, `that creature endures X` (CR 701.63): "endures
+    /// N": N +1/+1 counters on it or an N/N white Spirit token, as its
+    /// controller chooses.
+    Endure {
+        what: Recipient,
+        count: Num,
     },
     /// `target creature phases out` (CR 702.26).
     PhaseOut {

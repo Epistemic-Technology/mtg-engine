@@ -477,6 +477,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Sneak(cost)) => {
                     b = b.sneak(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Harmonize(cost)) => {
+                    b = b.harmonize(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Suspend(n, cost)) => {
                     b = b.suspend(*n, cost.clone());
                 }
@@ -891,6 +894,7 @@ impl Compiler<'_> {
                             | Mechanic::Foretell(_)
                             | Mechanic::Plot(_)
                             | Mechanic::Sneak(_)
+                            | Mechanic::Harmonize(_)
                             | Mechanic::Suspend(..)
                             | Mechanic::Entwine(_)
                             | Mechanic::Escape(..)
@@ -2626,6 +2630,23 @@ impl Compiler<'_> {
                 }
             }
             Effect::PhaseOut { what } => out.push(CoreEffect::PhaseOut { what: r(*what) }),
+            Effect::Endure { what, count } => {
+                // CR 701.63a: an N/N white Spirit; X/X is a 0/0 made that
+                // size as it resolves.
+                let n = match count {
+                    Num::N(n) => *n,
+                    _ => 0,
+                };
+                let key = format!("{n}/{n} white Spirit creature");
+                let Some(token) = self.pool.lookup(&key) else {
+                    return self.err(format!("unknown token \"{key}\""));
+                };
+                out.push(CoreEffect::Endure {
+                    what: r(*what),
+                    count: *count,
+                    token,
+                });
+            }
             Effect::Amass { kind, count } => {
                 // "Amass Zombies 2": a Zombie Army token.
                 let key = format!("0/0 black {} Army creature", kind.trim_end_matches('s'));
@@ -3728,6 +3749,7 @@ impl Compiler<'_> {
                 | Mechanic::Foretell(_)
                 | Mechanic::Plot(_)
                 | Mechanic::Sneak(_)
+                | Mechanic::Harmonize(_)
                 | Mechanic::Suspend(..)
                 | Mechanic::Entwine(_)
                 | Mechanic::Escape(..)
@@ -4259,6 +4281,8 @@ const SERVO: &str = "1/1 colorless Servo artifact creature";
 const AFTERLIFE_SPIRIT: &str = "1/1 white and black Spirit creature with flying";
 /// The token living weapon creates (CR 702.92a).
 const GERM: &str = "0/0 black Phyrexian Germ creature";
+/// The token job select creates (CR 702.182a).
+const HERO: &str = "1/1 colorless Hero creature";
 /// The token Incubate creates (CR 701.53a, 111.10i).
 const INCUBATOR: &str = "Incubator";
 
@@ -4426,7 +4450,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         },
         // CR 702.92a: "When this Equipment enters, create a 0/0 black
         // Phyrexian Germ creature token, then attach this Equipment to it."
-        Mechanic::LivingWeapon => Ability::Triggered {
+        // CR 702.182a: job select likewise, a "1/1 colorless Hero creature".
+        Mechanic::LivingWeapon | Mechanic::JobSelect => Ability::Triggered {
             limit: mtg_core::card::TurnLimit::None,
             from_graveyard: false,
             trigger: Trigger::Enters(TriggerObj::This),
@@ -4435,7 +4460,12 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             effects: vec![Sentence {
                 effects: vec![
                     E::CreateToken {
-                        token: GERM.to_string(),
+                        token: if matches!(m, Mechanic::JobSelect) {
+                            HERO
+                        } else {
+                            GERM
+                        }
+                        .to_string(),
                         count: Num::N(1),
                         tapped: false,
                         who: None,
@@ -4852,6 +4882,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Plot(_)
         | Mechanic::Gift(_)
         | Mechanic::Sneak(_)
+        | Mechanic::Harmonize(_)
         | Mechanic::Suspend(..)
         | Mechanic::Entwine(_)
         | Mechanic::Escape(..)

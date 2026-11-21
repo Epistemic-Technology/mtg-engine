@@ -626,6 +626,9 @@ impl Fmt {
                 if *twice { " twice" } else { "" }
             ),
             Effect::PhaseOut { what } => format!("{} phases out", self.recipient(*what, t)),
+            Effect::Endure { what, count } => {
+                format!("{} endures {}", self.recipient(*what, t), num(*count))
+            }
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
             Effect::EmpowerJace { count } => format!("empower jace {}", num(*count)),
             Effect::CreatedAttack => String::new(),
@@ -4661,6 +4664,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Plot(c) => format!("plot {c}"),
                 crate::ast::Mechanic::Gift(k) => format!("gift {}", k.words()),
                 crate::ast::Mechanic::Sneak(c) => format!("sneak {c}"),
+                crate::ast::Mechanic::Harmonize(c) => format!("harmonize {c}"),
                 crate::ast::Mechanic::Suspend(n, c) => format!("suspend {n} {c}"),
                 crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),
                 crate::ast::Mechanic::Modular(n) => format!("modular {n}"),
@@ -4736,6 +4740,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Mentor => "mentor".to_string(),
                 crate::ast::Mechanic::Riot => "riot".to_string(),
                 crate::ast::Mechanic::LivingWeapon => "living weapon".to_string(),
+                crate::ast::Mechanic::JobSelect => "job select".to_string(),
                 crate::ast::Mechanic::Retrace => "retrace".to_string(),
                 crate::ast::Mechanic::Ingest => "ingest".to_string(),
                 crate::ast::Mechanic::Reinforce(n, c) => format!("reinforce {n} {c}"),

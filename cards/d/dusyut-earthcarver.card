@@ -1,0 +1,8 @@
+card "Dusyut Earthcarver" {
+  oracle_id 387b12b1-d8f5-487b-972f-5303b23eed5a
+  cost {5}{G}
+  type Creature — Elephant Druid
+  pt 4/4
+  keywords reach
+  triggered when this enters: this endures 3
+}

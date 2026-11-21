@@ -1,0 +1,7 @@
+card "Nature's Rhythm" {
+  oracle_id 0259f063-3e3f-4e07-9066-f748d4819829
+  cost {X}{G}{G}
+  type Sorcery
+  spell: search creature card with mana value X or less to battlefield
+  harmonize {X}{G}{G}{G}{G}
+}

@@ -1,0 +1,8 @@
+card "Sinkhole Surveyor" {
+  oracle_id 83a47724-b8d1-4884-9442-b62aa1510dc3
+  cost {1}{B}
+  type Creature — Bird Scout
+  pt 1/3
+  keywords flying
+  triggered whenever this attacks: you lose 1 life and this endures 1
+}

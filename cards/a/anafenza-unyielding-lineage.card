@@ -1,0 +1,8 @@
+card "Anafenza, Unyielding Lineage" {
+  oracle_id 659bc01c-fa60-4d00-bdad-5bca1d2a978f
+  cost {2}{W}
+  type Legendary Creature — Spirit Soldier
+  pt 2/2
+  keywords flash, first strike
+  triggered whenever other nontoken creature you control dies: this endures 2
+}

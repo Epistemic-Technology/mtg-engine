@@ -1,0 +1,7 @@
+card "Synchronized Charge" {
+  oracle_id faa0055b-c1d2-4ce7-875f-41b4be8030bd
+  cost {1}{G}
+  type Sorcery
+  spell: distribute 2 +1/+1 counters among 1 to 2 target creatures you control; each creature you control with counter gain vigilance, trample until end of turn
+  harmonize {4}{G}
+}

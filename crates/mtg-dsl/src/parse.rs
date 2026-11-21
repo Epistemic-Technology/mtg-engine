@@ -1604,6 +1604,11 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::LivingWeapon))
             }
+            "job" if self.at_words(&["job", "select"]) => {
+                self.pos += 2;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::JobSelect))
+            }
             "extort" | "mentor" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -1659,9 +1664,9 @@ impl P {
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "mayhem" | "foretell" | "plot" | "sneak"
-            | "entwine" | "ninjutsu" | "scavenge" | "dash" | "warp" | "embalm" | "eternalize"
-            | "offspring" | "bestow" | "splice" | "strive" | "overload" | "surge"
-            | "freerunning" | "spectacle" | "replicate" | "encore" | "multikicker"
+            | "harmonize" | "entwine" | "ninjutsu" | "scavenge" | "dash" | "warp" | "embalm"
+            | "eternalize" | "offspring" | "bestow" | "splice" | "strive" | "overload"
+            | "surge" | "freerunning" | "spectacle" | "replicate" | "encore" | "multikicker"
             | "transmute" | "disturb"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
@@ -1680,6 +1685,7 @@ impl P {
                     "foretell" => Mechanic::Foretell(c),
                     "plot" => Mechanic::Plot(c),
                     "sneak" => Mechanic::Sneak(c),
+                    "harmonize" => Mechanic::Harmonize(c),
                     "entwine" => Mechanic::Entwine(c),
                     "megamorph" => Mechanic::Megamorph(c),
                     "disguise" => Mechanic::Disguise(c),
@@ -5225,6 +5231,10 @@ impl P {
                     who: subject,
                 })
             }
+            "endures" => Ok(Effect::Endure {
+                what: subject,
+                count: self.num()?,
+            }),
             "explores" => Ok(Effect::Explore {
                 what: subject,
                 twice: self.eat_word("twice"),

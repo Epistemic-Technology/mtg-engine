@@ -4420,6 +4420,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "phases out".to_string())
         }
+        Effect::Endure { what, count } => {
+            let s = ctx.subj(*what);
+            Clause::with_subject(*what, s, format!("endures {}", digits(*count)))
+        }
         Effect::Amass { kind, count } => {
             ctx.amassed = true;
             Clause::imperative(format!("amass {kind} {}", digits(*count)))
@@ -7082,7 +7086,27 @@ fn lowercase_first(s: &str) -> String {
 fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     ctx.groups_mentioned
         .retain(|r| !matches!(r, Recipient::Group(_)));
-    let clauses: Vec<Clause> = s.effects.iter().map(|e| clause(e, ctx)).collect();
+    let clauses: Vec<Clause> = s
+        .effects
+        .iter()
+        .enumerate()
+        .map(|(i, e)| {
+            // "you lose 1 life and this creature endures 1": after another
+            // clause Oracle names the source again (Sinkhole Surveyor).
+            if i > 0
+                && matches!(
+                    e,
+                    Effect::Endure {
+                        what: Recipient::Source,
+                        ..
+                    }
+                )
+            {
+                ctx.source_mentioned = false;
+            }
+            clause(e, ctx)
+        })
+        .collect();
     let shared_suffix = clauses.len() > 1
         && clauses[0].suffix.is_some()
         && clauses.iter().all(|c| c.suffix == clauses[0].suffix);
@@ -9067,7 +9091,13 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
     let mut body = if split {
         format!("{subject} {}. It {}", parts[0], parts[1..].join(" and "))
     } else {
+        // A quoted ability before the end of the list drops its period:
+        // "has \"Whenever ..., draw a card,\" and is a Rogue", "has
+        // \"... until end of turn\" and is a Wizard" (Job select
+        // Equipment).
         format!("{subject} {}", list(&parts))
+            .replace(".\", ", ",\" ")
+            .replace(".\" and ", "\" and ")
     };
     if let Some(clause) = activation {
         // Oracle joins it with ", and", except after "doesn't untap during
@@ -10578,6 +10608,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Plot(c) => format!("Plot {c}"),
             crate::ast::Mechanic::Gift(k) => format!("Gift {}", k.oracle()),
             crate::ast::Mechanic::Sneak(c) => format!("Sneak {c}"),
+            crate::ast::Mechanic::Harmonize(c) => format!("Harmonize {c}"),
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
             crate::ast::Mechanic::Modular(n) => format!("Modular {n}"),
@@ -10695,6 +10726,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Mentor => "Mentor".to_string(),
             crate::ast::Mechanic::Riot => "Riot".to_string(),
             crate::ast::Mechanic::LivingWeapon => "Living weapon".to_string(),
+            crate::ast::Mechanic::JobSelect => "Job select".to_string(),
             crate::ast::Mechanic::Retrace => "Retrace".to_string(),
             crate::ast::Mechanic::Ingest => "Ingest".to_string(),
             crate::ast::Mechanic::Reinforce(n, c) => format!("Reinforce {n}\u{2014}{c}"),

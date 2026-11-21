@@ -1,0 +1,7 @@
+card "Ureni's Rebuff" {
+  oracle_id c0b7e989-8194-484c-93aa-a44df0764a77
+  cost {1}{U}
+  type Sorcery
+  spell: return target creature to hand
+  harmonize {5}{U}
+}

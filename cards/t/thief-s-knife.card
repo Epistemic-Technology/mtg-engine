@@ -1,0 +1,8 @@
+card "Thief's Knife" {
+  oracle_id 4bf589ed-58f8-40ad-bcee-50cb99da02ca
+  cost {2}{U}
+  type Artifact — Equipment
+  job select
+  static equipped creature: +1/+1, has ability { triggered whenever this deals combat damage to a player: draw 1 card }, add subtype Rogue
+  equip {4}
+}

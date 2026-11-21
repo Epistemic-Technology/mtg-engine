@@ -3755,6 +3755,16 @@ pub enum Effect {
     Explore {
         what: Recipient,
     },
+    /// The recipient permanent endures `count` (CR 701.63): its
+    /// controller puts that many +1/+1 counters on it or creates a
+    /// `count`/`count` white Spirit creature token (`token`; for a count
+    /// not known until it resolves, a 0/0 Spirit given that base power
+    /// and toughness). Endure 0 does nothing (CR 701.63b).
+    Endure {
+        what: Recipient,
+        count: Num,
+        token: CardRef,
+    },
     /// "Target creature phases out" (CR 702.26b): it phases in before its
     /// controller untaps during their next untap step.
     PhaseOut {
@@ -4223,6 +4233,7 @@ impl Effect {
                 | Effect::DiscardRandom { .. }
                 | Effect::DiscardChosen { .. }
                 | Effect::Explore { .. }
+                | Effect::Endure { .. }
                 | Effect::PutFromHand { .. }
                 | Effect::Dig { .. }
                 | Effect::ManifestDread
@@ -5997,6 +6008,12 @@ pub struct CardDef {
     /// tapped and attacking what that creature attacked.
     #[serde(default)]
     pub sneak: Option<Box<ManaCost>>,
+    /// Harmonize (CR 702.180): cast from the graveyard for this cost,
+    /// tapping up to one untapped creature its caster controls to reduce
+    /// the cost by that creature's power in generic mana; exiled as it
+    /// leaves the stack.
+    #[serde(default)]
+    pub harmonize: Option<Box<ManaCost>>,
     /// Bestow (CR 702.103): an alternative cost; the spell is then an Aura
     /// with enchant creature (`bestow_face`), and the permanent becomes a
     /// creature again when it isn't attached.
@@ -6695,6 +6712,7 @@ impl CardDef {
     /// otherwise.
     pub fn graveyard_active(&self) -> bool {
         self.flashback.is_some()
+            || self.harmonize.is_some()
             || self.disturb.is_some()
             || self.escape.is_some()
             || self.mayhem.is_some()
@@ -8022,6 +8040,7 @@ fn bestowed_aura(def: &CardDef) -> CardDef {
 pub struct Builder(CardDef);
 
 impl Builder {
+    #[allow(clippy::too_many_lines)] // one line per field
     pub fn new(name: &str, cost: &str) -> Self {
         Builder(CardDef {
             hand_static: false,
@@ -8068,6 +8087,7 @@ impl Builder {
             dash: None,
             warp: None,
             sneak: None,
+            harmonize: None,
             bestow: None,
             bestow_face: None,
             overload: None,
@@ -8302,6 +8322,13 @@ impl Builder {
     #[must_use]
     pub fn sneak(mut self, cost: ManaCost) -> Self {
         self.0.sneak = Some(Box::new(cost));
+        self
+    }
+
+    /// Harmonize (CR 702.180).
+    #[must_use]
+    pub fn harmonize(mut self, cost: ManaCost) -> Self {
+        self.0.harmonize = Some(Box::new(cost));
         self
     }
 

@@ -1,0 +1,8 @@
+card "Red Mage's Rapier" {
+  oracle_id 35ad9e15-3e00-4bd2-96cf-36a6ef49059f
+  cost {1}{R}
+  type Artifact — Equipment
+  job select
+  static equipped creature: has ability { triggered whenever you cast noncreature spell: this gets +2/+0 until end of turn }, add subtype Wizard
+  equip {3}
+}

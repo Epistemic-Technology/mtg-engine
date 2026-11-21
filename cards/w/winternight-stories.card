@@ -1,0 +1,7 @@
+card "Winternight Stories" {
+  oracle_id d64687e4-ec37-4db2-9e60-4626c7a3b011
+  cost {2}{U}
+  type Sorcery
+  spell: draw 3 cards; then discard 2 cards unless you discard creature card
+  harmonize {4}{U}
+}
