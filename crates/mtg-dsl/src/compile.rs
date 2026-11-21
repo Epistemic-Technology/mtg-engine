@@ -2742,6 +2742,9 @@ impl Compiler<'_> {
                     effects,
                 });
             }
+            Effect::SetBasePtVar { to, n } => {
+                out.push(CoreEffect::SetBasePtVar { to: r(*to), n: *n })
+            }
             Effect::SetBasePt {
                 to,
                 power,

@@ -3681,6 +3681,12 @@ pub enum Effect {
         power: i32,
         toughness: i32,
     },
+    /// "have base power and toughness X/X until end of turn" (layer 7b):
+    /// both `n`, evaluated as the effect resolves (Biomass Mutation).
+    SetBasePtVar {
+        to: Recipient,
+        n: Num,
+    },
     /// Create a delayed triggered ability (CR 603.7) about the recipient:
     /// `ability` is a registered triggered ability (see
     /// `CardPool::register_ability`) whose effects see the recipient as

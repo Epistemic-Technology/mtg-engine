@@ -5388,6 +5388,11 @@ impl P {
             }
             "has" | "have" => {
                 self.expect_words(&["base", "power", "and", "toughness"])?;
+                if !matches!(self.peek(), Some(Tok::Pt { .. })) {
+                    let n = self.num()?;
+                    self.until_end_of_turn();
+                    return Ok(Effect::SetBasePtVar { to: subject, n });
+                }
                 let Some(Tok::Pt {
                     power,
                     toughness,

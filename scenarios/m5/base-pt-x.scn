@@ -1,0 +1,34 @@
+# "Creatures you control have base power and toughness X/X until end of
+# turn." (layer 7b, CR 613.4b): X is fixed as the effect resolves;
+# counters and other modifications still apply on top (layer 7c).
+
+scenario "base X/X: Biomass Mutation sets each creature you control" {
+  battlefield A: 5 "Forest", "Grizzly Bears", "Hill Giant" with 1 +1/+1
+  battlefield B: "Raging Goblin"
+  hand A: "Biomass Mutation"
+  turn 1 A: cast "Biomass Mutation" x 3
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Hill Giant" 4
+  assert power "Raging Goblin" 1
+}
+
+scenario "base X/X: until end of turn" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  hand A: "Biomass Mutation"
+  turn 1 A: cast "Biomass Mutation" x 3
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "base X/X: Mirror Entity's activation" {
+  battlefield A: "Mirror Entity", 4 "Plains", "Grizzly Bears"
+  turn 1 A: activate "Mirror Entity" x 4
+  turn 1 A: wait
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Mirror Entity" 4
+  assert is "Grizzly Bears" "Shapeshifter"
+}

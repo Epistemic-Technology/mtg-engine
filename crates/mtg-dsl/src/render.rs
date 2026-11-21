@@ -7209,6 +7209,24 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 body.trim_end_matches('.')
             ))
         }
+        Effect::SetBasePtVar { to, n } => {
+            let s = ctx.subj(*to);
+            let each = if matches!(to, Recipient::Targets(..)) {
+                "each "
+            } else {
+                ""
+            };
+            let v = digits(*n);
+            Clause::with_subject(
+                *to,
+                s,
+                format!(
+                    "{each}{} base power and toughness {v}/{v}",
+                    ctx.verb(*to, "has", "have")
+                ),
+            )
+            .until_eot()
+        }
         Effect::SetBasePt {
             to,
             power,

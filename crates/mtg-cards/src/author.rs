@@ -1734,6 +1734,13 @@ impl Templates {
                     Some(format!("exchange control of {a} and {b}"))
                 },
             ),
+            // CR 613.4b.
+            (
+                r(
+                    r"^[Cc]reatures you control have base power and toughness X/X until end of turn$",
+                ),
+                |_, _| Some("each creature you control has base power and toughness X".to_string()),
+            ),
             // CR 724.1.
             (r(r"^[Ee]nd the turn$"), |_, _| {
                 Some("end the turn".to_string())

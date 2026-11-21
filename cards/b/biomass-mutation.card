@@ -1,0 +1,6 @@
+card "Biomass Mutation" {
+  oracle_id 2dbe8aaa-2e34-4552-8da7-cf8ecbbaa7b6
+  cost {X}{G/U}{G/U}
+  type Instant
+  spell: each creature you control has base power and toughness X
+}

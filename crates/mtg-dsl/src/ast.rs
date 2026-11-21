@@ -3515,6 +3515,12 @@ pub enum Effect {
         power: i32,
         toughness: i32,
     },
+    /// `<what> has base power and toughness X`: "... have base power and
+    /// toughness X/X until end of turn" (Biomass Mutation).
+    SetBasePtVar {
+        to: Recipient,
+        n: Num,
+    },
     /// A delayed triggered ability (CR 603.7) about `about`; `trigger_first`
     /// records whether the text puts the trigger before the effects.
     Delayed {

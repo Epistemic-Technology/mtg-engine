@@ -1184,6 +1184,7 @@ impl Decompiler<'_> {
                         .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
                 ),
             },
+            CoreEffect::SetBasePtVar { to, n } => Effect::SetBasePtVar { to: r(*to), n: *n },
             CoreEffect::SetBasePt {
                 to,
                 power,

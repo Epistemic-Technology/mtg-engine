@@ -9725,6 +9725,23 @@ impl GameState {
                     );
                 }
             }
+            Effect::SetBasePtVar { to, n } => {
+                // CR 608.2h: the value is locked in as the effect resolves.
+                let v = i32::try_from(self.eval_num(*n, ctx)).unwrap_or(i32::MAX);
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    self.effect_until_end_of_turn(
+                        ctx,
+                        id,
+                        smallvec::smallvec![Modification::SetPt {
+                            power: PtValue::Fixed(v),
+                            toughness: PtValue::Fixed(v),
+                        }],
+                    );
+                }
+            }
             Effect::YouMay(inner) => {
                 // "Do this only once each turn.": done already, it isn't
                 // offered (`TurnLimit::Do`).

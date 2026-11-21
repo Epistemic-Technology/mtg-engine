@@ -573,7 +573,9 @@ impl Fmt {
                 // player" would declare a second target).
                 if let Effect::CreatureTypes { to, all } = e
                     && matches!(&s.effects[i - 1],
-                        Effect::Pump { to: p, .. } | Effect::SetBasePt { to: p, .. } if p == to)
+                        Effect::Pump { to: p, .. }
+                        | Effect::SetBasePt { to: p, .. }
+                        | Effect::SetBasePtVar { to: p, .. } if p == to)
                 {
                     out.push_str(if *all { "gains" } else { "loses" });
                     out.push_str(" all creature types");
@@ -2272,6 +2274,11 @@ impl Fmt {
                 };
                 format!("{inner} unless {who} {amount}")
             }
+            Effect::SetBasePtVar { to, n } => format!(
+                "{} has base power and toughness {}",
+                self.recipient(*to, t),
+                num(*n)
+            ),
             Effect::SetBasePt {
                 to,
                 power,

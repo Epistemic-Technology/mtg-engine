@@ -515,7 +515,10 @@ a black Demon in addition to its other colors and types"), `up to 2
 target creature each has base power and toughness 3/3, gains flying, and
 becomes blue Illusion in addition` ("... each have base power and
 toughness 3/3, gain flying, and become blue Illusions in addition to
-their other colors and types"). Chosen as the
+their other colors and types"). A number in place of N/N sets both:
+`each creature you control has base power and toughness X` prints
+"Creatures you control have base power and toughness X/X until end of
+turn." (X fixed as the effect resolves, CR 608.2h). Chosen as the
 effect resolves (CR 608.2d), once for all its recipients: `target creature
 becomes color of choice`, `target creature gains protection from color of
 choice`, `target land becomes land type of choice` ("the basic land type of
