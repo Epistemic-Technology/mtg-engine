@@ -1653,7 +1653,9 @@ impl Decompiler<'_> {
             TriggerSpec::EntersFromGraveyard(f) => Trigger::EntersFromGraveyard(self.filter(f)),
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
-            TriggerSpec::CreaturesDealCombatDamage => Trigger::CreaturesDealCombatDamage,
+            TriggerSpec::CreaturesDealCombatDamage(f) => {
+                Trigger::CreaturesDealCombatDamage(self.filter(f))
+            }
             TriggerSpec::NoncombatDamageToOpponent { yours, batch } => {
                 Trigger::NoncombatDamageToOpponent {
                     yours: *yours,

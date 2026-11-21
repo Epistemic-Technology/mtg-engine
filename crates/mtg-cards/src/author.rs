@@ -2721,7 +2721,6 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever you collect evidence"
         | "Whenever you commit a crime"
         | "Whenever you commit a crime during your turn"
-        | "Whenever one or more creatures you control deal combat damage to a player"
         | "Whenever a source you control deals noncombat damage to an opponent"
         | "Whenever an opponent is dealt noncombat damage"
         | "Whenever one or more opponents are dealt noncombat damage" => {
@@ -2857,6 +2856,9 @@ fn trigger_general(head: &str) -> Option<String> {
         "Whenever you attack" => Some("whenever you attack"),
         "Whenever one or more creatures you control attack" => {
             Some("whenever one or more creatures you control attack")
+        }
+        "Whenever one or more creatures you control deal combat damage to a player" => {
+            Some("whenever one or more creature you control deal combat damage to a player")
         }
         "Whenever you put one or more +1/+1 counters on a creature you control" => {
             Some("whenever you put one or more +1/+1 counters on creature you control")

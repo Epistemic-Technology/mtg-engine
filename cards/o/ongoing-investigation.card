@@ -2,6 +2,6 @@ card "Ongoing Investigation" {
   oracle_id 68227832-2916-49b9-92bb-c09b8a0c13f5
   cost {1}{U}
   type Enchantment
-  triggered whenever one or more creatures you control deal combat damage to a player: investigate
+  triggered whenever one or more creature you control deal combat damage to a player: investigate
   activated {1}{G}, exile 1 creature card from graveyard: investigate; you gain 2 life
 }

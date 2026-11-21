@@ -4750,10 +4750,11 @@ pub enum TriggerSpec {
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
     /// "Whenever one or more creatures you control deal combat damage to a
-    /// player" (CR 510.2, 603.2c): once for each player dealt combat
-    /// damage by them in one combat damage step; that player is the
-    /// triggering player.
-    CreaturesDealCombatDamage,
+    /// player", "... one or more Allies you control ..." (CR 510.2,
+    /// 603.2c): once for each player dealt combat damage by matching
+    /// creatures in one combat damage step; that player is the triggering
+    /// player.
+    CreaturesDealCombatDamage(ObjFilter),
     /// "Whenever a source you control deals noncombat damage to an
     /// opponent" (`yours`), "Whenever an opponent is dealt noncombat
     /// damage", "Whenever one or more opponents are dealt noncombat damage"
@@ -5075,7 +5076,7 @@ impl TriggerSpec {
             | TriggerSpec::BlockPair { .. }
             | TriggerSpec::AttacksUnblocked(_) => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_)
-            | TriggerSpec::CreaturesDealCombatDamage
+            | TriggerSpec::CreaturesDealCombatDamage(_)
             | TriggerSpec::NoncombatDamageToOpponent { .. }
             | TriggerSpec::DealsCombatDamageToPlayerOrBattle(_)
             | TriggerSpec::DealtDamage(_)

@@ -2416,9 +2416,10 @@ pub enum Trigger {
     Expends(u8),
     /// `whenever you collect evidence` (CR 701.59).
     CollectsEvidence,
-    /// `whenever one or more creatures you control deal combat damage to a
-    /// player` (once per player, CR 603.2c).
-    CreaturesDealCombatDamage,
+    /// `whenever one or more creature you control deal combat damage to a
+    /// player`, `... one or more Ally you control ...` (once per player,
+    /// CR 603.2c).
+    CreaturesDealCombatDamage(Filter),
     /// `whenever a source you control deals noncombat damage to an
     /// opponent` (`yours`), `whenever an opponent is dealt noncombat
     /// damage`, `whenever one or more opponents are dealt noncombat damage`

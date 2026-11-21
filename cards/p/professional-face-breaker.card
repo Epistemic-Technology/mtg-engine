@@ -4,6 +4,6 @@ card "Professional Face-Breaker" {
   type Creature — Human Warrior
   pt 2/3
   keywords menace
-  triggered whenever one or more creatures you control deal combat damage to a player: create 1 "Treasure"
+  triggered whenever one or more creature you control deal combat damage to a player: create 1 "Treasure"
   activated sacrifice Treasure: impulse 1 this turn
 }

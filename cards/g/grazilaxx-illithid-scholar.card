@@ -4,5 +4,5 @@ card "Grazilaxx, Illithid Scholar" {
   type Legendary Creature — Horror
   pt 3/2
   triggered whenever creature you control becomes blocked: you may return it to its owner's hand
-  triggered whenever one or more creatures you control deal combat damage to a player: draw 1 card
+  triggered whenever one or more creature you control deal combat damage to a player: draw 1 card
 }

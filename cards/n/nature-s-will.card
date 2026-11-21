@@ -2,5 +2,5 @@ card "Nature's Will" {
   oracle_id 9837287b-d821-4655-8f01-93fc6c7f0ecc
   cost {2}{G}{G}
   type Enchantment
-  triggered whenever one or more creatures you control deal combat damage to a player: tap all land that player controls and untap all land you control
+  triggered whenever one or more creature you control deal combat damage to a player: tap all land that player controls and untap all land you control
 }

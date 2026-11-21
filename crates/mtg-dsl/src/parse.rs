@@ -9827,22 +9827,6 @@ impl P {
             return Ok(Trigger::YouPutCounters { obj, kind });
         }
         if self.eat_words(&[
-            "one",
-            "or",
-            "more",
-            "creatures",
-            "you",
-            "control",
-            "deal",
-            "combat",
-            "damage",
-            "to",
-            "a",
-            "player",
-        ]) {
-            return Ok(Trigger::CreaturesDealCombatDamage);
-        }
-        if self.eat_words(&[
             "a",
             "source",
             "you",
@@ -9941,6 +9925,11 @@ impl P {
                     filter: f,
                     dies: false,
                 });
+            }
+            // "one or more creatures you control deal combat damage to a
+            // player" (CR 603.2c).
+            if self.eat_words(&["deal", "combat", "damage", "to", "a", "player"]) {
+                return Ok(Trigger::CreaturesDealCombatDamage(f));
             }
             self.expect_word("enter")?;
             return Ok(Trigger::EntersBatch(f));

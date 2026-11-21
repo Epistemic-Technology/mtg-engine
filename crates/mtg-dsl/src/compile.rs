@@ -3127,7 +3127,9 @@ impl Compiler<'_> {
             Trigger::EntersFromGraveyard(f) => TriggerSpec::EntersFromGraveyard(self.filter(f)),
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
-            Trigger::CreaturesDealCombatDamage => TriggerSpec::CreaturesDealCombatDamage,
+            Trigger::CreaturesDealCombatDamage(f) => {
+                TriggerSpec::CreaturesDealCombatDamage(self.filter(f))
+            }
             Trigger::NoncombatDamageToOpponent { yours, batch } => {
                 TriggerSpec::NoncombatDamageToOpponent {
                     yours: *yours,

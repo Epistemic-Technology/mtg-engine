@@ -37,6 +37,7 @@ impl GameState {
 
     /// CR 603.2: every triggered ability whose event this is triggers.
     #[inline(never)]
+    #[allow(clippy::too_many_lines)] // the batching rules
     pub(crate) fn detect_triggers(&mut self, event: &Event) {
         if !self.any_trigger_sources(event) {
             return;
@@ -81,7 +82,7 @@ impl GameState {
                 // a player": once per player dealt damage together.
                 let player_batch = matches!(
                     t.trigger,
-                    TriggerSpec::CreaturesDealCombatDamage
+                    TriggerSpec::CreaturesDealCombatDamage(_)
                         | TriggerSpec::NoncombatDamageToOpponent { batch: true, .. }
                 );
                 if player_batch
@@ -848,7 +849,7 @@ impl GameState {
                 Some((Some(*source), self.protector(*b)))
             }
             (
-                TriggerSpec::CreaturesDealCombatDamage,
+                TriggerSpec::CreaturesDealCombatDamage(f),
                 Event::Damage {
                     source,
                     target: Target::Player(p),
@@ -856,10 +857,8 @@ impl GameState {
                     ..
                 },
             ) => {
-                let o = self.objects.get(*source)?;
-                (o.controller == w.controller
-                    && self.characteristics(*source).is_some_and(|c| c.is_creature()))
-                .then_some((None, Some(*p)))
+                filter_on_battlefield(f, *source)?;
+                Some((None, Some(*p)))
             }
             (
                 TriggerSpec::NoncombatDamageToOpponent { yours, .. },
@@ -1514,6 +1513,7 @@ impl GameState {
     /// CR 608.2 for an ability object (triggered or activated) on top of
     /// the stack: check its intervening "if" (CR 603.4) and targets, apply
     /// its effects, and remove it (CR 608.2n).
+    #[allow(clippy::too_many_lines)]
     pub(super) fn resolve_ability(&mut self, id: ObjId) {
         let obj = self.objects[id].clone();
         let sa = obj.ability.expect("ability object");

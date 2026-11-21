@@ -71,6 +71,43 @@ scenario "combat damage batch: Grazilaxx returns the blocked creature" {
   assert battlefield A contains "Grazilaxx, Illithid Scholar"
 }
 
+scenario "combat damage batch: only Allies for Invasion Tactics" {
+  battlefield A: "Invasion Tactics", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert hand A count 0
+}
+
+scenario "combat damage batch: an Ally draws for Invasion Tactics" {
+  battlefield A: "Invasion Tactics", "Akoum Flameseeker", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Akoum Flameseeker", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 15
+  assert hand A count 1
+}
+
+scenario "combat damage batch: Haliya needs a +1/+1 counter on the creature" {
+  battlefield A: "Haliya, Ascendant Cadet", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Haliya, Ascendant Cadet", "Grizzly Bears"
+  turn 2 A: trigger "Haliya, Ascendant Cadet" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert hand A count 1
+}
+
+scenario "combat damage batch: Haliya, no counter, no card" {
+  battlefield A: "Haliya, Ascendant Cadet", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert hand A count 0
+}
+
 scenario "noncombat damage: Niv-Mizzet draws that many" {
   battlefield A: "Niv-Mizzet, Visionary", "Mountain"
   hand A: "Lightning Bolt"
