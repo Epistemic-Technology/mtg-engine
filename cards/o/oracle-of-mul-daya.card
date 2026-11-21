@@ -1,0 +1,9 @@
+card "Oracle of Mul Daya" {
+  oracle_id 6c5b02eb-7829-436a-8555-fea200e4b67f
+  cost {3}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  additional land
+  top revealed
+  play from top lands
+}

@@ -1,0 +1,11 @@
+card "Appa, Loyal Sky Bison" {
+  oracle_id c6e28cf0-81c7-4f52-a29b-988cc6fd31ee
+  cost {4}{W}{W}
+  type Legendary Creature — Bison Ally
+  pt 4/4
+  keywords flying
+  triggered whenever this enters or attacks: choose one {
+    mode: target creature you control gains flying
+    mode: airbend another target nonland permanent you control
+  }
+}

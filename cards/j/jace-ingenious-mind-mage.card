@@ -1,0 +1,9 @@
+card "Jace, Ingenious Mind-Mage" {
+  oracle_id fe0fcb4e-92fd-4e64-99d1-043092ea21e3
+  cost {4}{U}{U}
+  type Legendary Planeswalker — Jace
+  loyalty 5
+  loyalty +1: draw 1 cards
+  loyalty +1: untap all creature you control
+  loyalty -9: gain control of up to three target creatures indefinitely
+}

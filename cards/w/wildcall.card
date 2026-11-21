@@ -1,0 +1,6 @@
+card "Wildcall" {
+  oracle_id d96ac790-428b-4a64-8dbd-6baa73eb6210
+  cost {X}{G}{G}
+  type Sorcery
+  spell: manifest then put X +1/+1 counters on it
+}

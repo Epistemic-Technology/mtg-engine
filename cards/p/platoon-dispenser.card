@@ -1,0 +1,9 @@
+card "Platoon Dispenser" {
+  oracle_id 339c39d9-7e10-458e-b602-4f0550840436
+  cost {5}
+  type Artifact Creature — Construct
+  pt 4/6
+  triggered at beginning of your end step if you control 2 other creature: draw 1 cards
+  activated {3}{W}: create 1 "1/1 colorless Soldier artifact creature"
+  unearth {2}{W}{W}
+}

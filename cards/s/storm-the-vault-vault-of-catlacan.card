@@ -1,0 +1,13 @@
+card "Storm the Vault // Vault of Catlacan" {
+  oracle_id 72205fac-a94a-45cc-94c6-40ece2fdce0e
+  layout transform
+  cost {2}{U}{R}
+  type Legendary Enchantment
+  triggered whenever one or more creature you control deal combat damage to a player: create 1 "Treasure"
+  triggered at beginning of your end step if you control 5 artifact: transform this
+  face "Vault of Catlacan" {
+    type Legendary Land
+    mana any
+    activated {T}: add {U} count each artifact you control
+  }
+}

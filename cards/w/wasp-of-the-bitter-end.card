@@ -1,0 +1,8 @@
+card "Wasp of the Bitter End" {
+  oracle_id 9331cfd7-a818-45ed-9e4a-4d3c381052e0
+  cost {1}{B}
+  type Creature — Insect Horror
+  pt 2/1
+  keywords flying
+  triggered whenever you cast Bolas planeswalker spell: you may sacrifice this; if you do, destroy target creature
+}

@@ -1,0 +1,8 @@
+card "Freestrider Lookout" {
+  oracle_id b7d3e234-0954-4422-96c0-cda91101faa3
+  cost {2}{G}
+  type Creature — Human Rogue
+  pt 3/3
+  keywords reach
+  triggered once each turn whenever you commit a crime: dig 5 take land card may onto battlefield tapped rest bottom random
+}

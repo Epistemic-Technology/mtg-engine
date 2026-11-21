@@ -1,0 +1,11 @@
+card "Ranger Class" {
+  oracle_id d1586808-efc2-469a-8384-ba4acf231e69
+  cost {1}{G}
+  type Enchantment — Class
+  triggered when this enters: create 1 "2/2 green Wolf creature"
+  level 2 {1}{G}
+  triggered whenever you attack: put 1 +1/+1 counters on target attacking creature
+  level 3 {3}{G}
+  may look top
+  play from top spells creature
+}
