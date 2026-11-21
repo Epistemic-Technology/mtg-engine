@@ -1783,7 +1783,8 @@ nontoken creature you control dies this turn, create ...". Led by
 first: `until end of turn, delayed this: whenever creature you control
 deals combat damage to a player, investigate` ("Until end of turn,
 whenever a creature you control deals combat damage to a player,
-investigate."). `delayed
+investigate."). A delayed trigger printed "Whenever" with neither is a
+compile error (it would trigger only once, CR 603.7c). `delayed
 this: when next you cast instant or sorcery spell this turn, copy that
 spell new targets` ("When you next cast an instant or sorcery spell this
 turn, copy that spell. ...", CR 603.7c) triggers only the first time,

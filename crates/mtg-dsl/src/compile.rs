@@ -2747,6 +2747,18 @@ impl Compiler<'_> {
                 this_turn,
                 ..
             } => {
+                // CR 603.7c: a delayed trigger triggers only once unless it
+                // has a duration. One printed "Whenever ..." without "this
+                // turn" or "until end of turn" would read as recurring and
+                // fire once.
+                if !*this_turn
+                    && !matches!(trigger, Trigger::Next(_))
+                    && !crate::format::natural_when(trigger)
+                {
+                    return self.err(
+                        "a delayed `whenever` trigger needs a duration (`... this turn`, `until end of turn, ...`)",
+                    );
+                }
                 let effects = self.sentences(effects)?;
                 // A delayed triggered mana ability ("whenever a land is
                 // tapped for mana this turn, add ...", CR 605.1b) has no

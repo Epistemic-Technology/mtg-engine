@@ -140,6 +140,22 @@ fn a_delayed_triggered_mana_ability_is_an_error() {
 }
 
 #[test]
+fn a_delayed_whenever_needs_a_duration() {
+    let card = |line: &str| {
+        let mut pool = CardPool::new();
+        let text = format!("card \"Test\" {{\n  cost {{1}}\n  type Sorcery\n  spell: {line}\n}}\n");
+        mtg_dsl::load_into(&mut pool, &text).is_ok()
+    };
+    // CR 603.7c: without a duration it would trigger once.
+    assert!(!card(
+        "delayed this: whenever creature you control deals combat damage to a player, draw 1 card"
+    ));
+    assert!(card(
+        "until end of turn, delayed this: whenever creature you control deals combat damage to a player, draw 1 card"
+    ));
+}
+
+#[test]
 fn a_filter_with_three_alternatives_is_an_error() {
     let mut pool = CardPool::new();
     let text = "card \"Test\" {\n  cost {1}\n  type Instant\n  spell: deal 4 damage to target attacking or blocking or tapped creature\n}\n";

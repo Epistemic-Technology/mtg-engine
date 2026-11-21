@@ -22,9 +22,6 @@ wrong thing in some case.
   and the target loop treat a `TargetSpec::Many` as the final spec; a
   "choose two" pair whose first mode has "any number of target ..."
   would misplace the second mode's targets. No card known.
-- **A delayed "whenever" trigger written without "this turn" does not
-  fire on later events.** The `until end of turn, delayed this:` form
-  (Mistway Spy) is fixed; the general case is not.
 - **Finality counters: the exile is not a replacement choice.** It is
   applied when the zone change is performed, so another effect that
   moves a dying permanent elsewhere always wins (CR 616.1 gives the
