@@ -1,0 +1,8 @@
+card "Selfless Police Captain" {
+  oracle_id ece77a64-8d99-430e-8407-bdb321828d63
+  cost {1}{W}
+  type Creature — Human Detective
+  pt 1/1
+  enters with 1 +1/+1 counter
+  triggered when this leaves the battlefield: put its +1/+1 counters on target creature you control
+}

@@ -1856,7 +1856,9 @@ impl Compiler<'_> {
                 u8::try_from(n).unwrap_or(u8::MAX),
             ),
             Recipient::You => CoreRecipient::You,
-            Recipient::EachOpponent | Recipient::EachOtherPlayer => CoreRecipient::EachOpponent,
+            Recipient::EachOpponent
+            | Recipient::EachOtherPlayer
+            | Recipient::EachOfYourOpponents => CoreRecipient::EachOpponent,
             Recipient::Source
             | Recipient::SourceNamed
             | Recipient::SourceCard

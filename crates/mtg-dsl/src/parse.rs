@@ -394,6 +394,10 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
         Recipient::EachPermanentYouControl,
     ),
     (&["each", "opponent"], Recipient::EachOpponent),
+    (
+        &["each", "of", "your", "opponents"],
+        Recipient::EachOfYourOpponents,
+    ),
     (&["each", "other", "player"], Recipient::EachOtherPlayer),
     (&["each", "player"], Recipient::EachPlayer),
     (&["each", "creature"], Recipient::EachCreature),
@@ -6472,6 +6476,30 @@ impl P {
                     from,
                     to,
                     kind: None,
+                    count: None,
+                })
+            }
+            // "put its +1/+1 counters on target creature you control"
+            // (Selfless Police Captain): every counter of that kind.
+            "put"
+                if self.at_word("its")
+                    && self.word_at(2).as_deref() == Some("counters")
+                    && self.word_at(3).as_deref() == Some("on") =>
+            {
+                self.pos += 1;
+                let kind = self.counter_kind()?;
+                self.eat_word("counters");
+                self.expect_word("on")?;
+                let to = self.recipient()?;
+                let from = if self.in_trigger && to == Recipient::Source {
+                    Recipient::TriggeringObject
+                } else {
+                    Recipient::Source
+                };
+                Ok(Effect::MoveCounters {
+                    from,
+                    to,
+                    kind: Some(kind),
                     count: None,
                 })
             }

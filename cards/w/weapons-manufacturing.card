@@ -1,0 +1,6 @@
+card "Weapons Manufacturing" {
+  oracle_id e48a8160-cffe-4e00-a3e9-a59d7fc7b3a2
+  cost {1}{R}
+  type Enchantment
+  triggered whenever nontoken artifact you control enters: create 1 "Munitions"
+}

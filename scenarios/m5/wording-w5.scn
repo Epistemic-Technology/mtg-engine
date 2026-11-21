@@ -404,3 +404,96 @@ scenario "Full Steam Ahead: +2/+2, trample, and at most one blocker" {
   assert has "Grizzly Bears" trample
   assert power "Grizzly Bears" 4
 }
+
+scenario "Abuelo: the exiled creature returns at the beginning of the next end step" {
+  battlefield A: "Abuelo, Ancestral Echo", "Grizzly Bears", "Plains", "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Abuelo, Ancestral Echo" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  run_to turn 2
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Salvation Swan: the exiled creature returns with a flying counter" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Salvation Swan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Salvation Swan"
+  turn 1 A: trigger "Salvation Swan" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  run_to turn 2
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" flying 1
+  assert has "Grizzly Bears" flying
+}
+
+scenario "Salvation Swan: a creature with flying can't be chosen" {
+  battlefield A: 4 "Plains", "Zephyr Sprite", "Grizzly Bears"
+  hand A: "Salvation Swan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Salvation Swan"
+  illegal turn 1 A: trigger "Salvation Swan" targeting "Zephyr Sprite"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zephyr Sprite"
+}
+
+scenario "Everything Pizza: life and a card, a discard, 3 damage, three counters" {
+  battlefield A: "Everything Pizza", 3 "Plains", "Island", "Swamp", "Mountain", "Forest", "Grizzly Bears"
+  hand B: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Everything Pizza" targeting player A, player B, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert hand A count 1
+  assert graveyard B contains "Island"
+  assert life B 17
+  assert counters "Grizzly Bears" +1/+1 3
+  assert graveyard A contains "Everything Pizza"
+}
+
+scenario "Weapons Manufacturing: Munitions deals 2 damage as it leaves" {
+  battlefield A: "Weapons Manufacturing", 4 "Mountain"
+  hand A: "Aeolipile", "Shatter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Aeolipile"
+  turn 1 A: wait
+  turn 1 A: cast "Shatter" targeting "Munitions"
+  turn 1 A: trigger "Munitions" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Munitions"
+  assert life B 18
+}
+
+scenario "Flood the Engine: tapped, no abilities, doesn't untap" {
+  battlefield A: 3 "Island"
+  battlefield B: "Zephyr Sprite"
+  hand A: "Flood the Engine"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flood the Engine" targeting "Zephyr Sprite"
+  run_to turn 2 precombat_main
+  assert tapped "Zephyr Sprite"
+  assert has not "Zephyr Sprite" flying
+}
+
+scenario "Selfless Police Captain: its +1/+1 counters go to a creature you control" {
+  battlefield A: "Selfless Police Captain" with 2 +1/+1, "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Selfless Police Captain"
+  turn 1 A: trigger "Selfless Police Captain" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Selfless Police Captain"
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "Selfless Police Captain enters with a +1/+1 counter" {
+  battlefield A: 2 "Plains"
+  hand A: "Selfless Police Captain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Selfless Police Captain"
+  run_to turn 1 postcombat_main
+  assert counters "Selfless Police Captain" +1/+1 1
+}

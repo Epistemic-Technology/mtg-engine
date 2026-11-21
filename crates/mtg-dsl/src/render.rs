@@ -1283,6 +1283,7 @@ impl<'a> Ctx<'a> {
             Recipient::You => "you".to_string(),
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::EachOtherPlayer => "each other player".to_string(),
+            Recipient::EachOfYourOpponents => "each of your opponents".to_string(),
             Recipient::Source => self.source(),
             Recipient::SourceNamed => {
                 self.source_mentioned = true;
@@ -1401,7 +1402,16 @@ impl<'a> Ctx<'a> {
             Recipient::Attached if self.attached_mentioned => "it".to_string(),
             Recipient::Attached => {
                 self.attached_mentioned = true;
-                filter_phrase(&Filter::enchanted(), self.card, false)
+                // "tap enchanted permanent" on an Aura whose static says
+                // "Enchanted permanent" (Flood the Engine).
+                let permanent = self.card.abilities.iter().any(|a| {
+                    matches!(a, Ability::Static { filter, .. } if filter.enchanted_permanent)
+                });
+                if permanent {
+                    "enchanted permanent".to_string()
+                } else {
+                    filter_phrase(&Filter::enchanted(), self.card, false)
+                }
             }
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::TargetAnd(t, i) => self.target_and(t, i),
@@ -3124,7 +3134,11 @@ fn token_description(name: &str, count: Num, tapped: bool, it_has: bool, ctx: &C
     // token named Sturdy Shield with \"Equipped creature gets +1/+2\" and
     // equip {2}".
     let equipment = !token.types.contains(&CardType::Creature) && is_equipment(token);
-    let named = ((token.types.contains(&CardType::Creature) || equipment)
+    // So is a noncreature token with no subtype to be named by: "a
+    // colorless artifact token named Munitions with ..." (Weapons
+    // Manufacturing).
+    let unnamed_type = token.subtypes.is_empty() && !token.types.contains(&CardType::Creature);
+    let named = ((token.types.contains(&CardType::Creature) || equipment || unnamed_type)
         && shown != token.subtypes.join(" "))
     .then(|| format!(" named {shown}"));
     let mut equip_last: Vec<String> = Vec::new();
@@ -4350,6 +4364,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             (None, None) if matches!(from, Recipient::Source | Recipient::TriggeringObject) => {
                 let o = ctx.obj(*to);
                 Clause::imperative(format!("put its counters on {o}"))
+            }
+            (Some(kind), None)
+                if matches!(from, Recipient::Source | Recipient::TriggeringObject) =>
+            {
+                let o = ctx.obj(*to);
+                Clause::imperative(format!("put its {} counters on {o}", counter_name(*kind)))
             }
             (Some(kind), Some(n)) => {
                 let what = counters(Num::N(*n), *kind);

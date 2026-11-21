@@ -1,0 +1,7 @@
+card "Everything Pizza" {
+  oracle_id aa481983-8f1a-4519-9371-5e7edcd3274f
+  cost {2}
+  type Artifact — Food
+  triggered when this enters: search basic land card reveal to hand
+  activated {2}{W}{U}{B}{R}{G}, {T}, sacrifice this: target player gains 3 life and draws 1 card; each of your opponents discards 1 card; this artifact deals 3 damage to any target; put 3 +1/+1 counters on up to one target creature
+}

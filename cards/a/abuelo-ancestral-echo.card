@@ -1,0 +1,9 @@
+card "Abuelo, Ancestral Echo" {
+  oracle_id eaa9baac-72f2-4bde-9146-860878d9860b
+  cost {1}{W}{U}
+  type Legendary Creature — Spirit
+  pt 2/2
+  keywords flying
+  ward {2}
+  activated {1}{W}{U}: exile another target creature or artifact you control; delayed target 1: return it to battlefield at beginning of the next end step
+}

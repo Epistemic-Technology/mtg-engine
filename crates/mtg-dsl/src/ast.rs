@@ -2713,6 +2713,9 @@ pub enum Recipient {
     /// `each other player`: "each other player", the same players as
     /// each opponent.
     EachOtherPlayer,
+    /// `each of your opponents`: "each of your opponents" (each opponent;
+    /// wording only, Everything Pizza).
+    EachOfYourOpponents,
     /// `this`: the source, "this creature" (a spell's or a legendary
     /// permanent's name, CR 201.5) at its first mention, "it" after.
     Source,

@@ -36,7 +36,8 @@ alone.", and so are `can't block non-Spirit creature` and `can't be
 blocked by non-Spirit creature`, "This token can't block or be blocked by
 non-Spirit creatures."), and a creature token
 whose name is not its subtypes is named ("a 2/2 colorless Wizard Soldier
-creature token named Cadet"); so is an Equipment token, its abilities quoted without their final period and its equip ability last ("a colorless Equipment artifact token named Axe with \"Equipped creature gets +1/+0\" and equip {2}"). A Role token (CR 111.10j–r: an `Enchantment
+creature token named Cadet"); so is a noncreature token with no subtype
+("a colorless artifact token named Munitions with \"...\""), and an Equipment token, its abilities quoted without their final period and its equip ability last ("a colorless Equipment artifact token named Axe with \"Equipped creature gets +1/+0\" and equip {2}"). A Role token (CR 111.10j–r: an `Enchantment
 — Aura Role` with `enchant creature` and `name "Wicked"`, keyed `"Wicked
 Role"`) prints by name too: "a Wicked Role token". If one player controls
 more than one Role on a permanent, all but the newest go to the graveyard
@@ -1005,7 +1006,9 @@ flying`, `creature with no abilities`, `all Sliver creature` (a static
 ability's subject then prints "All Sliver creatures", as old Slivers do), `Goblin`, `Swamp you control`, `nonplaneswalker permanent you
 control`, `enchanted` (the permanent this is attached to; `enchanted
 permanent` prints "enchanted permanent" whatever the Aura enchants, as on
-Song of Stupefaction's "Enchant creature or Vehicle"), `this` (the
+Song of Stupefaction's "Enchant creature or Vehicle"; on such an Aura the
+recipient `enchanted permanent` prints so too, "tap enchanted
+permanent"), `this` (the
 source itself, for characteristic-defining abilities). Two alternatives
 sharing two or more colors print the colors after the types: `blue or
 red creature or blue or red planeswalker` is "creature or planeswalker
@@ -1794,7 +1797,8 @@ turn, copy that spell. ...", CR 603.7c) triggers only the first time,
 then ends; any cast trigger may follow `when next` (`when next you cast
 instant or sorcery with mana value 4 or less spell`).
 
-Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,
+Who and what (`<who>`, `<what>`): `you`, `each opponent` (`each of your
+opponents` is the same players, printed "Each of your opponents"), `each player`,
 `its controller` / `its owner` (of the last target declared),
 `this` (the source), `that player` / `that creature` (what triggered the
 ability; in a spell or an activated ability, the player or creature
@@ -2224,7 +2228,9 @@ counter from this artifact onto target creature") take the counters off
 the first permanent and put them on the second (CR 122.5); nothing moves
 if the second is gone. `put its counters on target creature you control`
 in a dies trigger puts the counters the source had as it last existed on
-the battlefield, of every kind (CR 608.2h). After `exile target card from
+the battlefield, of every kind (CR 608.2h); `put its +1/+1 counters on
+target creature you control` only those of one kind (Selfless Police
+Captain). After `exile target card from
 an opponent's graveyard`, `that player` is the card's owner (Carrion
 Locust's "If it was a creature card, that player loses 1 life"; `if target
 1 was creature` prints "If it was a creature card" for a graveyard card).
