@@ -652,6 +652,7 @@ impl Fmt {
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
             Effect::Recruit { you: false } => "recruit".to_string(),
+            Effect::CloakTop => "cloak top".to_string(),
             Effect::Recruit { you: true } => "you recruit".to_string(),
             Effect::Incubate(n) => format!("incubate {}", num(*n)),
             Effect::Discover(n) => format!("discover {n}"),

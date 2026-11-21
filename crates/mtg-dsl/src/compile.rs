@@ -2016,6 +2016,9 @@ impl Compiler<'_> {
                     filter: self.filter(filter),
                 });
             }
+            Effect::CloakTop => out.push(CoreEffect::CloakTop {
+                of: CoreRecipient::You,
+            }),
             Effect::Airbend { what } => {
                 for w in what {
                     out.push(CoreEffect::Airbend { what: r(*w) });

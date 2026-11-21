@@ -1,0 +1,8 @@
+card "Cryptic Coat" {
+  oracle_id 73b8adea-1786-44fc-b190-bf240b07f5b6
+  cost {2}{U}
+  type Artifact — Equipment
+  triggered when this enters: cloak top, then attach to that token
+  static equipped: +1/+0, has can't be blocked
+  activated {1}{U}: return this to its owner's hand
+}

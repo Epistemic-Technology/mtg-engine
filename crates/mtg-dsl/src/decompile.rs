@@ -1259,6 +1259,7 @@ impl Decompiler<'_> {
             CoreEffect::GraveyardToBattlefield { filter } => Effect::GraveyardToBattlefield {
                 filter: self.filter(filter),
             },
+            CoreEffect::CloakTop { .. } => Effect::CloakTop,
             CoreEffect::Airbend { what } => Effect::Airbend {
                 what: vec![r(*what)],
             },

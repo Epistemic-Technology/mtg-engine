@@ -10203,6 +10203,18 @@ impl GameState {
                     ctx.created = Some(new);
                 }
             }
+            Effect::CloakTop { of } => {
+                // CR 701.58a: face down as a 2/2 creature with ward {2}.
+                for t in self.recipients(ctx, *of) {
+                    let Target::Player(p) = t else { continue };
+                    let Some(&top) = self.player(p).library.last() else {
+                        continue;
+                    };
+                    self.objects[top].def = self.pool.face_down(true);
+                    let new = self.put_onto_battlefield(top, ctx.controller);
+                    ctx.created = Some(new);
+                }
+            }
             Effect::Airbend { what } => {
                 // CR 701.65a: exile the permanents and/or spells; each card
                 // exiled this way may be cast by its owner for {2} rather

@@ -724,6 +724,12 @@ each opponent mills that much cards }` prints "If a source you control
 would deal damage to an opponent, prevent that damage and each opponent
 mills that many cards." (`that much` is the prevented damage).
 `replace damage to you: double` "... to you instead."; `replace damage permanent you control of chosen type would deal: double` is the newer "Double all damage that sources you control of the chosen type would deal.").
+`cloak top` (CR 701.58): "cloak the top card of your library": the card
+enters face down under the controller's control as a nameless 2/2 creature
+with ward {2} (`that token` is it afterwards: `cloak top, then attach to
+that token` prints "..., then attach this Equipment to it"); its
+controller may turn it face up any time they have priority for its mana
+cost if it's a creature card (scenarios: `unmorph "Name"`).
 `airbend target nonland permanent` (CR 701.65), `airbend up to one
 another target creature`, `airbend any number of target other nonland
 permanent you control` ("any number of other target nonland permanents you

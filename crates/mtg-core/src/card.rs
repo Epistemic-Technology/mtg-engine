@@ -3950,6 +3950,13 @@ pub enum Effect {
     GraveyardToBattlefield {
         filter: ObjFilter,
     },
+    /// Cloak (CR 701.58a): the top card of `of`'s library is put onto the
+    /// battlefield face down under the controller's control as a 2/2
+    /// creature with ward {2}; it may be turned face up for its mana cost
+    /// if it's a creature card (CR 701.58b).
+    CloakTop {
+        of: Recipient,
+    },
     /// Airbend (CR 701.65a): exile the permanent or spell; a card exiled
     /// this way may be cast by its owner for {2} rather than its mana cost
     /// for as long as it remains exiled.
@@ -4302,6 +4309,7 @@ impl Effect {
                 | Effect::Recruit { .. }
                 // What enters is not known until it resolves.
                 | Effect::GraveyardToBattlefield { .. }
+                | Effect::CloakTop { .. }
         )
     }
 }

@@ -3439,6 +3439,8 @@ pub enum Effect {
         count: Num,
         to: Recipient,
     },
+    /// `cloak top` (CR 701.58a): "cloak the top card of your library".
+    CloakTop,
     /// `airbend target nonland permanent` (CR 701.65a): "Airbend target
     /// nonland permanent."
     Airbend {

@@ -6396,6 +6396,7 @@ impl P {
                 })
             }
             "recruit" => Ok(Effect::Recruit { you: false }),
+            "cloak" if self.eat_word("top") => Ok(Effect::CloakTop),
             // "airbend any number of other target nonland permanents you
             // control" (CR 601.2c).
             "airbend" => Ok(Effect::Airbend {
