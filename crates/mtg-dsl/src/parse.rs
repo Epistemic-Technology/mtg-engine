@@ -796,6 +796,7 @@ impl P {
             optional_cost: None,
             alt_cost: None,
             flash_if: None,
+            flash_if_may: false,
             flash_cleanup: false,
             pronoun: None,
             short_name: None,
@@ -1037,6 +1038,12 @@ impl P {
             "flash" if self.at_words(&["flash", "with", "cleanup", "sacrifice"]) => {
                 self.pos += 4;
                 card.flash_cleanup = true;
+                self.end_stmt()
+            }
+            "flash" if self.at_words(&["flash", "if"]) => {
+                self.pos += 2;
+                card.flash_if = Some(self.static_cond()?);
+                card.flash_if_may = true;
                 self.end_stmt()
             }
             "flash" if self.at_words(&["flash", "as", "long", "as"]) => {
@@ -3951,10 +3958,10 @@ impl P {
                 }
             };
         }
-        if that {
-            return self.fail("`if that target 1` needs `is`");
-        }
-        let tense = if self.eat_word("had") {
+        let tense = if that {
+            self.expect_words(&["was"])?;
+            crate::ast::TargetTense::ThatWas
+        } else if self.eat_word("had") {
             crate::ast::TargetTense::Had
         } else {
             self.expect_words(&["was"])?;
@@ -4952,6 +4959,8 @@ impl P {
                     may: true,
                 })
             }
+            // "..., you recruit" (CR 701.70a).
+            "recruit" if subject == Recipient::You => Ok(Effect::Recruit { you: true }),
             // "... and you scry 2": an explicit "you".
             "scries" | "scry" if w == "scries" || subject == Recipient::You => {
                 let count = self.num()?;
@@ -6359,6 +6368,7 @@ impl P {
                     to: Recipient::Target(self.targets.len() - 1),
                 })
             }
+            "recruit" => Ok(Effect::Recruit { you: false }),
             "populate" => Ok(Effect::Populate),
             "incubate" => Ok(Effect::Incubate(self.num()?)),
             // CR 701.41a: "up to N other target creatures" on a permanent

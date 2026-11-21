@@ -1,0 +1,8 @@
+card "Esgaroth Garrison" {
+  oracle_id 84597236-2cfc-4654-b126-a8ee252f4d14
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt */5
+  static this: cda power count creature you control
+  triggered when this enters: recruit
+}

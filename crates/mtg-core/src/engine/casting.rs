@@ -10163,6 +10163,41 @@ impl GameState {
                 ps.combat_mana += n;
                 self.bump();
             }
+            Effect::Recruit { token } => {
+                // CR 701.70a: draw, then discard; a 1/1 white Human
+                // Soldier if the discarded card was a nonland card.
+                let effects = [
+                    Effect::DrawCards {
+                        count: crate::card::Num::N(1),
+                        who: crate::card::Recipient::You,
+                    },
+                    Effect::Discard {
+                        count: crate::card::Num::N(1),
+                        who: crate::card::Recipient::You,
+                    },
+                    Effect::IfThisWay {
+                        cond: crate::card::ThisWayCond {
+                            verb: crate::card::ThisWay::Discarded,
+                            filter: Some(Box::new(crate::card::ObjFilter {
+                                not_types: crate::card::TypeSet::of([crate::card::CardType::Land]),
+                                ..crate::card::ObjFilter::default()
+                            })),
+                            negated: false,
+                            by_you: true,
+                        },
+                        then: vec![Effect::CreateToken {
+                            token: *token,
+                            count: crate::card::Num::N(1),
+                            who: crate::card::Recipient::You,
+                            tapped: false,
+                            attached: None,
+                        }],
+                    },
+                ];
+                for e in &effects {
+                    self.apply_effect(ctx, e);
+                }
+            }
             Effect::Earthbend { count, to } => {
                 // CR 701.66a: the land becomes a 0/0 creature with haste
                 // in addition to its other types, gets N +1/+1 counters,

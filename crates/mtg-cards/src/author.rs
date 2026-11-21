@@ -209,6 +209,7 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Populate",
     "Incubate",
     "Earthbend",
+    "Recruit",
     "Waterbend",
     "Firebending",
     "Double",
@@ -1399,6 +1400,9 @@ impl Templates {
             (r(r"^[Dd]ouble (.+?)'s life total$"), |c, t| {
                 Some(format!("double {} life total", recipient(cap(c, 1), t)?))
             }),
+            // CR 701.70a.
+            (r(r"^[Rr]ecruit$"), |_, _| Some("recruit".to_string())),
+            (r(r"^you recruit$"), |_, _| Some("you recruit".to_string())),
             (r(r"^[Bb]olster (\d+)$"), |c, _| {
                 Some(format!("bolster {}", cap(c, 1)))
             }),

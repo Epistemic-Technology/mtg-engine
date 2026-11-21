@@ -1,0 +1,8 @@
+card "Patient Instructor" {
+  oracle_id bddd7e99-ec74-4ca6-9137-155b85695a95
+  cost {2}{W/U}
+  type Creature — Human Citizen
+  pt 2/2
+  keywords vigilance
+  triggered when this enters: recruit
+}

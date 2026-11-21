@@ -2679,6 +2679,12 @@ impl Compiler<'_> {
                     });
                 }
             }
+            Effect::Recruit { .. } => {
+                let Some(token) = self.pool.lookup(HUMAN_SOLDIER) else {
+                    return self.err(format!("unknown token \"{HUMAN_SOLDIER}\""));
+                };
+                out.push(CoreEffect::Recruit { token });
+            }
             Effect::Incubate(count) => {
                 let Some(token) = self.pool.lookup(INCUBATOR) else {
                     return self.err(format!("unknown token \"{INCUBATOR}\""));
@@ -4259,6 +4265,8 @@ const SERVO: &str = "1/1 colorless Servo artifact creature";
 const AFTERLIFE_SPIRIT: &str = "1/1 white and black Spirit creature with flying";
 /// The token living weapon creates (CR 702.92a).
 const GERM: &str = "0/0 black Phyrexian Germ creature";
+/// The token recruit creates (CR 701.70a).
+const HUMAN_SOLDIER: &str = "1/1 white Human Soldier creature";
 /// The token Incubate creates (CR 701.53a, 111.10i).
 const INCUBATOR: &str = "Incubator";
 

@@ -3818,6 +3818,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Support(to) => Clause::imperative(format!("support {}", to.len())),
         Effect::Populate => Clause::imperative("populate".to_string()),
+        Effect::Recruit { you: false } => Clause::imperative("recruit".to_string()),
+        Effect::Recruit { you: true } => {
+            Clause::with_subject(Recipient::You, "you".to_string(), "recruit".to_string())
+        }
         Effect::Incubate(n) => Clause::imperative(format!("incubate {}", digits(*n))),
         Effect::Discover(n) => Clause::imperative(format!("discover {n}")),
         Effect::Soulbond { .. } => Clause::imperative("pair them".to_string()),
@@ -6400,7 +6404,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::IfTarget(n, f, inner, check) => {
             use crate::ast::TargetTense;
             let noun = ctx.target_noun[*n].clone();
-            if !matches!(check.tense, TargetTense::Was | TargetTense::Had) && !check.after {
+            if !matches!(
+                check.tense,
+                TargetTense::Was | TargetTense::Had | TargetTense::ThatWas
+            ) && !check.after
+            {
                 ctx.target_mentioned[*n] = true;
                 // "If that creature is an enchantment, Starfall deals 3
                 // damage ...": a spell names itself again.
@@ -6503,6 +6511,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (TargetTense::Is, _) if let Some((cmp, n)) = mana_value_only => {
                     format!("it has mana value {n}{}", cmp_words(cmp))
                 }
+                // "If that spell's mana value was 2 or less" (Sound the
+                // Trumpets).
+                (TargetTense::ThatWas, _) if let Some((cmp, n)) = mana_value_only => {
+                    format!("that {noun}'s mana value was {n}{}", cmp_words(cmp))
+                }
+                (TargetTense::ThatWas, _) => format!("that {noun} was {pred}"),
                 (TargetTense::Had, _) => format!("that {noun} had {pred}"),
                 (TargetTense::Is, _) if let Some((cmp, n)) = power_only => {
                     format!("its power is {n}{}", cmp_words(cmp))
@@ -10945,10 +10959,17 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     }
     // Oracle prints kicker before keywords ("Kicker {2}{G}\nReach").
     if let Some(c) = &card.flash_if {
-        lines.push(format!(
-            "This spell has flash as long as {}.",
-            static_cond_text(c, card)
-        ));
+        lines.push(if card.flash_if_may {
+            format!(
+                "You may cast this spell as though it had flash if {}.",
+                static_cond_text(c, card)
+            )
+        } else {
+            format!(
+                "This spell has flash as long as {}.",
+                static_cond_text(c, card)
+            )
+        });
     }
     if card.flash_cleanup {
         lines.push(FLASH_CLEANUP.to_string());

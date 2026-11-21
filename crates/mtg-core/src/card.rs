@@ -3938,6 +3938,12 @@ pub enum Effect {
         count: Num,
         to: Recipient,
     },
+    /// Recruit (CR 701.70a): "Draw a card, then discard a card. If you
+    /// discarded a nonland card this way, create a 1/1 white Human Soldier
+    /// creature token." (`token`).
+    Recruit {
+        token: CardRef,
+    },
     /// Populate (CR 701.36a): the controller chooses a creature token they
     /// control and creates a token that's a copy of it; with none, nothing
     /// happens (CR 701.36b).
@@ -4274,6 +4280,8 @@ impl Effect {
                 | Effect::Bolster(_)
                 | Effect::Populate
                 | Effect::Fabricate { .. }
+                // The card to discard (CR 701.70a).
+                | Effect::Recruit { .. }
         )
     }
 }

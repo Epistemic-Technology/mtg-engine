@@ -101,6 +101,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             }
         }),
         flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
+        flash_if_may: false,
         flash_cleanup: def.flash_cleanup,
         pronoun: None,
         short_name: None,
@@ -1251,6 +1252,7 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::Populate => Effect::Populate,
+            CoreEffect::Recruit { .. } => Effect::Recruit { you: false },
             CoreEffect::Incubate { count, .. } => Effect::Incubate(*count),
             CoreEffect::Fabricate { .. }
             | CoreEffect::BecomeRenowned

@@ -29,6 +29,9 @@ pub enum TargetTense {
     Is,
     /// `if that target 1 is`: "If that creature is ...".
     ThatIs,
+    /// `if that target 1 was with mana value 2 or less`: "If that spell's
+    /// mana value was 2 or less", as it last existed, like `Was`.
+    ThatWas,
     /// `if target 1 had with mana value 3 or less`: "If it had mana value 3
     /// or less", as it last existed, like `Was`.
     Had,
@@ -137,6 +140,9 @@ pub struct Card {
     /// `flash as long as you control Merfolk`: "This spell has flash as
     /// long as you control a Merfolk." (CR 702.8).
     pub flash_if: Option<StaticCond>,
+    /// `flash if you control Human`: the same, printed "You may cast this
+    /// spell as though it had flash if you control a Human."
+    pub flash_if_may: bool,
     /// `flash with cleanup sacrifice`: "You may cast this spell as though
     /// it had flash. If you cast it any time a sorcery couldn't have been
     /// cast, the controller of the permanent it becomes sacrifices it at
@@ -211,6 +217,7 @@ impl Card {
             optional_cost: None,
             alt_cost: None,
             flash_if: None,
+            flash_if_may: false,
             flash_cleanup: false,
             pronoun: None,
             short_name: None,
@@ -3415,6 +3422,11 @@ pub enum Effect {
     Earthbend {
         count: Num,
         to: Recipient,
+    },
+    /// `recruit` (CR 701.70a): "Recruit." `you recruit` prints "you
+    /// recruit" (after a trigger naming another player).
+    Recruit {
+        you: bool,
     },
     /// `support 2` (CR 701.41a): a +1/+1 counter on each of up to N target
     /// creatures, other than the source in a triggered ability (support on

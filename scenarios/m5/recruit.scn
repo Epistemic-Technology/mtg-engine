@@ -1,0 +1,124 @@
+# Recruit (CR 701.70a): draw a card, then discard a card; if the discarded
+# card was a nonland card, create a 1/1 white Human Soldier creature token.
+
+scenario "recruit: discarding a nonland card makes a Human Soldier" {
+  battlefield A: 4 "Island"
+  hand A: "Long Lake Nuisance", "Shock"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Long Lake Nuisance"
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert graveyard A contains "Shock"
+  assert battlefield A contains "Human Soldier"
+  assert power "Human Soldier" 1
+  assert is "Human Soldier" white
+}
+
+scenario "recruit: discarding a land card makes nothing" {
+  battlefield A: 4 "Island"
+  hand A: "Long Lake Nuisance", "Shock"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Long Lake Nuisance"
+  turn 1 precombat_main A: discard "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Shock"
+  assert graveyard A contains "Forest"
+  assert battlefield A lacks "Human Soldier"
+}
+
+scenario "recruit: the drawn card may be the one discarded" {
+  battlefield A: 3 "Plains"
+  hand A: "Patient Instructor"
+  library A: "Lightning Bolt", "Island"
+  turn 1 A: cast "Patient Instructor"
+  turn 1 precombat_main A: discard "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert battlefield A contains "Human Soldier"
+}
+
+scenario "recruit: on death (Lake-town Lookout)" {
+  battlefield A: "Lake-town Lookout"
+  battlefield B: "Mountain"
+  hand A: "Shock"
+  hand B: "Lightning Bolt"
+  library A: "Forest", "Island"
+  turn 1 B: cast "Lightning Bolt" targeting "Lake-town Lookout"
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lake-town Lookout"
+  assert graveyard A contains "Shock"
+  assert battlefield A contains "Human Soldier"
+}
+
+scenario "recruit: a counterspell recruits after countering a cheap spell" {
+  battlefield A: 3 "Island"
+  battlefield B: 2 "Mountain"
+  hand A: "Sound the Trumpets", "Shock"
+  hand B: "Lightning Bolt"
+  library A: "Forest", "Island"
+  start turn 1 B
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  turn 1 precombat_main A: cast "Sound the Trumpets" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  turn 1 precombat_main A: discard "Shock"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Lightning Bolt"
+  assert battlefield A contains "Human Soldier"
+}
+
+scenario "recruit: a counterspell against an expensive spell doesn't recruit" {
+  battlefield A: 3 "Island"
+  battlefield B: 4 "Mountain"
+  hand A: "Sound the Trumpets", "Shock"
+  hand B: "Hill Giant"
+  library A: "Forest", "Island"
+  start turn 1 B
+  turn 1 B: cast "Hill Giant"
+  turn 1 precombat_main A: cast "Sound the Trumpets" targeting "Hill Giant" in response to "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert battlefield A lacks "Human Soldier"
+}
+
+scenario "recruit: whenever you attack (Great Gilded Boat), and the Saga's chapter I" {
+  battlefield A: "Great Gilded Boat", "Grizzly Bears", 3 "Plains"
+  hand A: "The Mountain-king's Return", "Shock"
+  library A: "Forest", "Island", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "The Mountain-king's Return"
+  turn 2 precombat_main A: discard "Forest"
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: discard "Shock"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Human Soldier"
+  assert counters "The Mountain-king's Return" lore 1
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Shock"
+}
+
+scenario "recruit: Bard's Company has flash with a Human and recruits as it enters" {
+  battlefield A: 2 "Island", 2 "Plains", "Patient Instructor"
+  battlefield B: "Mountain"
+  hand A: "Bard's Company", "Shock"
+  library A: "Forest", "Island"
+  start turn 1 B
+  turn 1 end A: cast "Bard's Company"
+  turn 1 end A: discard "Shock"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Bard's Company"
+  assert battlefield A contains "Human Soldier"
+  assert power "Human Soldier" 2
+}
+
+scenario "recruit: Bard's Company has no flash without a Human" {
+  battlefield A: 2 "Island", 2 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Bard's Company"
+  start turn 1 B
+  illegal turn 1 end A: cast "Bard's Company"
+  run_to turn 2 upkeep
+}

@@ -107,7 +107,12 @@ fn format_inner(card: &Card) -> String {
         let _ = writeln!(out, "  alternative cost {text}");
     }
     if let Some(c) = &card.flash_if {
-        let _ = writeln!(out, "  flash as long as {}", static_cond(c));
+        let how = if card.flash_if_may {
+            "if"
+        } else {
+            "as long as"
+        };
+        let _ = writeln!(out, "  flash {how} {}", static_cond(c));
     }
     if card.flash_cleanup {
         let _ = writeln!(out, "  flash with cleanup sacrifice");
@@ -646,6 +651,8 @@ impl Fmt {
             Effect::Earthbend { count, .. } => format!("earthbend {}", num(*count)),
             Effect::Support(to) => format!("support {}", to.len()),
             Effect::Populate => "populate".to_string(),
+            Effect::Recruit { you: false } => "recruit".to_string(),
+            Effect::Recruit { you: true } => "you recruit".to_string(),
             Effect::Incubate(n) => format!("incubate {}", num(*n)),
             Effect::Discover(n) => format!("discover {n}"),
             Effect::MoveSourceCounters { .. }
@@ -1869,6 +1876,7 @@ impl Fmt {
                     TargetTense::Had => ("", "had"),
                     TargetTense::Is => ("", "is"),
                     TargetTense::ThatIs => ("that ", "is"),
+                    TargetTense::ThatWas => ("that ", "was"),
                 };
                 format!(
                     "if {that}target {} {verb} {}, {}{}",

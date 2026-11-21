@@ -1871,7 +1871,13 @@ impl Runner {
         let found = d
             .options
             .iter()
-            .position(|c| matches!(c, Choice::Discard { card, .. } if st.name_of(*card) == *name))
+            // By the card's definition: a card drawn earlier in the same
+            // resolution (recruit's draw, then discard) isn't in the state
+            // the decision is asked from, which is rolled back to before
+            // the resolution until it is answered.
+            .position(
+                |c| matches!(c, Choice::Discard { def, .. } if st.pool.get(*def).name == *name),
+            )
             .map(idx_u32);
         if found.is_none()
             && !st

@@ -1,0 +1,9 @@
+card "Bard's Company" {
+  oracle_id 5c5bfbb2-0e63-4e43-b441-c4878983288f
+  cost {2}{W}{U}
+  type Creature — Human Citizen
+  pt 2/3
+  flash if you control Human
+  static other creature you control: +1/+1
+  triggered whenever this enters or attacks: recruit
+}
