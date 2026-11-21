@@ -1,0 +1,9 @@
+card "Darkstar Augur" {
+  oracle_id 67d2a021-a042-4e5f-b6e4-39cb35514794
+  cost {2}{B}
+  type Creature — Bat Warlock
+  pt 2/3
+  offspring {B}
+  keywords flying
+  triggered at beginning of your upkeep: reveal top card and put that card into hand; you lose count equal its mana value life
+}

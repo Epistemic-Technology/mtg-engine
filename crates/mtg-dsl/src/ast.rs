@@ -343,8 +343,12 @@ pub enum CountExpr {
         the_spell: bool,
     },
     /// `mana value of that card`: "that card's mana value", the card
-    /// revealed before.
-    CardManaValue,
+    /// revealed before; `its mana value` (`its`): "its mana value", the
+    /// same card (Darkstar Augur's "put that card into your hand. You lose
+    /// life equal to its mana value.").
+    CardManaValue {
+        its: bool,
+    },
     /// `colors among permanents`: "colors among permanents you control".
     ColorsAmongPermanents,
     /// `colors spent` (converge): "colors of mana spent to cast this

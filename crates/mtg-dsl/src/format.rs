@@ -2398,7 +2398,8 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             "other instant and sorcery spells cast before it this turn".to_string()
         }
         CountExpr::SourceToughness => "toughness".to_string(),
-        CountExpr::CardManaValue => "mana value of that card".to_string(),
+        CountExpr::CardManaValue { its: false } => "mana value of that card".to_string(),
+        CountExpr::CardManaValue { its: true } => "its mana value".to_string(),
         CountExpr::TargetManaValue { n, that, the_spell } => format!(
             "mana value of {}target {}",
             if *the_spell {

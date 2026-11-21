@@ -3207,7 +3207,8 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             )
         }
         CountExpr::SourceToughness => return "its toughness".to_string(),
-        CountExpr::CardManaValue => return "that card's mana value".to_string(),
+        CountExpr::CardManaValue { its: false } => return "that card's mana value".to_string(),
+        CountExpr::CardManaValue { its: true } => return "its mana value".to_string(),
         CountExpr::TargetManaValue {
             that, the_spell, ..
         } => {

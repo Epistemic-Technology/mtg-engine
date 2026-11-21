@@ -7597,7 +7597,10 @@ impl P {
             return Ok(CountExpr::AndOr(Box::new(self.count_expr()?)));
         }
         if self.eat_words(&["mana", "value", "of", "that", "card"]) {
-            return Ok(CountExpr::CardManaValue);
+            return Ok(CountExpr::CardManaValue { its: false });
+        }
+        if self.eat_words(&["its", "mana", "value"]) {
+            return Ok(CountExpr::CardManaValue { its: true });
         }
         if self.eat_words(&["mana", "value", "of"]) {
             let the_spell = self.eat_words(&["the", "spell"]);

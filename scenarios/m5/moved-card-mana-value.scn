@@ -1,0 +1,32 @@
+# "Reveal the top card of your library and put that card into your hand.
+# You lose life equal to its mana value." The card's mana value is read
+# after it has moved to the hand.
+
+scenario "Darkstar Augur: lose life equal to the revealed card's mana value" {
+  battlefield A: "Darkstar Augur"
+  library A: "Hill Giant", "Plains", "Plains"
+  run_to turn 1 precombat_main
+  assert hand A contains "Hill Giant"
+  assert known B "Hill Giant"
+  assert life A 16
+}
+
+scenario "Darkstar Augur: a land costs no life" {
+  battlefield A: "Darkstar Augur"
+  library A: "Plains", "Hill Giant", "Plains"
+  run_to turn 1 precombat_main
+  assert hand A contains "Plains"
+  assert life A 20
+}
+
+scenario "Darkstar Augur: an offspring token reveals a card too" {
+  battlefield A: 4 "Swamp"
+  hand A: "Darkstar Augur"
+  library A: "Plains", "Grizzly Bears", "Lightning Bolt", "Plains"
+  turn 1 A: cast "Darkstar Augur" kicked
+  run_to turn 3 precombat_main
+  assert battlefield A contains 2 "Darkstar Augur"
+  # One reveals the Plains (0), the other the Bears (2).
+  assert hand A contains "Grizzly Bears"
+  assert life A 18
+}
