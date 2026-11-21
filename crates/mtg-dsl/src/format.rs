@@ -4190,9 +4190,10 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::NthResolution { n, again } => {
             format!("resolution {n}{}", if *again { " again" } else { "" })
         }
-        StaticCond::OpponentNoncombatDamagedThisTurn => {
-            "opponent dealt noncombat damage this turn".to_string()
-        }
+        StaticCond::OpponentNoncombatDamagedThisTurn { was } => format!(
+            "opponent {}dealt noncombat damage this turn",
+            if *was { "was " } else { "" }
+        ),
         StaticCond::LeftGraveyardThisTurn => "card left your graveyard this turn".to_string(),
         StaticCond::SacrificedThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();

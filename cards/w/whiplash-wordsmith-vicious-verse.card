@@ -1,0 +1,14 @@
+card "Whiplash Wordsmith // Vicious Verse" {
+  oracle_id e1ffb884-a89e-4e2a-9beb-8bd5838b6a94
+  layout prepare
+  cost {3}{B/R}
+  type Creature — Vampire Sorcerer
+  pt 3/3
+  enters prepared
+  static as long as opponent was dealt noncombat damage this turn, this: has flying, haste
+  face "Vicious Verse" {
+    cost {B/R}
+    type Sorcery
+    spell: this deals 1 damage to target opponent
+  }
+}

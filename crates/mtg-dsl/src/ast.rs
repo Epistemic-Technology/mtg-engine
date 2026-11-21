@@ -1844,8 +1844,11 @@ pub enum StaticCond {
     /// a creature this turn".
     PutCounterThisTurn,
     /// `opponent dealt noncombat damage this turn`: "an opponent has been
-    /// dealt noncombat damage this turn".
-    OpponentNoncombatDamagedThisTurn,
+    /// dealt noncombat damage this turn"; `was`: `opponent was dealt
+    /// noncombat damage this turn`, "an opponent was dealt ...".
+    OpponentNoncombatDamagedThisTurn {
+        was: bool,
+    },
     /// `resolution 2`: "this is the second time this ability has resolved
     /// this turn"; `resolution 2 again`: "it's the second time" (after the
     /// first such condition).

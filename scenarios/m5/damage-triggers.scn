@@ -108,6 +108,26 @@ scenario "combat damage batch: Haliya, no counter, no card" {
   assert hand A count 0
 }
 
+scenario "noncombat damage: Whiplash Wordsmith flies after its verse" {
+  battlefield A: 5 "Swamp"
+  hand A: "Whiplash Wordsmith"
+  turn 1 A: cast "Whiplash Wordsmith"
+  turn 1 A: wait
+  turn 1 A: cast "Vicious Verse" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert has "Whiplash Wordsmith" flying
+  assert has "Whiplash Wordsmith" haste
+}
+
+scenario "noncombat damage: Whiplash Wordsmith without" {
+  battlefield A: 4 "Swamp"
+  hand A: "Whiplash Wordsmith"
+  turn 1 A: cast "Whiplash Wordsmith"
+  run_to turn 1 postcombat_main
+  assert has not "Whiplash Wordsmith" flying
+}
+
 scenario "noncombat damage: Niv-Mizzet draws that many" {
   battlefield A: "Niv-Mizzet, Visionary", "Mountain"
   hand A: "Lightning Bolt"

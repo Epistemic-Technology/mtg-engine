@@ -9857,9 +9857,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::NthResolution { n, again: true } => {
             format!("it's the {} time", ordinal_word(u32::from(*n)))
         }
-        StaticCond::OpponentNoncombatDamagedThisTurn => {
-            "an opponent has been dealt noncombat damage this turn".to_string()
-        }
+        StaticCond::OpponentNoncombatDamagedThisTurn { was } => format!(
+            "an opponent {} dealt noncombat damage this turn",
+            if *was { "was" } else { "has been" }
+        ),
         StaticCond::PutCounterThisTurn => {
             "you've put one or more +1/+1 counters on a creature this turn".to_string()
         }

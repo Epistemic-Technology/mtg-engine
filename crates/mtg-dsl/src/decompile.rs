@@ -543,7 +543,7 @@ impl Decompiler<'_> {
                 again: false,
             },
             StaticCondition::OpponentNoncombatDamagedThisTurn => {
-                StaticCond::OpponentNoncombatDamagedThisTurn
+                StaticCond::OpponentNoncombatDamagedThisTurn { was: false }
             }
             StaticCondition::LeftGraveyardThisTurn => StaticCond::LeftGraveyardThisTurn,
             StaticCondition::SacrificedThisTurn(t) => StaticCond::SacrificedThisTurn(

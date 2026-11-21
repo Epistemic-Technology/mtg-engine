@@ -3066,8 +3066,13 @@ impl P {
         if self.eat_words(&["opponent", "damaged", "this", "turn"]) {
             return Ok(StaticCond::OpponentDamagedThisTurn);
         }
-        if self.eat_words(&["opponent", "dealt", "noncombat", "damage", "this", "turn"]) {
-            return Ok(StaticCond::OpponentNoncombatDamagedThisTurn);
+        if self.at_words(&["opponent", "dealt", "noncombat"])
+            || self.at_words(&["opponent", "was", "dealt", "noncombat"])
+        {
+            self.pos += 1;
+            let was = self.eat_word("was");
+            self.expect_words(&["dealt", "noncombat", "damage", "this", "turn"])?;
+            return Ok(StaticCond::OpponentNoncombatDamagedThisTurn { was });
         }
         if self.eat_words(&["opponent", "lost", "life", "this", "turn"]) {
             return Ok(StaticCond::OpponentLostLifeThisTurn);
