@@ -1,0 +1,7 @@
+card "Intimidation Campaign" {
+  oracle_id 5915039b-3dbd-4a49-8bd3-23ff0fd9c90a
+  cost {1}{U}{B}
+  type Enchantment
+  triggered when this enters: each opponent loses 1 life, you gain 1 life, and you draw 1 card
+  triggered whenever you commit a crime: you may return this to hand
+}

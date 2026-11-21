@@ -1288,6 +1288,10 @@ pub struct LastKnown {
     /// The object it became in its new zone (CR 400.7), if it moved rather
     /// than ceased to exist.
     pub moved_to: Option<ObjId>,
+    /// It was an attacking or a blocking creature as it left the
+    /// battlefield ("If it was attacking", CR 608.2h).
+    pub attacking: bool,
+    pub blocking: bool,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

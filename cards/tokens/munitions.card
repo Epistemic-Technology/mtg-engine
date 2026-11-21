@@ -1,0 +1,5 @@
+token "Munitions" {
+  name "Munitions"
+  type Artifact
+  triggered when this leaves the battlefield: it deals 2 damage to any target
+}

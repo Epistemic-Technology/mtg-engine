@@ -1,0 +1,8 @@
+card "Veteran Ice Climber" {
+  oracle_id ccaadf8d-22c0-4139-b734-03ac2fcb4494
+  cost {1}{U}
+  type Creature — Human Scout
+  pt 1/3
+  keywords vigilance, can't be blocked
+  triggered whenever this attacks: up to 1 target player mills count equal power cards
+}

@@ -102,6 +102,9 @@ pub struct ManaRestriction {
 pub enum Pronoun {
     He,
     She,
+    /// `pronoun they`: a plural name ("Whenever Bebop & Rocksteady
+    /// attack or block").
+    They,
 }
 
 /// One definition: a `card`, `token`, or `emblem` block.
@@ -422,9 +425,12 @@ pub enum CountExpr {
     Sum(Box<CountExpr>, Box<CountExpr>),
     /// `life you lost this turn`: "the life you've lost this turn".
     LifeLostThisTurn,
-    /// `damage dealt this way`, `excess damage dealt this way`.
+    /// `damage dealt this way`, `excess damage dealt this way`;
+    /// `excess damage dealt to that creature this way` prints "the amount
+    /// of excess damage dealt to that creature this way" (wording only).
     DamageThisWay {
         excess: bool,
+        to_that: bool,
     },
     /// `card types in graveyards`: "the number of card types among cards
     /// in all graveyards".
@@ -1846,6 +1852,9 @@ pub enum StaticCond {
     },
     /// `you control no untapped land`.
     YouControlNone(Filter),
+    /// `you control 1 or more Egg`: "you control one or more Eggs" (the
+    /// same condition as `you control Egg`).
+    YouControlOneOrMore(Filter),
     /// `you control at most 2 other land`: "you control two or fewer other
     /// lands".
     YouControlAtMost {
@@ -2880,6 +2889,9 @@ pub enum Recipient {
     /// `each other player`: "each other player", the same players as
     /// each opponent.
     EachOtherPlayer,
+    /// `each of your opponents`: "each of your opponents" (each opponent;
+    /// wording only, Everything Pizza).
+    EachOfYourOpponents,
     /// `this`: the source, "this creature" (a spell's or a legendary
     /// permanent's name, CR 201.5) at its first mention, "it" after.
     Source,
@@ -3097,6 +3109,9 @@ pub enum Effect {
         put: bool,
         /// `... to battlefield tapped and attacking` (CR 508.4).
         attacking: bool,
+        /// `with 2 additional +1/+1 counters`: "with two additional
+        /// +1/+1 counters on it" (wording only).
+        additional: bool,
     },
     Regenerate {
         to: Recipient,

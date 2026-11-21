@@ -76,6 +76,10 @@ by rejecting the form at compile time or by binding it correctly.
   `Effect::Grant` applies only to permanents (Seht's Tiger, Gilded
   Light). Blossoming Calm ("You gain hexproof until your next turn") is
   left out for this.
+- **`when this enters and whenever this attacks while saddled`**
+  applies `while saddled` to both events, so the enters half needs the
+  Mount saddled (Autarch Mammoth; not added). A trigger condition
+  belongs to one event of an `Either`.
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.

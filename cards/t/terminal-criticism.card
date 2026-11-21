@@ -1,0 +1,6 @@
+card "Terminal Criticism" {
+  oracle_id 213b0814-f768-4408-9cb7-6f5960bcbb7a
+  cost {1}{B}
+  type Instant
+  spell: destroy target blue or red creature or blue or red planeswalker; you gain 1 life
+}

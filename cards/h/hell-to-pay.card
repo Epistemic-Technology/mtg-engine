@@ -1,0 +1,6 @@
+card "Hell to Pay" {
+  oracle_id 7dc7d90d-5979-4c4a-9183-392e0e0b878a
+  cost {X}{R}
+  type Sorcery
+  spell: deal X damage to target creature; create count equal excess damage dealt to that creature this way tapped "Treasure"
+}

@@ -1430,6 +1430,10 @@ impl Compiler<'_> {
                 filter: self.filter(filter).who(Who::You),
                 at_least: *at_least,
             },
+            StaticCond::YouControlOneOrMore(filter) => StaticCondition::YouControl {
+                filter: self.filter(filter).who(Who::You),
+                at_least: 1,
+            },
             StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
             StaticCond::NotYourTurn => StaticCondition::NotYourTurn,
             StaticCond::CastDuringMain | StaticCond::ControlledAsCast(_) => {
@@ -1732,7 +1736,7 @@ impl Compiler<'_> {
             A::GreatestToughness(f) => C::GreatestToughness(self.filter(f)),
             A::Sum(a, b) => C::Sum(Box::new(self.count_expr(a)), Box::new(self.count_expr(b))),
             A::LifeLostThisTurn => C::LifeLostThisTurn,
-            A::DamageThisWay { excess } => C::DamageThisWay { excess: *excess },
+            A::DamageThisWay { excess, .. } => C::DamageThisWay { excess: *excess },
             A::CardTypesInGraveyards => C::CardTypesInAllGraveyards,
             A::SourceCounters { kind, .. } => C::SourceCounters(*kind),
             A::TriggerCounters(kind) => C::TriggerCounters(*kind),
@@ -1900,7 +1904,9 @@ impl Compiler<'_> {
                 u8::try_from(n).unwrap_or(u8::MAX),
             ),
             Recipient::You => CoreRecipient::You,
-            Recipient::EachOpponent | Recipient::EachOtherPlayer => CoreRecipient::EachOpponent,
+            Recipient::EachOpponent
+            | Recipient::EachOtherPlayer
+            | Recipient::EachOfYourOpponents => CoreRecipient::EachOpponent,
             Recipient::Source
             | Recipient::SourceNamed
             | Recipient::SourceCard
@@ -2202,6 +2208,7 @@ impl Compiler<'_> {
                 attached,
                 put: _,
                 attacking,
+                additional: _,
             } => {
                 out.push(CoreEffect::ReturnToBattlefield {
                     what: r(*what),
@@ -5398,6 +5405,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         attached: None,
                         put: false,
                         attacking: false,
+                        additional: false,
                     },
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],

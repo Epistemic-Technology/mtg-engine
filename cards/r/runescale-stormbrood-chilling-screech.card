@@ -1,0 +1,14 @@
+card "Runescale Stormbrood // Chilling Screech" {
+  oracle_id af7db15c-93af-4c7e-a028-42181d91a923
+  layout omen
+  cost {3}{R}
+  type Creature — Dragon
+  pt 2/4
+  keywords flying
+  triggered whenever you cast noncreature or a Dragon spell: this gets +2/+0
+  face "Chilling Screech" {
+    cost {1}{U}
+    type Instant — Omen
+    spell: counter target with mana value 2 or less spell
+  }
+}

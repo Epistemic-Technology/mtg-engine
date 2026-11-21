@@ -1,0 +1,6 @@
+card "Full Steam Ahead" {
+  oracle_id 65e64c50-4757-4e8e-8043-bc61a5f21750
+  cost {3}{G}{G}
+  type Sorcery
+  spell: until end of turn, each single creature you control gets +2/+2 and gains trample and gains ability { can't be blocked by more than one creature }
+}

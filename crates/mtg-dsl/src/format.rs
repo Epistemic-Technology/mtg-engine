@@ -127,6 +127,9 @@ fn format_inner(card: &Card) -> String {
         Some(crate::ast::Pronoun::She) => {
             let _ = writeln!(out, "  pronoun she");
         }
+        Some(crate::ast::Pronoun::They) => {
+            let _ = writeln!(out, "  pronoun they");
+        }
         None => {}
     }
     if let Some(c) = &card.cast_only {
@@ -285,6 +288,7 @@ impl Fmt {
             Recipient::You => "you".to_string(),
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::EachOtherPlayer => "each other player".to_string(),
+            Recipient::EachOfYourOpponents => "each of your opponents".to_string(),
             Recipient::Source => "this".to_string(),
             // The parser takes only its own list of nouns here; the
             // renderer prints the card's own ("this Spacecraft") whatever
@@ -408,6 +412,9 @@ impl Fmt {
             Affects::You => "you".to_string(),
             Affects::Players(Who::Opponents) => "each opponent".to_string(),
             Affects::Players(_) => "each player".to_string(),
+            // A damage source written with its article (`a Wizard you
+            // control`).
+            Affects::Objects(f) if f.article => format!("a {}", filter(f)),
             Affects::Objects(f) => filter(f),
             Affects::YouAnd(f) => format!("you and {}", filter(f)),
             Affects::OpponentsAnd(f) => format!("opponent and {}", filter(f)),
@@ -752,6 +759,11 @@ impl Fmt {
                 (None, None) if *from == Recipient::Source => {
                     format!("put its counters on {}", self.recipient(*to, t))
                 }
+                (Some(k), None) if *from == Recipient::Source => format!(
+                    "put its {} on {}",
+                    counter(*k, Num::N(2)),
+                    self.recipient(*to, t)
+                ),
                 (Some(k), Some(n)) => format!(
                     "move {n} {} from {} onto {}",
                     counter(*k, Num::N(*n)),
@@ -1285,6 +1297,7 @@ impl Fmt {
                 attached,
                 put,
                 attacking,
+                additional,
             } => {
                 let mut s = if *put {
                     format!("put {} onto battlefield", self.recipient(*what, t))
@@ -1301,7 +1314,8 @@ impl Fmt {
                     s.push_str(" under your control");
                 }
                 if let Some((kind, n)) = counters {
-                    let _ = write!(s, " with {n} {}", counter(*kind, Num::N(*n)));
+                    let more = if *additional { "additional " } else { "" };
+                    let _ = write!(s, " with {n} {more}{}", counter(*kind, Num::N(*n)));
                 }
                 if let Some(a) = attached {
                     let _ = write!(s, " attached to {}", self.recipient(*a, t));
@@ -2085,11 +2099,18 @@ impl Fmt {
                 self.line(inner, t)
             ),
             Effect::IfTarget(n, f, inner, check)
-                if check.tense == crate::ast::TargetTense::Was
-                    && *f == Filter::controlled_by_you() =>
+                if matches!(
+                    check.tense,
+                    crate::ast::TargetTense::Was | crate::ast::TargetTense::ThatWas
+                ) && *f == Filter::controlled_by_you() =>
             {
                 format!(
-                    "if you controlled target {}, {}",
+                    "if you controlled {}target {}, {}",
+                    if check.tense == crate::ast::TargetTense::ThatWas {
+                        "that "
+                    } else {
+                        ""
+                    },
                     n + 1,
                     self.line(inner, t)
                 )
@@ -2726,8 +2747,12 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::GreatestToughness(f) => format!("greatest toughness {}", filter(f)),
         CountExpr::Sum(a, b) => format!("{} plus {}", count_expr_text(a), count_expr_text(b)),
         CountExpr::LifeLostThisTurn => "life you lost this turn".to_string(),
-        CountExpr::DamageThisWay { excess: false } => "damage dealt this way".to_string(),
-        CountExpr::DamageThisWay { excess: true } => "excess damage dealt this way".to_string(),
+        CountExpr::DamageThisWay { excess: false, .. } => "damage dealt this way".to_string(),
+        CountExpr::DamageThisWay {
+            excess: true,
+            to_that: true,
+        } => "excess damage dealt to that creature this way".to_string(),
+        CountExpr::DamageThisWay { excess: true, .. } => "excess damage dealt this way".to_string(),
         CountExpr::CardTypesInGraveyards => "card types in graveyards".to_string(),
         CountExpr::SourceCounters { kind, it } => format!(
             "{} counters on {}",
@@ -4375,6 +4400,7 @@ fn static_cond(c: &StaticCond) -> String {
             at_least,
         } => format!("defending player controls {at_least} {}", filter(fl)),
         StaticCond::YouControlNone(fl) => format!("you control no {}", filter(fl)),
+        StaticCond::YouControlOneOrMore(fl) => format!("you control 1 or more {}", filter(fl)),
         StaticCond::YouControlAtMost { filter: fl, n } => {
             format!("you control at most {n} {}", filter(fl))
         }

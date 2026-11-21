@@ -1,0 +1,8 @@
+card "Toby, Beastie Befriender" {
+  oracle_id b4c27c89-fa50-4cf0-bf37-039732d16fef
+  cost {2}{W}
+  type Legendary Creature — Human Wizard
+  pt 1/1
+  triggered when this enters: create 1 "4/4 white Beast creature that can't attack or block alone"
+  static as long as you control 4 creature token, creature token you control: has flying
+}

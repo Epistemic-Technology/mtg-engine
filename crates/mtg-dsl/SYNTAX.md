@@ -30,13 +30,22 @@ a Treasure token". Other tokens print described: their keywords and
 keyword abilities bare, their restrictions and other abilities quoted ("a
 1/1 colorless Phyrexian Mite artifact creature token with toxic 1 and
 \"This token can't block.\""; "a 0/1 colorless Eldrazi Spawn creature
-token with \"Sacrifice this token: Add {C}.\""), and a creature token
+token with \"Sacrifice this token: Add {C}.\""; `can't attack alone, can't
+block alone` is one quotation, "This token can't attack or block
+alone.", and so are `can't block non-Spirit creature` and `can't be
+blocked by non-Spirit creature`, "This token can't block or be blocked by
+non-Spirit creatures."), and a creature token
 whose name is not its subtypes is named ("a 2/2 colorless Wizard Soldier
-creature token named Cadet"); so is an Equipment token, its abilities quoted without their final period and its equip ability last ("a colorless Equipment artifact token named Axe with \"Equipped creature gets +1/+0\" and equip {2}"). A Role token (CR 111.10j–r: an `Enchantment
+creature token named Cadet"); so is a noncreature token with no subtype
+("a colorless artifact token named Munitions with \"...\""), and an Equipment token, its abilities quoted without their final period and its equip ability last ("a colorless Equipment artifact token named Axe with \"Equipped creature gets +1/+0\" and equip {2}"). A Role token (CR 111.10j–r: an `Enchantment
 — Aura Role` with `enchant creature` and `name "Wicked"`, keyed `"Wicked
 Role"`) prints by name too: "a Wicked Role token". If one player controls
 more than one Role on a permanent, all but the newest go to the graveyard
-(CR 303.7a, 704.5z). A token with a characteristic-defining
+(CR 303.7a, 704.5z). A legendary token (`type Legendary
+Creature — Elder Alien`) with a name of its own is named first, and its
+abilities call it by name: "Create Galactus, a legendary 16/16 black
+Elder Alien creature token with flying, trample, and \"Whenever Galactus
+attacks, destroy target land.\"" A token with a characteristic-defining
 ability prints its abilities after the sentence ("... token. It has
 \"...\"").
 
@@ -79,7 +88,7 @@ to its other face as well.
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `defense 5` | A battle's printed defense (CR 310.4): it enters with that many defense counters. |
 | `short_name "Ajani"` | The name a legendary card's text calls itself by when it isn't the part before a comma (CR 201.5): "put a loyalty counter on Ajani" on Ajani Resolute. The template author adds it when the text uses the name's first word alone. |
-| `pronoun he`, `pronoun she` | Wording only: after naming it, the card's text calls itself "he"/"him" or "she"/"her" instead of "it" ("Put a +1/+1 counter on Abomination. He fights up to one target creature an opponent controls."; "Morlun enters with X +1/+1 counters on him."). The template author adds it for a legendary card whose Oracle text uses those words. |
+| `pronoun he`, `pronoun she`, `pronoun they` | Wording only: after naming it, the card's text calls itself "he"/"him"/"his", "she"/"her", or "they"/"them"/"their" instead of "it" (and `they` makes a trigger about it plural: "Whenever Bebop & Rocksteady attack or block") ("Put a +1/+1 counter on Abomination. He fights up to one target creature an opponent controls."; "Morlun enters with X +1/+1 counters on him."). The template author adds it for a legendary card whose Oracle text uses those words. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
 | `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, `undying`, `flanking`, `convoke` (CR 702.51: untapped creatures may be tapped to pay {1} or one mana of their color), and `improvise` (CR 702.126: artifacts pay {1}), and `banding` (CR 702.22: attacking bands, blocked as a group, the banding player dividing the combat damage; "bands with other" is not supported), `decayed` (CR 702.147: can't block; when it attacks, it's sacrificed at end of combat), and `phasing` (CR 702.26: phases in or out before its controller untaps). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step."), `can't become untapped` (no effect or untap step untaps it, and a stun counter stays on it; granted, "Enchanted creature loses all abilities and can't become untapped."), and the blocking requirements and allowances (CR 509.1a, 509.1c) `blocks each combat if able`, `must be blocked if able`, `lure` ("All creatures able to block this creature do so."), `can block an additional creature each combat`, and `can block any number of creatures`, and `can attack as though it didn't have defender` (CR 702.3b; granted to a group, "... as though they didn't have defender"; with `can't be blocked` after it, "... and it can't be blocked") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
@@ -314,7 +323,7 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this becomes blocked`, `whenever this blocks or becomes blocked` | |
 | `whenever this blocks a creature with flying`, `whenever this becomes blocked by a creature`, `whenever this blocks or becomes blocked by a nonblack creature` | once for each attacker it blocks (CR 509.3b) or each creature blocking it (CR 509.3d); the other creature, which must match the filter, is "that creature"; `a creature with Equipment` prints "an equipped creature", `a creature that was dealt damage this turn` "... that has been dealt damage this turn". `... by one or more blue or black creature` ("by one or more blue and/or black creatures", CR 509.3c, 509.3e) triggers once, on the first matching pair, and "it" is the blocking or blocked creature itself (`whenever equipped creature becomes blocked by one or more colorless creature: it gains deathtouch until end of turn`) |
 | `at end of combat` | as the end of combat step begins (CR 511.2); also a delayed trigger: `delayed that creature: destroy that creature at end of combat` |
-| `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell`, `whenever a player casts a spell` | |
+| `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell`, `whenever a player casts a spell` | `whenever you cast noncreature or Dragon spell` prints "a noncreature or Dragon spell"; with the alternative's own article, `noncreature or a Dragon spell`, "a noncreature spell or a Dragon spell" (the same spells) |
 | `label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: ...` | "Magecraft — Whenever you cast or copy an instant or sorcery spell, ..." (a copy triggers it too, CR 707.10) |
 | `label "Heroic" triggered whenever you cast a spell that targets this: ...` | "Heroic — Whenever you cast a spell that targets this creature, ..." (any spell filter: `whenever you cast red spell that targets this`): the spell's targets as it is cast (CR 601.2c), so copies and abilities don't trigger it. The spell is the triggering object, but `it` in the effects is this creature, as Oracle has it ("put a +1/+1 counter on it"). |
 | `label "Repartee" triggered whenever you cast instant or sorcery spell that targets creature: ...` | "Repartee — Whenever you cast an instant or sorcery spell that targets a creature, ...": any creature among the spell's targets as it is cast (CR 601.2c). |
@@ -383,7 +392,8 @@ your turn` is one too: "Whenever a land enters during your turn".
 Static conditions: `7 cards in your graveyard` ("there are seven or more
 cards in your graveyard"), `4 card types in your graveyard`, `you control 3
 artifact` ("you control three or more artifacts"), `you control Island`
-("you control an Island"), `your turn` ("it's your turn"), `not your turn` ("it's not your turn"),
+("you control an Island"), `you control 1 or more Egg` ("you control one
+or more Eggs", the same condition), `your turn` ("it's your turn"), `not your turn` ("it's not your turn"),
 `cast during main phase` ("you cast this spell during your main phase")
 and `controlled Mount as cast` ("you controlled a Mount as you cast this
 spell"), both judged as the spell is cast and remembered by it, `attacking`,
@@ -507,7 +517,8 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 122.1h: a permanent with one that would be put into a graveyard from the
 battlefield is exiled instead, so it doesn't die; `return target creature
 card from your graveyard to battlefield with 1 finality counter` prints
-"... with a finality counter on it"), and the keyword counters `flying`, `first strike`, `trample`,
+"... with a finality counter on it"; `with 2 additional +1/+1 counters`
+prints "with two additional +1/+1 counters on it", the same counters), and the keyword counters `flying`, `first strike`, `trample`,
 `lifelink`, `deathtouch`, `reach`, `menace`, `vigilance`, `hexproof`,
 `indestructible`, `double strike` (CR 122.1b: the permanent has the
 keyword; `double_strike` in scenarios). A cost may
@@ -629,7 +640,10 @@ created prints "Otherwise, create one of those tokens."
 1 card`): the payer may discard a card of their choice to stop it.
 `if target 1 was <filter>, <sentence>`: "If that creature was a Human,
 ...", "If that creature was green or white, ...", "If that land was
-nonbasic, ..." (the target as it last existed). Without `instead`, `if
+nonbasic, ..." (the target as it last existed); a state alone prints "it":
+`if target 1 was attacking` ("If it was attacking"), `if target 1 was
+tapped` ("If it was tapped"), judged as it last existed on the
+battlefield, so a target returned to its owner's hand still counts. Without `instead`, `if
 target 1 is <filter>, <sentence>` is "If it's a Vampire, ..." and `if
 that target 1 is <filter>, ...` is "If that creature is a Goat, ..." (the
 target as it resolves, or last existed); `also` after the comma prints
@@ -713,7 +727,9 @@ and `also` goes after its subject ("If you control an Equipment,
 Misthios's Fury also deals 2 damage ...", "that creature also gains
 trample"). `if you controlled target 1, draw 1 card`: "If you controlled
 that permanent, draw a card.", its controller as it last existed (CR
-608.2h). `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
+608.2h); the target's own noun prints ("If you controlled that
+artifact"), and `if you controlled that target 1, ...` prints "that
+permanent" whatever the target is (Kellan, Inquisitive Prodigy). `then if <cond>, <clause>` prints "Then if ...". `you lose 1 life
 unless opponent life 10 or less` prints "you lose 1 life unless an
 opponent has 10 or less life": the clause happens only if the condition
 doesn't hold as it resolves. Conditions
@@ -802,7 +818,10 @@ outcome `double` (`replace damage from permanent you control to any:
 double`) prints "If a source you control would deal damage to a
 permanent or player, it deals double that damage to that permanent or
 player instead." (a filter without a card type names a source;
-`replace damage to you: double` "... to you instead."). Likewise
+`replace damage to you: double` "... to you instead."; written with its
+article, `replace damage from a Wizard you control to any: double`
+prints "If a Wizard you control would deal damage to a permanent or
+player, it deals double that damage instead."). Likewise
 `replace damage from permanent you control to each opponent: prevent {
 each opponent mills that much cards }` prints "If a source you control
 would deal damage to an opponent, prevent that damage and each opponent
@@ -1110,8 +1129,15 @@ flying`, `creature with no abilities`, `all Sliver creature` (a static
 ability's subject then prints "All Sliver creatures", as old Slivers do), `Goblin`, `Swamp you control`, `nonplaneswalker permanent you
 control`, `enchanted` (the permanent this is attached to; `enchanted
 permanent` prints "enchanted permanent" whatever the Aura enchants, as on
-Song of Stupefaction's "Enchant creature or Vehicle"), `this` (the
-source itself, for characteristic-defining abilities).
+Song of Stupefaction's "Enchant creature or Vehicle"; on such an Aura the
+recipient `enchanted permanent` prints so too, "tap enchanted
+permanent"), `this` (the
+source itself, for characteristic-defining abilities). Two alternatives
+sharing two or more colors print the colors after the types: `blue or
+red creature or blue or red planeswalker` is "creature or planeswalker
+that's blue or red"; `other token creature or Rabbit creature you
+control` is "other creature you control that's a token or a Rabbit"
+(write `token creature`: a bare `token` is any token, a Treasure too).
 
 More filter words: `token` ("a token", "artifact token", CR 111.1),
 `nontoken`, `tapped`, `untapped`, `attacking`, `blocking`,
@@ -1317,7 +1343,9 @@ unless they're mana abilities") are restrictions like `can't attack`;
 they print last, after ", and" ("Enchanted creature can't attack or
 block, and its activated abilities can't be activated"; "and" alone after
 `doesn't untap`), or alone as "Enchanted creature's activated abilities
-can't be activated." `set subtype Treefolk` is "is a Treefolk" (it loses
+can't be activated."; on a group of several types, `static artifact,
+creature, or planeswalker: has can't activate`, "Activated abilities of
+artifacts, creatures, and planeswalkers can't be activated." `set subtype Treefolk` is "is a Treefolk" (it loses
 its other creature types, CR 205.1b); `add land all` is "is every basic
 land type in addition to its other types". A type followed by a base P/T
 is one phrase: `set subtype Treefolk, base 0/4, loses all abilities`
@@ -1638,7 +1666,10 @@ sentence: "Create a 1/1 colorless Eldrazi Scion creature token. It has
 it could enchant, no token is created, CR 303.4f), `<who> creates 2
 "Treasure"` (`its controller creates`, `each player creates`, `you
 create`: "Its controller creates two Treasure tokens"),
-`create token copy of <what> [with exceptions]`, `copy <what> [times
+`create token copy of <what> [with exceptions]` (of a group, `create
+token copy of each nontoken creature you control` prints "For each
+nontoken creature you control, create a token that's a copy of that
+creature"), `copy <what> [times
 <num>] [new targets] [with exceptions]` (CR 707.10: `copy target instant
 or sorcery spell you control new targets` prints "Copy target instant or
 sorcery spell you control. You may choose new targets for the copy.";
@@ -1950,7 +1981,8 @@ its owner's control."; `triggering card` is the card it became). After
 those tokens at beginning of the next end step` is one delayed trigger
 about each ("Sacrifice those tokens at the beginning of the next end
 step."), and `them` prints "them" (`delayed those tokens: exile them at
-beginning of the next end step`). In `delayed that token: ...`, `it` prints "it" and `that token`
+beginning of the next end step`). `those tokens gains haste` right after
+prints "They gain haste until end of turn.". In `delayed that token: ...`, `it` prints "it" and `that token`
 "that token" ("Exile that token at the beginning of the next end
 step."); both are the token. `delayed this: whenever <trigger> this turn, <effects>` triggers on
 every such event until the turn ends (CR 603.7c), as its controller's
@@ -1969,7 +2001,8 @@ turn, copy that spell. ...", CR 603.7c) triggers only the first time,
 then ends; any cast trigger may follow `when next` (`when next you cast
 instant or sorcery with mana value 4 or less spell`).
 
-Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,
+Who and what (`<who>`, `<what>`): `you`, `each opponent` (`each of your
+opponents` is the same players, printed "Each of your opponents"), `each player`,
 `its controller` / `its owner` (of the last target declared),
 `this` (the source), `that player` / `that creature` (what triggered the
 ability; in a spell or an activated ability, the player or creature
@@ -2125,7 +2158,9 @@ exists), both checked as targets are chosen and again on resolution (CR
 removed (CR 603.3d). `target creature other than enchanted` ("target
 creature other than enchanted creature"): not what the source is attached
 to. `target creature other than this` ("target creature other than this
-creature") is `target other creature` worded after the noun. A group or count of what a target player controls declares that
+creature") is `target other creature` worded after the noun; so is
+`each creature you control other than this` ("each creature you control
+other than this creature"). A group or count of what a target player controls declares that
 target in its filter: `each creature target player controls gets -2/-2`
 ("Creatures target player controls get -2/-2 until end of turn"), `you
 gain count each 2 creature target player controls life`; `target opponent
@@ -2265,7 +2300,9 @@ Human, ...`, `if the sacrificed permanent was artifact, ...`, `if the
 discarded card wasn't land card, ...`, and as an "instead": `if the
 sacrificed creature was legendary, draw 3 cards instead`. Counts: `count
 each 2 enchantment destroyed this way` ("2 life for each enchantment
-destroyed this way"), `count equal life lost this way` ("life equal to the
+destroyed this way"; `count each permanent returned this way` prints
+"for each permanent returned to its owner's hand this way"), `count equal
+life lost this way` ("life equal to the
 life lost this way"), `count that many discarded this way` ("draw that
 many cards"; `discard up to 2 cards chosen then draw count that many
 discarded this way cards`: "discard up to two cards, then draw that many
@@ -2273,7 +2310,9 @@ cards", `discard any number cards chosen ...`: "discard any number of
 cards, ..."; `count that many plus 1 discarded this way`: "draw that many
 cards plus one"), `count equal damage dealt this way` ("life equal to the
 damage dealt this way", CR 120.3), `count equal excess damage dealt this
-way` (CR 120.4a, and `if excess damage dealt this way, create 1
+way` (CR 120.4a; `count equal excess damage dealt to that creature this
+way` prints "equal to the amount of excess damage dealt to that creature
+this way", and `if excess damage dealt this way, create 1
 "Lander"`: "If excess damage was dealt this way, ..."; beyond lethal damage, given damage already marked, or
 beyond a planeswalker's loyalty). What the resolution or its costs moved,
 as it last existed: `toughness of the sacrificed creature` ("the
@@ -2402,7 +2441,9 @@ counter from this artifact onto target creature") take the counters off
 the first permanent and put them on the second (CR 122.5); nothing moves
 if the second is gone. `put its counters on target creature you control`
 in a dies trigger puts the counters the source had as it last existed on
-the battlefield, of every kind (CR 608.2h). After `exile target card from
+the battlefield, of every kind (CR 608.2h); `put its +1/+1 counters on
+target creature you control` only those of one kind (Selfless Police
+Captain). After `exile target card from
 an opponent's graveyard`, `that player` is the card's owner (Carrion
 Locust's "If it was a creature card, that player loses 1 life"; `if target
 1 was creature` prints "If it was a creature card" for a graveyard card).

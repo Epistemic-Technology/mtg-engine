@@ -1,0 +1,6 @@
+card "Salt Road Skirmish" {
+  oracle_id f6e72f4e-d6e0-4537-93c1-7045385c8401
+  cost {3}{B}
+  type Sorcery
+  spell: destroy target creature; create 2 "1/1 red Warrior creature"; those tokens gains haste; delayed those tokens: sacrifice them at beginning of the next end step
+}

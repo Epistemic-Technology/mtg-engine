@@ -1,0 +1,6 @@
+card "Brackish Blunder" {
+  oracle_id 4ad34f85-a185-458a-a7a1-eb60f7efce5b
+  cost {1}{U}
+  type Instant
+  spell: return target creature to hand; if target 1 was tapped, create 1 "Map"
+}

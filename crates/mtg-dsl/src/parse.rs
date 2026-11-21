@@ -397,6 +397,10 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
         Recipient::EachPermanentYouControl,
     ),
     (&["each", "opponent"], Recipient::EachOpponent),
+    (
+        &["each", "of", "your", "opponents"],
+        Recipient::EachOfYourOpponents,
+    ),
     (&["each", "other", "player"], Recipient::EachOtherPlayer),
     (&["each", "player"], Recipient::EachPlayer),
     (&["each", "creature"], Recipient::EachCreature),
@@ -1077,7 +1081,8 @@ impl P {
                 card.pronoun = Some(match self.word()?.as_str() {
                     "he" => crate::ast::Pronoun::He,
                     "she" => crate::ast::Pronoun::She,
-                    w => return self.fail(format!("unknown pronoun `{w}` (he, she)")),
+                    "they" => crate::ast::Pronoun::They,
+                    w => return self.fail(format!("unknown pronoun `{w}` (he, she, they)")),
                 });
                 self.end_stmt()
             }
@@ -3627,6 +3632,13 @@ impl P {
             return Ok(StaticCond::YourLife { n, at_least });
         }
         if self.eat_words(&["you", "control"]) {
+            if matches!(self.peek(), Some(Tok::Num(1)))
+                && self.word_at(1).as_deref() == Some("or")
+                && self.word_at(2).as_deref() == Some("more")
+            {
+                self.pos += 3;
+                return Ok(StaticCond::YouControlOneOrMore(self.filter()?));
+            }
             let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
                 self.number()?
             } else {
@@ -4335,6 +4347,16 @@ impl P {
         if w == "any" && self.word_at(1).as_deref() == Some("target") {
             return true;
         }
+        // "They gain haste until end of turn." after creating tokens
+        // (Salt Road Skirmish).
+        if self.at_words(&["those", "tokens"])
+            && matches!(
+                self.word_at(2).as_deref(),
+                Some("gain" | "gains" | "get" | "gets")
+            )
+        {
+            return true;
+        }
         if w == "that" && matches!(self.word_at(1).as_deref(), Some("card" | "target")) {
             return true;
         }
@@ -4982,8 +5004,12 @@ impl P {
         }
         // `if you controlled target 1, ...`: "If you controlled that
         // permanent, ...", its controller as it last existed (CR 608.2h).
-        if self.at_words(&["if", "you", "controlled", "target"]) {
-            self.pos += 4;
+        // `if you controlled that target 1, ...`: "If you controlled that
+        // permanent" whatever the target's noun (Kellan, Inquisitive
+        // Prodigy).
+        let permanent = self.at_words(&["if", "you", "controlled", "that", "target"]);
+        if permanent || self.at_words(&["if", "you", "controlled", "target"]) {
+            self.pos += if permanent { 5 } else { 4 };
             let n = self.number()? as usize;
             if n == 0 || n > self.targets.len() {
                 return self.fail(format!("target {n} has not been declared"));
@@ -4996,7 +5022,14 @@ impl P {
                 n - 1,
                 Filter::controlled_by_you(),
                 vec![s],
-                crate::ast::TargetCheck::default(),
+                crate::ast::TargetCheck {
+                    tense: if permanent {
+                        crate::ast::TargetTense::ThatWas
+                    } else {
+                        crate::ast::TargetCheck::default().tense
+                    },
+                    ..crate::ast::TargetCheck::default()
+                },
             ));
         }
         // "If excess damage was dealt this way, ..." (CR 120.4a).
@@ -6613,8 +6646,10 @@ impl P {
             tapped = true;
             attacking = true;
         }
+        let mut additional = false;
         let counters = if self.eat_word("with") {
             let n = self.count()?;
+            additional = self.eat_word("additional");
             let kind = self.counter_kind()?;
             self.eat_words(&["on", "it"]);
             Some((kind, n))
@@ -6634,6 +6669,7 @@ impl P {
             attached,
             put,
             attacking,
+            additional,
         })
     }
 
@@ -6829,6 +6865,30 @@ impl P {
                     from,
                     to,
                     kind: None,
+                    count: None,
+                })
+            }
+            // "put its +1/+1 counters on target creature you control"
+            // (Selfless Police Captain): every counter of that kind.
+            "put"
+                if self.at_word("its")
+                    && self.word_at(2).as_deref() == Some("counters")
+                    && self.word_at(3).as_deref() == Some("on") =>
+            {
+                self.pos += 1;
+                let kind = self.counter_kind()?;
+                self.eat_word("counters");
+                self.expect_word("on")?;
+                let to = self.recipient()?;
+                let from = if self.in_trigger && to == Recipient::Source {
+                    Recipient::TriggeringObject
+                } else {
+                    Recipient::Source
+                };
+                Ok(Effect::MoveCounters {
+                    from,
+                    to,
+                    kind: Some(kind),
                     count: None,
                 })
             }
@@ -8352,7 +8412,10 @@ impl P {
             return Ok(CountExpr::LifeLostThisTurn);
         }
         if self.eat_words(&["damage", "dealt", "this", "way"]) {
-            return Ok(CountExpr::DamageThisWay { excess: false });
+            return Ok(CountExpr::DamageThisWay {
+                excess: false,
+                to_that: false,
+            });
         }
         if self.eat_words(&["card", "types", "in", "graveyards"]) {
             return Ok(CountExpr::CardTypesInGraveyards);
@@ -8434,7 +8497,18 @@ impl P {
             return Ok(CountExpr::Those(t));
         }
         if self.eat_words(&["excess", "damage", "dealt", "this", "way"]) {
-            return Ok(CountExpr::DamageThisWay { excess: true });
+            return Ok(CountExpr::DamageThisWay {
+                excess: true,
+                to_that: false,
+            });
+        }
+        if self.eat_words(&[
+            "excess", "damage", "dealt", "to", "that", "creature", "this", "way",
+        ]) {
+            return Ok(CountExpr::DamageThisWay {
+                excess: true,
+                to_that: true,
+            });
         }
         if self.eat_words(&["greatest", "toughness"]) {
             return Ok(CountExpr::GreatestToughness(self.filter()?));
@@ -9371,6 +9445,10 @@ impl P {
                         && self.word_at(ws.len() + 1).as_deref() == Some("planeswalker")
                         || self.word_at(ws.len()).as_deref() == Some("they")
                         && self.word_at(ws.len() + 1).as_deref() == Some("control")
+                        // "each creature you control other than this
+                        // creature" (Dawnstrike Vanguard).
+                        || self.word_at(ws.len()).as_deref() == Some("other")
+                        && self.word_at(ws.len() + 1).as_deref() == Some("than")
                         || (self.word_at(ws.len()).as_deref() == Some("blocking")
                         && matches!(self.word_at(ws.len() + 1).as_deref(), Some("this" | "it" | "or")))
                         // "each creature target player controls".
@@ -11997,7 +12075,14 @@ impl P {
     /// A damage source: what `affects` reads, as an object (no `from any`:
     /// leave `from` out).
     fn source(&mut self) -> R<Affects> {
-        let a = self.affects()?;
+        // `a Wizard you control`: "If a Wizard you control would deal
+        // damage ..., it deals double that damage instead." (Trance Kuja),
+        // not "a Wizard source you control".
+        let article = self.eat_word("a");
+        let mut a = self.affects()?;
+        if article && let Affects::Objects(f) = &mut a {
+            f.article = true;
+        }
         if matches!(
             a,
             Affects::Any | Affects::You | Affects::Players(_) | Affects::YouAnd(_)

@@ -840,6 +840,7 @@ impl Decompiler<'_> {
                 attached: attached.map(r),
                 put: false,
                 attacking: false,
+                additional: false,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {

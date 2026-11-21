@@ -1,0 +1,651 @@
+# Cards whose Oracle wording the renderer now prints exactly (fifth wave):
+# each scenario checks that the wording means what the card does.
+
+scenario "Ezrim, Agency Chief: the third choice is hexproof" {
+  battlefield A: "Ezrim, Agency Chief", "Ornithopter", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ezrim, Agency Chief" sacrificing "Ornithopter"
+  turn 1 A: choose "3"
+  run_to turn 1 declare_attackers
+  assert has "Ezrim, Agency Chief" hexproof
+  assert has not "Ezrim, Agency Chief" lifelink
+  assert graveyard A contains "Ornithopter"
+}
+
+scenario "Sword of Wealth and Power: +2/+2 and protection from instants" {
+  battlefield A: "Grizzly Bears", "Sword of Wealth and Power" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  illegal turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "Desculpting Blast: an attacker returned makes a Drone" {
+  battlefield A: "Hill Giant"
+  battlefield B: 2 "Island"
+  hand B: "Desculpting Blast"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Hill Giant"
+  turn 2 declare_attackers B: cast "Desculpting Blast" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert battlefield B contains "Drone"
+  assert life B 20
+}
+
+scenario "Desculpting Blast: a nonattacker returned makes no Drone" {
+  battlefield A: "Hill Giant"
+  battlefield B: 2 "Island"
+  hand B: "Desculpting Blast"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Hill Giant"
+  turn 2 end B: cast "Desculpting Blast" targeting "Hill Giant"
+  run_to turn 3 upkeep
+  assert hand A contains "Hill Giant"
+  assert battlefield B lacks "Drone"
+}
+
+scenario "Brackish Blunder: a tapped creature returned makes a Map" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Brackish Blunder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brackish Blunder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert battlefield A contains "Map"
+}
+
+scenario "Brackish Blunder: an untapped creature returned makes no Map" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Brackish Blunder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brackish Blunder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert battlefield A lacks "Map"
+}
+
+scenario "Hulkling: a creature with greater power entering adds a counter" {
+  battlefield A: "Hulkling, Burgeoning Bruiser", 5 "Mountain"
+  hand A: "Hill Giant", "Raging Goblin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raging Goblin"
+  turn 1 A: wait
+  run_to turn 1 combat_damage
+  assert counters "Hulkling, Burgeoning Bruiser" +1/+1 0
+  turn 1 postcombat_main A: cast "Hill Giant"
+  run_to turn 1 end
+  assert counters "Hulkling, Burgeoning Bruiser" +1/+1 1
+}
+
+scenario "Ordeal of Nylea: the third counter on the attacker sacrifices it" {
+  battlefield A: "Grizzly Bears" with 2 +1/+1, "Ordeal of Nylea" on "Grizzly Bears"
+  library A: "Forest", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 3
+  assert graveyard A contains "Ordeal of Nylea"
+  assert battlefield A contains 2 "Forest"
+}
+
+scenario "Ordeal of Nylea: two counters, the Aura stays" {
+  battlefield A: "Grizzly Bears" with 1 +1/+1, "Ordeal of Nylea" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert battlefield A contains "Ordeal of Nylea"
+}
+
+scenario "Veteran Ice Climber: the target player mills cards equal to its power" {
+  battlefield A: "Veteran Ice Climber" with 2 +1/+1
+  library B: "Island", "Island", "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Veteran Ice Climber"
+  turn 1 declare_attackers A: trigger "Veteran Ice Climber" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 3
+  assert life B 17
+}
+
+scenario "Viv Vision: power 2 attacks, no card" {
+  battlefield A: "Viv Vision, Teen Synthezoid"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Viv Vision, Teen Synthezoid"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Viv Vision: power 4 attacks, draws a card" {
+  battlefield A: "Viv Vision, Teen Synthezoid" with 2 +1/+1
+  start turn 2 A precombat_main
+  turn 2 A: attack "Viv Vision, Teen Synthezoid"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Bebop & Rocksteady: attacking with no card to discard sacrifices a permanent" {
+  battlefield A: "Bebop & Rocksteady", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Bebop & Rocksteady"
+  run_to turn 2 postcombat_main
+  assert graveyard A count 1
+}
+
+scenario "Bebop & Rocksteady: discarding a card keeps the permanents" {
+  battlefield A: "Bebop & Rocksteady", "Forest"
+  hand A: "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Bebop & Rocksteady"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Island"
+  assert battlefield A contains "Forest"
+  assert battlefield A contains "Bebop & Rocksteady"
+}
+
+scenario "Palani's Hatcher: an Egg is sacrificed for a 3/3 Dinosaur" {
+  battlefield A: 3 "Forest", 2 "Mountain"
+  hand A: "Palani's Hatcher"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Palani's Hatcher"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Dinosaur Egg"
+  assert battlefield A contains 1 "Dinosaur"
+  run_to turn 3 declare_attackers
+  assert battlefield A lacks "Dinosaur Egg"
+  assert battlefield A contains 2 "Dinosaur"
+}
+
+scenario "Palani's Hatcher: no Egg, no Dinosaur" {
+  battlefield A: "Palani's Hatcher"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert battlefield A lacks "Dinosaur"
+}
+
+scenario "Rakdos Joins Up: two counters on the returned creature; a legend dying deals its power" {
+  battlefield A: 3 "Swamp", 2 "Mountain", "Agent Phil Coulson" with 1 +1/+1
+  battlefield B: "Mountain"
+  graveyard A: "Grizzly Bears"
+  hand A: "Rakdos Joins Up"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rakdos Joins Up"
+  turn 1 A: trigger "Rakdos Joins Up" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Agent Phil Coulson"
+  turn 1 postcombat_main A: trigger "Rakdos Joins Up" targeting player B
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 2
+  assert power "Grizzly Bears" 4
+  assert graveyard A contains "Agent Phil Coulson"
+  assert life B 17
+}
+
+scenario "Faerie Fencing: without a Faerie, -X/-X only" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Faerie Fencing"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Faerie Fencing" x 1 targeting "Hill Giant"
+  run_to turn 1 declare_attackers
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+}
+
+scenario "Faerie Fencing: with a Faerie, an additional -3/-3" {
+  battlefield A: 2 "Swamp", "Zephyr Sprite"
+  battlefield B: "Craw Wurm" with 1 +1/+1
+  hand A: "Faerie Fencing"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Faerie Fencing" x 1 targeting "Craw Wurm"
+  run_to turn 1 declare_attackers
+  assert power "Craw Wurm" 3
+  assert toughness "Craw Wurm" 1
+}
+
+scenario "Toby, Beastie Befriender: the Beast can't attack alone" {
+  battlefield A: 3 "Plains"
+  hand A: "Toby, Beastie Befriender"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Toby, Beastie Befriender"
+  run_to turn 1 postcombat_main
+  assert power "Beast" 4
+  turn 3 A: attack "Beast"
+  run_to turn 3 postcombat_main
+  assert life B 20
+}
+
+scenario "Toby, Beastie Befriender: the Beast attacks with Toby" {
+  battlefield A: 3 "Plains"
+  hand A: "Toby, Beastie Befriender"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Toby, Beastie Befriender"
+  turn 3 A: attack "Beast", "Toby, Beastie Befriender"
+  run_to turn 3 postcombat_main
+  assert life B 15
+}
+
+scenario "Foggy Swamp Spirit Keeper: the second card makes a Spirit that can't block non-Spirits" {
+  battlefield A: "Foggy Swamp Spirit Keeper", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Opt", "Opt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Spirit"
+  run_to turn 3 precombat_main
+  assert battlefield A lacks "Spirit"
+  turn 3 A: cast "Opt"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Spirit"
+  turn 4 B: attack "Grizzly Bears"
+  illegal turn 4 A: block "Grizzly Bears" with "Spirit"
+  run_to turn 4 postcombat_main
+  assert life A 18
+}
+
+scenario "Kellan: destroying your own artifact draws a card" {
+  battlefield A: "Kellan, Inquisitive Prodigy // Tail the Suspect", "Aeolipile"
+  battlefield B: "Obelisk of Grixis"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Kellan, Inquisitive Prodigy"
+  turn 2 declare_attackers A: trigger "Kellan, Inquisitive Prodigy" targeting "Aeolipile"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Aeolipile"
+  assert hand A count 1
+}
+
+scenario "Kellan: destroying an opponent's artifact draws nothing" {
+  battlefield A: "Kellan, Inquisitive Prodigy // Tail the Suspect", "Aeolipile"
+  battlefield B: "Obelisk of Grixis"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Kellan, Inquisitive Prodigy"
+  turn 2 declare_attackers A: trigger "Kellan, Inquisitive Prodigy" targeting "Obelisk of Grixis"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Obelisk of Grixis"
+  assert hand A count 0
+}
+
+scenario "Tail the Suspect: a Clue and an additional land this turn" {
+  battlefield A: "Forest", "Island"
+  hand A: "Kellan, Inquisitive Prodigy // Tail the Suspect", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tail the Suspect"
+  turn 1 A: play "Forest"
+  turn 1 A: play "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Clue"
+  assert battlefield A contains "Plains"
+  assert battlefield A contains 2 "Forest"
+}
+
+scenario "Terminal Criticism destroys a blue creature, not a green one" {
+  battlefield A: "Swamp", "Swamp"
+  battlefield B: "Coral Merfolk", "Grizzly Bears"
+  hand A: "Terminal Criticism"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Terminal Criticism" targeting "Grizzly Bears"
+  turn 1 A: cast "Terminal Criticism" targeting "Coral Merfolk"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Coral Merfolk"
+  assert life A 21
+}
+
+scenario "Terminal Criticism destroys a red planeswalker" {
+  battlefield A: "Swamp", "Swamp"
+  battlefield B: "Sarkhan Vol"
+  hand A: "Terminal Criticism"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Terminal Criticism" targeting "Sarkhan Vol"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Sarkhan Vol"
+}
+
+scenario "Finneas: counters on the other Rabbits and creature tokens" {
+  battlefield A: "Finneas, Ace Archer", "Brave-Kin Duo", "Grizzly Bears", 2 "Plains"
+  hand A: "Raise the Alarm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: attack "Finneas, Ace Archer"
+  run_to turn 1 postcombat_main
+  assert counters "Brave-Kin Duo" +1/+1 1
+  assert counters oldest "Soldier" +1/+1 1
+  assert counters newest "Soldier" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+  assert counters "Finneas, Ace Archer" +1/+1 0
+  # Total power 2 + 2 + 2 + 2 + 2 = 10 after the counters: a card.
+  assert hand A count 1
+}
+
+scenario "Dawnstrike Vanguard: counters on each other creature, two tapped" {
+  battlefield A: "Dawnstrike Vanguard", "Grizzly Bears" tapped, "Hill Giant" tapped
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Dawnstrike Vanguard" +1/+1 0
+}
+
+scenario "Dawnstrike Vanguard: one tapped creature, no counters" {
+  battlefield A: "Dawnstrike Vanguard", "Grizzly Bears" tapped, "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Gloom Ripper: X counts Elves you control and Elf cards in your graveyard" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  graveyard A: "Defiant Elf"
+  hand A: "Gloom Ripper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gloom Ripper"
+  turn 1 A: trigger "Gloom Ripper" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 declare_attackers
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Wanderwine Farewell: a Merfolk for each permanent returned" {
+  battlefield A: 7 "Island", "Coral Merfolk"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Wanderwine Farewell"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wanderwine Farewell" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert battlefield A contains 2 "Merfolk"
+}
+
+scenario "Wanderwine Farewell: no Merfolk, no tokens" {
+  battlefield A: 7 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Wanderwine Farewell"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wanderwine Farewell" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert battlefield A lacks "Merfolk"
+}
+
+scenario "Web-Shooters: +1/+1, reach, and an attack trigger that taps" {
+  battlefield A: "Grizzly Bears", "Web-Shooters" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  run_to turn 2 begin_combat
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" reach
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: trigger "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert tapped "Hill Giant"
+  assert life B 17
+}
+
+scenario "Full Steam Ahead: +2/+2, trample, and at most one blocker" {
+  battlefield A: 5 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Coral Merfolk"
+  hand A: "Full Steam Ahead"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Full Steam Ahead"
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Coral Merfolk"
+  illegal turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert has "Grizzly Bears" trample
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Abuelo: the exiled creature returns at the beginning of the next end step" {
+  battlefield A: "Abuelo, Ancestral Echo", "Grizzly Bears", "Plains", "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Abuelo, Ancestral Echo" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  run_to turn 2
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Salvation Swan: the exiled creature returns with a flying counter" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Salvation Swan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Salvation Swan"
+  turn 1 A: trigger "Salvation Swan" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  run_to turn 2
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" flying 1
+  assert has "Grizzly Bears" flying
+}
+
+scenario "Salvation Swan: a creature with flying can't be chosen" {
+  battlefield A: 4 "Plains", "Zephyr Sprite", "Grizzly Bears"
+  hand A: "Salvation Swan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Salvation Swan"
+  illegal turn 1 A: trigger "Salvation Swan" targeting "Zephyr Sprite"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zephyr Sprite"
+}
+
+scenario "Everything Pizza: life and a card, a discard, 3 damage, three counters" {
+  battlefield A: "Everything Pizza", 3 "Plains", "Island", "Swamp", "Mountain", "Forest", "Grizzly Bears"
+  hand B: "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Everything Pizza" targeting player A, player B, "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert hand A count 1
+  assert graveyard B contains "Island"
+  assert life B 17
+  assert counters "Grizzly Bears" +1/+1 3
+  assert graveyard A contains "Everything Pizza"
+}
+
+scenario "Weapons Manufacturing: Munitions deals 2 damage as it leaves" {
+  battlefield A: "Weapons Manufacturing", 4 "Mountain"
+  hand A: "Aeolipile", "Shatter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Aeolipile"
+  turn 1 A: wait
+  turn 1 A: cast "Shatter" targeting "Munitions"
+  turn 1 A: trigger "Munitions" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Munitions"
+  assert life B 18
+}
+
+scenario "Flood the Engine: tapped, no abilities, doesn't untap" {
+  battlefield A: 3 "Island"
+  battlefield B: "Zephyr Sprite"
+  hand A: "Flood the Engine"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flood the Engine" targeting "Zephyr Sprite"
+  run_to turn 2 precombat_main
+  assert tapped "Zephyr Sprite"
+  assert has not "Zephyr Sprite" flying
+}
+
+scenario "Selfless Police Captain: its +1/+1 counters go to a creature you control" {
+  battlefield A: "Selfless Police Captain" with 2 +1/+1, "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Selfless Police Captain"
+  turn 1 A: trigger "Selfless Police Captain" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Selfless Police Captain"
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "Selfless Police Captain enters with a +1/+1 counter" {
+  battlefield A: 2 "Plains"
+  hand A: "Selfless Police Captain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Selfless Police Captain"
+  run_to turn 1 postcombat_main
+  assert counters "Selfless Police Captain" +1/+1 1
+}
+
+scenario "Kuja: four Wizards transform it; Trance Kuja doubles a Wizard's damage" {
+  battlefield A: "Kuja, Genome Sorcerer // Trance Kuja, Fate Defied", 2 "Prodigal Sorcerer"
+  start turn 1 A precombat_main
+  run_to turn 2
+  assert battlefield A contains "Trance Kuja, Fate Defied"
+  assert battlefield A contains "Wizard"
+  assert tapped "Wizard"
+  turn 3 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 18
+}
+
+scenario "Kuja: three Wizards, no transform; damage not doubled" {
+  battlefield A: "Kuja, Genome Sorcerer // Trance Kuja, Fate Defied", "Prodigal Sorcerer"
+  start turn 1 A precombat_main
+  run_to turn 2
+  assert battlefield A contains "Kuja, Genome Sorcerer"
+  turn 3 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 19
+}
+
+scenario "Clarion Conqueror: creatures', artifacts', and planeswalkers' abilities can't be activated" {
+  battlefield A: "Clarion Conqueror", "Prodigal Sorcerer", "Aeolipile", "Sarkhan Vol", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  illegal turn 1 A: activate "Aeolipile" targeting player B
+  illegal turn 1 A: activate "Sarkhan Vol" ability 1
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Clarion Conqueror: without it the abilities work" {
+  battlefield A: "Prodigal Sorcerer"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Multiversal Incursion: a nonlegendary token copy of each nontoken creature" {
+  battlefield A: 7 "Island", "Grizzly Bears", "Agent Phil Coulson"
+  hand A: "Multiversal Incursion"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Multiversal Incursion"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert battlefield A contains 2 "Agent Phil Coulson"
+}
+
+scenario "Hell to Pay: a tapped Treasure for each point of excess damage" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Hell to Pay"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hell to Pay" x 5 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains 2 "Treasure"
+  assert tapped oldest "Treasure"
+  assert tapped newest "Treasure"
+}
+
+scenario "Hell to Pay: no excess, no Treasure" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Hell to Pay"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hell to Pay" x 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "The Coming of Galactus: chapter II drains 2; chapter IV makes Galactus" {
+  battlefield A: "The Coming of Galactus" with 1 lore
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "The Coming of Galactus: Galactus attacks and destroys a land" {
+  battlefield A: "The Coming of Galactus" with 3 lore
+  battlefield B: "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Galactus"
+  assert graveyard A contains "The Coming of Galactus"
+  assert power "Galactus" 16
+  assert has "Galactus" flying
+  assert has "Galactus" trample
+  turn 3 A: attack "Galactus"
+  turn 3 declare_attackers A: trigger "Galactus" targeting "Forest"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Forest"
+  assert life B 4
+}
+
+scenario "Runescale Stormbrood: a noncreature spell and a Dragon spell pump it; a Bear doesn't" {
+  battlefield A: "Runescale Stormbrood", 5 "Mountain", 2 "Plains", 2 "Forest"
+  hand A: "Lightning Bolt", "Adult Gold Dragon", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Adult Gold Dragon"
+  run_to turn 1 declare_attackers
+  assert power "Runescale Stormbrood" 6
+}
+
+scenario "Chilling Screech counters a spell with mana value 2 or less" {
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Runescale Stormbrood // Chilling Screech"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Chilling Screech" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B lacks "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Salt Road Skirmish: two hasty Warriors, sacrificed at the end step" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Salt Road Skirmish"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Salt Road Skirmish" targeting "Hill Giant"
+  turn 1 A: attack "Warrior", "Warrior"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+  run_to turn 2
+  assert battlefield A lacks "Warrior"
+}
+
+scenario "Intimidation Campaign: each opponent loses 1, you gain 1, you draw; a crime returns it" {
+  battlefield A: "Island", "Swamp", "Plains", "Mountain"
+  hand A: "Intimidation Campaign", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Intimidation Campaign"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 21
+  assert hand A contains "Intimidation Campaign"
+  assert hand A count 2
+}

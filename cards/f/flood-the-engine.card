@@ -1,0 +1,8 @@
+card "Flood the Engine" {
+  oracle_id e16e2199-d821-49fd-94a0-30ecebd8bd4c
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature or Vehicle
+  triggered when this enters: tap enchanted permanent
+  static enchanted permanent: loses all abilities, has doesn't untap
+}

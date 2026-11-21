@@ -1,0 +1,7 @@
+token "1/1 colorless Spirit creature that can't block or be blocked by non-Spirits" {
+  name "Spirit"
+  type Creature — Spirit
+  pt 1/1
+  can't block non-Spirit creature
+  can't be blocked by non-Spirit creature
+}

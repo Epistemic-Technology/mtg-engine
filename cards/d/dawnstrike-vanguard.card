@@ -1,0 +1,8 @@
+card "Dawnstrike Vanguard" {
+  oracle_id 69892dc7-4087-447c-a41c-99cf3d5c0c12
+  cost {5}{W}
+  type Creature — Human Knight
+  pt 4/5
+  keywords lifelink
+  triggered at beginning of your end step if you control 2 tapped creature: put 1 +1/+1 counter on each creature you control other than this
+}

@@ -1,0 +1,10 @@
+card "Viv Vision, Teen Synthezoid" {
+  oracle_id f67a599c-200a-4831-9e73-126c7435a396
+  cost {3}
+  type Legendary Artifact Creature — Robot Hero
+  pt 2/2
+  pronoun she
+  keywords flying
+  label "Cybernetic Senses" triggered whenever this attacks: draw 1 card if this is with power 4 or greater
+  power-up {7}: put 2 +1/+1 counters on this
+}
