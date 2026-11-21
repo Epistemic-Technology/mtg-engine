@@ -312,6 +312,10 @@ pub enum AltCast {
     /// Cast for its sneak cost (CR 702.190a); kept by the permanent, which
     /// enters tapped and attacking.
     Sneak,
+    /// Cast for its impending cost (CR 702.176a); kept by the permanent,
+    /// which enters with time counters and isn't a creature while it has
+    /// one.
+    Impending,
     /// Cast for its web-slinging cost (CR 702.188a); kept by the
     /// permanent ("if it was cast using web-slinging").
     WebSlinging,
@@ -2972,6 +2976,9 @@ impl GameState {
             // Judged by `condition_for`, which knows the triggering spell.
             C::ManaSpent { that: true, .. } => false,
             C::NoManaSpent => self.spent_on(source).count(crate::card::SpentKind::Total) == 0,
+            C::Impending => self.objects.get(source).is_some_and(|o| {
+                o.alt == AltCast::Impending && o.counters(crate::card::CounterKind::Time) > 0
+            }),
             C::WebSlung(_) => match self.objects.get(source) {
                 Some(o) => o.alt == AltCast::WebSlinging,
                 None => self

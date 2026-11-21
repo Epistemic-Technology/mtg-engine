@@ -142,6 +142,8 @@ pub enum Action {
         /// `webslung`: cast for the web-slinging cost (CR 702.188a),
         /// returning the tapped creature named by `sacrificing`.
         webslung: bool,
+        /// `impending`: cast for the impending cost (CR 702.176a).
+        impending: bool,
         /// `alternative`: cast for the alternative cost the card's text
         /// offers (CR 118.9, "rather than pay this spell's mana cost").
         alternative: bool,

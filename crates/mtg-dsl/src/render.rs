@@ -792,6 +792,15 @@ pub fn self_noun(card: &Card) -> String {
     if card.kind == Kind::Token {
         return "token".to_string();
     }
+    // CR 702.176a: a creature with impending isn't always a creature
+    // ("Whenever this permanent enters or attacks").
+    if card
+        .abilities
+        .iter()
+        .any(|a| matches!(a, Ability::Mechanic(crate::ast::Mechanic::Impending(..))))
+    {
+        return "permanent".to_string();
+    }
     if card.types.contains(&CardType::Creature) {
         return "creature".to_string();
     }
@@ -9445,6 +9454,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Kicked => "it was kicked".to_string(),
         StaticCond::NotKicked if has_gift(card) => "the gift wasn't promised".to_string(),
         StaticCond::NotKicked => format!("this {} wasn't kicked", kicked_noun(card)),
+        StaticCond::Impending => {
+            "this permanent's impending cost was paid and it has a time counter on it".to_string()
+        }
         StaticCond::Bargained
             if card.types.iter().any(|t| {
                 matches!(
@@ -10627,6 +10639,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Sneak(c) => format!("Sneak {c}"),
             crate::ast::Mechanic::Harmonize(c) => format!("Harmonize {c}"),
             crate::ast::Mechanic::WebSlinging(c) => format!("Web-slinging {c}"),
+            crate::ast::Mechanic::Impending(n, c) => format!("Impending {n}\u{2014}{c}"),
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
             crate::ast::Mechanic::Modular(n) => format!("Modular {n}"),

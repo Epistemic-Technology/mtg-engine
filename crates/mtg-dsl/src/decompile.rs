@@ -473,6 +473,7 @@ impl Decompiler<'_> {
             StaticCondition::Beheld => StaticCond::Beheld,
             StaticCondition::NoManaSpent => StaticCond::NoManaSpent,
             StaticCondition::NotKicked => StaticCond::NotKicked,
+            StaticCondition::Impending => StaticCond::Impending,
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
             StaticCondition::WebSlung(p) => StaticCond::WebSlung(*p),
             StaticCondition::OptionalCostPaid => StaticCond::EvidenceCollected,

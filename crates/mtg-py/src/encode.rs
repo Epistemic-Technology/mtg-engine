@@ -198,7 +198,8 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::CastDash(_)
         | Choice::CastWarp(_)
         | Choice::CastSneak(_)
-        | Choice::CastWebSlinging(_) => 37,
+        | Choice::CastWebSlinging(_)
+        | Choice::CastImpending(_) => 37,
         // The one-hot is full (`CHOICE_KINDS`): overload counts as an
         // alternative cost.
         Choice::CastAlt(_)
@@ -420,6 +421,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::CastWarp(id)
             | Choice::CastSneak(id)
             | Choice::CastWebSlinging(id)
+            | Choice::CastImpending(id)
             | Choice::CastAlt(id)
             | Choice::CastBestow(id)
             | Choice::CastOverload(id)

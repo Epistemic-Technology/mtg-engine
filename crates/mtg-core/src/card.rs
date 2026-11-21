@@ -2337,6 +2337,10 @@ pub enum StaticCondition {
     /// is wording only: 0 "it was", 1 "he was", 2 "she was", 3 "they
     /// were".
     WebSlung(u8),
+    /// "As long as this permanent's impending cost was paid and it has a
+    /// time counter on it" (CR 702.176a): impending's static ability and
+    /// end step trigger.
+    Impending,
 }
 
 /// What a "mana spent to cast" condition or count looks at (CR 601.2h).
@@ -6032,6 +6036,12 @@ pub struct CardDef {
     /// mana cost.
     #[serde(default)]
     pub web_slinging: Option<Box<ManaCost>>,
+    /// Impending N—[cost] (CR 702.176): cast for this cost instead of its
+    /// mana cost, the permanent enters with N time counters; it isn't a
+    /// creature while it has one (an ordinary static ability with the
+    /// condition `Impending`).
+    #[serde(default)]
+    pub impending: Option<Box<(u32, ManaCost)>>,
     /// Harmonize (CR 702.180): cast from the graveyard for this cost,
     /// tapping up to one untapped creature its caster controls to reduce
     /// the cost by that creature's power in generic mana; exiled as it
@@ -8112,6 +8122,7 @@ impl Builder {
             warp: None,
             sneak: None,
             web_slinging: None,
+            impending: None,
             harmonize: None,
             bestow: None,
             bestow_face: None,
@@ -8347,6 +8358,13 @@ impl Builder {
     #[must_use]
     pub fn sneak(mut self, cost: ManaCost) -> Self {
         self.0.sneak = Some(Box::new(cost));
+        self
+    }
+
+    /// Impending N (CR 702.176).
+    #[must_use]
+    pub fn impending(mut self, n: u32, cost: ManaCost) -> Self {
+        self.0.impending = Some(Box::new((n, cost)));
         self
     }
 

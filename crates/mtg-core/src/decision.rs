@@ -245,6 +245,8 @@ pub enum Choice {
     /// Cast a card from hand for its sneak cost (CR 702.190a); the
     /// unblocked attacker to return is chosen with the costs.
     CastSneak(ObjId),
+    /// Cast a card for its impending cost (CR 702.176a).
+    CastImpending(ObjId),
     /// Cast a card for its web-slinging cost (CR 702.188a); the tapped
     /// creature to return is chosen with the costs.
     CastWebSlinging(ObjId),
@@ -382,6 +384,7 @@ impl Choice {
             Choice::CastDash(id) => format!("cast {} for its dash cost", name(id)),
             Choice::CastWarp(id) => format!("cast {} for its warp cost", name(id)),
             Choice::CastSneak(id) => format!("cast {} for its sneak cost", name(id)),
+            Choice::CastImpending(id) => format!("cast {} for its impending cost", name(id)),
             Choice::CastWebSlinging(id) => {
                 format!("cast {} for its web-slinging cost", name(id))
             }

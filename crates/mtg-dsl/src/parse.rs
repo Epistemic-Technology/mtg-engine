@@ -1604,6 +1604,13 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::LivingWeapon))
             }
+            "impending" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Impending(n, c)))
+            }
             "web"
                 if self.at_words(&["web", "slinging"])
                     && matches!(self.peek_at(2), Some(Tok::Sym(_))) =>
@@ -3034,6 +3041,9 @@ impl P {
         }
         if self.eat_words(&["not", "kicked"]) {
             return Ok(StaticCond::NotKicked);
+        }
+        if self.eat_word("impending") {
+            return Ok(StaticCond::Impending);
         }
         for (i, w) in ["web", "he", "she", "they"].iter().enumerate() {
             let words: &[&str] = if i == 0 {

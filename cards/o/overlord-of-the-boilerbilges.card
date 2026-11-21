@@ -1,0 +1,8 @@
+card "Overlord of the Boilerbilges" {
+  oracle_id c2db05e0-879b-43e4-9009-37a95fd848dc
+  cost {4}{R}{R}
+  type Enchantment Creature — Avatar Horror
+  pt 5/5
+  impending 4 {2}{R}{R}
+  triggered whenever this enters or attacks: deal 4 damage to any target
+}

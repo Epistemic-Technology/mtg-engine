@@ -380,6 +380,7 @@ impl GameState {
                         | AltCast::Dash
                         | AltCast::Sneak
                         | AltCast::WebSlinging
+                        | AltCast::Impending
                 ) {
                 old.alt
             } else {

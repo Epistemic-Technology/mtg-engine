@@ -1677,6 +1677,9 @@ impl GameState {
             (Flow::Priority, Choice::CastSneak(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Sneak);
             }
+            (Flow::Priority, Choice::CastImpending(card)) => {
+                self.begin_cast(player, card, crate::state::AltCast::Impending);
+            }
             (Flow::Priority, Choice::CastWebSlinging(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::WebSlinging);
             }

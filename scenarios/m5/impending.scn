@@ -1,0 +1,79 @@
+# Impending (CR 702.176): "Impending N—[cost]" means "You may choose to
+# pay [cost] rather than pay this spell's mana cost", "If you chose to pay
+# this permanent's impending cost, it enters with N time counters on it",
+# "As long as this permanent's impending cost was paid and it has a time
+# counter on it, it's not a creature", and "At the beginning of your end
+# step, if this permanent's impending cost was paid and it has a time
+# counter on it, remove a time counter from it." `cast "X" impending`.
+
+scenario "impending: enters with time counters, not a creature, enters trigger" {
+  battlefield A: 3 "Island"
+  hand A: "Overlord of the Floodpits", "Island"
+  library A: 5 "Island"
+  turn 1 A: cast "Overlord of the Floodpits" impending
+  run_to turn 1 postcombat_main
+  assert counters "Overlord of the Floodpits" time 4
+  assert is not "Overlord of the Floodpits" creature
+  assert is "Overlord of the Floodpits" enchantment
+  # Drew two, discarded one: the Island and one card.
+  assert hand A count 2
+  assert graveyard A count 1
+}
+
+scenario "impending: a time counter comes off at the beginning of your end step" {
+  battlefield A: 4 "Mountain"
+  hand A: "Overlord of the Boilerbilges"
+  library A: 5 "Mountain"
+  library B: 5 "Island"
+  turn 1 A: cast "Overlord of the Boilerbilges" impending
+  turn 1 A: trigger "Overlord of the Boilerbilges" targeting player B
+  run_to turn 2 upkeep
+  assert counters "Overlord of the Boilerbilges" time 3
+  assert life B 16
+  assert is not "Overlord of the Boilerbilges" creature
+}
+
+scenario "impending: not on the opponent's end step" {
+  battlefield A: 4 "Mountain"
+  hand A: "Overlord of the Boilerbilges"
+  library A: 5 "Mountain"
+  library B: 5 "Island"
+  turn 1 A: cast "Overlord of the Boilerbilges" impending
+  turn 1 A: trigger "Overlord of the Boilerbilges" targeting player B
+  run_to turn 3 upkeep
+  assert counters "Overlord of the Boilerbilges" time 3
+}
+
+scenario "impending: a creature once the last time counter is gone" {
+  battlefield A: 4 "Plains"
+  hand A: "Overlord of the Mistmoors"
+  library A: 10 "Plains"
+  library B: 10 "Island"
+  turn 1 A: cast "Overlord of the Mistmoors" impending
+  run_to turn 7 precombat_main
+  assert counters "Overlord of the Mistmoors" time 1
+  assert is not "Overlord of the Mistmoors" creature
+  run_to turn 9 precombat_main
+  assert counters "Overlord of the Mistmoors" time 0
+  assert is "Overlord of the Mistmoors" creature
+  assert power "Overlord of the Mistmoors" 6
+  assert battlefield A contains 2 "Insect"
+}
+
+scenario "impending: cast for its mana cost, an ordinary creature" {
+  battlefield A: 5 "Island"
+  hand A: "Overlord of the Floodpits"
+  library A: 5 "Island"
+  turn 1 A: cast "Overlord of the Floodpits"
+  run_to turn 1 postcombat_main
+  assert counters "Overlord of the Floodpits" time 0
+  assert is "Overlord of the Floodpits" creature
+}
+
+scenario "impending: not without the impending cost's mana" {
+  battlefield A: 2 "Island"
+  hand A: "Overlord of the Floodpits"
+  illegal turn 1 A: cast "Overlord of the Floodpits" impending
+  run_to turn 1 postcombat_main
+  assert hand A contains "Overlord of the Floodpits"
+}

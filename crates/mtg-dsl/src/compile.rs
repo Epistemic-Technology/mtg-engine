@@ -501,6 +501,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Vanishing(n)) => {
                     b = b.vanishing(*n);
                 }
+                Ability::Mechanic(Mechanic::Impending(n, cost)) => {
+                    b = b.impending(*n, cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Morph(cost)) => {
                     b = b.morph(cost.clone(), mtg_core::card::MorphKind::Morph);
                 }
@@ -945,6 +948,21 @@ impl Compiler<'_> {
             // can't block as long as it has a +1/+1 counter on it."
             if let Ability::Mechanic(Mechanic::Unleash) = a {
                 b = b.ability(unleash_static());
+            }
+            // CR 702.176a: impending's "As long as this permanent's
+            // impending cost was paid and it has a time counter on it, it's
+            // not a creature": its other card types replace its own.
+            if let Ability::Mechanic(Mechanic::Impending(..)) = a {
+                b = b.ability(AbilityDef::Static(StaticAbility {
+                    affected: ObjFilter::this(),
+                    parts: vec![Modification::SetTypes(mtg_core::card::TypeSet::of(
+                        card.types
+                            .iter()
+                            .copied()
+                            .filter(|t| *t != mtg_core::card::CardType::Creature),
+                    ))],
+                    condition: Some(StaticCondition::Impending),
+                }));
             }
             // CR 702.95a: soulbond's second trigger, "Whenever another
             // creature you control enters, ... you may pair that creature
@@ -1402,6 +1420,7 @@ impl Compiler<'_> {
             StaticCond::Beheld => StaticCondition::Beheld,
             StaticCond::NoManaSpent => StaticCondition::NoManaSpent,
             StaticCond::NotKicked => StaticCondition::NotKicked,
+            StaticCond::Impending => StaticCondition::Impending,
             StaticCond::SneakPaid(p) => StaticCondition::SneakPaid(*p),
             StaticCond::WebSlung(p) => StaticCondition::WebSlung(*p),
             StaticCond::EvidenceCollected | StaticCond::AdditionalCostPaid => {
@@ -4693,6 +4712,24 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             ],
         },
         Mechanic::Soulbond => soulbond_trigger(false),
+        // CR 702.176a: "At the beginning of your end step, if this
+        // permanent's impending cost was paid and it has a time counter on
+        // it, remove a time counter from it."
+        Mechanic::Impending(..) => Ability::Triggered {
+            limit: mtg_core::card::TurnLimit::None,
+            from_graveyard: false,
+            trigger: Trigger::BeginningOfStep {
+                step: mtg_core::turn::Step::End,
+                whose: Who::You,
+            },
+            condition: Some(crate::ast::TrigCond::Static(StaticCond::Impending)),
+            targets: Vec::new(),
+            effects: vec![Sentence::new(vec![E::RemoveCounters {
+                kind: mtg_core::card::CounterKind::Time,
+                count: Num::N(1),
+                to: Recipient::Source,
+            }])],
+        },
         // CR 702.24a.
         Mechanic::CumulativeUpkeep(cost) => Ability::Triggered {
             limit: mtg_core::card::TurnLimit::None,

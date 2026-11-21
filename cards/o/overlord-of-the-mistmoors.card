@@ -1,0 +1,8 @@
+card "Overlord of the Mistmoors" {
+  oracle_id 7e64b1dc-a238-4bff-98ff-2bea44340568
+  cost {5}{W}{W}
+  type Enchantment Creature — Avatar Horror
+  pt 6/6
+  impending 4 {2}{W}{W}
+  triggered whenever this enters or attacks: create 2 "2/1 white Insect creature with flying"
+}

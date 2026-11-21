@@ -1,0 +1,9 @@
+card "Overlord of the Floodpits" {
+  oracle_id 31196f0b-33ee-4981-ac97-24226e8b405f
+  cost {3}{U}{U}
+  type Enchantment Creature — Avatar Horror
+  pt 5/3
+  impending 4 {1}{U}{U}
+  keywords flying
+  triggered whenever this enters or attacks: draw 2 cards then discard 1 card
+}

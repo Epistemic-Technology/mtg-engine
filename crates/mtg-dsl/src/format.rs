@@ -4031,6 +4031,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Saddled => "saddled".to_string(),
         StaticCond::NoManaSpent => "no mana spent".to_string(),
         StaticCond::NotKicked => "not kicked".to_string(),
+        StaticCond::Impending => "impending".to_string(),
         StaticCond::WebSlung(p) => format!(
             "{}web slung",
             match p {
@@ -4683,6 +4684,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Sneak(c) => format!("sneak {c}"),
                 crate::ast::Mechanic::Harmonize(c) => format!("harmonize {c}"),
                 crate::ast::Mechanic::WebSlinging(c) => format!("web slinging {c}"),
+                crate::ast::Mechanic::Impending(n, c) => format!("impending {n} {c}"),
                 crate::ast::Mechanic::Suspend(n, c) => format!("suspend {n} {c}"),
                 crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),
                 crate::ast::Mechanic::Modular(n) => format!("modular {n}"),

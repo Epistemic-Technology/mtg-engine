@@ -191,6 +191,20 @@ impl GameState {
             {
                 options.push(Choice::CastWebSlinging(*id));
             }
+            // CR 702.176a: cast for the impending cost.
+            if let Some(imp) = def.impending.as_deref()
+                && (sorcery_timing || self.has_flash(p, def, *id))
+                && self.payable_for(
+                    p,
+                    &sources,
+                    &imp.1.requirements(0),
+                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                )
+                && self.additional_payable(p, &def.additional, *id)
+                && self.targets_available(p, def.unkicked_cast_targets(), Some(*id))
+            {
+                options.push(Choice::CastImpending(*id));
+            }
             // CR 702.103a: cast for the bestow cost, as an Aura spell.
             if let Some(face) = def.bestow_face
                 && self.bestow_castable(p, def, face, *id, sorcery_timing, &sources, &changers)
@@ -517,6 +531,7 @@ impl GameState {
             | Choice::CastWarp(id)
             | Choice::CastSneak(id)
             | Choice::CastWebSlinging(id)
+            | Choice::CastImpending(id)
             | Choice::CastHarmonize { card: id, .. }
             | Choice::CastAlt(id) => !(creatures && creature(id)),
             Choice::CastFaceDown(_) => !creatures,
@@ -3218,6 +3233,9 @@ impl GameState {
             }
             (_, false) if o.alt == AltCast::Sneak && def.sneak.is_some() => {
                 def.sneak.as_ref().expect("checked").requirements(x)
+            }
+            (_, false) if o.alt == AltCast::Impending && def.impending.is_some() => {
+                def.impending.as_ref().expect("checked").1.requirements(x)
             }
             (_, false) if o.alt == AltCast::WebSlinging && def.web_slinging.is_some() => {
                 def.web_slinging.as_ref().expect("checked").requirements(x)
@@ -6260,6 +6278,20 @@ impl GameState {
                 self.choose_copy_on_entering(spell);
                 if obj.alt == AltCast::Sneak {
                     self.enter_sneaking(spell, obj.controller);
+                } else if obj.alt == AltCast::Impending
+                    && let Some(n) = def.impending.as_deref().map(|i| i.0)
+                {
+                    // CR 702.176a: "it enters with N time counters".
+                    self.put_onto_battlefield_with(
+                        spell,
+                        obj.controller,
+                        super::replace::Enter {
+                            tapped: false,
+                            counters: Some((CounterKind::Time, n)),
+                            haste: false,
+                            prepared: false,
+                        },
+                    );
                 } else {
                     self.put_onto_battlefield(spell, obj.controller);
                 }

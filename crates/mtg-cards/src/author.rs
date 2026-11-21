@@ -187,6 +187,7 @@ const TEMPLATED_TAGS: &[&str] = &[
     "Harmonize",
     "Web-slinging",
     "Forage",
+    "Impending",
     "Endure",
     "Spree",
     "Gift",
@@ -2635,7 +2636,9 @@ fn trigger_text(head: &str) -> Option<String> {
             "when this enters or dies"
         }
         "Whenever this creature enters or dies" => "whenever this enters or dies",
-        "Whenever this creature enters or attacks" => "whenever this enters or attacks",
+        // "this permanent": a card with impending (CR 702.176a).
+        "Whenever this creature enters or attacks"
+        | "Whenever this permanent enters or attacks" => "whenever this enters or attacks",
         "When this creature leaves the battlefield" => "when this leaves the battlefield",
         "When this creature enters or leaves the battlefield"
         | "When this artifact enters or leaves the battlefield" => {
@@ -2676,7 +2679,8 @@ fn trigger_text(head: &str) -> Option<String> {
         | "Whenever one or more creature cards leave your graveyard"
         | "Whenever you expend 4"
         | "Whenever you expend 8"
-        | "Whenever you collect evidence" => {
+        | "Whenever you collect evidence"
+        | "Whenever you forage" => {
             return Some(lowercase_first(head));
         }
         "Whenever a creature dealt damage by this creature this turn dies" => {
@@ -3644,6 +3648,16 @@ impl Builder<'_> {
             self.statements.push(format!("equip {{{}}}", cap(&c, 1)));
             return Ok(());
         }
+        // A flavor word before equip ("Perseus's Bow — Equip {6}", job
+        // select Equipment).
+        if let Some(c) = Regex::new(r#"^([A-Z][^"—]*) — Equip \{(\d+)\}$"#)
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("label \"{}\" equip {{{}}}", cap(&c, 1), cap(&c, 2)));
+            return Ok(());
+        }
         if let Some(c) = Regex::new(r"^\{T\}: Add ((?:\{[WUBRGC]\})(?: or \{[WUBRGC]\})*)\.$")
             .unwrap()
             .captures(line)
@@ -3853,6 +3867,15 @@ impl Builder<'_> {
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        // CR 702.176: "Impending 4—{1}{U}{U}".
+        if let Some(c) = Regex::new(r"^Impending (\d+)—((?:\{[0-9WUBRGCX/]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("impending {} {}", cap(&c, 1), cap(&c, 2)));
             return Ok(());
         }
         // CR 702.188: "Web-slinging {W}".
@@ -4881,6 +4904,12 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         if !KEYWORDS.contains(&k.as_str())
             && !TEMPLATED_TAGS.contains(&k.as_str())
             && !ABILITY_WORDS.contains(&k.as_str())
+            // A flavor word before equip ("Hagneia — Equip {3}") is tagged
+            // as a keyword; the line is templated as a labeled equip.
+            && !s
+                .oracle_text
+                .as_deref()
+                .is_some_and(|t| t.contains(&format!("{k} \u{2014} Equip {{")))
         {
             return Err(Skip::Keyword(k.clone()));
         }
