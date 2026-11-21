@@ -1,0 +1,6 @@
+card "Heartwarming Redemption" {
+  oracle_id 011af4c1-e8ed-44bf-b7b5-dfdc18524cd0
+  cost {2}{R}{W}
+  type Instant
+  spell: discard all cards in hand then draw count that many plus 1 discarded this way cards; you gain count equal hand life
+}

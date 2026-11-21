@@ -1,0 +1,8 @@
+card "Sokka, Bold Boomeranger" {
+  oracle_id bdbec6d5-0f10-4114-b709-4402a44debdf
+  cost {U}{R}
+  type Legendary Creature — Human Warrior Ally
+  pt 1/1
+  triggered when this enters: discard up to 2 cards chosen then draw count that many discarded this way cards
+  triggered whenever you cast artifact or Lesson spell: put 1 +1/+1 counter on this
+}

@@ -5602,8 +5602,13 @@ impl P {
     fn chosen_act(&mut self) -> R<Effect> {
         use mtg_core::card::ChooseAct;
         let verb = self.word()?;
-        let up_to = self.eat_words(&["up", "to"]);
-        let count = self.num()?;
+        // `discard any number cards chosen`: "discard any number of
+        // cards".
+        let (up_to, count) = if self.eat_words(&["any", "number"]) {
+            (true, Num::N(crate::ast::ANY_NUMBER))
+        } else {
+            (self.eat_words(&["up", "to"]), self.num()?)
+        };
         let card_filter = |p: &mut Self| -> R<Filter> {
             let f = if p.at_word("card") || p.at_word("cards") {
                 Filter::default()
@@ -7343,6 +7348,10 @@ impl P {
     /// consumed) otherwise.
     fn this_way_count(&mut self) -> R<Option<crate::ast::CountExpr>> {
         use crate::ast::CountExpr;
+        // `plus 1 discarded this way`: the prefix form, read by the caller.
+        if self.at_word("plus") {
+            return Ok(None);
+        }
         if self.eat_words(&["life", "lost", "this", "way"]) {
             return Ok(Some(CountExpr::LifeLostThisWay));
         }

@@ -1,0 +1,9 @@
+card "Cavalier of Flame" {
+  oracle_id 98b19afc-7696-46b9-96f0-7f7c60003e1c
+  cost {2}{R}{R}{R}
+  type Creature — Elemental Knight
+  pt 6/5
+  activated {1}{R}: each creature you control gets +1/+0 and gains haste
+  triggered when this enters: discard any number cards chosen then draw count that many discarded this way cards
+  triggered when this dies: deal count where graveyard land damage to each opponent and each planeswalker they control
+}

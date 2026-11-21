@@ -1920,7 +1920,11 @@ impl Fmt {
                 returns,
             } => {
                 use mtg_core::card::ChooseAct;
-                let n = format!("{}{}", if *up_to { "up to " } else { "" }, num(*count));
+                let n = if *count == Num::N(crate::ast::ANY_NUMBER) {
+                    "any number".to_string()
+                } else {
+                    format!("{}{}", if *up_to { "up to " } else { "" }, num(*count))
+                };
                 let unfiltered = *f == Filter::default();
                 let f = filter(f);
                 let cs = cards(*count);

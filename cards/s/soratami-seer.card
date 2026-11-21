@@ -1,0 +1,8 @@
+card "Soratami Seer" {
+  oracle_id 7b4ff283-ab2d-4eb2-8bd3-7398e4da0e95
+  cost {4}{U}
+  type Creature — Moonfolk Wizard
+  pt 2/3
+  keywords flying
+  activated {4}, return 2 land you control: discard all cards in hand then draw count that many discarded this way cards
+}

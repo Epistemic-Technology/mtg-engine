@@ -3535,8 +3535,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     count_phrase_in(&count.expr, ctx, false)
                 );
             }
-            // "then draw that many cards".
-            CountStyle::ThatMany => c.text = c.text.replacen("X ", "that many ", 1),
+            // "then draw that many cards"; `count that many plus 1
+            // discarded this way`: "then draw that many cards plus one".
+            CountStyle::ThatMany => {
+                c.text = c.text.replacen("X ", "that many ", 1);
+                if let crate::ast::CountExpr::Plus { n, .. } = &count.expr {
+                    let _ = write!(c.text, " plus {}", count_words(Num::N(*n), "one"));
+                }
+            }
             // "unless its controller pays {2} for each Wizard on the
             // battlefield", "{2} plus an additional {1} for each Faerie you
             // control".
@@ -5493,7 +5499,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         } => {
             use mtg_core::card::ChooseAct;
             let one = *count == Num::N(1) && !*up_to;
-            let n = if *up_to {
+            let n = if *count == Num::N(crate::ast::ANY_NUMBER) {
+                "any number of".to_string()
+            } else if *up_to {
                 format!("up to {}", count_words(*count, "one"))
             } else {
                 count_words(*count, "a")

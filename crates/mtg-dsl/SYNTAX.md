@@ -1939,7 +1939,11 @@ sacrificed creature was legendary, draw 3 cards instead`. Counts: `count
 each 2 enchantment destroyed this way` ("2 life for each enchantment
 destroyed this way"), `count equal life lost this way` ("life equal to the
 life lost this way"), `count that many discarded this way` ("draw that
-many cards"), `count equal damage dealt this way` ("life equal to the
+many cards"; `discard up to 2 cards chosen then draw count that many
+discarded this way cards`: "discard up to two cards, then draw that many
+cards", `discard any number cards chosen ...`: "discard any number of
+cards, ..."; `count that many plus 1 discarded this way`: "draw that many
+cards plus one"), `count equal damage dealt this way` ("life equal to the
 damage dealt this way", CR 120.3), `count equal excess damage dealt this
 way` (CR 120.4a, and `if excess damage dealt this way, create 1
 "Lander"`: "If excess damage was dealt this way, ..."; beyond lethal damage, given damage already marked, or

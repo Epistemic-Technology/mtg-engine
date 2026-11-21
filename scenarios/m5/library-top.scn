@@ -155,6 +155,47 @@ scenario "play from top: Johann casts one instant or sorcery from the top each t
   assert library A count 2
 }
 
+scenario "discard then draw: Cavalier of Flame discards any number of cards and draws that many" {
+  battlefield A: 5 "Mountain"
+  hand A: "Cavalier of Flame", "Shock", "Island", "Forest"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Plains"
+  turn 1 A: cast "Cavalier of Flame"
+  turn 1 A: choose "Shock"
+  turn 1 A: choose "Island"
+  turn 1 A: choose done
+  run_to turn 1 end
+  assert graveyard A contains "Shock"
+  assert graveyard A contains "Island"
+  assert hand A contains "Forest"
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert hand A count 3
+}
+
+scenario "discard then draw: Sokka discards none and draws none" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Sokka, Bold Boomeranger", "Shock"
+  library A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Sokka, Bold Boomeranger"
+  turn 1 A: choose done
+  run_to turn 1 end
+  assert hand A contains "Shock"
+  assert hand A count 1
+  assert library A count 2
+}
+
+scenario "discard then draw: Heartwarming Redemption draws that many plus one" {
+  battlefield A: 3 "Mountain", "Plains"
+  hand A: "Heartwarming Redemption", "Shock", "Island"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Plains"
+  life A 10
+  turn 1 A: cast "Heartwarming Redemption"
+  run_to turn 1 end
+  assert graveyard A contains "Shock"
+  assert hand A count 3
+  assert life A 13
+}
+
 scenario "play from top: Johann's permission returns the next turn" {
   battlefield A: "Johann, Apprentice Sorcerer", 4 "Mountain"
   library A: "Shock", "Lightning Bolt", "Island", "Island"
