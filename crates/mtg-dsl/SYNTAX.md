@@ -642,7 +642,12 @@ gains vigilance until end of turn`, `you lose count equal mana value of it
 life` after `return up to 1 target Vampire card ...`; `it deals` stays the
 triggering object. In a trigger with no triggering object (`at beginning
 of ...`, `whenever you gain life`, `whenever you attack`) `it` is an
-error: write `this` or `target N`. In a triggered ability `toughness of
+error: write `this` or `target N`. In any ability, `it` after `create 1
+"..."` (or a token copy), before another target, is that token ("Create a
+0/0 ... token. Put X +1/+1 counters on it."), as `that token` is; and
+`that player` after a target player is that player, in a triggered
+ability too ("Target player mills three cards. ... that player mills ten
+cards instead"). In a triggered ability `toughness of
 it`, `power of it`, `mana value of it` ("its toughness") and `power of
 that creature` ("that creature's power") otherwise read the triggering
 object, as it last existed once it has left (CR 608.2h): `triggered when enchanted creature dies: its

@@ -49,6 +49,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         in_trigger: false,
         it_source: false,
         no_trigger_obj: false,
+        created_at: None,
         in_spell: false,
         group_named: false,
         subject: None,
@@ -550,6 +551,10 @@ struct P {
     /// beginning of your upkeep", "whenever you gain life"): there is no
     /// triggering object for `it` to be.
     no_trigger_obj: bool,
+    /// An effect of this ability created one token, with this many
+    /// targets declared then: `it` after it is that token ("Create a 1/1
+    /// ... token. Put X +1/+1 counters on it.") until a target is named.
+    created_at: Option<usize>,
     /// Inside an instant or sorcery's own effects (`spell:`, or the modes
     /// of a modal spell): `it` after a target is that target, since the
     /// spell itself can only be the "it" that deals damage.
@@ -1349,6 +1354,7 @@ impl P {
         self.in_trigger = false;
         self.it_source = false;
         self.no_trigger_obj = false;
+        self.created_at = None;
         self.in_spell = false;
         self.group_named = false;
         self.returned = None;
@@ -7440,9 +7446,11 @@ impl P {
                     self.expect_word("of")?;
                     let of = self.recipient()?;
                     let except = self.except_clause();
+                    self.created_at = Some(self.targets.len());
                     return Ok(Effect::CreateTokenCopy { of, except });
                 }
                 let count = self.num()?;
+                self.created_at = (count == Num::N(1)).then_some(self.targets.len());
                 let tapped = self.eat_word("tapped");
                 let token = self.string()?;
                 self.eat_word("token");
@@ -8381,6 +8389,7 @@ impl P {
             in_trigger: self.in_trigger,
             it_source: self.it_source,
             no_trigger_obj: self.no_trigger_obj,
+            created_at: self.created_at,
             in_spell: self.in_spell,
             group_named: self.group_named,
             subject: None,
@@ -8622,6 +8631,10 @@ impl P {
         if self.eat_word("it") {
             if self.in_delayed {
                 return Ok(Recipient::SameObject);
+            }
+            // After "create a ... token", the token.
+            if self.created_at == Some(self.targets.len()) && !self.at_word("deals") {
+                return Ok(Recipient::CreatedObject);
             }
             if self.in_trigger && !self.it_source {
                 // After a target the ability names, `it` is that target
@@ -8873,9 +8886,10 @@ impl P {
             return Ok(Recipient::ThatOwner(i));
         }
         // Likewise "that player" after a target player ("Target player
-        // discards two cards. ... it deals 3 damage to that player").
-        if !self.in_trigger
-            && self.at_words(&["that", "player"])
+        // discards two cards. ... it deals 3 damage to that player"), in
+        // a triggered ability too ("target player mills three cards ...
+        // that player mills ten cards instead").
+        if self.at_words(&["that", "player"])
             && self.targets.last().is_some_and(|t| {
                 matches!(
                     t,
@@ -9037,6 +9051,7 @@ impl P {
                         in_trigger: false,
                         it_source: false,
                         no_trigger_obj: false,
+                        created_at: None,
                         in_spell: false,
                         group_named: false,
                         subject: None,

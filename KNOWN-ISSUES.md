@@ -53,10 +53,6 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **`that player mills N` after a targeted player** mills the caster
-  (Exhibition Tidecaller; use `that target 1 mills`).
-- **`put counters on it` after `create`** puts none on the new token
-  (Lasting Fayth; use `on that token`).
 - **`<target> becomes a copy of <target>`** drops the first target and
   renders the source becoming the copy (Shuri, Wakandan Inventor).
 - **`each player may discard hand and draw`** applies only to the
