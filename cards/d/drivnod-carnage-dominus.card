@@ -1,0 +1,8 @@
+card "Drivnod, Carnage Dominus" {
+  oracle_id 51780f71-bf60-4208-94ea-76fa84790fb6
+  cost {3}{B}{B}
+  type Legendary Creature — Phyrexian Horror
+  pt 8/3
+  trigger again permanent you control when creature dies
+  activated {B/P}{B/P}, exile 3 creature card from graveyard: put 1 indestructible counter on this
+}

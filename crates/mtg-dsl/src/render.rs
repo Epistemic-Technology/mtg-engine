@@ -11750,9 +11750,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             filter: f,
             entering: Some(e),
             battlefield,
+            cause,
         } => format!(
-            "If {} entering{} causes a triggered ability of {} to trigger, that ability triggers an additional time.",
+            "If {} {}{} causes a triggered ability of {} to trigger, that ability triggers an additional time.",
             with_article(&controller_first(e, filter_phrase(e, card, false))),
+            match cause {
+                mtg_core::card::TriggerCause::Enters => "entering",
+                mtg_core::card::TriggerCause::Dies => "dying",
+                mtg_core::card::TriggerCause::Attacks => "attacking",
+            },
             if *battlefield { " the battlefield" } else { "" },
             with_article(&controller_first(f, filter_phrase(f, card, false)))
         ),

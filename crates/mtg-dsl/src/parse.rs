@@ -1358,16 +1358,24 @@ impl P {
                 self.pos += 2;
                 let filter = self.filter()?;
                 let (mut entering, mut battlefield) = (None, false);
+                let mut cause = mtg_core::card::TriggerCause::Enters;
                 if self.eat_word("when") {
                     entering = Some(self.filter()?);
-                    self.expect_word("enters")?;
-                    battlefield = self.eat_words(&["the", "battlefield"]);
+                    if self.eat_word("dies") {
+                        cause = mtg_core::card::TriggerCause::Dies;
+                    } else if self.eat_word("attacks") {
+                        cause = mtg_core::card::TriggerCause::Attacks;
+                    } else {
+                        self.expect_word("enters")?;
+                        battlefield = self.eat_words(&["the", "battlefield"]);
+                    }
                 }
                 self.end_stmt()?;
                 Ok(Ability::TriggerAgain {
                     filter,
                     entering,
                     battlefield,
+                    cause,
                 })
             }
             "you" if self.at_words(&["you", "have", "hexproof"]) => {

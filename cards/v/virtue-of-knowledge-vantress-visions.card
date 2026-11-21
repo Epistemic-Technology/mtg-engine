@@ -1,0 +1,12 @@
+card "Virtue of Knowledge // Vantress Visions" {
+  oracle_id f0bbcabf-29e7-4c7e-893f-86b64d3620a9
+  layout adventure
+  cost {4}{U}
+  type Enchantment
+  trigger again permanent you control when permanent enters
+  face "Vantress Visions" {
+    cost {1}{U}
+    type Instant — Adventure
+    spell: copy target activated or triggered ability you control new targets
+  }
+}

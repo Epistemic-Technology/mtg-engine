@@ -5195,6 +5195,17 @@ pub enum TriggerSpec {
     Transforms,
 }
 
+/// The event whose triggers an `AbilityDef::TriggerAgain` with a cause
+/// filter doubles: a permanent entering, a creature dying, a creature
+/// attacking (CR 603.2d).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+pub enum TriggerCause {
+    #[default]
+    Enters,
+    Dies,
+    Attacks,
+}
+
 /// Which activated abilities a `TriggerSpec::Activates` trigger sees.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum ActivationKind {
@@ -6053,11 +6064,15 @@ pub enum AbilityDef {
     /// "If an artifact or creature entering causes a triggered ability of
     /// a permanent you control to trigger, ...", only on a permanent
     /// matching it entering (`battlefield`: worded "entering the
-    /// battlefield"). Counted with the player-level statics.
+    /// battlefield"); with `cause` `Dies` or `Attacks`, "If a creature
+    /// dying causes ...", "If a creature attacking causes ...". Counted
+    /// with the player-level statics.
     TriggerAgain {
         filter: ObjFilter,
         entering: Option<ObjFilter>,
         battlefield: bool,
+        #[serde(default)]
+        cause: TriggerCause,
     },
     /// "If this card is in your opening hand, you may begin the game with
     /// it on the battlefield." (CR 103.6a; the Leylines).

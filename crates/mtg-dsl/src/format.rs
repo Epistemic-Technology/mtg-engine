@@ -5260,10 +5260,16 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             filter: f,
             entering,
             battlefield,
+            cause,
         } => {
             let when = entering.as_ref().map_or(String::new(), |e| {
+                let verb = match cause {
+                    mtg_core::card::TriggerCause::Enters => "enters",
+                    mtg_core::card::TriggerCause::Dies => "dies",
+                    mtg_core::card::TriggerCause::Attacks => "attacks",
+                };
                 format!(
-                    " when {} enters{}",
+                    " when {} {verb}{}",
                     filter(e),
                     if *battlefield { " the battlefield" } else { "" }
                 )

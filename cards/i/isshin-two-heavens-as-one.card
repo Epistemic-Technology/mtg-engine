@@ -1,0 +1,7 @@
+card "Isshin, Two Heavens as One" {
+  oracle_id 65114758-9a75-43a7-96e8-0aa68faa6b24
+  cost {R}{W}{B}
+  type Legendary Creature — Human Samurai
+  pt 3/4
+  trigger again permanent you control when creature attacks
+}

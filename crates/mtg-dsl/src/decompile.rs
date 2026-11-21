@@ -1979,10 +1979,12 @@ impl Decompiler<'_> {
                 filter,
                 entering,
                 battlefield,
+                cause,
             } => Ability::TriggerAgain {
                 filter: self.filter(filter),
                 entering: entering.as_ref().map(|f| self.filter(f)),
                 battlefield: *battlefield,
+                cause: *cause,
             },
             AbilityDef::PlayerStatic { kind, condition } => Ability::PlayerStatic {
                 kind: *kind,

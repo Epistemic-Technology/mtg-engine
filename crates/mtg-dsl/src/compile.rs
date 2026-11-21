@@ -3996,10 +3996,12 @@ impl Compiler<'_> {
                 filter,
                 entering,
                 battlefield,
+                cause,
             } => AbilityDef::TriggerAgain {
                 filter: self.filter(filter),
                 entering: entering.as_ref().map(|f| self.filter(f)),
                 battlefield: *battlefield,
+                cause: *cause,
             },
             Ability::PlayerStatic { kind, cond } => {
                 let condition = match cond {

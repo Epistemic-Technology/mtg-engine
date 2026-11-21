@@ -357,15 +357,43 @@ impl GameState {
     #[cold]
     #[inline(never)]
     fn extra_triggers(&self, w: &Watcher, event: &Event) -> usize {
-        let entering = match event {
+        use crate::card::TriggerCause;
+        // The object whose event this is, as the cause filter judges it.
+        let cause = match event {
             Event::ZoneChange {
                 new,
                 to: Zone::Battlefield,
                 ..
-            } => self
-                .objects
-                .get(*new)
-                .and_then(|o| Some((*new, o.controller, self.characteristics(*new)?))),
+            } => self.objects.get(*new).and_then(|o| {
+                Some((
+                    TriggerCause::Enters,
+                    *new,
+                    o.controller,
+                    self.characteristics(*new)?,
+                ))
+            }),
+            // CR 603.10a: the creature as it last existed.
+            Event::ZoneChange {
+                old,
+                from: Zone::Battlefield,
+                to: Zone::Graveyard,
+                ..
+            } => self.lki.get(old).map(|l| {
+                (
+                    TriggerCause::Dies,
+                    *old,
+                    l.object.controller,
+                    l.characteristics,
+                )
+            }),
+            Event::Attack { attacker, .. } => self.objects.get(*attacker).and_then(|o| {
+                Some((
+                    TriggerCause::Attacks,
+                    *attacker,
+                    o.controller,
+                    self.characteristics(*attacker)?,
+                ))
+            }),
             _ => None,
         };
         let mut n = 0;
@@ -381,11 +409,12 @@ impl GameState {
                 if let AbilityDef::TriggerAgain {
                     filter,
                     entering: e,
+                    cause: k,
                     ..
                 } = self.pool.ability(a)
                     && e.as_ref().is_none_or(|e| {
-                        entering.as_ref().is_some_and(|(new, ctl, c)| {
-                            e.matches(*new, *ctl, c, Some(id), Some(o.controller))
+                        cause.as_ref().is_some_and(|(kind, obj, ctl, c)| {
+                            kind == k && e.matches(*obj, *ctl, c, Some(id), Some(o.controller))
                         })
                     })
                     && filter.matches(

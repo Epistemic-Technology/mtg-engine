@@ -1153,6 +1153,10 @@ pub enum Ability {
         filter: Filter,
         entering: Option<Filter>,
         battlefield: bool,
+        /// `when creature dies`, `when creature you control attacks`: "If
+        /// a creature dying causes ...", "If a creature you control
+        /// attacking causes ...".
+        cause: mtg_core::card::TriggerCause,
     },
     /// A keyword ability with a number or cost, printed as the keyword
     /// ("Bushido 2", "Echo {2}{R}") and compiled to what it stands for.
