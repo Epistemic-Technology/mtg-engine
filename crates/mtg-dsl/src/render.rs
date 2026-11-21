@@ -1404,9 +1404,9 @@ impl<'a> Ctx<'a> {
                 self.attached_mentioned = true;
                 // "tap enchanted permanent" on an Aura whose static says
                 // "Enchanted permanent" (Flood the Engine).
-                let permanent = self.card.abilities.iter().any(|a| {
-                    matches!(a, Ability::Static { filter, .. } if filter.enchanted_permanent)
-                });
+                let permanent = self.card.abilities.iter().any(
+                    |a| matches!(a, Ability::Static { filter, .. } if filter.enchanted_permanent),
+                );
                 if permanent {
                     "enchanted permanent".to_string()
                 } else {
@@ -1528,11 +1528,12 @@ impl<'a> Ctx<'a> {
 
     fn subj(&mut self, r: Recipient) -> String {
         match r {
-            // "Untap them. They gain haste until end of turn."
-            Recipient::Those(crate::ast::Those::Them) => "they".to_string(),
-            // "Create two 1/1 red Warrior creature tokens. They gain haste
-            // until end of turn." (Salt Road Skirmish).
-            Recipient::CreatedTokens => "they".to_string(),
+            // "Untap them. They gain haste until end of turn."; "Create
+            // two 1/1 red Warrior creature tokens. They gain haste until
+            // end of turn." (Salt Road Skirmish).
+            Recipient::Those(crate::ast::Those::Them) | Recipient::CreatedTokens => {
+                "they".to_string()
+            }
             // As a subject Oracle keeps "defending player" ("defending
             // player loses 4 life").
             Recipient::DefendingPlayer => "defending player".to_string(),
@@ -3039,12 +3040,12 @@ fn merge_token_restrictions(quoted: &mut Vec<String>) {
             ("This token can't attack alone.", "This token can't block alone.") => {
                 Some("This token can't attack or block alone.".to_string())
             }
-            (a, b) => match (
-                a.strip_prefix("This token can't block "),
-                b.strip_prefix("This token can't be blocked by "),
+            (first, second) => match (
+                first.strip_prefix("This token can't block "),
+                second.strip_prefix("This token can't be blocked by "),
             ) {
-                (Some(x), Some(y)) if x == y => {
-                    Some(format!("This token can't block or be blocked by {x}"))
+                (Some(what), Some(by)) if what == by => {
+                    Some(format!("This token can't block or be blocked by {what}"))
                 }
                 _ => None,
             },
@@ -9934,7 +9935,11 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card, lookup: &dyn Lookup) 
         if (parts[i].starts_with("has \"") || keyword_grant) && parts[i - 1].starts_with("has ") {
             // A bare keyword joins the "has" before it as one part ("gets
             // +4/+4 and has trample and ward {1}"), marked to merge below.
-            let mark = if keyword_grant || !base_pt { "\u{1}" } else { "" };
+            let mark = if keyword_grant || !base_pt {
+                "\u{1}"
+            } else {
+                ""
+            };
             let mut rest = parts[i]["has ".len()..].to_string();
             // "has protection from instants and from sorceries" (Sword
             // of Wealth and Power): one "protection" for both.

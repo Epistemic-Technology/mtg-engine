@@ -2640,9 +2640,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             excess: true,
             to_that: true,
         } => "excess damage dealt to that creature this way".to_string(),
-        CountExpr::DamageThisWay { excess: true, .. } => {
-            "excess damage dealt this way".to_string()
-        }
+        CountExpr::DamageThisWay { excess: true, .. } => "excess damage dealt this way".to_string(),
         CountExpr::CardTypesInGraveyards => "card types in graveyards".to_string(),
         CountExpr::SourceCounters { kind, it } => format!(
             "{} counters on {}",
