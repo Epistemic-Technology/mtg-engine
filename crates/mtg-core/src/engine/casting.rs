@@ -5534,7 +5534,7 @@ impl GameState {
             o.skip_untap = true;
         }
         if cost.discard_hand {
-            let hand: Vec<ObjId> = self.player(p).hand.iter().copied().collect();
+            let hand: Vec<ObjId> = self.player(p).hand.clone();
             for c in hand {
                 self.discard_card(p, c);
             }
@@ -8116,6 +8116,19 @@ impl GameState {
                 }
                 // "Target opponent loses 1 life for each attacking creature
                 // you control. You gain that much life."
+                ctx.trigger_amount = lost;
+            }
+            // CR 107.1a: rounded up.
+            Effect::LoseHalfLife { who } => {
+                let mut lost = 0u32;
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        let life = self.player(p).life.max(0);
+                        let n = life - life / 2;
+                        lost = lost.saturating_add(n.unsigned_abs());
+                        self.change_life(p, -n);
+                    }
+                }
                 ctx.trigger_amount = lost;
             }
             Effect::DrawCards { count, who } => {

@@ -1158,6 +1158,14 @@ impl Fmt {
                 };
                 format!("{} {v} {} life", self.recipient(*who, t), num(*amount))
             }
+            Effect::LoseHalfLife { who } => {
+                let v = if *who == Recipient::You {
+                    "lose"
+                } else {
+                    "loses"
+                };
+                format!("{} {v} half life", self.recipient(*who, t))
+            }
             Effect::DrawCards { count, who } => match who {
                 None => format!("draw {} {}", num(*count), cards(*count)),
                 Some(w) => {
@@ -4306,10 +4314,10 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::NotKicked => "not kicked".to_string(),
         StaticCond::Impending => "impending".to_string(),
         StaticCond::And(a, b) => format!("{} and {}", static_cond(a), static_cond(b)),
-        StaticCond::CastBoth(a, b) => format!(
+        StaticCond::CastBoth(both) => format!(
             "cast both {} spell and {} spell this turn",
-            filter(a),
-            filter(b)
+            filter(&both.0),
+            filter(&both.1)
         ),
         StaticCond::CreaturesDied { n, yours: false } => {
             format!("{n} creatures died this turn")
@@ -4656,7 +4664,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     .map(|s| format!("{s} "))
                     .unwrap_or_default();
                 if crate::render::equip_full_cost(cost) {
-                    let _ = writeln!(out, "{indent}equip {sub}{}", cost_text(cost));
+                    // Equip is a sorcery by its keyword (CR 702.6a).
+                    let c = Cost {
+                        sorcery: false,
+                        ..cost.clone()
+                    };
+                    let _ = writeln!(out, "{indent}equip {sub}{}", cost_text(&c));
                     return;
                 }
                 let once = if cost.per_turn == 1 { ", once" } else { "" };

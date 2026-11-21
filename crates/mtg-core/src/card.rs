@@ -3146,6 +3146,11 @@ pub enum Effect {
         amount: Num,
         who: Recipient,
     },
+    /// "loses half their life, rounded up" (CR 107.1a): each recipient
+    /// player loses half their life total, rounded up (none at 0 or less).
+    LoseHalfLife {
+        who: Recipient,
+    },
     DrawCards {
         count: Num,
         who: Recipient,

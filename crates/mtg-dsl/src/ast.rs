@@ -1082,7 +1082,7 @@ pub enum Ability {
     /// which to activate.
     EquipOr {
         mana: ManaCost,
-        other: Cost,
+        other: Box<Cost>,
         targets: Vec<Target>,
     },
     Activated {
@@ -2086,7 +2086,7 @@ pub enum StaticCond {
     /// `cast both creature spell and noncreature spell this turn`:
     /// "you've cast both a creature spell and a noncreature spell this
     /// turn" (each filter at least once).
-    CastBoth(Filter, Filter),
+    CastBoth(Box<(Filter, Filter)>),
     /// `2 creatures died this turn`: "two or more creatures died this
     /// turn"; `creature died under your control this turn`: "a creature
     /// died under your control this turn" (`yours`, `n` 1).
@@ -2934,6 +2934,12 @@ pub enum Effect {
     },
     LoseLife {
         amount: Num,
+        who: Recipient,
+    },
+    /// `that player loses half life`: "that player loses half their life,
+    /// rounded up" (`you lose half life`: "you lose half your life,
+    /// rounded up").
+    LoseHalfLife {
         who: Recipient,
     },
     /// `who` is `None` for the imperative "Draw a card" (the controller).

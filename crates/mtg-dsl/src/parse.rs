@@ -2240,7 +2240,7 @@ impl P {
                     // `equip {3} or discard 1 card`: two equip abilities.
                     let mana = self.mana_cost()?;
                     self.expect_word("or")?;
-                    let other = self.cost()?;
+                    let other = Box::new(self.cost()?);
                     self.end_stmt()?;
                     return Ok(Ability::EquipOr {
                         mana,
@@ -2964,7 +2964,7 @@ impl P {
             self.expect_words(&["spell", "and"])?;
             let b = self.filter()?;
             self.expect_words(&["spell", "this", "turn"])?;
-            return Ok(StaticCond::CastBoth(a, b));
+            return Ok(StaticCond::CastBoth(Box::new((a, b))));
         }
         if self.at_words(&["attacked", "with"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
             self.pos += 2;
@@ -5212,6 +5212,10 @@ impl P {
                     }),
                     _ => self.fail("`loses all abilities and becomes` takes what it becomes"),
                 }
+            }
+            "lose" | "loses" if self.at_words(&["half", "life"]) => {
+                self.pos += 2;
+                Ok(Effect::LoseHalfLife { who: subject })
             }
             "lose" | "loses" => {
                 let amount = self.num()?;

@@ -764,6 +764,7 @@ impl Decompiler<'_> {
                 amount: *amount,
                 who: r(*who),
             },
+            CoreEffect::LoseHalfLife { who } => Effect::LoseHalfLife { who: r(*who) },
             CoreEffect::DrawCards { count, who } => Effect::DrawCards {
                 count: *count,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),

@@ -5011,6 +5011,24 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
+        // CR 107.1a: "loses half their life, rounded up".
+        Effect::LoseHalfLife { who } => {
+            let s = ctx.subj(*who);
+            let their = if *who == Recipient::You {
+                "your"
+            } else {
+                "their"
+            };
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{}{} half {their} life, rounded up",
+                    ctx.each_many(*who),
+                    ctx.verb(*who, "loses", "lose")
+                ),
+            )
+        }
         Effect::DrawCards { count, who } => {
             let additional = matches!(
                 ctx.trigger,
@@ -10197,10 +10215,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             static_cond_text(a, card),
             static_cond_text(b, card)
         ),
-        StaticCond::CastBoth(a, b) => format!(
+        StaticCond::CastBoth(both) => format!(
             "you've cast both {} and {} this turn",
-            with_article(&spell_noun(&card_filter_phrase(a, card))),
-            with_article(&spell_noun(&card_filter_phrase(b, card)))
+            with_article(&spell_noun(&card_filter_phrase(&both.0, card))),
+            with_article(&spell_noun(&card_filter_phrase(&both.1, card)))
         ),
         StaticCond::CreaturesDied { yours: true, .. } => {
             "a creature died under your control this turn".to_string()

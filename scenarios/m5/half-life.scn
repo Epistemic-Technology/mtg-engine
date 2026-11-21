@@ -1,0 +1,49 @@
+# "loses half their life, rounded up" (CR 107.1a).
+
+scenario "Quietus Spike: the player dealt combat damage loses half their life, rounded up" {
+  battlefield A: "Quietus Spike", "Grizzly Bears", 3 "Plains"
+  life B 17
+  turn 1 A: activate "Quietus Spike" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  # 17 - 2 = 15; half of 15 rounded up is 8.
+  assert life B 7
+}
+
+scenario "Havoc Festival halves each player's life at their upkeep" {
+  battlefield A: "Havoc Festival"
+  life A 9
+  start turn 1 A untap
+  run_to turn 1 draw
+  assert life A 4
+  assert life B 20
+  run_to turn 2 draw
+  assert life B 10
+}
+
+scenario "Havoc Festival: players can't gain life" {
+  battlefield A: "Havoc Festival", "Plains"
+  hand A: "Healing Salve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Healing Salve" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Alpharael halves the defending player's life with void" {
+  battlefield A: "Alpharael, Stonechosen", "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  turn 1 A: attack "Alpharael, Stonechosen"
+  run_to turn 1 postcombat_main
+  # 20 halved to 10, then 3 combat damage.
+  assert life B 7
+}
+
+scenario "Alpharael without void deals only its combat damage" {
+  battlefield A: "Alpharael, Stonechosen"
+  turn 1 A: attack "Alpharael, Stonechosen"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

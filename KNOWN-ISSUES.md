@@ -136,18 +136,25 @@ named the feature; a card may need more than one.
   controls", "whenever a creature you control explores", "whenever you
   sacrifice one or more Foods", "a triggered ability triggers an
   additional time", third spell each turn, "transforms into".
-- **Counts:** total mana value / total power / total toughness, life
-  gained this turn, creatures that died (under your control) this turn,
-  counters of every kind on a permanent, mana spent on the triggering
-  spell, card types in your graveyard, 2^X, permanents sacrificed this
-  turn.
-- **Conditions:** two conditions joined by "and" or "or if" in an
-  intervening "if"; "an opponent controls more lands than you"; "cast
-  from anywhere other than your hand"; void (a nonland permanent left
-  or a spell was warped); "it isn't your main phase".
-- **Costs:** remove a counter of any kind; equip with a non-mana or a
-  choice of costs; "pay X life"; "discard your hand"; exert in an
-  activated cost; mana abilities that cost life.
+- **Counts:** mana spent on the triggering spell; counters of every
+  kind on the triggering object or a target ("counters on it" in a
+  trigger); total power or toughness in a static ability; "if X is
+  three or more" (a condition on a count, Obsessive Pursuit); cards in
+  exile and graveyard together (Huskburster Swarm); the difference
+  between power and toughness (Doran); "pay life equal to its power"
+  (Madame Null); "add X mana of any one color" with a count (Mona Lisa,
+  Accomplished Alchemist).
+- **Conditions:** a target check joined by "or if" ("if that creature's
+  power is 2 or less or if you control another Lizard", Reptilian
+  Recruiter; "If you do or if you control another Dinosaur", Armored
+  Kincaller); "if they lost life this turn" of a target player
+  (Thought-Stalker Warlock); "it had no counters on it" (any kind,
+  Unstoppable Slasher).
+- **Costs:** a mana ability with exert, "discard your hand", or another
+  cost automatic payment doesn't use (Oasis Ritualist, Diamond Lion).
+- **Mass graveyard return of two types:** "Return each artifact and
+  creature card with mana value X from your graveyard" (Fix What's
+  Broken) doesn't parse (`artifact or creature card`).
 - **Replacement effects:** "that much plus 1 instead"; doubling life
   loss or counters of any kind; damage doubled to "an opponent or a
   permanent an opponent controls"; shuffle into library instead of the
@@ -166,8 +173,7 @@ named the feature; a card may need more than one.
   effects; set base power and toughness to a variable; attack tax;
   "must be blocked".
 - **Mechanics not yet in:** tiered, devour, battle cry, exhaust-ability
-  triggers, harness, hideaway, double strike and divinity counters,
-  meld, the Everywhere land token, "when this land enters untapped".
+  triggers, harness, hideaway, meld, the Everywhere land token, "when this land enters untapped".
 - **Scenario runner:** `trigger` cannot take `dividing`; surveil cannot
   be scripted; tokens named in a battlefield setup line are not tokens
   (Baylen's "tap two untapped tokens"); a trigger cannot be answered

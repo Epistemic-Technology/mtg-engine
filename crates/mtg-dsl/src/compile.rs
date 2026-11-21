@@ -971,7 +971,7 @@ impl Compiler<'_> {
             b = b.ability(compiled);
             // "Equip—Pay {3} or discard a card.": the second equip ability.
             if let Ability::EquipOr { other, targets, .. } = a {
-                b = b.ability(self.ability(&equip_ability(other.clone(), targets))?);
+                b = b.ability(self.ability(&equip_ability((**other).clone(), targets))?);
             }
             // CR 702.98a: unleash's second static ability, "This permanent
             // can't block as long as it has a +1/+1 counter on it."
@@ -1553,7 +1553,8 @@ impl Compiler<'_> {
             StaticCond::And(a, b) => {
                 StaticCondition::And(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
-            StaticCond::CastBoth(a, b) => {
+            StaticCond::CastBoth(both) => {
+                let (a, b) = &**both;
                 let cast = |c: &mut Self, f: &Filter| StaticCondition::CastThisTurn {
                     filter: c.filter(f),
                     at_least: 1,
@@ -2127,6 +2128,7 @@ impl Compiler<'_> {
                 amount: *amount,
                 who: r(*who),
             }),
+            Effect::LoseHalfLife { who } => out.push(CoreEffect::LoseHalfLife { who: r(*who) }),
             Effect::DrawCards { count, who } => out.push(CoreEffect::DrawCards {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
