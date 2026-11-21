@@ -458,7 +458,7 @@ impl GameState {
                     Some(modes) => modes
                         .iter()
                         .any(|m| self.targets_available(p, &m.targets, Some(*id))),
-                    None => self.targets_available(p, def.unkicked_cast_targets(), Some(*id)),
+                    None => self.spell_targets_available(p, def, *id),
                 };
                 if targets_ok {
                     options.push(Choice::Cast(*id));
@@ -554,6 +554,7 @@ impl GameState {
             chosen: Chosen::None,
             couldnt: 0,
             created_tokens: SmallVec::new(),
+            counts: None,
         };
         self.eval_num(n, &ctx)
     }
@@ -568,11 +569,12 @@ impl GameState {
             Num::ThatMuch => return ctx.trigger_amount,
             other => return other.eval(ctx.x),
         };
-        let def = self
-            .objects
-            .get(ctx.source)
-            .map(|o| o.def)
-            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def));
+        let def = ctx.counts.or_else(|| {
+            self.objects
+                .get(ctx.source)
+                .map(|o| o.def)
+                .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+        });
         let pool = std::sync::Arc::clone(&self.pool);
         let Some(expr) = def.and_then(|d| pool.get(d).counts.get(i)) else {
             return 0;
@@ -1758,7 +1760,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+            None => self.spell_targets_available(p, def, id),
         }
     }
 
@@ -2325,6 +2327,7 @@ impl GameState {
                 chosen: Chosen::None,
                 couldnt: 0,
                 created_tokens: SmallVec::new(),
+                counts: None,
             };
             let n = sc.per.saturating_mul(self.eval_num(sc.times, &ctx));
             d -= i32::try_from(n).unwrap_or(i32::MAX);
@@ -2439,7 +2442,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+            None => self.spell_targets_available(p, def, id),
         }
     }
 
@@ -2479,7 +2482,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+            None => self.spell_targets_available(p, def, id),
         }
     }
 
@@ -3205,7 +3208,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
+            None => self.spell_targets_available(p, def, card),
         }
     }
 
@@ -3234,7 +3237,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
+            None => self.spell_targets_available(p, def, card),
         }
     }
 
@@ -3261,7 +3264,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
+            None => self.spell_targets_available(p, def, card),
         };
         // CR 601.2h: casting it without paying its mana cost still pays its
         // additional costs (Improvised Club's sacrifice).
@@ -3632,6 +3635,14 @@ impl GameState {
                 if !self.targets_available(p, &ab.targets, Some(id)) {
                     continue;
                 }
+                // A modal ability needs a mode it can choose (CR 700.2).
+                if let [crate::card::Effect::Modes(modes)] = ab.effects.as_slice()
+                    && !modes
+                        .iter()
+                        .any(|m| self.targets_available(p, &m.targets, Some(id)))
+                {
+                    continue;
+                }
                 if ab.cost.crew > 0 && self.crew_power(p, id, ab.saddles()) < ab.cost.crew {
                     continue;
                 }
@@ -3885,6 +3896,7 @@ impl GameState {
                     chosen: Chosen::None,
                     couldnt: 0,
                     created_tokens: SmallVec::new(),
+                    counts: None,
                 };
                 self.eval_count(count, &ctx)
             }
@@ -3961,9 +3973,23 @@ impl GameState {
         // activated, Wizard's Rockets, and isn't asked.)
         let has_x = matches!(
             self.pool.ability(ability),
-            AbilityDef::Activated(a) if a.cost.mana.has_x() && !a.is_mana_ability()
+            AbilityDef::Activated(a) if (a.cost.mana.has_x()
+                || a.cost.exile_cards.as_ref().is_some_and(|g| g.x))
+                && !a.is_mana_ability()
         );
-        self.flow = if has_x {
+        // CR 602.2b, 601.2b: a modal activated ability's mode is chosen
+        // first.
+        let modal = matches!(
+            self.pool.ability(ability).effects(),
+            [crate::card::Effect::Modes(_)]
+        );
+        self.flow = if modal {
+            crate::state::Flow::ChoosingMode {
+                spell: obj,
+                sacrifice,
+                discard,
+            }
+        } else if has_x {
             crate::state::Flow::ChoosingX {
                 spell: obj,
                 sacrifice,
@@ -4046,8 +4072,13 @@ impl GameState {
         } else {
             max_x
         };
-        // "exile X cards from your graveyard": no more than there are.
-        let max_x = match &add.exile_cards {
+        // "exile X cards from your graveyard": no more than there are (an
+        // activated ability's cost, or a spell's additional cost).
+        let exile = match ability {
+            Some((_, a)) => &a.cost.exile_cards,
+            None => &add.exile_cards,
+        };
+        let max_x = match exile {
             Some(g) if g.x => {
                 let n = self
                     .exile_candidates(caster, g.filter.as_ref(), spell)
@@ -4146,6 +4177,7 @@ impl GameState {
             chosen: Chosen::None,
             couldnt: 0,
             created_tokens: SmallVec::new(),
+            counts: None,
         };
         Some(self.eval_num(amount, &ctx))
     }
@@ -4213,6 +4245,24 @@ impl GameState {
         } else {
             self.flow = crate::state::Flow::Priority;
         }
+    }
+
+    /// Whether a nonmodal spell can be cast for its targets: those it has
+    /// unkicked, or, for a gift whose promise replaces its targets ("If
+    /// the gift was promised, instead ... target ...", CR 702.174m), those
+    /// it has with the gift promised (an opponent can always be promised
+    /// it).
+    pub(super) fn spell_targets_available(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+    ) -> bool {
+        self.targets_available(p, def.unkicked_cast_targets(), Some(id))
+            || (def.gift.is_some()
+                && def.kicked_drops.is_some()
+                && self.players_in_game().any(|q| q != p)
+                && self.targets_available(p, def.kicked_cast_targets(), Some(id)))
     }
 
     /// Whether every one of `specs` has a legal target for `p` (for an
@@ -4483,6 +4533,7 @@ impl GameState {
     /// CR 602.2b, 601.2g–h: pay the ability's costs. The source is tapped
     /// first so that it is not also tapped for mana; sacrifices come last,
     /// so a "sacrifice ~" source is still there to be tapped.
+    #[allow(clippy::too_many_lines)] // one step per kind of cost
     fn finish_activation(&mut self, obj: ObjId, sacrifice: Option<ObjId>, discard: Option<ObjId>) {
         let o = &self.objects[obj];
         let (controller, def) = (o.controller, o.def);
@@ -4562,7 +4613,19 @@ impl GameState {
             for c in tapped_paid {
                 s.note_tapped_for_cost(c);
             }
-            s.pay_other_costs(controller, &ab.cost, sa.source, sacrifice, discard);
+            // "Exile X artifact cards from your graveyard": as many as the
+            // X announced (CR 602.2b, 601.2b).
+            if let Some(g) = &ab.cost.exile_cards
+                && g.x
+            {
+                let mut cost = ab.cost.clone();
+                if let Some(g) = &mut cost.exile_cards {
+                    g.n = s.x_of(obj);
+                }
+                s.pay_other_costs(controller, &cost, sa.source, sacrifice, discard);
+            } else {
+                s.pay_other_costs(controller, &ab.cost, sa.source, sacrifice, discard);
+            }
         });
         self.emit(Event::Activated {
             obj,
@@ -5460,6 +5523,7 @@ impl GameState {
             chosen: Chosen::None,
             couldnt: 0,
             created_tokens: SmallVec::new(),
+            counts: pool.counts_owner(a),
         };
         for e in ab.effects.iter().filter(|e| !e.adds_mana()) {
             self.apply_effect(&mut ctx, e);
@@ -6012,6 +6076,7 @@ impl GameState {
                 chosen: Chosen::None,
                 couldnt: 0,
                 created_tokens: SmallVec::new(),
+                counts: None,
             };
             let split = self.mode_splits_of(spell);
             let outer = self.begin_this_way(spell);
@@ -6390,6 +6455,8 @@ impl GameState {
                 chosen: Chosen::None,
                 couldnt: 0,
                 created_tokens: SmallVec::new(),
+                // A spliced card's counts are its own.
+                counts: Some(*d),
             };
             start += n;
             let effects = def.spell_ability().map_or(&[][..], |(_, e)| e);
@@ -7085,6 +7152,20 @@ impl GameState {
             f.clone()
         };
         if let Some(same) = g.same {
+            // "named Food Fight" in an ability Food Fight grants names the
+            // granting card, not the permanent that has the ability.
+            if let (crate::card::SameOf::Source, Some(d)) = (same.of, ctx.counts)
+                && matches!(
+                    same.what,
+                    crate::card::SameWhat::Name | crate::card::SameWhat::NotName
+                )
+            {
+                return std::borrow::Cow::Owned(g.with_same(
+                    Some(d),
+                    crate::mana::ColorSet::default(),
+                    None,
+                ));
+            }
             let of = match same.of {
                 crate::card::SameOf::Source => Some(ctx.source),
                 crate::card::SameOf::Target(n) => match ctx.targets.get(usize::from(n)) {
@@ -10998,6 +11079,7 @@ impl GameState {
                         chosen: ctx.chosen,
                         couldnt: ctx.couldnt,
                         created_tokens: std::mem::take(&mut ctx.created_tokens),
+                        counts: ctx.counts,
                     };
                     self.apply_effect(&mut second, effect);
                     ctx.created = second.created;
@@ -11284,6 +11366,10 @@ pub(super) struct EffectCtx {
     /// ("each opponent discards a card. For each opponent who can't, you
     /// draw a card"): those with too few cards in hand to discard.
     pub couldnt: u32,
+    /// The definition whose counts `Num::Count` indexes when not the
+    /// source's: an ability another card granted it (Galuf's Final Act's
+    /// "equal to its power"), or a spliced card.
+    pub counts: Option<crate::card::CardRef>,
 }
 
 /// The ways to divide `total` among `k` targets, each getting at least 1

@@ -6950,6 +6950,11 @@ pub struct CardPool {
     /// Per ability: whether resolving it may put a permanent onto the
     /// battlefield whose own entering replacement could meet another.
     enters: Vec<bool>,
+    /// Per ability: the definition whose `counts` its `Num::Count`s
+    /// index, when it was registered while compiling a card rather than
+    /// printed on it (a granted ability, "has '...'", or a delayed
+    /// trigger): the granting card's, not the permanent's that has it.
+    counts_owner: Vec<Option<CardRef>>,
     /// The triggered ability prowess stands for (CR 702.108a).
     prowess: AbilityId,
     /// Exalted, persist, and undying (CR 702.83a, 702.79a, 702.93a).
@@ -7039,6 +7044,7 @@ impl CardPool {
             conditions: Vec::new(),
             asks: Vec::new(),
             enters: Vec::new(),
+            counts_owner: Vec::new(),
             prowess: AbilityId(0),
             exalted: AbilityId(0),
             persist: AbilityId(0),
@@ -7354,7 +7360,28 @@ impl CardPool {
             }
         }));
         self.abilities.push(a);
+        self.counts_owner.push(None);
         id
+    }
+
+    /// The number of abilities registered so far, for
+    /// `set_counts_owner`.
+    pub fn ability_count(&self) -> u32 {
+        u32::try_from(self.abilities.len()).expect("too many abilities")
+    }
+
+    /// Record that the abilities registered in `from..to` (while
+    /// compiling card `r`) take their counts from `r`'s definition.
+    pub fn set_counts_owner(&mut self, from: u32, to: u32, r: CardRef) {
+        for o in &mut self.counts_owner[from as usize..to as usize] {
+            *o = Some(r);
+        }
+    }
+
+    /// The definition whose counts ability `id`'s `Num::Count`s index,
+    /// when not its source's (see `counts_owner`).
+    pub fn counts_owner(&self, id: AbilityId) -> Option<CardRef> {
+        self.counts_owner.get(id.0 as usize).copied().flatten()
     }
 
     /// Whether resolving this ability may put onto the battlefield a

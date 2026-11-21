@@ -1,0 +1,51 @@
+# A delayed "whenever a creature you control deals combat damage to a
+# player this turn" trigger (CR 603.7c) fires on each such creature.
+
+scenario "Mistway Spy: each creature that deals combat damage investigates" {
+  battlefield A: 5 "Island", "Grizzly Bears", "Hill Giant"
+  hand A: "Mistway Spy"
+  turn 1 A: cast "Mistway Spy" face_down
+  turn 1 A: wait
+  turn 1 A: unmorph "Mistway Spy"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert battlefield A contains 2 "Clue"
+}
+
+scenario "Mistway Spy turned face up after blockers, attacking itself" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  hand A: "Mistway Spy"
+  start turn 3 A
+  turn 3 A: cast "Mistway Spy" face_down
+  turn 5 A: attack "face-down creature", "Grizzly Bears"
+  turn 5 declare_blockers A: unmorph "Mistway Spy"
+  run_to turn 5 postcombat_main
+  assert life B 17
+  assert battlefield A contains 2 "Clue"
+}
+
+scenario "Mistway Spy: blocked creatures deal no damage to a player" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Mistway Spy"
+  turn 1 A: cast "Mistway Spy" face_down
+  turn 1 A: wait
+  turn 1 A: unmorph "Mistway Spy"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Clue"
+}
+
+scenario "Mistway Spy: the trigger ends with the turn" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  hand A: "Mistway Spy"
+  turn 1 A: cast "Mistway Spy" face_down
+  turn 1 A: wait
+  turn 1 A: unmorph "Mistway Spy"
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert battlefield A lacks "Clue"
+}

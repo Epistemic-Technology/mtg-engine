@@ -892,8 +892,12 @@ impl Fmt {
                 }
                 s
             }
-            Effect::Modes(modes) => {
-                let mut s = "choose one {\n".to_string();
+            Effect::Modes(modes) | Effect::ModesTwo(modes) => {
+                let mut s = if matches!(effect, Effect::ModesTwo(_)) {
+                    "choose two {\n".to_string()
+                } else {
+                    "choose one {\n".to_string()
+                };
                 for m in modes {
                     let mut inner = String::new();
                     body(
@@ -2410,7 +2414,8 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             "other instant and sorcery spells cast before it this turn".to_string()
         }
         CountExpr::SourceToughness => "toughness".to_string(),
-        CountExpr::CardManaValue => "mana value of that card".to_string(),
+        CountExpr::CardManaValue { its: false } => "mana value of that card".to_string(),
+        CountExpr::CardManaValue { its: true } => "its mana value".to_string(),
         CountExpr::TargetManaValue { n, that, the_spell } => format!(
             "mana value of {}target {}",
             if *the_spell {
@@ -5020,6 +5025,9 @@ fn spent_cond(kind: mtg_core::card::SpentKind, at_least: u8) -> String {
 pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
     match a {
         Ability::Mechanic(crate::ast::Mechanic::Ward(c)) => Some(format!("ward {c}")),
+        Ability::Mechanic(crate::ast::Mechanic::WardCost(c)) => {
+            Some(format!("ward {}", cost_text(c)))
+        }
         Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => Some(format!("toxic {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Poisonous(n)) => Some(format!("poisonous {n}")),
         Ability::Mechanic(crate::ast::Mechanic::Frenzy(n)) => Some(format!("frenzy {n}")),

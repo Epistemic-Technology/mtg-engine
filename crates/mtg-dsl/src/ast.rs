@@ -343,8 +343,12 @@ pub enum CountExpr {
         the_spell: bool,
     },
     /// `mana value of that card`: "that card's mana value", the card
-    /// revealed before.
-    CardManaValue,
+    /// revealed before; `its mana value` (`its`): "its mana value", the
+    /// same card (Darkstar Augur's "put that card into your hand. You lose
+    /// life equal to its mana value.").
+    CardManaValue {
+        its: bool,
+    },
     /// `colors among permanents`: "colors among permanents you control".
     ColorsAmongPermanents,
     /// `colors spent` (converge): "colors of mana spent to cast this
@@ -3619,6 +3623,10 @@ pub enum Effect {
     /// `choose one { mode: ... }` as a triggered ability's effect: "When
     /// this creature enters, choose one —" (CR 603.3c).
     Modes(Vec<Mode>),
+    /// `choose two { mode: ... }` (three or four unnamed modes) as an
+    /// effect: "When this creature enters, choose two —" (CR 700.2d), two
+    /// different modes chosen as the ability goes on the stack.
+    ModesTwo(Vec<Mode>),
     /// `target 1 doesn't untap next untap step`: "It doesn't untap during
     /// its controller's next untap step."; `... next untap steps`: "Those
     /// creatures don't untap during their controllers' next untap steps."

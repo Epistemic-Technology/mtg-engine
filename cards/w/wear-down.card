@@ -1,0 +1,7 @@
+card "Wear Down" {
+  oracle_id 27905301-333e-4cdd-90cf-188159fcf8e9
+  cost {1}{G}
+  type Sorcery
+  gift card
+  spell: destroy target artifact or enchantment; if kicked, instead destroy 2 target artifact or enchantment
+}

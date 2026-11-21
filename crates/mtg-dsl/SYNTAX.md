@@ -108,7 +108,7 @@ to its other face as well.
 | `spell: <effects>` | What an instant or sorcery does on resolution. |
 | `gift card`, `gift food`, `gift tapped fish`, `gift treasure` | Gift (CR 702.174): "Gift a card" ("a Food", "a tapped Fish", "a Treasure"), printed first. As the spell is cast its caster may promise the gift to the opponent; an instant or sorcery gives it (they draw a card, or create the token) before its other effects as it resolves, a permanent by its own "When this permanent enters, if its gift cost was paid" trigger. The engine keeps a promised gift as the kicker flag, so the card's "if the gift was promised" is written with the kicker conditions: `if kicked, <clause>` ("If the gift was promised, ..."; a target first named there is chosen only if it was, CR 702.174m; the spell names itself again), `if kicked, also ...`, `triggered when this enters if kicked: ...`, `... if kicked` after a sentence, and `if not kicked, <clause>` ("If the gift wasn't promised, ..."). |
 | `spree { mode {2}{B}: <effects> mode {1}: <effects> }` | Spree (CR 702.172): one to three modes, each with an additional cost ("Spree", then "+ {2}{B} — Destroy target creature."). The caster chooses one or more of them and pays their costs on top; each chosen mode keeps its own targets. The engine's modes are the sets of the printed modes, the set with bits N being mode N (in scenarios, `mode 3` is the first two). |
-| `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. `choose one or both { ... }` takes two modes, either or both ("Choose one or both —"). As a triggered ability's effect (`triggered when this enters: choose one { ... }`) the mode is chosen as the ability goes on the stack (CR 603.3c), each mode with its own targets. `choose two { ... }` (three or four unnamed modes) chooses two different modes (CR 700.2d; "Choose two —"). A named mode, `mode "Smash the Chest": destroy target artifact`, prints its name first ("• Smash the Chest — Destroy target artifact."); the name has no rules meaning. |
+| `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. `choose one or both { ... }` takes two modes, either or both ("Choose one or both —"). As a triggered ability's effect (`triggered when this enters: choose one { ... }`) the mode is chosen as the ability goes on the stack (CR 603.3c), each mode with its own targets. `choose two { ... }` (three or four unnamed modes) chooses two different modes (CR 700.2d; "Choose two —"), as a spell (`choose two { ... }` or `spell: choose two { ... }`) or as a triggered ability's effect (`triggered when this enters: choose two { ... }`: "When this creature enters, choose two —"); the engine offers the pairs of modes, in order. A named mode, `mode "Smash the Chest": destroy target artifact`, prints its name first ("• Smash the Chest — Destroy target artifact."); the name has no rules meaning. |
 | `enters tapped unless you control planeswalker`, `enters tapped unless player life 13 or less` | "This land enters tapped unless ..." with a static condition (CR 614.1d). |
 | `enters tapped if not your turn` | "This creature enters tapped if it's not your turn." (the same replacement as `enters tapped unless your turn`, CR 614.1d) |
 | `enters tapped unless pay 3 life` | "As this land enters, you may pay 3 life. If you don't, it enters tapped." (CR 614.12; only with that much life, CR 119.4). |
@@ -1080,7 +1080,8 @@ becomes the creature type of your choice in addition to its other types"
 owner's hand instead" (`replace <affects> dies: hand`). `has
 ward {2}` and `has toxic 1` grant those keyword abilities bare
 ("Enchanted creature gets +4/+4 and has trample and ward {1}."; CR 702.21,
-702.164); as an effect, `<what> gains toxic 1` ("gains toxic 1 until end
+702.164); `has ward pay 2 life` grants a ward whose cost isn't mana,
+quoted ('Artifacts you control have "Ward—Pay 2 life."'); as an effect, `<what> gains toxic 1` ("gains toxic 1 until end
 of turn"). Toxic values add up (CR 702.164c). `add color black, add
 subtype Zombie` together print "is a black Zombie in addition to its other
 colors and types". Lure among other modifications prints "all creatures
@@ -1641,7 +1642,12 @@ step."); both are the token. `delayed this: whenever <trigger> this turn, <effec
 every such event until the turn ends (CR 603.7c), as its controller's
 ability: "Whenever a creature blocks this turn, its controller loses 1
 life." (`its controller` is the triggering object's), "Whenever a
-nontoken creature you control dies this turn, create ...". `delayed
+nontoken creature you control dies this turn, create ...". Led by
+`until end of turn,` it is the same ability printed with the duration
+first: `until end of turn, delayed this: whenever creature you control
+deals combat damage to a player, investigate` ("Until end of turn,
+whenever a creature you control deals combat damage to a player,
+investigate."). `delayed
 this: when next you cast instant or sorcery spell this turn, copy that
 spell new targets` ("When you next cast an instant or sorcery spell this
 turn, copy that spell. ...", CR 603.7c) triggers only the first time,
@@ -2011,7 +2017,12 @@ the revealing player as subject `then puts those revealed into graveyard`
 ("..., then puts those cards into their graveyard"). `mana value of that
 card` counts "that card's mana value" (`choose any target; ...; deal damage
 equal mana value of that card to that target 1`: "Choose any target. ... deals
-damage equal to that card's mana value to that permanent or player"); `that player shuffles` is "Then that player
+damage equal to that card's mana value to that permanent or player"),
+and `its mana value` counts the same card printed "its mana value"
+(`reveal top card and put that card into hand; you lose count equal its
+mana value life`: "... put that card into your hand. You lose life equal
+to its mana value.", as it last existed once moved, CR 608.2h; in a
+triggered ability `mana value of it` is the triggering object's); `that player shuffles` is "Then that player
 shuffles." (CR 701.24).
 
 After `if it is ...`, `if you dont put it into hand, <sentence>` is "If

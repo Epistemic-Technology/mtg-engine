@@ -357,6 +357,7 @@ impl GameState {
                 chosen: Chosen::None,
                 couldnt: 0,
                 created_tokens: SmallVec::new(),
+                counts: pool.counts_owner(a),
             };
             for e in pool.ability(a).effects() {
                 self.apply_effect(&mut ctx, e);
@@ -537,6 +538,7 @@ impl GameState {
             chosen: Chosen::None,
             couldnt: 0,
             created_tokens: SmallVec::new(),
+            counts: None,
         };
         let mut made = Made {
             out: SmallVec::new(),

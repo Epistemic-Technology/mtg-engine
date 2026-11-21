@@ -104,8 +104,11 @@ pub fn add_card(
             token: None,
             cast_snapshot: None,
         };
+        let from = c.pool.ability_count();
         let def = c.card()?;
+        let to = pool.ability_count();
         let r = pool.add(def);
+        pool.set_counts_owner(from, to, r);
         if let Some(prev) = prev {
             pool.alias(&f.name, prev);
         }
@@ -131,8 +134,11 @@ pub fn add_card(
                 token: None,
                 cast_snapshot: None,
             };
+            let from = c.pool.ability_count();
             let def = c.card()?;
+            let to = pool.ability_count();
             let r = pool.add(def);
+            pool.set_counts_owner(from, to, r);
             pool.alias(&t.name, r);
             Some(r)
         }
@@ -158,7 +164,9 @@ pub fn add_card(
         token,
         cast_snapshot: None,
     };
+    let from = c.pool.ability_count();
     let mut def = c.card()?;
+    let to = pool.ability_count();
     link_exiles(&mut def);
     if !stages.is_empty() {
         def.oracle_text = render::oracle_text(card, by_name);
@@ -184,6 +192,9 @@ pub fn add_card(
     // already had it.
     let prev = card.display_name.as_deref().and_then(|n| pool.lookup(n));
     let r = pool.add(def);
+    // A count in an ability this card grants or creates is read from
+    // this card's definition, not from the permanent that has it.
+    pool.set_counts_owner(from, to, r);
     if !faces.is_empty() {
         pool.alias(&card.name, r);
         // CR 709.5: a Room's locked and unlocked states.
@@ -236,10 +247,14 @@ fn add_stages(
             cast_snapshot: None,
             sunburst: None,
         };
+        let from = c.pool.ability_count();
         let mut d = c.card()?;
+        let to = pool.ability_count();
         link_exiles(&mut d);
         d.oracle_text.clone_from(&pool.get(r).oracle_text);
-        refs.push(pool.add(d));
+        let s = pool.add(d);
+        pool.set_counts_owner(from, to, s);
+        refs.push(s);
     }
     // Each stage registered under the card's name; the card keeps it.
     pool.alias(&card.name, r);
@@ -1546,7 +1561,7 @@ impl Compiler<'_> {
             A::OtherInstantSorceryCast { before } => C::OtherInstantSorceryCast { before: *before },
             A::SourceToughness => C::SourceToughness,
             A::TargetManaValue { n, .. } => C::TargetManaValue(target_index(self.tmap, *n)),
-            A::CardManaValue => C::CardManaValue,
+            A::CardManaValue { .. } => C::CardManaValue,
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
             A::SpentColors(_) => C::SpentColors,
             A::TimesKicked => C::TimesKicked,
@@ -2813,6 +2828,11 @@ impl Compiler<'_> {
             }),
             Effect::Modes(modes) => {
                 let modes = self.modes(modes, false, false)?;
+                out.push(CoreEffect::Modes(modes));
+            }
+            // "Choose two —": the pairs of modes are the modes.
+            Effect::ModesTwo(modes) => {
+                let modes = self.modes(modes, false, true)?;
                 out.push(CoreEffect::Modes(modes));
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),

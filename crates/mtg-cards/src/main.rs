@@ -195,7 +195,7 @@ fn model_author(data: &DataDir, args: &ModelAuthorArgs) -> Result<ExitCode> {
             let Some(scry) = records.get(name) else {
                 continue;
             };
-            let examples = llm::similar(&corpus, scry.oracle_text.as_deref().unwrap_or(""), 6);
+            let examples = llm::similar(&corpus, &llm::oracle_text(scry), 6);
             println!("{}", llm::user_prompt(scry, &rulings_of(scry), &examples));
         }
         return Ok(ExitCode::SUCCESS);

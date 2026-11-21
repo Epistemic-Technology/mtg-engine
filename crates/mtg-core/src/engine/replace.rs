@@ -1127,6 +1127,7 @@ impl GameState {
                             chosen: Chosen::None,
                             couldnt: 0,
                             created_tokens: SmallVec::new(),
+                            counts: None,
                         };
                         self.eval_num(n, &ctx)
                     }
@@ -1242,6 +1243,7 @@ impl GameState {
                 chosen: Chosen::None,
                 couldnt: 0,
                 created_tokens: SmallVec::new(),
+                counts: None,
             };
             for effect in &c.ability.then {
                 self.apply_effect(&mut ctx, effect);

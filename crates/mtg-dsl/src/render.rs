@@ -877,6 +877,9 @@ struct Ctx<'a> {
     /// effects call "that creature" ("destroy that creature at end of
     /// combat").
     delayed_that: bool,
+    /// The sentence being rendered begins "until end of turn," (a delayed
+    /// trigger in it prints without its own "this turn").
+    eot_first: bool,
     /// The ability being rendered, for "except it has this ability".
     current: Option<&'a Ability>,
     /// The trigger of the ability, for wording that depends on it.
@@ -927,6 +930,7 @@ impl<'a> Ctx<'a> {
             groups_mentioned: HashSet::new(),
             in_delayed: false,
             delayed_that: false,
+            eot_first: false,
             current: None,
             trigger: None,
             last_token: None,
@@ -1536,7 +1540,14 @@ impl<'a> Ctx<'a> {
                 pluralize(&target_phrase(*s).replace("target ", ""))
             }
             Target::Spec(s) => {
-                pluralize(&target_phrase(*s).replace("target ", "")).replace(" or ", " and/or ")
+                // Each kind plural: "artifacts and/or enchantments".
+                let phrase = target_phrase(*s).replace("target ", "");
+                match phrase.split_once(" or ") {
+                    Some((a, b)) if !a.contains(' ') => {
+                        format!("{} and/or {}", pluralize(a), pluralize(b))
+                    }
+                    _ => pluralize(&phrase).replace(" or ", " and/or "),
+                }
             }
             Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
             Target::Filter(f) => filter_phrase(f, self.card, true),
@@ -3203,7 +3214,8 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             )
         }
         CountExpr::SourceToughness => return "its toughness".to_string(),
-        CountExpr::CardManaValue => return "that card's mana value".to_string(),
+        CountExpr::CardManaValue { its: false } => return "that card's mana value".to_string(),
+        CountExpr::CardManaValue { its: true } => return "its mana value".to_string(),
         CountExpr::TargetManaValue {
             that, the_spell, ..
         } => {
@@ -4232,8 +4244,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::imperative(format!("{head}. {body}"))
         }
-        Effect::Modes(modes) => {
-            let mut out = "choose one —".to_string();
+        Effect::Modes(modes) | Effect::ModesTwo(modes) => {
+            let mut out = if matches!(e, Effect::ModesTwo(_)) {
+                "choose two —".to_string()
+            } else {
+                "choose one —".to_string()
+            };
             for m in modes {
                 let mut inner = Ctx::new(ctx.card, ctx.lookup, &m.targets);
                 inner.current = ctx.current;
@@ -6805,7 +6821,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else if *it {
                 crate::format::this_turn_trigger(trigger).replacen("that creature", "it", 1)
             } else if *this_turn && !crate::format::about_that_creature(trigger) {
-                format!("{} this turn", trigger_text(trigger, ctx, true))
+                // "Until end of turn, whenever ...": the duration is
+                // printed first instead.
+                let t = trigger_text(trigger, ctx, true);
+                if ctx.eot_first {
+                    t
+                } else {
+                    format!("{t} this turn")
+                }
             } else if *this_turn {
                 crate::format::this_turn_trigger(trigger).to_string()
             } else {
@@ -7093,7 +7116,9 @@ fn lowercase_first(s: &str) -> String {
 fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     ctx.groups_mentioned
         .retain(|r| !matches!(r, Recipient::Group(_)));
+    let eot = std::mem::replace(&mut ctx.eot_first, s.eot_first);
     let clauses: Vec<Clause> = s.effects.iter().map(|e| clause(e, ctx)).collect();
+    ctx.eot_first = eot;
     let shared_suffix = clauses.len() > 1
         && clauses[0].suffix.is_some()
         && clauses.iter().all(|c| c.suffix == clauses[0].suffix);
@@ -9233,6 +9258,8 @@ fn granted_keyword(a: &Ability, card: &Card) -> Option<String> {
             let t = protection_text(f, card);
             Some(format!("p{}", &t[1..]))
         }
+        // 'have "Ward—Pay 2 life."': quoted.
+        Ability::Mechanic(crate::ast::Mechanic::WardCost(_)) => None,
         _ => crate::format::granted_mechanic(a),
     }
 }

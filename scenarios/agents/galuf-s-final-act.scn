@@ -1,7 +1,3 @@
-# The granted dies trigger's counters are not asserted: a count in an
-# ability granted to another permanent is read from that permanent's card,
-# not this one (engine bug, reported), so it puts no counters yet.
-
 scenario "the target gets +1/+0 until end of turn" {
   battlefield A: 2 "Forest", "Grizzly Bears"
   hand A: "Galuf's Final Act"
@@ -23,4 +19,6 @@ scenario "the creature's dies trigger asks for up to one target" {
   run_to turn 1 end
   assert graveyard A contains "Grizzly Bears"
   assert battlefield A contains "Hill Giant"
+  # Its power as it last existed: 2 + 1 (CR 608.2h).
+  assert counters "Hill Giant" +1/+1 3
 }

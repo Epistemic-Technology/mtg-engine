@@ -1,0 +1,12 @@
+card "Craftwork Crusher" {
+  oracle_id d25284b9-50e4-4dcb-9aaf-6f6478c4a90a
+  cost {3}{R}{R}{G}{G}
+  type Artifact Creature — Boar Construct
+  pt 7/5
+  keywords trample
+  triggered when this enters: choose two {
+    mode: this deals 4 damage to target creature or planeswalker
+    mode: create 1 "Cadet"
+    mode: draw 1 card
+  }
+}

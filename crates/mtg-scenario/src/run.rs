@@ -441,7 +441,7 @@ impl Runner {
             DecisionKind::OrderTriggers => Ok(self.order_triggers(d, pos)),
             DecisionKind::ChooseReplacement => Ok(self.choose_replacement(d, pos)),
             DecisionKind::LegendRule => Ok(self.keep_legend(d, pos)),
-            DecisionKind::ChooseMode { .. } => self.choose_mode(d),
+            DecisionKind::ChooseMode { .. } => self.choose_mode(d, pos),
             DecisionKind::ChooseX { .. }
             | DecisionKind::Replicate { .. }
             | DecisionKind::Multikicker { .. } => self.choose_x(d),
@@ -654,7 +654,12 @@ impl Runner {
 
     /// The mode of the modal spell being cast: the one scripted with
     /// `mode N`, else the engine's first option.
-    fn choose_mode(&mut self, d: &Decision) -> Res<ChoiceId> {
+    fn choose_mode(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
+        if self.pending_mode.is_none()
+            && let DecisionKind::ChooseMode { spell } = d.kind
+        {
+            self.pending_mode = self.trigger_mode(d, spell, pos);
+        }
         let Some(m) = self.pending_mode.take() else {
             return Ok(0);
         };
@@ -666,6 +671,37 @@ impl Runner {
                 self.describe_options(d)
             ),
         })
+    }
+
+    /// The mode scripted for a modal triggered ability put on the stack
+    /// without an ordering decision: its `trigger "Source" mode N` line's
+    /// (fired now if it scripts no targets; otherwise as its targets are
+    /// chosen).
+    fn trigger_mode(&mut self, d: &Decision, ability: ObjId, pos: Position) -> Option<usize> {
+        let st = self.state();
+        let o = st.objects.get(ability)?;
+        if o.kind != ObjKind::Ability {
+            return None;
+        }
+        let source = o
+            .ability
+            .map(|a| st.name_of_or_lki(a.source).to_string())
+            .unwrap_or_default();
+        let idxs = self.matching(
+            d.player,
+            pos,
+            true,
+            |a| matches!(a, Action::Trigger { source: s, .. } if *s == source),
+        );
+        let i = *idxs.first()?;
+        let Action::Trigger { mode, targets, .. } = &self.actions[i].action else {
+            unreachable!()
+        };
+        let mode = *mode;
+        if targets.is_empty() {
+            self.fired[i] = true;
+        }
+        mode
     }
 
     /// A "you may" of `def`: the first unfired scripted `accept`/`decline`
@@ -845,7 +881,12 @@ impl Runner {
         let idxs = self.matching(d.player, pos, true, |a| matches!(a, Action::Trigger { .. }));
         for i in idxs {
             let a = self.actions[i].clone();
-            let Action::Trigger { source, targets } = &a.action else {
+            let Action::Trigger {
+                source,
+                targets,
+                mode,
+            } = &a.action
+            else {
                 unreachable!()
             };
             let found = d.options.iter().position(|c| match c {
@@ -859,6 +900,9 @@ impl Runner {
             if let Some(idx) = found {
                 self.fired[i] = true;
                 self.pending_targets = (!targets.is_empty()).then(|| targets.clone());
+                if mode.is_some() {
+                    self.pending_mode = *mode;
+                }
                 return idx_u32(idx);
             }
         }
@@ -1068,6 +1112,7 @@ impl Runner {
             if let Action::Activate {
                 source,
                 ability,
+                mode,
                 x,
                 sacrifice,
                 discard,
@@ -1078,7 +1123,7 @@ impl Runner {
                     d,
                     &a,
                     source,
-                    (*ability, *x),
+                    (*ability, *mode, *x),
                     sacrifice.as_deref(),
                     discard.as_deref(),
                     targets,
@@ -1193,7 +1238,16 @@ impl Runner {
             let illegal = a.illegal && !splice_refusal;
             let refused = match (illegal, found, &targets) {
                 (true, Some(idx), Some(ts)) if !ts.is_empty() => {
-                    self.scripted_target_refused(idx, ts, costs.0, a.line)?
+                    // A scripted `kicked` or `gift` is taken on the copy too.
+                    let promised = costs.3
+                        || matches!(
+                            &a.action,
+                            Action::Cast {
+                                conspired: true,
+                                ..
+                            }
+                        );
+                    self.scripted_target_refused(idx, ts, costs.0, promised, a.line)?
                 }
                 _ => false,
             };
@@ -1260,7 +1314,15 @@ impl Runner {
                             id,
                             name,
                             mode,
-                            matches!(&a.action, Action::Cast { kicked: true, .. }),
+                            // A promised gift is kept as the kicker flag.
+                            matches!(&a.action, Action::Cast { kicked: true, .. })
+                                || (matches!(
+                                    &a.action,
+                                    Action::Cast {
+                                        conspired: true,
+                                        ..
+                                    }
+                                ) && self.state().def_of(id).is_some_and(|d| d.gift.is_some())),
                         )?;
                         // A bestowed spell targets what it enchants; spliced
                         // cards' targets follow the spell's (CR 702.47a).
@@ -1384,6 +1446,11 @@ impl Runner {
             {
                 t = &t[..usize::from(n).min(t.len())];
             }
+            // "If the gift was promised, instead ... target ...": a kicked
+            // spell's own targets replace the others.
+            if kicked {
+                t = def.kicked_cast_targets();
+            }
             return Ok(((t.len(), optional_count(t), unbounded(t)), None));
         };
         let m = mode.unwrap_or(1);
@@ -1407,13 +1474,17 @@ impl Runner {
     /// permanent (with the named sacrifice, if any). `Ok(None)` means the
     /// action did not fire this time (illegal as required, or waiting for
     /// an empty stack).
-    #[allow(clippy::too_many_arguments)] // the parts of one `activate` line
+    #[allow(
+        clippy::too_many_arguments,
+        clippy::too_many_lines,
+        clippy::many_single_char_names
+    )] // the parts of one `activate` line
     fn activation(
         &mut self,
         d: &Decision,
         a: &ScriptedAction,
         source: &str,
-        (nth, x): (Option<usize>, Option<u32>),
+        (nth, scripted_mode, x): (Option<usize>, Option<usize>, Option<u32>),
         sacrifice: Option<&str>,
         discard: Option<&str>,
         targets: &[TargetRef],
@@ -1463,7 +1534,7 @@ impl Runner {
         match (a.illegal, found) {
             // "illegal ... targeting X": legal to activate, but not at X.
             (true, Some(idx))
-                if self.scripted_target_refused(idx_u32(idx), targets, x, a.line)? =>
+                if self.scripted_target_refused(idx_u32(idx), targets, x, false, a.line)? =>
             {
                 self.fired[i] = true;
                 Ok(None)
@@ -1500,7 +1571,29 @@ impl Runner {
                 let Choice::Activate { ability, .. } = &d.options[idx] else {
                     unreachable!()
                 };
-                let specs = self.state().pool.ability(*ability).targets();
+                // A modal ability's targets are the chosen mode's (the
+                // first, unscripted).
+                let st = self.state();
+                let specs = match st.pool.ability(*ability).effects() {
+                    [mtg_core::card::Effect::Modes(modes)] => {
+                        let Some(m) = modes.get(scripted_mode.unwrap_or(1) - 1) else {
+                            return fail(
+                                a.line,
+                                format!("\"{source}\"'s ability has {} modes", modes.len()),
+                            );
+                        };
+                        // Unscripted targets: the engine's first options.
+                        if targets.is_empty() {
+                            &[]
+                        } else {
+                            m.targets.as_slice()
+                        }
+                    }
+                    _ if scripted_mode.is_some() => {
+                        return fail(a.line, format!("\"{source}\"'s ability is not modal"));
+                    }
+                    _ => st.pool.ability(*ability).targets(),
+                };
                 let (needed, optional, more) =
                     (specs.len(), optional_count(specs), unbounded(specs));
                 let targets = expand_auto(targets, needed);
@@ -1517,6 +1610,7 @@ impl Runner {
                     self.pending_targets = Some(targets.clone());
                 }
                 self.pending_x = x;
+                self.pending_mode = scripted_mode;
                 Ok(Some(idx_u32(idx)))
             }
         }
@@ -2108,6 +2202,7 @@ impl Runner {
         idx: ChoiceId,
         targets: &[TargetRef],
         x: Option<u32>,
+        promised: bool,
         line: usize,
     ) -> Res<bool> {
         let mut sim = self.engine.clone();
@@ -2148,6 +2243,16 @@ impl Runner {
                     }
                 }
                 DecisionKind::PriorityAction => return Ok(asked < targets.len()),
+                // Kicked, or the gift promised, only if scripted: either
+                // changes the spell's targets (CR 601.2c, 702.174m).
+                DecisionKind::Kicker { .. } | DecisionKind::Gift { .. } => {
+                    let want = if promised {
+                        Choice::Accept
+                    } else {
+                        Choice::Decline
+                    };
+                    index_of(&d, &want).unwrap_or(0)
+                }
                 _ => 0,
             };
             if sim.step(pick).is_err() {

@@ -114,9 +114,102 @@ pub fn similar<'a>(cards: &'a [Card], oracle_text: &str, k: usize) -> Vec<&'a Ca
     scored.into_iter().take(k).map(|(_, c)| c).collect()
 }
 
+/// The Oracle text of a Scryfall record; for a card of several faces
+/// (adventure, split, double-faced; CR 709, 712, 715), each face's name,
+/// cost, type line, power and toughness, and text, the faces separated by
+/// "//".
+pub fn oracle_text(s: &ScryCard) -> String {
+    if s.card_faces.is_empty() {
+        return s.oracle_text.clone().unwrap_or_default();
+    }
+    let faces: Vec<String> = s
+        .card_faces
+        .iter()
+        .map(|f| {
+            let mut t = f.name.clone();
+            if let Some(c) = f.mana_cost.as_deref().filter(|c| !c.is_empty()) {
+                let _ = write!(t, " {c}");
+            }
+            let _ = write!(t, "\n{}", f.type_line.as_deref().unwrap_or(""));
+            if let (Some(p), Some(tt)) = (&f.power, &f.toughness) {
+                let _ = write!(t, "\n{p}/{tt}");
+            }
+            if let Some(l) = &f.loyalty {
+                let _ = write!(t, "\nLoyalty: {l}");
+            }
+            if let Some(d) = &f.defense {
+                let _ = write!(t, "\nDefense: {d}");
+            }
+            let _ = write!(t, "\n{}", f.oracle_text.as_deref().unwrap_or(""));
+            t
+        })
+        .collect();
+    faces.join("\n//\n")
+}
+
+/// The DSL `layout` of a multi-face Scryfall record, as the template
+/// author writes it.
+fn face_layout(s: &ScryCard) -> &'static str {
+    match s.layout.as_str() {
+        "adventure"
+            if s.card_faces
+                .get(1)
+                .is_some_and(|f| f.type_line.as_deref().unwrap_or("").contains("Omen")) =>
+        {
+            "omen"
+        }
+        "adventure" => "adventure",
+        "transform" => "transform",
+        "prepare" => "prepare",
+        "modal_dfc" => "modal_dfc",
+        _ => "split",
+    }
+}
+
 /// The header lines of a card file from the Scryfall record, as the
-/// template author writes them.
+/// template author writes them: for a card of several faces, `layout`,
+/// the front face's lines, and a `face` block per other face (every face,
+/// for a split card).
 pub fn header(s: &ScryCard) -> String {
+    if s.card_faces.len() < 2 {
+        return single_header(s);
+    }
+    let layout = face_layout(s);
+    let mut text = format!("card \"{}\" {{\n", s.name);
+    if let Some(id) = &s.oracle_id {
+        let _ = writeln!(text, "  oracle_id {id}");
+    }
+    let _ = writeln!(text, "  layout {layout}");
+    // A face's lines from `single_header`, without its first line.
+    let lines = |f: &crate::scryfall::Face| -> Vec<String> {
+        let mut rec = s.face_record(f);
+        rec.oracle_id = None;
+        single_header(&rec)
+            .lines()
+            .skip(1)
+            .map(str::to_string)
+            .collect()
+    };
+    let rest = if layout == "split" {
+        &s.card_faces[..]
+    } else {
+        for l in lines(&s.card_faces[0]) {
+            let _ = writeln!(text, "{l}");
+        }
+        &s.card_faces[1..]
+    };
+    for f in rest {
+        let _ = writeln!(text, "  face \"{}\" {{", f.name);
+        for l in lines(f) {
+            let _ = writeln!(text, "  {l}");
+        }
+        text.push_str("  }\n");
+    }
+    text
+}
+
+/// `header` for a card of one face.
+fn single_header(s: &ScryCard) -> String {
     let mut text = format!("card \"{}\" {{\n", s.name);
     if let Some(id) = &s.oracle_id {
         let _ = writeln!(text, "  oracle_id {id}");
@@ -170,11 +263,7 @@ pub fn user_prompt(s: &ScryCard, rulings: &[String], examples: &[&Card]) -> Stri
     if let (Some(pw), Some(t)) = (&s.power, &s.toughness) {
         let _ = writeln!(p, "Power/toughness: {pw}/{t}");
     }
-    let _ = writeln!(
-        p,
-        "\nOracle text:\n{}\n",
-        s.oracle_text.as_deref().unwrap_or("")
-    );
+    let _ = writeln!(p, "\nOracle text:\n{}\n", oracle_text(s));
     if !rulings.is_empty() {
         let _ = writeln!(p, "Rulings:");
         for r in rulings {
@@ -485,7 +574,7 @@ pub fn author_record(
     attempts: usize,
     log: &mut dyn FnMut(&str),
 ) -> Result<(Verdict, Conversation)> {
-    let examples = similar(corpus, scry.oracle_text.as_deref().unwrap_or(""), 6);
+    let examples = similar(corpus, &oracle_text(scry), 6);
     let user = user_prompt(scry, rulings, &examples);
     let mut conv = Conversation::new(model)?;
     let mut prompt = user;

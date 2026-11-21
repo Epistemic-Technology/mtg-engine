@@ -1,0 +1,9 @@
+card "Winter, Cursed Rider" {
+  oracle_id 343833c1-19fd-4e8f-b82e-0f20903caaff
+  cost {U}{B}
+  type Legendary Creature — Human Warlock
+  pt 3/2
+  ward pay 2 life
+  static artifact you control: has ward pay 2 life
+  exhaust {2}{U}{B}, {T}, exile X artifact cards from graveyard: each single other nonartifact creature gets -1/-1 X
+}

@@ -489,6 +489,7 @@ impl GameState {
             encoded: Vec::new(),
             turn_started_at: 0,
             x_values: Vec::new(),
+            entered_x: Vec::new(),
             ninjutsu: Vec::new(),
             bargains: Vec::new(),
             divisions: Vec::new(),
@@ -924,10 +925,24 @@ impl GameState {
                         self.flow = Flow::Priority;
                         continue;
                     };
+                    // "If the gift was promised, instead ... target ...":
+                    // without targets for the spell unpromised, the gift
+                    // must be promised (CR 601.2c, 702.174m).
+                    let def = self.pool.get(obj.def);
+                    let unpromised = def.kicked_drops.is_none()
+                        || self.targets_available(
+                            obj.controller,
+                            def.unkicked_cast_targets(),
+                            Some(spell),
+                        );
+                    let mut options = vec![Choice::Accept];
+                    if unpromised {
+                        options.push(Choice::Decline);
+                    }
                     return StepResult::Decision(Decision {
                         player: obj.controller,
                         kind: DecisionKind::Gift { spell },
-                        options: vec![Choice::Accept, Choice::Decline],
+                        options,
                     });
                 }
                 Flow::ChoosingTeamwork { spell } => {
@@ -1553,7 +1568,7 @@ impl GameState {
                         options,
                     });
                 }
-                Flow::ChoosingMode { spell } => {
+                Flow::ChoosingMode { spell, .. } => {
                     let player = self.objects[spell].controller;
                     let options = self.mode_options(spell);
                     if options.is_empty() {
@@ -1802,7 +1817,11 @@ impl GameState {
                 self.cbump();
                 let def = self.pool.get(face_def);
                 self.flow = if def.modes().is_some() {
-                    Flow::ChoosingMode { spell }
+                    Flow::ChoosingMode {
+                        spell,
+                        sacrifice: None,
+                        discard: None,
+                    }
                 } else {
                     self.after_mode(spell)
                 };
@@ -1877,11 +1896,30 @@ impl GameState {
                 }
                 self.give_priority(player);
             }
-            (Flow::ChoosingMode { spell }, Choice::Mode(i)) => {
+            (
+                Flow::ChoosingMode {
+                    spell,
+                    sacrifice,
+                    discard,
+                },
+                Choice::Mode(i),
+            ) => {
                 self.objects[spell]
                     .cast
                     .set_mode(u8::try_from(i).unwrap_or(0));
-                self.flow = self.after_mode(spell);
+                // An activated ability goes on to X and its mode's targets
+                // with what its cost chose (CR 602.2b).
+                let activated = self.objects[spell].ability.is_some_and(|a| {
+                    matches!(
+                        self.pool.ability(a.ability),
+                        crate::card::AbilityDef::Activated(_)
+                    )
+                });
+                self.flow = if activated {
+                    self.after_activated_mode(spell, sacrifice, discard)
+                } else {
+                    self.after_mode(spell)
+                };
             }
             (
                 Flow::ChoosingX {
@@ -2240,7 +2278,11 @@ impl GameState {
             self.objects[spell].cast.set_as_cast();
         }
         self.flow = if def.modes().is_some() {
-            Flow::ChoosingMode { spell }
+            Flow::ChoosingMode {
+                spell,
+                sacrifice: None,
+                discard: None,
+            }
         } else {
             self.after_mode(spell)
         };
@@ -2279,6 +2321,35 @@ impl GameState {
             }
         }
         out
+    }
+
+    fn after_activated_mode(
+        &self,
+        spell: ObjId,
+        sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
+    ) -> Flow {
+        let has_x = self.objects[spell].ability.is_some_and(|a| {
+            matches!(
+                self.pool.ability(a.ability),
+                crate::card::AbilityDef::Activated(ab) if ab.cost.mana.has_x()
+                    || ab.cost.exile_cards.as_ref().is_some_and(|g| g.x)
+            )
+        });
+        if has_x {
+            Flow::ChoosingX {
+                spell,
+                sacrifice,
+                discard,
+            }
+        } else {
+            Flow::Casting {
+                spell,
+                next_target: 0,
+                sacrifice,
+                discard,
+            }
+        }
     }
 
     fn after_mode(&self, spell: ObjId) -> Flow {
@@ -2341,7 +2412,8 @@ impl GameState {
             let targets = def.kicker_targets.is_none_or(|_| {
                 def.spell_ability()
                     .is_none_or(|(t, _)| self.targets_available(p, t, Some(spell)))
-            });
+            }) && (def.kicked_drops.is_none()
+                || self.targets_available(p, def.kicked_cast_targets(), Some(spell)));
             if targets && self.players_in_game().any(|q| q != p) {
                 return Flow::ChoosingGift { spell };
             }
@@ -2702,6 +2774,7 @@ impl GameState {
                 }
             }
             Step::Cleanup => {
+                self.entered_x.clear();
                 self.flow = Flow::Discarding;
             }
             // CR 714.3b: as the precombat main phase begins, the active

@@ -16,3 +16,13 @@ scenario "Insidious Fungus can't be activated without {2}" {
   run_to turn 1 postcombat_main
   assert battlefield A contains "Insidious Fungus"
 }
+
+scenario "Insidious Fungus's second mode destroys an enchantment" {
+  battlefield A: "Insidious Fungus", 2 "Forest"
+  battlefield B: "Rope", "Grizzly Bears", "Pacifism" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Insidious Fungus" mode 2 targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Pacifism"
+  assert battlefield B contains "Rope"
+}
