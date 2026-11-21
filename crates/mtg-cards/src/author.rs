@@ -3055,6 +3055,48 @@ fn trigger_general(head: &str) -> Option<String> {
             Some("whenever this attacks and isn't blocked")
         }
         "Whenever you attack" => Some("whenever you attack"),
+        "Whenever you discard one or more cards" => Some("whenever you discard one or more cards"),
+        "Whenever a player discards one or more cards" => {
+            Some("whenever a player discards one or more cards")
+        }
+        "Whenever an opponent discards one or more cards" => {
+            Some("whenever an opponent discards one or more cards")
+        }
+        "Whenever you gain or lose life" => Some("whenever you gain or lose life"),
+        "Whenever you gain or lose life during your turn" => {
+            Some("whenever you gain or lose life during your turn")
+        }
+        "Whenever you scry or surveil" => Some("whenever you scry or surveil"),
+        "Whenever a creature you control explores" => {
+            Some("whenever creature you control explores")
+        }
+        "Whenever you tap an untapped creature an opponent controls" => {
+            Some("whenever you tap untapped creature an opponent controls")
+        }
+        "Whenever you activate an exhaust ability" => {
+            Some("whenever you activate an exhaust ability")
+        }
+        "Whenever you activate a loyalty ability" => {
+            Some("whenever you activate a loyalty ability")
+        }
+        "Whenever an opponent activates a loyalty ability" => {
+            Some("whenever an opponent activates a loyalty ability")
+        }
+        "Whenever you activate an ability of a creature" => {
+            Some("whenever you activate an ability of a creature")
+        }
+        "Whenever you cast your third spell each turn" => {
+            Some("whenever you cast your third spell each turn")
+        }
+        "Whenever you sacrifice one or more Foods" => {
+            Some("whenever you sacrifice one or more Food")
+        }
+        "Whenever you attack with one or more creatures with power 4 or greater" => {
+            Some("whenever you attack with one or more creature with power 4 or greater")
+        }
+        "Whenever you attack a player with one or more creatures with power 4 or greater" => {
+            Some("whenever you attack a player with one or more creature with power 4 or greater")
+        }
         "Whenever one or more creatures you control attack" => {
             Some("whenever one or more creatures you control attack")
         }

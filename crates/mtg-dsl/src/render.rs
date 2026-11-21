@@ -967,6 +967,10 @@ struct Ctx<'a> {
     /// instead").
     last_token: Option<String>,
     those_tokens: Option<String>,
+    /// The controller was just told to discard one card ("draw a card,
+    /// then discard a card"): a reflexive trigger after it is "When you
+    /// discard a card this way".
+    discarded_one: bool,
     /// What this is attached to has been named in the ability, so it is
     /// "it" as an object ("tap enchanted creature and remove all counters
     /// from it"; "if enchanted creature is untapped, tap it").
@@ -1020,6 +1024,7 @@ impl<'a> Ctx<'a> {
             trigger: None,
             last_token: None,
             those_tokens: None,
+            discarded_one: false,
             attached_mentioned: false,
             attached_by_cond: false,
             amassed: false,
@@ -4866,6 +4871,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             filter,
             tapped,
             also,
+            attacking,
         } => {
             let one = |f: &Filter| {
                 if *f == Filter::default() {
@@ -4881,7 +4887,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!(
                 "put {what} from your hand onto the battlefield{}",
-                if *tapped { " tapped" } else { "" }
+                match (*tapped, *attacking) {
+                    (true, true) => " tapped and attacking",
+                    (true, false) => " tapped",
+                    _ => "",
+                }
             ))
         }
         Effect::Explore { what, twice } => {
@@ -5090,6 +5100,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             under_you,
             attached,
             put,
+            attacking,
         } => {
             // `that card` prints "that card", `it` (inside a delayed
             // trigger) "it".
@@ -5127,11 +5138,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ctx.target_noun[*i] = "creature".to_string();
                 }
             }
-            let tapped = if *tapped { " tapped" } else { "" };
+            let tapped = match (*tapped, *attacking) {
+                (true, true) => " tapped and attacking",
+                (true, false) => " tapped",
+                _ => "",
+            };
             // Activated from the graveyard: "Return this card from your
             // graveyard to the battlefield tapped."
             let from_graveyard = *what == Recipient::Source && works_from_graveyard(ctx.current);
-            let mut text = if from_graveyard {
+            let mut text = if *attacking && (others || (*put && *under_you)) {
+                // "put target creature card from defending player's
+                // graveyard onto the battlefield under your control tapped
+                // and attacking".
+                format!("put {o} onto the battlefield under your control{tapped}")
+            } else if from_graveyard {
                 format!("return this card from your graveyard to the battlefield{tapped}")
             } else if others || (*put && *under_you) {
                 format!("put {o} onto the battlefield{tapped} under your control")
@@ -5377,6 +5397,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             token,
             count,
             tapped,
+            attacking,
             who,
             it_has,
             attached,
@@ -5392,7 +5413,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ));
             }
             ctx.last_token = Some(token.clone());
-            let mut what = token_description(token, *count, *tapped, *it_has, ctx);
+            let mut what = token_description(token, *count, *tapped && !*attacking, *it_has, ctx);
+            // CR 508.4: "a ... token that's tapped and attacking", "two ...
+            // tokens that are tapped and attacking".
+            if *attacking {
+                let _ = write!(
+                    what,
+                    " {} tapped and attacking",
+                    if *count == Num::N(1) {
+                        "that's"
+                    } else {
+                        "that are"
+                    }
+                );
+            }
             // "Create a Wicked Role token attached to up to one target
             // creature you control", "... attached to it".
             if let Some(a) = attached {
@@ -6357,6 +6391,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("double {} life total", possessive(&s)))
         }
         Effect::Discard { count, who } => {
+            ctx.discarded_one = who.is_none() && *count == Num::N(1);
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
             match who {
                 None => Clause::imperative(format!("discard {what}")),
@@ -6733,7 +6768,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 lowercase_first(&body)
             };
-            Clause::imperative(format!("when you do, {}", body.trim_end_matches('.')))
+            // "Draw a card, then discard a card. When you discard a card
+            // this way, ...".
+            let when = if ctx.discarded_one {
+                "when you discard a card this way"
+            } else {
+                "when you do"
+            };
+            Clause::imperative(format!("{when}, {}", body.trim_end_matches('.')))
         }
         Effect::Otherwise(inner) => {
             // "Otherwise, create one of those tokens.": the token the
@@ -7226,6 +7268,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 return Clause::imperative(text);
             }
             let body = sentences(inner, ctx);
+            // "You may discard a card. When you do, ...".
+            ctx.discarded_one = false;
             let body = lowercase_first(&body);
             // "you may gain 3 life", not "you may you gain".
             if let Some(rest) = body.strip_prefix("you ") {
@@ -7863,8 +7907,15 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         } => {
             let a = trigger_text(first, ctx, next);
             let b = trigger_text(second, ctx, next);
-            let subject = format!("{} ", this_ref(ctx.card));
-            let a = a.split_once(&subject).map_or(a.as_str(), |(_, v)| v);
+            // "Whenever this creature enters or transforms into ~": a
+            // legendary one too.
+            let named = format!("{} ", this_ref(ctx.card));
+            let subject = if **second == Trigger::Transforms {
+                format!("this {} ", self_noun(ctx.card))
+            } else {
+                named.clone()
+            };
+            let a = a.split_once(&named).map_or(a.as_str(), |(_, v)| v);
             let b = b.split_once(&subject).map_or(b.as_str(), |(_, v)| v);
             format!(
                 "{} {subject}{a} or {b}",
@@ -7945,6 +7996,39 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             if *your_turn { " during your turn" } else { "" }
         ),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
+        Trigger::DiscardsBatch { whose } => format!(
+            "whenever {} one or more cards",
+            crate::format::discards_words(*whose)
+        ),
+        Trigger::SacrificesBatch(f) => format!(
+            "whenever you sacrifice one or more {}",
+            filter_phrase(f, ctx.card, true)
+        ),
+        Trigger::AttacksWithFilter { filter: f, player } => format!(
+            "whenever you attack{} with one or more {}",
+            if *player { " a player" } else { "" },
+            controller_first(f, filter_phrase(f, ctx.card, true))
+        ),
+        Trigger::GainsOrLosesLife { your_turn } => format!(
+            "whenever you gain or lose life{}",
+            if *your_turn { " during your turn" } else { "" }
+        ),
+        Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
+        Trigger::Explores(o) => format!("whenever {} explores", trigger_subject(o, ctx)),
+        Trigger::YouTap(f) => format!("whenever you tap {}", filter_a(f, ctx.card)),
+        Trigger::Activates { whose, kind } => {
+            format!("whenever {}", crate::format::activates_words(*whose, *kind))
+        }
+        // CR 701.27: the face this ability is on.
+        Trigger::Transforms => {
+            ctx.source_mentioned = true;
+            // "this creature" even for a legendary one (Ulrich).
+            format!(
+                "whenever this {} transforms into {}",
+                self_noun(ctx.card),
+                ctx.card.name
+            )
+        }
         Trigger::EntersBatch(f) => format!(
             "whenever one or more {} enter",
             controller_first(f, filter_phrase(f, ctx.card, true))
@@ -11661,6 +11745,44 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 "this card"
             }
         ),
+        // CR 603.2d.
+        Ability::TriggerAgain {
+            filter: f,
+            entering: Some(e),
+            battlefield,
+            cause,
+        } => format!(
+            "If {} {}{} causes a triggered ability of {} to trigger, that ability triggers an additional time.",
+            with_article(&controller_first(e, filter_phrase(e, card, false))),
+            match cause {
+                mtg_core::card::TriggerCause::Enters => "entering",
+                mtg_core::card::TriggerCause::Dies => "dying",
+                mtg_core::card::TriggerCause::Attacks => "attacking",
+            },
+            if *battlefield { " the battlefield" } else { "" },
+            with_article(&controller_first(f, filter_phrase(f, card, false)))
+        ),
+        // "it" after "another Elemental" (Twinflame Travelers), "that
+        // ability" otherwise.
+        Ability::TriggerAgain {
+            filter: f,
+            entering: None,
+            ..
+        } => {
+            let it = if f.relation == mtg_core::card::Relation::Other && f.or.is_none() {
+                "it"
+            } else {
+                "that ability"
+            };
+            // "of equipped creature" (Wizard's Staff) takes no article.
+            let what = controller_first(f, filter_phrase(f, card, false));
+            let what = if what.starts_with("equipped ") || what.starts_with("enchanted ") {
+                what
+            } else {
+                with_article(&what)
+            };
+            format!("If a triggered ability of {what} triggers, {it} triggers an additional time.")
+        }
         Ability::PlayerStatic { kind, cond } => {
             use mtg_core::card::PlayerStaticKind as K;
             let s = match kind {

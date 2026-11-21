@@ -1,0 +1,8 @@
+card "Geist of Saint Traft" {
+  oracle_id 4304035c-c3e4-4a19-aa1f-92a83d8aed1f
+  cost {1}{W}{U}
+  type Legendary Creature — Spirit Cleric
+  pt 2/2
+  keywords hexproof
+  triggered whenever this attacks: create 1 tapped and attacking "4/4 white Angel creature with flying"; delayed that token: exile that token at end of combat
+}

@@ -1,0 +1,8 @@
+card "Starfield Vocalist" {
+  oracle_id 4add809e-9caa-45ae-bb0d-4760a360b8e2
+  cost {3}{U}
+  type Creature — Human Bard
+  pt 3/4
+  trigger again permanent you control when permanent enters the battlefield
+  warp {1}{U}
+}

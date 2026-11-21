@@ -703,6 +703,27 @@ impl Decompiler<'_> {
                 out.push(Sentence::new(vec![Effect::IfWonClash(self.sentences(won))]));
                 continue;
             }
+            // "create a ... token that's tapped and attacking".
+            if matches!(e, CoreEffect::CreatedAttack)
+                && let Some(Effect::CreateToken { attacking, .. }) = out
+                    .last_mut()
+                    .and_then(|s: &mut Sentence| s.effects.last_mut())
+            {
+                *attacking = true;
+                continue;
+            }
+            // "... onto the battlefield tapped and attacking".
+            if matches!(e, CoreEffect::EnteredAttack)
+                && let Some(
+                    Effect::ReturnToBattlefield { attacking, .. }
+                    | Effect::PutFromHand { attacking, .. },
+                ) = out
+                    .last_mut()
+                    .and_then(|s: &mut Sentence| s.effects.last_mut())
+            {
+                *attacking = true;
+                continue;
+            }
             out.push(Sentence::new(vec![self.effect(e)]));
         }
         out
@@ -789,6 +810,7 @@ impl Decompiler<'_> {
                 under_you: *under_you,
                 attached: attached.map(r),
                 put: false,
+                attacking: false,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {
@@ -839,6 +861,7 @@ impl Decompiler<'_> {
                 token: self.pool.get(*token).name.clone(),
                 count: *count,
                 tapped: *tapped,
+                attacking: false,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
                 it_has: false,
                 attached: attached.map(r),
@@ -1277,6 +1300,7 @@ impl Decompiler<'_> {
             | CoreEffect::Exploit
             | CoreEffect::EnterAttacking
             | CoreEffect::CreatedAttack
+            | CoreEffect::EnteredAttack
             | CoreEffect::ReturnTransformed
             | CoreEffect::BecomeSaddled => {
                 unreachable!("built-in abilities only")
@@ -1526,6 +1550,7 @@ impl Decompiler<'_> {
                 filter: self.filter(filter),
                 tapped: *tapped,
                 also: None,
+                attacking: false,
             },
             CoreEffect::IfThisWay { cond, then } => {
                 Effect::IfThisWay(self.this_way_cond(cond), self.sentences(then))
@@ -1763,6 +1788,34 @@ impl Decompiler<'_> {
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Next(inner) => Trigger::Next(Box::new(self.trigger(inner))),
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),
+            TriggerSpec::DiscardsBatch { whose } => Trigger::DiscardsBatch { whose: *whose },
+            TriggerSpec::SacrificesBatch(f) => Trigger::SacrificesBatch(self.filter(f)),
+            TriggerSpec::AttacksWithFilter { filter, player } => Trigger::AttacksWithFilter {
+                filter: self.filter(filter),
+                player: *player,
+            },
+            TriggerSpec::GainsOrLosesLife { your_turn } => Trigger::GainsOrLosesLife {
+                your_turn: *your_turn,
+            },
+            TriggerSpec::ScriesOrSurveils => Trigger::ScriesOrSurveils,
+            TriggerSpec::Explores(o) => Trigger::Explores(self.trigger_obj(o)),
+            TriggerSpec::YouTap(f) => Trigger::YouTap(self.filter(f)),
+            TriggerSpec::Activates { whose, kind } => Trigger::Activates {
+                whose: *whose,
+                kind: *kind,
+            },
+            TriggerSpec::Transforms => Trigger::Transforms,
+            // "When this creature enters or transforms into ~".
+            TriggerSpec::Either(pair)
+                if pair.0 == TriggerSpec::Enters(CoreTriggerObj::This)
+                    && pair.1 == TriggerSpec::Transforms =>
+            {
+                Trigger::Or {
+                    first: Box::new(self.trigger(&pair.0)),
+                    second: Box::new(Trigger::Transforms),
+                    whenever: true,
+                }
+            }
             // "When you cast or cycle ~".
             TriggerSpec::Either(pair)
                 if pair.0 == TriggerSpec::CastThis && pair.1.cycles_this() =>
@@ -1922,6 +1975,17 @@ impl Decompiler<'_> {
             AbilityDef::Protection(f) => Ability::Protection(self.filter(f)),
             AbilityDef::HexproofFrom(f) => Ability::HexproofFrom(self.filter(f)),
             AbilityDef::OpeningHand => Ability::OpeningHand,
+            AbilityDef::TriggerAgain {
+                filter,
+                entering,
+                battlefield,
+                cause,
+            } => Ability::TriggerAgain {
+                filter: self.filter(filter),
+                entering: entering.as_ref().map(|f| self.filter(f)),
+                battlefield: *battlefield,
+                cause: *cause,
+            },
             AbilityDef::PlayerStatic { kind, condition } => Ability::PlayerStatic {
                 kind: *kind,
                 cond: condition.map(|c| self.static_cond(self.pool.condition(c))),

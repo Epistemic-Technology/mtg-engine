@@ -38,6 +38,17 @@ pub enum Event {
     Transformed {
         obj: ObjId,
     },
+    /// A creature explored (CR 701.44), after its reveal and its result.
+    Explored {
+        obj: ObjId,
+    },
+    /// A spell or ability `player` controls tapped an untapped permanent
+    /// (just after its `Tapped` event): "Whenever you tap an untapped
+    /// creature an opponent controls".
+    TappedBy {
+        obj: ObjId,
+        player: PlayerId,
+    },
     /// A Room's door was unlocked (CR 709.5c-i), as it entered or later:
     /// `door` 0 is the left half; `fully`, both are now unlocked.
     Unlocked {
@@ -374,10 +385,10 @@ impl Event {
     #[inline]
     pub fn watch_bit(&self) -> u32 {
         use crate::card::{
-            WATCH_ATTACH, WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_COUNTERS, WATCH_CYCLE,
-            WATCH_DAMAGE, WATCH_DESIG, WATCH_DISCARD, WATCH_DRAW, WATCH_FACE_UP, WATCH_LIFE_CHANGE,
-            WATCH_ROLL, WATCH_SACRIFICE, WATCH_STEP_BEGIN, WATCH_TAP, WATCH_TARGETED,
-            WATCH_ZONE_CHANGE,
+            WATCH_ACT, WATCH_ATTACH, WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_COUNTERS,
+            WATCH_CYCLE, WATCH_DAMAGE, WATCH_DESIG, WATCH_DISCARD, WATCH_DRAW, WATCH_FACE_UP,
+            WATCH_LIFE_CHANGE, WATCH_ROLL, WATCH_SACRIFICE, WATCH_STEP_BEGIN, WATCH_TAP,
+            WATCH_TARGETED, WATCH_ZONE_CHANGE,
         };
         match self {
             Event::ZoneChange { .. } => WATCH_ZONE_CHANGE,
@@ -402,6 +413,11 @@ impl Event {
             | Event::Foraged { .. } => WATCH_DESIG,
             Event::Sacrificed { .. } => WATCH_SACRIFICE,
             Event::CountersAdded { .. } => WATCH_COUNTERS,
+            Event::Scried { .. }
+            | Event::Explored { .. }
+            | Event::Activated { .. }
+            | Event::Transformed { .. }
+            | Event::TappedBy { .. } => WATCH_ACT,
             _ => 0,
         }
     }

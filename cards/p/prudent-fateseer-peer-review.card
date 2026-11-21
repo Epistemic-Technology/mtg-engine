@@ -1,0 +1,14 @@
+card "Prudent Fateseer // Peer Review" {
+  oracle_id 63f67baa-3f37-41b8-9ee6-3c37f828917d
+  layout prepare
+  cost {1}{W/U}{W/U}
+  type Creature — Dwarf Wizard
+  pt 1/4
+  enters prepared
+  triggered once each turn whenever you scry or surveil: each creature you control gets +1/+0
+  face "Peer Review" {
+    cost {2}{W/U}
+    type Sorcery
+    spell: create 1 "Cadet"; surveil 1
+  }
+}

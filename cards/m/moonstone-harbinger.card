@@ -1,0 +1,8 @@
+card "Moonstone Harbinger" {
+  oracle_id fcae4f9d-8f81-42f9-93a3-82a482851bdd
+  cost {2}{B}
+  type Creature — Bat Warrior
+  pt 1/3
+  keywords flying, deathtouch
+  triggered once each turn whenever you gain or lose life during your turn: each Bat you control gets +1/+0 and gains deathtouch
+}

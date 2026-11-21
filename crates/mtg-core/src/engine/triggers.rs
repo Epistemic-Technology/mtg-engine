@@ -70,13 +70,18 @@ impl GameState {
                 {
                     continue;
                 }
-                let (copies, limit) = (chapter_copies(&t.trigger, event), t.limit);
+                let (mut copies, limit) = (chapter_copies(&t.trigger, event), t.limit);
+                if self.player_static_sources > 0 && !w.in_graveyard {
+                    copies += self.extra_triggers(w, event);
+                }
                 // CR 603.2c: "one or more ... enter", once per batch.
                 let batch = matches!(
                     t.trigger,
                     TriggerSpec::EntersBatch(_)
                         | TriggerSpec::LeavesBatch { .. }
                         | TriggerSpec::LeavesGraveyard(_)
+                        | TriggerSpec::DiscardsBatch { .. }
+                        | TriggerSpec::SacrificesBatch(_)
                 );
                 // "one or more creatures you control deal combat damage to
                 // a player": once per player dealt damage together.
@@ -345,9 +350,94 @@ impl GameState {
         }
     }
 
+    /// CR 603.2d: how many additional times a triggered ability of `w`
+    /// triggers on `event` ("If a triggered ability of another Elemental
+    /// you control triggers, it triggers an additional time"): one for
+    /// each such ability whose filter the watcher matches.
+    #[cold]
+    #[inline(never)]
+    fn extra_triggers(&self, w: &Watcher, event: &Event) -> usize {
+        use crate::card::TriggerCause;
+        // The object whose event this is, as the cause filter judges it.
+        let cause = match event {
+            Event::ZoneChange {
+                new,
+                to: Zone::Battlefield,
+                ..
+            } => self.objects.get(*new).and_then(|o| {
+                Some((
+                    TriggerCause::Enters,
+                    *new,
+                    o.controller,
+                    self.characteristics(*new)?,
+                ))
+            }),
+            // CR 603.10a: the creature as it last existed.
+            Event::ZoneChange {
+                old,
+                from: Zone::Battlefield,
+                to: Zone::Graveyard,
+                ..
+            } => self.lki.get(old).map(|l| {
+                (
+                    TriggerCause::Dies,
+                    *old,
+                    l.object.controller,
+                    l.characteristics,
+                )
+            }),
+            Event::Attack { attacker, .. } => self.objects.get(*attacker).and_then(|o| {
+                Some((
+                    TriggerCause::Attacks,
+                    *attacker,
+                    o.controller,
+                    self.characteristics(*attacker)?,
+                ))
+            }),
+            _ => None,
+        };
+        let mut n = 0;
+        for &id in &self.battlefield {
+            let o = &self.objects[id];
+            if !self.pool.get(o.def).flags().has_player_static() {
+                continue;
+            }
+            let Some(c) = self.characteristics(id) else {
+                continue;
+            };
+            for &a in &c.abilities {
+                if let AbilityDef::TriggerAgain {
+                    filter,
+                    entering: e,
+                    cause: k,
+                    ..
+                } = self.pool.ability(a)
+                    && e.as_ref().is_none_or(|e| {
+                        cause.as_ref().is_some_and(|(kind, obj, ctl, c)| {
+                            kind == k && e.matches(*obj, *ctl, c, Some(id), Some(o.controller))
+                        })
+                    })
+                    && filter.matches(
+                        w.source,
+                        w.controller,
+                        &w.chars,
+                        Some(id),
+                        Some(o.controller),
+                    )
+                    // "equipped creature" (Wizard's Staff).
+                    && (!filter.enchanted || o.attached_to == Some(w.source))
+                {
+                    n += 1;
+                }
+            }
+        }
+        n
+    }
+
     /// Counts one more object into a waiting "one or more" trigger of
     /// this ability and source, if there is one (CR 603.2c: it triggers
-    /// once for the objects entering together).
+    /// once for the objects entering together); every instance of it, when
+    /// it triggered more than once (CR 603.2d).
     #[cold]
     fn join_batch(
         &mut self,
@@ -355,17 +445,16 @@ impl GameState {
         ability: AbilityId,
         source: ObjId,
     ) -> bool {
-        match fired
+        let mut joined = false;
+        for p in fired
             .iter_mut()
             .chain(self.pending_triggers.iter_mut())
-            .find(|p| p.ability.ability == ability && p.ability.source == source)
+            .filter(|p| p.ability.ability == ability && p.ability.source == source)
         {
-            Some(p) => {
-                p.ability.trigger_amount += 1;
-                true
-            }
-            None => false,
+            p.ability.trigger_amount += 1;
+            joined = true;
         }
+        joined
     }
 
     /// Like `join_batch`, for one player: the damage of a waiting "one or
@@ -1372,6 +1461,153 @@ impl GameState {
             (TriggerSpec::Either(pair), _) => self
                 .fires(&pair.0, event, w)
                 .or_else(|| self.fires(&pair.1, event, w)),
+            _ => self.fires_more(spec, event, w),
+        }
+    }
+
+    /// `fires` for the batched and keyword-action triggers: "Whenever you
+    /// discard one or more cards", "Whenever you scry or surveil", ...
+    #[cold]
+    #[inline(never)]
+    #[allow(clippy::too_many_lines)] // one arm per trigger kind
+    fn fires_more(
+        &self,
+        spec: &TriggerSpec,
+        event: &Event,
+        w: &Watcher,
+    ) -> Option<(Option<ObjId>, Option<PlayerId>)> {
+        let whose_ok = |whose: Who, p: PlayerId| match whose {
+            Who::Any => true,
+            Who::You => p == w.controller,
+            Who::Opponents => p != w.controller,
+        };
+        let matches_now = |f: &crate::card::ObjFilter, obj: ObjId| -> Option<PlayerId> {
+            let o = self.objects.get(obj)?;
+            let c = self.characteristics(obj)?;
+            (f.matches(obj, o.controller, &c, Some(w.source), Some(w.controller))
+                && self.status_ok(f, obj))
+            .then_some(o.controller)
+        };
+        match (spec, event) {
+            // CR 603.2c: the cards discarded together are one batch.
+            (TriggerSpec::DiscardsBatch { whose }, Event::Discard { player, .. }) => {
+                whose_ok(*whose, *player).then_some((None, Some(*player)))
+            }
+            // CR 701.21a: only a permanent's controller sacrifices it; it
+            // is still on the battlefield as the event is emitted.
+            (TriggerSpec::SacrificesBatch(f), Event::Sacrificed { obj, .. }) => {
+                let p = matches_now(f, *obj)?;
+                (p == w.controller).then_some((None, Some(p)))
+            }
+            // CR 508.1m: the attack events follow the whole declaration,
+            // so the first matching attacker (attacking that player)
+            // stands for it.
+            (
+                TriggerSpec::AttacksWithFilter { filter, player },
+                Event::Attack { attacker, target },
+            ) => {
+                if self.objects.get(*attacker)?.controller != w.controller {
+                    return None;
+                }
+                let c = self.combat.as_ref()?;
+                let first = c.attackers.iter().find(|a| {
+                    (!*player || a.attacking == *target) && matches_now(filter, a.id).is_some()
+                })?;
+                if first.id != *attacker {
+                    return None;
+                }
+                match (player, target) {
+                    (false, _) => Some((None, Some(w.controller))),
+                    (true, Target::Player(p)) => Some((None, Some(*p))),
+                    (true, Target::Object(_)) => None,
+                }
+            }
+            // CR 119.9: once per event that gains or loses life, however
+            // much.
+            (
+                TriggerSpec::GainsOrLosesLife { your_turn },
+                Event::LifeChange { player, delta, .. },
+            ) => (*delta != 0
+                && *player == w.controller
+                && (!*your_turn || self.active_player == w.controller))
+                .then_some((None, Some(*player))),
+            (TriggerSpec::ScriesOrSurveils, Event::Scried { player, .. }) => {
+                (*player == w.controller).then_some((None, Some(*player)))
+            }
+            // CR 701.44c: the creature explores even if it has left the
+            // battlefield; then it is judged as it last existed.
+            (TriggerSpec::Explores(what), Event::Explored { obj }) => match what {
+                crate::card::TriggerObj::This => {
+                    (*obj == w.source).then_some((Some(*obj), Some(w.controller)))
+                }
+                crate::card::TriggerObj::Filter(f) => {
+                    if let Some(p) = matches_now(f, *obj) {
+                        return Some((Some(*obj), Some(p)));
+                    }
+                    if self
+                        .objects
+                        .get(*obj)
+                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                    {
+                        return None;
+                    }
+                    let l = self.lki.get(obj)?;
+                    f.matches(
+                        *obj,
+                        l.object.controller,
+                        &l.characteristics,
+                        Some(w.source),
+                        Some(w.controller),
+                    )
+                    .then_some((Some(*obj), Some(l.object.controller)))
+                }
+            },
+            (TriggerSpec::YouTap(f), Event::TappedBy { obj, player }) => {
+                if *player != w.controller {
+                    return None;
+                }
+                // "an untapped creature": it was untapped until this
+                // event, and is tapped now.
+                let p = if f.tapped.is_some() {
+                    let f = crate::card::ObjFilter {
+                        tapped: None,
+                        ..f.clone()
+                    };
+                    matches_now(&f, *obj)?
+                } else {
+                    matches_now(f, *obj)?
+                };
+                Some((Some(*obj), Some(p)))
+            }
+            (TriggerSpec::Activates { whose, kind }, Event::Activated { obj, source, .. }) => {
+                let o = self.objects.get(*obj)?;
+                let activator = o.controller;
+                if !whose_ok(*whose, activator) {
+                    return None;
+                }
+                let crate::card::AbilityDef::Activated(ab) = self.pool.ability(o.ability?.ability)
+                else {
+                    return None;
+                };
+                let ok = match kind {
+                    crate::card::ActivationKind::Exhaust => {
+                        ab.keyword == Some(crate::card::ActivatedKeyword::Exhaust)
+                    }
+                    crate::card::ActivationKind::Loyalty => ab.cost.loyalty != 0,
+                    // The source as it is, or as it last existed (a
+                    // creature sacrificed to pay the cost).
+                    crate::card::ActivationKind::OfCreature => self
+                        .characteristics(*source)
+                        .or_else(|| self.lki.get(source).map(|l| l.characteristics))
+                        .is_some_and(|c| c.is_creature()),
+                };
+                ok.then_some((Some(*source), Some(activator)))
+            }
+            // CR 701.27: the ability is read from the face it transformed
+            // into, so it sees only that.
+            (TriggerSpec::Transforms, Event::Transformed { obj }) => {
+                (*obj == w.source).then_some((Some(*obj), Some(w.controller)))
+            }
             _ => None,
         }
     }

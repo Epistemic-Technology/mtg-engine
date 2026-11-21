@@ -1,0 +1,6 @@
+card "Militia's Pride" {
+  oracle_id d311154b-4742-49e5-9b65-4de2d3e0d50b
+  cost {1}{W}
+  type Kindred Enchantment — Kithkin
+  triggered whenever nontoken creature you control attacks: you may pay {W}; if you do, create 1 tapped and attacking "1/1 white Kithkin Soldier creature"
+}

@@ -1,0 +1,247 @@
+# Batched and new triggers: "Whenever you discard one or more cards" (CR
+# 603.2c, "that many" the number discarded together), "Whenever you attack
+# with one or more Faeries", "Whenever you attack a player with one or more
+# creatures with power 4 or greater", "Whenever you gain or lose life during
+# your turn", "Whenever you scry or surveil", "Whenever a creature you
+# control explores", "Whenever you tap an untapped creature an opponent
+# controls", "Whenever an opponent activates a loyalty ability", and
+# "Whenever you cast your third spell each turn".
+
+scenario "discard one or more: two cards discarded together trigger once" {
+  battlefield A: "Marauding Mako", 3 "Swamp"
+  hand A: "Mind Rot", "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert counters "Marauding Mako" +1/+1 2
+  assert power "Marauding Mako" 3
+}
+
+scenario "discard one or more: Magmakin Artillerist deals that much damage" {
+  battlefield A: "Magmakin Artillerist", 3 "Swamp"
+  hand A: "Mind Rot", "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "discard one or more: cycling discards one; its own trigger too" {
+  battlefield A: "Marauding Mako", 2 "Mountain"
+  hand A: "Magmakin Artillerist"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Magmakin Artillerist"
+  run_to turn 2 postcombat_main
+  assert counters "Marauding Mako" +1/+1 1
+  assert life B 19
+}
+
+scenario "discard one or more: an opponent's discards don't count" {
+  battlefield A: "Marauding Mako", 3 "Swamp"
+  hand A: "Mind Rot"
+  hand B: "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Mind Rot" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert counters "Marauding Mako" +1/+1 0
+}
+
+scenario "attack with one or more Faeries: once for two Faeries" {
+  battlefield A: "Talion's Messenger", "Faerie Miscreant"
+  hand A: "Hill Giant"
+  library A: "Grizzly Bears", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Talion's Messenger", "Faerie Miscreant"
+  turn 2 A: trigger "Talion's Messenger" targeting "Faerie Miscreant"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert graveyard A count 1
+  assert counters "Faerie Miscreant" +1/+1 1
+}
+
+scenario "attack with one or more Faeries: a non-Faerie attacking alone doesn't" {
+  battlefield A: "Talion's Messenger", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}
+
+scenario "attack a player with power 4 or greater: once for two big attackers" {
+  battlefield A: "Bitter Work", "Hill Giant", "Gurmag Angler", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Gurmag Angler", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "attack a player with power 4 or greater: small attackers draw nothing" {
+  battlefield A: "Bitter Work", "Hill Giant", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Hill Giant", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}
+
+scenario "gain or lose life during your turn: gaining and losing each trigger" {
+  battlefield A: "Wax-Wane Witness", 3 "Swamp", "Plains"
+  hand A: "Healing Salve", "Night's Whisper"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Healing Salve" targeting player A
+  turn 2 A: cast "Night's Whisper"
+  run_to turn 2 end
+  assert power "Wax-Wane Witness" 4
+}
+
+scenario "gain or lose life during your turn: not on an opponent's turn" {
+  battlefield A: "Wax-Wane Witness", "Plains"
+  hand A: "Healing Salve"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Healing Salve" targeting player A
+  run_to turn 2 end
+  assert life A 23
+  assert power "Wax-Wane Witness" 2
+}
+
+scenario "gain or lose life: Moonstone Harbinger only once each turn" {
+  battlefield A: "Moonstone Harbinger", 3 "Swamp", "Plains"
+  hand A: "Healing Salve", "Night's Whisper"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Healing Salve" targeting player A
+  turn 2 A: cast "Night's Whisper"
+  run_to turn 2 end
+  assert power "Moonstone Harbinger" 2
+}
+
+scenario "scry or surveil: Opt pumps creatures you control" {
+  battlefield A: "Prudent Fateseer", "Grizzly Bears", "Island"
+  hand A: "Opt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Opt"
+  run_to turn 2 end
+  assert power "Grizzly Bears" 3
+  assert power "Prudent Fateseer" 2
+}
+
+scenario "scry or surveil: only once each turn" {
+  battlefield A: "Prudent Fateseer", "Grizzly Bears", 2 "Island"
+  hand A: "Opt", "Consider"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Opt"
+  turn 2 A: cast "Consider"
+  run_to turn 2 end
+  assert power "Grizzly Bears" 3
+}
+
+scenario "explores: Merfolk Cave-Diver gets +1/+0 and can't be blocked" {
+  battlefield A: "Merfolk Cave-Diver", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Merfolk Branchwalker"
+  library A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Merfolk Branchwalker"
+  turn 2 A: attack "Merfolk Cave-Diver"
+  illegal turn 2 B: block "Merfolk Cave-Diver" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert power "Merfolk Cave-Diver" 3
+  assert life B 17
+}
+
+scenario "explores: an opponent's creature exploring doesn't count" {
+  battlefield A: "Merfolk Cave-Diver"
+  battlefield B: 2 "Forest"
+  hand B: "Merfolk Branchwalker"
+  library B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Merfolk Branchwalker"
+  run_to turn 2 postcombat_main
+  assert power "Merfolk Cave-Diver" 2
+}
+
+scenario "tap an opponent's untapped creature: Icewrought Sentry" {
+  battlefield A: "Icewrought Sentry", 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Frost Lynx"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Frost Lynx"
+  run_to turn 2 postcombat_main
+  assert tapped "Hill Giant"
+  assert power "Icewrought Sentry" 4
+  assert toughness "Icewrought Sentry" 4
+}
+
+scenario "tap an opponent's creature: an already tapped one doesn't count" {
+  battlefield A: "Icewrought Sentry", 3 "Island"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Frost Lynx"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Frost Lynx"
+  run_to turn 2 postcombat_main
+  assert power "Icewrought Sentry" 2
+}
+
+scenario "tap an opponent's creature: Icewrought Sentry's own reflexive tap" {
+  battlefield A: "Icewrought Sentry", 2 "Island"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Icewrought Sentry"
+  turn 2 A: accept "Icewrought Sentry"
+  run_to turn 2 postcombat_main
+  assert tapped "Hill Giant"
+  assert life B 16
+}
+
+scenario "tap an opponent's creature: Hylda pays {1} and makes an Elemental" {
+  battlefield A: "Hylda of the Icy Crown", 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Frost Lynx"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Frost Lynx"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Elemental"
+}
+
+scenario "an opponent activates a loyalty ability: Gideon deals 1 damage" {
+  battlefield A: "Gideon the Oathless"
+  battlefield B: "Jace Beleren"
+  start turn 2 B precombat_main
+  turn 2 B: activate "Jace Beleren" ability 1
+  run_to turn 2 postcombat_main
+  assert life B 19
+}
+
+scenario "an opponent's creature entering: Gideon deals 1 damage to its controller" {
+  battlefield A: "Gideon the Oathless"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 19
+}
+
+scenario "third spell each turn: Emeritus of Conflict becomes prepared" {
+  battlefield A: "Emeritus of Conflict // Lightning Bolt", 4 "Mountain"
+  hand A: "Lava Dart", "Lightning Bolt", "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lava Dart" targeting player B
+  turn 2 A: cast "Raging Goblin"
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 13
+}
+
+scenario "third spell each turn: two spells don't prepare it" {
+  battlefield A: "Emeritus of Conflict // Lightning Bolt", 2 "Mountain"
+  hand A: "Lava Dart", "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lava Dart" targeting player B
+  turn 2 A: cast "Raging Goblin"
+  illegal turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 19
+}

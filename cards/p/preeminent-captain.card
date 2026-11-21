@@ -1,0 +1,8 @@
+card "Preeminent Captain" {
+  oracle_id b6801429-3995-4571-92f9-ef211675c5d5
+  cost {2}{W}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  keywords first strike
+  triggered whenever this attacks: you may put Soldier creature card from hand onto battlefield tapped and attacking
+}

@@ -1,0 +1,6 @@
+token "2/1 colorless Construct artifact creature with flying named Ballistic Boulder" {
+  name "Ballistic Boulder"
+  type Artifact Creature — Construct
+  pt 2/1
+  keywords flying
+}

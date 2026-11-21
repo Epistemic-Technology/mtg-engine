@@ -1,0 +1,9 @@
+card "Icewrought Sentry" {
+  oracle_id 0828d891-f7c3-4e51-b42e-6ce88d48ac8b
+  cost {2}{U}
+  type Creature — Elemental Soldier
+  pt 2/3
+  keywords vigilance
+  triggered whenever this attacks: you may pay {1}{U}; when you do, tap target creature an opponent controls
+  triggered whenever you tap untapped creature an opponent controls: this gets +2/+1
+}

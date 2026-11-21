@@ -1,0 +1,9 @@
+card "Magmakin Artillerist" {
+  oracle_id 900b9409-9c16-414d-8674-2ea42c2415a1
+  cost {2}{R}
+  type Creature — Elemental Pirate
+  pt 1/4
+  triggered whenever you discard one or more cards: deal that much damage to each opponent
+  cycling {1}{R}
+  triggered when you cycle this: deal 1 damage to each opponent
+}

@@ -1,0 +1,11 @@
+card "Warren Warleader" {
+  oracle_id a7e7059e-83f8-4124-9cc0-64ba150b5d96
+  cost {2}{W}{W}
+  type Creature — Rabbit Knight
+  pt 4/4
+  offspring {2}
+  triggered whenever you attack: choose one {
+    mode: create 1 tapped and attacking "1/1 white Rabbit creature"
+    mode: each attacking creature you control gets +1/+1
+  }
+}

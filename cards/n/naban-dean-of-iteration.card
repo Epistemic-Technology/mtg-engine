@@ -1,0 +1,7 @@
+card "Naban, Dean of Iteration" {
+  oracle_id cffb9b7f-d52c-43e0-a4a6-b06dea83eb53
+  cost {1}{U}
+  type Legendary Creature — Human Wizard
+  pt 2/1
+  trigger again permanent you control when Wizard you control enters
+}

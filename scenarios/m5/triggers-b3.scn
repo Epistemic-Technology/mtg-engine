@@ -1,0 +1,225 @@
+# "Whenever this creature transforms into <this face>" and "enters or
+# transforms into" (CR 701.27), and more cards with the batched and new
+# triggers.
+
+scenario "transforms into: Kindly Stranger becomes the Witch and destroys" {
+  battlefield A: "Kindly Stranger // Demon-Possessed Witch", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears", "Forest", "Shock", "Mind Rot", "Wizard's Staff"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Kindly Stranger"
+  turn 2 A: trigger "Demon-Possessed Witch" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "transforms into: Ulrich's front-face trigger on entering" {
+  battlefield A: 4 "Forest", "Mountain"
+  hand A: "Ulrich of the Krallenhorde // Ulrich, Uncontested Alpha"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ulrich of the Krallenhorde"
+  turn 2 A: trigger "Ulrich of the Krallenhorde" targeting "Ulrich of the Krallenhorde"
+  run_to turn 2 postcombat_main
+  assert power "Ulrich of the Krallenhorde" 8
+}
+
+scenario "transforms into: Ulrich, Uncontested Alpha fights as it transforms" {
+  battlefield A: "Ulrich of the Krallenhorde // Ulrich, Uncontested Alpha"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert graveyard B contains "Hill Giant"
+  assert damage "Ulrich, Uncontested Alpha" 3
+}
+
+scenario "transforms into: transforming back retriggers the front face" {
+  battlefield A: "Ulrich of the Krallenhorde // Ulrich, Uncontested Alpha", "Grizzly Bears", 2 "Mountain"
+  hand A: "Shock", "Lava Dart"
+  start turn 2 B precombat_main
+  turn 3 A: cast "Shock" targeting player B
+  turn 3 A: cast "Lava Dart" targeting player B
+  turn 4 A: trigger "Ulrich of the Krallenhorde" targeting "Grizzly Bears"
+  run_to turn 4 precombat_main
+  assert is "Ulrich of the Krallenhorde" Human
+  assert power "Grizzly Bears" 6
+}
+
+scenario "explores: Lurking Chupacabra shrinks an opponent's creature" {
+  battlefield A: "Lurking Chupacabra", 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Merfolk Branchwalker"
+  library A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Merfolk Branchwalker"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "explores: Wildgrowth Walker grows and gains 3 life" {
+  battlefield A: "Wildgrowth Walker", 2 "Forest"
+  hand A: "Merfolk Branchwalker"
+  library A: "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Merfolk Branchwalker"
+  run_to turn 2 postcombat_main
+  assert counters "Wildgrowth Walker" +1/+1 1
+  assert life A 23
+}
+
+scenario "trigger again: Panharmonicon doubles a creature entering, not a land" {
+  battlefield A: "Panharmonicon", "Soul Warden", 2 "Forest"
+  hand A: "Elvish Visionary", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elvish Visionary"
+  turn 2 A: play "Forest"
+  run_to turn 2 postcombat_main
+  assert hand A count 2
+  assert life A 22
+}
+
+scenario "trigger again: Yarok doubles any permanent entering" {
+  battlefield A: "Yarok, the Desecrated", "Soul Warden", 2 "Forest"
+  hand A: "Elvish Visionary"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elvish Visionary"
+  run_to turn 2 postcombat_main
+  assert hand A count 2
+  assert life A 22
+}
+
+scenario "trigger again: Naban only for a Wizard entering" {
+  battlefield A: "Naban, Dean of Iteration", "Soul Warden", 4 "Island"
+  hand A: "Apprentice Wizard", "Ornithopter"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Apprentice Wizard"
+  turn 2 A: cast "Ornithopter"
+  run_to turn 2 postcombat_main
+  assert life A 23
+}
+
+scenario "sacrifice one or more other creatures: Forge Boss, once each turn" {
+  battlefield A: "Forge Boss", "Nantuko Husk", "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Nantuko Husk" sacrificing "Grizzly Bears"
+  turn 2 A: activate "Nantuko Husk" sacrificing "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "sacrifice one or more Blood tokens: Blood Hypnotist" {
+  battlefield A: "Blood Hypnotist", 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Voldaren Epicure", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Voldaren Epicure"
+  turn 2 A: activate "Blood" discarding "Grizzly Bears"
+  turn 2 A: trigger "Blood Hypnotist" targeting "Hill Giant"
+  turn 2 A: attack "Blood Hypnotist"
+  illegal turn 2 B: block "Blood Hypnotist" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert life B 16
+}
+
+scenario "attack with one or more creatures with counters: Metropolis Angel" {
+  battlefield A: "Metropolis Angel", "Grizzly Bears" with 1 +1/+1
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "attack with one or more creatures with counters: none, no card" {
+  battlefield A: "Metropolis Angel", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Metropolis Angel"
+  run_to turn 2 postcombat_main
+  assert hand A count 0
+}
+
+scenario "attack with power 4 or greater: Jolene makes a Treasure" {
+  battlefield A: "Jolene, Plundering Pugilist", "Craw Wurm"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Craw Wurm"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Treasure"
+}
+
+scenario "third spell each turn: Captain Ripley Vance grows and deals its power" {
+  battlefield A: "Captain Ripley Vance", 3 "Mountain"
+  hand A: "Lava Dart", "Shock", "Raging Goblin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lava Dart" targeting player B
+  turn 2 A: cast "Shock" targeting player B
+  turn 2 A: cast "Raging Goblin"
+  turn 2 A: trigger "Captain Ripley Vance" targeting player B
+  run_to turn 2 postcombat_main
+  assert counters "Captain Ripley Vance" +1/+1 1
+  assert life B 13
+}
+
+scenario "scry or surveil: Matoya draws after" {
+  battlefield A: "Matoya, Archon Elder", "Island"
+  hand A: "Opt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Opt"
+  run_to turn 2 postcombat_main
+  assert hand A count 2
+}
+
+scenario "discard one or more: Dying to Serve, once each turn" {
+  battlefield A: "Dying to Serve", 3 "Swamp", "Mountain"
+  hand A: "Mind Rot", "Grizzly Bears", "Hill Giant", "Shock", "Lava Dart"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 1 "Zombie"
+  assert tapped "Zombie"
+}
+
+scenario "tapped and attacking: Geist of Saint Traft's Angel is exiled at end of combat" {
+  battlefield A: "Geist of Saint Traft"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Geist of Saint Traft"
+  run_to turn 2 postcombat_main
+  assert life B 14
+  assert battlefield A lacks "Angel"
+}
+
+scenario "tapped and attacking: Leonin Warleader's two lifelink Cats" {
+  battlefield A: "Leonin Warleader"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Leonin Warleader"
+  run_to turn 2 postcombat_main
+  assert life B 14
+  assert life A 22
+  assert battlefield A contains 2 "Cat"
+}
+
+scenario "tapped and attacking: Mardu Ascendancy, one Goblin per nontoken attacker" {
+  battlefield A: "Mardu Ascendancy", "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Goblin"
+  assert life B 13
+}
+
+scenario "tapped and attacking: Captain's Claws" {
+  battlefield A: "Grizzly Bears", "Captain's Claws" on "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Kor Ally"
+}
+
+scenario "enters or transforms: Brutal Cathar exiles as it enters" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Brutal Cathar // Moonrage Brute"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Brutal Cathar"
+  run_to turn 2 postcombat_main
+  assert exile B contains "Hill Giant"
+}

@@ -1,0 +1,7 @@
+card "Falconer Adept" {
+  oracle_id e2106eba-15f5-42b5-b797-6582ae94f3de
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  triggered whenever this attacks: create 1 tapped and attacking "1/1 white Bird creature with flying"
+}

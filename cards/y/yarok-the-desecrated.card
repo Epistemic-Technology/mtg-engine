@@ -1,0 +1,8 @@
+card "Yarok, the Desecrated" {
+  oracle_id 95b53836-18aa-451a-992d-2a111deeeab2
+  cost {2}{B}{G}{U}
+  type Legendary Creature — Elemental Horror
+  pt 3/5
+  keywords deathtouch, lifelink
+  trigger again permanent you control when permanent enters
+}

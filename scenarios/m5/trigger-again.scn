@@ -1,0 +1,127 @@
+# "That ability triggers an additional time" (CR 603.2d): each instance is
+# put on the stack on its own, with its own targets.
+
+scenario "trigger again: Twinflame Travelers doubles another Elemental's trigger" {
+  battlefield A: "Twinflame Travelers", 5 "Island"
+  hand A: "Mulldrifter"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Mulldrifter"
+  run_to turn 2 postcombat_main
+  assert hand A count 4
+}
+
+scenario "trigger again: Twinflame Travelers ignores a non-Elemental" {
+  battlefield A: "Twinflame Travelers", 2 "Forest"
+  hand A: "Elvish Visionary"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elvish Visionary"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "trigger again: Twinflame Travelers, each instance with its own target" {
+  battlefield A: "Twinflame Travelers", 3 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Frost Lynx"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Frost Lynx"
+  turn 2 A: trigger "Frost Lynx" targeting "Hill Giant"
+  turn 2 A: trigger "Frost Lynx" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "trigger again: Starfield Vocalist doubles enters triggers" {
+  battlefield A: "Starfield Vocalist", 2 "Forest"
+  hand A: "Elvish Visionary"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elvish Visionary"
+  run_to turn 2 postcombat_main
+  assert hand A count 2
+}
+
+scenario "trigger again: two Starfield Vocalists, three times" {
+  battlefield A: 2 "Starfield Vocalist", 2 "Forest"
+  hand A: "Elvish Visionary"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elvish Visionary"
+  run_to turn 2 postcombat_main
+  assert hand A count 3
+}
+
+scenario "trigger again: Starfield Vocalist leaves a combat damage trigger alone" {
+  battlefield A: "Starfield Vocalist", "Ninja of the Deep Hours"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Ninja of the Deep Hours"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "trigger again: Splinter doubles a Ninja's combat damage trigger" {
+  battlefield A: "Splinter, Radical Rat", "Ninja of the Deep Hours"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Ninja of the Deep Hours"
+  run_to turn 2 postcombat_main
+  assert hand A count 2
+}
+
+scenario "trigger again: a batch trigger counts the batch in each instance" {
+  battlefield A: "Twinflame Travelers", "Magmakin Artillerist", 3 "Swamp"
+  hand A: "Mind Rot", "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "trigger again: Teysa Karlov doubles a dies trigger" {
+  battlefield A: "Teysa Karlov", "Blood Artist", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: trigger "Blood Artist" targeting player B
+  turn 2 A: trigger "Blood Artist" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+
+scenario "trigger again: Teysa Karlov leaves an enters trigger alone" {
+  battlefield A: "Teysa Karlov", 2 "Forest"
+  hand A: "Elvish Visionary"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elvish Visionary"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "trigger again: Drivnod doubles an opponent's creature dying too" {
+  battlefield A: "Drivnod, Carnage Dominus", "Blood Artist", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: trigger "Blood Artist" targeting player B
+  turn 2 A: trigger "Blood Artist" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "trigger again: Isshin doubles an attack trigger" {
+  battlefield A: "Isshin, Two Heavens as One", "Skyknight Vanguard"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Skyknight Vanguard"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Soldier"
+  assert life B 17
+}
+
+scenario "trigger again: Virtue of Knowledge doubles an enters trigger" {
+  battlefield A: "Virtue of Knowledge // Vantress Visions", 2 "Forest"
+  hand A: "Elvish Visionary"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elvish Visionary"
+  run_to turn 2 postcombat_main
+  assert hand A count 2
+}

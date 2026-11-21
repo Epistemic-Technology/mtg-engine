@@ -1,0 +1,7 @@
+card "Matoya, Archon Elder" {
+  oracle_id ef6c0054-3a89-4fac-b822-37c7d2514489
+  cost {2}{U}
+  type Legendary Creature — Human Warlock
+  pt 1/4
+  triggered whenever you scry or surveil: draw 1 card
+}

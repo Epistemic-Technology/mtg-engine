@@ -1341,7 +1341,7 @@ impl GameState {
             };
             cands.retain(|c| *c != id);
             match act {
-                ChooseAct::Tap => self.tap(id),
+                ChooseAct::Tap => self.tap_by(id, ctx.controller),
                 ChooseAct::Enlist => {
                     self.tap(id);
                     let power = self.characteristics(id).map_or(0, |c| i32::from(c.power));
@@ -8622,7 +8622,7 @@ impl GameState {
             Effect::Tap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.tap(id);
+                        self.tap_by(id, ctx.controller);
                     }
                 }
             }
@@ -8653,7 +8653,7 @@ impl GameState {
                             vec![Choice::Accept, Choice::Decline],
                         );
                         if k == 0 {
-                            self.tap(id);
+                            self.tap_by(id, ctx.controller);
                         } else {
                             self.untap(id);
                         }
@@ -10334,6 +10334,9 @@ impl GameState {
                 for t in self.recipients(ctx, *what) {
                     if let Target::Object(id) = t {
                         self.explore(ctx, id);
+                        // CR 701.44c: it explored, whatever was revealed
+                        // and even if it has left the battlefield.
+                        self.emit(Event::Explored { obj: id });
                     }
                 }
             }
@@ -11386,7 +11389,7 @@ impl GameState {
                     self.bump();
                 }
             }
-            Effect::CreatedAttack => {
+            Effect::CreatedAttack | Effect::EnteredAttack => {
                 let defender = self
                     .combat
                     .as_ref()
@@ -11397,8 +11400,13 @@ impl GameState {
                             .find(|q| *q != ctx.controller)
                             .map(Target::Player)
                     });
+                let entered: Vec<ObjId> = if matches!(effect, Effect::EnteredAttack) {
+                    ctx.created.into_iter().collect()
+                } else {
+                    ctx.created_tokens.to_vec()
+                };
                 if let Some(d) = defender {
-                    for id in ctx.created_tokens.clone() {
+                    for id in entered {
                         if self
                             .objects
                             .get(id)

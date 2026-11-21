@@ -1,0 +1,9 @@
+card "Wizard's Staff" {
+  oracle_id 30c3c700-46f4-4a77-8c45-5c7e3a21bd62
+  cost {1}{U}
+  type Artifact — Equipment
+  static equipped creature: has prowess
+  trigger again equipped creature
+  equip Wizard {1}
+  equip {3}
+}

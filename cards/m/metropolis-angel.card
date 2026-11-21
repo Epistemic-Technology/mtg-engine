@@ -1,0 +1,8 @@
+card "Metropolis Angel" {
+  oracle_id c29b592c-7115-4464-beba-e79f62691593
+  cost {2}{W}{U}
+  type Creature — Angel Soldier
+  pt 3/1
+  keywords flying
+  triggered whenever you attack with one or more creature with counter: draw 1 card
+}

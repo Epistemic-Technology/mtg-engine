@@ -1,0 +1,9 @@
+card "Rangers' Refueler" {
+  oracle_id 8e7ac64d-42c3-4e3b-9a20-9f09ee9d8a7a
+  cost {1}{U}
+  type Artifact — Vehicle
+  pt 3/3
+  triggered whenever you activate an exhaust ability: draw 1 card
+  exhaust {4}: this becomes artifact creature indefinitely; put 1 +1/+1 counters on this
+  crew 2
+}

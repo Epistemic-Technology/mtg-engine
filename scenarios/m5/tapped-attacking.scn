@@ -1,0 +1,140 @@
+# Tokens created tapped and attacking (CR 508.4): never declared as
+# attackers, they attack what the source attacks, else an opponent.
+
+scenario "tapped and attacking: Fire Navy Trebuchet's Ballistic Boulder" {
+  battlefield A: "Fire Navy Trebuchet", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert tapped "Ballistic Boulder"
+  run_to turn 3 upkeep
+  assert battlefield A lacks "Ballistic Boulder"
+}
+
+scenario "tapped and attacking: the flying token can be blocked by a flyer" {
+  battlefield A: "Fire Navy Trebuchet", "Grizzly Bears"
+  battlefield B: "Vampire Nighthawk"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Ballistic Boulder" with "Vampire Nighthawk"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert battlefield A lacks "Ballistic Boulder"
+}
+
+scenario "tapped and attacking: no attack, no token" {
+  battlefield A: "Fire Navy Trebuchet", "Grizzly Bears"
+  start turn 2 A precombat_main
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Ballistic Boulder"
+}
+
+# Cards put onto the battlefield tapped and attacking from a hand or a
+# graveyard (CR 508.4): attacking what the source attacks, never declared
+# as attackers, so no "whenever ... attacks" trigger sees them.
+
+scenario "tapped and attacking from the hand: Preeminent Captain's Soldier" {
+  battlefield A: "Preeminent Captain"
+  hand A: "Eager Cadet", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Preeminent Captain"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Eager Cadet"
+  assert tapped "Eager Cadet"
+  assert hand A contains "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "tapped and attacking from the hand: the Soldier can be blocked" {
+  battlefield A: "Preeminent Captain"
+  battlefield B: "Hill Giant"
+  hand A: "Eager Cadet"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Preeminent Captain"
+  turn 2 B: block "Eager Cadet" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Eager Cadet"
+  assert life B 18
+}
+
+scenario "tapped and attacking from the graveyard: Yore-Tiller Nephilim" {
+  battlefield A: "Yore-Tiller Nephilim"
+  graveyard A: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Yore-Tiller Nephilim"
+  run_to turn 2 postcombat_main
+  assert tapped "Hill Giant"
+  assert life B 15
+}
+
+scenario "tapped and attacking from the graveyard: Warcry Phoenix returns itself" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Raging Goblin", 3 "Mountain"
+  graveyard A: "Warcry Phoenix"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Hill Giant", "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Warcry Phoenix"
+  assert life B 12
+}
+
+scenario "tapped and attacking from the graveyard: Phoenix Chick with a counter" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Raging Goblin", 2 "Mountain"
+  graveyard A: "Phoenix Chick"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Hill Giant", "Raging Goblin"
+  run_to turn 2 postcombat_main
+  assert counters "Phoenix Chick" +1/+1 1
+  assert life B 12
+}
+
+scenario "tapped and attacking: Phoenix Chick stays put with two attackers" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Mountain"
+  graveyard A: "Phoenix Chick"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Phoenix Chick"
+}
+
+scenario "tapped and attacking: Persistent Marshstalker with threshold" {
+  battlefield A: "Bog Rats", 3 "Swamp"
+  graveyard A: "Persistent Marshstalker", 6 "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Bog Rats"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Persistent Marshstalker"
+  assert power "Persistent Marshstalker" 4
+  assert life B 15
+}
+
+scenario "tapped and attacking: Persistent Marshstalker without threshold" {
+  battlefield A: "Bog Rats", 3 "Swamp"
+  graveyard A: "Persistent Marshstalker", 5 "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Bog Rats"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Persistent Marshstalker"
+}
+
+scenario "tapped and attacking: Grim Reaper returns a creature with a finality counter" {
+  battlefield A: "Grim Reaper, Lethal Legionnaire", 4 "Swamp"
+  graveyard A: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grim Reaper, Lethal Legionnaire"
+  turn 2 A: trigger "Grim Reaper, Lethal Legionnaire" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" finality 1
+  assert life B 15
+}
+
+scenario "tapped and attacking: Bereaved Survivor transforms, then returns a small creature" {
+  battlefield A: "Bereaved Survivor // Dauntless Avenger", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Grizzly Bears"
+  turn 4 A: attack "Dauntless Avenger"
+  run_to turn 4 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 15
+}

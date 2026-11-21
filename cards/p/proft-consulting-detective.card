@@ -1,0 +1,7 @@
+card "Proft, Consulting Detective" {
+  oracle_id 45473bdb-b96f-4213-a46d-b2dbdf6b5e56
+  cost {1}{U}
+  type Legendary Creature — Human Detective
+  pt 2/2
+  triggered whenever you scry or surveil: you may pay {2}; if you do, put 1 +1/+1 counters on this and draw 1 card
+}

@@ -1,0 +1,17 @@
+card "Brutal Cathar // Moonrage Brute" {
+  oracle_id 1ed2d8e0-462b-468e-8fd3-1f3c6d99fb8a
+  layout transform
+  cost {2}{W}
+  type Creature — Human Soldier Werewolf
+  pt 2/2
+  triggered whenever this enters or transforms: exile target creature an opponent controls until this leaves
+  daybound
+  face "Moonrage Brute" {
+    type Creature — Werewolf
+    pt 3/3
+    color red
+    keywords first strike
+    ward pay 3 life
+    nightbound
+  }
+}

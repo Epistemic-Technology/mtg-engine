@@ -1,0 +1,7 @@
+card "Leonin Warleader" {
+  oracle_id 8b1351e6-165e-4ca3-96d5-4774b3176362
+  cost {2}{W}{W}
+  type Creature — Cat Soldier
+  pt 4/4
+  triggered whenever this attacks: create 2 tapped and attacking "1/1 white Cat creature with lifelink"
+}

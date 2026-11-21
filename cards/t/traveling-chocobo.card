@@ -1,0 +1,9 @@
+card "Traveling Chocobo" {
+  oracle_id 2e5675d3-3fb0-43b5-a65c-95aacbe48bf9
+  cost {2}{G}
+  type Creature — Bird
+  pt 3/2
+  may look top
+  play from top lands and spells Bird
+  trigger again permanent you control when land or Bird you control enters the battlefield
+}

@@ -1,0 +1,8 @@
+card "Marauding Mako" {
+  oracle_id e349be42-5f14-44a9-9608-281985c10e2d
+  cost {R}
+  type Creature — Shark Pirate
+  pt 1/1
+  triggered whenever you discard one or more cards: put that much +1/+1 counters on this
+  cycling {2}
+}

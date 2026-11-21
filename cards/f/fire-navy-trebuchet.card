@@ -1,0 +1,8 @@
+card "Fire Navy Trebuchet" {
+  oracle_id 1f018a8c-6ceb-4d03-94a7-8713467c9cf5
+  cost {2}{B}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender, reach
+  triggered whenever you attack: create 1 tapped and attacking "2/1 colorless Construct artifact creature with flying named Ballistic Boulder"; delayed that token: sacrifice that token at beginning of the next end step
+}

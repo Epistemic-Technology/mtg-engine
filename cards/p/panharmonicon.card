@@ -1,0 +1,6 @@
+card "Panharmonicon" {
+  oracle_id 76678885-3674-443d-b9a2-2a460cf6aac0
+  cost {4}
+  type Artifact
+  trigger again permanent you control when artifact or creature enters
+}

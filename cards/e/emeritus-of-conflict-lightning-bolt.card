@@ -1,0 +1,14 @@
+card "Emeritus of Conflict // Lightning Bolt" {
+  oracle_id 5963eef1-1022-42b1-8a0c-fc9850bfc2a3
+  layout prepare
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 2/2
+  keywords first strike
+  triggered whenever you cast your third spell each turn: this becomes prepared
+  face "Lightning Bolt" {
+    cost {R}
+    type Instant
+    spell: deal 3 damage to any target
+  }
+}

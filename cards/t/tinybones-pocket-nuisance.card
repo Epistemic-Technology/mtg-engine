@@ -1,0 +1,8 @@
+card "Tinybones, Pocket Nuisance" {
+  oracle_id 97dcf9fb-3f2f-4aa6-959a-e3c4889c1673
+  cost {2}{B}
+  type Legendary Creature — Skeleton Rogue
+  pt 2/1
+  triggered when this enters: each opponent discards 1 card
+  triggered whenever a player discards one or more cards: deal 1 damage to each opponent
+}

@@ -1142,6 +1142,22 @@ pub enum Ability {
     /// `opening hand`: "If this card is in your opening hand, you may begin
     /// the game with it on the battlefield." (CR 103.6a).
     OpeningHand,
+    /// `trigger again another Elemental you control`: "If a triggered
+    /// ability of another Elemental you control triggers, it triggers an
+    /// additional time." (CR 603.2d); `trigger again permanent you control
+    /// when artifact or creature enters`: "If an artifact or creature
+    /// entering causes a triggered ability of a permanent you control to
+    /// trigger, that ability triggers an additional time." (`enters the
+    /// battlefield`: worded "entering the battlefield").
+    TriggerAgain {
+        filter: Filter,
+        entering: Option<Filter>,
+        battlefield: bool,
+        /// `when creature dies`, `when creature you control attacks`: "If
+        /// a creature dying causes ...", "If a creature you control
+        /// attacking causes ...".
+        cause: mtg_core::card::TriggerCause,
+    },
     /// A keyword ability with a number or cost, printed as the keyword
     /// ("Bushido 2", "Echo {2}{R}") and compiled to what it stands for.
     Mechanic(Mechanic),
@@ -2559,6 +2575,42 @@ pub enum Trigger {
     /// `whenever you turn a permanent face up` (CR 708.8): a permanent you
     /// control is turned face up; it is "it".
     YouTurnFaceUp,
+    /// `whenever you discard one or more cards` (CR 603.2c): their number
+    /// is `that many`.
+    DiscardsBatch {
+        whose: Who,
+    },
+    /// `whenever you sacrifice one or more Food` (CR 603.2c).
+    SacrificesBatch(Filter),
+    /// `whenever you attack with one or more Faerie`, `whenever you attack
+    /// a player with one or more creature with power 4 or greater`
+    /// (`player`).
+    AttacksWithFilter {
+        filter: Filter,
+        player: bool,
+    },
+    /// `whenever you gain or lose life`, `... during your turn`.
+    GainsOrLosesLife {
+        your_turn: bool,
+    },
+    /// `whenever you scry or surveil`.
+    ScriesOrSurveils,
+    /// `whenever creature you control explores` (CR 701.44).
+    Explores(TriggerObj),
+    /// `whenever you tap an untapped creature an opponent controls`: the
+    /// filter after `tap` (`untapped` is wording: only an untapped
+    /// permanent can be tapped).
+    YouTap(Filter),
+    /// `whenever you activate an ability of a creature`, `whenever you
+    /// activate an exhaust ability`, `whenever an opponent activates a
+    /// loyalty ability`.
+    Activates {
+        whose: Who,
+        kind: mtg_core::card::ActivationKind,
+    },
+    /// `whenever this transforms` (CR 701.27): "Whenever this creature
+    /// transforms into <the name of the face this ability is on>".
+    Transforms,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -2912,6 +2964,8 @@ pub enum Effect {
         /// `put that target 1 onto battlefield`: "put that card onto the
         /// battlefield" (wording only).
         put: bool,
+        /// `... to battlefield tapped and attacking` (CR 508.4).
+        attacking: bool,
     },
     Regenerate {
         to: Recipient,
@@ -3015,6 +3069,11 @@ pub enum Effect {
         token: String,
         count: Num,
         tapped: bool,
+        /// `create 1 tapped and attacking "..."`: "create a ... token
+        /// that's tapped and attacking" (CR 508.4: never declared as an
+        /// attacker); it attacks what the source attacks, else an
+        /// opponent.
+        attacking: bool,
         /// Who creates them, worded with its subject: `you create` ("...
         /// sacrifices it and you create a 1/1 ... token"), `its controller
         /// creates` ("Its controller creates a Treasure token"), `each
@@ -3962,6 +4021,8 @@ pub enum Effect {
         filter: Filter,
         tapped: bool,
         also: Option<Filter>,
+        /// `... onto battlefield tapped and attacking` (CR 508.4).
+        attacking: bool,
     },
     /// `each opponent gets 1 poison counter`.
     AddPoison {

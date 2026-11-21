@@ -1,0 +1,8 @@
+card "Shadowed Caravel" {
+  oracle_id 7986fcb6-bafb-4bbc-9f2f-fd9e2a5fcad1
+  cost {2}
+  type Artifact — Vehicle
+  pt 2/2
+  triggered whenever creature you control explores: put 1 +1/+1 counters on this
+  crew 2
+}

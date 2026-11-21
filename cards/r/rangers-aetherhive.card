@@ -1,0 +1,9 @@
+card "Rangers' Aetherhive" {
+  oracle_id 49d149d6-de94-48cf-974b-6bb4a37ce77c
+  cost {1}{G}{U}
+  type Artifact — Vehicle
+  pt 3/5
+  keywords vigilance
+  triggered whenever you activate an exhaust ability: create 1 "1/1 colorless Thopter artifact creature with flying"
+  crew 1
+}

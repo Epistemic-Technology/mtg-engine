@@ -1,0 +1,7 @@
+card "Lurking Chupacabra" {
+  oracle_id 178e73f9-fc6e-4425-870e-45f96644010a
+  cost {3}{B}
+  type Creature — Beast Horror
+  pt 2/3
+  triggered whenever creature you control explores: target creature an opponent controls gets -2/-2 until end of turn
+}

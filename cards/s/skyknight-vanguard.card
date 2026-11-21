@@ -1,0 +1,8 @@
+card "Skyknight Vanguard" {
+  oracle_id 9180f77f-c288-4a24-a35d-a16270b3d737
+  cost {R}{W}
+  type Creature — Human Knight
+  pt 1/2
+  keywords flying
+  triggered whenever this attacks: create 1 tapped and attacking "1/1 white Soldier creature"
+}

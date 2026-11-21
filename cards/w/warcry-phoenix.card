@@ -1,0 +1,8 @@
+card "Warcry Phoenix" {
+  oracle_id 5297f646-8235-47da-a290-a6883b374977
+  cost {3}{R}
+  type Creature — Phoenix
+  pt 2/2
+  keywords flying, haste
+  triggered from graveyard whenever you attack with 3 or more creatures: you may pay {2}{R}; if you do, return this to battlefield tapped and attacking
+}
