@@ -1,0 +1,34 @@
+# Replacement abilities the author templates unlocked: a Class's level 3
+# replacement applies only at level 3; Progenitus shuffles itself into
+# its library.
+
+scenario "class level 3 replacement: not at level 1" {
+  battlefield A: "Artist's Talent", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "class level 3 replacement: at level 3" {
+  battlefield A: "Artist's Talent", 7 "Mountain"
+  hand A: "Shock"
+  turn 1 A: activate "Artist's Talent"
+  turn 1 A: wait
+  turn 1 A: activate "Artist's Talent"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert life B 16
+}
+
+scenario "shuffle instead: Progenitus milled" {
+  battlefield B: "Island"
+  hand B: "Thought Scour"
+  library A: "Progenitus", "Plains", "Plains"
+  start turn 1 B
+  turn 1 B: cast "Thought Scour" targeting player A
+  run_to turn 1 end
+  assert graveyard A lacks "Progenitus"
+  assert library A contains "Progenitus"
+}

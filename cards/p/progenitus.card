@@ -1,0 +1,8 @@
+card "Progenitus" {
+  oracle_id 2d7e00b6-12f0-4b03-82a6-50e3d1b5395e
+  cost {W}{W}{U}{U}{B}{B}{R}{R}{G}{G}
+  type Legendary Creature — Hydra Avatar
+  pt 10/10
+  protection from everything
+  replace this put into a graveyard: shuffle into library
+}
