@@ -538,6 +538,10 @@ impl Decompiler<'_> {
             StaticCondition::YourCombatPhase => StaticCond::YourCombatPhase,
             StaticCondition::FirstCombatPhase => StaticCond::FirstCombatPhase,
             StaticCondition::PutCounterThisTurn => StaticCond::PutCounterThisTurn,
+            StaticCondition::NthResolution(n) => StaticCond::NthResolution {
+                n: *n,
+                again: false,
+            },
             StaticCondition::OpponentNoncombatDamagedThisTurn => {
                 StaticCond::OpponentNoncombatDamagedThisTurn
             }

@@ -1,0 +1,7 @@
+card "Rumor Gatherer" {
+  oracle_id 3ceca713-38de-4428-a4f1-2146f6e98393
+  cost {1}{W}{W}
+  type Creature — Elf Wizard
+  pt 2/1
+  label "Alliance" triggered whenever other creature you control enters: scry 1; if resolution 2, draw 1 card instead
+}

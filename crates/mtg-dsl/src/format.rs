@@ -4186,6 +4186,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::YourCombatPhase => "your combat phase".to_string(),
         StaticCond::FirstCombatPhase => "first combat phase".to_string(),
         StaticCond::PutCounterThisTurn => "put counter this turn".to_string(),
+        StaticCond::NthResolution { n, again } => {
+            format!("resolution {n}{}", if *again { " again" } else { "" })
+        }
         StaticCond::OpponentNoncombatDamagedThisTurn => {
             "opponent dealt noncombat damage this turn".to_string()
         }

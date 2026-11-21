@@ -1,0 +1,7 @@
+card "Tannuk, Memorial Ensign" {
+  oracle_id 76cb1912-3791-44b8-b594-b92dab21bafc
+  cost {1}{R}{G}
+  type Legendary Creature — Kavu Pilot
+  pt 2/4
+  label "Landfall" triggered whenever land you control enters: this deals 1 damage to each opponent; if resolution 2, draw 1 card
+}

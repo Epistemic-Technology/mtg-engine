@@ -1542,6 +1542,12 @@ pub struct GameState {
     /// what it limits (`TurnLimit::Do`) this turn. A new object has a new
     /// id, so it starts fresh (CR 400.7).
     pub limited_this_turn: Vec<(ObjId, crate::card::AbilityId)>,
+    /// Abilities of each source resolved this turn, once per resolution
+    /// ("if this is the second time this ability has resolved this turn").
+    pub resolved_this_turn: Vec<(ObjId, crate::card::AbilityId)>,
+    /// While an ability resolves: how many times its source's ability has
+    /// resolved this turn, counting this time (0 otherwise).
+    pub resolution_number: u8,
     /// While a `TurnLimit::Do` ability resolves: its source and ability,
     /// for its first "you may".
     pub doing_once: Option<(ObjId, crate::card::AbilityId)>,
@@ -3244,6 +3250,7 @@ impl GameState {
             C::LifeGainedThisTurn(n) => self.turn_log.life_gained[you.index().min(3)] >= *n,
             C::CrimeThisTurn => self.turn_log.crime & (1 << you.index().min(7)) != 0,
             C::PutCounterThisTurn => self.turn_log.counter_put_by & (1 << you.index().min(7)) != 0,
+            C::NthResolution(n) => self.resolution_number == *n,
             C::OpponentNoncombatDamagedThisTurn => self.players_in_game().any(|p| {
                 p != you && self.turn_log.noncombat_damaged & (1 << p.index().min(7)) != 0
             }),

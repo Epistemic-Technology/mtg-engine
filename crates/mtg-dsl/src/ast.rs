@@ -1846,6 +1846,13 @@ pub enum StaticCond {
     /// `opponent dealt noncombat damage this turn`: "an opponent has been
     /// dealt noncombat damage this turn".
     OpponentNoncombatDamagedThisTurn,
+    /// `resolution 2`: "this is the second time this ability has resolved
+    /// this turn"; `resolution 2 again`: "it's the second time" (after the
+    /// first such condition).
+    NthResolution {
+        n: u8,
+        again: bool,
+    },
     /// `card left your graveyard this turn`: "one or more cards left your
     /// graveyard this turn".
     LeftGraveyardThisTurn,

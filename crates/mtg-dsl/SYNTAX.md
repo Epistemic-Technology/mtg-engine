@@ -405,7 +405,11 @@ life this turn`, `gained or lost life this turn`, `descended this turn`
 graveyard from anywhere), `surveilled this turn` ("you've surveilled this
 turn"), `counter put this turn` ("a +1/+1 counter was put on a permanent
 under your control this turn"), `opponent dealt noncombat damage this turn` ("an opponent has been dealt
-noncombat damage this turn"), `put counter this turn` ("you've put
+noncombat damage this turn"), `resolution 2` ("this is the second time
+this ability has resolved this turn": the resolving ability's source has
+resolved it that many times this turn, this time included; `resolution 2
+again` prints "it's the second time", for "you gain 1 life if resolution
+1; if resolution 2 again, draw 1 card"), `put counter this turn` ("you've put
 one or more +1/+1 counters on a creature this turn": a spell or ability
 you control put them, CR 122.6), `face-down creature entered this turn`
 ("a face-down creature entered the battlefield under your control this

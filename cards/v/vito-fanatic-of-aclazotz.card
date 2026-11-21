@@ -1,0 +1,8 @@
+card "Vito, Fanatic of Aclazotz" {
+  oracle_id 9768d43b-8b3f-4d03-ac1b-e603af832875
+  cost {2}{W}{B}
+  type Legendary Creature — Vampire Demon
+  pt 4/4
+  keywords flying
+  triggered whenever you sacrifice other permanent: you gain 2 life if resolution 1; if resolution 2 again, each opponent loses 2 life; if resolution 3 again, create 1 "4/3 white and black Vampire Demon creature with flying"
+}

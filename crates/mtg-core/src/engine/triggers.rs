@@ -1605,7 +1605,21 @@ impl GameState {
         } else {
             self.doing_once.take()
         };
+        // "If this is the second time this ability has resolved this
+        // turn": this resolution counts.
+        let key = (sa.source, sa.ability);
+        self.resolved_this_turn.push(key);
+        let number = self
+            .resolved_this_turn
+            .iter()
+            .filter(|k| **k == key)
+            .count();
+        let outer_number = std::mem::replace(
+            &mut self.resolution_number,
+            u8::try_from(number).unwrap_or(u8::MAX),
+        );
         self.apply_effects(&mut ctx, effects, &split);
+        self.resolution_number = outer_number;
         self.doing_once = doing;
         self.end_this_way(outer);
         if self.objects.contains_key(id) {

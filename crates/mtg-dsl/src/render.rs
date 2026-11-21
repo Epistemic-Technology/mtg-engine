@@ -9849,6 +9849,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::YourMainPhase => "it's your main phase".to_string(),
         StaticCond::YourCombatPhase => "it's your combat phase".to_string(),
         StaticCond::FirstCombatPhase => "it's the first combat phase of the turn".to_string(),
+        StaticCond::NthResolution { n, again: false } => format!(
+            "this is the {} time this ability has resolved this turn",
+            ordinal_word(u32::from(*n))
+        ),
+        StaticCond::NthResolution { n, again: true } => {
+            format!("it's the {} time", ordinal_word(u32::from(*n)))
+        }
         StaticCond::OpponentNoncombatDamagedThisTurn => {
             "an opponent has been dealt noncombat damage this turn".to_string()
         }

@@ -1464,6 +1464,7 @@ impl Compiler<'_> {
             StaticCond::YourCombatPhase => StaticCondition::YourCombatPhase,
             StaticCond::FirstCombatPhase => StaticCondition::FirstCombatPhase,
             StaticCond::PutCounterThisTurn => StaticCondition::PutCounterThisTurn,
+            StaticCond::NthResolution { n, .. } => StaticCondition::NthResolution(*n),
             StaticCond::OpponentNoncombatDamagedThisTurn => {
                 StaticCondition::OpponentNoncombatDamagedThisTurn
             }

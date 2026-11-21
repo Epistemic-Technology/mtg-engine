@@ -2062,6 +2062,10 @@ pub enum StaticCondition {
     PutCounterThisTurn,
     /// "an opponent has been dealt noncombat damage this turn".
     OpponentNoncombatDamagedThisTurn,
+    /// "this is the second time this ability has resolved this turn": the
+    /// resolving ability's object has resolved it this many times this
+    /// turn, counting this time.
+    NthResolution(u8),
     /// "as long as it's attacking" (the source).
     SourceAttacking,
     /// "as long as it attacked a battle this turn" (the source, CR

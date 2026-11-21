@@ -2723,6 +2723,11 @@ impl P {
         if self.eat_words(&["put", "counter", "this", "turn"]) {
             return Ok(StaticCond::PutCounterThisTurn);
         }
+        if self.eat_word("resolution") {
+            let n = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+            let again = self.eat_word("again");
+            return Ok(StaticCond::NthResolution { n, again });
+        }
         if self.eat_words(&["not", "your", "turn"]) {
             return Ok(StaticCond::NotYourTurn);
         }
