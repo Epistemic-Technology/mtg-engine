@@ -4979,12 +4979,11 @@ impl SpellOrdinal {
     /// on its caster's turn or not.
     pub fn holds(self, n: u8, own_turn: bool) -> bool {
         match self {
-            SpellOrdinal::First => n == 1,
+            SpellOrdinal::First | SpellOrdinal::FirstNoncreature => n == 1,
             SpellOrdinal::Second => n == 2,
             SpellOrdinal::NotFirst => n >= 2,
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
             SpellOrdinal::OnOpponentsTurn => !own_turn,
-            SpellOrdinal::FirstNoncreature => n == 1,
             SpellOrdinal::FromExile => true,
         }
     }

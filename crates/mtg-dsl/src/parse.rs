@@ -7940,7 +7940,8 @@ impl P {
     fn at_many(&self) -> bool {
         let target = |k: usize| matches!(self.word_at(k).as_deref(), Some("target" | "targets"));
         (self.at_word("x") && target(1))
-            || (self.at_words(&["any", "number", "of"]) && target(3))
+            || (self.at_words(&["any", "number", "of"])
+                && (target(3) || (self.word_at(3).as_deref() == Some("another") && target(4))))
             || (matches!(self.peek(), Some(Tok::Num(_)))
                 && self.word_at(1).as_deref() == Some("to")
                 && matches!(self.peek_at(2), Some(Tok::Num(_)))
@@ -7962,11 +7963,14 @@ impl P {
             }
             (Num::N(a), Some(Num::N(b)))
         };
-        let target = if self.eat_word("targets") {
+        // "any number of other target nonland permanents you control".
+        let another = self.eat_word("another");
+        let target = if !another && self.eat_word("targets") {
             Target::Spec(TargetSpec::Any)
         } else {
             self.expect_word("target")?;
-            self.target_spec()?
+            let spec = self.target_spec()?;
+            if another { another_target(spec) } else { spec }
         };
         let i = self.targets.len();
         self.targets.push(Target::Many {

@@ -4,6 +4,6 @@ card "Appa, Steadfast Guardian" {
   type Legendary Creature — Bison Ally
   pt 3/4
   keywords flash, flying
-  triggered when this enters: airbend any number of target other nonland permanent you control
+  triggered when this enters: airbend any number of another target nonland permanent you control
   triggered whenever you cast a spell from exile: create 1 "1/1 white Ally creature"
 }

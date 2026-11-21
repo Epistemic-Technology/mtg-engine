@@ -2763,6 +2763,9 @@ fn filter_one(f: &Filter) -> String {
         && f.any_types.is_empty()
         && !f.enchanted
         && f.relation != Relation::This
+        // "nonland permanent card" reads as not an instant or sorcery
+        // either; a plain "nonland" stays "nonland" ("nonland card").
+        && f.not_types != [mtg_core::card::CardType::Land]
     {
         words.push("permanent".to_string());
     }

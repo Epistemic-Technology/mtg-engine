@@ -1001,17 +1001,14 @@ impl<'a> Ctx<'a> {
                 }
                 Some(m) => count_words(*m, "one"),
             };
-            return match self.targets[i].base() {
-                Target::Spec(TargetSpec::Any) => format!("{count} targets"),
-                // "any number of other target nonland permanents you
-                // control".
-                _ => {
-                    let noun = self.plural_target_noun(i);
-                    match noun.strip_prefix("other ") {
-                        Some(rest) => format!("{count} other target {rest}"),
-                        None => format!("{count} target {noun}"),
-                    }
-                }
+            if let Target::Spec(TargetSpec::Any) = self.targets[i].base() {
+                return format!("{count} targets");
+            }
+            // "any number of other target nonland permanents you control".
+            let noun = self.plural_target_noun(i);
+            return match noun.strip_prefix("other ") {
+                Some(rest) => format!("{count} other target {rest}"),
+                None => format!("{count} target {noun}"),
             };
         }
         let phrase = self.target_phrase_of(i);
@@ -6572,7 +6569,6 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (TargetTense::ThatWas, _) if let Some((cmp, n)) = mana_value_only => {
                     format!("that {noun}'s mana value was {n}{}", cmp_words(cmp))
                 }
-                (TargetTense::ThatWas, _) => format!("that {noun} was {pred}"),
                 (TargetTense::Had, _) => format!("that {noun} had {pred}"),
                 (TargetTense::Is, _) if let Some((cmp, n)) = power_only => {
                     format!("its power is {n}{}", cmp_words(cmp))
@@ -6588,7 +6584,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (TargetTense::Was, None) if graveyard_card => {
                     format!("it was {}", card_filter_a(f, ctx.card))
                 }
-                (TargetTense::Was, _) => format!("that {noun} was {pred}"),
+                (TargetTense::Was | TargetTense::ThatWas, _) => format!("that {noun} was {pred}"),
                 // "If an opponent controls that creature".
                 (TargetTense::ThatIs, _)
                     if *f

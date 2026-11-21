@@ -732,7 +732,7 @@ that token` prints "..., then attach this Equipment to it"); its
 controller may turn it face up any time they have priority for its mana
 cost if it's a creature card (scenarios: `unmorph "Name"`).
 `airbend target nonland permanent` (CR 701.65), `airbend up to one
-another target creature`, `airbend any number of target other nonland
+another target creature`, `airbend any number of another target nonland
 permanent you control` ("any number of other target nonland permanents you
 control"): exiles the permanents (or spells); each card exiled this way
 may be cast by its owner from exile for {2} rather than its mana cost, with
