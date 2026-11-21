@@ -442,6 +442,9 @@ impl GameState {
                 .remove_counters
                 .is_some_and(|(k, n)| self.objects[id].counters(k) < n)
             || cost.energy > 0
+            || cost.exert
+            || cost.discard_hand
+            || cost.life_x
             || cost.discard > 0
             || cost.discard_x
             || cost.exile_cards.is_some()

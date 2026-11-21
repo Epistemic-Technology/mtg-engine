@@ -1,0 +1,8 @@
+card "Quietus Spike" {
+  oracle_id 0ff0a309-9b4a-4f9e-9ea6-c4d07906ebec
+  cost {3}
+  type Artifact — Equipment
+  static equipped creature: has deathtouch
+  triggered whenever equipped creature deals combat damage to a player: that player loses half life
+  equip {3}
+}

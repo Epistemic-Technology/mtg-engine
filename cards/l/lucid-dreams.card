@@ -1,0 +1,6 @@
+card "Lucid Dreams" {
+  oracle_id bd716715-15a4-4356-ad7e-c642fafbfd18
+  cost {3}{U}{U}
+  type Sorcery
+  spell: draw count where card types in your graveyard cards
+}

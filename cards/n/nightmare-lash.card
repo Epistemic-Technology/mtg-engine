@@ -1,0 +1,7 @@
+card "Nightmare Lash" {
+  oracle_id 414f1c42-6b0e-49ce-8b44-17a75b996b68
+  cost {4}
+  type Artifact — Equipment
+  static equipped creature: +1/+1 count each Swamp you control
+  equip pay 3 life
+}

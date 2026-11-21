@@ -1,0 +1,8 @@
+card "Creakwood Safewright" {
+  oracle_id f9b7bbea-ea20-400b-a5b7-4d6993d8777b
+  cost {1}{B}
+  type Creature — Elf Warrior
+  pt 5/5
+  enters with 3 -1/-1 counters
+  triggered at beginning of your end step if there is Elf card in your graveyard and this has 1 or more -1/-1 counters: remove 1 -1/-1 counter from this
+}

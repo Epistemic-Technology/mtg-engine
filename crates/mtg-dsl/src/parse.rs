@@ -413,6 +413,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     ),
     (&["defending", "player"], Recipient::DefendingPlayer),
     (&["that", "token"], Recipient::CreatedObject),
+    (&["that", "created", "creature"], Recipient::CreatedThat),
     (&["manifested", "creature"], Recipient::Manifested),
     // "attach this Equipment to the amassed Army": amass's Army (CR
     // 701.47a), created or not.
@@ -2297,23 +2298,47 @@ impl P {
                     }
                     _ => Target::Spec(TargetSpec::CreatureYouControl),
                 };
-                let mana = self.mana_cost()?;
-                // "Equip {0}. Activate only once each turn."
-                let per_turn = if self.peek() == Some(&Tok::Comma) {
-                    self.pos += 1;
-                    self.expect_word("once")?;
-                    1
+                // "Equip—{2}, Pay 2 life.", "Equip—Sacrifice a creature.":
+                // a cost other than mana alone (CR 702.6a).
+                let full = matches!(self.peek(), Some(Tok::Word(_)))
+                    || (self.peek_at(1) == Some(&Tok::Comma)
+                        && self.word_at(2).as_deref() != Some("once"));
+                let cost = if full {
+                    Cost {
+                        sorcery: true,
+                        ..self.cost()?
+                    }
+                } else if self.word_at(1).as_deref() == Some("or") {
+                    // `equip {3} or discard 1 card`: two equip abilities.
+                    let mana = self.mana_cost()?;
+                    self.expect_word("or")?;
+                    let other = Box::new(self.cost()?);
+                    self.end_stmt()?;
+                    return Ok(Ability::EquipOr {
+                        mana,
+                        other,
+                        targets: vec![target],
+                    });
                 } else {
-                    0
-                };
-                self.end_stmt()?;
-                Ok(Ability::Activated {
-                    cost: Cost {
+                    let mana = self.mana_cost()?;
+                    // "Equip {0}. Activate only once each turn."
+                    let per_turn = if self.peek() == Some(&Tok::Comma) {
+                        self.pos += 1;
+                        self.expect_word("once")?;
+                        1
+                    } else {
+                        0
+                    };
+                    Cost {
                         mana,
                         sorcery: true,
                         per_turn,
                         ..Default::default()
-                    },
+                    }
+                };
+                self.end_stmt()?;
+                Ok(Ability::Activated {
+                    cost,
                     targets: vec![target],
                     effects: vec![Sentence::new(vec![Effect::Attach {
                         what: Recipient::Source,
@@ -2965,8 +2990,71 @@ impl P {
         })
     }
 
-    #[allow(clippy::too_many_lines)] // one branch per condition
+    /// A condition, or two joined by `and` (both must hold): "if there is
+    /// an Elf card in your graveyard and this creature has a -1/-1
+    /// counter on it". The `and` binds only when a condition follows it.
     fn static_cond(&mut self) -> R<StaticCond> {
+        let first = self.static_cond_one()?;
+        if self.at_word("and") {
+            let at = self.pos;
+            self.pos += 1;
+            if let Ok(second) = self.static_cond() {
+                return Ok(StaticCond::And(Box::new(first), Box::new(second)));
+            }
+            self.pos = at;
+        }
+        Ok(first)
+    }
+
+    #[allow(clippy::too_many_lines)] // one branch per condition
+    fn static_cond_one(&mut self) -> R<StaticCond> {
+        if self.eat_word("void") {
+            return Ok(StaticCond::Void);
+        }
+        if self.eat_words(&["not", "your", "main", "phase"]) {
+            return Ok(StaticCond::NotYourMainPhase);
+        }
+        if self.eat_words(&["cast", "from", "anywhere", "other", "than", "hand"]) {
+            return Ok(StaticCond::NotCastFromHand);
+        }
+        if self.eat_words(&["put", "any", "counter", "this", "turn"]) {
+            return Ok(StaticCond::PutAnyCounterThisTurn);
+        }
+        if self.eat_words(&["opponent", "controls", "more", "lands"]) {
+            return Ok(StaticCond::OpponentMoreLands);
+        }
+        if self.eat_words(&[
+            "creature", "died", "under", "your", "control", "this", "turn",
+        ]) {
+            return Ok(StaticCond::CreaturesDied { n: 1, yours: true });
+        }
+        if matches!(self.peek(), Some(Tok::Num(_)))
+            && self.word_at(1).as_deref() == Some("creatures")
+            && self.word_at(2).as_deref() == Some("died")
+        {
+            let n = self.number()?;
+            self.expect_words(&["creatures", "died", "this", "turn"])?;
+            return Ok(StaticCond::CreaturesDied { n, yours: false });
+        }
+        if self.eat_words(&["total", "toughness"]) {
+            let n = self.number()?;
+            self.expect_words(&["or", "more"])?;
+            return Ok(StaticCond::TotalToughness(n));
+        }
+        if self.eat_words(&["cast", "both"]) {
+            let a = self.filter()?;
+            self.expect_words(&["spell", "and"])?;
+            let b = self.filter()?;
+            self.expect_words(&["spell", "this", "turn"])?;
+            return Ok(StaticCond::CastBoth(Box::new((a, b))));
+        }
+        if self.at_words(&["attacked", "with"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
+            self.pos += 2;
+            let n = self.number()?;
+            let f = self.filter()?;
+            self.expect_words(&["this", "turn"])?;
+            return Ok(StaticCond::AttackedWithAtLeast(f, n));
+        }
         if self.eat_word("threshold") {
             return Ok(StaticCond::CardsInGraveyard(7));
         }
@@ -5389,6 +5477,10 @@ impl P {
                     _ => self.fail("`loses all abilities and becomes` takes what it becomes"),
                 }
             }
+            "lose" | "loses" if self.at_words(&["half", "life"]) => {
+                self.pos += 2;
+                Ok(Effect::LoseHalfLife { who: subject })
+            }
             "lose" | "loses" => {
                 let amount = self.num()?;
                 self.expect_word("life")?;
@@ -7449,6 +7541,15 @@ impl P {
                 Ok(Effect::Discard { count, who: None })
             }
             "scry" => Ok(Effect::Scry(self.num()?)),
+            "investigate"
+                if self.at_words(&["count", "each"]) || self.at_words(&["once", "count"]) =>
+            {
+                let once = self.eat_word("once");
+                Ok(Effect::InvestigateCount {
+                    count: self.num()?,
+                    once,
+                })
+            }
             "investigate" => Ok(Effect::Investigate(if self.eat_word("twice") {
                 2
             } else if matches!(self.peek(), Some(Tok::Num(_))) {
@@ -8255,6 +8356,56 @@ impl P {
         }
         if self.eat_words(&["card", "types", "in", "graveyards"]) {
             return Ok(CountExpr::CardTypesInGraveyards);
+        }
+        if self.eat_words(&["card", "types", "in", "your", "graveyard"]) {
+            return Ok(CountExpr::CardTypesInGraveyard);
+        }
+        if self.eat_words(&["life", "you", "gained", "this", "turn"]) {
+            return Ok(CountExpr::LifeGainedThisTurn { ve: false });
+        }
+        if self.eat_words(&["life", "you've", "gained", "this", "turn"]) {
+            return Ok(CountExpr::LifeGainedThisTurn { ve: true });
+        }
+        if self.eat_words(&["permanents", "sacrificed", "this", "turn"]) {
+            return Ok(CountExpr::SacrificedThisTurn);
+        }
+        if self.eat_words(&["two", "to", "x"]) {
+            return Ok(CountExpr::TwoToX);
+        }
+        if self.eat_words(&["creature", "attacked", "this", "turn"]) {
+            return Ok(CountExpr::AttackedThisTurn);
+        }
+        if self.eat_words(&["opponents", "lost", "life", "this", "turn"]) {
+            return Ok(CountExpr::OpponentsLostLife);
+        }
+        if self.eat_words(&["opponents", "more", "cards", "in", "hand"]) {
+            return Ok(CountExpr::OpponentsMoreCards);
+        }
+        // `counters on this`, `counters on it`: every kind.
+        if self.eat_words(&["counters", "on"]) {
+            if self.eat_word("this") {
+                return Ok(CountExpr::SourceAllCounters { it: false });
+            }
+            self.expect_word("it")?;
+            // In a triggered ability `it` is the triggering object, which
+            // this count doesn't read.
+            if self.in_trigger && !self.it_source && !self.in_delayed {
+                return self.fail("`counters on it` counts the source's; write `counters on this`");
+            }
+            return Ok(CountExpr::SourceAllCounters { it: true });
+        }
+        // `total power creature you control`.
+        if self.eat_word("total") {
+            use mtg_core::card::Stat;
+            let stat = if self.eat_word("power") {
+                Stat::Power
+            } else if self.eat_word("toughness") {
+                Stat::Toughness
+            } else {
+                self.expect_words(&["mana", "value"])?;
+                Stat::ManaValue
+            };
+            return Ok(CountExpr::Total(stat, self.filter()?));
         }
         // `+1/+1 counters on this`, `age counters on it`.
         let at = self.pos;
@@ -11339,7 +11490,12 @@ impl P {
                     {
                         self.pos += 1;
                         let n = self.count()?;
-                        let k = self.counter_kind()?;
+                        // `remove 1 counter from this`: any kind.
+                        let k = if self.eat_word("counter") || self.eat_word("counters") {
+                            CounterKind::Any
+                        } else {
+                            self.counter_kind()?
+                        };
                         self.expect_words(&["from", "this"])?;
                         cost.remove_counters = Some((k, n));
                         cost.order.push(CostItem::RemoveCounters);
@@ -11415,6 +11571,17 @@ impl P {
                             Some(Box::new(crate::ast::ExileCards { n, x, filter, top }));
                         cost.order.push(CostItem::ExileCards);
                     }
+                    "discard" if self.word_at(1).as_deref() == Some("hand") => {
+                        self.pos += 2;
+                        cost.discard_hand = true;
+                        cost.order.push(CostItem::DiscardHand);
+                    }
+                    // CR 701.43a: `exert this`.
+                    "exert" if self.word_at(1).as_deref() == Some("this") => {
+                        self.pos += 2;
+                        cost.exert = true;
+                        cost.order.push(CostItem::Exert);
+                    }
                     "discard" => {
                         self.pos += 1;
                         if self.eat_word("this") {
@@ -11484,6 +11651,16 @@ impl P {
                         cost.conditions.push(c);
                     }
 
+                    // "pay X life" (CR 107.3: X announced as the spell is
+                    // cast).
+                    "pay"
+                        if self.word_at(1).as_deref() == Some("x")
+                            && self.word_at(2).as_deref() == Some("life") =>
+                    {
+                        self.pos += 3;
+                        cost.life_x = true;
+                        cost.order.push(CostItem::Life);
+                    }
                     "pay" => {
                         self.pos += 1;
                         let n = self.count()?;

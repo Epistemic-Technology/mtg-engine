@@ -1,0 +1,7 @@
+card "Demonmail Hauberk" {
+  oracle_id dac85722-d741-4584-8b98-8ac220958a38
+  cost {4}
+  type Artifact — Equipment
+  static equipped creature: +4/+2
+  equip sacrifice creature
+}

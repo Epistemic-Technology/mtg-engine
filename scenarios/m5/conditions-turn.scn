@@ -1,0 +1,258 @@
+# Conditions: two joined by "and", "you've cast both ...", creatures that
+# died this turn (two or more; under your control), "an opponent controls
+# more lands than you", void, "it isn't your main phase", "cast from
+# anywhere other than your hand", "you put a counter on a creature this
+# turn", "you attacked with three or more Merfolk this turn", and total
+# toughness.
+
+scenario "Creakwood Safewright: an Elf card and a -1/-1 counter both hold" {
+  battlefield A: "Creakwood Safewright" with 3 -1/-1
+  graveyard A: "Llanowar Elves"
+  run_to turn 2 upkeep
+  assert counters "Creakwood Safewright" -1/-1 2
+}
+
+scenario "Creakwood Safewright: no Elf card, no counter removed" {
+  battlefield A: "Creakwood Safewright" with 3 -1/-1
+  graveyard A: "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert counters "Creakwood Safewright" -1/-1 3
+}
+
+scenario "Eshki Dragonclaw needs both a creature and a noncreature spell" {
+  battlefield A: "Eshki Dragonclaw", "Forest", "Mountain"
+  hand A: "Llanowar Elves", "Shock"
+  turn 1 A: cast "Llanowar Elves"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 declare_attackers
+  assert counters "Eshki Dragonclaw" +1/+1 2
+  assert hand A count 1
+}
+
+scenario "Eshki Dragonclaw with only a creature spell does nothing" {
+  battlefield A: "Eshki Dragonclaw", "Forest"
+  hand A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 declare_attackers
+  assert counters "Eshki Dragonclaw" +1/+1 0
+  assert hand A count 0
+}
+
+scenario "Darklight Phoenix returns after two creatures died" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  graveyard A: "Darklight Phoenix"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Llanowar Elves"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains "Darklight Phoenix"
+}
+
+scenario "Darklight Phoenix stays after one creature died" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Darklight Phoenix"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert graveyard A contains "Darklight Phoenix"
+}
+
+scenario "Essenceknit Scholar draws after your creature died" {
+  battlefield A: "Essenceknit Scholar", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert hand A count 1
+}
+
+scenario "Essenceknit Scholar doesn't draw for an opponent's creature" {
+  battlefield A: "Essenceknit Scholar", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert hand A count 0
+}
+
+scenario "Ticket Tortoise makes a Treasure when an opponent has more lands" {
+  battlefield A: 2 "Plains"
+  battlefield B: 3 "Forest"
+  hand A: "Ticket Tortoise"
+  turn 1 A: cast "Ticket Tortoise"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+}
+
+scenario "Ticket Tortoise makes nothing on equal lands" {
+  battlefield A: 2 "Plains"
+  battlefield B: 2 "Forest"
+  hand A: "Ticket Tortoise"
+  turn 1 A: cast "Ticket Tortoise"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Hylderblade attaches itself after a nonland permanent left" {
+  battlefield A: "Hylderblade", "Hill Giant", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 end A: trigger "Hylderblade" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert attached "Hylderblade" to "Hill Giant"
+}
+
+scenario "Hylderblade: a land leaving isn't void" {
+  battlefield A: "Hylderblade", "Hill Giant", "Mountain"
+  hand A: "Rogue Elephant"
+  battlefield A: "Forest"
+  turn 1 A: cast "Rogue Elephant"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Forest"
+  assert battlefield A contains "Rogue Elephant"
+  assert power "Hill Giant" 3
+}
+
+scenario "Hylderblade: a warped spell is void" {
+  battlefield A: "Hylderblade", 2 "Island", "Hill Giant"
+  hand A: "Starbreach Whale"
+  turn 1 A: cast "Starbreach Whale" warped
+  turn 1 end A: trigger "Hylderblade" targeting "Hill Giant"
+  run_to turn 1 cleanup
+  assert power "Hill Giant" 6
+}
+
+scenario "Temporal Intervention costs {2} less with void" {
+  battlefield A: "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock", "Temporal Intervention"
+  hand B: "Hill Giant", "Forest"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Temporal Intervention" targeting player B
+  turn 1 precombat_main A: discard "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Temporal Intervention costs full price without void" {
+  battlefield A: "Swamp"
+  hand A: "Temporal Intervention"
+  illegal turn 1 A: cast "Temporal Intervention" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A contains "Temporal Intervention"
+}
+
+scenario "Dose of Dawnglow in your main phase doesn't blight" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Dose of Dawnglow"
+  turn 1 A: cast "Dose of Dawnglow" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" -1/-1 0
+}
+
+scenario "Dose of Dawnglow at instant speed blights 2" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Dose of Dawnglow"
+  turn 1 end A: cast "Dose of Dawnglow" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" -1/-1 2
+}
+
+scenario "Otterball Antics from the hand: no counter" {
+  battlefield A: 2 "Island"
+  hand A: "Otterball Antics"
+  turn 1 A: cast "Otterball Antics"
+  run_to turn 1 postcombat_main
+  assert counters "Otter" +1/+1 0
+}
+
+scenario "Otterball Antics with flashback: a counter on the Otter" {
+  battlefield A: 4 "Island"
+  graveyard A: "Otterball Antics"
+  turn 1 A: cast "Otterball Antics" from graveyard
+  run_to turn 1 postcombat_main
+  assert counters "Otter" +1/+1 1
+}
+
+scenario "Antiquities on the Loose with flashback counters each Spirit" {
+  battlefield A: 6 "Plains"
+  graveyard A: "Antiquities on the Loose"
+  turn 1 A: cast "Antiquities on the Loose" from graveyard
+  run_to turn 1 postcombat_main
+  assert counters oldest A "Spirit" +1/+1 1
+  assert counters newest A "Spirit" +1/+1 1
+}
+
+scenario "Lasting Tarfire deals 2 after a counter of any kind went on a creature" {
+  battlefield A: "Lasting Tarfire", "Forest", "Grizzly Bears", "Hill Giant"
+  hand A: "Dose of Dawnglow"
+  battlefield A: 4 "Swamp"
+  graveyard A: "Craw Wurm"
+  turn 1 begin_combat A: cast "Dose of Dawnglow" targeting "Craw Wurm"
+  run_to turn 2 upkeep
+  # Blight's -1/-1 counters count.
+  assert life B 18
+}
+
+scenario "Lasting Tarfire: no counter, no damage" {
+  battlefield A: "Lasting Tarfire"
+  run_to turn 2 upkeep
+  assert life B 20
+}
+
+scenario "Deepway Navigator: three Merfolk attacked" {
+  battlefield A: "Deepway Navigator", "Sandbar Merfolk", "Saprazzan Raider"
+  turn 1 A: attack "Deepway Navigator", "Sandbar Merfolk", "Saprazzan Raider"
+  run_to turn 1 postcombat_main
+  assert power "Sandbar Merfolk" 2
+  assert life B 13
+}
+
+scenario "Deepway Navigator: two Merfolk attacking isn't enough" {
+  battlefield A: "Deepway Navigator", "Sandbar Merfolk", "Saprazzan Raider"
+  turn 1 A: attack "Deepway Navigator", "Sandbar Merfolk"
+  run_to turn 1 postcombat_main
+  assert power "Sandbar Merfolk" 1
+  assert life B 17
+}
+
+scenario "Orysa costs {3} less with total toughness 10" {
+  battlefield A: 2 "Island", "Craw Wurm", "Serra Angel", "Hill Giant"
+  hand A: "Orysa, Tide Choreographer"
+  turn 1 A: cast "Orysa, Tide Choreographer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Orysa, Tide Choreographer"
+  assert hand A count 2
+}
+
+scenario "Orysa costs full price with total toughness 6" {
+  battlefield A: 2 "Island", "Craw Wurm", "Grizzly Bears"
+  hand A: "Orysa, Tide Choreographer"
+  illegal turn 1 A: cast "Orysa, Tide Choreographer"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Orysa, Tide Choreographer"
+}
+
+scenario "Bloodcrazed Paladin and Canopy Stalker count creatures that died this turn" {
+  battlefield A: 2 "Swamp", 2 "Mountain", "Canopy Stalker"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock", "Lightning Bolt", "Bloodcrazed Paladin"
+  life A 10
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Canopy Stalker"
+  turn 1 A: wait
+  turn 1 A: cast "Bloodcrazed Paladin"
+  run_to turn 1 postcombat_main
+  assert counters "Bloodcrazed Paladin" +1/+1 2
+  assert life A 12
+}

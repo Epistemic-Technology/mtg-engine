@@ -550,6 +550,9 @@ impl GameState {
                 blocked: false,
             });
         }
+        // "As long as you attacked with three or more Merfolk this turn",
+        // "for each creature that attacked this turn" in a static.
+        self.history_bump();
         // The attackers are declared together: triggers see all of them
         // ("attacks alone", CR 506.5).
         let events: SmallVec<[(ObjId, Target); 4]> =

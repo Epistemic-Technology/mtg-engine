@@ -1,0 +1,9 @@
+card "Basri, Tomorrow's Champion" {
+  oracle_id d8e1e9ba-708c-4f54-abc3-817004a2f2ac
+  cost {W}
+  type Legendary Creature — Human Knight
+  pt 2/1
+  activated {W}, {T}, exert this: create 1 "1/1 white Cat creature with lifelink"
+  cycling {2}{W}
+  triggered when you cycle this: each Cat you control gains hexproof and indestructible
+}

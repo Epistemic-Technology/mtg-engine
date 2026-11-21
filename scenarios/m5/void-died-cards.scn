@@ -1,0 +1,48 @@
+# Template-authored cards with void and "two or more creatures died this
+# turn".
+
+scenario "Insatiable Skittermaw grows after a nonland permanent left" {
+  battlefield A: "Insatiable Skittermaw", "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  run_to turn 2 upkeep
+  assert counters "Insatiable Skittermaw" +1/+1 1
+}
+
+scenario "Insatiable Skittermaw doesn't grow on a quiet turn" {
+  battlefield A: "Insatiable Skittermaw"
+  run_to turn 2 upkeep
+  assert counters "Insatiable Skittermaw" +1/+1 0
+}
+
+scenario "Kavaron Skywarden grows after a spell was warped" {
+  battlefield A: "Kavaron Skywarden", 2 "Island"
+  hand A: "Starbreach Whale"
+  turn 1 A: cast "Starbreach Whale" warped
+  run_to turn 1 cleanup
+  assert counters "Kavaron Skywarden" +1/+1 1
+}
+
+scenario "Emeritus of Woe becomes prepared after two creatures died" {
+  battlefield A: "Emeritus of Woe", 2 "Mountain", 2 "Swamp"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Shock", "Lightning Bolt"
+  library A: "Forest", "Hill Giant", "Island", "Plains", "Swamp"
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 3 A: cast "Demonic Tutor"
+  run_to turn 3 postcombat_main
+  # The turn's draw and the tutored card.
+  assert hand A count 2
+}
+
+scenario "Emeritus of Woe stays unprepared after one creature died" {
+  battlefield A: "Emeritus of Woe", 2 "Mountain", 2 "Swamp"
+  battlefield B: "Llanowar Elves"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Llanowar Elves"
+  illegal turn 3 A: cast "Demonic Tutor"
+  run_to turn 3 postcombat_main
+}

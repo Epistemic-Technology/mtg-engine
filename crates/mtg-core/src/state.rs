@@ -766,6 +766,9 @@ impl GameObject {
     }
 
     pub fn counters(&self, kind: CounterKind) -> u32 {
+        if kind == CounterKind::Any {
+            return self.counters.iter().map(|(_, n)| *n).sum();
+        }
         self.counters
             .iter()
             .find(|(k, _)| *k == kind)
@@ -1502,6 +1505,14 @@ pub struct TurnLog {
     pub cards_to_graveyard: [crate::card::TypeSet; 4],
     /// The card types among permanents each player sacrificed.
     pub sacrificed: [crate::card::TypeSet; 4],
+    /// How many permanents each player sacrificed.
+    pub sacrificed_n: [u16; 4],
+    /// Players who put counters of any kind on a creature.
+    pub any_counter_put_by: u8,
+    /// Void: a nonland permanent left the battlefield (any player's).
+    pub nonland_left: bool,
+    /// Void: a spell was cast for its warp cost (CR 702.185a).
+    pub warped: bool,
 }
 
 /// Day and night (CR 731): neither until something makes it day.
@@ -3389,6 +3400,30 @@ impl GameState {
                 powers.dedup();
                 powers.len() >= *n as usize
             }
+            C::And(a, b) => {
+                self.condition_now(a, you, source) && self.condition_now(b, you, source)
+            }
+            C::TotalToughness(n) => {
+                let total: i32 = self
+                    .creatures_of(you)
+                    .filter_map(|id| self.characteristics(id))
+                    .map(|c| c.toughness().max(0))
+                    .sum();
+                total >= i32::try_from(*n).unwrap_or(i32::MAX)
+            }
+            C::OpponentMoreLands => {
+                let lands = |p: PlayerId| {
+                    self.battlefield
+                        .iter()
+                        .filter(|id| {
+                            self.objects[**id].controller == p
+                                && self.characteristics(**id).is_some_and(|c| c.is_land())
+                        })
+                        .count()
+                };
+                let mine = lands(you);
+                self.players_in_game().any(|p| p != you && lands(p) > mine)
+            }
             _ => self.condition_history(cond, you, source),
         }
     }
@@ -3564,6 +3599,51 @@ impl GameState {
                     })
             }
             C::During(t) => t.now(self.step, self.active_player, you),
+            // CR 700.4: as they last existed, under whose control.
+            C::CreaturesDied { n, yours } => {
+                let died = if *yours {
+                    self.died_this_turn
+                        .iter()
+                        .filter(|(_, controller, _)| *controller == you)
+                        .count()
+                } else {
+                    usize::from(self.creatures_died_this_turn)
+                };
+                died >= *n as usize
+            }
+            C::Void => self.turn_log.nonland_left || self.turn_log.warped,
+            C::NotYourMainPhase => !(self.active_player == you && self.step.is_main()),
+            C::NotCastFrom(zone) => self
+                .objects
+                .get(source)
+                .or_else(|| self.lki.get(&source).map(|l| &l.object))
+                .and_then(|o| o.cast.cast_from())
+                .is_some_and(|z| z != *zone),
+            C::PutAnyCounterThisTurn => {
+                self.turn_log.any_counter_put_by & (1 << you.index().min(7)) != 0
+            }
+            C::AttackedWithAtLeast(f, n) => {
+                self.attackers_this_turn
+                    .iter()
+                    .filter(|id| {
+                        let (controller, c) = match self.objects.get(**id) {
+                            Some(o) => (o.controller, self.characteristics(**id)),
+                            None => match self.lki.get(id) {
+                                Some(l) => (l.object.controller, Some(l.characteristics)),
+                                None => return false,
+                            },
+                        };
+                        controller == you
+                            && c.is_some_and(|c| f.matches(**id, controller, &c, None, Some(you)))
+                    })
+                    .count()
+                    >= *n as usize
+            }
+            // The layer system and `condition_now` judge both parts their
+            // own way.
+            C::And(a, b) => {
+                self.condition_history(a, you, source) && self.condition_history(b, you, source)
+            }
             _ => false,
         }
     }

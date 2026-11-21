@@ -2727,7 +2727,11 @@ impl GameState {
     fn after_splice(&self, spell: ObjId) -> Flow {
         let def = self.pool.get(self.objects[spell].def);
         let add = self.additional_of(spell);
-        if def.mana_cost.has_x() || add.discard_x || add.exile_cards.as_ref().is_some_and(|g| g.x) {
+        if def.mana_cost.has_x()
+            || add.discard_x
+            || add.life_x
+            || add.exile_cards.as_ref().is_some_and(|g| g.x)
+        {
             Flow::ChoosingX {
                 spell,
                 sacrifice: None,

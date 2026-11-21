@@ -1,0 +1,7 @@
+card "Toxic Deluge" {
+  oracle_id afaef788-34d1-460b-b884-9d7ae6ddeb18
+  cost {2}{B}
+  type Sorcery
+  additional cost pay x life
+  spell: all creatures get -1/-1 X
+}

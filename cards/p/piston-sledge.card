@@ -1,0 +1,8 @@
+card "Piston Sledge" {
+  oracle_id ba5d8c0d-3e4e-4652-86d2-80ce2f48dc0f
+  cost {3}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static equipped creature: +3/+1
+  equip sacrifice artifact
+}

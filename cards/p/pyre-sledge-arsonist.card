@@ -1,0 +1,7 @@
+card "Pyre-Sledge Arsonist" {
+  oracle_id 7f42a05c-9e6d-4cbc-92f1-4433cd22f149
+  cost {2}{R}
+  type Creature — Lizard Shaman
+  pt 2/2
+  activated {1}, {T}: this deals count where permanents sacrificed this turn damage to any target
+}

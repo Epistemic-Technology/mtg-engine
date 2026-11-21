@@ -969,6 +969,10 @@ impl Compiler<'_> {
             }
             let compiled = self.ability(a)?;
             b = b.ability(compiled);
+            // "Equip—Pay {3} or discard a card.": the second equip ability.
+            if let Ability::EquipOr { other, targets, .. } = a {
+                b = b.ability(self.ability(&equip_ability((**other).clone(), targets))?);
+            }
             // CR 702.98a: unleash's second static ability, "This permanent
             // can't block as long as it has a +1/+1 counter on it."
             if let Ability::Mechanic(Mechanic::Unleash) = a {
@@ -1547,6 +1551,33 @@ impl Compiler<'_> {
             StaticCond::Or(a, b) | StaticCond::OrIf(a, b) => {
                 StaticCondition::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
+            StaticCond::And(a, b) => {
+                StaticCondition::And(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
+            }
+            StaticCond::CastBoth(both) => {
+                let (a, b) = &**both;
+                let cast = |c: &mut Self, f: &Filter| StaticCondition::CastThisTurn {
+                    filter: c.filter(f),
+                    at_least: 1,
+                    other: false,
+                };
+                StaticCondition::And(Box::new(cast(self, a)), Box::new(cast(self, b)))
+            }
+            StaticCond::CreaturesDied { n, yours } => StaticCondition::CreaturesDied {
+                n: *n,
+                yours: *yours,
+            },
+            StaticCond::OpponentMoreLands => StaticCondition::OpponentMoreLands,
+            StaticCond::Void => StaticCondition::Void,
+            StaticCond::NotYourMainPhase => StaticCondition::NotYourMainPhase,
+            StaticCond::NotCastFromHand => {
+                StaticCondition::NotCastFrom(mtg_core::state::Zone::Hand)
+            }
+            StaticCond::PutAnyCounterThisTurn => StaticCondition::PutAnyCounterThisTurn,
+            StaticCond::AttackedWithAtLeast(f, n) => {
+                StaticCondition::AttackedWithAtLeast(self.filter(f), *n)
+            }
+            StaticCond::TotalToughness(n) => StaticCondition::TotalToughness(*n),
             StaticCond::OpponentGraveyard(n) => StaticCondition::OpponentGraveyard(*n),
             StaticCond::ManaValuesInGraveyard(n) => StaticCondition::ManaValuesInGraveyard(*n),
             StaticCond::OpponentControls { filter, at_least } => {
@@ -1708,6 +1739,15 @@ impl Compiler<'_> {
             A::Those(_) => C::ThoseObjects,
             A::HostGraveyard(f) => C::HostGraveyard(f.as_ref().map(|f| self.filter(f))),
             A::Devotion { colors, .. } => C::Devotion(ColorSet::of(colors.iter().copied())),
+            A::LifeGainedThisTurn { .. } => C::LifeGainedThisTurn,
+            A::CardTypesInGraveyard => C::CardTypesInGraveyard,
+            A::SourceAllCounters { .. } => C::SourceAllCounters,
+            A::SacrificedThisTurn => C::SacrificedThisTurn,
+            A::TwoToX => C::TwoToX,
+            A::AttackedThisTurn => C::AttackedThisTurn,
+            A::OpponentsLostLife => C::OpponentsLostLife,
+            A::OpponentsMoreCards => C::OpponentsMoreCards,
+            A::Total(stat, f) => C::Total(*stat, self.filter(f)),
         }
     }
 
@@ -1793,6 +1833,9 @@ impl Compiler<'_> {
             evidence: c.evidence,
             forage: c.forage,
             waterbend: c.waterbend,
+            exert: c.exert,
+            discard_hand: c.discard_hand,
+            life_x: c.life_x,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -1888,7 +1931,9 @@ impl Compiler<'_> {
             | Recipient::SameTokens
             | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
-            Recipient::Manifested | Recipient::CreatedObject => CoreRecipient::CreatedObject,
+            Recipient::Manifested | Recipient::CreatedObject | Recipient::CreatedThat => {
+                CoreRecipient::CreatedObject
+            }
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
@@ -2095,6 +2140,7 @@ impl Compiler<'_> {
                 amount: *amount,
                 who: r(*who),
             }),
+            Effect::LoseHalfLife { who } => out.push(CoreEffect::LoseHalfLife { who: r(*who) }),
             Effect::DrawCards { count, who } => out.push(CoreEffect::DrawCards {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
@@ -2519,18 +2565,19 @@ impl Compiler<'_> {
                 may: *may,
                 reveal: *reveal,
             }),
-            Effect::Investigate(_) | Effect::Investigates(_) => {
+            Effect::Investigate(_) | Effect::Investigates(_) | Effect::InvestigateCount { .. } => {
                 let Some(token) = self.pool.lookup("Clue") else {
                     return self.err("unknown token \"Clue\" (cards/tokens/clue.card)");
                 };
                 let (n, who) = match e {
-                    Effect::Investigates(w) => (1, r(*w)),
-                    Effect::Investigate(n) => (*n, CoreRecipient::You),
+                    Effect::Investigates(w) => (Num::N(1), r(*w)),
+                    Effect::Investigate(n) => (Num::N(*n), CoreRecipient::You),
+                    Effect::InvestigateCount { count, .. } => (*count, CoreRecipient::You),
                     _ => unreachable!(),
                 };
                 out.push(CoreEffect::CreateToken {
                     token,
-                    count: Num::N(n),
+                    count: n,
                     who,
                     tapped: false,
                     attached: None,
@@ -3862,6 +3909,17 @@ impl Compiler<'_> {
             Ability::Activated { cost, .. } if cost.discard_x => {
                 return self.err("`discard X cards` is only a spell's additional cost");
             }
+            // The first of the two equip abilities; the card's ability list
+            // gets the second (`equip_or_second`).
+            Ability::EquipOr { mana, targets, .. } => {
+                return self.ability(&equip_ability(
+                    Cost {
+                        mana: mana.clone(),
+                        ..Default::default()
+                    },
+                    targets,
+                ));
+            }
             Ability::Activated {
                 cost,
                 targets,
@@ -4786,6 +4844,24 @@ fn soulbond_trigger(triggering: bool) -> Ability {
 
 /// Unleash's "This permanent can't block as long as it has a +1/+1 counter
 /// on it." (CR 702.98a).
+/// An equip ability for this cost (CR 702.6a): attach to the target as a
+/// sorcery.
+fn equip_ability(cost: Cost, targets: &[Target]) -> Ability {
+    Ability::Activated {
+        cost: Cost {
+            sorcery: true,
+            ..cost
+        },
+        targets: targets.to_vec(),
+        effects: vec![Sentence::new(vec![crate::ast::Effect::Attach {
+            what: Recipient::Source,
+            to: Recipient::Target(0),
+        }])],
+        equip: true,
+        cycling: false,
+    }
+}
+
 pub(crate) fn unleash_static() -> AbilityDef {
     AbilityDef::Static(StaticAbility {
         affected: ObjFilter::this(),

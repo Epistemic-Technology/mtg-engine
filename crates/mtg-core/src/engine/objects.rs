@@ -271,6 +271,12 @@ impl GameState {
         // Revolt: under its controller's control as it left.
         if old.zone == Zone::Battlefield {
             self.left_this_turn |= 1 << old.controller.index().min(7);
+            // Void (CR 702.185): "a nonland permanent left the battlefield
+            // this turn".
+            if !characteristics_is_land && !self.turn_log.nonland_left {
+                self.turn_log.nonland_left = true;
+                self.history_bump();
+            }
             if to == Zone::Graveyard {
                 self.turn_log.to_graveyard =
                     self.turn_log.to_graveyard.union(characteristics.types);
@@ -629,6 +635,14 @@ impl GameState {
                     if kind == CounterKind::PlusOnePlusOne {
                         self.turn_log.counter_put_by |= 1 << by.index().min(7);
                     }
+                    // Asked once per player each turn (the cache was bumped
+                    // as it entered).
+                    let bit = 1 << by.index().min(7);
+                    if self.turn_log.any_counter_put_by & bit == 0
+                        && self.characteristics(new).is_some_and(|c| c.is_creature())
+                    {
+                        self.turn_log.any_counter_put_by |= bit;
+                    }
                     self.emit(Event::CountersAdded {
                         obj: new,
                         kind,
@@ -913,13 +927,14 @@ impl GameState {
         }
         let (def, who) = (o.def, o.controller);
         // "If you've sacrificed an artifact this turn".
+        // "the number of permanents you've sacrificed this turn".
+        let n = &mut self.turn_log.sacrificed_n[who.index().min(3)];
+        *n = n.saturating_add(1);
         if let Some(c) = self.characteristics(id) {
             let seen = &mut self.turn_log.sacrificed[who.index().min(3)];
-            if !seen.contains_all(c.types) {
-                *seen = seen.union(c.types);
-                self.history_bump();
-            }
+            *seen = seen.union(c.types);
         }
+        self.history_bump();
         self.emit(Event::Sacrificed { obj: id, def });
         self.move_object(id, Zone::Graveyard, true);
     }
@@ -1465,6 +1480,15 @@ impl GameState {
             self.turn_log.counter_put_by |= 1 << by.index().min(7);
         }
         self.cbump();
+        // "if you put a counter on a creature this turn": asked once per
+        // player each turn, after the bump (the counters may change what
+        // the permanent is).
+        let bit = 1 << by.index().min(7);
+        if self.turn_log.any_counter_put_by & bit == 0
+            && self.characteristics(id).is_some_and(|c| c.is_creature())
+        {
+            self.turn_log.any_counter_put_by |= bit;
+        }
         self.emit(Event::CountersAdded {
             obj: id,
             kind,
@@ -1563,6 +1587,31 @@ impl GameState {
     }
 
     pub(super) fn remove_counters(&mut self, id: ObjId, kind: CounterKind, n: u32) {
+        // "Remove a counter from this creature": one at a time, of the kind
+        // the engine picks for the player (-1/-1 first, then kinds that
+        // don't change power or toughness, then the rest).
+        if kind == CounterKind::Any {
+            for _ in 0..n {
+                let Some(o) = self.objects.get(id) else {
+                    return;
+                };
+                let has = |k: CounterKind| o.counters(k) > 0;
+                let pick = if has(CounterKind::MinusOneMinusOne) {
+                    Some(CounterKind::MinusOneMinusOne)
+                } else {
+                    o.counters
+                        .iter()
+                        .filter(|(_, c)| *c > 0)
+                        .map(|(k, _)| *k)
+                        .min_by_key(|k| (k.pt().is_some(), *k == CounterKind::PlusOnePlusOne))
+                };
+                let Some(k) = pick else {
+                    return;
+                };
+                self.remove_counters(id, k, 1);
+            }
+            return;
+        }
         let Some(o) = self.objects.get_mut(id) else {
             return;
         };

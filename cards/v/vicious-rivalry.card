@@ -1,0 +1,7 @@
+card "Vicious Rivalry" {
+  oracle_id 90898c76-21f9-4597-88fe-dc9179911cde
+  cost {2}{B}{G}
+  type Sorcery
+  additional cost pay x life
+  spell: destroy all artifact or creature with mana value X or less
+}

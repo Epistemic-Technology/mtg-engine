@@ -1874,6 +1874,49 @@ pub enum CountExpr {
     /// chroma's "the number of red mana symbols in the mana costs of
     /// permanents you control".
     Devotion(ColorSet),
+    /// "the amount of life you gained this turn" (CR 119.3), in all,
+    /// whatever life was also lost.
+    LifeGainedThisTurn,
+    /// Card types among cards in your graveyard (CR 205.2a; Nethergoyf).
+    CardTypesInGraveyard,
+    /// Counters of every kind on the source ("the number of counters on
+    /// Savanti Romero"), as it last existed on the battlefield once it
+    /// has left (CR 608.2h).
+    SourceAllCounters,
+    /// The permanents you've sacrificed this turn (CR 701.21).
+    SacrificedThisTurn,
+    /// 2 to the power of the source's X ("draws 2ˣ cards"), capped so it
+    /// fits.
+    TwoToX,
+    /// Creatures that attacked this turn, any player's ("for each creature
+    /// that attacked this turn"; CR 508.1).
+    AttackedThisTurn,
+    /// Opponents who lost life this turn ("for each opponent who lost life
+    /// this turn"; CR 119.3).
+    OpponentsLostLife,
+    /// Opponents who have more cards in hand than you.
+    OpponentsMoreCards,
+    /// The total power, toughness, or mana value of the battlefield
+    /// permanents matching the filter ("the total power of creatures you
+    /// control"): the values as they are, negative ones included, and 0
+    /// if the sum is negative (CR 107.1b).
+    Total(Stat, ObjFilter),
+}
+
+impl CountExpr {
+    /// Whether the count reads the turn's history, so a static ability
+    /// using it must be recomputed as that changes (`history_static`).
+    pub fn reads_history(&self) -> bool {
+        match self {
+            CountExpr::LifeGainedThisTurn
+            | CountExpr::SacrificedThisTurn
+            | CountExpr::AttackedThisTurn
+            | CountExpr::OpponentsLostLife => true,
+            CountExpr::Times(_, c) | CountExpr::Plus(_, c) => c.reads_history(),
+            CountExpr::Sum(a, b) => a.reads_history() || b.reads_history(),
+            _ => false,
+        }
+    }
 }
 
 impl CountExpr {
@@ -1899,8 +1942,19 @@ impl CountExpr {
             | CountExpr::GreatestManaValue
             | CountExpr::Devotion(_)
             | CountExpr::CardsInHand
+            | CountExpr::LifeGainedThisTurn
+            | CountExpr::CardTypesInGraveyard
+            | CountExpr::SourceAllCounters
+            | CountExpr::SacrificedThisTurn
+            | CountExpr::AttackedThisTurn
+            | CountExpr::OpponentsLostLife
+            | CountExpr::OpponentsMoreCards
             | CountExpr::Life => true,
-            CountExpr::SourcePower
+            // Total power and toughness would read the characteristics
+            // being computed; total mana value does not.
+            CountExpr::Total(stat, _) => *stat == Stat::ManaValue,
+            CountExpr::TwoToX
+            | CountExpr::SourcePower
             | CountExpr::TargetStat { .. }
             | CountExpr::ThisWay(..)
             | CountExpr::LifeLostThisWay
@@ -2468,6 +2522,36 @@ pub enum StaticCondition {
     /// time counter on it" (CR 702.176a): impending's static ability and
     /// end step trigger.
     Impending,
+    /// Both hold ("if there is an Elf card in your graveyard and this
+    /// creature has a -1/-1 counter on it").
+    And(Box<StaticCondition>, Box<StaticCondition>),
+    /// "two or more creatures died this turn" (`n`); with `yours`, "a
+    /// creature died under your control this turn": creatures put into a
+    /// graveyard from the battlefield this turn (CR 700.4), under your
+    /// control as they died.
+    CreaturesDied {
+        n: u32,
+        yours: bool,
+    },
+    /// "an opponent controls more lands than you".
+    OpponentMoreLands,
+    /// Void: "a nonland permanent left the battlefield this turn or a
+    /// spell was warped this turn" (CR 702.185).
+    Void,
+    /// "it isn't your main phase" (CR 505.1).
+    NotYourMainPhase,
+    /// "this spell was cast from anywhere other than your hand": the
+    /// source was cast (CR 601.2a), from another zone than this one.
+    NotCastFrom(crate::state::Zone),
+    /// "you put a counter on a creature this turn": a spell or ability you
+    /// controlled put counters of any kind on a creature (CR 122.6).
+    PutAnyCounterThisTurn,
+    /// "you attacked with three or more Merfolk this turn": at least `n`
+    /// creatures matching the filter (judged now, or as they last existed)
+    /// attacked under your control this turn.
+    AttackedWithAtLeast(ObjFilter, u32),
+    /// "creatures you control have total toughness 10 or greater".
+    TotalToughness(u32),
 }
 
 /// What a "mana spent to cast" condition or count looks at (CR 601.2h).
@@ -2651,6 +2735,14 @@ pub enum CounterKind {
     Vigilance,
     Hexproof,
     Indestructible,
+    DoubleStrike,
+    /// A named counter with no rules of its own (Myojin of Night's Reach).
+    Divinity,
+    /// Not a kind: "remove a counter from this creature" (a cost), counters
+    /// of every kind. `GameObject::counters` totals them; removing them
+    /// takes -1/-1 counters first, then kinds that don't change power or
+    /// toughness, then the rest (the engine chooses for the player).
+    Any,
 }
 
 impl Keyword {
@@ -2665,7 +2757,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 44] = [
+    pub const NAMED: [(&'static str, CounterKind); 46] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2710,6 +2802,8 @@ impl CounterKind {
         ("vigilance", CounterKind::Vigilance),
         ("hexproof", CounterKind::Hexproof),
         ("indestructible", CounterKind::Indestructible),
+        ("double strike", CounterKind::DoubleStrike),
+        ("divinity", CounterKind::Divinity),
     ];
 
     /// Power/toughness counters by their Oracle name, with what each adds
@@ -2809,6 +2903,7 @@ impl CounterKind {
             CounterKind::Vigilance => Keyword::Vigilance,
             CounterKind::Hexproof => Keyword::Hexproof,
             CounterKind::Indestructible => Keyword::Indestructible,
+            CounterKind::DoubleStrike => Keyword::DoubleStrike,
             _ => return None,
         })
     }
@@ -3147,6 +3242,11 @@ pub enum Effect {
     },
     LoseLife {
         amount: Num,
+        who: Recipient,
+    },
+    /// "loses half their life, rounded up" (CR 107.1a): each recipient
+    /// player loses half their life total, rounded up (none at 0 or less).
+    LoseHalfLife {
         who: Recipient,
     },
     DrawCards {
@@ -5756,6 +5856,19 @@ pub struct Cost {
     /// payer controls. Every waterbend cost is generic mana only.
     #[serde(default)]
     pub waterbend: bool,
+    /// "Exert this creature" (CR 701.43a): it won't untap during its
+    /// controller's next untap step.
+    #[serde(default)]
+    pub exert: bool,
+    /// "Discard your hand": every card in the payer's hand (none is
+    /// payable too).
+    #[serde(default)]
+    pub discard_hand: bool,
+    /// "As an additional cost to cast this spell, pay X life" (CR 107.3,
+    /// 119.4): X announced as the spell is cast; payable only with at
+    /// least that much life.
+    #[serde(default)]
+    pub life_x: bool,
 }
 
 /// A behold cost (CR 701.69a): `n` objects matching `filter`, each a
@@ -5829,6 +5942,9 @@ impl Cost {
             forage: false,
             craft: None,
             waterbend: false,
+            exert: false,
+            discard_hand: false,
+            life_x: false,
         }
     }
 
@@ -8491,6 +8607,14 @@ impl CardPool {
                     | StaticCondition::SurveilledThisTurn
                     | StaticCondition::OpponentDamagedThisTurn
                     | StaticCondition::OpponentLostLifeThisTurn
+                    | StaticCondition::AttackedWith(_)
+                    | StaticCondition::AttackedWithAtLeast(..)
+                    | StaticCondition::PutAnyCounterThisTurn
+                    | StaticCondition::Void
+            )) || sa.parts.iter().any(|m| matches!(
+                m,
+                Modification::ModifyPtPer { count, .. } | Modification::CdaPt { count, .. }
+                    if count.reads_history()
             )))
         });
         flags.set(

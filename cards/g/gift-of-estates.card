@@ -1,0 +1,6 @@
+card "Gift of Estates" {
+  oracle_id 1bd70be6-752c-4ecb-a3e8-2bacec4b94fc
+  cost {1}{W}
+  type Sorcery
+  spell: if opponent controls more lands, search up to 3 Plains card reveal to hand
+}

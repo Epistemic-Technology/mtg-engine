@@ -23,7 +23,7 @@ scenario "name" {
 |---|---|
 | `life A 15` | Starting life (default 20). |
 | `poison B: 2`, `energy A: 3` | Starting poison or energy counters (`assert poison B 2`, `assert energy A 2` check them). |
-| `battlefield A: "Grizzly Bears", 2 "Forest", "Hill Giant" tapped, "Flight" on "Grizzly Bears", "Phantom Tiger" with 2 +1/+1` | Permanents A controls. `N "name"` repeats; `tapped` taps; `on "name"` attaches an Aura to that permanent (either player's); `with N +1/+1` (or any counter kind: `-1/-1`, `+1/+0`, `-0/-1`, `oil`, `arrowhead`, ...) puts counters on it. Permanents count as controlled since the turn began, so they may attack. Timestamps follow listing order, player A first. |
+| `battlefield A: "Grizzly Bears", 2 "Forest", "Hill Giant" tapped, "Flight" on "Grizzly Bears", "Phantom Tiger" with 2 +1/+1` | Permanents A controls. `N "name"` repeats; `tapped` taps; `on "name"` attaches an Aura to that permanent (either player's); `with N +1/+1` (or any counter kind: `-1/-1`, `+1/+0`, `-0/-1`, `oil`, `arrowhead`, ...; a two-word kind with an underscore, `double_strike`, here and in `assert counters`) puts counters on it. Permanents count as controlled since the turn began, so they may attack. Timestamps follow listing order, player A first. |
 | `hand A: "Lightning Bolt"` | Cards in hand. |
 | `graveyard A: ...`, `exile A: ...` | Likewise. |
 | `library A: "Top Card", "Next Card"` | The library, top card first, in exactly this order. Without this line the player gets 40 Plains so draws succeed. `library A:` with nothing gives an empty library. |

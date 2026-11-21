@@ -1,0 +1,8 @@
+card "Mai, Jaded Edge" {
+  oracle_id b5029f21-e0d6-4f22-9afd-79452de26490
+  cost {1}{R}
+  type Legendary Creature — Human Noble
+  pt 1/3
+  keywords prowess
+  exhaust {3}: put 1 double strike counter on this
+}

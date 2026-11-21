@@ -1,0 +1,8 @@
+card "Ghalta, Primal Hunger" {
+  oracle_id b0b6be0c-41cf-4757-9f0e-87227b6ba6b3
+  cost {10}{G}{G}
+  type Legendary Creature — Elder Dinosaur
+  pt 12/12
+  this spell costs {1} less count where total power creature you control
+  keywords trample
+}

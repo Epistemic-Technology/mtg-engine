@@ -1,0 +1,8 @@
+card "Sunstar Expansionist" {
+  oracle_id 944a91ab-c217-4c1d-b920-2e5503c34546
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 2/3
+  triggered when this enters if opponent controls more lands: create 1 "Lander"
+  label "Landfall" triggered whenever land you control enters: this gets +1/+0
+}

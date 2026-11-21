@@ -30,7 +30,9 @@ wrong thing in some case.
   "All permanents attached to creatures" is destroyed first so the
   Equipment is found; other combinations may still miss objects.
 - **Engine-picks-for-player approximations.** Forage as a cost (exiles
-  the three oldest graveyard cards, else sacrifices a Food); several
+  the three oldest graveyard cards, else sacrifices a Food); "Remove a
+  counter from this creature" of any kind (-1/-1 counters first, then
+  kinds that don't change power or toughness, then the rest); several
   mechanics from the first wave have the engine choose where the player
   should.
 - **Token copy of a creature that has died** (Sphinx of False
@@ -119,18 +121,25 @@ named the feature; a card may need more than one.
   alone; "a Shaman or another Wizard" prints "other" (Harmonic Prodigy).
   Elrond, Moon-Reader's trigger is in; its "return those cards" delayed
   return of a group of targets is not.
-- **Counts:** total mana value / total power / total toughness, life
-  gained this turn, creatures that died (under your control) this turn,
-  counters of every kind on a permanent, mana spent on the triggering
-  spell, card types in your graveyard, 2^X, permanents sacrificed this
-  turn.
-- **Conditions:** two conditions joined by "and" or "or if" in an
-  intervening "if"; "an opponent controls more lands than you"; "cast
-  from anywhere other than your hand"; void (a nonland permanent left
-  or a spell was warped); "it isn't your main phase".
-- **Costs:** remove a counter of any kind; equip with a non-mana or a
-  choice of costs; "pay X life"; "discard your hand"; exert in an
-  activated cost; mana abilities that cost life.
+- **Counts:** mana spent on the triggering spell; counters of every
+  kind on the triggering object or a target ("counters on it" in a
+  trigger); total power or toughness in a static ability; "if X is
+  three or more" (a condition on a count, Obsessive Pursuit); cards in
+  exile and graveyard together (Huskburster Swarm); the difference
+  between power and toughness (Doran); "pay life equal to its power"
+  (Madame Null); "add X mana of any one color" with a count (Mona Lisa,
+  Accomplished Alchemist).
+- **Conditions:** a target check joined by "or if" ("if that creature's
+  power is 2 or less or if you control another Lizard", Reptilian
+  Recruiter; "If you do or if you control another Dinosaur", Armored
+  Kincaller); "if they lost life this turn" of a target player
+  (Thought-Stalker Warlock); "it had no counters on it" (any kind,
+  Unstoppable Slasher).
+- **Costs:** a mana ability with exert, "discard your hand", or another
+  cost automatic payment doesn't use (Oasis Ritualist, Diamond Lion).
+- **Mass graveyard return of two types:** "Return each artifact and
+  creature card with mana value X from your graveyard" (Fix What's
+  Broken) doesn't parse (`artifact or creature card`).
 - **Replacement effects:** doubling life loss (Bloodletter of
   Aclazotz) or counters of any kind (Doubling Season, Vorinclex, Loading
   Zone); "that much damage plus N" from a filter the renderer can't name
@@ -154,7 +163,7 @@ named the feature; a card may need more than one.
   creature (Sita Varma), base power alone (Turtle-Duck); attack tax;
   "must be blocked"; "unless they sacrifice another ..." (Torment of
   Venom).
-- **Mechanics not yet in:** tiered, devour, battle cry, harness, hideaway, double strike and divinity counters,
+- **Mechanics not yet in:** tiered, devour, battle cry, harness, hideaway,
   meld, the Everywhere land token, "when this land enters untapped".
 - **Scenario runner:** `trigger` cannot take `dividing`; surveil cannot
   be scripted; tokens named in a battlefield setup line are not tokens

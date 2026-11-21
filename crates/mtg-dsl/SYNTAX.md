@@ -117,7 +117,7 @@ to its other face as well.
 | `activated <cost>: <effects>` | An activated ability (CR 602). With {X} in its cost (`activated {X}, sacrifice this: destroy target artifact with mana value X`), X is announced as it is activated, before targets (CR 602.2b, 601.2b), only as high as can be paid and some target fits; the effects read it. A mana ability's X is not asked. |
 | `boast {1}{W}: <effects>`, `exhaust {3}: <effects>`, `power-up {5}{R}: <effects>` | An activated ability after a keyword, printed "Boast — {1}{W}: ..." (the keyword's rules are reminder text). Boast (CR 702.142): only if this creature was declared as an attacker this turn, and only once each turn. Exhaust (CR 702.177) and power-up (CR 702.193): only once for the object (a new object after a zone change may again, CR 400.7); a power-up ability of a permanent that entered this turn costs its mana cost less (colored mana reduces that color, any excess generic; CR 118.7). |
 | `loyalty +1: <effects>` | A loyalty ability (CR 606); `-6` likewise, and `loyalty 0:` (or `+0`) prints "0:". |
-| `equip {1}`, `equip Knight {1}`, `equip {0}, once` | Equip (CR 702.6): "Equip {1}"; with a creature type, only onto a creature of that type you control ("Equip Knight {1}", CR 702.6c); `once` prints "Equip {0}. Activate only once each turn." |
+| `equip {1}`, `equip Knight {1}`, `equip {0}, once`, `equip {2}, pay 2 life`, `equip sacrifice creature`, `equip {3} or discard 1 card` | Equip (CR 702.6): "Equip {1}"; with a creature type, only onto a creature of that type you control ("Equip Knight {1}", CR 702.6c); `once` prints "Equip {0}. Activate only once each turn." Any activation cost other than mana alone prints after a dash: "Equip—{2}, Pay 2 life.", "Equip—Sacrifice a creature." (`, once` adds "Activate only once each turn."). `equip {3} or discard 1 card` prints "Equip—Pay {3} or discard a card.": two equip abilities, one for each cost (`activate "X" ability 2` in scenarios takes the second). |
 | `triggered <trigger> [if <condition>]: <effects>` | A triggered ability (CR 603). `triggered once each turn <trigger>: ...` ("This ability triggers only once each turn."), `twice each turn`, and `do once each turn` ("Do this only once each turn.") limit it each turn (below). |
 | `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger). |
 | `enters tapped` / `enters with 2 +1/+1 counters` / `enters prepared` | How this permanent enters (CR 614.1c; prepared, CR 722.3a). `enters with 2 +1/+1 counters if creature died this turn` (any static condition, judged as it enters) prints "This creature enters with two +1/+1 counters on it if a creature died this turn."; `enters with count equal graveyard creature +1/+1 counters` prints "... enters with a number of +1/+1 counters on it equal to the number of creature cards in your graveyard" (counted as it enters). Both, in that order, print as one sentence: "This land enters tapped with two depletion counters on it." (the order they apply in changes nothing, so it isn't asked). |
@@ -243,7 +243,12 @@ cards from graveyard` ("Exile two cards from your graveyard", "exile a
 creature card from your graveyard"; X announced as a spell is cast, at
 most the cards there; the engine exiles the oldest matching cards other
 than the source, sparing what the spell or ability targets), `pay 3
-life`, `sorcery` (printed "Activate only as a sorcery."), `once` (activate
+life`, `pay x life` (a spell's additional cost: "As an additional cost to
+cast this spell, pay X life."; X is announced as the spell is cast, at most
+the caster's life, CR 119.4), `exert this` ("Exert this creature", "Exert
+Basri": it won't untap during its controller's next untap step, CR
+701.43a), `discard hand` ("Discard your hand"; payable with no cards in
+hand), `sorcery` (printed "Activate only as a sorcery."), `once` (activate
 only once each turn). `none` for a free ability. Activation restrictions
 (CR 602.5b): `if <static condition>` ("Activate only if there are seven or
 more cards in your graveyard"; `if blocked` prints "only if this creature is
@@ -456,10 +461,28 @@ from the battlefield this turn"; any card types joined by `or`),
 `discarded this turn`, `more cards in hand than each
 opponent`, `opponent poisoned` ("an opponent is poisoned"), `opponent poison
 3 or more`, `you own card in exile`, `total power 8 or more` ("creatures you
-control have total power 8 or greater", formidable), `3 different powers`
-("you control three or more creatures with different powers", coven), the
-parts of the turn under Costs, and the shorthands `threshold`, `delirium`,
-`metalcraft`. A conditional static ability that pumps what an earlier
+control have total power 8 or greater", formidable), `total toughness 10
+or more` ("creatures you control have total toughness 10 or greater"), `3
+different powers` ("you control three or more creatures with different
+powers", coven), `2 creatures died this turn` ("two or more creatures died
+this turn"), `creature died under your control this turn` (as they last
+existed, CR 700.4), `opponent controls more lands` ("an opponent controls
+more lands than you"), `void` ("a nonland permanent left the battlefield
+this turn or a spell was warped this turn", any player's; usually with
+`label "Void"`), `not your main phase` ("it isn't your main phase"), `cast
+from anywhere other than hand` ("this spell was cast from anywhere other
+than your hand": cast, and not from the hand; a permanent remembers it from
+its spell), `put any counter this turn` ("you put a counter on a creature
+this turn": any kind, by a spell or ability you controlled or a cost you
+paid), `attacked with 3 Merfolk this turn` ("you attacked with three or
+more Merfolk this turn"), `cast both creature spell and noncreature spell
+this turn` ("you've cast both a creature spell and a noncreature spell
+this turn"), the parts of the turn under Costs, and the shorthands
+`threshold`, `delirium`, `metalcraft`. Two conditions joined by `and` must
+both hold (`if there is Elf card in your graveyard and this has 1 or more
+-1/-1 counters`: "if there is an Elf card in your graveyard and this
+creature has a -1/-1 counter on it"); the `and` joins only when a condition
+follows it. A conditional static ability that pumps what an earlier
 static ability of the card pumps prints "gets an additional +2/+2".
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 `opponent poison 3 or more` ("an opponent has three or more poison
@@ -480,14 +503,18 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `spore`, `depletion`, `quest`, `ki`, `time`, `tide`, `shield`, `age`,
 `fade`, `ice`, `level`, `lore`, `page`, `arrowhead`, `javelin`, `polyp`,
 `healing`, `mining`, `scream`, `credit`, `brick`, `currency`, `sleep`,
-`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `finality` (CR
+`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `divinity`, `finality` (CR
 122.1h: a permanent with one that would be put into a graveyard from the
 battlefield is exiled instead, so it doesn't die; `return target creature
 card from your graveyard to battlefield with 1 finality counter` prints
 "... with a finality counter on it"), and the keyword counters `flying`, `first strike`, `trample`,
 `lifelink`, `deathtouch`, `reach`, `menace`, `vigilance`, `hexproof`,
-`indestructible` (CR 122.1b: the permanent has the keyword). A cost may
-`remove 1 charge counter from this` or `put 1 -1/-1 counter on this`
+`indestructible`, `double strike` (CR 122.1b: the permanent has the
+keyword; `double_strike` in scenarios). A cost may
+`remove 1 charge counter from this`, `remove 1 counter from this` ("Remove
+a counter from this creature": any kind; the engine removes -1/-1 counters
+first, then kinds that don't change power or toughness, then the rest), or
+`put 1 -1/-1 counter on this`
 ("Put a -1/-1 counter on this creature", CR 118.3: put on as the cost is
 paid, so a creature it kills is gone before the ability resolves; a mana
 ability with it pays for spells too).
@@ -1405,7 +1432,21 @@ it"), `attached controller graveyard [<filter>]` ("the number of creature
 cards in its controller's graveyard": the controller of what the source
 is attached to), `creature target player controls` ("for each creature
 target player controls": declares the target there; `target opponent
-controls` likewise), or `andor <expr>` (the same count, printed "artifact and/or
+controls` likewise), `life you gained this turn` ("the amount of life you
+gained this turn": all the life gained, whatever was lost; `life you've
+gained this turn` prints "you've gained"), `card types in your graveyard`
+("the number of card types among cards in your graveyard"), `counters on
+this` ("the number of counters on Savanti Romero": every kind, as for
+`+1/+1 counters on this`), `permanents sacrificed this turn` ("the number of
+permanents you've sacrificed this turn"), `two to x` (`count where two to x`
+prints "2ˣ": "Target player draws 2ˣ cards."), `creature attacked this
+turn` ("for each creature that attacked this turn": any player's
+attackers), `opponents lost life this turn` ("for each opponent who lost
+life this turn"), `opponents more cards in hand` ("... who has more cards in
+hand than you"), `total power creature you control` ("the total power of
+creatures you control"; also `total toughness` and `total mana value`; a
+negative total is 0, CR 107.1b; in a static ability only `total mana value`
+counts, power and toughness reading 0), or `andor <expr>` (the same count, printed "artifact and/or
 creature card"); two clauses of one sentence with the same `count where`
 share one X ("deals X damage to any target and you gain X life, where X
 is ..."); in a static ability `-1/-1 count where hand` prints "gets -X/-X,
@@ -1458,7 +1499,7 @@ step"; plural "Those creatures don't untap during their controllers' untap
 steps"), and `target 1 gains can't activate` ("Its activated abilities
 can't be activated").
 
-Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`,
+Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`, `<who> loses half life` ("that player loses half their life, rounded up", CR 107.1a; `you lose half life`: "your life"),
 `<who> draws 2 cards`, `<who> discards 2 cards`, `<who> mills 20 cards`,
 `<what> gets +3/+3`, `<what> gains flying`, `<what> can't block` (this
 turn), `<what> blocks if able` ("blocks this turn if able"), `<what> must be
@@ -1619,7 +1660,10 @@ an artifact source]` (targets "you control" only the ability's
 controller's), `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
 `scry 2`, `surveil 1`, `investigate` (create a Clue token; `investigate
-twice`; `target player investigates`: that player creates it), `<who>
+twice`; `investigate count each opponents lost life this turn`:
+"investigate for each opponent who lost life this turn", `investigate once
+count each ...`: "investigate once for each ..."; `target player
+investigates`: that player creates it), `<who>
 exiles 2 cards from hand` ("Target opponent exiles two cards from their
 hand"; `from graveyard`: "a card from their graveyard"; the player
 chooses), `<who> exiles 1 creature they control` ("Target opponent
@@ -1954,7 +1998,8 @@ the source's. `each permanent you control`,
 Equipment is attached to; printed "it" after its first mention in the
 ability, or after a condition `if attached is untapped`: "tap enchanted
 creature and remove all counters from it"),
-`that token` (what the previous effect created), `each <filter>` or
+`that token` (what the previous effect created; `that created creature`
+is the same token, printed "that creature"), `each <filter>` or
 `all <filter>` (every matching permanent: `each artifact`, `each blue
 creature`, `each creature without flying`, `each white creature you
 control`; written singular, printed "all artifacts" after tap, destroy,

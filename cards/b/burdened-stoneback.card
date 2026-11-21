@@ -1,0 +1,8 @@
+card "Burdened Stoneback" {
+  oracle_id 8a5e17a0-6f3c-49ed-b328-ed90a46ed6c5
+  cost {1}{W}
+  type Creature — Giant Warrior
+  pt 4/4
+  enters with 2 -1/-1 counters
+  activated {1}{W}, remove 1 counter from this, sorcery: target creature gains indestructible
+}

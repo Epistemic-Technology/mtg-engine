@@ -1123,6 +1123,74 @@ impl GameState {
                     .as_ref()
                     .map_or(0, |log| if *excess { log.excess } else { log.damage });
             }
+            CountExpr::LifeGainedThisTurn => {
+                return self.turn_log.life_gained[you.index().min(3)];
+            }
+            CountExpr::SacrificedThisTurn => {
+                return u32::from(self.turn_log.sacrificed_n[you.index().min(3)]);
+            }
+            // Every attacker declared this turn, by any player (CR 508.1).
+            CountExpr::AttackedThisTurn => self.attackers_this_turn.len(),
+            CountExpr::OpponentsLostLife => self
+                .players_in_game()
+                .filter(|p| *p != you && self.lost_life_this_turn & (1 << p.index().min(7)) != 0)
+                .count(),
+            CountExpr::OpponentsMoreCards => {
+                let mine = self.player(you).hand.len();
+                self.players_in_game()
+                    .filter(|p| *p != you && self.player(*p).hand.len() > mine)
+                    .count()
+            }
+            // X of the resolving spell (the source), or the source's X.
+            CountExpr::TwoToX => return 1u32 << self.x_of(ctx.source).min(31),
+            // CR 608.2h: once the source has left the battlefield, the
+            // counters it had there.
+            CountExpr::SourceAllCounters => {
+                let total = |o: &crate::state::GameObject| o.counters.iter().map(|(_, n)| *n).sum();
+                return match self.objects.get(ctx.source) {
+                    Some(o) if o.zone == Zone::Battlefield => total(o),
+                    o => self
+                        .lki
+                        .get(&ctx.source)
+                        .map(|l| total(&l.object))
+                        .or_else(|| o.map(total))
+                        .unwrap_or(0),
+                };
+            }
+            CountExpr::CardTypesInGraveyard => {
+                return self
+                    .player(you)
+                    .graveyard
+                    .iter()
+                    .map(|id| &self.objects[*id])
+                    .filter(|o| o.kind != crate::state::ObjKind::Token)
+                    .fold(crate::card::TypeSet::default(), |acc, o| {
+                        acc.union(self.pool.get(o.def).types)
+                    })
+                    .len();
+            }
+            // CR 107.1b: a negative total is 0.
+            CountExpr::Total(stat, f) => {
+                let f = &*self.chosen_filter(f, ctx);
+                let sum: i64 = self
+                    .battlefield
+                    .iter()
+                    .filter_map(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.characteristics(*id)?;
+                        (f.matches(*id, o.controller, &c, Some(ctx.source), Some(you))
+                            && self.status_ok(f, *id))
+                        .then(|| match stat {
+                            crate::card::Stat::Power => i64::from(c.power()),
+                            crate::card::Stat::Toughness => i64::from(c.toughness()),
+                            crate::card::Stat::ManaValue => {
+                                i64::from(self.pool.get(c.def).mana_cost.mana_value())
+                            }
+                        })
+                    })
+                    .sum();
+                return u32::try_from(sum.max(0)).unwrap_or(u32::MAX);
+            }
         };
         u32::try_from(n).unwrap_or(u32::MAX)
     }
@@ -4511,6 +4579,13 @@ impl GameState {
         } else {
             max_x
         };
+        // "As an additional cost to cast this spell, pay X life": no more
+        // than the caster's life (CR 119.4).
+        let max_x = if add.life_x {
+            max_x.min(u32::try_from(self.player(caster).life.max(0)).unwrap_or(0))
+        } else {
+            max_x
+        };
         // "exile X cards from your graveyard": no more than there are (an
         // activated ability's cost, or a spell's additional cost).
         let exile = match ability {
@@ -5601,8 +5676,26 @@ impl GameState {
         if cost.life > 0 {
             self.change_life(p, -i32::try_from(cost.life).unwrap_or(i32::MAX));
         }
+        // CR 107.3: "pay X life", X announced as the spell was cast.
+        if cost.life_x {
+            let x = self.x_of(this);
+            self.change_life(p, -i32::try_from(x).unwrap_or(i32::MAX));
+        }
         if let Some((k, n)) = cost.remove_counters {
             self.remove_counters(this, k, n);
+        }
+        // CR 701.43a: an exerted permanent won't untap during its
+        // controller's next untap step.
+        if cost.exert
+            && let Some(o) = self.objects.get_mut(this)
+        {
+            o.skip_untap = true;
+        }
+        if cost.discard_hand {
+            let hand: Vec<ObjId> = self.player(p).hand.clone();
+            for c in hand {
+                self.discard_card(p, c);
+            }
         }
         // "Put a -1/-1 counter on this creature" (CR 118.3).
         if let Some((k, n)) = cost.put_counters {
@@ -6354,6 +6447,11 @@ impl GameState {
         // this spell, its total cost paid (CR 601.2f-h).
         self.next_spell_less[caster.index().min(3)] = 0;
         self.cast_this_turn.push((caster, def_ref));
+        // Void: "a spell was warped this turn" (CR 702.185).
+        if self.objects[spell].alt == crate::state::AltCast::Warp && !self.turn_log.warped {
+            self.turn_log.warped = true;
+            self.history_bump();
+        }
         // "As long as you've cast an instant or sorcery spell this turn":
         // the cast is recorded after the card left its zone, so a
         // hand-watching static is refreshed now.
@@ -8343,6 +8441,19 @@ impl GameState {
                 }
                 // "Target opponent loses 1 life for each attacking creature
                 // you control. You gain that much life."
+                ctx.trigger_amount = lost;
+            }
+            // CR 107.1a: rounded up.
+            Effect::LoseHalfLife { who } => {
+                let mut lost = 0u32;
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        let life = self.player(p).life.max(0);
+                        let n = life - life / 2;
+                        lost = lost.saturating_add(n.unsigned_abs());
+                        self.change_life(p, -n);
+                    }
+                }
                 ctx.trigger_amount = lost;
             }
             Effect::DrawCards { count, who } => {

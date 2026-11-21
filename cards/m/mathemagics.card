@@ -1,0 +1,6 @@
+card "Mathemagics" {
+  oracle_id 5f56a303-b3da-41df-a959-7823a87ee60c
+  cost {X}{X}{U}{U}
+  type Sorcery
+  spell: target player draws count where two to x cards
+}

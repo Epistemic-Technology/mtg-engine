@@ -1334,6 +1334,7 @@ impl<'a> Ctx<'a> {
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
             }
+            Recipient::CreatedThat => "that creature".to_string(),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 // "each creature and planeswalker they control": Oracle
@@ -1586,6 +1587,17 @@ impl<'a> Ctx<'a> {
             // less."
             Recipient::Group(i) if self.single_group(r) => {
                 format!("each {}", self.group_phrase(i, false))
+            }
+            // "Destroy all artifacts and creatures with mana value X or
+            // less": Oracle joins a group's alternative types with "and".
+            Recipient::Group(i)
+                if self
+                    .card
+                    .groups
+                    .get(usize::from(i))
+                    .is_some_and(|f| f.any_types.len() == 2) =>
+            {
+                format!("all {}", self.group_phrase(i, true)).replacen(" or ", " and ", 1)
             }
             Recipient::Group(i) => format!("all {}", self.group_phrase(i, true)),
             other => self.obj(other),
@@ -2787,10 +2799,15 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
             }
             CostItem::Life => {
-                if cost.life > 0 {
+                if cost.life_x {
+                    parts.push("Pay X life".to_string());
+                } else if cost.life > 0 {
                     parts.push(format!("Pay {} life", cost.life));
                 }
             }
+            // "Exert Basri", "Exert this creature" (CR 701.43a).
+            CostItem::Exert => parts.push(format!("Exert {}", ctx.source())),
+            CostItem::DiscardHand => parts.push("Discard your hand".to_string()),
             CostItem::RevealHand => parts.push("Reveal your hand".to_string()),
             CostItem::Energy => parts.push(format!("Pay {}", energy(cost.energy))),
             CostItem::Blight => {
@@ -2893,6 +2910,11 @@ fn counter_name(k: CounterKind) -> &'static str {
 }
 
 fn counters(n: Num, k: CounterKind) -> String {
+    // "Remove a counter from this creature", "Remove two counters from
+    // it": any kind.
+    if k == CounterKind::Any {
+        return format!("{} {}", count_words(n, "a"), plural(n, "counter"));
+    }
     // "an oil counter", "a stun counter".
     let a = if n == Num::N(1) && article(counter_name(k)) == "an" {
         "an"
@@ -3177,7 +3199,8 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::Dig { count, .. }
         | Effect::ExilePlayable { count, .. }
         | Effect::ExileTop { count, .. }
-        | Effect::Earthbend { count, .. } => vec![*count],
+        | Effect::Earthbend { count, .. }
+        | Effect::InvestigateCount { count, .. } => vec![*count],
         Effect::CopySpells { times, .. } => vec![*times],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
@@ -3594,6 +3617,46 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 "the damage dealt this way".to_string()
             };
         }
+        CountExpr::LifeGainedThisTurn { ve } => {
+            let you = if *ve { "you've" } else { "you" };
+            return format!("the amount of life {you} gained this turn");
+        }
+        CountExpr::CardTypesInGraveyard => (
+            "card type among cards in your graveyard".to_string(),
+            "card types among cards in your graveyard".to_string(),
+        ),
+        CountExpr::SourceAllCounters { it } => {
+            let on = if *it {
+                "it".to_string()
+            } else {
+                this_ref(card)
+            };
+            (format!("counter on {on}"), format!("counters on {on}"))
+        }
+        CountExpr::SacrificedThisTurn => (
+            "permanent you've sacrificed this turn".to_string(),
+            "permanents you've sacrificed this turn".to_string(),
+        ),
+        CountExpr::TwoToX => return "2ˣ".to_string(),
+        CountExpr::AttackedThisTurn => (
+            "creature that attacked this turn".to_string(),
+            "creatures that attacked this turn".to_string(),
+        ),
+        CountExpr::OpponentsLostLife => (
+            "opponent who lost life this turn".to_string(),
+            "opponents who lost life this turn".to_string(),
+        ),
+        CountExpr::OpponentsMoreCards => (
+            "opponent who has more cards in hand than you".to_string(),
+            "opponents who have more cards in hand than you".to_string(),
+        ),
+        CountExpr::Total(stat, f) => {
+            return format!(
+                "the total {} of {}",
+                stat_word(*stat),
+                controller_first(f, filter_phrase(f, card, true))
+            );
+        }
     };
     if each {
         format!("for each {one}")
@@ -3692,6 +3755,10 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     &format!(" cards of your library, where X is {phrase}"),
                     1,
                 );
+            }
+            // "Target player draws 2ˣ cards."
+            CountStyle::Where if count.expr == crate::ast::CountExpr::TwoToX => {
+                c.text = c.text.replacen("X ", "2ˣ ", 1);
             }
             CountStyle::Where if ctx.x_defined.contains(&count.expr) => {}
             CountStyle::Where => {
@@ -4997,6 +5064,24 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
+        // CR 107.1a: "loses half their life, rounded up".
+        Effect::LoseHalfLife { who } => {
+            let s = ctx.subj(*who);
+            let their = if *who == Recipient::You {
+                "your"
+            } else {
+                "their"
+            };
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{}{} half {their} life, rounded up",
+                    ctx.each_many(*who),
+                    ctx.verb(*who, "loses", "lose")
+                ),
+            )
+        }
         Effect::DrawCards { count, who } => {
             let additional = matches!(
                 ctx.trigger,
@@ -5654,6 +5739,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ctx.verb(*w, "investigates", "investigate").to_string(),
             )
         }
+        // The count's "for each ..." follows (`clause`).
+        Effect::InvestigateCount { once, .. } => Clause::imperative(if *once {
+            "investigate once".to_string()
+        } else {
+            "investigate".to_string()
+        }),
         Effect::Investigate(n) => Clause::imperative(match n {
             1 => "investigate".to_string(),
             2 => "investigate twice".to_string(),
@@ -8291,7 +8382,16 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 && f.subtypes.iter().all(|s| ctx.card.subtypes.contains(s));
             // "Whenever an enchantment you control is put into a graveyard
             // from the battlefield": only creatures die (CR 700.4).
-            let dies = if !f.types.is_empty() && !f.types.contains(&CardType::Creature) {
+            // "Whenever a Clue you control is put into a graveyard ...": a
+            // noncreature subtype, no Vehicle, names no creature either.
+            let noncreature_subtype = f.types.is_empty()
+                && !f.subtypes.is_empty()
+                && f.subtypes.iter().all(|s| {
+                    s != "Vehicle" && mtg_core::card::NONCREATURE_SUBTYPES.contains(&s.as_str())
+                });
+            let dies = if (!f.types.is_empty() && !f.types.contains(&CardType::Creature))
+                || noncreature_subtype
+            {
                 "is put into a graveyard from the battlefield"
             } else {
                 "dies"
@@ -9417,6 +9517,14 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     it_obj(ctx.card),
                     count_phrase(expr, ctx.card, true)
                 )
+            } else if count.style == crate::ast::CountStyle::Where {
+                // "enters with X +1/+1 counters on it, where X is ...".
+                format!(
+                    "{this} enters with X {} counters on {}, where X is {}.",
+                    counter_name(*kind),
+                    it_obj(ctx.card),
+                    count_phrase(&count.expr, ctx.card, false)
+                )
             } else {
                 format!(
                     "{this} enters with a number of {} counters on {} equal to {}.",
@@ -10475,6 +10583,47 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Impending => {
             "this permanent's impending cost was paid and it has a time counter on it".to_string()
         }
+        StaticCond::And(a, b) => format!(
+            "{} and {}",
+            static_cond_text(a, card),
+            static_cond_text(b, card)
+        ),
+        StaticCond::CastBoth(both) => format!(
+            "you've cast both {} and {} this turn",
+            with_article(&spell_noun(&card_filter_phrase(&both.0, card))),
+            with_article(&spell_noun(&card_filter_phrase(&both.1, card)))
+        ),
+        StaticCond::CreaturesDied { yours: true, .. } => {
+            "a creature died under your control this turn".to_string()
+        }
+        StaticCond::CreaturesDied { n, .. } => {
+            format!("{} creatures died this turn", or_more(*n))
+        }
+        StaticCond::OpponentMoreLands => "an opponent controls more lands than you".to_string(),
+        StaticCond::Void => {
+            "a nonland permanent left the battlefield this turn or a spell was warped this turn"
+                .to_string()
+        }
+        StaticCond::NotYourMainPhase => "it isn't your main phase".to_string(),
+        StaticCond::NotCastFromHand => format!(
+            "{} was cast from anywhere other than your hand",
+            if is_instant_or_sorcery(card) {
+                "this spell"
+            } else {
+                "it"
+            }
+        ),
+        StaticCond::PutAnyCounterThisTurn => {
+            "you put a counter on a creature this turn".to_string()
+        }
+        StaticCond::AttackedWithAtLeast(f, n) => format!(
+            "you attacked with {} {} this turn",
+            or_more(*n),
+            filter_phrase(f, card, true)
+        ),
+        StaticCond::TotalToughness(n) => {
+            format!("creatures you control have total toughness {n} or greater")
+        }
         StaticCond::Bargained
             if card.types.iter().any(|t| {
                 matches!(
@@ -11057,6 +11206,14 @@ fn restrictions_text(cost: &Cost, card: &Card) -> String {
     out
 }
 
+/// Whether an equip ability's cost is more than mana ("Equip—{2}, Pay 2
+/// life."), so it prints after a dash.
+pub(crate) fn equip_full_cost(cost: &crate::ast::Cost) -> bool {
+    cost.order
+        .iter()
+        .any(|i| !matches!(i, crate::ast::CostItem::Mana))
+}
+
 /// A static ability's text with its condition: "As long as <cond>, <text>"
 /// or "<text> as long as <cond>." ("During your turn, ..." for the turn).
 fn conditional_static(
@@ -11192,6 +11349,19 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         // CR 702.172b: "+" for the bullets.
         // CR 700.2i: "Choose up to five {P} worth of modes. You may choose
         // the same mode more than once.\n{P} — ...".
+        // "Equip—Pay {3} or discard a card."
+        Ability::EquipOr {
+            mana,
+            other,
+            targets,
+        } => {
+            let sub = equip_subtype(targets)
+                .map(|s| format!("{s} "))
+                .unwrap_or_default();
+            let mut ctx = Ctx::new(card, lookup, targets);
+            let other = lowercase_first(&cost_text(other, &mut ctx));
+            format!("Equip {sub}\u{2014}Pay {mana} or {other}.").replace(" \u{2014}", "\u{2014}")
+        }
         Ability::Pawprint { limit, modes } => {
             let mut out = format!(
                 "Choose up to {} {{P}} worth of modes. You may choose the same mode more than once.",
@@ -11245,6 +11415,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 let sub = equip_subtype(targets)
                     .map(|s| format!("{s} "))
                     .unwrap_or_default();
+                // "Equip—{2}, Pay 2 life." (CR 702.6a: any cost).
+                if equip_full_cost(cost) {
+                    let mut ctx = Ctx::new(card, lookup, targets);
+                    let once = if cost.per_turn == 1 {
+                        " Activate only once each turn."
+                    } else {
+                        ""
+                    };
+                    return format!("Equip {sub}\u{2014}{}.{once}", cost_text(cost, &mut ctx))
+                        .replace(" \u{2014}", "\u{2014}");
+                }
                 let once = if cost.per_turn == 1 {
                     ". Activate only once each turn."
                 } else {

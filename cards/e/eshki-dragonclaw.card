@@ -1,0 +1,9 @@
+card "Eshki Dragonclaw" {
+  oracle_id 85d87087-48ee-4dc8-a1c0-9c9ccb885adc
+  cost {1}{G}{U}{R}
+  type Legendary Creature — Human Warrior
+  pt 4/4
+  keywords vigilance, trample
+  ward {1}
+  triggered at beginning of your combat if cast both creature spell and noncreature spell this turn: draw 1 card and put 2 +1/+1 counters on this
+}

@@ -1,0 +1,8 @@
+card "Canopy Stalker" {
+  oracle_id b1062763-1fcf-4605-9253-daa1687e8173
+  cost {3}{G}
+  type Creature — Cat
+  pt 4/2
+  keywords must be blocked if able
+  triggered when this dies: you gain count each creature died this turn life
+}

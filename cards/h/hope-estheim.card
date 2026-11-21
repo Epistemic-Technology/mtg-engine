@@ -1,0 +1,8 @@
+card "Hope Estheim" {
+  oracle_id 187a110c-032a-42e1-be2d-3cfaaa9495f8
+  cost {W}{U}
+  type Legendary Creature — Human Wizard
+  pt 2/2
+  keywords lifelink
+  triggered at beginning of your end step: each opponent mills count where life you gained this turn cards
+}

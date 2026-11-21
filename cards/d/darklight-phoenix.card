@@ -1,0 +1,8 @@
+card "Darklight Phoenix" {
+  oracle_id e4b51c2d-7e56-435b-89d6-85e33df65879
+  cost {3}{B}
+  type Creature — Phoenix
+  pt 3/2
+  keywords flying, haste
+  triggered from graveyard at beginning of your combat if 2 creatures died this turn: return this to battlefield
+}

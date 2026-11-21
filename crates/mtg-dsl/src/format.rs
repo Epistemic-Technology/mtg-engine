@@ -329,6 +329,7 @@ impl Fmt {
                 "it".to_string()
             }
             Recipient::CreatedObject | Recipient::SameToken => "that token".to_string(),
+            Recipient::CreatedThat => "that created creature".to_string(),
             Recipient::SameCard => "that card".to_string(),
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
@@ -1191,6 +1192,14 @@ impl Fmt {
                 };
                 format!("{} {v} {} life", self.recipient(*who, t), num(*amount))
             }
+            Effect::LoseHalfLife { who } => {
+                let v = if *who == Recipient::You {
+                    "lose"
+                } else {
+                    "loses"
+                };
+                format!("{} {v} half life", self.recipient(*who, t))
+            }
             Effect::DrawCards { count, who } => match who {
                 None => format!("draw {} {}", num(*count), cards(*count)),
                 Some(w) => {
@@ -1470,6 +1479,11 @@ impl Fmt {
             Effect::Investigates(w) => format!("{} investigates", self.recipient(*w, t)),
             Effect::Investigate(2) => "investigate twice".to_string(),
             Effect::Investigate(n) => format!("investigate {n} times"),
+            Effect::InvestigateCount { count, once } => format!(
+                "investigate {}{}",
+                if *once { "once " } else { "" },
+                num(*count)
+            ),
             Effect::PumpVar {
                 power,
                 toughness,
@@ -2722,6 +2736,18 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         ),
         CountExpr::TriggerCounters(kind) => format!("{} counters on it", kind.name()),
         CountExpr::Those(t) => those_word(*t).to_string(),
+        CountExpr::LifeGainedThisTurn { ve: false } => "life you gained this turn".to_string(),
+        CountExpr::LifeGainedThisTurn { ve: true } => "life you've gained this turn".to_string(),
+        CountExpr::CardTypesInGraveyard => "card types in your graveyard".to_string(),
+        CountExpr::SourceAllCounters { it } => {
+            format!("counters on {}", if *it { "it" } else { "this" })
+        }
+        CountExpr::SacrificedThisTurn => "permanents sacrificed this turn".to_string(),
+        CountExpr::TwoToX => "two to x".to_string(),
+        CountExpr::AttackedThisTurn => "creature attacked this turn".to_string(),
+        CountExpr::OpponentsLostLife => "opponents lost life this turn".to_string(),
+        CountExpr::OpponentsMoreCards => "opponents more cards in hand".to_string(),
+        CountExpr::Total(stat, f) => format!("total {} {}", stat_word(*stat), filter(f)),
     }
 }
 
@@ -2739,9 +2765,12 @@ fn cards(n: Num) -> &'static str {
 }
 
 fn counter(k: CounterKind, n: Num) -> String {
+    // `remove 1 counter from this`: any kind.
     let name = k.name();
+    let name = if k == CounterKind::Any { "" } else { name };
     format!(
-        "{name} {}",
+        "{name}{}{}",
+        if name.is_empty() { "" } else { " " },
         if n == Num::N(1) {
             "counter"
         } else {
@@ -3998,10 +4027,14 @@ fn cost_text(c: &Cost) -> String {
                 }
             }
             CostItem::Life => {
-                if c.life > 0 {
+                if c.life_x {
+                    parts.push("pay x life".to_string());
+                } else if c.life > 0 {
                     parts.push(format!("pay {} life", c.life));
                 }
             }
+            CostItem::Exert => parts.push("exert this".to_string()),
+            CostItem::DiscardHand => parts.push("discard hand".to_string()),
             CostItem::RevealHand => parts.push("reveal hand".to_string()),
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
             CostItem::Blight => {
@@ -4427,6 +4460,27 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::NoManaSpent => "no mana spent".to_string(),
         StaticCond::NotKicked => "not kicked".to_string(),
         StaticCond::Impending => "impending".to_string(),
+        StaticCond::And(a, b) => format!("{} and {}", static_cond(a), static_cond(b)),
+        StaticCond::CastBoth(both) => format!(
+            "cast both {} spell and {} spell this turn",
+            filter(&both.0),
+            filter(&both.1)
+        ),
+        StaticCond::CreaturesDied { n, yours: false } => {
+            format!("{n} creatures died this turn")
+        }
+        StaticCond::CreaturesDied { yours: true, .. } => {
+            "creature died under your control this turn".to_string()
+        }
+        StaticCond::OpponentMoreLands => "opponent controls more lands".to_string(),
+        StaticCond::Void => "void".to_string(),
+        StaticCond::NotYourMainPhase => "not your main phase".to_string(),
+        StaticCond::NotCastFromHand => "cast from anywhere other than hand".to_string(),
+        StaticCond::PutAnyCounterThisTurn => "put any counter this turn".to_string(),
+        StaticCond::AttackedWithAtLeast(f, n) => {
+            format!("attacked with {n} {} this turn", filter(f))
+        }
+        StaticCond::TotalToughness(n) => format!("total toughness {n} or more"),
         StaticCond::WebSlung(p) => format!(
             "{}web slung",
             match p {
@@ -4689,6 +4743,16 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
         Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
+        Ability::EquipOr {
+            mana,
+            other,
+            targets,
+        } => {
+            let sub = crate::render::equip_subtype(targets)
+                .map(|s| format!("{s} "))
+                .unwrap_or_default();
+            let _ = writeln!(out, "{indent}equip {sub}{mana} or {}", cost_text(other));
+        }
         Ability::Pawprint { limit, modes } => {
             let _ = writeln!(out, "{indent}pawprint {limit} {{");
             for (w, m) in modes {
@@ -4747,6 +4811,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 let sub = crate::render::equip_subtype(targets)
                     .map(|s| format!("{s} "))
                     .unwrap_or_default();
+                if crate::render::equip_full_cost(cost) {
+                    // Equip is a sorcery by its keyword (CR 702.6a).
+                    let c = Cost {
+                        sorcery: false,
+                        ..cost.clone()
+                    };
+                    let _ = writeln!(out, "{indent}equip {sub}{}", cost_text(&c));
+                    return;
+                }
                 let once = if cost.per_turn == 1 { ", once" } else { "" };
                 let _ = writeln!(out, "{indent}equip {sub}{}{once}", cost.mana);
                 return;

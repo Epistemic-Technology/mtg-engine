@@ -1,0 +1,7 @@
+card "Witchstalker Frenzy" {
+  oracle_id f46befcb-6a7f-4f5e-8634-393cbf4b3308
+  cost {3}{R}
+  type Instant
+  this spell costs {1} less count each creature attacked this turn
+  spell: this deals 5 damage to target creature
+}

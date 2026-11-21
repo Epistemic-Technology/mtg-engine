@@ -606,7 +606,44 @@ fn count_expr(s: &str) -> Option<String> {
         "cards in your graveyard" | "card in your graveyard" => {
             return Some("graveyard".to_string());
         }
+        "card types among cards in your graveyard" | "card type among cards in your graveyard" => {
+            return Some("card types in your graveyard".to_string());
+        }
+        "the amount of life you gained this turn" | "amount of life you gained this turn" => {
+            return Some("life you gained this turn".to_string());
+        }
+        "permanents you've sacrificed this turn" | "permanent you've sacrificed this turn" => {
+            return Some("permanents sacrificed this turn".to_string());
+        }
+        "creatures that attacked this turn" | "creature that attacked this turn" => {
+            return Some("creature attacked this turn".to_string());
+        }
+        "opponents who lost life this turn" | "opponent who lost life this turn" => {
+            return Some("opponents lost life this turn".to_string());
+        }
+        "creatures that died this turn" | "creature that died this turn" => {
+            return Some("creature died this turn".to_string());
+        }
+        "creatures that died under your control this turn"
+        | "creature that died under your control this turn" => {
+            return Some("creature you control died this turn".to_string());
+        }
+        "counters on this creature" | "counters on ~" => {
+            return Some("counters on this".to_string());
+        }
         _ => {}
+    }
+    // "the total power of creatures you control".
+    for (prefix, stat) in [
+        ("the total power of ", "power"),
+        ("the total toughness of ", "toughness"),
+        ("the total mana value of ", "mana value"),
+    ] {
+        if let Some(f) = s.strip_prefix(prefix)
+            && f.ends_with(" you control")
+        {
+            return Some(format!("total {stat} {}", singular(f)));
+        }
     }
     // "2 plus the number of cards named ~ in all graveyards".
     if let Some((n, rest)) = s.split_once(" plus the number of ")
@@ -3419,7 +3456,43 @@ fn static_condition(s: &str) -> Option<String> {
         "a permanent left the battlefield under your control this turn" => {
             return Some("permanent left this turn".to_string());
         }
+        "a creature died under your control this turn" => {
+            return Some("creature died under your control this turn".to_string());
+        }
+        "an opponent controls more lands than you" => {
+            return Some("opponent controls more lands".to_string());
+        }
+        "a nonland permanent left the battlefield this turn or a spell was warped this turn" => {
+            return Some("void".to_string());
+        }
+        "it isn't your main phase" => return Some("not your main phase".to_string()),
+        "this spell was cast from anywhere other than your hand"
+        | "it was cast from anywhere other than your hand" => {
+            return Some("cast from anywhere other than hand".to_string());
+        }
+        "you put a counter on a creature this turn" => {
+            return Some("put any counter this turn".to_string());
+        }
         _ => {}
+    }
+    // "there is an Elf card in your graveyard and this creature has a -1/-1
+    // counter on it": two conditions, both holding.
+    if let Some((a, b)) = s.split_once(" and ")
+        && let (Some(a), Some(b)) = (static_condition(a), static_condition(b))
+    {
+        return Some(format!("{a} and {b}"));
+    }
+    if let Some(c) = Regex::new(r"^(\w+) or more creatures died this turn$")
+        .unwrap()
+        .captures(s)
+    {
+        return Some(format!("{} creatures died this turn", number(cap(&c, 1))?));
+    }
+    if let Some(c) = Regex::new(r"^creatures you control have total toughness (\d+) or greater$")
+        .unwrap()
+        .captures(s)
+    {
+        return Some(format!("total toughness {} or more", cap(&c, 1)));
     }
     if let Some(c) = Regex::new(r"^a player has (\d+) or less life$")
         .unwrap()

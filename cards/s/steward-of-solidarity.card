@@ -1,0 +1,7 @@
+card "Steward of Solidarity" {
+  oracle_id dcaf3c6f-06e2-4762-82aa-625113e375a1
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 2/2
+  activated {T}, exert this: create 1 "1/1 white Warrior creature with vigilance"
+}

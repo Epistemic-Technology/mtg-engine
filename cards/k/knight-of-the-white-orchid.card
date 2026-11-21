@@ -1,0 +1,8 @@
+card "Knight of the White Orchid" {
+  oracle_id 7d0efc64-151f-45b4-8c0b-c32609f9d862
+  cost {W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike
+  triggered when this enters if opponent controls more lands: you may search Plains card to battlefield
+}

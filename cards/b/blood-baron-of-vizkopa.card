@@ -1,0 +1,8 @@
+card "Blood Baron of Vizkopa" {
+  oracle_id 326adf88-3f6d-4bc2-aafa-dd55c6c95784
+  cost {3}{W}{B}
+  type Creature — Vampire
+  pt 4/4
+  keywords lifelink, protection from white, protection from black
+  static as long as your life 30 or more and opponent life 10 or less, this: +6/+6, has flying
+}

@@ -1,0 +1,7 @@
+card "Otterball Antics" {
+  oracle_id 43a6de3e-152e-4af1-acec-53405742425c
+  cost {1}{U}
+  type Sorcery
+  spell: create 1 "1/1 blue and red Otter creature with prowess"; if cast from anywhere other than hand, put 1 +1/+1 counter on that created creature
+  flashback {3}{U}
+}

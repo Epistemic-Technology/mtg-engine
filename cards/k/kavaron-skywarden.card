@@ -1,0 +1,8 @@
+card "Kavaron Skywarden" {
+  oracle_id c1f1ba17-b5e8-4bb3-a767-befd52e2db72
+  cost {4}{R}
+  type Creature — Kavu Soldier
+  pt 4/5
+  keywords reach
+  label "Void" triggered at beginning of your end step if void: put 1 +1/+1 counters on this
+}

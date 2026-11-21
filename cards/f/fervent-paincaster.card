@@ -1,0 +1,8 @@
+card "Fervent Paincaster" {
+  oracle_id 1d569df1-23cf-4e01-8ef9-a1a8b815f11e
+  cost {2}{R}
+  type Creature — Human Wizard
+  pt 3/1
+  activated {T}: this deals 1 damage to target player or planeswalker
+  activated {T}, exert this: it deals 1 damage to target creature
+}

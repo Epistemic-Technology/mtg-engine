@@ -1,0 +1,8 @@
+card "Insatiable Skittermaw" {
+  oracle_id 69a68dec-4b01-4528-81fc-a3c5f5097f72
+  cost {2}{B}
+  type Creature — Insect Horror
+  pt 2/2
+  keywords menace
+  label "Void" triggered at beginning of your end step if void: put 1 +1/+1 counters on this
+}

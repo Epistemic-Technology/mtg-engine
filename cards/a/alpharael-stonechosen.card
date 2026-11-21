@@ -1,0 +1,8 @@
+card "Alpharael, Stonechosen" {
+  oracle_id ed43f1f9-ef96-47bc-8a54-e59154319f9d
+  cost {3}{B}{B}
+  type Legendary Creature — Human Cleric
+  pt 3/3
+  ward discard 1 card at random
+  label "Void" triggered whenever this attacks if void: defending player loses half life
+}

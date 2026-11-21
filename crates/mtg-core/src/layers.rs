@@ -362,7 +362,6 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
     match cond {
         StaticCondition::CardsInGraveyard(n) => state.player(you).graveyard.len() >= *n as usize,
         StaticCondition::UnlockedDoors(n) => state.unlocked_doors(you) >= *n,
-        StaticCondition::AttackedWith(f) => state.attacked_with(you, f),
         // Permanents still on the battlefield are judged with the
         // characteristics worked out so far, the rest as they last existed.
         StaticCondition::EnteredWith { filter, .. } => {
@@ -692,6 +691,59 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                 }
                 _ => unreachable!(),
             }
+        }
+        StaticCondition::And(a, b) => {
+            static_condition_holds(work, a, source) && static_condition_holds(work, b, source)
+        }
+        // The attackers as the layers have them so far, or as they last
+        // existed (asking `characteristics` here would compute them again).
+        StaticCondition::AttackedWith(f) | StaticCondition::AttackedWithAtLeast(f, _) => {
+            let n = match cond {
+                StaticCondition::AttackedWithAtLeast(_, n) => *n as usize,
+                _ => 1,
+            };
+            state
+                .attackers_this_turn
+                .iter()
+                .filter(|id| {
+                    let (controller, c) = match work.index.get(*id) {
+                        Some(wi) if work.on_battlefield(**id) => {
+                            (work.controller_of(**id), work.chars[*wi])
+                        }
+                        _ => match state.lki.get(*id) {
+                            Some(l) => (l.object.controller, l.characteristics),
+                            None => return false,
+                        },
+                    };
+                    controller == you && f.matches(**id, controller, &c, None, Some(you))
+                })
+                .count()
+                >= n
+        }
+        StaticCondition::TotalToughness(n) => {
+            work.ids
+                .iter()
+                .filter_map(|id| {
+                    let c = &work.chars[work.index[id]];
+                    (work.on_battlefield(*id) && work.controller_of(*id) == you && c.is_creature())
+                        .then(|| c.toughness().max(0))
+                })
+                .sum::<i32>()
+                >= i32::try_from(*n).unwrap_or(i32::MAX)
+        }
+        StaticCondition::OpponentMoreLands => {
+            let lands = |p: crate::ids::PlayerId| {
+                work.ids
+                    .iter()
+                    .filter(|id| {
+                        work.on_battlefield(**id)
+                            && work.controller_of(**id) == p
+                            && work.chars[work.index[*id]].is_land()
+                    })
+                    .count()
+            };
+            let mine = lands(you);
+            state.players_in_game().any(|p| p != you && lands(p) > mine)
         }
         _ => state.condition_history(cond, you, source),
     }
@@ -1041,6 +1093,55 @@ fn per_count(
                 })
                 .count()
         }
+        // "the number of counters on this creature": every kind.
+        CountExpr::SourceAllCounters => source
+            .and_then(|s| state.objects.get(s))
+            .map_or(0, |o| o.counters.iter().map(|(_, n)| *n as usize).sum()),
+        CountExpr::LifeGainedThisTurn => state.turn_log.life_gained[you.index().min(3)] as usize,
+        CountExpr::SacrificedThisTurn => {
+            usize::from(state.turn_log.sacrificed_n[you.index().min(3)])
+        }
+        CountExpr::AttackedThisTurn => state.attackers_this_turn.len(),
+        CountExpr::OpponentsLostLife => state
+            .players_in_game()
+            .filter(|p| *p != you && state.lost_life_this_turn & (1 << p.index().min(7)) != 0)
+            .count(),
+        CountExpr::OpponentsMoreCards => {
+            let mine = state.player(you).hand.len();
+            state
+                .players_in_game()
+                .filter(|p| *p != you && state.player(*p).hand.len() > mine)
+                .count()
+        }
+        CountExpr::TwoToX => {
+            let x = source.map_or(0, |s| state.x_of(s));
+            return 1i32 << x.min(30);
+        }
+        // From the mana costs as the layers have them so far, like
+        // `GreatestManaValue`.
+        CountExpr::Total(crate::card::Stat::ManaValue, f) => {
+            let f = same_filled(work, f, source);
+            work.matching(&f, source, Some(you))
+                .iter()
+                .map(|id| {
+                    state
+                        .pool
+                        .get(work.chars[work.index[id]].def)
+                        .mana_cost
+                        .mana_value() as usize
+                })
+                .sum()
+        }
+        CountExpr::CardTypesInGraveyard => state
+            .player(you)
+            .graveyard
+            .iter()
+            .map(|id| &state.objects[*id])
+            .filter(|o| o.kind != crate::state::ObjKind::Token)
+            .fold(crate::card::TypeSet::default(), |acc, o| {
+                acc.union(state.pool.get(o.def).types)
+            })
+            .len() as usize,
         CountExpr::CardTypesInAllGraveyards => state
             .players
             .iter()
@@ -1136,6 +1237,8 @@ fn per_count(
         | CountExpr::TargetHand(_)
         | CountExpr::GreatestToughness(_)
         | CountExpr::LifeLostThisTurn
+        // Power and toughness are what the layers are computing.
+        | CountExpr::Total(..)
         | CountExpr::DamageThisWay { .. } => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)

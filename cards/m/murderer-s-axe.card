@@ -1,0 +1,7 @@
+card "Murderer's Axe" {
+  oracle_id f0ea953a-10c3-4ec7-8f03-f7aed75dbb94
+  cost {4}
+  type Artifact — Equipment
+  static equipped creature: +2/+2
+  equip discard 1 card
+}

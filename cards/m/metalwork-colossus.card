@@ -1,0 +1,8 @@
+card "Metalwork Colossus" {
+  oracle_id 64ffe529-ba53-48ec-8af1-b046fbd1f0cc
+  cost {11}
+  type Artifact Creature — Construct
+  pt 10/10
+  this spell costs {1} less count where total mana value noncreature artifact you control
+  activated sacrifice 2 artifact, from graveyard: return this to hand
+}

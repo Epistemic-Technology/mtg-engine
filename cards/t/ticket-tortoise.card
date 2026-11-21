@@ -1,0 +1,8 @@
+card "Ticket Tortoise" {
+  oracle_id 952083c5-9ffa-4cd9-915f-b7de7f3e5326
+  cost {2}
+  type Artifact Creature — Turtle
+  pt 3/1
+  keywords defender
+  triggered when this enters if opponent controls more lands: you create 1 "Treasure"
+}

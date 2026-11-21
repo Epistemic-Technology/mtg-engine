@@ -1,0 +1,7 @@
+card "Havoc Festival" {
+  oracle_id af0dd100-67f0-4d7c-a65b-b2c7149288f7
+  cost {4}{B}{R}
+  type Enchantment
+  players can't gain life
+  triggered at beginning of each upkeep: that player loses half life
+}

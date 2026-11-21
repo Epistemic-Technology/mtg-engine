@@ -1,0 +1,10 @@
+card "Inventor's Axe" {
+  oracle_id 364fc1a7-b91d-470b-80fe-275828f36cfc
+  cost {R}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: you get 2 energy
+  triggered when this enters: attach to target creature you control
+  static equipped creature: +2/+0
+  equip pay 2 energy
+}

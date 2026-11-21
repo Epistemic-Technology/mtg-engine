@@ -1,0 +1,7 @@
+card "Weathered Wayfarer" {
+  oracle_id 1093fdb6-bd4f-46a8-92e3-5aa46b52bb4f
+  cost {W}
+  type Creature — Human Nomad Cleric
+  pt 1/1
+  activated {W}, {T}, if opponent controls more lands: search land card reveal to hand
+}

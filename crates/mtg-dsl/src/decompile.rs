@@ -169,6 +169,7 @@ impl Decompiler<'_> {
                 each: false,
             },
             C::CardTypesInAllGraveyards => A::CardTypesInGraveyards,
+            C::CardTypesInGraveyard => A::CardTypesInGraveyard,
             C::Plus(n, inner) => A::Plus {
                 n: *n,
                 word: false,
@@ -382,6 +383,9 @@ impl Decompiler<'_> {
             evidence: c.evidence,
             forage: c.forage,
             waterbend: c.waterbend,
+            exert: c.exert,
+            discard_hand: c.discard_hand,
+            life_x: c.life_x,
             chosen: c.chosen,
             count: c.count,
             exile_cards: c.exile_cards.as_ref().map(|g| {
@@ -509,6 +513,22 @@ impl Decompiler<'_> {
             StaticCondition::NoManaSpent => StaticCond::NoManaSpent,
             StaticCondition::NotKicked => StaticCond::NotKicked,
             StaticCondition::Impending => StaticCond::Impending,
+            StaticCondition::And(a, b) => {
+                StaticCond::And(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
+            }
+            StaticCondition::CreaturesDied { n, yours } => StaticCond::CreaturesDied {
+                n: *n,
+                yours: *yours,
+            },
+            StaticCondition::OpponentMoreLands => StaticCond::OpponentMoreLands,
+            StaticCondition::Void => StaticCond::Void,
+            StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
+            StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,
+            StaticCondition::PutAnyCounterThisTurn => StaticCond::PutAnyCounterThisTurn,
+            StaticCondition::AttackedWithAtLeast(f, n) => {
+                StaticCond::AttackedWithAtLeast(self.filter(f), *n)
+            }
+            StaticCondition::TotalToughness(n) => StaticCond::TotalToughness(*n),
             StaticCondition::SneakPaid(p) => StaticCond::SneakPaid(*p),
             StaticCondition::WebSlung(p) => StaticCond::WebSlung(*p),
             StaticCondition::OptionalCostPaid => StaticCond::EvidenceCollected,
@@ -773,6 +793,7 @@ impl Decompiler<'_> {
                 amount: *amount,
                 who: r(*who),
             },
+            CoreEffect::LoseHalfLife { who } => Effect::LoseHalfLife { who: r(*who) },
             CoreEffect::DrawCards { count, who } => Effect::DrawCards {
                 count: *count,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),

@@ -454,6 +454,36 @@ pub enum CountExpr {
         colors: Vec<mtg_core::mana::Color>,
         chroma: bool,
     },
+    /// `life you gained this turn`: "the amount of life you gained this
+    /// turn"; `life you've gained this turn`: "... you've gained ...".
+    LifeGainedThisTurn {
+        ve: bool,
+    },
+    /// `card types in your graveyard`: "the number of card types among
+    /// cards in your graveyard".
+    CardTypesInGraveyard,
+    /// `counters on this` ("the number of counters on this creature"),
+    /// `counters on it`: every kind.
+    SourceAllCounters {
+        it: bool,
+    },
+    /// `permanents sacrificed this turn`: "the number of permanents
+    /// you've sacrificed this turn".
+    SacrificedThisTurn,
+    /// `two to x`: "2ˣ".
+    TwoToX,
+    /// `creature attacked this turn`: "for each creature that attacked this
+    /// turn" (any player's).
+    AttackedThisTurn,
+    /// `opponents lost life this turn`: "for each opponent who lost life
+    /// this turn".
+    OpponentsLostLife,
+    /// `opponents more cards in hand`: "for each opponent who has more
+    /// cards in hand than you".
+    OpponentsMoreCards,
+    /// `total power creature you control`: "the total power of creatures
+    /// you control" (also `total toughness`, `total mana value`).
+    Total(mtg_core::card::Stat, Filter),
 }
 
 /// What a target-dependent cost's filter names: a permanent, a spell, or a
@@ -589,6 +619,13 @@ pub struct Cost {
     /// `waterbend {3}`: "Waterbend {3}" (CR 701.67a): the mana's generic
     /// part may be paid by tapping artifacts and creatures.
     pub waterbend: bool,
+    /// `exert this`: "Exert this creature" (CR 701.43a).
+    pub exert: bool,
+    /// `discard hand`: "Discard your hand".
+    pub discard_hand: bool,
+    /// `pay x life`: "pay X life" (a spell's additional cost, X announced
+    /// as it is cast).
+    pub life_x: bool,
 }
 
 /// `behold Kithkin`: "behold a Kithkin" (CR 701.69a); `and exile`: "and
@@ -640,6 +677,10 @@ pub enum CostItem {
     Evidence,
     /// `forage`.
     Forage,
+    /// `exert this`.
+    Exert,
+    /// `discard hand`.
+    DiscardHand,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1038,6 +1079,14 @@ pub enum Ability {
     Pawprint {
         limit: u8,
         modes: Vec<(u8, Mode)>,
+    },
+    /// `equip {3} or discard 1 card`: "Equip—Pay {3} or discard a card."
+    /// (CR 702.6a): an equip ability for each cost, the player choosing
+    /// which to activate.
+    EquipOr {
+        mana: ManaCost,
+        other: Box<Cost>,
+        targets: Vec<Target>,
     },
     Activated {
         cost: Cost,
@@ -2062,6 +2111,40 @@ pub enum StaticCond {
     /// `impending`: "this permanent's impending cost was paid and it has
     /// a time counter on it" (CR 702.176a).
     Impending,
+    /// `<cond> and <cond>`: both hold ("there is an Elf card in your
+    /// graveyard and this creature has a -1/-1 counter on it").
+    And(Box<StaticCond>, Box<StaticCond>),
+    /// `cast both creature spell and noncreature spell this turn`:
+    /// "you've cast both a creature spell and a noncreature spell this
+    /// turn" (each filter at least once).
+    CastBoth(Box<(Filter, Filter)>),
+    /// `2 creatures died this turn`: "two or more creatures died this
+    /// turn"; `creature died under your control this turn`: "a creature
+    /// died under your control this turn" (`yours`, `n` 1).
+    CreaturesDied {
+        n: u32,
+        yours: bool,
+    },
+    /// `opponent controls more lands`: "an opponent controls more lands
+    /// than you".
+    OpponentMoreLands,
+    /// `void`: "a nonland permanent left the battlefield this turn or a
+    /// spell was warped this turn".
+    Void,
+    /// `not your main phase`: "it isn't your main phase".
+    NotYourMainPhase,
+    /// `cast from anywhere other than hand`: "this spell was cast from
+    /// anywhere other than your hand".
+    NotCastFromHand,
+    /// `put any counter this turn`: "you put a counter on a creature this
+    /// turn" (any kind).
+    PutAnyCounterThisTurn,
+    /// `attacked with 3 Merfolk this turn`: "you attacked with three or
+    /// more Merfolk this turn".
+    AttackedWithAtLeast(Filter, u32),
+    /// `total toughness 10 or more`: "creatures you control have total
+    /// toughness 10 or greater".
+    TotalToughness(u32),
 }
 
 /// An activation restriction, in the order written and printed ("Activate
@@ -2851,6 +2934,10 @@ pub enum Recipient {
     /// the beginning of the next end step").
     SameToken,
     CreatedObject,
+    /// `that created creature`: the created token (`CreatedObject`),
+    /// printed "that creature" ("Create a 1/1 ... Otter creature token
+    /// ... put a +1/+1 counter on that creature").
+    CreatedThat,
     /// `those tokens`: every token the last token-creating sentence
     /// created; inside a delayed trigger about them, each in turn
     /// (`SameTokens`, the core `SameObject`).
@@ -2937,6 +3024,12 @@ pub enum Effect {
     },
     LoseLife {
         amount: Num,
+        who: Recipient,
+    },
+    /// `that player loses half life`: "that player loses half their life,
+    /// rounded up" (`you lose half life`: "you lose half your life,
+    /// rounded up").
+    LoseHalfLife {
         who: Recipient,
     },
     /// `who` is `None` for the imperative "Draw a card" (the controller).
@@ -3173,6 +3266,14 @@ pub enum Effect {
     /// "Investigate" (CR 701.16): create a Clue token; `investigate
     /// twice` ("investigate twice") does it two times.
     Investigate(u32),
+    /// `investigate count each opponents lost life this turn`
+    /// ("investigate for each opponent who lost life this turn"); `once`,
+    /// `investigate once count each ...`, prints "investigate once for
+    /// each ...".
+    InvestigateCount {
+        count: Num,
+        once: bool,
+    },
     /// `target player investigates`: another player creates the Clue
     /// ("Target player investigates.").
     Investigates(Recipient),
