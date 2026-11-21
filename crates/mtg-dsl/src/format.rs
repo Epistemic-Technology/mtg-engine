@@ -1340,6 +1340,7 @@ impl Fmt {
                 token,
                 count,
                 tapped,
+                attacking,
                 who,
                 it_has,
                 attached,
@@ -1353,7 +1354,11 @@ impl Fmt {
                     s,
                     " {}{} \"{token}\"",
                     num(*count),
-                    if *tapped { " tapped" } else { "" }
+                    match (*tapped, *attacking) {
+                        (true, true) => " tapped and attacking",
+                        (true, false) => " tapped",
+                        _ => "",
+                    }
                 );
                 if *it_has {
                     s.push_str(" it has");
@@ -3383,6 +3388,23 @@ pub fn natural_when(t: &Trigger) -> bool {
         )
 }
 
+/// "you activate an ability of a creature", "an opponent activates a
+/// loyalty ability": the same in the DSL and in Oracle text.
+pub fn activates_words(whose: Who, kind: mtg_core::card::ActivationKind) -> String {
+    use mtg_core::card::ActivationKind as K;
+    let who = match whose {
+        Who::You => "you activate",
+        Who::Opponents => "an opponent activates",
+        Who::Any => "a player activates",
+    };
+    let what = match kind {
+        K::OfCreature => "an ability of a creature",
+        K::Exhaust => "an exhaust ability",
+        K::Loyalty => "a loyalty ability",
+    };
+    format!("{who} {what}")
+}
+
 /// "your second spell each turn" and kin, after "you cast" / "an opponent
 /// casts": the same in the DSL and in Oracle text.
 pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
@@ -3395,6 +3417,7 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
     match nth {
         SpellOrdinal::First => format!("{who} {their} first spell each turn"),
         SpellOrdinal::Second => format!("{who} {their} second spell each turn"),
+        SpellOrdinal::Third => format!("{who} {their} third spell each turn"),
         SpellOrdinal::NotFirst => {
             format!("{who} a spell other than {their} first spell each turn")
         }
@@ -3732,6 +3755,24 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             if *your_turn { " during your turn" } else { "" }
         ),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
+        Trigger::DiscardsBatch => "whenever you discard one or more cards".to_string(),
+        Trigger::SacrificesBatch(f) => format!("whenever you sacrifice one or more {}", filter(f)),
+        Trigger::AttacksWithFilter { filter: f, player } => format!(
+            "whenever you attack{} with one or more {}",
+            if *player { " a player" } else { "" },
+            filter(f)
+        ),
+        Trigger::GainsOrLosesLife { your_turn } => format!(
+            "whenever you gain or lose life{}",
+            if *your_turn { " during your turn" } else { "" }
+        ),
+        Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
+        Trigger::Explores(o) => format!("whenever {} explores", trigger_obj(o)),
+        Trigger::YouTap(f) => format!("whenever you tap {}", filter(f)),
+        Trigger::Activates { whose, kind } => {
+            format!("whenever {}", activates_words(*whose, *kind))
+        }
+        Trigger::Transforms => "whenever this transforms".to_string(),
         Trigger::EntersBatch(f) => format!("whenever one or more {} enter", filter(f)),
         Trigger::LeavesBatch { filter: f, dies } => format!(
             "whenever one or more {} {}",
@@ -5203,6 +5244,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::OpeningHand => {
             let _ = writeln!(out, "{indent}opening hand");
+        }
+        Ability::TriggerAgain {
+            filter: f,
+            entering,
+            battlefield,
+        } => {
+            let when = entering.as_ref().map_or(String::new(), |e| {
+                format!(
+                    " when {} enters{}",
+                    filter(e),
+                    if *battlefield { " the battlefield" } else { "" }
+                )
+            });
+            let _ = writeln!(out, "{indent}trigger again {}{when}", filter(f));
         }
         Ability::PlayerStatic { kind, cond } => {
             use mtg_core::card::PlayerStaticKind as K;

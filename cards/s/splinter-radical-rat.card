@@ -1,0 +1,8 @@
+card "Splinter, Radical Rat" {
+  oracle_id fb2cd508-f5cd-4d5b-b8e7-3cae1f39fd58
+  cost {1}{W/B}{W/B}
+  type Legendary Creature — Mutant Ninja Rat
+  pt 2/4
+  trigger again Ninja creature you control
+  activated {1}{U}: target Ninja can't be blocked this turn
+}

@@ -1,0 +1,10 @@
+card "Gideon the Oathless" {
+  oracle_id 7afa530f-ea51-4bee-af3b-59b83ea5cb25
+  cost {2}{B}
+  type Legendary Creature — Human Mercenary
+  short_name "Gideon"
+  pt 3/3
+  ward discard 1 card
+  triggered whenever creature an opponent controls enters: deal 1 damage to that player
+  triggered whenever an opponent activates a loyalty ability: deal 1 damage to that player
+}

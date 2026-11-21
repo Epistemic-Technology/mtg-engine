@@ -60,6 +60,7 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             format!("{} reveals their hand.", who(*player, viewer))
         }
         Event::Transformed { obj } => format!("{} transforms.", state.name_of_or_lki(*obj)),
+        Event::Explored { obj } => format!("{} explores.", state.name_of_or_lki(*obj)),
         Event::CollectedEvidence { player } => {
             format!("{} collects evidence.", who(*player, viewer))
         }
@@ -148,6 +149,7 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             )
         }
         Event::Tapped { .. }
+        | Event::TappedBy { .. }
         | Event::Untapped { .. }
         | Event::Pass { .. }
         | Event::Blocked { .. }

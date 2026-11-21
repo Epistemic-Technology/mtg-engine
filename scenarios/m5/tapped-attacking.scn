@@ -1,0 +1,31 @@
+# Tokens created tapped and attacking (CR 508.4): never declared as
+# attackers, they attack what the source attacks, else an opponent.
+
+scenario "tapped and attacking: Fire Navy Trebuchet's Ballistic Boulder" {
+  battlefield A: "Fire Navy Trebuchet", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert tapped "Ballistic Boulder"
+  run_to turn 3 upkeep
+  assert battlefield A lacks "Ballistic Boulder"
+}
+
+scenario "tapped and attacking: the flying token can be blocked by a flyer" {
+  battlefield A: "Fire Navy Trebuchet", "Grizzly Bears"
+  battlefield B: "Vampire Nighthawk"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Ballistic Boulder" with "Vampire Nighthawk"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert battlefield A lacks "Ballistic Boulder"
+}
+
+scenario "tapped and attacking: no attack, no token" {
+  battlefield A: "Fire Navy Trebuchet", "Grizzly Bears"
+  start turn 2 A precombat_main
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Ballistic Boulder"
+}

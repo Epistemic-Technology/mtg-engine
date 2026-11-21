@@ -1103,6 +1103,18 @@ impl GameState {
         }
     }
 
+    /// Tap `id` by a spell or ability `player` controls: "Whenever you tap
+    /// an untapped creature an opponent controls" sees it.
+    pub(super) fn tap_by(&mut self, id: ObjId, player: PlayerId) {
+        if self.objects.get(id).is_none_or(|o| o.tapped) {
+            return;
+        }
+        self.tap(id);
+        if self.objects.get(id).is_some_and(|o| o.tapped) {
+            self.emit(Event::TappedBy { obj: id, player });
+        }
+    }
+
     pub(super) fn untap(&mut self, id: ObjId) {
         // "Can't become untapped": nothing happens, and a stun counter
         // stays (it is removed only as the permanent would untap). Only a

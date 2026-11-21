@@ -1,0 +1,11 @@
+card "Hylda of the Icy Crown" {
+  oracle_id 1733c71b-fd28-48dd-8a3d-41afd4b22f0e
+  cost {2}{W}{U}
+  type Legendary Creature — Human Warlock
+  pt 3/4
+  triggered whenever you tap untapped creature an opponent controls: you may pay {1}; when you do, choose one {
+    mode: create 1 "4/4 white and blue Elemental creature"
+    mode: put 1 +1/+1 counters on each creature you control
+    mode: scry 2 then draw 1 card
+  }
+}

@@ -1,0 +1,7 @@
+card "Bitter Work" {
+  oracle_id e9a24ed8-e844-4c50-b386-bc28da9989b1
+  cost {1}{R}{G}
+  type Enchantment
+  triggered whenever you attack a player with one or more creature with power 4 or greater: draw 1 card
+  exhaust {4}, during your turn: earthbend 4
+}

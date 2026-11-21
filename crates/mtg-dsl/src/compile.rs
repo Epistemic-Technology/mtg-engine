@@ -1282,6 +1282,7 @@ impl Compiler<'_> {
             token: name.to_string(),
             count: Num::N(1),
             tapped,
+            attacking: false,
             who: Some(R::EachOpponent),
             it_has: false,
             attached: None,
@@ -2223,6 +2224,7 @@ impl Compiler<'_> {
                 token,
                 count,
                 tapped,
+                attacking,
                 who,
                 attached,
                 ..
@@ -2240,6 +2242,10 @@ impl Compiler<'_> {
                     tapped: *tapped,
                     attached: attached.map(r),
                 });
+                // CR 508.4: "that's tapped and attacking".
+                if *attacking {
+                    out.push(CoreEffect::CreatedAttack);
+                }
             }
             Effect::CreateTokenCopy { of, except } => out.push(CoreEffect::CreateTokenCopy {
                 of: r(*of),
@@ -3379,6 +3385,23 @@ impl Compiler<'_> {
                     ..Filter::default()
                 }),
             )),
+            Trigger::DiscardsBatch => TriggerSpec::DiscardsBatch { whose: Who::You },
+            Trigger::SacrificesBatch(f) => TriggerSpec::SacrificesBatch(self.filter(f)),
+            Trigger::AttacksWithFilter { filter, player } => TriggerSpec::AttacksWithFilter {
+                filter: self.filter(filter),
+                player: *player,
+            },
+            Trigger::GainsOrLosesLife { your_turn } => TriggerSpec::GainsOrLosesLife {
+                your_turn: *your_turn,
+            },
+            Trigger::ScriesOrSurveils => TriggerSpec::ScriesOrSurveils,
+            Trigger::Explores(o) => TriggerSpec::Explores(self.trigger_obj(o)),
+            Trigger::YouTap(f) => TriggerSpec::YouTap(self.filter(f)),
+            Trigger::Activates { whose, kind } => TriggerSpec::Activates {
+                whose: *whose,
+                kind: *kind,
+            },
+            Trigger::Transforms => TriggerSpec::Transforms,
             Trigger::Or { first, second, .. } => {
                 TriggerSpec::Either(Box::new((self.trigger(first), self.trigger(second))))
             }
@@ -3961,6 +3984,15 @@ impl Compiler<'_> {
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
             Ability::OpeningHand => AbilityDef::OpeningHand,
+            Ability::TriggerAgain {
+                filter,
+                entering,
+                battlefield,
+            } => AbilityDef::TriggerAgain {
+                filter: self.filter(filter),
+                entering: entering.as_ref().map(|f| self.filter(f)),
+                battlefield: *battlefield,
+            },
             Ability::PlayerStatic { kind, cond } => {
                 let condition = match cond {
                     Some(c) => {
@@ -4727,6 +4759,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 token: AFTERLIFE_SPIRIT.to_string(),
                 count: Num::N(*n),
                 tapped: false,
+                attacking: false,
                 who: None,
                 it_has: false,
                 attached: None,
@@ -4771,6 +4804,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         .to_string(),
                         count: Num::N(1),
                         tapped: false,
+                        attacking: false,
                         who: None,
                         it_has: false,
                         attached: None,

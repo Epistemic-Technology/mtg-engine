@@ -4868,6 +4868,9 @@ pub const WATCH_DESIG: u32 = 32768;
 pub const WATCH_SACRIFICE: u32 = 65536;
 /// Counters put on permanents (CR 122.1).
 pub const WATCH_COUNTERS: u32 = 131_072;
+/// Keyword actions and activations: scry and surveil, explore, transform,
+/// activated abilities, tapping by an effect.
+pub const WATCH_ACT: u32 = 262_144;
 
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
@@ -5149,6 +5152,54 @@ pub enum TriggerSpec {
     /// "When this Class becomes level 2" (CR 716.2c): the source becomes
     /// that stage of its card (`Effect::BecomeStage`).
     BecomesStage(u8),
+    /// "Whenever you discard one or more cards" (CR 603.2c): once for the
+    /// cards `whose` player discards together, their number the trigger's
+    /// amount ("that many").
+    DiscardsBatch { whose: Who },
+    /// "Whenever you sacrifice one or more Foods" (CR 603.2c, 701.21):
+    /// once for the matching permanents sacrificed together, their number
+    /// the trigger's amount.
+    SacrificesBatch(ObjFilter),
+    /// "Whenever you attack with one or more Faeries" (CR 508.1m): once
+    /// per declaration of attackers by the controller in which a matching
+    /// creature attacks; with `player`, "Whenever you attack a player with
+    /// one or more creatures with power 4 or greater", once for each
+    /// player a matching creature attacks (that player is the triggering
+    /// player).
+    AttacksWithFilter { filter: ObjFilter, player: bool },
+    /// "Whenever you gain or lose life" (CR 119.3, 119.9), `your_turn`:
+    /// "... during your turn".
+    GainsOrLosesLife { your_turn: bool },
+    /// "Whenever you scry or surveil" (CR 701.22, 701.25): once per
+    /// instruction to scry or surveil.
+    ScriesOrSurveils,
+    /// "Whenever a creature you control explores" (CR 701.44): the
+    /// exploring creature is the triggering object.
+    Explores(TriggerObj),
+    /// "Whenever you tap an untapped creature an opponent controls": a
+    /// spell or ability the controller controls taps an untapped
+    /// permanent matching the filter; it is the triggering object.
+    YouTap(ObjFilter),
+    /// "Whenever you activate an ability of a creature", "... an exhaust
+    /// ability", "Whenever an opponent activates a loyalty ability" (CR
+    /// 602.2): as an activated ability matching `kind` is activated by a
+    /// player matching `whose` (the triggering player).
+    Activates { whose: Who, kind: ActivationKind },
+    /// "Whenever this creature transforms into Ashling, Rimebound" (CR
+    /// 701.27): the source transformed and now shows this ability's face.
+    Transforms,
+}
+
+/// Which activated abilities a `TriggerSpec::Activates` trigger sees.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ActivationKind {
+    /// "an ability of a creature": the source is a creature (mana
+    /// abilities included, CR 605.3a).
+    OfCreature,
+    /// "an exhaust ability" (CR 702.177).
+    Exhaust,
+    /// "a loyalty ability" (CR 606.3).
+    Loyalty,
 }
 
 /// Which of a player's spells this turn a cast trigger wants.
@@ -5158,6 +5209,8 @@ pub enum SpellOrdinal {
     First,
     /// "your second spell each turn".
     Second,
+    /// "your third spell each turn".
+    Third,
     /// "a spell other than your first spell each turn".
     NotFirst,
     /// "your first spell during each opponent's turn".
@@ -5181,6 +5234,7 @@ impl SpellOrdinal {
         match self {
             SpellOrdinal::First | SpellOrdinal::FirstNoncreature => n == 1,
             SpellOrdinal::Second => n == 2,
+            SpellOrdinal::Third => n == 3,
             SpellOrdinal::NotFirst => n >= 2,
             SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
             SpellOrdinal::OnOpponentsTurn => !own_turn,
@@ -5255,7 +5309,8 @@ impl TriggerSpec {
             | TriggerSpec::AttacksFirstTime(_)
             | TriggerSpec::AttacksBattle(_)
             | TriggerSpec::AttacksAlone(_)
-            | TriggerSpec::AttacksWith { .. } => WATCH_ATTACK,
+            | TriggerSpec::AttacksWith { .. }
+            | TriggerSpec::AttacksWithFilter { .. } => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
             | TriggerSpec::BecomesBlocked(_)
             | TriggerSpec::BlocksOrBlocked(_)
@@ -5277,7 +5332,9 @@ impl TriggerSpec {
             | TriggerSpec::BecomesPlotted
             | TriggerSpec::Reflexive
             | TriggerSpec::State(_) => 0,
-            TriggerSpec::GainsLife { .. } | TriggerSpec::GainsLifeFirst { .. } => WATCH_LIFE_CHANGE,
+            TriggerSpec::GainsLife { .. }
+            | TriggerSpec::GainsLifeFirst { .. }
+            | TriggerSpec::GainsOrLosesLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,
             TriggerSpec::CastsSpell { .. }
             | TriggerSpec::CastsFiltered { .. }
@@ -5290,6 +5347,7 @@ impl TriggerSpec {
             | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
             TriggerSpec::BecomesAttachedTo(_) => WATCH_ATTACH,
             TriggerSpec::Discards { .. }
+            | TriggerSpec::DiscardsBatch { .. }
             | TriggerSpec::Cycles {
                 or_discard: true, ..
             } => WATCH_DISCARD,
@@ -5302,10 +5360,17 @@ impl TriggerSpec {
             | TriggerSpec::CollectsEvidence { .. }
             | TriggerSpec::Forages { .. }
             | TriggerSpec::DayNight => WATCH_DESIG,
-            TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
+            TriggerSpec::Sacrifices(_)
+            | TriggerSpec::Sacrificed { .. }
+            | TriggerSpec::SacrificesBatch(_) => WATCH_SACRIFICE,
             TriggerSpec::CountersPut { .. }
             | TriggerSpec::YouPutCounters { .. }
             | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
+            TriggerSpec::ScriesOrSurveils
+            | TriggerSpec::Explores(_)
+            | TriggerSpec::Activates { .. }
+            | TriggerSpec::Transforms
+            | TriggerSpec::YouTap(_) => WATCH_ACT,
         }
     }
 }
@@ -5976,6 +6041,19 @@ pub enum AbilityDef {
         kind: PlayerStaticKind,
         condition: Option<u16>,
     },
+    /// "If a triggered ability of another Elemental you control triggers,
+    /// it triggers an additional time." (CR 603.2d): a triggered ability
+    /// of a permanent matching the filter (judged for this source) that
+    /// triggers, triggers once more for each such ability; `entering`:
+    /// "If an artifact or creature entering causes a triggered ability of
+    /// a permanent you control to trigger, ...", only on a permanent
+    /// matching it entering (`battlefield`: worded "entering the
+    /// battlefield"). Counted with the player-level statics.
+    TriggerAgain {
+        filter: ObjFilter,
+        entering: Option<ObjFilter>,
+        battlefield: bool,
+    },
     /// "If this card is in your opening hand, you may begin the game with
     /// it on the battlefield." (CR 103.6a; the Leylines).
     OpeningHand,
@@ -6074,6 +6152,7 @@ impl AbilityDef {
             | AbilityDef::HexproofFrom(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
+            | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -6108,6 +6187,7 @@ impl AbilityDef {
             | AbilityDef::HexproofFrom(_)
             | AbilityDef::PlayerStatic { .. }
             | AbilityDef::OpeningHand
+            | AbilityDef::TriggerAgain { .. }
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -8228,9 +8308,12 @@ impl CardPool {
         flags.set(DefFlags::SAGA, def.final_chapter > 0);
         flags.set(
             DefFlags::PLAYER_STATIC,
-            def.abilities
-                .iter()
-                .any(|a| matches!(a, AbilityDef::PlayerStatic { .. })),
+            def.abilities.iter().any(|a| {
+                matches!(
+                    a,
+                    AbilityDef::PlayerStatic { .. } | AbilityDef::TriggerAgain { .. }
+                )
+            }),
         );
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
