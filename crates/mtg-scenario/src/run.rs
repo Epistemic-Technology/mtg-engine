@@ -1192,7 +1192,16 @@ impl Runner {
             let illegal = a.illegal && !splice_refusal;
             let refused = match (illegal, found, &targets) {
                 (true, Some(idx), Some(ts)) if !ts.is_empty() => {
-                    self.scripted_target_refused(idx, ts, costs.0, a.line)?
+                    // A scripted `kicked` or `gift` is taken on the copy too.
+                    let promised = costs.3
+                        || matches!(
+                            &a.action,
+                            Action::Cast {
+                                conspired: true,
+                                ..
+                            }
+                        );
+                    self.scripted_target_refused(idx, ts, costs.0, promised, a.line)?
                 }
                 _ => false,
             };
@@ -1259,7 +1268,15 @@ impl Runner {
                             id,
                             name,
                             mode,
-                            matches!(&a.action, Action::Cast { kicked: true, .. }),
+                            // A promised gift is kept as the kicker flag.
+                            matches!(&a.action, Action::Cast { kicked: true, .. })
+                                || (matches!(
+                                    &a.action,
+                                    Action::Cast {
+                                        conspired: true,
+                                        ..
+                                    }
+                                ) && self.state().def_of(id).is_some_and(|d| d.gift.is_some())),
                         )?;
                         // A bestowed spell targets what it enchants; spliced
                         // cards' targets follow the spell's (CR 702.47a).
@@ -1383,6 +1400,11 @@ impl Runner {
             {
                 t = &t[..usize::from(n).min(t.len())];
             }
+            // "If the gift was promised, instead ... target ...": a kicked
+            // spell's own targets replace the others.
+            if kicked {
+                t = def.kicked_cast_targets();
+            }
             return Ok(((t.len(), optional_count(t), unbounded(t)), None));
         };
         let m = mode.unwrap_or(1);
@@ -1462,7 +1484,7 @@ impl Runner {
         match (a.illegal, found) {
             // "illegal ... targeting X": legal to activate, but not at X.
             (true, Some(idx))
-                if self.scripted_target_refused(idx_u32(idx), targets, x, a.line)? =>
+                if self.scripted_target_refused(idx_u32(idx), targets, x, false, a.line)? =>
             {
                 self.fired[i] = true;
                 Ok(None)
@@ -2107,6 +2129,7 @@ impl Runner {
         idx: ChoiceId,
         targets: &[TargetRef],
         x: Option<u32>,
+        promised: bool,
         line: usize,
     ) -> Res<bool> {
         let mut sim = self.engine.clone();
@@ -2147,6 +2170,16 @@ impl Runner {
                     }
                 }
                 DecisionKind::PriorityAction => return Ok(asked < targets.len()),
+                // Kicked, or the gift promised, only if scripted: either
+                // changes the spell's targets (CR 601.2c, 702.174m).
+                DecisionKind::Kicker { .. } | DecisionKind::Gift { .. } => {
+                    let want = if promised {
+                        Choice::Accept
+                    } else {
+                        Choice::Decline
+                    };
+                    index_of(&d, &want).unwrap_or(0)
+                }
                 _ => 0,
             };
             if sim.step(pick).is_err() {

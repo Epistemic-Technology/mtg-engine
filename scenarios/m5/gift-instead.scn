@@ -1,0 +1,78 @@
+# A gift spell whose promised gift replaces its targets ("If the gift was
+# promised, instead ... target ..."): the spell has only the targets that
+# apply (CR 601.2c, 702.174m).
+
+scenario "Into the Flood Maw without the gift: a creature" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears", "Ornithopter"
+  hand A: "Into the Flood Maw"
+  turn 1 A: cast "Into the Flood Maw" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert battlefield B contains "Ornithopter"
+  assert battlefield B lacks "Fish"
+}
+
+scenario "Into the Flood Maw without the gift: a noncreature can't be targeted" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears", "Darksteel Relic"
+  hand A: "Into the Flood Maw"
+  illegal turn 1 A: cast "Into the Flood Maw" targeting "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Darksteel Relic"
+}
+
+scenario "Into the Flood Maw with the gift: one nonland permanent" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears", "Darksteel Relic"
+  hand A: "Into the Flood Maw"
+  turn 1 A: cast "Into the Flood Maw" gift targeting "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Darksteel Relic"
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield B contains "Fish"
+  assert tapped "Fish"
+}
+
+scenario "Into the Flood Maw with the gift and no creature to target" {
+  battlefield A: "Island"
+  battlefield B: "Darksteel Relic"
+  hand A: "Into the Flood Maw"
+  turn 1 A: cast "Into the Flood Maw" gift targeting "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Darksteel Relic"
+}
+
+scenario "Wear Down without the gift: one artifact or enchantment" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Darksteel Relic", "Ornithopter"
+  hand A: "Wear Down"
+  library B: "Plains", "Plains"
+  turn 1 A: cast "Wear Down" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert hand B count 0
+}
+
+scenario "Wear Down with the gift: two artifacts and/or enchantments" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Ornithopter", "Grizzly Bears", "Pacifism" on "Grizzly Bears"
+  hand A: "Wear Down"
+  library B: "Plains", "Plains"
+  turn 1 A: cast "Wear Down" gift targeting "Ornithopter", "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert graveyard B contains "Pacifism"
+  assert hand B count 1
+}
+
+scenario "Wear Down with one target only: the gift isn't promised" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Wear Down"
+  library B: "Plains", "Plains"
+  turn 1 A: cast "Wear Down" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert hand B count 0
+}

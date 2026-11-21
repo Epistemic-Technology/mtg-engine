@@ -458,7 +458,7 @@ impl GameState {
                     Some(modes) => modes
                         .iter()
                         .any(|m| self.targets_available(p, &m.targets, Some(*id))),
-                    None => self.targets_available(p, def.unkicked_cast_targets(), Some(*id)),
+                    None => self.spell_targets_available(p, def, *id),
                 };
                 if targets_ok {
                     options.push(Choice::Cast(*id));
@@ -1742,7 +1742,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+            None => self.spell_targets_available(p, def, id),
         }
     }
 
@@ -2424,7 +2424,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+            None => self.spell_targets_available(p, def, id),
         }
     }
 
@@ -2464,7 +2464,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(id)),
+            None => self.spell_targets_available(p, def, id),
         }
     }
 
@@ -3190,7 +3190,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
+            None => self.spell_targets_available(p, def, card),
         }
     }
 
@@ -3219,7 +3219,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
+            None => self.spell_targets_available(p, def, card),
         }
     }
 
@@ -3246,7 +3246,7 @@ impl GameState {
             Some(modes) => modes
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
-            None => self.targets_available(p, def.unkicked_cast_targets(), Some(card)),
+            None => self.spell_targets_available(p, def, card),
         };
         // CR 601.2h: casting it without paying its mana cost still pays its
         // additional costs (Improvised Club's sacrifice).
@@ -4200,6 +4200,24 @@ impl GameState {
         } else {
             self.flow = crate::state::Flow::Priority;
         }
+    }
+
+    /// Whether a nonmodal spell can be cast for its targets: those it has
+    /// unkicked, or, for a gift whose promise replaces its targets ("If
+    /// the gift was promised, instead ... target ...", CR 702.174m), those
+    /// it has with the gift promised (an opponent can always be promised
+    /// it).
+    pub(super) fn spell_targets_available(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+    ) -> bool {
+        self.targets_available(p, def.unkicked_cast_targets(), Some(id))
+            || (def.gift.is_some()
+                && def.kicked_drops.is_some()
+                && self.players_in_game().any(|q| q != p)
+                && self.targets_available(p, def.kicked_cast_targets(), Some(id)))
     }
 
     /// Whether every one of `specs` has a legal target for `p` (for an

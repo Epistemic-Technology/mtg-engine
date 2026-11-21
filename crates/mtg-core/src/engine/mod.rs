@@ -895,10 +895,24 @@ impl GameState {
                         self.flow = Flow::Priority;
                         continue;
                     };
+                    // "If the gift was promised, instead ... target ...":
+                    // without targets for the spell unpromised, the gift
+                    // must be promised (CR 601.2c, 702.174m).
+                    let def = self.pool.get(obj.def);
+                    let unpromised = def.kicked_drops.is_none()
+                        || self.targets_available(
+                            obj.controller,
+                            def.unkicked_cast_targets(),
+                            Some(spell),
+                        );
+                    let mut options = vec![Choice::Accept];
+                    if unpromised {
+                        options.push(Choice::Decline);
+                    }
                     return StepResult::Decision(Decision {
                         player: obj.controller,
                         kind: DecisionKind::Gift { spell },
-                        options: vec![Choice::Accept, Choice::Decline],
+                        options,
                     });
                 }
                 Flow::ChoosingTeamwork { spell } => {
@@ -2303,7 +2317,8 @@ impl GameState {
             let targets = def.kicker_targets.is_none_or(|_| {
                 def.spell_ability()
                     .is_none_or(|(t, _)| self.targets_available(p, t, Some(spell)))
-            });
+            }) && (def.kicked_drops.is_none()
+                || self.targets_available(p, def.kicked_cast_targets(), Some(spell)));
             if targets && self.players_in_game().any(|q| q != p) {
                 return Flow::ChoosingGift { spell };
             }

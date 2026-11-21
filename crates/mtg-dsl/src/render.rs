@@ -1540,7 +1540,14 @@ impl<'a> Ctx<'a> {
                 pluralize(&target_phrase(*s).replace("target ", ""))
             }
             Target::Spec(s) => {
-                pluralize(&target_phrase(*s).replace("target ", "")).replace(" or ", " and/or ")
+                // Each kind plural: "artifacts and/or enchantments".
+                let phrase = target_phrase(*s).replace("target ", "");
+                match phrase.split_once(" or ") {
+                    Some((a, b)) if !a.contains(' ') => {
+                        format!("{} and/or {}", pluralize(a), pluralize(b))
+                    }
+                    _ => pluralize(&phrase).replace(" or ", " and/or "),
+                }
             }
             Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
             Target::Filter(f) => filter_phrase(f, self.card, true),

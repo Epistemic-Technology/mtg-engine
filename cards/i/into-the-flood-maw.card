@@ -1,0 +1,7 @@
+card "Into the Flood Maw" {
+  oracle_id 8cb36a67-9206-4665-a03f-64f52ba559c4
+  cost {U}
+  type Instant
+  gift tapped fish
+  spell: return target creature an opponent controls to hand; if kicked, instead return target nonland permanent an opponent controls to hand
+}
