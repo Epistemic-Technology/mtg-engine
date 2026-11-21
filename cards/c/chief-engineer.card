@@ -1,0 +1,7 @@
+card "Chief Engineer" {
+  oracle_id 02dbb6f8-ef84-4156-87dc-34033e64fdb7
+  cost {1}{U}
+  type Creature — Vedalken Artificer
+  pt 1/3
+  spells artifact you cast have convoke
+}

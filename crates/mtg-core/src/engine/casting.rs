@@ -1895,7 +1895,8 @@ impl GameState {
         {
             adjust_generic(&mut req, tc.0);
         }
-        let helped = Keyword::helps_pay(def.keywords) || def.additional.waterbend;
+        let keywords = self.spell_keywords(p, def, id).0;
+        let helped = Keyword::helps_pay(keywords) || def.additional.waterbend;
         let restricted = match (self.restricted_mana_sources, &def.printed) {
             (0, _) | (_, None) => None,
             (_, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c)),
@@ -1903,7 +1904,7 @@ impl GameState {
         let all = if helped || restricted.is_some() {
             let mut all = restricted.unwrap_or_else(|| sources.clone());
             if helped {
-                all.extend(self.helper_sources(p, def));
+                all.extend(self.helper_sources(p, def, keywords));
             }
             Some(all)
         } else {
@@ -2395,12 +2396,17 @@ impl GameState {
     /// paying one mana of its color, or generic) and untapped artifacts
     /// (generic) that may be tapped to help cast `def`; after mana
     /// sources, so they are used last.
-    pub(super) fn helper_sources(&self, p: PlayerId, def: &crate::card::CardDef) -> Sources {
-        let convoke = def.keywords.contains(Keyword::Convoke);
-        let improvise = def.keywords.contains(Keyword::Improvise);
+    pub(super) fn helper_sources(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        keywords: KeywordSet,
+    ) -> Sources {
+        let convoke = keywords.contains(Keyword::Convoke);
+        let improvise = keywords.contains(Keyword::Improvise);
         let mut out = Sources::new();
         // CR 702.66a: each card exiled from the graveyard pays for {1}.
-        if def.keywords.contains(Keyword::Delve) {
+        if keywords.contains(Keyword::Delve) {
             for id in &self.player(p).graveyard {
                 out.push((*id, Mana::Colorless));
             }
@@ -2475,8 +2481,9 @@ impl GameState {
             s = all;
         }
         let def = self.pool.get(o.def);
-        if Keyword::helps_pay(def.keywords) || def.additional.waterbend {
-            s.extend(self.helper_sources(o.controller, def));
+        let keywords = self.spell_keywords(o.controller, def, spell).0;
+        if Keyword::helps_pay(keywords) || def.additional.waterbend {
+            s.extend(self.helper_sources(o.controller, def, keywords));
         }
         s
     }
@@ -2602,40 +2609,102 @@ impl GameState {
             let n = sc.per.saturating_mul(self.eval_num(sc.times, &ctx));
             d -= i32::try_from(n).unwrap_or(i32::MAX);
         }
-        let Some(chars) = def.printed.as_ref() else {
-            return d;
-        };
         for src in changers {
             let o = &self.objects[*src];
             for a in &self.pool.get(o.def).ability_ids {
-                if let AbilityDef::CostChange(cc) = self.pool.ability(*a) {
-                    let whose = match cc.whose {
-                        crate::card::Who::Any => true,
-                        crate::card::Who::You => p == o.controller,
-                        crate::card::Who::Opponents => p != o.controller,
-                    };
-                    // "Creature spells you cast with mana value 6 or
-                    // greater": the mana value isn't a characteristic
-                    // `matches` sees.
-                    let mv_ok = cc
-                        .spells
-                        .mana_value
-                        .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)));
-                    if whose
-                        && mv_ok
-                        && cc
-                            .spells
-                            .matches(id, p, chars, Some(*src), Some(o.controller))
-                        && cc.cond.is_none_or(|i| {
-                            self.condition_now(self.pool.condition(i), o.controller, *src)
-                        })
-                    {
-                        d += cc.generic;
+                if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
+                    && self.cost_change_applies(cc, p, def, id, *src)
+                {
+                    d += cc.generic;
+                    // CR 702.41a: affinity, given to the spell.
+                    if let Some(f) = cc.grant.as_ref().and_then(|g| g.affinity.as_ref()) {
+                        let n = self
+                            .permanents_of(p)
+                            .filter(|q| {
+                                self.characteristics(*q)
+                                    .is_some_and(|c| f.matches(*q, p, &c, Some(*src), Some(p)))
+                            })
+                            .count();
+                        d -= i32::try_from(n).unwrap_or(i32::MAX);
                     }
                 }
             }
         }
         d
+    }
+
+    /// Whether the cost change (or grant) `cc` of `src` applies to `def`,
+    /// the card or spell `id` that `p` casts.
+    fn cost_change_applies(
+        &self,
+        cc: &crate::card::CostChange,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        src: ObjId,
+    ) -> bool {
+        let Some(chars) = def.printed.as_ref() else {
+            return false;
+        };
+        let o = &self.objects[src];
+        let whose = match cc.whose {
+            crate::card::Who::Any => true,
+            crate::card::Who::You => p == o.controller,
+            crate::card::Who::Opponents => p != o.controller,
+        };
+        // "Instant and sorcery spells you cast from your hand have
+        // cascade": from the hand, or cast from it.
+        let from_ok = cc.grant.as_ref().is_none_or(|g| {
+            !g.from_hand
+                || self.objects.get(id).is_some_and(|c| match c.zone {
+                    Zone::Stack => c.cast.cast_from() == Some(Zone::Hand),
+                    z => z == Zone::Hand,
+                })
+        });
+        // "Creature spells you cast with mana value 6 or greater": the
+        // mana value isn't a characteristic `matches` sees.
+        let mv_ok = cc
+            .spells
+            .mana_value
+            .is_none_or(|(cmp, n)| cmp.holds(def.mana_cost.mana_value(), u32::from(n)));
+        whose
+            && from_ok
+            && mv_ok
+            && cc
+                .spells
+                .matches(id, p, chars, Some(src), Some(o.controller))
+            && cc
+                .cond
+                .is_none_or(|i| self.condition_now(self.pool.condition(i), o.controller, src))
+    }
+
+    /// The keywords `def` has as the spell (or card) `id` that `p` casts:
+    /// its own, and those static abilities give it ("Spells you cast have
+    /// delve"); and whether it has storm.
+    pub(super) fn spell_keywords(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+    ) -> (KeywordSet, bool) {
+        let mut kw = def.keywords;
+        let mut storm = def.storm;
+        if self.cost_change_sources == 0 {
+            return (kw, storm);
+        }
+        for src in self.cost_changers() {
+            let o = &self.objects[src];
+            for a in &self.pool.get(o.def).ability_ids {
+                if let AbilityDef::CostChange(cc) = self.pool.ability(*a)
+                    && let Some(g) = &cc.grant
+                    && self.cost_change_applies(cc, p, def, id, src)
+                {
+                    kw = kw.union(g.keywords);
+                    storm |= g.storm;
+                }
+            }
+        }
+        (kw, storm)
     }
 
     /// Cards in `p`'s hand that could be discarded for a cost of `source`
@@ -6225,8 +6294,10 @@ impl GameState {
             let ability = self.pool.builtin(crate::card::Builtin::Ripple);
             self.queue_builtin(caster, ability, spell, def_ref);
         }
-        // CR 702.85a: cascade triggers as the spell is cast.
-        if def.keywords.contains(Keyword::Cascade) {
+        // CR 702.85a: cascade triggers as the spell is cast (its own, or
+        // given: "Instant and sorcery spells you cast have cascade").
+        let (keywords, storm) = self.spell_keywords(caster, def, spell);
+        if keywords.contains(Keyword::Cascade) {
             let ability = self.pool.builtin(crate::card::Builtin::Cascade);
             self.queue_builtin(caster, ability, spell, def_ref);
         }
@@ -6237,7 +6308,7 @@ impl GameState {
         let mut copies = self.objects.get(spell).map_or(0, |o| {
             usize::from(o.cast.conspired() || o.cast.casualty()) + o.cast.replicated() as usize
         });
-        if def.storm {
+        if storm {
             copies += self.cast_this_turn.len().saturating_sub(1);
         }
         if copies > 0 {

@@ -11338,6 +11338,31 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 format!("{head}{}", lowercase_first(&body))
             }
         }
+        // "Instant and sorcery spells you cast have storm."
+        Ability::SpellsHave {
+            filter,
+            from_hand,
+            keywords,
+            storm,
+            affinity,
+        } => {
+            let mut items: Vec<String> = keywords
+                .iter()
+                .map(|k| keyword_name(*k).to_string())
+                .collect();
+            if *storm {
+                items.push("storm".to_string());
+            }
+            if let Some(a) = affinity {
+                items.push(format!("affinity for {}", filter_phrase(a, card, true)));
+            }
+            let from = if *from_hand { " from your hand" } else { "" };
+            format!(
+                "{} you cast{from} have {}.",
+                cost_spells_subject(filter, card),
+                list(&items)
+            )
+        }
         Ability::CondCost { delta, cond } => format!(
             "This spell costs {{{}}} {} to cast if {}.",
             delta.unsigned_abs(),

@@ -1,0 +1,196 @@
+# Keywords a static ability gives the spells its controller casts:
+# "Spells you cast have delve", "Instant and sorcery spells you cast
+# have storm", "... from your hand have cascade", "... have affinity for
+# creatures", "Creature spells you cast have convoke", "Noncreature
+# spells you cast have improvise".
+
+scenario "spell grants: Teval gives delve; Teval's trigger costs life equal to mana value" {
+  battlefield A: "Teval, Arbiter of Virtue", "Island"
+  graveyard A: 5 "Plains"
+  hand A: "Divination"
+  library A: "Island", "Island"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert exile A contains 2 "Plains"
+  assert graveyard A contains 3 "Plains"
+  assert life A 17
+}
+
+scenario "spell grants: without Teval there is no delve" {
+  battlefield A: "Island"
+  graveyard A: 5 "Plains"
+  hand A: "Divination"
+  illegal turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "spell grants: Prismari gives storm to instants" {
+  battlefield A: "Prismari, the Inspiration", 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 12
+}
+
+scenario "spell grants: Prismari's storm is not on creature spells" {
+  battlefield A: "Prismari, the Inspiration", 3 "Forest"
+  hand A: "Shock", "Grizzly Bears"
+  battlefield A: "Mountain"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "spell grants: Witherbloom's affinity for creatures on an instant or sorcery" {
+  battlefield A: "Witherbloom, the Balancer", "Grizzly Bears", "Island"
+  hand A: "Divination"
+  library A: "Island", "Island"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "spell grants: Quandrix gives cascade to an instant cast from hand" {
+  battlefield A: "Quandrix, the Proof", 3 "Island"
+  hand A: "Divination"
+  library A: "Plains", "Ornithopter", "Island", "Island", "Island"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ornithopter"
+  assert hand A count 2
+}
+
+scenario "spell grants: Quandrix's cascade is not on creature spells" {
+  battlefield A: "Quandrix, the Proof", 2 "Forest"
+  hand A: "Grizzly Bears"
+  library A: "Lightning Bolt", "Island"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert library A count 2
+}
+
+scenario "spell grants: Eirdu gives creature spells convoke" {
+  battlefield A: "Eirdu, Carrier of Dawn // Isilu, Carrier of Twilight", "Grizzly Bears", "Hill Giant", 2 "Plains"
+  hand A: "Serra Angel"
+  turn 1 A: cast "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "spell grants: Sami gives affinity for artifacts" {
+  battlefield A: "Sami, Wildcat Captain", 2 "Ornithopter", "Island"
+  hand A: "Divination"
+  library A: "Island", "Island"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert untapped oldest A "Ornithopter"
+  assert untapped newest A "Ornithopter"
+}
+
+scenario "spell grants: Ironheart gives creature spells no improvise" {
+  battlefield A: "Ironheart, Clever Champion", "Ornithopter", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "spell grants: Ironheart gives noncreature spells improvise" {
+  battlefield A: "Ironheart, Clever Champion", "Ornithopter", "Island"
+  hand A: "Divination"
+  library A: "Island", "Island"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert tapped "Ornithopter"
+  assert tapped "Ironheart, Clever Champion"
+}
+
+scenario "spell grants: Chief Engineer's convoke is for artifact spells only" {
+  battlefield A: "Chief Engineer", "Grizzly Bears", "Memnite", "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "spell grants: Chief Engineer's creatures pay for an artifact spell" {
+  battlefield A: "Chief Engineer", "Grizzly Bears", "Hill Giant", "Island"
+  hand A: "Juggernaut"
+  turn 1 A: cast "Juggernaut"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Juggernaut"
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert tapped "Chief Engineer"
+}
+
+scenario "spell grants: The First Sliver gives Sliver spells cascade" {
+  battlefield A: "The First Sliver", 2 "Forest"
+  hand A: "Muscle Sliver"
+  library A: "Plains", "Ornithopter", "Island"
+  turn 1 A: cast "Muscle Sliver"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Muscle Sliver"
+  assert battlefield A contains "Ornithopter"
+}
+
+scenario "spell grants: Inspiring Statuary gives nonartifact spells improvise" {
+  battlefield A: "Inspiring Statuary", "Ornithopter", "Island"
+  hand A: "Divination"
+  library A: "Island", "Island"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert tapped "Inspiring Statuary"
+  assert tapped "Ornithopter"
+}
+
+scenario "spell grants: Caetus gives noncreature spells convoke" {
+  battlefield A: "Caetus, Sea Tyrant of Segovia", "Grizzly Bears", "Island"
+  hand A: "Divination"
+  library A: "Island", "Island"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert tapped "Grizzly Bears"
+}
+
+scenario "spell grants: Mycosynth Golem gives artifact creature spells affinity for artifacts" {
+  battlefield A: "Mycosynth Golem", 2 "Ornithopter"
+  hand A: "Juggernaut"
+  illegal turn 1 A: cast "Juggernaut"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Juggernaut"
+}
+
+scenario "spell grants: Mycosynth Golem's affinity makes an artifact creature spell free" {
+  battlefield A: "Mycosynth Golem", 3 "Ornithopter"
+  hand A: "Juggernaut"
+  turn 1 A: cast "Juggernaut"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Juggernaut"
+}
+
+scenario "spell grants: Eirdu transforms for {B}; Isilu gives other nontoken creatures persist" {
+  battlefield A: "Eirdu, Carrier of Dawn // Isilu, Carrier of Twilight", "Swamp", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A upkeep
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Isilu, Carrier of Twilight"
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" -1/-1 1
+}

@@ -4618,6 +4618,56 @@ impl Builder<'_> {
             ));
             return Ok(());
         }
+        // "Instant and sorcery spells you cast [from your hand] have
+        // storm." (convoke, improvise, delve, cascade, affinity for ...).
+        if let Some(c) = Regex::new(
+            r"^(?:(.+) )?[Ss]pells you cast( from your hand)? have (convoke|improvise|delve|cascade|storm|affinity for (artifacts|creatures|enchantments|Auras))\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            // "Instant and sorcery spells" (types lowercase), "Sliver
+            // spells" (a subtype keeps its capital).
+            let subject = cap(&c, 1).replace(" and ", " or ");
+            let typed = subject.split(' ').next().is_some_and(|w| {
+                matches!(
+                    w,
+                    "Instant"
+                        | "Sorcery"
+                        | "Creature"
+                        | "Artifact"
+                        | "Enchantment"
+                        | "Noncreature"
+                        | "Nonartifact"
+                        | "Permanent"
+                        | "Multicolored"
+                        | "Colorless"
+                        | "Legendary"
+                )
+            });
+            let subject = if typed {
+                lowercase_first(&subject)
+            } else {
+                subject
+            };
+            let subject = if subject.is_empty() {
+                String::new()
+            } else {
+                format!(" {}", singular(&subject))
+            };
+            let from = if cap(&c, 2).is_empty() {
+                ""
+            } else {
+                " from hand"
+            };
+            let what = match cap(&c, 4) {
+                "" => cap(&c, 3).to_string(),
+                kind => format!("affinity for {}", singular(kind)),
+            };
+            self.statements
+                .push(format!("spells{subject} you cast{from} have {what}"));
+            return Ok(());
+        }
         if let Some(c) = Regex::new(
             r"^As this land enters, you may pay (\d+) life\. If you don't, it enters tapped\.$",
         )

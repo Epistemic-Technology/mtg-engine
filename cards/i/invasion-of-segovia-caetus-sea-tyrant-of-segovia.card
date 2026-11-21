@@ -1,0 +1,15 @@
+card "Invasion of Segovia // Caetus, Sea Tyrant of Segovia" {
+  oracle_id 7b3c0d89-55ed-43d7-a00a-7b060857ec4e
+  layout transform
+  cost {2}{U}
+  type Battle — Siege
+  defense 4
+  triggered when this enters: create 2 "1/1 blue Kraken creature with trample"
+  face "Caetus, Sea Tyrant of Segovia" {
+    type Legendary Creature — Serpent
+    pt 3/3
+    color blue
+    spells noncreature you cast have convoke
+    triggered at beginning of your end step: untap up to four target creatures
+  }
+}

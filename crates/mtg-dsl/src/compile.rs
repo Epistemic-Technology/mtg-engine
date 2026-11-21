@@ -3988,8 +3988,27 @@ impl Compiler<'_> {
                     whose: *whose,
                     generic: *generic,
                     cond,
+                    grant: None,
                 })
             }
+            Ability::SpellsHave {
+                filter,
+                from_hand,
+                keywords,
+                storm,
+                affinity,
+            } => AbilityDef::CostChange(mtg_core::card::CostChange {
+                spells: self.filter(filter),
+                whose: Who::You,
+                generic: 0,
+                cond: None,
+                grant: Some(Box::new(mtg_core::card::SpellGrant {
+                    keywords: KeywordSet::of(keywords.iter().copied()),
+                    storm: *storm,
+                    affinity: affinity.as_ref().map(|f| self.filter(f)),
+                    from_hand: *from_hand,
+                })),
+            }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::HexproofFrom(f) => AbilityDef::HexproofFrom(self.filter(f)),
             Ability::OpeningHand => AbilityDef::OpeningHand,

@@ -2568,6 +2568,12 @@ impl P {
         } else {
             Who::Any
         };
+        // "Instant and sorcery spells you cast [from your hand] have
+        // storm".
+        let from_hand = whose == Who::You && self.eat_words(&["from", "hand"]);
+        if whose == Who::You && cond.is_none() && self.eat_word("have") {
+            return self.spells_have(filter, from_hand);
+        }
         self.expect_word("cost")?;
         let n = i32::try_from(self.mana_cost()?.mana_value()).unwrap_or(0);
         let generic = if self.eat_word("less") {
@@ -3831,6 +3837,48 @@ impl P {
             filter,
             max,
             exile,
+        })
+    }
+
+    /// After `spells <filter> you cast [from hand] have`: convoke,
+    /// improvise, delve, cascade, `storm`, `affinity for <filter>`.
+    fn spells_have(&mut self, filter: Filter, from_hand: bool) -> R<Ability> {
+        let mut keywords = Vec::new();
+        let mut storm = false;
+        let mut affinity = None;
+        loop {
+            if self.eat_word("storm") {
+                storm = true;
+            } else if self.eat_words(&["affinity", "for"]) {
+                affinity = Some(self.filter()?);
+            } else {
+                match self.keyword() {
+                    Some(
+                        k @ (Keyword::Convoke
+                        | Keyword::Improvise
+                        | Keyword::Delve
+                        | Keyword::Cascade),
+                    ) => keywords.push(k),
+                    _ => return self.fail(
+                        "spells can have convoke, improvise, delve, cascade, storm, or affinity",
+                    ),
+                }
+            }
+            if self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+                continue;
+            }
+            if !self.eat_word("and") {
+                break;
+            }
+        }
+        self.end_stmt()?;
+        Ok(Ability::SpellsHave {
+            filter,
+            from_hand,
+            keywords,
+            storm,
+            affinity,
         })
     }
 

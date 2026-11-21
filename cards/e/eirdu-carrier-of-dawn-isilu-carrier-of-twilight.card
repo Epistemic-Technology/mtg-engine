@@ -1,0 +1,18 @@
+card "Eirdu, Carrier of Dawn // Isilu, Carrier of Twilight" {
+  oracle_id 36af3c2c-49d7-46ea-ab02-c254b332448e
+  layout transform
+  cost {3}{W}{W}
+  type Legendary Creature — Elemental God
+  pt 5/5
+  keywords flying, lifelink
+  spells creature you cast have convoke
+  triggered at beginning of your first main: you may pay {B}; if you do, transform this
+  face "Isilu, Carrier of Twilight" {
+    type Legendary Creature — Elemental God
+    pt 5/5
+    color black
+    keywords flying, lifelink
+    static each other nontoken creature you control: has persist
+    triggered at beginning of your first main: you may pay {W}; if you do, transform this
+  }
+}

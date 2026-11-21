@@ -1,0 +1,9 @@
+card "Prismari, the Inspiration" {
+  oracle_id 258f5045-3aa7-4b95-a15f-3172577294a8
+  cost {5}{U}{R}
+  type Legendary Creature — Elder Dragon
+  pt 7/7
+  keywords flying
+  ward pay 5 life
+  spells instant or sorcery you cast have storm
+}

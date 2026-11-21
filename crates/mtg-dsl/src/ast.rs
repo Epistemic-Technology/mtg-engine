@@ -1099,6 +1099,18 @@ pub enum Ability {
         /// less`: only while the condition holds, printed first.
         cond: Option<StaticCond>,
     },
+    /// `spells instant or sorcery you cast have storm`, `spells you cast
+    /// have delve`, `spells instant or sorcery you cast from hand have
+    /// cascade`, `spells you cast have affinity for artifact`: what the
+    /// controller's matching spells have (convoke, improvise, delve,
+    /// cascade, storm, affinity).
+    SpellsHave {
+        filter: Filter,
+        from_hand: bool,
+        keywords: Vec<Keyword>,
+        storm: bool,
+        affinity: Option<Filter>,
+    },
     /// `this spell costs {1} less count each artifact you control`: "This
     /// spell costs {1} less to cast for each artifact you control."
     SelfCost {

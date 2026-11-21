@@ -4933,6 +4933,32 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 generic.unsigned_abs()
             );
         }
+        Ability::SpellsHave {
+            filter: f,
+            from_hand,
+            keywords: ks,
+            storm,
+            affinity,
+        } => {
+            let subject = if *f == Filter::default() {
+                String::new()
+            } else {
+                format!(" {}", filter(f))
+            };
+            let from = if *from_hand { " from hand" } else { "" };
+            let mut items: Vec<String> = ks.iter().map(|k| keywords(&[*k])).collect();
+            if *storm {
+                items.push("storm".to_string());
+            }
+            if let Some(a) = affinity {
+                items.push(format!("affinity for {}", filter(a)));
+            }
+            let _ = writeln!(
+                out,
+                "{indent}spells{subject} you cast{from} have {}",
+                items.join(" and ")
+            );
+        }
         Ability::CondCost { delta, cond } => {
             let _ = writeln!(
                 out,

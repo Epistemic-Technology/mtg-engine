@@ -5876,6 +5876,27 @@ pub struct CostChange {
     /// ("During turns other than yours, spells you cast cost {1} less").
     #[serde(default)]
     pub cond: Option<u16>,
+    /// "Spells you cast have delve" (`generic` 0): what the matching
+    /// spells have besides.
+    #[serde(default)]
+    pub grant: Option<Box<SpellGrant>>,
+}
+
+/// What a static ability gives the spells its controller casts (CR
+/// 702.51 convoke, 702.66 delve, 702.126 improvise, 702.85 cascade,
+/// 702.40 storm, 702.41 affinity): "Instant and sorcery spells you cast
+/// have storm", "... from your hand have cascade", "Spells you cast have
+/// affinity for artifacts".
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct SpellGrant {
+    /// Convoke, improvise, delve, cascade.
+    pub keywords: KeywordSet,
+    pub storm: bool,
+    /// Affinity for these: {1} less for each such permanent the caster
+    /// controls.
+    pub affinity: Option<ObjFilter>,
+    /// Only spells cast from their caster's hand.
+    pub from_hand: bool,
 }
 
 /// "This spell costs {1} less to cast for each artifact you control"
@@ -6968,7 +6989,12 @@ impl DefFlags {
         flags.set(
             DefFlags::GRANTS,
             abilities.iter().any(|a| {
-                matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| matches!(m, Modification::AddAbility(_))))
+                // A keyword that stands for a triggered ability ("Each
+                // other nontoken creature you control has persist") grants
+                // one too.
+                matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| matches!(m,
+                    Modification::AddAbility(_))
+                    || matches!(m, Modification::AddKeywords(k) if k.intersects(KeywordSet::TRIGGERED))))
             }),
         );
         flags.set(

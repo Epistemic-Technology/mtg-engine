@@ -2012,6 +2012,16 @@ impl Decompiler<'_> {
                 toughness: *toughness,
                 plus: *plus,
             },
+            AbilityDef::CostChange(c) if c.grant.is_some() => {
+                let g = c.grant.as_deref().expect("checked");
+                Ability::SpellsHave {
+                    filter: self.filter(&c.spells),
+                    from_hand: g.from_hand,
+                    keywords: keywords(g.keywords),
+                    storm: g.storm,
+                    affinity: g.affinity.as_ref().map(|f| self.filter(f)),
+                }
+            }
             AbilityDef::CostChange(c) => Ability::CostChange {
                 filter: self.filter(&c.spells),
                 whose: c.whose,
