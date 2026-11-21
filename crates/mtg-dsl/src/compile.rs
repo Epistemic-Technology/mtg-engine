@@ -2759,6 +2759,26 @@ impl Compiler<'_> {
                         "a delayed `whenever` trigger needs a duration (`... this turn`, `until end of turn, ...`)",
                     );
                 }
+                // "Exile those tokens when this leaves the battlefield"
+                // about the tokens: the trigger would watch the tokens
+                // (a delayed trigger's `this` is what it is about) while
+                // printing the source. Only "... this turn" names the
+                // object it is about ("When that creature dies this
+                // turn").
+                let this_obj = |t: &Trigger| {
+                    matches!(
+                        t,
+                        Trigger::Leaves(TriggerObj::This) | Trigger::Dies(TriggerObj::This)
+                    )
+                };
+                if !*this_turn
+                    && !matches!(about, Recipient::Source)
+                    && (this_obj(trigger) || matches!(trigger, Trigger::When(t) if this_obj(t)))
+                {
+                    return self.err(
+                        "a delayed trigger about another object can't watch `this` leave or die",
+                    );
+                }
                 let effects = self.sentences(effects)?;
                 // A delayed triggered mana ability ("whenever a land is
                 // tapped for mana this turn, add ...", CR 605.1b) has no

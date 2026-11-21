@@ -50,6 +50,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         it_source: false,
         no_trigger_obj: false,
         created_at: None,
+        no_trigger_amount: false,
         in_spell: false,
         group_named: false,
         subject: None,
@@ -555,6 +556,9 @@ struct P {
     /// targets declared then: `it` after it is that token ("Create a 1/1
     /// ... token. Put X +1/+1 counters on it.") until a target is named.
     created_at: Option<usize>,
+    /// Inside a triggered ability whose event has no amount (a cast, a
+    /// step, life gain): `that much` would be 0.
+    no_trigger_amount: bool,
     /// Inside an instant or sorcery's own effects (`spell:`, or the modes
     /// of a modal spell): `it` after a target is that target, since the
     /// spell itself can only be the "it" that deals damage.
@@ -1362,6 +1366,7 @@ impl P {
         self.it_source = false;
         self.no_trigger_obj = false;
         self.created_at = None;
+        self.no_trigger_amount = false;
         self.in_spell = false;
         self.group_named = false;
         self.returned = None;
@@ -2310,6 +2315,7 @@ impl P {
                     if filter.targeting.as_ref().and_then(|t| t.filter.as_ref())
                         .is_some_and(|f| f.relation == Relation::This));
                 self.no_trigger_obj = no_trigger_object(&trigger);
+                self.no_trigger_amount = no_trigger_amount(&trigger);
                 if when && !crate::format::natural_when(&trigger) {
                     trigger = Trigger::When(Box::new(trigger));
                 }
@@ -7781,6 +7787,12 @@ impl P {
 
     fn num(&mut self) -> R<Num> {
         if self.at_words(&["that", "much"]) {
+            // The triggering event's amount: none for a cast, a step, or
+            // life gain ("If eight or more mana was spent to cast that
+            // spell, ... deals that much damage" would deal 0).
+            if self.in_trigger && !self.in_delayed && self.no_trigger_amount {
+                return self.fail("`that much`: this trigger's event has no amount");
+            }
             self.pos += 2;
             return Ok(Num::ThatMuch);
         }
@@ -8421,6 +8433,7 @@ impl P {
             it_source: self.it_source,
             no_trigger_obj: self.no_trigger_obj,
             created_at: self.created_at,
+            no_trigger_amount: self.no_trigger_amount,
             in_spell: self.in_spell,
             group_named: self.group_named,
             subject: None,
@@ -9093,6 +9106,7 @@ impl P {
                         it_source: false,
                         no_trigger_obj: false,
                         created_at: None,
+                        no_trigger_amount: false,
                         in_spell: false,
                         group_named: false,
                         subject: None,
@@ -11770,6 +11784,22 @@ impl P {
 }
 
 /// "another target creature": the target spec, excluding the source.
+/// A trigger whose event has no amount for `that much`
+/// (`trigger_amount` is the damage, the counters, or a batch's size).
+fn no_trigger_amount(t: &Trigger) -> bool {
+    match t {
+        Trigger::When(t) | Trigger::Next(t) => no_trigger_amount(t),
+        Trigger::Either(a, b) => no_trigger_amount(a) && no_trigger_amount(b),
+        Trigger::CastsSpell { .. }
+        | Trigger::CastsFiltered { .. }
+        | Trigger::CastThis { .. }
+        | Trigger::CastsNth { .. }
+        | Trigger::GainsLife { .. }
+        | Trigger::GainsLifeFirst { .. } => true,
+        t => no_trigger_object(t) && !matches!(t, Trigger::CreaturesDealCombatDamage(_)),
+    }
+}
+
 /// A trigger whose event names no object (a step, a player's life gain,
 /// day and night): its ability has no triggering object, so `it` there
 /// would denote nothing.

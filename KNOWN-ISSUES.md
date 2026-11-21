@@ -46,9 +46,6 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
-- **`that much` after a mana-spent check** is 0 (Tellah, Great Sage).
-- **`delayed those tokens: exile those tokens when this leaves`**
-  watches the tokens, not the source (Mysterio, Master of Illusion).
 - **"any other target" meaning other than the enchanted creature**
   (Pain for All: "enchanted creature deals damage ... to any other
   target"): `another target any` excludes the source (the Aura), not
@@ -109,7 +106,8 @@ named the feature; a card may need more than one.
   or tapped creature", Sonar Strike; a parse error now); one target per opponent; targets with a total mana value;
   "up to X targets" in a reflexive trigger; mixed battlefield and
   graveyard targets.
-- **Other effects:** "End the turn"; exchange control; return all
+- **Other effects:** "Exile those tokens when this leaves the
+  battlefield" (Mysterio; the old form is a compile error now); "End the turn"; exchange control; return all
   land cards from your graveyard to the battlefield; search then put
   into hand or graveyard; put a card from among milled cards onto the
   battlefield; a player choosing to act instead of a penalty ("unless
