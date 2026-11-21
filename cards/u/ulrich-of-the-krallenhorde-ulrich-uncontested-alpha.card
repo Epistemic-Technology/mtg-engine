@@ -1,0 +1,16 @@
+card "Ulrich of the Krallenhorde // Ulrich, Uncontested Alpha" {
+  oracle_id 0d397c05-a680-4274-972f-6a5f778b5133
+  layout transform
+  cost {3}{R}{G}
+  type Legendary Creature — Human Werewolf
+  pt 4/4
+  triggered whenever this enters or transforms: target creature gets +4/+4 until end of turn
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Ulrich, Uncontested Alpha" {
+    type Legendary Creature — Werewolf
+    pt 6/6
+    color green red
+    triggered whenever this transforms: you may this fights target non-Werewolf creature you don't control
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

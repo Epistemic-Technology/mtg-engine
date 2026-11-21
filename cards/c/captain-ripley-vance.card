@@ -1,0 +1,7 @@
+card "Captain Ripley Vance" {
+  oracle_id eefeeab1-b9f2-451a-9250-eb7b54d00fc1
+  cost {2}{R}
+  type Legendary Creature — Human Pirate
+  pt 3/2
+  triggered whenever you cast your third spell each turn: put 1 +1/+1 counters on this then deal damage equal power to any target
+}

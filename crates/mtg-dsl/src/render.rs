@@ -7892,8 +7892,15 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         } => {
             let a = trigger_text(first, ctx, next);
             let b = trigger_text(second, ctx, next);
-            let subject = format!("{} ", this_ref(ctx.card));
-            let a = a.split_once(&subject).map_or(a.as_str(), |(_, v)| v);
+            // "Whenever this creature enters or transforms into ~": a
+            // legendary one too.
+            let named = format!("{} ", this_ref(ctx.card));
+            let subject = if **second == Trigger::Transforms {
+                format!("this {} ", self_noun(ctx.card))
+            } else {
+                named.clone()
+            };
+            let a = a.split_once(&named).map_or(a.as_str(), |(_, v)| v);
             let b = b.split_once(&subject).map_or(b.as_str(), |(_, v)| v);
             format!(
                 "{} {subject}{a} or {b}",
@@ -8000,9 +8007,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         // CR 701.27: the face this ability is on.
         Trigger::Transforms => {
             ctx.source_mentioned = true;
+            // "this creature" even for a legendary one (Ulrich).
             format!(
-                "whenever {} transforms into {}",
-                this_ref(ctx.card),
+                "whenever this {} transforms into {}",
+                self_noun(ctx.card),
                 ctx.card.name
             )
         }

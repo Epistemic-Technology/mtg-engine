@@ -1,0 +1,14 @@
+card "Diviner of Victory // Unwind History" {
+  oracle_id e7b78acd-5288-4528-97a8-a5b43de90bf5
+  layout prepare
+  cost {U}
+  type Creature — Dwarf Wizard
+  pt 1/1
+  enters prepared
+  triggered whenever you scry or surveil: this gets +1/+1 until end of turn
+  face "Unwind History" {
+    cost {1}{U}
+    type Sorcery
+    spell: return target creature an opponent controls with mana value 3 or less to hand; surveil 1
+  }
+}

@@ -1,0 +1,7 @@
+card "Wildgrowth Walker" {
+  oracle_id d80562c2-cf90-43a4-9721-28da40fdfeed
+  cost {1}{G}
+  type Creature — Elemental
+  pt 1/3
+  triggered whenever creature you control explores: put 1 +1/+1 counters on this and you gain 3 life
+}

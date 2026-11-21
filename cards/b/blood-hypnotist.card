@@ -1,0 +1,8 @@
+card "Blood Hypnotist" {
+  oracle_id 32845ed6-2328-462e-be3a-579589748588
+  cost {2}{R}
+  type Creature — Vampire
+  pt 3/3
+  keywords can't block
+  triggered once each turn whenever you sacrifice one or more Blood token: target creature can't block this turn
+}

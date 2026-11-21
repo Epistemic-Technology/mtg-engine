@@ -1,0 +1,7 @@
+card "Mardu Ascendancy" {
+  oracle_id aa1de5ce-ddd4-4c1f-8c52-0311f4419e7b
+  cost {R}{W}{B}
+  type Enchantment
+  triggered whenever nontoken creature you control attacks: create 1 tapped and attacking "1/1 red Goblin creature"
+  activated sacrifice this: each creature you control gets +0/+3
+}

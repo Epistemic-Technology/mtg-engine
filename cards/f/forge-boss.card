@@ -1,0 +1,7 @@
+card "Forge Boss" {
+  oracle_id c234d2ab-21d5-41a9-9ab8-47a8bd53a686
+  cost {2}{B}{R}
+  type Creature — Human Warrior
+  pt 3/4
+  triggered once each turn whenever you sacrifice one or more other creature: deal 2 damage to each opponent
+}

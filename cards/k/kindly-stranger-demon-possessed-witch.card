@@ -1,0 +1,14 @@
+card "Kindly Stranger // Demon-Possessed Witch" {
+  oracle_id 7579e1a2-2747-4e37-9a7a-c13b62190195
+  layout transform
+  cost {2}{B}
+  type Creature — Human
+  pt 2/3
+  label "Delirium" activated {2}{B}, if delirium: transform this
+  face "Demon-Possessed Witch" {
+    type Creature — Human Shaman
+    pt 4/3
+    color black
+    triggered when this transforms: you may destroy target creature
+  }
+}

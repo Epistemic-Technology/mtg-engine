@@ -1,0 +1,8 @@
+card "Captain's Claws" {
+  oracle_id 4cacd7de-83ac-4767-b6f2-f5a89f04a0b9
+  cost {2}
+  type Artifact — Equipment
+  static equipped creature: +1/+0
+  triggered whenever equipped creature attacks: create 1 tapped and attacking "1/1 white Kor Ally creature"
+  equip {1}
+}

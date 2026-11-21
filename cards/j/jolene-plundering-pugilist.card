@@ -1,0 +1,8 @@
+card "Jolene, Plundering Pugilist" {
+  oracle_id fb8efd6e-b8f8-4da8-ac65-5b745c02d2bb
+  cost {1}{R}{G}
+  type Legendary Creature — Human Mercenary
+  pt 4/2
+  triggered whenever you attack with one or more creature with power 4 or greater: create 1 "Treasure"
+  activated {1}{R}, sacrifice Treasure: deal 1 damage to any target
+}

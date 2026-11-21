@@ -1,0 +1,6 @@
+card "Dying to Serve" {
+  oracle_id 2b719057-1bc0-4c3a-97c3-8377844570dd
+  cost {2}{B}
+  type Enchantment
+  triggered once each turn whenever you discard one or more cards: create 1 tapped "2/2 black Zombie creature"
+}
