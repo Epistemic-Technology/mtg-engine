@@ -1,0 +1,11 @@
+card "Applied Geometry" {
+  oracle_id 88fc179c-055b-47c2-b830-1fd2b1377147
+  cost {2}{G}{U}
+  type Sorcery
+  spell: create token copy of target non-Aura permanent you control with exceptions; put 6 +1/+1 counters on it
+  except {
+    pt 0/0
+    types Creature
+    subtypes Fractal
+  }
+}

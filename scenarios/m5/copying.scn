@@ -285,3 +285,31 @@ scenario "lumaret's favor: copied after life was gained" {
   run_to turn 1 postcombat_main
   assert power "Grizzly Bears" 6
 }
+
+# "Create a token that's a copy of target non-Aura permanent you control,
+# except it's a 0/0 Fractal creature in addition to its other types. Put six
+# +1/+1 counters on it." (Applied Geometry: base P/T and types in the
+# exceptions, CR 707.9b)
+
+scenario "Applied Geometry: a copy of a creature is a 6/6 Fractal" {
+  battlefield A: 2 "Forest", 2 "Island", "Hill Giant"
+  hand A: "Applied Geometry"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Applied Geometry" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Hill Giant"
+  assert power newest A "Hill Giant" 6
+  assert is newest A "Hill Giant" "Fractal"
+  assert is newest A "Hill Giant" "Giant"
+}
+
+scenario "Applied Geometry: a copy of an artifact is an artifact creature" {
+  battlefield A: 2 "Forest", 2 "Island", "Darksteel Relic"
+  hand A: "Applied Geometry"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Applied Geometry" targeting "Darksteel Relic"
+  run_to turn 1 postcombat_main
+  assert is newest A "Darksteel Relic" creature
+  assert is newest A "Darksteel Relic" artifact
+  assert toughness newest A "Darksteel Relic" 6
+}

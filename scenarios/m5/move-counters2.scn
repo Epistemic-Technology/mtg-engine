@@ -48,3 +48,24 @@ scenario "Arcbound Fiend takes a counter from an opponent's creature" {
   assert counters "Arcbound Fiend" +1/+1 2
   assert counters "Grizzly Bears" +1/+1 1
 }
+
+# A named counter with no rules of its own: incubation (Drake Hatcher).
+
+scenario "Drake Hatcher: incubation counters from combat damage, then a Drake" {
+  battlefield A: "Drake Hatcher" with 1 +1/+1
+  start turn 1 A precombat_main
+  turn 1 A: attack "Drake Hatcher"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "Drake Hatcher" incubation 2
+}
+
+scenario "Drake Hatcher: three counters make a Drake" {
+  battlefield A: "Drake Hatcher" with 3 incubation
+  start turn 1 A precombat_main
+  turn 1 A: activate "Drake Hatcher"
+  illegal turn 1 postcombat_main A: activate "Drake Hatcher"
+  run_to turn 1 end
+  assert battlefield A contains "Drake"
+  assert counters "Drake Hatcher" incubation 0
+}

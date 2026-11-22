@@ -2856,6 +2856,8 @@ pub enum CounterKind {
     Film,
     Possession,
     Wish,
+    /// A named counter with no rules of its own (Drake Hatcher).
+    Incubation,
     /// CR 122.1h: if a permanent with a finality counter on it would be
     /// put into a graveyard from the battlefield, it is exiled instead.
     Finality,
@@ -2907,7 +2909,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 50] = [
+    pub const NAMED: [(&'static str, CounterKind); 51] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2944,6 +2946,7 @@ impl CounterKind {
         ("film", CounterKind::Film),
         ("possession", CounterKind::Possession),
         ("wish", CounterKind::Wish),
+        ("incubation", CounterKind::Incubation),
         ("finality", CounterKind::Finality),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),

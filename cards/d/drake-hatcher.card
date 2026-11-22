@@ -1,0 +1,9 @@
+card "Drake Hatcher" {
+  oracle_id 4de0ccab-bb5d-4c7c-827e-36aa1d00b182
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/3
+  keywords vigilance, prowess
+  triggered whenever this deals combat damage to a player: put that much incubation counters on this
+  activated remove 3 incubation counters from this: create 1 "2/2 blue Drake creature with flying"
+}

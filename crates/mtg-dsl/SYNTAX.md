@@ -546,7 +546,7 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `spore`, `depletion`, `quest`, `ki`, `time`, `tide`, `shield`, `age`,
 `fade`, `ice`, `level`, `lore`, `page`, `arrowhead`, `javelin`, `polyp`,
 `healing`, `mining`, `scream`, `credit`, `brick`, `currency`, `sleep`,
-`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `divinity`, `finality` (CR
+`net`, `flood`, `glyph`, `crystal`, `unlock`, `loot`, `supply`, `incubation`, `divinity`, `finality` (CR
 122.1h: a permanent with one that would be put into a graveyard from the
 battlefield is exiled instead, so it doesn't die; `return target creature
 card from your graveyard to battlefield with 1 finality counter` prints
