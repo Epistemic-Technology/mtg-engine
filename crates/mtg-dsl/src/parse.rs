@@ -5205,6 +5205,11 @@ impl P {
                     self.pos += 1;
                     self.expect_word("of")?;
                     let of = self.recipient()?;
+                    // "Target opponent gains control of target permanent
+                    // you control.": another player, indefinitely.
+                    if subject != Recipient::You {
+                        return Ok(Effect::GiveControl { of, to: subject });
+                    }
                     self.until_end_of_turn();
                     return Ok(Effect::GainControl { of, forever: false });
                 }
@@ -7250,6 +7255,9 @@ impl P {
                 },
             }),
             "populate" => Ok(Effect::Populate),
+            "exchange" if self.eat_words(&["life", "totals", "with"]) => Ok(Effect::ExchangeLife {
+                with: self.recipient()?,
+            }),
             "exchange" if self.eat_words(&["control", "of"]) => Ok(Effect::ExchangeControl {
                 what: if self.at_many() {
                     vec![self.many_target()?]
@@ -11042,6 +11050,19 @@ impl P {
         if self.eat_words(&["you", "commit", "a", "crime"]) {
             let your_turn = self.eat_words(&["during", "your", "turn"]);
             return Ok(Trigger::CommitsCrime { your_turn });
+        }
+        if self.eat_words(&[
+            "an",
+            "opponent",
+            "gains",
+            "control",
+            "of",
+            "a",
+            "permanent",
+            "from",
+            "you",
+        ]) {
+            return Ok(Trigger::OpponentGainsControl);
         }
         if self.eat_words(&["you", "turn", "a", "permanent", "face", "up"]) {
             return Ok(Trigger::YouTurnFaceUp);

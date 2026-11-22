@@ -1031,6 +1031,8 @@ struct Ctx<'a> {
     /// A spell was just countered unless its controller paid: "If they
     /// do" follows.
     they_paid: bool,
+    /// After "exchange life totals": "If you lost life this way".
+    lost_life_did: bool,
     /// "That player may pay {4}": a following "If you do" prints "If the
     /// player does".
     player_did: bool,
@@ -1078,6 +1080,7 @@ impl<'a> Ctx<'a> {
             pumped_x: Vec::new(),
             in_won: false,
             they_paid: false,
+            lost_life_did: false,
             player_did: false,
             before_if_you_dont: false,
             in_unless: false,
@@ -4338,6 +4341,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             "return all {} from your graveyard to the battlefield",
             cards_phrase(filter, ctx.card, true)
         )),
+        Effect::ExchangeLife { with } => {
+            // "If you lost life this way, draw that many cards." (Mister
+            // Negative).
+            ctx.lost_life_did = true;
+            Clause::imperative(format!("exchange life totals with {}", ctx.obj(*with)))
+        }
+        Effect::GiveControl { of, to } => {
+            let s = ctx.subj(*to);
+            let v = ctx.verb(*to, "gains", "gain");
+            let o = ctx.obj(*of);
+            // "If they do, you draw a card." (Stiltzkin).
+            ctx.they_paid = true;
+            Clause::with_subject(*to, s, format!("{v} control of {o}"))
+        }
         Effect::ExchangeControl { what } => {
             let o = if what.len() == 1 {
                 ctx.obj_all(what[0])
@@ -7256,7 +7273,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::IfYouDo(inner) => {
             // "Counter target spell unless its controller pays {2}. If they
             // do, ...".
-            let who = if std::mem::take(&mut ctx.player_did) {
+            let who = if std::mem::take(&mut ctx.lost_life_did) {
+                "you lost life this way"
+            } else if std::mem::take(&mut ctx.player_did) {
                 "the player does"
             } else if std::mem::take(&mut ctx.they_paid) {
                 "they do"
@@ -8602,6 +8621,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             if *your_turn { " during your turn" } else { "" }
         ),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
+        Trigger::OpponentGainsControl => {
+            "whenever an opponent gains control of a permanent from you".to_string()
+        }
         Trigger::DiscardsBatch { whose } => format!(
             "whenever {} one or more cards",
             crate::format::discards_words(*whose)

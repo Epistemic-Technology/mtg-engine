@@ -11342,6 +11342,66 @@ impl GameState {
                 self.cbump();
                 self.sync_control();
             }
+            Effect::ExchangeLife { with } => {
+                ctx.did = false;
+                let p = ctx.controller;
+                let Some(q) = self
+                    .recipients(ctx, *with)
+                    .into_iter()
+                    .find_map(|t| match t {
+                        Target::Player(q) if q != p && self.player(q).lost.is_none() => Some(q),
+                        _ => None,
+                    })
+                else {
+                    return;
+                };
+                let (a, b) = (self.player(p).life, self.player(q).life);
+                // CR 701.12c: each gains or loses the life necessary to
+                // equal the other's former total.
+                let (loser, gainer, d) = match a.cmp(&b) {
+                    std::cmp::Ordering::Equal => return,
+                    std::cmp::Ordering::Greater => (p, q, a - b),
+                    std::cmp::Ordering::Less => (q, p, b - a),
+                };
+                self.change_life(loser, -d);
+                self.gain_life(gainer, d.unsigned_abs());
+                ctx.did = loser == p;
+            }
+            Effect::GiveControl { of, to } => {
+                ctx.did = false;
+                let Some(p) = self.recipients(ctx, *to).into_iter().find_map(|t| match t {
+                    Target::Player(p) if self.player(p).lost.is_none() => Some(p),
+                    _ => None,
+                }) else {
+                    return;
+                };
+                let mut given = false;
+                for t in self.recipients(ctx, *of) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    if self.objects[id].controller == p {
+                        continue;
+                    }
+                    let timestamp = self.tick();
+                    self.effects.push(ContinuousEffect {
+                        source: Some(ctx.source),
+                        controller: p,
+                        timestamp,
+                        duration: Duration::Permanent,
+                        affected: Affected::Objects(smallvec::smallvec![id]),
+                        parts: smallvec::smallvec![Modification::Control],
+                    });
+                    self.control_effects += 1;
+                    given = true;
+                }
+                if given {
+                    self.cbump();
+                    self.sync_control();
+                }
+                // "If they do, you draw a card.": whether it changed hands.
+                ctx.did = given;
+            }
             Effect::EndTurn => {
                 // CR 724.1a: triggered abilities not yet on the stack cease
                 // to exist.

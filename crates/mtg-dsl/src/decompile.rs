@@ -1412,6 +1412,11 @@ impl Decompiler<'_> {
             CoreEffect::ExchangeControl { a, b } => Effect::ExchangeControl {
                 what: std::iter::once(*a).chain(*b).map(r).collect(),
             },
+            CoreEffect::ExchangeLife { with } => Effect::ExchangeLife { with: r(*with) },
+            CoreEffect::GiveControl { of, to } => Effect::GiveControl {
+                of: r(*of),
+                to: r(*to),
+            },
             CoreEffect::Airbend { what } => Effect::Airbend {
                 what: vec![r(*what)],
             },
@@ -1858,6 +1863,7 @@ impl Decompiler<'_> {
                     batch: *batch,
                 }
             }
+            TriggerSpec::OpponentGainsControl => Trigger::OpponentGainsControl,
             TriggerSpec::CommitsCrime { your_turn } => Trigger::CommitsCrime {
                 your_turn: *your_turn,
             },

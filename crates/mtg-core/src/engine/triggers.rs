@@ -1051,6 +1051,11 @@ impl GameState {
                 Some((Some(*obj), Some(p)))
             }
             // CR 700.13: "Whenever you commit a crime [during your turn]".
+            // "Whenever an opponent gains control of a permanent from you".
+            (TriggerSpec::OpponentGainsControl, Event::ControlChanged { obj, from, to }) => {
+                (*from == w.controller && *to != w.controller)
+                    .then_some((Some(*obj), Some(*to)))
+            }
             (TriggerSpec::CommitsCrime { your_turn }, Event::CommittedCrime { player }) => {
                 (*player == w.controller && (!*your_turn || self.active_player == *player))
                     .then_some((None, Some(*player)))

@@ -2243,6 +2243,13 @@ impl Compiler<'_> {
                 }),
                 _ => return self.err("exchange control of two permanents"),
             },
+            Effect::ExchangeLife { with } => {
+                out.push(CoreEffect::ExchangeLife { with: r(*with) });
+            }
+            Effect::GiveControl { of, to } => out.push(CoreEffect::GiveControl {
+                of: r(*of),
+                to: r(*to),
+            }),
             Effect::Airbend { what } => {
                 for w in what {
                     out.push(CoreEffect::Airbend { what: r(*w) });
@@ -3549,6 +3556,7 @@ impl Compiler<'_> {
             Trigger::CommitsCrime { your_turn } => TriggerSpec::CommitsCrime {
                 your_turn: *your_turn,
             },
+            Trigger::OpponentGainsControl => TriggerSpec::OpponentGainsControl,
             Trigger::YouTurnFaceUp => TriggerSpec::TurnedFaceUp(self.trigger_obj(
                 &crate::ast::TriggerObj::Filter(Filter {
                     who: Some(Who::You),

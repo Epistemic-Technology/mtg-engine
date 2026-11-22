@@ -1328,6 +1328,14 @@ impl Fmt {
             Effect::ExchangeControl { what } => {
                 format!("exchange control of {}", self.recipients(what, t))
             }
+            Effect::ExchangeLife { with } => {
+                format!("exchange life totals with {}", self.recipient(*with, t))
+            }
+            Effect::GiveControl { of, to } => format!(
+                "{} gains control of {}",
+                self.recipient(*to, t),
+                self.recipient(*of, t)
+            ),
             Effect::GraveyardToBattlefield { filter: f } => format!(
                 "return all {} card from your graveyard to battlefield",
                 filter(f)
@@ -3913,6 +3921,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             if *your_turn { " during your turn" } else { "" }
         ),
         Trigger::YouTurnFaceUp => "whenever you turn a permanent face up".to_string(),
+        Trigger::OpponentGainsControl => {
+            "whenever an opponent gains control of a permanent from you".to_string()
+        }
         Trigger::DiscardsBatch { whose } => {
             format!("whenever {} one or more cards", discards_words(*whose))
         }

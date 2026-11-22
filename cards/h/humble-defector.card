@@ -1,0 +1,7 @@
+card "Humble Defector" {
+  oracle_id 1582e16d-4825-4cc5-b12c-449c45e4e449
+  cost {1}{R}
+  type Creature — Human Rogue
+  pt 2/1
+  activated {T}, during your turn: draw 2 cards; target opponent gains control of this
+}

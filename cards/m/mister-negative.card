@@ -1,0 +1,8 @@
+card "Mister Negative" {
+  oracle_id c8da3262-826d-4ea8-bb22-06374bebefe5
+  cost {5}{W}{B}
+  type Legendary Creature — Human Villain
+  pt 5/5
+  keywords vigilance, lifelink
+  label "Darkforce Inversion" triggered when this enters: you may exchange life totals with target opponent; if you do, draw count that many life lost this way cards
+}

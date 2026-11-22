@@ -879,6 +879,21 @@ target land an opponent controls` name the two. Nothing happens unless
 both are still on the battlefield (CR 701.12a) under different
 controllers (701.12b); then each controller gains control of the other's
 permanent indefinitely.
+`target opponent gains control of target permanent you control` (a
+player subject other than `you`; CR 613.1b) prints "Target opponent gains
+control of target permanent you control.": that player gains control
+indefinitely. A following `if they do,` prints "If they do, ..." and holds
+only if the permanent changed hands (Stiltzkin); `you may have` prints "you
+may have target opponent gain control of ...". `whenever an opponent gains
+control of a permanent from you` triggers on each permanent its
+controller loses to an opponent, an "until end of turn" effect ending
+included (the permanent is the triggering object, the opponent the
+triggering player).
+`exchange life totals with target opponent` (CR 701.12c): each player
+gains or loses the life needed to reach the other's former total; a
+following `if you do,` prints "If you lost life this way, ..." and holds
+only if the controller lost life, and `count that many life lost this way`
+is that loss ("draw that many cards", Mister Negative).
 `end the turn` (CR 724.1) prints "End the turn.": triggered abilities
 waiting to be put on the stack cease to exist, every object on the stack
 (the resolving spell or ability too) is exiled (an ability or a copy of a

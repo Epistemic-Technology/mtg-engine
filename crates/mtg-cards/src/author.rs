@@ -1855,6 +1855,24 @@ impl Templates {
                     Some(format!("exchange control of {a} and {b}"))
                 },
             ),
+            // CR 613.1b: another player gains control.
+            (
+                r(r"^(Target opponent|Target player) gains control of (.+)$"),
+                |c, t| {
+                    *t += 1;
+                    let who = lowercase_first(cap(c, 1));
+                    let of = recipient(cap(c, 2), t)?;
+                    Some(format!("{who} gains control of {of}"))
+                },
+            ),
+            // CR 701.12c.
+            (
+                r(r"^[Ee]xchange life totals with target opponent$"),
+                |_, t| {
+                    *t += 1;
+                    Some("exchange life totals with target opponent".to_string())
+                },
+            ),
             // CR 608.2d: a punisher.
             (
                 r(

@@ -4327,6 +4327,22 @@ pub enum Effect {
         a: Recipient,
         b: Option<Recipient>,
     },
+    /// "Target opponent gains control of target permanent you control."
+    /// (CR 613.1b): the first player `to` names gains control of each
+    /// object `of` names, indefinitely. Sets the "if they do" flag when
+    /// any of them changed controller.
+    GiveControl {
+        of: Recipient,
+        to: Recipient,
+    },
+    /// "Exchange life totals with target opponent" (CR 701.12c): the
+    /// controller and the first player `with` names each gain or lose the
+    /// life needed to reach the other's former total. Sets the "if you do"
+    /// flag when the controller lost life ("If you lost life this way"),
+    /// which the resolution's life-lost log then holds.
+    ExchangeLife {
+        with: Recipient,
+    },
     /// Recruit (CR 701.70a): "Draw a card, then discard a card. If you
     /// discarded a nonland card this way, create a 1/1 white Human Soldier
     /// creature token." (`token`).
@@ -5232,6 +5248,11 @@ pub enum TriggerSpec {
     /// "Whenever you commit a crime" (CR 700.13), `your_turn`: "...
     /// during your turn". The controller is the triggering player.
     CommitsCrime { your_turn: bool },
+    /// "Whenever an opponent gains control of a permanent from you" (CR
+    /// 613.1b): a permanent the controller controlled comes under an
+    /// opponent's control. It is the triggering object; the opponent is
+    /// the triggering player.
+    OpponentGainsControl,
     /// "Whenever you gain life".
     GainsLife { whose: Who },
     /// "Whenever you gain life for the first time each turn": the life
@@ -5642,6 +5663,7 @@ impl TriggerSpec {
             | TriggerSpec::FullyUnlocks { .. }
             | TriggerSpec::CollectsEvidence { .. }
             | TriggerSpec::Forages { .. }
+            | TriggerSpec::OpponentGainsControl
             | TriggerSpec::DayNight => WATCH_DESIG,
             TriggerSpec::Sacrifices(_)
             | TriggerSpec::Sacrificed { .. }

@@ -2702,6 +2702,8 @@ pub enum Trigger {
     CommitsCrime {
         your_turn: bool,
     },
+    /// `whenever an opponent gains control of a permanent from you`.
+    OpponentGainsControl,
     /// `whenever you turn a permanent face up` (CR 708.8): a permanent you
     /// control is turned face up; it is "it".
     YouTurnFaceUp,
@@ -3861,6 +3863,18 @@ pub enum Effect {
     /// target creatures."
     ExchangeControl {
         what: Vec<Recipient>,
+    },
+    /// `target opponent gains control of target permanent you control`,
+    /// `an opponent gains control of this` (CR 613.1b): another player
+    /// gains control indefinitely.
+    GiveControl {
+        of: Recipient,
+        to: Recipient,
+    },
+    /// `exchange life totals with target opponent` (CR 701.12c); a
+    /// following `if you do,` prints "If you lost life this way, ...".
+    ExchangeLife {
+        with: Recipient,
     },
     /// `return all creature card from your graveyard to battlefield`:
     /// "Return all creature cards from your graveyard to the battlefield."

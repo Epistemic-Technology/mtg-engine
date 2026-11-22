@@ -1,0 +1,7 @@
+card "Magus of the Mirror" {
+  oracle_id f587676e-d45f-4b1d-be2c-b404d8f55fb3
+  cost {4}{B}{B}
+  type Creature — Human Wizard
+  pt 4/2
+  activated {T}, sacrifice this, during your upkeep: exchange life totals with target opponent
+}
