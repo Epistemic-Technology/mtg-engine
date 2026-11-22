@@ -5230,10 +5230,12 @@ impl GameState {
         // CR 702.29d: "when you cycle" triggers as the cycling ability is
         // activated, so they resolve before it.
         if let Some((card, def)) = cycled {
+            let x = self.x_of(obj);
             self.emit(Event::Cycled {
                 player: controller,
                 card,
                 def,
+                x,
             });
         }
         // CR 605.3b: a mana ability doesn't use the stack.

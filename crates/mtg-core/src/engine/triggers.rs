@@ -490,7 +490,13 @@ impl GameState {
     #[cold]
     #[inline(never)]
     fn cycle_triggers(&self, event: &Event, fired: &mut SmallVec<[PendingTrigger; 2]>) {
-        let Event::Cycled { player, card, def } = *event else {
+        let Event::Cycled {
+            player,
+            card,
+            def,
+            x,
+        } = *event
+        else {
             return;
         };
         if !self.pool.get(def).may_watch(event) {
@@ -508,7 +514,9 @@ impl GameState {
                         def,
                         trigger_obj: Some(card),
                         trigger_player: Some(player),
-                        trigger_amount: 0,
+                        // The X paid for cycling, for the trigger's X
+                        // (`put_trigger_on_stack`).
+                        trigger_amount: x,
                     },
                     timestamp: 0,
                 });
@@ -1771,6 +1779,16 @@ impl GameState {
             && let Some(&(_, x)) = self.entered_x.iter().find(|(o, _)| *o == t.ability.source)
         {
             self.x_values.push((obj, x));
+        }
+        // "Cycling {X}{G}{G}" and "When you cycle this card, destroy ...
+        // with mana value X": X is the value paid for cycling (CR 107.3,
+        // 702.29d), carried as the trigger's amount.
+        if t.ability.trigger_amount > 0
+            && t.ability.trigger_obj == Some(t.ability.source)
+            && let AbilityDef::Triggered(tr) = self.pool.ability(t.ability.ability)
+            && tr.trigger.cycles_this()
+        {
+            self.x_values.push((obj, t.ability.trigger_amount));
         }
         self.consecutive_passes = 0;
         self.bump();

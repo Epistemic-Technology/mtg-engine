@@ -197,10 +197,6 @@ Wrong behaviour that reaches accepted cards:
   grants the keyword but a noncreature spell does not pump. Bria,
   Riptide Rogue has the same fault. Sokka's scenario leaves that
   assertion out.
-- **X in a cycling trigger is 0.** `cycling {X}{G}{G}` with `triggered
-  when you cycle this: ... X` (Webstrike Elite, accepted; Valor's
-  Flagship, rejected): the X paid for cycling does not reach the
-  trigger. Not yet reproduced on Webstrike Elite.
 
 Forms that pass the gate with the wrong meaning:
 

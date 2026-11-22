@@ -193,11 +193,13 @@ pub enum Event {
         card: ObjId,
     },
     /// `player` cycled a card (CR 702.29): discarded it to pay a cycling
-    /// cost. `card` is the card in the zone it was discarded to.
+    /// cost. `card` is the card in the zone it was discarded to; `x` the
+    /// X paid for the cycling cost ("cycling {X}{G}{G}").
     Cycled {
         player: PlayerId,
         card: ObjId,
         def: CardRef,
+        x: u32,
     },
     EffectEnded {
         affected: ObjId,
