@@ -2313,6 +2313,21 @@ impl Templates {
                     Some("discard all cards in hand then draw count that many discarded this way cards".to_string())
                 },
             ),
+            // "Discard any number of cards, then draw that many cards plus
+            // one", "discard up to two cards, then draw that many cards".
+            (
+                r(r"^[Dd]iscard (any number of|up to \w+) cards, then draw that many cards( plus one)?$"),
+                |c, _| {
+                    let how = match cap(c, 1) {
+                        "any number of" => "any number".to_string(),
+                        up => format!("up to {}", number(up.strip_prefix("up to ")?)?),
+                    };
+                    let plus = if cap(c, 2).is_empty() { "" } else { " plus 1" };
+                    Some(format!(
+                        "discard {how} cards chosen then draw count that many{plus} discarded this way cards"
+                    ))
+                },
+            ),
             (r(r"^[Pp]ut its counters on (.+)$"), |c, t| {
                 Some(format!("put its counters on {}", recipient(cap(c, 1), t)?))
             }),
@@ -3128,6 +3143,7 @@ impl Templates {
             let clauses: Vec<&str> = if body.contains("earch your library")
                 || body.contains("earch their library")
                 || body == "Discard all the cards in your hand, then draw that many cards"
+                || (body.contains("iscard ") && body.contains(", then draw that many cards"))
                 || body.ends_with("explores, then it explores again")
                 || body.contains(", then meld them into ")
             {
