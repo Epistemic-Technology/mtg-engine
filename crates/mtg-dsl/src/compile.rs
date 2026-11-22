@@ -95,7 +95,29 @@ pub fn compile_order(cards: &mut [Card]) {
         Kind::Emblem => 2,
         Kind::Card => 3,
     };
-    cards.sort_by(|a, b| rank(a).cmp(&rank(b)).then_with(|| a.name.cmp(&b.name)));
+    // A `Card` is large, and a sort moves each one many times; with the
+    // whole corpus that was a quarter of start-up. Sort the positions,
+    // then move each card once.
+    let ranks: Vec<u8> = cards.iter().map(rank).collect();
+    let mut order: Vec<usize> = (0..cards.len()).collect();
+    order.sort_by(|&a, &b| {
+        ranks[a]
+            .cmp(&ranks[b])
+            .then_with(|| cards[a].name.cmp(&cards[b].name))
+            .then(a.cmp(&b))
+    });
+    // `order[i]` is the card that belongs at `i`: follow each cycle.
+    for start in 0..order.len() {
+        let mut i = start;
+        while order[i] != start && order[i] != i {
+            let from = order[i];
+            cards.swap(i, from);
+            order[i] = i;
+            i = from;
+        }
+        order[i] = i;
+    }
+    debug_assert!(cards.is_sorted_by(|a, b| (rank(a), &a.name) <= (rank(b), &b.name)));
 }
 
 /// Compile one definition into the pool.

@@ -254,9 +254,13 @@ named the feature; a card may need more than one.
 
 ## 4. Process
 
-- **Per-game throughput has fallen about 12% over five waves** (2.8%,
-  none measured, 4.0%, about 2%, 3.4%; mono-red mirror, pinned best of
-  five; 3,379 games/s after the fifth). None of it has been bisected.
+- **Per-game throughput has fallen about 7.5% over five waves**, about
+  2% a wave: binaries built at each wave boundary measure 3,792, 3,733,
+  3,663, 3,578 and 3,507 games/s (mono-red mirror, pinned best of five).
+  A profile spreads the growth over `characteristics`, `run`,
+  `priority_options` and `mana_sources`; no one commit or function
+  accounts for it. Start-up (parsing and compiling the whole corpus) is
+  0.55 s per launch and grows with the corpus.
 - **The optional additional cost was built twice:** behold's "you may
   behold" and the path for collect evidence and blight are separate.
 - **Cost reductions on a prepared spell copy** have no scenario.
