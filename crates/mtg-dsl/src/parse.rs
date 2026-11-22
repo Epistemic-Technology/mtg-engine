@@ -1880,16 +1880,22 @@ impl P {
                 } else {
                     Who::You
                 };
+                let mut set = false;
                 let delta = if self.eat_word("none") {
                     None
                 } else {
                     match self.next() {
                         Some(Tok::Signed(n)) => Some(n),
-                        _ => return self.fail("expected `none` or a signed number such as +1"),
+                        // `hand size 8`: "Your maximum hand size is eight."
+                        Some(Tok::Num(n)) => {
+                            set = true;
+                            Some(i32::try_from(n).unwrap_or(i32::MAX))
+                        }
+                        _ => return self.fail("expected `none`, a size, or a signed number such as +1"),
                     }
                 };
                 self.end_stmt()?;
-                Ok(Ability::HandSize { whose, delta })
+                Ok(Ability::HandSize { whose, delta, set })
             }
             // `enters with choice flying counter or first strike counter`:
             // "... enters with your choice of a flying counter or a first
@@ -3906,6 +3912,10 @@ impl P {
                 let f = self.filter()?;
                 self.cards_word()?;
                 return Ok(StaticCond::NoCardInHand(f));
+            }
+            // `hand fewer than 10`: "you have fewer than ten cards in hand".
+            if self.eat_words(&["fewer", "than"]) {
+                return Ok(StaticCond::HandFewerThan(self.number()?));
             }
             let n = self.number()?;
             self.expect_word("or")?;
@@ -9456,6 +9466,16 @@ impl P {
                 });
             }
             return Ok(CountExpr::SourcePower);
+        }
+        // `difference 10 hand`: "the difference".
+        if self.at_word("difference") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let n = self.number()?;
+            let inner = self.count_expr()?;
+            return Ok(CountExpr::Difference {
+                n,
+                inner: Box::new(inner),
+            });
         }
         // `plus 2 <expr>`: "2 plus the number of ...".
         if self.eat_word("plus") {

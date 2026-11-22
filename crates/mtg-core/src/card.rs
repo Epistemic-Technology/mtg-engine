@@ -2002,6 +2002,9 @@ pub enum CountExpr {
         filter: Option<ObjFilter>,
         graveyard: bool,
     },
+    /// `n` minus the count, at least 0: "if you have fewer than ten cards
+    /// in hand, draw cards equal to the difference".
+    Difference(u32, Box<CountExpr>),
 }
 
 impl CountExpr {
@@ -2021,7 +2024,9 @@ impl CountExpr {
             | CountExpr::AttackedThisTurn
             | CountExpr::OpponentsLostLife
             | CountExpr::CreaturesEnteredThisTurn => true,
-            CountExpr::Times(_, c) | CountExpr::Plus(_, c) => c.reads_history(),
+            CountExpr::Times(_, c) | CountExpr::Plus(_, c) | CountExpr::Difference(_, c) => {
+                c.reads_history()
+            }
             CountExpr::Divided { inner, .. } => inner.reads_history(),
             CountExpr::Sum(a, b) => a.reads_history() || b.reads_history(),
             _ => false,
@@ -2038,7 +2043,9 @@ impl CountExpr {
     pub fn in_static(&self) -> bool {
         match self {
             CountExpr::Sum(a, b) => a.in_static() && b.in_static(),
-            CountExpr::Plus(_, c) | CountExpr::Times(_, c) => c.in_static(),
+            CountExpr::Plus(_, c) | CountExpr::Times(_, c) | CountExpr::Difference(_, c) => {
+                c.in_static()
+            }
             CountExpr::Divided { inner, .. } => inner.in_static(),
             CountExpr::Permanents(_)
             | CountExpr::Domain
@@ -6795,6 +6802,9 @@ pub enum AbilityDef {
     HandSize {
         whose: Who,
         delta: Option<i32>,
+        /// "Your maximum hand size is eight": `delta` is the size itself.
+        #[serde(default)]
+        set: bool,
     },
     /// "While voting, you get an additional vote." (`optional` false) or
     /// "While voting, you may vote an additional time." (CR 701.38d: the

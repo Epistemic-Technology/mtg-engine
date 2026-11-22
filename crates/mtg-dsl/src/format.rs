@@ -2810,6 +2810,9 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::Divided { by, inner, .. } => {
             format!("every {by} {}", count_expr_text(inner))
         }
+        CountExpr::Difference { n, inner } => {
+            format!("difference {n} {}", count_expr_text(inner))
+        }
         CountExpr::Plus { n, word, inner } => {
             let n = if *word {
                 crate::render::NUMBER_WORDS
@@ -4877,6 +4880,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::CardsInHand { n, at_most } => {
             format!("hand {n} or {}", if *at_most { "less" } else { "more" })
         }
+        StaticCond::HandFewerThan(n) => format!("hand fewer than {n}"),
         StaticCond::NoCardInHand(f) => format!("hand has no {} card", filter(f)),
         StaticCond::YourLife { n, at_least } => {
             format!(
@@ -5930,7 +5934,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 if *optional { " may" } else { "" }
             );
         }
-        Ability::HandSize { whose, delta } => {
+        Ability::HandSize { whose, delta, set } => {
             let who = if *whose == Who::Opponents {
                 " opponents"
             } else {
@@ -5938,6 +5942,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             };
             let d = match delta {
                 None => "none".to_string(),
+                Some(n) if *set => n.to_string(),
                 Some(n) => format!("{n:+}"),
             };
             let _ = writeln!(out, "{indent}hand size{who} {d}");

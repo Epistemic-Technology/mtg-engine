@@ -840,6 +840,9 @@ impl GameState {
             CountExpr::Domain => self.basic_land_types(you),
             CountExpr::CardsInHand => self.player(you).hand.len(),
             CountExpr::Plus(k, inner) => return k.saturating_add(self.eval_count(inner, ctx)),
+            CountExpr::Difference(k, inner) => {
+                return k.saturating_sub(self.eval_count(inner, ctx));
+            }
             CountExpr::CardsInGraveyard(f) => {
                 let f = f.as_ref().map(|f| self.chosen_filter(f, ctx));
                 self.graveyard_count(std::slice::from_ref(&you), f.as_deref(), you)

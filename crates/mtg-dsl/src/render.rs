@@ -3754,6 +3754,9 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             };
             return format!("{n} plus {}", count_phrase(inner, card, each));
         }
+        // "draw cards equal to the difference" (after "if you have fewer
+        // than ten cards in hand").
+        CountExpr::Difference { .. } => return "the difference".to_string(),
         CountExpr::SourcePower => {
             return if each {
                 "for each power".to_string()
@@ -12024,6 +12027,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::NoCardInHand(f) => {
             format!("you have no {} in hand", cards_phrase(f, card, true))
         }
+        StaticCond::HandFewerThan(n) => format!(
+            "you have fewer than {} cards in hand",
+            count_words(Num::N(*n), "one")
+        ),
         StaticCond::CardsInHand { n, at_most } => match (n, at_most) {
             (0, true) => "you have no cards in hand".to_string(),
             (n, true) => format!(
@@ -13757,7 +13764,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::ExtraVote { optional: true } => {
             "While voting, you may vote an additional time.".to_string()
         }
-        Ability::HandSize { whose, delta } => {
+        Ability::HandSize { whose, delta, set } => {
             let (subject, have) = if *whose == Who::Opponents {
                 ("Each opponent's", "Each opponent has")
             } else {
@@ -13765,6 +13772,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             match delta {
                 None => format!("{have} no maximum hand size."),
+                Some(n) if *set => format!(
+                    "{subject} maximum hand size is {}.",
+                    count_words(Num::N(n.unsigned_abs()), "one")
+                ),
                 Some(n) => format!(
                     "{subject} maximum hand size is {} by {}.",
                     if *n > 0 { "increased" } else { "reduced" },

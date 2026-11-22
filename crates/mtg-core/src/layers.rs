@@ -1325,6 +1325,12 @@ fn per_count(
                 .unwrap_or(0)
                 .saturating_add(per_count(work, source, controller, inner));
         }
+        CountExpr::Difference(k, inner) => {
+            return i32::try_from(*k)
+                .unwrap_or(0)
+                .saturating_sub(per_count(work, source, controller, inner))
+                .max(0);
+        }
         CountExpr::Divided { by, up, inner } => {
             let n = u32::try_from(per_count(work, source, controller, inner).max(0)).unwrap_or(0);
             return i32::try_from(CountExpr::divide(n, *by, *up)).unwrap_or(i32::MAX);

@@ -1911,6 +1911,10 @@ impl Compiler<'_> {
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
             StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
             StaticCond::CardsDrawnThisTurn(n) => StaticCondition::CardsDrawnThisTurn(*n),
+            StaticCond::HandFewerThan(n) => StaticCondition::CardsInHand {
+                n: n.saturating_sub(1),
+                at_most: true,
+            },
             StaticCond::CardsInHand { n, at_most } => StaticCondition::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -2079,6 +2083,7 @@ impl Compiler<'_> {
                 C::CardsInAllGraveyards(filter.as_ref().map(|f| self.filter(f)))
             }
             A::Plus { n, inner, .. } => C::Plus(*n, Box::new(self.count_expr(inner))),
+            A::Difference { n, inner } => C::Difference(*n, Box::new(self.count_expr(inner))),
             A::ThisWay { verb, filter } => {
                 C::ThisWay(*verb, filter.as_ref().map(|f| self.filter(f)))
             }
@@ -5398,9 +5403,10 @@ impl Compiler<'_> {
                     return self.ability(&expanded);
                 }
             },
-            Ability::HandSize { whose, delta } => AbilityDef::HandSize {
+            Ability::HandSize { whose, delta, set } => AbilityDef::HandSize {
                 whose: *whose,
                 delta: *delta,
+                set: *set,
             },
             // CR 721.2a-b: "As long as this permanent has N or more charge
             // counters on it, it has [abilities] and is a creature with

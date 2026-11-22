@@ -1,0 +1,36 @@
+# M5: "Your maximum hand size is ten." (CR 402.2) and "draw cards equal to
+# the difference" (`difference 10 hand`).
+
+scenario "difference: three cards in hand, seven drawn" {
+  battlefield A: "The Ten Rings"
+  hand A: "Island", "Island", "Island"
+  library A: 12 "Plains"
+  run_to turn 2 upkeep
+  assert hand A count 10
+}
+
+scenario "difference: a full hand draws nothing" {
+  battlefield A: "The Ten Rings"
+  hand A: 10 "Island"
+  library A: 5 "Plains"
+  run_to turn 2 upkeep
+  assert hand A count 10
+  assert library A count 5
+}
+
+scenario "hand size: eleven cards discard to ten, not seven" {
+  battlefield A: "The Ten Rings"
+  hand A: 11 "Island"
+  library A: 5 "Plains"
+  run_to turn 2 upkeep
+  assert hand A count 10
+}
+
+scenario "hand size eight: four in hand, four drawn" {
+  battlefield A: "Doctor Octopus, Master Planner"
+  hand A: 4 "Island"
+  library A: 6 "Plains"
+  run_to turn 2 upkeep
+  assert hand A count 8
+  assert library A count 2
+}

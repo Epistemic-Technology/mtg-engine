@@ -335,6 +335,12 @@ pub enum CountExpr {
         word: bool,
         inner: Box<CountExpr>,
     },
+    /// `difference 10 hand`: `n` minus the count, at least 0, printed
+    /// "the difference" (after "if you have fewer than ten cards in hand").
+    Difference {
+        n: u32,
+        inner: Box<CountExpr>,
+    },
     /// `enchantment destroyed this way`, `discarded this way`: what the
     /// resolution did (CR 608.2c).
     ThisWay {
@@ -1374,6 +1380,8 @@ pub enum Ability {
     HandSize {
         whose: Who,
         delta: Option<i32>,
+        /// `hand size 8`: "Your maximum hand size is eight."
+        set: bool,
     },
     /// `extra vote`: "While voting, you get an additional vote."; `extra
     /// vote may`: "While voting, you may vote an additional time." (CR
@@ -2150,6 +2158,9 @@ pub enum StaticCond {
     /// flash if you pay {2} more to cast it." (flash, and the cost, while
     /// a sorcery couldn't be cast).
     FlashPay(u8),
+    /// `hand fewer than 10`: "you have fewer than ten cards in hand" (nine
+    /// or fewer).
+    HandFewerThan(u32),
     /// `if this is that entered this turn or if you control basic land`
     /// (an activation condition): either holds, printed "... or if ...".
     OrIf(Box<StaticCond>, Box<StaticCond>),

@@ -2225,9 +2225,10 @@ impl Decompiler<'_> {
                 negated: *negated,
             },
             AbilityDef::Toxic(n) => Ability::Mechanic(crate::ast::Mechanic::Toxic(*n)),
-            AbilityDef::HandSize { whose, delta } => Ability::HandSize {
+            AbilityDef::HandSize { whose, delta, set } => Ability::HandSize {
                 whose: *whose,
                 delta: *delta,
+                set: *set,
             },
             AbilityDef::ExtraVote { optional } => Ability::ExtraVote {
                 optional: *optional,
