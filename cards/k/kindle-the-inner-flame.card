@@ -1,0 +1,11 @@
+card "Kindle the Inner Flame" {
+  oracle_id c7ca6371-73bb-4717-a148-0804b8f4c1e6
+  cost {3}{R}
+  type Kindred Sorcery — Elemental
+  flashback {1}{R}, behold 3 Elemental
+  spell: create token copy of target creature you control with exceptions
+  except {
+    keywords haste
+    triggered at the beginning of the end step: sacrifice this
+  }
+}

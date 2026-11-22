@@ -192,8 +192,6 @@ Wrong behaviour that reaches accepted cards:
 
 Forms that pass the gate with the wrong meaning:
 
-- **`flashback {1}{R}, behold 3 Elemental`** parses and drops the
-  behold part (Kindle the Inner Flame).
 - **Gift with `if kicked/gift, instead <targeted effect>`**: cast
   without the gift, the spell still takes the gifted side's target and
   can fizzle on it (Wildfire Howl). The promised side was fixed in the

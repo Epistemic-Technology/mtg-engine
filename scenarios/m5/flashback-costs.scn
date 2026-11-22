@@ -1,0 +1,33 @@
+# A flashback cost with parts other than mana ("Flashback—{1}{R}, Behold
+# three Elementals."): every part is paid, and the card can't be cast
+# from the graveyard without them (CR 702.34a, 601.2h).
+
+scenario "Kindle the Inner Flame: a hasty token copy, sacrificed at the end step" {
+  battlefield A: 4 "Mountain", "Hill Giant"
+  hand A: "Kindle the Inner Flame"
+  turn 1 A: cast "Kindle the Inner Flame" targeting "Hill Giant"
+  run_to turn 1 declare_attackers
+  assert battlefield A contains 2 "Hill Giant"
+  assert has newest A "Hill Giant" haste
+  run_to turn 2 upkeep
+  assert battlefield A contains 1 "Hill Giant"
+}
+
+scenario "Kindle the Inner Flame: flashback beholds three Elementals" {
+  battlefield A: 2 "Mountain", 2 "Fire Elemental"
+  hand A: "Air Elemental"
+  graveyard A: "Kindle the Inner Flame"
+  turn 1 A: cast "Kindle the Inner Flame" from graveyard targeting oldest "Fire Elemental"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Fire Elemental"
+  assert exile A contains "Kindle the Inner Flame"
+}
+
+scenario "Kindle the Inner Flame: no flashback with two Elementals" {
+  battlefield A: 2 "Mountain", "Fire Elemental", "Air Elemental"
+  graveyard A: "Kindle the Inner Flame"
+  illegal turn 1 A: cast "Kindle the Inner Flame" from graveyard targeting "Fire Elemental"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Kindle the Inner Flame"
+  assert battlefield A contains 1 "Fire Elemental"
+}

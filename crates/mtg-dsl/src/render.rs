@@ -12906,7 +12906,12 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         // "Flashback {4}{R}" for a mana cost; "Flashback—{1}{U}, Pay 3
         // life." when the cost has other parts.
         let mut ctx = Ctx::new(card, lookup, &[]);
-        let mana_only = !fb.tap && fb.life == 0 && fb.discard == 0 && fb.sacrifice.is_none();
+        let mana_only = *fb
+            == crate::ast::Cost {
+                mana: fb.mana.clone(),
+                order: fb.order.clone(),
+                ..Default::default()
+            };
         if mana_only {
             lines.push(format!("Flashback {}", fb.mana));
         } else {

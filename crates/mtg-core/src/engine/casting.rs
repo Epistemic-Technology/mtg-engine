@@ -566,13 +566,13 @@ impl GameState {
                 }
                 // "Flashback—Sacrifice a Mountain.", "Flashback—Tap three
                 // untapped white creatures you control."
-                if fb.sacrifice.is_some()
-                    && !(if fb.taps_chosen() {
-                        self.cost_option_payable(p, fb, *id, &sources, req, false)
-                    } else {
-                        self.additional_payable(p, fb, *id)
-                    })
-                {
+                // "Flashback—{1}{R}, Behold three Elementals.": its other
+                // parts too (CR 601.2h, 702.34a).
+                if !(if fb.sacrifice.is_some() && fb.taps_chosen() {
+                    self.cost_option_payable(p, fb, *id, &sources, req, false)
+                } else {
+                    self.additional_payable(p, fb, *id)
+                }) {
                     continue;
                 }
                 if def.additional_or.is_some() || def.additional.taps_chosen() {
