@@ -864,6 +864,7 @@ impl GameObject {
             crate::card::CounterQual::Any => self.counters.iter().any(|(_, n)| *n > 0),
             crate::card::CounterQual::Kind(k) => self.counters(k) > 0,
             crate::card::CounterQual::AtLeast(k, n) => self.counters(k) >= n,
+            crate::card::CounterQual::NoCounters => self.counters.iter().all(|(_, n)| *n == 0),
         }
     }
 

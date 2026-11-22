@@ -3579,6 +3579,7 @@ fn filter_one(f: &Filter) -> String {
         Some(mtg_core::card::CounterQual::AtLeast(k, n)) => {
             words.push(format!("with {n} or more {} counters", k.name()));
         }
+        Some(mtg_core::card::CounterQual::NoCounters) => words.push("with no counters".to_string()),
         None => {}
     }
     if !f.keywords.is_empty() {

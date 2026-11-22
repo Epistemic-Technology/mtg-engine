@@ -1475,7 +1475,8 @@ it", "with a counter on it", CR 122.1; plural "with +1/+1 counters on
 them"; printed after the controller; any kind: `permanent you control with
 oil counter`, "permanents you control with oil counters on them"), `with
 3 or more level counters` ("a creature with three or more level counters
-on it"), and `modified` ("a modified
+on it"), `with no counters` ("target creature with no counters on it": none
+of any kind, Heartless Act), and `modified` ("a modified
 creature", CR 700.9: it has a counter, is equipped, or is enchanted by an
 Aura its controller controls), `attached to creature` / `attached to land`
 ("target Aura attached to a creature": what it is attached to, CR

@@ -1340,6 +1340,8 @@ pub enum CounterQual {
     Kind(CounterKind),
     /// "with three or more level counters on it".
     AtLeast(CounterKind, u32),
+    /// "with no counters on it": none of any kind (Heartless Act).
+    NoCounters,
 }
 
 impl StatusQuals {

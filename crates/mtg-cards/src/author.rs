@@ -2482,6 +2482,15 @@ impl Templates {
                     ))
                 },
             ),
+            // "Remove up to three counters from target creature": each of
+            // a kind the controller chooses.
+            (r(r"^Remove up to (\w+) counters from (.+)$"), |c, t| {
+                Some(format!(
+                    "remove up to {} counters from {}",
+                    number(cap(c, 1))?,
+                    recipient(cap(c, 2), t)?
+                ))
+            }),
             (r(r"^Remove all counters from (.+)$"), |c, t| {
                 Some(format!(
                     "remove all counters from {}",
@@ -6417,6 +6426,7 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
         .into_owned();
     s = s
         .replace("with a counter on it", "with counter")
+        .replace("with no counters on it", "with no counters")
         .replace("not named ~", "not named this")
         .replace("named ~", "named this");
     s = re(r"(\w+), (\w+), and/or (\w+)")

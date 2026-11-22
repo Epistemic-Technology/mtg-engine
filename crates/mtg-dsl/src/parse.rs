@@ -11087,7 +11087,7 @@ impl P {
                         | (Some("other"), Some("than"))
                         | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
-                        | (Some("with"), Some("counter" | "toxic" | "morph"))
+                        | (Some("with"), Some("counter" | "toxic" | "morph" | "no"))
                         | (Some("blocked"), Some("by"))
                         | (Some("blocking"), Some("this" | "it" | "or"))
                 ) || comma_type
@@ -11618,6 +11618,15 @@ impl P {
                     self.expect_words(&["or", "more"])?;
                     let k = self.counter_kind()?;
                     f.status.counter = Some(mtg_core::card::CounterQual::AtLeast(k, n));
+                }
+                // "with no counters on it".
+                "with"
+                    if f.status.counter.is_none()
+                        && self.word_at(1).as_deref() == Some("no")
+                        && self.word_at(2).as_deref() == Some("counters") =>
+                {
+                    self.pos += 3;
+                    f.status.counter = Some(mtg_core::card::CounterQual::NoCounters);
                 }
                 // "with a +1/+1 counter on it", "with a counter on it".
                 "with" if f.status.counter.is_none() && self.at_counter_qual() => {

@@ -1,0 +1,9 @@
+card "Heartless Act" {
+  oracle_id 3641d572-8335-4804-88ad-edf4dc67a8e4
+  cost {1}{B}
+  type Instant
+  choose one {
+  mode: destroy target creature with no counters
+  mode: remove up to 3 counters from target creature
+  }
+}

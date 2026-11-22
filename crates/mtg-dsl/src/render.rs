@@ -2656,9 +2656,17 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             counter_name(k),
             if plural_form { "them" } else { "it" }
         );
+    } else if f.status.counter == Some(mtg_core::card::CounterQual::NoCounters) {
+        s.push_str(if plural_form {
+            " with no counters on them"
+        } else {
+            " with no counters on it"
+        });
     } else if let Some(q) = f.status.counter {
         let kind = match q {
-            mtg_core::card::CounterQual::AtLeast(..) => unreachable!("above"),
+            mtg_core::card::CounterQual::AtLeast(..) | mtg_core::card::CounterQual::NoCounters => {
+                unreachable!("above")
+            }
             mtg_core::card::CounterQual::Any => String::new(),
             mtg_core::card::CounterQual::Kind(k) => format!("{} ", counter_name(k)),
         };
