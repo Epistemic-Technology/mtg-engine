@@ -6029,7 +6029,6 @@ impl TriggerSpec {
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
-            TriggerSpec::DiscardsThis => WATCH_DISCARD,
             TriggerSpec::Exploits
             | TriggerSpec::BecomesPlotted
             | TriggerSpec::Reflexive
@@ -6051,6 +6050,7 @@ impl TriggerSpec {
             | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
             TriggerSpec::BecomesAttachedTo(_) => WATCH_ATTACH,
             TriggerSpec::Discards { .. }
+            | TriggerSpec::DiscardsThis
             | TriggerSpec::DiscardsBatch { .. }
             | TriggerSpec::Cycles {
                 or_discard: true, ..

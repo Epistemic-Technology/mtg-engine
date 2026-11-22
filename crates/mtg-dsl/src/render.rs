@@ -1450,7 +1450,6 @@ impl<'a> Ctx<'a> {
                 "those tokens".to_string()
             }
             Recipient::CreatedThem | Recipient::SameThem => "them".to_string(),
-            Recipient::SameCards => "those cards".to_string(),
             Recipient::Those(t) => crate::format::those_word(t).to_string(),
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
@@ -1534,7 +1533,7 @@ impl<'a> Ctx<'a> {
                     )
                 }
             }
-            Recipient::ThoseCards(..) => "those cards".to_string(),
+            Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
             Recipient::ThoseTargets(a, _) => format!("those {}", self.plural_target_noun(a)),
         }
     }
@@ -9139,9 +9138,6 @@ fn step_name(step: Step, whose: Who) -> String {
     }
 }
 
-/// "When this creature enters" (no trailing comma); `next` for a delayed
-/// trigger's "the next end step".
-#[allow(clippy::too_many_lines)] // one arm per trigger kind
 /// Two events of one subject, the words they share printed once: "When
 /// enchanted creature becomes tapped or is dealt damage".
 pub(crate) fn or_shared(a: &str, b: &str, whenever: bool) -> String {
@@ -9158,6 +9154,9 @@ pub(crate) fn or_shared(a: &str, b: &str, whenever: bool) -> String {
     )
 }
 
+/// "When this creature enters" (no trailing comma); `next` for a delayed
+/// trigger's "the next end step".
+#[allow(clippy::too_many_lines)] // one arm per trigger kind
 fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
     if let Trigger::When(inner) = t {
         return trigger_text(inner, ctx, next).replacen("whenever", "when", 1);
@@ -13197,7 +13196,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 }
                 mtg_core::card::TurnLimit::Do => out.push_str(" Do this only once each turn."),
                 mtg_core::card::TurnLimit::Ever => {
-                    out.push_str(" This ability triggers only once.")
+                    out.push_str(" This ability triggers only once.");
                 }
             }
             out
