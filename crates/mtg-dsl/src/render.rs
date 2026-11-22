@@ -2759,6 +2759,8 @@ fn choice_noun(k: &ChoiceKind) -> String {
         }
         ChoiceKind::LandType(lands) if lands.len() == 5 => "a basic land type".to_string(),
         ChoiceKind::Named(names) => or_list(names),
+        ChoiceKind::CardName { nonland: false } => "a card name".to_string(),
+        ChoiceKind::CardName { nonland: true } => "a nonland card name".to_string(),
         ChoiceKind::LandType(lands) => or_list(
             &lands
                 .iter()
@@ -7679,6 +7681,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     "the creature type of your choice".to_string()
                 }
                 ChoiceKind::Named(names) => or_list(names),
+                ChoiceKind::CardName { .. } => "the card name of your choice".to_string(),
                 // Imagecrafter: "Choose a creature type other than Wall.
                 // Target creature becomes that type until end of turn."
                 ChoiceKind::CreatureType { except: Some(t) } => {
@@ -13846,6 +13849,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
+                K::ChosenName(ban) => match ban {
+                    mtg_core::card::NameBan::Cast => "spells with the chosen name can't be cast",
+                    mtg_core::card::NameBan::ActivateNonMana => {
+                        "activated abilities of sources with the chosen name can't be activated unless they're mana abilities"
+                    }
+                    mtg_core::card::NameBan::Activate => {
+                        "activated abilities of sources with the chosen name can't be activated"
+                    }
+                }
+                .to_string(),
                 K::CantLose => {
                     "you can't lose the game and your opponents can't win the game".to_string()
                 }

@@ -52,6 +52,10 @@ wrong thing in some case.
   definition's 0/0.
 - **Reflexive trigger on a token:** "it" may read the token where the
   text means the triggering object.
+- **A chosen-name cast ban is judged at priority only** (Meddling Mage,
+  Nevermore, Voidstone Gargoyle): a spell of that name cast by an effect
+  (cascade, "cast it without paying its mana cost") isn't stopped, as with
+  "Your opponents can't cast spells during your turn."
 - **A player's protection from a color** (Seht's Tiger) stops targeting
   and damage but not an Aura of that color enchanting the player (a
   Curse, CR 702.16c). No card in the corpus combines them yet.

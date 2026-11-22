@@ -4724,7 +4724,7 @@ impl Builder<'_> {
         // "As this land enters, choose a color." (CR 614.12), alone or after
         // "This land enters tapped." on the same line.
         if let Some(c) = Regex::new(
-            r"^(This (?:land|artifact|creature|permanent) enters tapped\. )?As (?:it|this (?:land|artifact|creature|enchantment|permanent|Aura)) enters, choose a (color|creature type|basic land type)(?: other than (white|blue|black|red|green))?\.$",
+            r"^(This (?:land|artifact|creature|permanent) enters tapped\. )?As (?:it|this (?:land|artifact|creature|enchantment|permanent|Aura)) enters, choose a (color|creature type|basic land type|card name|nonland card name)(?: other than (white|blue|black|red|green))?\.$",
         )
         .unwrap()
         .captures(line)
@@ -4745,6 +4745,25 @@ impl Builder<'_> {
         }
         if line == "{T}: Add one mana of any color." {
             self.statements.push("mana any".to_string());
+            return Ok(());
+        }
+        // Chosen-name bans (CR 201.3).
+        let ban = match line {
+            "Spells with the chosen name can't be cast." => {
+                Some("spells with chosen name can't be cast")
+            }
+            "Activated abilities of sources with the chosen name can't be activated unless they're mana abilities." => {
+                Some(
+                    "activated abilities of sources with chosen name can't be activated unless mana",
+                )
+            }
+            "Activated abilities of sources with the chosen name can't be activated." => {
+                Some("activated abilities of sources with chosen name can't be activated")
+            }
+            _ => None,
+        };
+        if let Some(b) = ban {
+            self.statements.push(b.to_string());
             return Ok(());
         }
         // "As an additional cost to cast this spell, you may collect

@@ -2441,6 +2441,7 @@ impl Compiler<'_> {
             ChoiceKind::Named(names) => {
                 CoreChoiceKind::Named(u8::try_from(names.len()).unwrap_or(u8::MAX))
             }
+            ChoiceKind::CardName { nonland } => CoreChoiceKind::CardName { nonland: *nonland },
         }
     }
 

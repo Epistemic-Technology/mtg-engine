@@ -257,6 +257,10 @@ pub enum Chosen {
     Votes([u8; 2]),
     /// One of a permanent's named options (`ChoiceKind::Named`), by index.
     Option(u8),
+    /// A card name ("As this artifact enters, choose a card name", CR
+    /// 201.3): the pool's definition of that name (the pool holds one
+    /// definition per name).
+    Card(crate::card::CardRef),
 }
 
 impl Chosen {
@@ -2568,6 +2572,68 @@ impl GameState {
             && self
                 .player_statics()
                 .any(|(who, kind)| who == p && kind == crate::card::PlayerStaticKind::CantLose)
+    }
+
+    /// The chosen-name bans in force ("Spells with the chosen name can't
+    /// be cast.", "Activated abilities of sources with the chosen name
+    /// can't be activated ..."): each with the name's definition.
+    fn name_bans(&self) -> impl Iterator<Item = (crate::card::NameBan, crate::card::CardRef)> + '_ {
+        self.battlefield
+            .iter()
+            .filter(|id| {
+                self.pool
+                    .get(self.objects[**id].def)
+                    .flags()
+                    .has_player_static()
+            })
+            .flat_map(move |id| {
+                let o = &self.objects[*id];
+                let Chosen::Card(name) = o.chosen else {
+                    return None;
+                };
+                Some(
+                    self.pool
+                        .get(o.def)
+                        .ability_ids
+                        .iter()
+                        .filter_map(move |a| match self.pool.ability(*a) {
+                            crate::card::AbilityDef::PlayerStatic {
+                                kind: crate::card::PlayerStaticKind::ChosenName(ban),
+                                ..
+                            } => Some((*ban, name)),
+                            _ => None,
+                        }),
+                )
+            })
+            .flatten()
+    }
+
+    /// Whether a spell with `def`'s name can't be cast (CR 201.3: "The
+    /// chosen card name can't be cast.").
+    pub fn name_cant_be_cast(&self, def: crate::card::CardRef) -> bool {
+        self.player_static_sources > 0 && {
+            let name = &self.pool.get(def).name;
+            self.name_bans()
+                .any(|(ban, d)| ban == crate::card::NameBan::Cast && self.pool.get(d).name == *name)
+        }
+    }
+
+    /// Whether an activated ability (`mana`: a mana ability) of `source`
+    /// can't be activated by a chosen-name ban (Pithing Needle).
+    pub fn name_cant_activate(&self, source: ObjId, mana: bool) -> bool {
+        self.player_static_sources > 0 && {
+            let Some(o) = self.objects.get(source) else {
+                return false;
+            };
+            let name = &self.pool.get(o.def).name;
+            self.name_bans().any(|(ban, d)| {
+                (match ban {
+                    crate::card::NameBan::ActivateNonMana => !mana,
+                    crate::card::NameBan::Activate => true,
+                    _ => false,
+                }) && self.pool.get(d).name == *name
+            })
+        }
     }
 
     /// Whether `p` can't cast spells now: an opponent's "Your opponents

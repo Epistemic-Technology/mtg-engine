@@ -666,6 +666,44 @@ impl GameState {
         if !self.player_rules.is_empty() {
             self.forbid_by_player_rules(p, &mut options);
         }
+        // "Spells with the chosen name can't be cast." (CR 201.3).
+        if self.player_static_sources > 0 {
+            let banned = |def: crate::card::CardRef| self.name_cant_be_cast(def);
+            options.retain(|c| match c {
+                Choice::CastFace { card, face } => {
+                    self.land_face(*card, *face).is_some()
+                        || !self.objects.get(*card).is_some_and(|o| {
+                            self.pool
+                                .get(o.def)
+                                .faces
+                                .get(usize::from(*face))
+                                .is_some_and(|f| banned(*f))
+                        })
+                }
+                Choice::Cast(id)
+                | Choice::CastEvoke(id)
+                | Choice::CastDash(id)
+                | Choice::CastWarp(id)
+                | Choice::CastSneak(id)
+                | Choice::CastAlt(id)
+                | Choice::CastBestow(id)
+                | Choice::CastOverload(id)
+                | Choice::CastAwaken(id)
+                | Choice::CastWebSlinging(id)
+                | Choice::CastImpending(id)
+                | Choice::CastHarmonize { card: id, .. } => {
+                    !self.objects.get(*id).is_some_and(|o| banned(o.def))
+                }
+                Choice::CastDisturb(id) => !self.objects.get(*id).is_some_and(|o| {
+                    self.pool
+                        .get(o.def)
+                        .faces
+                        .get(1)
+                        .is_some_and(|f| banned(*f))
+                }),
+                _ => true,
+            });
+        }
         // "Your opponents can't cast spells during your turn."
         if self.player_static_sources > 0 && self.cant_cast_spells(p) {
             options.retain(|c| match c {
@@ -4579,6 +4617,9 @@ impl GameState {
             .iter()
             .all(|c| self.condition_now(c, p, source))
             && !(ab.once_ever && self.activated_ever.contains(&(source, ability)))
+            // Pithing Needle (CR 201.3, 605.1a).
+            && !(self.player_static_sources > 0
+                && self.name_cant_activate(source, ab.is_mana_ability()))
     }
 
     /// Whether an ability with this keyword may be activated now (CR
@@ -5807,8 +5848,11 @@ impl GameState {
                 continue;
             }
             // CR 602.5: no activated abilities, mana abilities included
-            // (Encrust on a mana artifact).
-            if c.has(Keyword::CantActivate) {
+            // (Encrust on a mana artifact; Voidstone Gargoyle's chosen
+            // name).
+            if c.has(Keyword::CantActivate)
+                || (self.player_static_sources > 0 && self.name_cant_activate(id, true))
+            {
                 continue;
             }
             let other_use =
@@ -5848,6 +5892,7 @@ impl GameState {
                 };
                 if (c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste))
                     || c.has(Keyword::CantActivate)
+                    || (self.player_static_sources > 0 && self.name_cant_activate(id, true))
                 {
                     continue;
                 }
@@ -7689,6 +7734,39 @@ impl GameState {
                     .map(Choice::Subtype)
                     .collect(),
             ),
+            // "choose a card name": the names of the cards in the game, in
+            // name order (`choose "Lightning Bolt"` in a scenario).
+            ChoiceKind::CardName { nonland } => {
+                let mut seen: Vec<(&str, ObjId, crate::card::CardRef)> = Vec::new();
+                for (id, o) in &self.objects {
+                    if o.kind != ObjKind::Card {
+                        continue;
+                    }
+                    let d = self.pool.get(o.card);
+                    if d.name.is_empty() || (nonland && d.is_land()) {
+                        continue;
+                    }
+                    if !seen.iter().any(|(n, _, _)| *n == d.name) {
+                        seen.push((d.name.as_str(), id, o.card));
+                    }
+                }
+                // The entering card itself, which is between zones (no
+                // object stands for it; the choice is read by its name).
+                let own = self.pool.get(def);
+                if !own.name.is_empty()
+                    && !(nonland && own.is_land())
+                    && !seen.iter().any(|(n, _, _)| *n == own.name)
+                {
+                    seen.push((own.name.as_str(), ObjId::default(), def));
+                }
+                seen.sort_by(|a, b| a.0.cmp(b.0));
+                (
+                    DecisionKind::ChooseCard,
+                    seen.into_iter()
+                        .map(|(_, card, def)| Choice::Discard { card, def })
+                        .collect(),
+                )
+            }
             ChoiceKind::LandType(set) => (
                 DecisionKind::ChooseType,
                 set.iter()
@@ -7708,6 +7786,7 @@ impl GameState {
             Choice::Color(c) => Chosen::Color(c),
             Choice::Subtype(s) => Chosen::Subtype(s),
             Choice::Mode(i) => Chosen::Option(u8::try_from(i).unwrap_or(0)),
+            Choice::Discard { def, .. } => Chosen::Card(def),
             _ => Chosen::None,
         }
     }
@@ -10589,7 +10668,7 @@ impl GameState {
                         Some(c) => Modification::SetLandType(c),
                         None => Modification::SetCreatureType(s),
                     },
-                    Chosen::None | Chosen::Votes(_) | Chosen::Option(_) => return,
+                    Chosen::None | Chosen::Votes(_) | Chosen::Option(_) | Chosen::Card(_) => return,
                 };
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -10672,7 +10751,9 @@ impl GameState {
                         _ if *in_addition => Modification::AddSubtype(s),
                         _ => Modification::SetCreatureType(s),
                     },
-                    (Chosen::None | Chosen::Votes(_) | Chosen::Option(_), _) => return,
+                    (Chosen::None | Chosen::Votes(_) | Chosen::Option(_) | Chosen::Card(_), _) => {
+                        return;
+                    }
                 };
                 for t in recipients {
                     if let Some(id) = on_battlefield(self, t) {

@@ -1449,6 +1449,8 @@ impl ObjFilter {
         match chosen {
             crate::state::Chosen::Color(c) => f.colors = Some(ColorSet::of([c])),
             crate::state::Chosen::Subtype(s) => f.subtypes.push(s),
+            // "spell with the chosen name".
+            crate::state::Chosen::Card(d) => f.named = Some((d, true)),
             crate::state::Chosen::None
             | crate::state::Chosen::Votes(_)
             | crate::state::Chosen::Option(_) => {
@@ -5136,6 +5138,24 @@ pub enum ChoiceKind {
     /// One of this many named options ("choose Khans or Dragons", CR
     /// 614.12): `Chosen::Option` with its index.
     Named(u8),
+    /// "choose a card name", "choose a nonland card name" (CR 201.3):
+    /// `Chosen::Card`. The names offered are those of the cards in the
+    /// game (any zone, either player's), since naming another card has no
+    /// effect on play.
+    CardName { nonland: bool },
+}
+
+/// What a chosen-name ban forbids (`PlayerStaticKind::ChosenName`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum NameBan {
+    /// "Spells with the chosen name can't be cast."
+    Cast,
+    /// "Activated abilities of sources with the chosen name can't be
+    /// activated unless they're mana abilities." (CR 605.1a).
+    ActivateNonMana,
+    /// "Activated abilities of sources with the chosen name can't be
+    /// activated."
+    Activate,
 }
 
 /// What a player-level static ability does (`AbilityDef::PlayerStatic`).
@@ -5152,6 +5172,9 @@ pub enum PlayerStaticKind {
     /// "You have shroud." (CR 702.18c): the controller can't be the target
     /// of spells or abilities.
     Shroud,
+    /// A ban on the name the source chose as it entered (`Chosen::Card`,
+    /// CR 201.3), for every player: Meddling Mage, Pithing Needle.
+    ChosenName(NameBan),
     /// "You may play lands from your graveyard." (CR 305.1, 601.3): the
     /// controller may play land cards from their graveyard, using their
     /// land plays.

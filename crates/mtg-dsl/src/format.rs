@@ -5975,6 +5975,16 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 K::Hexproof => "you have hexproof".to_string(),
                 K::Shroud => "you have shroud".to_string(),
                 K::LandsFromGraveyard => "you may play lands from your graveyard".to_string(),
+                K::ChosenName(ban) => match ban {
+                    mtg_core::card::NameBan::Cast => "spells with chosen name can't be cast",
+                    mtg_core::card::NameBan::ActivateNonMana => {
+                        "activated abilities of sources with chosen name can't be activated unless mana"
+                    }
+                    mtg_core::card::NameBan::Activate => {
+                        "activated abilities of sources with chosen name can't be activated"
+                    }
+                }
+                .to_string(),
                 K::CantLose => "you can't lose the game".to_string(),
                 K::OpponentsCantCastYourTurn => {
                     "opponents can't cast spells during your turn".to_string()
@@ -6036,6 +6046,8 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
             .map(|n| format!("\"{n}\""))
             .collect::<Vec<_>>()
             .join(" or "),
+        ChoiceKind::CardName { nonland: false } => "card name".to_string(),
+        ChoiceKind::CardName { nonland: true } => "nonland card name".to_string(),
     }
 }
 

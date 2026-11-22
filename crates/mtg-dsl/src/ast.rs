@@ -1124,6 +1124,11 @@ pub enum ChoiceKind {
     /// abilities labeled with an option's name are the permanent's only
     /// while it was chosen.
     Named(Vec<String>),
+    /// `card name`, `nonland card name`: "a card name", "a nonland card
+    /// name" (CR 201.3).
+    CardName {
+        nonland: bool,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
