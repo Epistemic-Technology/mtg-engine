@@ -433,6 +433,10 @@ fn spell_noun(what: &str) -> String {
     if let Some(rest) = what.strip_prefix("with ") {
         return format!("spell with {rest}");
     }
+    // "a spell of the chosen color" (Diamond Mare).
+    if let Some(rest) = what.strip_prefix("of the chosen ") {
+        return format!("spell of the chosen {rest}");
+    }
     match what.find(" with ") {
         Some(i) => format!("{} spell{}", &what[..i], &what[i..]),
         None if what.is_empty() => "spell".to_string(),
@@ -1043,6 +1047,9 @@ struct Ctx<'a> {
     /// Rendering what winning a clash does ("If you win, that creature
     /// gets an additional +2/+2").
     in_won: bool,
+    /// Inside "If excess damage was dealt this way, ...": the amount is
+    /// "that excess damage".
+    in_excess: bool,
     /// Counts an earlier sentence of the ability already defined with
     /// ", where X is ...": a later X is the same X ("Draw X cards, where X
     /// is .... If ..., Balin deals X damage to each opponent.").
@@ -1077,6 +1084,7 @@ impl<'a> Ctx<'a> {
             pumped: Vec::new(),
             pumped_x: Vec::new(),
             in_won: false,
+            in_excess: false,
             they_paid: false,
             player_did: false,
             before_if_you_dont: false,
@@ -1383,6 +1391,7 @@ impl<'a> Ctx<'a> {
                 "it".to_string()
             }
             Recipient::CreatedThat => "that creature".to_string(),
+            Recipient::CreatedThatToken => "that token".to_string(),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 // "each creature and planeswalker they control": Oracle
@@ -2578,6 +2587,13 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         g.status.mana_value_x = false;
         g.status.spent_colors = false;
     }
+    // "creature card with power 2 or less" (Slumbering Walker).
+    if g.or.is_none()
+        && mv.is_empty()
+        && let Some((cmp, n)) = g.power.take()
+    {
+        mv = format!(" with power {n}{}", cmp_words(cmp));
+    }
     let p = if g == Filter::default() {
         String::new()
     } else {
@@ -3404,6 +3420,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::AddManaCombination { count, .. }
         | Effect::CreateToken { count, .. }
         | Effect::EmpowerJace { count }
+        | Effect::Amass { count, .. }
         | Effect::Dig { count, .. }
         | Effect::ExilePlayable { count, .. }
         | Effect::ExileTop { count, .. }
@@ -3900,6 +3917,10 @@ fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
     use crate::ast::CountExpr;
     let phrase = count_phrase(c, ctx.card, each);
     match c {
+        CountExpr::DamageThisWay {
+            excess: true,
+            to_that: false,
+        } if ctx.in_excess => "that excess damage".to_string(),
         CountExpr::TargetStat { n, that: true, .. }
         | CountExpr::TargetManaValue { n, that: true, .. }
             if ctx
@@ -3981,11 +4002,18 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             CountStyle::Where if ctx.x_defined.contains(&count.expr) => {}
             CountStyle::Where => {
+                // "amass Goblins X, where X is this creature's power"
+                // (Rhovanion Rampager): "its" would read as the Army's.
+                let mentioned = ctx.source_mentioned;
+                if matches!(e, Effect::Amass { .. }) {
+                    ctx.source_mentioned = false;
+                }
                 let _ = write!(
                     c.tail,
                     ", where X is {}",
                     count_phrase_in(&count.expr, ctx, false)
                 );
+                ctx.source_mentioned = mentioned;
                 ctx.x_pending.push(count.expr.clone());
             }
             // "Add an amount of {G} equal to this creature's power."
@@ -6441,15 +6469,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
-        Effect::IfExcessDamage(inner) => {
+        Effect::IfExcessDamage(inner, to_that) => {
+            // "If excess damage was dealt this way, amass Goblins X, where
+            // X is that excess damage." (Bolg of the North).
+            let was = ctx.in_excess;
+            ctx.in_excess = true;
             let body = sentences(inner, ctx);
+            ctx.in_excess = was;
             let body = if starts_with_name(&body, ctx.card) {
                 body
             } else {
                 lowercase_first(&body)
             };
             Clause::imperative(format!(
-                "if excess damage was dealt this way, {}",
+                "if excess damage was dealt {}this way, {}",
+                if *to_that { "to that permanent " } else { "" },
                 body.trim_end_matches('.')
             ))
         }
@@ -7637,6 +7671,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (TargetTense::ThatWas, _) if let Some((cmp, n)) = mana_value_only => {
                     format!("that {noun}'s mana value was {n}{}", cmp_words(cmp))
                 }
+                // "If that creature had power 2 or less" (Driftgloom
+                // Coyote).
+                (TargetTense::Had, _) if let Some((cmp, p)) = power_only => {
+                    // As it last existed: the noun it was targeted by,
+                    // not "card" after it was exiled.
+                    let was = target_noun(&ctx.targets[*n]);
+                    format!("that {was} had power {p}{}", cmp_words(cmp))
+                }
                 (TargetTense::Had, _) => format!("that {noun} had {pred}"),
                 (TargetTense::Is, _) if let Some((cmp, n)) = power_only => {
                     format!("its power is {n}{}", cmp_words(cmp))
@@ -7646,6 +7688,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 (TargetTense::Was, _) if *f == Filter::controlled_by_you() => {
                     format!("you controlled that {noun}")
+                }
+                // "If you controlled it, investigate." (Hotshot
+                // Investigators).
+                (TargetTense::Is, _) if *f == Filter::controlled_by_you() => {
+                    "you controlled it".to_string()
                 }
                 (TargetTense::ThatWas, _) if *f == Filter::controlled_by_you() => {
                     "you controlled that permanent".to_string()
@@ -7670,6 +7717,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                         }) =>
                 {
                     format!("an opponent controls that {noun}")
+                }
+                // "If you control that creature, draw two cards." (Dreamdew
+                // Entrancer).
+                (TargetTense::ThatIs, _) if *f == Filter::controlled_by_you() => {
+                    format!("you control that {noun}")
                 }
                 (TargetTense::Is, Some(k)) => format!("it has {k}"),
                 (TargetTense::ThatIs, Some(k)) => format!("that {noun} has {k}"),
@@ -8422,6 +8474,18 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             && clauses[i - 1].text.starts_with("deals ")
         {
             &c.text["deals ".len()..]
+        } else if i > 0
+            && c.subject.is_none()
+            && clauses[i - 1].subject.is_none()
+            && matches!(s.joins.get(i - 1), Some(Join::And))
+            && c.text.starts_with("create a")
+            && clauses[i - 1].text.starts_with("create a")
+            && c.tail.is_empty()
+            && clauses[i - 1].tail.is_empty()
+        {
+            // "Create a 1/1 white Human creature token and a Food token."
+            // (Have for Dinner).
+            &c.text["create ".len()..]
         } else if same_subject
             && c.text.starts_with("gains \"")
             && clauses[i - 1].text.starts_with("gains ")
@@ -11321,6 +11385,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 W::ThereIs => return format!("there is {one} in your graveyard"),
                 W::Theres => return format!("there's {one} in your graveyard"),
                 W::IsIn => return format!("{one} is in your graveyard"),
+                W::AreIn => {
+                    return format!("{} cards are in your graveyard", or_more(*at_least));
+                }
                 W::YouHave => true,
                 W::ThereAre => false,
             };

@@ -418,6 +418,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["defending", "player"], Recipient::DefendingPlayer),
     (&["that", "token"], Recipient::CreatedObject),
     (&["that", "created", "creature"], Recipient::CreatedThat),
+    (&["that", "created", "token"], Recipient::CreatedThatToken),
     (&["manifested", "creature"], Recipient::Manifested),
     // "attach this Equipment to the amassed Army": amass's Army (CR
     // 701.47a), created or not.
@@ -3705,6 +3706,13 @@ impl P {
         if self.eat_words(&["cards", "in", "your", "graveyard"]) {
             return Ok(StaticCond::CardsInGraveyard(n));
         }
+        if self.eat_words(&["cards", "are", "in", "your", "graveyard"]) {
+            return Ok(StaticCond::GraveyardCards {
+                filter: Filter::default(),
+                at_least: n,
+                wording: crate::ast::GraveyardWording::AreIn,
+            });
+        }
         if self.eat_words(&["card", "types", "in", "your", "graveyard"]) {
             return Ok(StaticCond::CardTypesInGraveyard(n));
         }
@@ -5048,6 +5056,26 @@ impl P {
         // `if you controlled that target 1, ...`: "If you controlled that
         // permanent" whatever the target's noun (Kellan, Inquisitive
         // Prodigy).
+        // `if you controlled it, ...`: "If you controlled it, ..." about the
+        // last target (Hotshot Investigators).
+        if self.at_words(&["if", "you", "controlled", "it"])
+            && self.peek_at(4) == Some(&Tok::Comma)
+            && let Some(n) = self.last_object_target()
+        {
+            self.pos += 5;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfTarget(
+                n,
+                Filter::controlled_by_you(),
+                vec![s],
+                crate::ast::TargetCheck {
+                    tense: crate::ast::TargetTense::Is,
+                    ..crate::ast::TargetCheck::default()
+                },
+            ));
+        }
         let permanent = self.at_words(&["if", "you", "controlled", "that", "target"]);
         if permanent || self.at_words(&["if", "you", "controlled", "target"]) {
             self.pos += if permanent { 5 } else { 4 };
@@ -5074,13 +5102,16 @@ impl P {
             ));
         }
         // "If excess damage was dealt this way, ..." (CR 120.4a).
-        if self.at_words(&["if", "excess", "damage", "dealt", "this", "way"]) {
-            self.pos += 6;
+        let to_that = self.at_words(&[
+            "if", "excess", "damage", "dealt", "to", "that", "permanent", "this", "way",
+        ]);
+        if to_that || self.at_words(&["if", "excess", "damage", "dealt", "this", "way"]) {
+            self.pos += if to_that { 9 } else { 6 };
             self.expect(&Tok::Comma)?;
             let saved = self.subject.take();
             let s = self.sentence()?;
             self.subject = saved;
-            return Ok(Effect::IfExcessDamage(vec![s]));
+            return Ok(Effect::IfExcessDamage(vec![s], to_that));
         }
         if self.at_word("if") && self.this_way_ahead() {
             self.pos += 1;
@@ -9772,16 +9803,28 @@ impl P {
             self.pos += 2;
             f.each = true;
         }
-        let mv_after = !named
+        // "creature card with power 2 or less from your graveyard"
+        // (Slumbering Walker): the power after the noun.
+        let power_after = !named
+            && !each
+            && f.power.is_none()
             && f.mana_value.is_none()
-            && (each || self.at_words(&["card", "with", "mana", "value"]));
+            && self.at_words(&["card", "with", "power"]);
+        let mv_after = power_after
+            || (!named
+                && f.mana_value.is_none()
+                && (each || self.at_words(&["card", "with", "mana", "value"])));
         if mv_after {
             if !each {
                 self.pos += 1;
             }
             let g = self.filter()?;
-            f.mana_value = g.mana_value;
-            f.status.mana_value_x = g.status.mana_value_x;
+            if power_after {
+                f.power = g.power;
+            } else {
+                f.mana_value = g.mana_value;
+                f.status.mana_value_x = g.status.mana_value_x;
+            }
             if !self.at_word("from") {
                 return self.unexpected("`from` after the card's mana value");
             }

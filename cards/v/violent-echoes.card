@@ -1,0 +1,6 @@
+card "Violent Echoes" {
+  oracle_id e8ecec61-cc47-4051-a599-0e7470764488
+  cost {2}{R}{R}
+  type Instant
+  spell: deal 6 damage to target creature or planeswalker; if excess damage dealt to that permanent this way, empower jace count where excess damage dealt this way
+}

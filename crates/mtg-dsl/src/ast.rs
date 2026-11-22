@@ -1772,6 +1772,9 @@ pub enum GraveyardWording {
     Theres,
     /// "an artifact card is in your graveyard".
     IsIn,
+    /// `8 cards are in your graveyard`: "eight or more cards are in your
+    /// graveyard" (Sidequest: Card Collection).
+    AreIn,
 }
 
 /// What a conditional static ability checks.
@@ -2984,6 +2987,11 @@ pub enum Recipient {
     /// printed "that creature" ("Create a 1/1 ... Otter creature token
     /// ... put a +1/+1 counter on that creature").
     CreatedThat,
+    /// `that created token`: the token just created, printed "that token"
+    /// ("Then if this spell was cast from a graveyard, put two +1/+1
+    /// counters on that token.", Retrieve the Esper); `that token` prints
+    /// "it".
+    CreatedThatToken,
     /// `those tokens`: every token the last token-creating sentence
     /// created; inside a delayed trigger about them, each in turn
     /// (`SameTokens`, the core `SameObject`).
@@ -4277,7 +4285,10 @@ pub enum Effect {
     IfThisWay(ThisWayCond, Vec<Sentence>),
     /// `if excess damage dealt this way, <sentence>`: "If excess damage
     /// was dealt this way, ..." (CR 120.4a).
-    IfExcessDamage(Vec<Sentence>),
+    /// `if excess damage dealt this way, ...`; `if excess damage dealt to
+    /// that permanent this way, ...` (`true`): "If excess damage was dealt
+    /// to that permanent this way, ..." (Violent Echoes; wording only).
+    IfExcessDamage(Vec<Sentence>, bool),
     /// `tap 1 other untapped Citizen you control chosen`, `exile 2
     /// creature card from your graveyard chosen`, `return up to 2 land you
     /// control chosen`: the controller chooses what to act on.

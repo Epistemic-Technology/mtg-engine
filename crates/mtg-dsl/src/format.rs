@@ -343,6 +343,7 @@ impl Fmt {
             }
             Recipient::CreatedObject | Recipient::SameToken => "that token".to_string(),
             Recipient::CreatedThat => "that created creature".to_string(),
+            Recipient::CreatedThatToken => "that created token".to_string(),
             Recipient::SameCard => "that card".to_string(),
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
@@ -2112,6 +2113,13 @@ impl Fmt {
                 if *opponent { "opponent" } else { "player" },
                 self.line(inner, t)
             ),
+            Effect::IfTarget(_, f, inner, check)
+                if check.tense == crate::ast::TargetTense::Is
+                    && !check.after
+                    && *f == Filter::controlled_by_you() =>
+            {
+                format!("if you controlled it, {}", self.line(inner, t))
+            }
             Effect::IfTarget(n, f, inner, check)
                 if matches!(
                     check.tense,
@@ -2178,9 +2186,11 @@ impl Fmt {
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
             }
-            Effect::IfExcessDamage(inner) => {
-                format!("if excess damage dealt this way, {}", self.line(inner, t))
-            }
+            Effect::IfExcessDamage(inner, to_that) => format!(
+                "if excess damage dealt {}this way, {}",
+                if *to_that { "to that permanent " } else { "" },
+                self.line(inner, t)
+            ),
             Effect::ChooseAct {
                 act,
                 count,
@@ -2904,6 +2914,14 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
         let each = if g.each { " each" } else { "" };
         g.each = false;
         mv = format!("{each} with mana value {n}{}", cmp_suffix(cmp));
+    }
+    // "creature card with power 2 or less".
+    if f.same.is_none()
+        && f.or.is_none()
+        && mv.is_empty()
+        && let Some((cmp, n)) = g.power.take()
+    {
+        mv = format!(" with power {n}{}", cmp_suffix(cmp));
     }
     if g == Filter::default() {
         format!("target card{named}{mv} from {whose}")
@@ -4580,6 +4598,7 @@ fn static_cond(c: &StaticCond) -> String {
             use crate::ast::GraveyardWording as W;
             match wording {
                 W::ThereAre => format!("{at_least} {} cards in your graveyard", filter(fl)),
+                W::AreIn => format!("{at_least} cards are in your graveyard"),
                 W::YouHave => {
                     format!("you have {at_least} {} cards in your graveyard", filter(fl))
                 }

@@ -1,0 +1,14 @@
+card "Devouring Sugarmaw // Have for Dinner" {
+  oracle_id c8bc28ea-5630-49d5-963a-5789fa83f3c7
+  layout adventure
+  cost {2}{B}{B}
+  type Creature — Horror
+  pt 6/6
+  keywords menace, trample
+  triggered at beginning of your upkeep: you may sacrifice 1 artifact, enchantment, or token chosen; if you dont, tap this
+  face "Have for Dinner" {
+    cost {1}{W}
+    type Instant — Adventure
+    spell: create 1 "1/1 white Human creature" and create 1 "Food"
+  }
+}

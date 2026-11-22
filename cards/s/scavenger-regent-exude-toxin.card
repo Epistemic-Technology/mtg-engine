@@ -1,0 +1,14 @@
+card "Scavenger Regent // Exude Toxin" {
+  oracle_id 7e97a242-0bac-4f18-9228-e98ecca36254
+  layout omen
+  cost {3}{B}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  ward discard 1 card
+  face "Exude Toxin" {
+    cost {X}{B}{B}
+    type Sorcery — Omen
+    spell: each single non-Dragon creature gets -1/-1 X
+  }
+}

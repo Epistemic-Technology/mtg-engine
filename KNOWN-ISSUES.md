@@ -228,6 +228,12 @@ Forms that pass the gate with the wrong meaning:
 - **`tapped` after `create count each <filter>`** is read into the
   filter ("for each tapped multicolored permanent", Infinite Guideline
   Station).
+- **`whenever you cast of chosen color spell`** renders "Whenever you
+  cast a spell of the chosen color" but never triggered in a scenario
+  (red chosen, Lightning Bolt cast; Diamond Mare, not added).
+- **The sacrificed creature in a reflexive trigger:** `you may sacrifice
+  1 other creature chosen; when you do, deal damage equal power of the
+  sacrificed creature to ...` deals 0 (Bolg of the North, not added).
 - **`return all <filter> card from your graveyard`** finds `card` only
   within seven words of `all` (`parse.rs`), so a long filter fails to
   parse (Raise the Past).

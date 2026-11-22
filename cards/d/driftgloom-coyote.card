@@ -1,0 +1,7 @@
+card "Driftgloom Coyote" {
+  oracle_id f76a86f3-568a-40b3-8e2c-f84db4141293
+  cost {3}{W}{W}
+  type Creature — Elemental Coyote
+  pt 3/4
+  triggered when this enters: exile target creature an opponent controls until this leaves; if target 1 had with power 2 or less, put 1 +1/+1 counter on this creature
+}

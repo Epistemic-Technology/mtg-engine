@@ -1,0 +1,13 @@
+card "Grave Researcher // Reanimate" {
+  oracle_id 6cb8b8c4-0674-4f14-9d89-010969fbb80e
+  layout prepare
+  cost {2}{B}
+  type Creature — Troll Warlock
+  pt 3/3
+  triggered at beginning of your upkeep: surveil 1; then if 3 creature cards in your graveyard, this becomes prepared
+  face "Reanimate" {
+    cost {B}
+    type Sorcery
+    spell: return target creature card from a graveyard to battlefield under your control; you lose count equal mana value of that card life
+  }
+}

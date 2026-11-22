@@ -1,0 +1,8 @@
+card "Rhovanion Rampager" {
+  oracle_id 008a11c1-d283-49fe-abd7-ff4fe8b1fe79
+  cost {2}{B}
+  type Creature — Wolf
+  pt 3/2
+  triggered whenever this attacks: you may sacrifice 1 other creature chosen; if you do, put count equal power of the sacrificed creature +1/+1 counters on this
+  triggered when this dies: amass Goblins count where power
+}

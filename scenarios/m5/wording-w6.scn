@@ -743,3 +743,274 @@ scenario "Katara: untapped, no counter; waterbend draws" {
   assert counters "Katara, Bending Prodigy" +1/+1 0
   assert hand A count 1
 }
+
+scenario "Metalhead: returns another artifact or creature; sacrificing an artifact pumps him" {
+  battlefield A: 5 "Island", "Mountain", "Ornithopter"
+  battlefield B: "Hill Giant"
+  hand A: "Metalhead"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Metalhead"
+  turn 1 A: trigger "Metalhead" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  turn 1 postcombat_main A: activate "Metalhead" sacrificing "Ornithopter"
+  run_to turn 1 end
+  assert counters "Metalhead" +1/+1 1
+  assert has "Metalhead" menace
+  assert has "Metalhead" haste
+}
+
+scenario "Reanimate: a prepared Grave Researcher puts an opponent's creature onto the battlefield" {
+  battlefield A: "Grave Researcher // Reanimate", "Swamp"
+  graveyard A: "Grizzly Bears", "Llanowar Elves", "Raging Goblin"
+  graveyard B: "Hill Giant"
+  library A: "Island", "Island", "Island"
+  start turn 3 A untap
+  turn 3 A: cast "Reanimate" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert life A 16
+}
+
+scenario "Grave Researcher: two creature cards, not prepared" {
+  battlefield A: "Grave Researcher // Reanimate", "Swamp"
+  graveyard A: "Grizzly Bears", "Llanowar Elves"
+  graveyard B: "Hill Giant"
+  library A: "Island", "Island", "Island"
+  start turn 3 A untap
+  illegal turn 3 A: cast "Reanimate" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Violent Echoes: excess damage empowers Jace that much" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Violent Echoes"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Violent Echoes" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert counters "Jace" loyalty 3
+}
+
+scenario "Violent Echoes: no excess, no Jace" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Ureni, the Song Unending"
+  hand A: "Violent Echoes"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Violent Echoes" targeting "Ureni, the Song Unending"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Jace"
+}
+
+scenario "Exude Toxin: each non-Dragon creature gets -X/-X" {
+  battlefield A: 3 "Swamp", "Shivan Dragon"
+  battlefield B: "Hill Giant"
+  hand A: "Scavenger Regent // Exude Toxin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Exude Toxin" x 1
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+  assert power "Shivan Dragon" 5
+}
+
+scenario "Rhovanion Rampager: sacrificing grows it; dying amasses its power" {
+  battlefield A: "Rhovanion Rampager", "Hill Giant"
+  battlefield B: "Mountain", "Mountain"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Rhovanion Rampager"
+  run_to turn 2 postcombat_main
+  assert counters "Rhovanion Rampager" +1/+1 3
+  assert life B 14
+  turn 2 postcombat_main B: cast "Lightning Bolt" targeting "Rhovanion Rampager"
+  turn 2 postcombat_main B: cast "Lightning Bolt" targeting "Rhovanion Rampager"
+  run_to turn 2 end
+  assert graveyard A contains "Rhovanion Rampager"
+  assert counters "Goblin Army" +1/+1 6
+}
+
+scenario "Way of the Warlord: Jace 5, and a planeswalker's -4 deals 2 and 2" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Way of the Warlord"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Way of the Warlord"
+  run_to turn 1 postcombat_main
+  assert counters "Jace" loyalty 5
+  turn 1 postcombat_main A: activate "Jace" ability 3 targeting "Hill Giant", player B
+  run_to turn 1 end
+  assert damage "Hill Giant" 2
+  assert life B 18
+  assert counters "Jace" loyalty 1
+}
+
+scenario "Moogles' Valor: a Moogle for each creature, then indestructible" {
+  battlefield A: 5 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Moogles' Valor"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Moogles' Valor"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Moogle"
+  assert has "Grizzly Bears" indestructible
+  assert has oldest "Moogle" indestructible
+  assert has newest "Moogle" lifelink
+}
+
+scenario "Driftgloom Coyote: a creature with power 2 or less adds a counter" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Driftgloom Coyote"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Driftgloom Coyote"
+  turn 1 A: trigger "Driftgloom Coyote" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert counters "Driftgloom Coyote" +1/+1 1
+}
+
+scenario "Driftgloom Coyote: power 3, no counter" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Driftgloom Coyote"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Driftgloom Coyote"
+  turn 1 A: trigger "Driftgloom Coyote" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert counters "Driftgloom Coyote" +1/+1 0
+}
+
+scenario "Hotshot Investigators: returning your own creature investigates" {
+  battlefield A: 6 "Island", "Grizzly Bears"
+  hand A: "Hotshot Investigators"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hotshot Investigators"
+  turn 1 A: trigger "Hotshot Investigators" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Clue"
+}
+
+scenario "Hotshot Investigators: returning an opponent's creature doesn't" {
+  battlefield A: 6 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Hotshot Investigators"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hotshot Investigators"
+  turn 1 A: trigger "Hotshot Investigators" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert battlefield A lacks "Clue"
+}
+
+scenario "Dreamdew Entrancer: three stun counters; your own creature draws two" {
+  battlefield A: 2 "Forest", 2 "Island", "Grizzly Bears"
+  hand A: "Dreamdew Entrancer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dreamdew Entrancer"
+  turn 1 A: trigger "Dreamdew Entrancer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" stun 3
+  assert hand A count 2
+}
+
+scenario "Dreamdew Entrancer: an opponent's creature draws nothing" {
+  battlefield A: 2 "Forest", 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Dreamdew Entrancer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dreamdew Entrancer"
+  turn 1 A: trigger "Dreamdew Entrancer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" stun 3
+  assert hand A count 0
+}
+
+scenario "Sidequest: Card Collection transforms with eight cards in the graveyard" {
+  battlefield A: "Sidequest: Card Collection // Magicked Card"
+  graveyard A: 8 "Island"
+  start turn 1 A precombat_main
+  run_to turn 2
+  assert battlefield A contains "Magicked Card"
+}
+
+scenario "Sidequest: Card Collection stays with seven" {
+  battlefield A: "Sidequest: Card Collection // Magicked Card"
+  graveyard A: 7 "Island"
+  start turn 1 A precombat_main
+  run_to turn 2
+  assert battlefield A contains "Sidequest: Card Collection"
+}
+
+scenario "The Sackville-Bagginses: sacrificing on entering draws and makes a Treasure; a sacrificed token drains 1" {
+  battlefield A: "Swamp", "Swamp", "Ornithopter"
+  hand A: "The Sackville-Bagginses"
+  start turn 1 A precombat_main
+  turn 1 A: cast "The Sackville-Bagginses"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert hand A count 1
+  assert battlefield A contains "Treasure"
+}
+
+scenario "The Sackville-Bagginses: sacrificing a token makes the target opponent lose 1" {
+  battlefield A: 2 "Plains", 2 "Swamp"
+  hand A: "Raise the Alarm", "The Sackville-Bagginses"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: wait
+  turn 1 A: cast "The Sackville-Bagginses"
+  turn 1 A: trigger "The Sackville-Bagginses" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Soldier"
+  assert life B 19
+}
+
+scenario "Retrieve the Esper: a 3/3 Robot Warrior; from the graveyard it gets two counters" {
+  battlefield A: 10 "Island"
+  hand A: "Retrieve the Esper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Retrieve the Esper"
+  turn 1 A: wait
+  turn 1 A: cast "Retrieve the Esper" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Robot Warrior"
+  assert counters oldest "Robot Warrior" +1/+1 0
+  assert counters newest "Robot Warrior" +1/+1 2
+  assert power newest "Robot Warrior" 5
+}
+
+scenario "Have for Dinner: a Human and a Food" {
+  battlefield A: "Plains", "Plains"
+  hand A: "Devouring Sugarmaw // Have for Dinner"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Have for Dinner"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Human"
+  assert battlefield A contains "Food"
+  assert exile A contains "Devouring Sugarmaw"
+}
+
+scenario "Devouring Sugarmaw: no sacrifice at upkeep taps it" {
+  battlefield A: "Devouring Sugarmaw // Have for Dinner"
+  start turn 3 A untap
+  run_to turn 3 precombat_main
+  assert tapped "Devouring Sugarmaw"
+}
+
+scenario "Slumbering Walker: removing a counter returns a creature card with power 2 or less" {
+  battlefield A: 5 "Plains"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Slumbering Walker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Slumbering Walker"
+  turn 1 end A: trigger "Slumbering Walker" targeting "Grizzly Bears"
+  run_to turn 2
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Slumbering Walker" -1/-1 1
+  assert graveyard A contains "Hill Giant"
+}

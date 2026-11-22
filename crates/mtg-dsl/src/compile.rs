@@ -1947,7 +1947,10 @@ impl Compiler<'_> {
             | Recipient::SameTokens
             | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem => CoreRecipient::CreatedTokens,
-            Recipient::Manifested | Recipient::CreatedObject | Recipient::CreatedThat => {
+            Recipient::Manifested
+            | Recipient::CreatedObject
+            | Recipient::CreatedThat
+            | Recipient::CreatedThatToken => {
                 CoreRecipient::CreatedObject
             }
             Recipient::Attached => CoreRecipient::Attached,
@@ -3316,7 +3319,7 @@ impl Compiler<'_> {
                 let cond = self.this_way_cond(c);
                 out.push(CoreEffect::IfThisWay { cond, then });
             }
-            Effect::IfExcessDamage(inner) => {
+            Effect::IfExcessDamage(inner, _) => {
                 let then = self.sentences(inner)?;
                 out.push(CoreEffect::IfExcessDamage(then));
             }

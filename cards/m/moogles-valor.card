@@ -1,0 +1,6 @@
+card "Moogles' Valor" {
+  oracle_id 9627ed9a-5ade-412d-bf8d-f0705b1c9405
+  cost {3}{W}{W}
+  type Instant
+  spell: create count foreach creature you control "1/2 white Moogle creature with lifelink"; then each creature you control gains indestructible
+}
