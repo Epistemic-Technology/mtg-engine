@@ -358,6 +358,11 @@ named the feature; a card may need more than one.
   the corpus load left), about 1 ms; the rest is cold caches or noise on
   a loaded machine. Wall-clock A/B on this machine was unreliable at load
   20+; use callgrind.
+  Measured after the sixth wave's merges with nothing else running
+  (mono-red mirror, pinned best of five): 3,770 games/s before the first
+  wave, 3,488 after the fifth, 3,685 after the sixth, so the wall-clock
+  figure is still 2.3% under the first; the sixth wave's own features
+  were not measured apart from the perf branch.
 - **The optional additional cost was built twice:** behold's "you may
   behold" and the path for collect evidence and blight are separate.
 - **Cost reductions on a prepared spell copy** have no scenario.

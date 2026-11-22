@@ -2805,3 +2805,40 @@ Per-game throughput fell 3.4% (3,498 to 3,379 games/s), about 12% over
 five waves, still not bisected. Coverage: 91.0% of Pauper, 70.7% of
 Standard, 61.1% of Modern; gate 16,471 match; 9,087 scenarios pass; fuzz
 clean in release and debug builds.
+
+Status 2026-11-22: the sixth wave. Before it, binaries built at each
+wave boundary put the throughput drop at 7.5% over five waves (about 2%
+a wave, not the 12% the per-wave figures summed to), spread across the
+hot paths with no single cause; a feature agent given only that
+recovered it by profiling (a flag for cards with no alternative cast, a
+slot-indexed characteristics cache, walking only the set keyword bits,
+cheaper clones), with identical game outcomes on every seed compared.
+Measured at the end with nothing else running: 3,770 games/s before the
+first wave, 3,488 after the fifth, 3,685 now. Start-up had doubled
+because sorting the parsed corpus moved whole cards; it sorts positions
+now. Twelve card batches accepted 124 of 480: 34% of fresh Standard
+cards, 14.5% of Pauper cards. Nine other feature agents: template drafts
+that failed to parse (filter phrases rewritten into the card language,
+filters comparing a characteristic with a count; 130 cards); keywords
+(devour, amplify, tribute, haunt, reconfigure, cleave, champion, sweep,
+grandeur, parley, voting, read ahead; 76); wording (49); counts and
+statics (kicker with a non-mana cost, "Otherwise" after a conditional
+static, damage assigned by toughness; 40); tokens, copies, and counters
+(processors, "you may cast the copy", an X/X token's size as a copiable
+value; 39); triggers and replacements (life loss as a replaceable
+event; 38); layouts (aftermath, fuse, flip, meld; 34; mutate not
+built); player choices (Curses, "choose one or more" heads, card names;
+33); and the open bugs (12 cards, ward with a sacrifice cost, four
+scenario-runner gaps). The bug agent found that "that creature" after a
+target in an enters, attack, or cast trigger meant the source: about 28
+accepted cards did the wrong thing and are right now without a file
+change. Also fixed in accepted cards: a discard in the cost of a
+graveyard ability was never paid; a card with no mana cost could be
+cast from the hand for nothing; an edict ignored "other than enchanted
+creature"; a delayed "return those cards" returned nothing. The template
+author then wrote 24 cards (seven it offered were left out as wrong or
+untestable). Coverage: 92.5% of Pauper, 74.7% of Standard, 63.6% of
+Modern; gate 17,070 match; 10,120 scenarios pass; fuzz clean in release
+and debug builds. Pauper needs 273 more cards for 95%; its card batches
+yield less each wave (17%, then 14.5%), so the features its reports name
+matter more than further batches.
