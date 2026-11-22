@@ -2709,7 +2709,7 @@ Forms that change only how Oracle words what an existing form does:
 | `reduced {1} during your turn` | "This ability costs {1} less to activate during your turn." |
 | `the chosen target 1` | "the chosen creature", after "choose target creature" |
 | `if this sneak paid` | "If this creature's sneak cost was paid" |
-| `count foreach land you control` | "For each land you control, create a Treasure token." (the count leads the sentence) |
+| `count foreach land you control` | "For each land you control, create a Treasure token." (the count leads the sentence; the template author writes it for "For each ..., create a ... token") |
 | `your opponents control 3 creature` | "your opponents control three or more creatures" (a static condition: the opponents' permanents counted together) |
 | `at beginning of your next end step` | In a delayed trigger: "at the beginning of your next end step". |
 | `this is with counter` | "this creature has a counter on it" (any kind) |
@@ -2717,5 +2717,6 @@ Forms that change only how Oracle words what an existing form does:
 | `8 cards are in your graveyard` | "eight or more cards are in your graveyard" (`8 cards in your graveyard`: "there are eight or more cards in your graveyard") |
 | `if you controlled it, ...` | "If you controlled it, ..." about the last target (`if you controlled target 1` prints "that creature") |
 | `that created token` | "that token", the token just created (`that token` prints "it") |
+| `that created land` | "that land", the land card just put onto the battlefield (Fabled Passage) |
 | `target creature card with power 2 or less from your graveyard` | "target creature card with power 2 or less from your graveyard" (the power after the noun) |
 

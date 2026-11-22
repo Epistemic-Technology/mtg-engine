@@ -1014,3 +1014,77 @@ scenario "Slumbering Walker: removing a counter returns a creature card with pow
   assert counters "Slumbering Walker" -1/-1 1
   assert graveyard A contains "Hill Giant"
 }
+
+scenario "Gargantuan Leech: {1} less for each Cave you control and each Cave card in your graveyard" {
+  battlefield A: "Captivating Cave", "Hidden Cataract", 4 "Swamp"
+  graveyard A: "Captivating Cave"
+  hand A: "Gargantuan Leech"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gargantuan Leech"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gargantuan Leech"
+}
+
+scenario "Gargantuan Leech: two Caves are not enough with five other lands" {
+  battlefield A: "Captivating Cave", "Hidden Cataract", 3 "Swamp"
+  hand A: "Gargantuan Leech"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Gargantuan Leech"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Gargantuan Leech"
+}
+
+scenario "Moon-Vigil Adherents: +1/+1 for each creature you control and each creature card in your graveyard" {
+  battlefield A: "Moon-Vigil Adherents", "Grizzly Bears"
+  graveyard A: "Hill Giant", "Raging Goblin", "Island"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert power "Moon-Vigil Adherents" 4
+  assert toughness "Moon-Vigil Adherents" 4
+}
+
+scenario "Death Baron: Skeletons and other Zombies get +1/+1 and deathtouch; not itself" {
+  battlefield A: "Death Baron", "Clattering Skeletons", "Binding Mummy", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert power "Clattering Skeletons" 5
+  assert has "Clattering Skeletons" deathtouch
+  assert power "Binding Mummy" 3
+  assert has "Binding Mummy" deathtouch
+  assert power "Death Baron" 2
+  assert has not "Death Baron" deathtouch
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Fabled Passage: a basic land tapped; untapped with four lands" {
+  battlefield A: "Fabled Passage", 4 "Plains"
+  library A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Fabled Passage"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert untapped "Forest"
+}
+
+scenario "Fabled Passage: with three other lands it stays tapped" {
+  battlefield A: "Fabled Passage", 2 "Plains"
+  library A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Fabled Passage"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+}
+
+scenario "Crescent Island Temple: a Monk for each Shrine you control; another Shrine makes one more" {
+  battlefield A: "Honden of Seeing Winds", 8 "Mountain"
+  hand A: "Crescent Island Temple", "Honden of Infinite Rage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Crescent Island Temple"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Monk"
+  turn 1 postcombat_main A: cast "Honden of Infinite Rage"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Monk"
+  assert has newest "Monk" prowess
+}

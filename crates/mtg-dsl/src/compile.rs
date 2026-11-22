@@ -1950,7 +1950,8 @@ impl Compiler<'_> {
             Recipient::Manifested
             | Recipient::CreatedObject
             | Recipient::CreatedThat
-            | Recipient::CreatedThatToken => {
+            | Recipient::CreatedThatToken
+            | Recipient::CreatedThatLand => {
                 CoreRecipient::CreatedObject
             }
             Recipient::Attached => CoreRecipient::Attached,

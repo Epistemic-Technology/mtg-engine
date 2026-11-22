@@ -419,6 +419,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "token"], Recipient::CreatedObject),
     (&["that", "created", "creature"], Recipient::CreatedThat),
     (&["that", "created", "token"], Recipient::CreatedThatToken),
+    (&["that", "created", "land"], Recipient::CreatedThatLand),
     (&["manifested", "creature"], Recipient::Manifested),
     // "attach this Equipment to the amassed Army": amass's Army (CR
     // 701.47a), created or not.

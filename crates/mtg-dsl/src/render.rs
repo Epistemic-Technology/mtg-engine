@@ -1392,6 +1392,7 @@ impl<'a> Ctx<'a> {
             }
             Recipient::CreatedThat => "that creature".to_string(),
             Recipient::CreatedThatToken => "that token".to_string(),
+            Recipient::CreatedThatLand => "that land".to_string(),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 // "each creature and planeswalker they control": Oracle
@@ -2179,6 +2180,21 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             &format!("with {kw}"),
             &format!("with {kw} or {}", keyword_name(k)),
             1,
+        );
+    }
+    // "Skeletons you control and other Zombies you control" (Death
+    // Baron): when only one side is "other", each names its controller.
+    if plural_form
+        && alt.or.is_none()
+        && base.who == Some(Who::You)
+        && alt.who == Some(Who::You)
+        && base.relation == Relation::Any
+        && alt.relation == Relation::Other
+    {
+        return format!(
+            "{} and {}",
+            filter_phrase_one(&base, card, true),
+            filter_phrase_one(alt, card, true)
         );
     }
     // A chain of three or more prints as a list: "Bear, Spider, or Wolf".
@@ -3779,6 +3795,16 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 "the greatest toughness among {}",
                 filter_phrase(f, card, true)
             );
+        }
+        // "for each Cave you control and each Cave card in your
+        // graveyard" (Gargantuan Leech).
+        CountExpr::Sum(a, b) if each => {
+            let first = count_phrase(a, card, true);
+            let second = count_phrase(b, card, true);
+            return match second.strip_prefix("for each ") {
+                Some(rest) if first.starts_with("for each ") => format!("{first} and each {rest}"),
+                _ => format!("{first} plus {second}"),
+            };
         }
         CountExpr::Sum(a, b) => {
             return format!(

@@ -2992,6 +2992,10 @@ pub enum Recipient {
     /// counters on that token.", Retrieve the Esper); `that token` prints
     /// "it".
     CreatedThatToken,
+    /// `that created land`: the land card just put onto the battlefield,
+    /// printed "that land" ("Then if you control four or more lands, untap
+    /// that land.", Fabled Passage).
+    CreatedThatLand,
     /// `those tokens`: every token the last token-creating sentence
     /// created; inside a delayed trigger about them, each in turn
     /// (`SameTokens`, the core `SameObject`).

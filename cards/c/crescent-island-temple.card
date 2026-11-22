@@ -1,0 +1,7 @@
+card "Crescent Island Temple" {
+  oracle_id 2886f95e-c4e8-4770-b7de-40985f336cfb
+  cost {3}{R}
+  type Legendary Enchantment — Shrine
+  triggered when this enters: create count foreach Shrine you control "1/1 red Monk creature with prowess"
+  triggered whenever other Shrine you control enters: create 1 "1/1 red Monk creature with prowess"
+}

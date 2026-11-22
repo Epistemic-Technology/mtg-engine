@@ -1246,6 +1246,34 @@ impl Templates {
                 token_block(&key)?;
                 Some(format!("create {} \"{key}\"", number(cap(c, 1))?))
             }),
+            // "For each land you control, create a Treasure token." (Brass's
+            // Bounty), "For each creature you control, create a 1/2 white
+            // Moogle creature token with lifelink."
+            (
+                r(
+                    r"^For each (.+?), create an? (Treasure|Food|Clue|Blood|Map|Powerstone|Lander) token$",
+                ),
+                |c, _| {
+                    Some(format!(
+                        "create count foreach {} \"{}\"",
+                        count_expr(cap(c, 1))?,
+                        cap(c, 2)
+                    ))
+                },
+            ),
+            (
+                r(
+                    r"^For each (.+?), create an? ((?:\d+/\d+) (?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) token((?: with [a-z ,]+)?)$",
+                ),
+                |c, _| {
+                    let key = format!("{}{}", cap(c, 2), cap(c, 3));
+                    token_block(&key)?;
+                    Some(format!(
+                        "create count foreach {} \"{key}\"",
+                        count_expr(cap(c, 1))?
+                    ))
+                },
+            ),
             // "Its controller creates a Treasure token", "Each player
             // creates a Treasure token".
             (

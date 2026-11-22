@@ -344,6 +344,7 @@ impl Fmt {
             Recipient::CreatedObject | Recipient::SameToken => "that token".to_string(),
             Recipient::CreatedThat => "that created creature".to_string(),
             Recipient::CreatedThatToken => "that created token".to_string(),
+            Recipient::CreatedThatLand => "that created land".to_string(),
             Recipient::SameCard => "that card".to_string(),
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
