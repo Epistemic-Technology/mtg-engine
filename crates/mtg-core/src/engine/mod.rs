@@ -651,6 +651,20 @@ impl GameState {
 
     // ----- the main loop -------------------------------------------------------
 
+    /// A copy of `flow` to match on. The common steps carry no data and
+    /// are made in place; the rest go through the derived `clone` (an
+    /// out-of-line match over every variant, 2% of a game when it took
+    /// them all).
+    #[inline]
+    fn flow_now(&self) -> Flow {
+        match self.flow {
+            Flow::Priority => Flow::Priority,
+            Flow::BeginStep => Flow::BeginStep,
+            Flow::EndStep => Flow::EndStep,
+            _ => self.flow.clone(),
+        }
+    }
+
     /// Advance until a decision is needed or the game ends.
     #[allow(clippy::too_many_lines)] // one arm per `Flow` variant
     fn run(&mut self) -> StepResult {
@@ -663,7 +677,7 @@ impl GameState {
             if let Some(result) = self.check_game_over() {
                 return StepResult::Over(result);
             }
-            match self.flow.clone() {
+            match self.flow_now() {
                 Flow::GameOver => {
                     return StepResult::Over(self.result.unwrap_or(GameResult::Draw));
                 }
@@ -1665,7 +1679,7 @@ impl GameState {
 
     #[allow(clippy::too_many_lines)] // one arm per (`Flow`, `Choice`) pair
     fn apply_choice(&mut self, player: PlayerId, choice: Choice) {
-        match (self.flow.clone(), choice) {
+        match (self.flow_now(), choice) {
             (
                 Flow::Mulligan {
                     mut kept,
