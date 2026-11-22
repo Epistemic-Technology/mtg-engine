@@ -607,6 +607,10 @@ pub struct Except {
 pub enum ReduceBy {
     Each(CountExpr),
     If(StaticCond),
+    /// `reduced {1} if targets creature with power 3 or less`: "This
+    /// ability costs {1} less to activate if it targets a creature with
+    /// power 3 or less." (the first target).
+    Targets(Filter),
 }
 
 /// `alternative cost {1}, return basic land you control`, `alternative
@@ -1257,6 +1261,9 @@ pub enum Ability {
     /// 702.183): choose exactly one mode and pay its additional cost; each
     /// mode is named.
     Tiered(Vec<(ManaCost, Mode)>),
+    /// `equip abilities targeting this cost {2} less`: "Equip abilities
+    /// you activate that target this creature cost {2} less to activate."
+    EquipDiscount(u8),
     /// `pawprint 5 { mode 1: ... mode 2: ... mode 3: ... }` (CR 700.2i):
     /// "Choose up to five {P} worth of modes. You may choose the same mode
     /// more than once." with each mode's number of pawprints.

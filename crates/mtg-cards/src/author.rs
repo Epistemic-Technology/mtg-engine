@@ -4996,6 +4996,20 @@ impl Builder<'_> {
             }
             return Ok(());
         }
+        // "Equip abilities you activate that target this creature cost {2}
+        // less to activate."
+        if let Some(c) = Regex::new(
+            r"^Equip abilities you activate that target (?:this creature|~) cost \{(\d+)\} less to activate\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            self.statements.push(format!(
+                "equip abilities targeting this cost {{{}}} less",
+                cap(&c, 1)
+            ));
+            return Ok(());
+        }
         // An alternative cost (CR 118.9): "You may pay {2}{U} rather than
         // pay this spell's mana cost.", "If it's not your turn, you may
         // exile a blue card from your hand rather than ...".

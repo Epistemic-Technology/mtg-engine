@@ -4742,6 +4742,9 @@ fn cost_text(c: &Cost) -> String {
         Some((by, crate::ast::ReduceBy::Each(e))) => {
             parts.push(format!("reduced {by} each {}", count_expr_text(e)));
         }
+        Some((by, crate::ast::ReduceBy::Targets(fl))) => {
+            parts.push(format!("reduced {by} if targets {}", filter(fl)));
+        }
         Some((by, crate::ast::ReduceBy::If(StaticCond::DuringYourTurn))) => {
             parts.push(format!("reduced {by} during your turn"));
         }
@@ -6196,6 +6199,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Uncounterable => {
             let _ = writeln!(out, "{indent}this spell can't be countered");
+        }
+        Ability::EquipDiscount(n) => {
+            let _ = writeln!(out, "{indent}equip abilities targeting this cost {{{n}}} less");
         }
         Ability::AuraStays => {
             let _ = writeln!(out, "{indent}protection doesn't remove this");

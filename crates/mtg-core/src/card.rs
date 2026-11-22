@@ -6985,6 +6985,19 @@ pub struct ActivatedAbility {
     pub reduction: Option<Box<ActivationReduction>>,
 }
 
+impl ActivatedAbility {
+    /// An equip ability (CR 702.6a): it attaches its source to its target.
+    pub fn is_equip(&self) -> bool {
+        matches!(
+            self.effects.first(),
+            Some(Effect::Attach {
+                what: Recipient::Source,
+                to: Recipient::Target(0),
+            })
+        ) && self.sorcery_speed
+    }
+}
+
 /// What an activated ability's own text takes off its cost: `by` once for
 /// each of `each`, or once if `condition` holds ("This ability costs
 /// {4}{B} less to activate if you've drawn three or more cards this
@@ -6994,6 +7007,11 @@ pub struct ActivationReduction {
     pub by: ManaCost,
     pub each: Option<CountExpr>,
     pub condition: Option<StaticCondition>,
+    /// "This ability costs {1} less to activate if it targets a creature
+    /// with power 3 or less": `by` once if the first target matches (CR
+    /// 601.2f comes after the targets are chosen, 601.2c).
+    #[serde(default)]
+    pub target: Option<ObjFilter>,
 }
 
 /// A keyword that adds rules to the activated ability after it.
@@ -7918,6 +7936,11 @@ pub struct CardDef {
     /// exactly one mode and pays its cost.
     #[serde(default)]
     pub tiered: Vec<ManaCost>,
+    /// "Equip abilities you activate that target this creature cost {2}
+    /// less to activate." (CR 601.2f by way of 602.2b): generic mana off
+    /// any equip ability whose target is this permanent.
+    #[serde(default)]
+    pub equip_discount: u8,
     /// Entwine (CR 702.42): every mode of a "choose one" spell for this
     /// cost on top.
     pub entwine: Option<Box<ManaCost>>,
@@ -8717,6 +8740,9 @@ pub struct CardPool {
     /// printed on it (a granted ability, "has '...'", or a delayed
     /// trigger): the granting card's, not the permanent's that has it.
     counts_owner: Vec<Option<CardRef>>,
+    /// Whether some card has `CardDef::equip_discount`, so equip
+    /// abilities' costs depend on their targets.
+    pub equip_discounts: bool,
     /// The triggered ability prowess stands for (CR 702.108a).
     prowess: AbilityId,
     /// Exalted, persist, and undying (CR 702.83a, 702.79a, 702.93a).
@@ -8809,6 +8835,7 @@ impl CardPool {
             asks: Vec::new(),
             enters: Vec::new(),
             counts_owner: Vec::new(),
+            equip_discounts: false,
             prowess: AbilityId(0),
             exalted: AbilityId(0),
             persist: AbilityId(0),
@@ -9515,6 +9542,7 @@ impl CardPool {
 
     #[allow(clippy::too_many_lines)] // one flag per kind of definition
     pub fn add(&mut self, mut def: CardDef) -> CardRef {
+        self.equip_discounts |= def.equip_discount > 0;
         // CR 702.103b: the Aura a bestowed spell is, registered first so
         // the card's own definition keeps its name.
         if def.bestow.is_some() && def.types.contains(CardType::Creature) {
@@ -10163,6 +10191,7 @@ impl Builder {
             suspend: None,
             spree: Vec::new(),
             tiered: Vec::new(),
+            equip_discount: 0,
             gift: None,
             entwine: None,
             escalate: None,
@@ -10753,6 +10782,14 @@ impl Builder {
     #[must_use]
     pub fn tiered(mut self, costs: Vec<ManaCost>) -> Self {
         self.0.tiered = costs;
+        self
+    }
+
+    /// "Equip abilities you activate that target this creature cost {N}
+    /// less to activate."
+    #[must_use]
+    pub fn equip_discount(mut self, n: u8) -> Self {
+        self.0.equip_discount = n;
         self
     }
 

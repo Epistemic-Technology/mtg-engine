@@ -13911,6 +13911,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         " This ability costs {by} less to activate during your turn."
                     );
                 }
+                Some((by, crate::ast::ReduceBy::Targets(f))) => {
+                    let _ = write!(
+                        text,
+                        " This ability costs {by} less to activate if it targets {}.",
+                        filter_a(f, card)
+                    );
+                }
                 Some((by, crate::ast::ReduceBy::If(c))) => {
                     let _ = write!(
                         text,
@@ -14730,6 +14737,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             format!("A deck can have any number of cards named {}.", card.name)
         }
         Ability::Uncounterable => "This spell can't be countered.".to_string(),
+        Ability::EquipDiscount(n) => format!(
+            "Equip abilities you activate that target {} cost {{{n}}} less to activate.",
+            this_ref(card)
+        ),
         Ability::AuraStays => "This effect doesn't remove this Aura.".to_string(),
         // CR 721.2: "4+ | Flying".
         Ability::StationLevel { n, keywords } => {

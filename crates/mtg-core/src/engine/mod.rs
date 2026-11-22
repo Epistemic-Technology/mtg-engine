@@ -1337,6 +1337,19 @@ impl GameState {
                             self.target_payable(spell, *t)
                         });
                     }
+                    // An ability whose cost depends on its first target
+                    // ("costs {1} less if it targets ...").
+                    if next_target == 0
+                        && is_ability
+                        && let Some(sa) = self.objects[spell].ability
+                        && let crate::card::AbilityDef::Activated(ab) = self.pool.ability(sa.ability)
+                        && self.target_reduces(ab)
+                    {
+                        options.retain(|c| {
+                            let Choice::Target(t) = c else { return true };
+                            self.ability_target_payable(spell, *t)
+                        });
+                    }
                     if optional {
                         if options.is_empty() {
                             // Nothing to choose: declined, and the later

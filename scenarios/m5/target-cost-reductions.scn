@@ -1,0 +1,55 @@
+# Activation costs that depend on the target (CR 601.2f by way of 602.2b,
+# after the targets are chosen, 601.2c): "This ability costs {1} less to
+# activate if it targets a creature with power 3 or less", and "Equip
+# abilities you activate that target this creature cost {2} less".
+
+scenario "Raft Security Officer taps a small creature for {1}" {
+  battlefield A: "Raft Security Officer", "Plains"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Raft Security Officer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Raft Security Officer with one land can't target a big creature" {
+  battlefield A: "Raft Security Officer", "Plains"
+  battlefield B: "Serra Angel" with 1 +1/+1
+  illegal turn 1 A: activate "Raft Security Officer" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert untapped "Serra Angel"
+}
+
+scenario "Raft Security Officer with two lands taps a big creature" {
+  battlefield A: "Raft Security Officer", 2 "Plains"
+  battlefield B: "Serra Angel" with 1 +1/+1
+  turn 1 A: activate "Raft Security Officer" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert tapped "Serra Angel"
+}
+
+scenario "Equipping Dwarven Mauler costs {2} less" {
+  battlefield A: "Dwarven Mauler", "Chainsaw", "Mountain"
+  turn 1 A: activate "Chainsaw" targeting "Dwarven Mauler"
+  run_to turn 1 postcombat_main
+  assert attached "Chainsaw" to "Dwarven Mauler"
+}
+
+scenario "Equipping another creature pays the full cost" {
+  battlefield A: "Dwarven Mauler", "Grizzly Bears", "Chainsaw", "Mountain"
+  turn 1 A: activate "Chainsaw" targeting auto
+  run_to turn 1 postcombat_main
+  assert attached "Chainsaw" to "Dwarven Mauler"
+}
+
+scenario "With one land only the Mauler can be equipped" {
+  battlefield A: "Dwarven Mauler", "Grizzly Bears", "Chainsaw", "Mountain"
+  illegal turn 1 A: activate "Chainsaw" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "With three lands the Bears can be equipped" {
+  battlefield A: "Dwarven Mauler", "Grizzly Bears", "Chainsaw", 3 "Mountain"
+  turn 1 A: activate "Chainsaw" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Chainsaw" to "Grizzly Bears"
+}

@@ -1,0 +1,7 @@
+card "Dwarven Mauler" {
+  oracle_id 70538676-2ffb-4cad-827e-b55e81088678
+  cost {R}
+  type Creature — Dwarf Warrior
+  pt 2/1
+  equip abilities targeting this cost {2} less
+}

@@ -1762,6 +1762,19 @@ impl P {
                 let inner = self.ability()?;
                 Ok(Ability::Solved(Box::new(inner)))
             }
+            // "Equip abilities you activate that target this creature cost
+            // {2} less to activate."
+            "equip" if self.at_words(&["equip", "abilities", "targeting", "this", "cost"]) => {
+                self.pos += 5;
+                let cost = self.mana_cost()?;
+                self.expect_word("less")?;
+                self.end_stmt()?;
+                let n = u8::try_from(cost.mana_value()).unwrap_or(u8::MAX);
+                if n == 0 || cost.to_string() != format!("{{{n}}}") {
+                    return self.fail("an equip discount is generic mana");
+                }
+                Ok(Ability::EquipDiscount(n))
+            }
             "this" if self.at_words(&["this", "spell", "can't", "be", "countered"]) => {
                 self.pos += 5;
                 self.end_stmt()?;
@@ -13833,7 +13846,9 @@ impl P {
                             line: self.line(),
                             message: e.to_string(),
                         })?;
-                        let how = if self.eat_word("each") {
+                        let how = if self.eat_words(&["if", "targets"]) {
+                            crate::ast::ReduceBy::Targets(self.filter()?)
+                        } else if self.eat_word("each") {
                             crate::ast::ReduceBy::Each(self.count_expr()?)
                         } else if self.eat_words(&["during", "your", "turn"]) {
                             // "This ability costs {1} less to activate

@@ -550,6 +550,9 @@ impl Compiler<'_> {
                 Ability::Uncounterable => {
                     b = b.uncounterable();
                 }
+                Ability::EquipDiscount(n) => {
+                    b = b.equip_discount(*n);
+                }
                 Ability::CondCost { delta, cond } => {
                     let c = self.static_cond(cond);
                     let i = self.pool.intern_condition(c);
@@ -1396,6 +1399,7 @@ impl Compiler<'_> {
                 Ability::Keyword(_)
                     | Ability::DeckAnyNumber
                     | Ability::Uncounterable
+                    | Ability::EquipDiscount(_)
                     | Ability::AuraStays
                     | Ability::SelfCost { .. }
                     | Ability::TargetCost { .. }
@@ -4850,6 +4854,9 @@ impl Compiler<'_> {
             Ability::Uncounterable => {
                 return self.err("\"can't be countered\" is a property of the spell");
             }
+            Ability::EquipDiscount(_) => {
+                return self.err("an equip discount is a property of the card");
+            }
             Ability::AuraStays => {
                 return self.err("`protection doesn't remove this` is not an ability");
             }
@@ -4957,11 +4964,15 @@ impl Compiler<'_> {
                         by: by.clone(),
                         each: match how {
                             crate::ast::ReduceBy::Each(e) => Some(self.count_expr(e)),
-                            crate::ast::ReduceBy::If(_) => None,
+                            _ => None,
                         },
                         condition: match how {
                             crate::ast::ReduceBy::If(c) => Some(self.static_cond(c)),
-                            crate::ast::ReduceBy::Each(_) => None,
+                            _ => None,
+                        },
+                        target: match how {
+                            crate::ast::ReduceBy::Targets(f) => Some(self.filter(f)),
+                            _ => None,
                         },
                     })
                 }),

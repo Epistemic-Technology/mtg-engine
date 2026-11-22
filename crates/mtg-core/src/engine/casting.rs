@@ -4731,7 +4731,11 @@ impl GameState {
                 if ab.cost.tap && (o.tapped || sick) {
                     continue;
                 }
-                let req = self.activation_mana(id, ab);
+                let mut req = self.activation_mana(id, ab);
+                // A cost that depends on the target: the cheapest target.
+                if self.target_reduces(ab) {
+                    req = self.cheapest_target_mana(p, id, ab, req);
+                }
                 // CR 701.67a: artifacts and creatures help pay a waterbend
                 // cost.
                 let bent: Sources;
@@ -5059,6 +5063,86 @@ impl GameState {
                 req.generic -= off.min(req.generic);
             }
         }
+    }
+
+    /// Whether `ab`'s cost depends on its first target: "This ability
+    /// costs {1} less to activate if it targets a creature with power 3
+    /// or less", or an equip ability while some card has "Equip abilities
+    /// you activate that target this creature cost {2} less".
+    pub(super) fn target_reduces(&self, ab: &ActivatedAbility) -> bool {
+        ab.reduction.as_ref().is_some_and(|r| r.target.is_some())
+            || (self.pool.equip_discounts && ab.is_equip())
+    }
+
+    /// CR 601.2f (by way of 602.2b): what `t` as the first target takes
+    /// off the cost of `ab`, an ability of `source`.
+    #[cold]
+    pub(super) fn reduce_for_target(
+        &self,
+        p: PlayerId,
+        source: ObjId,
+        ab: &ActivatedAbility,
+        t: Target,
+        req: &mut ManaRequirement,
+    ) {
+        if let Some(r) = &ab.reduction
+            && let Some(f) = &r.target
+            && self.target_fits(f, t, p, source)
+        {
+            req.reduce_by(&r.by);
+        }
+        if self.pool.equip_discounts
+            && ab.is_equip()
+            && let Target::Object(id) = t
+            && let Some(o) = self.objects.get(id)
+        {
+            let off = u32::from(self.pool.get(o.def).equip_discount);
+            req.generic -= off.min(req.generic);
+        }
+    }
+
+    /// `req` for `ab` with its cheapest legal first target (an ability
+    /// whose cost depends on it is offered if some target makes it
+    /// payable; the targets are then limited to those, CR 601.2c).
+    #[cold]
+    #[inline(never)]
+    fn cheapest_target_mana(
+        &self,
+        p: PlayerId,
+        source: ObjId,
+        ab: &ActivatedAbility,
+        req: ManaRequirement,
+    ) -> ManaRequirement {
+        let Some(spec) = ab.targets.first() else {
+            return req;
+        };
+        self.legal_targets(p, *spec, Some(source))
+            .into_iter()
+            .map(|t| {
+                let mut r = req;
+                self.reduce_for_target(p, source, ab, t, &mut r);
+                r
+            })
+            .min_by_key(ManaRequirement::total)
+            .unwrap_or(req)
+    }
+
+    /// Whether the activated ability on the stack as `obj` could be paid
+    /// for with `t` as its first target.
+    pub(super) fn ability_target_payable(&self, obj: ObjId, t: Target) -> bool {
+        let o = &self.objects[obj];
+        let Some(sa) = o.ability else { return true };
+        let AbilityDef::Activated(ab) = self.pool.ability(sa.ability) else {
+            return true;
+        };
+        let mut req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
+        self.reduce_for_target(o.controller, sa.source, ab, t, &mut req);
+        let mut sources = self.ability_sources(o.controller, sa.source);
+        if ab.cost.tap {
+            sources.retain(|(s, _)| *s != sa.source);
+        }
+        let ps = self.player(o.controller);
+        self.payable(o.controller, &sources, &ps.mana_pool, &req, ps.life, Some(sa.source))
     }
 
     /// CR 601.2f (by way of 602.2b): "This ability costs {1} less to
@@ -5960,7 +6044,12 @@ impl GameState {
             sacrifice = None;
         }
         let mut sources = self.ability_sources(controller, sa.source);
-        let req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
+        let mut req = self.activation_mana_x(sa.source, ab, self.x_of(obj));
+        if self.target_reduces(ab)
+            && let Some(t) = self.objects[obj].targets.first().copied()
+        {
+            self.reduce_for_target(controller, sa.source, ab, t, &mut req);
+        }
         // CR 701.67a: a {T} source is tapped already, so it doesn't help.
         if ab.cost.waterbend {
             sources.extend(self.waterbend_sources(controller, req.generic, None));

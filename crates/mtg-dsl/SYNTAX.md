@@ -344,7 +344,14 @@ sentence in the order written: `if you control enchantment, sorcery` is
 each Town you control.") and `reduced {4}{B} if <static condition>` ("...
 less to activate if you've drawn three or more cards this turn.") take
 mana off the ability's cost as it is activated (CR 601.2f by way of
-602.2b), printed after the effect and before the restrictions. An ability whose cost
+602.2b), printed after the effect and before the restrictions; `reduced
+{1} if targets creature with power 3 or less` ("... if it targets a
+creature with power 3 or less") once if the first target matches, so the
+ability is offered if some target makes it payable and only such targets
+are offered. The card-level line `equip abilities targeting this cost {2}
+less` prints "Equip abilities you activate that target this creature cost
+{2} less to activate." (generic mana off any equip ability aimed at it).
+An ability whose cost
 includes `discard this` is activated from the hand (cycling, channel).
 `waterbend {3}` (CR 701.67) is generic mana, printed "Waterbend {3}", of
 which each {1} may be paid by tapping an untapped artifact or creature its
