@@ -8944,9 +8944,15 @@ impl GameState {
                 // CR 608.2b: an illegal target is unaffected. If the
                 // creature is no longer a legal target it deals no damage;
                 // if the recipient is illegal there is nothing to damage.
-                let Some(y) = self.recipients(ctx, *to).first().copied() else {
+                let to_all = self.recipients(ctx, *to);
+                if to_all.is_empty() {
                     return;
-                };
+                }
+                // "Target creature you control deals damage equal to its
+                // power to each other creature": "other" is other than the
+                // creature dealing the damage.
+                let other = matches!(to, Recipient::Group(n)
+                    if self.pool.filter(*n).relation == crate::card::Relation::Other);
                 let sources: SmallVec<[ObjId; 2]> = self
                     .recipients(ctx, *source)
                     .into_iter()
@@ -8955,7 +8961,13 @@ impl GameState {
                 for x in sources {
                     let p = self.characteristics(x).map_or(0, |c| c.power.max(0));
                     let p = u32::try_from(p).unwrap_or(0);
-                    self.deal_damage(x, y, if *twice { p.saturating_mul(2) } else { p }, false);
+                    let p = if *twice { p.saturating_mul(2) } else { p };
+                    for &y in &to_all {
+                        if other && y == Target::Object(x) {
+                            continue;
+                        }
+                        self.deal_damage(x, y, p, false);
+                    }
                 }
             }
             Effect::DamageFrom { source, amount, to } => {

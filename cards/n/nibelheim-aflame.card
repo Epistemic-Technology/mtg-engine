@@ -1,0 +1,7 @@
+card "Nibelheim Aflame" {
+  oracle_id eab5eef8-d180-4b08-a770-6b3a1df03745
+  cost {2}{R}{R}
+  type Sorcery
+  flashback {5}{R}{R}
+  spell: choose target creature you control; target 1 bites each other creature; if cast from graveyard, discard hand and draw 4 cards
+}

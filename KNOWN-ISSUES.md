@@ -192,9 +192,6 @@ Wrong behaviour that reaches accepted cards:
 
 Forms that pass the gate with the wrong meaning:
 
-- **`<creature> bites each other creature`** damages only the first
-  creature of the group (Waltz of Rage, Nibelheim Aflame). `bites each
-  opponent` is used by accepted cards and is not known to be wrong.
 - **`you may pay {X}; when you do, ... X`**: X is never chosen and is 0
   (`Effect::Pay` uses `requirements(0)`; Wildborn Preserver).
 - **`ward waterbend {4}`** is paid as plain {4}: creatures and

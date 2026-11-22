@@ -1555,7 +1555,10 @@ either target is illegal as the spell resolves), `<what> bites itself`
 ("deals damage to itself equal to its power"), `<what> bites twice <what>`
 ("deals damage equal to twice its power to"); `up to two target creatures
 you control each bites <what>` prints "each deal damage equal to their
-power to", each creature dealing its own damage. `deal damage equal <expr>
+power to", each creature dealing its own damage. A group recipient is
+dealt damage by each creature: `target creature you control bites each
+other creature` (Waltz of Rage), where "other" excludes the creature
+dealing the damage. `deal damage equal <expr>
 to <what>` puts the amount before the recipient ("deals damage equal to
 that creature's power to the creature's controller", where `deal count
 equal ... damage to <what>` prints "deals damage to <what> equal to ...").

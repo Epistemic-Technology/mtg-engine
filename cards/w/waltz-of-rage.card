@@ -1,0 +1,6 @@
+card "Waltz of Rage" {
+  oracle_id 78df47c3-b771-4377-8963-ae3065fdcf8a
+  cost {3}{R}{R}
+  type Sorcery
+  spell: target creature you control bites each other creature; until end of turn, delayed this: whenever creature you control dies this turn, impulse 1 next turn it
+}
