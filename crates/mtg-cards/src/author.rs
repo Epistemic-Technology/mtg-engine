@@ -605,6 +605,13 @@ fn count_expr(s: &str) -> Option<String> {
             return Some("domain".to_string());
         }
         "cards in your hand" | "card in your hand" => return Some("hand".to_string()),
+        "cards you've discarded this turn" | "card you've discarded this turn" => {
+            return Some("discarded this turn".to_string());
+        }
+        "creatures that entered the battlefield under your control this turn"
+        | "creature that entered the battlefield under your control this turn" => {
+            return Some("creatures entered this turn".to_string());
+        }
         // Vivid.
         "colors among permanents you control" | "color among permanents you control" => {
             return Some("colors among permanents".to_string());

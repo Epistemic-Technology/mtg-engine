@@ -1550,6 +1550,8 @@ impl GameState {
     /// Discard a card from hand (CR 701.8).
     pub(super) fn discard_card(&mut self, p: PlayerId, card: ObjId) {
         self.discarded_this_turn |= 1 << p.index().min(7);
+        let n = &mut self.turn_log.discards[p.index().min(3)];
+        *n = n.saturating_add(1);
         self.emit(Event::Discard { player: p, card });
         // CR 702.35a: a card with madness is discarded into exile, and its
         // trigger lets its owner cast it for the madness cost.

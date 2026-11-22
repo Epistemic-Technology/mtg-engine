@@ -3879,6 +3879,11 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "opponent who lost life this turn".to_string(),
             "opponents who lost life this turn".to_string(),
         ),
+        CountExpr::DiscardedThisTurn => (
+            "card you've discarded this turn".to_string(),
+            "cards you've discarded this turn".to_string(),
+        ),
+
         CountExpr::CreaturesEnteredThisTurn => (
             "creature that entered the battlefield under your control this turn".to_string(),
             "creatures that entered the battlefield under your control this turn".to_string(),

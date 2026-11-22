@@ -1141,6 +1141,8 @@ impl GameState {
             CountExpr::CreaturesEnteredThisTurn => {
                 usize::from(self.turn_log.creatures_entered[you.index().min(3)])
             }
+            CountExpr::DiscardedThisTurn => usize::from(self.turn_log.discards[you.index().min(3)]),
+
             CountExpr::OpponentsMoreCards => {
                 let mine = self.player(you).hand.len();
                 self.players_in_game()

@@ -727,7 +727,8 @@ number of Zombies you control, rounded down" (CR 107.1a; `create count
 where half down Zombie you control "2/2 black Zombie creature"`);
 `creatures entered this turn`: "the number of creatures that entered
 the battlefield under your control this turn" (a static ability's count
-too). `every 7 <count>`: "for every seven cards in your graveyard", rounded
+too). `discarded this turn`: "for each card you've discarded this turn"
+(a cost's discard included; not in a static ability). `every 7 <count>`: "for every seven cards in your graveyard", rounded
 down (`static this: +2/+0 count each every 7 graveyard`). Both work in
 static abilities.
 `if you control Treefolk, draw 1 card`: a static condition judged as the

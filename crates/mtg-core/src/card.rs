@@ -1933,6 +1933,9 @@ pub enum CountExpr {
     /// turn ("the number of creatures that entered the battlefield under
     /// your control this turn").
     CreaturesEnteredThisTurn,
+    /// Cards you've discarded this turn ("for each card you've discarded
+    /// this turn", CR 701.8).
+    DiscardedThisTurn,
     /// Opponents who have more cards in hand than you.
     OpponentsMoreCards,
     /// The total power, toughness, or mana value of the battlefield
@@ -2000,6 +2003,8 @@ impl CountExpr {
             | CountExpr::CreaturesEnteredThisTurn
             | CountExpr::OpponentsMoreCards
             | CountExpr::Life => true,
+            // Discards are counted only as an effect resolves.
+            CountExpr::DiscardedThisTurn => false,
             // Total power and toughness would read the characteristics
             // being computed; total mana value does not.
             CountExpr::Total(stat, _) => *stat == Stat::ManaValue,

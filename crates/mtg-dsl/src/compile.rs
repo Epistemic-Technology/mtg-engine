@@ -1766,6 +1766,8 @@ impl Compiler<'_> {
             A::AttackedThisTurn => C::AttackedThisTurn,
             A::OpponentsLostLife => C::OpponentsLostLife,
             A::CreaturesEnteredThisTurn => C::CreaturesEnteredThisTurn,
+            A::DiscardedThisTurn => C::DiscardedThisTurn,
+
             A::OpponentsMoreCards => C::OpponentsMoreCards,
             A::Total(stat, f) => C::Total(*stat, self.filter(f)),
         }

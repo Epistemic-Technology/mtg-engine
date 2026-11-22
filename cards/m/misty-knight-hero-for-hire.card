@@ -1,0 +1,7 @@
+card "Misty Knight, Hero for Hire" {
+  oracle_id 5b090ba3-0ecb-4585-b5b7-9d6028c32487
+  cost {1}{R}
+  type Legendary Creature — Human Detective Hero
+  pt 3/1
+  activated {2}, {T}, discard 1 card: draw count each discarded this turn cards
+}

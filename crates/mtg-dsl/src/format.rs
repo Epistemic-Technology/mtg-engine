@@ -2781,6 +2781,8 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::AttackedThisTurn => "creature attacked this turn".to_string(),
         CountExpr::OpponentsLostLife => "opponents lost life this turn".to_string(),
         CountExpr::CreaturesEnteredThisTurn => "creatures entered this turn".to_string(),
+        CountExpr::DiscardedThisTurn => "discarded this turn".to_string(),
+
         CountExpr::OpponentsMoreCards => "opponents more cards in hand".to_string(),
         CountExpr::Total(stat, f) => format!("total {} {}", stat_word(*stat), filter(f)),
     }

@@ -495,6 +495,8 @@ pub enum CountExpr {
     /// `creatures entered this turn`: "the number of creatures that
     /// entered the battlefield under your control this turn".
     CreaturesEnteredThisTurn,
+    /// `discarded this turn`: "for each card you've discarded this turn".
+    DiscardedThisTurn,
     /// `opponents more cards in hand`: "for each opponent who has more
     /// cards in hand than you".
     OpponentsMoreCards,

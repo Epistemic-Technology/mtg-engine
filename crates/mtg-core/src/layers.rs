@@ -1172,6 +1172,7 @@ fn per_count(
         CountExpr::CreaturesEnteredThisTurn => {
             usize::from(state.turn_log.creatures_entered[you.index().min(3)])
         }
+        CountExpr::DiscardedThisTurn => 0,
         CountExpr::OpponentsMoreCards => {
             let mine = state.player(you).hand.len();
             state

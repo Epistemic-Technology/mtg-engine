@@ -1520,6 +1520,9 @@ pub struct TurnLog {
     /// Players who cast a spell from their hand ("if you haven't cast a
     /// spell from your hand this turn").
     pub cast_from_hand: u8,
+    /// Cards each player discarded ("for each card you've discarded this
+    /// turn").
+    pub discards: [u8; 4],
 }
 
 /// Day and night (CR 731): neither until something makes it day.

@@ -8554,6 +8554,10 @@ impl P {
         if self.eat_words(&["creatures", "entered", "this", "turn"]) {
             return Ok(CountExpr::CreaturesEnteredThisTurn);
         }
+        if self.eat_words(&["discarded", "this", "turn"]) {
+            return Ok(CountExpr::DiscardedThisTurn);
+        }
+
         if self.eat_words(&["opponents", "more", "cards", "in", "hand"]) {
             return Ok(CountExpr::OpponentsMoreCards);
         }

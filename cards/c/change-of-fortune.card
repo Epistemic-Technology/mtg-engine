@@ -1,0 +1,6 @@
+card "Change of Fortune" {
+  oracle_id 925feb7e-7876-430b-b95a-92b236a2e409
+  cost {3}{R}
+  type Sorcery
+  spell: discard hand then draw count each discarded this turn cards
+}
