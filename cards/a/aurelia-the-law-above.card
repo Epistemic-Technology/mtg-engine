@@ -1,0 +1,9 @@
+card "Aurelia, the Law Above" {
+  oracle_id 2a800427-ff8c-4b3c-baee-85211b70656d
+  cost {3}{R}{W}
+  type Legendary Creature — Angel
+  pt 4/4
+  keywords flying, vigilance, haste
+  triggered whenever a player attacks with 3 or more creatures: you draw 1 card
+  triggered whenever a player attacks with 5 or more creatures: deal 3 damage to each of your opponents and you gain 3 life
+}

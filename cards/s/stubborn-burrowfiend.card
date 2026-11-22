@@ -1,0 +1,8 @@
+card "Stubborn Burrowfiend" {
+  oracle_id 24bc7bd5-f262-45a2-8e94-377fef2ba5d5
+  cost {1}{G}
+  type Creature — Badger Beast Mount
+  pt 2/2
+  triggered whenever this becomes saddled first time each turn: mill 2 cards, then this gets +1/+1 count where graveyard creature until end of turn
+  saddle 2
+}

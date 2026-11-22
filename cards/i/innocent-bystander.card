@@ -1,0 +1,7 @@
+card "Innocent Bystander" {
+  oracle_id c293f1c0-93de-4a73-aaf6-4e9f01e557ec
+  cost {1}{R}
+  type Creature — Goblin Citizen
+  pt 2/1
+  triggered whenever this is dealt 3 or more damage: investigate
+}

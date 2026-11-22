@@ -5749,6 +5749,10 @@ impl GameState {
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
                 self.tap(c);
+                self.emit(Event::Crewed {
+                    crew: c,
+                    vehicle: sa.source,
+                });
             }
         }
         // CR 702.49a, c: return the unblocked attacker; the Ninja will
@@ -7221,6 +7225,7 @@ impl GameState {
             player: p,
             looked: u32::try_from(n).unwrap_or(0),
             down: u32::try_from(down.len()).unwrap_or(0),
+            surveil: graveyard,
         });
         self.bump();
     }
@@ -9201,7 +9206,7 @@ impl GameState {
                     if let Target::Player(p) = t {
                         let n = self.eval_num(*amount, ctx);
                         lost = lost.saturating_add(n);
-                        self.change_life(p, -i32::try_from(n).unwrap_or(i32::MAX));
+                        self.lose_life(p, n);
                     }
                 }
                 // "Target opponent loses 1 life for each attacking creature
@@ -9230,7 +9235,7 @@ impl GameState {
                         let life = self.player(p).life.max(0);
                         let n = life - life / 2;
                         lost = lost.saturating_add(n.unsigned_abs());
-                        self.change_life(p, -n);
+                        self.lose_life(p, n.unsigned_abs());
                     }
                 }
                 ctx.trigger_amount = lost;
@@ -11045,6 +11050,23 @@ impl GameState {
                         smallvec::smallvec![Modification::SetPt {
                             power: PtValue::Fixed(*power),
                             toughness: PtValue::Fixed(*toughness),
+                        }],
+                    );
+                }
+            }
+            Effect::SetBasePower { to, n } => {
+                // CR 608.2h: the value is locked in as the effect resolves.
+                let v = i32::try_from(self.eval_num(*n, ctx)).unwrap_or(i32::MAX);
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    self.effect_until_end_of_turn(
+                        ctx,
+                        id,
+                        smallvec::smallvec![Modification::SetPt {
+                            power: PtValue::Fixed(v),
+                            toughness: PtValue::Unchanged,
                         }],
                     );
                 }
@@ -13127,6 +13149,18 @@ impl GameState {
                 {
                     self.saddled.push(id);
                     self.bump();
+                    self.emit(Event::BecameSaddled { obj: id });
+                }
+            }
+            Effect::BecomeSaddledTarget { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t)
+                        && !self.saddled.contains(&id)
+                    {
+                        self.saddled.push(id);
+                        self.bump();
+                        self.emit(Event::BecameSaddled { obj: id });
+                    }
                 }
             }
             Effect::CreatedAttack | Effect::EnteredAttack => {
@@ -13919,7 +13953,7 @@ impl GameState {
         let remaining = match r.replacement {
             Replacement::PreventNext(n) => self.eval_num(n, ctx),
             Replacement::Redirect { next: Some(n), .. } => n,
-            Replacement::PreventNextTime => 1,
+            Replacement::PreventNextTime | Replacement::DestroyNextTime => 1,
             _ => 0,
         };
         let remaining = share.unwrap_or(remaining);

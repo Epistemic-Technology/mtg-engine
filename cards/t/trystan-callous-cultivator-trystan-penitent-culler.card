@@ -1,0 +1,18 @@
+card "Trystan, Callous Cultivator // Trystan, Penitent Culler" {
+  oracle_id 961d1128-a022-480c-918e-16ba0abf844b
+  layout transform
+  cost {2}{G}
+  type Legendary Creature — Elf Druid
+  pt 3/4
+  keywords deathtouch
+  triggered whenever this enters or transforms: mill 3 cards; then if there is Elf card in your graveyard, you gain 2 life
+  triggered at beginning of your first main: you may pay {B}; if you do, transform this
+  face "Trystan, Penitent Culler" {
+    type Legendary Creature — Elf Warlock
+    pt 3/4
+    color black
+    keywords deathtouch
+    triggered whenever this transforms: mill 3 cards, then you may exile 1 Elf card from your graveyard chosen; if you do, each opponent loses 2 life
+    triggered at beginning of your first main: you may pay {G}; if you do, transform this
+  }
+}

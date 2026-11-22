@@ -61,6 +61,14 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
         }
         Event::Transformed { obj } => format!("{} transforms.", state.name_of_or_lki(*obj)),
         Event::Explored { obj } => format!("{} explores.", state.name_of_or_lki(*obj)),
+        Event::Crewed { crew, vehicle } => format!(
+            "{} crews {}.",
+            state.name_of_or_lki(*crew),
+            state.name_of_or_lki(*vehicle)
+        ),
+        Event::BecameSaddled { obj } => {
+            format!("{} becomes saddled.", state.name_of_or_lki(*obj))
+        }
         Event::CollectedEvidence { player } => {
             format!("{} collects evidence.", who(*player, viewer))
         }
@@ -163,6 +171,7 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             player,
             looked,
             down,
+            ..
         } => format!(
             "{} at {looked} cards and puts {down} down.",
             verb(*player, viewer, "look", "looks")

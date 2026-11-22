@@ -1,0 +1,174 @@
+# Cards from the triggers-d list whose forms already worked (or that the
+# branch's "or" and "dies or is put into exile" triggers complete).
+
+scenario "Vnwxt: at max speed, a draw is two" {
+  battlefield A: "Vnwxt, Verbose Host"
+  speed A: 4
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert hand A count 2
+}
+
+scenario "Vnwxt: below max speed, one" {
+  battlefield A: "Vnwxt, Verbose Host"
+  speed A: 3
+  start turn 3 A
+  run_to turn 3 precombat_main
+  assert hand A count 1
+}
+
+scenario "Champions of the Shoal: entering taps and stuns a creature; leaving returns the beheld card" {
+  battlefield A: 4 "Island", "Coral Merfolk"
+  battlefield B: "Hill Giant"
+  hand A: "Champions of the Shoal"
+  hand B: "Unsummon"
+  battlefield B: "Island"
+  turn 1 A: cast "Champions of the Shoal"
+  turn 1 A: trigger "Champions of the Shoal" targeting "Hill Giant"
+  turn 2 B: cast "Unsummon" targeting "Champions of the Shoal"
+  run_to turn 1 end
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+  assert exile A contains "Coral Merfolk"
+  run_to turn 2 postcombat_main
+  assert counters "Hill Giant" stun 0
+  assert tapped "Hill Giant"
+  assert hand A contains "Coral Merfolk"
+  assert hand A contains "Champions of the Shoal"
+}
+
+scenario "Champions of the Shoal: attacking taps it, which triggers too" {
+  battlefield A: "Champions of the Shoal"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Champions of the Shoal"
+  turn 1 A: trigger "Champions of the Shoal" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+}
+
+scenario "Syr Vondam: another creature dying or exiled grows it" {
+  battlefield A: "Syr Vondam, Sunstar Exemplar", "Grizzly Bears", "Savannah Lions"
+  battlefield B: 3 "Swamp", 3 "Plains"
+  hand B: "Murder", "Unmake"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  turn 2 B: wait
+  turn 2 B: cast "Unmake" targeting "Savannah Lions"
+  run_to turn 2 postcombat_main
+  assert counters "Syr Vondam, Sunstar Exemplar" +1/+1 2
+  assert life A 22
+}
+
+scenario "Syr Vondam: dying with power 4 or greater destroys a nonland permanent" {
+  battlefield A: "Syr Vondam, Sunstar Exemplar" with 2 +1/+1
+  battlefield B: 3 "Swamp", "Hill Giant"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Syr Vondam, Sunstar Exemplar"
+  turn 2 A: trigger "Syr Vondam, Sunstar Exemplar" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Syr Vondam: with less power, nothing" {
+  battlefield A: "Syr Vondam, Sunstar Exemplar"
+  battlefield B: 3 "Swamp", "Hill Giant"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Syr Vondam, Sunstar Exemplar"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Venat: legendary spells draw a card, once each turn" {
+  battlefield A: "Venat, Heart of Hydaelyn", 6 "Swamp"
+  hand A: "Swarm, Being of Bees", "Swarm, Being of Bees"
+  turn 1 A: cast "Swarm, Being of Bees"
+  turn 1 A: wait
+  turn 1 A: cast "Swarm, Being of Bees"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Venat: Hero's Sundering transforms it; Hydaelyn grants indestructible until your next turn" {
+  battlefield A: "Venat, Heart of Hydaelyn", 7 "Plains", "Savannah Lions"
+  battlefield B: "Hill Giant", 3 "Swamp"
+  hand B: "Murder"
+  turn 1 A: activate "Venat, Heart of Hydaelyn" targeting "Hill Giant"
+  turn 1 begin_combat A: trigger "Hydaelyn, the Mothercrystal" targeting "Savannah Lions"
+  turn 2 B: cast "Murder" targeting "Savannah Lions"
+  run_to turn 2 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield A contains "Hydaelyn, the Mothercrystal"
+  assert battlefield A contains "Savannah Lions"
+  assert counters "Savannah Lions" +1/+1 1
+  assert hand A count 0
+}
+
+scenario "Hydaelyn: a legendary creature draws a card" {
+  battlefield A: "Venat, Heart of Hydaelyn", 7 "Plains", "Swarm, Being of Bees"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Venat, Heart of Hydaelyn" targeting "Hill Giant"
+  turn 1 begin_combat A: trigger "Hydaelyn, the Mothercrystal" targeting "Swarm, Being of Bees"
+  run_to turn 1 postcombat_main
+  assert counters "Swarm, Being of Bees" +1/+1 1
+  assert hand A count 1
+}
+
+scenario "Trystan: entering mills three; an Elf card there gains 2 life" {
+  battlefield A: 3 "Forest"
+  hand A: "Trystan, Callous Cultivator"
+  library A: "Llanowar Elves", "Forest", "Forest", "Forest"
+  turn 1 A: cast "Trystan, Callous Cultivator"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 3
+  assert life A 22
+}
+
+scenario "Trystan: no Elf card, no life" {
+  battlefield A: 3 "Forest"
+  hand A: "Trystan, Callous Cultivator"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  turn 1 A: cast "Trystan, Callous Cultivator"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Trystan: transformed, it mills three and may exile an Elf card to drain 2" {
+  battlefield A: "Trystan, Callous Cultivator", "Swamp"
+  library A: "Llanowar Elves", "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Trystan, Penitent Culler"
+  assert exile A contains "Llanowar Elves"
+  assert life B 18
+}
+
+scenario "Elrond: activating a creature's ability draws a card, once each turn" {
+  battlefield A: "Elrond, Moon-Reader", "Prodigal Sorcerer", "Prodigal Pyromancer", 3 "Mountain"
+  turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  turn 1 A: wait
+  turn 1 A: activate "Prodigal Pyromancer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 1
+}
+
+scenario "Elrond: an artifact's ability isn't a creature's" {
+  battlefield A: "Elrond, Moon-Reader", "Rod of Ruin", 3 "Mountain"
+  turn 1 A: activate "Rod of Ruin" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert hand A count 0
+}
+
+scenario "Elrond: two permanents exiled return at the next end step" {
+  battlefield A: "Elrond, Moon-Reader", 7 "Island", "Grizzly Bears", "Savannah Lions"
+  turn 1 A: activate "Elrond, Moon-Reader" targeting "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 end
+  assert exile A contains "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Savannah Lions"
+}

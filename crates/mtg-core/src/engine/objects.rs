@@ -35,6 +35,10 @@ impl GameState {
                 self.change_life(player, i32::try_from(amount).unwrap_or(i32::MAX));
                 None
             }
+            Proposed::LoseLife { player, amount } => {
+                self.change_life(player, -i32::try_from(amount).unwrap_or(i32::MAX));
+                None
+            }
             Proposed::Draw { player } => {
                 self.draw_now(player);
                 None
@@ -1392,6 +1396,16 @@ impl GameState {
         self.propose(Proposed::GainLife { player: p, amount });
     }
 
+    /// CR 119.3: a player loses life (damage included), subject to
+    /// replacement effects. Life paid as a cost goes to `change_life`
+    /// directly.
+    pub(super) fn lose_life(&mut self, p: PlayerId, amount: u32) {
+        if amount == 0 {
+            return;
+        }
+        self.propose(Proposed::LoseLife { player: p, amount });
+    }
+
     /// Give a player poison counters (CR 122.1f). Characteristics may
     /// read them ("as long as an opponent has three or more poison
     /// counters"), and poison changes are rare, so every cached
@@ -1562,8 +1576,9 @@ impl GameState {
                     // CR 702.90b: damage to a player as poison counters.
                     self.add_poison(p, amount);
                 } else {
-                    let delta = -i32::try_from(amount).unwrap_or(i32::MAX);
-                    self.change_life(p, delta);
+                    // CR 120.3a: damage to a player causes that much life
+                    // loss.
+                    self.lose_life(p, amount);
                 }
                 // CR 702.164c: toxic adds poison counters with combat damage.
                 if combat && let Some(c) = src.as_ref() {
@@ -1773,6 +1788,14 @@ impl GameState {
         let n = &mut self.turn_log.discards[p.index().min(3)];
         *n = n.saturating_add(1);
         self.emit(Event::Discard { player: p, card });
+        let def = self.objects[card].def;
+        if self
+            .pool
+            .get(def)
+            .may_watch(&Event::Discard { player: p, card })
+        {
+            self.discard_this_triggers(p, card, def);
+        }
         // CR 702.35a: a card with madness is discarded into exile, and its
         // trigger lets its owner cast it for the madness cost.
         if self.pool.get(self.objects[card].def).madness.is_some() {
@@ -1796,6 +1819,41 @@ impl GameState {
                 .is_some_and(|o| o.zone == Zone::Graveyard)
         {
             self.mayhem_discarded.push(new);
+        }
+    }
+
+    /// "When you discard this card" (CR 701.9): triggers from the card
+    /// itself, controlled by the player discarding it; its source is the
+    /// card as it was discarded (it has left the hand once the ability is
+    /// put on the stack, and nothing reads it there).
+    #[cold]
+    #[inline(never)]
+    fn discard_this_triggers(&mut self, p: PlayerId, card: ObjId, def: CardRef) {
+        let abilities: SmallVec<[crate::card::AbilityId; 2]> = self
+            .pool
+            .get(def)
+            .ability_ids
+            .iter()
+            .copied()
+            .filter(|a| {
+                matches!(self.pool.ability(*a),
+                    crate::card::AbilityDef::Triggered(t) if t.trigger.discards_this())
+            })
+            .collect();
+        for ability in abilities {
+            let timestamp = self.tick();
+            self.pending_triggers.push(crate::state::PendingTrigger {
+                controller: p,
+                ability: crate::state::StackAbility {
+                    ability,
+                    source: card,
+                    def,
+                    trigger_obj: Some(card),
+                    trigger_player: Some(p),
+                    trigger_amount: 0,
+                },
+                timestamp,
+            });
         }
     }
 

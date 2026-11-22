@@ -1,0 +1,9 @@
+card "Moonshadow" {
+  oracle_id a3635b3f-839c-4fe5-83a5-7c70e8630184
+  cost {B}
+  type Creature — Elemental
+  pt 7/7
+  keywords menace
+  enters with 6 -1/-1 counters
+  triggered whenever one or more permanent card put into your graveyard from anywhere while this has 1 or more -1/-1 counters: remove 1 -1/-1 counter from this
+}

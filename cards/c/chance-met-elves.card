@@ -1,0 +1,7 @@
+card "Chance-Met Elves" {
+  oracle_id 8958a6fe-76ef-45e3-8522-6bc13486b447
+  cost {2}{G}
+  type Creature — Elf Warrior
+  pt 3/2
+  triggered once each turn whenever you scry: put 1 +1/+1 counter on this
+}

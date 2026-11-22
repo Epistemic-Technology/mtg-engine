@@ -1,0 +1,8 @@
+card "Kill-Suit Cultist" {
+  oracle_id 52ddf96d-3d6a-439c-b486-d806cbc32d77
+  cost {R}
+  type Creature — Goblin Berserker
+  pt 1/1
+  keywords attacks each combat if able
+  activated {B}, sacrifice this: this turn, replace damage to target creature: destroy next time
+}

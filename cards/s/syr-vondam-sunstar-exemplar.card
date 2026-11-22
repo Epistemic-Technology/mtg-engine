@@ -1,0 +1,9 @@
+card "Syr Vondam, Sunstar Exemplar" {
+  oracle_id 9e597063-c077-4236-a9e4-b0721b24677f
+  cost {W}{B}
+  type Legendary Creature — Human Knight
+  pt 2/2
+  keywords vigilance, menace
+  triggered whenever other creature you control dies or is put into exile: put 1 +1/+1 counter on this and you gain 1 life
+  triggered when this dies or is put into exile while this is with power 4 or greater: destroy up to 1 target nonland permanent
+}

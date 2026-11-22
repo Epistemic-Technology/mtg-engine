@@ -1,0 +1,7 @@
+card "Dryad Militant" {
+  oracle_id b8ca5877-ac9e-4b15-8c23-c70f61b01895
+  cost {G/W}
+  type Creature — Dryad Soldier
+  pt 2/1
+  replace instant or sorcery card put into a graveyard: exile
+}

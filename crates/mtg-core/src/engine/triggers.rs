@@ -104,6 +104,7 @@ impl GameState {
                 let player_batch = matches!(
                     t.trigger,
                     TriggerSpec::CreaturesDealCombatDamage(_)
+                        | TriggerSpec::CreaturesDealDamage(_)
                         | TriggerSpec::NoncombatDamageToOpponent { batch: true, .. }
                 );
                 if player_batch
@@ -140,6 +141,7 @@ impl GameState {
         if matches!(event, Event::Cycled { .. }) {
             self.cycle_triggers(event, &mut fired);
         }
+
         if matches!(event, Event::Cast { .. }) {
             self.cast_this_triggers(event, &mut fired);
         }
@@ -193,10 +195,18 @@ impl GameState {
         source: ObjId,
         ability: AbilityId,
     ) -> bool {
+        let key = (source, ability);
+        if limit == crate::card::TurnLimit::Ever {
+            // Kept with "activate only once" abilities: never cleared.
+            if self.activated_ever.contains(&key) {
+                return false;
+            }
+            self.activated_ever.push(key);
+            return true;
+        }
         let crate::card::TurnLimit::Triggers(n) = limit else {
             return true;
         };
-        let key = (source, ability);
         let times = self.limited_this_turn.iter().filter(|k| **k == key).count();
         if times >= usize::from(n) {
             return false;
@@ -872,6 +882,16 @@ impl GameState {
                     to: Zone::Graveyard,
                     ..
                 },
+            )
+            // "When enchanted permanent dies or is put into exile".
+            | (
+                TriggerSpec::DiesOrExiled(what),
+                Event::ZoneChange {
+                    old,
+                    from: Zone::Battlefield,
+                    to: Zone::Graveyard | Zone::Exile,
+                    ..
+                },
             ) => {
                 // Look back: the object as it last existed on the battlefield.
                 let l = self.lki.get(old)?;
@@ -936,6 +956,26 @@ impl GameState {
                     from: Zone::Battlefield,
                     ..
                 },
+            )
+            // CR 700.4: "dies" is put into a graveyard from the
+            // battlefield.
+            | (
+                TriggerSpec::LeavesWithoutDying(what),
+                Event::ZoneChange {
+                    old,
+                    from: Zone::Battlefield,
+                    to: Zone::Exile | Zone::Hand | Zone::Library | Zone::Stack | Zone::Command,
+                    ..
+                },
+            )
+            | (
+                TriggerSpec::ReturnedToHand(what),
+                Event::ZoneChange {
+                    old,
+                    from: Zone::Battlefield,
+                    to: Zone::Hand,
+                    ..
+                },
             ) => {
                 let l = self.lki.get(old)?;
                 let ok = match what {
@@ -985,6 +1025,17 @@ impl GameState {
                 };
                 (ok && c.attackers.len() >= usize::from(*min))
                     .then_some((this.then_some(*attacker), Some(w.controller)))
+            }
+            (TriggerSpec::PlayerAttacksWith { whose, min }, Event::Attack { attacker, .. }) => {
+                // Once per declaration, on the first attacker declared.
+                let c = self.combat.as_ref()?;
+                if c.attackers.first().is_none_or(|a| a.id != *attacker)
+                    || c.attackers.len() < usize::from(*min)
+                {
+                    return None;
+                }
+                let p = self.objects.get(*attacker)?.controller;
+                whose_ok(*whose, p).then_some((None, Some(p)))
             }
             (TriggerSpec::AttacksAlone(what), Event::Attack { attacker, .. }) => {
                 // CR 506.5: the only creature declared as an attacker.
@@ -1048,6 +1099,14 @@ impl GameState {
                     source,
                     target: Target::Player(p),
                     combat: true,
+                    ..
+                },
+            )
+            | (
+                TriggerSpec::CreaturesDealDamage(f),
+                Event::Damage {
+                    source,
+                    target: Target::Player(p),
                     ..
                 },
             ) => {
@@ -1225,6 +1284,17 @@ impl GameState {
                 Some((Some(*obj), Some(p)))
             }
             (
+                TriggerSpec::DealtDamageAtLeast(what, n),
+                Event::Damage {
+                    target: Target::Object(obj),
+                    amount,
+                    ..
+                },
+            ) if amount >= n => {
+                let p = on_battlefield(what, *obj)?;
+                Some((Some(*obj), Some(p)))
+            }
+            (
                 TriggerSpec::DealsDamage { what, to, combat },
                 Event::Damage {
                     source,
@@ -1323,6 +1393,10 @@ impl GameState {
                     && by_ctl == w.controller
                     && !self.targeted_by_controller.contains(target))
                 .then_some((Some(*by), Some(by_ctl)))
+            }
+            (TriggerSpec::TargetedFirstTime, Event::Targeted { target, by }) => {
+                let by_ctl = self.objects.get(*by)?.controller;
+                (*target == w.source).then_some((Some(*by), Some(by_ctl)))
             }
             (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {
                 let by_ctl = self.objects.get(*by)?.controller;
@@ -1432,20 +1506,29 @@ impl GameState {
             (
                 TriggerSpec::CastsNth {
                     whose,
-                    nth: crate::card::SpellOrdinal::FirstNoncreature,
+                    nth:
+                        nth @ (crate::card::SpellOrdinal::FirstNoncreature
+                        | crate::card::SpellOrdinal::FirstInstantOrSorcery),
                 },
                 Event::Cast {
                     player, spell, def, ..
                 },
             ) => {
                 // The spells cast this turn include this one.
-                let noncreature = |d: &crate::card::CardRef| !self.pool.get(*d).is_creature();
+                let kind = |d: &crate::card::CardRef| {
+                    let d = self.pool.get(*d);
+                    if *nth == crate::card::SpellOrdinal::FirstNoncreature {
+                        !d.is_creature()
+                    } else {
+                        d.is_instant() || d.is_sorcery()
+                    }
+                };
                 let n = self
                     .cast_this_turn
                     .iter()
-                    .filter(|(p, d)| p == player && noncreature(d))
+                    .filter(|(p, d)| p == player && kind(d))
                     .count();
-                (whose_ok(*whose, *player) && noncreature(def) && n == 1)
+                (whose_ok(*whose, *player) && kind(def) && n == 1)
                     .then_some((Some(*spell), Some(*player)))
             }
             (
@@ -1682,6 +1765,28 @@ impl GameState {
                 .then_some((None, Some(*player))),
             (TriggerSpec::ScriesOrSurveils, Event::Scried { player, .. }) => {
                 (*player == w.controller).then_some((None, Some(*player)))
+            }
+            (
+                TriggerSpec::Scries,
+                Event::Scried {
+                    player,
+                    surveil: false,
+                    ..
+                },
+            ) => (*player == w.controller).then_some((None, Some(*player))),
+            (TriggerSpec::CrewsOrSaddles(what), Event::Crewed { crew, vehicle }) => {
+                let p = match what {
+                    TriggerObj::This => (*crew == w.source).then_some(w.controller)?,
+                    TriggerObj::Filter(f) => matches_now(f, *crew)?,
+                };
+                Some((Some(*vehicle), Some(p)))
+            }
+            (TriggerSpec::BecomesSaddled(what), Event::BecameSaddled { obj }) => {
+                let p = match what {
+                    TriggerObj::This => (*obj == w.source).then_some(w.controller)?,
+                    TriggerObj::Filter(f) => matches_now(f, *obj)?,
+                };
+                Some((Some(*obj), Some(p)))
             }
             // CR 701.44c: the creature explores even if it has left the
             // battlefield; then it is judged as it last existed.

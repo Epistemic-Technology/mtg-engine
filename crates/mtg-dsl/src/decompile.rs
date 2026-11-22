@@ -1375,6 +1375,11 @@ impl Decompiler<'_> {
                 ),
             },
             CoreEffect::SetBasePtVar { to, n } => Effect::SetBasePtVar { to: r(*to), n: *n },
+            CoreEffect::SetBasePower { to, n } => Effect::SetBasePower {
+                to: r(*to),
+                n: *n,
+                becomes: matches!(n, mtg_core::card::Num::Count(_)),
+            },
             CoreEffect::SetBasePt {
                 to,
                 power,
@@ -1543,6 +1548,9 @@ impl Decompiler<'_> {
             },
             CoreEffect::CumulativeUpkeep(c) => Effect::CumulativeUpkeep(c.clone()),
             CoreEffect::BecomePrepared { what } => Effect::BecomePrepared { what: r(*what) },
+            CoreEffect::BecomeSaddledTarget { what } => {
+                Effect::BecomeSaddledTarget { what: r(*what) }
+            }
             CoreEffect::Connive { what } => Effect::Connive {
                 what: Self::recipient(*what),
             },
@@ -1839,6 +1847,10 @@ impl Decompiler<'_> {
                 Trigger::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
             }
             TriggerSpec::AttacksAlone(o) => Trigger::AttacksAlone(self.trigger_obj(o)),
+            TriggerSpec::PlayerAttacksWith { whose, min } => Trigger::PlayerAttacksWith {
+                whose: *whose,
+                min: *min,
+            },
             TriggerSpec::AttacksWith { this, min } => Trigger::AttacksWith {
                 this: *this,
                 min: *min,
@@ -1848,7 +1860,9 @@ impl Decompiler<'_> {
             TriggerSpec::BlocksOrBlocked(o) => Trigger::BlocksOrBlocked(self.trigger_obj(o)),
             TriggerSpec::AttacksOrBlocks(o) => Trigger::AttacksOrBlocks(self.trigger_obj(o)),
             TriggerSpec::Leaves(o) => Trigger::Leaves(self.trigger_obj(o)),
-            TriggerSpec::DiesOrExiled(_) => unreachable!("earthbend's built-in delayed trigger"),
+            TriggerSpec::LeavesWithoutDying(o) => Trigger::LeavesWithoutDying(self.trigger_obj(o)),
+            TriggerSpec::ReturnedToHand(o) => Trigger::ReturnedToHand(self.trigger_obj(o)),
+            TriggerSpec::DiesOrExiled(o) => Trigger::DiesOrExiled(self.trigger_obj(o)),
             TriggerSpec::Blocks(o) => Trigger::Blocks(self.trigger_obj(o)),
             TriggerSpec::BlockPair {
                 what,
@@ -1889,6 +1903,7 @@ impl Decompiler<'_> {
             },
             TriggerSpec::BecomesTarget(o) => Trigger::BecomesTarget(self.trigger_obj(o)),
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
+            TriggerSpec::TargetedFirstTime => Trigger::TargetedFirstTime,
             TriggerSpec::TargetedByYouFirstTime => Trigger::TargetedByYouFirstTime,
             TriggerSpec::TurnedFaceUp(o) => Trigger::TurnedFaceUp(self.trigger_obj(o)),
             TriggerSpec::Exploits => Trigger::Exploits,
@@ -1914,6 +1929,9 @@ impl Decompiler<'_> {
                 kind: *kind,
             },
             TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),
+            TriggerSpec::DealtDamageAtLeast(o, n) => {
+                Trigger::DealtDamageAtLeast(self.trigger_obj(o), *n)
+            }
             TriggerSpec::DealtCombatDamage(o) => Trigger::DealtCombatDamage(self.trigger_obj(o)),
             TriggerSpec::DealsDamage { what, to, combat } => Trigger::DealsDamage {
                 obj: self.trigger_obj(what),
@@ -1950,6 +1968,7 @@ impl Decompiler<'_> {
                 dies: *dies,
             },
             TriggerSpec::Draws { whose } => Trigger::Draws { whose: *whose },
+            TriggerSpec::DiscardsThis => Trigger::DiscardsThis,
             TriggerSpec::Discards { whose, filter } => Trigger::Discards {
                 whose: *whose,
                 filter: self.filter(filter),
@@ -1963,6 +1982,7 @@ impl Decompiler<'_> {
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
             TriggerSpec::Forages { .. } => Trigger::Forages,
+            TriggerSpec::CreaturesDealDamage(f) => Trigger::CreaturesDealDamage(self.filter(f)),
             TriggerSpec::CreaturesDealCombatDamage(f) => {
                 Trigger::CreaturesDealCombatDamage(self.filter(f))
             }
@@ -1992,7 +2012,10 @@ impl Decompiler<'_> {
                 your_turn: *your_turn,
             },
             TriggerSpec::ScriesOrSurveils => Trigger::ScriesOrSurveils,
+            TriggerSpec::Scries => Trigger::Scries,
             TriggerSpec::Explores(o) => Trigger::Explores(self.trigger_obj(o)),
+            TriggerSpec::CrewsOrSaddles(o) => Trigger::CrewsOrSaddles(self.trigger_obj(o)),
+            TriggerSpec::BecomesSaddled(o) => Trigger::BecomesSaddled(self.trigger_obj(o)),
             TriggerSpec::YouTap(f) => Trigger::YouTap(self.filter(f)),
             TriggerSpec::Activates { whose, kind } => Trigger::Activates {
                 whose: *whose,
@@ -2025,12 +2048,29 @@ impl Decompiler<'_> {
                             | TriggerSpec::Leaves(CoreTriggerObj::This)
                             | TriggerSpec::Attacks(CoreTriggerObj::This)
                             | TriggerSpec::TurnedFaceUp(CoreTriggerObj::This)
+                            | TriggerSpec::BecomesTapped(CoreTriggerObj::This)
                     ) =>
             {
                 Trigger::Or {
                     first: Box::new(self.trigger(&pair.0)),
                     second: Box::new(self.trigger(&pair.1)),
-                    whenever: matches!(pair.1, TriggerSpec::Attacks(_)),
+                    whenever: matches!(
+                        pair.1,
+                        TriggerSpec::Attacks(_) | TriggerSpec::BecomesTapped(_)
+                    ),
+                }
+            }
+            // "When enchanted creature becomes tapped or is dealt damage".
+            TriggerSpec::Either(pair)
+                if matches!(
+                    (&pair.0, &pair.1),
+                    (TriggerSpec::BecomesTapped(a), TriggerSpec::DealtDamage(b)) if a == b
+                ) =>
+            {
+                Trigger::Or {
+                    first: Box::new(self.trigger(&pair.0)),
+                    second: Box::new(self.trigger(&pair.1)),
+                    whenever: false,
                 }
             }
             TriggerSpec::Either(pair) => Trigger::Either(
@@ -2072,6 +2112,10 @@ impl Decompiler<'_> {
                     combat: *combat,
                 },
                 CoreReplaces::GainLife { whose } => Replaces::GainLife { whose: *whose },
+                CoreReplaces::LoseLife { whose } => Replaces::LoseLife {
+                    whose: *whose,
+                    your_turn: false,
+                },
                 CoreReplaces::Draw {
                     whose,
                     library_empty,
@@ -2087,6 +2131,9 @@ impl Decompiler<'_> {
                     from_battlefield: *from_battlefield,
                 },
                 CoreReplaces::ThisToGraveyard => Replaces::ThisToGraveyard,
+                CoreReplaces::FilteredToGraveyard { filter } => {
+                    Replaces::FilteredToGraveyard(self.filter(filter))
+                }
                 CoreReplaces::CreateTokens {
                     creature,
                     effect,
@@ -2466,7 +2513,12 @@ impl Decompiler<'_> {
                 crate::ast::Mechanic::Unleash
             }),
             AbilityDef::Triggered(t) => Ability::Triggered {
-                limit: t.limit,
+                // "for the first time each turn" carries its own limit.
+                limit: if t.trigger == TriggerSpec::TargetedFirstTime {
+                    mtg_core::card::TurnLimit::None
+                } else {
+                    t.limit
+                },
                 trigger: self.trigger(&t.trigger),
                 // Meld's condition is the effect's (`Effect::Meld`).
                 condition: t

@@ -34,7 +34,10 @@ wrong thing in some case.
   counter from this creature" of any kind (-1/-1 counters first, then
   kinds that don't change power or toughness, then the rest); the second
   land of "Kicker—Sacrifice two lands" (Bog Down), the
-  first other matching permanent, which may be an untapped land; several
+  first other matching permanent, which may be an untapped land; the
+  creatures tapped for crew and saddle (the fewest with enough power),
+  which decides which "saddles a Mount or crews a Vehicle" trigger
+  (Canyon Vaulter, Reckless Velocitaur) fires; several
   mechanics from the first wave have the engine choose where the player
   should.
 - **Token copy of a creature that has died before its enters trigger
@@ -60,7 +63,7 @@ wrong thing in some case.
 - **"Whenever you activate an ability of a creature" misses automatic
   mana payment:** the engine taps a creature's mana ability to pay a
   cost without activating it as an ability, so it doesn't trigger (CR
-  605.3a says it should). No card in the corpus uses the trigger yet.
+  605.3a says it should). Elrond, Moon-Reader uses it.
 - **A copy effect with a duration replaces the definition** (Mirrorweave,
   Mirage Mirror, Shapesharer): it is undone by restoring the old values
   when it ends, not as a layer-1 effect with a timestamp (CR 613.2a); a
@@ -76,6 +79,9 @@ wrong thing in some case.
   entering permanent carries only one counter kind, so another kind it
   would enter with drops the additional counters (Dragonstorm Globe,
   Gev, Giada).
+- **Life lost by exchanging life totals** (CR 701.12c) changes the
+  total directly, so a life-loss replacement (Bloodletter of Aclazotz)
+  doesn't see it. No card in the corpus combines them.
 - **Mana kept "until end of turn" and firebending's mana** assume the
   player's other mana is spent first (`PlayerState::turn_mana`,
   `combat_mana`): spending the kept mana in an earlier step leaves other
@@ -191,10 +197,16 @@ named the feature; a card may need more than one.
   of a Chandra planeswalker" (a source filter on `activates`); "whenever
   you attack with one or more creatures, ... that many" (the attackers'
   number); "If you gaining life (drawing a card, ...) causes a triggered
-  ability to trigger" (other `TriggerCause`s); "whenever you scry"
-  alone; "a Shaman or another Wizard" prints "other" (Harmonic Prodigy).
-  Elrond, Moon-Reader's trigger is in; its "return those cards" delayed
-  return of a group of targets is not.
+  ability to trigger" (other `TriggerCause`s); "a Shaman or another
+  Wizard" prints "other" (Harmonic Prodigy); "this permanent transforms
+  into" on a card whose faces have different types (Sidequest: Raise a
+  Chocobo: the face doesn't know the other face's types); "whenever you
+  give a gift" (a permanent's gift is given by its own enters trigger);
+  "whenever you discover" and "discover again for the same value";
+  "whenever you attack with two or more Spiders" and "deals 4 or more
+  damage"; "the first time that creature has become tapped this turn"
+  (Captain America); "whenever one or more creatures attack you, those
+  creatures ..." (Sabotage Strategist).
 - **Counts:** mana spent on the triggering spell; counters of every
   kind on the triggering object or a target ("counters on it" in a
   trigger); total power or toughness in a static ability; "if X is
@@ -214,11 +226,17 @@ named the feature; a card may need more than one.
 - **Mass graveyard return of two types:** "Return each artifact and
   creature card with mana value X from your graveyard" (Fix What's
   Broken) doesn't parse (`artifact or creature card`).
-- **Replacement effects:** doubling life loss (Bloodletter of
-  Aclazotz) or counters of any kind (Doubling Season, Vorinclex, Loading
-  Zone); "that much damage plus N" from a filter the renderer can't name
-  as a source ("a red or artifact source", "a Lizard, Mouse, Otter, or
-  Raccoon you control"); "an additional Food token" (Peregrin Took);
+- **Replacement effects:** doubling counters of any kind (Doubling
+  Season, Vorinclex, Loading Zone: loyalty paid as a cost isn't put by
+  an effect, and a planeswalker's entering loyalty is added outside the
+  replacement pipeline); "that much damage plus N" from a filter the
+  renderer can't name as a source ("a red or artifact source", "a
+  Lizard, Mouse, Otter, or Raccoon you control": `replace damage from a
+  Lizard, ...` doesn't parse the list); "that much damage minus 1" from a
+  spell (Benevolent Unicorn: no "a spell" damage source); "draw that many
+  cards plus one" (Quantum Riddler: draws are replaced one card at a
+  time); "except the first one you draw in each of your draw steps"
+  (Bard, King of Dale); "an additional Food token" (Peregrin Took);
   replacing a token with another (Divine Visitation). Progenitus needs
   protection from everything.
 - **Targets:** one target per opponent ("for each opponent, ... target
@@ -237,7 +255,7 @@ named the feature; a card may need more than one.
   battlefield; pile splitting (Fact or Fiction); choose a card name / a
   number / odd or even; win-the-game effects with a condition; a variable
   base power and toughness inside "becomes" (Fractalize) or from another
-  creature (Sita Varma), base power alone (Turtle-Duck); attack tax;
+  creature (Sita Varma); attack tax;
   "must be blocked"; "unless they sacrifice another ..." (Torment of
   Venom).
 - **Most often named in the fourth wave** (299 unsupported of 400):
@@ -259,7 +277,7 @@ named the feature; a card may need more than one.
   sentence with "those creatures fight each other" (four); "Remove X
   counters" as a cost; "enchant player" Curses; "exile this, then return
   it to the battlefield transformed"; restricted mana of more than one
-  symbol or added by an effect; "dies or is put into exile"; "if that spell was kicked"; a combined subject ("you and other Heroes you control have
+  symbol or added by an effect; "if that spell was kicked"; a combined subject ("you and other Heroes you control have
   hexproof"); "flash if you pay {2} more"; copying a card and casting
   the copy; choose a number, a card name, odd or even; piles; haunt,
   amplify, sweep, devour, tribute, cleave, champion, reconfigure.
@@ -278,7 +296,7 @@ named the feature; a card may need more than one.
 - **A cost of "sacrifice six creatures named this"** is never offered
   (Shadowborn Apostle, not added).
 - **Mechanics not yet in:** tiered, devour, harness, hideaway, mutate,
-  meld, the Everywhere land token, "when this land enters untapped".
+  meld, the Everywhere land token.
 - **Scenario runner:** a trigger cannot be answered while its source
   spell is still on the stack.
   An edict-style choice ("return another permanent you control to its

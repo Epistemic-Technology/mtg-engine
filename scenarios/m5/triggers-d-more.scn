@@ -1,0 +1,98 @@
+# More triggers-d forms: "a player attacks with N or more creatures", and
+# Pauper cards the branch's scry, "enters untapped", and "when you discard
+# this card" triggers complete.
+
+scenario "a player attacks with three or more creatures: you draw a card" {
+  battlefield A: "Aurelia, the Law Above", 3 "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life B 14
+}
+
+scenario "a player attacks with five or more creatures: both trigger" {
+  battlefield A: "Aurelia, the Law Above", 5 "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Grizzly Bears", "Grizzly Bears", "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life B 7
+  assert life A 23
+}
+
+scenario "a player attacks with three or more creatures: an opponent's attack counts" {
+  battlefield A: "Aurelia, the Law Above"
+  battlefield B: 3 "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears", "Grizzly Bears", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+}
+
+scenario "a player attacks with three or more creatures: two aren't enough" {
+  battlefield A: "Aurelia, the Law Above", 2 "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Nimrodel Watcher: scrying pumps it and makes it unblockable, once each turn" {
+  battlefield A: "Nimrodel Watcher", 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Opt", "Opt"
+  turn 1 A: cast "Opt"
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  turn 1 A: attack "Nimrodel Watcher"
+  illegal turn 1 B: block "Nimrodel Watcher" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Bartered Cow: dying makes a Food" {
+  battlefield A: "Bartered Cow"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Bartered Cow"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Food"
+}
+
+scenario "Bartered Cow: discarding it makes a Food" {
+  battlefield B: 3 "Swamp"
+  hand A: "Bartered Cow", "Forest"
+  hand B: "Mind Rot"
+  start turn 2 B
+  turn 2 B: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Bartered Cow"
+  assert battlefield A contains "Food"
+}
+
+scenario "Witch's Cottage: entering untapped puts a creature card on top of the library" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Witch's Cottage"
+  turn 1 A: play "Witch's Cottage"
+  turn 1 A: trigger "Witch's Cottage" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert library A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
+scenario "Dwarven Mine: entering untapped makes a Dwarf" {
+  battlefield A: 3 "Mountain"
+  hand A: "Dwarven Mine"
+  turn 1 A: play "Dwarven Mine"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Dwarf"
+}
+
+scenario "Dwarven Mine: entering tapped makes none" {
+  battlefield A: 2 "Mountain"
+  hand A: "Dwarven Mine"
+  turn 1 A: play "Dwarven Mine"
+  run_to turn 1 postcombat_main
+  assert tapped "Dwarven Mine"
+  assert battlefield A lacks "Dwarf"
+}

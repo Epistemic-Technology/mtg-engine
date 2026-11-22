@@ -1720,6 +1720,9 @@ impl ObjFilter {
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum PtValue {
     Fixed(i32),
+    /// Left as it is ("has base power 4": the toughness isn't set, CR
+    /// 613.4b).
+    Unchanged,
     /// The object's mana value (CR 202.3).
     ManaValue,
 }
@@ -4201,6 +4204,14 @@ pub enum Effect {
         to: Recipient,
         n: Num,
     },
+    /// "has base power 4 until end of turn", "this creature's base power
+    /// becomes equal to the number of Towns you control" (layer 7b, CR
+    /// 613.4b): the power only, `n` fixed as the effect resolves (CR
+    /// 608.2h).
+    SetBasePower {
+        to: Recipient,
+        n: Num,
+    },
     /// Create a delayed triggered ability (CR 603.7) about the recipient:
     /// `ability` is a registered triggered ability (see
     /// `CardPool::register_ability`) whose effects see the recipient as
@@ -4723,6 +4734,11 @@ pub enum Effect {
     /// The source becomes renowned (CR 702.112a, b), if it is still on the
     /// battlefield.
     BecomeRenowned,
+    /// "Target Mount you control becomes saddled until end of turn" (CR
+    /// 702.171b).
+    BecomeSaddledTarget {
+        what: Recipient,
+    },
     /// The recipient permanent becomes prepared (CR 722.3a): only one with
     /// a prepare spell, and only if it isn't already.
     BecomePrepared {
@@ -5359,12 +5375,22 @@ pub enum Replaces {
     DamageToAndBy { what: Affects, combat: Option<bool> },
     /// A player would gain life.
     GainLife { whose: Who },
+    /// A player would lose life (CR 119.3), damage included, but not life
+    /// paid as a cost: "If an opponent would lose life during your turn,
+    /// they lose twice that much life instead." (Bloodletter of
+    /// Aclazotz).
+    LoseLife { whose: Who },
     /// A player would draw a card; `library_empty` requires an empty
     /// library (Laboratory Maniac).
     Draw { whose: Who, library_empty: bool },
     /// A card would be put into a graveyard owned by `whose`, from anywhere
     /// or only from the battlefield.
     ToGraveyard { whose: Who, from_battlefield: bool },
+    /// A card matching the filter (judged as it is, in whatever zone)
+    /// would be put into a graveyard from anywhere: "If an instant or
+    /// sorcery card would be put into a graveyard from anywhere, exile it
+    /// instead." (Dryad Militant).
+    FilteredToGraveyard { filter: ObjFilter },
     /// The ability's own card would be put into a graveyard from anywhere
     /// (Progenitus): the ability functions in every zone (CR 113.6b).
     ThisToGraveyard,
@@ -5420,6 +5446,10 @@ pub enum Replacement {
     /// "it deals that much damage plus 2 instead" (Torbran); `to_that`
     /// prints "to that permanent or player" after it (rendering only).
     PlusN { n: u32, to_that: bool },
+    /// "instead it deals that much damage plus X, where X is Hawkeye's
+    /// power": `n` (the source card's count) evaluated as the damage would
+    /// be dealt.
+    PlusCount(Num),
     /// Put the card into this zone instead.
     Instead(crate::state::Zone),
     /// Reveal the card and shuffle it into its owner's library instead
@@ -5474,6 +5504,10 @@ pub enum Replacement {
     /// shield that prevents all of one damage event, then is used up
     /// (CR 615.7). Stored effects only.
     PreventNextTime,
+    /// "The next time damage would be dealt to target creature this turn,
+    /// destroy that creature instead." (Kill-Suit Cultist): a one-use
+    /// replacement of one damage event to a permanent (CR 614.1a).
+    DestroyNextTime,
     /// The damage is dealt to `to` instead (CR 614.9): all of it, or the
     /// next `next` damage ("The next 1 damage that would be dealt to this
     /// creature this turn is dealt to target creature you control
@@ -5589,6 +5623,11 @@ pub enum TriggerSpec {
     /// at least `min` creatures (with `this`, the source among them)
     /// attack.
     AttacksWith { this: bool, min: u8 },
+    /// "Whenever a player attacks with three or more creatures" (CR
+    /// 508.1m): once per declaration of attackers by a player matching
+    /// `whose`, when at least `min` creatures attack; that player is the
+    /// triggering player.
+    PlayerAttacksWith { whose: Who, min: u8 },
     /// "Whenever this creature attacks and isn't blocked" (CR 509.1h): as
     /// blockers are declared, an attacking creature no creature blocks.
     AttacksUnblocked(TriggerObj),
@@ -5598,9 +5637,19 @@ pub enum TriggerSpec {
     AttacksOrBlocks(TriggerObj),
     /// "When this creature leaves the battlefield" (to any zone).
     Leaves(TriggerObj),
+    /// "Whenever this creature or another creature you control leaves the
+    /// battlefield without dying": to any zone but a graveyard (CR 700.4),
+    /// judged as it last existed. `Batch` of it: "one or more ... leave
+    /// the battlefield without dying".
+    LeavesWithoutDying(TriggerObj),
+    /// "Whenever another nonland permanent you control is returned to its
+    /// owner's hand": leaves the battlefield for a hand, judged as it last
+    /// existed.
+    ReturnedToHand(TriggerObj),
     /// "When that land dies or is put into exile" (earthbend's delayed
-    /// trigger, CR 701.66a): leaves the battlefield for a graveyard or
-    /// exile. Delayed triggers only.
+    /// trigger, CR 701.66a), "When enchanted permanent dies or is put into
+    /// exile" (Kaya's Ghostform): leaves the battlefield for a graveyard or
+    /// exile, judged as it last existed.
     DiesOrExiled(TriggerObj),
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
@@ -5610,6 +5659,10 @@ pub enum TriggerSpec {
     /// creatures in one combat damage step; that player is the triggering
     /// player.
     CreaturesDealCombatDamage(ObjFilter),
+    /// "Whenever one or more Heroes you control deal damage to a player"
+    /// (CR 603.2c): any damage, once for each player dealt damage by
+    /// matching creatures at once; that player is the triggering player.
+    CreaturesDealDamage(ObjFilter),
     /// "Whenever a source you control deals noncombat damage to an
     /// opponent" (`yours`), "Whenever an opponent is dealt noncombat
     /// damage", "Whenever one or more opponents are dealt noncombat damage"
@@ -5691,6 +5744,12 @@ pub enum TriggerSpec {
     /// spell or ability an opponent controls"; the spell or ability is the
     /// triggering object.
     TargetedByOpponent,
+    /// "Whenever this creature becomes the target of a spell or ability
+    /// for the first time each turn" (Shimmering Glasskite): any
+    /// controller's; the spell or ability is the triggering object. The
+    /// compiler limits it to once each turn (`TurnLimit::Triggers(1)`),
+    /// which is the same thing.
+    TargetedFirstTime,
     /// Valiant (CR 207.2c): "Whenever this creature becomes the target
     /// of a spell or ability you control for the first time each turn":
     /// the spell or ability is the triggering object.
@@ -5706,6 +5765,10 @@ pub enum TriggerSpec {
     /// "Whenever this creature is dealt damage" (enrage); the damaged
     /// object is the triggering object.
     DealtDamage(TriggerObj),
+    /// "Whenever this creature is dealt 3 or more damage": one damage event
+    /// of at least that much (damage dealt at different times doesn't add
+    /// up).
+    DealtDamageAtLeast(TriggerObj, u32),
     /// "Whenever this creature is dealt combat damage" (CR 510.2).
     DealtCombatDamage(TriggerObj),
     /// "Whenever this creature deals damage to a creature / an opponent /
@@ -5746,6 +5809,9 @@ pub enum TriggerSpec {
         another: bool,
         or_discard: bool,
     },
+    /// "When you discard this card" (CR 701.9): triggers from the card
+    /// itself as it is discarded, controlled by the discarding player.
+    DiscardsThis,
     /// "When you cast this spell" (CR 603.2, 601.2i): triggers from the
     /// spell itself as it becomes cast, so it goes on the stack above the
     /// spell and resolves first; countering the spell doesn't stop it.
@@ -5883,6 +5949,18 @@ pub enum TriggerSpec {
     /// "Whenever you scry or surveil" (CR 701.22, 701.25): once per
     /// instruction to scry or surveil.
     ScriesOrSurveils,
+    /// "Whenever you scry" (CR 701.22): once per instruction to scry, not
+    /// surveil.
+    Scries,
+    /// "Whenever this creature saddles a Mount or crews a Vehicle" (CR
+    /// 702.122b, 702.171c): it is tapped to pay a crew or saddle cost; the
+    /// Mount or Vehicle is the triggering object ("that Mount or
+    /// Vehicle").
+    CrewsOrSaddles(TriggerObj),
+    /// "Whenever this creature becomes saddled for the first time each
+    /// turn" (CR 702.171b: it stays saddled until the turn ends, so the
+    /// first time is the only time).
+    BecomesSaddled(TriggerObj),
     /// "Whenever a creature you control explores" (CR 701.44): the
     /// exploring creature is the triggering object.
     Explores(TriggerObj),
@@ -5943,6 +6021,10 @@ pub enum SpellOrdinal {
     /// first of its caster's noncreature spells this turn (counted by the
     /// trigger, not by `holds`).
     FirstNoncreature,
+    /// "your first instant or sorcery spell each turn": the first of its
+    /// caster's instant and sorcery spells this turn (counted by the
+    /// trigger, not by `holds`).
+    FirstInstantOrSorcery,
     /// "a spell from exile": any spell cast from exile (checked by the
     /// trigger, not by `holds`).
     FromExile,
@@ -5953,7 +6035,9 @@ impl SpellOrdinal {
     /// on its caster's turn or not.
     pub fn holds(self, n: u8, own_turn: bool) -> bool {
         match self {
-            SpellOrdinal::First | SpellOrdinal::FirstNoncreature => n == 1,
+            SpellOrdinal::First
+            | SpellOrdinal::FirstNoncreature
+            | SpellOrdinal::FirstInstantOrSorcery => n == 1,
             SpellOrdinal::Second => n == 2,
             SpellOrdinal::Third => n == 3,
             SpellOrdinal::NotFirst => n >= 2,
@@ -6004,6 +6088,15 @@ impl TriggerSpec {
         }
     }
 
+    /// "When you discard this card", alone or as one of two events.
+    pub fn discards_this(&self) -> bool {
+        match self {
+            TriggerSpec::DiscardsThis => true,
+            TriggerSpec::Either(pair) => pair.0.discards_this() || pair.1.discards_this(),
+            _ => false,
+        }
+    }
+
     /// "When you cast this spell", alone or as one of two events.
     pub fn casts_this(&self) -> bool {
         match self {
@@ -6028,6 +6121,8 @@ impl TriggerSpec {
             TriggerSpec::Enters(_)
             | TriggerSpec::Dies(_)
             | TriggerSpec::Leaves(_)
+            | TriggerSpec::LeavesWithoutDying(_)
+            | TriggerSpec::ReturnedToHand(_)
             | TriggerSpec::DiesOrExiled(_)
             | TriggerSpec::EntersBatch(_)
             | TriggerSpec::LeavesBatch { .. }
@@ -6044,6 +6139,7 @@ impl TriggerSpec {
             | TriggerSpec::AttacksBattle(_)
             | TriggerSpec::AttacksAlone(_)
             | TriggerSpec::AttacksWith { .. }
+            | TriggerSpec::PlayerAttacksWith { .. }
             | TriggerSpec::AttacksWithFilter { .. } => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
             | TriggerSpec::BecomesBlocked(_)
@@ -6053,9 +6149,11 @@ impl TriggerSpec {
             | TriggerSpec::AttacksUnblocked(_) => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_)
             | TriggerSpec::CreaturesDealCombatDamage(_)
+            | TriggerSpec::CreaturesDealDamage(_)
             | TriggerSpec::NoncombatDamageToOpponent { .. }
             | TriggerSpec::DealsCombatDamageToPlayerOrBattle(_)
             | TriggerSpec::DealtDamage(_)
+            | TriggerSpec::DealtDamageAtLeast(..)
             | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. }
             | TriggerSpec::DealsDamageTo { .. } => WATCH_DAMAGE,
@@ -6078,10 +6176,12 @@ impl TriggerSpec {
             | TriggerSpec::Expends(_) => WATCH_CAST,
             TriggerSpec::BecomesTarget(_)
             | TriggerSpec::TargetedByOpponent
+            | TriggerSpec::TargetedFirstTime
             | TriggerSpec::TargetedByYouFirstTime
             | TriggerSpec::CommitsCrime { .. } => WATCH_TARGETED,
             TriggerSpec::BecomesAttachedTo(_) => WATCH_ATTACH,
             TriggerSpec::Discards { .. }
+            | TriggerSpec::DiscardsThis
             | TriggerSpec::DiscardsBatch { .. }
             | TriggerSpec::Cycles {
                 or_discard: true, ..
@@ -6107,6 +6207,9 @@ impl TriggerSpec {
             | TriggerSpec::YouPutCounters { .. }
             | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
             TriggerSpec::ScriesOrSurveils
+            | TriggerSpec::Scries
+            | TriggerSpec::CrewsOrSaddles(_)
+            | TriggerSpec::BecomesSaddled(_)
             | TriggerSpec::Explores(_)
             | TriggerSpec::Activates { .. }
             | TriggerSpec::Transforms
@@ -6227,6 +6330,9 @@ pub enum TurnLimit {
     /// but its first "you may" is offered only until it is done once this
     /// turn; declining doesn't count.
     Do,
+    /// "This ability triggers only once.": once for the object, ever (a
+    /// new object after a zone change starts fresh, CR 400.7).
+    Ever,
 }
 
 /// What a cost does to the permanent chosen for it.

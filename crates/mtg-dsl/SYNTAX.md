@@ -360,6 +360,11 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever an opponent loses life`, `whenever a player loses life`, `whenever you lose life` | once per life-losing event (CR 119.3; damage too); the player is `that player`, the life lost `that much` ("you gain that much life") |
 | `whenever you gain or lose life`, `whenever you gain or lose life during your turn` | once per event that changes your life total (CR 119.9: a gain or a loss of any amount is one event), only on your turn with `during your turn` |
 | `whenever you scry or surveil` | once per instruction to scry or surveil (CR 701.22, 701.25) |
+| `whenever you scry` | once per instruction to scry (CR 701.22; scry 0 is none, 701.22b); surveilling doesn't trigger it |
+| `whenever this is dealt 3 or more damage` | "Whenever this creature is dealt 3 or more damage": one damage event of at least that much (damage dealt at different times doesn't add up) |
+| `when enchanted dies or is put into exile` | "When enchanted permanent dies or is put into exile": leaves the battlefield for a graveyard or exile, judged as it last existed (`return triggering card to battlefield under your control`: "return that card to the battlefield under your control") |
+| `when enchanted creature becomes tapped or is dealt damage`, `whenever this enters or becomes tapped` | two events of one subject, the shared words printed once ("When enchanted creature becomes tapped or is dealt damage, destroy it.") |
+| `when this enters while this is untapped` | "When this land enters untapped": the land's state as it enters (a `while` condition, judged as the event happens) |
 | `whenever creature you control explores`, `whenever this explores` | as a creature explores (CR 701.44), whatever it revealed and even if it has left the battlefield (then judged as it last existed); it is the triggering object |
 | `whenever you tap untapped creature an opponent controls` | "Whenever you tap an untapped creature an opponent controls": a spell or ability you control (an effect, or a cost such as `tap 1 untapped creature ... chosen` in an effect) taps an untapped permanent matching the filter; it is `that creature`. Not when an opponent taps their own creature for your effect |
 | `whenever you activate an ability of a creature`, `whenever you activate an exhaust ability`, `whenever an opponent activates a loyalty ability` | as an activated ability is activated (CR 602.2), before it resolves: of a creature (mana abilities included, CR 605.3a; mana the engine taps for automatically while paying a cost is not an activation), an exhaust ability (CR 702.177), a loyalty ability (CR 606). The activating player is `that player` |
@@ -368,13 +373,21 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever you attack with one or more Faerie`, `whenever you attack a player with one or more creature with power 4 or greater` | once as you declare attackers if a matching creature attacks (CR 508.1m); with `a player`, once for each player a matching creature attacks, that player being `that player` |
 | `whenever this transforms`, `whenever this enters or transforms` | "Whenever this creature transforms into Ashling, Rimebound" (CR 701.27): the ability is on that face, so it sees only the transformation to it; the face's name prints |
 | `whenever one or more creature you control deal combat damage to a player`, `whenever one or more Ally you control deal combat damage to a player` | once for each player dealt combat damage by matching creatures in one combat damage step (CR 603.2c; a first-strike step and the regular one trigger separately); that player is `that player` |
+| `whenever one or more Hero you control deal damage to a player` | "Whenever one or more Heroes you control deal damage to a player": any damage, once for each player dealt damage by matching creatures at once (CR 603.2c); that player is `that player` |
 | `whenever a source you control deals noncombat damage to an opponent`, `whenever an opponent is dealt noncombat damage`, `whenever one or more opponents are dealt noncombat damage` | damage other than combat damage (CR 120.2) to an opponent, from a source you control (a spell as it resolves, as it last existed) or any source; the last once for the damage dealt to each opponent at once. The opponent is `that player`, `that much` the damage |
 | `whenever you commit a crime`, `whenever you commit a crime during your turn` | "Whenever you commit a crime" (CR 700.13): as you finish casting a spell, activating an ability, or putting a triggered ability on the stack that targets an opponent, something an opponent controls, or a card in an opponent's graveyard; once per spell or ability. A copy put on the stack commits none. `during your turn` (Overzealous Muscle) only on your turn |
-| `whenever you gain life first time each turn` | "Whenever you gain life for the first time each turn": the gain that starts the life you gained this turn (one of several simultaneous lifelink gains) |
+| `whenever you gain life first time each turn` | "Whenever you gain life for the first time each turn": the gain that starts the life you gained this turn (one of several simultaneous lifelink gains); with `during your turn` after it, "Whenever you gain life for the first time during each of your turns" |
+| `whenever this or creature you control leaves the battlefield without dying`, `whenever one or more other creature you control leave the battlefield without dying` | to any zone but a graveyard (CR 700.4), judged as it last existed; the second batched (CR 603.2c) |
+| `whenever other nonland permanent you control is returned to hand` | "Whenever another nonland permanent you control is returned to its owner's hand": leaves the battlefield for a hand, judged as it last existed |
+| `whenever one or more suspected creature you control attack` | "Whenever one or more suspected creatures you control attack": the older wording of `whenever you attack with one or more ...` (the same trigger) |
+| `when you discard this` | "When you discard this card" (CR 701.9): triggers from the card itself as it is discarded (by an effect or a cost, not cycling's own "when you cycle"), controlled by the discarding player |
 | `whenever you roll dice`, `whenever you win a coin flip` | "Whenever you roll one or more dice" (once per roll, CR 706), "Whenever you win a coin flip" (CR 705.2) |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
 | `whenever this attacks for the first time each turn` | the attacking creature hadn't attacked yet this turn (with additional combat phases, CR 500.8) |
 | `whenever you attack`, `whenever you attack with 3 or more creatures`, `label "Battalion" triggered whenever this and at least 2 other creatures attack` | once as the controller declares attackers (CR 508.1m), if at least that many attack (battalion: this creature among them); "Whenever this creature and at least two other creatures attack"; `whenever one or more creatures you control attack` is the same trigger in the older wording |
+| `whenever a player attacks with 3 or more creatures`, `whenever an opponent attacks with 2 or more creatures` | "Whenever a player attacks with three or more creatures": once per declaration of attackers by such a player (CR 508.1m) if at least that many attack; the attacking player is `that player` |
+| `whenever this saddles a Mount or crews a Vehicle while your main phase` | "Whenever this creature saddles a Mount or crews a Vehicle during your main phase" (CR 702.122b, 702.171c): it is tapped to pay a crew or saddle cost (the engine picks the creatures); the Mount or Vehicle is "that Mount or Vehicle". `while your main phase` after a trigger prints "during your main phase" |
+| `whenever this becomes saddled first time each turn` | "Whenever this creature becomes saddled for the first time each turn" (CR 702.171b: saddled until the turn ends, so once); `target Mount you control becomes saddled` is the effect ("... becomes saddled until end of turn") |
 | `whenever this attacks and isn't blocked` | as blockers are declared, for an attacking creature no creature blocks (CR 509.1h) |
 | `whenever this becomes blocked`, `whenever this blocks or becomes blocked` | |
 | `whenever this blocks a creature with flying`, `whenever this becomes blocked by a creature`, `whenever this blocks or becomes blocked by a nonblack creature` | once for each attacker it blocks (CR 509.3b) or each creature blocking it (CR 509.3d); the other creature, which must match the filter, is "that creature"; `a creature with Equipment` prints "an equipped creature", `a creature that was dealt damage this turn` "... that has been dealt damage this turn". `... by one or more blue or black creature` ("by one or more blue and/or black creatures", CR 509.3c, 509.3e) triggers once, on the first matching pair, and "it" is the blocking or blocked creature itself (`whenever equipped creature becomes blocked by one or more colorless creature: it gains deathtouch until end of turn`) |
@@ -397,8 +410,10 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever this is dealt damage` | (enrage) |
 | `whenever this deals damage`, `... deals damage to creature`, `... to player`, `... to opponent`, `... deals combat damage to creature` | the damaged creature is "that creature", the damaged player "that player"; `whenever this deals damage to Vampire`, `... to Goblin or Orc` (any filter): the damaged permanent, if it matches, is "that creature". On an Aura, the creature dealt damage by, or blocking or blocked by, the enchanted creature prints "the other creature" |
 | `whenever you cast artifact spell`, `whenever a player casts Goblin spell`, `whenever an opponent casts multicolored spell` | a cast trigger with any filter |
+| `whenever this becomes targeted first time each turn` | "Whenever this creature becomes the target of a spell or ability for the first time each turn": any controller's, once each turn; the spell or ability is `that spell` ("counter that spell or ability") |
 | `whenever this becomes targeted by opponent` | "... becomes the target of a spell or ability an opponent controls" (ward's trigger) |
 | `whenever you cast with mana value 4 or greater spell` | "Whenever you cast a spell with mana value 4 or greater" (a filter's "with" qualities print after "spell"; likewise `counter target with mana value 4 or less spell`) |
+| `whenever you cast your first instant or sorcery spell each turn` | the first of the caster's instant and sorcery spells this turn (other spells cast before it don't count) |
 | `whenever you cast your first spell each turn`, `... your second spell each turn`, `... a spell other than your first spell each turn`, `... your first spell during each opponent's turn`, `whenever an opponent casts their second spell each turn`, `whenever you cast a spell during an opponent's turn`, `whenever an opponent casts their first noncreature spell each turn`, `whenever you cast a spell from exile`, `whenever you cast your third spell each turn` | the spell's place among those its caster cast this turn (or only that it was cast on another player's turn; the first noncreature one among their noncreature spells; or that it was cast from exile) |
 | `when you cycle this` | "When you cycle this card" (CR 702.29d): triggers from the card itself as its cycling ability is activated, so it resolves before the draw; the card is "it" ("it deals 6 damage to any target") |
 | `whenever you cycle a card`, `whenever you cycle another card`, `whenever you cycle or discard a card` | cycling a card (CR 702.29); `or discard` triggers once per card discarded, cycling included |
@@ -699,6 +714,15 @@ creature card was put into your graveyard from anywhere this turn"). A
 count `differently named land you control`: "the number of differently
 named lands you control" (`this spell costs {1} less count where
 differently named land you control`).
+`during your turn replace damage to this: prevent` prints "During your
+turn, prevent all damage that would be dealt to this creature.": the
+replacement or prevention effect applies only during its controller's
+turn.
+`until end of turn, this has base power 4 and gains trample` (CR
+613.4b: the power only, in layer 7b; the toughness stays) and `this base
+power becomes count equal Town you control` ("this creature's base power
+becomes equal to the number of Towns you control", fixed as it resolves),
+both until end of turn.
 `this spell can't be countered`: "This spell can't be countered." (CR
 101.2: a spell or ability that would counter it, ward included, does
 nothing to it). Triggers `when
@@ -934,7 +958,11 @@ control to opponent and permanent an opponent controls: plus 2` prints
 that` adds "to that permanent or player" (`replace damage from other red
 permanent you control to any: plus 1 to that`, Jaya). For life, `replace
 you gain life: plus one` prints "If you would gain life, you gain that much
-life plus 1 instead."; for counters, `replace +1/+1 counters put on
+life plus 1 instead."; `plus count where power` adds a count of the source's, evaluated as the
+damage would be dealt: `replace noncombat damage from permanent you
+control to opponent and permanent an opponent controls: plus count where
+power` prints "..., instead it deals that much damage plus X, where X is
+Hawkeye's power." (Hawkeye, Young Avenger); for counters, `replace +1/+1 counters put on
 creature you control: double` prints "If one or more +1/+1 counters would
 be put on a creature you control, twice that many +1/+1 counters are put
 on that creature instead." (also the counters it enters with, CR 122.6).
@@ -960,6 +988,14 @@ instead come first, then tokens added, then doubling, so a doubler doubles
 the added ones too (the order is the player's choice, CR 616.1, fixed
 here). An amassed Army made twice is two Armies, one of which gets the
 counters.
+`replace an opponent loses life during your turn: double` prints "If an
+opponent would lose life during your turn, they lose twice that much life
+instead." (CR 119.3: damage to a player included, life paid as a cost
+not; `you lose life`, `a player loses life` too). `replace instant or
+sorcery card put into a graveyard: exile` prints "If an instant or
+sorcery card would be put into a graveyard from anywhere, exile it
+instead." (any card filter, judged as the card is wherever it is; tokens
+aren't cards).
 `replace this put into a graveyard: shuffle into library` prints "If
 Darksteel Colossus would be put into a graveyard from anywhere, reveal
 Darksteel Colossus and shuffle it into its owner's library instead.": the
@@ -1061,7 +1097,9 @@ can't be enchanted by it (CR 303.4g).
 `triggered once each turn <trigger>: ...` prints "This ability triggers
 only once each turn." after the effects (`twice each turn`: "only twice
 each turn"): past that many times in a turn the ability doesn't trigger
-at all. `triggered do once each turn <trigger>: you may ...` prints "Do
+at all. `triggered once ever <trigger>: ...` prints "This ability
+triggers only once.": once for the object, ever (an intervening "if"
+that fails doesn't use it up). `triggered do once each turn <trigger>: you may ...` prints "Do
 this only once each turn.": the ability triggers every time, but its
 first `you may` is offered only until its controller has done it this
 turn (declining doesn't count). Both count per object and ability and
@@ -1243,6 +1281,9 @@ would deal damage to you, ...");
 with them (Phantom Tiger), "If damage would be dealt to ..., prevent that
 damage.".
 
+`this turn, replace damage to target creature: destroy next time` prints
+"The next time damage would be dealt to target creature this turn, destroy
+that creature instead." (a one-use replacement: the damage isn't dealt).
 Outcomes: `prevent`, `prevent next 4`, `double`, `plus one`, `exile`,
 `draw two`, `win`, `tapped`, `with 2 +1/+1 counters`, `regenerate`,
 `redirect to attached`, `umbra armor` (`replace destroy enchanted: umbra
@@ -2217,7 +2258,10 @@ controller's end step, but not in the turn it was created), and
 the ability is about, and so is `that card`, which prints so where `it`
 prints "it" (`delayed target 1: return that card to battlefield at
 beginning of the next end step`: "Return that card to the battlefield
-under its owner's control ..."; `return it`: "Return it ..."); in one about `that creature` (the triggering object),
+under its owner's control ..."; `return it`: "Return it ..."; in one
+about several targets, `delayed targets 1 to 2: return those cards to
+battlefield at beginning of the next end step`: "Return those cards to the
+battlefield under their owner's control ...", each in turn); in one about `that creature` (the triggering object),
 `that creature` is that object too, only while it is the same object
 (CR 603.7c), and prints "that creature"; in one about a target, `that
 creature` is the object too. `delayed target 1: when that creature dies

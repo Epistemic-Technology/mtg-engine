@@ -60,6 +60,11 @@ pub(crate) enum Proposed {
         player: PlayerId,
         amount: u32,
     },
+    /// A player would lose life (not by paying it).
+    LoseLife {
+        player: PlayerId,
+        amount: u32,
+    },
     Draw {
         player: PlayerId,
     },
@@ -91,6 +96,7 @@ impl Proposed {
             self,
             Proposed::Damage { amount: 0, .. }
                 | Proposed::GainLife { amount: 0, .. }
+                | Proposed::LoseLife { amount: 0, .. }
                 | Proposed::AddCounters { n: 0, .. }
         )
     }
@@ -110,6 +116,7 @@ impl Proposed {
                 ..
             }
             | Proposed::GainLife { player: p, .. }
+            | Proposed::LoseLife { player: p, .. }
             | Proposed::Draw { player: p } => *p,
             Proposed::Damage {
                 target: Target::Object(id),
@@ -487,6 +494,7 @@ impl GameState {
                 e.ability.replacement,
                 Replacement::PreventNext(_)
                     | Replacement::PreventNextTime
+                    | Replacement::DestroyNextTime
                     | Replacement::Regenerate
                     | Replacement::Redirect { next: Some(_), .. }
             ) && e.remaining == 0
@@ -561,7 +569,8 @@ impl GameState {
                     && (self.affects(what, *target, source, controller, lock)
                         || self.source_is(what, *src, source, controller, lock))
             }
-            (Replaces::GainLife { whose }, Proposed::GainLife { player, .. }) => {
+            (Replaces::GainLife { whose }, Proposed::GainLife { player, .. })
+            | (Replaces::LoseLife { whose }, Proposed::LoseLife { player, .. }) => {
                 whose_ok(*whose, *player)
             }
             (
@@ -595,6 +604,24 @@ impl GameState {
                     ..
                 },
             ) => *obj == source,
+            (
+                Replaces::FilteredToGraveyard { filter },
+                Proposed::ZoneChange {
+                    obj,
+                    to: Zone::Graveyard,
+                    ..
+                },
+            ) => self.objects.get(*obj).is_some_and(|o| {
+                // A token isn't a card (CR 108.2).
+                o.kind == crate::state::ObjKind::Card
+                    && filter.matches(
+                        *obj,
+                        o.controller,
+                        &self.base_characteristics(o),
+                        Some(source),
+                        Some(controller),
+                    )
+            }),
             (
                 Replaces::PlusCounters { on },
                 Proposed::AddCounters {
@@ -934,6 +961,22 @@ impl GameState {
                     combat,
                 })
             }
+            // "destroy that creature instead": the damage isn't dealt, and
+            // the shield is used up (CR 614.1a).
+            (
+                Replacement::DestroyNextTime,
+                Proposed::Damage {
+                    target: Target::Object(id),
+                    ..
+                },
+            ) => {
+                if let Key::Stored(i) = c.key {
+                    self.replacements[i].remaining = 0;
+                }
+                self.emit(Event::Replaced { by: c.def });
+                self.destroy(id);
+                Outcome::Nothing
+            }
             (
                 Replacement::PreventNextTime,
                 Proposed::Damage {
@@ -1126,6 +1169,24 @@ impl GameState {
                     combat,
                 })
             }
+            (
+                Replacement::PlusCount(n),
+                Proposed::Damage {
+                    source,
+                    target,
+                    amount,
+                    combat,
+                },
+            ) => {
+                let more = self.eval_num_of(n, c.source, c.controller);
+                self.emit(Event::Replaced { by: c.def });
+                Outcome::Event(Proposed::Damage {
+                    source,
+                    target,
+                    amount: amount.saturating_add(more),
+                    combat,
+                })
+            }
             // "twice that many +1/+1 counters are put on that creature
             // instead" (Branching Evolution), also as it enters (CR 122.6).
             (Replacement::Double, Proposed::AddCounters { obj, kind, n }) => {
@@ -1156,6 +1217,14 @@ impl GameState {
                         counters: enter.counters.map(|(k, n)| (k, n.saturating_mul(2))),
                         ..enter
                     },
+                })
+            }
+            // "they lose twice that much life instead".
+            (Replacement::Double, Proposed::LoseLife { player, amount }) => {
+                self.emit(Event::Replaced { by: c.def });
+                Outcome::Event(Proposed::LoseLife {
+                    player,
+                    amount: amount.saturating_mul(2),
                 })
             }
             (Replacement::Double, Proposed::GainLife { player, amount }) => {

@@ -1537,6 +1537,10 @@ pub enum Ability {
         label: String,
         ability: Box<Ability>,
     },
+    /// `during your turn replace damage to this: prevent`: "During your
+    /// turn, prevent all damage that would be dealt to this creature." The
+    /// ability applies only during its controller's turn.
+    DuringYourTurn(Box<Ability>),
 }
 
 /// An intervening "if" (CR 603.4): one of the engine's trigger conditions,
@@ -2640,6 +2644,13 @@ pub enum Replaces {
     GainLife {
         whose: Who,
     },
+    /// `an opponent loses life during your turn`: "If an opponent would
+    /// lose life during your turn, ..." (`your_turn` sets the ability's
+    /// condition).
+    LoseLife {
+        whose: Who,
+        your_turn: bool,
+    },
     Draw {
         whose: Who,
         library_empty: bool,
@@ -2648,6 +2659,9 @@ pub enum Replaces {
         whose: Who,
         from_battlefield: bool,
     },
+    /// `instant or sorcery card put into a graveyard`: "If an instant or
+    /// sorcery card would be put into a graveyard from anywhere".
+    FilteredToGraveyard(Filter),
     /// `tokens created under your control`, `creature tokens created
     /// under your control`; `effect` (`... by an effect`) prints "If an
     /// effect would create one or more tokens under your control".
@@ -2737,6 +2751,9 @@ pub enum Trigger {
     State(StaticCond),
     Enters(TriggerObj),
     Dies(TriggerObj),
+    /// `when enchanted dies or is put into exile`: leaves the battlefield
+    /// for a graveyard or exile.
+    DiesOrExiled(TriggerObj),
     /// `at beginning of every upkeep`: "At the beginning of each upkeep"
     /// (each player's, worded without "player's", as werewolves are).
     EveryStep(Step),
@@ -2769,9 +2786,18 @@ pub enum Trigger {
         this: bool,
         min: u8,
     },
+    /// `whenever a player attacks with 3 or more creatures`, `whenever an
+    /// opponent attacks with 2 or more creatures`.
+    PlayerAttacksWith {
+        whose: Who,
+        min: u8,
+    },
     /// `whenever one or more creatures you control attack`: the older
     /// wording of `whenever you attack` (CR 508.1m), the same trigger.
     CreaturesYouControlAttack,
+    /// `whenever one or more suspected creature you control attack`: the
+    /// older wording of `whenever you attack with one or more ...`.
+    OneOrMoreAttack(Filter),
     /// `whenever this attacks and isn't blocked`.
     AttacksUnblocked(TriggerObj),
     /// `whenever this attacks for the first time each turn`.
@@ -2796,6 +2822,12 @@ pub enum Trigger {
     AttacksOrBlocks(TriggerObj),
     /// `when this leaves the battlefield`.
     Leaves(TriggerObj),
+    /// `whenever this or creature you control leaves the battlefield
+    /// without dying`.
+    LeavesWithoutDying(TriggerObj),
+    /// `whenever other nonland permanent you control is returned to hand`:
+    /// "... is returned to its owner's hand".
+    ReturnedToHand(TriggerObj),
     /// `whenever you sacrifice other permanent`, `whenever a player
     /// sacrifices creature`, `when you sacrifice this` (CR 701.21).
     Sacrificed {
@@ -2855,6 +2887,10 @@ pub enum Trigger {
     /// Ward's trigger: "becomes the target of a spell or ability an
     /// opponent controls".
     TargetedByOpponent,
+    /// `whenever this becomes targeted first time each turn`: "Whenever
+    /// this creature becomes the target of a spell or ability for the first
+    /// time each turn" (the spell or ability is `that spell`).
+    TargetedFirstTime,
     /// Valiant's trigger, `whenever this becomes targeted by you first time
     /// each turn`: "becomes the target of a spell or ability you control
     /// for the first time each turn".
@@ -2897,6 +2933,10 @@ pub enum Trigger {
     TappedForMana(TriggerObj),
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
+    /// `when you discard this`: "When you discard this card".
+    DiscardsThis,
+    /// `whenever this is dealt 3 or more damage`.
+    DealtDamageAtLeast(TriggerObj, u32),
     /// `whenever this is dealt combat damage`.
     DealtCombatDamage(TriggerObj),
     /// `whenever this deals damage to creature`, `... to player`, `... to
@@ -3029,6 +3069,8 @@ pub enum Trigger {
     /// player`, `... one or more Ally you control ...` (once per player,
     /// CR 603.2c).
     CreaturesDealCombatDamage(Filter),
+    /// `whenever one or more Hero you control deal damage to a player`.
+    CreaturesDealDamage(Filter),
     /// `whenever a source you control deals noncombat damage to an
     /// opponent` (`yours`), `whenever an opponent is dealt noncombat
     /// damage`, `whenever one or more opponents are dealt noncombat damage`
@@ -3066,6 +3108,13 @@ pub enum Trigger {
     },
     /// `whenever you scry or surveil`.
     ScriesOrSurveils,
+    /// `whenever you scry` (CR 701.22).
+    Scries,
+    /// `whenever this saddles a Mount or crews a Vehicle`.
+    CrewsOrSaddles(TriggerObj),
+    /// `whenever this becomes saddled first time each turn`: "Whenever this
+    /// creature becomes saddled for the first time each turn".
+    BecomesSaddled(TriggerObj),
     /// `whenever creature you control explores` (CR 701.44).
     Explores(TriggerObj),
     /// `whenever you tap an untapped creature an opponent controls`: the
@@ -3312,6 +3361,11 @@ pub enum Recipient {
     /// (`SameTokens`, the core `SameObject`).
     CreatedTokens,
     SameTokens,
+    /// `those cards` inside a delayed trigger about several targets: each
+    /// in turn (the core `SameObject`), printed "those cards" ("Return
+    /// those cards to the battlefield under their owner's control at the
+    /// beginning of the next end step.").
+    SameCards,
     /// `them` inside a delayed trigger about created tokens: those tokens
     /// (`SameTokens`), printed "them" ("Exile them at the beginning of the
     /// next end step").
@@ -4182,6 +4236,14 @@ pub enum Effect {
         to: Recipient,
         n: Num,
     },
+    /// `<what> has base power 4` ("has base power 4 until end of turn"),
+    /// `<what> base power becomes count equal ...` (`becomes`: "this
+    /// creature's base power becomes equal to ...").
+    SetBasePower {
+        to: Recipient,
+        n: Num,
+        becomes: bool,
+    },
     /// A delayed triggered ability (CR 603.7) about `about`; `trigger_first`
     /// records whether the text puts the trigger before the effects.
     Delayed {
@@ -4354,6 +4416,11 @@ pub enum Effect {
     },
     /// Cumulative upkeep's payment (internal).
     CumulativeUpkeep(ManaCost),
+    /// `target Mount you control becomes saddled`: "... becomes saddled
+    /// until end of turn" (CR 702.171b).
+    BecomeSaddledTarget {
+        what: Recipient,
+    },
     /// `this becomes prepared`: "this creature becomes prepared" (CR
     /// 722.3a).
     BecomePrepared {

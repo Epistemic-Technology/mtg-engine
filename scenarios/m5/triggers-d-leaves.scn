@@ -1,0 +1,142 @@
+# Leaving the battlefield without dying, being returned to hand, and
+# batched triggers from the triggers-d branch.
+
+scenario "leave the battlefield without dying: a bounce draws a card" {
+  battlefield A: "Dour Port-Mage", "Grizzly Bears", 2 "Island"
+  turn 1 A: activate "Dour Port-Mage" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 2
+}
+
+scenario "leave the battlefield without dying: dying draws nothing" {
+  battlefield A: "Dour Port-Mage", "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "this or another creature leaves without dying: another one exiled" {
+  battlefield A: "Three Tree Scribe", "Grizzly Bears"
+  battlefield B: 3 "Plains"
+  hand B: "Unmake"
+  start turn 2 B
+  turn 2 B: cast "Unmake" targeting "Grizzly Bears"
+  turn 2 A: trigger "Three Tree Scribe" targeting "Three Tree Scribe"
+  run_to turn 2 postcombat_main
+  assert counters "Three Tree Scribe" +1/+1 1
+}
+
+scenario "this or another creature leaves without dying: the Scribe itself bounced" {
+  battlefield A: "Three Tree Scribe", "Grizzly Bears"
+  battlefield B: "Island"
+  hand B: "Unsummon"
+  start turn 2 B
+  turn 2 B: cast "Unsummon" targeting "Three Tree Scribe"
+  turn 2 A: trigger "Three Tree Scribe" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Three Tree Scribe"
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "this or another creature leaves without dying: dying isn't" {
+  battlefield A: "Three Tree Scribe", "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Three Tree Scribe" +1/+1 0
+}
+
+scenario "returned to its owner's hand: Justice's own bounce counts" {
+  battlefield A: "Grizzly Bears", 3 "Island"
+  hand A: "Justice, Vance Astrovik"
+  turn 1 A: cast "Justice, Vance Astrovik"
+  turn 1 A: trigger "Justice, Vance Astrovik" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert counters "Justice, Vance Astrovik" +1/+1 1
+}
+
+scenario "returned to its owner's hand: not an opponent's permanent" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Justice, Vance Astrovik"
+  turn 1 A: cast "Justice, Vance Astrovik"
+  turn 1 A: trigger "Justice, Vance Astrovik" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert counters "Justice, Vance Astrovik" +1/+1 0
+}
+
+scenario "one or more permanent cards put into your graveyard: one counter for the batch, none for an instant" {
+  battlefield A: "Moonshadow" with 6 -1/-1
+  battlefield B: 3 "Swamp", "Mountain"
+  hand A: "Grizzly Bears", "Forest"
+  hand B: "Mind Rot", "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert counters "Moonshadow" -1/-1 5
+  assert power "Moonshadow" 2
+}
+
+scenario "one or more creatures with flying deal combat damage: draw a card" {
+  battlefield A: "Mu Yanling, Wind Rider", "Serra Angel"
+  turn 1 A: attack "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand A count 1
+}
+
+scenario "Mu Yanling: the Vehicle token has crew 1 and flying" {
+  battlefield A: 4 "Island"
+  hand A: "Mu Yanling, Wind Rider"
+  turn 1 A: cast "Mu Yanling, Wind Rider"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Vehicle"
+  assert has "Vehicle" flying
+}
+
+scenario "one or more suspected creatures you control attack: surveil 1" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  hand A: "Clandestine Meddler"
+  library A: "Forest", "Forest", "Forest"
+  turn 1 A: cast "Clandestine Meddler"
+  turn 1 A: trigger "Clandestine Meddler" targeting "Grizzly Bears"
+  turn 3 A: attack "Grizzly Bears"
+  turn 3 declare_attackers A: surveil "Forest"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Forest"
+}
+
+scenario "one or more suspected creatures you control attack: not when none of them is suspected" {
+  battlefield A: "Grizzly Bears", "Clandestine Meddler"
+  library A: "Forest", "Forest", "Forest"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 0
+}
+
+scenario "one or more Heroes you control deal damage to a player: once for the batch" {
+  battlefield A: "The Thing, Ben Grimm", "Justice, Vance Astrovik"
+  turn 1 A: attack "The Thing, Ben Grimm", "Justice, Vance Astrovik"
+  run_to turn 1 postcombat_main
+  assert life B 11
+  assert counters "The Thing, Ben Grimm" +1/+1 2
+}
+
+scenario "one or more Heroes you control deal damage to a player: not other creatures" {
+  battlefield A: "The Thing, Ben Grimm", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "The Thing, Ben Grimm" +1/+1 0
+}

@@ -1,0 +1,7 @@
+card "Canyon Vaulter" {
+  oracle_id 829e121f-d2fa-40ef-afc7-9b2072a949d7
+  cost {1}{W}
+  type Creature — Kor Pilot
+  pt 3/1
+  triggered whenever this saddles a Mount or crews a Vehicle while your main phase: that creature gains flying until end of turn
+}

@@ -42,6 +42,17 @@ pub enum Event {
     Explored {
         obj: ObjId,
     },
+    /// `crew` was tapped to pay the cost of `vehicle`'s crew or saddle
+    /// ability: it "crews a Vehicle" or "saddles a Mount" (CR 702.122b,
+    /// 702.171c).
+    Crewed {
+        crew: ObjId,
+        vehicle: ObjId,
+    },
+    /// A Mount became saddled (CR 702.171b).
+    BecameSaddled {
+        obj: ObjId,
+    },
     /// A spell or ability `player` controls tapped an untapped permanent
     /// (just after its `Tapped` event): "Whenever you tap an untapped
     /// creature an opponent controls".
@@ -153,6 +164,9 @@ pub enum Event {
         player: PlayerId,
         looked: u32,
         down: u32,
+        /// Surveil rather than scry.
+        #[serde(default)]
+        surveil: bool,
     },
     Attack {
         attacker: ObjId,
@@ -418,6 +432,8 @@ impl Event {
             Event::CountersAdded { .. } => WATCH_COUNTERS,
             Event::Scried { .. }
             | Event::Explored { .. }
+            | Event::Crewed { .. }
+            | Event::BecameSaddled { .. }
             | Event::Activated { .. }
             | Event::Transformed { .. }
             | Event::TappedBy { .. } => WATCH_ACT,

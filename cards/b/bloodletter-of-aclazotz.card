@@ -1,0 +1,8 @@
+card "Bloodletter of Aclazotz" {
+  oracle_id 469956a2-7cd4-4695-b8f4-c841526f160d
+  cost {1}{B}{B}{B}
+  type Creature — Vampire Demon
+  pt 2/4
+  keywords flying
+  replace an opponent loses life during your turn: double
+}

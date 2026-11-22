@@ -2665,6 +2665,8 @@ impl P {
                     mtg_core::card::TurnLimit::Triggers(2)
                 } else if self.eat_words(&["do", "once", "each", "turn"]) {
                     mtg_core::card::TurnLimit::Do
+                } else if self.eat_words(&["once", "ever"]) {
+                    mtg_core::card::TurnLimit::Ever
                 } else {
                     mtg_core::card::TurnLimit::None
                 };
@@ -2723,6 +2725,11 @@ impl P {
                 self.pos += 1;
                 let r = self.replacement()?;
                 Ok(Ability::Replacement(r))
+            }
+            "during" if self.at_words(&["during", "your", "turn", "replace"]) => {
+                self.pos += 3;
+                let ability = self.ability()?;
+                Ok(Ability::DuringYourTurn(Box::new(ability)))
             }
             "as" if self.at_words(&["as", "this", "enters", "choose"])
                 || self.at_words(&["as", "it", "enters", "choose"]) =>
@@ -6512,6 +6519,31 @@ impl P {
                     twice,
                 })
             }
+            // "this creature's base power becomes equal to ..." (CR
+            // 613.4b).
+            "base" if self.at_words(&["power", "becomes"]) => {
+                self.pos += 2;
+                let n = self.num()?;
+                self.until_end_of_turn();
+                Ok(Effect::SetBasePower {
+                    to: subject,
+                    n,
+                    becomes: true,
+                })
+            }
+            "has" | "have"
+                if self.at_words(&["base", "power"])
+                    && !self.at_words(&["base", "power", "and"]) =>
+            {
+                self.pos += 2;
+                let n = self.num()?;
+                self.until_end_of_turn();
+                Ok(Effect::SetBasePower {
+                    to: subject,
+                    n,
+                    becomes: false,
+                })
+            }
             "has" | "have" => {
                 self.expect_words(&["base", "power", "and", "toughness"])?;
                 if !matches!(self.peek(), Some(Tok::Pt { .. })) {
@@ -6701,6 +6733,11 @@ impl P {
             "becomes" if self.at_word("prepared") => {
                 self.pos += 1;
                 Ok(Effect::BecomePrepared { what: subject })
+            }
+            "becomes" if self.at_word("saddled") => {
+                self.pos += 1;
+                self.until_end_of_turn();
+                Ok(Effect::BecomeSaddledTarget { what: subject })
             }
             "skips" | "skip" if self.at_word("next") => {
                 use mtg_core::card::SkipWhat;
@@ -10235,6 +10272,9 @@ impl P {
         if !self.in_delayed && self.eat_words(&["each", "of", "them"]) {
             return Ok(Recipient::CreatedThem);
         }
+        if self.in_delayed && self.eat_words(&["those", "cards"]) {
+            return Ok(Recipient::SameCards);
+        }
         if self.eat_words(&["those", "cards"]) {
             if self.targets.is_empty() {
                 return self.fail("`those cards` needs targets declared before it");
@@ -11890,6 +11930,9 @@ impl P {
         if self.eat_words(&["first", "noncreature", "spell", "each", "turn"]) {
             return Ok(Some(SpellOrdinal::FirstNoncreature));
         }
+        if self.eat_words(&["first", "instant", "or", "sorcery", "spell", "each", "turn"]) {
+            return Ok(Some(SpellOrdinal::FirstInstantOrSorcery));
+        }
         let w = self.word()?;
         self.expect_word("spell")?;
         let nth = match w.as_str() {
@@ -12028,6 +12071,9 @@ impl P {
         }
         if self.eat_words(&["you", "scry", "or", "surveil"]) {
             return Ok(Trigger::ScriesOrSurveils);
+        }
+        if self.eat_words(&["you", "scry"]) {
+            return Ok(Trigger::Scries);
         }
         // "you tap an untapped creature an opponent controls".
         if self.eat_words(&["you", "tap"]) {
@@ -12190,6 +12236,11 @@ impl P {
                 return Ok(Trigger::Draws { whose });
             }
         }
+        // "When you discard this card" (CR 701.9).
+        if self.eat_words(&["you", "discard", "this"]) {
+            self.eat_word("card");
+            return Ok(Trigger::DiscardsThis);
+        }
         // "a player discards a card", "you discard creature card" (CR
         // 701.9).
         for (words, whose) in [
@@ -12331,6 +12382,17 @@ impl P {
         if self.eat_words(&["one", "or", "more", "creatures", "you", "control", "attack"]) {
             return Ok(Trigger::CreaturesYouControlAttack);
         }
+        // "Whenever one or more suspected creatures you control attack".
+        if self.at_words(&["one", "or", "more"]) {
+            let before = self.pos;
+            self.pos += 3;
+            if let Ok(f) = self.filter()
+                && self.eat_word("attack")
+            {
+                return Ok(Trigger::OneOrMoreAttack(f));
+            }
+            self.pos = before;
+        }
         if self.at_words(&["one", "or", "more"]) && matches!(self.peek_at(3), Some(Tok::Pt { .. }))
         {
             self.pos += 3;
@@ -12403,6 +12465,11 @@ impl P {
                     dies: true,
                 });
             }
+            if self.eat_words(&["leave", "the", "battlefield", "without", "dying"]) {
+                return Ok(Trigger::Batch(Box::new(Trigger::LeavesWithoutDying(
+                    TriggerObj::Filter(f),
+                ))));
+            }
             if self.eat_words(&["leave", "the", "battlefield"]) {
                 return Ok(Trigger::LeavesBatch {
                     filter: f,
@@ -12413,6 +12480,9 @@ impl P {
             // player" (CR 603.2c).
             if self.eat_words(&["deal", "combat", "damage", "to", "a", "player"]) {
                 return Ok(Trigger::CreaturesDealCombatDamage(f));
+            }
+            if self.eat_words(&["deal", "damage", "to", "a", "player"]) {
+                return Ok(Trigger::CreaturesDealDamage(f));
             }
             self.expect_word("enter")?;
             return Ok(Trigger::EntersBatch(f));
@@ -12536,6 +12606,21 @@ impl P {
                 min: u8::try_from(min).unwrap_or(u8::MAX),
             });
         }
+        // "Whenever a player attacks with three or more creatures".
+        for (words, whose) in [
+            (&["a", "player", "attacks", "with"][..], Who::Any),
+            (&["an", "opponent", "attacks", "with"][..], Who::Opponents),
+        ] {
+            if self.at_words(words) && matches!(self.peek_at(4), Some(Tok::Num(_))) {
+                self.pos += 4;
+                let n = self.number()?;
+                self.expect_words(&["or", "more", "creatures"])?;
+                return Ok(Trigger::PlayerAttacksWith {
+                    whose,
+                    min: u8::try_from(n).unwrap_or(u8::MAX),
+                });
+            }
+        }
         // Battalion: "this and at least 2 other creatures attack".
         if self.eat_words(&["this", "and", "at", "least"]) {
             let n = self.number()?;
@@ -12592,10 +12677,24 @@ impl P {
                     | Trigger::Leaves(TriggerObj::This)
                     | Trigger::Attacks(TriggerObj::This)
                     | Trigger::TurnedFaceUp(TriggerObj::This)
+                    | Trigger::BecomesTapped(TriggerObj::This)
                     | Trigger::Transforms
             ) {
-                return self.fail("`this enters or` takes `dies`, `leaves the battlefield`, `attacks`, `transforms`, or `is turned face up`");
+                return self.fail("`this enters or` takes `dies`, `leaves the battlefield`, `attacks`, `becomes tapped`, `transforms`, or `is turned face up`");
             }
+            return Ok(Trigger::Or {
+                first: Box::new(first),
+                second: Box::new(second),
+                whenever,
+            });
+        }
+        // "When enchanted creature becomes tapped or is dealt damage": two
+        // events of the same object.
+        if matches!(first, Trigger::BecomesTapped(_))
+            && self.at_words(&["or", "is", "dealt", "damage"])
+        {
+            self.pos += 1;
+            let second = self.trigger_verb(obj, whenever)?;
             return Ok(Trigger::Or {
                 first: Box::new(first),
                 second: Box::new(second),
@@ -12623,10 +12722,22 @@ impl P {
         let w = self.word()?;
         match w.as_str() {
             "enters" => Ok(Trigger::Enters(obj)),
+            "dies" if self.at_words(&["or", "is", "put", "into", "exile"]) => {
+                self.pos += 5;
+                Ok(Trigger::DiesOrExiled(obj))
+            }
             "dies" => Ok(Trigger::Dies(obj)),
             // CR 701.27: "transforms into <this face>".
             "transforms" if obj == TriggerObj::This => Ok(Trigger::Transforms),
             "explores" => Ok(Trigger::Explores(obj)),
+            "saddles" if self.at_words(&["a", "Mount", "or", "crews", "a", "Vehicle"]) => {
+                self.pos += 6;
+                Ok(Trigger::CrewsOrSaddles(obj))
+            }
+            "becomes" if self.at_words(&["saddled", "first", "time", "each", "turn"]) => {
+                self.pos += 5;
+                Ok(Trigger::BecomesSaddled(obj))
+            }
             "exploits" if self.at_words(&["a", "creature"]) => {
                 self.pos += 2;
                 if obj != TriggerObj::This {
@@ -12642,6 +12753,10 @@ impl P {
                 self.pos += 3;
                 Ok(Trigger::TurnedFaceUp(obj))
             }
+            "is" if self.at_words(&["returned", "to", "hand"]) => {
+                self.pos += 3;
+                Ok(Trigger::ReturnedToHand(obj))
+            }
             "is" if self.at_words(&["dealt", "combat", "damage"]) => {
                 self.pos += 3;
                 Ok(Trigger::DealtCombatDamage(obj))
@@ -12653,6 +12768,12 @@ impl P {
             "is" if self.at_words(&["dealt", "damage"]) => {
                 self.pos += 2;
                 Ok(Trigger::DealtDamage(obj))
+            }
+            "is" if self.at_word("dealt") && matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                self.expect_words(&["or", "more", "damage"])?;
+                Ok(Trigger::DealtDamageAtLeast(obj, n))
             }
             "is" => {
                 self.expect_words(&["put", "into", "a", "graveyard"])?;
@@ -12669,6 +12790,10 @@ impl P {
                     return self.unexpected("`from the battlefield`");
                 }
                 Ok(Trigger::Dies(obj))
+            }
+            "leaves" if self.at_words(&["the", "battlefield", "without", "dying"]) => {
+                self.pos += 4;
+                Ok(Trigger::LeavesWithoutDying(obj))
             }
             "leaves" if self.at_words(&["the", "battlefield"]) => {
                 self.pos += 2;
@@ -12777,6 +12902,9 @@ impl P {
                     && self.eat_words(&["by", "you", "first", "time", "each", "turn"])
                 {
                     return Ok(Trigger::TargetedByYouFirstTime);
+                }
+                if obj == TriggerObj::This && self.eat_words(&["first", "time", "each", "turn"]) {
+                    return Ok(Trigger::TargetedFirstTime);
                 }
                 if whenever {
                     return Ok(Trigger::BecomesTargetWhenever(obj));
@@ -13374,6 +13502,16 @@ impl P {
             self.pos += 4;
             return Ok(Replaces::GainLife { whose: Who::Any });
         }
+        for (words, whose) in [
+            (&["you", "lose", "life"][..], Who::You),
+            (&["a", "player", "loses", "life"][..], Who::Any),
+            (&["an", "opponent", "loses", "life"][..], Who::Opponents),
+        ] {
+            if self.eat_words(words) {
+                let your_turn = self.eat_words(&["during", "your", "turn"]);
+                return Ok(Replaces::LoseLife { whose, your_turn });
+            }
+        }
         if self.at_words(&["an", "opponent", "gains", "life"]) {
             self.pos += 4;
             return Ok(Replaces::GainLife {
@@ -13394,6 +13532,18 @@ impl P {
                 whose,
                 library_empty,
             });
+        }
+        // "If an instant or sorcery card would be put into a graveyard
+        // from anywhere".
+        if !self.at_word("card") && !self.at_words(&["a", "card"]) {
+            let start = self.pos;
+            if let Ok(f) = self.filter()
+                && self.eat_words(&["card", "put", "into", "a", "graveyard"])
+            {
+                self.eat_words(&["from", "anywhere"]);
+                return Ok(Replaces::FilteredToGraveyard(f));
+            }
+            self.pos = start;
         }
         if self.at_words(&["card", "put", "into"]) || self.at_words(&["a", "card", "put", "into"]) {
             self.eat_word("a");
@@ -13525,6 +13675,10 @@ impl P {
             "plus" => {
                 if self.eat_word("one") {
                     Outcome::PlusOne
+                } else if self.at_word("count") {
+                    // `plus count where power`: "instead it deals that much
+                    // damage plus X, where X is Hawkeye's power".
+                    Outcome::PlusCount(self.num()?)
                 } else {
                     // `plus 2`, `plus 1 to that`: damage (Torbran, Jaya).
                     let n = self.number()?;
@@ -13535,6 +13689,10 @@ impl P {
             "exile" => {
                 self.eat_word("it");
                 Outcome::Instead(Zone::Exile)
+            }
+            "destroy" if self.at_words(&["next", "time"]) => {
+                self.pos += 2;
+                Outcome::DestroyNextTime
             }
             "draw" => {
                 self.expect_word("two")?;
@@ -13844,7 +14002,9 @@ fn no_trigger_amount(t: &Trigger) -> bool {
             no_trigger_object(t)
                 && !matches!(
                     t,
-                    Trigger::CreaturesDealCombatDamage(_) | Trigger::LosesLife { .. }
+                    Trigger::CreaturesDealCombatDamage(_)
+                        | Trigger::CreaturesDealDamage(_)
+                        | Trigger::LosesLife { .. }
                 )
         }
     }
@@ -13866,6 +14026,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::EachPlayersEndStep
         | Trigger::BeginningOfStep { .. }
         | Trigger::CreaturesYouControlAttack
+        | Trigger::OneOrMoreAttack(_)
         | Trigger::GainsLife { .. }
         | Trigger::GainsLifeFirst { .. }
         | Trigger::LosesLife { .. }
@@ -13876,6 +14037,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::CollectsEvidence
         | Trigger::Forages
         | Trigger::CreaturesDealCombatDamage(_)
+        | Trigger::CreaturesDealDamage(_)
         | Trigger::CommitsCrime { .. } => true,
         _ => false,
     }

@@ -1403,6 +1403,19 @@ impl<'a> Ctx<'a> {
             {
                 "that Vehicle".to_string()
             }
+            // "Whenever this creature saddles a Mount or crews a Vehicle,
+            // that Mount or Vehicle gains flying".
+            Recipient::TriggeringObject
+                if matches!(self.trigger, Some(Trigger::CrewsOrSaddles(_))) =>
+            {
+                "that Mount or Vehicle".to_string()
+            }
+            // "..., counter that spell or ability" (Shimmering Glasskite).
+            Recipient::TriggeringObject
+                if matches!(self.trigger, Some(Trigger::TargetedFirstTime)) =>
+            {
+                "that spell or ability".to_string()
+            }
             Recipient::TriggeringObject | Recipient::SameThat | Recipient::Manifested => {
                 "that creature".to_string()
             }
@@ -1530,7 +1543,7 @@ impl<'a> Ctx<'a> {
                     )
                 }
             }
-            Recipient::ThoseCards(..) => "those cards".to_string(),
+            Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
             Recipient::ThoseTargets(a, _) => format!("those {}", self.plural_target_noun(a)),
         }
     }
@@ -1622,14 +1635,19 @@ impl<'a> Ctx<'a> {
     }
 
     fn trigger_is_enchanted(&self) -> bool {
-        self.trigger.is_some_and(|t| {
+        fn enchanted(t: &Trigger) -> bool {
             let t = match t {
                 Trigger::When(inner) => inner,
+                // "When enchanted creature becomes tapped or is dealt
+                // damage".
+                Trigger::Or { first, .. } => return enchanted(first),
                 t => t,
             };
             matches!(
                 t,
                 Trigger::Dies(TriggerObj::Filter(f))
+                    | Trigger::DiesOrExiled(TriggerObj::Filter(f))
+                    | Trigger::DealtDamageAtLeast(TriggerObj::Filter(f), _)
                     | Trigger::DealtDamage(TriggerObj::Filter(f))
                     | Trigger::DealtCombatDamage(TriggerObj::Filter(f))
                     | Trigger::Blocks(TriggerObj::Filter(f))
@@ -1637,7 +1655,8 @@ impl<'a> Ctx<'a> {
                     | Trigger::BecomesTapped(TriggerObj::Filter(f))
                     if f.enchanted
             )
-        })
+        }
+        self.trigger.is_some_and(enchanted)
     }
 
     fn subj(&mut self, r: Recipient) -> String {
@@ -1945,6 +1964,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::CreatedThem
                 | Recipient::CreatedThose
                 | Recipient::SameTokens
+                | Recipient::SameCards
                 | Recipient::SameThem
                 | Recipient::Those(_)
         )
@@ -3556,6 +3576,8 @@ fn token_description_plain(
     for a in &token.abilities {
         match a {
             Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => bare.push(format!("toxic {n}")),
+            // "a 3/2 colorless Vehicle artifact token with crew 1".
+            Ability::Mechanic(crate::ast::Mechanic::Crew(n)) => bare.push(format!("crew {n}")),
             // "a 2/2 red Soldier creature token with firebending 1".
             Ability::Mechanic(crate::ast::Mechanic::Firebending(Num::N(n))) => {
                 bare.push(format!("firebending {n}"));
@@ -4853,6 +4875,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "becomes prepared".to_string())
         }
+        Effect::BecomeSaddledTarget { what } => {
+            let s = ctx.subj(*what);
+            Clause::with_subject(*what, s, "becomes saddled".to_string()).until_eot()
+        }
         Effect::ExileTop { count, who } => {
             let one = *count == Num::N(1);
             let whose = if who.is_some() { "their" } else { "your" };
@@ -6090,7 +6116,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // "return them to the battlefield" (Tom, Bert, and William
                 // return themselves, their owner's ability).
                 format!("return {o} to the battlefield{tapped}")
-            } else if matches!(what, Recipient::ThoseCards(..)) {
+            } else if matches!(what, Recipient::ThoseCards(..) | Recipient::SameCards) {
                 // "return those cards to the battlefield under their
                 // owner's control" (Oracle's singular "owner's"); "exile
                 // two target creatures and/or lands you control, then
@@ -8702,6 +8728,31 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             )
             .until_eot()
         }
+        Effect::SetBasePower { to, n, becomes } => {
+            let s = ctx.subj(*to);
+            if *becomes {
+                let v = match n {
+                    Num::Count(i) => ctx
+                        .card
+                        .counts
+                        .get(usize::from(*i))
+                        .map_or_else(|| digits(*n), |c| count_phrase(&c.expr, ctx.card, false)),
+                    n => digits(*n),
+                };
+                return Clause::with_subject(
+                    *to,
+                    format!("{} base power", possessive(&s)),
+                    format!("becomes equal to {v}"),
+                )
+                .until_eot();
+            }
+            Clause::with_subject(
+                *to,
+                s,
+                format!("{} base power {}", ctx.verb(*to, "has", "have"), digits(*n)),
+            )
+            .until_eot()
+        }
         Effect::SetBasePt {
             to,
             power,
@@ -9501,6 +9552,22 @@ fn step_name(step: Step, whose: Who) -> String {
     }
 }
 
+/// Two events of one subject, the words they share printed once: "When
+/// enchanted creature becomes tapped or is dealt damage".
+pub(crate) fn or_shared(a: &str, b: &str, whenever: bool) -> String {
+    let (wa, wb): (Vec<&str>, Vec<&str>) = (
+        a.split(' ').skip(1).collect(),
+        b.split(' ').skip(1).collect(),
+    );
+    let k = wa.iter().zip(&wb).take_while(|(x, y)| x == y).count();
+    format!(
+        "{} {} or {}",
+        if whenever { "whenever" } else { "when" },
+        wa.join(" "),
+        wb[k..].join(" ")
+    )
+}
+
 /// "When this creature enters" (no trailing comma); `next` for a delayed
 /// trigger's "the next end step".
 #[allow(clippy::too_many_lines)] // one arm per trigger kind
@@ -9534,6 +9601,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             }
             Trigger::YouTap(f) => format!(
                 "whenever you tap one or more {}",
+                controller_first(f, filter_phrase(f, ctx.card, true))
+            ),
+            Trigger::LeavesWithoutDying(TriggerObj::Filter(f)) => format!(
+                "whenever one or more {} leave the battlefield without dying",
                 controller_first(f, filter_phrase(f, ctx.card, true))
             ),
             t => unreachable!("no batched form of {t:?}"),
@@ -9590,12 +9661,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             let a = trigger_text(first, ctx, next);
             let b = trigger_text(second, ctx, next);
             // "Whenever a Detective you control enters or is turned face
-            // up": the words both events share printed once.
-            if matches!(**first, Trigger::Enters(crate::ast::TriggerObj::Filter(_))) {
-                let (wa, wb): (Vec<&str>, Vec<&str>) =
-                    (a.split(' ').collect(), b.split(' ').collect());
-                let k = wa.iter().zip(&wb).take_while(|(x, y)| x == y).count();
-                return format!("{} or {}", wa.join(" "), wb[k..].join(" "));
+            // up", "When enchanted creature becomes tapped or is dealt
+            // damage": the words both events share printed once.
+            if !matches!(**first, Trigger::Enters(crate::ast::TriggerObj::This)) {
+                return or_shared(&a, &b, *whenever);
             }
             // "Whenever this creature enters or transforms into ~": a
             // legendary one too.
@@ -9640,6 +9709,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Draws { whose } => {
             format!("whenever {} a card", crate::format::draws_words(*whose))
         }
+        // CR 701.9: the card is discarded from the hand, "this card".
+        Trigger::DiscardsThis => {
+            ctx.source_mentioned = true;
+            "when you discard this card".to_string()
+        }
         Trigger::Discards { whose, filter: f } => format!(
             "whenever {} {}",
             crate::format::discards_words(*whose),
@@ -9674,6 +9748,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Forages => "whenever you forage".to_string(),
         Trigger::CreaturesDealCombatDamage(f) => format!(
             "whenever one or more {} deal combat damage to a player",
+            controller_first(f, filter_phrase(f, ctx.card, true))
+        ),
+        Trigger::CreaturesDealDamage(f) => format!(
+            "whenever one or more {} deal damage to a player",
             controller_first(f, filter_phrase(f, ctx.card, true))
         ),
         Trigger::NoncombatDamageToOpponent { yours, batch } => match (yours, batch) {
@@ -9711,7 +9789,21 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             if *your_turn { " during your turn" } else { "" }
         ),
         Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
+        Trigger::Scries => "whenever you scry".to_string(),
         Trigger::Explores(o) => format!("whenever {} explores", trigger_subject(o, ctx)),
+        Trigger::CrewsOrSaddles(o) => format!(
+            "whenever {} saddles a Mount or crews a Vehicle",
+            trigger_subject(o, ctx)
+        ),
+        // "..., then this creature gets +X/+X": Oracle names it again.
+        Trigger::BecomesSaddled(TriggerObj::This) => format!(
+            "whenever {} becomes saddled for the first time each turn",
+            this_ref(ctx.card)
+        ),
+        Trigger::BecomesSaddled(o) => format!(
+            "whenever {} becomes saddled for the first time each turn",
+            trigger_subject(o, ctx)
+        ),
         Trigger::YouTap(f) => format!("whenever you tap {}", filter_a(f, ctx.card)),
         Trigger::Activates { whose, kind } => {
             format!("whenever {}", crate::format::activates_words(*whose, *kind))
@@ -9739,6 +9831,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 "leave the battlefield"
             }
         ),
+        Trigger::DiesOrExiled(o) => {
+            let dies = trigger_text(&Trigger::Dies(o.clone()), ctx, next);
+            format!("{dies} or is put into exile")
+        }
         Trigger::Dies(o @ TriggerObj::ThisOr(_)) => {
             format!("whenever {} dies", trigger_subject(o, ctx))
         }
@@ -9902,9 +9998,22 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             this: false,
             min: 1,
         } => "whenever you attack".to_string(),
+        Trigger::OneOrMoreAttack(f) => format!(
+            "whenever one or more {} attack",
+            controller_first(f, filter_phrase(f, ctx.card, true))
+        ),
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
         }
+        Trigger::PlayerAttacksWith { whose, min } => format!(
+            "whenever {} attacks with {} or more creatures",
+            if *whose == Who::Opponents {
+                "an opponent"
+            } else {
+                "a player"
+            },
+            count_words(Num::N(u32::from(*min)), "one")
+        ),
         Trigger::AttacksWith { this: false, min } => format!(
             "whenever you attack with {} or more creatures",
             count_words(Num::N(u32::from(*min)), "one")
@@ -9940,6 +10049,16 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Leaves(TriggerObj::This) => {
             format!("when {} leaves the battlefield", this(ctx))
         }
+        Trigger::LeavesWithoutDying(o) => format!(
+            "whenever {} leaves the battlefield without dying",
+            trigger_subject(o, ctx)
+        ),
+        // "Whenever another nonland permanent you control is returned to
+        // its owner's hand".
+        Trigger::ReturnedToHand(o) => format!(
+            "whenever {} is returned to its owner's hand",
+            trigger_subject(o, ctx)
+        ),
         Trigger::Leaves(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
             format!(
                 "whenever {} leaves the battlefield",
@@ -10125,6 +10244,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             trigger_subject(obj, ctx)
         ),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_subject(o, ctx)),
+        Trigger::DealtDamageAtLeast(o, n) => {
+            format!(
+                "whenever {} is dealt {n} or more damage",
+                trigger_subject(o, ctx)
+            )
+        }
         Trigger::DealtCombatDamage(o) => {
             format!(
                 "whenever {} is dealt combat damage",
@@ -10259,6 +10384,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         } => crate::format::draws_nth(*whose, *n, *in_a_turn),
         Trigger::TargetedByYouFirstTime => format!(
             "whenever {} becomes the target of a spell or ability you control for the first time each turn",
+            this(ctx)
+        ),
+        Trigger::TargetedFirstTime => format!(
+            "whenever {} becomes the target of a spell or ability for the first time each turn",
             this(ctx)
         ),
         Trigger::TargetedByOpponent => format!(
@@ -10682,6 +10811,15 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             let turn = if this_turn { " this turn" } else { "" };
             format!("The next time {by} would deal {kind}{to}{turn}, prevent that damage.")
         }
+        // "The next time damage would be dealt to target creature this
+        // turn, destroy that creature instead." (Kill-Suit Cultist).
+        (Replaces::Damage { from: None, to, .. }, Outcome::DestroyNextTime) => {
+            let to = affects_to(to, ctx);
+            let turn = if this_turn { " this turn" } else { "" };
+            format!(
+                "The next time damage would be dealt to {to}{turn}, destroy that creature instead."
+            )
+        }
         // CR 614.9: "The next 1 damage that would be dealt to this creature
         // this turn is dealt to target creature you control instead."
         (
@@ -10738,7 +10876,7 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             Replaces::Damage {
                 from, to, combat, ..
             },
-            outcome @ (Outcome::Double | Outcome::PlusN { .. }),
+            outcome @ (Outcome::Double | Outcome::PlusN { .. } | Outcome::PlusCount(_)),
         ) => {
             let kind = match combat {
                 Some(true) => "combat damage",
@@ -10761,10 +10899,11 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                     let that = if *to_that { that } else { "" };
                     format!("that much damage plus {n}{that}")
                 }
+                Outcome::PlusCount(_) => "that much damage plus X".to_string(),
                 _ if matches!(to, Affects::OpponentsAnd(_)) => format!("double that {kind}"),
                 _ => format!("double that {kind}{that}"),
             };
-            match from {
+            let text = match from {
                 None => format!(
                     "If a source would deal {kind} to {to_text}, it deals {} instead.",
                     deals(&that)
@@ -10797,6 +10936,25 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                         deals("")
                     )
                 }
+            };
+            // "..., instead it deals that much damage plus X, where X is
+            // Hawkeye's power." (Hawkeye, Young Avenger).
+            match outcome {
+                Outcome::PlusCount(Num::Count(i)) => {
+                    let what = ctx.card.counts.get(usize::from(*i)).map_or_else(
+                        || "X".to_string(),
+                        |c| count_phrase(&c.expr, ctx.card, false),
+                    );
+                    let what = match what.as_str() {
+                        "its power" => format!("{}'s power", this_ref(ctx.card)),
+                        _ => what,
+                    };
+                    text.replace(
+                        " it deals that much damage plus X instead.",
+                        &format!(" instead it deals that much damage plus X, where X is {what}."),
+                    )
+                }
+                _ => text,
             }
         }
         // "If a source you control would deal damage to an opponent,
@@ -10837,6 +10995,20 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             format!(
                 "All damage that would be dealt to {to} is dealt to enchanted creature instead."
             )
+        }
+        (Replaces::LoseLife { whose, your_turn }, outcome) => {
+            let (subj, obj) = match whose {
+                Who::You => ("you", "you lose"),
+                Who::Any => ("a player", "that player loses"),
+                Who::Opponents => ("an opponent", "they lose"),
+            };
+            let when = if *your_turn { " during your turn" } else { "" };
+            match outcome {
+                Outcome::Double => {
+                    format!("If {subj} would lose life{when}, {obj} twice that much life instead.")
+                }
+                _ => format!("If {subj} would lose life{when}, something else happens instead."),
+            }
         }
         (Replaces::GainLife { whose }, outcome) => {
             let (subj, obj) = match whose {
@@ -10908,6 +11080,16 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 _ => "something else happens instead",
             };
             format!("If {what} would be put into {gy} {from}, {instead}.")
+        }
+        (Replaces::FilteredToGraveyard(f), outcome) => {
+            let instead = match outcome {
+                Outcome::Instead(mtg_core::state::Zone::Exile) => "exile it instead",
+                _ => "something else happens instead",
+            };
+            format!(
+                "If {} card would be put into a graveyard from anywhere, {instead}.",
+                filter_a(f, ctx.card)
+            )
         }
         // CR 614.1a, 111.1: "If one or more tokens would be created under
         // your control, twice that many of those tokens are created
@@ -13425,17 +13607,40 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     let cond = condition_text(*c, &mut ctx);
                     // "if Katara is tapped, put a +1/+1 counter on her": a
                     // character named in the condition is "her" after.
-                    if card.pronoun.is_some()
-                        && cond.starts_with(&format!("if {} is ", this_ref(card)))
-                    {
+                    // "if this creature is tapped, put a flying counter on
+                    // it" likewise.
+                    if cond.starts_with(&format!("if {} is ", this_ref(card))) {
                         ctx.source_mentioned = true;
                     }
                     out.push_str(&cond);
                 }
                 // "Whenever this creature attacks while saddled", "...
                 // while you control two or more artifacts".
+                // "Whenever you gain life for the first time during each of
+                // your turns".
+                Some(crate::ast::TrigCond::While(StaticCond::DuringYourTurn))
+                    if matches!(trigger, Trigger::GainsLifeFirst { .. }) =>
+                {
+                    out = out.replace(
+                        "for the first time each turn",
+                        "for the first time during each of your turns",
+                    );
+                }
                 Some(crate::ast::TrigCond::While(StaticCond::DuringYourTurn)) => {
                     out.push_str(" during your turn");
+                }
+                // "Whenever this creature saddles a Mount or crews a Vehicle
+                // during your main phase".
+                Some(crate::ast::TrigCond::While(StaticCond::YourMainPhase)) => {
+                    out.push_str(" during your main phase");
+                }
+                // "When this land enters untapped" (judged as it enters).
+                Some(crate::ast::TrigCond::While(StaticCond::Is(f)))
+                    if matches!(trigger, Trigger::Enters(TriggerObj::This))
+                        && static_cond_text(&StaticCond::Is(f.clone()), card)
+                            == "it's untapped" =>
+                {
+                    out.push_str(" untapped");
                 }
                 Some(crate::ast::TrigCond::While(c)) => {
                     out.push_str(" while ");
@@ -13575,6 +13780,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     );
                 }
                 mtg_core::card::TurnLimit::Do => out.push_str(" Do this only once each turn."),
+                mtg_core::card::TurnLimit::Ever => {
+                    out.push_str(" This ability triggers only once.");
+                }
             }
             out
         }
@@ -13691,6 +13899,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         // "I — Wark — Create ...": a chapter's name follows its numerals.
         // "• Khans — At the beginning of ...".
+        Ability::DuringYourTurn(ability) => {
+            let text = ability_text(card, ability, lookup);
+            format!("During your turn, {}", lowercase_first(&text))
+        }
         Ability::Labeled { label, ability }
             if crate::compile::named_option(card, label).is_some() =>
         {

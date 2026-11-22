@@ -1,0 +1,6 @@
+card "Gingerbread Cabin" {
+  oracle_id fa98c367-0312-49c6-abef-72e5ead4cc7d
+  type Land — Forest
+  enters tapped unless you control 3 other Forest
+  triggered when this enters while this is untapped: create 1 "Food"
+}

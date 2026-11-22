@@ -1,0 +1,7 @@
+card "Kaya's Ghostform" {
+  oracle_id b15c6203-6311-44eb-916d-a4c271960c74
+  cost {B}
+  type Enchantment — Aura
+  enchant creature or planeswalker you control
+  triggered when enchanted dies or is put into exile: return triggering card to battlefield under your control
+}

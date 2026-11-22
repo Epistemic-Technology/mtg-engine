@@ -1,0 +1,9 @@
+card "Vnwxt, Verbose Host" {
+  oracle_id 6454c457-a278-431a-9e8d-bfd1a966bdde
+  cost {1}{U}
+  type Legendary Creature — Homunculus
+  pt 0/4
+  start your engines
+  hand size none
+  label "Max speed" replace you draw: draw two
+}

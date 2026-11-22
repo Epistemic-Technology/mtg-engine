@@ -1,0 +1,239 @@
+# Triggers from the sixth wave's triggers-d branch: "whenever you scry",
+# "your first instant or sorcery spell each turn", "is dealt 3 or more
+# damage", two events of one subject joined by "or", "dies or is put into
+# exile", "enters untapped", "This ability triggers only once.", and a
+# prevention effect that applies only during its controller's turn.
+
+scenario "whenever you scry: once each turn, and not for surveil" {
+  battlefield A: "Chance-Met Elves", 3 "Island"
+  hand A: "Opt", "Opt", "Consider"
+  turn 1 A: cast "Consider"
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert counters "Chance-Met Elves" +1/+1 1
+  assert power "Chance-Met Elves" 4
+}
+
+scenario "whenever you scry: surveil alone doesn't trigger it" {
+  battlefield A: "Chance-Met Elves", "Island"
+  hand A: "Consider"
+  turn 1 A: cast "Consider"
+  run_to turn 1 postcombat_main
+  assert counters "Chance-Met Elves" +1/+1 0
+  assert power "Chance-Met Elves" 3
+}
+
+scenario "first instant or sorcery spell each turn: a creature spell before it doesn't count" {
+  battlefield A: "Aquatic Alchemist", 4 "Island"
+  hand A: "Aquatic Alchemist", "Opt", "Opt"
+  turn 1 A: cast "Aquatic Alchemist"
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  turn 1 A: wait
+  turn 1 A: cast "Opt"
+  run_to turn 1 postcombat_main
+  assert power oldest A "Aquatic Alchemist" 3
+}
+
+scenario "is dealt 3 or more damage: two damage doesn't investigate" {
+  battlefield A: "Innocent Bystander"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Innocent Bystander"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Innocent Bystander"
+  assert battlefield A lacks "Clue"
+}
+
+scenario "is dealt 3 or more damage: investigates even as it dies" {
+  battlefield A: "Innocent Bystander"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Innocent Bystander"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Innocent Bystander"
+  assert battlefield A contains "Clue"
+}
+
+scenario "becomes tapped or is dealt damage: attacking destroys it" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Cryoshatter"
+  turn 1 A: cast "Cryoshatter" targeting "Hill Giant"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 20
+}
+
+scenario "becomes tapped or is dealt damage: damage destroys it" {
+  battlefield A: "Island", "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Cryoshatter", "Shock"
+  turn 1 A: cast "Cryoshatter" targeting "Serra Angel"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "becomes tapped or is dealt damage: otherwise it stays, at -5/-0" {
+  battlefield A: "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Cryoshatter"
+  turn 1 A: cast "Cryoshatter" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert power "Serra Angel" -1
+}
+
+scenario "enters untapped: with three other Forests it makes a Food" {
+  battlefield A: 3 "Forest"
+  hand A: "Gingerbread Cabin"
+  turn 1 A: play "Gingerbread Cabin"
+  run_to turn 1 postcombat_main
+  assert untapped "Gingerbread Cabin"
+  assert battlefield A contains "Food"
+}
+
+scenario "enters untapped: entering tapped makes none" {
+  battlefield A: 2 "Forest"
+  hand A: "Gingerbread Cabin"
+  turn 1 A: play "Gingerbread Cabin"
+  run_to turn 1 postcombat_main
+  assert tapped "Gingerbread Cabin"
+  assert battlefield A lacks "Food"
+}
+
+scenario "dies or is put into exile: dying returns the creature" {
+  battlefield A: "Grizzly Bears", "Swamp"
+  battlefield B: 3 "Swamp"
+  hand A: "Kaya's Ghostform"
+  hand B: "Murder"
+  turn 1 A: cast "Kaya's Ghostform" targeting "Grizzly Bears"
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Kaya's Ghostform"
+}
+
+scenario "dies or is put into exile: exile returns it too" {
+  battlefield A: "Grizzly Bears", "Swamp"
+  battlefield B: 3 "Plains"
+  hand A: "Kaya's Ghostform"
+  hand B: "Unmake"
+  turn 1 A: cast "Kaya's Ghostform" targeting "Grizzly Bears"
+  turn 2 B: cast "Unmake" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert exile A lacks "Grizzly Bears"
+}
+
+scenario "dies or is put into exile: bounced, it doesn't return" {
+  battlefield A: "Grizzly Bears", "Swamp"
+  battlefield B: "Island"
+  hand A: "Kaya's Ghostform"
+  hand B: "Unsummon"
+  turn 1 A: cast "Kaya's Ghostform" targeting "Grizzly Bears"
+  turn 2 B: cast "Unsummon" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "during your turn, prevent all damage: on its controller's turn" {
+  battlefield A: "Guardian Naga"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Guardian Naga"
+  run_to turn 1 postcombat_main
+  assert damage "Guardian Naga" 0
+}
+
+scenario "during your turn, prevent all damage: not on the opponent's turn" {
+  battlefield A: "Guardian Naga"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Guardian Naga"
+  run_to turn 2 postcombat_main
+  assert damage "Guardian Naga" 3
+}
+
+scenario "base power 4: the toughness is unchanged, and pumps apply after" {
+  battlefield A: "Turtle-Duck", 4 "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Turtle-Duck"
+  turn 1 A: wait
+  turn 1 A: activate "Turtle-Duck"
+  run_to turn 1 postcombat_main
+  assert power "Turtle-Duck" 7
+  assert toughness "Turtle-Duck" 7
+  assert has "Turtle-Duck" trample
+}
+
+scenario "base power 4: until end of turn" {
+  battlefield A: "Turtle-Duck", 3 "Forest"
+  turn 1 A: activate "Turtle-Duck"
+  run_to turn 2 upkeep
+  assert power "Turtle-Duck" 0
+  assert toughness "Turtle-Duck" 4
+  assert has not "Turtle-Duck" trample
+}
+
+scenario "triggers only once: the second time it is tapped, nothing" {
+  battlefield A: "Acrobatic Cheerleader"
+  turn 1 A: attack "Acrobatic Cheerleader"
+  turn 3 A: attack "Acrobatic Cheerleader"
+  run_to turn 3 end
+  assert counters "Acrobatic Cheerleader" flying 1
+  assert life B 16
+}
+
+scenario "triggers only once: untapped, it doesn't trigger and stays available" {
+  battlefield A: "Acrobatic Cheerleader"
+  turn 3 A: attack "Acrobatic Cheerleader"
+  run_to turn 1 end
+  assert counters "Acrobatic Cheerleader" flying 0
+  run_to turn 3 end
+  assert counters "Acrobatic Cheerleader" flying 1
+}
+
+scenario "becomes the target for the first time each turn: that spell is countered, the next isn't" {
+  battlefield A: "Shimmering Glasskite"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Shimmering Glasskite"
+  turn 2 B: wait
+  turn 2 B: cast "Shock" targeting "Shimmering Glasskite"
+  run_to turn 2 postcombat_main
+  assert damage "Shimmering Glasskite" 2
+  assert graveyard B count 2
+}
+
+scenario "becomes the target for the first time each turn: an ability, and its controller's own spell" {
+  battlefield A: "Shimmering Glasskite", "Forest"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Shimmering Glasskite"
+  turn 1 A: wait
+  turn 1 B: activate "Prodigal Sorcerer" targeting "Shimmering Glasskite"
+  run_to turn 1 postcombat_main
+  assert power "Shimmering Glasskite" 2
+  assert damage "Shimmering Glasskite" 1
+}
+
+scenario "becomes the target for the first time each turn: a new turn, a new first time" {
+  battlefield A: "Shimmering Glasskite"
+  battlefield B: "Prodigal Sorcerer"
+  turn 1 B: activate "Prodigal Sorcerer" targeting "Shimmering Glasskite"
+  turn 2 B: activate "Prodigal Sorcerer" targeting "Shimmering Glasskite"
+  run_to turn 2 postcombat_main
+  assert damage "Shimmering Glasskite" 0
+}

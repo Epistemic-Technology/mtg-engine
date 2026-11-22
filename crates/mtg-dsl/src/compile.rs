@@ -2392,6 +2392,7 @@ impl Compiler<'_> {
             | Recipient::SameThat
             | Recipient::SameToken
             | Recipient::SameTokens
+            | Recipient::SameCards
             | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem | Recipient::CreatedThose => {
                 CoreRecipient::CreatedTokens
@@ -3446,6 +3447,9 @@ impl Compiler<'_> {
             Effect::SetBasePtVar { to, n } => {
                 out.push(CoreEffect::SetBasePtVar { to: r(*to), n: *n });
             }
+            Effect::SetBasePower { to, n, .. } => {
+                out.push(CoreEffect::SetBasePower { to: r(*to), n: *n });
+            }
             Effect::SetBasePt {
                 to,
                 power,
@@ -3648,6 +3652,9 @@ impl Compiler<'_> {
             }
             Effect::CumulativeUpkeep(c) => out.push(CoreEffect::CumulativeUpkeep(c.clone())),
             Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
+            Effect::BecomeSaddledTarget { what } => {
+                out.push(CoreEffect::BecomeSaddledTarget { what: r(*what) });
+            }
             Effect::BecomePrepared { what } => {
                 out.push(CoreEffect::BecomePrepared { what: r(*what) });
             }
@@ -4000,6 +4007,7 @@ impl Compiler<'_> {
             Trigger::Dies(o) | Trigger::PutInGraveyard { obj: o, .. } => {
                 TriggerSpec::Dies(self.trigger_obj(o))
             }
+            Trigger::DiesOrExiled(o) => TriggerSpec::DiesOrExiled(self.trigger_obj(o)),
             Trigger::EveryStep(step) => TriggerSpec::BeginningOfStep {
                 step: *step,
                 whose: Who::Any,
@@ -4024,9 +4032,17 @@ impl Compiler<'_> {
                 TriggerSpec::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
             }
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
+            Trigger::OneOrMoreAttack(f) => TriggerSpec::AttacksWithFilter {
+                filter: self.filter(f),
+                player: false,
+            },
             Trigger::CreaturesYouControlAttack => TriggerSpec::AttacksWith {
                 this: false,
                 min: 1,
+            },
+            Trigger::PlayerAttacksWith { whose, min } => TriggerSpec::PlayerAttacksWith {
+                whose: *whose,
+                min: *min,
             },
             Trigger::AttacksWith { this, min } => TriggerSpec::AttacksWith {
                 this: *this,
@@ -4037,6 +4053,8 @@ impl Compiler<'_> {
             Trigger::BlocksOrBlocked(o) => TriggerSpec::BlocksOrBlocked(self.trigger_obj(o)),
             Trigger::AttacksOrBlocks(o) => TriggerSpec::AttacksOrBlocks(self.trigger_obj(o)),
             Trigger::Leaves(o) => TriggerSpec::Leaves(self.trigger_obj(o)),
+            Trigger::LeavesWithoutDying(o) => TriggerSpec::LeavesWithoutDying(self.trigger_obj(o)),
+            Trigger::ReturnedToHand(o) => TriggerSpec::ReturnedToHand(self.trigger_obj(o)),
             Trigger::Blocks(o) => TriggerSpec::Blocks(self.trigger_obj(o)),
             Trigger::BlockPair {
                 obj,
@@ -4079,6 +4097,7 @@ impl Compiler<'_> {
                 TriggerSpec::BecomesTarget(self.trigger_obj(o))
             }
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
+            Trigger::TargetedFirstTime => TriggerSpec::TargetedFirstTime,
             Trigger::TargetedByYouFirstTime => TriggerSpec::TargetedByYouFirstTime,
             Trigger::TurnedFaceUp(o) => TriggerSpec::TurnedFaceUp(self.trigger_obj(o)),
             Trigger::Exploits => TriggerSpec::Exploits,
@@ -4102,6 +4121,9 @@ impl Compiler<'_> {
                 kind: *kind,
             },
             Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),
+            Trigger::DealtDamageAtLeast(o, n) => {
+                TriggerSpec::DealtDamageAtLeast(self.trigger_obj(o), *n)
+            }
             Trigger::DealtCombatDamage(o) => TriggerSpec::DealtCombatDamage(self.trigger_obj(o)),
             Trigger::DealsDamage { obj, to, combat } => TriggerSpec::DealsDamage {
                 what: self.trigger_obj(obj),
@@ -4149,6 +4171,7 @@ impl Compiler<'_> {
                 dies: *dies,
             },
             Trigger::Draws { whose } => TriggerSpec::Draws { whose: *whose },
+            Trigger::DiscardsThis => TriggerSpec::DiscardsThis,
             Trigger::Discards { whose, filter } => TriggerSpec::Discards {
                 whose: *whose,
                 filter: self.filter(filter),
@@ -4162,6 +4185,7 @@ impl Compiler<'_> {
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
+            Trigger::CreaturesDealDamage(f) => TriggerSpec::CreaturesDealDamage(self.filter(f)),
             Trigger::CreaturesDealCombatDamage(f) => {
                 TriggerSpec::CreaturesDealCombatDamage(self.filter(f))
             }
@@ -4191,7 +4215,10 @@ impl Compiler<'_> {
                 your_turn: *your_turn,
             },
             Trigger::ScriesOrSurveils => TriggerSpec::ScriesOrSurveils,
+            Trigger::Scries => TriggerSpec::Scries,
             Trigger::Explores(o) => TriggerSpec::Explores(self.trigger_obj(o)),
+            Trigger::CrewsOrSaddles(o) => TriggerSpec::CrewsOrSaddles(self.trigger_obj(o)),
+            Trigger::BecomesSaddled(o) => TriggerSpec::BecomesSaddled(self.trigger_obj(o)),
             Trigger::YouTap(f) => TriggerSpec::YouTap(self.filter(f)),
             Trigger::Activates { whose, kind } => TriggerSpec::Activates {
                 whose: *whose,
@@ -4250,6 +4277,7 @@ impl Compiler<'_> {
                 combat: *combat,
             },
             Replaces::GainLife { whose } => CoreReplaces::GainLife { whose: *whose },
+            Replaces::LoseLife { whose, .. } => CoreReplaces::LoseLife { whose: *whose },
             Replaces::Draw {
                 whose,
                 library_empty,
@@ -4265,6 +4293,9 @@ impl Compiler<'_> {
                 from_battlefield: *from_battlefield,
             },
             Replaces::ThisToGraveyard => CoreReplaces::ThisToGraveyard,
+            Replaces::FilteredToGraveyard(f) => CoreReplaces::FilteredToGraveyard {
+                filter: self.filter(f),
+            },
             Replaces::CreateTokens {
                 creature,
                 effect,
@@ -4639,7 +4670,12 @@ impl Compiler<'_> {
                 from_graveyard,
                 limit,
             } => AbilityDef::Triggered(TriggeredAbility {
-                limit: *limit,
+                // "for the first time each turn" is "only once each turn".
+                limit: if matches!(trigger, Trigger::TargetedFirstTime) {
+                    mtg_core::card::TurnLimit::Triggers(1)
+                } else {
+                    *limit
+                },
                 trigger: self.trigger(trigger),
                 condition: match condition {
                     // Meld's intervening "if" (CR 603.4, 701.42a).
@@ -4681,6 +4717,19 @@ impl Compiler<'_> {
                 effects: self.sentences(effects)?,
                 from_graveyard: *from_graveyard,
             }),
+            // "If an opponent would lose life during your turn, ...".
+            Ability::Replacement(r)
+                if matches!(
+                    r.event,
+                    crate::ast::Replaces::LoseLife {
+                        your_turn: true,
+                        ..
+                    }
+                ) =>
+            {
+                let a = AbilityDef::Replacement(self.replacement(r)?);
+                return self.while_holds(a, StaticCondition::YourTurn, "during your turn");
+            }
             Ability::Replacement(r) => AbilityDef::Replacement(self.replacement(r)?),
             // CR 701.43: modeled as an attack trigger: exerting is "it
             // doesn't untap during your next untap step".
@@ -4830,6 +4879,12 @@ impl Compiler<'_> {
                 return Ok(a);
             }
             Ability::Labeled { ability, .. } => return self.ability(ability),
+            // "During your turn, prevent all damage that would be dealt to
+            // this creature."
+            Ability::DuringYourTurn(ability) => {
+                let a = self.ability(ability)?;
+                return self.while_holds(a, StaticCondition::YourTurn, "during your turn");
+            }
             Ability::BlockRule(r) => AbilityDef::BlockRule(match r {
                 crate::ast::BlockRule::NotBy(f) => mtg_core::card::BlockRule::NotBy(self.filter(f)),
                 crate::ast::BlockRule::OnlyBy(f) => {

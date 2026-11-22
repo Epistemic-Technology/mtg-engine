@@ -1,0 +1,7 @@
+card "Nimrodel Watcher" {
+  oracle_id 1b8de1c5-1e23-4c84-bc5a-a14853ad8c7a
+  cost {1}{U}
+  type Creature — Elf Scout
+  pt 2/1
+  triggered once each turn whenever you scry: this gets +1/+0 until end of turn and can't be blocked this turn
+}

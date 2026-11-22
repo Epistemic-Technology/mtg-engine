@@ -347,7 +347,7 @@ impl Fmt {
             Recipient::AttachedController => "controller of enchanted".to_string(),
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::ExiledCard => "exiled card".to_string(),
-            Recipient::ThoseCards(..) => "those cards".to_string(),
+            Recipient::ThoseCards(..) | Recipient::SameCards => "those cards".to_string(),
             Recipient::ThoseTargets(..) => "those targets".to_string(),
             Recipient::Those(t) => those_word(t).to_string(),
             Recipient::EachPlayer => "each player".to_string(),
@@ -561,6 +561,15 @@ impl Fmt {
                 Who::Opponents => "an opponent gains life",
             }
             .to_string(),
+            Replaces::LoseLife { whose, your_turn } => format!(
+                "{}{}",
+                match whose {
+                    Who::You => "you lose life",
+                    Who::Any => "a player loses life",
+                    Who::Opponents => "an opponent loses life",
+                },
+                if *your_turn { " during your turn" } else { "" }
+            ),
             Replaces::Draw {
                 whose,
                 library_empty,
@@ -574,6 +583,9 @@ impl Fmt {
                     s.push_str(" with empty library");
                 }
                 s
+            }
+            Replaces::FilteredToGraveyard(f) => {
+                format!("{} card put into a graveyard", filter(f))
             }
             Replaces::ToGraveyard {
                 whose,
@@ -777,6 +789,9 @@ impl Fmt {
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
             Effect::BecomePrepared { what } => {
                 format!("{} becomes prepared", self.recipient(*what, t))
+            }
+            Effect::BecomeSaddledTarget { what } => {
+                format!("{} becomes saddled", self.recipient(*what, t))
             }
             Effect::LookAtTop {
                 count,
@@ -2660,6 +2675,16 @@ impl Fmt {
                 self.recipient(*to, t),
                 num(*n)
             ),
+            Effect::SetBasePower { to, n, becomes } => format!(
+                "{} {} {}",
+                self.recipient(*to, t),
+                if *becomes {
+                    "base power becomes"
+                } else {
+                    "has base power"
+                },
+                num(*n)
+            ),
             Effect::SetBasePt {
                 to,
                 power,
@@ -3117,6 +3142,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::PlusN { n, to_that } => {
             format!("plus {n}{}", if *to_that { " to that" } else { "" })
         }
+        Outcome::PlusCount(n) => format!("plus {}", num(*n)),
         Outcome::Instead(mtg_core::state::Zone::Hand) => "hand".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
@@ -3137,6 +3163,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::UmbraArmor => "umbra armor".to_string(),
         Outcome::RedirectToAttached => "redirect to attached".to_string(),
         Outcome::PreventNextTime => "prevent next time".to_string(),
+        Outcome::DestroyNextTime => "destroy next time".to_string(),
         Outcome::Redirect { to, next } => {
             let next = next.map_or(String::new(), |n| format!("next {n} "));
             match to {
@@ -3880,6 +3907,7 @@ pub fn natural_when(t: &Trigger) -> bool {
         Trigger::Enters(TriggerObj::This)
             | Trigger::BecomesLevel(_)
             | Trigger::Dies(TriggerObj::This)
+            | Trigger::DiesOrExiled(TriggerObj::This)
             | Trigger::Leaves(TriggerObj::This)
             | Trigger::Sacrificed {
                 obj: TriggerObj::This,
@@ -3897,6 +3925,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::EveryStep(_)
             | Trigger::EachPlayersEndStep
             | Trigger::Cycles { this: true, .. }
+            | Trigger::DiscardsThis
             | Trigger::CastThis { .. }
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
         || matches!(
@@ -3947,6 +3976,9 @@ pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
         SpellOrdinal::OnOpponentsTurn => format!("{who} a spell during an opponent's turn"),
         SpellOrdinal::FirstNoncreature => {
             format!("{who} {their} first noncreature spell each turn")
+        }
+        SpellOrdinal::FirstInstantOrSorcery => {
+            format!("{who} {their} first instant or sorcery spell each turn")
         }
         SpellOrdinal::FromExile => format!("{who} a spell from exile"),
     }
@@ -4006,6 +4038,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 "whenever one or more players discard one or more cards".to_string()
             }
             Trigger::YouTap(f) => format!("whenever you tap one or more {}", filter(f)),
+            Trigger::LeavesWithoutDying(TriggerObj::Filter(f)) => format!(
+                "whenever one or more {} leave the battlefield without dying",
+                filter(f)
+            ),
             t => unreachable!("no batched form of {t:?}"),
         },
         Trigger::OnNextTurn(inner) => format!("{} on your next turn", trigger_text(inner, next)),
@@ -4041,6 +4077,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             }
         ),
         Trigger::EachPlayersEndStep => "at beginning of each player's end step".to_string(),
+        Trigger::DiesOrExiled(o) => {
+            format!("whenever {} dies or is put into exile", trigger_obj(o))
+        }
         Trigger::EveryStep(step) => {
             let w = match step {
                 Step::Untap => "untap",
@@ -4093,9 +4132,18 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             this: false,
             min: 1,
         } => "whenever you attack".to_string(),
+        Trigger::OneOrMoreAttack(f) => format!("whenever one or more {} attack", filter(f)),
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
         }
+        Trigger::PlayerAttacksWith { whose, min } => format!(
+            "whenever {} attacks with {min} or more creatures",
+            if *whose == Who::Opponents {
+                "an opponent"
+            } else {
+                "a player"
+            }
+        ),
         Trigger::AttacksWith { this: false, min } => {
             format!("whenever you attack with {min} or more creatures")
         }
@@ -4120,6 +4168,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         } => block_pair_text(obj, other, *blocks, *blocked, *any),
         Trigger::AttacksOrBlocks(o) => format!("whenever {} attacks or blocks", trigger_obj(o)),
         Trigger::Leaves(o) => format!("whenever {} leaves the battlefield", trigger_obj(o)),
+        Trigger::LeavesWithoutDying(o) => format!(
+            "whenever {} leaves the battlefield without dying",
+            trigger_obj(o)
+        ),
+        Trigger::ReturnedToHand(o) => format!("whenever {} is returned to hand", trigger_obj(o)),
         Trigger::DealsCombatDamageToPlayer(o) => {
             format!(
                 "whenever {} deals combat damage to a player",
@@ -4188,6 +4241,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::BecomesTarget(o) => format!("when {} becomes targeted", trigger_obj(o)),
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
+        Trigger::TargetedFirstTime => {
+            "whenever this becomes targeted first time each turn".to_string()
+        }
         Trigger::TargetedByYouFirstTime => {
             "whenever this becomes targeted by you first time each turn".to_string()
         }
@@ -4222,6 +4278,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             trigger_obj(obj)
         ),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_obj(o)),
+        Trigger::DealtDamageAtLeast(o, n) => {
+            format!("whenever {} is dealt {n} or more damage", trigger_obj(o))
+        }
         Trigger::DealtCombatDamage(o) => {
             format!("whenever {} is dealt combat damage", trigger_obj(o))
         }
@@ -4276,13 +4335,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             first,
             second,
             whenever,
-        } if matches!(**first, Trigger::Enters(crate::ast::TriggerObj::Filter(_))) => {
+        } if !matches!(**first, Trigger::Enters(crate::ast::TriggerObj::This)) => {
             let a = trigger_text(first, next);
             let b = trigger_text(second, next);
-            let (wa, wb): (Vec<&str>, Vec<&str>) = (a.split(' ').collect(), b.split(' ').collect());
-            let k = wa.iter().zip(&wb).take_while(|(x, y)| x == y).count();
-            let _ = whenever;
-            format!("{} or {}", wa.join(" "), wb[k..].join(" "))
+            crate::render::or_shared(&a, &b, *whenever)
         }
         Trigger::Or {
             second, whenever, ..
@@ -4295,6 +4351,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             )
         }
         Trigger::Draws { whose } => format!("whenever {} a card", draws_words(*whose)),
+        Trigger::DiscardsThis => "when you discard this".to_string(),
         Trigger::Discards { whose, filter: f } => format!(
             "whenever {} {}",
             discards_words(*whose),
@@ -4330,6 +4387,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             "whenever one or more {} deal combat damage to a player",
             filter(f)
         ),
+        Trigger::CreaturesDealDamage(f) => {
+            format!("whenever one or more {} deal damage to a player", filter(f))
+        }
         Trigger::NoncombatDamageToOpponent { yours, batch } => match (yours, batch) {
             (true, _) => {
                 "whenever a source you control deals noncombat damage to an opponent".to_string()
@@ -4361,7 +4421,18 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             if *your_turn { " during your turn" } else { "" }
         ),
         Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
+        Trigger::Scries => "whenever you scry".to_string(),
         Trigger::Explores(o) => format!("whenever {} explores", trigger_obj(o)),
+        Trigger::CrewsOrSaddles(o) => {
+            format!(
+                "whenever {} saddles a Mount or crews a Vehicle",
+                trigger_obj(o)
+            )
+        }
+        Trigger::BecomesSaddled(o) => format!(
+            "whenever {} becomes saddled first time each turn",
+            trigger_obj(o)
+        ),
         Trigger::YouTap(f) => format!("whenever you tap {}", filter(f)),
         Trigger::Activates { whose, kind } => {
             format!("whenever {}", activates_words(*whose, *kind))
@@ -5404,6 +5475,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     mtg_core::card::TurnLimit::Triggers(2) => "twice each turn ".to_string(),
                     mtg_core::card::TurnLimit::Triggers(n) => format!("{n} times each turn "),
                     mtg_core::card::TurnLimit::Do => "do once each turn ".to_string(),
+                    mtg_core::card::TurnLimit::Ever => "once ever ".to_string(),
                 },
                 trigger_text(trigger, false)
             );
@@ -5590,6 +5662,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let mut tmp = String::new();
             self::ability(&mut tmp, inner, indent, groups);
             let _ = write!(out, "{indent}label \"{label}\" {}", &tmp[indent.len()..]);
+        }
+        Ability::DuringYourTurn(inner) => {
+            let mut tmp = String::new();
+            self::ability(&mut tmp, inner, indent, groups);
+            let _ = write!(out, "{indent}during your turn {}", &tmp[indent.len()..]);
         }
         Ability::BlockRule(r) => {
             let text = match r {

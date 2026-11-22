@@ -1,0 +1,9 @@
+card "Justice, Vance Astrovik" {
+  oracle_id 184dba74-63ed-4820-9174-68adf26bfabf
+  cost {2}{U}
+  type Legendary Creature — Mutant Hero
+  pt 2/2
+  keywords flying
+  triggered when this enters: return up to 1 target nonland nontoken permanent to hand
+  triggered whenever other nonland permanent you control is returned to hand: put 1 +1/+1 counter on this
+}

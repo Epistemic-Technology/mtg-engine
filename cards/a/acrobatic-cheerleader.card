@@ -1,0 +1,7 @@
+card "Acrobatic Cheerleader" {
+  oracle_id d8ce3f18-26fe-47e8-be8b-0d89d7de7038
+  cost {1}{W}
+  type Creature — Human Survivor
+  pt 2/2
+  label "Survival" triggered once ever at beginning of your second main if this is tapped: put 1 flying counter on this
+}

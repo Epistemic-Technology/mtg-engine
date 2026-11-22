@@ -1,0 +1,14 @@
+card "Guardian Naga // Banishing Coils" {
+  oracle_id 67dec976-bcf5-4995-8da1-cd570862d3cf
+  layout adventure
+  cost {5}{W}{W}
+  type Creature — Snake
+  pt 5/6
+  keywords vigilance
+  during your turn replace damage to this: prevent
+  face "Banishing Coils" {
+    cost {2}{W}
+    type Instant — Adventure
+    spell: exile target artifact or enchantment
+  }
+}
