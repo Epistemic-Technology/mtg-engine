@@ -6488,6 +6488,11 @@ impl P {
                 self.pos += 1;
                 Ok(Effect::BecomePrepared { what: subject })
             }
+            "becomes" if self.at_word("saddled") => {
+                self.pos += 1;
+                self.until_end_of_turn();
+                Ok(Effect::BecomeSaddledTarget { what: subject })
+            }
             "skips" | "skip" if self.at_word("next") => {
                 use mtg_core::card::SkipWhat;
                 self.pos += 1;
@@ -12281,6 +12286,14 @@ impl P {
             // CR 701.27: "transforms into <this face>".
             "transforms" if obj == TriggerObj::This => Ok(Trigger::Transforms),
             "explores" => Ok(Trigger::Explores(obj)),
+            "saddles" if self.at_words(&["a", "Mount", "or", "crews", "a", "Vehicle"]) => {
+                self.pos += 6;
+                Ok(Trigger::CrewsOrSaddles(obj))
+            }
+            "becomes" if self.at_words(&["saddled", "first", "time", "each", "turn"]) => {
+                self.pos += 5;
+                Ok(Trigger::BecomesSaddled(obj))
+            }
             "exploits" if self.at_words(&["a", "creature"]) => {
                 self.pos += 2;
                 if obj != TriggerObj::This {

@@ -3029,6 +3029,11 @@ pub enum Trigger {
     ScriesOrSurveils,
     /// `whenever you scry` (CR 701.22).
     Scries,
+    /// `whenever this saddles a Mount or crews a Vehicle`.
+    CrewsOrSaddles(TriggerObj),
+    /// `whenever this becomes saddled first time each turn`: "Whenever this
+    /// creature becomes saddled for the first time each turn".
+    BecomesSaddled(TriggerObj),
     /// `whenever creature you control explores` (CR 701.44).
     Explores(TriggerObj),
     /// `whenever you tap an untapped creature an opponent controls`: the
@@ -4303,6 +4308,11 @@ pub enum Effect {
     },
     /// Cumulative upkeep's payment (internal).
     CumulativeUpkeep(ManaCost),
+    /// `target Mount you control becomes saddled`: "... becomes saddled
+    /// until end of turn" (CR 702.171b).
+    BecomeSaddledTarget {
+        what: Recipient,
+    },
     /// `this becomes prepared`: "this creature becomes prepared" (CR
     /// 722.3a).
     BecomePrepared {

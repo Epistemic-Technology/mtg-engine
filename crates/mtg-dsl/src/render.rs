@@ -1393,6 +1393,13 @@ impl<'a> Ctx<'a> {
             {
                 "that Vehicle".to_string()
             }
+            // "Whenever this creature saddles a Mount or crews a Vehicle,
+            // that Mount or Vehicle gains flying".
+            Recipient::TriggeringObject
+                if matches!(self.trigger, Some(Trigger::CrewsOrSaddles(_))) =>
+            {
+                "that Mount or Vehicle".to_string()
+            }
             Recipient::TriggeringObject | Recipient::SameThat | Recipient::Manifested => {
                 "that creature".to_string()
             }
@@ -4674,6 +4681,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::BecomePrepared { what } => {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "becomes prepared".to_string())
+        }
+        Effect::BecomeSaddledTarget { what } => {
+            let s = ctx.subj(*what);
+            Clause::with_subject(*what, s, "becomes saddled".to_string()).until_eot()
         }
         Effect::ExileTop { count, who } => {
             let one = *count == Num::N(1);
@@ -9357,6 +9368,19 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
         Trigger::Scries => "whenever you scry".to_string(),
         Trigger::Explores(o) => format!("whenever {} explores", trigger_subject(o, ctx)),
+        Trigger::CrewsOrSaddles(o) => format!(
+            "whenever {} saddles a Mount or crews a Vehicle",
+            trigger_subject(o, ctx)
+        ),
+        // "..., then this creature gets +X/+X": Oracle names it again.
+        Trigger::BecomesSaddled(TriggerObj::This) => format!(
+            "whenever {} becomes saddled for the first time each turn",
+            this_ref(ctx.card)
+        ),
+        Trigger::BecomesSaddled(o) => format!(
+            "whenever {} becomes saddled for the first time each turn",
+            trigger_subject(o, ctx)
+        ),
         Trigger::YouTap(f) => format!("whenever you tap {}", filter_a(f, ctx.card)),
         Trigger::Activates { whose, kind } => {
             format!("whenever {}", crate::format::activates_words(*whose, *kind))
@@ -12977,6 +13001,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 }
                 Some(crate::ast::TrigCond::While(StaticCond::DuringYourTurn)) => {
                     out.push_str(" during your turn");
+                }
+                // "Whenever this creature saddles a Mount or crews a Vehicle
+                // during your main phase".
+                Some(crate::ast::TrigCond::While(StaticCond::YourMainPhase)) => {
+                    out.push_str(" during your main phase");
                 }
                 // "When this land enters untapped" (judged as it enters).
                 Some(crate::ast::TrigCond::While(StaticCond::Is(f)))

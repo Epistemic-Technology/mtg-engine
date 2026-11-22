@@ -4603,6 +4603,11 @@ pub enum Effect {
     /// The source becomes renowned (CR 702.112a, b), if it is still on the
     /// battlefield.
     BecomeRenowned,
+    /// "Target Mount you control becomes saddled until end of turn" (CR
+    /// 702.171b).
+    BecomeSaddledTarget {
+        what: Recipient,
+    },
     /// The recipient permanent becomes prepared (CR 722.3a): only one with
     /// a prepare spell, and only if it isn't already.
     BecomePrepared {
@@ -5798,6 +5803,15 @@ pub enum TriggerSpec {
     /// "Whenever you scry" (CR 701.22): once per instruction to scry, not
     /// surveil.
     Scries,
+    /// "Whenever this creature saddles a Mount or crews a Vehicle" (CR
+    /// 702.122b, 702.171c): it is tapped to pay a crew or saddle cost; the
+    /// Mount or Vehicle is the triggering object ("that Mount or
+    /// Vehicle").
+    CrewsOrSaddles(TriggerObj),
+    /// "Whenever this creature becomes saddled for the first time each
+    /// turn" (CR 702.171b: it stays saddled until the turn ends, so the
+    /// first time is the only time).
+    BecomesSaddled(TriggerObj),
     /// "Whenever a creature you control explores" (CR 701.44): the
     /// exploring creature is the triggering object.
     Explores(TriggerObj),
@@ -6043,6 +6057,8 @@ impl TriggerSpec {
             | TriggerSpec::Chapter(_) => WATCH_COUNTERS,
             TriggerSpec::ScriesOrSurveils
             | TriggerSpec::Scries
+            | TriggerSpec::CrewsOrSaddles(_)
+            | TriggerSpec::BecomesSaddled(_)
             | TriggerSpec::Explores(_)
             | TriggerSpec::Activates { .. }
             | TriggerSpec::Transforms

@@ -1,0 +1,7 @@
+card "Reckless Velocitaur" {
+  oracle_id 367420cb-e77b-4d0c-9a83-0deee28f6d36
+  cost {3}{R}
+  type Creature — Minotaur Pilot
+  pt 3/3
+  triggered whenever this saddles a Mount or crews a Vehicle while your main phase: that creature gets +2/+0 and gains trample until end of turn
+}

@@ -1,0 +1,8 @@
+card "Guidelight Matrix" {
+  oracle_id 98005890-d566-4a27-906f-625513171e85
+  cost {2}
+  type Artifact
+  triggered when this enters: draw 1 card
+  activated {2}, {T}, sorcery: target Mount you control becomes saddled
+  activated {2}, {T}: target Vehicle you control becomes artifact creature until end of turn
+}

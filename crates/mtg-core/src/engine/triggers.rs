@@ -1757,6 +1757,20 @@ impl GameState {
                     ..
                 },
             ) => (*player == w.controller).then_some((None, Some(*player))),
+            (TriggerSpec::CrewsOrSaddles(what), Event::Crewed { crew, vehicle }) => {
+                let p = match what {
+                    TriggerObj::This => (*crew == w.source).then_some(w.controller)?,
+                    TriggerObj::Filter(f) => matches_now(f, *crew)?,
+                };
+                Some((Some(*vehicle), Some(p)))
+            }
+            (TriggerSpec::BecomesSaddled(what), Event::BecameSaddled { obj }) => {
+                let p = match what {
+                    TriggerObj::This => (*obj == w.source).then_some(w.controller)?,
+                    TriggerObj::Filter(f) => matches_now(f, *obj)?,
+                };
+                Some((Some(*obj), Some(p)))
+            }
             // CR 701.44c: the creature explores even if it has left the
             // battlefield; then it is judged as it last existed.
             (TriggerSpec::Explores(what), Event::Explored { obj }) => match what {

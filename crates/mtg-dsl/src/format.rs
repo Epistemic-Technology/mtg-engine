@@ -788,6 +788,9 @@ impl Fmt {
             Effect::BecomePrepared { what } => {
                 format!("{} becomes prepared", self.recipient(*what, t))
             }
+            Effect::BecomeSaddledTarget { what } => {
+                format!("{} becomes saddled", self.recipient(*what, t))
+            }
             Effect::LookAtTop {
                 count,
                 of,
@@ -4296,6 +4299,16 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::ScriesOrSurveils => "whenever you scry or surveil".to_string(),
         Trigger::Scries => "whenever you scry".to_string(),
         Trigger::Explores(o) => format!("whenever {} explores", trigger_obj(o)),
+        Trigger::CrewsOrSaddles(o) => {
+            format!(
+                "whenever {} saddles a Mount or crews a Vehicle",
+                trigger_obj(o)
+            )
+        }
+        Trigger::BecomesSaddled(o) => format!(
+            "whenever {} becomes saddled first time each turn",
+            trigger_obj(o)
+        ),
         Trigger::YouTap(f) => format!("whenever you tap {}", filter(f)),
         Trigger::Activates { whose, kind } => {
             format!("whenever {}", activates_words(*whose, *kind))

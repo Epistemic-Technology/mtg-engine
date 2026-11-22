@@ -1,0 +1,48 @@
+# "Whenever this creature saddles a Mount or crews a Vehicle" (CR
+# 702.122b, 702.171c: it is tapped to pay the crew or saddle cost) and
+# "Whenever this creature becomes saddled" (CR 702.171b).
+
+scenario "crews a Vehicle during your main phase: that Vehicle gains flying" {
+  battlefield A: "Canyon Vaulter", "Sleek Schooner"
+  turn 1 A: activate "Sleek Schooner"
+  run_to turn 1 postcombat_main
+  assert tapped "Canyon Vaulter"
+  assert has "Sleek Schooner" flying
+}
+
+scenario "crews a Vehicle outside your main phase: nothing" {
+  battlefield A: "Canyon Vaulter", "Sleek Schooner"
+  turn 1 begin_combat A: activate "Sleek Schooner"
+  run_to turn 1 postcombat_main
+  assert tapped "Canyon Vaulter"
+  assert has not "Sleek Schooner" flying
+}
+
+scenario "saddles a Mount: that Mount gets +2/+0 and gains trample" {
+  battlefield A: "Reckless Velocitaur", "Gila Courser"
+  turn 1 A: activate "Gila Courser"
+  run_to turn 1 postcombat_main
+  assert tapped "Reckless Velocitaur"
+  assert power "Gila Courser" 6
+  assert has "Gila Courser" trample
+}
+
+scenario "becomes saddled: mill two, then +X/+X for the creature cards" {
+  battlefield A: "Stubborn Burrowfiend", "Grizzly Bears"
+  library A: "Hill Giant", "Serra Angel", "Forest"
+  turn 1 A: activate "Stubborn Burrowfiend"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Serra Angel"
+  assert power "Stubborn Burrowfiend" 4
+  assert toughness "Stubborn Burrowfiend" 4
+}
+
+scenario "Guidelight Matrix: a Mount made saddled is saddled" {
+  battlefield A: "Guidelight Matrix", "Stubborn Burrowfiend", 2 "Plains"
+  library A: "Forest", "Hill Giant", "Forest"
+  turn 1 A: activate "Guidelight Matrix" targeting "Stubborn Burrowfiend"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert power "Stubborn Burrowfiend" 3
+}

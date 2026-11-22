@@ -3555,6 +3555,9 @@ impl Compiler<'_> {
             }
             Effect::CumulativeUpkeep(c) => out.push(CoreEffect::CumulativeUpkeep(c.clone())),
             Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
+            Effect::BecomeSaddledTarget { what } => {
+                out.push(CoreEffect::BecomeSaddledTarget { what: r(*what) });
+            }
             Effect::BecomePrepared { what } => {
                 out.push(CoreEffect::BecomePrepared { what: r(*what) });
             }
@@ -4091,6 +4094,8 @@ impl Compiler<'_> {
             Trigger::ScriesOrSurveils => TriggerSpec::ScriesOrSurveils,
             Trigger::Scries => TriggerSpec::Scries,
             Trigger::Explores(o) => TriggerSpec::Explores(self.trigger_obj(o)),
+            Trigger::CrewsOrSaddles(o) => TriggerSpec::CrewsOrSaddles(self.trigger_obj(o)),
+            Trigger::BecomesSaddled(o) => TriggerSpec::BecomesSaddled(self.trigger_obj(o)),
             Trigger::YouTap(f) => TriggerSpec::YouTap(self.filter(f)),
             Trigger::Activates { whose, kind } => TriggerSpec::Activates {
                 whose: *whose,

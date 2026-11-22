@@ -5504,6 +5504,10 @@ impl GameState {
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew, ab.saddles()) {
                 self.tap(c);
+                self.emit(Event::Crewed {
+                    crew: c,
+                    vehicle: sa.source,
+                });
             }
         }
         // CR 702.49a, c: return the unblocked attacker; the Ninja will
@@ -12857,6 +12861,18 @@ impl GameState {
                 {
                     self.saddled.push(id);
                     self.bump();
+                    self.emit(Event::BecameSaddled { obj: id });
+                }
+            }
+            Effect::BecomeSaddledTarget { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t)
+                        && !self.saddled.contains(&id)
+                    {
+                        self.saddled.push(id);
+                        self.bump();
+                        self.emit(Event::BecameSaddled { obj: id });
+                    }
                 }
             }
             Effect::CreatedAttack | Effect::EnteredAttack => {

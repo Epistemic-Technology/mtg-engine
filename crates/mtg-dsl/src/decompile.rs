@@ -1525,6 +1525,9 @@ impl Decompiler<'_> {
             },
             CoreEffect::CumulativeUpkeep(c) => Effect::CumulativeUpkeep(c.clone()),
             CoreEffect::BecomePrepared { what } => Effect::BecomePrepared { what: r(*what) },
+            CoreEffect::BecomeSaddledTarget { what } => {
+                Effect::BecomeSaddledTarget { what: r(*what) }
+            }
             CoreEffect::Connive { what } => Effect::Connive {
                 what: Self::recipient(*what),
             },
@@ -1986,6 +1989,8 @@ impl Decompiler<'_> {
             TriggerSpec::ScriesOrSurveils => Trigger::ScriesOrSurveils,
             TriggerSpec::Scries => Trigger::Scries,
             TriggerSpec::Explores(o) => Trigger::Explores(self.trigger_obj(o)),
+            TriggerSpec::CrewsOrSaddles(o) => Trigger::CrewsOrSaddles(self.trigger_obj(o)),
+            TriggerSpec::BecomesSaddled(o) => Trigger::BecomesSaddled(self.trigger_obj(o)),
             TriggerSpec::YouTap(f) => Trigger::YouTap(self.filter(f)),
             TriggerSpec::Activates { whose, kind } => Trigger::Activates {
                 whose: *whose,
