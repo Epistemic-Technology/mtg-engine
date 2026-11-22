@@ -3443,7 +3443,9 @@ impl GameState {
                                 .iter()
                                 .filter(|id| {
                                     self.objects[**id].controller == p
-                                        && self.characteristics(**id).is_some_and(|c| c.is_creature())
+                                        && self
+                                            .characteristics(**id)
+                                            .is_some_and(|c| c.is_creature())
                                 })
                                 .count(),
                         )

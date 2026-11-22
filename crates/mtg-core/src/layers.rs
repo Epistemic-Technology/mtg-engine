@@ -1172,7 +1172,6 @@ fn per_count(
         CountExpr::CreaturesEnteredThisTurn => {
             usize::from(state.turn_log.creatures_entered[you.index().min(3)])
         }
-        CountExpr::DiscardedThisTurn => 0,
         CountExpr::OpponentsMoreCards => {
             let mine = state.player(you).hand.len();
             state
@@ -1308,6 +1307,7 @@ fn per_count(
         | CountExpr::TargetHand(_)
         | CountExpr::GreatestToughness(_)
         | CountExpr::LifeLostThisTurn
+        | CountExpr::DiscardedThisTurn
         // Power and toughness are what the layers are computing.
         | CountExpr::Total(..)
         | CountExpr::DamageThisWay { .. } => 0,

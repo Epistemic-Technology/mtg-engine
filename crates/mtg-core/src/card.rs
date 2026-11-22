@@ -1530,7 +1530,9 @@ impl ObjFilter {
         if self.status.pt_either {
             // "with power or toughness 1 or less": either is enough.
             let p = self.power.is_some_and(|(cmp, n)| cmp.holds(c.power, n));
-            let t = self.toughness.is_some_and(|(cmp, n)| cmp.holds(c.toughness, n));
+            let t = self
+                .toughness
+                .is_some_and(|(cmp, n)| cmp.holds(c.toughness, n));
             if !p && !t {
                 return false;
             }
@@ -2003,8 +2005,7 @@ impl CountExpr {
             | CountExpr::CreaturesEnteredThisTurn
             | CountExpr::OpponentsMoreCards
             | CountExpr::Life => true,
-            // Discards are counted only as an effect resolves.
-            CountExpr::DiscardedThisTurn => false,
+
             // Total power and toughness would read the characteristics
             // being computed; total mana value does not.
             CountExpr::Total(stat, _) => *stat == Stat::ManaValue,
@@ -2038,6 +2039,8 @@ impl CountExpr {
             | CountExpr::TargetHand(_)
             | CountExpr::GreatestToughness(_)
             | CountExpr::LifeLostThisTurn
+            // Discards are counted only as an effect resolves.
+            | CountExpr::DiscardedThisTurn
             | CountExpr::DamageThisWay { .. } => false,
         }
     }

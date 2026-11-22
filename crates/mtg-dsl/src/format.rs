@@ -5192,7 +5192,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 format!(" {}", filter(f))
             };
             if *uncounterable {
-                let _ = writeln!(out, "{indent}spells{subject} you control can't be countered");
+                let _ = writeln!(
+                    out,
+                    "{indent}spells{subject} you control can't be countered"
+                );
                 return;
             }
             let from = if *from_hand { " from hand" } else { "" };

@@ -186,6 +186,7 @@ impl Decompiler<'_> {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one field per line
     fn filter(&self, f: &ObjFilter) -> Filter {
         Filter {
             who: f.who,

@@ -4428,22 +4428,22 @@ impl GameState {
         ab: &ActivatedAbility,
         req: &mut ManaRequirement,
     ) {
-        let Some(o) = self.objects.get(source) else {
+        let Some(obj) = self.objects.get(source) else {
             return;
         };
-        if o.zone != Zone::Battlefield {
+        if obj.zone != Zone::Battlefield {
             return;
         }
-        let p = o.controller;
-        let Some(c) = self.characteristics(source) else {
+        let p = obj.controller;
+        let Some(chars) = self.characteristics(source) else {
             return;
         };
         for id in &self.battlefield {
-            let s = &self.objects[*id];
-            if s.controller != p || !self.pool.get(s.def).flags().has_player_static() {
+            let holder = &self.objects[*id];
+            if holder.controller != p || !self.pool.get(holder.def).flags().has_player_static() {
                 continue;
             }
-            for a in &self.pool.get(s.def).ability_ids {
+            for a in &self.pool.get(holder.def).ability_ids {
                 let AbilityDef::PlayerStatic {
                     kind:
                         crate::card::PlayerStaticKind::ActivationCost {
@@ -4461,18 +4461,19 @@ impl GameState {
                     || !self
                         .pool
                         .filter(*sources)
-                        .matches(source, p, &c, Some(*id), Some(p))
-                    || condition.is_some_and(|i| !self.condition_now(self.pool.condition(i), p, *id))
+                        .matches(source, p, &chars, Some(*id), Some(p))
+                    || condition
+                        .is_some_and(|i| !self.condition_now(self.pool.condition(i), p, *id))
                 {
                     continue;
                 }
-                let mut n = u32::from(*by);
+                let mut off = u32::from(*by);
                 // "This effect can't reduce the mana in that cost to less
                 // than one mana."
                 if *min_one {
-                    n = n.min(req.total().saturating_sub(1));
+                    off = off.min(req.total().saturating_sub(1));
                 }
-                req.generic -= n.min(req.generic);
+                req.generic -= off.min(req.generic);
             }
         }
     }

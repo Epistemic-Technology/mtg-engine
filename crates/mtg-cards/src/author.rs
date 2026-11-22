@@ -583,6 +583,7 @@ fn keyword_list(s: &str) -> Option<String> {
 /// "creatures you control", "basic land types among lands you control",
 /// "creature cards in your graveyard" → the DSL's count expression; the
 /// phrase may be singular ("for each creature you control").
+#[allow(clippy::too_many_lines)] // one arm per phrase
 fn count_expr(s: &str) -> Option<String> {
     let s = s.trim();
     // "half the number of artifacts you control, rounded down".
@@ -4930,11 +4931,10 @@ impl Builder<'_> {
                 .push("keywords untaps during each other player's untap step".to_string());
             return Ok(());
         }
-        if let Some(c) = Regex::new(
-            r"^Untap all (.+?) you control during each other player's untap step\.$",
-        )
-        .unwrap()
-        .captures(line)
+        if let Some(c) =
+            Regex::new(r"^Untap all (.+?) you control during each other player's untap step\.$")
+                .unwrap()
+                .captures(line)
         {
             let what = cap(&c, 1);
             let subject = if what.contains(" and/or ") {

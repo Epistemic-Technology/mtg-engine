@@ -2712,8 +2712,7 @@ impl P {
         // read "you control").
         if cond.is_none()
             && (self.eat_words(&["you", "control", "can't", "be", "countered"])
-                || (filter.who == Some(Who::You)
-                    && self.eat_words(&["can't", "be", "countered"])))
+                || (filter.who == Some(Who::You) && self.eat_words(&["can't", "be", "countered"])))
         {
             self.end_stmt()?;
             let mut filter = filter;
@@ -3082,13 +3081,17 @@ impl P {
             return Ok(StaticCond::OpponentMoreLands);
         }
         if self.eat_words(&["opponent", "controls", "more", "creatures"]) {
-            return Ok(StaticCond::OpponentHasMore(mtg_core::card::MoreWhat::Creatures));
+            return Ok(StaticCond::OpponentHasMore(
+                mtg_core::card::MoreWhat::Creatures,
+            ));
         }
         if self.eat_words(&["opponent", "has", "more", "life"]) {
             return Ok(StaticCond::OpponentHasMore(mtg_core::card::MoreWhat::Life));
         }
         if self.eat_words(&["opponent", "has", "more", "cards", "in", "hand"]) {
-            return Ok(StaticCond::OpponentHasMore(mtg_core::card::MoreWhat::CardsInHand));
+            return Ok(StaticCond::OpponentHasMore(
+                mtg_core::card::MoreWhat::CardsInHand,
+            ));
         }
         if self.eat_words(&[
             "creature", "died", "under", "your", "control", "this", "turn",
@@ -8288,9 +8291,7 @@ impl P {
             // `2 times X`: "twice X".
             Some(Tok::Num(n))
                 if self.word_at(1).as_deref() == Some("times")
-                    && self
-                        .word_at(2)
-                        .is_some_and(|w| w.eq_ignore_ascii_case("x")) =>
+                    && self.word_at(2).is_some_and(|w| w.eq_ignore_ascii_case("x")) =>
             {
                 let n = *n;
                 self.pos += 3;
