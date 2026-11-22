@@ -712,6 +712,22 @@ impl GameState {
         if old.zone == Zone::Battlefield && !self.linked_exiles.is_empty() {
             self.return_exiled_until(id);
         }
+        // CR 712.21: a melded permanent leaving the battlefield puts both
+        // its cards into the new zone.
+        if old.zone == Zone::Battlefield
+            && !self.melded.is_empty()
+            && let Some(i) = self.melded.iter().position(|(p, _)| *p == id)
+        {
+            let (_, other) = self.melded.swap_remove(i);
+            if self
+                .objects
+                .get(other)
+                .is_some_and(|o| o.zone == Zone::Exile)
+            {
+                let owner = self.objects[other].owner;
+                self.move_object_now(other, to, to_top, owner, Enter::default());
+            }
+        }
         new
     }
 

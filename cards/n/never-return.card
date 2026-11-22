@@ -1,0 +1,15 @@
+card "Never // Return" {
+  oracle_id bf276236-18a6-4a48-b47d-5227832d26e6
+  layout split
+  face "Never" {
+    cost {1}{B}{B}
+    type Sorcery
+    spell: destroy target creature or planeswalker
+  }
+  face "Return" {
+    cost {3}{B}
+    type Sorcery
+    keywords aftermath
+    spell: exile target card from a graveyard; create 1 "2/2 black Zombie creature"
+  }
+}

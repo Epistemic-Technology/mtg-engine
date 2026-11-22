@@ -1,0 +1,7 @@
+card "Hanweir Battlements" {
+  oracle_id 0e735ba6-7fd1-4d12-b20c-21525dc1e2b5
+  type Land
+  mana {C}
+  activated {R}, {T}: target creature gains haste
+  activated {3}{R}{R}, {T}: meld with "Hanweir Garrison" into "Hanweir, the Writhing Township"
+}

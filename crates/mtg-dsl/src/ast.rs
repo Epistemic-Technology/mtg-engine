@@ -3861,6 +3861,18 @@ pub enum Effect {
     Transform {
         what: Recipient,
     },
+    /// `meld with "Midnight Scavengers" into "Chittering Host"`: "if you
+    /// both own and control this creature and a creature named Midnight
+    /// Scavengers, exile them, then meld them into Chittering Host." (CR
+    /// 701.42a); in a triggered ability, an intervening "if" too.
+    Meld {
+        partner: String,
+        into: String,
+    },
+    /// `flip this`: "flip this creature", "flip it" (CR 710).
+    Flip {
+        what: Recipient,
+    },
     /// `search basic land card to hand`, `search up to 2 basic land card
     /// to battlefield tapped`, `... to top`: "Search your library for a
     /// basic land card, reveal it, put it into your hand, then shuffle"

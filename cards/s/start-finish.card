@@ -1,0 +1,16 @@
+card "Start // Finish" {
+  oracle_id 4ae2750e-3650-42df-a539-ea4cb72fa136
+  layout split
+  face "Start" {
+    cost {2}{W}
+    type Instant
+    spell: create 2 "1/1 white Warrior creature with vigilance"
+  }
+  face "Finish" {
+    cost {2}{B}
+    type Sorcery
+    keywords aftermath
+    additional cost sacrifice creature
+    spell: destroy target creature
+  }
+}

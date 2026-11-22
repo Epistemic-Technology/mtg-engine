@@ -23,6 +23,9 @@ const KEYWORDS: &[&str] = &[
     "Split second",
     "Cipher",
     "Paradigm",
+    "Aftermath",
+    "Fuse",
+    "Meld",
     "Banding",
     "Decayed",
     "Phasing",
@@ -1627,6 +1630,17 @@ impl Templates {
                 r(r"^[Tt]ransform (this creature|this artifact|this permanent|it|~)$"),
                 |_, _| Some("transform this".to_string()),
             ),
+            // CR 701.42a: a meld card's "exile them, then meld them".
+            (
+                r(
+                    r"^[Ii]f you both own and control (?:this creature|this land|~) and a creature named (.+?), exile them, then meld them into (.+)$",
+                ),
+                |c, _| Some(format!("meld with {:?} into {:?}", cap(c, 1), cap(c, 2))),
+            ),
+            // CR 710: a flip card's "flip it".
+            (r(r"^(?:you may )?[Ff]lip (this creature|it|~)$"), |_, _| {
+                Some("flip this".to_string())
+            }),
             (
                 r(
                     r"^Search your library for (a|an|up to \S+) (basic land|land|Plains|Island|Swamp|Mountain|Forest|creature|artifact|enchantment|instant|sorcery)? ?cards?, (reveal (?:it|them), )?(?:put (it|them|that card) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
@@ -2959,6 +2973,7 @@ impl Templates {
                 || body.contains("earch their library")
                 || body == "Discard all the cards in your hand, then draw that many cards"
                 || body.ends_with("explores, then it explores again")
+                || body.contains(", then meld them into ")
             {
                 vec![body.as_str()]
             } else {
@@ -3574,6 +3589,9 @@ fn trigger_general(head: &str) -> Option<String> {
             Some("whenever this attacks and isn't blocked")
         }
         "Whenever you attack" => Some("whenever you attack"),
+        // A Room's door (CR 709.5h, 709.5i).
+        "When you unlock this door" => Some("when you unlock this door"),
+        "Whenever you fully unlock a Room" => Some("whenever you fully unlock a Room"),
         "Whenever you discard one or more cards" => Some("whenever you discard one or more cards"),
         "Whenever a player discards one or more cards" => {
             Some("whenever a player discards one or more cards")
@@ -5981,15 +5999,9 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         "transform" => "transform",
         "prepare" => "prepare",
         "modal_dfc" => "modal_dfc",
-        _ => {
-            if faces
-                .iter()
-                .any(|f| f.type_line.as_deref().unwrap_or("").contains("Room"))
-            {
-                return Err(Skip::Layout("room".to_string()));
-            }
-            "split"
-        }
+        "flip" => "flip",
+        // A Room's doors are a split card's halves (CR 709.5).
+        _ => "split",
     };
     let mut bodies = Vec::new();
     let mut tokens = Vec::new();
@@ -6628,7 +6640,7 @@ fn neuter_pronouns(oracle: &str) -> (String, Option<&'static str>) {
 pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if matches!(
         s.layout.as_str(),
-        "adventure" | "transform" | "split" | "prepare" | "modal_dfc"
+        "adventure" | "transform" | "split" | "prepare" | "modal_dfc" | "flip"
     ) && s.card_faces.len() == 2
     {
         return author_faces(s, corpus);
@@ -6636,7 +6648,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if s.name.contains(" // ")
         || !matches!(
             s.layout.as_str(),
-            "normal" | "saga" | "class" | "case" | "leveler" | "prototype"
+            "normal" | "saga" | "class" | "case" | "leveler" | "prototype" | "meld"
         )
     {
         return Err(Skip::Layout(s.layout.clone()));

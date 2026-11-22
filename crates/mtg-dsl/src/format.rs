@@ -1901,6 +1901,8 @@ impl Fmt {
                 }
             }
             Effect::Transform { what } => format!("transform {}", self.recipient(*what, t)),
+            Effect::Flip { what } => format!("flip {}", self.recipient(*what, t)),
+            Effect::Meld { partner, into } => format!("meld with {partner:?} into {into:?}"),
             Effect::AddMana(m) if m == &[Mana::Chosen] => "add chosen".to_string(),
             Effect::AddMana(m) => format!("add {}", crate::render::mana_symbols(m, "any")),
             Effect::AddManaLandCould { whose, basic } => format!(
@@ -5466,7 +5468,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::TriggerHadCounters) => {
                     head.push_str(" if it had counters");
                 }
-                None => {}
+                // Meld's is printed by the meld effect itself.
+                Some(mtg_core::card::Condition::MeldPair) | None => {}
             }
             body(out, indent, &head, effects, targets, groups);
         }

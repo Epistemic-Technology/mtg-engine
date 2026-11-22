@@ -1,0 +1,15 @@
+card "Struggle // Survive" {
+  oracle_id 0b1f2522-960c-405f-9622-4cadbc7ba545
+  layout split
+  face "Struggle" {
+    cost {2}{R}
+    type Instant
+    spell: deal count equal land you control damage to target creature
+  }
+  face "Survive" {
+    cost {1}{G}
+    type Sorcery
+    keywords aftermath
+    spell: each player shuffles graveyard into library
+  }
+}

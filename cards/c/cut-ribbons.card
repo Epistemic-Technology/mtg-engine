@@ -1,0 +1,15 @@
+card "Cut // Ribbons" {
+  oracle_id 98a5bf1a-1088-4339-9a9b-6ee5e4956cf1
+  layout split
+  face "Cut" {
+    cost {1}{R}
+    type Sorcery
+    spell: deal 4 damage to target creature
+  }
+  face "Ribbons" {
+    cost {X}{B}{B}
+    type Sorcery
+    keywords aftermath
+    spell: each opponent loses X life
+  }
+}

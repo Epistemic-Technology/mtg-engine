@@ -1,0 +1,132 @@
+# Meld (CR 701.42, 712.4): "if you both own and control this creature and
+# a creature named X, exile them, then meld them into Y": both are exiled
+# and put onto the battlefield as one permanent with the combined back
+# face's characteristics; it leaves the battlefield as both cards (CR
+# 712.21). In a triggered ability the "if" is an intervening "if" (CR
+# 603.4).
+
+scenario "meld: Graf Rats and Midnight Scavengers meld into Chittering Host at the beginning of combat" {
+  battlefield A: "Graf Rats", "Midnight Scavengers", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Wind Drake"
+  turn 1 A: attack "Chittering Host", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Chittering Host"
+  assert battlefield A lacks "Graf Rats"
+  assert battlefield A lacks "Midnight Scavengers"
+  assert power "Chittering Host" 5
+  assert toughness "Chittering Host" 6
+  assert has "Chittering Host" menace
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" menace
+  assert life B 12
+}
+
+scenario "meld: not without the other card" {
+  battlefield A: "Graf Rats", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Graf Rats"
+  assert exile A count 0
+  assert stack count 0
+}
+
+scenario "meld: not on an opponent's turn" {
+  battlefield A: "Graf Rats", "Midnight Scavengers"
+  start turn 2 B
+  run_to turn 2 end
+  assert battlefield A contains "Graf Rats"
+  assert battlefield A contains "Midnight Scavengers"
+}
+
+scenario "meld: not with the other card under an opponent's control" {
+  battlefield A: "Graf Rats"
+  battlefield B: "Midnight Scavengers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Graf Rats"
+  assert battlefield B contains "Midnight Scavengers"
+}
+
+scenario "meld: a melded permanent that dies puts both cards into the graveyard" {
+  battlefield A: "Graf Rats", "Midnight Scavengers"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 postcombat_main B: cast "Murder" targeting "Chittering Host"
+  run_to turn 1 end
+  assert battlefield A lacks "Chittering Host"
+  assert graveyard A contains "Graf Rats"
+  assert graveyard A contains "Midnight Scavengers"
+  assert exile A count 0
+}
+
+scenario "meld: a melded permanent returned to hand is both cards" {
+  battlefield A: "Graf Rats", "Midnight Scavengers"
+  battlefield B: 2 "Island"
+  hand B: "Unsummon"
+  turn 1 postcombat_main B: cast "Unsummon" targeting "Chittering Host"
+  run_to turn 1 end
+  assert hand A contains "Graf Rats"
+  assert hand A contains "Midnight Scavengers"
+  assert exile A count 0
+}
+
+scenario "meld: Midnight Scavengers returns a creature card with mana value 3 or less" {
+  battlefield A: 5 "Swamp"
+  hand A: "Midnight Scavengers"
+  graveyard A: "Grizzly Bears", "Serra Angel"
+  turn 1 A: cast "Midnight Scavengers"
+  illegal turn 1 A: trigger "Midnight Scavengers" targeting "Serra Angel"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Serra Angel"
+}
+
+scenario "meld: Hanweir Battlements and Hanweir Garrison meld into Hanweir, the Writhing Township" {
+  battlefield A: "Hanweir Battlements", 5 "Mountain", "Hanweir Garrison"
+  turn 1 A: activate "Hanweir Battlements" ability 2
+  turn 1 A: attack "Hanweir, the Writhing Township"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hanweir, the Writhing Township"
+  assert battlefield A lacks "Hanweir Battlements"
+  assert battlefield A contains 2 "Eldrazi Horror"
+  assert life B 7
+}
+
+scenario "meld: Hanweir Battlements needs Hanweir Garrison" {
+  battlefield A: "Hanweir Battlements", 5 "Mountain", "Grizzly Bears"
+  turn 1 A: activate "Hanweir Battlements" ability 2
+  run_to turn 1 end
+  assert battlefield A contains "Hanweir Battlements"
+  assert tapped "Hanweir Battlements"
+}
+
+scenario "meld: Hanweir Garrison's attack makes two tapped and attacking Humans" {
+  battlefield A: "Hanweir Garrison"
+  turn 1 A: attack "Hanweir Garrison"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Human"
+  assert tapped oldest A "Human"
+  assert life B 16
+}
+
+scenario "meld: Hanweir Battlements gives haste" {
+  battlefield A: "Hanweir Battlements", "Mountain", "Forest"
+  hand A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  turn 1 A: wait
+  turn 1 A: activate "Hanweir Battlements" ability 1 targeting "Llanowar Elves"
+  turn 1 A: attack "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "meld: Bruna returns an Angel or Human creature card as it's cast" {
+  battlefield A: 7 "Plains"
+  hand A: "Bruna, the Fading Light"
+  graveyard A: "Serra Angel", "Grizzly Bears"
+  turn 1 A: cast "Bruna, the Fading Light"
+  illegal turn 1 A: trigger "Bruna, the Fading Light" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A contains "Bruna, the Fading Light"
+  assert has "Bruna, the Fading Light" vigilance
+  assert graveyard A contains "Grizzly Bears"
+}

@@ -616,6 +616,7 @@ impl GameState {
             this_way: None,
             paid_costs: Vec::new(),
             linked_exiles: Vec::new(),
+            melded: Vec::new(),
             temp_copies: Vec::new(),
             linking: None,
             spent_mana: Vec::new(),
@@ -1933,30 +1934,17 @@ impl GameState {
                 self.emit(Event::LandPlayed { player, land: new });
             }
             (Flow::Priority, Choice::CastFace { card, face }) => {
-                self.consecutive_passes = 0;
-                let main = self.pool.get(self.objects[card].def);
-                let face_def = main.faces[face as usize];
-                let adventure = matches!(
-                    main.layout,
-                    crate::card::Layout::Adventure | crate::card::Layout::Omen
-                );
-                let spell = self.move_object(card, Zone::Stack, true);
-                self.objects[spell].controller = player;
-                // The spell has only the face's characteristics (CR 715.3b,
-                // 709.3a); the card is still the card.
-                self.objects[spell].def = face_def;
-                self.objects[spell].cast.set_adventure(adventure);
-                self.cbump();
-                let def = self.pool.get(face_def);
-                self.flow = if def.modes().is_some() {
-                    Flow::ChoosingMode {
-                        spell,
-                        sacrifice: None,
-                        discard: None,
-                    }
-                } else {
-                    self.after_mode(spell)
-                };
+                self.cast_face(player, card, face, false);
+            }
+            // CR 702.127a: a split card in the graveyard is cast as its
+            // aftermath half, and exiled as it leaves the stack (as with
+            // flashback).
+            (Flow::Priority, Choice::Cast(id))
+                if self.objects[id].zone == Zone::Graveyard
+                    && self.aftermath_index(id).is_some() =>
+            {
+                let face = self.aftermath_index(id).unwrap_or(0);
+                self.cast_face(player, id, face, true);
             }
             (Flow::Priority, Choice::Cast(id)) => {
                 // CR 702.34a: a card cast from the graveyard is cast with

@@ -359,6 +359,17 @@ pub enum Keyword {
     /// cast other spells or activate abilities that aren't mana
     /// abilities."
     SplitSecond,
+    /// CR 702.127a: on a split card's half, "You may cast this half of
+    /// this split card from your graveyard," "This half of this split
+    /// card can't be cast from any zone other than a graveyard," and "If
+    /// this spell was cast from a graveyard, exile it instead of putting
+    /// it anywhere else any time it would leave the stack." The split card
+    /// itself has it too, so the graveyard lists it (`graveyard_active`).
+    Aftermath,
+    /// CR 702.102a: on both halves of a split card, "you may cast one or
+    /// both halves of this card from your hand": the fused split spell is
+    /// the card's third face (CR 702.102b-d). The split card has it too.
+    Fuse,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -578,7 +589,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 73] = [
+    pub const ALL: [Keyword; 75] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -652,6 +663,8 @@ impl Keyword {
         Keyword::SplitSecond,
         Keyword::UntapsDuringOthers,
         Keyword::AssignsToughness,
+        Keyword::Aftermath,
+        Keyword::Fuse,
     ];
 
     /// The keyword as Oracle prints it.
@@ -712,6 +725,8 @@ impl Keyword {
             Keyword::HexproofFromFilter => "hexproof from",
             Keyword::Paradigm => "paradigm",
             Keyword::SplitSecond => "split second",
+            Keyword::Aftermath => "aftermath",
+            Keyword::Fuse => "fuse",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -2251,7 +2266,9 @@ pub enum LibraryPlace {
 /// 712.12). `Omen` is an adventurer whose spell is
 /// shuffled into its owner's library as it resolves instead of exiled.
 /// `Prepare`'s face is its prepare spell (CR 722.2a): never cast itself,
-/// only copies of it while the permanent is prepared (CR 722.3).
+/// only copies of it while the permanent is prepared (CR 722.3). `Flip`'s
+/// face is its flipped half (CR 710.1b), with the card's mana cost (CR
+/// 710.1c): `Effect::Flip` turns the permanent to it, for good.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
 pub enum Layout {
     #[default]
@@ -2262,6 +2279,7 @@ pub enum Layout {
     Split,
     Prepare,
     ModalDfc,
+    Flip,
 }
 
 /// A restriction on how this creature blocks or is blocked.
@@ -3779,6 +3797,21 @@ pub enum Effect {
     /// "Transform this creature" (CR 701.27): a double-faced permanent
     /// turns to its other face; it stays the same object.
     Transform {
+        what: Recipient,
+    },
+    /// "If you both own and control this creature and a creature named
+    /// `partner`, exile them, then meld them into `into`." (CR 701.42a):
+    /// both exiled, then, if both are cards of the pair, put onto the
+    /// battlefield as one permanent with `into`'s characteristics
+    /// (`GameState::melded`); otherwise they stay exiled (CR 701.42c).
+    Meld {
+        partner: Box<str>,
+        into: Box<str>,
+    },
+    /// "Flip this creature" (CR 710): an unflipped flip card on the
+    /// battlefield gets its flipped half's characteristics, for as long as
+    /// it stays there (CR 710.4).
+    Flip {
         what: Recipient,
     },
     /// "Add {B}{B}" (CR 106.4): mana into the controller's pool; `Any` is
@@ -6155,6 +6188,11 @@ pub enum Condition {
     /// bonus "for each opponent you attacked" is one. Judged only as the
     /// ability triggers: attackers are declared once each combat.
     AttackedOpponent,
+    /// Meld's intervening "if" (CR 603.4, 701.42a): "if you both own and
+    /// control this creature and a creature named <its pair>", the pair
+    /// named by the ability's `Effect::Meld`. Set by the compiler on a
+    /// triggered ability that melds; the effect prints the words.
+    MeldPair,
 }
 
 /// A triggered ability (CR 603).
@@ -7150,6 +7188,12 @@ pub struct CardDef {
     /// fully locked and fully unlocked states.
     #[serde(default)]
     pub doors: Option<Box<RoomDoors>>,
+    /// A fused split spell (CR 702.102b-d, `CardPool::add_fused`): its
+    /// spell ability is the left half's targets and effects followed by
+    /// the right half's, which start at these indices (effect, target), as
+    /// a combined mode's `Mode::split`.
+    #[serde(default)]
+    pub fused: Option<(u16, u16)>,
     /// A Class's levels (CR 716) or a Case's unsolved and solved states
     /// (CR 719), in order, the first the card itself: each a definition
     /// with the abilities it has then. Set by `CardPool::set_stages` on
@@ -8041,6 +8085,7 @@ impl CardDef {
     /// otherwise.
     pub fn graveyard_active(&self) -> bool {
         self.flashback.is_some()
+            || self.keywords.contains(Keyword::Aftermath)
             || self.harmonize.is_some()
             || self.disturb.is_some()
             || self.escape.is_some()
@@ -9329,6 +9374,53 @@ impl CardPool {
         d.faces = faces;
     }
 
+    /// CR 702.102: the fused split spell of a split card whose halves
+    /// `left` and `right` both have fuse: the halves' combined
+    /// characteristics (CR 702.102b, c), and one spell ability that does
+    /// the left half's instructions and then the right half's (702.102d),
+    /// each half's targets its own (`CardDef::fused`). Nothing when a half
+    /// isn't a plain spell, or both read counts of their own.
+    pub fn add_fused(&mut self, name: &str, left: CardRef, right: CardRef) -> Option<CardRef> {
+        let (l, r) = (self.get(left), self.get(right));
+        if !l.counts.is_empty() && !r.counts.is_empty() {
+            return None;
+        }
+        let spell = |d: &CardDef| match d.abilities.as_slice() {
+            [AbilityDef::Spell { targets, effects }] => Some((targets.clone(), effects.clone())),
+            _ => None,
+        };
+        let ((mut targets, mut effects), (rt, re)) = (spell(l)?, spell(r)?);
+        let split = (
+            u16::try_from(effects.len()).ok()?,
+            u16::try_from(targets.len()).ok()?,
+        );
+        targets.extend(rt);
+        effects.extend(re);
+        let mut fused = l.clone();
+        fused.name = name.to_string();
+        fused.mana_cost =
+            ManaCost::parse(&format!("{}{}", l.mana_cost, r.mana_cost)).unwrap_or_default();
+        fused.types = l.types.union(r.types);
+        fused.keywords = l
+            .keywords
+            .union(r.keywords)
+            .difference(KeywordSet::NONE.with(Keyword::Fuse));
+        fused.abilities = vec![AbilityDef::Spell { targets, effects }];
+        fused.oracle_text = format!("{}\n{}", l.oracle_text, r.oracle_text);
+        if fused.counts.is_empty() {
+            fused.counts.clone_from(&r.counts);
+        }
+        fused.fused = Some(split);
+        fused.faces = Vec::new();
+        let keep = self.by_name.clone();
+        let from = self.ability_count();
+        let f = self.add(fused);
+        let to = self.ability_count();
+        self.set_counts_owner(from, to, f);
+        self.by_name = keep;
+        Some(f)
+    }
+
     /// A split card whose halves are permanents (a Room, CR 709.5): adds
     /// the definitions of its fully locked and fully unlocked states and
     /// links all five (`CardDef::doors`). Each half's "When you unlock
@@ -9538,6 +9630,7 @@ impl Builder {
             defense: 0,
             rooms: Vec::new(),
             doors: None,
+            fused: None,
             stages: Vec::new(),
             marks: Marks::NONE,
             copy_except: None,

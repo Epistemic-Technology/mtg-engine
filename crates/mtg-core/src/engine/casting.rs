@@ -128,12 +128,17 @@ impl GameState {
                 continue;
             }
             // CR 715.3, 709.3: an adventurer's spell or a split card's
-            // half is cast as that face.
+            // half is cast as that face; a split card with fuse, both
+            // halves as its third face (CR 702.102a).
             if !def.faces.is_empty()
                 && matches!(def.layout, Layout::Adventure | Layout::Omen | Layout::Split)
             {
                 for (i, f) in def.faces.iter().enumerate() {
                     let face = self.pool.get(*f);
+                    // CR 702.127a: an aftermath half only from a graveyard.
+                    if face.keywords.contains(Keyword::Aftermath) {
+                        continue;
+                    }
                     if self.castable(p, face, *id, sorcery_timing, &sources, &pool, &changers) {
                         options.push(Choice::CastFace {
                             card: *id,
@@ -400,6 +405,13 @@ impl GameState {
                 {
                     for (i, f) in def.faces.iter().enumerate() {
                         let face = self.pool.get(*f);
+                        // CR 702.127a, 702.102a: an aftermath half only
+                        // from a graveyard, fused halves only from a hand.
+                        if face.keywords.contains(Keyword::Aftermath)
+                            || (def.layout == Layout::Split && i >= 2)
+                        {
+                            continue;
+                        }
                         if self.castable(
                             p,
                             face,
@@ -614,6 +626,24 @@ impl GameState {
                         &changers,
                         &mut options,
                     );
+                }
+                // CR 702.127a: a split card's aftermath half, for its mana
+                // cost (`Choice::Cast` of the card in the graveyard).
+                if def.keywords.contains(Keyword::Aftermath) {
+                    if let Some(face) = self.aftermath_face(*id)
+                        && self.castable(
+                            p,
+                            self.pool.get(face),
+                            *id,
+                            sorcery_timing,
+                            &sources,
+                            &pool,
+                            &changers,
+                        )
+                    {
+                        options.push(Choice::Cast(*id));
+                    }
+                    continue;
                 }
                 if def.flashback.is_none() {
                     if (def.escape.is_some() && self.escape_castable(p, *id, sorcery_timing))
@@ -2245,6 +2275,58 @@ impl GameState {
         }
     }
 
+    /// Cast `card` as its face `face` (CR 715.3, 709.3): the spell has
+    /// only the face's characteristics; the card is still the card.
+    /// `exiled`: cast from a graveyard with aftermath, so it is exiled as
+    /// it leaves the stack (CR 702.127a).
+    pub(super) fn cast_face(&mut self, player: PlayerId, card: ObjId, face: u8, exiled: bool) {
+        self.consecutive_passes = 0;
+        let main = self.pool.get(self.objects[card].def);
+        let face_def = main.faces[face as usize];
+        let adventure = matches!(main.layout, Layout::Adventure | Layout::Omen);
+        let spell = self.move_object(card, Zone::Stack, true);
+        self.objects[spell].controller = player;
+        self.objects[spell].def = face_def;
+        self.objects[spell].cast.set_adventure(adventure);
+        if exiled {
+            self.objects[spell].cast.set_flashback(true);
+        }
+        self.cbump();
+        let def = self.pool.get(face_def);
+        self.flow = if def.modes().is_some() {
+            crate::state::Flow::ChoosingMode {
+                spell,
+                sacrifice: None,
+                discard: None,
+            }
+        } else {
+            self.after_mode(spell)
+        };
+    }
+
+    /// A split card's half with aftermath (CR 702.127a), by its index
+    /// among the card's faces.
+    pub(super) fn aftermath_index(&self, card: ObjId) -> Option<u8> {
+        let d = self.pool.get(self.objects.get(card)?.def);
+        if d.layout != Layout::Split || !d.keywords.contains(Keyword::Aftermath) {
+            return None;
+        }
+        d.faces
+            .iter()
+            .position(|f| self.pool.get(*f).keywords.contains(Keyword::Aftermath))
+            .and_then(|i| u8::try_from(i).ok())
+    }
+
+    /// The definition of that half.
+    fn aftermath_face(&self, card: ObjId) -> Option<crate::card::CardRef> {
+        let i = self.aftermath_index(card)?;
+        self.pool
+            .get(self.objects[card].def)
+            .faces
+            .get(usize::from(i))
+            .copied()
+    }
+
     /// The land face a `CastFace` choice plays (a modal double-faced
     /// card's, CR 712.12), if it is one.
     pub(crate) fn land_face(&self, card: ObjId, face: u8) -> Option<crate::card::CardRef> {
@@ -3645,6 +3727,86 @@ impl GameState {
 
     /// Transform a double-faced permanent to its other face (CR 701.27);
     /// it stays the same object. Whether it did.
+    /// The creature named as `source`'s meld pair (its `Effect::Meld`)
+    /// that `you` own and control, if `you` also own and control `source`
+    /// on the battlefield (CR 701.42a's "if you both own and control ...").
+    pub(super) fn meld_partner(&self, source: ObjId, you: PlayerId) -> Option<ObjId> {
+        let o = self.objects.get(source)?;
+        if o.zone != Zone::Battlefield || o.owner != you || o.controller != you {
+            return None;
+        }
+        let partner = self.pool.get(o.def).abilities.iter().find_map(|a| {
+            a.effects().iter().find_map(|e| match e {
+                Effect::Meld { partner, .. } => Some(partner.clone()),
+                _ => None,
+            })
+        })?;
+        self.permanents_of(you).find(|id| {
+            *id != source
+                && self.objects[*id].owner == you
+                && self.name_of(*id) == &*partner
+                && self.characteristics(*id).is_some_and(|c| c.is_creature())
+        })
+    }
+
+    /// CR 701.42a, 712.4a: exile `source` and its pair, then put them onto
+    /// the battlefield as one permanent with `into`'s characteristics, if
+    /// both are still the pair's cards in exile (CR 701.42b-c: a token, or
+    /// a card a replacement moved elsewhere, isn't melded; the cards stay
+    /// where they are).
+    fn meld(&mut self, source: ObjId, you: PlayerId, partner: &str, into: &str) {
+        let Some(other) = self.meld_partner(source, you) else {
+            return;
+        };
+        let Some(into) = self.pool.lookup(into) else {
+            return;
+        };
+        let a = self.move_object(source, Zone::Exile, true);
+        let b = self.move_object(other, Zone::Exile, true);
+        let pair = |st: &Self, id: ObjId, name: Option<&str>| {
+            st.objects.get(id).is_some_and(|o| {
+                o.zone == Zone::Exile
+                    && o.kind == crate::state::ObjKind::Card
+                    && name.is_none_or(|n| st.pool.get(o.card).name == n)
+            })
+        };
+        if !pair(self, a, None) || !pair(self, b, Some(partner)) {
+            return;
+        }
+        self.objects[a].def = into;
+        let new = self.put_onto_battlefield(a, you);
+        if self
+            .objects
+            .get(new)
+            .is_some_and(|o| o.zone == Zone::Battlefield)
+        {
+            self.melded.push((new, b));
+        }
+    }
+
+    /// CR 710.2, 710.4: an unflipped flip card on the battlefield turns to
+    /// its flipped half; it stays the same object. Nothing for anything
+    /// else (a flipped permanent's definition has no faces).
+    pub(super) fn flip_now(&mut self, id: ObjId) {
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        let d = self.pool.get(o.def);
+        if o.zone != Zone::Battlefield || d.layout != Layout::Flip {
+            return;
+        }
+        let Some(flipped) = d.faces.first().copied() else {
+            return;
+        };
+        let legendary = d.is_legendary();
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, legendary, false);
+        self.objects[id].def = flipped;
+        let flags = self.flags_of(&self.objects[id]);
+        self.count_sources(flags, self.pool.get(flipped).is_legendary(), true);
+        self.cbump();
+    }
+
     pub(super) fn transform_now(&mut self, id: ObjId) -> bool {
         let Some(o) = self.objects.get(id) else {
             return false;
@@ -5168,6 +5330,13 @@ impl GameState {
         def: &crate::card::CardDef,
         id: ObjId,
     ) -> bool {
+        // A fused split spell: each half's "target" words are its own
+        // (CR 115.3).
+        if let Some((_, t)) = def.fused {
+            let specs = def.cast_targets();
+            return self.plain_targets_in_parts(p, specs, &[usize::from(t)], Some(id))
+                && self.related_targets_available(p, specs, Some(id), None);
+        }
         self.targets_available(p, def.unkicked_cast_targets(), Some(id))
             || (def.gift.is_some()
                 && def.kicked_drops.is_some()
@@ -9295,6 +9464,16 @@ impl GameState {
                         *reveal,
                         (*graveyard, name.as_deref()),
                     );
+                }
+            }
+            Effect::Meld { partner, into } => {
+                self.meld(ctx.source, ctx.controller, partner, into);
+            }
+            Effect::Flip { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.flip_now(id);
+                    }
                 }
             }
             Effect::Transform { what } => {

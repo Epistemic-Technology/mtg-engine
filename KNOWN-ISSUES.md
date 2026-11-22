@@ -80,6 +80,16 @@ wrong thing in some case.
   player's other mana is spent first (`PlayerState::turn_mana`,
   `combat_mana`): spending the kept mana in an earlier step leaves other
   mana in the pool to be kept instead.
+- **A nonland card with no mana cost can be cast for nothing** (Ancestral
+  Vision from the hand; a meld result such as Chittering Host if a deck
+  held one): `castable` pays an empty cost, but an object with no mana
+  cost can't be cast for it (CR 118.6, 202.1b). A scenario with
+  `illegal turn 1 A: cast "Ancestral Vision" targeting player A` fails.
+- **A melded permanent's mana value is 0** (Chittering Host, Hanweir, the
+  Writhing Township): its definition is the back face, which has no mana
+  cost; it should be the sum of its front faces' (CR 202.3c, 712.8g). The
+  other card that represents it waits in exile (`GameState::melded`), so
+  "cards in exile" counts it.
 
 - **"When this land enters untapped"** (Idyllic Grange) is the
   intervening-if trigger `when this enters if this is untapped`: tapping

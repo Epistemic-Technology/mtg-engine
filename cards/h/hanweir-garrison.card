@@ -1,0 +1,7 @@
+card "Hanweir Garrison" {
+  oracle_id 7cb29569-48e1-4782-9906-fad155ebfafe
+  cost {2}{R}
+  type Creature — Human Soldier
+  pt 2/3
+  triggered whenever this attacks: create 2 tapped and attacking "1/1 red Human creature"
+}

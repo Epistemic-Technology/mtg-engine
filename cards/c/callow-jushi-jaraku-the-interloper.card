@@ -1,0 +1,15 @@
+card "Callow Jushi // Jaraku the Interloper" {
+  oracle_id 7ceaddba-6301-45f8-86a1-ad4c6e6d3297
+  layout flip
+  cost {1}{U}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered whenever you cast Spirit or Arcane spell: you may put 1 ki counters on this
+  triggered at beginning of the end step if there are 2 or more ki counters on this: you may flip it
+  face "Jaraku the Interloper" {
+    type Legendary Creature — Spirit
+    short_name "Jaraku"
+    pt 3/4
+    activated remove 1 ki counters from this: counter target spell unless its controller pays {2}
+  }
+}

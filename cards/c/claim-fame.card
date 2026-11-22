@@ -1,0 +1,15 @@
+card "Claim // Fame" {
+  oracle_id 16da9e4b-c6ee-4e70-8653-31ca147f3b01
+  layout split
+  face "Claim" {
+    cost {B}
+    type Sorcery
+    spell: return target creature card with mana value 2 or less from your graveyard to battlefield
+  }
+  face "Fame" {
+    cost {1}{R}
+    type Sorcery
+    keywords aftermath
+    spell: target creature gets +2/+0 and gains haste
+  }
+}

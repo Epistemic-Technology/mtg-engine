@@ -1132,6 +1132,11 @@ impl Decompiler<'_> {
                 and_choose: false,
             },
             CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
+            CoreEffect::Flip { what } => Effect::Flip { what: r(*what) },
+            CoreEffect::Meld { partner, into } => Effect::Meld {
+                partner: partner.to_string(),
+                into: into.to_string(),
+            },
             CoreEffect::Search {
                 filter,
                 count,
@@ -2463,16 +2468,20 @@ impl Decompiler<'_> {
             AbilityDef::Triggered(t) => Ability::Triggered {
                 limit: t.limit,
                 trigger: self.trigger(&t.trigger),
-                condition: t.condition.map(|c| match c {
-                    mtg_core::card::Condition::Static(i) => {
-                        crate::ast::TrigCond::Static(self.static_cond(self.pool.condition(i)))
-                    }
-                    mtg_core::card::Condition::While(i)
-                    | mtg_core::card::Condition::WhileSecond(i) => {
-                        crate::ast::TrigCond::While(self.static_cond(self.pool.condition(i)))
-                    }
-                    other => crate::ast::TrigCond::Core(other),
-                }),
+                // Meld's condition is the effect's (`Effect::Meld`).
+                condition: t
+                    .condition
+                    .filter(|c| *c != mtg_core::card::Condition::MeldPair)
+                    .map(|c| match c {
+                        mtg_core::card::Condition::Static(i) => {
+                            crate::ast::TrigCond::Static(self.static_cond(self.pool.condition(i)))
+                        }
+                        mtg_core::card::Condition::While(i)
+                        | mtg_core::card::Condition::WhileSecond(i) => {
+                            crate::ast::TrigCond::While(self.static_cond(self.pool.condition(i)))
+                        }
+                        other => crate::ast::TrigCond::Core(other),
+                    }),
                 targets: t.targets.iter().map(|x| self.target(*x)).collect(),
                 effects: self.sentences(&t.effects),
                 from_graveyard: t.from_graveyard,

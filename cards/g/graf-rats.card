@@ -1,0 +1,7 @@
+card "Graf Rats" {
+  oracle_id 852edc00-9d98-427c-9869-7d0c8c121118
+  cost {1}{B}
+  type Creature — Rat
+  pt 2/1
+  triggered at beginning of your combat: meld with "Midnight Scavengers" into "Chittering Host"
+}

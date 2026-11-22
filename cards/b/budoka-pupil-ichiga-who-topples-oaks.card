@@ -1,0 +1,15 @@
+card "Budoka Pupil // Ichiga, Who Topples Oaks" {
+  oracle_id 6f571092-7244-4223-aa14-f5133cc000d8
+  layout flip
+  cost {1}{G}{G}
+  type Creature — Human Monk
+  pt 2/2
+  triggered whenever you cast Spirit or Arcane spell: you may put 1 ki counters on this
+  triggered at beginning of the end step if there are 2 or more ki counters on this: you may flip it
+  face "Ichiga, Who Topples Oaks" {
+    type Legendary Creature — Spirit
+    pt 4/3
+    keywords trample
+    activated remove 1 ki counters from this: target creature gets +2/+2
+  }
+}

@@ -53,7 +53,7 @@ ability prints its abilities after the sentence ("... token. It has
 
 A split card, adventurer, omen, or double-faced card is one block named as
 Scryfall names it (`card "Curious Pair // Treats to Share"`) with a
-`layout` line (`adventure`, `omen`, `transform`, `split`, `prepare`,
+`layout` line (`adventure`, `omen`, `transform`, `split`, `prepare`, `flip`,
 `modal_dfc`) and a `face
 "Name" { ... }` block per other face, holding that face's header and
 ability lines. The block's own lines are the front face (a split card's
@@ -76,6 +76,46 @@ wherever it may be played) either face may be cast, or played if it is a
 land (CR 712.11b, 712.12), and the permanent has the face it was cast or
 played as; anywhere else it is its front face. `transform this` turns it
 to its other face as well.
+
+A flip card (`layout flip`, CR 710) has its top half as the block and its
+bottom half as its face, without a `cost` line (the face keeps the
+card's mana cost and so its color, CR 710.1c). The effect `flip this`
+("flip this creature", "flip Kuon" for a legendary card; `flip it` is
+the source too, "..., you may flip it.", even in a trigger with no
+triggering object) turns an unflipped flip card on the battlefield to its
+bottom half, the same object with its counters, until it leaves the
+battlefield (CR 710.2, 710.4); it does nothing to anything else, and
+`transform` does nothing to a flip card. In scenarios the permanent is
+named by the half it shows ("Callow Jushi", then "Jaraku the
+Interloper").
+
+Meld cards (CR 712.4) are single-faced cards; the combined back face is a
+card of its own with no `cost` (`card "Chittering Host" { type Creature
+— Eldrazi Horror ... }`). The effect `meld with "Midnight Scavengers"
+into "Chittering Host"` prints "if you both own and control this
+creature and a creature named Midnight Scavengers, exile them, then meld
+them into Chittering Host" (capitalized first in an activated ability,
+Hanweir Battlements); in a triggered ability it is an intervening "if"
+too (CR 603.4). Both are exiled; if both are still the pair's cards in
+exile (not tokens, CR 701.42b-c), the source's card enters as one
+permanent with the back face's characteristics (its "When this creature
+enters" triggers), and the other card waits in exile; when the permanent
+leaves the battlefield, both cards go to the new zone (CR 712.21).
+
+`keywords aftermath` on a split card's half (CR 702.127a, printed
+"Aftermath" first in the half's text): that half can be cast only from
+its owner's graveyard (for its mana cost, with its own timing; in
+scenarios `cast "Cut // Ribbons" from graveyard`, though the runner reads
+the targets of that cast from the card, so an aftermath half with targets
+can't be scripted yet), and the spell is exiled as it leaves the stack;
+the other half is cast from the hand as usual and can't be cast from the
+graveyard. `keywords fuse` on both halves (CR 702.102, printed "Fuse"
+after each half's text): from the hand, both halves may be cast together
+as a fused split spell, for both mana costs, with the left half's targets
+and then the right half's (the same object may be chosen for one of each,
+CR 115.3), doing the left half's instructions and then the right half's.
+The fused spell is the card's third face (`CardPool::add_fused`), named
+like the card; either half may still be cast alone.
 
 ## Header
 
