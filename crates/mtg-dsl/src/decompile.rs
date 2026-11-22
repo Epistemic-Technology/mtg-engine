@@ -1049,12 +1049,15 @@ impl Decompiler<'_> {
                 filter,
                 optional,
                 exile,
+                until,
             } => Effect::DiscardChosen {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| self.filter(f)),
                 may: *optional,
                 look: false,
-                exile: exile.then_some(true),
+                exile: exile.then_some(!*until),
+                until: *until,
+                and_choose: false,
             },
             CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
             CoreEffect::Search {

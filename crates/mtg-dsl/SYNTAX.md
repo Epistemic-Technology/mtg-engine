@@ -2360,7 +2360,15 @@ hand. You may choose ..."), `look at hand of target player discarding card`
 reveals hand exiling nonland card` ("Target opponent reveals their hand.
 You choose a nonland card from it and exile that card."; `exiling
 nonland card split`: "You choose a nonland card from it. Exile that
-card."). `nonland noninstant nonsorcery card` prints "a nonland
+card."; `... split until this leaves`: "Exile that card until this
+creature leaves the battlefield.", CR 610.3: linked to the creature, it
+returns to its owner's hand when the creature leaves, and nothing is
+exiled if the creature has already left; `reveals hand and exiling
+nonland card until this leaves`: "reveals their hand and you choose a
+nonland card from it. Exile that card until ..."; `look at hand of
+target opponent exiling may nonland card until this leaves`: "look at
+target opponent's hand. You may exile a nonland card from it until this
+creature leaves the battlefield."). `nonland noninstant nonsorcery card` prints "a nonland
 permanent card" (CR 110.4a). A sentence
 may start `then` ("Then discard two cards unless ..."). After `return
 target permanent to hand`, `that player` is that permanent's owner:

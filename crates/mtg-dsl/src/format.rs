@@ -1689,15 +1689,27 @@ impl Fmt {
                 who,
                 filter: f,
                 exile: Some(joined),
-                ..
+                until,
+                and_choose,
+                look,
+                may,
             } => {
                 let what = match f {
                     None => "card".to_string(),
                     Some(f) => format!("{} card", filter(f)),
                 };
-                let split = if *joined { "" } else { " split" };
+                let until = if *until { " until this leaves" } else { "" };
+                if *look {
+                    let may = if *may { "may " } else { "" };
+                    return format!(
+                        "look at hand of {} exiling {may}{what}{until}",
+                        self.recipient(*who, t)
+                    );
+                }
+                let split = if *joined || *and_choose { "" } else { " split" };
+                let and = if *and_choose { "and " } else { "" };
                 format!(
-                    "{} reveals hand exiling {what}{split}",
+                    "{} reveals hand {and}exiling {what}{split}{until}",
                     self.recipient(*who, t)
                 )
             }

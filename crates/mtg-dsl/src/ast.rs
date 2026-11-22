@@ -3478,6 +3478,12 @@ pub enum Effect {
         /// after it, "You choose a nonland card from it. Exile that card."
         /// (`Some(false)`).
         exile: Option<bool>,
+        /// `... until this leaves`: "Exile that card until this creature
+        /// leaves the battlefield." (CR 610.3; `exile` is `Some`).
+        until: bool,
+        /// `reveals hand and exiling ...`: "reveals their hand and you
+        /// choose ... from it. Exile that card ..." (Brain Maggot).
+        and_choose: bool,
     },
     /// `transform this`: "transform this creature" (CR 701.27).
     Transform {

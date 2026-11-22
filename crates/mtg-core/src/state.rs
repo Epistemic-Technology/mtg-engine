@@ -1260,6 +1260,9 @@ pub struct LinkedExile {
     pub card: ObjId,
     /// Exiled "until" the source leaves the battlefield (CR 610.3).
     pub until: bool,
+    /// Exiled from a hand "until": it returns there (CR 610.3), not to
+    /// the battlefield.
+    pub to_hand: bool,
 }
 
 impl Moved {

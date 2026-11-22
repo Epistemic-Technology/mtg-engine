@@ -1,0 +1,8 @@
+card "Deep-Cavern Bat" {
+  oracle_id e46f6644-6bf1-47b1-817c-906bd3eca99f
+  cost {1}{B}
+  type Creature — Bat
+  pt 1/1
+  keywords flying, lifelink
+  triggered when this enters: look at hand of target opponent exiling may nonland card until this leaves
+}

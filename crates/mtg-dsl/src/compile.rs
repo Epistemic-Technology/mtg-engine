@@ -2553,6 +2553,7 @@ impl Compiler<'_> {
                 filter,
                 may,
                 exile,
+                until,
                 ..
             } => {
                 let filter = filter.as_ref().map(|f| self.filter(f));
@@ -2561,6 +2562,7 @@ impl Compiler<'_> {
                     filter,
                     optional: *may,
                     exile: exile.is_some(),
+                    until: *until,
                 });
             }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),

@@ -6376,18 +6376,51 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             who,
             filter,
             exile: Some(joined),
-            ..
+            until,
+            and_choose,
+            look,
+            may,
         } => {
             let what = match filter {
                 None => "a card".to_string(),
                 Some(f) => with_article(&format!("{} card", card_filter_phrase(f, ctx.card))),
             };
-            let exile = if *joined {
-                " and exile that card"
+            // CR 610.3: "until this creature leaves the battlefield".
+            let until = if *until {
+                format!(" until {} leaves the battlefield", this_ref(ctx.card))
             } else {
-                ". Exile that card"
+                String::new()
             };
+            if *look {
+                // "Look at target opponent's hand. You may exile a nonland
+                // card from it until this creature leaves the battlefield."
+                let o = ctx.obj(*who);
+                let whose = match o.as_str() {
+                    "you" => "your".to_string(),
+                    "it" | "them" => "their".to_string(),
+                    o => format!("{o}'s"),
+                };
+                let may = if *may { "You may exile" } else { "Exile" };
+                return Clause::imperative(format!(
+                    "look at {whose} hand. {may} {what} from it{until}"
+                ));
+            }
             let s = ctx.subj(*who);
+            if *and_choose {
+                return Clause::with_subject(
+                    *who,
+                    s,
+                    format!(
+                        "{} their hand and you choose {what} from it. Exile that card{until}",
+                        ctx.verb(*who, "reveals", "reveal")
+                    ),
+                );
+            }
+            let exile = if *joined {
+                format!(" and exile that card{until}")
+            } else {
+                format!(". Exile that card{until}")
+            };
             Clause::with_subject(
                 *who,
                 s,

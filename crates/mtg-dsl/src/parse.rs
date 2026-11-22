@@ -5447,9 +5447,12 @@ impl P {
                 if self.eat_word("discarding") {
                     return self.discard_chosen(subject, false);
                 }
+                // "reveals their hand and you choose a nonland card from
+                // it. Exile that card until ..." (Brain Maggot).
+                let and_choose = self.eat_words(&["and", "exiling"]);
                 // "You choose a nonland card from that player's graveyard
                 // or hand and exile it."
-                if self.eat_word("exiling") {
+                if and_choose || self.eat_word("exiling") {
                     let filter = if self.at_word("card") {
                         Filter::default()
                     } else {
@@ -5460,13 +5463,19 @@ impl P {
                     // card."
                     if !self.at_word("from") {
                         let joined = !self.eat_word("split");
+                        let until = self.eat_words(&["until", "this", "leaves"]);
                         return Ok(Effect::DiscardChosen {
                             who: subject,
                             filter: (filter != Filter::default()).then_some(filter),
                             may: false,
                             look: false,
                             exile: Some(joined),
+                            until,
+                            and_choose,
                         });
+                    }
+                    if and_choose {
+                        return self.unexpected("`split` or `until this leaves`");
                     }
                     self.expect_words(&["from", "graveyard", "or", "hand"])?;
                     return Ok(Effect::ExileFromGraveyardOrHand {
@@ -6566,6 +6575,8 @@ impl P {
             may,
             look,
             exile: None,
+            until: false,
+            and_choose: false,
         })
     }
 
@@ -7495,6 +7506,28 @@ impl P {
                 let who = self.recipient()?;
                 if self.eat_word("discarding") {
                     return self.discard_chosen(who, true);
+                }
+                // "Look at target opponent's hand. You may exile a nonland
+                // card from it until this creature leaves the battlefield."
+                if self.eat_word("exiling") {
+                    let may = self.eat_word("may");
+                    let filter = if self.eat_word("card") {
+                        None
+                    } else {
+                        let f = self.filter()?;
+                        self.expect_word("card")?;
+                        Some(f)
+                    };
+                    let until = self.eat_words(&["until", "this", "leaves"]);
+                    return Ok(Effect::DiscardChosen {
+                        who,
+                        filter,
+                        may,
+                        look: true,
+                        exile: Some(false),
+                        until,
+                        and_choose: false,
+                    });
                 }
                 Ok(Effect::LookAtHand { who })
             }

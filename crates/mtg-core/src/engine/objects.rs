@@ -706,6 +706,7 @@ impl GameState {
                 source,
                 card,
                 until,
+                to_hand: false,
             });
         }
         // Counts and conditions read the links.
@@ -783,20 +784,25 @@ impl GameState {
     #[cold]
     #[inline(never)]
     fn return_exiled_until(&mut self, left: ObjId) {
-        let mut back: SmallVec<[ObjId; 2]> = SmallVec::new();
+        let mut back: SmallVec<[(ObjId, bool); 2]> = SmallVec::new();
         self.linked_exiles.retain(|l| {
             let mine = l.until && l.source == left;
             if mine {
-                back.push(l.card);
+                back.push((l.card, l.to_hand));
             }
             !mine
         });
-        for card in back {
+        for (card, to_hand) in back {
             if let Some(o) = self.objects.get(card)
                 && o.zone == Zone::Exile
             {
                 let owner = o.owner;
-                self.put_onto_battlefield_with(card, owner, Enter::default());
+                if to_hand {
+                    // CR 610.3: to its owner's hand, where it was.
+                    self.move_object(card, Zone::Hand, false);
+                } else {
+                    self.put_onto_battlefield_with(card, owner, Enter::default());
+                }
             }
         }
     }

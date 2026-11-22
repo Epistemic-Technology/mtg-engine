@@ -3515,6 +3515,12 @@ pub enum Effect {
         /// chosen card is exiled rather than discarded.
         #[serde(default)]
         exile: bool,
+        /// "Exile that card until this creature leaves the battlefield"
+        /// (CR 610.3): exiled linked to the source, returning to its
+        /// owner's hand when the source leaves; nothing is exiled if the
+        /// source has already left (CR 610.3a).
+        #[serde(default)]
+        until: bool,
     },
     /// "Transform this creature" (CR 701.27): a double-faced permanent
     /// turns to its other face; it stays the same object.

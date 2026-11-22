@@ -1,0 +1,7 @@
+card "Brain Maggot" {
+  oracle_id 419b5b4f-cac7-44bf-b1e2-655b5a5d37b1
+  cost {1}{B}
+  type Enchantment Creature — Insect
+  pt 1/1
+  triggered when this enters: target opponent reveals hand and exiling nonland card until this leaves
+}

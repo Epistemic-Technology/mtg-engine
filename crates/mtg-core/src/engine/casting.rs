@@ -3129,6 +3129,7 @@ impl GameState {
                         source: this,
                         card: new,
                         until: false,
+                        to_hand: false,
                     });
                 }
             }
@@ -9713,14 +9714,25 @@ impl GameState {
                 filter,
                 optional,
                 exile,
+                until,
             } => {
                 // "If you do" / "If you don't": whether a card was chosen.
                 ctx.did = false;
+                // CR 610.3a: "until this leaves the battlefield" after it
+                // already has: nothing is exiled.
+                let gone = *until
+                    && !self
+                        .objects
+                        .get(ctx.source)
+                        .is_some_and(|o| o.zone == Zone::Battlefield);
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
                     };
                     self.reveal_hand(p);
+                    if gone {
+                        continue;
+                    }
                     let mut options: Vec<Choice> = self
                         .player(p)
                         .hand
@@ -9745,7 +9757,16 @@ impl GameState {
                     let k = self.choose_mid(ctx.controller, DecisionKind::Discard, options.clone());
                     if let Choice::Discard { card, .. } = options[k] {
                         if *exile {
-                            self.move_object(card, Zone::Exile, false);
+                            let new = self.move_object(card, Zone::Exile, false);
+                            if *until
+                                && self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile)
+                            {
+                                self.link_exile(ctx.source, new, true);
+                                // CR 610.3: back to the hand it left.
+                                if let Some(l) = self.linked_exiles.last_mut() {
+                                    l.to_hand = true;
+                                }
+                            }
                         } else {
                             self.discard_card(p, card);
                         }
