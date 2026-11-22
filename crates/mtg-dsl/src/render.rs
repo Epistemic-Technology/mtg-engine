@@ -2748,6 +2748,14 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     } else {
         p
     };
+    // "an instant, sorcery, or Faerie card" (Free the Fae): three
+    // alternatives as a list.
+    let p = if p.matches(" or ").count() == 2 && !p.contains(',') {
+        let i = p.find(" or ").expect("counted");
+        format!("{},{}", &p[..i], &p[i + 3..]).replacen(" or ", ", or ", 1)
+    } else {
+        p
+    };
     let noun = if plural_form { "cards" } else { "card" };
     // "a card with flash": only qualities after the noun.
     if let Some(after) = p.trim().strip_prefix("with ") {
@@ -4405,7 +4413,11 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
     }
     // CR 707.10c: "You may choose new targets for the copy."
-    if let Effect::CopySpells {
+    if let Effect::CopySpells { and_may: true, .. } = e {
+        // "copy it and you may choose new targets for the copy".
+        c.tail
+            .push_str(" and you may choose new targets for the copy");
+    } else if let Effect::CopySpells {
         times,
         new_targets: true,
         ..
@@ -4577,6 +4589,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else {
                     ""
                 }
+            } else if ctx.pumped.contains(&Recipient::EachCreatureYouControl)
+                && narrower_creatures_you_control(*to, ctx.card)
+            {
+                // "Creatures you control get +1/+1 until end of turn. If
+                // this spell was kicked, Zombie creatures you control get
+                // an additional +2/+2 until end of turn." (Strength of
+                // Night): some of the creatures just pumped.
+                ctx.pumped.push(same(*to));
+                "an additional "
             } else {
                 ctx.pumped.push(same(*to));
                 ""
@@ -5967,7 +5988,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("return {o} to the battlefield{tapped}")
             } else if matches!(what, Recipient::ThoseCards(..)) {
                 // "return those cards to the battlefield under their
-                // owner's control" (Oracle's singular "owner's").
+                // owner's control" (Oracle's singular "owner's"); "exile
+                // two target creatures and/or lands you control, then
+                // return them ..." after N targets of one kind (Gone
+                // Fishing; "up to two" keeps "those cards", Displace).
+                let o = if ctx.targets.len() > 1
+                    && !matches!(ctx.targets[0], Target::UpTo(_))
+                    && ctx.targets.iter().all(|t| *t == ctx.targets[0])
+                {
+                    "them".to_string()
+                } else {
+                    o
+                };
                 format!("return {o} to the battlefield{tapped} under their owner's control")
             } else if matches!(what, Recipient::Targets(..)) {
                 // "exile up to one target artifact you control and up to
@@ -7752,11 +7784,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             // "a Shapeshifter artifact creature with base power and
             // toughness 5/5", "a 2/2 Gargoyle creature with flying".
-            if let (Some((p, q)), true) = (pt, base) {
-                let _ = write!(text, " with base power and toughness {p}/{q}");
-            }
-            if !keywords.is_empty() {
-                let _ = write!(text, " with {}", keywords_list(keywords));
+            // "a Dragon with base power and toughness 4/4, flying, and
+            // haste" (Bogardan Dragonheart): one list.
+            if let (Some((p, q)), true) = (pt, base)
+                && !keywords.is_empty()
+            {
+                let mut items = vec![format!("base power and toughness {p}/{q}")];
+                items.extend(
+                    keywords
+                        .iter()
+                        .filter(|k| !is_restriction(**k))
+                        .map(|k| keyword_name(*k).to_string()),
+                );
+                let _ = write!(text, " with {}", list(&items));
+            } else {
+                if let (Some((p, q)), true) = (pt, base) {
+                    let _ = write!(text, " with base power and toughness {p}/{q}");
+                }
+                if !keywords.is_empty() {
+                    let _ = write!(text, " with {}", keywords_list(keywords));
+                }
             }
             if *in_addition {
                 let their = if plural { "their" } else { "its" };
@@ -9653,6 +9700,27 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "at the beginning of each combat".to_string()
         }
         Trigger::EachPlayersEndStep => "at the beginning of each player's end step".to_string(),
+        // "Whenever another creature or artifact you control is put into a
+        // graveyard from the battlefield" (Forgehammer Centurion), "When
+        // enchanted artifact is put into a graveyard" (Viridian Harvest).
+        Trigger::PutInGraveyard {
+            obj,
+            from_battlefield,
+        } => {
+            let t = trigger_text(&Trigger::Dies(obj.clone()), ctx, next);
+            let base = t
+                .strip_suffix(" is put into a graveyard from the battlefield")
+                .or_else(|| t.strip_suffix(" dies"))
+                .unwrap_or(&t);
+            format!(
+                "{base} is put into a graveyard{}",
+                if *from_battlefield {
+                    " from the battlefield"
+                } else {
+                    ""
+                }
+            )
+        }
         Trigger::EveryStep(step) => {
             let name = step_name(*step, Who::You);
             format!(
@@ -12568,7 +12636,11 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 } else {
                     "it"
                 },
-                if *z == mtg_core::state::Zone::Graveyard {
+                // "if it was cast from your graveyard" (a permanent's own
+                // trigger, Rocket-Powered Goblin Glider).
+                if *z == mtg_core::state::Zone::Graveyard && !is_instant_or_sorcery(card) {
+                    "your graveyard"
+                } else if *z == mtg_core::state::Zone::Graveyard {
                     "a graveyard"
                 } else {
                     "exile"

@@ -2717,6 +2717,14 @@ pub enum Trigger {
     /// player's end step" (`each end step` prints "the end step"); the
     /// same trigger.
     EachPlayersEndStep,
+    /// `whenever creature or artifact you control is put into a graveyard
+    /// from the battlefield`, `when enchanted artifact is put into a
+    /// graveyard`: the `Dies` trigger worded so whatever the filter
+    /// ("dies" prints only for creatures). Wording only.
+    PutInGraveyard {
+        obj: TriggerObj,
+        from_battlefield: bool,
+    },
     BeginningOfStep {
         step: Step,
         whose: Who,
@@ -3601,6 +3609,9 @@ pub enum Effect {
         times: Num,
         new_targets: bool,
         except: bool,
+        /// `copy it and new targets`: "copy it and you may choose new
+        /// targets for the copy" (one sentence). Wording only.
+        and_may: bool,
     },
     /// `this becomes a copy of <what> [with exceptions]`; another subject
     /// (`target artifact becomes ...`, `each other creature becomes ...`)

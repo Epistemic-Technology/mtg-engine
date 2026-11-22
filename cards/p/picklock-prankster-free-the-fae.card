@@ -1,0 +1,13 @@
+card "Picklock Prankster // Free the Fae" {
+  oracle_id 22d82f4c-2896-477e-8d20-8fe43acd4ba2
+  layout adventure
+  cost {1}{U}
+  type Creature — Faerie Rogue
+  pt 1/3
+  keywords flying, vigilance
+  face "Free the Fae" {
+    cost {1}{U}
+    type Instant — Adventure
+    spell: mill 4 cards; then put 1 instant, sorcery, or Faerie card from among milled cards into hand chosen
+  }
+}

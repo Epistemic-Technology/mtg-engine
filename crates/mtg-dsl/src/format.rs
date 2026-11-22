@@ -1584,6 +1584,7 @@ impl Fmt {
                 times,
                 new_targets,
                 except,
+                and_may,
             } => {
                 let what = match what {
                     Recipient::TriggeringObject => "that spell".to_string(),
@@ -1593,7 +1594,9 @@ impl Fmt {
                 if *times != Num::N(1) {
                     let _ = write!(s, " times {}", num(*times));
                 }
-                if *new_targets {
+                if *and_may {
+                    s.push_str(" and new targets");
+                } else if *new_targets {
                     s.push_str(" new targets");
                 }
                 if *except {
@@ -3990,6 +3993,18 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::State(c) => format!("when {}", static_cond(c)),
         Trigger::Enters(o) => format!("whenever {} enters", trigger_obj(o)),
         Trigger::Dies(o) => format!("whenever {} dies", trigger_obj(o)),
+        Trigger::PutInGraveyard {
+            obj,
+            from_battlefield,
+        } => format!(
+            "whenever {} is put into a graveyard{}",
+            trigger_obj(obj),
+            if *from_battlefield {
+                " from the battlefield"
+            } else {
+                ""
+            }
+        ),
         Trigger::EachPlayersEndStep => "at beginning of each player's end step".to_string(),
         Trigger::EveryStep(step) => {
             let w = match step {

@@ -2764,6 +2764,7 @@ impl Compiler<'_> {
                 times,
                 new_targets,
                 except,
+                ..
             } => out.push(CoreEffect::CopySpells {
                 what: r(*what),
                 times: *times,
@@ -3609,6 +3610,24 @@ impl Compiler<'_> {
             Effect::RevealIt => out.push(CoreEffect::RevealCard),
             // "If you don't, ..." / "If you can't, ...": the optional or
             // chosen action before it set whether it happened (CR 608.2c).
+            // "If you don't put a card into your hand this way": no card
+            // was (a search that found nothing, a dig that took nothing).
+            Effect::IfYouDont {
+                then,
+                words: crate::ast::DontWords::PutHand | crate::ast::DontWords::DidntPutHand,
+                ..
+            } => {
+                let then = self.sentences(then)?;
+                out.push(CoreEffect::IfThisWay {
+                    cond: mtg_core::card::ThisWayCond {
+                        verb: mtg_core::card::ThisWay::PutInHand,
+                        filter: None,
+                        negated: true,
+                        by_you: true,
+                    },
+                    then,
+                });
+            }
             Effect::IfYouDont { then, .. } => {
                 let effects = self.sentences(then)?;
                 out.push(CoreEffect::Otherwise(effects));
@@ -3883,7 +3902,9 @@ impl Compiler<'_> {
                 TriggerSpec::State(self.pool.intern_condition(c))
             }
             Trigger::Enters(o) => TriggerSpec::Enters(self.trigger_obj(o)),
-            Trigger::Dies(o) => TriggerSpec::Dies(self.trigger_obj(o)),
+            Trigger::Dies(o) | Trigger::PutInGraveyard { obj: o, .. } => {
+                TriggerSpec::Dies(self.trigger_obj(o))
+            }
             Trigger::EveryStep(step) => TriggerSpec::BeginningOfStep {
                 step: *step,
                 whose: Who::Any,

@@ -1,0 +1,7 @@
+card "Courier of Comestibles" {
+  oracle_id 049d8b06-db90-4b9c-8195-d987b3ef1005
+  cost {1}{G}
+  type Creature — Human Citizen
+  pt 1/2
+  triggered when this enters: you may search Food card reveal to hand; if you dont put into hand this way, create 1 "Food"
+}

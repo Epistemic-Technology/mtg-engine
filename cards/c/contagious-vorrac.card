@@ -1,0 +1,7 @@
+card "Contagious Vorrac" {
+  oracle_id 1b6da140-0d91-4fae-a3ee-33e6808acf34
+  cost {2}{G}
+  type Creature — Phyrexian Boar Beast
+  pt 3/3
+  triggered when this enters: dig 4 take land card may revealing rest bottom random; if you didnt put into hand this way, proliferate
+}

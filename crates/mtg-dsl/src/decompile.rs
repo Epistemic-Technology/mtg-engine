@@ -966,6 +966,7 @@ impl Decompiler<'_> {
                 times: *times,
                 new_targets: *new_targets,
                 except: *except,
+                and_may: false,
             },
             CoreEffect::BecomeCopy {
                 of,

@@ -1,0 +1,7 @@
+card "Bogardan Dragonheart" {
+  oracle_id 3f0dc347-adac-428b-8f04-858799e91243
+  cost {2}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  activated sacrifice other creature: until end of turn, this becomes Dragon base 4/4 with flying, haste
+}

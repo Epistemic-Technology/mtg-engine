@@ -8583,13 +8583,15 @@ impl P {
                 } else {
                     Num::N(1)
                 };
-                let new_targets = self.eat_words(&["new", "targets"]);
+                let and_may = self.eat_words(&["and", "new", "targets"]);
+                let new_targets = and_may || self.eat_words(&["new", "targets"]);
                 let except = self.except_clause();
                 Ok(Effect::CopySpells {
                     what,
                     times,
                     new_targets,
                     except,
+                    and_may,
                 })
             }
             "counter" => {
@@ -12389,15 +12391,19 @@ impl P {
                 Ok(Trigger::DealtDamage(obj))
             }
             "is" => {
-                self.expect_words(&[
-                    "put",
-                    "into",
-                    "a",
-                    "graveyard",
-                    "from",
-                    "the",
-                    "battlefield",
-                ])?;
+                self.expect_words(&["put", "into", "a", "graveyard"])?;
+                let from_battlefield = self.eat_words(&["from", "the", "battlefield"]);
+                // A filter keeps the wording ("Whenever another creature
+                // or artifact you control is put into a graveyard ...").
+                if matches!(obj, TriggerObj::Filter(_)) {
+                    return Ok(Trigger::PutInGraveyard {
+                        obj,
+                        from_battlefield,
+                    });
+                }
+                if !from_battlefield {
+                    return self.unexpected("`from the battlefield`");
+                }
                 Ok(Trigger::Dies(obj))
             }
             "leaves" if self.at_words(&["the", "battlefield"]) => {

@@ -1790,9 +1790,18 @@ impl GameState {
     /// "If a creature card was exiled this way" (CR 608.2c): what the
     /// resolution, or the costs paid for it, did.
     pub(super) fn this_way_holds(&self, ctx: &EffectCtx, cond: &crate::card::ThisWayCond) -> bool {
+        // "If you didn't put a card into your hand this way" (no filter,
+        // negated): nothing moved so.
+        let nothing = cond.negated && cond.filter.is_none();
         let Some(log) = &self.this_way else {
-            return false;
+            return nothing;
         };
+        if nothing {
+            return !log
+                .moved
+                .iter()
+                .any(|m| m.is(cond.verb) && (!cond.by_you || m.owner == ctx.controller));
+        }
         log.moved.iter().any(|m| {
             m.is(cond.verb)
                 && (!cond.by_you || m.owner == ctx.controller)

@@ -1,0 +1,8 @@
+card "Forgehammer Centurion" {
+  oracle_id fa519a46-11ab-4ab8-9286-904ce2746c03
+  cost {2}{R}
+  type Creature — Phyrexian Warrior
+  pt 3/2
+  triggered whenever other creature or artifact you control is put into a graveyard from the battlefield: put 1 oil counter on this
+  triggered whenever this attacks: you may remove 2 oil counter from this; when you do, target creature gains can't block
+}

@@ -1,0 +1,9 @@
+card "Jeong Jeong, the Deserter" {
+  oracle_id 2158c73d-421b-4c94-af06-dd89cb8d3126
+  cost {2}{R}
+  type Legendary Creature — Human Rebel Ally
+  pt 2/3
+  short_name "Jeong Jeong"
+  firebending 1
+  exhaust {3}: put 1 +1/+1 counter on this; delayed this: when next you cast Lesson spell this turn, copy it and new targets
+}
