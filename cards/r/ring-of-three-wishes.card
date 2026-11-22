@@ -1,0 +1,7 @@
+card "Ring of Three Wishes" {
+  oracle_id 677c3616-295f-493a-8b60-1e22b0224cfa
+  cost {5}
+  type Artifact
+  enters with 3 wish counters
+  activated {5}, {T}, remove 1 wish counters from this: search card to hand that card
+}

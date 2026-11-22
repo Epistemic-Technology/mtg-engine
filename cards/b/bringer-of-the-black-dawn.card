@@ -1,0 +1,9 @@
+card "Bringer of the Black Dawn" {
+  oracle_id a9f98ad5-e8d4-4142-a19f-3368b85d1c95
+  cost {7}{B}{B}
+  type Creature — Bringer
+  pt 5/5
+  alternative cost {W}{U}{B}{R}{G}
+  keyword trample
+  triggered at beginning of your upkeep: you may pay 2 life; if you do, search card to top that card
+}

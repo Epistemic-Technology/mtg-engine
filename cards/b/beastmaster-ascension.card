@@ -1,0 +1,7 @@
+card "Beastmaster Ascension" {
+  oracle_id 11b5308d-5bc0-4782-875f-a28be36e665d
+  cost {2}{G}
+  type Enchantment
+  triggered whenever creature you control attacks: you may put 1 quest counters on this
+  static as long as this has 7 or more quest counters, creature you control: +5/+5
+}

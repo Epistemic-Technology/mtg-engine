@@ -1,0 +1,7 @@
+card "Pyramid of the Pantheon" {
+  oracle_id efc66685-94cf-4d3f-82e0-9967c6ab2e5c
+  cost {1}
+  type Artifact
+  activated {2}, {T}: add any; put 1 brick counters on this
+  activated {T}, if there are 3 or more brick counters on this: add any 3
+}

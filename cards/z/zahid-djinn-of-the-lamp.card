@@ -1,0 +1,8 @@
+card "Zahid, Djinn of the Lamp" {
+  oracle_id 89b07037-64df-4e66-acd8-87d97df61e3a
+  cost {4}{U}{U}
+  type Legendary Creature — Djinn
+  pt 5/6
+  alternative cost {3}{U}, tap untapped artifact you control
+  keyword flying
+}
