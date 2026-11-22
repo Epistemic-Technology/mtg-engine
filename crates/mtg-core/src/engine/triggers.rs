@@ -1021,6 +1021,17 @@ impl GameState {
                 (ok && c.attackers.len() >= usize::from(*min))
                     .then_some((this.then_some(*attacker), Some(w.controller)))
             }
+            (TriggerSpec::PlayerAttacksWith { whose, min }, Event::Attack { attacker, .. }) => {
+                // Once per declaration, on the first attacker declared.
+                let c = self.combat.as_ref()?;
+                if c.attackers.first().is_none_or(|a| a.id != *attacker)
+                    || c.attackers.len() < usize::from(*min)
+                {
+                    return None;
+                }
+                let p = self.objects.get(*attacker)?.controller;
+                whose_ok(*whose, p).then_some((None, Some(p)))
+            }
             (TriggerSpec::AttacksAlone(what), Event::Attack { attacker, .. }) => {
                 // CR 506.5: the only creature declared as an attacker.
                 let alone = self.combat.as_ref().is_some_and(|c| c.attackers.len() == 1);

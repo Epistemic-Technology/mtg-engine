@@ -3916,6 +3916,10 @@ impl Compiler<'_> {
                 this: false,
                 min: 1,
             },
+            Trigger::PlayerAttacksWith { whose, min } => TriggerSpec::PlayerAttacksWith {
+                whose: *whose,
+                min: *min,
+            },
             Trigger::AttacksWith { this, min } => TriggerSpec::AttacksWith {
                 this: *this,
                 min: *min,

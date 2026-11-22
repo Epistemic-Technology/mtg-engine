@@ -5479,6 +5479,11 @@ pub enum TriggerSpec {
     /// at least `min` creatures (with `this`, the source among them)
     /// attack.
     AttacksWith { this: bool, min: u8 },
+    /// "Whenever a player attacks with three or more creatures" (CR
+    /// 508.1m): once per declaration of attackers by a player matching
+    /// `whose`, when at least `min` creatures attack; that player is the
+    /// triggering player.
+    PlayerAttacksWith { whose: Who, min: u8 },
     /// "Whenever this creature attacks and isn't blocked" (CR 509.1h): as
     /// blockers are declared, an attacking creature no creature blocks.
     AttacksUnblocked(TriggerObj),
@@ -5971,6 +5976,7 @@ impl TriggerSpec {
             | TriggerSpec::AttacksBattle(_)
             | TriggerSpec::AttacksAlone(_)
             | TriggerSpec::AttacksWith { .. }
+            | TriggerSpec::PlayerAttacksWith { .. }
             | TriggerSpec::AttacksWithFilter { .. } => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
             | TriggerSpec::BecomesBlocked(_)

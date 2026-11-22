@@ -12157,6 +12157,21 @@ impl P {
                 min: u8::try_from(min).unwrap_or(u8::MAX),
             });
         }
+        // "Whenever a player attacks with three or more creatures".
+        for (words, whose) in [
+            (&["a", "player", "attacks", "with"][..], Who::Any),
+            (&["an", "opponent", "attacks", "with"][..], Who::Opponents),
+        ] {
+            if self.at_words(words) && matches!(self.peek_at(4), Some(Tok::Num(_))) {
+                self.pos += 4;
+                let n = self.number()?;
+                self.expect_words(&["or", "more", "creatures"])?;
+                return Ok(Trigger::PlayerAttacksWith {
+                    whose,
+                    min: u8::try_from(n).unwrap_or(u8::MAX),
+                });
+            }
+        }
         // Battalion: "this and at least 2 other creatures attack".
         if self.eat_words(&["this", "and", "at", "least"]) {
             let n = self.number()?;

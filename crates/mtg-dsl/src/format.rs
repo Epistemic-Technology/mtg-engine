@@ -4015,6 +4015,14 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
         }
+        Trigger::PlayerAttacksWith { whose, min } => format!(
+            "whenever {} attacks with {min} or more creatures",
+            if *whose == Who::Opponents {
+                "an opponent"
+            } else {
+                "a player"
+            }
+        ),
         Trigger::AttacksWith { this: false, min } => {
             format!("whenever you attack with {min} or more creatures")
         }

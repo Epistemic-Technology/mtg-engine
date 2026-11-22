@@ -1,0 +1,7 @@
+card "Bartered Cow" {
+  oracle_id 33d42811-686d-4aca-bb3b-086de453ddaf
+  cost {3}{W}
+  type Creature — Ox
+  pt 3/3
+  triggered when this dies and when you discard this: create 1 "Food"
+}

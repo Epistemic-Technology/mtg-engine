@@ -1,0 +1,6 @@
+card "Witch's Cottage" {
+  oracle_id 6c8f276e-4e7b-4974-ab02-9356cc0ffb2b
+  type Land — Swamp
+  enters tapped unless you control 3 other Swamp
+  triggered when this enters while this is untapped: you may put target creature card from your graveyard on top of library
+}

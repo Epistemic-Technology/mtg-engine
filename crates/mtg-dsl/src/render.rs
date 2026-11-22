@@ -9526,6 +9526,15 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::CreaturesYouControlAttack => {
             "whenever one or more creatures you control attack".to_string()
         }
+        Trigger::PlayerAttacksWith { whose, min } => format!(
+            "whenever {} attacks with {} or more creatures",
+            if *whose == Who::Opponents {
+                "an opponent"
+            } else {
+                "a player"
+            },
+            count_words(Num::N(u32::from(*min)), "one")
+        ),
         Trigger::AttacksWith { this: false, min } => format!(
             "whenever you attack with {} or more creatures",
             count_words(Num::N(u32::from(*min)), "one")

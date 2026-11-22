@@ -2711,6 +2711,12 @@ pub enum Trigger {
         this: bool,
         min: u8,
     },
+    /// `whenever a player attacks with 3 or more creatures`, `whenever an
+    /// opponent attacks with 2 or more creatures`.
+    PlayerAttacksWith {
+        whose: Who,
+        min: u8,
+    },
     /// `whenever one or more creatures you control attack`: the older
     /// wording of `whenever you attack` (CR 508.1m), the same trigger.
     CreaturesYouControlAttack,

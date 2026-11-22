@@ -1,0 +1,6 @@
+card "Dwarven Mine" {
+  oracle_id 74ed0bd3-ac31-41a4-8220-d8e7c8c1c437
+  type Land — Mountain
+  enters tapped unless you control 3 other Mountain
+  triggered when this enters while this is untapped: create 1 "1/1 red Dwarf creature"
+}
