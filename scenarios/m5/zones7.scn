@@ -439,3 +439,45 @@ scenario "reanimate: The Cruelty of Gix read ahead to chapter III" {
   assert battlefield A contains "Hill Giant"
   assert graveyard A contains "The Cruelty of Gix"
 }
+
+# "Return two target creature cards that share a creature type from your
+# graveyard to your hand." (CR 205.3m; a changeling has every creature
+# type, CR 702.73a).
+
+scenario "share a creature type: Unbury returns two Bears" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Grizzly Bears", "Hill Giant"
+  hand A: "Unbury"
+  turn 1 A: cast "Unbury" mode 2 targeting oldest "Grizzly Bears", newest "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains 2 "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "share a creature type: a Bear and a Giant can't be chosen together" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Return from Extinction"
+  illegal turn 1 A: cast "Return from Extinction" mode 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "share a creature type: a changeling shares one with a Giant" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Changeling Outcast", "Hill Giant"
+  hand A: "Raise the Draugr"
+  turn 1 A: cast "Raise the Draugr" mode 2 targeting "Changeling Outcast", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Changeling Outcast"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "share a creature type: the first mode returns one creature card" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Raise the Draugr"
+  turn 1 A: cast "Raise the Draugr" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}

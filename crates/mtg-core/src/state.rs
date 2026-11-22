@@ -1242,6 +1242,26 @@ impl Characteristics {
         self.keywords.contains(k)
     }
 
+    /// Shares a creature type with `other` (CR 205.3m); a changeling has
+    /// every creature type (CR 702.73a).
+    pub fn shares_creature_type(&self, other: &Characteristics) -> bool {
+        let all = |c: &Characteristics| {
+            c.has(Keyword::Changeling)
+                || c.subtypes
+                    .contains(&crate::card::Subtype::ALL_CREATURE_TYPES)
+        };
+        let some = |c: &Characteristics| all(c) || c.subtypes.iter().any(|s| s.is_creature_type());
+        if all(self) {
+            return some(other);
+        }
+        if all(other) {
+            return some(self);
+        }
+        self.subtypes
+            .iter()
+            .any(|s| s.is_creature_type() && other.subtypes.contains(s))
+    }
+
     /// Has this subtype; a changeling has every creature type (CR 702.73a).
     pub fn has_subtype(&self, s: crate::card::Subtype) -> bool {
         self.subtypes.contains(&s)
@@ -4297,7 +4317,7 @@ impl GameState {
             // (`that_player_ok`).
             Some(crate::card::Same {
                 of: crate::card::SameOf::Target(_),
-                what: crate::card::SameWhat::SharesType,
+                what: crate::card::SameWhat::SharesType | crate::card::SameWhat::SharesCreatureType,
             }) => {
                 let mut g = f.clone();
                 g.same = None;
@@ -4509,6 +4529,26 @@ impl GameState {
             return true;
         };
         let filter = self.pool.filter(f);
+        // "two target creature cards that share a creature type": against
+        // the earlier target, as it is or last existed.
+        if let Some(crate::card::Same {
+            of: crate::card::SameOf::Target(n),
+            what: crate::card::SameWhat::SharesCreatureType,
+        }) = filter.same
+            && let Some(Target::Object(other)) = targets.get(usize::from(n))
+            && let Target::Object(id) = t
+            && *other != id
+        {
+            let (Some(a), Some(b)) = (
+                self.characteristics_or_lki(id),
+                self.characteristics_or_lki(*other),
+            ) else {
+                return false;
+            };
+            if !a.shares_creature_type(&b) {
+                return false;
+            }
+        }
         // "two target permanents that share a card type": against the
         // earlier target, as it is or last existed.
         if let Some(

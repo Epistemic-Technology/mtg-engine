@@ -3746,6 +3746,7 @@ pub fn same_ref(r: crate::ast::SameRef) -> String {
         SameRef::SameNameAs(n) => format!("with same name as target {}", n + 1),
         SameRef::SharesColorWith(n) => format!("that shares color with target {}", n + 1),
         SameRef::ShareCardType => "that share card type".to_string(),
+        SameRef::ShareCreatureType => "that share creature type".to_string(),
         SameRef::LesserPower => "with lesser power".to_string(),
         SameRef::ManaValueAtMostPower => "with mana value at most this power".to_string(),
     }

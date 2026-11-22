@@ -1047,7 +1047,11 @@ control of two target creatures."; `exchange control of 2 target nonland
 permanent that share card type` prints "... two target nonland permanents
 that share a card type." (`that share card type`, in the spell's first
 target spec: each target must share a card type with the first, as
-chosen and as the spell resolves); `exchange control of this and target
+chosen and as the spell resolves; `return 2 target creature that share
+creature type card from your graveyard to hand`: "Return two target
+creature cards that share a creature type from your graveyard to your
+hand.", each sharing a creature type with the first, a changeling every
+one, CR 702.73a); `exchange control of this and target
 nonland permanent`, `exchange control of target land you control and
 target land an opponent controls` name the two. Nothing happens unless
 both are still on the battlefield (CR 701.12a) under different

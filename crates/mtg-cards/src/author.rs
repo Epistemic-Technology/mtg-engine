@@ -2324,6 +2324,20 @@ impl Templates {
                     Some(format!("exchange control of 2 target {}", cap(c, 1)))
                 },
             ),
+            // CR 205.3m: "Return two target creature cards that share a
+            // creature type from your graveyard to your hand."
+            (
+                r(
+                    r"^Return two target (creature|[A-Z][a-z]+) cards that share a creature type from your graveyard to your hand$",
+                ),
+                |c, t| {
+                    *t += 2;
+                    Some(format!(
+                        "return 2 target {} that share creature type card from your graveyard to hand",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             // CR 205.2a: "two target permanents that share a card type".
             (
                 r(

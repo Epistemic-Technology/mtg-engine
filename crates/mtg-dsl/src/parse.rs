@@ -11843,6 +11843,13 @@ impl P {
                     self.pos += 4;
                     f.same = Some(SameRef::ShareCardType);
                 }
+                "that"
+                    if self.at_words(&["that", "share", "creature", "type"])
+                        && f.same.is_none() =>
+                {
+                    self.pos += 4;
+                    f.same = Some(SameRef::ShareCreatureType);
+                }
                 // "with lesser power" (mentor, CR 702.134a).
                 "with" if self.at_words(&["with", "lesser", "power"]) && f.same.is_none() => {
                     self.pos += 3;

@@ -1,0 +1,9 @@
+card "Unbury" {
+  oracle_id e2928d3c-b64a-443e-a1c1-fd204bb098ba
+  cost {1}{B}
+  type Instant
+  choose one {
+    mode: return target creature card from your graveyard to hand
+    mode: return 2 target creature that share creature type card from your graveyard to hand
+  }
+}

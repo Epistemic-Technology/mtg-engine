@@ -5643,10 +5643,10 @@ impl GameState {
         // earlier target too.
         let shares = matches!(
             self.pool.base_spec(spec),
-            TargetSpec::Filtered(f) if matches!(
+            TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. } if matches!(
                 self.pool.filter(f).same,
                 Some(crate::card::Same {
-                    what: crate::card::SameWhat::SharesType,
+                    what: crate::card::SameWhat::SharesType | crate::card::SameWhat::SharesCreatureType,
                     ..
                 })
             )

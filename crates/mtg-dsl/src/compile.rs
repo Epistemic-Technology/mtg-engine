@@ -1637,7 +1637,10 @@ impl Compiler<'_> {
             // source.
             relation: match f.same {
                 Some(
-                    SameRef::SameNameAs(_) | SameRef::SharesColorWith(_) | SameRef::ShareCardType,
+                    SameRef::SameNameAs(_)
+                    | SameRef::SharesColorWith(_)
+                    | SameRef::ShareCardType
+                    | SameRef::ShareCreatureType,
                 ) => Relation::Any,
                 _ => f.relation,
             },
@@ -1662,6 +1665,10 @@ impl Compiler<'_> {
                     SameRef::ShareCardType => Same {
                         of: target(0),
                         what: SameWhat::SharesType,
+                    },
+                    SameRef::ShareCreatureType => Same {
+                        of: target(0),
+                        what: SameWhat::SharesCreatureType,
                     },
                     SameRef::SharesColorWith(n) => Same {
                         of: target(n),

@@ -1061,6 +1061,9 @@ pub enum SameRef {
     /// "two target nonland permanents that share a card type" (each
     /// shares one with the first).
     ShareCardType,
+    /// `that share creature type`: "that share a creature type" (with the
+    /// first target).
+    ShareCreatureType,
     /// `with lesser power`: "with lesser power" (than the source's power,
     /// as it is or last existed; mentor, CR 702.134a).
     LesserPower,

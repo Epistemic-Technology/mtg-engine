@@ -2812,6 +2812,10 @@ fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             " that {} a card type",
             if plural_form { "share" } else { "shares" }
         ),
+        Some(SameRef::ShareCreatureType) => format!(
+            " that {} a creature type",
+            if plural_form { "share" } else { "shares" }
+        ),
     }
 }
 

@@ -1420,6 +1420,10 @@ pub enum SameWhat {
     /// Shares a card type (CR 205.2a: "two target permanents that share a
     /// card type").
     SharesType,
+    /// Shares a creature type (CR 205.3m; a changeling has every one, CR
+    /// 702.73a): "two target creature cards that share a creature type".
+    /// Only a relation between targets (`GameState::that_player_ok`).
+    SharesCreatureType,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1580,6 +1584,8 @@ impl ObjFilter {
                 f.named = Some((CardRef(u32::MAX), true));
             }
             SameWhat::SharesType => f.any_types = types,
+            // Judged against the other target (`that_player_ok`).
+            SameWhat::SharesCreatureType => {}
         }
         f
     }
