@@ -11713,6 +11713,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                     count_words(Num::N(*n), "one"),
                     kind.name()
                 )
+            } else if *n > 0 {
+                // "it has two or fewer oil counters on it".
+                format!(
+                    "{} has {} or fewer {} counters on it",
+                    this_ref(card),
+                    count_words(Num::N(*n), "one"),
+                    kind.name()
+                )
             } else {
                 format!(
                     "there are no {} counters on this {}",
@@ -12093,6 +12101,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 or_more(*at_least)
             )
         }
+        StaticCond::Not(a) => format!("not ({})", static_cond_text(a, card)),
         StaticCond::Or(a, b) => format!(
             "{} or {}",
             static_cond_text(a, card),
@@ -12208,6 +12217,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             } else {
                 format!("enchanted {}", enchanted_noun(card))
             };
+            // "As long as you control enchanted creature".
+            if *f
+                == (Filter {
+                    who: Some(Who::You),
+                    ..Default::default()
+                })
+            {
+                return format!("you control {noun}");
+            }
             let pred = is_predicate(f, card);
             // "if enchanted creature has toxic" (Maze's Mantle).
             match pred.strip_prefix("a permanent with ") {
@@ -12408,7 +12426,12 @@ fn is_predicate(f: &Filter, card: &Card) -> String {
             .collect::<Vec<_>>()
             .join(" ");
     }
-    target_predicate(f, card)
+    let p = target_predicate(f, card);
+    // "as long as it's a Detective you control" (Burden of Proof).
+    if f.who == Some(Who::You) && !p.contains("you control") {
+        return format!("{p} you control");
+    }
+    p
 }
 
 /// Whether a condition is about the source ("it's attacking"), printed
@@ -12595,10 +12618,29 @@ fn conditional_static(
         let stem = body.strip_suffix('.').unwrap_or(body);
         // "This creature has flying as long as it has a +1/+1 counter on
         // it."
-        if matches!(c, StaticCond::SourceCounters { at_least: true, .. })
+        if matches!(c, StaticCond::SourceCounters { at_least, n, .. } if *at_least || *n > 0)
             && body.starts_with(&capitalize(&this_ref(card)))
         {
             cond = cond.replacen(&format!("{} has", this_ref(card)), "it has", 1);
+        }
+        // "Equipped creature has deathtouch during your turn."
+        if *c == StaticCond::DuringYourTurn {
+            return format!("{stem} during your turn.");
+        }
+        // "Enchanted creature gets +2/+2 as long as it's a Vampire."
+        if let StaticCond::AttachedIs(_) = c {
+            for noun in [
+                "equipped creature".to_string(),
+                format!("enchanted {}", enchanted_noun(card)),
+            ] {
+                if lowercase_first(body).starts_with(&format!("{noun} ")) {
+                    if let Some(rest) = cond.strip_prefix(&format!("{noun} is ")) {
+                        cond = format!("it's {rest}");
+                    } else if let Some(rest) = cond.strip_prefix(&format!("{noun} ")) {
+                        cond = format!("it {rest}");
+                    }
+                }
+            }
         }
         format!("{stem} as long as {cond}.")
     }
@@ -12998,12 +13040,35 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             replacement_text(r, &mut ctx, false)
         }
+        // "Otherwise, it gets -2/-2." (CR 611.3a): the same objects, the
+        // subject named again as "it".
+        Ability::Static {
+            filter, otherwise, ..
+        } if !otherwise.is_empty() => {
+            let mut main = a.clone();
+            if let Ability::Static { otherwise, .. } = &mut main {
+                otherwise.clear();
+            }
+            let main = ability_text(card, &main, lookup);
+            let other = static_text(filter, otherwise, card, lookup);
+            let subjects = [
+                "Equipped creature ".to_string(),
+                format!("Enchanted {} ", enchanted_noun(card)),
+                format!("{} ", capitalize(&this_ref(card))),
+            ];
+            let other = subjects
+                .iter()
+                .find_map(|s| other.strip_prefix(s.as_str()))
+                .map_or_else(|| lowercase_first(&other), |rest| format!("it {rest}"));
+            format!("{main} Otherwise, {other}")
+        }
         Ability::Static {
             filter,
             mods,
             condition,
             cond_first,
             cond_if,
+            ..
         } => {
             let mut body = static_text(filter, mods, card, lookup);
             // "This creature doesn't untap during your untap step if ..."

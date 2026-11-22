@@ -1069,6 +1069,7 @@ impl Compiler<'_> {
                     condition: Some(cond.clone()),
                     cond_first: false,
                     cond_if: false,
+                    otherwise: Vec::new(),
                 };
                 b = b.ability(self.ability(&set)?);
                 band = Some(cond);
@@ -1083,6 +1084,7 @@ impl Compiler<'_> {
                         condition: Some(cond.clone()),
                         cond_first: false,
                         cond_if: false,
+                    otherwise: Vec::new(),
                     })?
                 } else {
                     let compiled = self.ability(a)?;
@@ -1101,6 +1103,7 @@ impl Compiler<'_> {
                             condition: Some(cond.clone()),
                             cond_first: false,
                             cond_if: false,
+                    otherwise: Vec::new(),
                         })?
                     }
                 };
@@ -1209,6 +1212,25 @@ impl Compiler<'_> {
             }
             let compiled = self.ability(a)?;
             b = b.ability(compiled);
+            // "Otherwise, it gets -2/-2." (CR 611.3a): a second static
+            // ability on the same objects while the condition doesn't hold.
+            if let Ability::Static {
+                filter,
+                condition: Some(c),
+                otherwise,
+                ..
+            } = a
+                && !otherwise.is_empty()
+            {
+                b = b.ability(self.ability(&Ability::Static {
+                    filter: filter.clone(),
+                    mods: otherwise.clone(),
+                    condition: Some(StaticCond::Not(Box::new(c.clone()))),
+                    cond_first: false,
+                    cond_if: false,
+                    otherwise: Vec::new(),
+                })?);
+            }
             // "Equip—Pay {3} or discard a card.": the second equip ability.
             if let Ability::EquipOr { other, targets, .. } = a {
                 b = b.ability(self.ability(&equip_ability((**other).clone(), targets))?);
@@ -1894,6 +1916,7 @@ impl Compiler<'_> {
                 filter: self.filter(filter),
                 at_least: *at_least,
             },
+            StaticCond::Not(a) => StaticCondition::Not(Box::new(self.static_cond(a))),
             StaticCond::Or(a, b) | StaticCond::OrIf(a, b) => {
                 StaticCondition::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
@@ -5429,6 +5452,7 @@ impl Compiler<'_> {
                     }),
                     cond_first: false,
                     cond_if: false,
+                    otherwise: Vec::new(),
                 });
             }
             Ability::ExtraVote { optional } => AbilityDef::ExtraVote {

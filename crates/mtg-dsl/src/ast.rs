@@ -1215,6 +1215,10 @@ pub enum Ability {
         /// creature can't be blocked if you've cast a historic spell this
         /// turn.") rather than "as long as".
         cond_if: bool,
+        /// `... as long as <cond> otherwise -2/-2`: "Otherwise, it gets
+        /// -2/-2." (CR 611.3a), what applies to the same objects while the
+        /// condition doesn't hold. Empty without a condition.
+        otherwise: Vec<Mod>,
     },
     EntersAsCopy(Filter),
     /// `as this enters choose color`: "As this land enters, choose a
@@ -2138,6 +2142,10 @@ pub enum StaticCond {
     /// `you control Desert or there is Desert card in your graveyard`:
     /// either holds.
     Or(Box<StaticCond>, Box<StaticCond>),
+    /// The other doesn't hold: written only as a static ability's
+    /// `otherwise` (`static enchanted: +2/+2 as long as attached is Vampire
+    /// otherwise -2/-2`).
+    Not(Box<StaticCond>),
     /// `if this is that entered this turn or if you control basic land`
     /// (an activation condition): either holds, printed "... or if ...".
     OrIf(Box<StaticCond>, Box<StaticCond>),

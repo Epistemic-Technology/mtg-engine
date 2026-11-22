@@ -4992,6 +4992,28 @@ impl Builder<'_> {
             self.statements.push(format!("static paired{named}: {rest}"));
             return Ok(());
         }
+        // CR 611.3a: "Enchanted creature gets +2/+2 as long as it's a
+        // Vampire. Otherwise, it gets -2/-2."
+        if let Some(c) = Regex::new(
+            r"^Enchanted creature gets ([+-]\d+/[+-]\d+) as long as it's (?:an? )?([A-Za-z]+)\. Otherwise, it (.+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let made = self
+                .quoted(&format!("Enchanted creature {}.", cap(&c, 3)))
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            let rest = made
+                .strip_prefix("static enchanted: ")
+                .filter(|r| !r.contains(" as long as ") && !r.contains(" if "))
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            self.statements.push(format!(
+                "static enchanted: {} as long as attached is {} otherwise {rest}",
+                cap(&c, 1),
+                cap(&c, 2)
+            ));
+            return Ok(());
+        }
         // CR 702.44a.
         if line == "Sunburst" {
             self.statements.push("sunburst".to_string());

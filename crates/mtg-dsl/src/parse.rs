@@ -2913,9 +2913,27 @@ impl P {
                 let mut cond_if = false;
                 if condition.is_none() && self.eat_words(&["as", "long", "as"]) {
                     condition = Some(self.static_cond()?);
+                } else if condition.is_none() && self.eat_words(&["during", "your", "turn"]) {
+                    // "Equipped creature has deathtouch during your turn."
+                    condition = Some(StaticCond::DuringYourTurn);
                 } else if condition.is_none() && self.eat_word("if") {
                     condition = Some(self.static_cond()?);
                     cond_if = true;
+                }
+                // "Otherwise, it gets -2/-2." (CR 611.3a).
+                let mut otherwise = Vec::new();
+                if condition.is_some() && self.eat_word("otherwise") {
+                    loop {
+                        otherwise.push(self.modification()?);
+                        if self.peek() == Some(&Tok::Comma) {
+                            self.pos += 1;
+                            continue;
+                        }
+                        if self.eat_word("and") {
+                            continue;
+                        }
+                        break;
+                    }
                 }
                 self.end_stmt()?;
                 Ok(Ability::Static {
@@ -2924,6 +2942,7 @@ impl P {
                     condition,
                     cond_first,
                     cond_if,
+                    otherwise,
                 })
             }
             _ => self.unexpected("a statement"),
@@ -3249,13 +3268,13 @@ impl P {
             });
         }
         let n = self.number()?;
-        self.expect_words(&["or", "more"])?;
+        // "as long as it has two or fewer oil counters on it".
+        let at_least = !self.eat_words(&["or", "fewer"]);
+        if at_least {
+            self.expect_words(&["or", "more"])?;
+        }
         let kind = self.counter_kind()?;
-        Ok(StaticCond::SourceCounters {
-            kind,
-            n,
-            at_least: true,
-        })
+        Ok(StaticCond::SourceCounters { kind, n, at_least })
     }
 
     /// After `spent`: `{B}`, `{R}{R}`, `3 red`, `4 mana`, `treasure`.
@@ -3993,6 +4012,14 @@ impl P {
                 false
             };
             return Ok(StaticCond::YourLife { n, at_least });
+        }
+        // "As long as you control enchanted creature" (Mishra's
+        // Domination): the attached object is yours.
+        if self.eat_words(&["you", "control", "attached"]) {
+            return Ok(StaticCond::AttachedIs(Filter {
+                who: Some(Who::You),
+                ..Default::default()
+            }));
         }
         if self.eat_words(&["you", "control"]) {
             if matches!(self.peek(), Some(Tok::Num(1)))

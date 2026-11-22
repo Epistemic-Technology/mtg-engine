@@ -2468,6 +2468,9 @@ pub enum StaticCondition {
     /// Either holds ("you control a Desert or there is a Desert card in
     /// your graveyard").
     Or(Box<StaticCondition>, Box<StaticCondition>),
+    /// The other doesn't hold: a conditional static ability's "Otherwise,
+    /// it gets -2/-2." (CR 611.3a).
+    Not(Box<StaticCondition>),
     /// The condition as the spell was cast ("If you cast this spell during
     /// your main phase", "if you controlled a Mount as you cast this
     /// spell"): judged then and remembered by the spell (the definition's

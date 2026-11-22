@@ -3340,6 +3340,7 @@ impl GameState {
                 .filter(|p| *p != you)
                 .any(|p| count(filter, p) == 0),
             C::Or(a, b) => self.condition_now(a, you, source) || self.condition_now(b, you, source),
+            C::Not(a) => !self.condition_now(a, you, source),
             C::AsCast(_) => self.objects.get(source).is_some_and(|o| o.cast.as_cast()),
             C::DefenderControls { filter, at_least } => self
                 .players_in_game()

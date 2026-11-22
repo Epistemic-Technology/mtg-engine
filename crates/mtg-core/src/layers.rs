@@ -420,6 +420,7 @@ fn condition_reads_pt(cond: &StaticCondition) -> bool {
         StaticCondition::And(a, b) | StaticCondition::Or(a, b) => {
             condition_reads_pt(a) || condition_reads_pt(b)
         }
+        StaticCondition::Not(a) => condition_reads_pt(a),
         _ => false,
     }
 }
@@ -597,6 +598,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::Or(a, b) => {
             static_condition_holds(work, a, source) || static_condition_holds(work, b, source)
         }
+        StaticCondition::Not(a) => !static_condition_holds(work, a, source),
         StaticCondition::YouControlEach(filters) => filters.iter().all(|filter| {
             work.ids.iter().any(|id| {
                 work.on_battlefield(*id)

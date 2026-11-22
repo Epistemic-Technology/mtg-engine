@@ -1,0 +1,7 @@
+card "Phyrexian Boon" {
+  oracle_id a18e6468-b8a2-4681-b8fa-223ab5f3061a
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+1 as long as attached is black otherwise -1/-2
+}

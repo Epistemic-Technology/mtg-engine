@@ -1,0 +1,7 @@
+card "Clutch of Undeath" {
+  oracle_id 5a68c925-db79-44f2-a5c1-5a607298f6cf
+  cost {3}{B}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3 as long as attached is Zombie otherwise -3/-3
+}

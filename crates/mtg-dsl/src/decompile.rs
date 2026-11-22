@@ -572,6 +572,7 @@ impl Decompiler<'_> {
                 at_least: *at_least,
                 wording: crate::ast::GraveyardWording::ThereAre,
             },
+            StaticCondition::Not(a) => StaticCond::Not(Box::new(self.static_cond(a))),
             StaticCondition::Or(a, b) => {
                 StaticCond::Or(Box::new(self.static_cond(a)), Box::new(self.static_cond(b)))
             }
@@ -2501,6 +2502,7 @@ impl Decompiler<'_> {
                 condition: s.condition.as_ref().map(|c| self.static_cond(c)),
                 cond_first: false,
                 cond_if: false,
+                    otherwise: Vec::new(),
             },
             AbilityDef::EntersAsCopy(f) => Ability::EntersAsCopy(self.filter(f)),
             AbilityDef::AsEntersChoose(k) => Ability::AsEntersChoose {

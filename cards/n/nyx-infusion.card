@@ -1,0 +1,7 @@
+card "Nyx Infusion" {
+  oracle_id 52e3bcc0-0c1f-4846-bf52-4af66b7abd6f
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2 as long as attached is enchantment otherwise -2/-2
+}

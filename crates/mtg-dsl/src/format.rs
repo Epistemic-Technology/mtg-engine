@@ -4707,6 +4707,8 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::SourceCounters { kind, n, at_least } => {
             if *at_least {
                 format!("this has {n} or more {} counters", kind.name())
+            } else if *n > 0 {
+                format!("this has {n} or fewer {} counters", kind.name())
             } else {
                 format!("this has no {} counters", kind.name())
             }
@@ -4897,6 +4899,8 @@ fn static_cond(c: &StaticCond) -> String {
             }
         }
         StaticCond::Or(a, b) => format!("{} or {}", static_cond(a), static_cond(b)),
+        // Only an `otherwise` (`Ability::Static`) writes it.
+        StaticCond::Not(a) => static_cond(a),
         StaticCond::OrIf(a, b) => format!("{} or if {}", static_cond(a), static_cond(b)),
         StaticCond::OpponentGraveyard(n) => format!("opponent graveyard {n} or more"),
         StaticCond::ManaValuesInGraveyard(n) => format!("{n} mana values in your graveyard"),
@@ -4914,6 +4918,15 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::AttackingAlone => "attacking alone".to_string(),
         StaticCond::Blocked => "blocked".to_string(),
         StaticCond::BeingBlocked => "being blocked".to_string(),
+        StaticCond::AttachedIs(fl)
+            if *fl
+                == (Filter {
+                    who: Some(Who::You),
+                    ..Default::default()
+                }) =>
+        {
+            "you control attached".to_string()
+        }
         StaticCond::AttachedIs(fl) => format!("attached is {}", filter(fl)),
         StaticCond::DrawnThisTurn(n) => format!("drew {n} this turn"),
         StaticCond::CastThisTurn {
@@ -5377,19 +5390,41 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             condition,
             cond_first,
             cond_if,
+            otherwise,
         } => {
-            let mods = mods
-                .iter()
-                .map(|m| match m {
-                    Mod::AddAbility(a) => match granted_mechanic(a) {
-                        Some(m) => format!("has {m}"),
-                        None => format!("has ability {{ {} }}", nested(a, groups)),
-                    },
-                    other => modification(other),
-                })
-                .collect::<Vec<_>>()
-                .join(", ");
+            let list = |mods: &[Mod]| {
+                mods.iter()
+                    .map(|m| match m {
+                        Mod::AddAbility(a) => match granted_mechanic(a) {
+                            Some(m) => format!("has {m}"),
+                            None => format!("has ability {{ {} }}", nested(a, groups)),
+                        },
+                        other => modification(other),
+                    })
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            };
+            let mut mods = list(mods);
+            // "Otherwise, it gets -2/-2.": after the condition, whichever
+            // way it is written.
+            let tail = if otherwise.is_empty() {
+                String::new()
+            } else {
+                format!(" otherwise {}", list(otherwise))
+            };
             match condition {
+                Some(StaticCond::DuringYourTurn) if !*cond_first => {
+                    let _ = writeln!(
+                        out,
+                        "{indent}static {}: {mods} during your turn{tail}",
+                        filter(fl)
+                    );
+                }
+                Some(_) if *cond_first => mods.push_str(&tail),
+                _ => {}
+            }
+            match condition {
+                Some(StaticCond::DuringYourTurn) if !*cond_first => {}
                 Some(StaticCond::DuringYourTurn) => {
                     let _ = writeln!(
                         out,
@@ -5415,7 +5450,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(c) => {
                     let _ = writeln!(
                         out,
-                        "{indent}static {}: {mods} {} {}",
+                        "{indent}static {}: {mods} {} {}{tail}",
                         filter(fl),
                         if *cond_if { "if" } else { "as long as" },
                         static_cond(c)

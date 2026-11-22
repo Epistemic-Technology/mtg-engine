@@ -1,0 +1,7 @@
+card "Mishra's Domination" {
+  oracle_id ede2354a-64b0-402c-8fbe-9da90f811a9b
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static as long as you control attached, enchanted: +2/+2 otherwise has can't block
+}

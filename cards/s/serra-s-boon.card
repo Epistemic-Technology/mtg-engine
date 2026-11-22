@@ -1,0 +1,7 @@
+card "Serra's Boon" {
+  oracle_id 1521f26b-9972-4e95-9e14-3ccbb078a1c8
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+2 as long as attached is white otherwise -2/-1
+}
