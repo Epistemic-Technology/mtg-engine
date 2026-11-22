@@ -5321,8 +5321,6 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::AttackedOpponent) => {
                     head.push_str(" if attacked opponent");
                 }
-                // Printed by the meld effect itself.
-                Some(mtg_core::card::Condition::MeldPair) => {}
                 Some(mtg_core::card::Condition::Evoked) => head.push_str(" if evoked"),
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
                 Some(mtg_core::card::Condition::NoSpellsLastTurn) => {
@@ -5340,7 +5338,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::TriggerHadCounters) => {
                     head.push_str(" if it had counters");
                 }
-                None => {}
+                // Meld's is printed by the meld effect itself.
+                Some(mtg_core::card::Condition::MeldPair) | None => {}
             }
             body(out, indent, &head, effects, targets, groups);
         }
