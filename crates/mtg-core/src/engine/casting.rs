@@ -9697,6 +9697,7 @@ impl GameState {
                     None => None,
                 };
                 ctx.created_tokens.clear();
+                let sized = self.token_pt.take();
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
                         let n = self.eval_num(*count, ctx);
@@ -9709,6 +9710,21 @@ impl GameState {
                                     && let Some(h) = host
                                 {
                                     self.attach(id, h);
+                                }
+                                // CR 111.3: "an X/X ... token".
+                                if def == *token
+                                    && let Some(v) = sized
+                                    && self.objects[id].zone == Zone::Battlefield
+                                {
+                                    self.effect_on(
+                                        ctx,
+                                        id,
+                                        smallvec::smallvec![Modification::SetPt {
+                                            power: PtValue::Fixed(v),
+                                            toughness: PtValue::Fixed(v),
+                                        }],
+                                        Duration::Permanent,
+                                    );
                                 }
                                 ctx.created = Some(id);
                                 ctx.created_tokens.push(id);
@@ -11341,6 +11357,9 @@ impl GameState {
                 }
                 self.cbump();
                 self.sync_control();
+            }
+            Effect::TokenPtX(n) => {
+                self.token_pt = Some(i32::try_from(self.eval_num(*n, ctx)).unwrap_or(i32::MAX));
             }
             Effect::ExchangeLife { with } => {
                 ctx.did = false;

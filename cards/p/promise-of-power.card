@@ -1,0 +1,10 @@
+card "Promise of Power" {
+  oracle_id fde459b2-f45f-40d2-b328-58f65440f494
+  cost {2}{B}{B}{B}
+  type Sorcery
+  choose one {
+    mode: you draw 5 card, and you lose 5 life
+    mode: create 1 "0/0 black Demon creature with flying" sized count where hand
+  }
+  entwine {4}
+}

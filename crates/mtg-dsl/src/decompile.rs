@@ -683,6 +683,7 @@ impl Decompiler<'_> {
 
     fn sentences(&self, effects: &[CoreEffect]) -> Vec<Sentence> {
         let mut out = Vec::new();
+        let mut sized = None;
         for e in effects {
             // CR 611.2b: one sentence with its duration.
             if let CoreEffect::Lasting { lasting, effects } = e {
@@ -729,6 +730,21 @@ impl Decompiler<'_> {
             {
                 out.push(Sentence::new(vec![Effect::Clash]));
                 out.push(Sentence::new(vec![Effect::IfWonClash(self.sentences(won))]));
+                continue;
+            }
+            // "an X/X ... token, where X is ...": X is fixed first.
+            if let CoreEffect::TokenPtX(n) = e {
+                sized = Some(*n);
+                continue;
+            }
+            if let Some(n) = sized.take()
+                && let CoreEffect::CreateToken { .. } = e
+            {
+                let mut c = self.effect(e);
+                if let Effect::CreateToken { sized, .. } = &mut c {
+                    *sized = Some(n);
+                }
+                out.push(Sentence::new(vec![c]));
                 continue;
             }
             // "create a ... token that's tapped and attacking".
@@ -895,6 +911,7 @@ impl Decompiler<'_> {
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
                 it_has: false,
                 attached: attached.map(r),
+                sized: None,
             },
             CoreEffect::CreateTokenCopy { of, except } => Effect::CreateTokenCopy {
                 of: r(*of),
@@ -1371,6 +1388,7 @@ impl Decompiler<'_> {
             | CoreEffect::Exploit
             | CoreEffect::EnterAttacking
             | CoreEffect::CreatedAttack
+            | CoreEffect::TokenPtX(_)
             | CoreEffect::EnteredAttack
             | CoreEffect::ReturnTransformed
             | CoreEffect::BecomeSaddled => {

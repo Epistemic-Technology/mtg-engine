@@ -3387,13 +3387,13 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::DistributeCounters { count, .. }
         | Effect::AddManaTimes { count, .. }
         | Effect::AddManaCombination { count, .. }
-        | Effect::CreateToken { count, .. }
         | Effect::EmpowerJace { count }
         | Effect::Dig { count, .. }
         | Effect::ExilePlayable { count, .. }
         | Effect::ExileTop { count, .. }
         | Effect::Earthbend { count, .. }
         | Effect::InvestigateCount { count, .. } => vec![*count],
+        Effect::CreateToken { count, sized, .. } => std::iter::once(*count).chain(*sized).collect(),
         Effect::CopySpells { times, .. } => vec![*times],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
@@ -5807,6 +5807,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             who,
             it_has,
             attached,
+            sized,
         } => {
             if !*tapped
                 && who.is_none()
@@ -5820,6 +5821,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             ctx.last_token = Some(token.clone());
             let mut what = token_description(token, *count, *tapped && !*attacking, *it_has, ctx);
+            // "an X/X green Elemental creature token" (the definition's
+            // power and toughness stand for X).
+            if sized.is_some()
+                && let Some(t) = ctx.lookup.get(token)
+                && let Some((p, q)) = t.pt
+            {
+                let pt = format!("{p}/{q} ");
+                if let Some(i) = what.find(&pt) {
+                    what.replace_range(i..i + pt.len(), "X/X ");
+                    // "a X/X" → "an X/X".
+                    if what[..i].ends_with("a ") && !what[..i].ends_with("an ") {
+                        what.insert(i - 1, 'n');
+                    }
+                }
+            }
             // CR 508.4: "a ... token that's tapped and attacking", "two ...
             // tokens that are tapped and attacking".
             if *attacking {

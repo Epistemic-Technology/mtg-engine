@@ -1,0 +1,8 @@
+card "Seed Guardian" {
+  oracle_id 728045bf-0959-44ff-8de9-16ec35fd248f
+  cost {2}{G}{G}
+  type Creature — Elemental
+  pt 3/4
+  keywords reach
+  triggered when this dies: create 1 "0/0 green Elemental creature" sized count where graveyard creature
+}

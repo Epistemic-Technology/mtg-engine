@@ -1,0 +1,7 @@
+card "Tumbleweed Rising" {
+  oracle_id ef574346-1d98-447d-acb6-4d8d53c5f651
+  cost {1}{G}
+  type Sorcery
+  spell: create 1 "0/0 green Elemental creature" sized count where greatest power
+  plot {2}{G}
+}

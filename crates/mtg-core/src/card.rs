@@ -2708,6 +2708,8 @@ pub enum CounterKind {
     Unlock,
     Loot,
     Supply,
+    Possession,
+    Wish,
     /// CR 122.1h: if a permanent with a finality counter on it would be
     /// put into a graveyard from the battlefield, it is exiled instead.
     Finality,
@@ -2757,7 +2759,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 46] = [
+    pub const NAMED: [(&'static str, CounterKind); 48] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2791,6 +2793,8 @@ impl CounterKind {
         ("unlock", CounterKind::Unlock),
         ("loot", CounterKind::Loot),
         ("supply", CounterKind::Supply),
+        ("possession", CounterKind::Possession),
+        ("wish", CounterKind::Wish),
         ("finality", CounterKind::Finality),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
@@ -4318,6 +4322,12 @@ pub enum Effect {
     Airbend {
         what: Recipient,
     },
+    /// "Create an X/X green Elemental creature token, where X is ...":
+    /// fixes X as the effect resolves, before the token exists (CR
+    /// 608.2h); the next `CreateToken`'s tokens of its own definition get
+    /// base power and toughness X/X (CR 111.3: the values the creating
+    /// effect defines; a layer-7b effect from their creation on).
+    TokenPtX(Num),
     /// Exchange control of two permanents (CR 701.12a-b): `a` and `b`, or
     /// the two objects `a` names when `b` is `None` ("two target
     /// creatures"). Nothing happens unless both are still on the

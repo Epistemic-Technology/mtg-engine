@@ -1659,6 +1659,9 @@ pub struct GameState {
     /// While a `TurnLimit::Do` ability resolves: its source and ability,
     /// for its first "you may".
     pub doing_once: Option<(ObjId, crate::card::AbilityId)>,
+    /// "Create an X/X ... token, where X is ...": the X `Effect::TokenPtX`
+    /// fixed just before, for the next `Effect::CreateToken` (CR 111.3).
+    pub token_pt: Option<i32>,
     /// "Activate only once" abilities used (exhaust, CR 702.177a;
     /// power-up, CR 702.193a): never cleared, since the object a new
     /// zone makes is a new object with a new id (CR 400.7).

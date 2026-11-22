@@ -6225,6 +6225,7 @@ impl P {
                         attacking,
                         it_has,
                         attached,
+                        sized,
                         ..
                     } => Ok(Effect::CreateToken {
                         token,
@@ -6234,6 +6235,7 @@ impl P {
                         who: Some(subject),
                         it_has,
                         attached,
+                        sized,
                     }),
                     _ => self.fail("expected a token after `create`"),
                 }
@@ -7902,6 +7904,13 @@ impl P {
                 } else {
                     None
                 };
+                // `sized count where land you control`: "an X/X ...
+                // token, where X is ...".
+                let sized = if self.eat_word("sized") {
+                    Some(self.num()?)
+                } else {
+                    None
+                };
                 Ok(Effect::CreateToken {
                     token,
                     count,
@@ -7910,6 +7919,7 @@ impl P {
                     who: None,
                     it_has,
                     attached,
+                    sized,
                 })
             }
             "attach" => {

@@ -1,0 +1,6 @@
+card "Miming Slime" {
+  oracle_id 50e7f705-c347-440b-8159-81a52bbfbdfb
+  cost {2}{G}
+  type Sorcery
+  spell: create 1 "0/0 green Ooze creature" sized count where greatest power
+}

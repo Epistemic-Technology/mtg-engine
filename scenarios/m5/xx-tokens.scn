@@ -1,0 +1,107 @@
+# X/X tokens (CR 111.3, 608.2h): "Create an X/X ... token, where X is
+# ...": X is fixed as the effect resolves, and the token keeps that size
+# afterwards (counters still apply on top).
+
+scenario "X/X tokens: Tumbleweed Rising copies the greatest power" {
+  battlefield A: 2 "Forest", "Hill Giant", "Grizzly Bears"
+  hand A: "Tumbleweed Rising"
+  turn 1 A: cast "Tumbleweed Rising"
+  run_to turn 1 end
+  assert power "Elemental" 3
+  assert toughness "Elemental" 3
+  assert is "Elemental" green
+}
+
+scenario "X/X tokens: the size stays when the count changes" {
+  battlefield A: 2 "Forest", "Hill Giant", "Mountain"
+  hand A: "Tumbleweed Rising", "Shock"
+  turn 1 A: cast "Tumbleweed Rising"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Shock"
+  assert power "Elemental" 3
+}
+
+scenario "X/X tokens: with no creatures the token is 0/0 and dies" {
+  battlefield A: 2 "Forest"
+  hand A: "Tumbleweed Rising"
+  turn 1 A: cast "Tumbleweed Rising"
+  run_to turn 1 end
+  assert battlefield A lacks "Elemental"
+}
+
+scenario "X/X tokens: Dance of the Tumbleweeds counts lands" {
+  battlefield A: 5 "Forest", "Mountain"
+  hand A: "Dance of the Tumbleweeds"
+  turn 1 A: cast "Dance of the Tumbleweeds" mode 2
+  run_to turn 1 end
+  assert power "Elemental" 6
+  assert toughness "Elemental" 6
+}
+
+scenario "X/X tokens: Unwilling Vessel's Spirit counts its counters" {
+  battlefield A: "Unwilling Vessel" with 3 possession, "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Unwilling Vessel"
+  run_to turn 1 end
+  assert graveyard A contains "Unwilling Vessel"
+  assert power "Spirit" 3
+  assert has "Spirit" flying
+}
+
+scenario "X/X tokens: Unwilling Vessel's Eerie trigger adds a possession counter" {
+  battlefield A: "Unwilling Vessel", 3 "Plains"
+  hand A: "Pacifism"
+  turn 1 A: cast "Pacifism" targeting "Unwilling Vessel"
+  run_to turn 1 end
+  assert counters "Unwilling Vessel" possession 1
+}
+
+scenario "X/X tokens: Slime Molding's X is the spell's X" {
+  battlefield A: 5 "Forest"
+  hand A: "Slime Molding"
+  turn 1 A: cast "Slime Molding" x 4
+  run_to turn 1 end
+  assert power "Ooze" 4
+  assert toughness "Ooze" 4
+}
+
+scenario "X/X tokens: Mask of the Jadecrafter's X is the ability's X" {
+  battlefield A: "Mask of the Jadecrafter", 3 "Forest"
+  turn 1 A: activate "Mask of the Jadecrafter" x 3
+  run_to turn 1 end
+  assert power "Golem" 3
+  assert is "Golem" artifact
+  assert graveyard A contains "Mask of the Jadecrafter"
+}
+
+scenario "X/X tokens: Oviya counts creatures before the Construct exists" {
+  battlefield A: "Oviya Pashiri, Sage Lifecrafter", "Grizzly Bears", 5 "Forest"
+  turn 1 A: activate "Oviya Pashiri, Sage Lifecrafter" ability 2
+  run_to turn 1 end
+  assert power "Construct" 2
+  assert toughness "Construct" 2
+}
+
+scenario "X/X tokens: Seed Guardian counts itself in the graveyard" {
+  battlefield A: "Seed Guardian", "Mountain"
+  graveyard A: "Grizzly Bears", "Forest"
+  hand A: "Lightning Bolt"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Seed Guardian"
+  turn 1 B: cast "Lightning Bolt" targeting "Seed Guardian" in response to "Lightning Bolt"
+  run_to turn 1 end
+  assert graveyard A contains "Seed Guardian"
+  assert power "Elemental" 2
+}
+
+scenario "X/X tokens: Promise of Power's Demon counts cards in hand" {
+  battlefield A: 5 "Swamp"
+  hand A: "Promise of Power", "Island", "Forest", "Mountain"
+  turn 1 A: cast "Promise of Power" mode 2
+  run_to turn 1 end
+  assert power "Demon" 3
+  assert has "Demon" flying
+}

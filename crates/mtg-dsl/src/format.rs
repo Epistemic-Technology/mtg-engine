@@ -1416,6 +1416,7 @@ impl Fmt {
                 who,
                 it_has,
                 attached,
+                sized,
             } => {
                 let mut s = match who {
                     None => String::from("create"),
@@ -1437,6 +1438,9 @@ impl Fmt {
                 }
                 if let Some(a) = attached {
                     let _ = write!(s, " attached to {}", self.recipient(*a, t));
+                }
+                if let Some(n) = sized {
+                    let _ = write!(s, " sized {}", num(*n));
                 }
                 s
             }

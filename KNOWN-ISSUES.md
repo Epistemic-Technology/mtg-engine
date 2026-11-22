@@ -44,6 +44,11 @@ wrong thing in some case.
   embalm and other token makers ignore Parallel Lives, Quina, and the
   like; the replacements' order is fixed (added tokens, then doubling)
   rather than chosen (CR 616.1).
+- **A copy of an X/X token is 0/0.** "Create an X/X ... token, where X
+  is ..." (`sized`, Tumbleweed Rising, Slime Molding) gives the token base
+  power and toughness X/X with a layer-7b effect, not as a copiable value
+  (CR 111.3, 707.2), so a Clone or populate copying it gets the
+  definition's 0/0.
 - **Reflexive trigger on a token:** "it" may read the token where the
   text means the triggering object.
 - **"Triggers an additional time" looks at the battlefield as it is.**

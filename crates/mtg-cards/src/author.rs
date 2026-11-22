@@ -1282,6 +1282,29 @@ impl Templates {
                 token_block(&key)?;
                 Some(format!("create {} \"{key}\"", number(cap(c, 1))?))
             }),
+            // CR 111.3: "Create an X/X green Elemental creature token,
+            // where X is the number of lands you control."
+            (
+                r(
+                    r"^[Cc]reate an X/X ((?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) token((?: with [a-z ,]+)?)(?:, where X is (the number of .+|the greatest power among creatures you control))?$",
+                ),
+                |c, _| {
+                    let key = format!("0/0 {}{}", cap(c, 1), cap(c, 2));
+                    token_block(&key)?;
+                    // Without "where", X is the spell's or ability's X.
+                    let n = match cap(c, 3) {
+                        "" => "x".to_string(),
+                        "the greatest power among creatures you control" => {
+                            "count where greatest power".to_string()
+                        }
+                        s => format!(
+                            "count where {}",
+                            count_expr(s.strip_prefix("the number of ")?)?
+                        ),
+                    };
+                    Some(format!("create 1 \"{key}\" sized {n}"))
+                },
+            ),
             (r(LEGENDARY_TOKEN_PHRASE), |c, _| {
                 let key = format!("{}{}", cap(c, 2), cap(c, 3));
                 legendary_token_block(&key)?;

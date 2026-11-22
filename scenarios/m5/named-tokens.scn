@@ -134,3 +134,18 @@ scenario "named tokens: Kiora without threshold creates nothing" {
   run_to turn 1 postcombat_main
   assert battlefield A lacks "Scion of the Deep"
 }
+
+scenario "named tokens: Kwia makes one Lotus a turn, which taps for three mana of one color" {
+  battlefield A: "Kwia Vigorbloom", 4 "Plains"
+  hand A: "Reaping the Rewards", "Renewed Faith", "Wind Drake"
+  turn 1 A: cast "Reaping the Rewards"
+  turn 1 A: wait
+  turn 1 A: cast "Renewed Faith"
+  run_to turn 1 postcombat_main
+  assert life A 28
+  assert battlefield A contains 1 "Lotus"
+  turn 1 postcombat_main A: cast "Wind Drake"
+  run_to turn 1 end
+  assert battlefield A contains "Wind Drake"
+  assert battlefield A lacks "Lotus"
+}

@@ -1,0 +1,11 @@
+card "Kura, the Boundless Sky" {
+  oracle_id 6426e73a-7e11-48ab-ac5c-15647c6cf9ba
+  cost {3}{G}{G}
+  type Legendary Creature — Dragon Spirit
+  pt 4/4
+  keywords flying, deathtouch
+  triggered when this dies: choose one {
+    mode: search up to 3 land card reveal to hand
+    mode: create 1 "0/0 green Spirit creature" sized count where land you control
+  }
+}

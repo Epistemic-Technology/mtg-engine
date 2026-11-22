@@ -3235,6 +3235,10 @@ pub enum Effect {
         /// `attached to up to 1 target creature you control`: an Aura token
         /// (a Role, CR 303.7) enters attached to it.
         attached: Option<Recipient>,
+        /// `sized <num>`: the token is X/X, X fixed as it is created ("an
+        /// X/X green Elemental creature token, where X is ..."); its
+        /// definition's power and toughness print as "X/X".
+        sized: Option<Num>,
     },
     CreateTokenCopy {
         of: Recipient,

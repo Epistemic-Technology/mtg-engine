@@ -1290,6 +1290,7 @@ impl Compiler<'_> {
             who: Some(R::EachOpponent),
             it_has: false,
             attached: None,
+            sized: None,
         };
         let e = match kind {
             GiftKind::Card => E::DrawCards {
@@ -2310,11 +2311,16 @@ impl Compiler<'_> {
                 attacking,
                 who,
                 attached,
+                sized,
                 ..
             } => {
                 let Some(token_ref) = self.pool.lookup(token) else {
                     return self.err(format!("unknown token \"{token}\""));
                 };
+                // CR 111.3: X fixed before the token exists.
+                if let Some(n) = sized {
+                    out.push(CoreEffect::TokenPtX(*n));
+                }
                 if attached.is_some() && self.pool.get(token_ref).enchant().is_none() {
                     return self.err(format!("token \"{token}\" created attached is not an Aura"));
                 }
@@ -5016,6 +5022,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 who: None,
                 it_has: false,
                 attached: None,
+                sized: None,
             }),
         },
         // CR 702.134a: "Whenever this creature attacks, put a +1/+1
@@ -5061,6 +5068,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         who: None,
                         it_has: false,
                         attached: None,
+                        sized: None,
                     },
                     E::Attach {
                         what: Recipient::Source,
