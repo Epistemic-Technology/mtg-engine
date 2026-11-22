@@ -881,6 +881,7 @@ impl Compiler<'_> {
                         | Ability::Modal(_)
                         | Ability::ModalBoth(_)
                         | Ability::ModalTwo(_)
+                        | Ability::ModalOf(..)
                         | Ability::Spree(_)
                         | Ability::Pawprint { .. }
                 )
@@ -1192,6 +1193,7 @@ impl Compiler<'_> {
                 split: None,
                 split2: None,
                 more: Vec::new(),
+                once: mtg_core::card::ModeOnce::Any,
                 name: m.name.clone(),
             });
         }
@@ -1208,6 +1210,7 @@ impl Compiler<'_> {
                     split: Some((0, u16::try_from(b.targets.len()).unwrap_or(u16::MAX))),
                     split2: Some((u16::try_from(a.effects.len()).unwrap_or(u16::MAX), 0)),
                     more: Vec::new(),
+                    once: mtg_core::card::ModeOnce::Any,
                     name: None,
                 };
             }
@@ -1221,6 +1224,7 @@ impl Compiler<'_> {
                 )),
                 split2: None,
                 more: Vec::new(),
+                once: mtg_core::card::ModeOnce::Any,
                 name: None,
             }
         };
@@ -1268,6 +1272,15 @@ impl Compiler<'_> {
                 let i = self.pool.intern_condition(c);
                 ta.condition = Some(mtg_core::card::Condition::Static(i));
             }
+            // A trigger with an "if" of its own: both.
+            AbilityDef::Triggered(ta)
+                if let Some(mtg_core::card::Condition::Static(j)) = ta.condition =>
+            {
+                let both =
+                    StaticCondition::And(Box::new(c), Box::new(self.pool.condition(j).clone()));
+                let i = self.pool.intern_condition(both);
+                ta.condition = Some(mtg_core::card::Condition::Static(i));
+            }
             AbilityDef::CostChange(cc) if cc.cond.is_none() => {
                 cc.cond = Some(self.pool.intern_condition(c));
             }
@@ -1308,6 +1321,59 @@ impl Compiler<'_> {
         self.sentences(&[Sentence::new(vec![e])])
     }
 
+    /// The modes under another head (CR 700.2). "Choose one or more":
+    /// every nonempty set of the printed modes, the set with bits `b` at
+    /// index `b - 1` (as spree). "Choose up to N": the sets of at most N
+    /// modes in the same order, then no mode at all. "Choose one that
+    /// hasn't been chosen": the printed modes, each chosen at most once
+    /// (`Mode::once`).
+    fn head_modes(
+        &mut self,
+        head: crate::ast::ModeHead,
+        modes: &[crate::ast::Mode],
+    ) -> Result<Vec<CoreMode>, CompileError> {
+        use crate::ast::ModeHead;
+        let mut singles = self.modes(modes, false, false)?;
+        let n = singles.len();
+        let most = match head {
+            ModeHead::Unchosen { this_turn } => {
+                let once = if this_turn {
+                    mtg_core::card::ModeOnce::ThisTurn
+                } else {
+                    mtg_core::card::ModeOnce::Ever
+                };
+                for m in &mut singles {
+                    m.once = once;
+                }
+                return Ok(singles);
+            }
+            ModeHead::OneOrMore => n,
+            ModeHead::UpTo(k) => usize::from(k).min(n),
+        };
+        // The chosen mode is kept in four bits (`CastInfo`).
+        if !(2..=4).contains(&n) {
+            return self.err("`choose one or more` and `choose up to` take two to four modes");
+        }
+        let mut out = Vec::new();
+        for bits in 1..(1usize << n) {
+            if bits.count_ones() as usize > most {
+                continue;
+            }
+            let parts: Vec<&CoreMode> = (0..n)
+                .filter(|i| bits & (1 << i) != 0)
+                .map(|i| &singles[i])
+                .collect();
+            out.push(combined_mode(&parts));
+        }
+        if matches!(head, ModeHead::UpTo(_)) {
+            out.push(combined_mode(&[]));
+        }
+        if out.len() > 16 {
+            return self.err("at most sixteen sets of modes");
+        }
+        Ok(out)
+    }
+
     /// A spree spell's modes (CR 702.172a): every nonempty set of the
     /// printed modes, the set with bits `b` at index `b - 1`, each made of
     /// its modes' targets and effects in printed order (`split`, `split2`
@@ -1332,6 +1398,7 @@ impl Compiler<'_> {
                 split: None,
                 split2: None,
                 more: Vec::new(),
+                once: mtg_core::card::ModeOnce::Any,
                 name: None,
             };
             for (k, p) in parts.iter().enumerate() {
@@ -1399,6 +1466,7 @@ impl Compiler<'_> {
                 split: None,
                 split2: None,
                 more: Vec::new(),
+                once: mtg_core::card::ModeOnce::Any,
                 name: None,
             };
             for (k, i) in set.iter().enumerate() {
@@ -2061,6 +2129,9 @@ impl Compiler<'_> {
             ChoiceKind::LandType(lands) => {
                 CoreChoiceKind::LandType(ColorSet::of(lands.iter().copied()))
             }
+            ChoiceKind::Named(names) => {
+                CoreChoiceKind::Named(u8::try_from(names.len()).unwrap_or(u8::MAX))
+            }
         }
     }
 
@@ -2160,6 +2231,7 @@ impl Compiler<'_> {
                 who: r(*who),
             }),
             Effect::LoseHalfLife { who } => out.push(CoreEffect::LoseHalfLife { who: r(*who) }),
+            Effect::LoseGame { who } => out.push(CoreEffect::LoseGame { who: r(*who) }),
             Effect::DrawCards { count, who } => out.push(CoreEffect::DrawCards {
                 count: *count,
                 who: who.map_or(CoreRecipient::You, r),
@@ -2583,12 +2655,36 @@ impl Compiler<'_> {
             }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),
             Effect::Search {
+                count,
+                up_to,
+                to,
+                graveyard,
+                name,
+                or_card,
+                ..
+            } if (*graveyard || name.is_some())
+                && (*count != Num::N(1)
+                    || *up_to
+                    || *or_card != crate::ast::OrCard::No
+                    || !matches!(
+                        to,
+                        mtg_core::card::SearchTo::Hand
+                            | mtg_core::card::SearchTo::Battlefield { .. }
+                    )) =>
+            {
+                return self.err(
+                    "`search library or graveyard` and `card named \"...\"` find one card for a hand or the battlefield",
+                );
+            }
+            Effect::Search {
                 filter,
                 count,
                 to,
                 reveal,
                 who,
                 may,
+                graveyard,
+                name,
                 ..
             } => out.push(CoreEffect::Search {
                 filter: self.filter(filter),
@@ -2597,6 +2693,8 @@ impl Compiler<'_> {
                 who: who.map_or(CoreRecipient::You, r),
                 may: *may,
                 reveal: *reveal,
+                graveyard: *graveyard,
+                name: name.as_deref().map(Box::from),
             }),
             Effect::Investigate(_) | Effect::Investigates(_) | Effect::InvestigateCount { .. } => {
                 let Some(token) = self.pool.lookup("Clue") else {
@@ -2661,6 +2759,7 @@ impl Compiler<'_> {
                 who,
                 of,
                 hand,
+                both,
                 filter,
                 ..
             } => {
@@ -2668,6 +2767,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::ShuffleIntoLibrary {
                     who: who.or(*of).map_or(CoreRecipient::You, r),
                     hand: *hand,
+                    both: *both,
                     filter,
                 });
             }
@@ -3236,6 +3336,10 @@ impl Compiler<'_> {
             // "Choose two —": the pairs of modes are the modes.
             Effect::ModesTwo(modes) => {
                 let modes = self.modes(modes, false, true)?;
+                out.push(CoreEffect::Modes(modes));
+            }
+            Effect::ModesOf(head, modes) => {
+                let modes = self.head_modes(*head, modes)?;
                 out.push(CoreEffect::Modes(modes));
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
@@ -3935,6 +4039,7 @@ impl Compiler<'_> {
             ),
             Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true, false)?),
             Ability::ModalTwo(modes) => AbilityDef::Modal(self.modes(modes, false, true)?),
+            Ability::ModalOf(head, modes) => AbilityDef::Modal(self.head_modes(*head, modes)?),
             Ability::Spree(modes) => AbilityDef::Modal(self.spree_modes(modes)?),
             Ability::Pawprint { limit, modes } => {
                 AbilityDef::Modal(self.pawprint_modes(*limit, modes)?)
@@ -4165,6 +4270,12 @@ impl Compiler<'_> {
                     at_least: true,
                 });
                 return self.while_holds(a, c, "a station level");
+            }
+            // "• Khans — ...": the ability while that option was chosen as
+            // the permanent entered (CR 614.12).
+            Ability::Labeled { label, ability } if let Some(i) = named_option(self.card, label) => {
+                let a = self.ability(ability)?;
+                return self.while_holds(a, StaticCondition::Chose(i), "a named option");
             }
             Ability::Labeled { ability, .. } => return self.ability(ability),
             Ability::BlockRule(r) => AbilityDef::BlockRule(match r {
@@ -4481,6 +4592,8 @@ impl Compiler<'_> {
                             reveal: true,
                             that_card: false,
                             or_card: crate::ast::OrCard::No,
+                            graveyard: false,
+                            name: None,
                             who: None,
                             may: false,
                         }])],
@@ -5770,4 +5883,59 @@ fn target_index(tmap: TargetMap, i: usize) -> usize {
         _ => i,
     };
     i.saturating_sub(tmap.shift)
+}
+
+/// Modes chosen together, as one mode: their targets and effects in
+/// printed order, each later part's start in `split`, `split2`, `more`.
+/// No parts is choosing no mode ("choose up to one").
+fn combined_mode(parts: &[&CoreMode]) -> CoreMode {
+    let mut m = CoreMode {
+        targets: Vec::new(),
+        effects: Vec::new(),
+        text: String::new(),
+        split: None,
+        split2: None,
+        more: Vec::new(),
+        once: mtg_core::card::ModeOnce::Any,
+        name: None,
+    };
+    for (k, p) in parts.iter().enumerate() {
+        let at = (
+            u16::try_from(m.effects.len()).unwrap_or(u16::MAX),
+            u16::try_from(m.targets.len()).unwrap_or(u16::MAX),
+        );
+        match k {
+            0 => {}
+            1 => m.split = Some(at),
+            2 => m.split2 = Some(at),
+            _ => m.more.push(at),
+        }
+        m.targets.extend(p.targets.iter().copied());
+        m.effects.extend(p.effects.iter().cloned());
+    }
+    m.text = if parts.is_empty() {
+        "no mode".to_string()
+    } else {
+        parts
+            .iter()
+            .map(|p| p.text.as_str())
+            .collect::<Vec<_>>()
+            .join(" and ")
+    };
+    m
+}
+
+/// The index of `label` among the card's "As this enters, choose <A> or
+/// <B>" options, if it is one.
+pub(crate) fn named_option(card: &Card, label: &str) -> Option<u8> {
+    card.abilities.iter().find_map(|a| match a {
+        Ability::AsEntersChoose {
+            kind: ChoiceKind::Named(names),
+            ..
+        } => names
+            .iter()
+            .position(|n| n == label)
+            .and_then(|i| u8::try_from(i).ok()),
+        _ => None,
+    })
 }

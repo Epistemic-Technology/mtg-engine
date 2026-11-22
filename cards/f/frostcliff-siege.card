@@ -1,0 +1,8 @@
+card "Frostcliff Siege" {
+  oracle_id e7af31ff-fa1b-4225-b3bc-fde80ac72d0a
+  cost {1}{U}{R}
+  type Enchantment
+  as this enters choose "Jeskai" or "Temur"
+  label "Jeskai" triggered whenever one or more creature you control deal combat damage to a player: draw 1 card
+  label "Temur" static creature you control: +1/+0, has trample and haste
+}

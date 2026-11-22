@@ -13,8 +13,8 @@ use thiserror::Error;
 use crate::ast::{
     Ability, Affects, AttachedRef, BlockRule, Card, ChoiceKind, Cost, CostItem, DamageWording,
     DieRow, Effect, Except, Filter, InsteadCond, InsteadWording, Join, Kind, LibraryPlace,
-    LibraryWording, Mechanic, Mod, Mode, OfChosen, Recipient, Replacement, Replaces, Restrict,
-    SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    LibraryWording, Mechanic, Mod, Mode, ModeHead, OfChosen, Recipient, Replacement, Replaces,
+    Restrict, SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -793,7 +793,27 @@ impl P {
             suffix(self)?;
             return Ok(ChoiceKind::LandType(Color::ALL.to_vec()));
         }
-        self.unexpected("`color`, `creature type` or `land type`")
+        // `"Khans" or "Dragons"`.
+        if let Some(Tok::Str(_)) = self.peek() {
+            let mut names = Vec::new();
+            loop {
+                match self.peek() {
+                    Some(Tok::Str(s)) => {
+                        names.push(s.clone());
+                        self.pos += 1;
+                    }
+                    _ => return self.fail("expected a quoted option name"),
+                }
+                if !self.eat_word("or") {
+                    break;
+                }
+            }
+            if names.len() < 2 {
+                return self.fail("a choice of named options takes two or more");
+            }
+            return Ok(ChoiceKind::Named(names));
+        }
+        self.unexpected("`color`, `creature type`, `land type` or quoted option names")
     }
 
     fn end_stmt(&mut self) -> R<()> {
@@ -2126,6 +2146,8 @@ impl P {
                         or_card: crate::ast::OrCard::No,
                         who: None,
                         may: false,
+                        graveyard: false,
+                        name: None,
                     }])],
                     equip: false,
                     cycling: true,
@@ -2228,10 +2250,14 @@ impl P {
                 // are chosen on casting (CR 700.2a), not on resolution.
                 let lone_modes = self.targets.is_empty()
                     && matches!(effects.as_slice(), [s] if s.label.is_none()
-                        && matches!(s.effects.as_slice(), [Effect::Modes(_) | Effect::ModesTwo(_)]));
+                        && matches!(s.effects.as_slice(), [Effect::Modes(_) | Effect::ModesTwo(_)
+                            | Effect::ModesOf(ModeHead::OneOrMore | ModeHead::UpTo(_), _)]));
                 if lone_modes {
                     match effects.pop().and_then(|mut s| s.effects.pop()) {
                         Some(Effect::Modes(modes)) => return Ok(Ability::Modal(modes)),
+                        Some(Effect::ModesOf(head, modes)) => {
+                            return Ok(Ability::ModalOf(head, modes));
+                        }
                         // `spell: choose two { ... }`: "Choose two —".
                         Some(Effect::ModesTwo(modes)) => return Ok(Ability::ModalTwo(modes)),
                         _ => unreachable!("checked"),
@@ -2274,6 +2300,17 @@ impl P {
                 Ok(Ability::Spree(modes))
             }
             "choose" => {
+                if let Some((head, n)) = self.peek_mode_head() {
+                    self.pos += n;
+                    let modes = self.modes_block()?;
+                    self.end_stmt()?;
+                    if matches!(head, ModeHead::Unchosen { .. }) {
+                        return self.fail(
+                            "`choose one unchosen` is a triggered or activated ability's effect",
+                        );
+                    }
+                    return Ok(Ability::ModalOf(head, modes));
+                }
                 self.pos += 1;
                 if self.eat_word("two") {
                     let modes = self.modes_block()?;
@@ -2858,6 +2895,33 @@ impl P {
     }
 
     /// `{ mode: <effects> ... }`: each mode with its own targets.
+    /// `choose one or more {`, `choose up to 2 {`, `choose one unchosen
+    /// [this turn] {` at the current position: the head and how many
+    /// words it takes, up to the brace.
+    fn peek_mode_head(&self) -> Option<(ModeHead, usize)> {
+        let w = |i: usize, s: &str| matches!(self.peek_at(i), Some(Tok::Word(x)) if x == s);
+        if !w(0, "choose") {
+            return None;
+        }
+        let (head, n) = if w(1, "one") && w(2, "or") && w(3, "more") {
+            (ModeHead::OneOrMore, 4)
+        } else if w(1, "up") && w(2, "to") {
+            match self.peek_at(3) {
+                Some(Tok::Num(k)) if *k > 0 => (ModeHead::UpTo(u8::try_from(*k).ok()?), 4),
+                _ => return None,
+            }
+        } else if w(1, "one") && w(2, "unchosen") {
+            if w(3, "this") && w(4, "turn") {
+                (ModeHead::Unchosen { this_turn: true }, 5)
+            } else {
+                (ModeHead::Unchosen { this_turn: false }, 3)
+            }
+        } else {
+            return None;
+        };
+        (self.peek_at(n) == Some(&Tok::LBrace)).then_some((head, n))
+    }
+
     fn modes_block(&mut self) -> R<Vec<Mode>> {
         self.expect(&Tok::LBrace)?;
         self.end_stmt()?;
@@ -4945,6 +5009,12 @@ impl P {
             };
             return Ok(Effect::YouMay(inner));
         }
+        // "choose one or more { ... }", "choose up to 1 { ... }", "choose
+        // one unchosen { ... }".
+        if let Some((head, n)) = self.peek_mode_head() {
+            self.pos += n;
+            return Ok(Effect::ModesOf(head, self.modes_block()?));
+        }
         // "choose one { mode: ... }": a modal triggered ability.
         if self.at_words(&["choose", "one"]) && self.peek_at(2) == Some(&Tok::LBrace) {
             self.pos += 2;
@@ -5595,6 +5665,7 @@ impl P {
                     _ => self.fail("`loses all abilities and becomes` takes what it becomes"),
                 }
             }
+            "lose" | "loses" if self.eat_word("game") => Ok(Effect::LoseGame { who: subject }),
             "lose" | "loses" if self.at_words(&["half", "life"]) => {
                 self.pos += 2;
                 Ok(Effect::LoseHalfLife { who: subject })
@@ -5766,6 +5837,8 @@ impl P {
                         reveal,
                         that_card,
                         or_card,
+                        graveyard,
+                        name,
                         ..
                     } => Ok(Effect::Search {
                         filter,
@@ -5777,6 +5850,8 @@ impl P {
                         or_card,
                         who: Some(subject),
                         may,
+                        graveyard,
+                        name,
                     }),
                     _ => self.fail("expected a search"),
                 }
@@ -6645,6 +6720,10 @@ impl P {
         let w = |k: usize| self.word_at(k);
         let zone = |k: usize| matches!(w(k).as_deref(), Some("graveyard" | "hand"));
         (zone(0) && w(1).as_deref() == Some("into"))
+            || (w(0).as_deref() == Some("hand")
+                && w(1).as_deref() == Some("and")
+                && w(2).as_deref() == Some("graveyard")
+                && w(3).as_deref() == Some("into"))
             || (w(0).as_deref() == Some("cards") && w(1).as_deref() == Some("from") && zone(2))
             || (w(0).as_deref() == Some("all")
                 && (1..7).any(|k| w(k).as_deref() == Some("from") && zone(k + 1)))
@@ -6683,6 +6762,8 @@ impl P {
             "graveyard" => false,
             _ => return self.unexpected("`hand` or `graveyard`"),
         };
+        // "their hand and graveyard into their library".
+        let both = hand && filter.is_none() && !cards && self.eat_words(&["and", "graveyard"]);
         let of = if self.eat_word("of") {
             Some(self.recipient()?)
         } else {
@@ -6693,6 +6774,7 @@ impl P {
             who,
             of,
             hand,
+            both,
             filter,
             cards,
         })
@@ -7379,7 +7461,8 @@ impl P {
                 let it = self.eat_word("it");
                 let choose = self.eat_word("choose");
                 let this_way = self.eat_words(&["this", "way"]);
-                let from = if self.eat_word("of") {
+                let possessive = self.at_word("from");
+                let from = if self.eat_word("of") || self.eat_word("from") {
                     Some(self.recipient()?)
                 } else {
                     None
@@ -7391,6 +7474,7 @@ impl P {
                     it,
                     choose,
                     from,
+                    possessive,
                     this_way,
                 })
             }
@@ -7737,6 +7821,7 @@ impl P {
                 what: self.recipient()?,
             }),
             "search" | "searches" => {
+                let graveyard = self.eat_words(&["library", "or", "graveyard"]);
                 let up_to = self.eat_words(&["up", "to"]);
                 let count = if matches!(self.peek(), Some(Tok::Num(_))) {
                     self.num()?
@@ -7757,6 +7842,14 @@ impl P {
                 // "a card named ~".
                 if self.eat_words(&["named", "this"]) {
                     filter.same = Some(SameRef::NamedThis);
+                }
+                // "a card named Ajani, Valiant Protector".
+                let mut name = None;
+                if self.at_word("named")
+                    && let Some(Tok::Str(s)) = self.peek_at(1)
+                {
+                    name = Some(s.clone());
+                    self.pos += 2;
                 }
                 // "a creature card with mana value 6 or greater": the mana
                 // value after the noun.
@@ -7812,6 +7905,8 @@ impl P {
                     or_card,
                     who: None,
                     may: false,
+                    graveyard,
+                    name,
                 })
             }
             "add" => {

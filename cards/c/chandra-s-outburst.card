@@ -1,0 +1,9 @@
+card "Chandra's Outburst" {
+  oracle_id 894a344e-a8a7-4ddc-833d-eea41f1918d7
+  cost {3}{R}{R}
+  type Sorcery
+  spell {
+    deal 4 damage to target player or planeswalker
+    search library or graveyard card named "Chandra, Bold Pyromancer" reveal to hand
+  }
+}

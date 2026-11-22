@@ -1,0 +1,6 @@
+card "Gideon's Battle Cry" {
+  oracle_id 7528f47d-c758-42bc-bdfe-5aca805c4126
+  cost {2}{W}{W}
+  type Sorcery
+  spell: put 1 +1/+1 counter on each creature you control; you may search library or graveyard card named "Gideon, the Oathsworn" reveal to hand
+}

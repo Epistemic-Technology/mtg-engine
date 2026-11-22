@@ -1,0 +1,11 @@
+card "Demonic Pact" {
+  oracle_id 19a2f0a0-9e68-4982-a5f5-b77d805befd7
+  cost {2}{B}{B}
+  type Enchantment
+  triggered at beginning of your upkeep step: choose one unchosen {
+    mode: deal 4 damage to any target and you gain 4 life
+    mode: target opponent discards 2 cards
+    mode: draw 2 cards
+    mode: you lose game
+  }
+}

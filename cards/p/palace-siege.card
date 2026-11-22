@@ -1,0 +1,8 @@
+card "Palace Siege" {
+  oracle_id 4d819d35-5cd3-48f1-a77a-b7c3ff82c62e
+  cost {3}{B}{B}
+  type Enchantment
+  as this enters choose "Khans" or "Dragons"
+  label "Khans" triggered at beginning of your upkeep step: return target creature card from your graveyard to hand
+  label "Dragons" triggered at beginning of your upkeep step: each opponent loses 2 life and you gain 2 life
+}

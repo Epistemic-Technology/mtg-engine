@@ -480,6 +480,7 @@ impl GameState {
             limited_this_turn: Vec::new(),
             doing_once: None,
             activated_ever: Vec::new(),
+            modes_chosen: Vec::new(),
             attackers_this_turn: Vec::new(),
             battle_attackers_this_turn: Vec::new(),
             attacked_last_turn: Vec::new(),
@@ -2018,6 +2019,19 @@ impl GameState {
                 self.objects[spell]
                     .cast
                     .set_mode(u8::try_from(i).unwrap_or(0));
+                // "Choose one that hasn't been chosen [this turn]" (CR
+                // 700.2): remembered for the source's ability.
+                if let Some(a) = self.objects[spell].ability
+                    && let Some(once) = self.modes_of(spell).and_then(|m| m.get(i)).map(|m| m.once)
+                    && once != crate::card::ModeOnce::Any
+                {
+                    self.modes_chosen.push((
+                        a.source,
+                        a.ability,
+                        u8::try_from(i).unwrap_or(0),
+                        once == crate::card::ModeOnce::ThisTurn,
+                    ));
+                }
                 // An activated ability goes on to X and its mode's targets
                 // with what its cost chose (CR 602.2b).
                 let activated = self.objects[spell].ability.is_some_and(|a| {
@@ -3252,6 +3266,7 @@ impl GameState {
             self.activated_once.clear();
             self.limited_this_turn.clear();
             self.resolved_this_turn.clear();
+            self.modes_chosen.retain(|e| !e.3);
             self.record_attacked_last_turn();
             self.blockers_this_turn.clear();
             self.targeted_by_controller.clear();

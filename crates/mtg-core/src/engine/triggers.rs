@@ -1720,11 +1720,10 @@ impl GameState {
         // CR 603.3c: a modal triggered ability with no mode whose targets
         // can be chosen is removed.
         let modal = match self.pool.ability(t.ability.ability).effects() {
-            [crate::card::Effect::Modes(modes)] => Some(
-                modes
-                    .iter()
-                    .any(|m| self.mode_targets_available(t.controller, m, Some(t.ability.source))),
-            ),
+            [crate::card::Effect::Modes(modes)] => Some(modes.iter().enumerate().any(|(i, m)| {
+                !self.mode_used(t.ability.source, t.ability.ability, i, m)
+                    && self.mode_targets_available(t.controller, m, Some(t.ability.source))
+            })),
             _ => None,
         };
         if modal == Some(false)

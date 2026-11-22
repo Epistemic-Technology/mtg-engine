@@ -1,0 +1,7 @@
+card "Sorin's Guide" {
+  oracle_id 36f5f161-b25e-48e4-b8f9-e6c36dfefe5b
+  cost {3}{B}{B}
+  type Creature — Vampire
+  pt 4/2
+  triggered when this enters: you may search library or graveyard card named "Sorin, Vampire Lord" reveal to hand
+}

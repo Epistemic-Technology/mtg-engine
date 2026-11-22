@@ -942,6 +942,7 @@ impl Fmt {
                 it,
                 choose,
                 from,
+                possessive,
                 this_way,
             } => {
                 let mut s = format!(
@@ -967,7 +968,8 @@ impl Fmt {
                     s.push_str(" this way");
                 }
                 if let Some(w) = from {
-                    let _ = write!(s, " of {}", self.recipient(*w, t));
+                    let of = if *possessive { "from" } else { "of" };
+                    let _ = write!(s, " {of} {}", self.recipient(*w, t));
                 }
                 s
             }
@@ -1062,6 +1064,23 @@ impl Fmt {
                 } else {
                     "choose one {\n".to_string()
                 };
+                for m in modes {
+                    let mut inner = String::new();
+                    body(
+                        &mut inner,
+                        "    ",
+                        &mode_head(m),
+                        &m.effects,
+                        &m.targets,
+                        &self.groups,
+                    );
+                    s.push_str(&inner);
+                }
+                s.push_str("  }");
+                s
+            }
+            Effect::ModesOf(head, modes) => {
+                let mut s = format!("{} {{\n", mode_head_dsl(*head));
                 for m in modes {
                     let mut inner = String::new();
                     body(
@@ -1233,6 +1252,14 @@ impl Fmt {
                     "loses"
                 };
                 format!("{} {v} {} life", self.recipient(*who, t), num(*amount))
+            }
+            Effect::LoseGame { who } => {
+                let v = if *who == Recipient::You {
+                    "lose"
+                } else {
+                    "loses"
+                };
+                format!("{} {v} game", self.recipient(*who, t))
             }
             Effect::LoseHalfLife { who } => {
                 let v = if *who == Recipient::You {
@@ -1824,6 +1851,8 @@ impl Fmt {
                 or_card,
                 who,
                 may,
+                graveyard,
+                name,
             } => {
                 let searcher = who.map(|w| self.recipient(w, t));
                 let mut t = String::new();
@@ -1835,6 +1864,9 @@ impl Fmt {
                     (false, true) => "searches ",
                     (false, false) => "search ",
                 });
+                if *graveyard {
+                    t.push_str("library or graveyard ");
+                }
                 if *up_to {
                     t.push_str("up to ");
                 }
@@ -1875,6 +1907,9 @@ impl Fmt {
                 t.push_str("card");
                 if let Some(r) = f.same {
                     let _ = write!(t, " {}", same_ref(r));
+                }
+                if let Some(n) = name {
+                    let _ = write!(t, " named \"{n}\"");
                 }
                 if let Some(mv) = mv {
                     t.push_str(&mv);
@@ -1977,6 +2012,7 @@ impl Fmt {
                 who,
                 of,
                 hand,
+                both,
                 filter: fl,
                 cards,
             } => {
@@ -1996,7 +2032,13 @@ impl Fmt {
                 } else if *cards {
                     s.push_str(" cards from");
                 }
-                s.push_str(if *hand { " hand" } else { " graveyard" });
+                s.push_str(if *both {
+                    " hand and graveyard"
+                } else if *hand {
+                    " hand"
+                } else {
+                    " graveyard"
+                });
                 if let Some(o) = of {
                     let _ = write!(s, " of {}", self.recipient(*o, t));
                 }
@@ -4890,11 +4932,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             }
             let _ = writeln!(out, "{indent}}}");
         }
-        Ability::Modal(modes) | Ability::ModalBoth(modes) | Ability::ModalTwo(modes) => {
+        Ability::Modal(modes)
+        | Ability::ModalBoth(modes)
+        | Ability::ModalTwo(modes)
+        | Ability::ModalOf(_, modes) => {
             let head = match ability {
-                Ability::ModalBoth(_) => "choose one or both",
-                Ability::ModalTwo(_) => "choose two",
-                _ => "choose one",
+                Ability::ModalBoth(_) => "choose one or both".to_string(),
+                Ability::ModalTwo(_) => "choose two".to_string(),
+                Ability::ModalOf(h, _) => mode_head_dsl(*h),
+                _ => "choose one".to_string(),
             };
             let _ = writeln!(out, "{indent}{head} {{");
             for m in modes {
@@ -5674,6 +5720,11 @@ fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
             .map(|c| crate::render::basic_land_name(*c))
             .collect::<Vec<_>>()
             .join(" or "),
+        ChoiceKind::Named(names) => names
+            .iter()
+            .map(|n| format!("\"{n}\""))
+            .collect::<Vec<_>>()
+            .join(" or "),
     }
 }
 
@@ -5780,5 +5831,18 @@ pub(crate) fn those_word(t: crate::ast::Those) -> &'static str {
         crate::ast::Those::Them => "them",
         crate::ast::Those::Creatures => "those creatures",
         crate::ast::Those::Permanents => "those permanents",
+    }
+}
+
+/// `choose one or more`, `choose up to 2`, `choose one unchosen [this
+/// turn]`.
+fn mode_head_dsl(head: crate::ast::ModeHead) -> String {
+    match head {
+        crate::ast::ModeHead::OneOrMore => "choose one or more".to_string(),
+        crate::ast::ModeHead::UpTo(n) => format!("choose up to {n}"),
+        crate::ast::ModeHead::Unchosen { this_turn: false } => "choose one unchosen".to_string(),
+        crate::ast::ModeHead::Unchosen { this_turn: true } => {
+            "choose one unchosen this turn".to_string()
+        }
     }
 }

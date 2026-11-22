@@ -1,0 +1,8 @@
+card "Outpost Siege" {
+  oracle_id ebb24fc7-dc71-4712-8c2a-b5920f78e55d
+  cost {3}{R}
+  type Enchantment
+  as this enters choose "Khans" or "Dragons"
+  label "Khans" triggered at beginning of your upkeep step: impulse 1 this turn first
+  label "Dragons" triggered whenever creature you control leaves the battlefield: deal 1 damage to any target
+}

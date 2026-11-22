@@ -119,6 +119,7 @@ to its other face as well.
 | `spree { mode {2}{B}: <effects> mode {1}: <effects> }` | Spree (CR 702.172): one to three modes, each with an additional cost ("Spree", then "+ {2}{B} — Destroy target creature."). The caster chooses one or more of them and pays their costs on top; each chosen mode keeps its own targets. The engine's modes are the sets of the printed modes, the set with bits N being mode N (in scenarios, `mode 3` is the first two). |
 | `pawprint 5 { mode 1: <effects> mode 2: <effects> mode 3: <effects> }` | "Choose up to five {P} worth of modes. You may choose the same mode more than once." (CR 700.2d, 700.2i), then "{P} — ...", "{P}{P} — ...": each mode with its number of pawprints. The engine's modes are every nonempty combination, a mode repeated allowed, whose pawprints total at most the limit (at most sixteen), each instance with its own targets, in printed order; they are listed in dictionary order of their modes' numbers (for 1, 2, 3 pawprints and five: 1, 1+1, 1+1+1, 1+1+1+1, 1+1+1+1+1, 1+1+1+2, 1+1+2, 1+1+3, 1+2, 1+2+2, 1+3, 2, 2+2, 2+3, 3; in scenarios `mode 13` is 2+2). |
 | `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. `choose one or both { ... }` takes two modes, either or both ("Choose one or both —"). As a triggered ability's effect (`triggered when this enters: choose one { ... }`) the mode is chosen as the ability goes on the stack (CR 603.3c), each mode with its own targets. `choose two { ... }` (three or four unnamed modes) chooses two different modes (CR 700.2d; "Choose two —"), as a spell (`choose two { ... }` or `spell: choose two { ... }`) or as a triggered ability's effect (`triggered when this enters: choose two { ... }`: "When this creature enters, choose two —"); the engine offers the pairs of modes, in order. A named mode, `mode "Smash the Chest": destroy target artifact`, prints its name first ("• Smash the Chest — Destroy target artifact."); the name has no rules meaning. |
+| `choose one or more { mode: ... }`, `choose up to 2 { mode: ... }`, `choose one unchosen { mode: ... }`, `choose one unchosen this turn { mode: ... }` | Other modal heads (CR 700.2). `choose one or more` ("Choose one or more —", two to four modes) offers every nonempty set of the modes, numbered as bits like spree's (`mode 3` is the first two, `mode 7` the first three); `choose up to 2` ("Choose up to two —"; `choose up to 1`: "choose up to one —") the sets of at most that many in the same order, then no mode at all, last. Each as a spell or as a triggered or activated ability's effect. `choose one unchosen` ("choose one that hasn't been chosen —"), only as a triggered or activated ability's effect: each mode can be chosen once for that object's ability, by whoever controls it (a new object starts fresh, CR 400.7); a mode chosen for an ability that then does nothing still counts. `this turn` ("... that hasn't been chosen this turn —") makes the modes open again as the turn ends. With no mode left, a triggered ability is removed and an activated one can't be activated. |
 | `enters tapped unless you control planeswalker`, `enters tapped unless player life 13 or less` | "This land enters tapped unless ..." with a static condition (CR 614.1d). |
 | `enters tapped if not your turn` | "This creature enters tapped if it's not your turn." (the same replacement as `enters tapped unless your turn`, CR 614.1d) |
 | `enters tapped unless pay 3 life` | "As this land enters, you may pay 3 life. If you don't, it enters tapped." (CR 614.12; only with that much life, CR 119.4). |
@@ -135,7 +136,7 @@ to its other face as well.
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
 | `can't be blocked by Wall`, `can't be blocked except by creature with flying`, `can't be blocked by more than one creature`, `can block only creature with flying`, `can't block creature with flying` | Blocking restrictions on this creature (CR 509.1b–c). Alternatives print with "and/or" ("can't be blocked except by artifact creatures and/or white creatures", `black or red creature`: "black and/or red creatures"). Granted, they print unquoted: `static enchanted: has ability { can't be blocked except by Wall }` is "Enchanted creature can't be blocked except by Walls."; `this gains ability { can't be blocked by creature with power 2 or less }` is "This creature can't be blocked by creatures with power 2 or less this turn." ("can't be blocked this turn except by ..."). `can't be blocked by creature with lesser power` prints "Creatures with power less than this creature's power can't block it." Alternatives in `can't be blocked by` print with "or" (`can't be blocked by creature with aura or enchantment creature`: "can't be blocked by enchanted creatures or enchantment creatures"). `can't be blocked except by 3 or more creatures` (CR 509.1b: blocked by none or by at least that many, like menace's two). Allowances (CR 509.1a): `can block shadow as though had shadow` ("can block creatures with shadow as though it had shadow"; `as though didn't have shadow`: "... as though they didn't have shadow", CR 702.28b), `can block landwalk as though didn't have` ("can block creatures with landwalk abilities as though they didn't have those abilities", CR 702.14b), `can block an additional 7 creatures each combat` (eight in all). |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
-| `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as this enters choose land type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12; `land type` is "a basic land type"): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen`, `has protection from chosen color`, `set land chosen`, `add chosen type`, and filters `of chosen color` / `of chosen type`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). |
+| `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as this enters choose land type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12; `land type` is "a basic land type"): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen`, `has protection from chosen color`, `set land chosen`, `add chosen type`, and filters `of chosen color` / `of chosen type`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). `as this enters choose "Khans" or "Dragons"` ("As this enchantment enters, choose Khans or Dragons.", the Sieges): one of the named options (`choose "1"`, `"2"` in scenarios; unscripted, the first); `label "Khans" <ability>` then prints "• Khans — ..." and is an ability the permanent has only while Khans was chosen (a static, triggered, activated, or cost ability; a triggered ability's own `if` still applies). |
 | `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". `static during turns other than yours, spells you cast cost {1} less` (or `during your turn`) applies only then: "During turns other than yours, spells you cast cost {1} less to cast." A mana value prints after who casts them: `spells creature with mana value 6 or greater you cast cost {2} less` is "Creature spells you cast with mana value 6 or greater cost {2} less to cast." `static as long as spell number 2 this turn, spells you cast cost {1} less` is "The second spell you cast each turn costs {1} less to cast." (the spell would be your second this turn: you've cast exactly one before it). A keyword quality prints after "spells": `spells creature with flying you cast cost {1} less` is "Creature spells with flying you cast cost {1} less to cast." |
 | `spells you cast have delve`, `spells instant or sorcery you cast have storm`, `spells instant or sorcery you cast from hand have cascade`, `spells you cast have affinity for artifact`, `spells creature you cast have convoke`, `spells noncreature you cast have improvise` | "Spells you cast have delve.", "Instant and sorcery spells you cast have storm.", "... you cast from your hand have cascade.", "Spells you cast have affinity for artifacts.": the controller's matching spells have the keyword while they are cast (convoke, improvise, delve, cascade, storm; affinity for <filter> is {1} less for each such permanent the caster controls). Several join with `and`. |
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
@@ -1539,7 +1540,7 @@ step"; plural "Those creatures don't untap during their controllers' untap
 steps"), and `target 1 gains can't activate` ("Its activated abilities
 can't be activated").
 
-Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`, `<who> loses half life` ("that player loses half their life, rounded up", CR 107.1a; `you lose half life`: "your life"),
+Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`, `<who> loses half life` ("that player loses half their life, rounded up", CR 107.1a; `you lose half life`: "your life"), `you lose game` ("You lose the game.", CR 104.3e: not while the player can't lose the game),
 `<who> draws 2 cards`, `<who> discards 2 cards`, `<who> mills 20 cards`,
 `<what> gets +3/+3`, `<what> gains flying`, `<what> can't block` (this
 turn), `<what> blocks if able` ("blocks this turn if able"), `<what> must be
@@ -1622,7 +1623,9 @@ graveyard into library`: "You may shuffle up to one target card from
 your graveyard into your library"), `shuffle graveyard into library`
 ("Shuffle your graveyard into your library"; `target player shuffles
 graveyard into library`: "Target player shuffles their graveyard into
-their library"), `shuffle all creature card from graveyard of target
+their library"; `each player shuffles hand and graveyard into library then draws 7
+cards`: "Each player shuffles their hand and graveyard into their library,
+then draws seven cards.", both zones), `shuffle all creature card from graveyard of target
 player into library` ("Shuffle all creature cards from target player's
 graveyard into that player's library"), `shuffle cards from hand into
 library` ("shuffle the cards from your hand into your library"; `then
@@ -1766,7 +1769,18 @@ shares prints once); `search basic land card or a Gate card reveal to
 hand` / `... or Gate card ...`: "a basic land card or a Gate card",
 "... or Gate card", plural "up to two basic land cards and/or Gate
 cards"; `search instant card or a with flash card ...`: "an instant card
-or a card with flash"; `search Rebel permanent card with mana value 3 or
+or a card with flash"; `search library or graveyard card named "Ajani, Valiant Protector"
+reveal to hand` ("Search your library and/or graveyard for a card named
+Ajani, Valiant Protector, reveal it, and put it into your hand. If you
+search your library this way, shuffle."; without `reveal`, "... for a card
+named Sunlit Hoplite and put it onto the battlefield. If ..."; a player
+subject prints "... reveals it, and puts it into their hand. If they
+search their library this way, they shuffle."): one card, from either
+zone, into the hand or onto the battlefield; the library is shuffled if
+the card came from it or nothing was found. `card named "X"` names
+another card by its name (also without `library or graveyard`: "Search
+your library for a card named X, put it onto the battlefield, then
+shuffle."); `search Rebel permanent card with mana value 3 or
 less to battlefield`: the mana value after the noun, `permanent card`
 not an instant or sorcery (CR 110.4a); `search card to graveyard that
 card` ("Search your library for a card, put that card into your
@@ -1799,7 +1813,9 @@ is "until your next end step", which ends as that step begins; `choose`
 adds "Choose one of them." and only that card may be played, `this way`
 prints "cards exiled this way", `of target opponent` takes the cards from
 that player's library ("Target opponent exiles the top card of their
-library. You may play that card this turn.", the permission still yours),
+library. You may play that card this turn.", the permission still yours; `from target opponent`
+instead prints "Exile the top three cards of target opponent's library.
+You may play those cards this turn."),
 a count `count where ...` prints "the top X cards of your library, where
 X is ...", and `that much` "exile that many cards from the top of your
 library"), `exile top 3 cards` ("Exile the top three cards of your

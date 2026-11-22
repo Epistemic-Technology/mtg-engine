@@ -75,6 +75,13 @@ The renderer prints the right Oracle text for these, but the compiled
 card does something else. Scenarios catch them; the gate does not. Fix
 by rejecting the form at compile time or by binding it correctly.
 
+- **`that player controls` in a spell** (no triggering player) matches
+  nothing: `deal 2 damage to target player and each creature that player
+  controls` prints Chandra's Flame Wave's text but damages only the
+  player; `that player 1 controls` is the target. Breaking of the
+  Fellowship ("another target creature that player controls") may be
+  affected. Reject the bare form outside triggered abilities.
+
 - **"any other target" meaning other than the enchanted creature**
   (Pain for All: "enchanted creature deals damage ... to any other
   target"): `another target any` excludes the source (the Aura), not

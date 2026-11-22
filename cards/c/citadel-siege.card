@@ -1,0 +1,8 @@
+card "Citadel Siege" {
+  oracle_id 40f66e21-5b60-4e42-927d-65397e7ad544
+  cost {2}{W}{W}
+  type Enchantment
+  as this enters choose "Khans" or "Dragons"
+  label "Khans" triggered at beginning of your combat: put 2 +1/+1 counters on target creature you control
+  label "Dragons" triggered at beginning of each opponent's combat: tap target creature that player controls
+}

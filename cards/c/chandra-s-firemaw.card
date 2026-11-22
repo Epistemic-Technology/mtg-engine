@@ -1,0 +1,8 @@
+card "Chandra's Firemaw" {
+  oracle_id 53b17c51-a216-484f-80df-3904284df0ea
+  cost {3}{R}{R}
+  type Creature — Hellion
+  pt 4/2
+  keywords haste
+  triggered when this enters: you may search library or graveyard card named "Chandra, Flame's Catalyst" reveal to hand
+}

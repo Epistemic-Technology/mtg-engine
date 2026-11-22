@@ -1,0 +1,6 @@
+card "Vraska's Scorn" {
+  oracle_id 020c26ba-ed46-47c3-925c-b9f32500f503
+  cost {2}{B}{B}
+  type Sorcery
+  spell: target opponent loses 4 life; you may search library or graveyard card named "Vraska, Scheming Gorgon" reveal to hand
+}

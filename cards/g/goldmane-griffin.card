@@ -1,0 +1,8 @@
+card "Goldmane Griffin" {
+  oracle_id e32573e8-91a8-438b-966f-1c6d098d54ae
+  cost {3}{W}{W}
+  type Creature — Griffin
+  pt 3/2
+  keywords flying, vigilance
+  triggered when this enters: you may search library or graveyard card named "Ajani, Inspiring Leader" reveal to hand
+}

@@ -1,0 +1,6 @@
+card "Tezzeret's Betrayal" {
+  oracle_id a660e7a0-0750-475d-a4bd-de5b37d53e97
+  cost {3}{U}{B}
+  type Sorcery
+  spell: destroy target creature; you may search library or graveyard card named "Tezzeret, Master of Metal" reveal to hand
+}

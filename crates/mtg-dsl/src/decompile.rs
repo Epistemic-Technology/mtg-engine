@@ -535,6 +535,7 @@ impl Decompiler<'_> {
             StaticCondition::WebSlung(p) => StaticCond::WebSlung(*p),
             StaticCondition::OptionalCostPaid => StaticCond::EvidenceCollected,
             StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
+            StaticCondition::Chose(_) => unreachable!("only a named option's ability"),
             StaticCondition::Saddled => StaticCond::Saddled,
             StaticCondition::LandEnteredThisTurn => StaticCond::LandEnteredThisTurn,
             StaticCondition::ArtifactEnteredThisTurn => StaticCond::ArtifactEnteredThisTurn,
@@ -799,6 +800,7 @@ impl Decompiler<'_> {
                 who: r(*who),
             },
             CoreEffect::LoseHalfLife { who } => Effect::LoseHalfLife { who: r(*who) },
+            CoreEffect::LoseGame { who } => Effect::LoseGame { who: r(*who) },
             CoreEffect::DrawCards { count, who } => Effect::DrawCards {
                 count: *count,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
@@ -1076,7 +1078,11 @@ impl Decompiler<'_> {
                 who,
                 may,
                 reveal,
+                graveyard,
+                name,
             } => Effect::Search {
+                graveyard: *graveyard,
+                name: name.as_deref().map(str::to_string),
                 filter: self.filter(filter),
                 count: *count,
                 up_to: *count != mtg_core::card::Num::N(1),
@@ -1103,7 +1109,13 @@ impl Decompiler<'_> {
                 bottom: *bottom,
                 shuffle: *shuffle,
             },
-            CoreEffect::ShuffleIntoLibrary { who, hand, filter } => Effect::ShuffleZone {
+            CoreEffect::ShuffleIntoLibrary {
+                who,
+                hand,
+                both,
+                filter,
+            } => Effect::ShuffleZone {
+                both: *both,
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
                 of: None,
                 hand: *hand,
@@ -1545,6 +1557,7 @@ impl Decompiler<'_> {
                 it: false,
                 choose: *choose,
                 from: from.map(Self::recipient),
+                possessive: false,
                 this_way: false,
             },
             CoreEffect::Dig {
@@ -2402,6 +2415,9 @@ impl Decompiler<'_> {
                 except: except.map(|s| self.pool.subtype_name(s).to_string()),
             },
             CoreChoiceKind::LandType(set) => ChoiceKind::LandType(colors(set)),
+            CoreChoiceKind::Named(n) => {
+                ChoiceKind::Named((1..=n).map(|i| format!("Option {i}")).collect())
+            }
         }
     }
 }

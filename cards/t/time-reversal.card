@@ -1,0 +1,6 @@
+card "Time Reversal" {
+  oracle_id 9a63f6fc-dcf8-4529-a598-ca3d511f29e2
+  cost {3}{U}{U}
+  type Sorcery
+  spell: each player shuffles hand and graveyard into library then draws 7 cards; exile this
+}

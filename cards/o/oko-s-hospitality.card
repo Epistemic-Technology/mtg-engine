@@ -1,0 +1,6 @@
+card "Oko's Hospitality" {
+  oracle_id d804b0e5-785a-4e6e-9fe7-38b8add826fa
+  cost {3}{G}{U}
+  type Instant
+  spell: each creature you control has base power and toughness 3/3 until end of turn; you may search library or graveyard card named "Oko, the Trickster" reveal to hand
+}

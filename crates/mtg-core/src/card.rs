@@ -1392,7 +1392,9 @@ impl ObjFilter {
         match chosen {
             crate::state::Chosen::Color(c) => f.colors = Some(ColorSet::of([c])),
             crate::state::Chosen::Subtype(s) => f.subtypes.push(s),
-            crate::state::Chosen::None | crate::state::Chosen::Votes(_) => {
+            crate::state::Chosen::None
+            | crate::state::Chosen::Votes(_)
+            | crate::state::Chosen::Option(_) => {
                 f.colors = Some(ColorSet::default());
             }
         }
@@ -2503,6 +2505,9 @@ pub enum StaticCondition {
     NoEnduringStory,
     /// Max speed (CR 702.179e): "you have max speed", speed 4.
     MaxSpeed,
+    /// "• Khans — ...": the source's controller chose this one of its
+    /// named options as it entered (`ChoiceKind::Named`; the Sieges).
+    Chose(u8),
     /// "If {B} was spent to cast this spell", "if at least three red mana
     /// was spent to cast it" (adamant), "if mana from a Treasure was spent
     /// to cast it": at least `at_least` of the mana paid to cast the
@@ -3287,6 +3292,11 @@ pub enum Effect {
     LoseHalfLife {
         who: Recipient,
     },
+    /// "You lose the game." (CR 104.3e): each recipient player loses,
+    /// unless they can't lose the game.
+    LoseGame {
+        who: Recipient,
+    },
     DrawCards {
         count: Num,
         who: Recipient,
@@ -3407,6 +3417,15 @@ pub enum Effect {
         who: Recipient,
         may: bool,
         reveal: bool,
+        /// "search your library and/or graveyard": the graveyard's cards
+        /// may be found too; the library is shuffled only if a card was
+        /// found there or none was found at all.
+        #[serde(default)]
+        graveyard: bool,
+        /// "a card named Ajani, Valiant Protector": only cards with this
+        /// name (another card's, so by name rather than definition).
+        #[serde(default)]
+        name: Option<Box<str>>,
     },
     /// "Put target creature on top of its owner's library", "on the
     /// bottom", "second from the top", "Its owner puts it on their choice
@@ -3601,6 +3620,9 @@ pub enum Effect {
     ShuffleIntoLibrary {
         who: Recipient,
         hand: bool,
+        /// "their hand and graveyard": both zones (`hand` is then true).
+        #[serde(default)]
+        both: bool,
         filter: Option<ObjFilter>,
     },
     /// `a` fights `b` (CR 701.12): each deals damage equal to its power to
@@ -4908,6 +4930,9 @@ pub enum ChoiceKind {
     /// One of these basic land types: all five for "the basic land type
     /// of your choice", or "a Plains or an Island".
     LandType(ColorSet),
+    /// One of this many named options ("choose Khans or Dragons", CR
+    /// 614.12): `Chosen::Option` with its index.
+    Named(u8),
 }
 
 /// What a player-level static ability does (`AbilityDef::PlayerStatic`).
@@ -6301,9 +6326,26 @@ pub struct Mode {
     /// CR 700.2d, 700.2i): where each part after the third starts.
     #[serde(default)]
     pub more: Vec<(u16, u16)>,
+    /// "Choose one that hasn't been chosen [this turn] —": the mode can be
+    /// chosen only once for each object's ability (CR 700.2; a new object
+    /// starts fresh, CR 400.7), or once each turn.
+    #[serde(default)]
+    pub once: ModeOnce,
     /// A named mode's name ("• Smash the Chest — Destroy target
     /// artifact."), printed before its effect; it has no rules meaning.
     pub name: Option<String>,
+}
+
+/// How often a mode of an ability may be chosen (`Mode::once`).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum ModeOnce {
+    /// Any number of times.
+    #[default]
+    Any,
+    /// "choose one that hasn't been chosen —": once for each object.
+    Ever,
+    /// "choose one that hasn't been chosen this turn —".
+    ThisTurn,
 }
 
 /// Modifications a copy effect makes as part of copying (CR 707.9b):

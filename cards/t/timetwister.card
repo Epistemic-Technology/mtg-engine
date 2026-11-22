@@ -1,0 +1,6 @@
+card "Timetwister" {
+  oracle_id c823e687-6311-4c99-974b-fd77d204141a
+  cost {2}{U}
+  type Sorcery
+  spell: each player shuffles hand and graveyard into library then draws 7 cards
+}

@@ -1,0 +1,7 @@
+card "Korvold and the Noble Thief" {
+  oracle_id bcae7f20-b601-4669-b3a7-c32ed0c6b9d3
+  cost {3}{R}
+  type Enchantment — Saga
+  triggered chapter 1, 2: create 1 "Treasure"
+  triggered chapter 3: impulse 3 this turn from target opponent
+}

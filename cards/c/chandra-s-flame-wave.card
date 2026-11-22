@@ -1,0 +1,6 @@
+card "Chandra's Flame Wave" {
+  oracle_id 9f84fc91-8647-4cc8-9b57-d23a83f85ab1
+  cost {3}{R}{R}
+  type Sorcery
+  spell: deal 2 damage to target player and each creature that player 1 controls; search library or graveyard card named "Chandra, Flame's Fury" reveal to hand
+}

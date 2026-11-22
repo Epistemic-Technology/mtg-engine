@@ -1,0 +1,8 @@
+card "Garruk's Warsteed" {
+  oracle_id d4911e00-eed1-4c8c-8779-8a3f9406ead7
+  cost {3}{G}{G}
+  type Creature — Rhino
+  pt 3/5
+  keywords vigilance
+  triggered when this enters: you may search library or graveyard card named "Garruk, Savage Herald" reveal to hand
+}

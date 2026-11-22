@@ -1,0 +1,6 @@
+card "Ral's Dispersal" {
+  oracle_id a81b7629-9db9-4351-8d0e-c45a7a6167d4
+  cost {3}{U}{U}
+  type Instant
+  spell: return target creature to hand; you may search library or graveyard card named "Ral, Caller of Storms" reveal to hand
+}

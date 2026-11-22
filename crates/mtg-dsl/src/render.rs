@@ -2635,6 +2635,7 @@ fn choice_noun(k: &ChoiceKind) -> String {
             format!("a creature type other than {t}")
         }
         ChoiceKind::LandType(lands) if lands.len() == 5 => "a basic land type".to_string(),
+        ChoiceKind::Named(names) => or_list(names),
         ChoiceKind::LandType(lands) => or_list(
             &lands
                 .iter()
@@ -4480,12 +4481,25 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             it,
             choose,
             from,
+            possessive,
             this_way,
         } => {
             use mtg_core::card::PlayUntil;
             let one = *count == Num::N(1);
-            let whose = if from.is_some() { "their" } else { "your" };
-            let exile = if from.is_some() { "exiles" } else { "exile" };
+            // "Exile the top three cards of target opponent's library."
+            let owner = from
+                .filter(|_| *possessive)
+                .map(|w| format!("{}'s", ctx.obj(w)));
+            let whose = match (&owner, from) {
+                (Some(o), _) => o.as_str(),
+                (None, Some(_)) => "their",
+                (None, None) => "your",
+            };
+            let exile = if from.is_some() && !*possessive {
+                "exiles"
+            } else {
+                "exile"
+            };
             let head = if one {
                 format!("{exile} the top card of {whose} library")
             } else if *count == Num::ThatMuch {
@@ -4498,8 +4512,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 )
             };
             let head = match from {
-                Some(w) => format!("{} {head}", ctx.subj(*w)),
-                None => head,
+                Some(w) if !*possessive => format!("{} {head}", ctx.subj(*w)),
+                _ => head,
             };
             // "Choose one of them. Until the end of your next turn, you may
             // play that card."
@@ -5026,11 +5040,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::imperative(format!("{head}. {body}"))
         }
-        Effect::Modes(modes) | Effect::ModesTwo(modes) => {
-            let mut out = if matches!(e, Effect::ModesTwo(_)) {
-                "choose two —".to_string()
-            } else {
-                "choose one —".to_string()
+        Effect::Modes(modes) | Effect::ModesTwo(modes) | Effect::ModesOf(_, modes) => {
+            let mut out = match e {
+                Effect::ModesTwo(_) => "choose two —".to_string(),
+                Effect::ModesOf(h, _) => format!("{} —", mode_head_text(*h)),
+                _ => "choose one —".to_string(),
             };
             for m in modes {
                 let mut inner = Ctx::new(ctx.card, ctx.lookup, &m.targets);
@@ -5357,6 +5371,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ctx.verb(*who, "loses", "lose"),
                     digits(*amount)
                 ),
+            )
+        }
+        // CR 104.3e.
+        Effect::LoseGame { who } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!("{} the game", ctx.verb(*who, "loses", "lose")),
             )
         }
         // CR 107.1a: "loses half their life, rounded up".
@@ -6751,7 +6774,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             or_card,
             who,
             may,
+            graveyard,
+            name,
         } => {
+            if *graveyard || name.is_some() {
+                return search_named_text(e, ctx);
+            }
             let one = *count == Num::N(1) && !*up_to;
             let any = *count == Num::N(crate::ast::ANY_NUMBER);
             let what = if *or_card != crate::ast::OrCard::No
@@ -7034,10 +7062,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             who,
             of,
             hand,
+            both,
             filter,
             cards,
         } => {
-            let zone = if *hand { "hand" } else { "graveyard" };
+            let zone = if *both {
+                "hand and graveyard"
+            } else if *hand {
+                "hand"
+            } else {
+                "graveyard"
+            };
             // "Shuffle all creature cards from target player's graveyard
             // into that player's library".
             let (from, into) = match (who, of) {
@@ -7294,6 +7329,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ChoiceKind::CreatureType { except: None } => {
                     "the creature type of your choice".to_string()
                 }
+                ChoiceKind::Named(names) => or_list(names),
                 // Imagecrafter: "Choose a creature type other than Wall.
                 // Target creature becomes that type until end of turn."
                 ChoiceKind::CreatureType { except: Some(t) } => {
@@ -11912,13 +11948,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             out
         }
-        Ability::Modal(modes) | Ability::ModalBoth(modes) | Ability::ModalTwo(modes) => {
+        Ability::Modal(modes)
+        | Ability::ModalBoth(modes)
+        | Ability::ModalTwo(modes)
+        | Ability::ModalOf(_, modes) => {
             let mut out = match a {
-                Ability::ModalBoth(_) => "Choose one or both —",
-                Ability::ModalTwo(_) => "Choose two —",
-                _ => "Choose one —",
-            }
-            .to_string();
+                Ability::ModalBoth(_) => "Choose one or both —".to_string(),
+                Ability::ModalTwo(_) => "Choose two —".to_string(),
+                Ability::ModalOf(h, _) => capitalize(&format!("{} —", mode_head_text(*h))),
+                _ => "Choose one —".to_string(),
+            };
             for m in modes {
                 let mut ctx = Ctx::new(card, lookup, &m.targets);
                 ctx.current = Some(a);
@@ -12233,6 +12272,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             format!("{n}+ | {}", ability_text(card, ability, lookup))
         }
         // "I — Wark — Create ...": a chapter's name follows its numerals.
+        // "• Khans — At the beginning of ...".
+        Ability::Labeled { label, ability }
+            if crate::compile::named_option(card, label).is_some() =>
+        {
+            format!("• {label} — {}", ability_text(card, ability, lookup))
+        }
         Ability::Labeled { label, ability } => {
             let text = ability_text(card, ability, lookup);
             // A max speed dies trigger names no "this creature or
@@ -13265,4 +13310,96 @@ fn is_instant_or_sorcery(card: &Card) -> bool {
             mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery
         )
     })
+}
+
+/// "choose one or more", "choose up to two", "choose one that hasn't been
+/// chosen [this turn]" (CR 700.2).
+fn mode_head_text(head: crate::ast::ModeHead) -> String {
+    match head {
+        crate::ast::ModeHead::OneOrMore => "choose one or more".to_string(),
+        crate::ast::ModeHead::UpTo(n) => {
+            format!("choose up to {}", count_words(Num::N(u32::from(n)), "one"))
+        }
+        crate::ast::ModeHead::Unchosen { this_turn } => format!(
+            "choose one that hasn't been chosen{}",
+            if this_turn { " this turn" } else { "" }
+        ),
+    }
+}
+
+/// "Search your library and/or graveyard for a card named Ajani, Valiant
+/// Protector, reveal it, and put it into your hand. If you search your
+/// library this way, shuffle." and "Search your library for a card named
+/// Nissa's Chosen, put it onto the battlefield, then shuffle."
+fn search_named_text(e: &Effect, ctx: &mut Ctx) -> Clause {
+    let Effect::Search {
+        filter,
+        to,
+        reveal,
+        who,
+        may,
+        graveyard,
+        name,
+        ..
+    } = e
+    else {
+        unreachable!("a search");
+    };
+    let what = match name {
+        Some(n) => format!("a card named {n}"),
+        None if filter == &Filter::default() => "a card".to_string(),
+        None => with_article(&cards_phrase(filter, ctx.card, false)),
+    };
+    let third = who.is_some_and(|w| w != Recipient::You);
+    let (search, reveal_v, put, library, hand, you, shuffle) = if third {
+        (
+            if *may { "may search" } else { "searches" },
+            "reveals",
+            "puts",
+            "their library",
+            "their hand",
+            "they",
+            "they shuffle",
+        )
+    } else {
+        (
+            if *may { "may search" } else { "search" },
+            "reveal",
+            "put",
+            "your library",
+            "your hand",
+            "you",
+            "shuffle",
+        )
+    };
+    let place = match to {
+        mtg_core::card::SearchTo::Hand => format!("into {hand}"),
+        mtg_core::card::SearchTo::Battlefield { tapped: false } => {
+            "onto the battlefield".to_string()
+        }
+        mtg_core::card::SearchTo::Battlefield { tapped: true } => {
+            "onto the battlefield tapped".to_string()
+        }
+        _ => "(unsupported)".to_string(),
+    };
+    let text = if *graveyard {
+        let zones = format!("{library} and/or graveyard");
+        let body = if *reveal {
+            format!("{search} {zones} for {what}, {reveal_v} it, and {put} it {place}")
+        } else {
+            format!("{search} {zones} for {what} and {put} it {place}")
+        };
+        format!("{body}. If {you} search {library} this way, {shuffle}")
+    } else if *reveal {
+        format!("{search} {library} for {what}, {reveal_v} it, {put} it {place}, then {shuffle}")
+    } else {
+        format!("{search} {library} for {what}, {put} it {place}, then {shuffle}")
+    };
+    match who {
+        Some(w) if *w != Recipient::You => {
+            let s = ctx.subj(*w);
+            Clause::with_subject(*w, s, text)
+        }
+        _ => Clause::imperative(text),
+    }
 }

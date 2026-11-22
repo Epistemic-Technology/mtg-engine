@@ -1,0 +1,12 @@
+card "Breeches, Eager Pillager" {
+  oracle_id 15361770-c6dc-4db7-b745-aa03e4b866ea
+  cost {2}{R}
+  type Legendary Creature — Goblin Pirate
+  pt 3/3
+  keywords first strike
+  triggered whenever Pirate you control attacks: choose one unchosen this turn {
+    mode: create 1 "Treasure"
+    mode: target creature can't block this turn
+    mode: impulse 1 this turn it
+  }
+}

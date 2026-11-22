@@ -248,6 +248,8 @@ pub enum Chosen {
     /// A resolution's vote (CR 701.38): the votes for each of its two
     /// choices.
     Votes([u8; 2]),
+    /// One of a permanent's named options (`ChoiceKind::Named`), by index.
+    Option(u8),
 }
 
 impl Chosen {
@@ -812,6 +814,8 @@ pub enum LossReason {
     Conceded,
     /// An effect made an opponent win the game (CR 104.2b).
     OpponentWon,
+    /// An effect said the player loses the game (CR 104.3e).
+    Effect,
 }
 
 #[derive(Clone, Debug)]
@@ -1678,6 +1682,11 @@ pub struct GameState {
     /// power-up, CR 702.193a): never cleared, since the object a new
     /// zone makes is a new object with a new id (CR 400.7).
     pub activated_ever: Vec<(ObjId, crate::card::AbilityId)>,
+    /// Modes chosen for "choose one that hasn't been chosen [this turn]"
+    /// abilities (`Mode::once`): the source, its ability, the mode, and
+    /// whether the entry lapses as the turn ends. A new object has a new
+    /// id, so it starts fresh (CR 400.7).
+    pub modes_chosen: Vec<(ObjId, crate::card::AbilityId, u8, bool)>,
     /// Creatures declared as attackers this turn (boast, CR 702.142a);
     /// one put onto the battlefield attacking was never declared.
     pub attackers_this_turn: Vec<ObjId>,
@@ -2277,6 +2286,23 @@ impl GameState {
             };
         }
         self.pool.get(o.def).modes()
+    }
+
+    /// Whether mode `i` of `source`'s ability can't be chosen again: a
+    /// "choose one that hasn't been chosen [this turn]" mode already
+    /// chosen (`Mode::once`).
+    pub fn mode_used(
+        &self,
+        source: ObjId,
+        ability: crate::card::AbilityId,
+        i: usize,
+        m: &crate::card::Mode,
+    ) -> bool {
+        m.once != crate::card::ModeOnce::Any
+            && self
+                .modes_chosen
+                .iter()
+                .any(|e| e.0 == source && e.1 == ability && usize::from(e.2) == i)
     }
 
     /// For the chosen "both" mode (CR 700.2): from which effect, and
@@ -3641,6 +3667,11 @@ impl GameState {
             C::EnduringStory => self.desig.storied(you),
             C::NoEnduringStory => !self.desig.storied(you),
             C::MaxSpeed => self.desig.speed(you) >= 4,
+            C::Chose(i) => self
+                .objects
+                .get(source)
+                .or_else(|| self.lki.get(&source).map(|l| &l.object))
+                .is_some_and(|o| o.chosen == Chosen::Option(*i)),
             C::During(crate::card::TurnTime::AttackedThisStep) => {
                 self.step == crate::turn::Step::DeclareAttackers
                     && self.combat.as_ref().is_some_and(|c| {

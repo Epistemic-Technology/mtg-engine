@@ -1,0 +1,113 @@
+# "As this enchantment enters, choose Khans or Dragons." (CR 614.12): the
+# controller chooses as it enters (`choose "1"` the first name, `"2"` the
+# second; unscripted, the first); "• Khans — ..." is an ability the
+# permanent has only if Khans was chosen.
+
+scenario "Palace Siege: Khans returns a creature card at upkeep" {
+  battlefield A: 5 "Swamp"
+  hand A: "Palace Siege"
+  graveyard A: "Grizzly Bears"
+  library A: 10 "Island"
+  library B: 10 "Island"
+  turn 1 A: cast "Palace Siege"
+  turn 1 A: choose "1"
+  turn 3 upkeep A: trigger "Palace Siege" targeting "Grizzly Bears"
+  run_to turn 3 draw
+  assert hand A contains "Grizzly Bears"
+  assert life A 20
+  assert life B 20
+}
+
+scenario "Palace Siege: Dragons drains instead, and returns nothing" {
+  battlefield A: 5 "Swamp"
+  hand A: "Palace Siege"
+  graveyard A: "Grizzly Bears"
+  library A: 10 "Island"
+  library B: 10 "Island"
+  turn 1 A: cast "Palace Siege"
+  turn 1 A: choose "2"
+  run_to turn 3 draw
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 22
+  assert life B 18
+}
+
+scenario "Frostcliff Siege: Temur gives +1/+0, trample, and haste" {
+  battlefield A: 2 "Island", "Mountain", "Grizzly Bears"
+  hand A: "Frostcliff Siege"
+  turn 1 A: cast "Frostcliff Siege"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" haste
+}
+
+scenario "Frostcliff Siege: Jeskai has no static, draws on combat damage" {
+  battlefield A: 2 "Island", "Mountain", "Grizzly Bears"
+  hand A: "Frostcliff Siege"
+  library A: 10 "Island"
+  library B: 10 "Island"
+  turn 1 A: cast "Frostcliff Siege"
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" trample
+  turn 3 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert hand A count 2
+}
+
+scenario "Citadel Siege: Dragons taps a creature at the opponent's combat" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Citadel Siege"
+  library A: 10 "Island"
+  library B: 10 "Island"
+  turn 1 A: cast "Citadel Siege"
+  turn 1 A: choose "2"
+  turn 2 begin_combat A: trigger "Citadel Siege" targeting "Hill Giant"
+  run_to turn 2 declare_attackers
+  assert tapped "Hill Giant"
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Barrensteppe Siege: Mardu needs a creature of yours to have died" {
+  battlefield A: 2 "Plains", 2 "Swamp", "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Barrensteppe Siege", "Lightning Bolt"
+  library A: 10 "Island"
+  library B: 10 "Island"
+  turn 1 A: cast "Barrensteppe Siege"
+  turn 1 A: choose "2"
+  run_to turn 1 cleanup
+  assert battlefield B contains "Hill Giant"
+  turn 3 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 3 cleanup
+  assert battlefield B count 1
+}
+
+scenario "Outpost Siege: Khans exiles the top card at upkeep, playable this turn" {
+  battlefield A: 4 "Mountain"
+  hand A: "Outpost Siege"
+  library A: 6 "Island"
+  library B: 10 "Island"
+  turn 1 A: cast "Outpost Siege"
+  turn 1 A: choose "1"
+  run_to turn 3 draw
+  assert exile A contains 1 "Island"
+}
+
+scenario "Outpost Siege: Dragons deals 1 damage when a creature leaves" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Outpost Siege", "Lightning Bolt"
+  battlefield A: "Mountain"
+  turn 1 A: cast "Outpost Siege"
+  turn 1 A: choose "2"
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: trigger "Outpost Siege" targeting player B
+  run_to turn 1 end
+  assert life B 19
+}
