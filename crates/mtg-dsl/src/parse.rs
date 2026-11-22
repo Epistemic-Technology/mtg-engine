@@ -12040,6 +12040,9 @@ impl P {
             if self.eat_words(&["deal", "combat", "damage", "to", "a", "player"]) {
                 return Ok(Trigger::CreaturesDealCombatDamage(f));
             }
+            if self.eat_words(&["deal", "damage", "to", "a", "player"]) {
+                return Ok(Trigger::CreaturesDealDamage(f));
+            }
             self.expect_word("enter")?;
             return Ok(Trigger::EntersBatch(f));
         }
@@ -13554,7 +13557,9 @@ fn no_trigger_amount(t: &Trigger) -> bool {
             no_trigger_object(t)
                 && !matches!(
                     t,
-                    Trigger::CreaturesDealCombatDamage(_) | Trigger::LosesLife { .. }
+                    Trigger::CreaturesDealCombatDamage(_)
+                        | Trigger::CreaturesDealDamage(_)
+                        | Trigger::LosesLife { .. }
                 )
         }
     }
@@ -13586,6 +13591,7 @@ fn no_trigger_object(t: &Trigger) -> bool {
         | Trigger::CollectsEvidence
         | Trigger::Forages
         | Trigger::CreaturesDealCombatDamage(_)
+        | Trigger::CreaturesDealDamage(_)
         | Trigger::CommitsCrime { .. } => true,
         _ => false,
     }

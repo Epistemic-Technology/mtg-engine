@@ -124,3 +124,19 @@ scenario "one or more suspected creatures you control attack: not when none of t
   run_to turn 1 postcombat_main
   assert graveyard A count 0
 }
+
+scenario "one or more Heroes you control deal damage to a player: once for the batch" {
+  battlefield A: "The Thing, Ben Grimm", "Justice, Vance Astrovik"
+  turn 1 A: attack "The Thing, Ben Grimm", "Justice, Vance Astrovik"
+  run_to turn 1 postcombat_main
+  assert life B 11
+  assert counters "The Thing, Ben Grimm" +1/+1 2
+}
+
+scenario "one or more Heroes you control deal damage to a player: not other creatures" {
+  battlefield A: "The Thing, Ben Grimm", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert counters "The Thing, Ben Grimm" +1/+1 0
+}

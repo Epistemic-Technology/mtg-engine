@@ -9337,6 +9337,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "whenever one or more {} deal combat damage to a player",
             controller_first(f, filter_phrase(f, ctx.card, true))
         ),
+        Trigger::CreaturesDealDamage(f) => format!(
+            "whenever one or more {} deal damage to a player",
+            controller_first(f, filter_phrase(f, ctx.card, true))
+        ),
         Trigger::NoncombatDamageToOpponent { yours, batch } => match (yours, batch) {
             (true, _) => {
                 "whenever a source you control deals noncombat damage to an opponent".to_string()

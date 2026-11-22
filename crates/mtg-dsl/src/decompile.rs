@@ -1959,6 +1959,7 @@ impl Decompiler<'_> {
             TriggerSpec::Expends(n) => Trigger::Expends(*n),
             TriggerSpec::CollectsEvidence { .. } => Trigger::CollectsEvidence,
             TriggerSpec::Forages { .. } => Trigger::Forages,
+            TriggerSpec::CreaturesDealDamage(f) => Trigger::CreaturesDealDamage(self.filter(f)),
             TriggerSpec::CreaturesDealCombatDamage(f) => {
                 Trigger::CreaturesDealCombatDamage(self.filter(f))
             }

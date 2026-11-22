@@ -2994,6 +2994,8 @@ pub enum Trigger {
     /// player`, `... one or more Ally you control ...` (once per player,
     /// CR 603.2c).
     CreaturesDealCombatDamage(Filter),
+    /// `whenever one or more Hero you control deal damage to a player`.
+    CreaturesDealDamage(Filter),
     /// `whenever a source you control deals noncombat damage to an
     /// opponent` (`yours`), `whenever an opponent is dealt noncombat
     /// damage`, `whenever one or more opponents are dealt noncombat damage`

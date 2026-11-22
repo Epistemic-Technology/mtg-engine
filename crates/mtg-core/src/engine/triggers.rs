@@ -100,6 +100,7 @@ impl GameState {
                 let player_batch = matches!(
                     t.trigger,
                     TriggerSpec::CreaturesDealCombatDamage(_)
+                        | TriggerSpec::CreaturesDealDamage(_)
                         | TriggerSpec::NoncombatDamageToOpponent { batch: true, .. }
                 );
                 if player_batch
@@ -1094,6 +1095,14 @@ impl GameState {
                     source,
                     target: Target::Player(p),
                     combat: true,
+                    ..
+                },
+            )
+            | (
+                TriggerSpec::CreaturesDealDamage(f),
+                Event::Damage {
+                    source,
+                    target: Target::Player(p),
                     ..
                 },
             ) => {

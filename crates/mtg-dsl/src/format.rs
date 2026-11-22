@@ -4271,6 +4271,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             "whenever one or more {} deal combat damage to a player",
             filter(f)
         ),
+        Trigger::CreaturesDealDamage(f) => {
+            format!("whenever one or more {} deal damage to a player", filter(f))
+        }
         Trigger::NoncombatDamageToOpponent { yours, batch } => match (yours, batch) {
             (true, _) => {
                 "whenever a source you control deals noncombat damage to an opponent".to_string()

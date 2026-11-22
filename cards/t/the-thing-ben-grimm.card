@@ -1,0 +1,8 @@
+card "The Thing, Ben Grimm" {
+  oracle_id d566d5f1-5abd-405b-8553-d267ecbe72ab
+  cost {5}{G}
+  type Legendary Creature — Human Hero
+  pt 7/7
+  keywords trample
+  triggered whenever one or more Hero you control deal damage to a player: put 2 +1/+1 counters on this
+}

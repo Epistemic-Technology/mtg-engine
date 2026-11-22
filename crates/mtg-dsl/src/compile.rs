@@ -4064,6 +4064,7 @@ impl Compiler<'_> {
             Trigger::Expends(n) => TriggerSpec::Expends(*n),
             Trigger::CollectsEvidence => TriggerSpec::CollectsEvidence { whose: Who::You },
             Trigger::Forages => TriggerSpec::Forages { whose: Who::You },
+            Trigger::CreaturesDealDamage(f) => TriggerSpec::CreaturesDealDamage(self.filter(f)),
             Trigger::CreaturesDealCombatDamage(f) => {
                 TriggerSpec::CreaturesDealCombatDamage(self.filter(f))
             }
