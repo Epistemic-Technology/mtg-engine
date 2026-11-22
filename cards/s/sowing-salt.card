@@ -1,0 +1,6 @@
+card "Sowing Salt" {
+  oracle_id 131d2b70-959d-4814-b0c8-38031f141718
+  cost {2}{R}{R}
+  type Sorcery
+  spell: exile target nonbasic land; exile same name as target 1 from its controller zones
+}

@@ -1514,6 +1514,10 @@ impl Fmt {
             ),
             Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
             Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
+            Effect::ExileSameName { what } => format!(
+                "exile same name as {} from its controller zones",
+                self.recipient(*what, t)
+            ),
             Effect::NextSpellLess(n) => format!("next spell costs {{{n}}} less"),
             Effect::ExtraLandPlays(1) => "play additional land this turn".to_string(),
             Effect::ExtraLandPlays(n) => format!("play {n} additional land this turn"),

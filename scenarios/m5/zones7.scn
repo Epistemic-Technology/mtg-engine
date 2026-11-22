@@ -184,3 +184,101 @@ scenario "Thirst for Knowledge: the player chooses which artifact card" {
   assert graveyard A contains "Millstone"
   assert hand A contains "Ornithopter"
 }
+
+# "Search its controller's graveyard, hand, and library for all cards with
+# the same name as that creature and exile them. Then that player
+# shuffles." The name and controller are the target's as it last existed
+# (CR 608.2h).
+
+scenario "same name: Eradicate exiles the creature and every card of its name its controller has" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Eradicate"
+  hand B: "Grizzly Bears", "Shock"
+  graveyard B: "Grizzly Bears"
+  library B: "Forest", "Grizzly Bears", "Island"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Eradicate" targeting B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains 4 "Grizzly Bears"
+  assert hand B lacks "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+  assert library B lacks "Grizzly Bears"
+  assert library B count 2
+  assert battlefield B contains "Hill Giant"
+  assert hand B contains "Shock"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "same name: Eradicate can't target a black creature" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Typhoid Rats"
+  hand A: "Eradicate"
+  illegal turn 1 A: cast "Eradicate" targeting "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Typhoid Rats"
+}
+
+scenario "same name: Counterbore counters the spell and exiles its copies, the countered card too" {
+  battlefield A: 5 "Island"
+  battlefield B: "Mountain"
+  hand A: "Counterbore"
+  hand B: "Lightning Bolt", "Lightning Bolt"
+  graveyard B: "Lightning Bolt"
+  library B: "Lightning Bolt", "Mountain"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Counterbore" targeting "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert exile B contains 4 "Lightning Bolt"
+  assert hand B count 0
+  assert library B count 1
+}
+
+scenario "same name: Quash counters an instant and exiles the others" {
+  battlefield A: 4 "Island"
+  battlefield B: 3 "Island"
+  hand A: "Quash"
+  hand B: "Divination", "Divination"
+  start turn 2 B
+  turn 2 B: cast "Divination"
+  turn 2 A: cast "Quash" targeting "Divination"
+  run_to turn 2 postcombat_main
+  assert exile B contains 2 "Divination"
+}
+
+scenario "same name: Sowing Salt exiles a nonbasic land and its copies, not a basic" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Mishra's Factory", "Forest"
+  hand A: "Sowing Salt"
+  library B: "Mishra's Factory", "Forest"
+  turn 1 A: cast "Sowing Salt" targeting "Mishra's Factory"
+  run_to turn 1 postcombat_main
+  assert exile B contains 2 "Mishra's Factory"
+  assert library B count 1
+  assert battlefield B contains "Forest"
+}
+
+scenario "same name: Sowing Salt can't target a basic land" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Forest"
+  hand A: "Sowing Salt"
+  illegal turn 1 A: cast "Sowing Salt" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Forest"
+}
+
+scenario "same name: Scour and Splinter" {
+  battlefield A: 4 "Plains", 4 "Forest"
+  battlefield B: "Pacifism" on "Grizzly Bears", "Grizzly Bears", "Ornithopter"
+  hand A: "Scour", "Splinter"
+  hand B: "Pacifism", "Ornithopter"
+  turn 1 A: cast "Scour" targeting "Pacifism"
+  turn 1 A: wait
+  turn 1 A: cast "Splinter" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert exile B contains 2 "Pacifism"
+  assert exile B contains 2 "Ornithopter"
+  assert hand B count 0
+}

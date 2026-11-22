@@ -3698,6 +3698,13 @@ pub enum Effect {
     TapOrUntap {
         to: Recipient,
     },
+    /// `exile same name as target 1 from its controller zones`: "Search its
+    /// controller's graveyard, hand, and library for all cards with the
+    /// same name as that spell and exile them. Then that player
+    /// shuffles."
+    ExileSameName {
+        what: Recipient,
+    },
     /// `turn face up target face-down creature opponent controls` (CR
     /// 708.8): "Turn target face-down creature an opponent controls face
     /// up."

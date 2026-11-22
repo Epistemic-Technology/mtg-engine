@@ -4065,6 +4065,15 @@ pub enum Effect {
     TapOrUntap {
         to: Recipient,
     },
+    /// "Search its controller's graveyard, hand, and library for all
+    /// cards with the same name as that spell and exile them. Then that
+    /// player shuffles." (Counterbore, Eradicate): the object's controller
+    /// and name as it last existed (CR 608.2h); every card of that name
+    /// in those zones is exiled (CR 701.19b lets a searcher fail to find
+    /// them; the engine finds them all), then that library is shuffled.
+    ExileSameName {
+        what: Recipient,
+    },
     Untap {
         to: Recipient,
     },

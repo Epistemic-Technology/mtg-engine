@@ -2102,7 +2102,12 @@ controller may search their library for ..., put it onto the battlefield
 tapped, then shuffle": declining before finding anything is not
 searching, so nothing is shuffled), `target player searches basic land
 card to battlefield tapped` ("Target player searches their library for
-..., puts it onto the battlefield tapped, then shuffles"). A card
+..., puts it onto the battlefield tapped, then shuffles"), `exile same
+name as target 1 from its controller zones` ("Search its controller's
+graveyard, hand, and library for all cards with the same name as that
+spell and exile them. Then that player shuffles.": the target's name and
+controller as it last existed, CR 608.2h, after it was countered or
+exiled; the engine finds every such card, CR 701.19b). A card
 revealed and put into a hand (`reveal to hand`), like every card of a
 revealed hand, is known to every player until it moves (CR 701.20):
 `determinize` keeps it in place),

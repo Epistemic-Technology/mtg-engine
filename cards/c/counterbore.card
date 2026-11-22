@@ -1,0 +1,6 @@
+card "Counterbore" {
+  oracle_id 1198ec53-9050-417d-812f-692e1378d346
+  cost {3}{U}{U}
+  type Instant
+  spell: counter target spell; exile same name as target 1 from its controller zones
+}

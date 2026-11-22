@@ -1,0 +1,6 @@
+card "Splinter" {
+  oracle_id 90f01e9f-68f1-4e41-97dc-8de990a91504
+  cost {2}{G}{G}
+  type Sorcery
+  spell: exile target artifact; exile same name as target 1 from its controller zones
+}

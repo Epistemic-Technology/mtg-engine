@@ -3053,6 +3053,9 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Sacrifice { what: r(*what) });
             }
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
+            Effect::ExileSameName { what } => {
+                out.push(CoreEffect::ExileSameName { what: r(*what) });
+            }
             Effect::NextSpellLess(n) => out.push(CoreEffect::NextSpellLess(*n)),
             Effect::ExtraLandPlays(n) => out.push(CoreEffect::ExtraLandPlays(*n)),
             Effect::FaceDownSpellsLess(n) => out.push(CoreEffect::FaceDownSpellsLess(*n)),

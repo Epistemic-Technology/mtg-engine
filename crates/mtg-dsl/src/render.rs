@@ -6360,6 +6360,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("tap or untap {o}"))
         }
+        // "Search its controller's graveyard, hand, and library for all
+        // cards with the same name as that spell and exile them. Then that
+        // player shuffles."
+        Effect::ExileSameName { what } => {
+            let o = match what {
+                // The target's own noun, though it has been exiled since
+                // ("that creature", not "that card").
+                Recipient::Target(i) if *i < ctx.targets.len() => {
+                    ctx.target_mentioned[*i] = true;
+                    format!("that {}", target_noun(&ctx.targets[*i]))
+                }
+                other => ctx.obj(*other),
+            };
+            Clause::imperative(format!(
+                "search its controller's graveyard, hand, and library for all cards with the same name as {o} and exile them. Then that player shuffles"
+            ))
+        }
         Effect::FaceDownSpellsLess(n) => Clause::imperative(format!(
             "face-down spells you cast this turn cost {{{n}}} less to cast"
         )),

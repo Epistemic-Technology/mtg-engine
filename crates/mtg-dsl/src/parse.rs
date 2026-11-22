@@ -8310,6 +8310,15 @@ impl P {
                 if self.eat_words(&["all", "graveyards"]) {
                     return Ok(Effect::ExileAllGraveyards);
                 }
+                // `exile same name as target 1 from its controller zones`:
+                // "Search its controller's graveyard, hand, and library for
+                // all cards with the same name as that spell and exile
+                // them. Then that player shuffles."
+                if self.eat_words(&["same", "name", "as"]) {
+                    let what = self.recipient()?;
+                    self.expect_words(&["from", "its", "controller", "zones"])?;
+                    return Ok(Effect::ExileSameName { what });
+                }
                 // `exile until nonland card`.
                 if self.eat_word("until") {
                     self.revealed = true;

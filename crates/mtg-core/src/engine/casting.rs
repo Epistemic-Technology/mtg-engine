@@ -10289,6 +10289,41 @@ impl GameState {
                 self.next_spell_less[i] =
                     self.next_spell_less[i].saturating_add(u16::try_from(*n).unwrap_or(u16::MAX));
             }
+            Effect::ExileSameName { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    // As it last existed (CR 608.2h): a countered spell or
+                    // an exiled permanent has moved since.
+                    let Some((owner_ctl, def)) = self
+                        .objects
+                        .get(id)
+                        .map(|o| (o.controller, o.def))
+                        .or_else(|| {
+                            self.lki
+                                .get(&id)
+                                .map(|l| (l.object.controller, l.object.def))
+                        })
+                    else {
+                        continue;
+                    };
+                    let name = self.pool.get(def).name.clone();
+                    let ps = self.player(owner_ctl);
+                    let cards: Vec<ObjId> = ps
+                        .graveyard
+                        .iter()
+                        .chain(ps.hand.iter())
+                        .chain(ps.library.iter())
+                        .copied()
+                        .filter(|c| self.pool.get(self.objects[*c].def).name == name)
+                        .collect();
+                    for c in cards {
+                        self.move_object(c, Zone::Exile, true);
+                    }
+                    self.shuffle_library(owner_ctl);
+                }
+            }
             Effect::TapOrUntap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
