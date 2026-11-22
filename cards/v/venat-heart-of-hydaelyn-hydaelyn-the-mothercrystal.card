@@ -1,0 +1,16 @@
+card "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal" {
+  oracle_id 2e5adbcf-6b5c-4ded-a339-8757040ef878
+  layout transform
+  cost {1}{W}{W}
+  type Legendary Creature — Elder Wizard
+  pt 3/3
+  triggered once each turn whenever you cast legendary spell: draw 1 card
+  label "Hero's Sundering" activated {7}, {T}, sorcery: exile target nonland permanent; transform this
+  face "Hydaelyn, the Mothercrystal" {
+    type Legendary Creature — God
+    pt 4/4
+    color white
+    keywords indestructible
+    label "Blessing of Light" triggered at beginning of your combat: put 1 +1/+1 counter on another target creature you control; until your next turn, target 1 gains indestructible; if that target 1 is legendary, draw 1 card
+  }
+}

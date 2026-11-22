@@ -1,0 +1,9 @@
+card "Champions of the Shoal" {
+  oracle_id fc76ec95-f001-44df-89b2-b0f1b10c8e11
+  cost {3}{U}
+  type Creature — Merfolk Soldier
+  pt 4/6
+  additional cost behold and exile Merfolk
+  triggered whenever this enters or becomes tapped: tap up to 1 target creature and put 1 stun counter on it
+  triggered when this leaves the battlefield: return exiled card to hand
+}

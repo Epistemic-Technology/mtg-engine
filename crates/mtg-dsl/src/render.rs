@@ -1437,6 +1437,7 @@ impl<'a> Ctx<'a> {
                 "those tokens".to_string()
             }
             Recipient::CreatedThem | Recipient::SameThem => "them".to_string(),
+            Recipient::SameCards => "those cards".to_string(),
             Recipient::Those(t) => crate::format::those_word(t).to_string(),
             Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
                 "it".to_string()
@@ -1937,6 +1938,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::CreatedThem
                 | Recipient::CreatedThose
                 | Recipient::SameTokens
+                | Recipient::SameCards
                 | Recipient::SameThem
                 | Recipient::Those(_)
         )
@@ -5863,7 +5865,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // "return them to the battlefield" (Tom, Bert, and William
                 // return themselves, their owner's ability).
                 format!("return {o} to the battlefield{tapped}")
-            } else if matches!(what, Recipient::ThoseCards(..)) {
+            } else if matches!(what, Recipient::ThoseCards(..) | Recipient::SameCards) {
                 // "return those cards to the battlefield under their
                 // owner's control" (Oracle's singular "owner's").
                 format!("return {o} to the battlefield{tapped} under their owner's control")

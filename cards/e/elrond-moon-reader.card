@@ -1,0 +1,8 @@
+card "Elrond, Moon-Reader" {
+  oracle_id 3f4d6f91-95ad-4687-8899-5a21a0abb49e
+  cost {2}{U}
+  type Legendary Creature — Elf Noble
+  pt 3/3
+  triggered once each turn whenever you activate an ability of a creature: draw 1 card
+  activated {5}{U}{U}: exile up to 2 another target nonland permanent you control; delayed targets 1 to 2: return those cards to battlefield at beginning of the next end step
+}

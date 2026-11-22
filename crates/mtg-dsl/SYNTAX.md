@@ -2152,7 +2152,10 @@ controller's end step, but not in the turn it was created), and
 the ability is about, and so is `that card`, which prints so where `it`
 prints "it" (`delayed target 1: return that card to battlefield at
 beginning of the next end step`: "Return that card to the battlefield
-under its owner's control ..."; `return it`: "Return it ..."); in one about `that creature` (the triggering object),
+under its owner's control ..."; `return it`: "Return it ..."; in one
+about several targets, `delayed targets 1 to 2: return those cards to
+battlefield at beginning of the next end step`: "Return those cards to the
+battlefield under their owner's control ...", each in turn); in one about `that creature` (the triggering object),
 `that creature` is that object too, only while it is the same object
 (CR 603.7c), and prints "that creature"; in one about a target, `that
 creature` is the object too. `delayed target 1: when that creature dies

@@ -3248,6 +3248,11 @@ pub enum Recipient {
     /// (`SameTokens`, the core `SameObject`).
     CreatedTokens,
     SameTokens,
+    /// `those cards` inside a delayed trigger about several targets: each
+    /// in turn (the core `SameObject`), printed "those cards" ("Return
+    /// those cards to the battlefield under their owner's control at the
+    /// beginning of the next end step.").
+    SameCards,
     /// `them` inside a delayed trigger about created tokens: those tokens
     /// (`SameTokens`), printed "them" ("Exile them at the beginning of the
     /// next end step").

@@ -9954,6 +9954,9 @@ impl P {
         if !self.in_delayed && self.eat_words(&["each", "of", "them"]) {
             return Ok(Recipient::CreatedThem);
         }
+        if self.in_delayed && self.eat_words(&["those", "cards"]) {
+            return Ok(Recipient::SameCards);
+        }
         if self.eat_words(&["those", "cards"]) {
             if self.targets.is_empty() {
                 return self.fail("`those cards` needs targets declared before it");

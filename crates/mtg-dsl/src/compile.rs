@@ -2303,6 +2303,7 @@ impl Compiler<'_> {
             | Recipient::SameThat
             | Recipient::SameToken
             | Recipient::SameTokens
+            | Recipient::SameCards
             | Recipient::SameThem => CoreRecipient::SameObject,
             Recipient::CreatedTokens | Recipient::CreatedThem | Recipient::CreatedThose => {
                 CoreRecipient::CreatedTokens

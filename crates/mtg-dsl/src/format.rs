@@ -360,6 +360,7 @@ impl Fmt {
             Recipient::SameCard => "that card".to_string(),
             Recipient::SameThem => "them".to_string(),
             Recipient::CreatedTokens | Recipient::SameTokens => "those tokens".to_string(),
+            Recipient::SameCards => "those cards".to_string(),
             Recipient::CreatedThem => "each of them".to_string(),
             Recipient::CreatedThose => "those copies".to_string(),
             Recipient::Manifested => "manifested creature".to_string(),
