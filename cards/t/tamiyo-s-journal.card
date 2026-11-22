@@ -1,0 +1,7 @@
+card "Tamiyo's Journal" {
+  oracle_id 20591a83-7138-4876-b088-035bd3788be3
+  cost {5}
+  type Legendary Artifact — Book
+  triggered at beginning of your upkeep: investigate
+  activated {T}, sacrifice 3 Clue: search card to hand that card
+}

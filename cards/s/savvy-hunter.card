@@ -1,0 +1,8 @@
+card "Savvy Hunter" {
+  oracle_id 602132c2-8ee8-41f8-bfac-cb17d32203f5
+  cost {1}{B}{G}
+  type Creature — Human Warrior
+  pt 3/3
+  triggered whenever this attacks or blocks: create 1 "Food"
+  activated sacrifice 2 Food: draw 1 cards
+}

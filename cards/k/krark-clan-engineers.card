@@ -1,0 +1,7 @@
+card "Krark-Clan Engineers" {
+  oracle_id 0964288c-0397-428a-9a84-784aaea4e040
+  cost {3}{R}
+  type Creature — Goblin Artificer
+  pt 2/2
+  activated {R}, sacrifice 2 artifact: destroy target artifact
+}

@@ -1,0 +1,8 @@
+card "Nimble Larcenist" {
+  oracle_id abd839ab-8b08-4bc0-900a-3a161c62b06c
+  cost {W}{U}{B}
+  type Creature — Bird Rogue
+  pt 2/1
+  keywords flying
+  triggered when this enters: target opponent reveals hand exiling artifact instant or sorcery card
+}

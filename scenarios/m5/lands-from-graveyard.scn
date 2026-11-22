@@ -6,7 +6,6 @@
 # for that.
 
 scenario "Crucible of Worlds: play a land from the graveyard" {
-  skip "runner: `play` does not look in the graveyard"
   battlefield A: "Crucible of Worlds"
   graveyard A: "Forest"
   start turn 1 A precombat_main
@@ -17,7 +16,6 @@ scenario "Crucible of Worlds: play a land from the graveyard" {
 }
 
 scenario "Crucible of Worlds: still one land a turn" {
-  skip "runner: `play` does not look in the graveyard"
   battlefield A: "Crucible of Worlds"
   graveyard A: "Forest", "Island"
   start turn 1 A precombat_main
@@ -28,7 +26,6 @@ scenario "Crucible of Worlds: still one land a turn" {
 }
 
 scenario "Crucible of Worlds: only its controller" {
-  skip "runner: `play` does not look in the graveyard"
   battlefield A: "Crucible of Worlds"
   graveyard B: "Forest"
   start turn 2 B precombat_main
@@ -38,7 +35,6 @@ scenario "Crucible of Worlds: only its controller" {
 }
 
 scenario "Ramunap Excavator: not a nonland card" {
-  skip "runner: `play` does not look in the graveyard"
   battlefield A: "Ramunap Excavator"
   graveyard A: "Grizzly Bears", "Swamp"
   start turn 1 A precombat_main
@@ -49,7 +45,6 @@ scenario "Ramunap Excavator: not a nonland card" {
 }
 
 scenario "Icetill Explorer: two lands, one from the graveyard, each milling" {
-  skip "runner: `play` does not look in the graveyard"
   battlefield A: "Icetill Explorer"
   hand A: "Forest"
   graveyard A: "Island"
@@ -65,7 +60,6 @@ scenario "Icetill Explorer: two lands, one from the graveyard, each milling" {
 }
 
 scenario "Perennial Behemoth: lands from the graveyard" {
-  skip "runner: `play` does not look in the graveyard"
   battlefield A: "Perennial Behemoth"
   graveyard A: "Mountain"
   start turn 1 A precombat_main

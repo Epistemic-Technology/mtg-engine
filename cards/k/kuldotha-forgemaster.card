@@ -1,0 +1,7 @@
+card "Kuldotha Forgemaster" {
+  oracle_id b0f99367-4313-4bb1-a9fd-7711bc4ce40e
+  cost {5}
+  type Artifact Creature — Construct
+  pt 3/5
+  activated {T}, sacrifice 3 artifact: search artifact card to battlefield
+}

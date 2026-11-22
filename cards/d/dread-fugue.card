@@ -1,0 +1,7 @@
+card "Dread Fugue" {
+  oracle_id efe4194a-b3c5-4308-abfe-553e035f5e64
+  cost {B}
+  type Sorcery
+  cleave {2}{B}: target player reveals hand discarding nonland card
+  spell: target player reveals hand discarding nonland with mana value 2 or less card
+}

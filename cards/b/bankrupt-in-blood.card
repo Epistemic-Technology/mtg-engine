@@ -1,0 +1,7 @@
+card "Bankrupt in Blood" {
+  oracle_id 10a66403-606d-4814-9583-50cdcd6976e0
+  cost {1}{B}
+  type Sorcery
+  additional cost sacrifice 2 creature
+  spell: draw 3 cards
+}

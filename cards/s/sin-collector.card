@@ -1,0 +1,7 @@
+card "Sin Collector" {
+  oracle_id 6bef2904-1ebe-4e7e-879a-79f4968174fb
+  cost {1}{W}{B}
+  type Creature — Human Cleric
+  pt 2/1
+  triggered when this enters: target opponent reveals hand exiling instant or sorcery card
+}

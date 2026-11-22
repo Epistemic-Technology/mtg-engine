@@ -1,0 +1,7 @@
+card "Whisper, Blood Liturgist" {
+  oracle_id 496ab82e-24a9-4a74-ba4b-992c7309b44a
+  cost {3}{B}
+  type Legendary Creature — Human Cleric
+  pt 2/2
+  activated {T}, sacrifice 2 creature: return target creature card from your graveyard to battlefield
+}

@@ -1,0 +1,64 @@
+# Cards the template author wrote after the sixth wave: costs that
+# sacrifice more than one permanent, and revealed-hand exiles.
+scenario "Krark-Clan Engineers: sacrifices two artifacts" {
+  battlefield A: 1 "Mountain", "Krark-Clan Engineers", 2 "Ornithopter"
+  battlefield B: "Sol Ring"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Krark-Clan Engineers" sacrificing "Ornithopter" targeting "Sol Ring"
+  run_to turn 2 end
+  assert graveyard B contains "Sol Ring"
+  assert graveyard A count 2
+}
+
+scenario "Krark-Clan Engineers: not with one artifact" {
+  battlefield A: 1 "Mountain", "Krark-Clan Engineers", 1 "Ornithopter"
+  battlefield B: "Sol Ring"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Krark-Clan Engineers" sacrificing "Ornithopter" targeting "Sol Ring"
+  run_to turn 2 end
+  assert battlefield B contains "Sol Ring"
+}
+
+scenario "Samwise Gamgee: three Foods return a historic card" {
+  battlefield A: "Samwise Gamgee", 3 "Food"
+  graveyard A: "Sol Ring"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Samwise Gamgee" sacrificing "Food" targeting "Sol Ring"
+  run_to turn 2 end
+  assert hand A contains "Sol Ring"
+  assert battlefield A count 1
+}
+
+scenario "Eldrazi Ravager: returns from the graveyard for two Eldrazi" {
+  battlefield A: 2 "Eldrazi Devastator"
+  graveyard A: "Eldrazi Ravager"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Eldrazi Ravager" sacrificing "Eldrazi Devastator"
+  run_to turn 2 end
+  assert hand A contains "Eldrazi Ravager"
+  assert graveyard A count 2
+}
+
+scenario "Sin Collector: exiles an instant from the revealed hand" {
+  battlefield A: "Plains", "Swamp", "Island"
+  hand A: "Sin Collector"
+  hand B: "Shock", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Sin Collector"
+  turn 2 A: trigger "Sin Collector" targeting player B
+  run_to turn 2 end
+  assert exile B contains "Shock"
+  assert hand B contains "Grizzly Bears"
+  assert hand B count 1
+}
+
+scenario "Farewell: artifacts and creatures, not enchantments" {
+  battlefield A: 6 "Plains"
+  battlefield B: "Sol Ring", "Grizzly Bears", "Holy Strength"
+  hand A: "Farewell"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Farewell" mode 3
+  run_to turn 2 end
+  assert exile B contains "Sol Ring"
+  assert exile B contains "Grizzly Bears"
+}

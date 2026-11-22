@@ -1,0 +1,11 @@
+card "Farewell" {
+  oracle_id 4eb813fd-2d5a-4b02-8193-662681ef4e7d
+  cost {4}{W}{W}
+  type Sorcery
+  choose one or more {
+    mode: exile each artifact
+    mode: exile all creatures
+    mode: exile each enchantment
+    mode: exile all graveyards
+  }
+}

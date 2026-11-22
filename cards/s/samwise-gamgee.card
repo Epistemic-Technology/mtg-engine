@@ -1,0 +1,8 @@
+card "Samwise Gamgee" {
+  oracle_id 7ce37c26-91ea-493f-bfc3-a890d4538bc1
+  cost {G}{W}
+  type Legendary Creature — Halfling Peasant
+  pt 2/2
+  triggered whenever other nontoken creature you control enters: create 1 "Food"
+  activated sacrifice 3 Food: return target historic card from your graveyard to hand
+}

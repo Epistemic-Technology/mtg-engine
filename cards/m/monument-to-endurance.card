@@ -1,0 +1,10 @@
+card "Monument to Endurance" {
+  oracle_id e69e8de4-b521-4888-8074-17f1efe2f345
+  cost {3}
+  type Artifact
+  triggered whenever you discard a card: choose one unchosen this turn {
+    mode: draw 1 cards
+    mode: create 1 "Treasure"
+    mode: each opponent loses 3 life
+  }
+}

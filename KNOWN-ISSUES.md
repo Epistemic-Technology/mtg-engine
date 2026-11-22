@@ -101,6 +101,16 @@ wrong thing in some case.
   intervening-if trigger `when this enters if this is untapped`: tapping
   the land with its trigger on the stack stops it (CR 603.4); the printed
   trigger event is judged only as the land enters.
+- **A delayed trigger made by a copy of a prepared spell never fires**
+  (Pigment Wrangler // Striking Palette: "when you next cast an instant
+  or sorcery spell this turn, copy that spell"): it is tied to the copy,
+  which ceases to exist. The same line on Doublecast works.
+- **A mana ability with a cost other than {T} uses the stack** (Grinning
+  Ignus: "{R}, Return this creature to its owner's hand: Add {C}{C}{R}";
+  CR 605.3a says it resolves at once), and one with an exile cost isn't
+  used for automatic payment (Molt Tender).
+- **Thirst for Knowledge:** the engine chooses between discarding an
+  artifact card and discarding two cards.
 
 ## 2. Forms that pass the gate with the wrong meaning
 
@@ -116,6 +126,28 @@ by rejecting the form at compile time or by binding it correctly.
   - `triggered when this dies: put count each -1/-1 counters on this
     -1/-1 counters on target creature` puts none: the count doesn't read
     the counters it had as it died (Grief Tyrant).
+- **Found by the sixth wave's card batches, before the feature
+  branches merged; none is used by a card in the corpus** (each card
+  named was rejected; not re-checked since):
+  - `unless they sacrifice another nonland` in a spell lets the targeted
+    creature itself be sacrificed (Torment of Venom).
+  - `choose color; delayed this: whenever this becomes blocked by a
+    creature of that color this turn` never fires (Zombie Boa).
+  - `untap target creature and each other creature that shares color
+    with target 1; those creatures get +2/+0` pumps only the target
+    (Rally the Righteous).
+  - `untap that creature` on an Aura's enters trigger untaps nothing;
+    `untap attached` works but prints "untap it" (Howl of the Hunt).
+  - `if that target 1 is token, also ...`: the `token` check is ignored
+    (Hazardroot Herbalist).
+  - `whenever face-down permanent you control is turned face up` never
+    triggers (Sumala Sentry).
+  - `whenever attacking creature you control dies`: "attacking" is
+    ignored (Ares, God of War).
+  - "instead create X of those tokens" renders only without `tapped`,
+    and the tokens then enter untapped (The Final Days).
+  - `creature you control with aura you control`: "you control" is
+    dropped from the Aura (Archon of the Wild Rose).
 - **`put its counters on <target>` in a trigger about another object**
   moves the source's counters, not the triggering object's (`put its
   counters on this` and `put those counters on ...` take the triggering
@@ -249,6 +281,19 @@ named the feature; a card may need more than one.
   symbol or added by an effect; "if that spell was kicked"; a combined subject ("you and other Heroes you control have
   hexproof"); "flash if you pay {2} more"; copying a card and casting
   the copy; choose a number, a card name, odd or even; piles.
+- **Most often named in the sixth wave** (356 unsupported or failed of
+  480): wording near-misses (about 55); "exile this, then return it to
+  the battlefield transformed" and other returns transformed (eight
+  cards); "a spell that's both white and black" (the four Mimics);
+  "Enchanted land is a 6/4 creature. It's still a land." (four); "Any
+  player may activate this ability" (three); "Remove X ki counters" as
+  a cost (three); reveal cards until N of a kind (three); counter kinds
+  impostor, bait, growth, fire, dread, invasion, devotion; ward with an
+  alternative ("or pay {2}") or mana plus life; "only one recipient
+  returns to the battlefield" (Sandman, Push // Pull); base power alone
+  or base toughness alone (Withercrown, Maha); "would die" replaced by
+  the top or bottom of the library; reveal X cards from a hand and
+  choose one to discard (Thieving Sprite, Mire's Toll).
 - **Left by the sixth wave's counts branch:** restricted mana of more
   than one symbol or added by an effect (about 40 cards: Great Hall of
   the Citadel, Resonating Lute, Eldrazi Temple, Boommobile; restricted
@@ -272,7 +317,13 @@ named the feature; a card may need more than one.
 - **Scenario runner:** a mana ability can't be scripted as an action
   (the engine offers none at priority; it taps for mana while paying);
   `x N` on a spell cast by a trigger isn't passed on (no corpus card
-  pays X for such a cast: the free ones have X 0).
+  pays X for such a cast: the free ones have X 0); a discard chosen as
+  a spell resolves (Thirst for Knowledge) and a "you may cast the copy" or "you may
+  choose a card from it" can't be declined; `illegal ... cast "X" mode
+  N` doesn't check that mode N is offered; `activate` can't tell two
+  permanents of one name apart; a fused or aftermath spell's targets
+  can't be scripted (`cast_needs` reads the split card's root
+  definition; `crates/mtg-cli/tests/split_cards.rs` drives those).
 
 ## 4. Process
 

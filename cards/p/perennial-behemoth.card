@@ -1,0 +1,8 @@
+card "Perennial Behemoth" {
+  oracle_id ee4b7aca-31dd-4369-8e85-b300892b9b41
+  cost {5}
+  type Artifact Creature — Beast
+  pt 2/7
+  you may play lands from your graveyard
+  unearth {G}{G}
+}

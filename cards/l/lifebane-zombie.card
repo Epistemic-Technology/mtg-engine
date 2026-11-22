@@ -1,0 +1,8 @@
+card "Lifebane Zombie" {
+  oracle_id 5b31ac7b-7901-484c-b59f-556284fd562c
+  cost {1}{B}{B}
+  type Creature — Zombie Warrior
+  pt 3/1
+  keywords intimidate
+  triggered when this enters: target opponent reveals hand exiling green or white creature card
+}

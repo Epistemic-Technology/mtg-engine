@@ -1,0 +1,9 @@
+card "Gilded Assault Cart" {
+  oracle_id 73da9297-4c7c-4388-820f-1189b5aa0b98
+  cost {1}{R}{R}
+  type Artifact — Vehicle
+  pt 5/1
+  keywords trample
+  crew 2
+  activated sacrifice 2 Treasure, from graveyard: return this to hand
+}

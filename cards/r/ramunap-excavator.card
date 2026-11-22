@@ -1,0 +1,7 @@
+card "Ramunap Excavator" {
+  oracle_id 4f819ba4-52ef-4fdd-8e4c-5ae3b2f44db5
+  cost {2}{G}
+  type Creature — Snake Cleric
+  pt 2/3
+  you may play lands from your graveyard
+}

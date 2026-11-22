@@ -1,0 +1,9 @@
+card "Icetill Explorer" {
+  oracle_id 109cdefd-e8cc-4ac7-b6ba-2cfdef8d780f
+  cost {2}{G}{G}
+  type Creature — Insect Scout
+  pt 2/4
+  additional land
+  you may play lands from your graveyard
+  label "Landfall" triggered whenever land you control enters: mill 1 cards
+}

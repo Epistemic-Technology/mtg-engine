@@ -1,0 +1,8 @@
+card "Ruthless Knave" {
+  oracle_id 00225c40-27ff-410f-a591-5c788c6a2bd6
+  cost {2}{B}
+  type Creature — Orc Pirate
+  pt 3/2
+  activated {2}{B}, sacrifice creature: create 2 "Treasure"
+  activated sacrifice 3 Treasure: draw 1 cards
+}

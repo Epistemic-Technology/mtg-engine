@@ -1,0 +1,9 @@
+card "Eldrazi Ravager" {
+  oracle_id 25a73cfc-a40d-47ea-a7b1-61c7b62a9e6c
+  cost {5}{C}
+  type Creature — Eldrazi
+  pt 6/6
+  annihilator 1
+  activated sacrifice 2 Eldrazi, from graveyard: return this to hand
+  cycling {2}
+}

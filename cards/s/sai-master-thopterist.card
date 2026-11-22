@@ -1,0 +1,8 @@
+card "Sai, Master Thopterist" {
+  oracle_id 52241b9c-7a69-4176-9234-8bdab09d8e64
+  cost {2}{U}
+  type Legendary Creature — Human Artificer
+  pt 1/4
+  triggered whenever you cast artifact spell: create 1 "1/1 colorless Thopter artifact creature with flying"
+  activated {1}{U}, sacrifice 2 artifact: draw 1 cards
+}

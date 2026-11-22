@@ -1,0 +1,15 @@
+card "Oakshade Stalker // Moonlit Ambusher" {
+  oracle_id 1b639537-a8fe-4615-b937-afa478fdec0f
+  layout transform
+  cost {2}{G}
+  type Creature — Human Ranger Werewolf
+  pt 3/3
+  flash if pay {2} more
+  daybound
+  face "Moonlit Ambusher" {
+    type Creature — Werewolf
+    pt 6/3
+    color green
+    nightbound
+  }
+}

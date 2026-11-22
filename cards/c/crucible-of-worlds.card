@@ -1,0 +1,6 @@
+card "Crucible of Worlds" {
+  oracle_id 33c722cf-b4bf-431f-aefd-ee96241a7fbf
+  cost {3}
+  type Artifact
+  you may play lands from your graveyard
+}
