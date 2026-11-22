@@ -23,6 +23,8 @@ const KEYWORDS: &[&str] = &[
     "Split second",
     "Cipher",
     "Paradigm",
+    "Aftermath",
+    "Fuse",
     "Banding",
     "Decayed",
     "Phasing",

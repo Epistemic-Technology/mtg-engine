@@ -1,0 +1,16 @@
+card "Down // Dirty" {
+  oracle_id eba21e3b-e2b2-4e0b-82e3-f0849943fd89
+  layout split
+  face "Down" {
+    cost {3}{B}
+    type Sorcery
+    keywords fuse
+    spell: target player discards 2 cards
+  }
+  face "Dirty" {
+    cost {2}{G}
+    type Sorcery
+    keywords fuse
+    spell: return target card from your graveyard to hand
+  }
+}

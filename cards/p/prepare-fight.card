@@ -1,0 +1,15 @@
+card "Prepare // Fight" {
+  oracle_id fed7a6ad-68d8-4923-9ef0-619f73bfd6c2
+  layout split
+  face "Prepare" {
+    cost {1}{W}
+    type Instant
+    spell: untap target creature; target 1 gets +2/+2 and gains lifelink
+  }
+  face "Fight" {
+    cost {3}{G}
+    type Sorcery
+    keywords aftermath
+    spell: target creature you control fights target creature an opponent controls
+  }
+}

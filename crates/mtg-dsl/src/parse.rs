@@ -183,6 +183,8 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["cipher"], Keyword::Cipher),
     (&["paradigm"], Keyword::Paradigm),
     (&["split", "second"], Keyword::SplitSecond),
+    (&["aftermath"], Keyword::Aftermath),
+    (&["fuse"], Keyword::Fuse),
     (&["exploit"], Keyword::Exploit),
     (&["delve"], Keyword::Delve),
     (

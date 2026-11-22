@@ -1,0 +1,15 @@
+card "Spring // Mind" {
+  oracle_id 6dd7e861-7ae2-49e6-a9ab-8fd761939e22
+  layout split
+  face "Spring" {
+    cost {2}{G}
+    type Sorcery
+    spell: search basic land card to battlefield tapped
+  }
+  face "Mind" {
+    cost {4}{U}{U}
+    type Instant
+    keywords aftermath
+    spell: draw 2 cards
+  }
+}

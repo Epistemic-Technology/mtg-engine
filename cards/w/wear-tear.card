@@ -1,0 +1,16 @@
+card "Wear // Tear" {
+  oracle_id 9842734c-1eac-4509-a731-4c22017ae586
+  layout split
+  face "Wear" {
+    cost {1}{R}
+    type Instant
+    keywords fuse
+    spell: destroy target artifact
+  }
+  face "Tear" {
+    cost {W}
+    type Instant
+    keywords fuse
+    spell: destroy target enchantment
+  }
+}

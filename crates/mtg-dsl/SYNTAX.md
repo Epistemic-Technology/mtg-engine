@@ -77,6 +77,21 @@ land (CR 712.11b, 712.12), and the permanent has the face it was cast or
 played as; anywhere else it is its front face. `transform this` turns it
 to its other face as well.
 
+`keywords aftermath` on a split card's half (CR 702.127a, printed
+"Aftermath" first in the half's text): that half can be cast only from
+its owner's graveyard (for its mana cost, with its own timing; in
+scenarios `cast "Cut // Ribbons" from graveyard`, though the runner reads
+the targets of that cast from the card, so an aftermath half with targets
+can't be scripted yet), and the spell is exiled as it leaves the stack;
+the other half is cast from the hand as usual and can't be cast from the
+graveyard. `keywords fuse` on both halves (CR 702.102, printed "Fuse"
+after each half's text): from the hand, both halves may be cast together
+as a fused split spell, for both mana costs, with the left half's targets
+and then the right half's (the same object may be chosen for one of each,
+CR 115.3), doing the left half's instructions and then the right half's.
+The fused spell is the card's third face (`CardPool::add_fused`), named
+like the card; either half may still be cast alone.
+
 ## Header
 
 | Line | Meaning |

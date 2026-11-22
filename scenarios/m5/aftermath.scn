@@ -1,0 +1,211 @@
+# Aftermath (CR 702.127a): the aftermath half of a split card may be cast
+# only from its owner's graveyard, and a spell cast from a graveyard this
+# way is exiled as it leaves the stack. The other half is cast from the
+# hand as usual (CR 709.3).
+
+scenario "aftermath: the first half from the hand, the aftermath half from the graveyard, then exiled" {
+  battlefield A: 2 "Mountain", 2 "Swamp", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Cut // Ribbons"
+  turn 1 A: cast "Cut" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Cut // Ribbons" from graveyard x 1
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert life B 19
+  assert exile A contains "Cut // Ribbons"
+  assert graveyard A lacks "Cut // Ribbons"
+}
+
+scenario "aftermath: X in the aftermath half's cost" {
+  battlefield A: 3 "Swamp", 2 "Island"
+  graveyard A: "Cut // Ribbons"
+  turn 1 A: cast "Cut // Ribbons" from graveyard x 3
+  run_to turn 1 end
+  assert life B 17
+  assert exile A contains "Cut // Ribbons"
+}
+
+scenario "aftermath: the aftermath half can't be cast from the hand" {
+  battlefield A: 4 "Swamp", 2 "Mountain"
+  hand A: "Cut // Ribbons"
+  illegal turn 1 A: cast "Ribbons" x 2
+  run_to turn 1 end
+  assert life B 20
+  assert hand A contains "Cut // Ribbons"
+}
+
+scenario "aftermath: the first half can't be cast from the graveyard" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Cut // Ribbons"
+  illegal turn 1 A: cast "Cut // Ribbons" from graveyard
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Cut // Ribbons"
+}
+
+scenario "aftermath: a sorcery aftermath half only at sorcery speed" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Cut // Ribbons"
+  illegal turn 1 upkeep A: cast "Cut // Ribbons" from graveyard x 1
+  run_to turn 1 end
+  assert life B 20
+  assert graveyard A contains "Cut // Ribbons"
+}
+
+scenario "aftermath: an instant aftermath half at instant speed, from the graveyard after the first half resolved" {
+  battlefield A: 6 "Island", 3 "Forest"
+  hand A: "Spring // Mind"
+  library A: "Forest", 10 "Island"
+  turn 1 A: cast "Spring"
+  turn 2 upkeep A: cast "Spring // Mind" from graveyard
+  run_to turn 2 precombat_main
+  assert battlefield A contains 4 "Forest"
+  assert tapped newest A "Forest"
+  assert hand A count 2
+  assert exile A contains "Spring // Mind"
+}
+
+scenario "aftermath: countered, the aftermath spell is exiled too" {
+  battlefield A: 4 "Swamp"
+  battlefield B: 2 "Island"
+  hand B: "Counterspell"
+  graveyard A: "Cut // Ribbons"
+  turn 1 A: cast "Cut // Ribbons" from graveyard x 2
+  turn 1 B: cast "Counterspell" targeting "Ribbons"
+  run_to turn 1 end
+  assert life B 20
+  assert exile A contains "Cut // Ribbons"
+  assert graveyard A lacks "Cut // Ribbons"
+}
+
+scenario "aftermath: Farm destroys an attacking creature, Market draws two and discards two" {
+  battlefield A: 3 "Plains", 3 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Farm // Market"
+  library A: "Forest", "Mountain", 10 "Island"
+  start turn 2 B
+  turn 2 declare_attackers B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Farm" targeting "Hill Giant"
+  turn 3 A: cast "Farm // Market" from graveyard
+  turn 3 precombat_main A: discard "Island"
+  turn 3 precombat_main A: discard "Mountain"
+  run_to turn 3 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert life A 20
+  assert exile A contains "Farm // Market"
+  assert hand A count 1
+  assert hand A contains "Forest"
+}
+
+scenario "aftermath: Heaven hits each creature with flying, Earth each creature without" {
+  battlefield A: 4 "Forest", 4 "Mountain", "Grizzly Bears"
+  battlefield B: "Serra Angel", "Wind Drake", "Hill Giant"
+  hand A: "Heaven // Earth"
+  turn 1 upkeep A: cast "Heaven" x 2
+  turn 1 A: cast "Heaven // Earth" from graveyard x 2
+  run_to turn 1 end
+  assert graveyard B contains "Wind Drake"
+  assert battlefield B contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert exile A contains "Heaven // Earth"
+}
+
+scenario "aftermath: Struggle's damage counts lands, Survive shuffles each graveyard into its library" {
+  battlefield A: 3 "Mountain", 2 "Forest"
+  battlefield B: "Colossal Dreadmaw"
+  hand A: "Struggle // Survive"
+  graveyard A: "Lightning Bolt"
+  graveyard B: "Shock", "Murder"
+  library A: 5 "Island"
+  library B: 5 "Island"
+  turn 1 upkeep A: cast "Struggle" targeting "Colossal Dreadmaw"
+  turn 1 A: cast "Struggle // Survive" from graveyard
+  run_to turn 1 end
+  assert damage "Colossal Dreadmaw" 5
+  assert graveyard A count 0
+  assert graveyard B count 0
+  assert library A count 6
+  assert library B count 7
+  assert exile A contains "Struggle // Survive"
+}
+
+scenario "aftermath: Start makes two 1/1 Warriors with vigilance" {
+  battlefield A: 3 "Plains"
+  hand A: "Start // Finish"
+  turn 1 upkeep A: cast "Start"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Warrior"
+  assert power oldest A "Warrior" 1
+  assert has oldest A "Warrior" vigilance
+  assert graveyard A contains "Start // Finish"
+}
+
+# The aftermath halves with targets, cast from the graveyard, are in
+# crates/mtg-cli/tests/split_cards.rs (the runner reads a graveyard cast's
+# targets from the card, not its aftermath half).
+
+scenario "aftermath: Claim returns only a creature card with mana value 2 or less" {
+  battlefield A: "Swamp"
+  hand A: "Claim // Fame"
+  graveyard A: "Hill Giant"
+  illegal turn 1 A: cast "Claim" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "aftermath: Claim's target" {
+  battlefield A: "Swamp"
+  hand A: "Claim // Fame"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Claim" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Claim // Fame"
+}
+
+scenario "aftermath: Consign returns a nonland permanent" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Consign // Oblivion"
+  illegal turn 1 upkeep A: cast "Consign" targeting "Forest"
+  turn 1 A: cast "Consign" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand B contains "Grizzly Bears"
+  assert battlefield B contains "Forest"
+}
+
+scenario "aftermath: Never destroys a creature" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Never // Return"
+  turn 1 A: cast "Never" targeting "Serra Angel"
+  run_to turn 1 end
+  assert graveyard B contains "Serra Angel"
+  assert graveyard A contains "Never // Return"
+}
+
+scenario "aftermath: Prepare untaps a creature and it gets +2/+2 and lifelink" {
+  battlefield A: 2 "Plains", "Grizzly Bears" tapped
+  hand A: "Prepare // Fight"
+  turn 1 A: cast "Prepare" targeting "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" lifelink
+}
+
+scenario "aftermath: Road puts a basic land onto the battlefield tapped" {
+  battlefield A: 3 "Forest"
+  hand A: "Road // Ruin"
+  library A: "Forest", 5 "Island"
+  turn 1 A: cast "Road"
+  run_to turn 1 end
+  assert battlefield A contains 4 "Forest"
+  assert tapped newest A "Forest"
+  assert graveyard A contains "Road // Ruin"
+}

@@ -1,0 +1,163 @@
+# Fuse (CR 702.102): a split card with fuse cast from the hand may be cast
+# as both halves, a fused split spell: its cost is both mana costs
+# (702.102c), its targets are the left half's then the right half's, and
+# it does the left half's instructions and then the right half's
+# (702.102d). Either half may still be cast alone (CR 709.3). The fused
+# casts themselves are in crates/mtg-cli/tests/fuse.rs: the runner names a
+# cast by card or face name, and the fused spell's name is the card's,
+# whose own definition has no targets.
+
+scenario "fuse: Far alone, for its own cost" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Far // Away"
+  turn 1 A: cast "Far" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand B contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "fuse: Away alone" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Far // Away"
+  turn 1 A: cast "Away" targeting player B
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "fuse: not from the graveyard, either half" {
+  battlefield A: 2 "Mountain", "Plains"
+  battlefield B: "Ornithopter"
+  graveyard A: "Wear // Tear"
+  illegal turn 1 A: cast "Wear // Tear" from graveyard
+  run_to turn 1 end
+  assert graveyard A contains "Wear // Tear"
+  assert battlefield B contains "Ornithopter"
+}
+
+scenario "fuse: Wear alone destroys an artifact, Tear alone an enchantment" {
+  battlefield A: 2 "Mountain", "Plains"
+  battlefield B: "Ornithopter", "Grizzly Bears", "Pacifism" on "Grizzly Bears"
+  hand A: "Wear // Tear", "Wear // Tear"
+  turn 1 A: cast "Wear" targeting "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Tear" targeting "Pacifism"
+  run_to turn 1 end
+  assert graveyard B contains "Ornithopter"
+  assert graveyard B contains "Pacifism"
+}
+
+scenario "fuse: Wear can't target an enchantment" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Pacifism" on "Grizzly Bears"
+  hand A: "Wear // Tear"
+  illegal turn 1 A: cast "Wear" targeting "Pacifism"
+  run_to turn 1 end
+  assert battlefield B contains "Pacifism"
+}
+
+scenario "fuse: Protect and Serve alone" {
+  battlefield A: 3 "Plains", 2 "Island"
+  battlefield B: "Serra Angel", "Hill Giant"
+  hand A: "Protect // Serve", "Protect // Serve"
+  turn 1 A: cast "Protect" targeting "Serra Angel"
+  turn 1 A: wait
+  turn 1 A: cast "Serve" targeting "Hill Giant"
+  run_to turn 1 combat_damage
+  assert power "Serra Angel" 6
+  assert toughness "Serra Angel" 8
+  assert power "Hill Giant" -3
+  assert toughness "Hill Giant" 3
+}
+
+scenario "fuse: Down alone at sorcery speed, Dirty alone" {
+  battlefield A: 4 "Swamp", 3 "Forest"
+  hand A: "Down // Dirty", "Down // Dirty"
+  graveyard A: "Grizzly Bears"
+  hand B: "Island", "Mountain", "Plains"
+  illegal turn 1 upkeep A: cast "Down" targeting player B
+  turn 1 A: cast "Down" targeting player B
+  turn 1 precombat_main B: discard "Island"
+  turn 1 precombat_main B: discard "Mountain"
+  turn 1 A: wait
+  turn 1 A: cast "Dirty" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand B count 1
+  assert hand B contains "Plains"
+  assert hand A contains "Grizzly Bears"
+}
+
+# A fused split spell without targets is scripted by the card's name.
+
+scenario "fuse: Profit // Loss fused, both halves" {
+  battlefield A: 2 "Plains", 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Wind Drake"
+  hand A: "Profit // Loss"
+  turn 1 A: cast "Profit // Loss"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+  assert power "Wind Drake" 1
+  assert graveyard A contains "Profit // Loss"
+}
+
+scenario "fuse: Profit alone, Loss alone" {
+  battlefield A: 2 "Plains", 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Profit // Loss", "Profit // Loss"
+  turn 1 A: cast "Profit"
+  turn 1 A: wait
+  turn 1 A: cast "Loss"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 3
+  assert power "Hill Giant" 2
+}
+
+scenario "fuse: not fused without both costs" {
+  battlefield A: 2 "Plains", 2 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Profit // Loss"
+  illegal turn 1 A: cast "Profit // Loss"
+  run_to turn 1 end
+  assert hand A contains "Profit // Loss"
+}
+
+scenario "fuse: an instant fused split spell at instant speed, until end of turn" {
+  battlefield A: 2 "Plains", 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Profit // Loss"
+  start turn 2 B
+  turn 2 upkeep A: cast "Profit // Loss"
+  run_to turn 3 upkeep
+  assert power "Grizzly Bears" 2
+  assert power "Hill Giant" 3
+}
+
+scenario "fuse: Ready // Willing fused untaps and grants indestructible, deathtouch, and lifelink" {
+  battlefield A: 3 "Plains", 2 "Forest", "Swamp", 2 "Grizzly Bears" tapped
+  battlefield B: "Hill Giant"
+  hand A: "Ready // Willing"
+  turn 1 A: cast "Ready // Willing"
+  run_to turn 1 combat_damage
+  assert untapped oldest A "Grizzly Bears"
+  assert untapped newest A "Grizzly Bears"
+  assert has oldest A "Grizzly Bears" indestructible
+  assert has oldest A "Grizzly Bears" deathtouch
+  assert has newest A "Grizzly Bears" lifelink
+  assert has not "Hill Giant" lifelink
+}
+
+scenario "fuse: Ready alone, Willing alone" {
+  battlefield A: 3 "Plains", 2 "Forest", 2 "Swamp", "Grizzly Bears" tapped
+  hand A: "Ready // Willing", "Ready // Willing"
+  turn 1 A: cast "Ready"
+  turn 1 A: wait
+  turn 1 A: cast "Willing"
+  run_to turn 1 combat_damage
+  assert untapped "Grizzly Bears"
+  assert has "Grizzly Bears" indestructible
+  assert has "Grizzly Bears" lifelink
+}

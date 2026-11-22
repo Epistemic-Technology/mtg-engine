@@ -7,10 +7,11 @@ use std::collections::HashMap;
 use mtg_core::card::{
     AbilityDef, ActivatedAbility, Affects as CoreAffects, Builder, CardPool, CardRef,
     ChoiceKind as CoreChoiceKind, CopyExcept, Cost as CoreCost, Effect as CoreEffect, EffectCond,
-    KeywordSet, Mode as CoreMode, Modification, Num, ObjFilter, Recipient as CoreRecipient,
-    Relation, ReplacementAbility, Replaces as CoreReplaces, SacCost as CoreSacCost, Same, SameOf,
-    SameWhat, StaticAbility, StaticCondition, SubtypeSet, SupertypeSet, TargetSpec,
-    TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet, Who,
+    Keyword, KeywordSet, Mode as CoreMode, Modification, Num, ObjFilter,
+    Recipient as CoreRecipient, Relation, ReplacementAbility, Replaces as CoreReplaces,
+    SacCost as CoreSacCost, Same, SameOf, SameWhat, StaticAbility, StaticCondition, SubtypeSet,
+    SupertypeSet, TargetSpec, TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet,
+    Who,
 };
 use mtg_core::mana::{Color, ColorSet, Mana};
 use thiserror::Error;
@@ -160,6 +161,17 @@ pub fn add_card(
         }
         faces.push(r);
     }
+    // CR 702.102: the fused split spell, a third face.
+    if card.layout == mtg_core::card::Layout::Split
+        && let [l, r] = faces.as_slice()
+        && card
+            .faces
+            .iter()
+            .all(|f| f.keywords.contains(&Keyword::Fuse))
+        && let Some(f) = pool.add_fused(&card.name, *l, *r)
+    {
+        faces.push(f);
+    }
     // The token a keyword makes of the card (embalm, eternalize,
     // offspring): its own definition, under a key, named like the card.
     let token = match derived_token(card) {
@@ -228,10 +240,17 @@ pub fn add_card(
             // CR 709.4: outside the stack a split card has both halves'
             // characteristics combined.
             let mut cost = String::new();
-            for f in &faces {
+            for f in faces.iter().take(2) {
                 let fd = pool.get(*f);
                 cost.push_str(&fd.mana_cost.to_string());
                 def.types = def.types.union(fd.types);
+                // Aftermath and fuse are the card's too, for the zones
+                // they work from (CR 702.127a, 702.102a).
+                for k in [Keyword::Aftermath, Keyword::Fuse] {
+                    if fd.keywords.contains(k) {
+                        def.keywords = def.keywords.with(k);
+                    }
+                }
             }
             def.mana_cost = mtg_core::mana::ManaCost::parse(&cost).unwrap_or_default();
         } else if let Some((front, _)) = card.name.split_once(" // ") {

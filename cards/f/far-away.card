@@ -1,0 +1,16 @@
+card "Far // Away" {
+  oracle_id e4b1ef6a-6f05-472e-aaed-1c24dd6605c7
+  layout split
+  face "Far" {
+    cost {1}{U}
+    type Instant
+    keywords fuse
+    spell: return target creature to hand
+  }
+  face "Away" {
+    cost {2}{B}
+    type Instant
+    keywords fuse
+    spell: target player sacrifices 1 creature
+  }
+}

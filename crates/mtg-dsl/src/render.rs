@@ -13961,6 +13961,11 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     }
     // "Cast this spell only during combat." (CR 601.3), first.
     lines.splice(0..0, cast_only_text(card));
+    // Aftermath heads its half, before an additional cost (Start //
+    // Finish).
+    if card.keywords.contains(&Keyword::Aftermath) {
+        lines.insert(0, "Aftermath".to_string());
+    }
     if let Some(k) = &card.kicker {
         lines.push(format!("Kicker {k}"));
     }
@@ -14009,6 +14014,8 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             || *k == Keyword::Rebound
             || *k == Keyword::Cipher
             || *k == Keyword::Paradigm
+            || *k == Keyword::Fuse
+            || *k == Keyword::Aftermath
         {
             continue;
         }
@@ -14088,6 +14095,10 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     // And paradigm (CR 702.192).
     if card.keywords.contains(&Keyword::Paradigm) {
         lines.push("Paradigm".to_string());
+    }
+    // And fuse, on each half of the split card (CR 702.102).
+    if card.keywords.contains(&Keyword::Fuse) {
+        lines.push("Fuse".to_string());
     }
     lines.join("\n")
 }

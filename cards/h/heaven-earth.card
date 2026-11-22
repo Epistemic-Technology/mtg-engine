@@ -1,0 +1,15 @@
+card "Heaven // Earth" {
+  oracle_id 03d3fee8-f7de-4152-8c18-6d279cc6c125
+  layout split
+  face "Heaven" {
+    cost {X}{G}
+    type Instant
+    spell: deal X damage to each creature with flying
+  }
+  face "Earth" {
+    cost {X}{R}{R}
+    type Sorcery
+    keywords aftermath
+    spell: deal X damage to each creature without flying
+  }
+}

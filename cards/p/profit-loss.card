@@ -1,0 +1,16 @@
+card "Profit // Loss" {
+  oracle_id c41e8a99-e4a8-4323-a59d-265266e29fa9
+  layout split
+  face "Profit" {
+    cost {1}{W}
+    type Instant
+    keywords fuse
+    spell: all creature you control gets +1/+1
+  }
+  face "Loss" {
+    cost {2}{B}
+    type Instant
+    keywords fuse
+    spell: all creature your opponents control gets -1/-1
+  }
+}

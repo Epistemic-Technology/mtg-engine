@@ -1,0 +1,15 @@
+card "Consign // Oblivion" {
+  oracle_id 8fe7436b-2467-486e-8a2d-7cbf21a65da9
+  layout split
+  face "Consign" {
+    cost {1}{U}
+    type Instant
+    spell: return target nonland permanent to hand
+  }
+  face "Oblivion" {
+    cost {4}{B}
+    type Sorcery
+    keywords aftermath
+    spell: target opponent discards 2 cards
+  }
+}

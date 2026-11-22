@@ -2384,6 +2384,10 @@ impl GameState {
             .modes_of(id)
             .and_then(|ms| ms.get(usize::from(o.cast.mode())))
         else {
+            // A fused split spell: the right half's part (CR 702.102d).
+            if let Some((e, t)) = self.pool.get(o.def).fused {
+                out.push((usize::from(e), usize::from(t)));
+            }
             return out;
         };
         for (e, t) in m

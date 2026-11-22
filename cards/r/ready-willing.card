@@ -1,0 +1,16 @@
+card "Ready // Willing" {
+  oracle_id 44c7c6bb-2592-4d7c-8485-1815093e70be
+  layout split
+  face "Ready" {
+    cost {1}{G}{W}
+    type Instant
+    keywords fuse
+    spell: all creature you control gain indestructible; untap each creature you control
+  }
+  face "Willing" {
+    cost {1}{W}{B}
+    type Instant
+    keywords fuse
+    spell: all creature you control gain deathtouch and lifelink
+  }
+}

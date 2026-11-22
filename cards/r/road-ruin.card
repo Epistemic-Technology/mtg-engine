@@ -1,0 +1,15 @@
+card "Road // Ruin" {
+  oracle_id f18d8939-7ee8-4a44-a1c8-6ae3a08f52fd
+  layout split
+  face "Road" {
+    cost {2}{G}
+    type Instant
+    spell: search basic land card to battlefield tapped
+  }
+  face "Ruin" {
+    cost {1}{R}{R}
+    type Sorcery
+    keywords aftermath
+    spell: deal count equal land you control damage to target creature
+  }
+}
