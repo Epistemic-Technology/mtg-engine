@@ -1,0 +1,8 @@
+card "Guildpact Informant" {
+  oracle_id 330f97ee-6bb2-4a4b-a8bc-411659dc4260
+  cost {2}{U}
+  type Creature — Faerie Rogue
+  pt 1/1
+  keywords flying
+  triggered whenever this deals combat damage to a player or planeswalker: proliferate
+}

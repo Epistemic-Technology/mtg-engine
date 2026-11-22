@@ -13380,6 +13380,18 @@ impl P {
                     self.pos += 7;
                     return Ok(Trigger::DealsCombatDamageToPlayerOrBattle(obj));
                 }
+                if self.at_words(&[
+                    "combat",
+                    "damage",
+                    "to",
+                    "a",
+                    "player",
+                    "or",
+                    "planeswalker",
+                ]) {
+                    self.pos += 7;
+                    return Ok(Trigger::DealsCombatDamageToPlayerOrPlaneswalker(obj));
+                }
                 if self.at_words(&["combat", "damage", "to", "a", "player"]) {
                     self.pos += 5;
                     return Ok(Trigger::DealsCombatDamageToPlayer(obj));

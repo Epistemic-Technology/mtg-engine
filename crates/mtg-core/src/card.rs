@@ -5875,6 +5875,10 @@ pub enum TriggerSpec {
     /// "Whenever ~ deals combat damage to a player or battle" (CR 310.6):
     /// the player dealt damage is the triggering player.
     DealsCombatDamageToPlayerOrBattle(TriggerObj),
+    /// "Whenever ~ deals combat damage to a player or planeswalker": the
+    /// player dealt damage, or the planeswalker's controller, is the
+    /// triggering player.
+    DealsCombatDamageToPlayerOrPlaneswalker(TriggerObj),
     /// "Whenever this creature attacks a battle" (CR 310.5, 508.1).
     AttacksBattle(TriggerObj),
     /// "When you unlock this door" (CR 709.5h): the door of the Room
@@ -6354,6 +6358,7 @@ impl TriggerSpec {
             | TriggerSpec::CreaturesDealDamage(_)
             | TriggerSpec::NoncombatDamageToOpponent { .. }
             | TriggerSpec::DealsCombatDamageToPlayerOrBattle(_)
+            | TriggerSpec::DealsCombatDamageToPlayerOrPlaneswalker(_)
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealtDamageAtLeast(..)
             | TriggerSpec::DealtCombatDamage(_)

@@ -3510,6 +3510,9 @@ fn trigger_text(head: &str) -> Option<String> {
         "Whenever this creature deals combat damage to a player" => {
             "whenever this deals combat damage to a player"
         }
+        "Whenever this creature deals combat damage to a player or planeswalker" => {
+            "whenever this deals combat damage to a player or planeswalker"
+        }
         "Whenever you gain life" => "whenever you gain life",
         "Whenever a land you control enters" => "whenever land you control enters",
         "Whenever you cast a noncreature spell" => "whenever you cast a noncreature spell",

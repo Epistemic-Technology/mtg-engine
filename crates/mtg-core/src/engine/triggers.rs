@@ -1108,7 +1108,8 @@ impl GameState {
             }
             (
                 TriggerSpec::DealsCombatDamageToPlayer(what)
-                | TriggerSpec::DealsCombatDamageToPlayerOrBattle(what),
+                | TriggerSpec::DealsCombatDamageToPlayerOrBattle(what)
+                | TriggerSpec::DealsCombatDamageToPlayerOrPlaneswalker(what),
                 Event::Damage {
                     source,
                     target: Target::Player(p),
@@ -1133,6 +1134,21 @@ impl GameState {
                 }
                 on_battlefield(what, *source)?;
                 Some((Some(*source), self.protector(*b)))
+            }
+            (
+                TriggerSpec::DealsCombatDamageToPlayerOrPlaneswalker(what),
+                Event::Damage {
+                    source,
+                    target: Target::Object(w),
+                    combat: true,
+                    ..
+                },
+            ) => {
+                if !self.characteristics(*w).is_some_and(|c| c.is_planeswalker()) {
+                    return None;
+                }
+                on_battlefield(what, *source)?;
+                Some((Some(*source), self.objects.get(*w).map(|o| o.controller)))
             }
             (
                 TriggerSpec::CreaturesDealCombatDamage(f),

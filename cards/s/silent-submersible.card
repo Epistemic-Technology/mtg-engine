@@ -1,0 +1,8 @@
+card "Silent Submersible" {
+  oracle_id 43257a85-2cbe-4931-9755-106808ab124a
+  cost {U}{U}
+  type Artifact — Vehicle
+  pt 2/3
+  triggered whenever this deals combat damage to a player or planeswalker: draw 1 card
+  crew 2
+}

@@ -2969,6 +2969,8 @@ pub enum Trigger {
     DealsCombatDamageToPlayer(TriggerObj),
     /// `deals combat damage to a player or battle` (CR 310.6).
     DealsCombatDamageToPlayerOrBattle(TriggerObj),
+    /// `deals combat damage to a player or planeswalker`.
+    DealsCombatDamageToPlayerOrPlaneswalker(TriggerObj),
     /// `whenever this attacks a battle` (CR 310.5).
     AttacksBattle(TriggerObj),
     /// `when you unlock this door` (CR 709.5h).

@@ -1,0 +1,104 @@
+# "Whenever this creature deals combat damage to a player or planeswalker":
+# either kind of attack target triggers it, a blocker doesn't.
+
+scenario "Psychic Frog draws on combat damage to a player" {
+  battlefield A: "Psychic Frog"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Psychic Frog"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life B 19
+}
+
+scenario "Psychic Frog draws on combat damage to a planeswalker" {
+  battlefield A: "Psychic Frog"
+  battlefield B: "Jace Beleren"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Psychic Frog" at "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life B 20
+  assert counters "Jace Beleren" loyalty 2
+}
+
+scenario "Psychic Frog: damage to a blocker doesn't count" {
+  battlefield A: "Psychic Frog"
+  battlefield B: "Grizzly Bears"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Psychic Frog"
+  turn 1 B: block "Psychic Frog" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Psychic Frog: discard for a counter, exile three for flying" {
+  battlefield A: "Psychic Frog"
+  hand A: "Forest"
+  graveyard A: "Island", "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Psychic Frog" ability 1 discarding "Forest"
+  turn 1 A: wait
+  turn 1 A: activate "Psychic Frog" ability 2
+  run_to turn 1 postcombat_main
+  assert counters "Psychic Frog" +1/+1 1
+  assert has "Psychic Frog" flying
+  assert graveyard A count 1
+}
+
+scenario "Guildpact Informant proliferates" {
+  battlefield A: "Guildpact Informant", "Grizzly Bears" with 1 +1/+1
+  start turn 1 A precombat_main
+  turn 1 A: attack "Guildpact Informant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "Grateful Apparition proliferates a planeswalker it damaged" {
+  battlefield A: "Grateful Apparition", "Grizzly Bears" with 1 +1/+1
+  battlefield B: "Jace Beleren"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grateful Apparition" at "Jace Beleren"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+}
+
+scenario "Silent Submersible, crewed, draws" {
+  battlefield A: "Silent Submersible", "Grizzly Bears"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 begin_combat A: activate "Silent Submersible"
+  turn 1 A: attack "Silent Submersible"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life B 18
+}
+
+scenario "Dreadhorde Butcher grows on damage to a player and deals its power when it dies" {
+  battlefield A: "Dreadhorde Butcher"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Dreadhorde Butcher"
+  turn 3 A: attack "Dreadhorde Butcher"
+  turn 3 B: block "Dreadhorde Butcher" with "Hill Giant"
+  turn 3 A: trigger "Dreadhorde Butcher" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Dreadhorde Butcher"
+}
+
+scenario "Storm the Citadel: creatures get +2/+2 and destroy an artifact" {
+  battlefield A: "Grizzly Bears", 5 "Forest"
+  battlefield B: "Ornithopter", "Hill Giant"
+  hand A: "Storm the Citadel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Storm the Citadel"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 A: trigger "Grizzly Bears" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard B contains "Ornithopter"
+  assert power "Grizzly Bears" 4
+}

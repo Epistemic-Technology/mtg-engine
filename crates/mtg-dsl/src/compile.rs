@@ -4388,6 +4388,9 @@ impl Compiler<'_> {
             Trigger::DealsCombatDamageToPlayerOrBattle(o) => {
                 TriggerSpec::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
             }
+            Trigger::DealsCombatDamageToPlayerOrPlaneswalker(o) => {
+                TriggerSpec::DealsCombatDamageToPlayerOrPlaneswalker(self.trigger_obj(o))
+            }
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
             Trigger::OneOrMoreAttack(f) => TriggerSpec::AttacksWithFilter {
                 filter: self.filter(f),

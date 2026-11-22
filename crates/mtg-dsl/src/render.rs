@@ -10434,6 +10434,14 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 trigger_subject(o, ctx)
             )
         }
+        Trigger::DealsCombatDamageToPlayerOrPlaneswalker(TriggerObj::This) => format!(
+            "whenever {} deals combat damage to a player or planeswalker",
+            this(ctx)
+        ),
+        Trigger::DealsCombatDamageToPlayerOrPlaneswalker(o) => format!(
+            "whenever {} deals combat damage to a player or planeswalker",
+            trigger_subject(o, ctx)
+        ),
         Trigger::UnlocksDoor => "when you unlock this door".to_string(),
         Trigger::Chapter(ns) => chapter_numerals(ns),
         Trigger::BecomesLevel(n) => format!("when {} becomes level {n}", this(ctx)),

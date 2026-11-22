@@ -1882,6 +1882,9 @@ impl Decompiler<'_> {
             TriggerSpec::DealsCombatDamageToPlayerOrBattle(o) => {
                 Trigger::DealsCombatDamageToPlayerOrBattle(self.trigger_obj(o))
             }
+            TriggerSpec::DealsCombatDamageToPlayerOrPlaneswalker(o) => {
+                Trigger::DealsCombatDamageToPlayerOrPlaneswalker(self.trigger_obj(o))
+            }
             TriggerSpec::AttacksAlone(o) => Trigger::AttacksAlone(self.trigger_obj(o)),
             TriggerSpec::PlayerAttacksWith { whose, min } => Trigger::PlayerAttacksWith {
                 whose: *whose,

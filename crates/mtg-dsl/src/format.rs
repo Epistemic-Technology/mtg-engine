@@ -4292,6 +4292,12 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 trigger_obj(o)
             )
         }
+        Trigger::DealsCombatDamageToPlayerOrPlaneswalker(o) => {
+            format!(
+                "whenever {} deals combat damage to a player or planeswalker",
+                trigger_obj(o)
+            )
+        }
         Trigger::AttacksBattle(o) => format!("whenever {} attacks a battle", trigger_obj(o)),
         Trigger::UnlocksDoor => "when you unlock this door".to_string(),
         Trigger::BecomesLevel(n) => format!("when this becomes level {n}"),
