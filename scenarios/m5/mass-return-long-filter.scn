@@ -1,0 +1,14 @@
+# "Return all creature cards with mana value 2 or less from your
+# graveyard to the battlefield.": a long filter before `card`.
+
+scenario "Raise the Past returns the cheap creatures only" {
+  battlefield A: 4 "Plains"
+  hand A: "Raise the Past"
+  graveyard A: "Grizzly Bears", "Savannah Lions", "Hill Giant", "Forest"
+  turn 1 A: cast "Raise the Past"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Savannah Lions"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Forest"
+}

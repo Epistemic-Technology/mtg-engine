@@ -11611,7 +11611,12 @@ impl GameState {
                     .filter(|id| {
                         let o = &self.objects[*id];
                         let c = self.base_characteristics(o);
+                        // "with mana value 2 or less": the mana value
+                        // `matches` leaves to the caller.
                         filter.matches(*id, p, &c, Some(ctx.source), Some(ctx.controller))
+                            && filter.mana_value.is_none_or(|(cmp, n)| {
+                                cmp.holds(self.pool.get(o.def).mana_cost.mana_value(), u32::from(n))
+                            })
                     })
                     .collect();
                 for id in cards {

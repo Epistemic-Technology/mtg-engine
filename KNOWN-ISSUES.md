@@ -227,9 +227,6 @@ Forms that pass the gate with the wrong meaning:
 - **`tapped` after `create count each <filter>`** is read into the
   filter ("for each tapped multicolored permanent", Infinite Guideline
   Station).
-- **`return all <filter> card from your graveyard`** finds `card` only
-  within seven words of `all` (`parse.rs`), so a long filter fails to
-  parse (Raise the Past).
 
 Scenario runner: surveil's choice still cannot be scripted (Umbral
 Collar Zealot, Arid Archway); a token named in a battlefield setup line
