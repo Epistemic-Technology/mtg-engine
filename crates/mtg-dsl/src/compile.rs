@@ -4011,6 +4011,18 @@ impl Compiler<'_> {
                             self.pool.intern_condition(c),
                         ))
                     }
+                    // "When this enters and whenever this attacks while
+                    // saddled": the condition is the second event's.
+                    Some(crate::ast::TrigCond::While(c))
+                        if matches!(trigger, crate::ast::Trigger::Either(..))
+                            || matches!(trigger, crate::ast::Trigger::When(t)
+                                if matches!(**t, crate::ast::Trigger::Either(..))) =>
+                    {
+                        let c = self.static_cond(c);
+                        Some(mtg_core::card::Condition::WhileSecond(
+                            self.pool.intern_condition(c),
+                        ))
+                    }
                     Some(crate::ast::TrigCond::While(c)) => {
                         let c = self.static_cond(c);
                         Some(mtg_core::card::Condition::While(

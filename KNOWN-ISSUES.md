@@ -68,10 +68,6 @@ by rejecting the form at compile time or by binding it correctly.
   (Pain for All: "enchanted creature deals damage ... to any other
   target"): `another target any` excludes the source (the Aura), not
   the creature dealing the damage. Pain for All is not in.
-- **`when this enters and whenever this attacks while saddled`**
-  applies `while saddled` to both events, so the enters half needs the
-  Mount saddled (Autarch Mammoth; not added). A trigger condition
-  belongs to one event of an `Either`.
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.

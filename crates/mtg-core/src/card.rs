@@ -5714,6 +5714,10 @@ pub enum Condition {
     /// ability resolves even if the condition no longer holds (CR 603.2,
     /// unlike CR 603.4).
     While(u16),
+    /// `While` on the second of two trigger events joined by "and" ("When
+    /// this creature enters and whenever it attacks while saddled"): the
+    /// first event triggers it regardless (CR 603.2).
+    WhileSecond(u16),
 }
 
 /// A triggered ability (CR 603).

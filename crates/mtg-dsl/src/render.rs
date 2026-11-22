@@ -8509,7 +8509,17 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::State(c) => format!("when {}", static_cond_text(c, ctx.card)),
         Trigger::Either(a, b) => {
             let a = trigger_text(a, ctx, next);
-            format!("{a} and {}", trigger_text(b, ctx, next))
+            let b = trigger_text(b, ctx, next);
+            // "When this creature enters and whenever it attacks": the
+            // second names it again as "it".
+            let named = this_ref(ctx.card);
+            let b = match b.strip_prefix(&format!("whenever {named} ")) {
+                Some(rest) if named.starts_with("this ") && a.contains(&named) => {
+                    format!("whenever it {rest}")
+                }
+                _ => b,
+            };
+            format!("{a} and {b}")
         }
         // "When this creature enters or dies", "Whenever this creature
         // enters or attacks": the subject printed once.
@@ -9250,7 +9260,9 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::EchoDue => {
             "if it came under your control since the beginning of your last upkeep".to_string()
         }
-        Condition::Static(_) | Condition::While(_) => unreachable!("an AST condition"),
+        Condition::Static(_) | Condition::While(_) | Condition::WhileSecond(_) => {
+            unreachable!("an AST condition")
+        }
         Condition::Evoked => "if it was evoked".to_string(),
         Condition::NotRenowned => "if it isn't renowned".to_string(),
         Condition::NotPrepared => format!("if {} isn't prepared", ctx.source()),

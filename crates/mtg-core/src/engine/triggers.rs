@@ -66,6 +66,9 @@ impl GameState {
                     continue;
                 };
                 if let Some(cond) = t.condition
+                    && !(matches!(cond, Condition::WhileSecond(_))
+                        && matches!(&t.trigger, TriggerSpec::Either(pair)
+                            if self.fires(&pair.0, event, w).is_some()))
                     && !self.condition_holds_for(cond, w, trigger_obj)
                 {
                     continue;
@@ -1977,7 +1980,7 @@ impl GameState {
                 .or_else(|| self.lki.get(&source).map(|l| l.object.cast.evoked()))
                 .unwrap_or(false),
             // Judged only as the ability triggered.
-            Condition::While(_) => true,
+            Condition::While(_) | Condition::WhileSecond(_) => true,
             Condition::Static(i) => {
                 let you = self
                     .objects
@@ -2015,7 +2018,7 @@ impl GameState {
             Condition::Evolves => self.evolves(Some(&w.chars), trigger_obj),
             Condition::Increments => self.increments(Some(&w.chars), trigger_obj),
             Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),
-            Condition::Static(i) | Condition::While(i) => {
+            Condition::Static(i) | Condition::While(i) | Condition::WhileSecond(i) => {
                 self.condition_for(self.pool.condition(i), w.controller, w.source, trigger_obj)
             }
         }

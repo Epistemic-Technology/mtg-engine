@@ -4948,7 +4948,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             };
             match condition {
                 Some(
-                    mtg_core::card::Condition::Static(_) | mtg_core::card::Condition::While(_),
+                    mtg_core::card::Condition::Static(_)
+                    | mtg_core::card::Condition::While(_)
+                    | mtg_core::card::Condition::WhileSecond(_),
                 ) => unreachable!("an AST condition"),
                 Some(mtg_core::card::Condition::SourceUntapped) => {
                     head.push_str(" if this is untapped");

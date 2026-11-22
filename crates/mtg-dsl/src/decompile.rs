@@ -2316,7 +2316,7 @@ impl Decompiler<'_> {
                     mtg_core::card::Condition::Static(i) => {
                         crate::ast::TrigCond::Static(self.static_cond(self.pool.condition(i)))
                     }
-                    mtg_core::card::Condition::While(i) => {
+                    mtg_core::card::Condition::While(i) | mtg_core::card::Condition::WhileSecond(i) => {
                         crate::ast::TrigCond::While(self.static_cond(self.pool.condition(i)))
                     }
                     other => crate::ast::TrigCond::Core(other),
