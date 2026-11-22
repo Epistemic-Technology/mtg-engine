@@ -1,0 +1,6 @@
+card "Gird for Battle" {
+  oracle_id bc72d463-8818-4c19-bd5a-f47841d1adb0
+  cost {W}
+  type Sorcery
+  spell: put 1 +1/+1 counters on up to 2 target creature
+}

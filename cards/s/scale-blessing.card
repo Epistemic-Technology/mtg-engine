@@ -1,0 +1,6 @@
+card "Scale Blessing" {
+  oracle_id a7157ec5-9e6a-4771-b3db-6760640d6c6c
+  cost {3}{W}
+  type Instant
+  spell: bolster 1 then put 1 +1/+1 counters on each creature you control with +1/+1 counter
+}

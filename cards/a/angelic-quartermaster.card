@@ -1,0 +1,8 @@
+card "Angelic Quartermaster" {
+  oracle_id 14a555eb-9720-45b4-9eb5-77b739e1045c
+  cost {3}{W}{W}
+  type Creature — Angel Soldier
+  pt 3/3
+  keywords flying
+  triggered when this enters: put 1 +1/+1 counters on up to 2 another target creature
+}

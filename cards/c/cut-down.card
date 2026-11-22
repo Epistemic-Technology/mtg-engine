@@ -1,0 +1,6 @@
+card "Cut Down" {
+  oracle_id 1b30210d-10e9-4703-8967-032063bb4f26
+  cost {B}
+  type Instant
+  spell: destroy target creature with total power and toughness 5 or less
+}

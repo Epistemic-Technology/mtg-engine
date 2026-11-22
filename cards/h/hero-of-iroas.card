@@ -1,0 +1,8 @@
+card "Hero of Iroas" {
+  oracle_id 0d44bd43-77da-449e-b771-8a14da88b677
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  spells Aura you cast cost {1} less
+  label "Heroic" triggered whenever you cast a spell that targets this: put 1 +1/+1 counters on this
+}

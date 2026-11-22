@@ -1,0 +1,8 @@
+card "Thundermaw Hellkite" {
+  oracle_id e958144e-01bc-46ff-8f56-ddf2eb098630
+  cost {3}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying, haste
+  triggered when this enters: deal 1 damage to each creature with flying your opponents control; tap those creatures
+}

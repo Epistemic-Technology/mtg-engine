@@ -1044,7 +1044,7 @@ fn singular(s: &str) -> String {
             "Dwarves" => "Dwarf".to_string(),
             "Wolves" => "Wolf".to_string(),
             // A planeswalker type spelled with "s" in the singular.
-            "Bolas" => "Bolas".to_string(),
+            "Bolas" | "Plains" => w.to_string(),
             other
                 if other.len() > 3
                     && other.ends_with('s')
@@ -5975,6 +5975,374 @@ fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     })
 }
 
+/// A plural card type made singular, for a filter: "artifacts" →
+/// "artifact".
+fn singular_type(w: &str) -> &str {
+    match w {
+        "sorceries" => "sorcery",
+        "artifacts" | "creatures" | "enchantments" | "planeswalkers" | "lands" | "instants"
+        | "permanents" | "battles" => &w[..w.len() - 1],
+        _ => w,
+    }
+}
+
+/// Oracle's filter phrases a template copied into a statement, rewritten
+/// in the DSL's words: "with a +1/+1 counter on it" (`with +1/+1
+/// counter`), "named ~" (`named this`), "artifacts and/or enchantments"
+/// (`andor artifact or enchantment`), "creature or planeswalker that's
+/// black or red" (the colors on each type), "target spell with mana value
+/// 2 or less" (the qualities before `spell`), "each of up to two target
+/// creatures" (`up to 2 target creature`), "from a single graveyard",
+/// "target player's graveyard", "all artifacts and enchantments"
+/// (`andlist`), and a subtype the template lowercased ("Aura spells").
+/// The render check decides whether the result is the card's text.
+#[allow(clippy::too_many_lines)] // one rewrite per phrase
+fn filter_phrases(st: &str, oracle: &str) -> String {
+    const COLORS: &str = "white|blue|black|red|green";
+    let re = |p: &str| Regex::new(p).expect("a filter phrase pattern");
+    // "Counter target spell if it's red.": the line's one target as it
+    // resolves.
+    let its = re(r"^(.*\btarget [a-z].*) if it's (?:an? )?([a-z]+)$");
+    let mut s = st
+        .lines()
+        .map(|l| {
+            let l = bound_phrases(l);
+            if l.matches("target ").count() == 1 {
+                its.replace(&l, "$1 if target 1 is $2").into_owned()
+            } else {
+                l
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    s = re(r"with an? ([+-]\d+/[+-]\d+|[a-z]+) counter on (?:it|them)")
+        .replace_all(&s, "with $1 counter")
+        .into_owned();
+    s = s
+        .replace("with a counter on it", "with counter")
+        .replace("not named ~", "not named this")
+        .replace("named ~", "named this");
+    s = re(r"(\w+), (\w+), and/or (\w+)")
+        .replace_all(&s, |c: &regex::Captures| {
+            format!(
+                "andor {} or {} or {}",
+                singular_type(&c[1]),
+                singular_type(&c[2]),
+                singular_type(&c[3])
+            )
+        })
+        .into_owned();
+    s = re(r"(\w+) and/or (\w+)")
+        .replace_all(&s, |c: &regex::Captures| {
+            format!("andor {} or {}", singular_type(&c[1]), singular_type(&c[2]))
+        })
+        .into_owned();
+    s = re(&format!(r"(\w+) or (\w+) that's ({COLORS}) or ({COLORS})"))
+        .replace_all(&s, "$3 or $4 $1 or $3 or $4 $2")
+        .into_owned();
+    s = re(r"counter target ((?:\w+ )?)spell (with (?:mana value|power or toughness|power|toughness) (?:\d+|X)(?: or (?:less|greater))?)")
+        .replace_all(&s, "counter target $1$2 spell")
+        .into_owned();
+    let num = |w: &str| match w {
+        "one" => "1",
+        "two" => "2",
+        "three" => "3",
+        "four" => "4",
+        _ => "5",
+    };
+    s = re(r"each of (up to |one or )?(one|two|three|four|five) (other )?target")
+        .replace_all(&s, |c: &regex::Captures| {
+            let pre = match c.get(1).map(|m| m.as_str()) {
+                Some("one or ") => "1 to ",
+                Some(p) => p,
+                None => "",
+            };
+            let other = if c.get(3).is_some() { "another " } else { "" };
+            format!("{pre}{} {other}target", num(&c[2]))
+        })
+        .into_owned();
+    s = re(r"up to (one|two|three|four|five) (other )?target")
+        .replace_all(&s, |c: &regex::Captures| {
+            let other = if c.get(2).is_some() { "another " } else { "" };
+            format!("up to {} {other}target", num(&c[1]))
+        })
+        .into_owned();
+    s = s
+        .replace("from a single graveyard", "from a graveyard")
+        .replace(
+            "exile target player's graveyard",
+            "exile graveyard of target player",
+        )
+        .replace(
+            "exile each opponents' graveyards",
+            "exile graveyard of each opponent",
+        )
+        .replace("exile each graveyards", "exile all graveyards")
+        .replace("to each of two targets", "to 2 targets");
+    // "Put X +1/+1 counters on target creature, where X is that creature's
+    // power": the line's one target, declared by the counters phrase.
+    s = re(r"put X (\S+) counters on (target [^,;]+), where X is that creature's (power|toughness|mana value)$")
+        .replace_all(&s, |c: &regex::Captures| {
+            if c[0].matches("target").count() == 1 {
+                format!(
+                    "put count where {} of that target 1 {} counters on {}",
+                    &c[3], &c[1], &c[2]
+                )
+            } else {
+                c[0].to_string()
+            }
+        })
+        .into_owned();
+    // "Return all land cards from your graveyard to the battlefield
+    // tapped": every one of them (`return all ... card`).
+    s = re(r"return each (.+?) cards from your graveyard to battlefield")
+        .replace_all(&s, |c: &regex::Captures| {
+            let f = re(r"^(\w+) and (\w+)$")
+                .replace(&c[1], "andlist $1 or $2")
+                .into_owned();
+            format!("return all {f} card from your graveyard to battlefield")
+        })
+        .into_owned();
+    // "Those creatures gain trample": the group named before.
+    s = s
+        .replace("each those creature gains", "those creatures gain")
+        .replace("each those creature gets", "those creatures get")
+        .replace("untap each those creature", "untap those creatures")
+        .replace("tap each those creature", "tap those creatures");
+    // "and each other creature with the same name as that creature": the
+    // line's one target.
+    if s.matches("target ").count() == 1 {
+        s = re(r"with the same name as that (creature|permanent)")
+            .replace_all(&s, "with same name as target 1")
+            .into_owned();
+    }
+    // "Put X +1/+1 counters on target creature, where X is your life
+    // total"; "Counter target spell unless its controller pays {X}, where X
+    // is this creature's power": the count after the amount.
+    s = re(r"put X (\S+) counters on (target [^,;]+), where X is ([^;]+)$")
+        .replace_all(&s, |c: &regex::Captures| match bound_amount(&c[3]) {
+            Some(e) if !e.contains("target") => {
+                format!("put count where {e} {} counters on {}", &c[1], &c[2])
+            }
+            _ => c[0].to_string(),
+        })
+        .into_owned();
+    s = re(r"unless its controller pays \{X\}, where X is ([^;]+)$")
+        .replace_all(&s, |c: &regex::Captures| match bound_amount(&c[1]) {
+            Some(e) => format!("unless its controller pays {{X}} count where {e}"),
+            None => c[0].to_string(),
+        })
+        .into_owned();
+    // "Put a +1/+1 counter on target creature for each Elf you control".
+    s = re(r"put 1 (\S+) counters on (target [^;]+?) for each ([^;]+)$")
+        .replace_all(&s, |c: &regex::Captures| {
+            let what = c[3].to_string();
+            let e = bound_amount(&format!("the number of {what}"))
+                .or_else(|| count_expr(&what))
+                .or_else(|| {
+                    Regex::new(r"^(\S+) counter on (?:this creature|~)$")
+                        .expect("a counter pattern")
+                        .captures(&what)
+                        .map(|k| format!("{} counters on this", &k[1]))
+                });
+            match e {
+                Some(e) => format!("put count each {e} {} counters on {}", &c[1], &c[2]),
+                None => c[0].to_string(),
+            }
+        })
+        .into_owned();
+    // "for each tapped artifact, creature, and land you control": any of
+    // them, the list printed with "and".
+    s = re(r"count each (tapped |untapped )?(\w+), (\w+), and (\w+) you control")
+        .replace_all(&s, "count each andlist $1$2, $3, or $4 you control")
+        .into_owned();
+    // "Destroy all artifacts and enchantments": either type, every one.
+    s = re(r"(destroy|exile|return) each (\w+), (\w+), and (\w+)\b")
+        .replace_all(&s, |c: &regex::Captures| {
+            format!(
+                "{} all andlist {} or {} or {}",
+                &c[1],
+                singular_type(&c[2]),
+                singular_type(&c[3]),
+                singular_type(&c[4])
+            )
+        })
+        .into_owned();
+    s = re(r"(destroy|exile|return) each (\w+) and (\w+)\b")
+        .replace_all(&s, |c: &regex::Captures| {
+            format!(
+                "{} all andlist {} or {}",
+                &c[1],
+                singular_type(&c[2]),
+                singular_type(&c[3])
+            )
+        })
+        .into_owned();
+    // "Aura spells you cast", "each Warrior creature you control": a
+    // subtype the template lowercased, as Oracle capitalizes it.
+    s = re(r"\b(spells|each|every|sacrifice) ([a-z]+)\b")
+        .replace_all(&s, |c: &regex::Captures| {
+            let w = &c[2];
+            let mut cap = w.to_string();
+            cap[..1].make_ascii_uppercase();
+            let printed = re(&format!(r"\b{}s?\b", regex::escape(&cap)));
+            if card_type_word(w) || !printed.is_match(oracle) {
+                c[0].to_string()
+            } else {
+                format!("{} {cap}", &c[1])
+            }
+        })
+        .into_owned();
+    s
+}
+
+/// An amount a filter compares a characteristic with, in the DSL's words:
+/// "this creature's power" (`power`), "the number of creatures you
+/// control" (`creature you control`).
+fn bound_amount(a: &str) -> Option<String> {
+    let fixed = match a {
+        "this creature's power" | "~'s power" => Some("power"),
+        "this creature's toughness" | "~'s toughness" => Some("toughness"),
+        "that creature's power" => Some("power of that target 1"),
+        "the greatest mana value among permanents you control" => Some("greatest mana value"),
+        "the greatest power among creatures you control" => Some("greatest power"),
+        "your life total" => Some("life"),
+        "your devotion to blue" => Some("devotion blue"),
+        "your devotion to black" => Some("devotion black"),
+        "your devotion to red" => Some("devotion red"),
+        "your devotion to green" => Some("devotion green"),
+        "your devotion to white" => Some("devotion white"),
+        _ => None,
+    };
+    // "the number of charge counters on this artifact".
+    if let Some(c) = Regex::new(
+        r"^the number of (\S+) counters on (?:this (?:artifact|creature|land|enchantment)|~)$",
+    )
+    .expect("a counters pattern")
+    .captures(a)
+    {
+        return Some(format!("{} counters on this", &c[1]));
+    }
+    // The templates write "lands" singular before a count.
+    let fixed = fixed
+        .or((a == "the number of basic land types among land you control").then_some("domain"));
+    if let Some(f) = fixed {
+        return Some(f.to_string());
+    }
+    count_expr(a.strip_prefix("the number of ")?)
+}
+
+/// "with power less than or equal to the number of creatures you
+/// control" (`with power at most count equal creature you control`),
+/// "with power less than this creature's power" (`less than`), "with mana
+/// value X or less, where X is ..." (`count where`), and "if its toughness
+/// is less than or equal to ..." (`if target 1 is with toughness at most
+/// ...`, the statement's one target): a characteristic compared with a
+/// count.
+fn bound_phrases(st: &str) -> String {
+    let head = Regex::new(
+        r"(with|if its) (power|toughness|mana value) (is )?(less than or equal to|less than|equal to|X or less, where X is) ",
+    )
+    .expect("a bound pattern");
+    let mut s = st.to_string();
+    let mut from = 0;
+    while let Some(c) = head.captures_at(&s, from) {
+        let m = c.get(0).expect("the match");
+        let (lead, stat) = (c[1].to_string(), c[2].to_string());
+        let how = c[4].to_string();
+        let rest = &s[m.end()..];
+        // The shortest run of words that is an amount ("the number of
+        // Vampires you control", not "... you control; untap ...").
+        let words: Vec<(usize, &str)> = rest
+            .match_indices(' ')
+            .map(|(i, _)| (i, &rest[..i]))
+            .chain(std::iter::once((rest.len(), rest)))
+            .collect();
+        let found = words.iter().find_map(|(_, a)| {
+            let a = a.trim_end_matches([';', ',']);
+            bound_amount(a).map(|e| (a.len(), e))
+        });
+        let Some((end, expr)) = found else {
+            from = m.end();
+            continue;
+        };
+        let (cmp, style) = match how.as_str() {
+            "less than" => ("less than", "equal"),
+            "equal to" => ("equal to", "equal"),
+            "X or less, where X is" => ("at most", "where"),
+            _ => ("at most", "equal"),
+        };
+        // A "where X is" amount ends the sentence.
+        if style == "where" && end != rest.len() {
+            from = m.end();
+            continue;
+        }
+        let dsl = if lead == "with" {
+            format!("with {stat} {cmp} count {style} {expr}")
+        } else {
+            if st.matches("target ").count() != 1 || c.get(3).is_none() {
+                from = m.end();
+                continue;
+            }
+            format!("if target 1 is with {stat} {cmp} count {style} {expr}")
+        };
+        let mut tail = rest[end..].to_string();
+        // "target creature with power ... an opponent controls": the
+        // controller after the quality, as Oracle has it.
+        if let Some(t) = tail.strip_prefix(" an opponent controls") {
+            tail = format!(" an opponent controls late{t}");
+        }
+        let at = m.start();
+        s = format!("{}{dsl}{tail}", &s[..at]);
+        from = at + dsl.len();
+    }
+    // "target creature with power X or less": X of the spell.
+    let s = Regex::new(r"with (power|toughness) X or less\b(,? where)?")
+        .expect("a bound pattern")
+        .replace_all(&s, |c: &regex::Captures| {
+            if c.get(2).is_some() {
+                c[0].to_string()
+            } else {
+                format!("with {} at most X", &c[1])
+            }
+        })
+        .into_owned();
+    // "counter target spell with mana value at most ...": the qualities
+    // before `spell`.
+    Regex::new(r"counter target spell (with (?:power|toughness|mana value) (?:at most|less than) count [a-z]+ .+)$")
+        .expect("a bound pattern")
+        .replace(&s, "counter target $1 spell")
+        .into_owned()
+}
+
+/// A card type or another lowercase filter word, never a subtype.
+fn card_type_word(w: &str) -> bool {
+    matches!(
+        w,
+        "artifact"
+            | "creature"
+            | "enchantment"
+            | "land"
+            | "planeswalker"
+            | "instant"
+            | "sorcery"
+            | "battle"
+            | "permanent"
+            | "card"
+            | "cards"
+            | "player"
+            | "opponent"
+            | "other"
+            | "single"
+            | "those"
+            | "these"
+            | "that"
+            | "this"
+            | "the"
+            | "of"
+    )
+}
+
 /// How much of two texts agrees: the common prefix and suffix lengths.
 fn similarity(a: &str, b: &str) -> usize {
     let pre = a.bytes().zip(b.bytes()).take_while(|(x, y)| x == y).count();
@@ -6379,6 +6747,10 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         b.line(line)?;
         i += 1;
     }
+    // Oracle's filter phrases the templates copied, in the DSL's words.
+    for st in b.statements.iter_mut().chain(b.spell_paragraphs.iter_mut()) {
+        *st = filter_phrases(st, &oracle);
+    }
     // Assemble the file.
     let mut text = format!("card \"{}\" {{\n", s.name);
     if let Some(id) = &s.oracle_id {
@@ -6486,7 +6858,12 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         }
         Ok(render::normalize(&render::oracle_text(&card, lookup)))
     };
-    let mut rendered = render_of(&text)?;
+    let mut rendered = render_of(&text).inspect_err(|_| {
+        // `MTG_AUTHOR_SHOW=1`: print the draft that failed to parse.
+        if std::env::var_os("MTG_AUTHOR_SHOW").is_some() {
+            eprintln!("{text}");
+        }
+    })?;
     // A near miss may be wording only: try the DSL's synonyms for the
     // same object (`each`/`all`, `this`/`this creature`/`it`), keeping
     // whichever brings the text closer, until it matches.

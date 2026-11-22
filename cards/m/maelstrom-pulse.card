@@ -1,0 +1,6 @@
+card "Maelstrom Pulse" {
+  oracle_id 95ce305f-34bc-4d6d-b7ba-ffd4b2a25336
+  cost {1}{B}{G}
+  type Sorcery
+  spell: destroy target nonland permanent and all other permanents with same name as target 1
+}

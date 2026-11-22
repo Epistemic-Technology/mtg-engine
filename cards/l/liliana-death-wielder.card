@@ -1,0 +1,9 @@
+card "Liliana, Death Wielder" {
+  oracle_id e1b6cc44-41b6-43d0-9fe9-722cebb1c47b
+  cost {5}{B}{B}
+  type Legendary Planeswalker — Liliana
+  loyalty 5
+  loyalty +2: put 1 -1/-1 counters on up to 1 target creature
+  loyalty -3: destroy target creature with -1/-1 counter
+  loyalty -10: return all creature card from your graveyard to battlefield
+}

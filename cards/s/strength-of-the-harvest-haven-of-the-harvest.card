@@ -1,0 +1,13 @@
+card "Strength of the Harvest // Haven of the Harvest" {
+  oracle_id 1a8c996d-ca93-4c17-ace5-66ecd6b99317
+  layout modal_dfc
+  cost {2}{G/W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1 count each andor creature or enchantment you control
+  face "Haven of the Harvest" {
+    type Land
+    enters tapped
+    mana {G} or {W}
+  }
+}

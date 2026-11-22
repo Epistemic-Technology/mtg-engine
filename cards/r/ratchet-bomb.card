@@ -1,0 +1,7 @@
+card "Ratchet Bomb" {
+  oracle_id 255d752a-8251-4e4c-99d6-4a1648de1474
+  cost {2}
+  type Artifact
+  activated {T}: put 1 charge counters on this
+  activated {T}, sacrifice this: destroy each single nonland permanent with mana value equal to count equal charge counters on this
+}

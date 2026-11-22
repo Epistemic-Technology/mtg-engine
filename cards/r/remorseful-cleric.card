@@ -1,0 +1,8 @@
+card "Remorseful Cleric" {
+  oracle_id c40bc9f6-2b72-4ae1-b912-50075af59628
+  cost {1}{W}
+  type Creature — Spirit Cleric
+  pt 2/1
+  keywords flying
+  activated sacrifice this: exile graveyard of target player
+}

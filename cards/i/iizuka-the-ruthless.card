@@ -1,0 +1,8 @@
+card "Iizuka the Ruthless" {
+  oracle_id 4f40d66a-1fd8-4b06-b6cb-9cbcf33bc041
+  cost {3}{R}{R}
+  type Legendary Creature — Human Samurai
+  pt 3/3
+  bushido 2
+  activated {2}{R}, sacrifice Samurai: each Samurai creature you control gains double strike
+}

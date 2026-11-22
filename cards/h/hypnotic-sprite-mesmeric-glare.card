@@ -1,0 +1,13 @@
+card "Hypnotic Sprite // Mesmeric Glare" {
+  oracle_id 1f9efad1-9f51-47aa-a5a7-9c8103435a01
+  layout adventure
+  cost {U}{U}
+  type Creature — Faerie
+  pt 2/1
+  keywords flying
+  face "Mesmeric Glare" {
+    cost {2}{U}
+    type Instant — Adventure
+    spell: counter target with mana value 3 or less spell
+  }
+}

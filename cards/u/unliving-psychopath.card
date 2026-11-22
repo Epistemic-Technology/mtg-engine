@@ -1,0 +1,8 @@
+card "Unliving Psychopath" {
+  oracle_id 038463c8-d2e1-4e7b-829d-67a744ae2660
+  cost {2}{B}{B}
+  type Creature — Zombie Assassin
+  pt 0/4
+  activated {B}: this gets +1/-1
+  activated {B}, {T}: destroy target creature with power less than count equal power
+}

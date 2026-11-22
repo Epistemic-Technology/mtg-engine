@@ -1,0 +1,6 @@
+card "Reach of Shadows" {
+  oracle_id e01382e0-a685-41c4-9ab6-727ffdbf2e0a
+  cost {4}{B}
+  type Instant
+  spell: destroy target creature that's one or more colors
+}

@@ -1,0 +1,6 @@
+card "Bile Blight" {
+  oracle_id 0dd95516-893d-477e-a38c-3cc37c6e7ae0
+  cost {B}{B}
+  type Instant
+  spell: target creature and all other creatures with same name as target 1 gets -3/-3
+}

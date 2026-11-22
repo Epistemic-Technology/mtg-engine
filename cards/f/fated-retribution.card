@@ -1,0 +1,6 @@
+card "Fated Retribution" {
+  oracle_id 28cfafdb-5014-44e3-9133-4554129c1aee
+  cost {4}{W}{W}{W}
+  type Instant
+  spell: destroy all andlist creature or planeswalker; if your turn, scry 2
+}

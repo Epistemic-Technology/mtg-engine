@@ -1,0 +1,6 @@
+card "Killing Glare" {
+  oracle_id 7b47891f-130a-4d76-b262-53f5e3bb6b95
+  cost {X}{B}
+  type Instant
+  spell: destroy target creature with power at most X
+}

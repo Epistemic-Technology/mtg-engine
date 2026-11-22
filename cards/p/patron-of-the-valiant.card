@@ -1,0 +1,8 @@
+card "Patron of the Valiant" {
+  oracle_id 4d36ea21-e8cb-442d-ba3f-c399289ac208
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying
+  triggered when this enters: put 1 +1/+1 counters on each creature you control with +1/+1 counter
+}

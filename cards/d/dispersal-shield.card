@@ -1,0 +1,6 @@
+card "Dispersal Shield" {
+  oracle_id aefb1463-76fb-419e-8cda-8c5bfb88a3d2
+  cost {1}{U}
+  type Instant
+  spell: counter target spell if target 1 is with mana value at most count equal greatest mana value
+}

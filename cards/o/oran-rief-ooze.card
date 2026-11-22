@@ -1,0 +1,8 @@
+card "Oran-Rief Ooze" {
+  oracle_id 94a7dcef-d1c1-4ffa-869e-b911e84ed66c
+  cost {2}{G}
+  type Creature — Ooze
+  pt 2/2
+  triggered when this enters: put 1 +1/+1 counters on target creature you control
+  triggered whenever this attacks: put 1 +1/+1 counters on each attacking creature with +1/+1 counter
+}

@@ -1,0 +1,9 @@
+card "Gurgling Anointer" {
+  oracle_id 22fa5324-ed3b-4b97-89b4-31c1f86d6ead
+  cost {2}{B}
+  type Creature — Phyrexian Horror
+  pt 1/3
+  keywords flying
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counters on this
+  triggered when this dies: return another target creature card with mana value at most count equal power from your graveyard to battlefield
+}

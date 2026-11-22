@@ -1,0 +1,9 @@
+card "Baral's Expertise" {
+  oracle_id a1cdcb8c-1e12-4d39-aa4a-db678a80df9c
+  cost {3}{U}{U}
+  type Sorcery
+  spell {
+    return up to 3 target andor artifact or creature to hand
+    cast free spell from hand with mana value up to 4
+  }
+}

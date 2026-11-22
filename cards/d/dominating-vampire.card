@@ -1,0 +1,7 @@
+card "Dominating Vampire" {
+  oracle_id 145ef633-a2e0-4bd9-a866-5767821eb44f
+  cost {1}{R}{R}
+  type Creature — Vampire
+  pt 3/3
+  triggered when this enters: gain control of target creature with mana value at most count equal Vampire you control; untap that creature; target 1 gains haste
+}

@@ -1,0 +1,6 @@
+card "Pull Through the Weft" {
+  oracle_id 37bd9e54-c93e-4fec-9b21-6940da75ab7a
+  cost {3}{G}{G}
+  type Sorcery
+  spell: return up to 2 target nonland permanent card from your graveyard to hand then return up to 2 target land card from your graveyard to battlefield tapped
+}

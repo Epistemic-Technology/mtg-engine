@@ -1,0 +1,6 @@
+card "Splendid Reclamation" {
+  oracle_id 13fe5e46-77a6-45d8-ac0b-c3d740eccf86
+  cost {3}{G}
+  type Sorcery
+  spell: return all land card from your graveyard to battlefield tapped
+}

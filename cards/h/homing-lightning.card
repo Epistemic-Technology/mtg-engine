@@ -1,0 +1,6 @@
+card "Homing Lightning" {
+  oracle_id 6e7f8e25-49a9-49a0-9bf4-129439344550
+  cost {2}{R}{R}
+  type Instant
+  spell: deal 4 damage to target creature and each other creature with same name as target 1
+}

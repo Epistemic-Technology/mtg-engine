@@ -1,0 +1,7 @@
+card "Fry" {
+  oracle_id 3a747893-a514-4689-8486-ecccf654fecb
+  cost {1}{R}
+  type Instant
+  this spell can't be countered
+  spell: deal 5 damage to target white or blue creature or white or blue planeswalker
+}

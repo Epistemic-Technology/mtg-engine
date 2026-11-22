@@ -1,0 +1,8 @@
+card "Izzet Staticaster" {
+  oracle_id d63adbed-07d3-44e4-83f8-1cbdfc186df4
+  cost {1}{U}{R}
+  type Creature — Human Wizard
+  pt 0/3
+  keywords flash, haste
+  activated {T}: deal 1 damage to target creature and each other creature with same name as target 1
+}

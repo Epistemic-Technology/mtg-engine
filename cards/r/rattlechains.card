@@ -1,0 +1,9 @@
+card "Rattlechains" {
+  oracle_id ee2ca311-7639-436d-8ecb-d2aad075f25f
+  cost {1}{U}
+  type Creature — Spirit
+  pt 2/1
+  keywords flash, flying
+  triggered when this enters: target Spirit gains hexproof
+  spells Spirit you cast have flash
+}

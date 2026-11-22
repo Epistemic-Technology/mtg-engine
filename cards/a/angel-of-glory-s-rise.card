@@ -1,0 +1,8 @@
+card "Angel of Glory's Rise" {
+  oracle_id c6a606af-ea08-4cd9-bfd9-60d76e232e85
+  cost {5}{W}{W}
+  type Creature — Angel
+  pt 4/6
+  keywords flying
+  triggered when this enters: exile each Zombie then return all Human creature card from your graveyard to battlefield
+}

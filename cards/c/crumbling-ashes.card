@@ -1,0 +1,6 @@
+card "Crumbling Ashes" {
+  oracle_id 2e4030eb-c74f-4f81-8d35-8f1d080b15cf
+  cost {1}{B}
+  type Enchantment
+  triggered at beginning of your upkeep: destroy target creature with -1/-1 counter
+}

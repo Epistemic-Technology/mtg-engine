@@ -1,0 +1,7 @@
+card "Engineered Explosives" {
+  oracle_id 95fd897e-9086-42c4-8e0d-61bb02333c5f
+  cost {X}
+  type Artifact
+  sunburst
+  activated {2}, sacrifice this: destroy each single nonland permanent with mana value equal to count equal charge counters on this
+}

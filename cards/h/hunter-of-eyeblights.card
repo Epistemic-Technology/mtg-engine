@@ -1,0 +1,8 @@
+card "Hunter of Eyeblights" {
+  oracle_id 34d5f249-df46-49d1-a692-da2348fbc51e
+  cost {3}{B}{B}
+  type Creature — Elf Assassin
+  pt 3/3
+  triggered when this enters: put 1 +1/+1 counters on target creature you don't control
+  activated {2}{B}, {T}: destroy target creature with counter
+}

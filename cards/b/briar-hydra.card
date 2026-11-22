@@ -1,0 +1,8 @@
+card "Briar Hydra" {
+  oracle_id caaedd67-e074-47c4-a956-da88a01f8996
+  cost {5}{G}
+  type Creature — Plant Hydra
+  pt 6/6
+  keywords trample
+  label "Domain" triggered whenever this deals combat damage to a player: put count where domain +1/+1 counters on target creature you control
+}

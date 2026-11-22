@@ -1,0 +1,7 @@
+card "Scholar of the Ages" {
+  oracle_id 1bb1ad32-9ce5-4f14-a408-e142ff30c679
+  cost {5}{U}{U}
+  type Creature — Human Wizard
+  pt 3/3
+  triggered when this enters: return up to 2 target andor instant or sorcery card from your graveyard to hand
+}

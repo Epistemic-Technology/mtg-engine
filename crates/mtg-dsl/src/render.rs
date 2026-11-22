@@ -2386,16 +2386,27 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.equipped && f.equipped_late {
         words.push("equipped".to_string());
     }
-    if let Some(cc) = f.color_count {
+    if let Some(cc) = f.color_count
+        && cc != mtg_core::card::ColorCount::Colored
+    {
         words.push(format!("{cc:?}").to_lowercase());
     }
     if let Some(colors) = &f.colors {
-        words.push(or_list(
+        let list = or_list(
             &colors
                 .iter()
                 .map(|c| color_name(*c).to_string())
                 .collect::<Vec<_>>(),
-        ));
+        );
+        // `andor white or blue creature`: "each white and/or blue
+        // creature" (Ember Gale).
+        words.push(
+            if f.and_or && f.any_types.is_empty() && f.subtypes.is_empty() {
+                list.replace(" or ", " and/or ")
+            } else {
+                list
+            },
+        );
     }
     for s in &f.supertypes {
         words.push(format!("{s:?}").to_lowercase());
@@ -2470,7 +2481,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         // `andor`: "two target artifacts and/or enchantments".
         if plural_form && f.and_or {
             noun.push(or_list(&names).replace(" or ", " and/or "));
-        } else if plural_form && f.and_list {
+        } else if f.and_list {
             // `andlist`: "artifacts and creatures you control" (Thorin
             // Oakenshield).
             noun.push(or_list(&names).replace(" or ", " and "));
@@ -2509,6 +2520,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         } else {
             let _ = write!(s, " with mana value {n}{}", cmp_words(cmp));
         }
+    }
+    if let Some(b) = f.status.bound {
+        let _ = write!(s, " with {}", bound_phrase(b, card));
+    }
+    if let Some((cmp, n)) = f.status.pt_total {
+        let _ = write!(s, " with total power and toughness {n}{}", cmp_words(cmp));
     }
     if !f.keywords.is_empty() {
         let _ = write!(s, " with {}", keywords_list(&f.keywords));
@@ -2647,7 +2664,65 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if !f.named_first {
         s.push_str(&same_phrase(f, card, plural_form));
     }
+    // "target creature that's one or more colors" (Reach of Shadows).
+    if f.color_count == Some(mtg_core::card::ColorCount::Colored) {
+        s.push_str(if plural_form {
+            " that are one or more colors"
+        } else {
+            " that's one or more colors"
+        });
+    }
     s
+}
+
+/// "power less than or equal to the number of creatures you control",
+/// "mana value X or less, where X is the number of Faeries you control"
+/// (`count where`), "toughness less than this creature's power": a
+/// characteristic compared with a count (`StatusQuals::bound`).
+fn bound_phrase(b: mtg_core::card::StatBound, card: &Card) -> String {
+    bound_words(b, card, "")
+}
+
+/// `bound_phrase` with a verb after the characteristic ("its toughness is
+/// less than or equal to ...").
+fn bound_words(b: mtg_core::card::StatBound, card: &Card, verb: &str) -> String {
+    let stat = format!("{}{verb}", stat_name(b.stat));
+    if b.n == Num::X {
+        return format!("{stat} X or less");
+    }
+    // The parser takes only a count or X here.
+    let Some(c) = (match b.n {
+        Num::Count(i) => card.counts.get(usize::from(i)),
+        _ => None,
+    }) else {
+        return stat;
+    };
+    let phrase = match c.expr {
+        // "with power less than this creature's power".
+        crate::ast::CountExpr::SourcePower => format!("{}'s power", this_ref(card)),
+        crate::ast::CountExpr::SourceToughness => format!("{}'s toughness", this_ref(card)),
+        _ => count_phrase(&c.expr, card, false),
+    };
+    if b.cmp == mtg_core::card::Cmp::Exactly {
+        // "with mana value equal to the number of charge counters on this
+        // artifact" (Engineered Explosives).
+        return format!("{stat} equal to {phrase}");
+    }
+    match (c.style, b.strict) {
+        (crate::ast::CountStyle::Where, false) => {
+            format!("{stat} X or less, where X is {phrase}")
+        }
+        (_, false) => format!("{stat} less than or equal to {phrase}"),
+        (_, true) => format!("{stat} less than {phrase}"),
+    }
+}
+
+fn stat_name(s: mtg_core::card::Stat) -> &'static str {
+    match s {
+        mtg_core::card::Stat::Power => "power",
+        mtg_core::card::Stat::Toughness => "toughness",
+        mtg_core::card::Stat::ManaValue => "mana value",
+    }
 }
 
 /// " named ~", " not named ~" (CR 201.4b: the card's own name), and the
@@ -2706,6 +2781,14 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         && let Some((cmp, n)) = g.power.take()
     {
         mv = format!(" with power {n}{}", cmp_words(cmp));
+    }
+    // "creature card with mana value less than or equal to this
+    // creature's power".
+    if g.or.is_none()
+        && mv.is_empty()
+        && let Some(b) = g.status.bound.take()
+    {
+        mv = format!(" with {}", bound_phrase(b, card));
     }
     let p = if g == Filter::default() {
         String::new()
@@ -4610,9 +4693,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::EndTurn => Clause::imperative("end the turn".to_string()),
         Effect::Recruit { you: false } => Clause::imperative("recruit".to_string()),
         Effect::CloakTop => Clause::imperative("cloak the top card of your library".to_string()),
-        Effect::GraveyardToBattlefield { filter } => Clause::imperative(format!(
-            "return all {} from your graveyard to the battlefield",
-            cards_phrase(filter, ctx.card, true)
+        Effect::GraveyardToBattlefield { filter, tapped } => Clause::imperative(format!(
+            "return all {} from your graveyard to the battlefield{}",
+            cards_phrase(filter, ctx.card, true),
+            if *tapped { " tapped" } else { "" }
         )),
         Effect::ExchangeLife { with } => {
             // "If you lost life this way, draw that many cards." (Mister
@@ -5791,11 +5875,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             // A card from your own graveyard is yours: Oracle drops "under
             // its owner's control".
-            let yours = matches!(what, Recipient::Target(i) | Recipient::ThatTarget(i) if matches!(
-                ctx.targets[*i].base(),
-                Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
-                    | Target::GraveyardCard { who: Who::You, .. }
-            ));
+            let from_yours = |i: usize| {
+                matches!(
+                    ctx.targets[i].base(),
+                    Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
+                        | Target::GraveyardCard { who: Who::You, .. }
+                )
+            };
+            // "return up to two target creature cards ... from your
+            // graveyard to the battlefield" too.
+            let yours = match what {
+                Recipient::Target(i) | Recipient::ThatTarget(i) => from_yours(*i),
+                Recipient::Targets(first, count) => (*first..*first + *count).all(from_yours),
+                _ => false,
+            };
             // A card from another player's graveyard isn't "returned":
             // "put target creature card from a graveyard onto the
             // battlefield under your control".
@@ -8072,7 +8165,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     status: mtg_core::card::StatusQuals::default(),
                     ..f.clone()
                 }) == Filter::default();
+            // "if its toughness is less than or equal to the number of
+            // cards in your graveyard" (Ghastly Demise).
+            let bound_only = f.status.bound.filter(|_| {
+                (Filter {
+                    status: mtg_core::card::StatusQuals::default(),
+                    ..f.clone()
+                }) == Filter::default()
+            });
             let cond = match (check.tense, has) {
+                (TargetTense::Is, _) if let Some(b) = bound_only => {
+                    format!("its {}", bound_words(b, ctx.card, " is"))
+                }
                 _ if spent_only => format!(
                     "its {} is {}",
                     if f.power.is_some() {
@@ -8151,6 +8255,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 (TargetTense::Is, Some(k)) => format!("it has {k}"),
                 (TargetTense::ThatIs, Some(k)) => format!("that {noun} has {k}"),
+                // "destroy target creature if it's tapped" (Deathbringer
+                // Liege): a state as it resolves.
+                (TargetTense::Is, None) if let Some(state) = status_only(f) => {
+                    format!("it's {state}")
+                }
                 (TargetTense::Is, None) => format!("it's {pred}"),
                 (TargetTense::ThatIs, None) => format!("that {noun} is {pred}"),
             };
@@ -9891,7 +10000,10 @@ fn controller_first(f: &Filter, s: String) -> String {
         Some(Who::Opponents) if f.dont_control => " you don't control",
         Some(Who::Opponents) if f.your_opponents => " your opponents control",
         Some(Who::Opponents) if f.they_control => " they control",
-        Some(Who::Opponents) if !f.defending => " an opponent controls",
+        // "target creature defending player controls with power less
+        // than this creature's power" (Radha's Firebrand).
+        Some(Who::Opponents) if f.defending => " defending player controls",
+        Some(Who::Opponents) => " an opponent controls",
         _ => return s,
     };
     // `... an opponent controls late`: where it was written.
@@ -11579,6 +11691,7 @@ fn protection_text(f: &Filter, card: &Card) -> String {
                 mtg_core::card::ColorCount::Multicolored => "multicolored",
                 mtg_core::card::ColorCount::Monocolored => "monocolored",
                 mtg_core::card::ColorCount::Colorless => "colorless",
+                mtg_core::card::ColorCount::Colored => "one or more colors",
             }
         )
     } else if *f

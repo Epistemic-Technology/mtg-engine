@@ -1,0 +1,14 @@
+card "Feral Deathgorger // Dusk Sight" {
+  oracle_id 1722f814-2d4e-4d59-9b74-10ef8e89def9
+  layout omen
+  cost {5}{B}
+  type Creature — Dragon
+  pt 3/5
+  keywords flying, deathtouch
+  triggered when this enters: exile up to 2 target card from a graveyard
+  face "Dusk Sight" {
+    cost {1}{B}
+    type Sorcery — Omen
+    spell: put 1 +1/+1 counters on up to 1 target creature; draw 1 cards
+  }
+}

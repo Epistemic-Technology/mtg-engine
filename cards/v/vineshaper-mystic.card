@@ -1,0 +1,7 @@
+card "Vineshaper Mystic" {
+  oracle_id ca514283-c58b-4108-82b2-3b6b15b467f4
+  cost {2}{G}
+  type Creature — Merfolk Shaman
+  pt 1/3
+  triggered when this enters: put 1 +1/+1 counters on up to 2 target Merfolk you control
+}

@@ -1,0 +1,7 @@
+card "Minamo Sightbender" {
+  oracle_id c4f1d8c8-29e5-43fe-8281-7d42d0173dc5
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/2
+  activated {X}, {T}: target creature with power at most X can't be blocked
+}

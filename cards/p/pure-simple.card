@@ -1,0 +1,14 @@
+card "Pure // Simple" {
+  oracle_id e119ba58-85e4-49ec-a2f8-3d094187c99d
+  layout split
+  face "Pure" {
+    cost {1}{R}{G}
+    type Sorcery
+    spell: destroy target multicolored permanent
+  }
+  face "Simple" {
+    cost {1}{G}{W}
+    type Sorcery
+    spell: destroy all andlist Aura or Equipment
+  }
+}

@@ -1,0 +1,8 @@
+card "Otepec Huntmaster" {
+  oracle_id 41623eab-38b5-4058-8de2-e6b8706de7a2
+  cost {1}{R}
+  type Creature — Human Shaman
+  pt 1/2
+  spells Dinosaur you cast cost {1} less
+  activated {T}: target Dinosaur gains haste
+}

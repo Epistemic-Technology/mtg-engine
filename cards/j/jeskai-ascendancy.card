@@ -1,0 +1,7 @@
+card "Jeskai Ascendancy" {
+  oracle_id c3c802ba-dfbb-4f63-ae9a-e29c2e30013d
+  cost {U}{R}{W}
+  type Enchantment
+  triggered whenever you cast a noncreature spell: each creature you control gets +1/+1; untap those creatures
+  triggered whenever you cast a noncreature spell: you may draw 1 cards; if you do, discard 1 cards
+}

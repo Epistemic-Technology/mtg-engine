@@ -1,0 +1,8 @@
+card "World Shaper" {
+  oracle_id 3c075bb6-1831-4521-bd8d-4ed2825ae796
+  cost {3}{G}
+  type Creature — Merfolk Shaman
+  pt 3/3
+  triggered whenever this attacks: you may mill 3 cards
+  triggered when this dies: return all land card from your graveyard to battlefield tapped
+}

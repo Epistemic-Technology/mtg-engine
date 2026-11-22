@@ -1,0 +1,10 @@
+card "Deathbringer Liege" {
+  oracle_id caf89756-fb78-4e58-a730-001393ffa0a8
+  cost {2}{W/B}{W/B}{W/B}
+  type Creature — Horror
+  pt 3/4
+  static other white creature you control: +1/+1
+  static other black creature you control: +1/+1
+  triggered whenever you cast white spell: you may tap target creature
+  triggered whenever you cast black spell: you may destroy target creature if target 1 is tapped
+}

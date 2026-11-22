@@ -776,7 +776,7 @@ impl GameState {
 
     /// `eval_num` for a static ability of `source`'s, outside any
     /// resolution (an "as this is turned face up" amount).
-    pub(super) fn eval_num_of(
+    pub(crate) fn eval_num_of(
         &self,
         n: crate::card::Num,
         source: ObjId,
@@ -4958,7 +4958,9 @@ impl GameState {
             .filter(|s| {
                 !matches!(s, TargetSpec::UpTo(_))
                     && match self.pool.base_spec(*s) {
-                        TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. } => {
+                        TargetSpec::Filtered(f)
+                        | TargetSpec::SpellFiltered(f)
+                        | TargetSpec::GraveyardCard { filter: f, .. } => {
                             self.pool.filter(f).status.mana_value_x
                         }
                         _ => false,
@@ -4997,6 +4999,9 @@ impl GameState {
         if self.pool.base_spec(spec).is_graveyard() {
             self.players_in_game()
                 .any(|p| self.player(p).graveyard.iter().any(fits))
+        } else if self.pool.base_spec(spec).is_spell() {
+            // "counter target spell with mana value X".
+            self.stack.iter().any(fits)
         } else {
             self.battlefield.iter().any(fits)
         }
@@ -8278,7 +8283,7 @@ impl GameState {
         f: &'f crate::card::ObjFilter,
         ctx: &EffectCtx,
     ) -> std::borrow::Cow<'f, crate::card::ObjFilter> {
-        if !f.chosen && f.same.is_none() && !f.status.mana_value_x {
+        if !f.chosen && f.same.is_none() && !f.status.mana_value_x && f.status.bound.is_none() {
             return std::borrow::Cow::Borrowed(f);
         }
         let mut g = if f.chosen {
@@ -8286,6 +8291,12 @@ impl GameState {
         } else {
             f.clone()
         };
+        // "each creature with power less than or equal to the number of
+        // ...": the count as the effect happens.
+        if let Some(b) = g.status.bound {
+            let v = self.eval_num(b.n, ctx);
+            GameState::fill_bound(&mut g, v);
+        }
         // "Destroy each artifact with mana value X or less": X of the
         // resolving spell or ability (CR 107.3); unfilled, the filter
         // wouldn't restrict the mana value at all.
@@ -12370,8 +12381,10 @@ impl GameState {
                 ps.combat_mana += n;
                 self.bump();
             }
-            Effect::GraveyardToBattlefield { filter } => {
+            Effect::GraveyardToBattlefield { filter, tapped } => {
                 let p = ctx.controller;
+                // "each creature card with mana value X": X of the spell.
+                let filter = &*self.chosen_filter(filter, ctx);
                 let cards: Vec<ObjId> = self
                     .player(p)
                     .graveyard
@@ -12412,7 +12425,14 @@ impl GameState {
                         }
                         None => None,
                     };
-                    let new = self.put_onto_battlefield(id, owner);
+                    let new = self.put_onto_battlefield_with(
+                        id,
+                        owner,
+                        super::replace::Enter {
+                            tapped: *tapped,
+                            ..super::replace::Enter::default()
+                        },
+                    );
                     if let Some(h) = host
                         && self
                             .objects
@@ -13375,9 +13395,17 @@ impl GameState {
         // Converge: "if its mana value is less than or equal to the number
         // of colors of mana spent to cast this spell".
         let filled;
-        let filter = if filter.status.spent_colors {
+        let filter = if filter.status.spent_colors || filter.status.bound.is_some() {
             let mut g = filter.clone();
-            GameState::fill_spent_colors(&mut g, self.spent_on(ctx.source).colors());
+            if g.status.spent_colors {
+                GameState::fill_spent_colors(&mut g, self.spent_on(ctx.source).colors());
+            }
+            // "if its toughness is less than or equal to the number of
+            // cards in your graveyard": the count as the effect happens.
+            if let Some(b) = g.status.bound {
+                let v = self.eval_num(b.n, ctx);
+                GameState::fill_bound(&mut g, v);
+            }
             filled = g;
             &filled
         } else {
@@ -13418,7 +13446,8 @@ impl GameState {
             && !filter.status.mana_value_x
         {
             let def = match self.objects.get(id) {
-                Some(o) if o.zone == Zone::Battlefield => Some(o.def),
+                // "Counter target spell if its mana value is ...": on the stack.
+                Some(o) if matches!(o.zone, Zone::Battlefield | Zone::Stack) => Some(o.def),
                 _ => self.lki.get(&id).map(|l| l.object.def),
             };
             let Some(def) = def else {

@@ -1,0 +1,9 @@
+card "Hydroblast" {
+  oracle_id b94c0336-2ca8-4bb1-bb1f-e9babd1826ad
+  cost {U}
+  type Instant
+  choose one {
+    mode: counter target spell if target 1 is red
+    mode: destroy target permanent if target 1 is red
+  }
+}

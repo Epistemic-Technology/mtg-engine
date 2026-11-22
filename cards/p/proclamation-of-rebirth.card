@@ -1,0 +1,7 @@
+card "Proclamation of Rebirth" {
+  oracle_id e1e5592c-3605-4069-89d0-b462dec83516
+  cost {2}{W}
+  type Sorcery
+  spell: return up to 3 target creature card with mana value 1 or less from your graveyard to battlefield
+  label "Forecast" activated {5}{W}, reveal this: return target creature card with mana value 1 or less from your graveyard to battlefield
+}

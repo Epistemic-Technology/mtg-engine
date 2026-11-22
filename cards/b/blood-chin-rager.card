@@ -1,0 +1,7 @@
+card "Blood-Chin Rager" {
+  oracle_id a7036d08-6ee4-49b1-bbbf-c96a937afa15
+  cost {1}{B}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered whenever this attacks: each Warrior creature you control gains menace
+}

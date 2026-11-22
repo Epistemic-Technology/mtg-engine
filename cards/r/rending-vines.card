@@ -1,0 +1,9 @@
+card "Rending Vines" {
+  oracle_id 64ab6dfe-ed87-47ec-afd5-a7f2e7e6bbd2
+  cost {1}{G}{G}
+  type Instant — Arcane
+  spell {
+    destroy target artifact or enchantment if target 1 is with mana value at most count equal hand
+    draw 1 cards
+  }
+}

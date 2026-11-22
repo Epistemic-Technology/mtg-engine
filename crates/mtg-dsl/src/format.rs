@@ -1434,9 +1434,10 @@ impl Fmt {
                 self.recipient(*to, t),
                 self.recipient(*of, t)
             ),
-            Effect::GraveyardToBattlefield { filter: f } => format!(
-                "return all {} card from your graveyard to battlefield",
-                filter(f)
+            Effect::GraveyardToBattlefield { filter: f, tapped } => format!(
+                "return all {} card from your graveyard to battlefield{}",
+                filter(f),
+                if *tapped { " tapped" } else { "" }
             ),
             Effect::ExileUntil { what } => {
                 format!("exile {} until this leaves", self.recipient(*what, t))
@@ -3303,7 +3304,11 @@ fn filter_one(f: &Filter) -> String {
         words.push("modified".to_string());
     }
     if let Some(cc) = f.color_count {
-        words.push(format!("{cc:?}").to_lowercase());
+        words.push(if cc == mtg_core::card::ColorCount::Colored {
+            "colored".to_string()
+        } else {
+            format!("{cc:?}").to_lowercase()
+        });
     }
     if let Some(colors) = &f.colors {
         let names: Vec<String> = colors.iter().map(|c| color_name(*c).to_string()).collect();
@@ -3353,6 +3358,12 @@ fn filter_one(f: &Filter) -> String {
         } else {
             words.push(format!("with mana value {n}{}", cmp_suffix(cmp)));
         }
+    }
+    if let Some((cmp, n)) = f.status.pt_total {
+        words.push(format!(
+            "with total power and toughness {n}{}",
+            cmp_suffix(cmp)
+        ));
     }
     if let Some(e) = f.status.enchanted {
         words.push(
@@ -3506,6 +3517,19 @@ fn filter_one(f: &Filter) -> String {
     }
     if let Some(n) = &f.named_card {
         words.push(format!("named \"{n}\""));
+    }
+    // Last: the count's own filter would take the words after it.
+    if let Some(b) = f.status.bound {
+        words.push(format!(
+            "with {} {} {}",
+            stat_word(b.stat),
+            match (b.strict, b.cmp) {
+                (true, _) => "less than",
+                (false, mtg_core::card::Cmp::Exactly) => "equal to",
+                _ => "at most",
+            },
+            num(b.n)
+        ));
     }
     words.join(" ")
 }

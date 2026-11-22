@@ -1,0 +1,7 @@
+card "Shred Memory" {
+  oracle_id 16cae855-d93a-445d-9cac-dbc5a7c18cb1
+  cost {1}{B}
+  type Instant
+  spell: exile up to 4 target card from a graveyard
+  transmute {1}{B}{B}
+}

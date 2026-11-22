@@ -1,0 +1,6 @@
+card "Thassa's Rebuff" {
+  oracle_id bc5d9899-1a1c-4779-b9f0-b00f2c233699
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X} count where devotion blue
+}

@@ -1,0 +1,7 @@
+card "All That Glitters" {
+  oracle_id a4d751e0-41c1-4e90-853d-512f385acd81
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1 count each andor artifact or enchantment you control
+}

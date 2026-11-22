@@ -983,7 +983,15 @@ target nonland permanent."
 `return all creature card from your graveyard to battlefield` ("Return
 all creature cards from your graveyard to the battlefield."): every card
 in the controller's graveyard matching the filter enters under its owner's
-control.
+control; `... to battlefield tapped` ("Return all land cards from your
+graveyard to the battlefield tapped."), and `return all andlist artifact
+or enchantment card ...` ("all artifact and enchantment cards"). A
+mana value X is the spell's (CR 107.3).
+`put count where power of that target 1 +1/+1 counters on target
+creature` ("Put X +1/+1 counters on target creature, where X is that
+creature's power", also `mana value of that target 1`): the count may
+name the target its counters phrase declares, judged as the effect
+happens.
 `recruit` (CR 701.70): the controller draws a card, then discards a
 card; if the discarded card was a nonland card, they create a 1/1 white
 Human Soldier creature token. Prints "Recruit."; `you recruit` prints
@@ -1246,7 +1254,32 @@ this power` ("with mana value less than or equal to this creature's
 power", "... to Alesha's power": the source's power as it is, or as it
 last existed once it has left the battlefield, CR 608.2h; after `card`
 too, `return target creature card with mana value at most this power
-from your graveyard to battlefield`).
+from your graveyard to battlefield`). A characteristic compared with a
+count: `with power at most count equal creature you control` ("with power
+less than or equal to the number of creatures you control"), `with
+toughness less than count equal power` ("with toughness less than this
+creature's power"), `with mana value equal to count equal charge
+counters on this` ("with mana value equal to the number of charge
+counters on this artifact", the counters it had once sacrificed),
+`with mana value at most count where Faerie you
+control` ("with mana value X or less, where X is the number of Faeries you
+control", for a filter that ends the sentence), and `with power at most X`
+("with power X or less", X of the spell or ability, CR 107.3); also on a
+card (`another target creature card with mana value at most count equal
+power from your graveyard`) and a spell (`counter target with mana value
+at most count where Faerie you control spell`). The count is the source's,
+for its controller, as the target is chosen and again as the effect
+resolves (CR 608.2b); for a group, as the effect happens. A target's stat
+(`power of that target 1`) can't be the count. As a target check, `if
+target 1 is with toughness at most count equal graveyard` prints "if its
+toughness is less than or equal to the number of cards in your
+graveyard" (Ghastly Demise; `counter target spell if target 1 is with mana
+value at most count equal greatest mana value`, a spell's mana value on
+the stack), and `destroy target creature if target 1 is tapped` "if it's
+tapped". `with total power and toughness 5 or less` ("target creature
+with total power and toughness 5 or less", the sum of the two, Cut Down);
+`colored` ("target creature that's one or more colors", not colorless,
+CR 105.2; also written `that's one or more colors`).
 A chosen color or type comes last: `creature you control of chosen color`
 ("creatures you control of the chosen color", the color the source chose
 as it entered, CR 607.2a), `creature of chosen type`, `permanent you
@@ -1297,7 +1330,8 @@ damage by this this turn dies: exile`: "If a creature dealt damage by this
 creature this turn would die, exile it instead."), and
 `with mana value X` / `with mana value X or less` (X of the spell, CR
 107.3; X is chosen before targets, CR 601.2b, so only an X some object
-fits is offered; on a card, the mana value prints after the noun: `target
+fits is offered, a spell on the stack too: `counter target with mana
+value X spell`, "Counter target spell with mana value X"; on a card, the mana value prints after the noun: `target
 creature card with mana value X or less from your graveyard`; several targets print "creature cards with mana value 2 or less", and `card each with mana value 3 or less` "creature cards each with mana value 3 or less"), `with +1/+1
 counter` / `with counter` ("creature you control with a +1/+1 counter on
 it", "with a counter on it", CR 122.1; plural "with +1/+1 counters on

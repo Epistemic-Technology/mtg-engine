@@ -1,0 +1,6 @@
+card "Reduce to Dreams" {
+  oracle_id 85bac6ad-b63a-4068-a813-ad685966e171
+  cost {3}{U}{U}
+  type Sorcery
+  spell: return all andlist artifact or enchantment to hand
+}

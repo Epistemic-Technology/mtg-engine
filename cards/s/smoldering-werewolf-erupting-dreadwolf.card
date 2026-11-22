@@ -1,0 +1,14 @@
+card "Smoldering Werewolf // Erupting Dreadwolf" {
+  oracle_id 372a01f7-6e58-4424-9405-0ee4acbb9346
+  layout transform
+  cost {2}{R}{R}
+  type Creature — Werewolf Horror
+  pt 3/2
+  triggered when this enters: deal 1 damage to up to 2 target creature
+  activated {4}{R}{R}: transform this
+  face "Erupting Dreadwolf" {
+    type Creature — Eldrazi Werewolf
+    pt 6/4
+    triggered whenever this attacks: deal 2 damage to any target
+  }
+}

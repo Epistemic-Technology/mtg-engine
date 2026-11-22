@@ -1,0 +1,6 @@
+card "Living Armor" {
+  oracle_id 7a32b0d1-d9dc-4d24-ae60-3f3a0e18ec03
+  cost {4}
+  type Artifact
+  activated {T}, sacrifice this: put count where mana value of that target 1 +0/+1 counters on target creature
+}

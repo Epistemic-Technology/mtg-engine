@@ -1,0 +1,8 @@
+card "Magus of the Disk" {
+  oracle_id 3996aa0c-3322-43be-bbaf-7b66836a8ff4
+  cost {2}{W}{W}
+  type Creature — Human Wizard
+  pt 2/4
+  enters tapped
+  activated {1}, {T}: destroy all andlist artifact or creature or enchantment
+}
