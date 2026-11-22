@@ -1949,7 +1949,7 @@ impl Templates {
             }),
             (
                 r(
-                    r"^Search your library for (a|an|up to \S+) ([A-Za-z][A-Za-z -]*?)? ?cards?( with [^,]+)?, (reveal (?:it|them|that card), )?(?:put (it|them|that card) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
+                    r"^Search your library for (a|an|up to \S+) ([A-Za-z][A-Za-z -]*?)? ?cards?( with [^,]+)?, (reveal (?:it|them|that card), )?(?:put (it|them|that card|one) (into your hand or graveyard|into your hand|into your graveyard|onto the battlefield tapped and the other into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
                 ),
                 |c, _| {
                     let n = cap(c, 1);
@@ -1980,6 +1980,11 @@ impl Templates {
                     t.push_str(match cap(c, 6) {
                         "into your hand" => " to hand",
                         "into your hand or graveyard" => " to hand or graveyard",
+                        // "put one onto the battlefield tapped and the other
+                        // into your hand" (Cultivate).
+                        "onto the battlefield tapped and the other into your hand" => {
+                            " to battlefield tapped and hand"
+                        }
                         "into your graveyard" => " to graveyard",
                         "onto the battlefield tapped" => " to battlefield tapped",
                         "onto the battlefield" => " to battlefield",
@@ -2501,6 +2506,31 @@ impl Templates {
                         "return {} to battlefield{}",
                         recipient(cap(c, 1), t)?,
                         cap(c, 2)
+                    ))
+                },
+            ),
+            // "... to the battlefield with a lifelink counter on it", "with
+            // an additional +1/+1 counter on it" (CR 122.1b).
+            (
+                r(
+                    r"^Return (.+? from your graveyard) to the battlefield( tapped)? with (a|an|two|three) (additional )?(\S+(?: strike)?) counters? on it$",
+                ),
+                |c, t| {
+                    let what = recipient(cap(c, 1), t)?;
+                    if cap(c, 5) == "finality" {
+                        return None;
+                    }
+                    Some(format!(
+                        "return {what} to battlefield{} with {} {}{} counter{}",
+                        cap(c, 2),
+                        number(cap(c, 3))?,
+                        cap(c, 4),
+                        cap(c, 5),
+                        if matches!(cap(c, 3), "a" | "an") {
+                            ""
+                        } else {
+                            "s"
+                        }
                     ))
                 },
             ),

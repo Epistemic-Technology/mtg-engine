@@ -663,3 +663,66 @@ scenario "graveyard to top: Golgari Thug puts a creature card on top as it dies"
   run_to turn 3 precombat_main
   assert hand A contains "Hill Giant"
 }
+
+# "Return target creature card from your graveyard to the battlefield
+# with a lifelink counter on it." (CR 122.1b)
+
+scenario "reanimate with a counter: Unbreakable Bond" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Unbreakable Bond"
+  turn 1 A: cast "Unbreakable Bond" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert counters "Hill Giant" lifelink 1
+  assert has "Hill Giant" lifelink
+}
+
+scenario "reanimate with a counter: Graceful Restoration's first mode" {
+  battlefield A: 3 "Plains", 2 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Graceful Restoration"
+  turn 1 A: cast "Graceful Restoration" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+  assert power "Hill Giant" 4
+}
+
+scenario "reanimate: Graceful Restoration's second mode returns two creature cards with power 2 or less" {
+  battlefield A: 3 "Plains", 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Typhoid Rats", "Hill Giant"
+  hand A: "Graceful Restoration"
+  turn 1 A: cast "Graceful Restoration" mode 2 targeting "Grizzly Bears", "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Typhoid Rats"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "reanimate: Graceful Restoration's second mode can't take power 3" {
+  battlefield A: 3 "Plains", 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Graceful Restoration"
+  illegal turn 1 A: cast "Graceful Restoration" mode 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+# "Search your library for up to two basic land cards, reveal them, put
+# one onto the battlefield tapped and the other into your hand, then
+# shuffle."
+
+scenario "search: Troop of Ponies puts one land onto the battlefield tapped and the other into the hand" {
+  battlefield A: "Troop of Ponies", 2 "Plains"
+  library A: "Forest", "Island", "Shock"
+  turn 1 A: activate "Troop of Ponies"
+  turn 1 A: choose "Forest"
+  turn 1 A: choose "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Troop of Ponies"
+  assert library A count 1
+  assert hand A count 1
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert hand A contains "Island"
+}

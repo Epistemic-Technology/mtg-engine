@@ -1,0 +1,7 @@
+card "Troop of Ponies" {
+  oracle_id bb52b3c3-09f0-4506-b7c0-250ab0b91866
+  cost {2}
+  type Creature — Horse
+  pt 2/1
+  activated {2}, {T}, sacrifice this: search up to 2 basic land card reveal to battlefield tapped and hand
+}
