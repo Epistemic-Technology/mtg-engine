@@ -6833,11 +6833,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 None => "a card".to_string(),
                 Some(f) => with_article(&format!("{} card", card_filter_phrase(f, ctx.card))),
             };
+            // "You choose a nonland card from it with mana value 3 or
+            // less." (Inquisition of Kozilek): the qualifier after "it".
+            let (what, after) = match what.split_once(" with mana value ") {
+                Some((w, mv)) => match mv.strip_suffix(" card") {
+                    Some(mv) => (format!("{w} card"), format!(" with mana value {mv}")),
+                    None => (w.to_string(), format!(" with mana value {mv}")),
+                },
+                None => (what, String::new()),
+            };
             let choose = match (*look, *may) {
                 // "Look at target player's hand and choose a card from it."
-                (true, false) => format!(" and choose {what} from it."),
-                (_, true) => format!(". You may choose {what} from it."),
-                (false, false) => format!(". You choose {what} from it."),
+                (true, false) => format!(" and choose {what} from it{after}."),
+                (_, true) => format!(". You may choose {what} from it{after}."),
+                (false, false) => format!(". You choose {what} from it{after}."),
             };
             if *look {
                 let o = ctx.obj(*who);

@@ -1,0 +1,8 @@
+card "Thought-Knot Seer" {
+  oracle_id cef7396d-2168-4282-bf38-670ca9eebd91
+  cost {3}{C}
+  type Creature — Eldrazi
+  pt 4/4
+  triggered when this enters: target opponent reveals hand exiling nonland card
+  triggered when this leaves the battlefield: target opponent draws 1 cards
+}

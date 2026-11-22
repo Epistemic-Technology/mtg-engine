@@ -2524,7 +2524,11 @@ nonland card from it. Exile that card until ..."; `look at hand of
 target opponent exiling may nonland card until this leaves`: "look at
 target opponent's hand. You may exile a nonland card from it until this
 creature leaves the battlefield."). `nonland noninstant nonsorcery card` prints "a nonland
-permanent card" (CR 110.4a). A sentence
+permanent card" (CR 110.4a). `discarding nonland with mana value 3 or less
+card` prints "You choose a nonland card from it with mana value 3 or less."
+(the qualifier after "from it"), and `discarding may nonland card; if you
+don't, that player discards 2 cards` "You may choose a nonland card from it.
+If you do, that player discards that card. If you don't, ...". A sentence
 may start `then` ("Then discard two cards unless ..."). After `return
 target permanent to hand`, `that player` is that permanent's owner:
 `return target permanent to hand; then that player discards 1 card`

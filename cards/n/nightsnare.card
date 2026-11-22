@@ -1,0 +1,6 @@
+card "Nightsnare" {
+  oracle_id b9efd1bd-d82a-43ad-aba7-df172b9751ce
+  cost {3}{B}
+  type Sorcery
+  spell: target opponent reveals hand discarding may nonland card; if you don't, that player discards 2 cards
+}

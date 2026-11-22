@@ -2676,20 +2676,80 @@ impl Templates {
         // "Target opponent reveals their hand. You choose a nonland card
         // from it. That player discards that card." is one effect.
         let duress = Regex::new(
-            r"^(.+?) reveals their hand\. You choose (a|an) (.+? )?card from it\. That player discards that card\.?(.*)$",
+            r"^(.+?) reveals their hand\. You (may )?choose (a|an) (.+? )?card from it( with mana value \d+ or (?:less|greater))?\. That player discards that card\.?(.*)$",
         )
         .unwrap();
         if let Some(c) = duress.captures(text) {
             let who = recipient(&subject(cap(&c, 1)), targets)
                 .ok_or_else(|| Skip::Sentence(text.to_string()))?;
-            let what = cap(&c, 3).trim();
+            let may = if c.get(2).is_some() { "may " } else { "" };
+            let what = cap(&c, 4).trim();
             let what = what.replace(", ", " ");
             let mut out = if what.is_empty() {
-                format!("{who} reveals hand discarding card")
+                format!("{who} reveals hand discarding {may}card")
             } else {
-                format!("{who} reveals hand discarding {what} card")
+                format!("{who} reveals hand discarding {may}{what} card")
             };
-            let rest = cap(&c, 4).trim();
+            if let Some(mv) = c.get(5) {
+                if what.is_empty() {
+                    return Err(Skip::Sentence(text.to_string()));
+                }
+                out = format!(
+                    "{} card",
+                    out.trim_end_matches(" card").to_string() + mv.as_str()
+                );
+            }
+            let rest = cap(&c, 6).trim();
+            if !rest.is_empty() {
+                out.push_str("; ");
+                out.push_str(&self.effects(rest, targets)?);
+            }
+            return Ok(out);
+        }
+        // "Target opponent reveals their hand. You may choose a nonland
+        // card from it. If you do, that player discards that card. If you
+        // don't, that player discards two cards." (Nightsnare).
+        if let Some(c) = Regex::new(
+            r"^(.+?) reveals their hand\. You may choose (a|an) (.+? )?card from it\. If you do, that player discards that card\. If you don't, (.+?)\.?$",
+        )
+        .unwrap()
+        .captures(text)
+        {
+            let who = recipient(&subject(cap(&c, 1)), targets)
+                .ok_or_else(|| Skip::Sentence(text.to_string()))?;
+            let what = cap(&c, 3).trim().replace(", ", " ");
+            let what = if what.is_empty() {
+                "card".to_string()
+            } else {
+                format!("{what} card")
+            };
+            let rest = self.effects(cap(&c, 4), targets)?;
+            return Ok(format!(
+                "{who} reveals hand discarding may {what}; if you don't, {rest}"
+            ));
+        }
+        // "Target opponent reveals their hand. You choose a nonland card
+        // from it. Exile that card." / "... and exile that card."
+        let exile_chosen = Regex::new(
+            r"^(.+?) reveals their hand\. You choose (a|an) (.+? )?card from it(\. Exile| and exile) that card\.?(.*)$",
+        )
+        .unwrap();
+        if let Some(c) = exile_chosen.captures(text) {
+            let who = recipient(&subject(cap(&c, 1)), targets)
+                .ok_or_else(|| Skip::Sentence(text.to_string()))?;
+            let what = cap(&c, 3).trim().replace(", ", " ");
+            let what = if what.is_empty() {
+                "card".to_string()
+            } else {
+                format!("{what} card")
+            };
+            let split = if cap(&c, 4) == ". Exile" {
+                " split"
+            } else {
+                ""
+            };
+            let mut out = format!("{who} reveals hand exiling {what}{split}");
+            let rest = cap(&c, 5).trim();
             if !rest.is_empty() {
                 out.push_str("; ");
                 out.push_str(&self.effects(rest, targets)?);
