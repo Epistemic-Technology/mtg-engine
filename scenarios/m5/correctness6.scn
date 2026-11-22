@@ -193,6 +193,40 @@ scenario "Karametra's Blessing: an enchantment creature also gains them" {
   assert has "Nyxborn Shieldmate" indestructible
 }
 
+# "Whenever a modified creature you control leaves the battlefield": the
+# creature as it last existed (CR 603.10a, 700.9).
+scenario "Costume Closet: an unmodified creature leaving doesn't trigger it" {
+  battlefield A: "Costume Closet" with 2 +1/+1, "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Costume Closet" +1/+1 2
+}
+
+scenario "Costume Closet: a creature with a counter leaving puts a counter on it" {
+  battlefield A: "Costume Closet" with 2 +1/+1, "Grizzly Bears"
+  battlefield B: "Mountain", "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Costume Closet" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Costume Closet" +1/+1 2
+}
+
+scenario "Costume Closet: an equipped creature counts as modified" {
+  battlefield A: "Costume Closet" with 2 +1/+1, "Grizzly Bears", "Bone Saw" on "Grizzly Bears"
+  battlefield B: "Mountain", "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Costume Closet" +1/+1 3
+}
+
 # "If a triggered ability of another creature you control of the chosen
 # type triggers, it triggers an additional time": the type Roaming Throne
 # chose (CR 603.2d).

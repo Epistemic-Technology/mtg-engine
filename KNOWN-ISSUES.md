@@ -90,8 +90,6 @@ by rejecting the form at compile time or by binding it correctly.
   - `each player loses count each creature they control life` is an
     error now (it counted the other player's creatures): a count per
     player isn't in (Stronghold Discipline).
-  - `whenever modified creature you control leaves the battlefield`
-    fires for an unmodified creature (Costume Closet).
   - A counter condition on the enchanted creature in a static (`if
     attached is with sleep counter`) is always true, and `tap enchanted
     creature and put X sleep counter on it` puts none (Venarian Gold).

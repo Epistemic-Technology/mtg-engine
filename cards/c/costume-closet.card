@@ -1,0 +1,8 @@
+card "Costume Closet" {
+  oracle_id 072d05c4-e0d7-47af-b2a9-16b90810fd30
+  cost {1}{W}
+  type Artifact
+  enters with 2 +1/+1 counters
+  activated {T}, sorcery: move 1 +1/+1 counter from this onto target creature you control
+  triggered whenever modified creature you control leaves the battlefield: put 1 +1/+1 counter on this
+}

@@ -917,14 +917,13 @@ impl GameState {
                     return None;
                 }
                 let l = self.lki.get(old)?;
-                filter
-                    .matches(
-                        *old,
-                        l.object.controller,
-                        &l.characteristics,
-                        Some(w.source),
-                        Some(w.controller),
-                    )
+                (filter.matches(
+                    *old,
+                    l.object.controller,
+                    &l.characteristics,
+                    Some(w.source),
+                    Some(w.controller),
+                ) && (!filter.needs_state() || self.lki_status_ok(filter, *old, l)))
                     .then_some((None, Some(l.object.controller)))
             }
             (
@@ -938,13 +937,18 @@ impl GameState {
                 let l = self.lki.get(old)?;
                 let ok = match what {
                     TriggerObj::This => *old == w.source,
-                    TriggerObj::Filter(f) => f.matches(
-                        *old,
-                        l.object.controller,
-                        &l.characteristics,
-                        Some(w.source),
-                        Some(w.controller),
-                    ),
+                    // "Whenever a modified creature you control leaves the
+                    // battlefield": its state as it last existed (CR
+                    // 603.10a).
+                    TriggerObj::Filter(f) => {
+                        f.matches(
+                            *old,
+                            l.object.controller,
+                            &l.characteristics,
+                            Some(w.source),
+                            Some(w.controller),
+                        ) && (!f.needs_state() || self.lki_status_ok(f, *old, l))
+                    }
                 };
                 ok.then_some((Some(*old), Some(l.object.controller)))
             }
