@@ -9934,6 +9934,11 @@ impl GameState {
                                 self.characteristics(*id).is_some_and(|c| {
                                     filter.matches(*id, p, &c, Some(ctx.source), Some(p))
                                 }) && self.status_ok(filter, *id)
+                                    // "a creature of their choice other
+                                    // than enchanted creature".
+                                    && !(filter.not_attached
+                                        && self.objects.get(ctx.source).and_then(|s| s.attached_to)
+                                            == Some(*id))
                             })
                             .map(Choice::Sacrifice)
                             .collect();

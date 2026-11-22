@@ -1,0 +1,476 @@
+# Cards whose Oracle wording the renderer now prints exactly (seventh
+# wave, second file): each scenario checks the meaning, amounts and
+# targets included.
+
+scenario "Soul-Shackled Zombie: at least one creature card exiled drains 2" {
+  battlefield A: 4 "Swamp"
+  hand A: "Soul-Shackled Zombie"
+  graveyard B: "Grizzly Bears", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Soul-Shackled Zombie"
+  turn 1 A: trigger "Soul-Shackled Zombie" targeting "Grizzly Bears", "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Shock"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Soul-Shackled Zombie: no creature card exiled, no drain" {
+  battlefield A: 4 "Swamp"
+  hand A: "Soul-Shackled Zombie"
+  graveyard B: "Grizzly Bears", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Soul-Shackled Zombie"
+  turn 1 A: trigger "Soul-Shackled Zombie" targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Shock"
+  assert life B 20
+  assert life A 20
+}
+
+scenario "Spoils of the Hunt: +1/+0 for each mana from a Treasure, then it deals damage equal to its power" {
+  battlefield A: "Forest", 2 "Treasure", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Spoils of the Hunt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spoils of the Hunt" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Spoils of the Hunt: no Treasure mana, no bonus" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Spoils of the Hunt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spoils of the Hunt" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert damage "Hill Giant" 2
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Tawnos's Tinkering: a land gets two counters, untaps, and is a 0/0 creature" {
+  battlefield A: 4 "Forest", "Plains" tapped
+  hand A: "Tawnos's Tinkering"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tawnos's Tinkering" targeting "Plains"
+  run_to turn 1 postcombat_main
+  assert untapped "Plains"
+  assert is "Plains" creature
+  assert is "Plains" land
+  assert counters "Plains" +1/+1 2
+  assert power "Plains" 2
+  assert toughness "Plains" 2
+}
+
+scenario "Tawnos's Tinkering: a creature just gets the counters and untaps" {
+  battlefield A: 4 "Forest", "Grizzly Bears" tapped
+  hand A: "Tawnos's Tinkering"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tawnos's Tinkering" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "At Knifepoint: outlaws have first strike during your turn; one Mercenary per turn for crimes" {
+  battlefield A: "At Knifepoint", "Dream Thief", 2 "Mountain"
+  hand A: 2 "Shock"
+  start turn 1 A precombat_main
+  assert has "Dream Thief" first_strike
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains 1 "Mercenary"
+  run_to turn 2 precombat_main
+  assert has not "Dream Thief" first_strike
+}
+
+scenario "Flowerfoot Swordmaster: targeted the first time each turn, Mice get +1/+0" {
+  battlefield A: "Flowerfoot Swordmaster", "Mouse", "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Flowerfoot Swordmaster"
+  run_to turn 1 postcombat_main
+  assert power "Mouse" 2
+  assert power "Grizzly Bears" 2
+  assert power "Flowerfoot Swordmaster" 5
+}
+
+scenario "Gleaming Splendor: two target players each draw a card" {
+  battlefield A: "Gleaming Splendor", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gleaming Splendor" targeting player A, player B
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand B count 1
+}
+
+scenario "Great Divide Guide: lands and Allies tap for any color" {
+  battlefield A: "Great Divide Guide", "Plains"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Great Divide Guide"
+  assert tapped "Plains"
+}
+
+scenario "Amalia Benavides Aguirre: power exactly 20 after exploring destroys all other creatures" {
+  battlefield A: "Amalia Benavides Aguirre" with 17 +1/+1, "Grizzly Bears", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Weather the Storm"
+  library A: "Shock", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Weather the Storm"
+  run_to turn 1 postcombat_main
+  assert power "Amalia Benavides Aguirre" 20
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Amalia Benavides Aguirre"
+}
+
+scenario "Amalia Benavides Aguirre: power 19 destroys nothing" {
+  battlefield A: "Amalia Benavides Aguirre" with 16 +1/+1, "Grizzly Bears", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Weather the Storm"
+  library A: "Shock", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Weather the Storm"
+  run_to turn 1 postcombat_main
+  assert power "Amalia Benavides Aguirre" 19
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Akal Pakal: an artifact entered this turn, at the end step one card to hand and one to the graveyard" {
+  battlefield A: "Akal Pakal, First Among Equals"
+  hand A: "Ornithopter"
+  library A: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 cleanup
+  assert hand A count 1
+  assert graveyard A count 1
+  assert library A count 1
+}
+
+scenario "Akal Pakal: no artifact entered, nothing at the end step" {
+  battlefield A: "Akal Pakal, First Among Equals"
+  library A: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  run_to turn 1 cleanup
+  assert hand A count 0
+  assert library A count 3
+}
+
+scenario "Moon-Circuit Hacker: draw, then discard (it didn't enter this turn)" {
+  battlefield A: "Moon-Circuit Hacker"
+  hand A: "Shock"
+  library A: "Island", "Plains"
+  start turn 2 A
+  turn 2 A: attack "Moon-Circuit Hacker"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert graveyard A count 1
+  assert hand A count 2
+}
+
+scenario "Moon-Circuit Hacker: ninjutsu in, draw with no discard" {
+  battlefield A: "Grizzly Bears", "Island"
+  hand A: "Moon-Circuit Hacker"
+  library A: "Plains", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_blockers A: activate "Moon-Circuit Hacker" sacrificing "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 2
+  assert graveyard A count 0
+}
+
+scenario "Faunsbane Troll: sacrifice the Role, fight, and the dying creature is exiled" {
+  battlefield A: 5 "Forest", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Faunsbane Troll"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Faunsbane Troll"
+  turn 1 A: activate "Faunsbane Troll" sacrificing "Monster" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert damage "Faunsbane Troll" 3
+  assert power "Faunsbane Troll" 4
+}
+
+scenario "Call a Surprise Witness: returned with a flying counter, a Spirit in addition" {
+  battlefield A: 2 "Plains"
+  hand A: "Call a Surprise Witness"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Call a Surprise Witness" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" flying 1
+  assert has "Grizzly Bears" flying
+  assert is "Grizzly Bears" "Spirit"
+  assert is "Grizzly Bears" "Bear"
+}
+
+scenario "Thunderbolts Conspiracy: a Villain dies, returns with a finality counter as a Hero too" {
+  battlefield A: "Thunderbolts Conspiracy", "Kree Sentinel", 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Kree Sentinel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Kree Sentinel"
+  assert counters "Kree Sentinel" finality 1
+  assert is "Kree Sentinel" "Hero"
+  assert is "Kree Sentinel" "Villain"
+}
+
+scenario "Sporogenic Infection: the player sacrifices a creature other than the enchanted one; damage destroys it" {
+  battlefield A: 2 "Swamp", "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Sporogenic Infection", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sporogenic Infection" targeting "Hill Giant"
+  turn 1 A: trigger "Sporogenic Infection" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Ior Ruin Expedition: a land adds a quest counter; three removed and it sacrificed draws two" {
+  battlefield A: "Ior Ruin Expedition" with 2 quest
+  hand A: "Island"
+  library A: "Plains", "Forest", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  turn 1 A: wait
+  turn 1 A: activate "Ior Ruin Expedition"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ior Ruin Expedition"
+  assert hand A count 2
+}
+
+scenario "Might of the Meek: trample, +1/+0 with a Mouse, and a card" {
+  battlefield A: "Mountain", "Grizzly Bears", "Mouse"
+  hand A: "Might of the Meek"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Might of the Meek" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" trample
+  assert power "Grizzly Bears" 3
+  assert hand A count 1
+}
+
+scenario "Might of the Meek: no Mouse, no +1/+0" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  hand A: "Might of the Meek"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Might of the Meek" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" trample
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Temur Battle Rage: double strike; trample too with a power 4 creature" {
+  battlefield A: 2 "Mountain", "Kree Sentinel"
+  hand A: "Temur Battle Rage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Temur Battle Rage" targeting "Kree Sentinel"
+  run_to turn 1 postcombat_main
+  assert has "Kree Sentinel" double_strike
+  assert has "Kree Sentinel" trample
+}
+
+scenario "Temur Battle Rage: no power 4 creature, no trample" {
+  battlefield A: 2 "Mountain", "Hill Giant"
+  hand A: "Temur Battle Rage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Temur Battle Rage" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Hill Giant" double_strike
+  assert has not "Hill Giant" trample
+}
+
+scenario "Trade Route Envoy: no creature with a counter, so a counter on itself instead of a card" {
+  battlefield A: 4 "Forest"
+  hand A: "Trade Route Envoy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Trade Route Envoy"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert counters "Trade Route Envoy" +1/+1 1
+}
+
+scenario "Trade Route Envoy: a creature with a counter, draw a card and no counter" {
+  battlefield A: 4 "Forest", "Grizzly Bears" with 1 +1/+1
+  hand A: "Trade Route Envoy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Trade Route Envoy"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert counters "Trade Route Envoy" +1/+1 0
+}
+
+scenario "Xu-Ifit: the returned creature is a Skeleton with no abilities" {
+  battlefield A: "Xu-Ifit, Osteoharmonist"
+  graveyard A: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Xu-Ifit, Osteoharmonist" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert is "Serra Angel" "Skeleton"
+  assert is "Serra Angel" "Angel"
+  assert no_abilities "Serra Angel"
+  assert has not "Serra Angel" flying
+}
+
+scenario "Valkyrie's Call: a nontoken non-Angel creature returns with a counter, flying, as an Angel" {
+  battlefield A: "Valkyrie's Call", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert has "Grizzly Bears" flying
+  assert is "Grizzly Bears" "Angel"
+  assert is "Grizzly Bears" "Bear"
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Valkyrie's Call: a token dying doesn't return" {
+  battlefield A: "Valkyrie's Call", "Mouse"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Mouse"
+  run_to turn 2 postcombat_main
+  assert battlefield A lacks "Mouse"
+}
+
+scenario "Whiplash: equipped, each opponent loses X and you gain X, X the Equipment attached" {
+  battlefield A: "Whiplash, Vengeful Engineer", "Bonesplitter" on "Whiplash, Vengeful Engineer"
+  start turn 2 A
+  turn 2 A: attack "Whiplash, Vengeful Engineer"
+  run_to turn 2 postcombat_main
+  assert life B 15
+  assert life A 21
+}
+
+scenario "Whiplash: unequipped, no drain" {
+  battlefield A: "Whiplash, Vengeful Engineer"
+  start turn 2 A
+  turn 2 A: attack "Whiplash, Vengeful Engineer"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Does Machines: mill two, draw two, then discard two" {
+  battlefield A: 2 "Island"
+  hand A: "Does Machines", "Shock"
+  library A: "Plains", "Forest", "Mountain", "Swamp", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Does Machines"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 4
+  assert hand A count 1
+  assert library A count 1
+}
+
+scenario "Heated Argument: exile a card from the graveyard, 2 more damage to the creature's controller" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Heated Argument"
+  graveyard A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Heated Argument" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert exile A contains "Shock"
+  assert life B 18
+}
+
+scenario "Heated Argument: nothing to exile, no extra damage" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Heated Argument"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Heated Argument" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Essence Backlash: counter a creature spell, damage equal to its power to its controller" {
+  battlefield A: 2 "Island", 2 "Mountain"
+  battlefield B: 4 "Mountain"
+  hand A: "Essence Backlash"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  turn 2 A: cast "Essence Backlash" targeting "Hill Giant" in response to "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+  assert life A 20
+}
+
+scenario "Pummeler for Hire: gain life equal to the greatest power among Giants you control" {
+  battlefield A: 5 "Forest", "Hill Giant", "Kree Sentinel"
+  hand A: "Pummeler for Hire"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pummeler for Hire"
+  run_to turn 1 postcombat_main
+  assert life A 24
+}
+
+scenario "Donatello: three counters on a noncreature artifact make it a 3/3 Robot" {
+  battlefield A: "Donatello, Mutant Mechanic", "Onyx Goblet"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Donatello, Mutant Mechanic" targeting "Onyx Goblet"
+  run_to turn 1 postcombat_main
+  assert is "Onyx Goblet" creature
+  assert is "Onyx Goblet" "Robot"
+  assert power "Onyx Goblet" 3
+  assert toughness "Onyx Goblet" 3
+}
+
+scenario "Donatello: a dying artifact's counters, not his own, go to the target" {
+  battlefield A: "Donatello, Mutant Mechanic" with 2 +1/+1, "Ornithopter" with 1 +1/+1, "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Ornithopter"
+  turn 2 A: trigger "Donatello, Mutant Mechanic" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Donatello, Mutant Mechanic" +1/+1 2
+}
+
+scenario "Gallia: from the graveyard, exile another creature card, return tapped with a counter" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Gallia, Tragic Host", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gallia, Tragic Host"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gallia, Tragic Host"
+  assert tapped "Gallia, Tragic Host"
+  assert counters "Gallia, Tragic Host" +1/+1 1
+  assert exile A contains "Grizzly Bears"
+}

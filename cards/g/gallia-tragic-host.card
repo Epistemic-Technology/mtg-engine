@@ -1,0 +1,10 @@
+card "Gallia, Tragic Host" {
+  oracle_id 58285b70-0d13-4723-b5a4-91fb6f9ccf03
+  cost {1}{B}
+  type Legendary Creature — Zombie Satyr
+  pt 2/1
+  short_name "Gallia"
+  pronoun she
+  keywords menace
+  activated {4}{B}, exile other creature card from graveyard, from graveyard: return this to battlefield tapped with 1 +1/+1 counter
+}

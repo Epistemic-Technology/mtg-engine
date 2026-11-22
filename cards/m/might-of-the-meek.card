@@ -1,0 +1,9 @@
+card "Might of the Meek" {
+  oracle_id 19b5c94b-b4fa-41a9-b649-51c4e6f03602
+  cost {R}
+  type Instant
+  spell {
+    target creature gains trample; target 1 gets +1/+0 also if you control Mouse
+    draw 1 card
+  }
+}

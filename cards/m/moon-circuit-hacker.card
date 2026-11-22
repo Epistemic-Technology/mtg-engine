@@ -1,0 +1,8 @@
+card "Moon-Circuit Hacker" {
+  oracle_id 7cd8b017-8d59-4b55-bb9a-8d8e492ef1ac
+  cost {1}{U}
+  type Enchantment Creature — Human Ninja
+  pt 2/1
+  ninjutsu {U}
+  triggered whenever this deals combat damage to a player: you may draw 1 card; if you do, discard 1 card unless this is that entered this turn
+}

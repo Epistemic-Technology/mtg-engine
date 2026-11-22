@@ -1,0 +1,6 @@
+card "Skull Rend" {
+  oracle_id d29d59f1-e00c-4217-8185-2085a4142e3b
+  cost {3}{B}{R}
+  type Sorcery
+  spell: deal 2 damage to each opponent; each opponent discards 2 cards at random
+}

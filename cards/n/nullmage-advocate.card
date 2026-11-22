@@ -1,0 +1,7 @@
+card "Nullmage Advocate" {
+  oracle_id 558568a6-5e22-482f-9096-e76682965c21
+  cost {2}{G}
+  type Creature — Insect Druid
+  pt 2/3
+  activated {T}: return 2 target card from an opponent's graveyard to hand; destroy target artifact or enchantment
+}

@@ -1,0 +1,6 @@
+card "Heated Argument" {
+  oracle_id 329f6434-8f1b-4a10-8feb-2a9dc5f2712b
+  cost {4}{R}
+  type Instant
+  spell: deal 6 damage to target creature; you may exile 1 card from your graveyard chosen; if you do, deal 2 damage to controller of that target 1
+}

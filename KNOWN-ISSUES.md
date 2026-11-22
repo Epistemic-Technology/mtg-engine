@@ -79,6 +79,11 @@ wrong thing in some case.
   `combat_mana`): spending the kept mana in an earlier step leaves other
   mana in the pool to be kept instead.
 
+- **"When this land enters untapped"** (Idyllic Grange) is the
+  intervening-if trigger `when this enters if this is untapped`: tapping
+  the land with its trigger on the stack stops it (CR 603.4); the printed
+  trigger event is judged only as the land enters.
+
 ## 2. Forms that pass the gate with the wrong meaning
 
 The renderer prints the right Oracle text for these, but the compiled
@@ -125,6 +130,10 @@ by rejecting the form at compile time or by binding it correctly.
 - **The sacrificed creature in a reflexive trigger:** `you may sacrifice
   1 other creature chosen; when you do, deal damage equal power of the
   sacrificed creature to ...` deals 0 (Bolg of the North, not added).
+- **`put its counters on <target>` in a trigger about another object**
+  moves the source's counters, not the triggering object's (`put its
+  counters on this` and `put those counters on ...` take the triggering
+  object's). No card in the corpus writes it.
 - **Template-author cards written before the first wave's catch-up**
   may read "it" as the source where the text means another object. Not
   audited.
@@ -137,6 +146,9 @@ named the feature; a card may need more than one.
 - **Wording near-misses, about 50 cards.** The DSL expresses the card
   and the renderer is a few words off. Listed with the differing words
   in the batch reports (`RENDER:` lines).
+- **Targets only a bargained spell has** (Brave the Wilds: "If this
+  spell was bargained, target land you control becomes ..."): the target
+  is required unbargained too (kicker targets are handled; bargain isn't).
 - **Durations still missing** (the sentence forms are in): a delayed
   trigger lasting "until your next turn" (Garruk, Jace Architect of
   Thought, Vraska the Unseen), "becomes a copy of ... until your next

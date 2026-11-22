@@ -3152,6 +3152,7 @@ impl Compiler<'_> {
                 indefinite,
                 loses_abilities,
                 in_addition,
+                ..
             } => {
                 let subtypes = self.subtypes(subtypes);
                 out.push(CoreEffect::Animate {
@@ -3885,6 +3886,10 @@ impl Compiler<'_> {
             Trigger::Dies(o) => TriggerSpec::Dies(self.trigger_obj(o)),
             Trigger::EveryStep(step) => TriggerSpec::BeginningOfStep {
                 step: *step,
+                whose: Who::Any,
+            },
+            Trigger::EachPlayersEndStep => TriggerSpec::BeginningOfStep {
+                step: mtg_core::turn::Step::End,
                 whose: Who::Any,
             },
             Trigger::BeginningOfStep { step, whose } => TriggerSpec::BeginningOfStep {
@@ -6211,6 +6216,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                         keywords: vec![mtg_core::card::Keyword::Haste],
                         to: Recipient::Source,
                         each: false,
+                        no_also: false,
                     },
                     E::Delayed {
                         about: Recipient::Source,
@@ -6259,6 +6265,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     indefinite: false,
                     loses_abilities: false,
                     in_addition: false,
+                    is_word: false,
                 }),
                 equip: false,
                 cycling: false,

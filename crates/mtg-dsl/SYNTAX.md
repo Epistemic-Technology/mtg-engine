@@ -2915,3 +2915,14 @@ Forms that change only how Oracle words what an existing form does:
 | `that created land` | "that land", the land card just put onto the battlefield (Fabled Passage) |
 | `target creature card with power 2 or less from your graveyard` | "target creature card with power 2 or less from your graveyard" (the power after the noun) |
 
+| `noalso each Warrior creature you control gains lifelink` | "Warrior creatures you control gain lifelink until end of turn." after a pump of all your creatures (without `noalso`: "also gain", Rush of Battle) |
+| `return 1 land card or Elf card from your graveyard to hand chosen` | "return a land card or Elf card from your graveyard to your hand" (each side its own "card") |
+| `if at least one creature card was exiled this way, ...` | "If at least one creature card was exiled this way, ..." (the same check as `if creature card was exiled this way`) |
+| `if target 1 isnt creature, ...`, `if target 1 is not creature, ...` | "If it isn't a creature, ...", "If it's not a creature, ..." (the check `if target 1 is noncreature`; card types only) |
+| `at beginning of each player's end step` | "At the beginning of each player's end step" (`each end step` prints "the end step"; the same trigger) |
+| `target 1 is Spirit in addition`, `it is Angel with flying in addition`, `target 1 is Skeleton in addition and has no abilities` | "It's a Spirit in addition to its other types", "It has flying and is an Angel in addition to its other types", "It's a Skeleton in addition to its other types and has no abilities" (indefinitely, like `becomes ... in addition indefinitely`; "That creature is a Hero ..." after `that creature`) |
+| `if you dont draw this way, ...`, `if you dont put into hand this way, ...`, `if you didnt put into hand this way, ...` | "If you don't draw a card this way, ...", "If you don't put a card into your hand this way, ...", "If you didn't put a card into your hand this way, ..." (the same as `if you dont, ...`; the source is named again after it) |
+| `target 1 gets +1/+0 also if you control Mouse` | "It also gets +1/+0 until end of turn if you control a Mouse." (`... if <condition>` with "also" after the subject) |
+| `target player sacrifices 1 creature of their choice other than enchanted` | "target player sacrifices a creature of their choice other than enchanted creature" (never the enchanted creature) |
+| `put those counters on up to 1 target creature` | In a triggered ability: "put those counters on up to one target creature", the triggering object's counters (`put its counters on` names the source's, except `on this`) |
+| `count where greatest power Giant you control` | "the greatest power among Giants you control" (a creature type alone after `greatest power`) |

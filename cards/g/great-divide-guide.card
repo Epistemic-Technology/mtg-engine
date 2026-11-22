@@ -1,0 +1,7 @@
+card "Great Divide Guide" {
+  oracle_id 79e69a91-d580-47fb-be76-1e32c50d2fa0
+  cost {1}{G}
+  type Creature — Human Scout Ally
+  pt 2/3
+  static each land or Ally you control: has ability { mana any }
+}

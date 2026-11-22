@@ -1,0 +1,7 @@
+card "At Knifepoint" {
+  oracle_id bddb2064-afdb-4184-ae4a-633745e64a3c
+  cost {1}{B}{R}
+  type Enchantment
+  static during your turn, outlaw you control: has first strike
+  triggered once each turn whenever you commit a crime: create 1 "Mercenary"
+}

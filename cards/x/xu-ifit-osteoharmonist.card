@@ -1,0 +1,7 @@
+card "Xu-Ifit, Osteoharmonist" {
+  oracle_id 39e32fdf-93bf-4390-8275-0d7d10ad7360
+  cost {1}{B}{B}
+  type Legendary Creature — Human Wizard
+  pt 2/3
+  activated {T}, sorcery: return target creature card from your graveyard to battlefield; target 1 is Skeleton in addition and has no abilities
+}

@@ -1,0 +1,8 @@
+card "Wind Zendikon" {
+  oracle_id d6786f80-818c-433d-8978-81814171dd39
+  cost {U}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: base 2/2, set color blue, add subtype Elemental, add type creature, has flying
+  triggered when enchanted land dies: return triggering card to hand
+}

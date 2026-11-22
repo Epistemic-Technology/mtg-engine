@@ -1,0 +1,7 @@
+card "Mana Chains" {
+  oracle_id 340d27c6-2e8e-472a-85f5-9b36d9cc3e42
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { cumulative upkeep {1} }
+}

@@ -1,0 +1,7 @@
+card "Saltskitter" {
+  oracle_id 831e9f71-9664-4dbb-94f5-935d7cf95d77
+  cost {3}{W}
+  type Creature — Wurm
+  pt 3/4
+  triggered whenever other creature enters: exile this; delayed this: return this creature to battlefield at beginning of the next end step
+}

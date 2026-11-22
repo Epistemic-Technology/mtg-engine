@@ -1,0 +1,6 @@
+card "Call a Surprise Witness" {
+  oracle_id 9038a457-ce01-4f6d-9e2b-5220f08b4290
+  cost {1}{W}
+  type Sorcery
+  spell: return target creature card with mana value 3 or less from your graveyard to battlefield; put 1 flying counter on target 1; target 1 is Spirit in addition
+}

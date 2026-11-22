@@ -1,0 +1,7 @@
+card "Trade Route Envoy" {
+  oracle_id 95d51048-be32-4c5f-8b75-fca3a891c9d6
+  cost {3}{G}
+  type Creature — Dog Soldier
+  pt 4/3
+  triggered when this enters: draw 1 card if you control creature with counter; if you dont draw this way, put 1 +1/+1 counter on this
+}

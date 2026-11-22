@@ -18,6 +18,19 @@ pub struct TargetCheck {
     /// Written after the sentence: `put 1 +1/+1 counter on target creature
     /// you control if target 1 is legendary` ("... if it's legendary").
     pub after: bool,
+    /// `if target 1 isnt creature` ("If it isn't a creature") and `if
+    /// target 1 is not creature` ("If it's not a creature"): the check is
+    /// the filter with those types negated (`noncreature`). Wording only.
+    pub not: Option<NotWording>,
+}
+
+/// How a negated target check prints its "not".
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum NotWording {
+    /// `isnt`: "isn't".
+    Isnt,
+    /// `is not`: "'s not".
+    IsNot,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
@@ -35,6 +48,23 @@ pub enum TargetTense {
     /// `if target 1 had with mana value 3 or less`: "If it had mana value 3
     /// or less", as it last existed, like `Was`.
     Had,
+}
+
+/// How `Effect::IfYouDont` words what didn't happen.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum DontWords {
+    /// `if you dont, ...`: "If you don't, ...".
+    #[default]
+    Plain,
+    /// `if you dont draw this way, ...`: "If you don't draw a card this
+    /// way, ..." (Trade Route Envoy).
+    Draw,
+    /// `if you dont put into hand this way, ...`: "If you don't put a card
+    /// into your hand this way, ..." (Courier of Comestibles).
+    PutHand,
+    /// `if you didnt put into hand this way, ...`: "If you didn't put a
+    /// card into your hand this way, ..." (Contagious Vorrac).
+    DidntPutHand,
 }
 
 /// How `Effect::PutCard` names the cards it moves.
@@ -844,6 +874,9 @@ pub struct Filter {
     /// printed so in a condition ("you control a Knight or a Soldier").
     /// Wording only.
     pub alt_article: bool,
+    /// `land card or Elf card`: each side its own "card" noun ("a land
+    /// card or Elf card"). Wording only.
+    pub alt_card: bool,
     /// `that targets you or a permanent you control` (spells).
     pub targeting: Option<Box<Targeting>>,
     /// `of chosen type`, `of that type`, `of color of choice`: "of the
@@ -2513,6 +2546,9 @@ pub enum IfWording {
     Also,
     /// "<Effect> if <condition>."
     After,
+    /// `<sentence> also if <condition>`: "It also gets +1/+0 until end of
+    /// turn if you control a Mouse." (Might of the Meek).
+    AlsoAfter,
     /// `<clause> unless <condition>`: "<Effect> unless <condition>." (the
     /// effect happens only if the condition doesn't hold).
     Unless,
@@ -2677,6 +2713,10 @@ pub enum Trigger {
     /// `at beginning of every upkeep`: "At the beginning of each upkeep"
     /// (each player's, worded without "player's", as werewolves are).
     EveryStep(Step),
+    /// `at beginning of each player's end step`: "At the beginning of each
+    /// player's end step" (`each end step` prints "the end step"); the
+    /// same trigger.
+    EachPlayersEndStep,
     BeginningOfStep {
         step: Step,
         whose: Who,
@@ -3493,6 +3533,11 @@ pub enum Effect {
         /// `one or two target creature each gain haste`: "each" after a
         /// variable target group, as some Oracle texts print it.
         each: bool,
+        /// `noalso each Warrior creature you control gains lifelink`: no
+        /// "also" after a pump of a wider group ("Warrior creatures you
+        /// control gain lifelink until end of turn", Rush of Battle).
+        /// Wording only.
+        no_also: bool,
     },
     /// `gain control of target creature` (until end of turn); with
     /// `indefinitely`, for good.
@@ -3933,6 +3978,11 @@ pub enum Effect {
         /// `becomes black Demon in addition`: "in addition to its other
         /// colors and types".
         in_addition: bool,
+        /// `target 1 is Spirit in addition`: "It's a Spirit in addition to
+        /// its other types" (indefinitely; `with flying` prints "It has
+        /// flying and is an Angel ...", `and has no abilities` loses them
+        /// last). Wording only.
+        is_word: bool,
     },
     /// `this becomes blue`, `becomes colorless` (until end of turn).
     BecomeColor {
@@ -4398,6 +4448,8 @@ pub enum Effect {
     IfYouDont {
         cant: bool,
         then: Vec<Sentence>,
+        /// What "don't" names: wording only.
+        words: DontWords,
     },
     /// `if you dont put it into hand, <sentence>`: "If you don't put the
     /// card into your hand, ..." after `if it is ...` (an "otherwise").
@@ -4707,6 +4759,9 @@ pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
 pub enum ThisWayWording {
     /// "If a creature card was exiled this way".
     Was,
+    /// `at least one creature card was exiled this way`: "If at least one
+    /// creature card was exiled this way" (Soul-Shackled Zombie).
+    AtLeastOne,
     /// "If an artifact is destroyed this way".
     Is,
     /// "If you discarded a card this way", "If you put an artifact card

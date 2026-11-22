@@ -1,0 +1,8 @@
+card "Corrupted Zendikon" {
+  oracle_id 3902048e-b7bf-4676-be92-e590bc76c729
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: base 3/3, set color black, add subtype Ooze, add type creature
+  triggered when enchanted land dies: return triggering card to hand
+}

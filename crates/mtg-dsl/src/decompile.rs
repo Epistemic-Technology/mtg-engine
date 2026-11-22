@@ -290,6 +290,7 @@ impl Decompiler<'_> {
             plural: false,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             alt_article: false,
+            alt_card: false,
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(crate::ast::Targeting {
                     you: t.you,
@@ -923,6 +924,7 @@ impl Decompiler<'_> {
                 keywords: keywords(*k),
                 to: r(*to),
                 each: false,
+                no_also: false,
             },
             CoreEffect::GainControl { of, forever } => Effect::GainControl {
                 of: r(*of),
@@ -1231,6 +1233,7 @@ impl Decompiler<'_> {
                 indefinite: *indefinite,
                 loses_abilities: *loses_abilities,
                 in_addition: *in_addition,
+                is_word: false,
             },
             CoreEffect::BecomeColor {
                 to,

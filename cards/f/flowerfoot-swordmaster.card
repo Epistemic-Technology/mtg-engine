@@ -1,0 +1,8 @@
+card "Flowerfoot Swordmaster" {
+  oracle_id 523d075d-b577-4f24-8c14-9a76761a2eaf
+  cost {W}
+  type Creature — Mouse Soldier
+  pt 1/2
+  offspring {2}
+  label "Valiant" triggered whenever this becomes targeted by you first time each turn: each Mouse you control gets +1/+0
+}
