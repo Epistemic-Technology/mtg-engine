@@ -3360,7 +3360,10 @@ fn filter_one(f: &Filter) -> String {
         }
     }
     if let Some((cmp, n)) = f.status.pt_total {
-        words.push(format!("with total power and toughness {n}{}", cmp_suffix(cmp)));
+        words.push(format!(
+            "with total power and toughness {n}{}",
+            cmp_suffix(cmp)
+        ));
     }
     if let Some(e) = f.status.enchanted {
         words.push(

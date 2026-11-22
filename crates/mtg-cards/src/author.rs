@@ -5996,6 +5996,7 @@ fn singular_type(w: &str) -> &str {
 /// "target player's graveyard", "all artifacts and enchantments"
 /// (`andlist`), and a subtype the template lowercased ("Aura spells").
 /// The render check decides whether the result is the card's text.
+#[allow(clippy::too_many_lines)] // one rewrite per phrase
 fn filter_phrases(st: &str, oracle: &str) -> String {
     const COLORS: &str = "white|blue|black|red|green";
     let re = |p: &str| Regex::new(p).expect("a filter phrase pattern");
@@ -6036,11 +6037,9 @@ fn filter_phrases(st: &str, oracle: &str) -> String {
             format!("andor {} or {}", singular_type(&c[1]), singular_type(&c[2]))
         })
         .into_owned();
-    s = re(&format!(
-        r"(\w+) or (\w+) that's ({COLORS}) or ({COLORS})"
-    ))
-    .replace_all(&s, "$3 or $4 $1 or $3 or $4 $2")
-    .into_owned();
+    s = re(&format!(r"(\w+) or (\w+) that's ({COLORS}) or ({COLORS})"))
+        .replace_all(&s, "$3 or $4 $1 or $3 or $4 $2")
+        .into_owned();
     s = re(r"counter target ((?:\w+ )?)spell (with (?:mana value|power or toughness|power|toughness) (?:\d+|X)(?: or (?:less|greater))?)")
         .replace_all(&s, "counter target $1$2 spell")
         .into_owned();
@@ -6225,9 +6224,8 @@ fn bound_amount(a: &str) -> Option<String> {
         return Some(format!("{} counters on this", &c[1]));
     }
     // The templates write "lands" singular before a count.
-    let fixed = fixed.or(
-        (a == "the number of basic land types among land you control").then_some("domain"),
-    );
+    let fixed = fixed
+        .or((a == "the number of basic land types among land you control").then_some("domain"));
     if let Some(f) = fixed {
         return Some(f.to_string());
     }

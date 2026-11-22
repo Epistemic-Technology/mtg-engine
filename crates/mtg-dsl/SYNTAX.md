@@ -1258,7 +1258,10 @@ from your graveyard to battlefield`). A characteristic compared with a
 count: `with power at most count equal creature you control` ("with power
 less than or equal to the number of creatures you control"), `with
 toughness less than count equal power` ("with toughness less than this
-creature's power"), `with mana value at most count where Faerie you
+creature's power"), `with mana value equal to count equal charge
+counters on this` ("with mana value equal to the number of charge
+counters on this artifact", the counters it had once sacrificed),
+`with mana value at most count where Faerie you
 control` ("with mana value X or less, where X is the number of Faeries you
 control", for a filter that ends the sentence), and `with power at most X`
 ("with power X or less", X of the spell or ability, CR 107.3); also on a

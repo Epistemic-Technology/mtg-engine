@@ -2400,11 +2400,13 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         );
         // `andor white or blue creature`: "each white and/or blue
         // creature" (Ember Gale).
-        words.push(if f.and_or && f.any_types.is_empty() && f.subtypes.is_empty() {
-            list.replace(" or ", " and/or ")
-        } else {
-            list
-        });
+        words.push(
+            if f.and_or && f.any_types.is_empty() && f.subtypes.is_empty() {
+                list.replace(" or ", " and/or ")
+            } else {
+                list
+            },
+        );
     }
     for s in &f.supertypes {
         words.push(format!("{s:?}").to_lowercase());
@@ -5884,7 +5886,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // graveyard to the battlefield" too.
             let yours = match what {
                 Recipient::Target(i) | Recipient::ThatTarget(i) => from_yours(*i),
-                Recipient::Targets(a, n) => (*a..*a + *n).all(from_yours),
+                Recipient::Targets(first, count) => (*first..*first + *count).all(from_yours),
                 _ => false,
             };
             // A card from another player's graveyard isn't "returned":

@@ -7684,9 +7684,10 @@ impl P {
                 let what = match all.as_slice() {
                     [Recipient::Target(a), rest @ ..]
                         if !rest.is_empty()
-                            && rest.iter().enumerate().all(|(k, r)| {
-                                *r == Recipient::Target(a + k + 1)
-                            }) =>
+                            && rest
+                                .iter()
+                                .enumerate()
+                                .all(|(k, r)| *r == Recipient::Target(a + k + 1)) =>
                     {
                         Recipient::Targets(*a, all.len())
                     }
@@ -11399,7 +11400,9 @@ impl P {
             || (self.word_at(at).as_deref() == Some("equal")
                 && self.word_at(at + 1).as_deref() == Some("to"));
         let n_ok = self.word_at(at + 2).as_deref() == Some("count")
-            || (self.word_at(at + 2).is_some_and(|w| w.eq_ignore_ascii_case("x"))
+            || (self
+                .word_at(at + 2)
+                .is_some_and(|w| w.eq_ignore_ascii_case("x"))
                 && self.word_at(at).as_deref() == Some("at"));
         (cmp_ok && n_ok).then_some((stat, len))
     }
