@@ -1,0 +1,6 @@
+card "Identity Echo" {
+  oracle_id 4dbf8c43-d7c5-4037-875e-6accd87aaf6f
+  cost {2}{R}
+  type Enchantment
+  activated {3}{R}, sorcery: exile target creature or planeswalker you control; reveal until creature or planeswalker card; put that card onto battlefield and the rest on bottom of library random
+}

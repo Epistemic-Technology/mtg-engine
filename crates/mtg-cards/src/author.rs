@@ -690,6 +690,37 @@ fn dig_rest(s: &str) -> Option<&'static str> {
 /// put any number of ... onto the battlefield", "Then put the rest ...".
 /// Returns the dig and the sentences after it.
 fn dig_general(text: &str) -> Option<(String, String)> {
+    // "Reveal cards from the top of your library until you reveal a
+    // creature card. Put that card into your hand and the rest on the
+    // bottom of your library in a random order."
+    if let Some(c) = Regex::new(
+        r"^Reveal cards from the top of your library until you reveal an? (.+?) card\. Put that card (into your hand|onto the battlefield(?: tapped)?) and the rest on the bottom of your library in (a random|any) order\.?\s*(.*)$",
+    )
+    .unwrap()
+    .captures(text)
+    {
+        let filter = cap(&c, 1);
+        if filter.contains(',') {
+            return None;
+        }
+        let to = match cap(&c, 2) {
+            "into your hand" => "into hand",
+            "onto the battlefield" => "onto battlefield",
+            _ => "onto battlefield tapped",
+        };
+        let random = if cap(&c, 3) == "a random" { " random" } else { "" };
+        // "the number of cards revealed this way" after the card was put
+        // somewhere would miss it (Madcap Experiment).
+        if cap(&c, 4).contains("revealed this way") {
+            return None;
+        }
+        return Some((
+            format!(
+                "reveal until {filter} card; put that card {to} and the rest on bottom of library{random}"
+            ),
+            cap(&c, 4).to_string(),
+        ));
+    }
     let head = Regex::new(
         r"^(Look at|Reveal) the top (\w+) cards of your library(?:, where X is ([^.]+?))?\. (.+)$",
     )
@@ -2910,7 +2941,11 @@ impl Templates {
         // A dig after other sentences ("Creative Outburst deals 5 damage
         // to any target. Look at the top five cards ..."): those first,
         // then the dig with what follows it.
-        for at in [". Look at the top ", ". Reveal the top "] {
+        for at in [
+            ". Look at the top ",
+            ". Reveal the top ",
+            ". Reveal cards from the top ",
+        ] {
             if let Some(i) = text.find(at)
                 && !text[..i].contains(" top ")
             {

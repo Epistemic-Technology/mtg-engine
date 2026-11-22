@@ -622,3 +622,44 @@ scenario "impulse: Escape to the Wilds lasts through the next turn, with a land 
   assert battlefield A contains 3 "Forest"
   assert battlefield A contains "Grizzly Bears"
 }
+
+# "Reveal cards from the top of your library until you reveal an artifact
+# card. Put that card onto the battlefield and the rest on the bottom of
+# your library in a random order."
+
+scenario "reveal until: Identity Echo exiles a creature and finds a creature card" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  library A: "Island", "Hill Giant", "Forest"
+  battlefield A: "Identity Echo"
+  turn 1 A: activate "Identity Echo" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert library A count 2
+}
+
+scenario "reveal until: Recross the Paths finds a land" {
+  battlefield A: 3 "Forest"
+  hand A: "Recross the Paths"
+  library A: "Shock", "Plains", "Island"
+  library B: "Island"
+  turn 1 A: cast "Recross the Paths"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Plains"
+}
+
+# "When this creature dies, put target creature card from your graveyard
+# on top of your library."
+
+scenario "graveyard to top: Golgari Thug puts a creature card on top as it dies" {
+  battlefield A: "Golgari Thug"
+  battlefield B: "Mountain"
+  graveyard A: "Hill Giant"
+  hand B: "Shock"
+  library A: "Island", "Island"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Golgari Thug"
+  turn 2 A: trigger "Golgari Thug" targeting "Hill Giant"
+  run_to turn 3 precombat_main
+  assert hand A contains "Hill Giant"
+}

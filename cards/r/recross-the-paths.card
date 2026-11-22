@@ -1,0 +1,6 @@
+card "Recross the Paths" {
+  oracle_id 2c132e6f-2e9e-4b39-81a8-f88c32173cd5
+  cost {2}{G}
+  type Sorcery
+  spell: reveal until land card; put that card onto battlefield and the rest on bottom of library; clash; if you win, return this to its owner's hand
+}
