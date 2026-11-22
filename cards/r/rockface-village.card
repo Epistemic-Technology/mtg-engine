@@ -1,0 +1,7 @@
+card "Rockface Village" {
+  oracle_id 7e103748-3f76-42ce-a063-d0256b2dce2b
+  type Land
+  mana {C}
+  mana {R} only to cast creature spell
+  activated {R}, {T}, sorcery: target Lizard or Mouse or Otter or Raccoon you control gets +1/+0 and gains haste until end of turn
+}

@@ -3432,6 +3432,28 @@ impl GameState {
                     .sum();
                 total >= i32::try_from(*n).unwrap_or(i32::MAX)
             }
+            C::OpponentHasMore(what) => {
+                let n = |p: PlayerId| -> i64 {
+                    match what {
+                        crate::card::MoreWhat::Creatures => i64::try_from(
+                            self.battlefield
+                                .iter()
+                                .filter(|id| {
+                                    self.objects[**id].controller == p
+                                        && self.characteristics(**id).is_some_and(|c| c.is_creature())
+                                })
+                                .count(),
+                        )
+                        .unwrap_or(i64::MAX),
+                        crate::card::MoreWhat::Life => i64::from(self.player(p).life),
+                        crate::card::MoreWhat::CardsInHand => {
+                            i64::try_from(self.player(p).hand.len()).unwrap_or(i64::MAX)
+                        }
+                    }
+                };
+                let mine = n(you);
+                self.players_in_game().any(|p| p != you && n(p) > mine)
+            }
             C::OpponentMoreLands => {
                 let lands = |p: PlayerId| {
                     self.battlefield

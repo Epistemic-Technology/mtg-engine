@@ -4519,6 +4519,12 @@ fn static_cond(c: &StaticCond) -> String {
             "creature died under your control this turn".to_string()
         }
         StaticCond::OpponentMoreLands => "opponent controls more lands".to_string(),
+        StaticCond::OpponentHasMore(w) => match w {
+            mtg_core::card::MoreWhat::Creatures => "opponent controls more creatures",
+            mtg_core::card::MoreWhat::Life => "opponent has more life",
+            mtg_core::card::MoreWhat::CardsInHand => "opponent has more cards in hand",
+        }
+        .to_string(),
         StaticCond::Void => "void".to_string(),
         StaticCond::NotYourMainPhase => "not your main phase".to_string(),
         StaticCond::NotCastFromHand => "cast from anywhere other than hand".to_string(),

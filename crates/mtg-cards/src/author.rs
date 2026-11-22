@@ -3438,6 +3438,13 @@ fn static_condition(s: &str) -> Option<String> {
     match s {
         "you attacked this turn" => return Some("attacked this turn".to_string()),
         "you haven't cast a spell this turn" => return Some("not cast this turn".to_string()),
+        "an opponent controls more creatures than you" => {
+            return Some("opponent controls more creatures".to_string());
+        }
+        "an opponent has more life than you" => return Some("opponent has more life".to_string()),
+        "an opponent has more cards in hand than you" => {
+            return Some("opponent has more cards in hand".to_string());
+        }
         "you haven't cast a spell from your hand this turn" => {
             return Some("not cast from hand this turn".to_string());
         }

@@ -2590,6 +2590,9 @@ pub enum StaticCondition {
     },
     /// "an opponent controls more lands than you".
     OpponentMoreLands,
+    /// "an opponent controls more creatures than you", "an opponent has
+    /// more life than you", "an opponent has more cards in hand than you".
+    OpponentHasMore(MoreWhat),
     /// Void: "a nonland permanent left the battlefield this turn or a
     /// spell was warped this turn" (CR 702.185).
     Void,
@@ -2637,6 +2640,14 @@ pub struct SpentUse {
     pub converge: bool,
     /// Anything is read, so the cast records what was spent.
     pub record: bool,
+}
+
+/// What `StaticCondition::OpponentHasMore` compares.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum MoreWhat {
+    Creatures,
+    Life,
+    CardsInHand,
 }
 
 /// A part of the turn an activation restriction names (CR 602.5b).

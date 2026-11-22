@@ -3081,6 +3081,15 @@ impl P {
         if self.eat_words(&["opponent", "controls", "more", "lands"]) {
             return Ok(StaticCond::OpponentMoreLands);
         }
+        if self.eat_words(&["opponent", "controls", "more", "creatures"]) {
+            return Ok(StaticCond::OpponentHasMore(mtg_core::card::MoreWhat::Creatures));
+        }
+        if self.eat_words(&["opponent", "has", "more", "life"]) {
+            return Ok(StaticCond::OpponentHasMore(mtg_core::card::MoreWhat::Life));
+        }
+        if self.eat_words(&["opponent", "has", "more", "cards", "in", "hand"]) {
+            return Ok(StaticCond::OpponentHasMore(mtg_core::card::MoreWhat::CardsInHand));
+        }
         if self.eat_words(&[
             "creature", "died", "under", "your", "control", "this", "turn",
         ]) {

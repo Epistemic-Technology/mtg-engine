@@ -1,0 +1,6 @@
+card "Pulse of the Fields" {
+  oracle_id fc401c08-514d-43ea-9f57-6c3afe7c2652
+  cost {1}{W}{W}
+  type Instant
+  spell: you gain 4 life; then if opponent has more life, return this to its owner's hand
+}

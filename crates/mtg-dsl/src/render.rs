@@ -11038,6 +11038,14 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("{} creatures died this turn", or_more(*n))
         }
         StaticCond::OpponentMoreLands => "an opponent controls more lands than you".to_string(),
+        StaticCond::OpponentHasMore(w) => match w {
+            mtg_core::card::MoreWhat::Creatures => "an opponent controls more creatures than you",
+            mtg_core::card::MoreWhat::Life => "an opponent has more life than you",
+            mtg_core::card::MoreWhat::CardsInHand => {
+                "an opponent has more cards in hand than you"
+            }
+        }
+        .to_string(),
         StaticCond::Void => {
             "a nonland permanent left the battlefield this turn or a spell was warped this turn"
                 .to_string()

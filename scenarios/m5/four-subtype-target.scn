@@ -1,0 +1,17 @@
+# A target with four creature types ("Target Lizard, Mouse, Otter, or
+# Raccoon you control").
+
+scenario "Rockface Village pumps a Lizard and gives it haste" {
+  battlefield A: "Rockface Village", "Mountain", "Adaptive Snapjaw"
+  turn 1 A: activate "Rockface Village" targeting "Adaptive Snapjaw"
+  run_to turn 1 postcombat_main
+  assert power "Adaptive Snapjaw" 7
+  assert has "Adaptive Snapjaw" haste
+}
+
+scenario "Rockface Village can't target a Bear" {
+  battlefield A: "Rockface Village", "Mountain", "Grizzly Bears", "Adaptive Snapjaw"
+  illegal turn 1 A: activate "Rockface Village" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}

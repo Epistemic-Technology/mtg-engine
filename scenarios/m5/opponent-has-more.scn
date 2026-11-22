@@ -1,0 +1,89 @@
+# "if an opponent controls more creatures / has more life / has more
+# cards in hand than you" (StaticCondition::OpponentHasMore).
+
+scenario "Linvala: both conditions hold" {
+  life A 10
+  battlefield A: 6 "Plains"
+  hand A: "Linvala, the Preserver"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Linvala, the Preserver"
+  run_to turn 1 postcombat_main
+  assert life A 15
+  assert battlefield A contains "Angel"
+}
+
+scenario "Linvala: neither holds" {
+  battlefield A: 6 "Plains", "Grizzly Bears"
+  hand A: "Linvala, the Preserver"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Linvala, the Preserver"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert battlefield A lacks "Angel"
+}
+
+scenario "Sunset Revelry: life and cards, not creatures" {
+  life A 15
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Sunset Revelry"
+  hand B: "Forest", "Island"
+  library A: "Hill Giant"
+  turn 1 A: cast "Sunset Revelry"
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert battlefield A lacks "Human"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Pulse of the Fields returns to hand while the opponent has more life" {
+  life A 10
+  battlefield A: 3 "Plains"
+  hand A: "Pulse of the Fields"
+  turn 1 A: cast "Pulse of the Fields"
+  run_to turn 1 postcombat_main
+  assert life A 14
+  assert hand A contains "Pulse of the Fields"
+}
+
+scenario "Pulse of the Fields stays in the graveyard otherwise" {
+  life A 18
+  battlefield A: 3 "Plains"
+  hand A: "Pulse of the Fields"
+  turn 1 A: cast "Pulse of the Fields"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert graveyard A contains "Pulse of the Fields"
+}
+
+scenario "Pulse of the Tangle counts the new Beast" {
+  battlefield A: 3 "Forest"
+  hand A: "Pulse of the Tangle"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Pulse of the Tangle"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Beast"
+  assert graveyard A contains "Pulse of the Tangle"
+}
+
+scenario "Beza: only the lands condition holds" {
+  battlefield A: 4 "Plains"
+  hand A: "Beza, the Bounding Spring"
+  battlefield B: 5 "Forest"
+  turn 1 A: cast "Beza, the Bounding Spring"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert battlefield A lacks "Fish"
+  assert life A 20
+}
+
+scenario "Beza: creatures and cards in hand" {
+  battlefield A: 4 "Plains"
+  hand A: "Beza, the Bounding Spring"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand B: "Forest"
+  library A: "Craw Wurm"
+  turn 1 A: cast "Beza, the Bounding Spring"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Fish"
+  assert hand A contains "Craw Wurm"
+}

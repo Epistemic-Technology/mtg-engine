@@ -469,7 +469,9 @@ entered this turn` (celebration: "two or more nonland permanents entered
 the battlefield under your control this turn"), `artifact or creature to
 graveyard this turn` ("an artifact or creature was put into a graveyard
 from the battlefield this turn"; any card types joined by `or`),
-`discarded this turn`, `not cast this turn` ("you haven't cast a
+`discarded this turn`, `opponent controls more creatures`, `opponent has more life`, `opponent
+has more cards in hand` ("an opponent controls more creatures than you",
+...), `not cast this turn` ("you haven't cast a
 spell this turn"), `not cast from hand this turn` ("you haven't cast a
 spell from your hand this turn": a spell cast from a graveyard or exile
 doesn't count), `more cards in hand than each

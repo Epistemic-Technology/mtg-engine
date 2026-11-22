@@ -1576,6 +1576,7 @@ impl Compiler<'_> {
                 yours: *yours,
             },
             StaticCond::OpponentMoreLands => StaticCondition::OpponentMoreLands,
+            StaticCond::OpponentHasMore(w) => StaticCondition::OpponentHasMore(*w),
             StaticCond::Void => StaticCondition::Void,
             StaticCond::NotYourMainPhase => StaticCondition::NotYourMainPhase,
             StaticCond::NotCastFromHand => {

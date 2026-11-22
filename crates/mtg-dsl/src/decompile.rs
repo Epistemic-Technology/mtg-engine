@@ -530,6 +530,7 @@ impl Decompiler<'_> {
                 yours: *yours,
             },
             StaticCondition::OpponentMoreLands => StaticCond::OpponentMoreLands,
+            StaticCondition::OpponentHasMore(w) => StaticCond::OpponentHasMore(*w),
             StaticCondition::Void => StaticCond::Void,
             StaticCondition::NotYourMainPhase => StaticCond::NotYourMainPhase,
             StaticCondition::NotCastFrom(_) => StaticCond::NotCastFromHand,

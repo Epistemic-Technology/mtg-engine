@@ -1,0 +1,9 @@
+card "Linvala, the Preserver" {
+  oracle_id 64f5689d-504d-40e9-bdb5-36dcefd257e2
+  cost {4}{W}{W}
+  type Legendary Creature — Angel
+  pt 5/5
+  keywords flying
+  triggered when this enters if opponent has more life: you gain 5 life
+  triggered when this enters if opponent controls more creatures: create 1 "3/3 white Angel creature with flying"
+}

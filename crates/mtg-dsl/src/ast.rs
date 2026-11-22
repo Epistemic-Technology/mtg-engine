@@ -2171,6 +2171,10 @@ pub enum StaticCond {
     /// `opponent controls more lands`: "an opponent controls more lands
     /// than you".
     OpponentMoreLands,
+    /// `opponent controls more creatures`, `opponent has more life`,
+    /// `opponent has more cards in hand`: "an opponent controls more
+    /// creatures than you", ...
+    OpponentHasMore(mtg_core::card::MoreWhat),
     /// `void`: "a nonland permanent left the battlefield this turn or a
     /// spell was warped this turn".
     Void,
