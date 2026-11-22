@@ -51,6 +51,29 @@ scenario "Bladed Battle-Fan: the creature it attaches to gains indestructible un
   assert has not "Grizzly Bears" indestructible
 }
 
+scenario "Niblis of Frost: a cast trigger's 'that creature' is the tapped target" {
+  battlefield A: "Niblis of Frost", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: trigger "Niblis of Frost" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert tapped "Hill Giant"
+  assert life B 18
+}
+
+scenario "Akroan Conscriptor: the stolen creature untaps" {
+  battlefield A: "Akroan Conscriptor", "Forest"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Akroan Conscriptor"
+  turn 1 A: trigger "Akroan Conscriptor" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  assert untapped "Hill Giant"
+  assert has "Hill Giant" haste
+}
+
 scenario "Celestial Armor: the creature gains hexproof and indestructible, and gets +2/+0 and flying" {
   battlefield A: 3 "Plains", "Grizzly Bears"
   battlefield B: "Mountain"

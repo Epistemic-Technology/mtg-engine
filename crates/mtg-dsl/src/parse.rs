@@ -2638,11 +2638,17 @@ impl P {
                         }
                     );
                 self.no_trigger_obj = no_trigger_object(&trigger);
+                // Also a cast trigger: the triggering object is a spell,
+                // which "that creature" doesn't name.
                 self.self_trigger = matches!(
                     trigger,
                     Trigger::Enters(TriggerObj::This)
                         | Trigger::Attacks(TriggerObj::This)
                         | Trigger::TurnedFaceUp(TriggerObj::This)
+                        | Trigger::CastsSpell { .. }
+                        | Trigger::CastsFiltered { .. }
+                        | Trigger::CastThis { .. }
+                        | Trigger::CastsNth { .. }
                 );
                 self.no_trigger_amount = no_trigger_amount(&trigger);
                 if when && !crate::format::natural_when(&trigger) {
@@ -10150,8 +10156,11 @@ impl P {
         }
         // "When this Equipment enters, attach it to target creature you
         // control. That creature gains ...": the triggering object is the
-        // source, which "that creature" never names; it is the target.
-        if self.self_trigger
+        // source, which "that creature" never names; it is the target. So
+        // in a trigger with no triggering object ("At the beginning of
+        // combat on your turn, ... target creature. That creature
+        // becomes a Mutant ...").
+        if (self.self_trigger || self.in_trigger && self.no_trigger_obj)
             && (self.at_words(&["that", "creature"]) || self.at_words(&["that", "permanent"]))
             && let Some(n) = self.last_object_target()
         {

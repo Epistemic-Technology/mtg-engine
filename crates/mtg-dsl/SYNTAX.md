@@ -739,8 +739,9 @@ as in a spell: `put 2 +1/+1 counters on target creature you control; it
 gains vigilance until end of turn`, `you lose count equal mana value of it
 life` after `return up to 1 target Vampire card ...`; `it deals` stays the
 triggering object. Where the triggering object is the source (`when this
-enters`, `whenever this attacks`, `when this is turned face up`), `that
-creature` after an object target is that target too: `when this enters:
+enters`, `whenever this attacks`, `when this is turned face up`), a spell
+(`whenever you cast ...`), or there is none (`at beginning of combat on
+your turn`), `that creature` after an object target is that target too: `when this enters:
 attach to target creature you control; that creature gains hexproof`
 ("When this Equipment enters, attach it to target creature you control.
 That creature gains hexproof ..."). In a trigger with no triggering object (`at beginning
