@@ -408,6 +408,10 @@ pub enum Builtin {
     /// in exile. You may cast the copy without paying its mana cost." (a
     /// delayed trigger that stays).
     Paradigm,
+    /// CR 702.152a: "If this spell's blitz cost was paid, sacrifice the
+    /// permanent this spell becomes at the beginning of the next end
+    /// step."
+    BlitzSacrifice,
 }
 
 /// How an exiled card is cast by a built-in trigger.
@@ -5718,6 +5722,10 @@ pub enum Condition {
     /// with the most life or tied for most life": judged only as it
     /// attacks; attacking a planeswalker or battle doesn't count.
     Dethrones,
+    /// Blitz (CR 702.152a): "When this creature dies, draw a card." is
+    /// the source's only while its blitz cost was paid (as it last
+    /// existed).
+    Blitzed,
     /// Melee (CR 702.121a) in a two-player game: an opponent was attacked
     /// with a creature this combat (a planeswalker doesn't count), so the
     /// bonus "for each opponent you attacked" is one. Judged only as the
@@ -6846,6 +6854,10 @@ pub struct CardDef {
     pub prototype: Option<Box<(ManaCost, i32, i32)>>,
     #[serde(default)]
     pub prototype_face: Option<CardRef>,
+    /// Blitz (CR 702.152a): the card's alternative cost (`alt_cost`) is its
+    /// blitz cost; cast for it, the permanent is `AltCast::Blitz`.
+    #[serde(default)]
+    pub blitz: bool,
     /// Awaken N (CR 702.113): an alternative cost; cast for it, the spell
     /// also puts N +1/+1 counters on target land you control, which
     /// becomes a 0/0 Elemental creature with haste (`awaken_face`).
@@ -7720,7 +7732,7 @@ pub struct CardPool {
     /// Decayed's "When this creature attacks, sacrifice it at end of
     /// combat" (CR 702.147a).
     decayed: AbilityId,
-    builtins: [AbilityId; 13],
+    builtins: [AbilityId; 14],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -7806,7 +7818,7 @@ impl CardPool {
             evoke: AbilityId(0),
             exploit: AbilityId(0),
             decayed: AbilityId(0),
-            builtins: [AbilityId(0); 13],
+            builtins: [AbilityId(0); 14],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
             dungeons: Vec::new(),
@@ -8038,6 +8050,20 @@ impl CardPool {
                     tapped: true,
                     under_you: true,
                     attached: None,
+                }],
+            }));
+        pool.builtins[Builtin::BlitzSacrifice as usize] =
+            pool.register(AbilityDef::Triggered(TriggeredAbility {
+                limit: crate::card::TurnLimit::None,
+                from_graveyard: false,
+                trigger: TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::End,
+                    whose: Who::Any,
+                },
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![Effect::Sacrifice {
+                    what: Recipient::SameObject,
                 }],
             }));
         pool.builtins[Builtin::CleanupSacrifice as usize] =
@@ -8982,6 +9008,7 @@ impl Builder {
             overload_face: None,
             prototype: None,
             prototype_face: None,
+            blitz: false,
             awaken: None,
             awaken_face: None,
             goads: false,
@@ -9241,6 +9268,19 @@ impl Builder {
     #[must_use]
     pub fn warp(mut self, cost: ManaCost) -> Self {
         self.0.warp = Some(Box::new(cost));
+        self
+    }
+
+    /// Blitz (CR 702.152a): the alternative cost is a blitz cost.
+    #[must_use]
+    pub fn blitz(mut self, cost: Cost) -> Self {
+        self.0.alt_cost = Some(Box::new(AltCost {
+            cost,
+            count: 1,
+            condition: None,
+            others_gain: 0,
+        }));
+        self.0.blitz = true;
         self
     }
 

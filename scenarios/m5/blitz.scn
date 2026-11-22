@@ -1,0 +1,138 @@
+# Blitz (CR 702.152a): cast for the blitz cost (`alternative`), the
+# permanent has haste and "When this creature dies, draw a card." and is
+# sacrificed at the beginning of the next end step.
+
+scenario "blitz: haste, sacrificed at the end step, and a card drawn" {
+  battlefield A: 4 "Forest"
+  hand A: "Caldaia Strongarm"
+  library A: "Island", "Plains"
+  turn 1 A: cast "Caldaia Strongarm" alternative
+  turn 1 A: trigger "Caldaia Strongarm" targeting "Caldaia Strongarm"
+  turn 1 A: attack "Caldaia Strongarm"
+  run_to turn 1 cleanup
+  assert life B 16
+  assert graveyard A contains "Caldaia Strongarm"
+  assert hand A count 1
+}
+
+scenario "blitz: cast normally, no haste and it stays" {
+  battlefield A: 5 "Forest"
+  hand A: "Caldaia Strongarm"
+  turn 1 A: cast "Caldaia Strongarm"
+  turn 1 A: trigger "Caldaia Strongarm" targeting "Caldaia Strongarm"
+  illegal turn 1 A: attack "Caldaia Strongarm"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Caldaia Strongarm"
+  assert has not "Caldaia Strongarm" haste
+  assert hand A count 0
+}
+
+scenario "blitz: dying normally after a normal cast draws nothing" {
+  battlefield A: 5 "Forest"
+  battlefield B: 3 "Swamp"
+  hand A: "Caldaia Strongarm"
+  hand B: "Murder"
+  library A: "Island", "Plains"
+  turn 1 A: cast "Caldaia Strongarm"
+  turn 1 A: trigger "Caldaia Strongarm" targeting "Caldaia Strongarm"
+  turn 1 postcombat_main B: cast "Murder" targeting "Caldaia Strongarm"
+  run_to turn 1 end
+  assert graveyard A contains "Caldaia Strongarm"
+  assert hand A count 0
+}
+
+scenario "blitz: a blitzed creature killed in combat draws a card" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Mayhem Patrol"
+  library A: "Island", "Plains"
+  turn 1 A: cast "Mayhem Patrol" alternative
+  turn 1 A: attack "Mayhem Patrol"
+  turn 1 A: trigger "Mayhem Patrol" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert battlefield A contains "Mayhem Patrol"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Mayhem Patrol"
+  assert hand A count 1
+}
+
+scenario "blitz: Riveteers Requisitioner makes a Treasure and draws" {
+  battlefield A: 3 "Mountain"
+  hand A: "Riveteers Requisitioner"
+  library A: "Island", "Plains"
+  turn 1 A: cast "Riveteers Requisitioner" alternative
+  run_to turn 2 upkeep
+  assert graveyard A contains "Riveteers Requisitioner"
+  assert battlefield A contains "Treasure"
+  assert hand A count 1
+}
+
+scenario "blitz: Girder Goons leaves a tapped Rogue" {
+  battlefield A: 4 "Swamp"
+  hand A: "Girder Goons"
+  library A: "Island", "Plains"
+  turn 1 A: cast "Girder Goons" alternative
+  turn 1 A: attack "Girder Goons"
+  run_to turn 2 upkeep
+  assert life B 16
+  assert graveyard A contains "Girder Goons"
+  assert battlefield A contains "Rogue"
+  assert tapped "Rogue"
+  assert power "Rogue" 2
+  assert hand A count 1
+}
+
+scenario "blitz: Night Clubber shrinks the opponent's creatures" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Night Clubber"
+  turn 1 A: cast "Night Clubber" alternative
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert power "Grizzly Bears" 1
+  assert has "Night Clubber" haste
+}
+
+scenario "blitz: Plasma Jockey stops a blocker" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Plasma Jockey"
+  turn 1 A: cast "Plasma Jockey" alternative
+  turn 1 A: attack "Plasma Jockey"
+  turn 1 A: trigger "Plasma Jockey" targeting "Grizzly Bears"
+  illegal turn 1 B: block "Plasma Jockey" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "blitz: Riveteers Decoy must be blocked" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Riveteers Decoy"
+  turn 1 A: cast "Riveteers Decoy" alternative
+  turn 1 A: attack "Riveteers Decoy"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Riveteers Decoy"
+  assert life B 20
+}
+
+scenario "blitz: Workshop Warchief blitzed gains life, then a Rhino and a card" {
+  battlefield A: 6 "Forest"
+  hand A: "Workshop Warchief"
+  library A: "Island", "Plains"
+  turn 1 A: cast "Workshop Warchief" alternative
+  run_to turn 2 upkeep
+  assert life A 23
+  assert battlefield A contains "Rhino Warrior"
+  assert hand A count 1
+}
+
+scenario "blitz: the blitz cost must be payable" {
+  battlefield A: 3 "Forest"
+  hand A: "Caldaia Strongarm"
+  illegal turn 1 A: cast "Caldaia Strongarm" alternative
+  run_to turn 1 postcombat_main
+  assert hand A contains "Caldaia Strongarm"
+}

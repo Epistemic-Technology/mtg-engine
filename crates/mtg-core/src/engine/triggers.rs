@@ -1952,6 +1952,7 @@ impl GameState {
                 .map(|o| o.cast.evoked())
                 .or_else(|| self.lki.get(&source).map(|l| l.object.cast.evoked()))
                 .unwrap_or(false),
+            Condition::Blitzed => self.blitzed(source),
             // Judged only as the ability triggered.
             Condition::While(_)
             | Condition::Trains
@@ -1998,9 +1999,20 @@ impl GameState {
                 self.condition_for(self.pool.condition(i), w.controller, w.source, trigger_obj)
             }
             Condition::Trains => self.trains(w),
+            Condition::Blitzed => self.blitzed(w.source),
             Condition::Dethrones => self.dethrones(w.source),
             Condition::AttackedOpponent => self.attacked_opponent(w.controller),
         }
+    }
+
+    /// Blitz (CR 702.152a): the source (as it last existed, once it has
+    /// died) was cast for its blitz cost.
+    fn blitzed(&self, source: ObjId) -> bool {
+        self.objects
+            .get(source)
+            .map(|o| o.alt)
+            .or_else(|| self.lki.get(&source).map(|l| l.object.alt))
+            == Some(crate::state::AltCast::Blitz)
     }
 
     /// Training (CR 702.149a): another creature attacking under the same

@@ -557,6 +557,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Fading(n)) => {
                     b = b.fading(*n);
                 }
+                Ability::Mechanic(Mechanic::Blitz(c)) => {
+                    if card.alt_cost.is_some() {
+                        return self.err("blitz and an alternative cost of the card's own");
+                    }
+                    b = b.blitz(self.cost(c));
+                }
                 Ability::Mechanic(Mechanic::Prototype(c, p, t)) => {
                     if card.alt_cost.is_some() {
                         return self.err("prototype and an alternative cost of the card's own");
@@ -1027,6 +1033,24 @@ impl Compiler<'_> {
                 b = b.ability(compiled);
                 continue;
             }
+            // CR 702.152a: blitz's "When this creature dies, draw a
+            // card.", the creature's while its blitz cost was paid.
+            if let Ability::Mechanic(Mechanic::Blitz(_)) = a {
+                let dies = Ability::Triggered {
+                    limit: mtg_core::card::TurnLimit::None,
+                    from_graveyard: false,
+                    trigger: crate::ast::Trigger::Dies(crate::ast::TriggerObj::This),
+                    condition: Some(crate::ast::TrigCond::Core(
+                        mtg_core::card::Condition::Blitzed,
+                    )),
+                    targets: Vec::new(),
+                    effects: vec![Sentence::new(vec![crate::ast::Effect::DrawCards {
+                        count: Num::N(1),
+                        who: None,
+                    }])],
+                };
+                b = b.ability(self.ability(&dies)?);
+            }
             // CR 702.174b: an instant's or sorcery's gift happens as it
             // resolves; a permanent's is a triggered ability.
             if matches!(unlabeled(a), Ability::Mechanic(Mechanic::Gift(_)))
@@ -1082,6 +1106,7 @@ impl Compiler<'_> {
                             | Mechanic::Assist
                             | Mechanic::Myriad
                             | Mechanic::Prototype(..)
+                            | Mechanic::Blitz(_)
                             | Mechanic::Replicate(_)
                             | Mechanic::Multikicker(_)
                             | Mechanic::Disturb(_)
@@ -4453,6 +4478,7 @@ impl Compiler<'_> {
                 | Mechanic::Assist
                 | Mechanic::Myriad
                 | Mechanic::Prototype(..)
+                | Mechanic::Blitz(_)
                 | Mechanic::Replicate(_)
                 | Mechanic::Multikicker(_)
                 | Mechanic::Disturb(_)
@@ -5866,6 +5892,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Assist
         | Mechanic::Myriad
         | Mechanic::Prototype(..)
+        | Mechanic::Blitz(_)
         | Mechanic::BattleCry
         | Mechanic::Rampage(_)
         | Mechanic::Replicate(_)

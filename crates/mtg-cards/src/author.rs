@@ -67,6 +67,7 @@ const KEYWORDS: &[&str] = &[
 
 /// Scryfall keyword tags that templates below handle as abilities.
 const TEMPLATED_TAGS: &[&str] = &[
+    "Blitz",
     "Prototype",
     "Level Up",
     "Provoke",
@@ -3796,6 +3797,22 @@ impl Builder<'_> {
             };
             self.statements
                 .push(format!("levels {range} pt {}", cap(&c, 3)));
+            return Ok(());
+        }
+        // CR 702.152a: "Blitz {3}{G}", "Blitz—{2}{B}{B}, Pay 2 life."
+        if let Some(c) = Regex::new(r"^Blitz ((?:\{[0-9WUBRGC]\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("blitz {}", cap(&c, 1)));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^Blitz\x{2014}((?:\{[0-9WUBRGC]\})+), Pay (\d+) life\.$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("blitz {}, pay {} life", cap(&c, 1), cap(&c, 2)));
             return Ok(());
         }
         // CR 702.160a: "Prototype {2}{R} — 3/2".

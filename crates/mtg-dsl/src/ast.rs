@@ -1417,6 +1417,11 @@ pub enum Mechanic {
     /// CR 702.39: attacks, you may have target creature defending player
     /// controls untap and block it if able.
     Provoke,
+    /// CR 702.152: `blitz {3}{G}`, `blitz {2}{B}{B}, pay 2 life`: the
+    /// card's alternative cost; the permanent has haste and "When this
+    /// creature dies, draw a card" and is sacrificed at the beginning of
+    /// the next end step.
+    Blitz(Cost),
     /// CR 702.160: `prototype {2}{R} 3/2`: "Prototype {2}{R} — 3/2", cast
     /// with that mana cost, power, and toughness (and the cost's colors).
     Prototype(ManaCost, i32, i32),

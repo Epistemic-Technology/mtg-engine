@@ -406,6 +406,13 @@ impl GameState {
                         | AltCast::Impending
                 ) {
                 old.alt
+            } else if old.zone == Zone::Stack
+                && to == Zone::Battlefield
+                && old.alt == AltCast::AltCost
+                && self.pool.get(def).blitz
+            {
+                // CR 702.152a: cast for its blitz cost.
+                AltCast::Blitz
             } else {
                 AltCast::None
             },
@@ -471,12 +478,16 @@ impl GameState {
         let cleanup = old.cast.instant_timing();
         if to == Zone::Battlefield
             && old.zone == Zone::Stack
-            && (matches!(old.alt, AltCast::Dash | AltCast::Warp) || cleanup)
+            && (matches!(old.alt, AltCast::Dash | AltCast::Warp)
+                || cleanup
+                || old.alt == AltCast::AltCost && self.pool.get(def).blitz)
         {
             // CR 702.185a: a warped permanent is exiled at the next end
             // step.
             let ability = self.pool.builtin(if cleanup {
                 crate::card::Builtin::CleanupSacrifice
+            } else if old.alt == AltCast::AltCost {
+                crate::card::Builtin::BlitzSacrifice
             } else if old.alt == AltCast::Warp {
                 crate::card::Builtin::WarpExile
             } else {

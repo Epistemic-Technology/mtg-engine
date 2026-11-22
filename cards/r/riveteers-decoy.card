@@ -1,0 +1,8 @@
+card "Riveteers Decoy" {
+  oracle_id 1c4918e6-3810-458e-a11b-949bbc43e7cc
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 3/1
+  keywords must be blocked if able
+  blitz {3}{G}
+}

@@ -4961,6 +4961,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::Evolves) => head.push_str(" if evolves"),
                 Some(mtg_core::card::Condition::Increments) => head.push_str(" if increments"),
                 Some(mtg_core::card::Condition::Trains) => head.push_str(" if trains"),
+                Some(mtg_core::card::Condition::Blitzed) => head.push_str(" if blitzed"),
                 Some(mtg_core::card::Condition::Dethrones) => head.push_str(" if dethrones"),
                 Some(mtg_core::card::Condition::AttackedOpponent) => {
                     head.push_str(" if attacked opponent");
@@ -5226,6 +5227,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Provoke => "provoke".to_string(),
                 crate::ast::Mechanic::Fading(n) => format!("fading {n}"),
                 crate::ast::Mechanic::LevelUp(c) => format!("level up {c}"),
+                crate::ast::Mechanic::Blitz(c) => format!("blitz {}", cost_text(c)),
                 crate::ast::Mechanic::Prototype(c, p, t) => format!("prototype {c} {p}/{t}"),
                 crate::ast::Mechanic::Annihilator(n) => format!("annihilator {n}"),
                 crate::ast::Mechanic::Rampage(n) => format!("rampage {n}"),

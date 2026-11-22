@@ -1474,6 +1474,13 @@ impl P {
                 let each_player = self.eat_words(&["each", "player"]);
                 self.player_static(mtg_core::card::PlayerStaticKind::ExtraLands { n, each_player })
             }
+            // CR 702.152a: blitz.
+            "blitz" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+                self.pos += 1;
+                let c = self.cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Blitz(c)))
+            }
             // CR 702.160a: prototype.
             "prototype" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                 self.pos += 1;
@@ -11562,6 +11569,9 @@ impl P {
         // as the creature attacks.
         if self.eat_word("trains") {
             return Ok(Condition::Trains);
+        }
+        if self.eat_word("blitzed") {
+            return Ok(Condition::Blitzed);
         }
         if self.eat_word("dethrones") {
             return Ok(Condition::Dethrones);

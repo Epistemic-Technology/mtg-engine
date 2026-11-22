@@ -9255,6 +9255,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
             "if the amount of mana you spent is greater than {}'s power or toughness",
             this_ref(ctx.card)
         ),
+        Condition::Blitzed => "if its blitz cost was paid".to_string(),
         Condition::Trains => format!(
             "if at least one other creature with power greater than {}'s power attacked",
             this_ref(ctx.card)
@@ -12250,6 +12251,24 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Provoke => "Provoke".to_string(),
             crate::ast::Mechanic::Fading(n) => format!("Fading {n}"),
             crate::ast::Mechanic::LevelUp(c) => format!("Level up {c}"),
+            // CR 702.152a: "Blitz {3}{G}"; with a cost other than mana,
+            // "Blitz—{2}{B}{B}, Pay 2 life."
+            crate::ast::Mechanic::Blitz(c) => {
+                if *c
+                    == (crate::ast::Cost {
+                        mana: c.mana.clone(),
+                        order: c.order.clone(),
+                        ..crate::ast::Cost::default()
+                    })
+                {
+                    format!("Blitz {}", c.mana)
+                } else {
+                    format!(
+                        "Blitz\u{2014}{}.",
+                        cost_text(c, &mut Ctx::new(card, lookup, &[]))
+                    )
+                }
+            }
             crate::ast::Mechanic::Prototype(c, p, t) => format!("Prototype {c} \u{2014} {p}/{t}"),
             crate::ast::Mechanic::Annihilator(n) => format!("Annihilator {n}"),
             crate::ast::Mechanic::Rampage(n) => format!("Rampage {n}"),

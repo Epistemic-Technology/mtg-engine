@@ -359,6 +359,10 @@ pub enum AltCast {
     /// Cast transformed from the graveyard for its disturb cost (CR
     /// 702.146a): the spell is the back face.
     Disturb,
+    /// A permanent cast for its blitz cost (CR 702.152a, the card's
+    /// alternative cost): it has haste and "When this creature dies, draw
+    /// a card", and is sacrificed at the beginning of the next end step.
+    Blitz,
     /// In exile: airbent (CR 701.65a), castable by its owner for {2}
     /// rather than its mana cost for as long as it remains exiled.
     Airbent,
