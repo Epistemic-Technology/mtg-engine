@@ -559,6 +559,15 @@ impl Fmt {
                 Who::Opponents => "an opponent gains life",
             }
             .to_string(),
+            Replaces::LoseLife { whose, your_turn } => format!(
+                "{}{}",
+                match whose {
+                    Who::You => "you lose life",
+                    Who::Any => "a player loses life",
+                    Who::Opponents => "an opponent loses life",
+                },
+                if *your_turn { " during your turn" } else { "" }
+            ),
             Replaces::Draw {
                 whose,
                 library_empty,
@@ -572,6 +581,9 @@ impl Fmt {
                     s.push_str(" with empty library");
                 }
                 s
+            }
+            Replaces::FilteredToGraveyard(f) => {
+                format!("{} card put into a graveyard", filter(f))
             }
             Replaces::ToGraveyard {
                 whose,
@@ -3805,6 +3817,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::State(_)
             | Trigger::EveryStep(_)
             | Trigger::Cycles { this: true, .. }
+            | Trigger::DiscardsThis
             | Trigger::CastThis { .. }
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
         || matches!(
@@ -4196,6 +4209,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             )
         }
         Trigger::Draws { whose } => format!("whenever {} a card", draws_words(*whose)),
+        Trigger::DiscardsThis => "when you discard this".to_string(),
         Trigger::Discards { whose, filter: f } => format!(
             "whenever {} {}",
             discards_words(*whose),

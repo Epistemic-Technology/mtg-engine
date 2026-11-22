@@ -60,6 +60,11 @@ pub(crate) enum Proposed {
         player: PlayerId,
         amount: u32,
     },
+    /// A player would lose life (not by paying it).
+    LoseLife {
+        player: PlayerId,
+        amount: u32,
+    },
     Draw {
         player: PlayerId,
     },
@@ -91,6 +96,7 @@ impl Proposed {
             self,
             Proposed::Damage { amount: 0, .. }
                 | Proposed::GainLife { amount: 0, .. }
+                | Proposed::LoseLife { amount: 0, .. }
                 | Proposed::AddCounters { n: 0, .. }
         )
     }
@@ -110,6 +116,7 @@ impl Proposed {
                 ..
             }
             | Proposed::GainLife { player: p, .. }
+            | Proposed::LoseLife { player: p, .. }
             | Proposed::Draw { player: p } => *p,
             Proposed::Damage {
                 target: Target::Object(id),
@@ -561,7 +568,8 @@ impl GameState {
                     && (self.affects(what, *target, source, controller, lock)
                         || self.source_is(what, *src, source, controller, lock))
             }
-            (Replaces::GainLife { whose }, Proposed::GainLife { player, .. }) => {
+            (Replaces::GainLife { whose }, Proposed::GainLife { player, .. })
+            | (Replaces::LoseLife { whose }, Proposed::LoseLife { player, .. }) => {
                 whose_ok(*whose, *player)
             }
             (
@@ -595,6 +603,24 @@ impl GameState {
                     ..
                 },
             ) => *obj == source,
+            (
+                Replaces::FilteredToGraveyard { filter },
+                Proposed::ZoneChange {
+                    obj,
+                    to: Zone::Graveyard,
+                    ..
+                },
+            ) => self.objects.get(*obj).is_some_and(|o| {
+                // A token isn't a card (CR 108.2).
+                o.kind == crate::state::ObjKind::Card
+                    && filter.matches(
+                        *obj,
+                        o.controller,
+                        &self.base_characteristics(o),
+                        Some(source),
+                        Some(controller),
+                    )
+            }),
             (
                 Replaces::PlusCounters { on },
                 Proposed::AddCounters {
@@ -1156,6 +1182,14 @@ impl GameState {
                         counters: enter.counters.map(|(k, n)| (k, n.saturating_mul(2))),
                         ..enter
                     },
+                })
+            }
+            // "they lose twice that much life instead".
+            (Replacement::Double, Proposed::LoseLife { player, amount }) => {
+                self.emit(Event::Replaced { by: c.def });
+                Outcome::Event(Proposed::LoseLife {
+                    player,
+                    amount: amount.saturating_mul(2),
                 })
             }
             (Replacement::Double, Proposed::GainLife { player, amount }) => {

@@ -1935,6 +1935,7 @@ impl Decompiler<'_> {
                 dies: *dies,
             },
             TriggerSpec::Draws { whose } => Trigger::Draws { whose: *whose },
+            TriggerSpec::DiscardsThis => Trigger::DiscardsThis,
             TriggerSpec::Discards { whose, filter } => Trigger::Discards {
                 whose: *whose,
                 filter: self.filter(filter),
@@ -2075,6 +2076,10 @@ impl Decompiler<'_> {
                     combat: *combat,
                 },
                 CoreReplaces::GainLife { whose } => Replaces::GainLife { whose: *whose },
+                CoreReplaces::LoseLife { whose } => Replaces::LoseLife {
+                    whose: *whose,
+                    your_turn: false,
+                },
                 CoreReplaces::Draw {
                     whose,
                     library_empty,
@@ -2090,6 +2095,9 @@ impl Decompiler<'_> {
                     from_battlefield: *from_battlefield,
                 },
                 CoreReplaces::ThisToGraveyard => Replaces::ThisToGraveyard,
+                CoreReplaces::FilteredToGraveyard { filter } => {
+                    Replaces::FilteredToGraveyard(self.filter(filter))
+                }
                 CoreReplaces::CreateTokens {
                     creature,
                     effect,

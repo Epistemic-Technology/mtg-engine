@@ -5239,12 +5239,22 @@ pub enum Replaces {
     DamageToAndBy { what: Affects, combat: Option<bool> },
     /// A player would gain life.
     GainLife { whose: Who },
+    /// A player would lose life (CR 119.3), damage included, but not life
+    /// paid as a cost: "If an opponent would lose life during your turn,
+    /// they lose twice that much life instead." (Bloodletter of
+    /// Aclazotz).
+    LoseLife { whose: Who },
     /// A player would draw a card; `library_empty` requires an empty
     /// library (Laboratory Maniac).
     Draw { whose: Who, library_empty: bool },
     /// A card would be put into a graveyard owned by `whose`, from anywhere
     /// or only from the battlefield.
     ToGraveyard { whose: Who, from_battlefield: bool },
+    /// A card matching the filter (judged as it is, in whatever zone)
+    /// would be put into a graveyard from anywhere: "If an instant or
+    /// sorcery card would be put into a graveyard from anywhere, exile it
+    /// instead." (Dryad Militant).
+    FilteredToGraveyard { filter: ObjFilter },
     /// The ability's own card would be put into a graveyard from anywhere
     /// (Progenitus): the ability functions in every zone (CR 113.6b).
     ThisToGraveyard,
@@ -5631,6 +5641,9 @@ pub enum TriggerSpec {
         another: bool,
         or_discard: bool,
     },
+    /// "When you discard this card" (CR 701.9): triggers from the card
+    /// itself as it is discarded, controlled by the discarding player.
+    DiscardsThis,
     /// "When you cast this spell" (CR 603.2, 601.2i): triggers from the
     /// spell itself as it becomes cast, so it goes on the stack above the
     /// spell and resolves first; countering the spell doesn't stop it.
@@ -5898,6 +5911,15 @@ impl TriggerSpec {
         }
     }
 
+    /// "When you discard this card", alone or as one of two events.
+    pub fn discards_this(&self) -> bool {
+        match self {
+            TriggerSpec::DiscardsThis => true,
+            TriggerSpec::Either(pair) => pair.0.discards_this() || pair.1.discards_this(),
+            _ => false,
+        }
+    }
+
     /// "When you cast this spell", alone or as one of two events.
     pub fn casts_this(&self) -> bool {
         match self {
@@ -5957,6 +5979,7 @@ impl TriggerSpec {
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } | TriggerSpec::Draws { .. } => WATCH_DRAW,
+            TriggerSpec::DiscardsThis => WATCH_DISCARD,
             TriggerSpec::Exploits
             | TriggerSpec::BecomesPlotted
             | TriggerSpec::Reflexive

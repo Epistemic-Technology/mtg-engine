@@ -11790,6 +11790,11 @@ impl P {
                 return Ok(Trigger::Draws { whose });
             }
         }
+        // "When you discard this card" (CR 701.9).
+        if self.eat_words(&["you", "discard", "this"]) {
+            self.eat_word("card");
+            return Ok(Trigger::DiscardsThis);
+        }
         // "a player discards a card", "you discard creature card" (CR
         // 701.9).
         for (words, whose) in [
@@ -12994,6 +12999,16 @@ impl P {
             self.pos += 4;
             return Ok(Replaces::GainLife { whose: Who::Any });
         }
+        for (words, whose) in [
+            (&["you", "lose", "life"][..], Who::You),
+            (&["a", "player", "loses", "life"][..], Who::Any),
+            (&["an", "opponent", "loses", "life"][..], Who::Opponents),
+        ] {
+            if self.eat_words(words) {
+                let your_turn = self.eat_words(&["during", "your", "turn"]);
+                return Ok(Replaces::LoseLife { whose, your_turn });
+            }
+        }
         if self.at_words(&["an", "opponent", "gains", "life"]) {
             self.pos += 4;
             return Ok(Replaces::GainLife {
@@ -13014,6 +13029,18 @@ impl P {
                 whose,
                 library_empty,
             });
+        }
+        // "If an instant or sorcery card would be put into a graveyard
+        // from anywhere".
+        if !self.at_word("card") && !self.at_words(&["a", "card"]) {
+            let start = self.pos;
+            if let Ok(f) = self.filter()
+                && self.eat_words(&["card", "put", "into", "a", "graveyard"])
+            {
+                self.eat_words(&["from", "anywhere"]);
+                return Ok(Replaces::FilteredToGraveyard(f));
+            }
+            self.pos = start;
         }
         if self.at_words(&["card", "put", "into"]) || self.at_words(&["a", "card", "put", "into"]) {
             self.eat_word("a");

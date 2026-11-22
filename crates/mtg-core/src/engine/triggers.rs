@@ -136,6 +136,7 @@ impl GameState {
         if matches!(event, Event::Cycled { .. }) {
             self.cycle_triggers(event, &mut fired);
         }
+
         if matches!(event, Event::Cast { .. }) {
             self.cast_this_triggers(event, &mut fired);
         }

@@ -9273,6 +9273,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Draws { whose } => {
             format!("whenever {} a card", crate::format::draws_words(*whose))
         }
+        // CR 701.9: the card is discarded from the hand, "this card".
+        Trigger::DiscardsThis => {
+            ctx.source_mentioned = true;
+            "when you discard this card".to_string()
+        }
         Trigger::Discards { whose, filter: f } => format!(
             "whenever {} {}",
             crate::format::discards_words(*whose),
@@ -10445,6 +10450,20 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 "All damage that would be dealt to {to} is dealt to enchanted creature instead."
             )
         }
+        (Replaces::LoseLife { whose, your_turn }, outcome) => {
+            let (subj, obj) = match whose {
+                Who::You => ("you", "you lose"),
+                Who::Any => ("a player", "that player loses"),
+                Who::Opponents => ("an opponent", "they lose"),
+            };
+            let when = if *your_turn { " during your turn" } else { "" };
+            match outcome {
+                Outcome::Double => {
+                    format!("If {subj} would lose life{when}, {obj} twice that much life instead.")
+                }
+                _ => format!("If {subj} would lose life{when}, something else happens instead."),
+            }
+        }
         (Replaces::GainLife { whose }, outcome) => {
             let (subj, obj) = match whose {
                 Who::You => ("you", "you"),
@@ -10515,6 +10534,16 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 _ => "something else happens instead",
             };
             format!("If {what} would be put into {gy} {from}, {instead}.")
+        }
+        (Replaces::FilteredToGraveyard(f), outcome) => {
+            let instead = match outcome {
+                Outcome::Instead(mtg_core::state::Zone::Exile) => "exile it instead",
+                _ => "something else happens instead",
+            };
+            format!(
+                "If {} card would be put into a graveyard from anywhere, {instead}.",
+                filter_a(f, ctx.card)
+            )
         }
         // CR 614.1a, 111.1: "If one or more tokens would be created under
         // your control, twice that many of those tokens are created
@@ -12907,6 +12936,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 }
                 // "Whenever this creature attacks while saddled", "...
                 // while you control two or more artifacts".
+                // "Whenever you gain life for the first time during each of
+                // your turns".
+                Some(crate::ast::TrigCond::While(StaticCond::DuringYourTurn))
+                    if matches!(trigger, Trigger::GainsLifeFirst { .. }) =>
+                {
+                    out = out.replace(
+                        "for the first time each turn",
+                        "for the first time during each of your turns",
+                    );
+                }
                 Some(crate::ast::TrigCond::While(StaticCond::DuringYourTurn)) => {
                     out.push_str(" during your turn");
                 }

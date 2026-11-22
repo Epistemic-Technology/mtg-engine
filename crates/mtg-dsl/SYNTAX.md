@@ -334,7 +334,8 @@ may pay it the same way (`accept`/`decline` in scenarios).
 | `whenever one or more creature you control deal combat damage to a player`, `whenever one or more Ally you control deal combat damage to a player` | once for each player dealt combat damage by matching creatures in one combat damage step (CR 603.2c; a first-strike step and the regular one trigger separately); that player is `that player` |
 | `whenever a source you control deals noncombat damage to an opponent`, `whenever an opponent is dealt noncombat damage`, `whenever one or more opponents are dealt noncombat damage` | damage other than combat damage (CR 120.2) to an opponent, from a source you control (a spell as it resolves, as it last existed) or any source; the last once for the damage dealt to each opponent at once. The opponent is `that player`, `that much` the damage |
 | `whenever you commit a crime`, `whenever you commit a crime during your turn` | "Whenever you commit a crime" (CR 700.13): as you finish casting a spell, activating an ability, or putting a triggered ability on the stack that targets an opponent, something an opponent controls, or a card in an opponent's graveyard; once per spell or ability. A copy put on the stack commits none. `during your turn` (Overzealous Muscle) only on your turn |
-| `whenever you gain life first time each turn` | "Whenever you gain life for the first time each turn": the gain that starts the life you gained this turn (one of several simultaneous lifelink gains) |
+| `whenever you gain life first time each turn` | "Whenever you gain life for the first time each turn": the gain that starts the life you gained this turn (one of several simultaneous lifelink gains); with `during your turn` after it, "Whenever you gain life for the first time during each of your turns" |
+| `when you discard this` | "When you discard this card" (CR 701.9): triggers from the card itself as it is discarded (by an effect or a cost, not cycling's own "when you cycle"), controlled by the discarding player |
 | `whenever you roll dice`, `whenever you win a coin flip` | "Whenever you roll one or more dice" (once per roll, CR 706), "Whenever you win a coin flip" (CR 705.2) |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
 | `whenever this attacks for the first time each turn` | the attacking creature hadn't attacked yet this turn (with additional combat phases, CR 500.8) |
@@ -930,6 +931,14 @@ instead come first, then tokens added, then doubling, so a doubler doubles
 the added ones too (the order is the player's choice, CR 616.1, fixed
 here). An amassed Army made twice is two Armies, one of which gets the
 counters.
+`replace an opponent loses life during your turn: double` prints "If an
+opponent would lose life during your turn, they lose twice that much life
+instead." (CR 119.3: damage to a player included, life paid as a cost
+not; `you lose life`, `a player loses life` too). `replace instant or
+sorcery card put into a graveyard: exile` prints "If an instant or
+sorcery card would be put into a graveyard from anywhere, exile it
+instead." (any card filter, judged as the card is wherever it is; tokens
+aren't cards).
 `replace this put into a graveyard: shuffle into library` prints "If
 Darksteel Colossus would be put into a graveyard from anywhere, reveal
 Darksteel Colossus and shuffle it into its owner's library instead.": the

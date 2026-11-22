@@ -8938,7 +8938,7 @@ impl GameState {
                     if let Target::Player(p) = t {
                         let n = self.eval_num(*amount, ctx);
                         lost = lost.saturating_add(n);
-                        self.change_life(p, -i32::try_from(n).unwrap_or(i32::MAX));
+                        self.lose_life(p, n);
                     }
                 }
                 // "Target opponent loses 1 life for each attacking creature
@@ -8967,7 +8967,7 @@ impl GameState {
                         let life = self.player(p).life.max(0);
                         let n = life - life / 2;
                         lost = lost.saturating_add(n.unsigned_abs());
-                        self.change_life(p, -n);
+                        self.lose_life(p, n.unsigned_abs());
                     }
                 }
                 ctx.trigger_amount = lost;

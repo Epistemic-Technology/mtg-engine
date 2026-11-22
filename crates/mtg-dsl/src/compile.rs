@@ -4036,6 +4036,7 @@ impl Compiler<'_> {
                 dies: *dies,
             },
             Trigger::Draws { whose } => TriggerSpec::Draws { whose: *whose },
+            Trigger::DiscardsThis => TriggerSpec::DiscardsThis,
             Trigger::Discards { whose, filter } => TriggerSpec::Discards {
                 whose: *whose,
                 filter: self.filter(filter),
@@ -4138,6 +4139,7 @@ impl Compiler<'_> {
                 combat: *combat,
             },
             Replaces::GainLife { whose } => CoreReplaces::GainLife { whose: *whose },
+            Replaces::LoseLife { whose, .. } => CoreReplaces::LoseLife { whose: *whose },
             Replaces::Draw {
                 whose,
                 library_empty,
@@ -4153,6 +4155,9 @@ impl Compiler<'_> {
                 from_battlefield: *from_battlefield,
             },
             Replaces::ThisToGraveyard => CoreReplaces::ThisToGraveyard,
+            Replaces::FilteredToGraveyard(f) => CoreReplaces::FilteredToGraveyard {
+                filter: self.filter(f),
+            },
             Replaces::CreateTokens {
                 creature,
                 effect,
@@ -4561,6 +4566,19 @@ impl Compiler<'_> {
                 effects: self.sentences(effects)?,
                 from_graveyard: *from_graveyard,
             }),
+            // "If an opponent would lose life during your turn, ...".
+            Ability::Replacement(r)
+                if matches!(
+                    r.event,
+                    crate::ast::Replaces::LoseLife {
+                        your_turn: true,
+                        ..
+                    }
+                ) =>
+            {
+                let a = AbilityDef::Replacement(self.replacement(r)?);
+                return self.while_holds(a, StaticCondition::YourTurn, "during your turn");
+            }
             Ability::Replacement(r) => AbilityDef::Replacement(self.replacement(r)?),
             // CR 701.43: modeled as an attack trigger: exerting is "it
             // doesn't untap during your next untap step".

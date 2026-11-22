@@ -2581,6 +2581,13 @@ pub enum Replaces {
     GainLife {
         whose: Who,
     },
+    /// `an opponent loses life during your turn`: "If an opponent would
+    /// lose life during your turn, ..." (`your_turn` sets the ability's
+    /// condition).
+    LoseLife {
+        whose: Who,
+        your_turn: bool,
+    },
     Draw {
         whose: Who,
         library_empty: bool,
@@ -2589,6 +2596,9 @@ pub enum Replaces {
         whose: Who,
         from_battlefield: bool,
     },
+    /// `instant or sorcery card put into a graveyard`: "If an instant or
+    /// sorcery card would be put into a graveyard from anywhere".
+    FilteredToGraveyard(Filter),
     /// `tokens created under your control`, `creature tokens created
     /// under your control`; `effect` (`... by an effect`) prints "If an
     /// effect would create one or more tokens under your control".
@@ -2829,6 +2839,8 @@ pub enum Trigger {
     TappedForMana(TriggerObj),
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
+    /// `when you discard this`: "When you discard this card".
+    DiscardsThis,
     /// `whenever this is dealt 3 or more damage`.
     DealtDamageAtLeast(TriggerObj, u32),
     /// `whenever this is dealt combat damage`.

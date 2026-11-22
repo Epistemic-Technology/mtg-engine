@@ -1,0 +1,74 @@
+# Replacement effects and triggers from the triggers-d branch: life loss
+# doubled during your turn, instants and sorceries exiled instead of put
+# into a graveyard, the first life gained during each of your turns, and
+# "When you discard this card".
+
+scenario "an opponent would lose life during your turn: twice that much, damage included" {
+  battlefield A: "Bloodletter of Aclazotz", 3 "Swamp", "Mountain"
+  hand A: "Sign in Blood", "Lava Spike"
+  turn 1 A: cast "Sign in Blood" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lava Spike" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 10
+}
+
+scenario "an opponent would lose life during your turn: not on their turn, nor for you" {
+  battlefield A: "Bloodletter of Aclazotz", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Sign in Blood"
+  hand B: "Lava Spike"
+  turn 1 A: cast "Sign in Blood" targeting player A
+  turn 2 B: cast "Lava Spike" targeting player A
+  run_to turn 2 postcombat_main
+  assert life A 15
+}
+
+scenario "an instant or sorcery card put into a graveyard from anywhere is exiled" {
+  battlefield A: "Dryad Militant", "Mountain", 3 "Swamp"
+  hand A: "Lightning Bolt", "Mind Rot"
+  hand B: "Shock", "Grizzly Bears"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Mind Rot" targeting player B
+  run_to turn 1 postcombat_main
+  assert exile A contains "Lightning Bolt"
+  assert exile A contains "Mind Rot"
+  assert exile B contains "Shock"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A count 0
+}
+
+scenario "gain life for the first time during each of your turns: once, and only on your turn" {
+  battlefield A: "Cat Collector", 3 "Plains"
+  hand A: "Healing Salve", "Healing Salve", "Healing Salve"
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Healing Salve" targeting player A
+  turn 2 A: cast "Healing Salve" targeting player A
+  run_to turn 2 end
+  assert battlefield A contains 1 "Cat"
+  assert life A 29
+}
+
+scenario "when you discard this card: you gain 3 life" {
+  battlefield B: 3 "Swamp"
+  hand A: "Titanbones, Towering Heart", "Grizzly Bears"
+  hand B: "Mind Rot"
+  start turn 2 B
+  turn 2 B: cast "Mind Rot" targeting player A
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Titanbones, Towering Heart"
+  assert life A 23
+}
+
+scenario "when you discard this card: not when it dies" {
+  battlefield A: "Titanbones, Towering Heart"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Titanbones, Towering Heart"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Titanbones, Towering Heart"
+  assert life A 20
+}

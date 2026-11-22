@@ -1,0 +1,8 @@
+card "Cat Collector" {
+  oracle_id 52f1b5a4-62ff-44de-80da-503d4e52d312
+  cost {2}{W}
+  type Creature — Human Citizen
+  pt 3/2
+  triggered when this enters: create 1 "Food"
+  triggered whenever you gain life first time each turn during your turn: create 1 "1/1 white Cat creature"
+}
